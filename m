@@ -1,57 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:47592 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754410AbaKOUMY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 15:12:24 -0500
-Date: Sat, 15 Nov 2014 21:12:18 +0100
-From: Konrad Zapalowicz <bergo.torino@gmail.com>
-To: Christian Resell <christian.resell@gmail.com>
-Cc: m.chehab@samsung.com, devel@driverdev.osuosl.org, askb23@gmail.com,
-	gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
-	yongjun_wei@trendmicro.com.cn, hans.verkuil@cisco.com,
-	pavel@ucw.cz, pali.rohar@gmail.com, fengguang.wu@intel.com,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] staging: media: bcm2048: fix coding style error
-Message-ID: <20141115201218.GC8088@t400>
-References: <20141115194337.GF15904@Kosekroken.jensen.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42476 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964995AbaKNLUz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 06:20:55 -0500
+Received: from dflxv15.itg.ti.com ([128.247.5.124])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id sAEBKs8G021140
+	for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 05:20:54 -0600
+Received: from DLEE70.ent.ti.com (dlee70.ent.ti.com [157.170.170.113])
+	by dflxv15.itg.ti.com (8.14.3/8.13.8) with ESMTP id sAEBKssA018288
+	for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 05:20:54 -0600
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <nikhil.nd@ti.com>
+Subject: [PATCH v2 0/4] VPE improvements
+Date: Fri, 14 Nov 2014 16:50:48 +0530
+Message-ID: <1415964052-30351-1-git-send-email-nikhil.nd@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141115194337.GF15904@Kosekroken.jensen.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/15, Christian Resell wrote:
-> Simple style fix (checkpatch.pl: "space prohibited before that ','").
-> For the eudyptula challenge (http://eudyptula-challenge.org/).
+This patchset adds following improvements for the ti-vpe driver.
+* Support SEQ_TB format for interlaced buffers
+	Some of the video decoders generate interlaced content in SEQ_TB format
+	Y top, T bottom in one plane and UV top, UV bottom in another
+* Improve multi instance latency
+	Improve m2m job scheduling in multi instance use cases
+	Start processing even if all buffers aren't present
+* N frame de-interlace support
+	For N input fields, generate N progressive frames
 
-Nice, however we do not need the information about the 'eudyptula
-challenge' in the commit message.
+Archit Taneja (1):
+  media: ti-vpe: Use line average de-interlacing for first 2 frames
 
-If you want to include extra information please do it after the '---'
-line (just below the signed-off). You will find more details in the
-SubmittingPatches (chapter 15) of the kernel documentation.
+Nikhil Devshatwar (3):
+  media: ti-vpe: Use data offset for getting dma_addr for a plane
+  media: ti-vpe: Do not perform job transaction atomically
+  media: ti-vpe: Add support for SEQ_TB buffers
 
-Thanks,
-Konrad
- 
-> Signed-off-by: Christian F. Resell <christian.resell@gmail.com>
-> ---
-> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> index 2bba370..bdc6854 100644
-> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> @@ -2707,7 +2707,7 @@ static int __exit bcm2048_i2c_driver_remove(struct i2c_client *client)
->   *	bcm2048_i2c_driver - i2c driver interface
->   */
->  static const struct i2c_device_id bcm2048_id[] = {
-> -	{ "bcm2048" , 0 },
-> +	{ "bcm2048", 0 },
->  	{ },
->  };
->  MODULE_DEVICE_TABLE(i2c, bcm2048_id);
-> _______________________________________________
-> devel mailing list
-> devel@linuxdriverproject.org
-> http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+ drivers/media/platform/ti-vpe/vpe.c |  193 ++++++++++++++++++++++++++++-------
+ 1 file changed, 155 insertions(+), 38 deletions(-)
+
+-- 
+1.7.9.5
+
