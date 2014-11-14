@@ -1,46 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:51962 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753356AbaKOKlo (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:33628 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754815AbaKNKgF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 05:41:44 -0500
-Received: by mail-wg0-f45.google.com with SMTP id x12so21500350wgg.18
-        for <linux-media@vger.kernel.org>; Sat, 15 Nov 2014 02:41:42 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <525911416014537@web7h.yandex.ru>
-References: <1918522.5V5b9CGsli@computer>
-	<5466A606.8030805@iki.fi>
-	<525911416014537@web7h.yandex.ru>
-Date: Sat, 15 Nov 2014 12:41:42 +0200
-Message-ID: <CAAZRmGw=uLyS+enctwq0To8Gc1dAeG6EZgE+t0v80gBEXg=H5A@mail.gmail.com>
-Subject: Re: [PATCH 1/3] tuners: si2157: Si2148 support.
-From: Olli Salonen <olli.salonen@iki.fi>
-To: CrazyCat <crazycat69@narod.ru>
-Cc: Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 14 Nov 2014 05:36:05 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH] [media] Add RGB444_1X12 and RGB565_1X16 media bus formats
+Date: Fri, 14 Nov 2014 11:36:00 +0100
+Message-Id: <1415961360-14898-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-What about defining the firmware for Si2148-A20, but since the file is
-the same as Si2158-A20 just point to the same file?
+Add RGB444_1X12 and RGB565_1X16 format definitions and update the
+documentation.
 
-#define SI2148_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 40 ++++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h              |  4 ++-
+ 2 files changed, 43 insertions(+), 1 deletion(-)
 
-Then if Si2158-A20 would in the future get a new firmware that would
-not work with Si2148, this would not break Si2148.
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 18730b9..8c396db 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -563,6 +563,46 @@
+ 	      <entry>b<subscript>1</subscript></entry>
+ 	      <entry>b<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="MEDIA-BUS-FMT-RGB444-1X12">
++	      <entry>MEDIA_BUS_FMT_RGB444_1X12</entry>
++	      <entry>0x100d</entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>r<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>b<subscript>0</subscript></entry>
++	    </row>
++	    <row id="MEDIA-BUS-FMT-RGB565-1X16">
++	      <entry>MEDIA_BUS_FMT_RGB565_1X16</entry>
++	      <entry>0x100d</entry>
++	      <entry></entry>
++	      &dash-ent-16;
++	      <entry>r<subscript>4</subscript></entry>
++	      <entry>r<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	      <entry>b<subscript>4</subscript></entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>b<subscript>0</subscript></entry>
++	    </row>
+ 	  </tbody>
+ 	</tgroup>
+       </table>
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 23b4090..cc7b79e 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -33,7 +33,7 @@
+ 
+ #define MEDIA_BUS_FMT_FIXED			0x0001
+ 
+-/* RGB - next is	0x100e */
++/* RGB - next is	0x1010 */
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+ #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
+@@ -47,6 +47,8 @@
+ #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
+ #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
+ #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
++#define MEDIA_BUS_FMT_RGB444_1X12		0x100e
++#define MEDIA_BUS_FMT_RGB565_1X16		0x100f
+ 
+ /* YUV (including grey) - next is	0x2024 */
+ #define MEDIA_BUS_FMT_Y8_1X8			0x2001
+-- 
+1.9.1
 
-Another point that came to my mind is that we start to have quite a
-list of chips there in the printouts (Si2147/Si2148/Si2157/Si2158) and
-more is coming - I'm working with an Si2146 device currently. Should
-we just say "Si214x/Si215x" there or something?
-
-Cheers,
--olli
-
-On 15 November 2014 03:22, CrazyCat <crazycat69@narod.ru> wrote:
-> 2148 is 2158 without analog support. Same firmware.
->
-> 15.11.2014, 03:02, "Antti Palosaari" <crope@iki.fi>:
->> I wonder if we should define own firmware for Si2148-A20 just for sure.
->> Olli?
