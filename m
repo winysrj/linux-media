@@ -1,52 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58882 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753375AbaKEISD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 03:18:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 6/8] cxusb: fix sparse warnings
-Date: Wed,  5 Nov 2014 09:17:50 +0100
-Message-Id: <1415175472-24203-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415175472-24203-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415175472-24203-1-git-send-email-hverkuil@xs4all.nl>
+Received: from ni.piap.pl ([195.187.100.4]:54356 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934378AbaKNLIE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 06:08:04 -0500
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Cc: "hans.verkuil" <hans.verkuil@cisco.com>,
+	Linux Media <linux-media@vger.kernel.org>
+References: <CAM_ZknVTqh0VnhuT3MdULtiqHJzxRhK-Pjyb58W=4Ldof0+jgA@mail.gmail.com>
+Date: Fri, 14 Nov 2014 12:00:59 +0100
+In-Reply-To: <CAM_ZknVTqh0VnhuT3MdULtiqHJzxRhK-Pjyb58W=4Ldof0+jgA@mail.gmail.com>
+	(Andrey Utkin's message of "Tue, 11 Nov 2014 19:46:46 +0200")
+MIME-Version: 1.0
+Message-ID: <m3sihmf3mc.fsf@t19.piap.pl>
+Content-Type: text/plain
+Subject: Re: [RFC] solo6x10 freeze, even with Oct 31's linux-next... any ideas or help?
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Andrey Utkin <andrey.utkin@corp.bluecherry.net> writes:
 
-cxusb.c:1443:32: warning: restricted __le16 degrades to integer
-cxusb.c:1487:32: warning: restricted __le16 degrades to integer
+> The problem is the following: after ~1 hour of uptime with working
+> application reading the streams, one card (the same one every time)
+> stops producing interrupts (counter in /proc/interrupts freezes), and
+> all threads reading from that card hang forever in
+> ioctl(VIDIOC_DQBUF).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/dvb-usb/cxusb.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index 8925b3946..b46f84d 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -1440,7 +1440,7 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
- 	si2168_config.ts_mode = SI2168_TS_PARALLEL;
- 
- 	/* CT2-4400v2 TS gets corrupted without this */
--	if (d->udev->descriptor.idProduct ==
-+	if (le16_to_cpu(d->udev->descriptor.idProduct) ==
- 		USB_PID_TECHNOTREND_TVSTICK_CT2_4400)
- 		si2168_config.ts_mode |= 0x40;
- 
-@@ -1484,7 +1484,7 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
- 	st->i2c_client_tuner = client_tuner;
- 
- 	/* initialize CI */
--	if (d->udev->descriptor.idProduct ==
-+	if (le16_to_cpu(d->udev->descriptor.idProduct) ==
- 		USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI) {
- 
- 		memcpy(o, "\xc0\x01", 2);
+There is a race condition in the IRQ handler, at least in 3.17.
+I don't know if it's related, will post a patch.
 -- 
-2.1.1
+Krzysztof Halasa
 
+Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
