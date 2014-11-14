@@ -1,56 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43891 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751425AbaKGLuf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Nov 2014 06:50:35 -0500
-Date: Fri, 7 Nov 2014 09:50:25 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v2 01/10] [media] Move mediabus format definition to a
- more standard place
-Message-ID: <20141107095025.4dbf6774@concha.lan>
-In-Reply-To: <20141107114358.GB3136@valkosipuli.retiisi.org.uk>
-References: <1415267829-4177-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1415267829-4177-2-git-send-email-boris.brezillon@free-electrons.com>
-	<20141107114358.GB3136@valkosipuli.retiisi.org.uk>
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:41232 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933889AbaKNAnk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Nov 2014 19:43:40 -0500
+Received: by mail-pd0-f172.google.com with SMTP id r10so15594845pdi.31
+        for <linux-media@vger.kernel.org>; Thu, 13 Nov 2014 16:43:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <545B621C.7080601@xs4all.nl>
+References: <CANZNk82AqfbSkUd_xONtjAxLePA0TMhS_5wuWERObyGSZ5QYoA@mail.gmail.com>
+	<CANZNk81oAbQ+t3gNqMH6b=ieGfyxEJu7oT=oFY9xABv=t7+f=w@mail.gmail.com>
+	<545B4006.1010401@xs4all.nl>
+	<545B621C.7080601@xs4all.nl>
+Date: Fri, 14 Nov 2014 04:43:39 +0400
+Message-ID: <CANZNk82hKOpOyV7LjFYVqkWrce0==oHYXvLF=UngZpA0nu4s0Q@mail.gmail.com>
+Subject: Re: v4l2-ctl bug(?) printing ctrl payload array
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media <linux-media@vger.kernel.org>, hans.verkuil@cisco.com,
+	Gregor Jasny <gjasny@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 07 Nov 2014 13:43:59 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+2014-11-06 15:57 GMT+04:00 Hans Verkuil <hverkuil@xs4all.nl>:
+> OK, I had some time and I made several fixes. Please pull from v4l-utils.git
+> and verify that it is now working correctly.
 
->>  +enum media_bus_format {  
-> 
-> There's no really a need to keep the definitions inside the enum. It looks a
-> little bit confusing to me. That made me realise something I missed
-> yesterday.
-> 
-> There's a difference: the enum in C++ is a different thing than in C, and
-> the enum type isn't able to contain any other values than those defined in
-> the enumeration.
-> 
-> So what I propose is the following. Keep enum v4l2_mbus_pixelcode around,
-> including the enum values. Define new values for MEDIA_BUS_* equivalents
-> using preprocessor macros, as you've done below. Drop the definition of enum
-> media_bus_format, and use u32 (or uint32_t) type for the variables.
-> 
-> This way the enum stays intact for existing C++ applications, and new
-> applications will have to use a 32-bit type.
-
-Yeah, enums at the public API is bad, as any change there can potentially
-cause C++ apps to break.
+Looks appropriate now. Thanks.
 
 -- 
-
-Cheers,
-Mauro
+Andrey Utkin
