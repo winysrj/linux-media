@@ -1,69 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:56324 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751650AbaK3UZ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Nov 2014 15:25:57 -0500
-Message-ID: <547B7D48.1010507@users.sourceforge.net>
-Date: Sun, 30 Nov 2014 21:25:44 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
+Received: from mail-vc0-f175.google.com ([209.85.220.175]:45420 "EHLO
+	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754280AbaKNH3r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 02:29:47 -0500
+Received: by mail-vc0-f175.google.com with SMTP id hy10so561549vcb.34
+        for <linux-media@vger.kernel.org>; Thu, 13 Nov 2014 23:29:46 -0800 (PST)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH 1/2] [media] tuners: Deletion of unnecessary checks before
- the function call "release_firmware"
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net> <547B7C36.1070600@users.sourceforge.net>
-In-Reply-To: <547B7C36.1070600@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAM_ZknWrub8adtrvTfBGrY6zHv1EGsRr-madZMdB-TqMoMrRDg@mail.gmail.com>
+References: <CAM_ZknVTqh0VnhuT3MdULtiqHJzxRhK-Pjyb58W=4Ldof0+jgA@mail.gmail.com>
+	<54624FF1.2060102@xs4all.nl>
+	<CAM_ZknWrub8adtrvTfBGrY6zHv1EGsRr-madZMdB-TqMoMrRDg@mail.gmail.com>
+Date: Fri, 14 Nov 2014 11:29:45 +0400
+Message-ID: <CAM_ZknUcBNbTCzK=xzW-HG_CMKBbG=uitD2089QVgx8QR5CVSw@mail.gmail.com>
+Subject: Re: [RFC] solo6x10 freeze, even with Oct 31's linux-next... any ideas
+ or help?
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "hans.verkuil" <hans.verkuil@cisco.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 30 Nov 2014 19:05:48 +0100
+On Tue, Nov 11, 2014 at 10:16 PM, Andrey Utkin
+<andrey.utkin@corp.bluecherry.net> wrote:
+> On Tue, Nov 11, 2014 at 8:05 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> I would first try to exclude hardware issues: since you say it is always
+>> the same card, try either replacing it or swapping it with another solo
+>> card and see if the problem follows the card or not. If it does, then it
+>> is likely a hardware problem. If it doesn't, then it suggests a race
+>> condition in the interrupt handling somewhere.
+>
+> Thanks for reply, Hans.
+> Surely valid idea. I will ask for this, but it is out of my physical reach.
+> If you have any suspects about driver code, please let me know.
 
-The release_firmware() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
+(We haven't tested the replacement yet.)
+To the big surprise, it turned out that FPS=2 on the channels works
+unstable, but FPS=30 works stable.
 
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/tuners/si2157.c | 3 +--
- drivers/media/tuners/xc5000.c | 3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 8e57696..e17ab1f 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -196,8 +196,7 @@ warm:
- 	return 0;
- 
- err:
--	if (fw)
--		release_firmware(fw);
-+	release_firmware(fw);
- 
- 	dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 	return ret;
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index 705c258..2a039de 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -1336,8 +1336,7 @@ static int xc5000_release(struct dvb_frontend *fe)
- 
- 	if (priv) {
- 		cancel_delayed_work(&priv->timer_sleep);
--		if (priv->firmware)
--			release_firmware(priv->firmware);
-+		release_firmware(priv->firmware);
- 		hybrid_tuner_release_state(priv);
- 	}
- 
 -- 
-2.1.3
-
+Bluecherry developer.
