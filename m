@@ -1,140 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35936 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754191AbaKRMva (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 07:51:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv7 PATCH 03/12] vb2: add dma_dir to the alloc memop.
-Date: Tue, 18 Nov 2014 13:50:59 +0100
-Message-Id: <1416315068-22936-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl>
-References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl>
+Received: from ni.piap.pl ([195.187.100.4]:35235 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161861AbaKNVdn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 16:33:43 -0500
+Received: from ni.piap.pl (localhost.localdomain [127.0.0.1])
+	by ni.piap.pl (Postfix) with ESMTP id C478E440E8C
+	for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 22:33:41 +0100 (CET)
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Linux Media <linux-media@vger.kernel.org>
+References: <m3lhneez9h.fsf@t19.piap.pl>
+	<CANZNk82C9SmBXx4T=CxRjLGOZPuRdahwF4mXYUk8pJ427vdCPQ@mail.gmail.com>
+Date: Fri, 14 Nov 2014 22:33:40 +0100
+In-Reply-To: <CANZNk82C9SmBXx4T=CxRjLGOZPuRdahwF4mXYUk8pJ427vdCPQ@mail.gmail.com>
+	(Andrey Utkin's message of "Fri, 14 Nov 2014 18:56:48 +0400")
+MIME-Version: 1.0
+Message-ID: <m3wq6xpivf.fsf@t19.piap.pl>
+Content-Type: text/plain
+Subject: Re: SOLO6x10: fix a race in IRQ handler.
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Andrey Utkin <andrey.krieger.utkin@gmail.com> writes:
 
-This is needed for the next patch where the dma-sg alloc memop needs
-to know the dma_dir.
+> could you please point to some reading which explains this moment? Or
+> you just know this from experience? The solo device specs are very
+> terse about this, so I considered that it should work fine without
+> regard to how fast we write back to that register.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/v4l2-core/videobuf2-core.c       | 4 +++-
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 +++-
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 5 +++--
- drivers/media/v4l2-core/videobuf2-vmalloc.c    | 4 +++-
- include/media/videobuf2-core.h                 | 4 +++-
- 5 files changed, 15 insertions(+), 6 deletions(-)
+The SOLO IRQ controller does the common thing, all drivers (for chips
+using the relatively modern "write 1 to clear") have to follow this
+sequence: first ACK the interrupts sources (so they are deasserted,
+though they can be asserted again if new events arrive), and only then
+service the chip.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 573f6fb..7aed8f2 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -189,6 +189,8 @@ static void __vb2_queue_cancel(struct vb2_queue *q);
- static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	enum dma_data_direction dma_dir =
-+		V4L2_TYPE_IS_OUTPUT(q->type) ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	void *mem_priv;
- 	int plane;
- 
-@@ -200,7 +202,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
- 
- 		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
--				      size, q->gfp_flags);
-+				      size, dma_dir, q->gfp_flags);
- 		if (IS_ERR_OR_NULL(mem_priv))
- 			goto free;
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 2bdffd3..c4305bf 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -155,7 +155,8 @@ static void vb2_dc_put(void *buf_priv)
- 	kfree(buf);
- }
- 
--static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
-+static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
-+			  enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct device *dev = conf->dev;
-@@ -176,6 +177,7 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
- 	/* Prevent the device from being released while the buffer is used */
- 	buf->dev = get_device(dev);
- 	buf->size = size;
-+	buf->dma_dir = dma_dir;
- 
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_dc_put;
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 6b54a14..2529b83 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -86,7 +86,8 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
- 	return 0;
- }
- 
--static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
-+static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
-+			      enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
- 	struct vb2_dma_sg_buf *buf;
- 	int ret;
-@@ -97,7 +98,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
- 		return NULL;
- 
- 	buf->vaddr = NULL;
--	buf->dma_dir = DMA_NONE;
-+	buf->dma_dir = dma_dir;
- 	buf->offset = 0;
- 	buf->size = size;
- 	/* size is already page aligned */
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index fc1eb45..bba2460 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -35,7 +35,8 @@ struct vb2_vmalloc_buf {
- 
- static void vb2_vmalloc_put(void *buf_priv);
- 
--static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
-+static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size,
-+			       enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
- 	struct vb2_vmalloc_buf *buf;
- 
-@@ -45,6 +46,7 @@ static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fl
- 
- 	buf->size = size;
- 	buf->vaddr = vmalloc_user(buf->size);
-+	buf->dma_dir = dma_dir;
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_vmalloc_put;
- 	buf->handler.arg = buf;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index d607871..bd2cec2 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -82,7 +82,9 @@ struct vb2_threadio_data;
-  *				  unmap_dmabuf.
-  */
- struct vb2_mem_ops {
--	void		*(*alloc)(void *alloc_ctx, unsigned long size, gfp_t gfp_flags);
-+	void		*(*alloc)(void *alloc_ctx, unsigned long size,
-+				  enum dma_data_direction dma_dir,
-+				  gfp_t gfp_flags);
- 	void		(*put)(void *buf_priv);
- 	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
- 
+> Also while you're at it, and if this really makes sense, you could
+> merge these two writes (unrecognized bits, then recognized bits) to
+> one write act.
+
+I think my patch does exactly this, merges both writes.
 -- 
-2.1.1
+Krzysztof Halasa
 
+Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
