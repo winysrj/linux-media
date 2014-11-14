@@ -1,45 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56136 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753847AbaKCVnY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 16:43:24 -0500
-Received: from dyn3-82-128-186-135.psoas.suomi.net ([82.128.186.135] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1XlPPH-00017z-L5
-	for linux-media@vger.kernel.org; Mon, 03 Nov 2014 23:43:23 +0200
-Message-ID: <5457F6FB.1040204@iki.fi>
-Date: Mon, 03 Nov 2014 23:43:23 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ig0-f172.google.com ([209.85.213.172]:49627 "EHLO
+	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754365AbaKNWJx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 17:09:53 -0500
+Received: by mail-ig0-f172.google.com with SMTP id a13so477188igq.17
+        for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 14:09:53 -0800 (PST)
+Date: Fri, 14 Nov 2014 14:09:50 -0800
+From: Dmitry Torokhov <dtor@chromium.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] exynos4-is: fix error handling of
+ irq_of_parse_and_map
+Message-ID: <20141114220950.GA34576@dtor-ws>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL 3.19] one trivial si2168 patch
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit f4df95bcbb7b142bdb4cf201f5e1bd3985f8c804:
+Return value of irq_of_parse_and_map() is unsigned int, with 0
+indicating failure, so testing for negative result never works.
 
-   [media] m88ds3103: add support for the demod of M88RS6000 (2014-11-03 
-18:24:15 -0200)
+Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
+---
 
-are available in the git repository at:
+Not tested, found by casual code inspection.
 
-   git://linuxtv.org/anttip/media_tree.git si2168
+ drivers/media/platform/exynos4-is/fimc-is.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-for you to fetch changes up to 991b315b248c4d773f1142778ec02e060b17a9fc:
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 94c6b47..0fdca86 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -814,9 +814,9 @@ static int fimc_is_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	is->irq = irq_of_parse_and_map(dev->of_node, 0);
+-	if (is->irq < 0) {
++	if (!is->irq) {
+ 		dev_err(dev, "no irq found\n");
+-		return is->irq;
++		return -EINVAL;
+ 	}
+ 
+ 	ret = fimc_is_get_clocks(is);
+-- 
+2.1.0.rc2.206.gedb03e5
 
-   si2168: do not print device is warm every-time when opened 
-(2014-11-03 23:28:39 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (1):
-       si2168: do not print device is warm every-time when opened
-
-  drivers/media/dvb-frontends/si2168.c | 3 +--
-  1 file changed, 1 insertion(+), 2 deletions(-)
 
 -- 
-http://palosaari.fi/
+Dmitry
