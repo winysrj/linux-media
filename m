@@ -1,129 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44088 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:44979 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751884AbaKINMH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Nov 2014 08:12:07 -0500
-Date: Sun, 9 Nov 2014 11:12:00 -0200
+	id S1161286AbaKNTn5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 14:43:57 -0500
+Date: Fri, 14 Nov 2014 17:43:52 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: =?UTF-8?B?0JHQsNGA0YIg0JPQvtC/0L3QuNC6?= <bart.gopnik@gmail.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Mike Thomas <rmthomas@sciolus.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: STK1160 Sharpness
-Message-ID: <20141109111200.6fb604c8@recife.lan>
-In-Reply-To: <CALF0-+WuVtk3SpwCNfJB88jvgXEujVPmT9ute6Ohdhi=0VsOSw@mail.gmail.com>
-References: <CAL+AA1ntfVxkaHhY8qNciBkHRw0SXOAzBJgV+A9Y7oYtbD38mQ@mail.gmail.com>
-	<CALF0-+VpPttePKF-VTLJ5Y29_EZtSz96PwN9av1SOkkc414CRA@mail.gmail.com>
-	<CAL+AA1nUAgOYUeWxrgeHiWaDSkHvh0yXuwA-gjdUomn-s_HVyA@mail.gmail.com>
-	<CALF0-+WuVtk3SpwCNfJB88jvgXEujVPmT9ute6Ohdhi=0VsOSw@mail.gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] Panasonic MN8847 and MN88473
+Message-ID: <20141114174352.2bd436f9@recife.lan>
+In-Reply-To: <5465604D.4090003@iki.fi>
+References: <5465604D.4090003@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(thread reordered, to be bottom-posting)
+Em Fri, 14 Nov 2014 03:52:13 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Em Sat, 8 Nov 2014 19:12:59 -0300
-Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
-
-> >>> I have 05e1:0408 USB ID STK1160 chip GM7113 (SAA7113 clone) video
-> >>> processor device.
-> >>>
-> >>> Is there way to control for sharpness improvement via STK1160 driver?
-> >>> SAA7113 Data Sheet says that control for sharpness via I2C-bus
-> >>> subaddress 09H. Brightness, saturation, contrast, hue, etc. work
-> >>> perfectly. 
-
-First of all, GM7113 is not identical to saa7113. We had to add some
-code there for the gm7113 to properly work, as the saa7113 settings
-doesn't work there.
-
-So, even if the saa7113 datasheet shows a way to set sharpness, it
-is possible that such setting would be different on gm7113.
-
-> >>> Is it implemented control for sharpness in the diver?
-
-No. The only controls currently implemented there are:
-
-drivers/media/i2c/saa7115.c:    case V4L2_CID_CHROMA_AGC:
-drivers/media/i2c/saa7115.c:    case V4L2_CID_BRIGHTNESS:
-drivers/media/i2c/saa7115.c:    case V4L2_CID_CONTRAST:
-drivers/media/i2c/saa7115.c:    case V4L2_CID_SATURATION:
-drivers/media/i2c/saa7115.c:    case V4L2_CID_HUE:
-drivers/media/i2c/saa7115.c:    case V4L2_CID_CHROMA_AGC:
-
-> >>> Or at least, is it possible to implement it?
-
-Sure, and it shouldn't be hard to do it. It is just a matter
-of adding a new case at saa711x_s_ctrl to handle the sharpness,
-but see below.
-
-> >>>
-> >>> Thanks in advance!
-
-> Hi Барт,
+> The following changes since commit dd0a6fe2bc3055cd61e369f97982c88183b1f0a0:
 > 
-> If at all possible, remember to avoid top-posting, because it makes
-> the discussion harder to follow.
+>    [media] dvb-usb-dvbsky: fix i2c adapter for sp2 device (2014-11-11 
+> 12:55:32 -0200)
 > 
-> On Sat, Nov 8, 2014 at 1:42 PM, Барт Гопник <bart.gopnik@gmail.com> wrote:
-> > Looks like the problem is not in the v4l. The sharpness controlled for
-> > my webcam is perfectly, but I can't conrol sharpness for my EasyCap
-> > STK1160 device and I think the problem is in STK1160 driver. I
-> > carefully looked through all the source codes of the driver and found
-> > no references of sharpness. I can control brightness, saturation,
-> > etc., but I can't control sharpness. Why do you advise me asking this
-> > question on the video4linux mailing list? Do you think they can help?
-> >
+> are available in the git repository at:
 > 
-> Sure, they can help. I've just Cced the list.
+>    git://linuxtv.org/anttip/media_tree.git astrometa
 > 
-> The video4linux mailing list is the place to ask this question,
-> because it supports *all* the media drivers (not only v4l core). Any driver
-> in drivers/media, including saa7115 and stk1160 drivers, are supported there.
+> for you to fetch changes up to 9e0d9707648a6ef3def5a468ac57047bf8632d29:
 > 
-> On the other side, this has nothing to do with the stk1160 driver,
-> which is only in
-> charge of the STK1160 chip (the USB chipset). You are looking at the
-> video decoder's
-> datasheet, so this must be implemented in the driver.
-
-Yes. You need to first add support to saa7115 driver for the sharpness
-control. This should be a patch at saa711x_s_ctrl case, like:
-
-	case V4L2_CID_SHARPNESS:
-		saa711x_write(sd, SOME_REGISTER_NAME_HERE, ctrl->val);
-		break;
-
-
-Then, at stk1160, you need to add support for the control framework.
-
-Then the control framework need to know what controls should be exposed
-to userspace, with something like (looking at em28xx driver):
-		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-				  V4L2_CID_SHARPNESS,
-				  0, 0x0f, 1, SHARPNESS_DEFAULT);
-
-in order to expose the sharpness control.
-
-A function callback is also needed there, in order to call the saa7115
-implementation.
-
+>    rtl28xxu: add SDR module for devices having R828D tuner (2014-11-12 
+> 05:58:07 +0200)
 > 
-> Regarding your question, subaddress 09h seems to be used in the saa7115 driver
-> (grep 09_LUMA) but I'm not sure how it works.
+> ----------------------------------------------------------------
+> Antti Palosaari (28):
+>        mn88472: Panasonic MN88472 demod driver (DVB-C only)
+>        mn88472: correct attach symbol name
+>        mn88472: add small delay to wait DVB-C lock
+>        mn88472: rename mn88472_c.c => mn88472.c
+>        mn88472: rename state to dev
+>        mn88472: convert driver to I2C client
+>        mn88472: Convert driver to I2C RegMap API
+>        mn88472: implement DVB-T and DVB-T2
+>        mn88472: move to staging
+>        mn88472: add staging TODO
+>        MAINTAINERS: add mn88472 (Panasonic MN88472)
+>        mn88473: Panasonic MN88473 DVB-T/T2/C demod driver
+>        mn88473: add support for DVB-T2
+>        mn88473: implement DVB-T mode
+>        mn88473: improve IF frequency and BW handling
+>        mn88473: convert driver to I2C binding
+>        mn88473: convert to RegMap API
+>        mn88473: move to staging
+>        mn88473: add staging TODO
+>        MAINTAINERS: add mn88473 (Panasonic MN88473)
+>        r820t: add DVB-C config
 
-See item 8.4 at:
-	http://www.nxp.com/documents/data_sheet/SAA7113H.pdf
+Applied, thanks.
 
-Not sure what would be the proper way to implement it in a way that
-the sharpness will be controlled by just one value, as we can't
-simply write the data directly into register 9, as there are
-actually 6 different values controlled by the register, including
-one to enable/disable sharpness adjustments.
+>        rtl2832: implement PIP mode
 
-Perhaps it should be mapped via more than one control.
+Not applied - need API discussions.
+
+>        rtl28xxu: enable demod ADC only when needed
+Applied, thanks.
+
+>        rtl28xxu: add support for Panasonic MN88472 slave demod
+>        rtl28xxu: add support for Panasonic MN88473 slave demod
+>        rtl28xxu: rename tuner I2C client pointer
+>        rtl28xxu: remove unused SDR attach logic
+>        rtl28xxu: add SDR module for devices having R828D tuner
+
+Not applied, due to the staging dependencies, as explained. I opted
+to not apply the patches after "add support for Panasonic MN88472",
+to avoid merging troubles.
 
 Regards,
 Mauro
+> 
+>   MAINTAINERS                                  |  22 +++++++
+>   drivers/media/dvb-frontends/mn88472.h        |  38 ++++++++++++
+>   drivers/media/dvb-frontends/mn88473.h        |  38 ++++++++++++
+>   drivers/media/dvb-frontends/rtl2832.c        |  42 ++++++++++++-
+>   drivers/media/tuners/r820t.c                 |  12 ++++
+>   drivers/media/usb/dvb-usb-v2/Kconfig         |   2 +
+>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c      | 239 
+> ++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------
+>   drivers/media/usb/dvb-usb-v2/rtl28xxu.h      |   8 ++-
+>   drivers/staging/media/Kconfig                |   4 ++
+>   drivers/staging/media/Makefile               |   2 +
+>   drivers/staging/media/mn88472/Kconfig        |   7 +++
+>   drivers/staging/media/mn88472/Makefile       |   5 ++
+>   drivers/staging/media/mn88472/TODO           |  21 +++++++
+>   drivers/staging/media/mn88472/mn88472.c      | 523 
+> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>   drivers/staging/media/mn88472/mn88472_priv.h |  36 +++++++++++
+>   drivers/staging/media/mn88473/Kconfig        |   7 +++
+>   drivers/staging/media/mn88473/Makefile       |   5 ++
+>   drivers/staging/media/mn88473/TODO           |  21 +++++++
+>   drivers/staging/media/mn88473/mn88473.c      | 464 
+> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>   drivers/staging/media/mn88473/mn88473_priv.h |  36 +++++++++++
+>   20 files changed, 1464 insertions(+), 68 deletions(-)
+>   create mode 100644 drivers/media/dvb-frontends/mn88472.h
+>   create mode 100644 drivers/media/dvb-frontends/mn88473.h
+>   create mode 100644 drivers/staging/media/mn88472/Kconfig
+>   create mode 100644 drivers/staging/media/mn88472/Makefile
+>   create mode 100644 drivers/staging/media/mn88472/TODO
+>   create mode 100644 drivers/staging/media/mn88472/mn88472.c
+>   create mode 100644 drivers/staging/media/mn88472/mn88472_priv.h
+>   create mode 100644 drivers/staging/media/mn88473/Kconfig
+>   create mode 100644 drivers/staging/media/mn88473/Makefile
+>   create mode 100644 drivers/staging/media/mn88473/TODO
+>   create mode 100644 drivers/staging/media/mn88473/mn88473.c
+>   create mode 100644 drivers/staging/media/mn88473/mn88473_priv.h
+> 
