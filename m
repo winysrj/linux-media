@@ -1,74 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:49701 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751270AbaKJPoU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 10:44:20 -0500
-Received: by mail-ie0-f172.google.com with SMTP id at20so9521287iec.17
-        for <linux-media@vger.kernel.org>; Mon, 10 Nov 2014 07:44:19 -0800 (PST)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36642 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964995AbaKNLU5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 06:20:57 -0500
+Received: from dlelxv90.itg.ti.com ([172.17.2.17])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id sAEBKvT7031193
+	for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 05:20:57 -0600
+Received: from DLEE71.ent.ti.com (dlee71.ent.ti.com [157.170.170.114])
+	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id sAEBKvLw002908
+	for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 05:20:57 -0600
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <nikhil.nd@ti.com>
+Subject: [PATCH v2 2/4] media: ti-vpe: Use line average de-interlacing for first 2 frames
+Date: Fri, 14 Nov 2014 16:50:50 +0530
+Message-ID: <1415964052-30351-3-git-send-email-nikhil.nd@ti.com>
+In-Reply-To: <1415964052-30351-1-git-send-email-nikhil.nd@ti.com>
+References: <1415964052-30351-1-git-send-email-nikhil.nd@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <20141110130659.GA8214@valkosipuli.retiisi.org.uk>
-References: <CAGU7XX3ODOJ+xRk9GAJi8Wk8bj5LONR7WVFh3ujVM1oL=HBL7g@mail.gmail.com>
-	<20141110130659.GA8214@valkosipuli.retiisi.org.uk>
-Date: Mon, 10 Nov 2014 17:44:19 +0200
-Message-ID: <CAGU7XX3_71aikhWqDeyVvZFSZg6Dpw=pR0scYfQnBuAz=ZbfCA@mail.gmail.com>
-Subject: Re: [PATCH 1/1] v4l: omap4iss: Fix dual lane camera mode problem
-From: Marina Vasilevsky <marinavasilevsky@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Archit Taneja <archit@ti.com>
 
-Now I understand that the rate is not correct.
-I'll fix it and retest.
+For n input fields, the VPE de-interlacer creates n - 2 progressive frames.
 
-Thanks,
-Marina
+To support this, we use line average mode of de-interlacer for the first 2
+input fields to generate 2 progressive frames. We then revert back to the
+preferred EDI method, and create n - 2 frames, creating a sum of n frames.
 
-On Mon, Nov 10, 2014 at 3:06 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Marina,
->
-> On Mon, Nov 10, 2014 at 10:11:31AM +0200, Marina Vasilevsky wrote:
->> ---
->>  drivers/staging/media/omap4iss/iss_csiphy.c |    3 +--
->>  1 file changed, 1 insertion(+), 2 deletions(-)
->>
->> diff --git a/drivers/staging/media/omap4iss/iss_csiphy.c
->> b/drivers/staging/media/omap4iss/iss_csiphy.c
->> index 7c3d55d..b6e0b32 100644
->> --- a/drivers/staging/media/omap4iss/iss_csiphy.c
->> +++ b/drivers/staging/media/omap4iss/iss_csiphy.c
->> @@ -196,8 +196,7 @@ int omap4iss_csiphy_config(struct iss_device *iss,
->>          return -EINVAL;
->>
->>      csi2_ddrclk_khz = pipe->external_rate / 1000
->> -        / (2 * csi2->phy->used_data_lanes)
->> -        * pipe->external_bpp;
->> +        / 2 * pipe->external_bpp;
->>
->>      /*
->>       * THS_TERM: Programmed value = ceil(12.5 ns/DDRClk period) - 1.
->> --
->>
->> Hello,
->>
->> I tested this fix with OMAP4 connected to OV5640 camera using 2 lanes.
->> Have anybody tested other camera with 2 lanes connected to OMAP?
->>
->> The value csi2_ddrclk_khz is different per camera.
->> I have also driver for OV7695. Current iss params structure does not
->> allow to configure it properly from board file.
->
-> Are you certain the pixel rate value provided by the sensor driver is
-> correct?
->
-> The formula in iss_csiphy.c is fine as far as I understand.
->
-> --
-> Kind regards,
->
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+Signed-off-by: Archit Taneja <archit@ti.com>
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index e59eb81..4d3ab43 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -806,6 +806,23 @@ static void set_dei_shadow_registers(struct vpe_ctx *ctx)
+ 	ctx->load_mmrs = true;
+ }
+ 
++static void config_edi_input_mode(struct vpe_ctx *ctx, int mode)
++{
++	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
++	u32 *edi_config_reg = &mmr_adb->dei_regs[3];
++
++	if (mode & 0x2)
++		write_field(edi_config_reg, 1, 1, 2);	/* EDI_ENABLE_3D */
++
++	if (mode & 0x3)
++		write_field(edi_config_reg, 1, 1, 3);	/* EDI_CHROMA_3D  */
++
++	write_field(edi_config_reg, mode, VPE_EDI_INP_MODE_MASK,
++		VPE_EDI_INP_MODE_SHIFT);
++
++	ctx->load_mmrs = true;
++}
++
+ /*
+  * Set the shadow registers whose values are modified when either the
+  * source or destination format is changed.
+@@ -1118,6 +1135,15 @@ static void device_run(void *priv)
+ 	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
+ 	WARN_ON(ctx->dst_vb == NULL);
+ 
++	if (ctx->deinterlacing) {
++		/*
++		 * we have output the first 2 frames through line average, we
++		 * now switch to EDI de-interlacer
++		 */
++		if (ctx->sequence == 2)
++			config_edi_input_mode(ctx, 0x3); /* EDI (Y + UV) */
++	}
++
+ 	/* config descriptors */
+ 	if (ctx->dev->loaded_mmrs != ctx->mmr_adb.dma_addr || ctx->load_mmrs) {
+ 		vpdma_map_desc_buf(ctx->dev->vpdma, &ctx->mmr_adb);
+@@ -1779,6 +1805,9 @@ static int vpe_streamon(struct file *file, void *priv, enum v4l2_buf_type type)
+ {
+ 	struct vpe_ctx *ctx = file2ctx(file);
+ 
++	if (ctx->deinterlacing)
++		config_edi_input_mode(ctx, 0x0);
++
+ 	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
+ }
+ 
+-- 
+1.7.9.5
+
