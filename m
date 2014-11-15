@@ -1,74 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42488 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752193AbaKBMcv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:51 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 12/14] [media] cx231xx: use dev_info() for extension load/unload
-Date: Sun,  2 Nov 2014 10:32:35 -0200
-Message-Id: <58369096f1fee7d71942eae7a40db6d7c1c368bf.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:51962 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753356AbaKOKlo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Nov 2014 05:41:44 -0500
+Received: by mail-wg0-f45.google.com with SMTP id x12so21500350wgg.18
+        for <linux-media@vger.kernel.org>; Sat, 15 Nov 2014 02:41:42 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <525911416014537@web7h.yandex.ru>
+References: <1918522.5V5b9CGsli@computer>
+	<5466A606.8030805@iki.fi>
+	<525911416014537@web7h.yandex.ru>
+Date: Sat, 15 Nov 2014 12:41:42 +0200
+Message-ID: <CAAZRmGw=uLyS+enctwq0To8Gc1dAeG6EZgE+t0v80gBEXg=H5A@mail.gmail.com>
+Subject: Re: [PATCH 1/3] tuners: si2157: Si2148 support.
+From: Olli Salonen <olli.salonen@iki.fi>
+To: CrazyCat <crazycat69@narod.ru>
+Cc: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we're using dev_foo, the logs become like:
+What about defining the firmware for Si2148-A20, but since the file is
+the same as Si2158-A20 just point to the same file?
 
-	usb 1-2: DVB: registering adapter 0 frontend 0 (Fujitsu mb86A20s)...
-	usb 1-2: Successfully loaded cx231xx-dvb
-	cx231xx: Cx231xx dvb Extension initialized
+#define SI2148_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
 
-It is not clear, by the logs, that usb 1-2 name is an alias for
-cx231xx. So, we also need to use dvb_info() at extension load/unload.
+Then if Si2158-A20 would in the future get a new firmware that would
+not work with Si2148, this would not break Si2148.
 
-After the patch, it will print:
-	usb 1-2: Cx231xx dvb Extension initialized
+Another point that came to my mind is that we start to have quite a
+list of chips there in the printouts (Si2147/Si2148/Si2157/Si2158) and
+more is coming - I'm working with an Si2146 device currently. Should
+we just say "Si214x/Si215x" there or something?
 
-With is coherent with the other logs.
+Cheers,
+-olli
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index 36c3ecf204c1..64e907f02a02 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -98,10 +98,10 @@ int cx231xx_register_extension(struct cx231xx_ops *ops)
- 
- 	mutex_lock(&cx231xx_devlist_mutex);
- 	list_add_tail(&ops->next, &cx231xx_extension_devlist);
--	list_for_each_entry(dev, &cx231xx_devlist, devlist)
-+	list_for_each_entry(dev, &cx231xx_devlist, devlist) {
- 		ops->init(dev);
--
--	printk(KERN_INFO DRIVER_NAME ": %s initialized\n", ops->name);
-+		dev_info(&dev->udev->dev, "%s initialized\n", ops->name);
-+	}
- 	mutex_unlock(&cx231xx_devlist_mutex);
- 	return 0;
- }
-@@ -112,11 +112,11 @@ void cx231xx_unregister_extension(struct cx231xx_ops *ops)
- 	struct cx231xx *dev = NULL;
- 
- 	mutex_lock(&cx231xx_devlist_mutex);
--	list_for_each_entry(dev, &cx231xx_devlist, devlist)
-+	list_for_each_entry(dev, &cx231xx_devlist, devlist) {
- 		ops->fini(dev);
-+		dev_info(&dev->udev->dev, "%s removed\n", ops->name);
-+	}
- 
--
--	printk(KERN_INFO DRIVER_NAME ": %s removed\n", ops->name);
- 	list_del(&ops->next);
- 	mutex_unlock(&cx231xx_devlist_mutex);
- }
--- 
-1.9.3
-
+On 15 November 2014 03:22, CrazyCat <crazycat69@narod.ru> wrote:
+> 2148 is 2158 without analog support. Same firmware.
+>
+> 15.11.2014, 03:02, "Antti Palosaari" <crope@iki.fi>:
+>> I wonder if we should define own firmware for Si2148-A20 just for sure.
+>> Olli?
