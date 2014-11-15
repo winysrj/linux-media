@@ -1,90 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:45633 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752314AbaKVAX2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 19:23:28 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: m.chehab@samsung.com, ttmesterr@gmail.com,
-	dheitmueller@kernellabs.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media/au0828: Fix IR stop, poll to not access device during disconnect
-Date: Fri, 21 Nov 2014 17:17:08 -0700
-Message-Id: <1416615428-9010-1-git-send-email-shuahkh@osg.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:49232 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754679AbaKOBgn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 20:36:43 -0500
+Message-ID: <5466AE29.2080502@iki.fi>
+Date: Sat, 15 Nov 2014 03:36:41 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: CrazyCat <crazycat69@narod.ru>,
+	linux-media <linux-media@vger.kernel.org>,
+	Olli Salonen <olli.salonen@iki.fi>
+Subject: Re: [PATCH 1/3] tuners: si2157: Si2148 support.
+References: <1918522.5V5b9CGsli@computer> <5466A606.8030805@iki.fi> <525911416014537@web7h.yandex.ru>
+In-Reply-To: <525911416014537@web7h.yandex.ru>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-au0828 IR stop and poll routines continue to access device
-while usb disconnect is in progress. There is small window
-between device disconnect and usb interface is set to null.
-This results in filling the log with several of the following
-error messages. Fix it to detect device disconnect condition
-and avoid device access.
+On 11/15/2014 03:22 AM, CrazyCat wrote:
+> 2148 is 2158 without analog support. Same firmware.
+>
+> 15.11.2014, 03:02, "Antti Palosaari" <crope@iki.fi>:
+>> I wonder if we should define own firmware for Si2148-A20 just for sure.
+>> Olli?
 
-Nov 20 18:58:02 anduin kernel: [  102.949819] au0828: au0828_usb_disconnect()
-Nov 20 18:58:02 anduin kernel: [  102.950046] au0828: send_control_msg() Failed sending control message, error -71.
-Nov 20 18:58:02 anduin kernel: [  102.950052] au0828: send_control_msg() Failed sending control message, error -19.
-Nov 20 18:58:02 anduin kernel: [  102.950056] au0828: send_control_msg() Failed sending control message, error -19.
-Nov 20 18:58:02 anduin kernel: [  102.950061] au0828: send_control_msg() Failed sending control message, error -19.
-Nov 20 18:58:02 anduin kernel: [  102.950065] au0828: recv_control_msg() Failed receiving control message, error -19.
-Nov 20 18:58:02 anduin kernel: [  102.950069] au0828: recv_control_msg() Failed receiving control message, error -19.
-Nov 20 18:58:02 anduin kernel: [  102.950072] au0828: recv_control_msg() Failed receiving control message, error -19.
+But still... I have seen one case where even same revision of si2168 
+needs different firmware. It is not very clear for me how SiLabs uses 
+these firmwares, but at least it seems to be:
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c  |    8 ++++++++
- drivers/media/usb/au0828/au0828-input.c |   11 +++++++++--
- 2 files changed, 17 insertions(+), 2 deletions(-)
+* There is different versions done from same chips. A10 < A20 < A30 < 
+B40 and so. I think that means digital logic inside of chip is changed 
+when they change that revision number.
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index bc06480..2c3d3c1 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -153,6 +153,14 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
- 
- 	dprintk(1, "%s()\n", __func__);
- 
-+	/* there is a small window after disconnect, before
-+	   dev->usbdev is NULL, for poll (e.g: IR) try to access
-+	   the device and fill the dmesg with error messages.
-+	   Set the status so poll routines can check and avoid
-+	   access after disconnect.
-+	*/
-+	dev->dev_state = DEV_DISCONNECTED;
-+
- 	au0828_rc_unregister(dev);
- 	/* Digital TV */
- 	au0828_dvb_unregister(dev);
-diff --git a/drivers/media/usb/au0828/au0828-input.c b/drivers/media/usb/au0828/au0828-input.c
-index 63995f9..c7185c1 100644
---- a/drivers/media/usb/au0828/au0828-input.c
-+++ b/drivers/media/usb/au0828/au0828-input.c
-@@ -129,6 +129,10 @@ static int au0828_get_key_au8522(struct au0828_rc *ir)
- 	int prv_bit, bit, width;
- 	bool first = true;
- 
-+	/* do nothing if device is disconnected */
-+	if (ir->dev->dev_state == DEV_DISCONNECTED)
-+		return 0;
-+
- 	/* Check IR int */
- 	rc = au8522_rc_read(ir, 0xe1, -1, buf, 1);
- 	if (rc < 0 || !(buf[0] & (1 << 4))) {
-@@ -255,8 +259,11 @@ static void au0828_rc_stop(struct rc_dev *rc)
- 
- 	cancel_delayed_work_sync(&ir->work);
- 
--	/* Disable IR */
--	au8522_rc_clear(ir, 0xe0, 1 << 4);
-+	/* do nothing if device is disconnected */
-+	if (ir->dev->dev_state != DEV_DISCONNECTED) {
-+		/* Disable IR */
-+		au8522_rc_clear(ir, 0xe0, 1 << 4);
-+	}
- }
- 
- static int au0828_probe_i2c_ir(struct au0828_dev *dev)
+* Every chip has a ROM, containing default firmware. Firmware which 
+driver downloads is just a patch to that ROM. ROM is updated regularly 
+when new patch of chips are manufactured.
+
+
+So currently I have feeling it is better to define as many firmware 
+files as there chip revisions available, even same firmware works for 
+multiple chip models/versions/revisions.
+
+regards
+Antti
+
 -- 
-1.7.10.4
-
+http://palosaari.fi/
