@@ -1,69 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:60930 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753747AbaKRLYB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56892 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754009AbaKOOtq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 06:24:01 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH 01/12] media: s3c-camif: use vb2_ops_wait_prepare/finish helper
-Date: Tue, 18 Nov 2014 11:23:30 +0000
-Message-Id: <1416309821-5426-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+	Sat, 15 Nov 2014 09:49:46 -0500
+Message-ID: <546767FD.2080706@iki.fi>
+Date: Sat, 15 Nov 2014 16:49:33 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH] [media] Add RGB444_1X12 and RGB565_1X16 media bus formats
+References: <1415961360-14898-1-git-send-email-boris.brezillon@free-electrons.com>	<20141114135831.GC8907@valkosipuli.retiisi.org.uk> <20141114160446.70c1b8b9@bbrezillon>
+In-Reply-To: <20141114160446.70c1b8b9@bbrezillon>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
----
- drivers/media/platform/s3c-camif/camif-capture.c | 17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+Hi Boris,
 
-diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-index aa40c82..54479d6 100644
---- a/drivers/media/platform/s3c-camif/camif-capture.c
-+++ b/drivers/media/platform/s3c-camif/camif-capture.c
-@@ -536,24 +536,12 @@ static void buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&camif->slock, flags);
- }
- 
--static void camif_lock(struct vb2_queue *vq)
--{
--	struct camif_vp *vp = vb2_get_drv_priv(vq);
--	mutex_lock(&vp->camif->lock);
--}
--
--static void camif_unlock(struct vb2_queue *vq)
--{
--	struct camif_vp *vp = vb2_get_drv_priv(vq);
--	mutex_unlock(&vp->camif->lock);
--}
--
- static const struct vb2_ops s3c_camif_qops = {
- 	.queue_setup	 = queue_setup,
- 	.buf_prepare	 = buffer_prepare,
- 	.buf_queue	 = buffer_queue,
--	.wait_prepare	 = camif_unlock,
--	.wait_finish	 = camif_lock,
-+	.wait_prepare	 = vb2_ops_wait_prepare,
-+	.wait_finish	 = vb2_ops_wait_finish,
- 	.start_streaming = start_streaming,
- 	.stop_streaming	 = stop_streaming,
- };
-@@ -1161,6 +1149,7 @@ int s3c_camif_register_video_node(struct camif_dev *camif, int idx)
- 	q->buf_struct_size = sizeof(struct camif_buffer);
- 	q->drv_priv = vp;
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->lock = &vp->camif->lock;
- 
- 	ret = vb2_queue_init(q);
- 	if (ret)
+Boris Brezillon wrote:
+> Hi Sakari,
+> 
+> On Fri, 14 Nov 2014 15:58:31 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> 
+>> Hi Boris,
+>>
+>> On Fri, Nov 14, 2014 at 11:36:00AM +0100, Boris Brezillon wrote:
+...
+>>> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+>>> index 23b4090..cc7b79e 100644
+>>> --- a/include/uapi/linux/media-bus-format.h
+>>> +++ b/include/uapi/linux/media-bus-format.h
+>>> @@ -33,7 +33,7 @@
+>>>  
+>>>  #define MEDIA_BUS_FMT_FIXED			0x0001
+>>>  
+>>> -/* RGB - next is	0x100e */
+>>> +/* RGB - next is	0x1010 */
+>>>  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+>>>  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+>>>  #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
+>>> @@ -47,6 +47,8 @@
+>>>  #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
+>>>  #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
+>>>  #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
+>>> +#define MEDIA_BUS_FMT_RGB444_1X12		0x100e
+>>> +#define MEDIA_BUS_FMT_RGB565_1X16		0x100f
+>>
+>> I'd arrange these according to BPP and bits per sample, both in the header
+>> and documentation.
+> 
+> I cannot keep both macro values and BPP/bits per sample in incrementing
+> order. Are you sure you prefer to order macros in BPP/bits per sample
+> order ?
+
+If you take a look elsewhere in the header, you'll notice that the
+ordering has preferred the BPP value (and other values with semantic
+significance) over the numeric value of the definition. I'd just prefer
+to keep it that way. This is also why the "next is" comments are there.
+
 -- 
-1.9.1
+Kind regards,
 
+Sakari Ailus
+sakari.ailus@iki.fi
