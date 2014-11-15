@@ -1,83 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:56278 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750831AbaK0FgP (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60520 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934378AbaKODT1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 00:36:15 -0500
-Received: by mail-qa0-f49.google.com with SMTP id s7so2829609qap.8
-        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 21:36:14 -0800 (PST)
-Date: Thu, 27 Nov 2014 02:36:10 -0300
-From: Ismael Luceno <ismael.luceno@gmail.com>
-To: khalasa@piap.pl (Krzysztof =?UTF-8?B?SGHFgmFzYQ==?=)
-Cc: Linux Media <linux-media@vger.kernel.org>
-Subject: Re: SOLO6x10: fix a race in IRQ handler.
-Message-ID: <20141127023610.36d13623@pirotess.bf.iodev.co.uk>
-In-Reply-To: <m3lhneez9h.fsf@t19.piap.pl>
-References: <m3lhneez9h.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/7klwMzGhsvYPCHwS1R7Zw7_"; protocol="application/pgp-signature"
+	Fri, 14 Nov 2014 22:19:27 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DB72B2A0091
+	for <linux-media@vger.kernel.org>; Sat, 15 Nov 2014 04:19:14 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141115031914.DB72B2A0091@tschai.lan>
+Date: Sat, 15 Nov 2014 04:19:14 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/7klwMzGhsvYPCHwS1R7Zw7_
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Fri, 14 Nov 2014 13:35:06 +0100
-khalasa@piap.pl (Krzysztof Ha=C5=82asa) wrote:
-> The IRQs have to be acknowledged before they are serviced, otherwise
-> some events may be skipped. Also, acknowledging IRQs just before
-> returning from the handler doesn't leave enough time for the device
-> to deassert the INTx line, and for bridges to propagate this change.
-> This resulted in twice the IRQ rate on ARMv6 dual core CPU.
->=20
-> Signed-off-by: Krzysztof Ha=C5=82asa <khalasa@piap.pl>
->=20
-> --- a/drivers/media/pci/solo6x10/solo6x10-core.c
-> +++ b/drivers/media/pci/solo6x10/solo6x10-core.c
-> @@ -105,11 +105,8 @@ static irqreturn_t solo_isr(int irq, void *data)
->  	if (!status)
->  		return IRQ_NONE;
-> =20
-> -	if (status & ~solo_dev->irq_mask) {
-> -		solo_reg_write(solo_dev, SOLO_IRQ_STAT,
-> -			       status & ~solo_dev->irq_mask);
-> -		status &=3D solo_dev->irq_mask;
-> -	}
-> +	/* Acknowledge all interrupts immediately */
-> +	solo_reg_write(solo_dev, SOLO_IRQ_STAT, status);
-> =20
->  	if (status & SOLO_IRQ_PCI_ERR)
->  		solo_p2m_error_isr(solo_dev);
-> @@ -132,9 +129,6 @@ static irqreturn_t solo_isr(int irq, void *data)
->  	if (status & SOLO_IRQ_G723)
->  		solo_g723_isr(solo_dev);
-> =20
-> -	/* Clear all interrupts handled */
-> -	solo_reg_write(solo_dev, SOLO_IRQ_STAT, status);
-> -
->  	return IRQ_HANDLED;
->  }
-> =20
->=20
+Results of the daily build of media_tree:
 
-Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+date:		Sat Nov 15 04:00:21 CET 2014
+git branch:	test
+git hash:	c02ef64aab828d80040b5dce934729312e698c33
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-2.slh.2-amd64
 
---Sig_/7klwMzGhsvYPCHwS1R7Zw7_
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16-i686: ERRORS
+linux-3.17-i686: ERRORS
+linux-3.18-rc1-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17-x86_64: ERRORS
+linux-3.18-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Detailed results are available here:
 
-iQEcBAEBAgAGBQJUdrhKAAoJEBH/VE8bKTLb4TYIANRRAtXUy+tjVMHLca2FEa37
-nB37JaElX/uUBMnDLahmdacFZsJDm+IPFvFP64k9H/UvZXGZorT7B20UqzpUr2Jy
-kgMrNY4GGMRfXMTssCesgolfToWZSHWHS9ihPhI58im2Z4KsIdAlpJ5LwxEf6Vle
-FNi6J7lFzFUe4k//7ySgH6eJMqh4jepp47U59Hm6+NGC1dQVtqVXpZmvTShrktD+
-o6Q2Ezjd9t2l3EIOsWeBXtapgAfjpso0Qk0LGVcBltSKtykCkfBoEUdP7aU8vg1/
-9vE1atPr72L35vXpDV2eE9HEQsRJDuMbTBdCrmlXsbPg3tEKQeE84oXI9AyDTag=
-=2IsW
------END PGP SIGNATURE-----
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
---Sig_/7klwMzGhsvYPCHwS1R7Zw7_--
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
