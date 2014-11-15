@@ -1,132 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:50015 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752933AbaKRLdA (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57253 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754225AbaKORpk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 06:33:00 -0500
-Date: Tue, 18 Nov 2014 12:32:56 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com,
-	sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Message-ID: <20141118113256.GA10022@amd>
-References: <20141116075928.GA9763@amd>
- <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
- <546AFEA5.9020000@samsung.com>
- <20141118084603.GC4059@amd>
- <546B19C8.2090008@samsung.com>
+	Sat, 15 Nov 2014 12:45:40 -0500
+Date: Sat, 15 Nov 2014 19:44:59 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 06/11] videodev2.h: add new v4l2_ext_control flags
+ field
+Message-ID: <20141115174459.GH8907@valkosipuli.retiisi.org.uk>
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+ <1411310909-32825-7-git-send-email-hverkuil@xs4all.nl>
+ <20141115141858.GG8907@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <546B19C8.2090008@samsung.com>
+In-Reply-To: <20141115141858.GG8907@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-> >>I've already submitted a patch [1] that updates leds common bindings.
-> >>I hasn't been merged yet, as the related LED Flash class patch [2]
-> >>still needs some indicator leds related discussion [3].
-> >>
-> >>I think this is a good moment to discuss the flash related led common
-> >>bindings.
-> >
-> >Part of problem is that adp1653 is not regarded as "LED" device by
-> >current kernel driver.
+On Sat, Nov 15, 2014 at 04:18:59PM +0200, Sakari Ailus wrote:
+...
+> >  	union {
+> >  		__s32 value;
+> >  		__s64 value64;
+> > @@ -1294,6 +1294,10 @@ struct v4l2_ext_control {
+> >  	};
+> >  } __attribute__ ((packed));
+> >  
+> > +/* v4l2_ext_control flags */
+> > +#define V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE	0x00000001
+> > +#define V4L2_EXT_CTRL_FL_IGN_STORE		0x00000002
 > 
-> It doesn't prevent us from keeping the flash devices related
-> DT bindings unified across kernel subsystems. The DT bindings
-> docs for the adp1653 could just provide a reference to the
-> led/common.txt bindings. In the future, when LED Flash
-> class will be merged, all the V4L2 Flash drivers might be
-> moved to the LED subsystem to gain the LED subsystem support.
+> Do we need both? Aren't these mutually exclusive, and you must have either
+> to be meaningful in the context of a store?
 
-Yeah, that makses sense.
+Ah. Now I think I understand what do these mean. Please ignore my previous
+comment.
 
-> >@@ -19,5 +30,10 @@ Examples:
-> >  system-status {
-> >  	       label = "Status";
-> >  	       linux,default-trigger = "heartbeat";
-> >+	       iout-torch = <500 500>;
-> >+	       iout-flash = <1000 1000>;
-> >+	       iout-indicator = <100 100>;
-> >+	       flash-timeout = <1000>;
-> >+
-> >	...
-> >  };
-> >
-> >I don't get it; system-status describes single LED, why are iout-torch
-> >(and friends) arrays of two?
-> 
-> Some devices can control more than one led. The array is for such
-> purposes. The system-status should be probably renamed to
-> something more generic for both common leds and flash leds,
-> e.g. system-led.
+I might call them differently. What would you think of
+V4L2_EXT_CTRL_FL_STORE_IGNORE and V4L2_EXT_CTRL_FL_STORE_ONCE?
+V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE is quite long IMO. Up to you.
 
-No, sorry. The Documentation/devicetree/bindings/leds/common.txt
-describes binding for _one LED_. Yes, your device can have two leds,
-so your devices should have two such blocks in the device tree... Each
-led should have its own label and default trigger, for example. And I
-guess flash-timeout be per-LED, too.
+I wonder if we need EXT in V4L2_EXT_CTRL_FL. It's logical but also
+redundant since the old control interface won't have flags either.
 
-Would it make sense to include "-uA" and "-usec" suffixes in the dt
-property names?
+I'd assume that for cameras the vast majority of users will always want to
+just apply the values once. How are the use cases in video decoding?
 
-> >Also, at least on adp1653, these are actually two leds -- white and
-> >red. Torch and flash is white led, indicator is red led.
-> 
-> Then you should define three properties:
-> 
-> iout-torch = <[uA]>;
-> iout-flash = <[uA]>;
-> iout-indicator = <[uA]>;
-> 
-> iout-torch and iout-flash properties would determine the current
-> for the white led in the torch and flash modes respectively and
-> the iout-indicator property would determine the current for
-> the indicator led.
-
-Yes, that would work. I have used
-
-+               max-flash-timeout-usec = <500000>;
-+               max-flash-intensity-uA     = <320000>;
-+               max-torch-intensity-uA     =  <50000>;
-+               max-indicator-intensity-uA =  <17500>;
-
-. Which is pretty similar. (Actually, maybe the longer property names
-are easier to understand for more people?) (And yes, I should probably
-separate red and white led into separate groups).
-
-> >>[2] http://www.spinics.net/lists/linux-media/msg83100.html
-> >>[3] http://www.spinics.net/lists/linux-leds/msg02472.html
-> >
-> >What device are you using for testing? Can you cc me on future
-> >patches?
-> 
-> I am using max77693 [1] and aat1290 [2]. OK, I will add you on cc.
-
-Thanks for cc and thanks for links!
-
-I see max77693 has two different "white" leds, aat1290 has one "white"
-led, and neither of them has secondary red led for indication?
-
-> The v4l2-flash sub-device registers with v4l2-async API
-> in a media device. Exemplary support for v4l2-flash
-> sub-devices is added to the exynos4-is driver in the patch [5].
-
-Thanks for the links. It seems that aside from moving adp1653 driver
-to device tree, it should be moved to the LED framework, but that's a
-topic for another patch.
-
-Best regards,
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
