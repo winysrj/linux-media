@@ -1,37 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail03.solnet.ch ([212.101.4.137]:10267 "EHLO mail03.solnet.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754910AbaKTAax (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Nov 2014 19:30:53 -0500
-Message-ID: <546D3637.3010003@openelec.tv>
-Date: Thu, 20 Nov 2014 01:30:47 +0100
-From: Stephan Raue <mailinglists@openelec.tv>
-MIME-Version: 1.0
-To: =?windows-1252?Q?David_H=E4rdeman?= <david@hardeman.nu>
-CC: linux-input@vger.kernel.org, m.chehab@samsung.com,
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:65136 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754727AbaKOVch (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Nov 2014 16:32:37 -0500
+Date: Sat, 15 Nov 2014 22:32:28 +0100
+From: Konrad Zapalowicz <bergo.torino@gmail.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Christian Resell <christian.resell@gmail.com>,
+	m.chehab@samsung.com, devel@driverdev.osuosl.org, askb23@gmail.com,
+	gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
+	yongjun_wei@trendmicro.com.cn, hans.verkuil@cisco.com,
+	pali.rohar@gmail.com, fengguang.wu@intel.com,
 	linux-media@vger.kernel.org
-Subject: Re: bisected: IR press/release behavior changed in 3.17, repeat events
-References: <54679469.1010500@openelec.tv> <20141119195019.GA20784@hardeman.nu> <546D25D7.9050703@openelec.tv> <20141119234539.GB16939@hardeman.nu>
-In-Reply-To: <20141119234539.GB16939@hardeman.nu>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH] staging: media: bcm2048: fix coding style error
+Message-ID: <20141115213228.GD8088@t400>
+References: <20141115194337.GF15904@Kosekroken.jensen.com>
+ <20141115201218.GC8088@t400>
+ <20141115205934.GB21240@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20141115205934.GB21240@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 20.11.2014 um 00:45 schrieb David Härdeman:
-> On Thu, Nov 20, 2014 at 12:20:55AM +0100, Stephan Raue wrote:
->> with kernel 3.17: (you dont see the messages with "toggle 1" here)
->> if i press once and wait:
-> Ummm...kinda embarassing...try swapping the order of the scancode and
-> toggle lines in the rc6 decoder (drivers/media/rc/ir-rc6-decoder.c).
->
-> They're somewhere around line 259, right after the case 32 statement.
->
-> case 32:
-> 	if ((scancode & RC6_6A_LCC_MASK) == RC6_6A_MCE_CC) {
-> 		protocol = RC_TYPE_RC6_MCE;
->                  scancode &= ~RC6_6A_MCE_TOGGLE_MASK;
-> 		toggle = !!(scancode & RC6_6A_MCE_TOGGLE_MASK);
->
->
-many thanks!!! this works :-)
+On 11/15, Pavel Machek wrote:
+> On Sat 2014-11-15 21:12:18, Konrad Zapalowicz wrote:
+> > On 11/15, Christian Resell wrote:
+> > > Simple style fix (checkpatch.pl: "space prohibited before that ','").
+> > > For the eudyptula challenge (http://eudyptula-challenge.org/).
+> > 
+> > Nice, however we do not need the information about the 'eudyptula
+> > challenge' in the commit message.
+> > 
+> > If you want to include extra information please do it after the '---'
+> > line (just below the signed-off). You will find more details in the
+> > SubmittingPatches (chapter 15) of the kernel documentation.
+> 
+> Greg is staging tree maintainer... And if single extra space is all
+> you can fix in the driver, perhaps it is not worth the patch?
+
+I think that every contribution, as long as it acctually fixes
+something, is worth the patch. The beauty of the open source community
+is that we do when we have time as much as we are able to do - totally
+no stress.
+
+You, Pavel, are more experienced however those who are not have to learn
+somehow and one of the options is to start with something very simple.
+Sometimes the 'simple' means oneliner however as long as it compiles, is
+inline with the coding standard and in general is an improvement then it
+is good.
+
+Regards,
+Konrad
+ 
+> 									Pavel
+> 
+> > Thanks,
+> > Konrad
+> >  
+> > > Signed-off-by: Christian F. Resell <christian.resell@gmail.com>
+> > > ---
+> > > diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+> > > index 2bba370..bdc6854 100644
+> > > --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
+> > > +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+> > > @@ -2707,7 +2707,7 @@ static int __exit bcm2048_i2c_driver_remove(struct i2c_client *client)
+> > >   *	bcm2048_i2c_driver - i2c driver interface
+> > >   */
+> > >  static const struct i2c_device_id bcm2048_id[] = {
+> > > -	{ "bcm2048" , 0 },
+> > > +	{ "bcm2048", 0 },
+> > >  	{ },
+> > >  };
+> > >  MODULE_DEVICE_TABLE(i2c, bcm2048_id);
+> > > _______________________________________________
+> > > devel mailing list
+> > > devel@linuxdriverproject.org
+> > > http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+> 
+> -- 
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
