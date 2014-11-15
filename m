@@ -1,63 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:43885 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754472AbaKOUmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 15:42:08 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Cc: Andrey Utkin <andrey.krieger.utkin@gmail.com>,
-	"hans.verkuil" <hans.verkuil@cisco.com>,
-	Linux Media <linux-media@vger.kernel.org>
-References: <CAM_ZknVTqh0VnhuT3MdULtiqHJzxRhK-Pjyb58W=4Ldof0+jgA@mail.gmail.com>
-	<m3sihmf3mc.fsf@t19.piap.pl>
-	<CANZNk81y8=ugk3Ds0FhoeYBzh7ATy1Uyo8gxUQFoiPcYcwD+yQ@mail.gmail.com>
-	<CAM_ZknUoNBfnKJW-76FE1tW29O6oFAw+KDYPsViTLw7u-vFXuw@mail.gmail.com>
-Date: Sat, 15 Nov 2014 21:42:05 +0100
-In-Reply-To: <CAM_ZknUoNBfnKJW-76FE1tW29O6oFAw+KDYPsViTLw7u-vFXuw@mail.gmail.com>
-	(Andrey Utkin's message of "Sat, 15 Nov 2014 17:48:29 +0400")
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54235 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751935AbaKOKjo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Nov 2014 05:39:44 -0500
+Message-ID: <54672D69.8060708@xs4all.nl>
+Date: Sat, 15 Nov 2014 11:39:37 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Message-ID: <m3wq6ww602.fsf@t19.piap.pl>
-Content-Type: text/plain
-Subject: Re: [RFC] solo6x10 freeze, even with Oct 31's linux-next... any ideas or help?
+To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>, khalasa@piap.pl,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	m.chehab@samsung.com
+Subject: Re: SOLO6x10: fix a race in IRQ handler.
+References: <m3lhneez9h.fsf@t19.piap.pl> <m3lhneez9h.fsf@t19.piap.pl>
+In-Reply-To: <m3lhneez9h.fsf@t19.piap.pl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrey Utkin <andrey.utkin@corp.bluecherry.net> writes:
+Hi Andrey,
 
-> In upstream there's no more module parameter for video standard
-> (NTSC/PAL). But there's VIDIOC_S_STD handling procedure. But it turns
-> out not to work correctly: the frame is offset, so that in the bottom
-> there's black horizontal bar.
-> The S_STD ioctl call actually makes difference, because without that
-> the frame "slides" vertically all the time. But after the call the
-> picture is not correct.
+Please always prefix the subject line with [PATCH] when you post a patch. That way it
+will be picked up by patchwork (https://patchwork.linuxtv.org/project/linux-media/list/)
+and the patch won't be lost.
 
-Which kernel version are you using?
-I remember there were some problems with earlier versions, where the
-NTSC vs PAL wasn't consistenly a bool but rather a raw register value
-(or something like this), but it was fixed last time I checked.
-I'm personally using SOLO6110-based cards with v3.17 and PAL and it
-works, with minimal unrelated patches.
+Can you repost with such a prefix?
 
-> Any ideas why wouldn't it work to change the mode after the driver load?
-> Would it be allowed to add back that kernel module parameter (the one
-> passed at module load time)?
+Thanks!
 
-I don't think this alone would help.
+	Hans
 
-Looking at my patch queue (will try to remember to have them posted)...
-Well, it could be the SDRAM size detection routine. I'm using cards with
-64 MB of RAM and the routine repeatedly detected 128 MB or so (max
-supported). I have a temporary fix for this but it needs a bit more
-work, I have seen a case when it failed (I'm using ARM and MIPS
-platforms and they may differ from x86 in endianness, cache coherency
-etc).
-
-If you have a card with 64 MB RAM you may want to check if the driver
-detects it correctly, and if not e.g. hardcode the size. Otherwise,
-I have no idea what could be wrong, it works for me.
--- 
-Krzysztof Halasa
-
-Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+On 11/15/2014 11:34 AM, Andrey Utkin wrote:
+> From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+> 
+> The IRQs have to be acknowledged before they are serviced, otherwise some events
+> may be skipped. Also, acknowledging IRQs just before returning from the handler
+> doesn't leave enough time for the device to deassert the INTx line, and for
+> bridges to propagate this change. This resulted in twice the IRQ rate on ARMv6
+> dual core CPU.
+> 
+> Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+> Acked-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+> Tested-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+> 
+> --- a/drivers/media/pci/solo6x10/solo6x10-core.c
+> +++ b/drivers/media/pci/solo6x10/solo6x10-core.c
+> @@ -105,11 +105,8 @@ static irqreturn_t solo_isr(int irq, void *data)
+>  	if (!status)
+>  		return IRQ_NONE;
+>  
+> -	if (status & ~solo_dev->irq_mask) {
+> -		solo_reg_write(solo_dev, SOLO_IRQ_STAT,
+> -			       status & ~solo_dev->irq_mask);
+> -		status &= solo_dev->irq_mask;
+> -	}
+> +	/* Acknowledge all interrupts immediately */
+> +	solo_reg_write(solo_dev, SOLO_IRQ_STAT, status);
+>  
+>  	if (status & SOLO_IRQ_PCI_ERR)
+>  		solo_p2m_error_isr(solo_dev);
+> @@ -132,9 +129,6 @@ static irqreturn_t solo_isr(int irq, void *data)
+>  	if (status & SOLO_IRQ_G723)
+>  		solo_g723_isr(solo_dev);
+>  
+> -	/* Clear all interrupts handled */
+> -	solo_reg_write(solo_dev, SOLO_IRQ_STAT, status);
+> -
+>  	return IRQ_HANDLED;
+>  }
+> 
