@@ -1,71 +1,58 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:19228 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751905AbaKQKxm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 05:53:42 -0500
-Message-ID: <5469D3B3.2050408@linux.intel.com>
-Date: Mon, 17 Nov 2014 12:53:39 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard
- CONFIG_VIDEO_V4L2_SUBDEV_API for v4l2_subdev_get_try_*()
-References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Return-Path: <andrey.utkin@corp.bluecherry.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+To: khalasa@piap.pl, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+ m.chehab@samsung.com, hverkuil@xs4all.nl
+Subject: SOLO6x10: fix a race in IRQ handler.
+Date: Sat, 15 Nov 2014 14:34:35 +0400
+Message-id: <m3lhneez9h.fsf@t19.piap.pl>
+In-reply-to: <m3lhneez9h.fsf@t19.piap.pl>
+References: <m3lhneez9h.fsf@t19.piap.pl>
+Received: from ni.piap.pl
+ ([195.187.100.4]:56387 "EHLO ni.piap.pl" rhost-flags-OK-OK-OK-OK)
+ by vger.kernel.org with ESMTP id S965171AbaKNMfI convert rfc822-to-8bit
+ (ORCPT <rfc822;linux-media@vger.kernel.org>); Fri, 14 Nov 2014 07:35:08 -0500
+Received: from ni.piap.pl (localhost.localdomain [127.0.0.1])
+ by ni.piap.pl (Postfix) with ESMTP id E64124412B3 for
+ <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 13:35:06 +0100 (CET)
+Content-transfer-encoding: 8BIT
+List-Id: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
 
-Thank you for the patch.
+The IRQs have to be acknowledged before they are serviced, otherwise some events
+may be skipped. Also, acknowledging IRQs just before returning from the handler
+doesn't leave enough time for the device to deassert the INTx line, and for
+bridges to propagate this change. This resulted in twice the IRQ rate on ARMv6
+dual core CPU.
 
-Lad, Prabhakar wrote:
-> this patch removes the guard CONFIG_VIDEO_V4L2_SUBDEV_API
-> for v4l2_subdev_get_try_*() functions.
-> In cases where a subdev using v4l2_subdev_get_try_*() calls
-> internally and the bridge using subdev pad ops which is
-> not MC aware forces to select MEDIA_CONTROLLER, as
-> VIDEO_V4L2_SUBDEV_API is dependent on it.
->
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->   include/media/v4l2-subdev.h | 2 --
->   1 file changed, 2 deletions(-)
->
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 5860292..076ca11 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -642,7 +642,6 @@ struct v4l2_subdev_fh {
->   #define to_v4l2_subdev_fh(fh)	\
->   	container_of(fh, struct v4l2_subdev_fh, vfh)
->
-> -#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+Acked-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Tested-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
 
-Wouldn't you need to drop these from struct v4l2_subdev_fh as well? The 
-code won't compile if the fields aren't there.
-
->   #define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
->   	static inline struct rtype *					\
->   	v4l2_subdev_get_try_##fun_name(struct v4l2_subdev_fh *fh,	\
-> @@ -656,7 +655,6 @@ struct v4l2_subdev_fh {
->   __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
->   __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_crop)
->   __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
-> -#endif
->
->   extern const struct v4l2_file_operations v4l2_subdev_fops;
->
->
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+--- a/drivers/media/pci/solo6x10/solo6x10-core.c
++++ b/drivers/media/pci/solo6x10/solo6x10-core.c
+@@ -105,11 +105,8 @@ static irqreturn_t solo_isr(int irq, void *data)
+ 	if (!status)
+ 		return IRQ_NONE;
+ 
+-	if (status & ~solo_dev->irq_mask) {
+-		solo_reg_write(solo_dev, SOLO_IRQ_STAT,
+-			       status & ~solo_dev->irq_mask);
+-		status &= solo_dev->irq_mask;
+-	}
++	/* Acknowledge all interrupts immediately */
++	solo_reg_write(solo_dev, SOLO_IRQ_STAT, status);
+ 
+ 	if (status & SOLO_IRQ_PCI_ERR)
+ 		solo_p2m_error_isr(solo_dev);
+@@ -132,9 +129,6 @@ static irqreturn_t solo_isr(int irq, void *data)
+ 	if (status & SOLO_IRQ_G723)
+ 		solo_g723_isr(solo_dev);
+ 
+-	/* Clear all interrupts handled */
+-	solo_reg_write(solo_dev, SOLO_IRQ_STAT, status);
+-
+ 	return IRQ_HANDLED;
+ }
