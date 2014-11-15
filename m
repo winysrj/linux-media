@@ -1,69 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:57678 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751332AbaKYWXh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Nov 2014 17:23:37 -0500
-Date: Tue, 25 Nov 2014 23:23:27 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/2] media: v4l2-image-sizes.h: add SVGA, XGA and UXGA
- size definitions
-In-Reply-To: <1416905668-23029-1-git-send-email-josh.wu@atmel.com>
-Message-ID: <Pine.LNX.4.64.1411252318330.17362@axis700.grange>
-References: <1416905668-23029-1-git-send-email-josh.wu@atmel.com>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:47592 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754410AbaKOUMY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Nov 2014 15:12:24 -0500
+Date: Sat, 15 Nov 2014 21:12:18 +0100
+From: Konrad Zapalowicz <bergo.torino@gmail.com>
+To: Christian Resell <christian.resell@gmail.com>
+Cc: m.chehab@samsung.com, devel@driverdev.osuosl.org, askb23@gmail.com,
+	gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
+	yongjun_wei@trendmicro.com.cn, hans.verkuil@cisco.com,
+	pavel@ucw.cz, pali.rohar@gmail.com, fengguang.wu@intel.com,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] staging: media: bcm2048: fix coding style error
+Message-ID: <20141115201218.GC8088@t400>
+References: <20141115194337.GF15904@Kosekroken.jensen.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20141115194337.GF15904@Kosekroken.jensen.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+On 11/15, Christian Resell wrote:
+> Simple style fix (checkpatch.pl: "space prohibited before that ','").
+> For the eudyptula challenge (http://eudyptula-challenge.org/).
 
-On Tue, 25 Nov 2014, Josh Wu wrote:
+Nice, however we do not need the information about the 'eudyptula
+challenge' in the commit message.
 
-> Add SVGA, UXGA and XGA size definitions to v4l2-image-sizes.h.
-> The definitions are sorted by alphabet order.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+If you want to include extra information please do it after the '---'
+line (just below the signed-off). You will find more details in the
+SubmittingPatches (chapter 15) of the kernel documentation.
 
-Thanks for your patches. I'm ok with these two, but the second of them 
-depends on the first one, and the first one wouldn't (normally) be going 
-via the soc-camera tree. Mauro, how would you prefer to handle this? 
-Should I pick up and push to you both of them or postpone #2 until the 
-next merge window?
-
-Thanks
-Guennadi
-
+Thanks,
+Konrad
+ 
+> Signed-off-by: Christian F. Resell <christian.resell@gmail.com>
 > ---
->  include/media/v4l2-image-sizes.h | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/include/media/v4l2-image-sizes.h b/include/media/v4l2-image-sizes.h
-> index 10daf92..c70c917 100644
-> --- a/include/media/v4l2-image-sizes.h
-> +++ b/include/media/v4l2-image-sizes.h
-> @@ -25,10 +25,19 @@
->  #define QVGA_WIDTH	320
->  #define QVGA_HEIGHT	240
->  
-> +#define SVGA_WIDTH	800
-> +#define SVGA_HEIGHT	680
-> +
->  #define SXGA_WIDTH	1280
->  #define SXGA_HEIGHT	1024
->  
->  #define VGA_WIDTH	640
->  #define VGA_HEIGHT	480
->  
-> +#define UXGA_WIDTH	1600
-> +#define UXGA_HEIGHT	1200
-> +
-> +#define XGA_WIDTH	1024
-> +#define XGA_HEIGHT	768
-> +
->  #endif /* _IMAGE_SIZES_H */
-> -- 
-> 1.9.1
-> 
+> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+> index 2bba370..bdc6854 100644
+> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
+> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+> @@ -2707,7 +2707,7 @@ static int __exit bcm2048_i2c_driver_remove(struct i2c_client *client)
+>   *	bcm2048_i2c_driver - i2c driver interface
+>   */
+>  static const struct i2c_device_id bcm2048_id[] = {
+> -	{ "bcm2048" , 0 },
+> +	{ "bcm2048", 0 },
+>  	{ },
+>  };
+>  MODULE_DEVICE_TABLE(i2c, bcm2048_id);
+> _______________________________________________
+> devel mailing list
+> devel@linuxdriverproject.org
+> http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
