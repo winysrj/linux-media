@@ -1,192 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:41884 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755177AbaKEO6K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 09:58:10 -0500
-Received: by mail-pa0-f44.google.com with SMTP id bj1so946287pad.3
-        for <linux-media@vger.kernel.org>; Wed, 05 Nov 2014 06:58:09 -0800 (PST)
-Date: Wed, 5 Nov 2014 22:58:07 +0800
-From: "Nibble Max" <nibble.max@gmail.com>
-To: "Olli Salonen" <olli.salonen@iki.fi>
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	"Antti Palosaari" <crope@iki.fi>
-Subject: [PATCH 1/3] cx23885: add DVBSky S950 support
-Message-ID: <201411052258037656794@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Received: from lists.s-osg.org ([54.187.51.154]:45306 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754676AbaKPKUc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Nov 2014 05:20:32 -0500
+Date: Sun, 16 Nov 2014 08:20:23 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Pavel Machek <pavel@ucw.cz>,
+	Konrad Zapalowicz <bergo.torino@gmail.com>,
+	Christian Resell <christian.resell@gmail.com>,
+	devel@driverdev.osuosl.org, askb23@gmail.com,
+	linux-kernel@vger.kernel.org, yongjun_wei@trendmicro.com.cn,
+	hans.verkuil@cisco.com, pali.rohar@gmail.com,
+	fengguang.wu@intel.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] staging: media: bcm2048: fix coding style error
+Message-ID: <20141116082023.73460409@recife.lan>
+In-Reply-To: <20141115212503.GA21773@kroah.com>
+References: <20141115194337.GF15904@Kosekroken.jensen.com>
+	<20141115201218.GC8088@t400>
+	<20141115205934.GB21240@amd>
+	<20141115212503.GA21773@kroah.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DVBSky S950 dvb-s/s2 PCIe card:
-1>dvb frontend: M88TS2022(tuner),M88DS3103(demod)
-2>PCIe bridge: cx23885
-3>rc: cx23885 integrated.
+Em Sat, 15 Nov 2014 13:25:03 -0800
+Greg KH <gregkh@linuxfoundation.org> escreveu:
 
-Signed-off-by: Nibble Max <nibble.max@gmail.com>
----
- drivers/media/pci/cx23885/cx23885-cards.c | 20 ++++++++++++++++++++
- drivers/media/pci/cx23885/cx23885-dvb.c   |  9 ++++++---
- drivers/media/pci/cx23885/cx23885-input.c |  3 +++
- drivers/media/pci/cx23885/cx23885.h       |  1 +
- 4 files changed, 30 insertions(+), 3 deletions(-)
+> On Sat, Nov 15, 2014 at 09:59:34PM +0100, Pavel Machek wrote:
+> > On Sat 2014-11-15 21:12:18, Konrad Zapalowicz wrote:
+> > > On 11/15, Christian Resell wrote:
+> > > > Simple style fix (checkpatch.pl: "space prohibited before that ','").
+> > > > For the eudyptula challenge (http://eudyptula-challenge.org/).
+> > > 
+> > > Nice, however we do not need the information about the 'eudyptula
+> > > challenge' in the commit message.
+> > > 
+> > > If you want to include extra information please do it after the '---'
+> > > line (just below the signed-off). You will find more details in the
+> > > SubmittingPatches (chapter 15) of the kernel documentation.
+> > 
+> > Greg is staging tree maintainer... And if single extra space is all
+> > you can fix in the driver, perhaps it is not worth the patch?
+> 
+> I am not the maintainer of drivers/staging/media/ please look at
+> MAINTAINERS before you make statements like that.
+> 
+> And yes, one space fixes is just fine, that's why the code is in
+> staging.
 
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index 9c7e8ac..4b9cb07 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -692,6 +692,10 @@ struct cx23885_board cx23885_boards[] = {
- 		.name		= "Technotrend TT-budget CT2-4500 CI",
- 		.portb		= CX23885_MPEG_DVB,
- 	},
-+	[CX23885_BOARD_DVBSKY_S950] = {
-+		.name		= "DVBSky S950",
-+		.portb		= CX23885_MPEG_DVB,
-+	},
- };
- const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
- 
-@@ -963,6 +967,10 @@ struct cx23885_subid cx23885_subids[] = {
- 		.subvendor = 0x13c2,
- 		.subdevice = 0x3013,
- 		.card      = CX23885_BOARD_TT_CT2_4500_CI,
-+	}, {
-+		.subvendor = 0x4254,
-+		.subdevice = 0x0950,
-+		.card      = CX23885_BOARD_DVBSKY_S950,
- 	},
- };
- const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-@@ -1597,6 +1605,13 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
- 
- 		/* enable irq */
- 		cx_write(GPIO_ISM, 0x00000000); /* INTERRUPTS active low */
-+		break;
-+	case CX23885_BOARD_DVBSKY_S950:
-+		cx23885_gpio_enable(dev, GPIO_2, 1);
-+		cx23885_gpio_clear(dev, GPIO_2);
-+		msleep(100);
-+		cx23885_gpio_set(dev, GPIO_2);
-+		break;
- 	}
- }
- 
-@@ -1681,6 +1696,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
- 	case CX23885_BOARD_DVBSKY_T980C:
- 	case CX23885_BOARD_DVBSKY_S950C:
- 	case CX23885_BOARD_TT_CT2_4500_CI:
-+	case CX23885_BOARD_DVBSKY_S950:
- 		if (!enable_885_ir)
- 			break;
- 		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
-@@ -1731,6 +1747,7 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
- 	case CX23885_BOARD_DVBSKY_T980C:
- 	case CX23885_BOARD_DVBSKY_S950C:
- 	case CX23885_BOARD_TT_CT2_4500_CI:
-+	case CX23885_BOARD_DVBSKY_S950:
- 		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
- 		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
- 		dev->sd_ir = NULL;
-@@ -1782,6 +1799,7 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
- 	case CX23885_BOARD_DVBSKY_T980C:
- 	case CX23885_BOARD_DVBSKY_S950C:
- 	case CX23885_BOARD_TT_CT2_4500_CI:
-+	case CX23885_BOARD_DVBSKY_S950:
- 		if (dev->sd_ir)
- 			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
- 		break;
-@@ -1888,6 +1906,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_DVBSKY_T980C:
- 	case CX23885_BOARD_DVBSKY_S950C:
- 	case CX23885_BOARD_TT_CT2_4500_CI:
-+	case CX23885_BOARD_DVBSKY_S950:
- 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
- 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
- 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-@@ -2009,6 +2028,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_DVBSKY_T980C:
- 	case CX23885_BOARD_DVBSKY_S950C:
- 	case CX23885_BOARD_TT_CT2_4500_CI:
-+	case CX23885_BOARD_DVBSKY_S950:
- 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
- 				&dev->i2c_bus[2].i2c_adap,
- 				"cx25840", 0x88 >> 1, NULL);
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 9da5cf3..3410ab8 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -1672,6 +1672,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 		}
- 		break;
- 	case CX23885_BOARD_DVBSKY_T9580:
-+	case CX23885_BOARD_DVBSKY_S950:
- 		i2c_bus = &dev->i2c_bus[0];
- 		i2c_bus2 = &dev->i2c_bus[1];
- 		switch (port->nr) {
-@@ -1922,7 +1923,8 @@ static int dvb_register(struct cx23885_tsport *port)
- 		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xa0, 6);
- 		break;
- 		}
--	case CX23885_BOARD_DVBSKY_T9580: {
-+	case CX23885_BOARD_DVBSKY_T9580:
-+	case CX23885_BOARD_DVBSKY_S950: {
- 		u8 eeprom[256]; /* 24C02 i2c eeprom */
- 
- 		if (port->nr > 2)
-@@ -1932,8 +1934,9 @@ static int dvb_register(struct cx23885_tsport *port)
- 		dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
- 		tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom,
- 				sizeof(eeprom));
--		printk(KERN_INFO "DVBSky T9580 port %d MAC address: %pM\n",
--			port->nr, eeprom + 0xc0 + (port->nr-1) * 8);
-+		printk(KERN_INFO "%s port %d MAC address: %pM\n",
-+			cx23885_boards[dev->board].name, port->nr,
-+			eeprom + 0xc0 + (port->nr-1) * 8);
- 		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xc0 +
- 			(port->nr-1) * 8, 6);
- 		break;
-diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
-index 12d8a3d..7523d0a 100644
---- a/drivers/media/pci/cx23885/cx23885-input.c
-+++ b/drivers/media/pci/cx23885/cx23885-input.c
-@@ -91,6 +91,7 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
- 	case CX23885_BOARD_DVBSKY_T980C:
- 	case CX23885_BOARD_DVBSKY_S950C:
- 	case CX23885_BOARD_TT_CT2_4500_CI:
-+	case CX23885_BOARD_DVBSKY_S950:
- 		/*
- 		 * The only boards we handle right now.  However other boards
- 		 * using the CX2388x integrated IR controller should be similar
-@@ -147,6 +148,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
- 	case CX23885_BOARD_DVBSKY_T980C:
- 	case CX23885_BOARD_DVBSKY_S950C:
- 	case CX23885_BOARD_TT_CT2_4500_CI:
-+	case CX23885_BOARD_DVBSKY_S950:
- 		/*
- 		 * The IR controller on this board only returns pulse widths.
- 		 * Any other mode setting will fail to set up the device.
-@@ -316,6 +318,7 @@ int cx23885_input_init(struct cx23885_dev *dev)
- 	case CX23885_BOARD_DVBSKY_T9580:
- 	case CX23885_BOARD_DVBSKY_T980C:
- 	case CX23885_BOARD_DVBSKY_S950C:
-+	case CX23885_BOARD_DVBSKY_S950:
- 		/* Integrated CX23885 IR controller */
- 		driver_type = RC_DRIVER_IR_RAW;
- 		allowed_protos = RC_BIT_ALL;
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index 7eee2ea..f9cd0da 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -96,6 +96,7 @@
- #define CX23885_BOARD_DVBSKY_T980C             46
- #define CX23885_BOARD_DVBSKY_S950C             47
- #define CX23885_BOARD_TT_CT2_4500_CI           48
-+#define CX23885_BOARD_DVBSKY_S950              49
- 
- #define GPIO_0 0x00000001
- #define GPIO_1 0x00000002
- 
--- 
-1.9.1
+Yes, space fixes is OK for staging.
 
+I'll apply this patch, removing the line that comments about the challenge,
+as we don't need to keep this information forever at the Kernel history.
+
+Regards,
+Mauro
