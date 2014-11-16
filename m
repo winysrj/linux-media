@@ -1,335 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42456 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062AbaKBMcs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:48 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 10/14] [media] cx231xx: use dev_foo instead of printk
-Date: Sun,  2 Nov 2014 10:32:33 -0200
-Message-Id: <caa43aeac28acdb1fdab7f105b2107bd8a0c6063.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60759 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753183AbaKPOGu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Nov 2014 09:06:50 -0500
+Date: Sun, 16 Nov 2014 16:06:16 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] v4l: Clean up sub-device format documentation
+Message-ID: <20141116140616.GK8907@valkosipuli.retiisi.org.uk>
+References: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi>
+ <1415487872-27500-2-git-send-email-sakari.ailus@iki.fi>
+ <5465BD6F.8030208@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5465BD6F.8030208@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several places at cx231xx that uses printk without
-any special reason. Change all of them to use dev_foo().
+Hi Hans,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On Fri, Nov 14, 2014 at 09:29:35AM +0100, Hans Verkuil wrote:
+> Two small notes...
+> 
+> On 11/09/2014 12:04 AM, Sakari Ailus wrote:
+> > The sub-device format documentation documented scaling configuration through
+> > formats. Instead the compose selection rectangle is elsewhere documented to
+> > be used for the purpose. Remove scaling related part of the documentation.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  Documentation/DocBook/media/v4l/dev-subdev.xml |  108 ++++++++++++++----------
+> >  1 file changed, 62 insertions(+), 46 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
+> > index d15aaf8..dbf9965 100644
+> > --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> > +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+> > @@ -195,53 +195,59 @@
+> >  	<title>Sample Pipeline Configuration</title>
+> >  	<tgroup cols="3">
+> >  	  <colspec colname="what"/>
+> > -	  <colspec colname="sensor-0" />
+> > -	  <colspec colname="frontend-0" />
+> > -	  <colspec colname="frontend-1" />
+> > -	  <colspec colname="scaler-0" />
+> > -	  <colspec colname="scaler-1" />
+> > +	  <colspec colname="sensor-0 format" />
+> > +	  <colspec colname="frontend-0 format" />
+> > +	  <colspec colname="frontend-1 format" />
+> > +	  <colspec colname="scaler-0 format" />
+> > +	  <colspec colname="scaler-0 compose" />
+> > +	  <colspec colname="scaler-1 format" />
+> >  	  <thead>
+> >  	    <row>
+> >  	      <entry></entry>
+> > -	      <entry>Sensor/0</entry>
+> > -	      <entry>Frontend/0</entry>
+> > -	      <entry>Frontend/1</entry>
+> > -	      <entry>Scaler/0</entry>
+> > -	      <entry>Scaler/1</entry>
+> > +	      <entry>Sensor/0 format</entry>
+> > +	      <entry>Frontend/0 format</entry>
+> > +	      <entry>Frontend/1 format</entry>
+> > +	      <entry>Scaler/0 format</entry>
+> > +	      <entry>Scaler/0 compose selection rectangle</entry>
+> > +	      <entry>Scaler/1 format</entry>
+> >  	    </row>
+> >  	  </thead>
+> >  	  <tbody valign="top">
+> >  	    <row>
+> >  	      <entry>Initial state</entry>
+> > -	      <entry>2048x1536</entry>
+> > -	      <entry>-</entry>
+> > -	      <entry>-</entry>
+> > -	      <entry>-</entry>
+> > -	      <entry>-</entry>
+> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> > +	      <entry>(default)</entry>
+> > +	      <entry>(default)</entry>
+> > +	      <entry>(default)</entry>
+> > +	      <entry>(default)</entry>
+> > +	      <entry>(default)</entry>
+> >  	    </row>
+> >  	    <row>
+> > -	      <entry>Configure frontend input</entry>
+> > -	      <entry>2048x1536</entry>
+> > -	      <entry><emphasis>2048x1536</emphasis></entry>
+> > -	      <entry><emphasis>2046x1534</emphasis></entry>
+> > -	      <entry>-</entry>
+> > -	      <entry>-</entry>
+> > +	      <entry>Configure frontend sink format</entry>
+> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> > +	      <entry><emphasis>2048x1536/SGRBG8_1X8</emphasis></entry>
+> > +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
+> > +	      <entry>(default)</entry>
+> > +	      <entry>(default)</entry>
+> > +	      <entry>(default)</entry>
+> >  	    </row>
+> >  	    <row>
+> > -	      <entry>Configure scaler input</entry>
+> > -	      <entry>2048x1536</entry>
+> > -	      <entry>2048x1536</entry>
+> > -	      <entry>2046x1534</entry>
+> > -	      <entry><emphasis>2046x1534</emphasis></entry>
+> > -	      <entry><emphasis>2046x1534</emphasis></entry>
+> > +	      <entry>Configure scaler sink format</entry>
+> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> > +	      <entry>2046x1534/SGRBG8_1X8</entry>
+> > +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
+> > +	      <entry><emphasis>0,0/2046x1534</emphasis></entry>
+> > +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
+> >  	    </row>
+> >  	    <row>
+> > -	      <entry>Configure scaler output</entry>
+> > -	      <entry>2048x1536</entry>
+> > -	      <entry>2048x1536</entry>
+> > -	      <entry>2046x1534</entry>
+> > -	      <entry>2046x1534</entry>
+> > -	      <entry><emphasis>1280x960</emphasis></entry>
+> > +	      <entry>Configure scaler sink compose selection</entry>
+> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> > +	      <entry>2046x1534/SGRBG8_1X8</entry>
+> > +	      <entry>2046x1534/SGRBG8_1X8</entry>
+> > +	      <entry><emphasis>0,0/1280x960</emphasis></entry>
+> > +	      <entry><emphasis>1280x960/SGRBG8_1X8</emphasis></entry>
+> >  	    </row>
+> >  	  </tbody>
+> >  	</tgroup>
+> > @@ -249,19 +255,29 @@
+> >  
+> >        <para>
+> >        <orderedlist>
+> > -	<listitem><para>Initial state. The sensor output is set to its native 3MP
+> > -	resolution. Resolutions on the host frontend and scaler input and output
+> > -	pads are undefined.</para></listitem>
+> > -	<listitem><para>The application configures the frontend input pad resolution to
+> > -	2048x1536. The driver propagates the format to the frontend output pad.
+> > -	Note that the propagated output format can be different, as in this case,
+> > -	than the input format, as the hardware might need to crop pixels (for
+> > -	instance when converting a Bayer filter pattern to RGB or YUV).
+> 
+> Does this Bayer filter note no longer apply?
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-index 9088a32db2d1..b299242a63dd 100644
---- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-@@ -1208,7 +1208,8 @@ int cx231xx_set_audio_decoder_input(struct cx231xx *dev,
- 			/* This is just a casual suggestion to people adding
- 			   new boards in case they use a tuner type we don't
- 			   currently know about */
--			printk(KERN_INFO "Unknown tuner type configuring SIF");
-+			dev_info(&dev->udev->dev,
-+				 "Unknown tuner type configuring SIF");
- 			break;
- 		}
- 		break;
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 2e8741314bce..7156344e7022 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1216,11 +1216,11 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
- 	cx231xx_add_into_devlist(dev);
- 
- 	if (dev->board.has_417) {
--		printk(KERN_INFO "attach 417 %d\n", dev->model);
-+		dev_info(&udev->dev, "attach 417 %d\n", dev->model);
- 		if (cx231xx_417_register(dev) < 0) {
--			printk(KERN_ERR
-+			dev_err(&udev->dev,
- 				"%s() Failed to register 417 on VID_B\n",
--			       __func__);
-+				__func__);
- 		}
- 	}
- 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 044ad353d09b..a0d40bda718d 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -45,11 +45,6 @@ MODULE_PARM_DESC(debug, "enable debug messages [dvb]");
- 
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
--#define dprintk(level, fmt, arg...) do {			\
--if (debug >= level) 						\
--	printk(KERN_DEBUG "%s/2-dvb: " fmt, dev->name, ## arg);	\
--} while (0)
--
- #define CX231XX_DVB_NUM_BUFS 5
- #define CX231XX_DVB_MAX_PACKETSIZE 564
- #define CX231XX_DVB_MAX_PACKETS 64
-@@ -196,9 +191,11 @@ static inline void print_err_status(struct cx231xx *dev, int packet, int status)
- 		break;
- 	}
- 	if (packet < 0) {
--		dprintk(1, "URB status %d [%s].\n", status, errmsg);
-+		dev_dbg(&dev->udev->dev,
-+			"URB status %d [%s].\n", status, errmsg);
- 	} else {
--		dprintk(1, "URB packet %d, status %d [%s].\n",
-+		dev_dbg(&dev->udev->dev,
-+			"URB packet %d, status %d [%s].\n",
- 			packet, status, errmsg);
- 	}
- }
-@@ -377,20 +374,21 @@ static int attach_xc5000(u8 addr, struct cx231xx *dev)
- 	cfg.i2c_addr = addr;
- 
- 	if (!dev->dvb->frontend) {
--		printk(KERN_ERR "%s/2: dvb frontend not attached. "
-+		dev_err(&dev->udev->dev, "%s/2: dvb frontend not attached. "
- 		       "Can't attach xc5000\n", dev->name);
- 		return -EINVAL;
- 	}
- 
- 	fe = dvb_attach(xc5000_attach, dev->dvb->frontend, &cfg);
- 	if (!fe) {
--		printk(KERN_ERR "%s/2: xc5000 attach failed\n", dev->name);
-+		dev_err(&dev->udev->dev,
-+			"%s/2: xc5000 attach failed\n", dev->name);
- 		dvb_frontend_detach(dev->dvb->frontend);
- 		dev->dvb->frontend = NULL;
- 		return -EINVAL;
- 	}
- 
--	printk(KERN_INFO "%s/2: xc5000 attached\n", dev->name);
-+	dev_info(&dev->udev->dev, "%s/2: xc5000 attached\n", dev->name);
- 
- 	return 0;
- }
-@@ -462,7 +460,7 @@ static int register_dvb(struct cx231xx_dvb *dvb,
- 	result = dvb_register_adapter(&dvb->adapter, dev->name, module, device,
- 				      adapter_nr);
- 	if (result < 0) {
--		printk(KERN_WARNING
-+		dev_warn(&dev->udev->dev,
- 		       "%s: dvb_register_adapter failed (errno = %d)\n",
- 		       dev->name, result);
- 		goto fail_adapter;
-@@ -476,7 +474,7 @@ static int register_dvb(struct cx231xx_dvb *dvb,
- 	/* register frontend */
- 	result = dvb_register_frontend(&dvb->adapter, dvb->frontend);
- 	if (result < 0) {
--		printk(KERN_WARNING
-+		dev_warn(&dev->udev->dev,
- 		       "%s: dvb_register_frontend failed (errno = %d)\n",
- 		       dev->name, result);
- 		goto fail_frontend;
-@@ -494,7 +492,8 @@ static int register_dvb(struct cx231xx_dvb *dvb,
- 
- 	result = dvb_dmx_init(&dvb->demux);
- 	if (result < 0) {
--		printk(KERN_WARNING "%s: dvb_dmx_init failed (errno = %d)\n",
-+		dev_warn(&dev->udev->dev,
-+			 "%s: dvb_dmx_init failed (errno = %d)\n",
- 		       dev->name, result);
- 		goto fail_dmx;
- 	}
-@@ -504,15 +503,16 @@ static int register_dvb(struct cx231xx_dvb *dvb,
- 	dvb->dmxdev.capabilities = 0;
- 	result = dvb_dmxdev_init(&dvb->dmxdev, &dvb->adapter);
- 	if (result < 0) {
--		printk(KERN_WARNING "%s: dvb_dmxdev_init failed (errno = %d)\n",
--		       dev->name, result);
-+		dev_warn(&dev->udev->dev,
-+			 "%s: dvb_dmxdev_init failed (errno = %d)\n",
-+			 dev->name, result);
- 		goto fail_dmxdev;
- 	}
- 
- 	dvb->fe_hw.source = DMX_FRONTEND_0;
- 	result = dvb->demux.dmx.add_frontend(&dvb->demux.dmx, &dvb->fe_hw);
- 	if (result < 0) {
--		printk(KERN_WARNING
-+		dev_warn(&dev->udev->dev,
- 		       "%s: add_frontend failed (DMX_FRONTEND_0, errno = %d)\n",
- 		       dev->name, result);
- 		goto fail_fe_hw;
-@@ -521,17 +521,17 @@ static int register_dvb(struct cx231xx_dvb *dvb,
- 	dvb->fe_mem.source = DMX_MEMORY_FE;
- 	result = dvb->demux.dmx.add_frontend(&dvb->demux.dmx, &dvb->fe_mem);
- 	if (result < 0) {
--		printk(KERN_WARNING
--		       "%s: add_frontend failed (DMX_MEMORY_FE, errno = %d)\n",
--		       dev->name, result);
-+		dev_warn(&dev->udev->dev,
-+			 "%s: add_frontend failed (DMX_MEMORY_FE, errno = %d)\n",
-+			 dev->name, result);
- 		goto fail_fe_mem;
- 	}
- 
- 	result = dvb->demux.dmx.connect_frontend(&dvb->demux.dmx, &dvb->fe_hw);
- 	if (result < 0) {
--		printk(KERN_WARNING
--		       "%s: connect_frontend failed (errno = %d)\n", dev->name,
--		       result);
-+		dev_warn(&dev->udev->dev,
-+			 "%s: connect_frontend failed (errno = %d)\n",
-+			 dev->name, result);
- 		goto fail_fe_conn;
- 	}
- 
-@@ -590,7 +590,8 @@ static int dvb_init(struct cx231xx *dev)
- 	dvb = kzalloc(sizeof(struct cx231xx_dvb), GFP_KERNEL);
- 
- 	if (dvb == NULL) {
--		printk(KERN_INFO "cx231xx_dvb: memory allocation failed\n");
-+		dev_info(&dev->udev->dev,
-+			 "cx231xx_dvb: memory allocation failed\n");
- 		return -ENOMEM;
- 	}
- 	dev->dvb = dvb;
-@@ -612,8 +613,8 @@ static int dvb_init(struct cx231xx *dev)
- 					demod_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
--			printk(DRIVER_NAME
--			       ": Failed to attach s5h1432 front end\n");
-+			dev_err(&dev->udev->dev,
-+				"Failed to attach s5h1432 front end\n");
- 			result = -EINVAL;
- 			goto out_free;
- 		}
-@@ -637,8 +638,8 @@ static int dvb_init(struct cx231xx *dev)
- 					       demod_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
--			printk(DRIVER_NAME
--			       ": Failed to attach s5h1411 front end\n");
-+			dev_err(&dev->udev->dev,
-+				"Failed to attach s5h1411 front end\n");
- 			result = -EINVAL;
- 			goto out_free;
- 		}
-@@ -660,8 +661,8 @@ static int dvb_init(struct cx231xx *dev)
- 					demod_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
--			printk(DRIVER_NAME
--			       ": Failed to attach s5h1432 front end\n");
-+			dev_err(&dev->udev->dev,
-+				"Failed to attach s5h1432 front end\n");
- 			result = -EINVAL;
- 			goto out_free;
- 		}
-@@ -684,8 +685,8 @@ static int dvb_init(struct cx231xx *dev)
- 					       demod_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
--			printk(DRIVER_NAME
--			       ": Failed to attach s5h1411 front end\n");
-+			dev_err(&dev->udev->dev,
-+				"Failed to attach s5h1411 front end\n");
- 			result = -EINVAL;
- 			goto out_free;
- 		}
-@@ -702,7 +703,8 @@ static int dvb_init(struct cx231xx *dev)
- 		break;
- 	case CX231XX_BOARD_HAUPPAUGE_EXETER:
- 
--		printk(KERN_INFO "%s: looking for tuner / demod on i2c bus: %d\n",
-+		dev_info(&dev->udev->dev,
-+			 "%s: looking for tuner / demod on i2c bus: %d\n",
- 		       __func__, i2c_adapter_id(tuner_i2c));
- 
- 		dev->dvb->frontend = dvb_attach(lgdt3305_attach,
-@@ -710,8 +712,8 @@ static int dvb_init(struct cx231xx *dev)
- 						tuner_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
--			printk(DRIVER_NAME
--			       ": Failed to attach LG3305 front end\n");
-+			dev_err(&dev->udev->dev,
-+				"Failed to attach LG3305 front end\n");
- 			result = -EINVAL;
- 			goto out_free;
- 		}
-@@ -732,8 +734,8 @@ static int dvb_init(struct cx231xx *dev)
- 			);
- 
- 		if (dev->dvb->frontend == NULL) {
--			printk(DRIVER_NAME
--			       ": Failed to attach SI2165 front end\n");
-+			dev_err(&dev->udev->dev,
-+				"Failed to attach SI2165 front end\n");
- 			result = -EINVAL;
- 			goto out_free;
- 		}
-@@ -765,8 +767,8 @@ static int dvb_init(struct cx231xx *dev)
- 			);
- 
- 		if (dev->dvb->frontend == NULL) {
--			printk(DRIVER_NAME
--			       ": Failed to attach SI2165 front end\n");
-+			dev_err(&dev->udev->dev,
-+				"Failed to attach SI2165 front end\n");
- 			result = -EINVAL;
- 			goto out_free;
- 		}
-@@ -810,16 +812,17 @@ static int dvb_init(struct cx231xx *dev)
- 	case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
- 	case CX231XX_BOARD_KWORLD_UB430_USB_HYBRID:
- 
--		printk(KERN_INFO "%s: looking for demod on i2c bus: %d\n",
--		       __func__, i2c_adapter_id(tuner_i2c));
-+		dev_info(&dev->udev->dev,
-+			 "%s: looking for demod on i2c bus: %d\n",
-+			 __func__, i2c_adapter_id(tuner_i2c));
- 
- 		dev->dvb->frontend = dvb_attach(mb86a20s_attach,
- 						&pv_mb86a20s_config,
- 						demod_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
--			printk(DRIVER_NAME
--			       ": Failed to attach mb86a20s demod\n");
-+			dev_err(&dev->udev->dev,
-+				"Failed to attach mb86a20s demod\n");
- 			result = -EINVAL;
- 			goto out_free;
- 		}
-@@ -833,12 +836,13 @@ static int dvb_init(struct cx231xx *dev)
- 		break;
- 
- 	default:
--		printk(KERN_ERR "%s/2: The frontend of your DVB/ATSC card"
--		       " isn't supported yet\n", dev->name);
-+		dev_err(&dev->udev->dev,
-+			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
-+			dev->name);
- 		break;
- 	}
- 	if (NULL == dvb->frontend) {
--		printk(KERN_ERR
-+		dev_err(&dev->udev->dev,
- 		       "%s/2: frontend initialization failed\n", dev->name);
- 		result = -EINVAL;
- 		goto out_free;
-@@ -851,7 +855,7 @@ static int dvb_init(struct cx231xx *dev)
- 		goto out_free;
- 
- 
--	printk(KERN_INFO "Successfully loaded cx231xx-dvb\n");
-+	dev_info(&dev->udev->dev, "Successfully loaded cx231xx-dvb\n");
- 
- ret:
- 	cx231xx_set_mode(dev, CX231XX_SUSPEND);
+Cropping is out of scope as it requires using the selection API. I can add
+this where selections are discussed in more detail, if you think it's
+relevant. IMO this may be a property of a particular piece of hardware, and
+there are a lot more reasons to crop a a few pixels than just that.
+
+> > </para></listitem>
+> > -	<listitem><para>The application configures the scaler input pad resolution to
+> > -	2046x1534 to match the frontend output resolution. The driver propagates
+> > -	the format to the scaler output pad.</para></listitem>
+> > -	<listitem><para>The application configures the scaler output pad resolution to
+> > -	1280x960.</para></listitem>
+> > +	<listitem><para>Initial state. The sensor source pad format is
+> > +	set to its native 3MP size and V4L2_MBUS_FMT_SGRBG8_1X8
+> > +	media bus code. Formats on the host frontend and scaler sink
+> > +	and source pads have the default values, as well as the
+> > +	compose rectangle on the scaler's sind pad.</para></listitem>
+> 
+> sind -> sink
+
+I'll fix that.
+
 -- 
-1.9.3
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
