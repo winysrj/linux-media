@@ -1,46 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:42630 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751435AbaKGJyg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Nov 2014 04:54:36 -0500
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH] [media] rc-main: Fix =?UTF-8?Q?rc=5Ftype=20handling?=
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:61487 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750857AbaKPNaA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Nov 2014 08:30:00 -0500
+Received: by mail-lb0-f179.google.com with SMTP id l4so14838382lbv.38
+        for <linux-media@vger.kernel.org>; Sun, 16 Nov 2014 05:29:59 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Fri, 07 Nov 2014 10:54:29 +0100
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	James Hogan <james.hogan@imgtec.com>,
-	=?UTF-8?Q?Antti_Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-In-Reply-To: <fb9b1641ba30385e1c142ecef2b631d31a881fd1.1415190468.git.mchehab@osg.samsung.com>
-References: <fb9b1641ba30385e1c142ecef2b631d31a881fd1.1415190468.git.mchehab@osg.samsung.com>
-Message-ID: <7b470908627a92aca71494999af3cd63@hardeman.nu>
+In-Reply-To: <1415623771-29634-7-git-send-email-hverkuil@xs4all.nl>
+References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl> <1415623771-29634-7-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sun, 16 Nov 2014 21:29:18 +0800
+Message-ID: <CAMm-=zCqm9C0tFtgvYrU+NEuE_mX4DSTK+G--JCN8fjt53y+kA@mail.gmail.com>
+Subject: Re: [RFCv6 PATCH 06/16] vb2-dma-sg: add dmabuf import support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-11-05 13:27, Mauro Carvalho Chehab wrote:
-> As reported by smatch:
-> 	drivers/media/rc/rc-main.c:1426 rc_register_device() warn: should '1
-> << rc_map->rc_type' be a 64 bit type?
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 296de853a25d..66eabc5dd000 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -1423,7 +1423,7 @@ int rc_register_device(struct rc_dev *dev)
->  	}
-> 
->  	if (dev->change_protocol) {
-> -		u64 rc_type = (1 << rc_map->rc_type);
-> +		u64 rc_type = (1ll << rc_map->rc_type);
+On Mon, Nov 10, 2014 at 8:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Add support for importing dmabuf to videobuf2-dma-sg.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Just a minor nitpick, but I think "ull" is more consistent with "u64"
+Acked-by: Pawel Osciak <pawel@osciak.com>
 
->  		rc = dev->change_protocol(dev, &rc_type);
->  		if (rc < 0)
->  			goto out_raw;
+
+-- 
+Best regards,
+Pawel Osciak
