@@ -1,61 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:60296 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751485AbaK0SrJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 13:47:09 -0500
-Received: by mail-pd0-f181.google.com with SMTP id z10so5215022pdj.26
-        for <linux-media@vger.kernel.org>; Thu, 27 Nov 2014 10:47:09 -0800 (PST)
+Received: from mout.gmx.net ([212.227.17.21]:60486 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754966AbaKPQeH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Nov 2014 11:34:07 -0500
+Date: Sun, 16 Nov 2014 17:33:51 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: soc-camera state 3.19
+Message-ID: <Pine.LNX.4.64.1411161711300.21527@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <ebd316f3f4f7cefa937562adba8ce60f2057ca9d.1417015567.git.mchehab@osg.samsung.com>
-References: <ebd316f3f4f7cefa937562adba8ce60f2057ca9d.1417015567.git.mchehab@osg.samsung.com>
-Date: Thu, 27 Nov 2014 13:47:09 -0500
-Message-ID: <CAOcJUbwiDEvp3-c+j7B1L9MxFjnrw9mT0116C+Dy9p4hOQNEhg@mail.gmail.com>
-Subject: Re: [PATCH] [media] tda18271: Fix identation
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 26, 2014 at 10:26 AM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> As reported by smatch:
->         drivers/media/tuners/tda18271-common.c:176 tda18271_read_extended() warn: if statement not indented
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> diff --git a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
-> index 86e5e3110118..6118203543ea 100644
-> --- a/drivers/media/tuners/tda18271-common.c
-> +++ b/drivers/media/tuners/tda18271-common.c
-> @@ -173,12 +173,9 @@ int tda18271_read_extended(struct dvb_frontend *fe)
->
->         for (i = 0; i < TDA18271_NUM_REGS; i++) {
->                 /* don't update write-only registers */
-> -               if ((i != R_EB9)  &&
-> -                   (i != R_EB16) &&
-> -                   (i != R_EB17) &&
-> -                   (i != R_EB19) &&
-> -                   (i != R_EB20))
-> -               regs[i] = regdump[i];
-> +               if ((i != R_EB9)  && (i != R_EB16) && (i != R_EB17) &&
-> +                   (i != R_EB19) && (i != R_EB20))
-> +                       regs[i] = regdump[i];
->         }
->
->         if (tda18271_debug & DBG_REG)
-> --
-> 1.9.3
->
+Hi all,
 
-Mauro,
+I've got 10 patches from Koji Matsuoka and Yoshihiro Kaneko on stack for 
+3.19 and a patch from Philipp Zabel, that touches soc-camera, but will 
+probably go via Mauro's tree directly. Below is their respective state and 
+most recent version and their posting dates. If I missed any patches, 
+please let me know!
 
-I would actually rather NOT merge this patch.  This hurts the
-readability of the code.  If applied already, please revert it.
+[PATCH] media: soc_camera: rcar_vin: Add YUYV capture format support
+of 14 Oct
+state: Ok
 
-Cheers,
+[PATCH] media: soc_camera: Fix VIDIOC_S_CROP ioctl miscalculation
+of 14 Oct
+state: comment posted, waiting for reply
 
-Mike
+[PATCH] media: soc_camera: rcar_vin: Add DT support for r8a7793 and r8a7794 SoCs
+of 20 Oct
+state: Ok
+
+[PATCH v3 1/3] media: soc_camera: rcar_vin: Add scaling support
+of 21 Oct
+state: Ok
+
+[PATCH v3 2/3] media: soc_camera: rcar_vin: Add capture width check for NV16 format
+of 21 Oct
+state: comment posted, waiting for reply
+
+[PATCH v3 3/3] media: soc_camera: rcar_vin: Add NV16 horizontal scaling-up support
+of 21 Oct
+state: comment posted, waiting for reply
+
+[PATCH v2] media: soc_camera: rcar_vin: Enable VSYNC field toggle mode
+of 22 Oct
+state: Ok
+
+[PATCH] media: soc_camera: rcar_vin: Fix alignment of clipping size
+of 31 Oct
+state: waiting for response to Sergei's comments
+
+[PATCH] media: soc_camera: rcar_vin: Fix interrupt enable in progressive
+of 31 Oct
+state: Ok
+
+[PATCH v4] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
+of 1 Nov
+state: Ok
+
+[PATCH v5 1/6] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
+of 29 Sep
+state: comment posted, waiting for an update
+
+Thanks
+Guennadi
