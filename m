@@ -1,60 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48599 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410AbaKKEnz (ORCPT
+Received: from 201-248-70-110.estatic.cantv.net ([201.248.70.110]:53757 "EHLO
+	correo.inavi.gob.ve" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754966AbaKPQdY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 23:43:55 -0500
-Message-ID: <546193CF.8090107@ti.com>
-Date: Tue, 11 Nov 2014 10:12:55 +0530
-From: Sekhar Nori <nsekhar@ti.com>
+	Sun, 16 Nov 2014 11:33:24 -0500
+Date: Sun, 16 Nov 2014 11:53:15 -0430 (VET)
+From: Finance Department <vdelgado@inavi.gob.ve>
+Reply-To: Finance Department <defnce@qq.com>
+Message-ID: <1842044479.636610.1416154995261.JavaMail.zimbra@inavi.gob.ve>
+Subject: Payment
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	linux-api <linux-api@vger.kernel.org>,
-	OSUOSL Drivers <devel@driverdev.osuosl.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LDOC <linux-doc@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v3 06/10] [media] platform: Make use of media_bus_format
- enum
-References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com> <1415369269-5064-7-git-send-email-boris.brezillon@free-electrons.com> <CA+V-a8t79gYYGcgg5wvM-eqW8H2D6WD7xM9t2Px=WHb2rf34ow@mail.gmail.com>
-In-Reply-To: <CA+V-a8t79gYYGcgg5wvM-eqW8H2D6WD7xM9t2Px=WHb2rf34ow@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 08 November 2014 02:48 PM, Prabhakar Lad wrote:
-> Hi,
-> 
-> Thanks for the patch,
-> 
-> On Fri, Nov 7, 2014 at 2:07 PM, Boris Brezillon
-> <boris.brezillon@free-electrons.com> wrote:
->> In order to have subsytem agnostic media bus format definitions we've
->> moved media bus definition to include/uapi/linux/media-bus-format.h and
->> prefixed values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
->>
->> Reference new definitions in all platform drivers.
->>
->> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
->> ---
->>  arch/arm/mach-davinci/board-dm355-evm.c            |   2 +-
->>  arch/arm/mach-davinci/board-dm365-evm.c            |   4 +-
->>  arch/arm/mach-davinci/dm355.c                      |   7 +-
->>  arch/arm/mach-davinci/dm365.c                      |   7 +-
-> 
-> @Sekhar can you ack for the machine changes for davinci ?
+Dear Recipient,
 
-Heh, I don't have 6/10 in my inbox but have rest of the series. Can you
-forward 6/10 to me?
+You have been awarded the sum of  8,000,000.00 (Eight Million Pounds sterling) with reference number 77100146 by office of the ministry of finance UK.Send us your personal details to deliver your funds.
 
-Thanks,
-Sekhar
-
+Gloria Peter
