@@ -1,87 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:52974 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751175AbaKUIzN (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49799 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752007AbaKPInz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 03:55:13 -0500
-Date: Fri, 21 Nov 2014 09:51:07 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Emilio Lopez <emilio@elopez.com.ar>,
-	Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com
-Subject: Re: [PATCH 4/9] rc: sunxi-cir: Add support for an optional reset
- controller
-Message-ID: <20141121085107.GM24143@lukather>
-References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
- <1416498928-1300-5-git-send-email-hdegoede@redhat.com>
- <20141120142831.003fb63e@recife.lan>
+	Sun, 16 Nov 2014 03:43:55 -0500
+Date: Sun, 16 Nov 2014 09:43:53 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Message-ID: <20141116084353.GC30646@amd>
+References: <20141116075928.GA9763@amd>
+ <54685C18.1020109@metafoo.de>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lRF4gxo9Z9M++D0O"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20141120142831.003fb63e@recife.lan>
+In-Reply-To: <54685C18.1020109@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun 2014-11-16 09:11:04, Lars-Peter Clausen wrote:
+> On 11/16/2014 08:59 AM, Pavel Machek wrote:
+> >[...]
+> >+	adp1653: adp1653@30 {
+> >+		compatible = "ad,adp1653";
+> 
+> The Analog Devices vendor prefix is adi.
 
---lRF4gxo9Z9M++D0O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks, will be fixed in next version.
 
-Hi Mauro,
-
-On Thu, Nov 20, 2014 at 02:28:31PM -0200, Mauro Carvalho Chehab wrote:
-> Em Thu, 20 Nov 2014 16:55:23 +0100
-> Hans de Goede <hdegoede@redhat.com> escreveu:
->=20
-> > On sun6i the cir block is attached to the reset controller, add support
-> > for de-asserting the reset if a reset controller is specified in dt.
-> >=20
-> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->=20
-> As this is meant to be merged via some other tree:
->=20
-> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-Again, I think it'll be perfectly fine in your tree :)
-
-Once the documentation is updated,
-Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-
-Thanks,
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---lRF4gxo9Z9M++D0O
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUbvz7AAoJEBx+YmzsjxAgoDoP/RB1X7qt9AejV6y1SANDQdQV
-JAwggSwpyrTFkgcS71EpbFlPmC7PEZC5cJCH5WJ1wUAxsqb7BNYaWgN7arHisORq
-H6VxBbh5czCkHiVFUxVseFbERI1V12NU9vt2zVGtRf8HCOLye+xHsqb91sNUd1OM
-yZQo/fNKJeB3mPVu/A0Gnx4ZGhcgsBw3VIysxrtkykNR2iwXiOJrBahQ0srTWfuW
-aS4mOZlG7gCSLTWOia9lNa4b5oS1hiEeVjIJogswngNVTas7CIEKIHr9mHaiR9/W
-ogifA8B055TaanmSSsX1NRPB5en1/S60VczKvBQruqon8/lwdRexCQIq19TygDr7
-q/7eMzFwnKm/CmrvJQRXwcZWo4t6mP7IhineC3KbzLC23s67d4NgdetgYWhoW6Qy
-+VHA9JrGDwhr6mAWngldAINROAtYzLdmpXXbL4GtgWNKldGNB+VhEihHMBUwGHeh
-v9B/Tlk3R0kNPyI2jT4wUyCdTnLl/fvHNc9ujVMMrIZwVPJz1Gz6/AS31YNZlJZO
-4p0hG0LzqQtl7m1GdtlBTPdFoE/wE7ce199WL1bGgmiddRE1cQ+vt9tDaM6MrosE
-ngmpvcIdTWWfcBxHLlreYOhDJeA0Hc2NgqzyBJz96YI+BNuYkE6eW5pbrZsh7M1B
-baCewwWTWY9+c9k2yRyZ
-=n+LL
------END PGP SIGNATURE-----
-
---lRF4gxo9Z9M++D0O--
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
