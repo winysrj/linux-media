@@ -1,66 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47359 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752965AbaKXJiL (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:42434 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754829AbaKPIYn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Nov 2014 04:38:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 4/6] media/radio: fix querycap
-Date: Mon, 24 Nov 2014 10:37:24 +0100
-Message-Id: <1416821846-7677-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1416821846-7677-1-git-send-email-hverkuil@xs4all.nl>
-References: <1416821846-7677-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 16 Nov 2014 03:24:43 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v2] [media] Add RGB444_1X12 and RGB565_1X16 media bus formats
+Date: Sun, 16 Nov 2014 09:24:38 +0100
+Message-Id: <1416126278-17708-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add RGB444_1X12 and RGB565_1X16 format definitions and update the
+documentation.
 
-Querycap should set the device_caps field.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/radio/radio-wl1273.c      | 4 +++-
- drivers/media/radio/wl128x/fmdrv_v4l2.c | 4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+Changes since v1:
+- keep BPP and bits per sample ordering
 
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index 9cf6731..284f789 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -1279,10 +1279,12 @@ static int wl1273_fm_vidioc_querycap(struct file *file, void *priv,
- 	strlcpy(capability->bus_info, radio->bus_type,
- 		sizeof(capability->bus_info));
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 40 ++++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h              |  4 ++-
+ 2 files changed, 43 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 18730b9..0d6f731 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -176,6 +176,24 @@
+ 	    </row>
+ 	  </thead>
+ 	  <tbody valign="top">
++	    <row id="MEDIA-BUS-FMT-RGB444-1X12">
++	      <entry>MEDIA_BUS_FMT_RGB444_1X12</entry>
++	      <entry>0x100d</entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>r<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>b<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="MEDIA-BUS-FMT-RGB444-2X8-PADHI-BE">
+ 	      <entry>MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE</entry>
+ 	      <entry>0x1001</entry>
+@@ -288,6 +306,28 @@
+ 	      <entry>g<subscript>4</subscript></entry>
+ 	      <entry>g<subscript>3</subscript></entry>
+ 	    </row>
++	    <row id="MEDIA-BUS-FMT-RGB565-1X16">
++	      <entry>MEDIA_BUS_FMT_RGB565_1X16</entry>
++	      <entry>0x100d</entry>
++	      <entry></entry>
++	      &dash-ent-16;
++	      <entry>r<subscript>4</subscript></entry>
++	      <entry>r<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	      <entry>b<subscript>4</subscript></entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>b<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="MEDIA-BUS-FMT-BGR565-2X8-BE">
+ 	      <entry>MEDIA_BUS_FMT_BGR565_2X8_BE</entry>
+ 	      <entry>0x1005</entry>
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 23b4090..37091c6 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -33,11 +33,13 @@
  
--	capability->capabilities = V4L2_CAP_HW_FREQ_SEEK |
-+	capability->device_caps = V4L2_CAP_HW_FREQ_SEEK |
- 		V4L2_CAP_TUNER | V4L2_CAP_RADIO | V4L2_CAP_AUDIO |
- 		V4L2_CAP_RDS_CAPTURE | V4L2_CAP_MODULATOR |
- 		V4L2_CAP_RDS_OUTPUT;
-+	capability->capabilities = capability->device_caps |
-+		V4L2_CAP_DEVICE_CAPS;
+ #define MEDIA_BUS_FMT_FIXED			0x0001
  
- 	return 0;
- }
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-index b55012c..a5bd3f6 100644
---- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-@@ -198,10 +198,12 @@ static int fm_v4l2_vidioc_querycap(struct file *file, void *priv,
- 	strlcpy(capability->card, FM_DRV_CARD_SHORT_NAME,
- 			sizeof(capability->card));
- 	sprintf(capability->bus_info, "UART");
--	capability->capabilities = V4L2_CAP_HW_FREQ_SEEK | V4L2_CAP_TUNER |
-+	capability->device_caps = V4L2_CAP_HW_FREQ_SEEK | V4L2_CAP_TUNER |
- 		V4L2_CAP_RADIO | V4L2_CAP_MODULATOR |
- 		V4L2_CAP_AUDIO | V4L2_CAP_READWRITE |
- 		V4L2_CAP_RDS_CAPTURE;
-+	capability->capabilities = capability->device_caps |
-+		V4L2_CAP_DEVICE_CAPS;
- 
- 	return 0;
- }
+-/* RGB - next is	0x100e */
++/* RGB - next is	0x1010 */
++#define MEDIA_BUS_FMT_RGB444_1X12		0x100e
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+ #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
+ #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE	0x1004
++#define MEDIA_BUS_FMT_RGB565_1X16		0x100f
+ #define MEDIA_BUS_FMT_BGR565_2X8_BE		0x1005
+ #define MEDIA_BUS_FMT_BGR565_2X8_LE		0x1006
+ #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
 -- 
-2.1.3
+1.9.1
 
