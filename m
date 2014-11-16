@@ -1,76 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56707 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753914AbaKOOTi (ORCPT
+Received: from mail-la0-f45.google.com ([209.85.215.45]:40981 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755114AbaKPMlf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 09:19:38 -0500
-Date: Sat, 15 Nov 2014 16:18:59 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 06/11] videodev2.h: add new v4l2_ext_control flags
- field
-Message-ID: <20141115141858.GG8907@valkosipuli.retiisi.org.uk>
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
- <1411310909-32825-7-git-send-email-hverkuil@xs4all.nl>
+	Sun, 16 Nov 2014 07:41:35 -0500
+Received: by mail-la0-f45.google.com with SMTP id gm9so389252lab.4
+        for <linux-media@vger.kernel.org>; Sun, 16 Nov 2014 04:41:33 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1411310909-32825-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415623771-29634-3-git-send-email-hverkuil@xs4all.nl>
+References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl> <1415623771-29634-3-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sun, 16 Nov 2014 20:34:03 +0800
+Message-ID: <CAMm-=zDB6ic3mHpsJKwzzTDsFUOUAm-D+arTkyEjaThcYANa4g@mail.gmail.com>
+Subject: Re: [RFCv6 PATCH 02/16] vb2: replace 'write' by 'dma_dir'
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Sun, Sep 21, 2014 at 04:48:24PM +0200, Hans Verkuil wrote:
+On Mon, Nov 10, 2014 at 8:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
 > From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Replace reserved2 by a flags field. This is used to tell whether
-> setting a new store value is applied only once or every time that
-> v4l2_ctrl_apply_store() is called for that store.
-> 
+>
+> The 'write' argument is very ambiguous. I first assumed that if it is 1,
+> then we're doing video output but instead it meant the reverse.
+>
+> Since it is used to setup the dma_dir value anyway it is now replaced by
+> the correct dma_dir value which is unambiguous.
+>
 > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/uapi/linux/videodev2.h | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 2ca44ed..fa84070 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1282,7 +1282,7 @@ struct v4l2_control {
->  struct v4l2_ext_control {
->  	__u32 id;
->  	__u32 size;
-> -	__u32 reserved2[1];
-> +	__u32 flags;
 
-16 bits, please. The pad number (for sub-devices) would need to be added
-here as well, and that's 16 bits. A flag might be needed to tell it's valid,
-too.
-
->  	union {
->  		__s32 value;
->  		__s64 value64;
-> @@ -1294,6 +1294,10 @@ struct v4l2_ext_control {
->  	};
->  } __attribute__ ((packed));
->  
-> +/* v4l2_ext_control flags */
-> +#define V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE	0x00000001
-> +#define V4L2_EXT_CTRL_FL_IGN_STORE		0x00000002
-
-Do we need both? Aren't these mutually exclusive, and you must have either
-to be meaningful in the context of a store?
-
-> +
->  struct v4l2_ext_controls {
->  	union {
->  		__u32 ctrl_class;
+Acked-by: Pawel Osciak <pawel@osciak.com>
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Best regards,
+Pawel Osciak
