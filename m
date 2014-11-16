@@ -1,117 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:46680 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756984AbaKTPbM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 10:31:12 -0500
-Received: by mail-wg0-f48.google.com with SMTP id y19so4036075wgg.7
-        for <linux-media@vger.kernel.org>; Thu, 20 Nov 2014 07:31:10 -0800 (PST)
-Message-ID: <546E093D.4030203@googlemail.com>
-Date: Thu, 20 Nov 2014 16:31:09 +0100
-From: Gregor Jasny <gjasny@googlemail.com>
+Received: from mout.gmx.net ([212.227.17.21]:57407 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754459AbaKPPIW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Nov 2014 10:08:22 -0500
+Date: Sun, 16 Nov 2014 16:08:12 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+cc: linux-media@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v3 2/3] media: soc_camera: rcar_vin: Add capture width
+ check for NV16 format
+In-Reply-To: <1413868229-22205-3-git-send-email-ykaneko0929@gmail.com>
+Message-ID: <Pine.LNX.4.64.1411161605490.21527@axis700.grange>
+References: <1413868229-22205-1-git-send-email-ykaneko0929@gmail.com>
+ <1413868229-22205-3-git-send-email-ykaneko0929@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: v4l-utils stable release 1.6.1
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Kaneko-san,
 
-do you consider something from these commits as important enough for a 
-bugfix release?
+On Tue, 21 Oct 2014, Yoshihiro Kaneko wrote:
 
-Thanks,
-Gregor
+> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> 
+> At the time of NV16 capture format, the user has to specify the
+> capture output width of the multiple of 32 for H/W specification.
+> At the time of using NV16 format by ioctl of VIDIOC_S_FMT,
+> this patch adds align check and the error handling to forbid
+> specification of the capture output width which is not a multiple of 32.
+> 
+> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> ---
+> 
+> v3 [Yoshihiro Kaneko]
+> * fixes some code-style and remove useless error flag as suggested by
+>   Sergei Shtylyov
+> 
+> v2 [Yoshihiro Kaneko]
+> * use u32 instead of unsigned long
+> 
+>  drivers/media/platform/soc_camera/rcar_vin.c | 18 ++++++++++++++++--
+>  1 file changed, 16 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index dd6daab..ecdbd48 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
 
-> Akihiro Tsukada (9):
->       libdvbv5, dvbv5-scan: generalize channel duplication check
->       libdvbv5: add as many channels as possible in scanning DVB-T2
->       libdvbv5: wrong frequency in the output of satellite delsys scans
->       libdvbv5: add support for ISDB-S tuning
->       libdvbv5: add support for ISDB-S scanning
->       libdvbv5: add COUNTRY property
->       v4l-utils/libdvbv5: restore deleted functions to keep API/ABI compatible
->       v4l-utils/libdvbv5: fix memory leak in dvb_guess_user_country()
->       v4l-utils/libdvbv5: add gconv module for the text conversions of ISDB-S/T.
->
-> Gregor Jasny (7):
->       Start v4l-utils 1.7.0 development cycle
->       man: remove duplicate backslash from NAME section
->       man: Use Unicode character for ellipsis and fall back to ...
->       man: add generated files to .gitignore
->       libdvbv5: Remove stray semicolon
->       v4l2-compliance: Explicitely link against rt library
->       v4l2-ctl: Explicitely link against rt library
->
-> Hans Verkuil (10):
->       qv4l2/v4l2-ctl: fix buffer overrun in vivid-tpg.
->       v4l2-ctl: fix sliced vbi mode parsing
->       v4l2-compliance: when streaming used at least 2 buffers.
->       v4l2-compliance: add initial checks for VIDIOC_QUERY_EXT_CTRL
->       v4l2-ctl: add support for U32 control type.
->       v4l2-ctl: fix array handling
->       v4l2-compliance: allow the V4L2_IN_ST_NO_SYNC status flag.
->       qv4l2: add single step support
->       qv4l2: don't select alsa device for video output.
->       v4l2-compliance: select(): split "ret <= 0" test in two
->
-> Hans de Goede (2):
->       rc_keymaps: allwinner: S/KEY_HOME/KEY_HOMEPAGE/
->       v4lconvert: Fix decoding of jpeg data with no vertical sub-sampling
->
-> Mauro Carvalho Chehab (41):
->       libdvbv5: properly represent Satellite frequencies
->       README: better document the package
->       libdvbv5: Fix some Doxygen warnings at dvb-fe.h
->       Doxygen: Document libdvbv5 countries.h
->       configure.ac: Fix gconv compilation with 64 bits
->       parse_tcpdump_log.pl: only adjust direction for control EP
->       contrib: add a parser for af9035
->       parse_af9035.pl: properly handle URB errors
->       parse_af9035.pl: Add two other commands from ITE driver
->       parse_af9035.pl: add arguments to show timestamp and debug
->       parse_af9035.pl: group write/read URBs
->       parse_af9035.pl: create a routine to print send/race
->       parse_af9035.pl: print read/write as C lines
->       parse_af9035.pl: add support for firmware commands
->       parse_af9035.pl: fix firmware write size
->       ir-keytable: fix a regression introduced by fe2aa5f767eba
->       gen_keytables.pl: Fix a regression at RC map file generation
->       rc: Update the protocol name at RC6 tables
->       rc_maps.cfg: reorder entries alphabetically
->       rc: sync with Kernel
->       rc: copy userspace-only maps to a separate dir
->       README: Add the steps needed to syncronize with the Kernel tree
->       vivid-tpg.h.patch: update to match current upstream tree
->       Synchronize with the Kernel
->       parse_af9035.pl: proper handle when stack is not filled
->       parse_af9035.pl: add support for CMD_IR_GET
->       parse_af9035.pl: add options to hide part of the messages
->       parse_af9035.pl: Add firmware boot message to the parser
->       parse_af9035.pl: improve IR handling
->       parse_af9035.pl: add support for generic I2C read/write
->       parse_af9035.pl: better handle the read data
->       parse_af9035.pl: allow to hide parsing errors
->       parse_af9035.pl: add support for standard I2C commands
->       parse_af9035.pl: some cleanups
->       parse_af9035.pl: Fix decoding order at I2C read/write
->       parse_af9035.pl: Fix size on rd/wr regs prints
->       parse_af9035.pl: Fix some hide conditions
->       parse_af9035.pl: Improve argument handling
->       libdvbv5: add experimental DTMB support
->       parse_tcpdump_log.pl: simplify non-control data
->       parse_tcpdump_log.pl: remove some leftovers
->
-> Niels Ole Salscheider (1):
->       qv4l2: Fix out-of-source build
->
-> Patrick Boettcher (4):
->       parse_tcpdump_log.pl: skip filtered frames and remove them from pending
->       parse_tcpdump_log.pl: show transfer-direction for non-ctrl-transfers
->       parse_tcpdump_log.pl: add external frame_processor-option
->       parse_tcpdump_log.pl: remove --all option which was not documented and not working as expected
+[snip]
 
+> @@ -1605,6 +1610,15 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+>  	dev_dbg(dev, "S_FMT(pix=0x%x, %ux%u)\n",
+>  		pixfmt, pix->width, pix->height);
+>  
+> +	/*
+> +	 * At the time of NV16 capture format, the user has to specify the
+> +	 * width of the multiple of 32 for H/W specification.
+> +	 */
+> +	if ((pixfmt == V4L2_PIX_FMT_NV16) && (pix->width & 0x1F)) {
+> +		dev_err(icd->parent, "Specified width error in NV16 format.\n");
+> +		return -EINVAL;
+> +	}
+> +
+
+Shouldn't these checks go into rcar_vin_try_fmt() and then just adjust the 
+width instead of erroring out?
+
+Thanks
+Guennadi
+
+>  	switch (pix->field) {
+>  	default:
+>  		pix->field = V4L2_FIELD_NONE;
+> -- 
+> 1.9.1
+> 
