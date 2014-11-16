@@ -1,124 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:54056 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560AbaKFMyN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 07:54:13 -0500
-Received: by mail-lb0-f170.google.com with SMTP id z12so849192lbi.1
-        for <linux-media@vger.kernel.org>; Thu, 06 Nov 2014 04:54:11 -0800 (PST)
+Received: from smtp-out-042.synserver.de ([212.40.185.42]:1075 "EHLO
+	smtp-out-035.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753920AbaKPILI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Nov 2014 03:11:08 -0500
+Message-ID: <54685C18.1020109@metafoo.de>
+Date: Sun, 16 Nov 2014 09:11:04 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-In-Reply-To: <CAB0d6Edzi1MNBkB0K+Src+oj2x3oiAt-XChbd5OsEpfLqH3pXw@mail.gmail.com>
-References: <CAB0d6EdsnrRmMxz=d2Di=NvitX3LLxzJMRM7ee1ZKsFViG0EDA@mail.gmail.com>
-	<20141029170853.1ee823cb.m.chehab@samsung.com>
-	<CAB0d6EcD9OGqmHVm+tt8rrdpqSBqv6pMWWE3NeYR85Z=CH3ntQ@mail.gmail.com>
-	<CAB0d6Edzi1MNBkB0K+Src+oj2x3oiAt-XChbd5OsEpfLqH3pXw@mail.gmail.com>
-Date: Thu, 6 Nov 2014 10:54:11 -0200
-Message-ID: <CAB0d6EdmYNn2XiVJo1--GsgS7-B-967JpX4vP+y+qqYthbqRCw@mail.gmail.com>
-Subject: Re: Issues with Empia + saa7115
-From: Rafael Coutinho <rafael.coutinho@phiinnovations.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@debian.org,
+	sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+References: <20141116075928.GA9763@amd>
+In-Reply-To: <20141116075928.GA9763@amd>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Found out, the problem that "dd" was not getting any data was due
-BeagleBoneBlack usb dma configuration on kernel:
-config_musb_pio_only
-This should be true to  Disable DMA (always use PIO).
+On 11/16/2014 08:59 AM, Pavel Machek wrote:
+>[...]
+> +	adp1653: adp1653@30 {
+> +		compatible = "ad,adp1653";
 
-Now I can debug if the problem is the saa711x driver version.
+The Analog Devices vendor prefix is adi.
 
-2014-11-03 10:03 GMT-02:00 Rafael Coutinho <rafael.coutinho@phiinnovations.com>:
-> I have tried now with a newer kernel (3.14) and I can't even get an
-> stream from /dev/video0. The file is always empty.
->
-> Here is the dmesg of it:
-> http://pastebin.com/pm720UnR
->
-> It is correctly identifying the device, however it cannot grab any
-> bytes from the dd command as below:
-> dd if=/dev/video0 of=ImageOut.raw bs=10065748 count=1
->
-> Any tips on how to investigate it further?
->
-> 2014-10-29 18:13 GMT-02:00 Rafael Coutinho <rafael.coutinho@phiinnovations.com>:
->> Ok, just to be sure, I have others capture boards like  Silan SC8113,
->> that's only on newer kernels? If so I'll backport it.
->>
->> 2014-10-29 17:08 GMT-02:00 Mauro Carvalho Chehab <m.chehab@samsung.com>:
->>> Em Wed, 29 Oct 2014 16:34:09 -0200
->>> Rafael Coutinho <rafael.coutinho@phiinnovations.com> escreveu:
->>>
->>>> Hi all,
->>>>
->>>> I'm having trouble to make an SAA7115 (Actually it's the generic
->>>> GM7113 version) video capture board to work on a beagle board running
->>>> Android (4.0.3).
->>>> For some reason I cannot capture any image, it always output a green image file.
->>>> The kernel is Linux-3.2.0
->>>
->>> Support for GM7113 were added only on a recent version.
->>>
->>> So, you need to get a newer driver. So, you'll need to either upgrade
->>> the Kernel, use either Linux backports or media-build to get a newer
->>> driver set or do the manual work of backporting saa7115 and the bridge
->>> driver changes for gm7113 for it to work.
->>>
->>> Regards,
->>> Mauro
->>>
->>>>
->>>> My current approach is the simplest I have found so far, to avoid any
->>>> issues with other sw layers. I'm forcing a 'dd' from the /dev/video
->>>> device.
->>>>
->>>> dd if=/dev/video0 of=ImageOut.raw bs=10065748 count=1
->>>>
->>>> And then I open the raw image file converting it on an image editor.
->>>>
->>>> In my ubuntu PC (kernel 3.13.0) it works fine. however on the Beagle
->>>> Bone with android it fails to get an image.
->>>>
->>>> I have now tried with a Linux (angstron) on beagle bone with 3.8
->>>> kernel and this time is even worse, the 'dd' command does not result
->>>> on any byte written on the output file.
->>>>
->>>> The v4l2-ctl works fine on the 3 environments. I can even set values
->>>> as standard, input etc...
->>>>
->>>> I have attached the dmesg of the environments here:
->>>>
->>>> * Android - dmesg http://pastebin.com/AFdB9N9c
->>>>
->>>> * Linux Angstron - dmesg http://pastebin.com/s3S3iCph
->>>> * Linux Angstron - lsmod http://pastebin.com/vh89TBKQ
->>>>
->>>> * Desktop PC - dmesg http://pastebin.com/HXzHwnUJ
->>>>
->>>> I have one restriction on the kernel of android due the HAL drivers
->>>> for BBB. So changing kernel is not a choice.
->>>>
->>>> Anyone could give me some tips on where to look for other issues or debug it?
->>>>
->>>> Thanks in advance
->>>>
->>
->>
->>
->> --
->> Regards,
->> Coutinho
->> www.phiinnovations.com
->
->
->
-> --
-> Regards,
-> Coutinho
-> www.phiinnovations.com
-
-
-
--- 
-Regards,
-Coutinho
-www.phiinnovations.com
