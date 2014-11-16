@@ -1,109 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:54608 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751223AbaKCMD3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 07:03:29 -0500
-Received: by mail-lb0-f177.google.com with SMTP id z12so679936lbi.8
-        for <linux-media@vger.kernel.org>; Mon, 03 Nov 2014 04:03:28 -0800 (PST)
+Received: from cantor2.suse.de ([195.135.220.15]:35000 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754676AbaKPKJ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Nov 2014 05:09:57 -0500
+Message-ID: <546877EF.8010906@suse.de>
+Date: Sun, 16 Nov 2014 11:09:51 +0100
+From: =?windows-1252?Q?Andreas_F=E4rber?= <afaerber@suse.de>
 MIME-Version: 1.0
-In-Reply-To: <CAB0d6EcD9OGqmHVm+tt8rrdpqSBqv6pMWWE3NeYR85Z=CH3ntQ@mail.gmail.com>
-References: <CAB0d6EdsnrRmMxz=d2Di=NvitX3LLxzJMRM7ee1ZKsFViG0EDA@mail.gmail.com>
-	<20141029170853.1ee823cb.m.chehab@samsung.com>
-	<CAB0d6EcD9OGqmHVm+tt8rrdpqSBqv6pMWWE3NeYR85Z=CH3ntQ@mail.gmail.com>
-Date: Mon, 3 Nov 2014 10:03:28 -0200
-Message-ID: <CAB0d6Edzi1MNBkB0K+Src+oj2x3oiAt-XChbd5OsEpfLqH3pXw@mail.gmail.com>
-Subject: Re: Issues with Empia + saa7115
-From: Rafael Coutinho <rafael.coutinho@phiinnovations.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Pavel Machek <pavel@ucw.cz>
+CC: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+References: <20141116075928.GA9763@amd>
+In-Reply-To: <20141116075928.GA9763@amd>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have tried now with a newer kernel (3.14) and I can't even get an
-stream from /dev/video0. The file is always empty.
+Hi Pavel,
 
-Here is the dmesg of it:
-http://pastebin.com/pm720UnR
+Am 16.11.2014 um 08:59 schrieb Pavel Machek:
+> For device tree people: Yes, I know I'll have to create file in
+> documentation, but does the binding below look acceptable?
+[...]
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index 739fcf2..ed0bfc1 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -553,6 +561,18 @@
+>  
+>  		ti,usb-charger-detection = <&isp1704>;
+>  	};
+> +
+> +	adp1653: adp1653@30 {
 
-It is correctly identifying the device, however it cannot grab any
-bytes from the dd command as below:
-dd if=/dev/video0 of=ImageOut.raw bs=10065748 count=1
+This should probably be led-controller@30 (a generic description not
+specific to the model). The label name is fine.
 
-Any tips on how to investigate it further?
+> +		compatible = "ad,adp1653";
+> +		reg = <0x30>;
+> +
+> +		max-flash-timeout-usec = <500000>;
+> +		max-flash-intensity-uA    = <320000>;
+> +		max-torch-intensity-uA     = <50000>;
+> +		max-indicator-intensity-uA = <17500>;
+> +
+> +		gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* Want 88 */
 
-2014-10-29 18:13 GMT-02:00 Rafael Coutinho <rafael.coutinho@phiinnovations.com>:
-> Ok, just to be sure, I have others capture boards like  Silan SC8113,
-> that's only on newer kernels? If so I'll backport it.
->
-> 2014-10-29 17:08 GMT-02:00 Mauro Carvalho Chehab <m.chehab@samsung.com>:
->> Em Wed, 29 Oct 2014 16:34:09 -0200
->> Rafael Coutinho <rafael.coutinho@phiinnovations.com> escreveu:
->>
->>> Hi all,
->>>
->>> I'm having trouble to make an SAA7115 (Actually it's the generic
->>> GM7113 version) video capture board to work on a beagle board running
->>> Android (4.0.3).
->>> For some reason I cannot capture any image, it always output a green image file.
->>> The kernel is Linux-3.2.0
->>
->> Support for GM7113 were added only on a recent version.
->>
->> So, you need to get a newer driver. So, you'll need to either upgrade
->> the Kernel, use either Linux backports or media-build to get a newer
->> driver set or do the manual work of backporting saa7115 and the bridge
->> driver changes for gm7113 for it to work.
->>
->> Regards,
->> Mauro
->>
->>>
->>> My current approach is the simplest I have found so far, to avoid any
->>> issues with other sw layers. I'm forcing a 'dd' from the /dev/video
->>> device.
->>>
->>> dd if=/dev/video0 of=ImageOut.raw bs=10065748 count=1
->>>
->>> And then I open the raw image file converting it on an image editor.
->>>
->>> In my ubuntu PC (kernel 3.13.0) it works fine. however on the Beagle
->>> Bone with android it fails to get an image.
->>>
->>> I have now tried with a Linux (angstron) on beagle bone with 3.8
->>> kernel and this time is even worse, the 'dd' command does not result
->>> on any byte written on the output file.
->>>
->>> The v4l2-ctl works fine on the 3 environments. I can even set values
->>> as standard, input etc...
->>>
->>> I have attached the dmesg of the environments here:
->>>
->>> * Android - dmesg http://pastebin.com/AFdB9N9c
->>>
->>> * Linux Angstron - dmesg http://pastebin.com/s3S3iCph
->>> * Linux Angstron - lsmod http://pastebin.com/vh89TBKQ
->>>
->>> * Desktop PC - dmesg http://pastebin.com/HXzHwnUJ
->>>
->>> I have one restriction on the kernel of android due the HAL drivers
->>> for BBB. So changing kernel is not a choice.
->>>
->>> Anyone could give me some tips on where to look for other issues or debug it?
->>>
->>> Thanks in advance
->>>
->
->
->
-> --
-> Regards,
-> Coutinho
-> www.phiinnovations.com
+At least to me, the meaning of "Want 88" is not clear - drop or clarify?
 
+> +	};
+>  };
+>  
+>  &i2c3 {
+[snip]
 
+Regards,
+Andreas
 
 -- 
-Regards,
-Coutinho
-www.phiinnovations.com
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg, Germany
+GF: Jeff Hawn, Jennifer Guild, Felix Imendörffer; HRB 21284 AG Nürnberg
