@@ -1,74 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f45.google.com ([209.85.192.45]:55304 "EHLO
-	mail-qg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468AbaK0Fe5 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41161 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751150AbaKQPZQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 00:34:57 -0500
-Date: Thu, 27 Nov 2014 02:34:40 -0300
-From: Ismael Luceno <ismael.luceno@gmail.com>
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-	maintainers@bluecherrydvr.com
-Cc: linux-kernel@vger.kernel.org, jg1.han@samsung.com, crope@iki.fi,
-	mchehab@osg.samsung.com, joe@perches.com,
-	gregkh@linuxfoundation.org, davem@davemloft.net,
-	akpm@linux-foundation.org, linux-media@vger.kernel.org,
-	andrey.krieger.utkin@gmail.com
-Subject: Re: [PATCH] Update MAINTAINERS for solo6x10
-Message-ID: <20141127023440.511f20b8@pirotess.bf.iodev.co.uk>
-In-Reply-To: <1416243563-8087-1-git-send-email-andrey.utkin@corp.bluecherry.net>
-References: <1416243563-8087-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+	Mon, 17 Nov 2014 10:25:16 -0500
+Date: Mon, 17 Nov 2014 17:24:42 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH v2] [media] Add RGB444_1X12 and RGB565_1X16 media bus
+ formats
+Message-ID: <20141117152442.GR8907@valkosipuli.retiisi.org.uk>
+References: <1416126278-17708-1-git-send-email-boris.brezillon@free-electrons.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/5dHBcPfYMKgmJwl0W0aSsme"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1416126278-17708-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/5dHBcPfYMKgmJwl0W0aSsme
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi Boris,
 
-On Mon, 17 Nov 2014 20:59:23 +0400
-Andrey Utkin <andrey.utkin@corp.bluecherry.net> wrote:
-> Signed-off-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+On Sun, Nov 16, 2014 at 09:24:38AM +0100, Boris Brezillon wrote:
+> Add RGB444_1X12 and RGB565_1X16 format definitions and update the
+> documentation.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > ---
->  MAINTAINERS | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->=20
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index bb38f02..f5cef1b 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8787,7 +8787,9 @@ S:	Maintained
->  F:	drivers/leds/leds-net48xx.c
-> =20
->  SOFTLOGIC 6x10 MPEG CODEC
-> -M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-> +M:	Bluecherry Maintainers <maintainers@bluecherrydvr.com>
-> +M:	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-> +M:	Andrey Utkin <andrey.krieger.utkin@gmail.com>
->  L:	linux-media@vger.kernel.org
->  S:	Supported
->  F:	drivers/media/pci/solo6x10/
+> Changes since v1:
+> - keep BPP and bits per sample ordering
+> 
+>  Documentation/DocBook/media/v4l/subdev-formats.xml | 40 ++++++++++++++++++++++
+>  include/uapi/linux/media-bus-format.h              |  4 ++-
+>  2 files changed, 43 insertions(+), 1 deletion(-)
 
-Please do not remove me, I'm still here, just a little tight on
-the schedule.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Though my corp.bluecherry.net address stopped working again...
+-- 
+Kind regards,
 
---Sig_/5dHBcPfYMKgmJwl0W0aSsme
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQEcBAEBAgAGBQJUdrfxAAoJEBH/VE8bKTLbipYIAIOikPOzpbaLS75RzNhNliW9
-/AJNxGDhog0t9DJNjzxMmctSYSJFAqLzQgjkbLnNqGemfyCya9wlzoEZsm14rOY8
-IJHKd0nL/e9E0V9/uKU3OTNUzL7l19Yt6k+wNJwHaNCV3iDmT++Ou/47ePUUZZ2Y
-iD2bLg5zSXAZiD49XASm5Jr09CK9Rh0yI/e7i865XAUQxwMcpB1N7qHMlT/LXcrH
-ISOxoHv8mADJ62rzvwOKSjFx0ShV3jZLtD7W07doUsbB1EdUtH83aj2UfdR6Q5OC
-RLas3BmUMO+l/99DE4FR0oBLbe1koJHM/x1m6wMgo7GvUbHGqh0jmVmpD+hXyyQ=
-=fUqI
------END PGP SIGNATURE-----
-
---Sig_/5dHBcPfYMKgmJwl0W0aSsme--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
