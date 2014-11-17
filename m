@@ -1,115 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:35575 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754124AbaKSDn7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 22:43:59 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 431542A009F
-	for <linux-media@vger.kernel.org>; Wed, 19 Nov 2014 04:43:39 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141119034339.431542A009F@tschai.lan>
-Date: Wed, 19 Nov 2014 04:43:39 +0100 (CET)
+Received: from lists.s-osg.org ([54.187.51.154]:45456 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751961AbaKQO7U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 09:59:20 -0500
+Date: Mon, 17 Nov 2014 12:59:09 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: Andy Walls <awalls.cx18@gmail.com>,
+	Jarod Wilson <jwilson@redhat.com>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	linux-media@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: staging: media: lirc: lirc_zilog.c: replace custom print macros
+ with dev_* and pr_*
+Message-ID: <20141117125909.2729440b@recife.lan>
+In-Reply-To: <20141109213517.GA1349@gofer.mess.org>
+References: <20141031130600.GA16310@mwanda>
+	<20141031142644.GA4166@localhost.localdomain>
+	<20141031143541.GM6890@mwanda>
+	<20141106124629.GA898@gofer.mess.org>
+	<20141106110549.1812acc7@recife.lan>
+	<20141106132113.GA1367@gofer.mess.org>
+	<697D038C-4BD9-4113-8E7E-B89BACF09AC2@gmail.com>
+	<6BB6C08A-32A2-4A37-B6F7-332556C9626E@gmail.com>
+	<20141109213517.GA1349@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Sun, 9 Nov 2014 21:35:17 +0000
+Sean Young <sean@mess.org> escreveu:
 
-Results of the daily build of media_tree:
+> On Thu, Nov 06, 2014 at 08:56:47AM -0500, Andy Walls wrote:
+> > On November 6, 2014 8:54:28 AM EST, Andy Walls <awalls.cx18@gmail.com> wrote:
+> > >Sean,
+> > >
+> > >Ir-kbd-i2c was never intended for Tx.
+> > >
+> > >You can transmit *short* arbitrary pulse-space streams with the zilog
+> > >chip, by feeding it a parameter block that has the pulse timing
+> > >information and then subsequently has been obfuscated.  The firmware
+> > >file that LIRC uses in userspace is full of predefined versions of
+> > >these things for RC5 and NEC IIRC.  This LIRC firmware file also holds
+> > >the (de)obfuscation key.
+> > >
+> > >I've got a bunch of old notes on this stuff from essentially reverse
+> > >engineering the firmware in the Z8.  IANAL, but to me, its use in
+> > >developing in-kernel stuff could be dubious.
+> > >
+> > >Regards,
+> > >Andy
+> 
+> Very interesting.
+> 
+> I had considered reverse engineering the z8 firmware but I never found a
+> way to access it. I guess we have three options:
+> 
+> 1. I could use Andy's notes to implement Tx. I have not seen the original
+>    firmware code so I'm not contaminated by reverse engineering it. IANAL 
+>    but I thought this is an acceptable way of writing a driver.
+> 
+> 2. Hauppauge could prove us with documentation to write a driver with.
 
-date:		Wed Nov 19 04:00:16 CET 2014
-git branch:	test
-git hash:	c02ef64aab828d80040b5dce934729312e698c33
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-2.slh.2-amd64
+I tried to get some info about that, but they are unable to get anything
+related to this design so far.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+So, I think that, if you have some time to dedicate to it, the best would
+be to go for  option #1.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 3. Leave it as-is, lirc_zilog will eventually be deleted from staging as it
+>    can't be ported to rc-core.
+> 
+> 
+> Sean
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
