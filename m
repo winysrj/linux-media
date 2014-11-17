@@ -1,86 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55944 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751237AbaKDBHR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 20:07:17 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Bimow Chen <Bimow.Chen@ite.com.tw>
-Subject: [PATCH 5/6] af9033: return 0.1 dB DVBv3 SNR for AF9030 family
-Date: Tue,  4 Nov 2014 03:07:03 +0200
-Message-Id: <1415063224-28453-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1415063224-28453-1-git-send-email-crope@iki.fi>
-References: <1415063224-28453-1-git-send-email-crope@iki.fi>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:56853 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750723AbaKQIst (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 03:48:49 -0500
+Message-ID: <5469B664.3050309@xs4all.nl>
+Date: Mon, 17 Nov 2014 09:48:36 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 06/11] videodev2.h: add new v4l2_ext_control flags
+ field
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl> <1411310909-32825-7-git-send-email-hverkuil@xs4all.nl> <20141115141858.GG8907@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20141115141858.GG8907@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previous patch changed both AF9030 and IT9130 SNR reporting from
-dB to relative. Restore AF9030 to old behavior as it has been always
-returning 0.1 dB value. Leave IT9130 relative as old IT9130 was
-returning relative values.
+On 11/15/2014 03:18 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Sun, Sep 21, 2014 at 04:48:24PM +0200, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Replace reserved2 by a flags field. This is used to tell whether
+>> setting a new store value is applied only once or every time that
+>> v4l2_ctrl_apply_store() is called for that store.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  include/uapi/linux/videodev2.h | 6 +++++-
+>>  1 file changed, 5 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 2ca44ed..fa84070 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -1282,7 +1282,7 @@ struct v4l2_control {
+>>  struct v4l2_ext_control {
+>>  	__u32 id;
+>>  	__u32 size;
+>> -	__u32 reserved2[1];
+>> +	__u32 flags;
+> 
+> 16 bits, please.
 
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9033.c | 43 +++++++++++++++++++++---------------
- 1 file changed, 25 insertions(+), 18 deletions(-)
+Good idea.
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index a490033..e640701 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -854,26 +854,33 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
- 
- 	/* use DVBv5 CNR */
- 	if (c->cnr.stat[0].scale == FE_SCALE_DECIBEL) {
--		*snr = div_s64(c->cnr.stat[0].svalue, 1000);
-+		/* Return 0.1 dB for AF9030 and 0-0xffff for IT9130. */
-+		if (dev->is_af9035) {
-+			/* 1000x => 10x (0.1 dB) */
-+			*snr = div_s64(c->cnr.stat[0].svalue, 100);
-+		} else {
-+			/* 1000x => 1x (1 dB) */
-+			*snr = div_s64(c->cnr.stat[0].svalue, 1000);
- 
--		/* read current modulation */
--		ret = af9033_rd_reg(dev, 0x80f903, &u8tmp);
--		if (ret)
--			goto err;
-+			/* read current modulation */
-+			ret = af9033_rd_reg(dev, 0x80f903, &u8tmp);
-+			if (ret)
-+				goto err;
- 
--		/* scale value to 0x0000-0xffff */
--		switch ((u8tmp >> 0) & 3) {
--		case 0:
--			*snr = *snr * 0xFFFF / 23;
--			break;
--		case 1:
--			*snr = *snr * 0xFFFF / 26;
--			break;
--		case 2:
--			*snr = *snr * 0xFFFF / 32;
--			break;
--		default:
--			goto err;
-+			/* scale value to 0x0000-0xffff */
-+			switch ((u8tmp >> 0) & 3) {
-+			case 0:
-+				*snr = *snr * 0xffff / 23;
-+				break;
-+			case 1:
-+				*snr = *snr * 0xffff / 26;
-+				break;
-+			case 2:
-+				*snr = *snr * 0xffff / 32;
-+				break;
-+			default:
-+				goto err;
-+			}
- 		}
- 	} else {
- 		*snr = 0;
--- 
-http://palosaari.fi/
+> The pad number (for sub-devices) would need to be added
+> here as well,
+
+Why? We never needed that for subdevs in the past. Not that I am against
+reserving space for it, I'm just wondering if you have something specific
+in mind.
+
+> and that's 16 bits. A flag might be needed to tell it's valid,
+> too.
+
+Regards,
+
+	Hans
 
