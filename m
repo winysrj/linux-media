@@ -1,69 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:55087 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751201AbaKTMJE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 07:09:04 -0500
-Message-ID: <546DD9CE.60008@users.sourceforge.net>
-Date: Thu, 20 Nov 2014 13:08:46 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45230 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751283AbaKQIlr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 03:41:47 -0500
+Message-ID: <5469B4BB.2040208@xs4all.nl>
+Date: Mon, 17 Nov 2014 09:41:31 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH 1/1] [media] rc: Deletion of unnecessary checks before two
- function calls
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 03/11] videodev2.h: rename reserved2 to config_store
+ in v4l2_buffer.
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl> <1411310909-32825-4-git-send-email-hverkuil@xs4all.nl> <20141114144202.GD8907@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20141114144202.GD8907@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 20 Nov 2014 13:01:32 +0100
+On 11/14/2014 03:42 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Sun, Sep 21, 2014 at 04:48:21PM +0200, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> When queuing buffers allow for passing the configuration store ID that
+>> should be associated with this buffer. Use the 'reserved2' field for this.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/usb/cpia2/cpia2_v4l.c           | 2 +-
+>>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ++--
+>>  drivers/media/v4l2-core/videobuf2-core.c      | 4 +++-
+>>  include/uapi/linux/videodev2.h                | 3 ++-
+>>  4 files changed, 8 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+>> index 9caea83..0f28d2b 100644
+>> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
+>> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+>> @@ -952,7 +952,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+>>  	buf->sequence = cam->buffers[buf->index].seq;
+>>  	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+>>  	buf->length = cam->frame_size;
+>> -	buf->reserved2 = 0;
+>> +	buf->config_store = 0;
+>>  	buf->reserved = 0;
+>>  	memset(&buf->timecode, 0, sizeof(buf->timecode));
+>>  
+>> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> index e502a5f..5afef3a 100644
+>> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> @@ -324,7 +324,7 @@ struct v4l2_buffer32 {
+>>  		__s32		fd;
+>>  	} m;
+>>  	__u32			length;
+>> -	__u32			reserved2;
+>> +	__u32			config_store;
+>>  	__u32			reserved;
+>>  };
+>>  
+>> @@ -489,7 +489,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+>>  		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+>>  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+>>  		put_user(kp->sequence, &up->sequence) ||
+>> -		put_user(kp->reserved2, &up->reserved2) ||
+>> +		put_user(kp->config_store, &up->config_store) ||
+>>  		put_user(kp->reserved, &up->reserved))
+>>  			return -EFAULT;
+>>  
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index 7e6aff6..e3b6c50 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -655,7 +655,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+>>  
+>>  	/* Copy back data such as timestamp, flags, etc. */
+>>  	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
+>> -	b->reserved2 = vb->v4l2_buf.reserved2;
+>> +	b->config_store = vb->v4l2_buf.config_store;
+>>  	b->reserved = vb->v4l2_buf.reserved;
+>>  
+>>  	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
+>> @@ -680,6 +680,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+>>  		else if (q->memory == V4L2_MEMORY_DMABUF)
+>>  			b->m.fd = vb->v4l2_planes[0].m.fd;
+>>  	}
+>> +	b->config_store = vb->v4l2_buf.config_store;
+> 
+> Either this chunk or the one above it is redundant. I'd keep the upper one.
 
-The functions input_free_device() and rc_close() test whether their argument
-is NULL and then return immediately. Thus the test around the call
-is not needed.
+Well spotted. I agree, I'll keep the upper one.
 
-This issue was detected by using the Coccinelle software.
+Regards,
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/rc/lirc_dev.c | 3 +--
- drivers/media/rc/rc-main.c  | 3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index dc5cbff..5c232e6 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -518,8 +518,7 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
- 
- 	WARN_ON(mutex_lock_killable(&lirc_dev_lock));
- 
--	if (ir->d.rdev)
--		rc_close(ir->d.rdev);
-+	rc_close(ir->d.rdev);
- 
- 	ir->open--;
- 	if (ir->attached) {
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 8d3b74c..66df9fb 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1298,8 +1298,7 @@ void rc_free_device(struct rc_dev *dev)
- 	if (!dev)
- 		return;
- 
--	if (dev->input_dev)
--		input_free_device(dev->input_dev);
-+	input_free_device(dev->input_dev);
- 
- 	put_device(&dev->dev);
- 
--- 
-2.1.3
-
+	Hans
