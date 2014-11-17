@@ -1,67 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:35855 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751561AbaKKSFo (ORCPT
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34554 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752999AbaKQO4T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Nov 2014 13:05:44 -0500
-Message-ID: <54624FF1.2060102@xs4all.nl>
-Date: Tue, 11 Nov 2014 19:05:37 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 17 Nov 2014 09:56:19 -0500
+Date: Mon, 17 Nov 2014 06:55:46 -0800
+From: Tony Lindgren <tony@atomide.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, sre@debian.org,
+	sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Message-ID: <20141117145545.GC7046@atomide.com>
+References: <20141116075928.GA9763@amd>
+ <201411170943.20810@pali>
+ <20141117100519.GA4353@amd>
+ <201411171109.47795@pali>
+ <20141117101553.GA21151@amd>
 MIME-Version: 1.0
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-	"hans.verkuil" <hans.verkuil@cisco.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [RFC] solo6x10 freeze, even with Oct 31's linux-next... any ideas
- or help?
-References: <CAM_ZknVTqh0VnhuT3MdULtiqHJzxRhK-Pjyb58W=4Ldof0+jgA@mail.gmail.com>
-In-Reply-To: <CAM_ZknVTqh0VnhuT3MdULtiqHJzxRhK-Pjyb58W=4Ldof0+jgA@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20141117101553.GA21151@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/11/2014 06:46 PM, Andrey Utkin wrote:
-> At Bluecherry, we have issues with servers which have 3 solo6110 cards
-> (and cards have up to 16 analog video cameras connected to them, and
-> being actively read).
-> This is a kernel which I tested with such a server last time. It is
-> based on linux-next of October, 31, with few patches of mine (all are
-> in review for upstream).
-> https://github.com/krieger-od/linux/ . The HEAD commit is
-> 949e18db86ebf45acab91d188b247abd40b6e2a1 at the moment.
+* Pavel Machek <pavel@ucw.cz> [141117 02:17]:
+> On Mon 2014-11-17 11:09:45, Pali Rohár wrote:
+> > On Monday 17 November 2014 11:05:19 Pavel Machek wrote:
+> > > Hi!
+> > > 
+> > > On Mon 2014-11-17 09:43:19, Pali Rohár wrote:
+> > > > On Sunday 16 November 2014 08:59:28 Pavel Machek wrote:
+> > > > > For device tree people: Yes, I know I'll have to create
+> > > > > file in documentation, but does the binding below look
+> > > > > acceptable?
+> > > > > 
+> > > > > I'll clean up driver code a bit more, remove the printks.
+> > > > > Anything else obviously wrong?
+> > > > 
+> > > > I think that this patch is probably not good and specially
+> > > > not for n900. adp1653 should be registered throw omap3 isp
+> > > > camera subsystem which does not have DT support yet.
+> > > 
+> > > Can you explain?
+> > > 
+> > > adp1653 is independend device on i2c bus, and we have kernel
+> > > driver for it (unlike rest of n900 camera system). Just now
+> > > it is unusable due to lack of DT binding. It has two
+> > > functions, LED light and a camera flash; yes, the second one
+> > > should be integrated to the rest of camera system, but that
+> > > is not yet merged. That should not prevent us from merging DT
+> > > support for the flash, so that this part can be
+> > > tested/maintained.
+> > > 
+> > 
+> > Ok. When ISP camera subsystem has DT support somebody will modify 
+> > n900 DT to add camera flash from adp1653 to ISP... I believe it 
+> > will not be hard.
 > 
-> The problem is the following: after ~1 hour of uptime with working
-> application reading the streams, one card (the same one every time)
-> stops producing interrupts (counter in /proc/interrupts freezes), and
-> all threads reading from that card hang forever in
-> ioctl(VIDIOC_DQBUF). The application uses libavformat (ffmpeg) API to
-> read the corresponding /dev/videoX devices of H264 encoders.
-> Application restart doesn't help, just interrupt counter increases by
-> 64. To help that, we need reboot or programmatic PCI device reset by
-> "echo 1 > /sys/bus/pci/devices/0000\:03\:05.0/reset", which requires
-> unloading app and driver and is not a solution obviously.
-> 
-> We had this issue for a long time, even before we used libavformat for
-> reading from such sources.
-> A few days ago, we had standalone ffmpeg processes working stable for
-> several days. The kernel was 3.17, the only probably-relevant change
-> in code over the above mentioned revision is an additional bool
-> variable set in solo_enc_v4l2_isr() and checked in solo_ring_thread()
-> to figure out whether to do or skip solo_handle_ring(). The variable
-> was guarded with spin_lock_irqsave(). I am not sure if it makes any
-> difference, will try it again eventually.
-> 
-> Any thoughts, can it be a bug in driver code causing that (please
-> point which areas of code to review/fix)? Or is that desperate
-> hardware issue? How to figure out for sure whether it is the former or
-> the latter?
+> Exactly. And yes, I'd like to get complete camera support for n900
+> merged. But first step is "make sure existing support does not break".
 
-I would first try to exclude hardware issues: since you say it is always
-the same card, try either replacing it or swapping it with another solo
-card and see if the problem follows the card or not. If it does, then it
-is likely a hardware problem. If it doesn't, then it suggests a race
-condition in the interrupt handling somewhere.
+There's nothing stopping us from initializing the camera code from
+pdata-quirks.c for now to keep it working. Certainly the binding
+should be added to the driver, but that removes a dependency to
+the legacy booting mode if things are otherwise working.
 
 Regards,
 
-	Hans
+Tony
