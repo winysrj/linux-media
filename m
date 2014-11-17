@@ -1,91 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35125 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751384AbaKCNgc (ORCPT
+Received: from mail-yk0-f178.google.com ([209.85.160.178]:43314 "EHLO
+	mail-yk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751653AbaKQQKP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 08:36:32 -0500
-Message-ID: <545784DA.50109@xs4all.nl>
-Date: Mon, 03 Nov 2014 14:36:26 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 17 Nov 2014 11:10:15 -0500
+Received: by mail-yk0-f178.google.com with SMTP id 20so3084786yks.9
+        for <linux-media@vger.kernel.org>; Mon, 17 Nov 2014 08:10:15 -0800 (PST)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org, m.chehab@samsung.com
-Subject: Re: [PATCH v4] media: spi: Add support for LMH0395
-References: <1410342234-7444-1-git-send-email-jean-michel.hautbois@vodalys.com> <1630377.tEqlt7fWO7@avalon>
-In-Reply-To: <1630377.tEqlt7fWO7@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CA++x_yD6oxb4mkbP_8UtHU13LM5dgacbtHXWKe+qpDEfFp5bMw@mail.gmail.com>
+References: <CA++x_yD6oxb4mkbP_8UtHU13LM5dgacbtHXWKe+qpDEfFp5bMw@mail.gmail.com>
+Date: Mon, 17 Nov 2014 17:10:14 +0100
+Message-ID: <CA++x_yB3PA=gsFO-Lbhvn7ayUjUDdVJfmkLKqTOn1H14-ytmPQ@mail.gmail.com>
+Subject: Re: [PATCH 1/3] tuners: si2157: Si2148 support.
+From: Michael Holzer <michael.w.holzer@gmail.com>
+To: "olli.salonen" <olli.salonen@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/03/2014 02:13 PM, Laurent Pinchart wrote:
-> Hi Jean-Michel,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 10 September 2014 11:43:54 Jean-Michel Hautbois wrote:
+Hi Olli,
 
-<snip>
+re ' we start to have quite a list of chips there in the printouts
+(Si2147/Si2148/Si2157/Si2158) and
+more is coming -...
+Should we just say "Si214x/Si215x" there or something?'
 
-> 
->> +static int lmh0395_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
->> +				u32 config)
->> +{
->> +	struct lmh0395_state *state = to_state(sd);
->> +	int err = 0;
->> +
->> +	if (state->output_type != output)
->> +		err = lmh0395_set_output_type(sd, output);
->> +
->> +	return err;
-> 
->         if (state->output_type == output)
->                 return 0;
-> 
->         return lmh0395_set_output_type(sd, output);
-> 
-> You can then get rid of the err variable.
-> 
-> I don't really like this implementation though, the output argument is device-
-> specific, you thus require explicit knowledge of the LMH0395 in your bridge 
-> driver.
-
-Well, that's the way s_routing is defined. It's the bridge driver's job to
-translate between V4L2 inputs/outputs and low-level routing information.
-
-> 
-> I'm not sure what the config argument is used for, but naively I would have 
-
-config is normally not used. There are one or two drivers that need it for
-additional routing configuration, but it's rare.
-
-> used it to tell whether to enable (1) or disable (0) the route from input to 
-> output. The input value should then always be 0, and the output value can be 1 
-> or 2. Another option would be to use the new S_ROUTING userspace ioctl I've 
-> proposed in 
-> http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/commit/?h=xilinx-wip&id=fc094c354338861673464ed4b8fa198089fe7bf0.
-> 
-> Hans, could you comment on that ?
-
-Well, first of all your proposed API isn't merged yet, or even posted on the
-mailinglist, so it's a bit unfair to require someone else to use it :-)
-
-Also, while I do agree with your proposed new API I am a lot less enthusiastic
-about creating yet another duplicate pad op for an existing audio/video routing
-op.
-
-The problem is that existing drivers are never updated for the new op and you are
-stuck with competing internal APIs. Not nice at all.
-
-Bottom line is that this driver uses s_routing like any other driver currently
-in the kernel, so I have no problem with that.
-
-Regards,
-
-	Hans
-
-> 
->> +}
-
+I'd see merit to show the supported chips explicitly as otherwise users
+may be confused if a new unsupported chip  (lets assume Si2159)
+appears and the message is generic as proposed "Si215x".
+To get clarity for this case source code reading would be required.
+ just my 5 cent ;-)
+Mike
