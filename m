@@ -1,131 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:36618 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753847AbaKDQ3Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 11:29:24 -0500
-Received: by mail-wg0-f53.google.com with SMTP id b13so13985216wgh.12
-        for <linux-media@vger.kernel.org>; Tue, 04 Nov 2014 08:29:23 -0800 (PST)
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 1/1] of: Add a function to read 64-bit arrays
-To: Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	linux-media@vger.kernel.org
-In-Reply-To: <1412287163-10222-1-git-send-email-sakari.ailus@iki.fi>
-References: <1412287163-10222-1-git-send-email-sakari.ailus@iki.fi>
-Date: Tue, 04 Nov 2014 16:29:16 +0000
-Message-Id: <20141104162916.25A6DC423D0@trevor.secretlab.ca>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41109 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750884AbaKQPVu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 10:21:50 -0500
+Date: Mon, 17 Nov 2014 17:21:46 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] v4l: Add V4L2_SEL_TGT_NATIVE_SIZE selection target
+Message-ID: <20141117152146.GQ8907@valkosipuli.retiisi.org.uk>
+References: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi>
+ <1415487872-27500-3-git-send-email-sakari.ailus@iki.fi>
+ <5465C17E.60504@xs4all.nl>
+ <20141116164059.GL8907@valkosipuli.retiisi.org.uk>
+ <5469C12D.2070800@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5469C12D.2070800@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri,  3 Oct 2014 00:59:23 +0300
-, Sakari Ailus <sakari.ailus@iki.fi>
- wrote:
-> Implement of_property_read_u64_array() for reading 64-bit arrays.
-> 
-> This is needed for e.g. reading the valid link frequencies in the smiapp
-> driver.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Hi Hans,
 
-A patch that adds this function is alread part of the device properties
-API patch series that will be merged for v3.19.
+On Mon, Nov 17, 2014 at 10:34:37AM +0100, Hans Verkuil wrote:
+> On 11/16/2014 05:40 PM, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > Thank you for the review.
+> > 
+> > On Fri, Nov 14, 2014 at 09:46:54AM +0100, Hans Verkuil wrote:
+> >> On 11/09/2014 12:04 AM, Sakari Ailus wrote:
+> >>> The V4L2_SEL_TGT_NATIVE_SIZE target is used to denote e.g. the size of a
+> >>> sensor's pixel array.
+> >>>
+> >>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> >>> ---
+> >>>  Documentation/DocBook/media/v4l/selections-common.xml |    8 ++++++++
+> >>>  include/uapi/linux/v4l2-common.h                      |    2 ++
+> >>>  2 files changed, 10 insertions(+)
+> >>>
+> >>> diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
+> >>> index 7502f78..5fc833a 100644
+> >>> --- a/Documentation/DocBook/media/v4l/selections-common.xml
+> >>> +++ b/Documentation/DocBook/media/v4l/selections-common.xml
+> >>> @@ -63,6 +63,14 @@
+> >>>  	    <entry>Yes</entry>
+> >>>  	  </row>
+> >>>  	  <row>
+> >>> +	    <entry><constant>V4L2_SEL_TGT_NATIVE_SIZE</constant></entry>
+> >>> +	    <entry>0x0003</entry>
+> >>> +	    <entry>The native size of the device, e.g. a sensor's
+> >>> +	    pixel array.</entry>
+> >>
+> >> You might want to state that top and left are always 0.
+> > 
+> > Fixed. I also added a patch to fix this in the smiapp driver --- the values
+> > were uninitialised. :-P
+> > 
+> >>> +	    <entry>Yes</entry>
+> >>> +	    <entry>Yes</entry>
+> >>> +	  </row>
+> >>> +	  <row>
+> >>>  	    <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
+> >>>  	    <entry>0x0100</entry>
+> >>>  	    <entry>Compose rectangle. Used to configure scaling
+> >>> diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
+> >>> index 2f6f8ca..1527398 100644
+> >>> --- a/include/uapi/linux/v4l2-common.h
+> >>> +++ b/include/uapi/linux/v4l2-common.h
+> >>> @@ -43,6 +43,8 @@
+> >>>  #define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
+> >>>  /* Cropping bounds */
+> >>>  #define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
+> >>> +/* Native frame size */
+> >>> +#define V4L2_SEL_TGT_NATIVE_SIZE	0x0003
+> >>>  /* Current composing area */
+> >>>  #define V4L2_SEL_TGT_COMPOSE		0x0100
+> >>>  /* Default composing area */
+> >>>
+> >>
+> >> I like this. This would also make it possible to set the 'canvas' size of an
+> >> mem2mem device. Currently calling S_FMT for a mem2mem device cannot setup any
+> >> scaler since there is no native size. Instead S_FMT effectively *sets* the native
+> >> size. The same is true for webcams with a scaler, which is why you added this in
+> >> the first place. Obviously for sensors this target is read-only, but for a mem2mem
+> >> device it can be writable as well.
+> >>
+> >> However, to make full use of this you also need to add input and output
+> >> capabilities if the native size can be set:
+> >>
+> >> 	V4L2_IN_CAP_NATIVE_SIZE
+> >> 	V4L2_OUT_CAP_NATIVE_SIZE
+> > 
+> > Do you think this would require a capability flag, rather than just
+> > returning an error if the target is unsettable, as we otherwise already do
+> > if a selection target isn't supported? For the compound controls it's even
+> > easier, you just don't have a read-only flag set in the equivalent control.
+> 
+> No, I really want a capability flag here. Otherwise applications would have to
+> call ENUMINPUT *and* call G_SELECTION followed by S_SELECTION just to test if
+> it can be set. Besides, this is also a per-input capability, so you want to get
+> hold of the capabilities without having to do a S_INPUT first. I.e. you don't
+> want to have to do this:
+> 
+> 	// pseudo code just to give the idea
+> 	for (i = 0; i < max_input; i++) {
+> 		struct v4l2_selection sel = { NATIVE_SIZE };
+> 
+> 		ioctl(S_INPUT, i);
+> 		ioctl(G_SELECTION, &sel);
+> 		if (ioctl(S_SELECTION, &sel))
+> 			// does not support NATIVE_SIZE
+> 	}
 
-g.
+Fair enough. I'll add a patch for that.
 
-> ---
-> Hi,
-> 
-> While the smiapp (found in drivers/media/i2c/smiapp/) OF support which needs
-> this isn't in yet, other drivers such as mt9v032 which would be reading the
-> valid link frequency control values will need reading arrays. This might
-> make it to v4l2-of.c in the end.
-> 
->  drivers/of/base.c  |   44 ++++++++++++++++++++++++++++++++++++--------
->  include/linux/of.h |    3 +++
->  2 files changed, 39 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index d8574ad..35e24f4 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -1214,6 +1214,41 @@ int of_property_read_u32_array(const struct device_node *np,
->  EXPORT_SYMBOL_GPL(of_property_read_u32_array);
->  
->  /**
-> + * of_property_read_u64_array - Find and read an array of 64 bit integers
-> + * from a property.
-> + *
-> + * @np:		device node from which the property value is to be read.
-> + * @propname:	name of the property to be searched.
-> + * @out_values:	pointer to return value, modified only if return value is 0.
-> + * @sz:		number of array elements to read
-> + *
-> + * Search for a property in a device node and read 64-bit value(s) from
-> + * it. Returns 0 on success, -EINVAL if the property does not exist,
-> + * -ENODATA if property does not have a value, and -EOVERFLOW if the
-> + * property data isn't large enough.
-> + *
-> + * The out_values is modified only if a valid u32 value can be decoded.
-> + */
-> +int of_property_read_u64_array(const struct device_node *np,
-> +			       const char *propname, u64 *out_value, size_t sz)
-> +{
-> +	const __be32 *val = of_find_property_value_of_size(
-> +		np, propname, sz * sizeof(*out_value));
-> +
-> +	if (IS_ERR(val))
-> +		return PTR_ERR(val);
-> +
-> +	while (sz--) {
-> +		*out_value = of_read_number(val, 2);
-> +		out_value++;
-> +		val += 2;
-> +	}
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(of_property_read_u64_array);
-> +
-> +/**
->   * of_property_read_u64 - Find and read a 64 bit integer from a property
->   * @np:		device node from which the property value is to be read.
->   * @propname:	name of the property to be searched.
-> @@ -1229,14 +1264,7 @@ EXPORT_SYMBOL_GPL(of_property_read_u32_array);
->  int of_property_read_u64(const struct device_node *np, const char *propname,
->  			 u64 *out_value)
->  {
-> -	const __be32 *val = of_find_property_value_of_size(np, propname,
-> -						sizeof(*out_value));
-> -
-> -	if (IS_ERR(val))
-> -		return PTR_ERR(val);
-> -
-> -	*out_value = of_read_number(val, 2);
-> -	return 0;
-> +	return of_property_read_u64_array(np, propname, out_value, 1);
->  }
->  EXPORT_SYMBOL_GPL(of_property_read_u64);
->  
-> diff --git a/include/linux/of.h b/include/linux/of.h
-> index 6c4363b..e84533f 100644
-> --- a/include/linux/of.h
-> +++ b/include/linux/of.h
-> @@ -263,6 +263,9 @@ extern int of_property_read_u32_array(const struct device_node *np,
->  				      size_t sz);
->  extern int of_property_read_u64(const struct device_node *np,
->  				const char *propname, u64 *out_value);
-> +extern int of_property_read_u64_array(const struct device_node *np,
-> +				      const char *propname, u64 *out_value,
-> +				      size_t sz);
->  
->  extern int of_property_read_string(struct device_node *np,
->  				   const char *propname,
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+-- 
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
