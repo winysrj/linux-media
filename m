@@ -1,53 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:57206 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751987AbaK3VGX (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60564 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751899AbaKQKPz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Nov 2014 16:06:23 -0500
+	Mon, 17 Nov 2014 05:15:55 -0500
+Date: Mon, 17 Nov 2014 11:15:53 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Message-ID: <20141117101553.GA21151@amd>
+References: <20141116075928.GA9763@amd>
+ <201411170943.20810@pali>
+ <20141117100519.GA4353@amd>
+ <201411171109.47795@pali>
 MIME-Version: 1.0
-In-Reply-To: <3017627.SLutb67dz2@avalon>
-References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com>
- <20141118180759.GT8907@valkosipuli.retiisi.org.uk> <CA+V-a8s-mP+Fjok2s_nDUAOb4vN3RWyRc5VHuZqPdk4pJtv03A@mail.gmail.com>
- <3017627.SLutb67dz2@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sun, 30 Nov 2014 21:05:50 +0000
-Message-ID: <CA+V-a8tNW8JXKEeaAwEKkB+SCS2_My228spsgpbb5JQPjdC2Og@mail.gmail.com>
-Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API
- for v4l2_subdev_get_try_*()
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <201411171109.47795@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Mon 2014-11-17 11:09:45, Pali Rohár wrote:
+> On Monday 17 November 2014 11:05:19 Pavel Machek wrote:
+> > Hi!
+> > 
+> > On Mon 2014-11-17 09:43:19, Pali Rohár wrote:
+> > > On Sunday 16 November 2014 08:59:28 Pavel Machek wrote:
+> > > > For device tree people: Yes, I know I'll have to create
+> > > > file in documentation, but does the binding below look
+> > > > acceptable?
+> > > > 
+> > > > I'll clean up driver code a bit more, remove the printks.
+> > > > Anything else obviously wrong?
+> > > 
+> > > I think that this patch is probably not good and specially
+> > > not for n900. adp1653 should be registered throw omap3 isp
+> > > camera subsystem which does not have DT support yet.
+> > 
+> > Can you explain?
+> > 
+> > adp1653 is independend device on i2c bus, and we have kernel
+> > driver for it (unlike rest of n900 camera system). Just now
+> > it is unusable due to lack of DT binding. It has two
+> > functions, LED light and a camera flash; yes, the second one
+> > should be integrated to the rest of camera system, but that
+> > is not yet merged. That should not prevent us from merging DT
+> > support for the flash, so that this part can be
+> > tested/maintained.
+> > 
+> 
+> Ok. When ISP camera subsystem has DT support somebody will modify 
+> n900 DT to add camera flash from adp1653 to ISP... I believe it 
+> will not be hard.
 
-On Sat, Nov 29, 2014 at 7:12 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-[Snip]
->> > Sure. That's a better choice than removing the config option dependency of
->> > the fields struct v4l2_subdev.
->
-> Decoupling CONFIG_VIDEO_V4L2_SUBDEV_API from the availability of the in-kernel
-> pad format and selection rectangles helpers is definitely a good idea. I was
-> thinking about decoupling the try format and rectangles from v4l2_subdev_fh by
-> creating a kind of configuration store structure to store them, and embedding
-> that structure in v4l2_subdev_fh. The pad-level operations would then take a
-> pointer to the configuration store instead of the v4l2_subdev_fh. Bridge
-> drivers that want to implement TRY_FMT based on pad-level operations would
-> create a configuration store, use the pad-level operations, and destroy the
-> configuration store. The userspace subdev API would use the configuration
-> store from the file handle.
->
-are planning to work/post any time soon ? Or are you OK with suggestion from
-Hans ?
+Exactly. And yes, I'd like to get complete camera support for n900
+merged. But first step is "make sure existing support does not break".
 
-Thanks,
---Prabhakar Lad
+Best regards,
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
