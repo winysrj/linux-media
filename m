@@ -1,51 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56398 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751183AbaKWNjE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Nov 2014 08:39:04 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Emilio Lopez <emilio@elopez.com.ar>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Lee Jones <lee.jones@linaro.org>,
-	Samuel Ortiz <sameo@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 8/9] ARM: dts: sun6i: Add pinmux settings for the ir pins
-Date: Sun, 23 Nov 2014 14:38:14 +0100
-Message-Id: <1416749895-25013-9-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
-References: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:34452 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752073AbaKQKmW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 05:42:22 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API for v4l2_subdev_get_try_*()
+Date: Mon, 17 Nov 2014 10:41:53 +0000
+Message-Id: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add pinmux settings for the ir receive pin of the A31.
+this patch removes the guard CONFIG_VIDEO_V4L2_SUBDEV_API
+for v4l2_subdev_get_try_*() functions.
+In cases where a subdev using v4l2_subdev_get_try_*() calls
+internally and the bridge using subdev pad ops which is
+not MC aware forces to select MEDIA_CONTROLLER, as
+VIDEO_V4L2_SUBDEV_API is dependent on it.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- arch/arm/boot/dts/sun6i-a31.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+ include/media/v4l2-subdev.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/sun6i-a31.dtsi b/arch/arm/boot/dts/sun6i-a31.dtsi
-index d33e758..90b7537 100644
---- a/arch/arm/boot/dts/sun6i-a31.dtsi
-+++ b/arch/arm/boot/dts/sun6i-a31.dtsi
-@@ -922,6 +922,13 @@
- 			#interrupt-cells = <2>;
- 			#size-cells = <0>;
- 			#gpio-cells = <3>;
-+
-+			ir_pins_a: ir@0 {
-+				allwinner,pins = "PL4";
-+				allwinner,function = "s_ir";
-+				allwinner,drive = <0>;
-+				allwinner,pull = <0>;
-+			};
- 		};
- 	};
- };
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 5860292..076ca11 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -642,7 +642,6 @@ struct v4l2_subdev_fh {
+ #define to_v4l2_subdev_fh(fh)	\
+ 	container_of(fh, struct v4l2_subdev_fh, vfh)
+ 
+-#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ #define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
+ 	static inline struct rtype *					\
+ 	v4l2_subdev_get_try_##fun_name(struct v4l2_subdev_fh *fh,	\
+@@ -656,7 +655,6 @@ struct v4l2_subdev_fh {
+ __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
+ __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_crop)
+ __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
+-#endif
+ 
+ extern const struct v4l2_file_operations v4l2_subdev_fops;
+ 
 -- 
-2.1.0
+1.9.1
 
