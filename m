@@ -1,218 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58760 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751398AbaKGIuq (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39137 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751515AbaKQJev (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Nov 2014 03:50:46 -0500
+	Mon, 17 Nov 2014 04:34:51 -0500
+Message-ID: <5469C12D.2070800@xs4all.nl>
+Date: Mon, 17 Nov 2014 10:34:37 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: [RFCv5 PATCH 05/15] vb2-dma-sg: add get_dmabuf
-Date: Fri,  7 Nov 2014 09:50:24 +0100
-Message-Id: <1415350234-9826-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] v4l: Add V4L2_SEL_TGT_NATIVE_SIZE selection target
+References: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi> <1415487872-27500-3-git-send-email-sakari.ailus@iki.fi> <5465C17E.60504@xs4all.nl> <20141116164059.GL8907@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20141116164059.GL8907@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+On 11/16/2014 05:40 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> Thank you for the review.
+> 
+> On Fri, Nov 14, 2014 at 09:46:54AM +0100, Hans Verkuil wrote:
+>> On 11/09/2014 12:04 AM, Sakari Ailus wrote:
+>>> The V4L2_SEL_TGT_NATIVE_SIZE target is used to denote e.g. the size of a
+>>> sensor's pixel array.
+>>>
+>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>>> ---
+>>>  Documentation/DocBook/media/v4l/selections-common.xml |    8 ++++++++
+>>>  include/uapi/linux/v4l2-common.h                      |    2 ++
+>>>  2 files changed, 10 insertions(+)
+>>>
+>>> diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
+>>> index 7502f78..5fc833a 100644
+>>> --- a/Documentation/DocBook/media/v4l/selections-common.xml
+>>> +++ b/Documentation/DocBook/media/v4l/selections-common.xml
+>>> @@ -63,6 +63,14 @@
+>>>  	    <entry>Yes</entry>
+>>>  	  </row>
+>>>  	  <row>
+>>> +	    <entry><constant>V4L2_SEL_TGT_NATIVE_SIZE</constant></entry>
+>>> +	    <entry>0x0003</entry>
+>>> +	    <entry>The native size of the device, e.g. a sensor's
+>>> +	    pixel array.</entry>
+>>
+>> You might want to state that top and left are always 0.
+> 
+> Fixed. I also added a patch to fix this in the smiapp driver --- the values
+> were uninitialised. :-P
+> 
+>>> +	    <entry>Yes</entry>
+>>> +	    <entry>Yes</entry>
+>>> +	  </row>
+>>> +	  <row>
+>>>  	    <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
+>>>  	    <entry>0x0100</entry>
+>>>  	    <entry>Compose rectangle. Used to configure scaling
+>>> diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
+>>> index 2f6f8ca..1527398 100644
+>>> --- a/include/uapi/linux/v4l2-common.h
+>>> +++ b/include/uapi/linux/v4l2-common.h
+>>> @@ -43,6 +43,8 @@
+>>>  #define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
+>>>  /* Cropping bounds */
+>>>  #define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
+>>> +/* Native frame size */
+>>> +#define V4L2_SEL_TGT_NATIVE_SIZE	0x0003
+>>>  /* Current composing area */
+>>>  #define V4L2_SEL_TGT_COMPOSE		0x0100
+>>>  /* Default composing area */
+>>>
+>>
+>> I like this. This would also make it possible to set the 'canvas' size of an
+>> mem2mem device. Currently calling S_FMT for a mem2mem device cannot setup any
+>> scaler since there is no native size. Instead S_FMT effectively *sets* the native
+>> size. The same is true for webcams with a scaler, which is why you added this in
+>> the first place. Obviously for sensors this target is read-only, but for a mem2mem
+>> device it can be writable as well.
+>>
+>> However, to make full use of this you also need to add input and output
+>> capabilities if the native size can be set:
+>>
+>> 	V4L2_IN_CAP_NATIVE_SIZE
+>> 	V4L2_OUT_CAP_NATIVE_SIZE
+> 
+> Do you think this would require a capability flag, rather than just
+> returning an error if the target is unsettable, as we otherwise already do
+> if a selection target isn't supported? For the compound controls it's even
+> easier, you just don't have a read-only flag set in the equivalent control.
 
-Add DMABUF export support to vb2-dma-sg.
+No, I really want a capability flag here. Otherwise applications would have to
+call ENUMINPUT *and* call G_SELECTION followed by S_SELECTION just to test if
+it can be set. Besides, this is also a per-input capability, so you want to get
+hold of the capabilities without having to do a S_INPUT first. I.e. you don't
+want to have to do this:
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 170 +++++++++++++++++++++++++++++
- 1 file changed, 170 insertions(+)
+	// pseudo code just to give the idea
+	for (i = 0; i < max_input; i++) {
+		struct v4l2_selection sel = { NATIVE_SIZE };
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 2795c27..ca28a50 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -407,6 +407,175 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
- }
- 
- /*********************************************/
-+/*         DMABUF ops for exporters          */
-+/*********************************************/
-+
-+struct vb2_dma_sg_attachment {
-+	struct sg_table sgt;
-+	enum dma_data_direction dir;
-+};
-+
-+static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
-+	struct dma_buf_attachment *dbuf_attach)
-+{
-+	struct vb2_dma_sg_attachment *attach;
-+	unsigned int i;
-+	struct scatterlist *rd, *wr;
-+	struct sg_table *sgt;
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+	int ret;
-+
-+	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
-+	if (!attach)
-+		return -ENOMEM;
-+
-+	sgt = &attach->sgt;
-+	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
-+	 * map the same scatter list to multiple attachments at the same time.
-+	 */
-+	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
-+	if (ret) {
-+		kfree(attach);
-+		return -ENOMEM;
-+	}
-+
-+	rd = buf->dma_sgt->sgl;
-+	wr = sgt->sgl;
-+	for (i = 0; i < sgt->orig_nents; ++i) {
-+		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
-+		rd = sg_next(rd);
-+		wr = sg_next(wr);
-+	}
-+
-+	attach->dir = DMA_NONE;
-+	dbuf_attach->priv = attach;
-+
-+	return 0;
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
-+	struct dma_buf_attachment *db_attach)
-+{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
-+	struct sg_table *sgt;
-+
-+	if (!attach)
-+		return;
-+
-+	sgt = &attach->sgt;
-+
-+	/* release the scatterlist cache */
-+	if (attach->dir != DMA_NONE)
-+		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-+			attach->dir);
-+	sg_free_table(sgt);
-+	kfree(attach);
-+	db_attach->priv = NULL;
-+}
-+
-+static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
-+	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
-+{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
-+	/* stealing dmabuf mutex to serialize map/unmap operations */
-+	struct mutex *lock = &db_attach->dmabuf->lock;
-+	struct sg_table *sgt;
-+	int ret;
-+
-+	mutex_lock(lock);
-+
-+	sgt = &attach->sgt;
-+	/* return previously mapped sg table */
-+	if (attach->dir == dir) {
-+		mutex_unlock(lock);
-+		return sgt;
-+	}
-+
-+	/* release any previous cache */
-+	if (attach->dir != DMA_NONE) {
-+		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-+			attach->dir);
-+		attach->dir = DMA_NONE;
-+	}
-+
-+	/* mapping to the client with new direction */
-+	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
-+	if (ret <= 0) {
-+		pr_err("failed to map scatterlist\n");
-+		mutex_unlock(lock);
-+		return ERR_PTR(-EIO);
-+	}
-+
-+	attach->dir = dir;
-+
-+	mutex_unlock(lock);
-+
-+	return sgt;
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
-+	struct sg_table *sgt, enum dma_data_direction dir)
-+{
-+	/* nothing to be done here */
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_release(struct dma_buf *dbuf)
-+{
-+	/* drop reference obtained in vb2_dma_sg_get_dmabuf */
-+	vb2_dma_sg_put(dbuf->priv);
-+}
-+
-+static void *vb2_dma_sg_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
-+{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+
-+	return buf->vaddr + pgnum * PAGE_SIZE;
-+}
-+
-+static void *vb2_dma_sg_dmabuf_ops_vmap(struct dma_buf *dbuf)
-+{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+
-+	return vb2_dma_sg_vaddr(buf);
-+}
-+
-+static int vb2_dma_sg_dmabuf_ops_mmap(struct dma_buf *dbuf,
-+	struct vm_area_struct *vma)
-+{
-+	return vb2_dma_sg_mmap(dbuf->priv, vma);
-+}
-+
-+static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
-+	.attach = vb2_dma_sg_dmabuf_ops_attach,
-+	.detach = vb2_dma_sg_dmabuf_ops_detach,
-+	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
-+	.unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
-+	.kmap = vb2_dma_sg_dmabuf_ops_kmap,
-+	.kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
-+	.vmap = vb2_dma_sg_dmabuf_ops_vmap,
-+	.mmap = vb2_dma_sg_dmabuf_ops_mmap,
-+	.release = vb2_dma_sg_dmabuf_ops_release,
-+};
-+
-+static struct dma_buf *vb2_dma_sg_get_dmabuf(void *buf_priv, unsigned long flags)
-+{
-+	struct vb2_dma_sg_buf *buf = buf_priv;
-+	struct dma_buf *dbuf;
-+
-+	if (WARN_ON(!buf->dma_sgt))
-+		return NULL;
-+
-+	dbuf = dma_buf_export(buf, &vb2_dma_sg_dmabuf_ops, buf->size, flags, NULL);
-+	if (IS_ERR(dbuf))
-+		return NULL;
-+
-+	/* dmabuf keeps reference to vb2 buffer */
-+	atomic_inc(&buf->refcount);
-+
-+	return dbuf;
-+}
-+
-+/*********************************************/
- /*       callbacks for DMABUF buffers        */
- /*********************************************/
- 
-@@ -517,6 +686,7 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- 	.vaddr		= vb2_dma_sg_vaddr,
- 	.mmap		= vb2_dma_sg_mmap,
- 	.num_users	= vb2_dma_sg_num_users,
-+	.get_dmabuf	= vb2_dma_sg_get_dmabuf,
- 	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
- 	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
- 	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
--- 
-2.1.1
+		ioctl(S_INPUT, i);
+		ioctl(G_SELECTION, &sel);
+		if (ioctl(S_SELECTION, &sel))
+			// does not support NATIVE_SIZE
+	}
 
+> 
+>> (see ENUMINPUT/ENUMOUTPUT)
+>>
+>> This would nicely fill in a hole in the V4L2 Spec.
+> 
+
+Regards,
+
+	Hans
