@@ -1,39 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:54800 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752137AbaKALZb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 07:25:31 -0400
-Received: by mail-pa0-f46.google.com with SMTP id lf10so9236739pab.5
-        for <linux-media@vger.kernel.org>; Sat, 01 Nov 2014 04:25:31 -0700 (PDT)
-Received: from localhost.localdomain ([202.164.40.61])
-        by mx.google.com with ESMTPSA id zw1sm12242588pbb.82.2014.11.01.04.25.28
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=RC4-SHA bits=128/128);
-        Sat, 01 Nov 2014 04:25:29 -0700 (PDT)
-Message-ID: <5454c329.81a8440a.2b8f.483d@mx.google.com>
-From: amp23140@gmail.com
-To: linux-media@vger.kernel.org
-Reply-To: seoexpert309@yahoo.com
-Subject: Fix Penguin Penalty 17th October2014 ( mail-archive.com )
-Date: Sat, 1 Nov 2014 04:25:26 -0700
+Received: from mailapp01.imgtec.com ([195.59.15.196]:10250 "EHLO
+	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751626AbaKQMSH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 07:18:07 -0500
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>
+CC: James Hogan <james.hogan@imgtec.com>
+Subject: [REVIEW PATCH 2/5] img-ir/hw: Drop [un]register_decoder declarations
+Date: Mon, 17 Nov 2014 12:17:46 +0000
+Message-ID: <1416226669-2983-3-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1416226669-2983-1-git-send-email-james.hogan@imgtec.com>
+References: <1416226669-2983-1-git-send-email-james.hogan@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Sir
+The img_ir_register_decoder() and img_ir_unregister_decoder() functions
+were dropped prior to the img-ir driver being applied to simplify the
+protocol decoder setup. However the declarations of these functions in
+img-ir-hw.h were still included. Delete them since they're completely
+unused.
 
-Did your website get hit by Google Penguin update on October 17th 2014? What basically is Google Penguin Update? It is actually a code name for Google algorithm which aims at decreasing your websites search engine rankings that violate Google’s guidelines by using black hat SEO techniques to rank your webpage by giving number of spammy links to the page.
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/rc/img-ir/img-ir-hw.h | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
+index 8fcc16c32c5b..a8c6a8d40206 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.h
++++ b/drivers/media/rc/img-ir/img-ir-hw.h
+@@ -186,9 +186,6 @@ struct img_ir_reg_timings {
+ 	struct img_ir_timing_regvals	rtimings;
+ };
  
-We are one of those few SEO companies that can help you avoid penalties from Google Updates like Penguin and Panda. Our clients have survived all the previous and present updates with ease. They have never been hit because we use 100% white hat SEO techniques to rank Webpages.  Simple thing that we do to keep websites away from any Penguin or Panda penalties is follow Google guidelines and we give Google users the best answers to their queries.
+-int img_ir_register_decoder(struct img_ir_decoder *dec);
+-void img_ir_unregister_decoder(struct img_ir_decoder *dec);
+-
+ struct img_ir_priv;
+ 
+ #ifdef CONFIG_IR_IMG_HW
+-- 
+2.0.4
 
-If you are looking to increase the quality of your websites and to get more targeted traffic or save your websites from these Google penalties email us back with your interest. 
-
-We will be glad to serve you and help you grow your business.
-
-Regards
-
-Vince G
-
-SEO Manager ( TOB )
-B7 Green Avenue, Amritsar 143001 Punjab
-____________________________
-NO CLICK in the subject to STOP EMAILS
