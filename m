@@ -1,44 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.59.15.196]:10843 "EHLO
-	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492AbaKQMSG (ORCPT
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:44386 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750812AbaKQQrF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 07:18:06 -0500
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>
-CC: James Hogan <james.hogan@imgtec.com>
-Subject: [REVIEW PATCH 0/5] img-ir: Some fixes
-Date: Mon, 17 Nov 2014 12:17:44 +0000
-Message-ID: <1416226669-2983-1-git-send-email-james.hogan@imgtec.com>
+	Mon, 17 Nov 2014 11:47:05 -0500
+Received: by mail-pa0-f52.google.com with SMTP id eu11so1719662pac.25
+        for <linux-media@vger.kernel.org>; Mon, 17 Nov 2014 08:47:05 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
+Date: Mon, 17 Nov 2014 20:47:05 +0400
+Message-ID: <CANZNk82ny0q9M25KPV7WZ3eg=XeTP2WKTP_3OoWLqEZiOGGFeg@mail.gmail.com>
+Subject: patchwork on solo6x10: fix a race in IRQ handler
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: Linux Media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	=?ISO-8859-2?Q?Krzysztof_Ha=B3asa?= <khalasa@piap.pl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here are a few fixes for the img-ir RC driver.
-
-Patch 1 is the important one. I've tagged it for stable.
-
-The other 4 are minor fixes/improvements that don't need backporting to
-stable.
-
-Dylan Rajaratnam (1):
-  img-ir/hw: Always read data to clear buffer
-
-James Hogan (4):
-  img-ir/hw: Drop [un]register_decoder declarations
-  img-ir: Depend on METAG or MIPS or COMPILE_TEST
-  img-ir: Don't set driver's module owner
-  MAINTAINERS: Add myself as img-ir maintainer
-
- MAINTAINERS                           | 5 +++++
- drivers/media/rc/img-ir/Kconfig       | 1 +
- drivers/media/rc/img-ir/img-ir-core.c | 1 -
- drivers/media/rc/img-ir/img-ir-hw.c   | 6 ++++--
- drivers/media/rc/img-ir/img-ir-hw.h   | 3 ---
- 5 files changed, 10 insertions(+), 6 deletions(-)
+Dear linux-media maintainers, I fail to do `git am` on mbox-formatted
+patch downloadable from https://patchwork.linuxtv.org/patch/26970/
+so i worry if the Krzyztof's patch i resubmitted is well-formed, and
+whether you are fine with integration of this patch to media_tree and
+further to upstream. Please let me know if there you experience any
+issues with that.
 
 -- 
-2.0.4
-
+Andrey Utkin
