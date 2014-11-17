@@ -1,90 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:26907 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132AbaK1JTP (ORCPT
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:62298 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751004AbaKQPPj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 04:19:15 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v8 02/14] Documentation: leds: Add description of LED Flash
- class extension
-Date: Fri, 28 Nov 2014 10:17:54 +0100
-Message-id: <1417166286-27685-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+	Mon, 17 Nov 2014 10:15:39 -0500
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Date: Mon, 17 Nov 2014 16:15:19 +0100
+Cc: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>,
+	sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel" <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	freemangordon@abv.bg
+References: <20141116075928.GA9763@amd> <201411171601.32311@pali> <20141117150407.GP8907@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20141117150407.GP8907@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart2555655.kPujV8QnPf";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Message-Id: <201411171615.34822@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The documentation being added contains overall description of the
-LED Flash Class and the related sysfs attributes.
+--nextPart2555655.kPujV8QnPf
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- Documentation/leds/leds-class-flash.txt |   48 +++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
- create mode 100644 Documentation/leds/leds-class-flash.txt
+On Monday 17 November 2014 16:04:07 Sakari Ailus wrote:
+> Hi Pali,
+>=20
+> On Mon, Nov 17, 2014 at 04:01:31PM +0100, Pali Roh=C3=A1r wrote:
+> > On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
+> > > * Pavel Machek <pavel@ucw.cz> [141117 02:17]:
+> > > > On Mon 2014-11-17 11:09:45, Pali Roh=C3=A1r wrote:
+> > > > > On Monday 17 November 2014 11:05:19 Pavel Machek wrote:
+> > > > > > Hi!
+> > > > > >=20
+> > > > > > On Mon 2014-11-17 09:43:19, Pali Roh=C3=A1r wrote:
+> > > > > > > On Sunday 16 November 2014 08:59:28 Pavel Machek=20
+wrote:
+> > > > > > > > For device tree people: Yes, I know I'll have to
+> > > > > > > > create file in documentation, but does the
+> > > > > > > > binding below look acceptable?
+> > > > > > > >=20
+> > > > > > > > I'll clean up driver code a bit more, remove the
+> > > > > > > > printks. Anything else obviously wrong?
+> > > > > > >=20
+> > > > > > > I think that this patch is probably not good and
+> > > > > > > specially not for n900. adp1653 should be
+> > > > > > > registered throw omap3 isp camera subsystem which
+> > > > > > > does not have DT support yet.
+> > > > > >=20
+> > > > > > Can you explain?
+> > > > > >=20
+> > > > > > adp1653 is independend device on i2c bus, and we
+> > > > > > have kernel driver for it (unlike rest of n900
+> > > > > > camera system). Just now it is unusable due to lack
+> > > > > > of DT binding. It has two functions, LED light and
+> > > > > > a camera flash; yes, the second one should be
+> > > > > > integrated to the rest of camera system, but that
+> > > > > > is not yet merged. That should not prevent us from
+> > > > > > merging DT support for the flash, so that this part
+> > > > > > can be tested/maintained.
+> > > > >=20
+> > > > > Ok. When ISP camera subsystem has DT support somebody
+> > > > > will modify n900 DT to add camera flash from adp1653
+> > > > > to ISP... I believe it will not be hard.
+> > > >=20
+> > > > Exactly. And yes, I'd like to get complete camera
+> > > > support for n900 merged. But first step is "make sure
+> > > > existing support does not break".
+> > >=20
+> > > There's nothing stopping us from initializing the camera
+> > > code from pdata-quirks.c for now to keep it working.
+> > > Certainly the binding should be added to the driver, but
+> > > that removes a dependency to the legacy booting mode if
+> > > things are otherwise working.
+> > >=20
+> > > Regards,
+> > >=20
+> > > Tony
+> >=20
+> > Tony, legacy board code for n900 is not in mainline tree.
+> > And that omap3 camera subsystem for n900 is broken since
+> > 3.5 kernel... (both Front and Back camera on n900 show only
+> > green picture).
+>=20
+> Can you capture raw bayer images correctly? I assume green
+> means YUV buffers that are all zero.
+>=20
+> Do you know more specifically which patch breaks it?
 
-diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-new file mode 100644
-index 0000000..d68565c
---- /dev/null
-+++ b/Documentation/leds/leds-class-flash.txt
-@@ -0,0 +1,48 @@
-+
-+Flash LED handling under Linux
-+==============================
-+
-+Some LED devices support two modes - torch and flash. The modes are
-+supported by the LED class (see Documentation/leds/leds-class.txt)
-+and LED Flash class respectively.
-+
-+In order to enable support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
-+must be defined in the kernel config. A flash LED driver must register
-+in the LED subsystem with led_classdev_flash_register to gain flash
-+capabilities.
-+
-+Following sysfs attributes are exposed for controlling flash led devices:
-+
-+	- flash_brightness - flash LED brightness in microamperes (RW)
-+	- max_flash_brightness - maximum available flash LED brightness (RO)
-+	- indicator_brightness - privacy LED brightness in microamperes (RW)
-+	- max_indicator_brightness - maximum privacy LED brightness in
-+				     microamperes (RO)
-+	- flash_timeout - flash strobe duration in microseconds (RW)
-+	- max_flash_timeout - maximum available flash strobe duration (RO)
-+	- flash_strobe - flash strobe state (RW)
-+	- flash_sync_strobe - one flash device can control more than one
-+			      sub-led; when this atrribute is set to 1
-+			      the flash led will be strobed synchronously
-+			      with the other ones controlled by the same
-+			      device (RW)
-+	- flash_fault - bitmask of flash faults that may have occurred,
-+			possible flags are:
-+		* 0x01 - flash controller voltage to the flash LED has exceeded
-+			 the limit specific to the flash controller
-+		* 0x02 - the flash strobe was still on when the timeout set by
-+			 the user has expired; not all flash controllers may
-+			 set this in all such conditions
-+		* 0x04 - the flash controller has overheated
-+		* 0x08 - the short circuit protection of the flash controller
-+			 has been triggered
-+		* 0x10 - current in the LED power supply has exceeded the limit
-+			 specific to the flash controller
-+		* 0x40 - flash controller voltage to the flash LED has been
-+			 below the minimum limit specific to the flash
-+		* 0x80 - the input voltage of the flash controller is below
-+			 the limit under which strobing the flash at full
-+			 current will not be possible. The condition persists
-+			 until this flag is no longer set
-+		* 0x100 - the temperature of the LED has exceeded its allowed
-+			  upper limit
--- 
-1.7.9.5
+CCing freemangordon (Ivaylo Dimitrov). He tried to debug it=20
+months ago but without success. Should know more info about this=20
+problem.
 
+I think that commit which broke it was not bisected...
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart2555655.kPujV8QnPf
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlRqERYACgkQi/DJPQPkQ1IBYwCgzhsqRQpQfxZG0dnW1YH87R3Q
+nxYAnjpVF3iWJp95KDWjl5Xf/mVWpHV+
+=nJ+y
+-----END PGP SIGNATURE-----
+
+--nextPart2555655.kPujV8QnPf--
