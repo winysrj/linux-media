@@ -1,65 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46536 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752437AbaKRFoF (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37369 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751283AbaKQImH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 00:44:05 -0500
-Received: from lanttu.localdomain (unknown [192.168.15.166])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 91B9F60093
-	for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 07:44:03 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [REVIEW PATCH v2 05/11] smiapp: Register async subdev
-Date: Tue, 18 Nov 2014 07:43:40 +0200
-Message-Id: <1416289426-804-6-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1416289426-804-1-git-send-email-sakari.ailus@iki.fi>
-References: <1416289426-804-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 17 Nov 2014 03:42:07 -0500
+Message-ID: <5469B4D0.4020205@xs4all.nl>
+Date: Mon, 17 Nov 2014 09:41:52 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 03/11] videodev2.h: rename reserved2 to config_store
+ in v4l2_buffer.
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl> <1411310909-32825-4-git-send-email-hverkuil@xs4all.nl> <20141114153505.GE8907@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20141114153505.GE8907@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Register and unregister async sub-device for DT.
+On 11/14/2014 04:35 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> One more comment...
+> 
+> On Sun, Sep 21, 2014 at 04:48:21PM +0200, Hans Verkuil wrote:
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 83ef28a..2ca44ed 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -672,6 +672,7 @@ struct v4l2_plane {
+>>   * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+>>   *		buffers (when type != *_MPLANE); number of elements in the
+>>   *		planes array for multi-plane buffers
+>> + * @config_store: this buffer should use this configuration store
+>>   *
+>>   * Contains data exchanged by application and driver using one of the Streaming
+>>   * I/O methods.
+>> @@ -695,7 +696,7 @@ struct v4l2_buffer {
+>>  		__s32		fd;
+>>  	} m;
+>>  	__u32			length;
+>> -	__u32			reserved2;
+>> +	__u32			config_store;
+>>  	__u32			reserved;
+>>  };
+>>  
+> 
+> I would use __u16 instead since the value is 16-bit on the control
+> interface.
+> 
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/i2c/smiapp/smiapp-core.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+Good point. Will do.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index ab917a6..ba05d97 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2944,8 +2944,21 @@ static int smiapp_probe(struct i2c_client *client,
- 	sensor->src->sensor = sensor;
- 
- 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
--	return media_entity_init(&sensor->src->sd.entity, 2,
-+	rval = media_entity_init(&sensor->src->sd.entity, 2,
- 				 sensor->src->pads, 0);
-+	if (rval < 0)
-+		return rval;
-+
-+	rval = v4l2_async_register_subdev(&sensor->src->sd);
-+	if (rval < 0)
-+		goto out_media_entity_cleanup;
-+
-+	return 0;
-+
-+out_media_entity_cleanup:
-+	media_entity_cleanup(&sensor->src->sd.entity);
-+
-+	return rval;
- }
- 
- static int smiapp_remove(struct i2c_client *client)
-@@ -2954,6 +2967,8 @@ static int smiapp_remove(struct i2c_client *client)
- 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
- 	unsigned int i;
- 
-+	v4l2_async_unregister_subdev(subdev);
-+
- 	if (sensor->power_count) {
- 		if (gpio_is_valid(sensor->platform_data->xshutdown))
- 			gpio_set_value(sensor->platform_data->xshutdown, 0);
--- 
-1.7.10.4
-
+	Hans
