@@ -1,128 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:53379 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754110AbaKUKAF (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40878 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751180AbaKQPEm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 05:00:05 -0500
-Date: Fri, 21 Nov 2014 10:59:35 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Emilio Lopez <emilio@elopez.com.ar>,
-	Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com
-Subject: Re: [PATCH 5/9] rc: sunxi-cir: Add support for the larger fifo found
- on sun5i and sun6i
-Message-ID: <20141121095934.GA4752@lukather>
-References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
- <1416498928-1300-6-git-send-email-hdegoede@redhat.com>
- <20141120142856.16b6562d@recife.lan>
- <20141121082620.GJ24143@lukather>
- <546EFAE1.9050506@redhat.com>
+	Mon, 17 Nov 2014 10:04:42 -0500
+Date: Mon, 17 Nov 2014 17:04:07 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>,
+	sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Message-ID: <20141117150407.GP8907@valkosipuli.retiisi.org.uk>
+References: <20141116075928.GA9763@amd>
+ <20141117101553.GA21151@amd>
+ <20141117145545.GC7046@atomide.com>
+ <201411171601.32311@pali>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <546EFAE1.9050506@redhat.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <201411171601.32311@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Pali,
 
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, Nov 17, 2014 at 04:01:31PM +0100, Pali Rohár wrote:
+> On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
+> > * Pavel Machek <pavel@ucw.cz> [141117 02:17]:
+> > > On Mon 2014-11-17 11:09:45, Pali Rohár wrote:
+> > > > On Monday 17 November 2014 11:05:19 Pavel Machek wrote:
+> > > > > Hi!
+> > > > > 
+> > > > > On Mon 2014-11-17 09:43:19, Pali Rohár wrote:
+> > > > > > On Sunday 16 November 2014 08:59:28 Pavel Machek wrote:
+> > > > > > > For device tree people: Yes, I know I'll have to
+> > > > > > > create file in documentation, but does the binding
+> > > > > > > below look acceptable?
+> > > > > > > 
+> > > > > > > I'll clean up driver code a bit more, remove the
+> > > > > > > printks. Anything else obviously wrong?
+> > > > > > 
+> > > > > > I think that this patch is probably not good and
+> > > > > > specially not for n900. adp1653 should be registered
+> > > > > > throw omap3 isp camera subsystem which does not have
+> > > > > > DT support yet.
+> > > > > 
+> > > > > Can you explain?
+> > > > > 
+> > > > > adp1653 is independend device on i2c bus, and we have
+> > > > > kernel driver for it (unlike rest of n900 camera
+> > > > > system). Just now it is unusable due to lack of DT
+> > > > > binding. It has two functions, LED light and a camera
+> > > > > flash; yes, the second one should be integrated to the
+> > > > > rest of camera system, but that is not yet merged. That
+> > > > > should not prevent us from merging DT support for the
+> > > > > flash, so that this part can be tested/maintained.
+> > > > 
+> > > > Ok. When ISP camera subsystem has DT support somebody will
+> > > > modify n900 DT to add camera flash from adp1653 to ISP...
+> > > > I believe it will not be hard.
+> > > 
+> > > Exactly. And yes, I'd like to get complete camera support
+> > > for n900 merged. But first step is "make sure existing
+> > > support does not break".
+> > 
+> > There's nothing stopping us from initializing the camera code
+> > from pdata-quirks.c for now to keep it working. Certainly the
+> > binding should be added to the driver, but that removes a
+> > dependency to the legacy booting mode if things are otherwise
+> > working.
+> > 
+> > Regards,
+> > 
+> > Tony
+> 
+> Tony, legacy board code for n900 is not in mainline tree. And 
+> that omap3 camera subsystem for n900 is broken since 3.5 
+> kernel... (both Front and Back camera on n900 show only green 
+> picture).
 
-On Fri, Nov 21, 2014 at 09:42:09AM +0100, Hans de Goede wrote:
-> Hi,
->=20
-> On 11/21/2014 09:26 AM, Maxime Ripard wrote:
-> > Hi Mauro,
-> >=20
-> > On Thu, Nov 20, 2014 at 02:28:56PM -0200, Mauro Carvalho Chehab wrote:
-> >> Em Thu, 20 Nov 2014 16:55:24 +0100
-> >> Hans de Goede <hdegoede@redhat.com> escreveu:
-> >>
-> >>> Add support for the larger fifo found on sun5i and sun6i, having a se=
-parate
-> >>> compatible for the ir found on sun5i & sun6i also is useful if we eve=
-r want
-> >>> to add ir transmit support, because the sun5i & sun6i version do not =
-have
-> >>> transmit support.
-> >>>
-> >>> Note this commits also adds checking for the end-of-packet interrupt =
-flag
-> >>> (which was already enabled), as the fifo-data-available interrupt fla=
-g only
-> >>> gets set when the trigger-level is exceeded. So far we've been gettin=
-g away
-> >>> with not doing this because of the low trigger-level, but this is som=
-ething
-> >>> which we should have done since day one.
-> >>>
-> >>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> >>
-> >> As this is meant to be merged via some other tree:
-> >>
-> >> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >=20
-> > I think merging it through your tree would be just fine.
-> >=20
-> > Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
->=20
-> Heh, I was thinking it would be best if it went through Maxime's tree bec=
-ause
-> it also has some deps on new clk stuff (well the dts have deps on that), =
-but either
-> way works for me.
->=20
-> Maxime if you want this go through Mauro's tree, I can send a pull-req to=
- Mauro
-> (I'm a linux-media sub-maintainer), so if that is the case let me know an=
-d I'll
-> prepare a pull-req (after fixing the missing reset documentation in the b=
-indings).
+Can you capture raw bayer images correctly? I assume green means YUV buffers
+that are all zero.
 
-So much for not reading the cover letter... Sorry.
+Do you know more specifically which patch breaks it?
 
-We're getting quite close to the end of the ARM merge window, and I
-got a couple comments, Lee hasn't commented yet, so I'd say it's a bit
-too late for this to come in.
+-- 
+Regards,
 
-If Mauro is happy with the current patches for him, it's completely
-fine to merge it through his tree. The DTS can wait.
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---x+6KMIRAuhnl3hBn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUbw0GAAoJEBx+YmzsjxAgR6wP/if+hlLF48mTbjR+IyrvTBwK
-XHUSgIRTZY/VH39ZHc9r+zc1NavKZzBFA3pBv931DiKVrnctX8588IObznM3fLLs
-OhKqOyzGT81+/o+kqTOZliD5CIMB2mt9HGEB+GZt/LYAhDpvPgkNKD6YmJPNPDE2
-Zw7s05f03m2ry2VBOLRNNRhG0ag5ed9BCbg/VFN6oiTLqvvJrZUGFEXE8tmi83QU
-Wj3s6mvtsCAMXoY71LLnw+oQY+eQiQyHO0rKjA7DOHUu5Rat4eRc5e6sP8mWawHy
-eFPHFgbJxnkkkixosqG4P/scqOUWFdI3ji6m/uPoK2uwYF6MIuRv1HVFg6HgQagP
-jgKA/Y+xmnSMNJp6VK9Z8bTTaDdsnOG0ERpitHodmedvWc2pHypjiojm2upd2K7W
-4rYB+R5jAKC5RQVxZwNYK9XuEjtjF2r1npZSv+tlvTCxep9bE5jJIMGFtFV5S0Ep
-pizMt4iczU3249Tm/maH4qXZtiGIkA3jdev83L+7dtdc6nM5ITWfKpBR/p9r7j5B
-nEUZetCzoQPumhKNEIZuPV9qDBwVFBdmCFbbFe/WVYR4LcmL20xZ9YnPx5XjrdE9
-THxOdqOI4JLOkhmXVTqewZeor7LaZy0MEQTzPZ86qxHYbi6fpi2EtVu9OM9hjqL/
-Tjrqa69dZTR+1RUPf595
-=QCnI
------END PGP SIGNATURE-----
-
---x+6KMIRAuhnl3hBn--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
