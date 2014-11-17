@@ -1,62 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:53850 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750976AbaK1PYW (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:57049 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751202AbaKQI5i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 10:24:22 -0500
-Message-ID: <1417188223.3721.2.camel@pengutronix.de>
-Subject: Re: i.MX6 CODA960 encoder
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Schwebel <r.schwebel@pengutronix.de>
-Date: Fri, 28 Nov 2014 16:23:43 +0100
-In-Reply-To: <CAOMZO5BsikrKPCjV129FWWW2DVe-ziLz_kMGSh6aM2JC=wnkhA@mail.gmail.com>
-References: <CAL8zT=i+UZP7gpukW-cRe2M=xWW5Av9Mzd-FnnZAP5d+5J7Mzg@mail.gmail.com>
-	 <1417020934.3177.15.camel@pengutronix.de>
-	 <CAL8zT=hY8XeAb4j7-eBt3VJX-3Kzg6-BOajvSpxvgc+o3ZRuYQ@mail.gmail.com>
-	 <CAL8zT=gnkaD=9XbyBDcDh7D=w+rDSQPsi3dKfQ17ezvz6NZMCg@mail.gmail.com>
-	 <CAOMZO5BsikrKPCjV129FWWW2DVe-ziLz_kMGSh6aM2JC=wnkhA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+	Mon, 17 Nov 2014 03:57:38 -0500
+Message-ID: <5469B874.9040008@xs4all.nl>
+Date: Mon, 17 Nov 2014 09:57:24 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 06/11] videodev2.h: add new v4l2_ext_control flags
+ field
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl> <1411310909-32825-7-git-send-email-hverkuil@xs4all.nl> <20141115141858.GG8907@valkosipuli.retiisi.org.uk> <20141115174459.GH8907@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20141115174459.GH8907@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Donnerstag, den 27.11.2014, 16:10 -0200 schrieb Fabio Estevam:
-> On Thu, Nov 27, 2014 at 3:54 PM, Jean-Michel Hautbois
-> <jean-michel.hautbois@vodalys.com> wrote:
+On 11/15/2014 06:44 PM, Sakari Ailus wrote:
+> Hi,
 > 
-> > I don't have the same behaviour, but I may have missed a patch.
-> > I have taken linux-next and rebased my work on it. I have some issues,
-> > but nothing to be worried about, no link with coda.
-> > I get the following :
-> > $> v4l2-ctl -d0 --set-fmt-video-out=width=1280,height=720,pixelfor
-> > $> v4l2-ctl -d0 --stream-mmap --stream-out-mmap --stream-to x.raw
-> > [  173.705701] coda 2040000.vpu: CODA PIC_RUN timeout
+> On Sat, Nov 15, 2014 at 04:18:59PM +0200, Sakari Ailus wrote:
+> ...
+>>>  	union {
+>>>  		__s32 value;
+>>>  		__s64 value64;
+>>> @@ -1294,6 +1294,10 @@ struct v4l2_ext_control {
+>>>  	};
+>>>  } __attribute__ ((packed));
+>>>  
+>>> +/* v4l2_ext_control flags */
+>>> +#define V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE	0x00000001
+>>> +#define V4L2_EXT_CTRL_FL_IGN_STORE		0x00000002
+>>
+>> Do we need both? Aren't these mutually exclusive, and you must have either
+>> to be meaningful in the context of a store?
 > 
-> I have this same error with linux-next when I try to decode a file.
+> Ah. Now I think I understand what do these mean. Please ignore my previous
+> comment.
 > 
-> Philipp,
-> 
-> Do you know if linux-next contains all required coda patches?
-> 
-> Could this be caused by the fact that we are using an unsupported VPU
-> firmware version?
+> I might call them differently. What would you think of
 
-I missed that the commit a04a0b6fed4f ("ARM: dts: imx6qdl: Enable
-CODA960 VPU") lost the switching of the interrupts between
-http://www.spinics.net/lists/arm-kernel/msg338645.html
-and
-http://www.spinics.net/lists/arm-kernel/msg376571.html .
+I was never happy with the naming :-)
 
-Of course the JPEG interrupt will never fire when encoding H.264, which
-causes the timeout. Patch in another mail.
+> V4L2_EXT_CTRL_FL_STORE_IGNORE and V4L2_EXT_CTRL_FL_STORE_ONCE?
 
-regards
-Philipp
+I will give this some more thought.
 
+> V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE is quite long IMO. Up to you.
+> 
+> I wonder if we need EXT in V4L2_EXT_CTRL_FL. It's logical but also
+> redundant since the old control interface won't have flags either.
+
+True.
+
+> I'd assume that for cameras the vast majority of users will always want to
+> just apply the values once. How are the use cases in video decoding?
+
+I am wondering whether 'apply once' shouldn't be the default and whether I
+really need to implement the 'apply always' (Hey, not bad names either!)
+functionality for this initial version.
+
+I only used the 'apply always' functionality for a somewhat contrived test
+example where I changed the cropping rectangle (this is with the selection
+controls from patch 10/11) for each buffer so that while streaming I would
+get a continuous zoom-in/zoom-out effect. While nice for testing, it isn't
+really practical in reality.
+
+Regards,
+
+	Hans
