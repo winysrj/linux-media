@@ -1,67 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:33226 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753106AbaKDKXE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 05:23:04 -0500
-Message-ID: <5458A8F7.2050803@cisco.com>
-Date: Tue, 04 Nov 2014 11:22:47 +0100
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60115 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751540AbaKQKFX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 05:05:23 -0500
+Date: Mon, 17 Nov 2014 11:05:19 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
 	linux-media@vger.kernel.org
-CC: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 01/15] [media] Move mediabus format definition to a more
- standard place
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com> <1415094910-15899-2-git-send-email-boris.brezillon@free-electrons.com> <5458A878.3010809@cisco.com>
-In-Reply-To: <5458A878.3010809@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Message-ID: <20141117100519.GA4353@amd>
+References: <20141116075928.GA9763@amd>
+ <201411170943.20810@pali>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <201411170943.20810@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi!
 
+On Mon 2014-11-17 09:43:19, Pali Rohár wrote:
+> On Sunday 16 November 2014 08:59:28 Pavel Machek wrote:
+> > For device tree people: Yes, I know I'll have to create file
+> > in documentation, but does the binding below look acceptable?
+> > 
+> > I'll clean up driver code a bit more, remove the printks.
+> > Anything else obviously wrong?
 
-On 11/04/14 11:20, Hans Verkuil wrote:
-> Hi Boris,
-> 
-> On 11/04/14 10:54, Boris Brezillon wrote:
->> Rename mediabus formats and move the enum into a separate header file so
->> that it can be used by DRM/KMS subsystem without any reference to the V4L2
->> subsystem.
->>
->> Old V4L2_MBUS_FMT_ definitions are now referencing MEDIA_BUS_FMT_ value.
-> 
-> I missed earlier that v4l2-mediabus.h contained a struct as well, so it can't be
-> deprecated and neither can a #warning be added.
-> 
-> The best approach, I think, is to use a macro in media-bus-format.h
-> that will either define just the MEDIA_BUS value when compiled in the kernel, or
-> define both MEDIA_BUS and V4L2_MBUS values when compiled for userspace.
-> 
-> E.g. something like this:
-> 
-> #ifdef __KERNEL__
-> #define MEDIA_BUS_FMT_ENTRY(name, val) MEDIA_BUS_FMT_ # name = val
-> #else
-> /* Keep V4L2_MBUS_FMT for backwards compatibility */
-> #define MEDIA_BUS_FMT_ENTRY(name, val) \
-> 	MEDIA_BUS_FMT_ # name = val, \
-> 	V4L2_MBUS_FMT_ # name = val
-> #endif
+> I think that this patch is probably not good and specially not 
+> for n900. adp1653 should be registered throw omap3 isp camera 
+> subsystem which does not have DT support yet.
 
-And v4l2-mediabus.h needs this as well:
+Can you explain?
 
-#ifndef __KERNEL__
-/* For backwards compatibility */
-#define v4l2_mbus_pixelcode media_bus_format
-#endif
+adp1653 is independend device on i2c bus, and we have kernel driver
+for it (unlike rest of n900 camera system). Just now it is unusable
+due to lack of DT binding. It has two functions, LED light and a
+camera flash; yes, the second one should be integrated to the rest of
+camera system, but that is not yet merged. That should not prevent us
+from merging DT support for the flash, so that this part can be
+tested/maintained.
 
-Regards,
+> See n900 legacy board camera code in file board-rx51-camera.c.
 
-	Hans
+I have seen that.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
