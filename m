@@ -1,86 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56603 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754505AbaKNIrF (ORCPT
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:60306 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751540AbaKQJvr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Nov 2014 03:47:05 -0500
-Message-ID: <5465C17E.60504@xs4all.nl>
-Date: Fri, 14 Nov 2014 09:46:54 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 17 Nov 2014 04:51:47 -0500
+Received: by mail-lb0-f169.google.com with SMTP id 10so15871552lbg.28
+        for <linux-media@vger.kernel.org>; Mon, 17 Nov 2014 01:51:46 -0800 (PST)
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] v4l: Add V4L2_SEL_TGT_NATIVE_SIZE selection target
-References: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi> <1415487872-27500-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1415487872-27500-3-git-send-email-sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAL+AA1kQSrOCSxUPkSFa8xxpkCRJUj+46-RCwVhUrUc6Jduv9A@mail.gmail.com>
+References: <CAL+AA1ntfVxkaHhY8qNciBkHRw0SXOAzBJgV+A9Y7oYtbD38mQ@mail.gmail.com>
+	<CALF0-+VpPttePKF-VTLJ5Y29_EZtSz96PwN9av1SOkkc414CRA@mail.gmail.com>
+	<CAL+AA1nUAgOYUeWxrgeHiWaDSkHvh0yXuwA-gjdUomn-s_HVyA@mail.gmail.com>
+	<CALF0-+WuVtk3SpwCNfJB88jvgXEujVPmT9ute6Ohdhi=0VsOSw@mail.gmail.com>
+	<20141109111200.6fb604c8@recife.lan>
+	<CAL+AA1kQSrOCSxUPkSFa8xxpkCRJUj+46-RCwVhUrUc6Jduv9A@mail.gmail.com>
+Date: Mon, 17 Nov 2014 12:51:46 +0300
+Message-ID: <CAL+AA1=Sbe3D4BmV-Pv7SEhUBQutFiYMQ-H=iUWuAsY5aiTEzA@mail.gmail.com>
+Subject: Re: STK1160 Sharpness
+From: =?UTF-8?B?0JHQsNGA0YIg0JPQvtC/0L3QuNC6?= <bart.gopnik@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Mike Thomas <rmthomas@sciolus.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/09/2014 12:04 AM, Sakari Ailus wrote:
-> The V4L2_SEL_TGT_NATIVE_SIZE target is used to denote e.g. the size of a
-> sensor's pixel array.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/selections-common.xml |    8 ++++++++
->  include/uapi/linux/v4l2-common.h                      |    2 ++
->  2 files changed, 10 insertions(+)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
-> index 7502f78..5fc833a 100644
-> --- a/Documentation/DocBook/media/v4l/selections-common.xml
-> +++ b/Documentation/DocBook/media/v4l/selections-common.xml
-> @@ -63,6 +63,14 @@
->  	    <entry>Yes</entry>
->  	  </row>
->  	  <row>
-> +	    <entry><constant>V4L2_SEL_TGT_NATIVE_SIZE</constant></entry>
-> +	    <entry>0x0003</entry>
-> +	    <entry>The native size of the device, e.g. a sensor's
-> +	    pixel array.</entry>
+(Where) can I find the the full list of the (key) differences between
+SAA7113 and GM7113?
 
-You might want to state that top and left are always 0.
+If it is not hard to do it, can anybody please implement it?
+Unfortunately, I'm not very good with system drivers programming.
 
-> +	    <entry>Yes</entry>
-> +	    <entry>Yes</entry>
-> +	  </row>
-> +	  <row>
->  	    <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
->  	    <entry>0x0100</entry>
->  	    <entry>Compose rectangle. Used to configure scaling
-> diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
-> index 2f6f8ca..1527398 100644
-> --- a/include/uapi/linux/v4l2-common.h
-> +++ b/include/uapi/linux/v4l2-common.h
-> @@ -43,6 +43,8 @@
->  #define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
->  /* Cropping bounds */
->  #define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
-> +/* Native frame size */
-> +#define V4L2_SEL_TGT_NATIVE_SIZE	0x0003
->  /* Current composing area */
->  #define V4L2_SEL_TGT_COMPOSE		0x0100
->  /* Default composing area */
-> 
-
-I like this. This would also make it possible to set the 'canvas' size of an
-mem2mem device. Currently calling S_FMT for a mem2mem device cannot setup any
-scaler since there is no native size. Instead S_FMT effectively *sets* the native
-size. The same is true for webcams with a scaler, which is why you added this in
-the first place. Obviously for sensors this target is read-only, but for a mem2mem
-device it can be writable as well.
-
-However, to make full use of this you also need to add input and output
-capabilities if the native size can be set:
-
-	V4L2_IN_CAP_NATIVE_SIZE
-	V4L2_OUT_CAP_NATIVE_SIZE
-
-(see ENUMINPUT/ENUMOUTPUT)
-
-This would nicely fill in a hole in the V4L2 Spec.
-
-Regards,
-
-	Hans
+I'm interesting only in sharpness control because the image quality
+(sharpness) during capture using CVBS input is bad (on my EasyCap
+device). If I use S-Video input, the quality (sharpness) is better. It
+is important to implement it, because the sharpness control
+implemented in hardware (not in software, post-processing filtering).
+Control of other parameters like gamma are also don't work, but I'm
+not sure that gamma control is hardware (not software) implemented
+(I'm not found any info about gamma in saa7113 datasheet).
