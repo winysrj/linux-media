@@ -1,97 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53885 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753946AbaKRSIf (ORCPT
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:39446 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751004AbaKQPgE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 13:08:35 -0500
-Date: Tue, 18 Nov 2014 20:07:59 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard
- CONFIG_VIDEO_V4L2_SUBDEV_API for v4l2_subdev_get_try_*()
-Message-ID: <20141118180759.GT8907@valkosipuli.retiisi.org.uk>
-References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com>
- <546B13CC.6050605@xs4all.nl>
+	Mon, 17 Nov 2014 10:36:04 -0500
+Received: by mail-ob0-f181.google.com with SMTP id gq1so3470788obb.12
+        for <linux-media@vger.kernel.org>; Mon, 17 Nov 2014 07:36:03 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <546B13CC.6050605@xs4all.nl>
+In-Reply-To: <CANOLnOMrdk9Gq+9Cv_e5cboXtbtxHoKVQdNgBvb_NcJfFT7bHQ@mail.gmail.com>
+References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com>
+	<fbcc6c6b4b3bb0d049a6d1871d8a79df@roundcube.remlab.net>
+	<36286542.DzZr56uF9K@basile.remlab.net>
+	<7185728.KDKlKP9htJ@avalon>
+	<CANOLnOMrdk9Gq+9Cv_e5cboXtbtxHoKVQdNgBvb_NcJfFT7bHQ@mail.gmail.com>
+Date: Mon, 17 Nov 2014 17:36:03 +0200
+Message-ID: <CANOLnONSBRNQORRhhSemS14rf19OHj6NOz_y__omA1gWEb-6qA@mail.gmail.com>
+Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
+From: Grazvydas Ignotas <notasas@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: =?UTF-8?Q?R=C3=A9mi_Denis=2DCourmont?= <remi@remlab.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans and Prabhakar,
+On Thu, Nov 6, 2014 at 12:29 AM, Grazvydas Ignotas <notasas@gmail.com> wrote:
+> On Wed, Nov 5, 2014 at 4:05 PM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Rémi,
+>>
+>> On Tuesday 04 November 2014 22:41:44 Rémi Denis-Courmont wrote:
+>>> Le mardi 04 novembre 2014, 15:42:37 Rémi Denis-Courmont a écrit :
+>>> > Le 2014-11-04 14:58, Sakari Ailus a écrit :
+>>> > >> > Have you tried with a different application to see if the problem
+>>> > >> > persists?
+>>> > >>
+>>> > >> Tried mplayer and cheese now, and it seems they are not affected, so
+>>> > >> it's an issue with vlc. I wonder why it doesn't like newer flags..
+>>> > >>
+>>> > >> Ohwell, sorry for the noise.
+>>> > >
+>>> > > I guess the newer VLC could indeed pay attention to the monotonic
+>>> > > timestamp flag. Remi, any idea?
+>>> >
+>>> > VLC takes the kernel timestamp, if monotonic, since version 2.1.
+>>> > Otherwise, it generates its own inaccurate timestamp. So either that
+>>> > code is wrong, or the kernel timestamps are.
+>>>
+>>> From a quick check with C920, the timestamps from the kernel are quite
+>>> jittery, and but seem to follow a pattern. When requesting a 10 Hz frame
+>>> rate, I actually get a frame interval of about 8/9 (i.e. 89ms) jumping to
+>>> 1/3 every approximately 2 seconds.
+>>>
+>>> From my user-space point of view, this is a kernel issue. The problem
+>>> probably just manifests when both VLC and Linux versions support monotonic
+>>> timestamps.
+>>>
+>>> Whether the root cause is in the kernel, the device driver or the firmware,
+>>> I can´t say.
+>>
+>> Would you be able to capture images from the C920 using yavta, with the
+>> uvcvideo trace parameter set to 4096, and send me both the yavta log and the
+>> kernel log ? Let's start with a capture sequence of 50 to 100 images.
+>
+> I've done 2 captures, if that helps:
+> http://notaz.gp2x.de/tmp/c920_yavta/
+>
+> The second one was done using low exposure setting, which allows
+> camera to achieve higher frame rate.
 
-On Tue, Nov 18, 2014 at 10:39:24AM +0100, Hans Verkuil wrote:
-> On 11/17/14 11:41, Lad, Prabhakar wrote:
-> > this patch removes the guard CONFIG_VIDEO_V4L2_SUBDEV_API
-> > for v4l2_subdev_get_try_*() functions.
-> > In cases where a subdev using v4l2_subdev_get_try_*() calls
-> > internally and the bridge using subdev pad ops which is
-> > not MC aware forces to select MEDIA_CONTROLLER, as
-> > VIDEO_V4L2_SUBDEV_API is dependent on it.
-> > 
-> > Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> > ---
-> >  include/media/v4l2-subdev.h | 2 --
-> >  1 file changed, 2 deletions(-)
-> > 
-> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > index 5860292..076ca11 100644
-> > --- a/include/media/v4l2-subdev.h
-> > +++ b/include/media/v4l2-subdev.h
-> > @@ -642,7 +642,6 @@ struct v4l2_subdev_fh {
-> >  #define to_v4l2_subdev_fh(fh)	\
-> >  	container_of(fh, struct v4l2_subdev_fh, vfh)
-> >  
-> > -#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-> >  #define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
-> >  	static inline struct rtype *					\
-> >  	v4l2_subdev_get_try_##fun_name(struct v4l2_subdev_fh *fh,	\
-> > @@ -656,7 +655,6 @@ struct v4l2_subdev_fh {
-> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
-> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_crop)
-> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
-> > -#endif
-> >  
-> >  extern const struct v4l2_file_operations v4l2_subdev_fops;
-> >  
-> > 
-> 
-> The problem is that v4l2_subdev_get_try_*() needs a v4l2_subdev_fh which
-> you don't have if CONFIG_VIDEO_V4L2_SUBDEV_API is not defined. So I don't
-> see how removing the guards help with that.
-> 
-> What can be done is that if CONFIG_VIDEO_V4L2_SUBDEV_API is not defined,
-> then these functions return NULL.
+So, has anyone had time to look at these?
 
-Sure. That's a better choice than removing the config option dependency of
-the fields struct v4l2_subdev.
-
-> BTW, one patch I will very happily accept is one where the __V4L2_SUBDEV_MK_GET_TRY
-> is removed and these three try functions are just written as proper
-> static inlines. I find it very obfuscated code.
-
-I originally wrote them like that in order to avoid writing essentially the
-same code three times over. If there will be more targets, the same repeats
-further, should one write those functions open for all different macro
-arguments. That's why it was a macro to begin with.
-
-> In addition, because it is a macro you won't find the function definitions
-> if you grep on the function name.
-
-True as well. You could simply change the macro to include the full function
-name. This was not suggested in review back then AFAIR.
-
-> But any functional changes here need to be Acked by Laurent first.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Gražvydas
