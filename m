@@ -1,44 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f175.google.com ([209.85.220.175]:45420 "EHLO
-	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754280AbaKNH3r (ORCPT
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:50776 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751135AbaKQIn0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Nov 2014 02:29:47 -0500
-Received: by mail-vc0-f175.google.com with SMTP id hy10so561549vcb.34
-        for <linux-media@vger.kernel.org>; Thu, 13 Nov 2014 23:29:46 -0800 (PST)
+	Mon, 17 Nov 2014 03:43:26 -0500
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Date: Mon, 17 Nov 2014 09:43:19 +0100
+Cc: sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel" <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org
+References: <20141116075928.GA9763@amd>
+In-Reply-To: <20141116075928.GA9763@amd>
 MIME-Version: 1.0
-In-Reply-To: <CAM_ZknWrub8adtrvTfBGrY6zHv1EGsRr-madZMdB-TqMoMrRDg@mail.gmail.com>
-References: <CAM_ZknVTqh0VnhuT3MdULtiqHJzxRhK-Pjyb58W=4Ldof0+jgA@mail.gmail.com>
-	<54624FF1.2060102@xs4all.nl>
-	<CAM_ZknWrub8adtrvTfBGrY6zHv1EGsRr-madZMdB-TqMoMrRDg@mail.gmail.com>
-Date: Fri, 14 Nov 2014 11:29:45 +0400
-Message-ID: <CAM_ZknUcBNbTCzK=xzW-HG_CMKBbG=uitD2089QVgx8QR5CVSw@mail.gmail.com>
-Subject: Re: [RFC] solo6x10 freeze, even with Oct 31's linux-next... any ideas
- or help?
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "hans.verkuil" <hans.verkuil@cisco.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed;
+  boundary="nextPart1847905.6cyh1QvJQ8";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Message-Id: <201411170943.20810@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 11, 2014 at 10:16 PM, Andrey Utkin
-<andrey.utkin@corp.bluecherry.net> wrote:
-> On Tue, Nov 11, 2014 at 8:05 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> I would first try to exclude hardware issues: since you say it is always
->> the same card, try either replacing it or swapping it with another solo
->> card and see if the problem follows the card or not. If it does, then it
->> is likely a hardware problem. If it doesn't, then it suggests a race
->> condition in the interrupt handling somewhere.
->
-> Thanks for reply, Hans.
-> Surely valid idea. I will ask for this, but it is out of my physical reach.
-> If you have any suspects about driver code, please let me know.
+--nextPart1847905.6cyh1QvJQ8
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-(We haven't tested the replacement yet.)
-To the big surprise, it turned out that FPS=2 on the channels works
-unstable, but FPS=30 works stable.
+On Sunday 16 November 2014 08:59:28 Pavel Machek wrote:
+> For device tree people: Yes, I know I'll have to create file
+> in documentation, but does the binding below look acceptable?
+>=20
+> I'll clean up driver code a bit more, remove the printks.
+> Anything else obviously wrong?
+>=20
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>=20
+> Thanks,
+> 								Pavel
+>=20
+>=20
 
--- 
-Bluecherry developer.
+Hello,
+
+I think that this patch is probably not good and specially not=20
+for n900. adp1653 should be registered throw omap3 isp camera=20
+subsystem which does not have DT support yet.
+
+See n900 legacy board camera code in file board-rx51-camera.c.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1847905.6cyh1QvJQ8
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlRptSgACgkQi/DJPQPkQ1Jp/gCcDXvCk21znfd1oIRrJyc1nuQm
+Aq0Ani3PDwgQk4b7tvcNNpAAy7HkvB6o
+=b1Is
+-----END PGP SIGNATURE-----
+
+--nextPart1847905.6cyh1QvJQ8--
