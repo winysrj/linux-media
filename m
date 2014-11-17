@@ -1,56 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:53595 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751902AbaK1JVF (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52195 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753062AbaKQORS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 04:21:05 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
-Subject: [PATCH/RFC v8 13/14] of: Add Skyworks Solutions, Inc. vendor prefix
-Date: Fri, 28 Nov 2014 10:18:05 +0100
-Message-id: <1417166286-27685-14-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+	Mon, 17 Nov 2014 09:17:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 3/8] v4l2-ioctl.c: log the new ycbcr_enc and quantization fields
+Date: Mon, 17 Nov 2014 15:16:49 +0100
+Message-Id: <1416233814-40579-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1416233814-40579-1-git-send-email-hverkuil@xs4all.nl>
+References: <1416233814-40579-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use "skyworks" as the vendor prefix for the
-Skyworks Solutions, Inc.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
-Cc: <devicetree@vger.kernel.org>
+Log the new ycbcr_enc and quantization fields. Note that it now
+also logs the flags field for the multiplanar buffer type. This was
+forgotten when the flags field was added.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../devicetree/bindings/vendor-prefixes.txt        |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-index c177cd7..3006825 100644
---- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-+++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-@@ -137,6 +137,7 @@ ricoh	Ricoh Co. Ltd.
- rockchip	Fuzhou Rockchip Electronics Co., Ltd
- samsung	Samsung Semiconductor
- sandisk	Sandisk Corporation
-+skyworks	Skyworks Solutions, Inc.
- sbs	Smart Battery System
- schindler	Schindler
- seagate	Seagate Technology PLC
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 9ccb19a..aced84d 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -257,7 +257,7 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 		pr_cont(", width=%u, height=%u, "
+ 			"pixelformat=%c%c%c%c, field=%s, "
+ 			"bytesperline=%u, sizeimage=%u, colorspace=%d, "
+-			"flags %u\n",
++			"flags %x, ycbcr_enc=%u, quantization=%u\n",
+ 			pix->width, pix->height,
+ 			(pix->pixelformat & 0xff),
+ 			(pix->pixelformat >>  8) & 0xff,
+@@ -265,21 +265,24 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 			(pix->pixelformat >> 24) & 0xff,
+ 			prt_names(pix->field, v4l2_field_names),
+ 			pix->bytesperline, pix->sizeimage,
+-			pix->colorspace, pix->flags);
++			pix->colorspace, pix->flags, pix->ycbcr_enc,
++			pix->quantization);
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+ 		mp = &p->fmt.pix_mp;
+ 		pr_cont(", width=%u, height=%u, "
+ 			"format=%c%c%c%c, field=%s, "
+-			"colorspace=%d, num_planes=%u\n",
++			"colorspace=%d, num_planes=%u, flags=%x, "
++			"ycbcr_enc=%u, quantization=%u\n",
+ 			mp->width, mp->height,
+ 			(mp->pixelformat & 0xff),
+ 			(mp->pixelformat >>  8) & 0xff,
+ 			(mp->pixelformat >> 16) & 0xff,
+ 			(mp->pixelformat >> 24) & 0xff,
+ 			prt_names(mp->field, v4l2_field_names),
+-			mp->colorspace, mp->num_planes);
++			mp->colorspace, mp->num_planes, mp->flags,
++			mp->ycbcr_enc, mp->quantization);
+ 		for (i = 0; i < mp->num_planes; i++)
+ 			printk(KERN_DEBUG "plane %u: bytesperline=%u sizeimage=%u\n", i,
+ 					mp->plane_fmt[i].bytesperline,
 -- 
-1.7.9.5
+2.1.1
 
