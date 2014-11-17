@@ -1,86 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40961 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754949AbaKEPfS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40360 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752514AbaKQOgT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 10:35:18 -0500
-Message-ID: <545A43A1.1040200@xs4all.nl>
-Date: Wed, 05 Nov 2014 16:34:57 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 17 Nov 2014 09:36:19 -0500
+Date: Mon, 17 Nov 2014 16:35:40 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 06/11] videodev2.h: add new v4l2_ext_control flags
+ field
+Message-ID: <20141117143540.GN8907@valkosipuli.retiisi.org.uk>
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+ <1411310909-32825-7-git-send-email-hverkuil@xs4all.nl>
+ <20141115141858.GG8907@valkosipuli.retiisi.org.uk>
+ <20141115174459.GH8907@valkosipuli.retiisi.org.uk>
+ <5469B874.9040008@xs4all.nl>
 MIME-Version: 1.0
-To: Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Hans Verkuil <hansverk@cisco.com>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 11/15] [media] Deprecate v4l2_mbus_pixelcode
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>	<1415094910-15899-12-git-send-email-boris.brezillon@free-electrons.com>	<20141105150814.GT3136@valkosipuli.retiisi.org.uk>	<20141105161538.7a1686d5@bbrezillon>	<545A401C.8070908@cisco.com> <20141105163049.65d02aff@bbrezillon>
-In-Reply-To: <20141105163049.65d02aff@bbrezillon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5469B874.9040008@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/05/14 16:30, Boris Brezillon wrote:
-> On Wed, 05 Nov 2014 16:19:56 +0100
-> Hans Verkuil <hansverk@cisco.com> wrote:
+Hi Hans,
+
+On Mon, Nov 17, 2014 at 09:57:24AM +0100, Hans Verkuil wrote:
+> On 11/15/2014 06:44 PM, Sakari Ailus wrote:
+> > Hi,
+> > 
+> > On Sat, Nov 15, 2014 at 04:18:59PM +0200, Sakari Ailus wrote:
+> > ...
+> >>>  	union {
+> >>>  		__s32 value;
+> >>>  		__s64 value64;
+> >>> @@ -1294,6 +1294,10 @@ struct v4l2_ext_control {
+> >>>  	};
+> >>>  } __attribute__ ((packed));
+> >>>  
+> >>> +/* v4l2_ext_control flags */
+> >>> +#define V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE	0x00000001
+> >>> +#define V4L2_EXT_CTRL_FL_IGN_STORE		0x00000002
+> >>
+> >> Do we need both? Aren't these mutually exclusive, and you must have either
+> >> to be meaningful in the context of a store?
+> > 
+> > Ah. Now I think I understand what do these mean. Please ignore my previous
+> > comment.
+> > 
+> > I might call them differently. What would you think of
 > 
->>
->>
->> On 11/05/14 16:15, Boris Brezillon wrote:
->>> On Wed, 5 Nov 2014 17:08:15 +0200
->>> Sakari Ailus <sakari.ailus@iki.fi> wrote:
->>>
->>>> Hi Boris,
->>>>
->>>> On Tue, Nov 04, 2014 at 10:55:06AM +0100, Boris Brezillon wrote:
->>>>> The v4l2_mbus_pixelcode enum (or its values) should be replaced by the
->>>>> media_bus_format enum.
->>>>> Keep this enum in v4l2-mediabus.h and create a new header containing
->>>>> the v4l2_mbus_framefmt struct definition (which is not deprecated) so
->>>>> that we can add a #warning statement in v4l2-mediabus.h and hopefully
->>>>> encourage users to move to the new definitions.
->>>>>
->>>>> Replace inclusion of v4l2-mediabus.h with v4l2-mbus.h in all common headers
->>>>> and update the documentation Makefile to parse v4l2-mbus.h instead of
->>>>> v4l2-mediabus.h.
->>>>>
->>>>> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
->>>>> ---
->>>>>  Documentation/DocBook/media/Makefile |  2 +-
->>>>>  include/media/v4l2-mediabus.h        |  2 +-
->>>>>  include/uapi/linux/Kbuild            |  1 +
->>>>>  include/uapi/linux/v4l2-mbus.h       | 35 +++++++++++++++++++++++++++++++++++
->>>>>  include/uapi/linux/v4l2-mediabus.h   | 26 ++++----------------------
->>>>
->>>> I would keep the original file name, even if the compatibility definitions
->>>> are there. I don't see any harm in having them around as well.
->>>>
->>>
->>> That's the part I was not sure about.
->>> The goal of this patch (and the following ones) is to deprecate
->>> v4l2_mbus_pixelcode enum and its values by adding a #warning when
->>> v4l2-mediabus.h file is included, thus encouraging people to use new
->>> definitions.
->>
->> Since v4l2-mediabus.h contains struct v4l2_mbus_framefmt this header remains
->> a legal header, so you can't use #warning here in any case.
->>
+> I was never happy with the naming :-)
+
+:-)
+
+> > V4L2_EXT_CTRL_FL_STORE_IGNORE and V4L2_EXT_CTRL_FL_STORE_ONCE?
 > 
-> Actually this patch moves the struct v4l2_mbus_framefmt definition into
-> another header before adding the warning statement.
-
-There is nothing wrong with keeping the struct in the header. Just keep it
-there.
-
-	Hans
-
+> I will give this some more thought.
 > 
-> Anyway, this is really a detail, and if everybody agrees that we should
-> just leave the old definition in place, I'm fine with that.
+> > V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE is quite long IMO. Up to you.
+> > 
+> > I wonder if we need EXT in V4L2_EXT_CTRL_FL. It's logical but also
+> > redundant since the old control interface won't have flags either.
+> 
+> True.
 
+I think I'm inclined to keep EXT there. These values aren't used in that
+many places in typical programs.
+
+> > I'd assume that for cameras the vast majority of users will always want to
+> > just apply the values once. How are the use cases in video decoding?
+> 
+> I am wondering whether 'apply once' shouldn't be the default and whether I
+> really need to implement the 'apply always' (Hey, not bad names either!)
+> functionality for this initial version.
+
+After thinking more about it, I'm still leaning towards making the values
+stick to a store by default. Forgetting the values after use is something on
+top of the basic behaviour. Just my 5 euro cents. Pawel, others?
+
+It could be nice to be able to forget an entire store. An application might
+fill it, but only later figure out it will never be needed.
+
+Do you think this could be a button control? :-) No need for this now,
+though, we could see when someone needs that.
+
+> I only used the 'apply always' functionality for a somewhat contrived test
+> example where I changed the cropping rectangle (this is with the selection
+> controls from patch 10/11) for each buffer so that while streaming I would
+> get a continuous zoom-in/zoom-out effect. While nice for testing, it isn't
+> really practical in reality.
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
