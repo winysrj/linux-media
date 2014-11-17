@@ -1,188 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:44513 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751653AbaK1JUB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40780 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753115AbaKQO7d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 04:20:01 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v8 07/14] exynos4-is: Add support for v4l2-flash subdevs
-Date: Fri, 28 Nov 2014 10:17:59 +0100
-Message-id: <1417166286-27685-8-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+	Mon, 17 Nov 2014 09:59:33 -0500
+Date: Mon, 17 Nov 2014 16:58:58 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	j.anaszewski@samsung.com
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Message-ID: <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
+References: <20141116075928.GA9763@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20141116075928.GA9763@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds suppport for external v4l2-flash devices.
-The support includes parsing "flashes" Device Tree property
-and asynchronous subdevice registration.
+Hi Pavel,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos4-is/media-dev.c |   65 ++++++++++++++++++++++++-
- drivers/media/platform/exynos4-is/media-dev.h |   13 ++++-
- 2 files changed, 75 insertions(+), 3 deletions(-)
+On Sun, Nov 16, 2014 at 08:59:28AM +0100, Pavel Machek wrote:
+> For device tree people: Yes, I know I'll have to create file in
+> documentation, but does the binding below look acceptable?
+> 
+> I'll clean up driver code a bit more, remove the printks. Anything
+> else obviously wrong?
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index f315ef9..8807730 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -451,6 +451,47 @@ rpm_put:
- 	return ret;
- }
- 
-+static bool match_subdev_name(struct v4l2_subdev *sd,
-+			      struct v4l2_async_subdev *asd)
-+{
-+	return !strcmp(sd->name, (char *) asd->match.custom.priv);
-+}
-+
-+static int fimc_md_register_flash_entities(struct fimc_md *fmd)
-+{
-+	struct device_node *parent = fmd->pdev->dev.of_node;
-+	const char *flash_names[FIMC_MAX_FLASHES];
-+	int ret, i;
-+
-+	ret = of_property_count_strings(parent, "flashes");
-+	if (ret < 0) {
-+		/* the property may not exist - this is valid state */
-+		if (ret == -EINVAL)
-+			return 0;
-+		v4l2_err(&fmd->v4l2_dev, "Failed to retrieve flashes\n");
-+		return -EINVAL;
-+	}
-+
-+	fmd->num_flashes = ret;
-+
-+	if (fmd->num_flashes > FIMC_MAX_FLASHES) {
-+		v4l2_err(&fmd->v4l2_dev, "Too many flash leds declared.\n");
-+		return -EINVAL;
-+	}
-+
-+	of_property_read_string_array(parent, "flashes", flash_names,
-+					fmd->num_flashes);
-+
-+	for (i = 0; i < fmd->num_flashes; ++i) {
-+		fmd->flash[i].asd.match_type = V4L2_ASYNC_MATCH_CUSTOM;
-+		fmd->flash[i].asd.match.custom.match = match_subdev_name;
-+		fmd->flash[i].asd.match.custom.priv = (void *) flash_names[i];
-+		fmd->async_subdevs[fmd->num_sensors + i] = &fmd->flash[i].asd;
-+	}
-+
-+	return 0;
-+}
-+
- static int __of_get_csis_id(struct device_node *np)
- {
- 	u32 reg = 0;
-@@ -1275,6 +1316,18 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
- 	struct fimc_sensor_info *si = NULL;
- 	int i;
- 
-+	/* Register flash subdev if detected any */
-+	for (i = 0; i < ARRAY_SIZE(fmd->flash); i++) {
-+		if (!fmd->flash[i].asd.match.custom.priv)
-+			continue;
-+		if (!strcmp(fmd->flash[i].asd.match.custom.priv,
-+				subdev->name)) {
-+			fmd->flash[i].subdev = subdev;
-+			fmd->num_flashes++;
-+			return 0;
-+		}
-+	}
-+
- 	/* Find platform data for this sensor subdev */
- 	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
- 		if (fmd->sensor[i].asd.match.of.node == subdev->dev->of_node)
-@@ -1385,6 +1438,12 @@ static int fimc_md_probe(struct platform_device *pdev)
- 		goto err_m_ent;
- 	}
- 
-+	ret = fimc_md_register_flash_entities(fmd);
-+	if (ret < 0) {
-+		mutex_unlock(&fmd->media_dev.graph_mutex);
-+		goto err_m_ent;
-+	}
-+
- 	mutex_unlock(&fmd->media_dev.graph_mutex);
- 
- 	ret = device_create_file(&pdev->dev, &dev_attr_subdev_conf_mode);
-@@ -1401,12 +1460,14 @@ static int fimc_md_probe(struct platform_device *pdev)
- 		goto err_attr;
- 	}
- 
--	if (fmd->num_sensors > 0) {
-+	if (fmd->num_sensors > 0 || fmd->num_flashes > 0) {
- 		fmd->subdev_notifier.subdevs = fmd->async_subdevs;
--		fmd->subdev_notifier.num_subdevs = fmd->num_sensors;
-+		fmd->subdev_notifier.num_subdevs = fmd->num_sensors +
-+						   fmd->num_flashes;
- 		fmd->subdev_notifier.bound = subdev_notifier_bound;
- 		fmd->subdev_notifier.complete = subdev_notifier_complete;
- 		fmd->num_sensors = 0;
-+		fmd->num_flashes = 0;
- 
- 		ret = v4l2_async_notifier_register(&fmd->v4l2_dev,
- 						&fmd->subdev_notifier);
-diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
-index 0321454..feff9c8 100644
---- a/drivers/media/platform/exynos4-is/media-dev.h
-+++ b/drivers/media/platform/exynos4-is/media-dev.h
-@@ -34,6 +34,8 @@
- 
- #define FIMC_MAX_SENSORS	4
- #define FIMC_MAX_CAMCLKS	2
-+#define FIMC_MAX_FLASHES	2
-+#define FIMC_MAX_ASYNC_SUBDEVS (FIMC_MAX_SENSORS + FIMC_MAX_FLASHES)
- #define DEFAULT_SENSOR_CLK_FREQ	24000000U
- 
- /* LCD/ISP Writeback clocks (PIXELASYNCMx) */
-@@ -93,6 +95,11 @@ struct fimc_sensor_info {
- 	struct fimc_dev *host;
- };
- 
-+struct fimc_flash_info {
-+	struct v4l2_subdev *subdev;
-+	struct v4l2_async_subdev asd;
-+};
-+
- struct cam_clk {
- 	struct clk_hw hw;
- 	struct fimc_md *fmd;
-@@ -104,6 +111,8 @@ struct cam_clk {
-  * @csis: MIPI CSIS subdevs data
-  * @sensor: array of registered sensor subdevs
-  * @num_sensors: actual number of registered sensors
-+ * @flash: array of registered flash subdevs
-+ * @num_flashes: actual number of registered flashes
-  * @camclk: external sensor clock information
-  * @fimc: array of registered fimc devices
-  * @fimc_is: fimc-is data structure
-@@ -123,6 +132,8 @@ struct fimc_md {
- 	struct fimc_csis_info csis[CSIS_MAX_ENTITIES];
- 	struct fimc_sensor_info sensor[FIMC_MAX_SENSORS];
- 	int num_sensors;
-+	struct fimc_flash_info flash[FIMC_MAX_FLASHES];
-+	int num_flashes;
- 	struct fimc_camclk_info camclk[FIMC_MAX_CAMCLKS];
- 	struct clk *wbclk[FIMC_MAX_WBCLKS];
- 	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
-@@ -149,7 +160,7 @@ struct fimc_md {
- 	} clk_provider;
- 
- 	struct v4l2_async_notifier subdev_notifier;
--	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_SENSORS];
-+	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_ASYNC_SUBDEVS];
- 
- 	bool user_subdev_api;
- 	spinlock_t slock;
+Jacek Anaszewski is working on flash support for LED devices. I think it'd
+be good to sync the DT bindings for the two, as the types of devices
+supported by the LED API and the V4L2 flash API are quite similar.
+
+Cc Jacek.
+
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> Thanks,
+> 								Pavel
+> 
+> 
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index 739fcf2..ed0bfc1 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -553,6 +561,18 @@
+>  
+>  		ti,usb-charger-detection = <&isp1704>;
+>  	};
+> +
+> +	adp1653: adp1653@30 {
+> +		compatible = "ad,adp1653";
+> +		reg = <0x30>;
+> +
+> +		max-flash-timeout-usec = <500000>;
+> +		max-flash-intensity-uA    = <320000>;
+> +		max-torch-intensity-uA     = <50000>;
+> +		max-indicator-intensity-uA = <17500>;
+> +
+> +		gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* Want 88 */
+> +	};
+>  };
+>  
+>  &i2c3 {
+> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+> index 873fe19..e21ed02 100644
+> --- a/drivers/media/i2c/adp1653.c
+> +++ b/drivers/media/i2c/adp1653.c
+> @@ -8,6 +8,7 @@
+>   * Contributors:
+>   *	Sakari Ailus <sakari.ailus@iki.fi>
+>   *	Tuukka Toivonen <tuukkat76@gmail.com>
+> + *      Pavel Machek <pavel@ucw.cz>
+>   *
+>   * This program is free software; you can redistribute it and/or
+>   * modify it under the terms of the GNU General Public License
+> @@ -34,9 +35,12 @@
+>  #include <linux/module.h>
+>  #include <linux/i2c.h>
+>  #include <linux/slab.h>
+> +#include <linux/of_gpio.h>
+>  #include <media/adp1653.h>
+>  #include <media/v4l2-device.h>
+>  
+> +#include <linux/gpio.h>
+> +
+>  #define TIMEOUT_MAX		820000
+>  #define TIMEOUT_STEP		54600
+>  #define TIMEOUT_MIN		(TIMEOUT_MAX - ADP1653_REG_CONFIG_TMR_SET_MAX \
+> @@ -308,7 +316,16 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
+>  {
+>  	int ret;
+>  
+> -	ret = flash->platform_data->power(&flash->subdev, on);
+> +	if (flash->platform_data->power)
+> +		ret = flash->platform_data->power(&flash->subdev, on);
+> +	else {
+> +		gpio_set_value(flash->platform_data->power_gpio, on);
+> +		if (on) {
+> +			/* Some delay is apparently required. */
+> +			udelay(20);
+> +		}
+> +	}
+> +			
+>  	if (ret < 0)
+>  		return ret;
+>  
+> @@ -316,8 +333,13 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
+>  		return 0;
+>  
+>  	ret = adp1653_init_device(flash);
+> -	if (ret < 0)
+> +	if (ret >= 0)
+> +		return ret;
+> +
+> +	if (flash->platform_data->power)
+>  		flash->platform_data->power(&flash->subdev, 0);
+> +	else
+> +		gpio_set_value(flash->platform_data->power_gpio, 0);
+>  
+>  	return ret;
+>  }
+> @@ -407,21 +429,87 @@ static int adp1653_resume(struct device *dev)
+>  
+>  #endif /* CONFIG_PM */
+>  
+> +
+> +
+> +
+> +
+> +
+> +
+> +
+> +
+> +
+> +
+> +
+> +
+> +
+> +static int adp1653_of_init(struct i2c_client *client, struct adp1653_flash *flash, 
+> +			   struct device_node *node)
+> +{
+> +	u32 val;
+> +	struct adp1653_platform_data *pd;
+> +	enum of_gpio_flags flags;
+> +	int gpio;
+> +
+> +	if (!node)
+> +		return -EINVAL;
+> +
+> +	printk("adp1653: no platform data\n");
+> +	pd = devm_kzalloc(&client->dev, sizeof(*pd), GFP_KERNEL);
+> +	if (!pd)
+> +		return -ENOMEM;
+> +	flash->platform_data = pd;
+> +
+> +
+> +
+> +
+> +
+> +
+> +
+> +	if (of_property_read_u32(node, "max-flash-timeout-usec", &val)) return -EINVAL;
+> +	pd->max_flash_timeout = val;
+> +	if (of_property_read_u32(node, "max-flash-intensity-uA", &val)) return -EINVAL;
+> +	pd->max_flash_intensity = val/1000;
+> +	if (of_property_read_u32(node, "max-torch-intensity-uA", &val)) return -EINVAL;
+> +	pd->max_torch_intensity = val/1000;
+> +	if (of_property_read_u32(node, "max-indicator-intensity-uA", &val)) return -EINVAL;
+> +	pd->max_indicator_intensity = val;
+> +
+> +	if (!of_find_property(node, "gpios", NULL)) {
+> +		printk("No gpio node\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	gpio = of_get_gpio_flags(node, 0, &flags);
+> +	if (gpio < 0) {
+> +		printk("Error getting GPIO\n"); 
+> +		return -EINVAL;
+> +	}
+> +
+> +	pd->power_gpio = gpio;
+> +
+> +	return 0;
+> +}
+> +
+> +
+>  static int adp1653_probe(struct i2c_client *client,
+>  			 const struct i2c_device_id *devid)
+>  {
+>  	struct adp1653_flash *flash;
+>  	int ret;
+>  
+> -	/* we couldn't work without platform data */
+> -	if (client->dev.platform_data == NULL)
+> -		return -ENODEV;
+> +	printk("adp1653: probe\n");
+>  
+>  	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
+>  	if (flash == NULL)
+>  		return -ENOMEM;
+>  
+> -	flash->platform_data = client->dev.platform_data;
+> +	/* we couldn't work without platform data */
+> +	if (client->dev.platform_data == NULL) {
+> +		ret = adp1653_of_init(client, flash, client->dev.of_node);
+> +		if (ret)
+> +			return ret;
+> +	} else
+> +		flash->platform_data = client->dev.platform_data;
+>  
+>  	mutex_init(&flash->power_lock);
+>  
+> @@ -439,9 +527,15 @@ static int adp1653_probe(struct i2c_client *client,
+>  
+>  	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+>  
+> +	__adp1653_set_power(flash, 1);
+> +
+> +	__adp1653_set_power(flash, 0);
+> +	printk("Flash should have blinked\n");
+> +
+>  	return 0;
+>  
+>  free_and_quit:
+> +	printk("adp1653: something failed registering\n");
+>  	v4l2_ctrl_handler_free(&flash->ctrls);
+>  	return ret;
+>  }
+> diff --git a/include/media/adp1653.h b/include/media/adp1653.h
+> index 1d9b48a..b556580 100644
+> --- a/include/media/adp1653.h
+> +++ b/include/media/adp1653.h
+> @@ -100,9 +100,11 @@ struct adp1653_platform_data {
+>  	int (*power)(struct v4l2_subdev *sd, int on);
+>  
+>  	u32 max_flash_timeout;		/* flash light timeout in us */
+> -	u32 max_flash_intensity;	/* led intensity, flash mode */
+> -	u32 max_torch_intensity;	/* led intensity, torch mode */
+> -	u32 max_indicator_intensity;	/* indicator led intensity */
+> +	u32 max_flash_intensity;	/* led intensity, flash mode, mA */
+> +	u32 max_torch_intensity;	/* led intensity, torch mode, mA */
+> +	u32 max_indicator_intensity;	/* indicator led intensity, uA */
+> +
+> +	int power_gpio;			/* for device-tree based boot */
+>  };
+>  
+>  #define to_adp1653_flash(sd)	container_of(sd, struct adp1653_flash, subdev)
+> 
+> -- 
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+
 -- 
-1.7.9.5
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
