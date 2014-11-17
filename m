@@ -1,61 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:60840 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752853AbaKDJzd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 04:55:33 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH 15/15] staging: media: Replace v4l2-mediabus.h inclusion with v4l2-mbus.h
-Date: Tue,  4 Nov 2014 10:55:10 +0100
-Message-Id: <1415094910-15899-16-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:44770 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751933AbaKQL5s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 06:57:48 -0500
+Received: by mail-ob0-f179.google.com with SMTP id va2so489092obc.24
+        for <linux-media@vger.kernel.org>; Mon, 17 Nov 2014 03:57:48 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <5447BB4B.9000001@xs4all.nl>
+References: <5447BB4B.9000001@xs4all.nl>
+Date: Mon, 17 Nov 2014 11:57:47 +0000
+Message-ID: <CAAG0J99OzTYH=ZpJmcvRCpp_q1rgAnLNHqgO3U7_q6HvZ0Kx9w@mail.gmail.com>
+Subject: Re: [REVIEW] Submitting Media Patches
+From: James Hogan <james.hogan@imgtec.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Pawel Osciak <pawel@osciak.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2-mediabus.h header is now deprecated and should be replaced with
-v4l2-mbus.h.
+On 22 October 2014 15:12, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> How to submit patches for a stable kernel
+> =========================================
+>
+> The standard method is to add this tag:
+>
+>         Cc: stable@vger.kernel.org
+>
+> possibly with a comment saying to which versions it should be applied, like:
+>
+>         Cc: stable@vger.kernel.org      # for v3.5 and up
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- drivers/staging/media/omap4iss/iss_csi2.c  | 2 +-
- drivers/staging/media/omap4iss/iss_video.h | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Maybe put angled brackets around the email address. Some versions of
+git-send-email get confused by the comment otherwise and try sending
+to e.g. "<stable@vger.kernel.org #3.11>".
 
-diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
-index b72e530..f47e4e5 100644
---- a/drivers/staging/media/omap4iss/iss_csi2.c
-+++ b/drivers/staging/media/omap4iss/iss_csi2.c
-@@ -13,7 +13,7 @@
- 
- #include <linux/delay.h>
- #include <media/v4l2-common.h>
--#include <linux/v4l2-mediabus.h>
-+#include <linux/v4l2-mbus.h>
- #include <linux/mm.h>
- 
- #include "iss.h"
-diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
-index cc8146b..a028b51 100644
---- a/drivers/staging/media/omap4iss/iss_video.h
-+++ b/drivers/staging/media/omap4iss/iss_video.h
-@@ -14,7 +14,7 @@
- #ifndef OMAP4_ISS_VIDEO_H
- #define OMAP4_ISS_VIDEO_H
- 
--#include <linux/v4l2-mediabus.h>
-+#include <linux/v4l2-mbus.h>
- #include <media/media-entity.h>
- #include <media/v4l2-dev.h>
- #include <media/v4l2-fh.h>
--- 
-1.9.1
-
+Cheers
+James
