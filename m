@@ -1,244 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:48295 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754318AbaKXTQJ (ORCPT
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:56067 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751138AbaKQQV7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Nov 2014 14:16:09 -0500
-Message-ID: <547383F1.9080006@xs4all.nl>
-Date: Mon, 24 Nov 2014 20:16:01 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 17 Nov 2014 11:21:59 -0500
+Received: by mail-pa0-f45.google.com with SMTP id lf10so22491227pab.4
+        for <linux-media@vger.kernel.org>; Mon, 17 Nov 2014 08:21:58 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH for v3.18] media: use sg = sg_next(sg) instead of sg++
-References: <546F03F8.9000301@xs4all.nl>	<20141124162451.5de16d9d@recife.lan>	<54737AFC.3080801@xs4all.nl> <20141124165116.4641ef9e@recife.lan>
-In-Reply-To: <20141124165116.4641ef9e@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Date: Mon, 17 Nov 2014 20:21:58 +0400
+Message-ID: <CANZNk81ZmCRq0Cw3Sep-VGCYb6ELAmpNPpJ=jwk-aUTamB=f3A@mail.gmail.com>
+Subject: git.linuxtv.org repos refuse to fetch
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: Linux Media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/24/2014 07:51 PM, Mauro Carvalho Chehab wrote:
-> Em Mon, 24 Nov 2014 19:37:48 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 11/24/2014 07:24 PM, Mauro Carvalho Chehab wrote:
->>> Em Fri, 21 Nov 2014 10:20:56 +0100
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>
->>>> Several drivers (mostly copy-and-paste) still used sg++ instead of
->>>> sg = sg_next(sg). Fix them since sg++ won't work if contiguous scatter
->>>> entries where combined into one larger entry.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> Cc: stable@vger.kernel.org      # for v3.7 and up
->>>> ---
->>>>  drivers/media/pci/bt8xx/bttv-risc.c      | 12 ++++++------
->>>>  drivers/media/pci/cx23885/cx23885-core.c |  6 +++---
->>>>  drivers/media/pci/cx25821/cx25821-core.c | 12 ++++++------
->>>>  drivers/media/pci/cx88/cx88-core.c       |  6 +++---
->>>>  drivers/media/pci/ivtv/ivtv-udma.c       |  2 +-
->>>>  5 files changed, 19 insertions(+), 19 deletions(-)
->>>>
->>>> diff --git a/drivers/media/pci/bt8xx/bttv-risc.c b/drivers/media/pci/bt8xx/bttv-risc.c
->>>> index 82cc47d..4d3f05a 100644
->>>> --- a/drivers/media/pci/bt8xx/bttv-risc.c
->>>> +++ b/drivers/media/pci/bt8xx/bttv-risc.c
->>>> @@ -84,7 +84,7 @@ bttv_risc_packed(struct bttv *btv, struct btcx_riscmem *risc,
->>>>  			continue;
->>>>  		while (offset && offset >= sg_dma_len(sg)) {
->>>>  			offset -= sg_dma_len(sg);
->>>> -			sg++;
->>>> +			sg = sg_next(sg);
->>>>  		}
->>>>  		if (bpl <= sg_dma_len(sg)-offset) {
->>>>  			/* fits into current chunk */
->>>> @@ -100,13 +100,13 @@ bttv_risc_packed(struct bttv *btv, struct btcx_riscmem *risc,
->>>>  			*(rp++)=cpu_to_le32(sg_dma_address(sg)+offset);
->>>>  			todo -= (sg_dma_len(sg)-offset);
->>>>  			offset = 0;
->>>> -			sg++;
->>>> +			sg = sg_next(sg);
->>>>  			while (todo > sg_dma_len(sg)) {
->>>>  				*(rp++)=cpu_to_le32(BT848_RISC_WRITE|
->>>>  						    sg_dma_len(sg));
->>>>  				*(rp++)=cpu_to_le32(sg_dma_address(sg));
->>>>  				todo -= sg_dma_len(sg);
->>>> -				sg++;
->>>> +				sg = sg_next(sg);
->>>>  			}
->>>>  			*(rp++)=cpu_to_le32(BT848_RISC_WRITE|BT848_RISC_EOL|
->>>>  					    todo);
->>>> @@ -187,15 +187,15 @@ bttv_risc_planar(struct bttv *btv, struct btcx_riscmem *risc,
->>>>  			/* go to next sg entry if needed */
->>>>  			while (yoffset && yoffset >= sg_dma_len(ysg)) {
->>>>  				yoffset -= sg_dma_len(ysg);
->>>> -				ysg++;
->>>> +				ysg = sg_next(ysg);
->>>>  			}
->>>>  			while (uoffset && uoffset >= sg_dma_len(usg)) {
->>>>  				uoffset -= sg_dma_len(usg);
->>>> -				usg++;
->>>> +				usg = sg_next(usg);
->>>>  			}
->>>>  			while (voffset && voffset >= sg_dma_len(vsg)) {
->>>>  				voffset -= sg_dma_len(vsg);
->>>> -				vsg++;
->>>> +				vsg = sg_next(vsg);
->>>>  			}
->>>>  
->>>>  			/* calculate max number of bytes we can write */
->>>> diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
->>>> index 331edda..3bd386c 100644
->>>> --- a/drivers/media/pci/cx23885/cx23885-core.c
->>>> +++ b/drivers/media/pci/cx23885/cx23885-core.c
->>>> @@ -1078,7 +1078,7 @@ static __le32 *cx23885_risc_field(__le32 *rp, struct scatterlist *sglist,
->>>>  	for (line = 0; line < lines; line++) {
->>>>  		while (offset && offset >= sg_dma_len(sg)) {
->>>>  			offset -= sg_dma_len(sg);
->>>> -			sg++;
->>>> +			sg = sg_next(sg);
->>>>  		}
->>>>  
->>>>  		if (lpi && line > 0 && !(line % lpi))
->>>> @@ -1101,14 +1101,14 @@ static __le32 *cx23885_risc_field(__le32 *rp, struct scatterlist *sglist,
->>>>  			*(rp++) = cpu_to_le32(0); /* bits 63-32 */
->>>>  			todo -= (sg_dma_len(sg)-offset);
->>>>  			offset = 0;
->>>> -			sg++;
->>>> +			sg = sg_next(sg);
->>>>  			while (todo > sg_dma_len(sg)) {
->>>>  				*(rp++) = cpu_to_le32(RISC_WRITE|
->>>>  						    sg_dma_len(sg));
->>>>  				*(rp++) = cpu_to_le32(sg_dma_address(sg));
->>>>  				*(rp++) = cpu_to_le32(0); /* bits 63-32 */
->>>>  				todo -= sg_dma_len(sg);
->>>> -				sg++;
->>>> +				sg = sg_next(sg);
->>>>  			}
->>>>  			*(rp++) = cpu_to_le32(RISC_WRITE|RISC_EOL|todo);
->>>>  			*(rp++) = cpu_to_le32(sg_dma_address(sg));
->>>> diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
->>>> index e81173c..389fffd 100644
->>>> --- a/drivers/media/pci/cx25821/cx25821-core.c
->>>> +++ b/drivers/media/pci/cx25821/cx25821-core.c
->>>> @@ -996,7 +996,7 @@ static __le32 *cx25821_risc_field(__le32 * rp, struct scatterlist *sglist,
->>>>  	for (line = 0; line < lines; line++) {
->>>>  		while (offset && offset >= sg_dma_len(sg)) {
->>>>  			offset -= sg_dma_len(sg);
->>>> -			sg++;
->>>> +			sg = sg_next(sg);
->>>>  		}
->>>>  		if (bpl <= sg_dma_len(sg) - offset) {
->>>>  			/* fits into current chunk */
->>>> @@ -1014,14 +1014,14 @@ static __le32 *cx25821_risc_field(__le32 * rp, struct scatterlist *sglist,
->>>>  			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
->>>>  			todo -= (sg_dma_len(sg) - offset);
->>>>  			offset = 0;
->>>> -			sg++;
->>>> +			sg = sg_next(sg);
->>>>  			while (todo > sg_dma_len(sg)) {
->>>>  				*(rp++) = cpu_to_le32(RISC_WRITE |
->>>>  						sg_dma_len(sg));
->>>>  				*(rp++) = cpu_to_le32(sg_dma_address(sg));
->>>>  				*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
->>>>  				todo -= sg_dma_len(sg);
->>>> -				sg++;
->>>> +				sg = sg_next(sg);
->>>>  			}
->>>>  			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_EOL | todo);
->>>>  			*(rp++) = cpu_to_le32(sg_dma_address(sg));
->>>> @@ -1101,7 +1101,7 @@ static __le32 *cx25821_risc_field_audio(__le32 * rp, struct scatterlist *sglist,
->>>>  	for (line = 0; line < lines; line++) {
->>>>  		while (offset && offset >= sg_dma_len(sg)) {
->>>>  			offset -= sg_dma_len(sg);
->>>> -			sg++;
->>>> +			sg = sg_next(sg);
->>>>  		}
->>>>  
->>>>  		if (lpi && line > 0 && !(line % lpi))
->>>> @@ -1125,14 +1125,14 @@ static __le32 *cx25821_risc_field_audio(__le32 * rp, struct scatterlist *sglist,
->>>>  			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
->>>>  			todo -= (sg_dma_len(sg) - offset);
->>>>  			offset = 0;
->>>> -			sg++;
->>>> +			sg = sg_next(sg);
->>>>  			while (todo > sg_dma_len(sg)) {
->>>>  				*(rp++) = cpu_to_le32(RISC_WRITE |
->>>>  						sg_dma_len(sg));
->>>>  				*(rp++) = cpu_to_le32(sg_dma_address(sg));
->>>>  				*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
->>>>  				todo -= sg_dma_len(sg);
->>>> -				sg++;
->>>> +				sg = sg_next(sg);
->>>>  			}
->>>>  			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_EOL | todo);
->>>>  			*(rp++) = cpu_to_le32(sg_dma_address(sg));
->>>> diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
->>>> index 9fa4acb..dee177e 100644
->>>> --- a/drivers/media/pci/cx88/cx88-core.c
->>>> +++ b/drivers/media/pci/cx88/cx88-core.c
->>>> @@ -95,7 +95,7 @@ static __le32* cx88_risc_field(__le32 *rp, struct scatterlist *sglist,
->>>>  	for (line = 0; line < lines; line++) {
->>>>  		while (offset && offset >= sg_dma_len(sg)) {
->>>>  			offset -= sg_dma_len(sg);
->>>> -			sg++;
->>>> +			sg = sg_next(sg);
->>>>  		}
->>>>  		if (lpi && line>0 && !(line % lpi))
->>>>  			sol = RISC_SOL | RISC_IRQ1 | RISC_CNT_INC;
->>>> @@ -114,13 +114,13 @@ static __le32* cx88_risc_field(__le32 *rp, struct scatterlist *sglist,
->>>>  			*(rp++)=cpu_to_le32(sg_dma_address(sg)+offset);
->>>>  			todo -= (sg_dma_len(sg)-offset);
->>>>  			offset = 0;
->>>> -			sg++;
->>>> +			sg = sg_next(sg);
->>>>  			while (todo > sg_dma_len(sg)) {
->>>>  				*(rp++)=cpu_to_le32(RISC_WRITE|
->>>>  						    sg_dma_len(sg));
->>>>  				*(rp++)=cpu_to_le32(sg_dma_address(sg));
->>>>  				todo -= sg_dma_len(sg);
->>>> -				sg++;
->>>> +				sg = sg_next(sg);
->>>>  			}
->>>>  			*(rp++)=cpu_to_le32(RISC_WRITE|RISC_EOL|todo);
->>>>  			*(rp++)=cpu_to_le32(sg_dma_address(sg));
->>>> diff --git a/drivers/media/pci/ivtv/ivtv-udma.c b/drivers/media/pci/ivtv/ivtv-udma.c
->>>> index 7338cb2..bee2329 100644
->>>> --- a/drivers/media/pci/ivtv/ivtv-udma.c
->>>> +++ b/drivers/media/pci/ivtv/ivtv-udma.c
->>>> @@ -76,7 +76,7 @@ void ivtv_udma_fill_sg_array (struct ivtv_user_dma *dma, u32 buffer_offset, u32
->>>>  	int i;
->>>>  	struct scatterlist *sg;
->>>>  
->>>> -	for (i = 0, sg = dma->SGlist; i < dma->SG_length; i++, sg++) {
->>>> +	for (i = 0, sg = dma->SGlist; i < dma->SG_length; i++, sg = sg_next(sg)) {
->>>
->>> This hunk seems awkward, at least on my eyes. 
->>>
->>> As you've pointed at the description, S/G can be grouped into bigger
->>> segments. So, the maximum number of S/G can actually be less than
->>> dma->SGlist.
->>
->> That's correct, and dma->SG_length is equal to that number. SG_length is assigned
->> with the result of dma_map_sg() which returns "the number of bus address segments
->> mapped (this may be shorter than <nents> passed in if some elements of the
->> scatter/gather list are physically or virtually adjacent and an IOMMU maps them
->> with a single entry)."
->>
->> So the patch is correct.
-> 
-> OK.
-> 
-> Btw, you added this patch at a pull request for Kernel 3.19. Shouldn't it
-> be, instead, be sent to 3.18 and c/c stable?
+This happens always, and I noticed it quite long time ago. At the
+moment I have 1 mbit internet link, but AFAIR it was the same with
+much bigger bandwidth.
 
-The cx23885 fix is already queued for 3.18. The bttv, cx25821 and cx88 are not
-affected since they use vb1 and that won't combine scatterlists. The ivtv patch
-could go to 3.18, I guess, but it is in a rarely used part of the driver and it
-has been broken for quite some time. I do not feel that it is necessary to fix
-for 3.18. IMHO.
+20:17:06krieger@zver /usr/local/src/linux-next
+ $ git remote add verk_media_tree git://linuxtv.org/hverkuil/media_tree.git
+[OK]
+20:17:16krieger@zver /usr/local/src/linux-next
+ $ git fetch verk_media_tree
+fatal: read error: Connection reset by peer
+[ERR]
 
-Regards,
 
-	Hans
+"git clone" seems to work, at last it starts; but i haven't done full
+clone from it yet, at the moment i've started it and now it is
+"counting objects".
+-- 
+Andrey Utkin
