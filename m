@@ -1,95 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55258 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759129AbaKANjG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 09:39:06 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/7] [media] cx231xx: Fix identation
-Date: Sat,  1 Nov 2014 11:38:54 -0200
-Message-Id: <452a20d01e80c6bc96b94dd642e10ce589e53af7.1414849031.git.mchehab@osg.samsung.com>
-In-Reply-To: <1414849139-29609-1-git-send-email-mchehab@osg.samsung.com>
-References: <1414849139-29609-1-git-send-email-mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414849031.git.mchehab@osg.samsung.com>
-References: <cover.1414849031.git.mchehab@osg.samsung.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:60534 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753093AbaKQORV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 09:17:21 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 7/8] vivid: add new colorspaces
+Date: Mon, 17 Nov 2014 15:16:53 +0100
+Message-Id: <1416233814-40579-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1416233814-40579-1-git-send-email-hverkuil@xs4all.nl>
+References: <1416233814-40579-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One of the identation blocks is wrong. Fix it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-While here, replace pr_info by pr_debug inside such block and
-add the function name to the print messages, as otherwise they
-will not help much.
+Add AdobeRGB and BT.2020 support.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+The colorspace control now orders the colorspaces according to how often
+they are used. So rarely used colorspaces are moved to the end. This makes
+it more logical when testing colorspace support.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-index 9185b05b4fbe..036ffdde6e89 100644
---- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-@@ -2534,34 +2534,33 @@ int cx231xx_initialize_stream_xfer(struct cx231xx *dev, u32 media_type)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-core.h    | 11 +++++++++++
+ drivers/media/platform/vivid/vivid-ctrls.c   | 27 +++++++++++++++++----------
+ drivers/media/platform/vivid/vivid-vid-cap.c | 16 ++++++++--------
+ 3 files changed, 36 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 811c286..834e425 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -116,6 +116,17 @@ enum vivid_signal_mode {
+ 	CUSTOM_DV_TIMINGS,
+ };
+ 
++enum vivid_colorspace {
++	VIVID_CS_170M,
++	VIVID_CS_709,
++	VIVID_CS_SRGB,
++	VIVID_CS_ADOBERGB,
++	VIVID_CS_2020,
++	VIVID_CS_240M,
++	VIVID_CS_SYS_M,
++	VIVID_CS_SYS_BG,
++};
++
+ #define VIVID_INVALID_SIGNAL(mode) \
+ 	((mode) == NO_SIGNAL || (mode) == NO_LOCK || (mode) == OUT_OF_RANGE)
+ 
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index ad8df5c..dcb912d 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -333,6 +333,16 @@ static const struct v4l2_ctrl_ops vivid_user_vid_ctrl_ops = {
+ 
+ static int vivid_vid_cap_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
++	static const u32 colorspaces[] = {
++		V4L2_COLORSPACE_SMPTE170M,
++		V4L2_COLORSPACE_REC709,
++		V4L2_COLORSPACE_SRGB,
++		V4L2_COLORSPACE_ADOBERGB,
++		V4L2_COLORSPACE_BT2020,
++		V4L2_COLORSPACE_SMPTE240M,
++		V4L2_COLORSPACE_470_SYSTEM_M,
++		V4L2_COLORSPACE_470_SYSTEM_BG,
++	};
+ 	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_vid_cap);
+ 	unsigned i;
+ 
+@@ -342,7 +352,7 @@ static int vivid_vid_cap_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		tpg_s_pattern(&dev->tpg, ctrl->val);
+ 		break;
+ 	case VIVID_CID_COLORSPACE:
+-		tpg_s_colorspace(&dev->tpg, ctrl->val);
++		tpg_s_colorspace(&dev->tpg, colorspaces[ctrl->val]);
+ 		vivid_send_source_change(dev, TV);
+ 		vivid_send_source_change(dev, SVID);
+ 		vivid_send_source_change(dev, HDMI);
+@@ -662,15 +672,14 @@ static const struct v4l2_ctrl_config vivid_ctrl_max_edid_blocks = {
+ };
+ 
+ static const char * const vivid_ctrl_colorspace_strings[] = {
+-	"",
+ 	"SMPTE 170M",
+-	"SMPTE 240M",
+ 	"REC 709",
+-	"", /* Skip Bt878 entry */
++	"sRGB",
++	"AdobeRGB",
++	"BT.2020",
++	"SMPTE 240M",
+ 	"470 System M",
+ 	"470 System BG",
+-	"", /* Skip JPEG entry */
+-	"sRGB",
+ 	NULL,
+ };
+ 
+@@ -679,10 +688,8 @@ static const struct v4l2_ctrl_config vivid_ctrl_colorspace = {
+ 	.id = VIVID_CID_COLORSPACE,
+ 	.name = "Colorspace",
+ 	.type = V4L2_CTRL_TYPE_MENU,
+-	.min = 1,
+-	.max = 8,
+-	.menu_skip_mask = (1 << 4) | (1 << 7),
+-	.def = 8,
++	.max = 7,
++	.def = 2,
+ 	.qmenu = vivid_ctrl_colorspace_strings,
+ };
+ 
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 331c544..5caf912 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -443,12 +443,12 @@ void vivid_update_format_cap(struct vivid_dev *dev, bool keep_controls)
  			break;
- 
- 		case TS1_serial_mode:
--			pr_info("%s: set ts1 registers", __func__);
-+			pr_debug("%s: set ts1 registers", __func__);
- 
--		if (dev->board.has_417) {
--			pr_info(" MPEG\n");
--			value &= 0xFFFFFFFC;
--			value |= 0x3;
-+			if (dev->board.has_417) {
-+				pr_debug("%s: MPEG\n", __func__);
-+				value &= 0xFFFFFFFC;
-+				value |= 0x3;
- 
--			status = cx231xx_mode_register(dev, TS_MODE_REG, value);
-+				status = cx231xx_mode_register(dev, TS_MODE_REG, value);
- 
--			val[0] = 0x04;
--			val[1] = 0xA3;
--			val[2] = 0x3B;
--			val[3] = 0x00;
--			status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
--				 TS1_CFG_REG, val, 4);
-+				val[0] = 0x04;
-+				val[1] = 0xA3;
-+				val[2] = 0x3B;
-+				val[3] = 0x00;
-+				status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
-+					 TS1_CFG_REG, val, 4);
- 
--			val[0] = 0x00;
--			val[1] = 0x08;
--			val[2] = 0x00;
--			val[3] = 0x08;
--			status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
--				 TS1_LENGTH_REG, val, 4);
--
--		} else {
--			pr_info(" BDA\n");
--			status = cx231xx_mode_register(dev, TS_MODE_REG, 0x101);
--			status = cx231xx_mode_register(dev, TS1_CFG_REG, 0x010);
--		}
-+				val[0] = 0x00;
-+				val[1] = 0x08;
-+				val[2] = 0x00;
-+				val[3] = 0x08;
-+				status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
-+					 TS1_LENGTH_REG, val, 4);
-+			} else {
-+				pr_debug("%s: BDA\n", __func__);
-+				status = cx231xx_mode_register(dev, TS_MODE_REG, 0x101);
-+				status = cx231xx_mode_register(dev, TS1_CFG_REG, 0x010);
-+			}
+ 		if (bt->standards & V4L2_DV_BT_STD_CEA861) {
+ 			if (bt->width == 720 && bt->height <= 576)
+-				v4l2_ctrl_s_ctrl(dev->colorspace, V4L2_COLORSPACE_SMPTE170M);
++				v4l2_ctrl_s_ctrl(dev->colorspace, VIVID_CS_170M);
+ 			else
+-				v4l2_ctrl_s_ctrl(dev->colorspace, V4L2_COLORSPACE_REC709);
++				v4l2_ctrl_s_ctrl(dev->colorspace, VIVID_CS_709);
+ 			v4l2_ctrl_s_ctrl(dev->real_rgb_range_cap, 1);
+ 		} else {
+-			v4l2_ctrl_s_ctrl(dev->colorspace, V4L2_COLORSPACE_SRGB);
++			v4l2_ctrl_s_ctrl(dev->colorspace, VIVID_CS_SRGB);
+ 			v4l2_ctrl_s_ctrl(dev->real_rgb_range_cap, 0);
+ 		}
+ 		tpg_s_rgb_range(&dev->tpg, v4l2_ctrl_g_ctrl(dev->rgb_range_cap));
+@@ -1307,20 +1307,20 @@ int vidioc_s_input(struct file *file, void *priv, unsigned i)
+ 	if (dev->colorspace) {
+ 		switch (dev->input_type[i]) {
+ 		case WEBCAM:
+-			v4l2_ctrl_s_ctrl(dev->colorspace, V4L2_COLORSPACE_SRGB);
++			v4l2_ctrl_s_ctrl(dev->colorspace, VIVID_CS_SRGB);
  			break;
- 
- 		case TS1_parallel_mode:
+ 		case TV:
+ 		case SVID:
+-			v4l2_ctrl_s_ctrl(dev->colorspace, V4L2_COLORSPACE_SMPTE170M);
++			v4l2_ctrl_s_ctrl(dev->colorspace, VIVID_CS_170M);
+ 			break;
+ 		case HDMI:
+ 			if (bt->standards & V4L2_DV_BT_STD_CEA861) {
+ 				if (dev->src_rect.width == 720 && dev->src_rect.height <= 576)
+-					v4l2_ctrl_s_ctrl(dev->colorspace, V4L2_COLORSPACE_SMPTE170M);
++					v4l2_ctrl_s_ctrl(dev->colorspace, VIVID_CS_170M);
+ 				else
+-					v4l2_ctrl_s_ctrl(dev->colorspace, V4L2_COLORSPACE_REC709);
++					v4l2_ctrl_s_ctrl(dev->colorspace, VIVID_CS_709);
+ 			} else {
+-				v4l2_ctrl_s_ctrl(dev->colorspace, V4L2_COLORSPACE_SRGB);
++				v4l2_ctrl_s_ctrl(dev->colorspace, VIVID_CS_SRGB);
+ 			}
+ 			break;
+ 		}
 -- 
-1.9.3
+2.1.1
 
