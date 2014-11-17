@@ -1,128 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:48335 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751282AbaKKR7o (ORCPT
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:61660 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751880AbaKQKJy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Nov 2014 12:59:44 -0500
-Message-ID: <54624E83.1060404@xs4all.nl>
-Date: Tue, 11 Nov 2014 18:59:31 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 17 Nov 2014 05:09:54 -0500
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Date: Mon, 17 Nov 2014 11:09:45 +0100
+Cc: sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel" <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org
+References: <20141116075928.GA9763@amd> <201411170943.20810@pali> <20141117100519.GA4353@amd>
+In-Reply-To: <20141117100519.GA4353@amd>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sebastian Reichel <sre@kernel.org>
-CC: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	Tony Lindgren <tony@atomide.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [RFCv2 1/8] [media] si4713: switch to devm regulator API
-References: <1413904027-16767-1-git-send-email-sre@kernel.org>	<1413904027-16767-2-git-send-email-sre@kernel.org> <20141111090710.7a60a846@recife.lan>
-In-Reply-To: <20141111090710.7a60a846@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed;
+  boundary="nextPart1476038.VxUQSkjrrd";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Message-Id: <201411171109.47795@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+--nextPart1476038.VxUQSkjrrd
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 11/11/2014 12:07 PM, Mauro Carvalho Chehab wrote:
-> Em Tue, 21 Oct 2014 17:07:00 +0200
-> Sebastian Reichel <sre@kernel.org> escreveu:
-> 
->> This switches back to the normal regulator API (but use
->> managed variant) in preparation for device tree support.
-> 
-> This patch broke compilation. Please be sure that none of the patches in
-> the series would break it, as otherwise git bisect would be broken.
+On Monday 17 November 2014 11:05:19 Pavel Machek wrote:
+> Hi!
+>=20
+> On Mon 2014-11-17 09:43:19, Pali Roh=C3=A1r wrote:
+> > On Sunday 16 November 2014 08:59:28 Pavel Machek wrote:
+> > > For device tree people: Yes, I know I'll have to create
+> > > file in documentation, but does the binding below look
+> > > acceptable?
+> > >=20
+> > > I'll clean up driver code a bit more, remove the printks.
+> > > Anything else obviously wrong?
+> >=20
+> > I think that this patch is probably not good and specially
+> > not for n900. adp1653 should be registered throw omap3 isp
+> > camera subsystem which does not have DT support yet.
+>=20
+> Can you explain?
+>=20
+> adp1653 is independend device on i2c bus, and we have kernel
+> driver for it (unlike rest of n900 camera system). Just now
+> it is unusable due to lack of DT binding. It has two
+> functions, LED light and a camera flash; yes, the second one
+> should be integrated to the rest of camera system, but that
+> is not yet merged. That should not prevent us from merging DT
+> support for the flash, so that this part can be
+> tested/maintained.
+>=20
 
-Weird, as reported by Sebastian, it works for me.
+Ok. When ISP camera subsystem has DT support somebody will modify=20
+n900 DT to add camera flash from adp1653 to ISP... I believe it=20
+will not be hard.
 
-However, after applying this patch I get these new warnings:
+> > See n900 legacy board camera code in file
+> > board-rx51-camera.c.
+>=20
+> I have seen that.
+> 									Pavel
 
-  CC      drivers/media/radio/si4713/radio-usb-si4713.o
-drivers/media/radio/si4713/si4713.c: In function ‘si4713_probe’:
-drivers/media/radio/si4713/si4713.c:1617:1: warning: label ‘free_gpio’ defined but not used [-Wunused-label]
- free_gpio:
- ^
-drivers/media/radio/si4713/si4713.c:1451:12: warning: unused variable ‘i’ [-Wunused-variable]
-  int rval, i;
-            ^
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-So it's probably not a good idea to merge this patch anyway until this is fixed.
+--nextPart1476038.VxUQSkjrrd
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-Sebastian, can you fix these warnings and repost?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Thanks!
+iEYEABECAAYFAlRpyWsACgkQi/DJPQPkQ1Jy6QCglBKZqhyJBNS8eLewXZ7URYoB
+2bwAoMfx6J2TFeyK/vaZlkPvXdihCxKe
+=IbyL
+-----END PGP SIGNATURE-----
 
-	Hans
-
-> 
-> Thanks,
-> Mauro
-> 
-> drivers/media/radio/si4713/si4713.c: In function 'si4713_powerup':
-> drivers/media/radio/si4713/si4713.c:369:10: error: 'struct si4713_device' has no member named 'supplies'
->  
->           ^
-> drivers/media/radio/si4713/si4713.c:370:35: error: 'struct si4713_device' has no member named 'supplies'
->   if (sdev->vdd) {
->                                    ^
-> drivers/media/radio/si4713/si4713.c:370:51: error: 'struct si4713_device' has no member named 'supply_data'
->   if (sdev->vdd) {
->                                                    ^
-> drivers/media/radio/si4713/si4713.c:402:10: error: 'struct si4713_device' has no member named 'supplies'
->    v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
->           ^
-> drivers/media/radio/si4713/si4713.c:403:36: error: 'struct si4713_device' has no member named 'supplies'
->    sdev->power_state = POWER_ON;
->                                     ^
-> drivers/media/radio/si4713/si4713.c:403:52: error: 'struct si4713_device' has no member named 'supply_data'
->    sdev->power_state = POWER_ON;
->                                                     ^
-> drivers/media/radio/si4713/si4713.c: In function 'si4713_powerdown':
-> drivers/media/radio/si4713/si4713.c:435:11: error: 'struct si4713_device' has no member named 'supplies'
->   int err;
->            ^
-> drivers/media/radio/si4713/si4713.c:436:37: error: 'struct si4713_device' has no member named 'supplies'
->   u8 resp[SI4713_PWDN_NRESP];
->                                      ^
-> drivers/media/radio/si4713/si4713.c:437:16: error: 'struct si4713_device' has no member named 'supply_data'
->  
->                 ^
-> drivers/media/radio/si4713/si4713.c: In function 'si4713_probe':
-> drivers/media/radio/si4713/si4713.c:1444:7: error: 'struct si4713_device' has no member named 'supplies'
->  /* si4713_probe - probe for the device */
->        ^
-> drivers/media/radio/si4713/si4713.c:1447:22: error: 'struct si4713_device' has no member named 'supplies'
->  {
->                       ^
-> drivers/media/radio/si4713/si4713.c:1448:7: error: 'struct si4713_device' has no member named 'supply_data'
->   struct si4713_device *sdev;
->        ^
-> drivers/media/radio/si4713/si4713.c:1450:46: error: 'struct si4713_device' has no member named 'supplies'
->   struct v4l2_ctrl_handler *hdl;
->                                               ^
-> drivers/media/radio/si4713/si4713.c:1451:11: error: 'struct si4713_device' has no member named 'supply_data'
->   int rval, i;
->            ^
-> drivers/media/radio/si4713/si4713.c:1583:26: error: 'struct si4713_device' has no member named 'supplies'
->  
->                           ^
-> drivers/media/radio/si4713/si4713.c:1583:42: error: 'struct si4713_device' has no member named 'supply_data'
->  
->                                           ^
-> drivers/media/radio/si4713/si4713.c: In function 'si4713_remove':
-> drivers/media/radio/si4713/si4713.c:1607:26: error: 'struct si4713_device' has no member named 'supplies'
->    goto free_irq;
->                           ^
-> drivers/media/radio/si4713/si4713.c:1607:42: error: 'struct si4713_device' has no member named 'supply_data'
->    goto free_irq;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+--nextPart1476038.VxUQSkjrrd--
