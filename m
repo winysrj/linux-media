@@ -1,88 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46493 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751974AbaKRFkk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 00:40:40 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@xs4all.nl
-Subject: [REVIEW PATCH v2 3/5] v4l: Add intput and output capability flags for native size setting
-Date: Tue, 18 Nov 2014 07:40:18 +0200
-Message-Id: <1416289220-32673-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1416289220-32673-1-git-send-email-sakari.ailus@iki.fi>
-References: <1416289220-32673-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mga11.intel.com ([192.55.52.93]:19228 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751905AbaKQKxm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 05:53:42 -0500
+Message-ID: <5469D3B3.2050408@linux.intel.com>
+Date: Mon, 17 Nov 2014 12:53:39 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard
+ CONFIG_VIDEO_V4L2_SUBDEV_API for v4l2_subdev_get_try_*()
+References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add input and output capability flags for setting native size of the device,
-and document them.
+Hi Prabhakar,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/vidioc-enuminput.xml  |    8 ++++++++
- Documentation/DocBook/media/v4l/vidioc-enumoutput.xml |    8 ++++++++
- include/uapi/linux/videodev2.h                        |    2 ++
- 3 files changed, 18 insertions(+)
+Thank you for the patch.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enuminput.xml b/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
-index 493a39a..603fece 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
-@@ -287,6 +287,14 @@ input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
- 	    <entry>0x00000004</entry>
- 	    <entry>This input supports setting the TV standard by using VIDIOC_S_STD.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_IN_CAP_NATIVE_SIZE</constant></entry>
-+	    <entry>0x00000008</entry>
-+	    <entry>This input supports setting the native size using
-+	    the <constant>V4L2_SEL_TGT_NATIVE_SIZE</constant>
-+	    selection target, see <xref
-+	    linkend="v4l2-selections-common"/>.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml b/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
-index 2654e09..773fb12 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
-@@ -172,6 +172,14 @@ input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
- 	    <entry>0x00000004</entry>
- 	    <entry>This output supports setting the TV standard by using VIDIOC_S_STD.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_OUT_CAP_NATIVE_SIZE</constant></entry>
-+	    <entry>0x00000008</entry>
-+	    <entry>This output supports setting the native size using
-+	    the <constant>V4L2_SEL_TGT_NATIVE_SIZE</constant>
-+	    selection target, see <xref
-+	    linkend="v4l2-selections-common"/>.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 1c2f84f..e445b48 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1249,6 +1249,7 @@ struct v4l2_input {
- #define V4L2_IN_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
- #define V4L2_IN_CAP_CUSTOM_TIMINGS	V4L2_IN_CAP_DV_TIMINGS /* For compatibility */
- #define V4L2_IN_CAP_STD			0x00000004 /* Supports S_STD */
-+#define V4L2_IN_CAP_NATIVE_SIZE		0x00000008 /* Supports setting native size */
- 
- /*
-  *	V I D E O   O U T P U T S
-@@ -1272,6 +1273,7 @@ struct v4l2_output {
- #define V4L2_OUT_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
- #define V4L2_OUT_CAP_CUSTOM_TIMINGS	V4L2_OUT_CAP_DV_TIMINGS /* For compatibility */
- #define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD */
-+#define V4L2_OUT_CAP_NATIVE_SIZE	0x00000008 /* Supports setting native size */
- 
- /*
-  *	C O N T R O L S
+Lad, Prabhakar wrote:
+> this patch removes the guard CONFIG_VIDEO_V4L2_SUBDEV_API
+> for v4l2_subdev_get_try_*() functions.
+> In cases where a subdev using v4l2_subdev_get_try_*() calls
+> internally and the bridge using subdev pad ops which is
+> not MC aware forces to select MEDIA_CONTROLLER, as
+> VIDEO_V4L2_SUBDEV_API is dependent on it.
+>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>   include/media/v4l2-subdev.h | 2 --
+>   1 file changed, 2 deletions(-)
+>
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 5860292..076ca11 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -642,7 +642,6 @@ struct v4l2_subdev_fh {
+>   #define to_v4l2_subdev_fh(fh)	\
+>   	container_of(fh, struct v4l2_subdev_fh, vfh)
+>
+> -#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+
+Wouldn't you need to drop these from struct v4l2_subdev_fh as well? The 
+code won't compile if the fields aren't there.
+
+>   #define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
+>   	static inline struct rtype *					\
+>   	v4l2_subdev_get_try_##fun_name(struct v4l2_subdev_fh *fh,	\
+> @@ -656,7 +655,6 @@ struct v4l2_subdev_fh {
+>   __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
+>   __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_crop)
+>   __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
+> -#endif
+>
+>   extern const struct v4l2_file_operations v4l2_subdev_fops;
+>
+>
+
 -- 
-1.7.10.4
+Kind regards,
 
+Sakari Ailus
+sakari.ailus@linux.intel.com
