@@ -1,64 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:58836 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751606AbaK1RHX convert rfc822-to-8bit (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38335 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752138AbaKQOh0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 12:07:23 -0500
+	Mon, 17 Nov 2014 09:37:26 -0500
+Message-ID: <546A0818.9060504@xs4all.nl>
+Date: Mon, 17 Nov 2014 15:37:12 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <4838705.gmGJIAUqrM@avalon>
-References: <1417044344-20611-1-git-send-email-prabhakar.csengg@gmail.com> <4838705.gmGJIAUqrM@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 28 Nov 2014 17:06:52 +0000
-Message-ID: <CA+V-a8sAUDo+ut1t2_twy6hNjX5WQpridCEm6NrNmrwQvR1Nrw@mail.gmail.com>
-Subject: Re: [PATCH v3] media: usb: uvc: use vb2_ops_wait_prepare/finish helper
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Jean-Marc VOLLE <jean-marc.volle@st.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Divneil Rai WADHAWAN <divneil.wadhawan@st.com>
+Subject: Re: [PATCH] ITU BT2020 support in v4l2_colorspace
+References: <1406905371-17609-1-git-send-email-jean-marc.volle@st.com>
+In-Reply-To: <1406905371-17609-1-git-send-email-jean-marc.volle@st.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 08/01/2014 05:02 PM, Jean-Marc VOLLE wrote:
+> From: vollejm <jean-marc.volle@st.com>
+> 
+> UHD video content may be encoded using a new color space (BT2020). This patch
+> adds it to the  v4l2_colorspace enum
 
-Thanks for the review.
+FYI: I've just posted a patch series that enhances V4L2 colorspace support to
+include BT.2020 (among others).
 
-On Thu, Nov 27, 2014 at 9:32 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
-[Snip]
->>
->> +     queue->queue.lock = &queue->mutex;
->
-> I'm a bit concerned that this would introduce future breakages. Setting the
-> queue.lock pointer enables locking in all vb2_fop_* and vb2_ops_wait_*
-> functions. The uvcvideo driver isn't ready for that, but doesn't use the
-> vb2_fop_* functions yet, so that's not an issue. However, in the future,
-> videobuf2 might use the lock in more places, including functions used by the
-> uvcvideo driver. This could then cause breakages.
->
-Even if in future if videobuf2 uses this lock it would be in helpers mostly,
-so any way it doesn’t harm :)
+See: http://www.mail-archive.com/linux-media@vger.kernel.org/msg81883.html
 
-> It would be better to completely convert the uvcvideo driver to the vb2_fop_*
-> functions if we want to use vb2_ops_*. I'm not sure how complex that would be
-> though, and whether it would be possible while still keeping the fine-grained
-> locking implemented by the uvcvideo driver. Do you think it should be
-> attempted ?
->
-mmap & poll should be fairly simple, looks like open & release cannot be dropped
-as it does some usb_autopm_get/put_interface() calls which I am not aware of.
+Regards,
 
-Thanks,
---Prabhakar Lad
-
->>       ret = vb2_queue_init(&queue->queue);
->>       if (ret)
->>               return ret;
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+	Hans
