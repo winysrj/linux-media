@@ -1,65 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:19762 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752262AbaKYKec (ORCPT
+Received: from mailapp01.imgtec.com ([195.59.15.196]:14971 "EHLO
+	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbaKQMSG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Nov 2014 05:34:32 -0500
-Message-id: <54745B2F.70003@samsung.com>
-Date: Tue, 25 Nov 2014 11:34:23 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Josh Wu <josh.wu@atmel.com>
-Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	linux-kernel@vger.kernel.org, g.liakhovetski@gmx.de
-Subject: Re: [PATCH 1/2] media: v4l2-image-sizes.h: add SVGA,
- XGA and UXGA size definitions
-References: <1416905668-23029-1-git-send-email-josh.wu@atmel.com>
-In-reply-to: <1416905668-23029-1-git-send-email-josh.wu@atmel.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+	Mon, 17 Nov 2014 07:18:06 -0500
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>
+CC: Dylan Rajaratnam <dylan.rajaratnam@imgtec.com>,
+	James Hogan <james.hogan@imgtec.com>, <stable@vger.kernel.org>
+Subject: [REVIEW PATCH FOR v3.18 1/5] img-ir/hw: Always read data to clear buffer
+Date: Mon, 17 Nov 2014 12:17:45 +0000
+Message-ID: <1416226669-2983-2-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1416226669-2983-1-git-send-email-james.hogan@imgtec.com>
+References: <1416226669-2983-1-git-send-email-james.hogan@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+From: Dylan Rajaratnam <dylan.rajaratnam@imgtec.com>
 
-On 25/11/14 09:54, Josh Wu wrote:
-> Add SVGA, UXGA and XGA size definitions to v4l2-image-sizes.h.
-> The definitions are sorted by alphabet order.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
->  include/media/v4l2-image-sizes.h | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/include/media/v4l2-image-sizes.h b/include/media/v4l2-image-sizes.h
-> index 10daf92..c70c917 100644
-> --- a/include/media/v4l2-image-sizes.h
-> +++ b/include/media/v4l2-image-sizes.h
-> @@ -25,10 +25,19 @@
->  #define QVGA_WIDTH	320
->  #define QVGA_HEIGHT	240
->  
-> +#define SVGA_WIDTH	800
-> +#define SVGA_HEIGHT	680
+A problem was found on Polaris where if the unit it booted via the power
+button on the infrared remote then the next button press on the remote
+would return the key code used to power on the unit.
 
-I think this should be 600. With that fixed, for both patches:
+The sequence is:
+ - The polaris powered off but with the powerdown controller (PDC) block
+   still powered.
+ - Press power key on remote, IR block receives the key.
+ - Kernel starts, IR code is in IMG_IR_DATA_x but neither IMG_IR_RXDVAL
+   or IMG_IR_RXDVALD2 are set.
+ - Wait any amount of time.
+ - Press any key.
+ - IMG_IR_RXDVAL or IMG_IR_RXDVALD2 is set but IMG_IR_DATA_x is
+   unchanged since the powerup key data was never read.
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+This is worked around by always reading the IMG_IR_DATA_x in
+img_ir_set_decoder(), rather than only when the IMG_IR_RXDVAL or
+IMG_IR_RXDVALD2 bit is set.
 
->  #define SXGA_WIDTH	1280
->  #define SXGA_HEIGHT	1024
->  
->  #define VGA_WIDTH	640
->  #define VGA_HEIGHT	480
->  
-> +#define UXGA_WIDTH	1600
-> +#define UXGA_HEIGHT	1200
-> +
-> +#define XGA_WIDTH	1024
-> +#define XGA_HEIGHT	768
-> +
->  #endif /* _IMAGE_SIZES_H */
+Signed-off-by: Dylan Rajaratnam <dylan.rajaratnam@imgtec.com>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Cc: <stable@vger.kernel.org> # v3.15+
+---
+ drivers/media/rc/img-ir/img-ir-hw.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---
-Regards,
-Sylwester
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index ec49f94425fc..9db065344b41 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -541,10 +541,12 @@ static void img_ir_set_decoder(struct img_ir_priv *priv,
+ 	if (ir_status & (IMG_IR_RXDVAL | IMG_IR_RXDVALD2)) {
+ 		ir_status &= ~(IMG_IR_RXDVAL | IMG_IR_RXDVALD2);
+ 		img_ir_write(priv, IMG_IR_STATUS, ir_status);
+-		img_ir_read(priv, IMG_IR_DATA_LW);
+-		img_ir_read(priv, IMG_IR_DATA_UP);
+ 	}
+ 
++	/* always read data to clear buffer if IR wakes the device */
++	img_ir_read(priv, IMG_IR_DATA_LW);
++	img_ir_read(priv, IMG_IR_DATA_UP);
++
+ 	/* stop the end timer and switch back to normal mode */
+ 	del_timer_sync(&hw->end_timer);
+ 	hw->mode = IMG_IR_M_NORMAL;
+-- 
+2.0.4
+
