@@ -1,50 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45131 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751183AbaKWNjJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Nov 2014 08:39:09 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Emilio Lopez <emilio@elopez.com.ar>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Lee Jones <lee.jones@linaro.org>,
-	Samuel Ortiz <sameo@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 9/9] ARM: dts: sun6i: Enable ir receiver on the Mele M9
-Date: Sun, 23 Nov 2014 14:38:15 +0100
-Message-Id: <1416749895-25013-10-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
-References: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:48741 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752455AbaKQO0k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 09:26:40 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C01222A0376
+	for <linux-media@vger.kernel.org>; Mon, 17 Nov 2014 15:26:25 +0100 (CET)
+Message-ID: <546A0591.7090308@xs4all.nl>
+Date: Mon, 17 Nov 2014 15:26:25 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: [RFCv1 PATCH 0/8] improve colorspace support
+References: <1416233814-40579-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1416233814-40579-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Mele M9 has an ir receiver, enable it.
+On 11/17/2014 03:16 PM, Hans Verkuil wrote:
+> This patch series improves the V4L2 colorspace support. Specifically
+> it adds support for AdobeRGB and BT.2020 (UHDTV) colorspaces and it allows
+> configuring the Y'CbCr encoding and the quantization explicitly if
+> non-standard methods are used.
+> 
+> It's almost identical to the version shown during the mini-summit in Düsseldorf,
+> but the V4L2_QUANTIZATION_ALT_RANGE has been replaced by LIM_RANGE and
+> FULL_RANGE. After some more research additional YCbCr encodings have
+> been added as well:
+> 
+> - V4L2_YCBCR_ENC_BT2020NC
+> - V4L2_YCBCR_ENC_SYCC
+> - V4L2_YCBCR_ENC_SMPTE240M
+> 
+> The SYCC encoding was missing (I thought I could use ENC_601 for this, but
+> it's not quite the same) and the other two were implicitly defined via
+> YCBCR_ENC_DEFAULT and the current colorspace. That's a bit too magical
+> and these encodings should be defined explicitly.
+> 
+> The first three patches add the new defines and fields to the core. The 
+> changes are very minor.
+> 
+> The fourth patch completely overhauls the Colorspace chapter in the spec.
+> There is no point trying to read the diff, instead I've made the html
+> available here:
+> 
+> http://hverkuil.home.xs4all.nl/colorspace.html#colorspaces
+> 
+> The remaining patches add support for the new colorspace functionality
+> to the test pattern generator and the vivid driver.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- arch/arm/boot/dts/sun6i-a31-m9.dts | 6 ++++++
- 1 file changed, 6 insertions(+)
+I forgot to mention that for the final version of this patch series I plan
+to add support for these newer colorspaces to the adv7604, 7842 and 7511
+drivers. This requires a bit more work, though.
 
-diff --git a/arch/arm/boot/dts/sun6i-a31-m9.dts b/arch/arm/boot/dts/sun6i-a31-m9.dts
-index 4202c64..94ddf9c 100644
---- a/arch/arm/boot/dts/sun6i-a31-m9.dts
-+++ b/arch/arm/boot/dts/sun6i-a31-m9.dts
-@@ -83,6 +83,12 @@
- 				reg = <1>;
- 			};
- 		};
-+
-+		ir@01f02000 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&ir_pins_a>;
-+			status = "okay";
-+		};
- 	};
- 
- 	leds {
--- 
-2.1.0
+Regards,
 
+	Hans
