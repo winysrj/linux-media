@@ -1,44 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:33014 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752137AbaKALh2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 07:37:28 -0400
-Received: by mail-pa0-f50.google.com with SMTP id eu11so9319430pac.37
-        for <linux-media@vger.kernel.org>; Sat, 01 Nov 2014 04:37:28 -0700 (PDT)
-Message-ID: <5454C5F4.1030306@gmail.com>
-Date: Sat, 01 Nov 2014 20:37:24 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
+Received: from mail-la0-f49.google.com ([209.85.215.49]:37535 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751138AbaKQSUa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Nov 2014 13:20:30 -0500
+Received: by mail-la0-f49.google.com with SMTP id ge10so18920568lab.36
+        for <linux-media@vger.kernel.org>; Mon, 17 Nov 2014 10:20:27 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 7/7] v4l-utils/libdvbv5: add gconv module for the text
- conversions of ISDB-S/T.
-References: <1414761224-32761-1-git-send-email-tskd08@gmail.com> <1414761224-32761-8-git-send-email-tskd08@gmail.com> <20141031174709.7acb58f8.m.chehab@samsung.com>
-In-Reply-To: <20141031174709.7acb58f8.m.chehab@samsung.com>
+In-Reply-To: <546A343F.401@collabora.com>
+References: <CAOMZO5AX0R-s94-5m0G=SKkNb38u+jZo=7Toa+LDOkiJLAh=Tg@mail.gmail.com>
+	<546A343F.401@collabora.com>
+Date: Mon, 17 Nov 2014 16:20:27 -0200
+Message-ID: <CAOMZO5Ca82Z3ry8vDF3Y=iSErqjGF58p0sR_78AS+pOTy2jeeQ@mail.gmail.com>
+Subject: Re: Using the coda driver with Gstreamer
+From: Fabio Estevam <festevam@gmail.com>
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Jean-Michel Hautbois <jhautbois@gmail.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sascha Hauer <kernel@pengutronix.de>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014年11月01日 04:47, Mauro Carvalho Chehab wrote:
+Hi Nicolas,
 
-> This one failed to build here:
-> 
-> Making all in gconv
-> make[3]: Entering directory `/devel/v4l/v4l-utils/lib/gconv'
-> make[3]: *** No rule to make target `all'.  Stop.
+On Mon, Nov 17, 2014 at 3:45 PM, Nicolas Dufresne
+<nicolas.dufresne@collabora.com> wrote:
+> Note, I'm only commenting about the GStreamer side...
+>
+> Le 2014-11-17 12:29, Fabio Estevam a écrit :
+>> Hi,
+>>
+>> I am running linux-next 20141117 on a mx6qsabresd board and trying to
+>> play a mp4 video via Gstreamer 1.4.1, but I am getting the following
+>> error:
+> You should update to latest stable version, this is a general rule. Not
+> keeping track of stable branches is never a good idea. Current stable is
+> 1.4.4.
 
-Sorry, I forgot to "git add -f Makefile".
-I'll repost v4.
+Ok, let me upgrade Gstreamer to 1.4.4.
 
-> I had to add two extra patches:
-> 	http://git.linuxtv.org/cgit.cgi/v4l-utils.git/commit/?id=22c4ea6ab7fdbc23e68dbfbe5056f90171e9a019
-> 	http://git.linuxtv.org/cgit.cgi/v4l-utils.git/commit/?id=2e6c685556e589d842bc059b1b1fefb8bc6df865
-> 
-> In order to fix Doxygen generation.
+>> ERROR Failed to connect to X display server for file:///mnt/nfs/sample.mp4
+> You have built glimagesink (hence libgstgl, part of gst-plugins-bad)
+> against X11 but you don't have a X11 display running, or DISPLAY
+> environment isn't set properly.
 
-and thanks for fixing/adding the documentation.
-I built the doxygen doc and confirmed that
-countries.h and COUNTRY prop were properly documented.
---
-Akihiro
+Yes, let me fix this first.
+
+Thanks,
+
+Fabio Estevam
