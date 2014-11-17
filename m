@@ -1,162 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:45095 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753629AbaKJRWG (ORCPT
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56265 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751891AbaKQPGu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 12:22:06 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v6 09/10] gpu: ipu-v3: Make use of media_bus_format enum
-Date: Mon, 10 Nov 2014 18:21:53 +0100
-Message-Id: <1415640114-14930-10-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
+	Mon, 17 Nov 2014 10:06:50 -0500
+Date: Mon, 17 Nov 2014 07:06:17 -0800
+From: Tony Lindgren <tony@atomide.com>
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Message-ID: <20141117150617.GD7046@atomide.com>
+References: <20141116075928.GA9763@amd>
+ <20141117101553.GA21151@amd>
+ <20141117145545.GC7046@atomide.com>
+ <201411171601.32311@pali>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <201411171601.32311@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to have subsytem agnostic media bus format definitions we've
-moved media bus definition to include/uapi/linux/media-bus-format.h and
-prefixed enum values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
+* Pali Rohár <pali.rohar@gmail.com> [141117 07:03]:
+> On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
+> > 
+> > There's nothing stopping us from initializing the camera code
+> > from pdata-quirks.c for now to keep it working. Certainly the
+> > binding should be added to the driver, but that removes a
+> > dependency to the legacy booting mode if things are otherwise
+> > working.
+> 
+> Tony, legacy board code for n900 is not in mainline tree. And 
+> that omap3 camera subsystem for n900 is broken since 3.5 
+> kernel... (both Front and Back camera on n900 show only green 
+> picture).
 
-Reference new definitions in the ipu-v3 driver.
+I'm still seeing the legacy board code for n900 in mainline tree :)
+It's deprecated, but still there.
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/gpu/ipu-v3/ipu-csi.c | 66 ++++++++++++++++++++++----------------------
- 1 file changed, 33 insertions(+), 33 deletions(-)
+Are you maybe talking about some other piece of platform_data that's
+no longer in the mainline kernel?
 
-diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
-index d6f56471..752cdd2 100644
---- a/drivers/gpu/ipu-v3/ipu-csi.c
-+++ b/drivers/gpu/ipu-v3/ipu-csi.c
-@@ -227,83 +227,83 @@ static int ipu_csi_set_testgen_mclk(struct ipu_csi *csi, u32 pixel_clk,
- static int mbus_code_to_bus_cfg(struct ipu_csi_bus_config *cfg, u32 mbus_code)
- {
- 	switch (mbus_code) {
--	case V4L2_MBUS_FMT_BGR565_2X8_BE:
--	case V4L2_MBUS_FMT_BGR565_2X8_LE:
--	case V4L2_MBUS_FMT_RGB565_2X8_BE:
--	case V4L2_MBUS_FMT_RGB565_2X8_LE:
-+	case MEDIA_BUS_FMT_BGR565_2X8_BE:
-+	case MEDIA_BUS_FMT_BGR565_2X8_LE:
-+	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-+	case MEDIA_BUS_FMT_RGB565_2X8_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB565;
- 		cfg->mipi_dt = MIPI_DT_RGB565;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE:
--	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE:
-+	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
-+	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB444;
- 		cfg->mipi_dt = MIPI_DT_RGB444;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
--	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
-+	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
-+	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB555;
- 		cfg->mipi_dt = MIPI_DT_RGB555;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_UYVY8_2X8:
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_YUYV8_2X8:
-+	case MEDIA_BUS_FMT_YUYV8_2X8:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_UYVY8_1X16:
-+	case MEDIA_BUS_FMT_UYVY8_1X16:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
- 		break;
--	case V4L2_MBUS_FMT_YUYV8_1X16:
-+	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR8_1X8:
--	case V4L2_MBUS_FMT_SGBRG8_1X8:
--	case V4L2_MBUS_FMT_SGRBG8_1X8:
--	case V4L2_MBUS_FMT_SRGGB8_1X8:
-+	case MEDIA_BUS_FMT_SBGGR8_1X8:
-+	case MEDIA_BUS_FMT_SGBRG8_1X8:
-+	case MEDIA_BUS_FMT_SGRBG8_1X8:
-+	case MEDIA_BUS_FMT_SRGGB8_1X8:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW8;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE:
-+	case MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW10;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR10_1X10:
--	case V4L2_MBUS_FMT_SGBRG10_1X10:
--	case V4L2_MBUS_FMT_SGRBG10_1X10:
--	case V4L2_MBUS_FMT_SRGGB10_1X10:
-+	case MEDIA_BUS_FMT_SBGGR10_1X10:
-+	case MEDIA_BUS_FMT_SGBRG10_1X10:
-+	case MEDIA_BUS_FMT_SGRBG10_1X10:
-+	case MEDIA_BUS_FMT_SRGGB10_1X10:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW10;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_10;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR12_1X12:
--	case V4L2_MBUS_FMT_SGBRG12_1X12:
--	case V4L2_MBUS_FMT_SGRBG12_1X12:
--	case V4L2_MBUS_FMT_SRGGB12_1X12:
-+	case MEDIA_BUS_FMT_SBGGR12_1X12:
-+	case MEDIA_BUS_FMT_SGBRG12_1X12:
-+	case MEDIA_BUS_FMT_SGRBG12_1X12:
-+	case MEDIA_BUS_FMT_SRGGB12_1X12:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW12;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_12;
- 		break;
--	case V4L2_MBUS_FMT_JPEG_1X8:
-+	case MEDIA_BUS_FMT_JPEG_1X8:
- 		/* TODO */
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_JPEG;
- 		cfg->mipi_dt = MIPI_DT_RAW8;
--- 
-1.9.1
+No idea what might be wrong with the camera though.
 
+Regards,
+
+Tony
