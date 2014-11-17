@@ -1,145 +1,337 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:62741 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965115AbaKNKVk (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36919 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751679AbaKQJhg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Nov 2014 05:21:40 -0500
-Message-id: <5465D7AF.9010903@samsung.com>
-Date: Fri, 14 Nov 2014 11:21:35 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Bryan Wu <cooloney@gmail.com>
-Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	sakari.ailus@linux.intel.com,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	b.zolnierkie@samsung.com, Richard Purdie <rpurdie@rpsys.net>
-Subject: Re: [PATCH/RFC v7 3/3] Documentation: leds: Add description of LED
- Flash Class extension
-References: <1415808557-29557-1-git-send-email-j.anaszewski@samsung.com>
- <1415808557-29557-4-git-send-email-j.anaszewski@samsung.com>
- <CAK5ve-JH0KQs1Q4TcgaxmfAhOP9kDc-9r7HnbfOKECRPWQ2aXQ@mail.gmail.com>
-In-reply-to: <CAK5ve-JH0KQs1Q4TcgaxmfAhOP9kDc-9r7HnbfOKECRPWQ2aXQ@mail.gmail.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+	Mon, 17 Nov 2014 04:37:36 -0500
+Date: Mon, 17 Nov 2014 11:31:42 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 07/11] v4l2-ctrls: implement 'ignore after use'
+ support.
+Message-ID: <20141117093142.GM8907@valkosipuli.retiisi.org.uk>
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+ <1411310909-32825-8-git-send-email-hverkuil@xs4all.nl>
+ <20141115211051.GI8907@valkosipuli.retiisi.org.uk>
+ <5469B98B.9060304@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5469B98B.9060304@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bryan,
+Hi Hans,
 
-Thanks for a review.
+On Mon, Nov 17, 2014 at 10:02:03AM +0100, Hans Verkuil wrote:
+> On 11/15/2014 10:10 PM, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > A few comments below.
+> > 
+> > On Sun, Sep 21, 2014 at 04:48:25PM +0200, Hans Verkuil wrote:
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Sometimes you want to apply a value every time v4l2_ctrl_apply_store
+> >> is called, and sometimes you want to apply that value only once.
+> >>
+> >> This adds support for that feature.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  drivers/media/v4l2-core/v4l2-ctrls.c | 75 ++++++++++++++++++++++++++++--------
+> >>  drivers/media/v4l2-core/v4l2-ioctl.c | 14 +++----
+> >>  include/media/v4l2-ctrls.h           | 12 ++++++
+> >>  3 files changed, 79 insertions(+), 22 deletions(-)
+> >>
+> >> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >> index e5dccf2..21560b0 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >> @@ -1475,6 +1475,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
+> >>  static int cur_to_user(struct v4l2_ext_control *c,
+> >>  		       struct v4l2_ctrl *ctrl)
+> >>  {
+> >> +	c->flags = 0;
+> >>  	return ptr_to_user(c, ctrl, ctrl->p_cur);
+> >>  }
+> >>  
+> >> @@ -1482,8 +1483,13 @@ static int cur_to_user(struct v4l2_ext_control *c,
+> >>  static int store_to_user(struct v4l2_ext_control *c,
+> >>  		       struct v4l2_ctrl *ctrl, unsigned store)
+> >>  {
+> >> +	c->flags = 0;
+> >>  	if (store == 0)
+> >>  		return ptr_to_user(c, ctrl, ctrl->p_new);
+> >> +	if (test_bit(store - 1, ctrl->cluster[0]->ignore_store_after_use))
+> >> +		c->flags |= V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE;
+> >> +	if (test_bit(store - 1, ctrl->cluster[0]->ignore_store))
+> >> +		c->flags |= V4L2_EXT_CTRL_FL_IGN_STORE;
+> >>  	return ptr_to_user(c, ctrl, ctrl->p_stores[store - 1]);
+> >>  }
+> >>  
+> >> @@ -1491,6 +1497,7 @@ static int store_to_user(struct v4l2_ext_control *c,
+> >>  static int new_to_user(struct v4l2_ext_control *c,
+> >>  		       struct v4l2_ctrl *ctrl)
+> >>  {
+> >> +	c->flags = 0;
+> >>  	return ptr_to_user(c, ctrl, ctrl->p_new);
+> >>  }
+> >>  
+> >> @@ -1546,6 +1553,8 @@ static int user_to_ptr(struct v4l2_ext_control *c,
+> >>  static int user_to_new(struct v4l2_ext_control *c,
+> >>  		       struct v4l2_ctrl *ctrl)
+> >>  {
+> >> +	ctrl->cluster[0]->new_ignore_store_after_use =
+> >> +		c->flags & V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE;
+> >>  	return user_to_ptr(c, ctrl, ctrl->p_new);
+> >>  }
+> >>  
+> >> @@ -1597,8 +1606,11 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
+> >>  /* Helper function: copy the new control value to the store */
+> >>  static void new_to_store(struct v4l2_ctrl *ctrl)
+> >>  {
+> >> +	if (ctrl == NULL)
+> >> +		return;
+> >> +
+> >>  	/* has_changed is set by cluster_changed */
+> >> -	if (ctrl && ctrl->has_changed)
+> >> +	if (ctrl->has_changed)
+> >>  		ptr_to_ptr(ctrl, ctrl->p_new, ctrl->p_stores[ctrl->store - 1]);
+> >>  }
+> >>  
+> >> @@ -2328,6 +2340,12 @@ void v4l2_ctrl_cluster(unsigned ncontrols, struct v4l2_ctrl **controls)
+> >>  
+> >>  	for (i = 0; i < ncontrols; i++) {
+> >>  		if (controls[i]) {
+> >> +			/*
+> >> +			 * All controls in a cluster must have the same
+> >> +			 * V4L2_CTRL_FLAG_CAN_STORE flag value.
+> >> +			 */
+> >> +			WARN_ON((controls[0]->flags & controls[i]->flags) &
+> >> +					V4L2_CTRL_FLAG_CAN_STORE);
+> >>  			controls[i]->cluster = controls;
+> >>  			controls[i]->ncontrols = ncontrols;
+> >>  			if (controls[i]->flags & V4L2_CTRL_FLAG_VOLATILE)
+> >> @@ -2850,6 +2868,10 @@ static int extend_store(struct v4l2_ctrl *ctrl, unsigned stores)
+> >>  	unsigned s, idx;
+> >>  	union v4l2_ctrl_ptr *p;
+> >>  
+> >> +	/* round up to the next multiple of 4 */
+> >> +	stores = (stores + 3) & ~3;
+> > 
+> > You said it, round_up(). :-)
+> > 
+> > The comment becomes redundant as a result, too.
+> > 
+> > The above may also overflow. 
+> 
+> Will fix.
 
-On 11/13/2014 07:58 PM, Bryan Wu wrote:
-> On Wed, Nov 12, 2014 at 8:09 AM, Jacek Anaszewski
-> <j.anaszewski@samsung.com> wrote:
->> The documentation being added contains overall description of the
->> LED Flash Class and the related sysfs attributes.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Bryan Wu <cooloney@gmail.com>
->> Cc: Richard Purdie <rpurdie@rpsys.net>
->> ---
->>   Documentation/leds/leds-class-flash.txt |   39 +++++++++++++++++++++++++++++++
->>   1 file changed, 39 insertions(+)
->>   create mode 100644 Documentation/leds/leds-class-flash.txt
->>
->> diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
->> new file mode 100644
->> index 0000000..0164329
->> --- /dev/null
->> +++ b/Documentation/leds/leds-class-flash.txt
->> @@ -0,0 +1,39 @@
->> +
->> +Flash LED handling under Linux
->> +==============================
->> +
->> +Some LED devices support two modes - torch and flash. In order to enable
->
-> I think I asked this question before, Torch, Flash and Indicator. As
-> you answered torch is implemented by sync led brightness set operation
-> in our LEDS_CLASS and Flash is implemented in this LEDS_CLASS_FLASH.
->
-> I suggest put this information in document or code comments. Then
-> people know how to use torch and flash.
+I just realised round_up() will naturally also overflow, but it'll overflow
+"correctly" to zero. So the upper limit check must be before this. The
+change then effectually only makes the comment unnecessary.
 
-Good point.
+> > 
+> >> +	if (stores > V4L2_CTRLS_MAX_STORES)
+> >> +		return -EINVAL;
+> >>  	p = kcalloc(stores, sizeof(union v4l2_ctrl_ptr), GFP_KERNEL);
+> >>  	if (p == NULL)
+> >>  		return -ENOMEM;
+> >> @@ -2868,6 +2890,7 @@ static int extend_store(struct v4l2_ctrl *ctrl, unsigned stores)
+> >>  		memcpy(p, ctrl->p_stores, ctrl->nr_of_stores * sizeof(union v4l2_ctrl_ptr));
+> >>  	kfree(ctrl->p_stores);
+> >>  	ctrl->p_stores = p;
+> >> +	bitmap_set(ctrl->ignore_store, ctrl->nr_of_stores, stores - ctrl->nr_of_stores);
+> >>  	ctrl->nr_of_stores = stores;
+> >>  	return 0;
+> >>  }
+> >> @@ -3081,21 +3104,33 @@ static int try_or_set_cluster(struct v4l2_fh *fh, struct v4l2_ctrl *master,
+> >>  
+> >>  	ret = call_op(master, try_ctrl);
+> >>  
+> >> -	/* Don't set if there is no change */
+> >> -	if (ret || !set || !cluster_changed(master))
+> >> -		return ret;
+> >> -	ret = call_op(master, s_ctrl);
+> >> -	if (ret)
+> >> +	if (ret || !set)
+> >>  		return ret;
+> >>  
+> >> -	/* If OK, then make the new values permanent. */
+> >> -	update_flag = is_cur_manual(master) != is_new_manual(master);
+> >> -	for (i = 0; i < master->ncontrols; i++) {
+> >> -		if (store)
+> >> -			new_to_store(master->cluster[i]);
+> >> +	/* Don't set if there is no change */
+> >> +	if (cluster_changed(master)) {
+> >> +		ret = call_op(master, s_ctrl);
+> >> +		if (ret)
+> >> +			return ret;
+> >> +
+> >> +		/* If OK, then make the new values permanent. */
+> >> +		update_flag = is_cur_manual(master) != is_new_manual(master);
+> >> +		for (i = 0; i < master->ncontrols; i++) {
+> >> +			if (store)
+> >> +				new_to_store(master->cluster[i]);
+> >> +			else
+> >> +				new_to_cur(fh, master->cluster[i], ch_flags |
+> >> +						((update_flag && i > 0) ?
+> >> +						 V4L2_EVENT_CTRL_CH_FLAGS : 0));
+> >> +		}
+> >> +	}
+> >> +
+> >> +	if (store) {
+> >> +		if (master->new_ignore_store_after_use)
+> >> +			set_bit(store - 1, master->ignore_store_after_use);
+> >>  		else
+> >> -			new_to_cur(fh, master->cluster[i], ch_flags |
+> >> -				((update_flag && i > 0) ? V4L2_EVENT_CTRL_CH_FLAGS : 0));
+> >> +			clear_bit(store - 1, master->ignore_store_after_use);
+> >> +		clear_bit(store - 1, master->ignore_store);
+> > 
+> > How about allowing the user to forget a control in store as well?
+> 
+> Yeah, that's one thing I need to add. I need to think about this some more how this
+> can be done cleanly.
 
-> For indicator I still don't know why we need this since indicator is
-> like blinking and it should be support by LEDS_CLASS right?
+Ack.
 
-Indicator led is strictly related to flash devices. It is also called a
-"privacy led" because of its purpose - protecting a privacy of a person
-being recorded by providing a light signal signifying that a camera is
-on. It is a low current led, but some devices use the same led as
-for torch and flash and only apply reduced current in the indicator
-mode.
+> > 
+> >>  	}
+> >>  	return 0;
+> >>  }
+> >> @@ -3401,8 +3436,18 @@ int v4l2_ctrl_apply_store(struct v4l2_ctrl_handler *hdl, unsigned store)
+> >>  			continue;
+> >>  		if (master->handler != hdl)
+> >>  			v4l2_ctrl_lock(master);
+> >> -		for (i = 0; i < master->ncontrols; i++)
+> >> -			store_to_new(master->cluster[i], store);
+> >> +		for (i = 0; i < master->ncontrols; i++) {
+> >> +			struct v4l2_ctrl *ctrl = master->cluster[i];
+> >> +
+> >> +			if (!ctrl || (store && test_bit(store - 1, master->ignore_store)))
+> >> +				continue;
+> >> +			store_to_new(ctrl, store);
+> >> +		}
+> >> +
+> >> +		if (store && !test_bit(store - 1, master->ignore_store)) {
+> >> +			if (test_bit(store - 1, master->ignore_store_after_use))
+> > 
+> > How about:
+> > 
+> > if (store && test_bit() && test_bit())
+> 
+> OK.
+> 
+> > 
+> >> +				set_bit(store - 1, master->ignore_store);
+> >> +		}
+> >>  
+> >>  		/* For volatile autoclusters that are currently in auto mode
+> >>  		   we need to discover if it will be set to manual mode.
+> >> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> >> index 628852c..9d3b4f2 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> >> @@ -562,12 +562,14 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
+> >>  	pr_cont("class=0x%x, count=%d, error_idx=%d",
+> >>  			p->ctrl_class, p->count, p->error_idx);
+> >>  	for (i = 0; i < p->count; i++) {
+> >> -		if (p->controls[i].size)
+> >> -			pr_cont(", id/val=0x%x/0x%x",
+> >> -				p->controls[i].id, p->controls[i].value);
+> >> +		if (!p->controls[i].size)
+> >> +			pr_cont(", id/flags/val=0x%x/0x%x/0x%x",
+> >> +				p->controls[i].id, p->controls[i].flags,
+> >> +				p->controls[i].value);
+> >>  		else
+> >> -			pr_cont(", id/size=0x%x/%u",
+> >> -				p->controls[i].id, p->controls[i].size);
+> >> +			pr_cont(", id/flags/size=0x%x/0x%x/%u",
+> >> +				p->controls[i].id, p->controls[i].flags,
+> >> +				p->controls[i].size);
+> >>  	}
+> >>  	pr_cont("\n");
+> >>  }
+> >> @@ -888,8 +890,6 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+> >>  
+> >>  	/* zero the reserved fields */
+> >>  	c->reserved[0] = c->reserved[1] = 0;
+> >> -	for (i = 0; i < c->count; i++)
+> >> -		c->controls[i].reserved2[0] = 0;
+> >>  
+> >>  	/* V4L2_CID_PRIVATE_BASE cannot be used as control class
+> >>  	   when using extended controls.
+> >> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> >> index 713980a..3005d88 100644
+> >> --- a/include/media/v4l2-ctrls.h
+> >> +++ b/include/media/v4l2-ctrls.h
+> >> @@ -36,6 +36,9 @@ struct v4l2_subscribed_event;
+> >>  struct v4l2_fh;
+> >>  struct poll_table_struct;
+> >>  
+> >> +/* Must be a multiple of 4 */
+> >> +#define V4L2_CTRLS_MAX_STORES VIDEO_MAX_FRAME
+> >> +
+> >>  /** union v4l2_ctrl_ptr - A pointer to a control value.
+> >>   * @p_s32:	Pointer to a 32-bit signed value.
+> >>   * @p_s64:	Pointer to a 64-bit signed value.
+> >> @@ -123,6 +126,8 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+> >>    * @call_notify: If set, then call the handler's notify function whenever the
+> >>    *		control's value changes.
+> >>    * @can_store: If set, then this control supports configuration stores.
+> >> +  * @new_ignore_store_after_use: If set, then the new control had the
+> >> +  *		V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE flag set.
+> >>    * @manual_mode_value: If the is_auto flag is set, then this is the value
+> >>    *		of the auto control that determines if that control is in
+> >>    *		manual mode. So if the value of the auto control equals this
+> >> @@ -143,6 +148,10 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+> >>    * @nr_of_dims:The number of dimensions in @dims.
+> >>    * @nr_of_stores: The number of allocated configuration stores of this control.
+> >>    * @store:	The configuration store that the control op operates on.
+> >> +  * @ignore_store: If the bit for the corresponding store is 1, then don't apply that
+> >> +  *		store's value.
+> >> +  * @ignore_store_after_use: If the bit for the corresponding store is 1, then set the
+> >> +  *		bit in @ignore_store after the store's value has been applied.
+> >>    * @menu_skip_mask: The control's skip mask for menu controls. This makes it
+> >>    *		easy to skip menu items that are not valid. If bit X is set,
+> >>    *		then menu item X is skipped. Of course, this only works for
+> >> @@ -183,6 +192,7 @@ struct v4l2_ctrl {
+> >>  	unsigned int has_volatiles:1;
+> >>  	unsigned int call_notify:1;
+> >>  	unsigned int can_store:1;
+> >> +	unsigned int new_ignore_store_after_use:1;
+> >>  	unsigned int manual_mode_value:8;
+> >>  
+> >>  	const struct v4l2_ctrl_ops *ops;
+> >> @@ -197,6 +207,8 @@ struct v4l2_ctrl {
+> >>  	u32 nr_of_dims;
+> >>  	u16 nr_of_stores;
+> >>  	u16 store;
+> >> +	DECLARE_BITMAP(ignore_store, V4L2_CTRLS_MAX_STORES);
+> >> +	DECLARE_BITMAP(ignore_store_after_use, V4L2_CTRLS_MAX_STORES);
+> > 
+> > I'd store this information next to the value itself. The reason is that
+> > stores are typically accessed one at a time, and thus keeping data related
+> > to a single store in a single contiguous location reduces cache misses.
+> 
+> Hmm, sounds like overengineering to me. If I can do that without sacrificing
+> readability, then I can more it around. It's likely that these datastructures
+> will change anyway.
 
-In the V4L2 subsystem I see only one driver supporting indicator
-leds: /drivers/media/i2c/as3645a.c. It looks like indicator intensity
-can be set only when flash mode is V4L2_FLASH_LED_MODE_NONE, i.e. torch
-and flash leds cannot be active simultaneously with indicator led.
-It is reasonable, as active torch led is a sufficient signalization
-of recording.
+The controls are accessed very often in practice so this kind of things
+count. There's already a lot of code which gets executed in order to set a
+single control that's relevant only in some cases, such as clusters.
 
-In the LED subsystem I also see indicators in some drivers,
-e.g. leds-lm355x.c, but they are registered as a separate LED class
-devices. Moreover the driver adds also a "pattern" sysfs attribute
-for choosing indicator blinking pattern so that is something to be
-added to the LED Flash class.
-I think that similar improvement to the V4L2 Flash API should be made.
+I think it'd probably be more readable as well if information related to a
+store was located in a single place. As a bonus you wouldn't need to set a
+global maximum for the number of stores one may have.
 
-Sakari, what is your opinion?
+-- 
+Kind regards,
 
-> Flash is for some camera capture, right?
->
->> +support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol must be defined
->> +in the kernel config. A flash LED driver must register in the LED subsystem
->> +with led_classdev_flash_register to gain flash capabilities.
->> +
->> +Following sysfs attributes are exposed for controlling flash led devices:
->> +
->> +       - flash_brightness - flash LED brightness in microamperes (RW)
->> +       - max_flash_brightness - maximum available flash LED brightness (RO)
->> +       - indicator_brightness - privacy LED brightness in microamperes (RW)
->> +       - max_indicator_brightness - maximum privacy LED brightness in
->> +                                    microamperes (RO)
->
-> What's the privacy mean here?
-
-Indeed, consistent naming should be applied, so I will modify it to:
-
-"maximum indicator LED brightness in microaperes (RO)"
-
->> +       - flash_timeout - flash strobe duration in microseconds (RW)
->> +       - max_flash_timeout - maximum available flash strobe duration (RO)
->> +       - flash_strobe - flash strobe state (RW)
->> +       - flash_fault - bitmask of flash faults that may have occurred,
->> +                       possible flags are:
->> +               * 0x01 - flash controller voltage to the flash LED has exceeded
->> +                        the limit specific to the flash controller
->> +               * 0x02 - the flash strobe was still on when the timeout set by
->> +                        the user has expired; not all flash controllers may
->> +                        set this in all such conditions
->> +               * 0x04 - the flash controller has overheated
->> +               * 0x08 - the short circuit protection of the flash controller
->> +                        has been triggered
->> +               * 0x10 - current in the LED power supply has exceeded the limit
->> +                        specific to the flash controller
->> +               * 0x40 - flash controller voltage to the flash LED has been
->> +                        below the minimum limit specific to the flash
->> +               * 0x80 - the input voltage of the flash controller is below
->> +                        the limit under which strobing the flash at full
->> +                        current will not be possible. The condition persists
->> +                        until this flag is no longer set
->> +               * 0x100 - the temperature of the LED has exceeded its allowed
->> +                         upper limit
->
-> Are these error code the same for all the LED controller? Or just for
-> some specific chip?
-
-They are generic error codes, and map directly to V4L2 Flash errors.
-Error descriptions were copied from the V4L2 Flash documentation.
-
-Best Regards,
-Jacek Anaszewski
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
