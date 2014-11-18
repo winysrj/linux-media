@@ -1,39 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:45515 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756318AbaKSXph (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Nov 2014 18:45:37 -0500
-Date: Thu, 20 Nov 2014 00:45:39 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Stephan Raue <mailinglists@openelec.tv>
-Cc: linux-input@vger.kernel.org, m.chehab@samsung.com,
-	linux-media@vger.kernel.org
-Subject: Re: bisected: IR press/release behavior changed in 3.17, repeat
- events
-Message-ID: <20141119234539.GB16939@hardeman.nu>
-References: <54679469.1010500@openelec.tv>
- <20141119195019.GA20784@hardeman.nu>
- <546D25D7.9050703@openelec.tv>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <546D25D7.9050703@openelec.tv>
+Received: from down.free-electrons.com ([37.187.137.238]:58362 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754037AbaKRNqZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 08:46:25 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@gmail.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v3 2/3] drm: panel: simple-panel: add support for bus_format retrieval
+Date: Tue, 18 Nov 2014 14:46:19 +0100
+Message-Id: <1416318380-20122-3-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 20, 2014 at 12:20:55AM +0100, Stephan Raue wrote:
->with kernel 3.17: (you dont see the messages with "toggle 1" here)
->if i press once and wait:
+Provide a way to specify panel requirement in terms of supported media bus
+format (particularly useful for panels connected to an RGB or LVDS bus).
 
-Ummm...kinda embarassing...try swapping the order of the scancode and
-toggle lines in the rc6 decoder (drivers/media/rc/ir-rc6-decoder.c).
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+---
+ drivers/gpu/drm/panel/panel-simple.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-They're somewhere around line 259, right after the case 32 statement.
-
-case 32:
-	if ((scancode & RC6_6A_LCC_MASK) == RC6_6A_MCE_CC) {
-		protocol = RC_TYPE_RC6_MCE;
-                scancode &= ~RC6_6A_MCE_TOGGLE_MASK;
-		toggle = !!(scancode & RC6_6A_MCE_TOGGLE_MASK);
-
+diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+index 23de22f..66838a5 100644
+--- a/drivers/gpu/drm/panel/panel-simple.c
++++ b/drivers/gpu/drm/panel/panel-simple.c
+@@ -61,6 +61,8 @@ struct panel_desc {
+ 		unsigned int disable;
+ 		unsigned int unprepare;
+ 	} delay;
++
++	u32 bus_format;
+ };
+ 
+ struct panel_simple {
+@@ -111,6 +113,9 @@ static int panel_simple_get_fixed_modes(struct panel_simple *panel)
+ 	connector->display_info.bpc = panel->desc->bpc;
+ 	connector->display_info.width_mm = panel->desc->size.width;
+ 	connector->display_info.height_mm = panel->desc->size.height;
++	if (panel->desc->bus_format)
++		drm_display_info_set_bus_formats(&connector->display_info,
++						 &panel->desc->bus_format, 1);
+ 
+ 	return num;
+ }
+-- 
+1.9.1
 
