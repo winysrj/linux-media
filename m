@@ -1,57 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42449 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018AbaKBMcs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:48 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Matthias Schwarzott <zzam@gentoo.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>,
+Received: from down.free-electrons.com ([37.187.137.238]:58368 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754105AbaKRNq0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 08:46:26 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@gmail.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCHv2 06/14] [media] cx231xx: use 1 byte read for i2c scan
-Date: Sun,  2 Nov 2014 10:32:29 -0200
-Message-Id: <56a0c18deacf14045b569771d03c8e3a5f82b1bf.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v3 3/3] drm: panel: simple-panel: add bus format information for foxlink panel
+Date: Tue, 18 Nov 2014 14:46:20 +0100
+Message-Id: <1416318380-20122-4-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Matthias Schwarzott <zzam@gentoo.org>
+Foxlink's fl500wvr00-a0t supports RGB888 format.
 
-Now cx231xx_i2c_check_for_device works like i2c_check_for_device of em28xx driver.
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+---
+ drivers/gpu/drm/panel/panel-simple.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-For me this fixes scanning of all ports but port 2.
-
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index 1a0d9efeb209..5a0604711be0 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -350,14 +350,15 @@ static int cx231xx_i2c_check_for_device(struct i2c_adapter *i2c_adap,
- 	struct cx231xx *dev = bus->dev;
- 	struct cx231xx_i2c_xfer_data req_data;
- 	int status = 0;
-+	u8 buf[1];
+diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+index 66838a5..695f406 100644
+--- a/drivers/gpu/drm/panel/panel-simple.c
++++ b/drivers/gpu/drm/panel/panel-simple.c
+@@ -545,6 +545,7 @@ static const struct panel_desc foxlink_fl500wvr00_a0t = {
+ 		.width = 108,
+ 		.height = 65,
+ 	},
++	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
+ };
  
- 	/* prepare xfer_data struct */
- 	req_data.dev_addr = msg->addr;
--	req_data.direction = msg->flags;
-+	req_data.direction = I2C_M_RD;
- 	req_data.saddr_len = 0;
- 	req_data.saddr_dat = 0;
--	req_data.buf_size = 0;
--	req_data.p_buffer = NULL;
-+	req_data.buf_size = 1;
-+	req_data.p_buffer = buf;
- 
- 	/* usb send command */
- 	status = dev->cx231xx_send_usb_command(bus, &req_data);
+ static const struct drm_display_mode innolux_n116bge_mode = {
 -- 
-1.9.3
+1.9.1
 
