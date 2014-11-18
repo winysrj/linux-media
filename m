@@ -1,53 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:53148 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbaKUSXo (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37859 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751974AbaKRJpT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 13:23:44 -0500
-Received: by mail-wi0-f172.google.com with SMTP id n3so84760wiv.11
-        for <linux-media@vger.kernel.org>; Fri, 21 Nov 2014 10:23:43 -0800 (PST)
-From: Andreas Ruprecht <rupran@einserver.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-next@vger.kernel.org, sfr@canb.auug.org.au,
-	Andreas Ruprecht <rupran@einserver.de>
-Subject: [PATCH v2] media: pci: smipcie: Fix dependency for DVB_SMIPCIE
-Date: Fri, 21 Nov 2014 19:23:28 +0100
-Message-Id: <1416594208-29553-1-git-send-email-rupran@einserver.de>
-In-Reply-To: <20141121161316.23963dc5@recife.lan>
-References: <20141121161316.23963dc5@recife.lan>
+	Tue, 18 Nov 2014 04:45:19 -0500
+Message-ID: <546B1506.9030701@xs4all.nl>
+Date: Tue, 18 Nov 2014 10:44:38 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Pawel Osciak <pawel@osciak.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [RFCv6 PATCH 08/16] vb2-vmalloc: add support for dmabuf exports
+References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl> <1415623771-29634-9-git-send-email-hverkuil@xs4all.nl> <CAMm-=zC2OSgJoLiELtyqEGzt+LwOLfirvkk9GgE3Q24y2WXafg@mail.gmail.com>
+In-Reply-To: <CAMm-=zC2OSgJoLiELtyqEGzt+LwOLfirvkk9GgE3Q24y2WXafg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In smipcie.c, the function i2c_bit_add_bus() is called. This
-function is defined by the I2C bit-banging interfaces enabled
-with CONFIG_I2C_ALGOBIT.
+On 11/18/14 10:34, Pawel Osciak wrote:
+> On Mon, Nov 10, 2014 at 8:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> From: Hans Verkuil <hansverk@cisco.com>
+>>
+>> Add support for DMABUF exporting to the vb2-vmalloc implementation.
+>>
+>> All memory models now have support for both importing and exporting of DMABUFs.
+>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-vmalloc.c | 174 ++++++++++++++++++++++++++++
+>>  1 file changed, 174 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+>> index bba2460..dfbb6d5 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+>> @@ -31,6 +31,9 @@ struct vb2_vmalloc_buf {
+>>         atomic_t                        refcount;
+>>         struct vb2_vmarea_handler       handler;
+>>         struct dma_buf                  *dbuf;
+>> +
+>> +       /* DMABUF related */
+>> +       struct dma_buf_attachment       *db_attach;
+> 
+> Unused?
+> 
 
-As there was no dependency in Kconfig, CONFIG_I2C_ALGOBIT could
-be set to "m" while CONFIG_DVB_SMIPCIE was set to "y", resulting
-in a build error due to an undefined reference.
+Indeed. There is no device to be attached to this buffer, so this
+copy-and-paste field can be removed.
 
-This patch adds the dependency on CONFIG_I2C_ALGOBIT in Kconfig
-by selecting it when CONFIG_DVB_SMIPCIE is selected.
+Regards,
 
-Signed-off-by: Andreas Ruprecht <rupran@einserver.de>
-Reported-by: Jim Davis <jim.epost@gmail.com>
----
- drivers/media/pci/smipcie/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
-index 75a2992..57dd124 100644
---- a/drivers/media/pci/smipcie/Kconfig
-+++ b/drivers/media/pci/smipcie/Kconfig
-@@ -1,6 +1,7 @@
- config DVB_SMIPCIE
- 	tristate "SMI PCIe DVBSky cards"
- 	depends on DVB_CORE && PCI && I2C
-+	select I2C_ALGOBIT
- 	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
--- 
-1.9.1
-
+	Hans
