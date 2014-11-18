@@ -1,388 +1,424 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:49570 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756873AbaKUCa3 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55814 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932145AbaKRVdu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 21:30:29 -0500
-Received: by mail-pd0-f172.google.com with SMTP id v10so4267178pde.31
-        for <linux-media@vger.kernel.org>; Thu, 20 Nov 2014 18:30:28 -0800 (PST)
-Date: Fri, 21 Nov 2014 10:30:35 +0800
-From: "=?utf-8?B?TmliYmxlIE1heA==?=" <nibble.max@gmail.com>
-To: "=?utf-8?B?Q2hyaXN0b3BoZXIgU2NoZXVyaW5n?=" <chris@anke-und-chris.de>
-Cc: "=?utf-8?B?bGludXgtbWVkaWFAdmdlci5rZXJuZWwub3Jn?="
-	<linux-media@vger.kernel.org>,
-	"=?utf-8?B?QW50dGkgUGFsb3NhYXJp?=" <crope@iki.fi>
-References: <201411191028007188819@dvbsky.net>,
- <546CEF67.9060803@anke-und-chris.de>,
- <546D91C3.4070500@iki.fi>
-Subject: =?utf-8?B?UmU6IFJlOiBGd2Q6IFJlOiBSZTogUHJvYmxlbXMgd2l0aCBMaW51eCBkcml2ZXJzIChEZWJpYW4gSmVzc2llIGtlcm5lbDMuMTYuMC00KQ==?=
-Message-ID: <201411211030324214078@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	Tue, 18 Nov 2014 16:33:50 -0500
+Date: Tue, 18 Nov 2014 23:33:42 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: m.chehab@samsung.com, akpm@linux-foundation.org,
+	gregkh@linuxfoundation.org, crope@iki.fi, olebowle@gmx.com,
+	dheitmueller@kernellabs.com, hverkuil@xs4all.nl,
+	ramakrmu@cisco.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, perex@perex.cz, tiwai@suse.de,
+	prabhakar.csengg@gmail.com, tim.gardner@canonical.com,
+	linux@eikelenboom.it, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 1/6] media: add media token device resource framework
+Message-ID: <20141118213342.GW8907@valkosipuli.retiisi.org.uk>
+References: <cover.1413246370.git.shuahkh@osg.samsung.com>
+ <c8bae1d475b1086302fcb83bc463ec01437c3f95.1413246372.git.shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c8bae1d475b1086302fcb83bc463ec01437c3f95.1413246372.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Chris,
+Hi Shuah,
 
-Do all of your transponders have such issue or only some special transponders?
-Could you list the parameters for them? for example, dvb-s or dvb-s2 type, frequency, symbol rate.
+A few comments below.
 
-The dvbsky.net firmware "dvb-fe-ds3103.fw" is version 3.7.
-Annti uses the firmware "dvb-demod-m88ds3103.fw", which is version 3.B.
-But we test both firmwares work well. You can change one to the other's file name for check.
+On Tue, Oct 14, 2014 at 08:58:37AM -0600, Shuah Khan wrote:
+> Add media token device resource framework to allow sharing
+> resources such as tuner, dma, audio etc. across media drivers
+> and non-media sound drivers that control media hardware. The
+> Media token resource is created at the main struct device that
+> is common to all drivers that claim various pieces of the main
+> media device, which allows them to find the resource using the
+> main struct device. As an example, digital, analog, and
+> snd-usb-audio drivers can use the media token resource API
+> using the main struct device for the interface the media device
+> is attached to.
+> 
+> A shared media tokens resource is created using devres framework
+> for drivers to find and lock/unlock. Creating a shared devres
+> helps avoid creating data structure dependencies between drivers.
+> This media token resource contains media token for tuner, and
+> audio. When tuner token is requested, audio token is issued.
+> Subsequent token (for tuner and audio) gets from the same task
+> and task in the same tgid succeed. This allows applications that
+> make multiple v4l2 ioctls to work with the first call acquiring
+> the token and applications that create separate threads to handle
+> video and audio functions.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  MAINTAINERS                  |    2 +
+>  include/linux/media_tknres.h |   50 +++++++++
+>  lib/Makefile                 |    2 +
+>  lib/media_tknres.c           |  237 ++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 291 insertions(+)
+>  create mode 100644 include/linux/media_tknres.h
+>  create mode 100644 lib/media_tknres.c
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index e80a275..9216179 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -5864,6 +5864,8 @@ F:	include/uapi/linux/v4l2-*
+>  F:	include/uapi/linux/meye.h
+>  F:	include/uapi/linux/ivtv*
+>  F:	include/uapi/linux/uvcvideo.h
+> +F:	include/linux/media_tknres.h
+> +F:	lib/media_tknres.c
+>  
+>  MEDIAVISION PRO MOVIE STUDIO DRIVER
+>  M:	Hans Verkuil <hverkuil@xs4all.nl>
+> diff --git a/include/linux/media_tknres.h b/include/linux/media_tknres.h
+> new file mode 100644
+> index 0000000..6d37327
+> --- /dev/null
+> +++ b/include/linux/media_tknres.h
+> @@ -0,0 +1,50 @@
+> +/*
+> + * media_tknres.h - managed media token resource
+> + *
+> + * Copyright (c) 2014 Shuah Khan <shuahkh@osg.samsung.com>
+> + * Copyright (c) 2014 Samsung Electronics Co., Ltd.
+> + *
+> + * This file is released under the GPLv2.
+> + */
+> +#ifndef __LINUX_MEDIA_TOKEN_H
+> +#define __LINUX_MEDIA_TOKEN_H
+> +
+> +struct device;
+> +
+> +#if defined(CONFIG_MEDIA_SUPPORT)
+> +extern int media_tknres_create(struct device *dev);
+> +extern int media_tknres_destroy(struct device *dev);
+> +
+> +extern int media_get_tuner_tkn(struct device *dev);
+> +extern int media_put_tuner_tkn(struct device *dev);
+> +
+> +extern int media_get_audio_tkn(struct device *dev);
+> +extern int media_put_audio_tkn(struct device *dev);
+> +#else
+> +static inline int media_tknres_create(struct device *dev)
+> +{
+> +	return 0;
+> +}
+> +static inline int media_tknres_destroy(struct device *dev)
+> +{
+> +	return 0;
+> +}
+> +static inline int media_get_tuner_tkn(struct device *dev)
+> +{
+> +	return 0;
+> +}
+> +static inline int media_put_tuner_tkn(struct device *dev)
+> +{
+> +	return 0;
+> +}
+> +static int media_get_audio_tkn(struct device *dev)
+> +{
+> +	return 0;
+> +}
+> +static int media_put_audio_tkn(struct device *dev)
+> +{
+> +	return 0;
+> +}
+> +#endif
+> +
+> +#endif	/* __LINUX_MEDIA_TOKEN_H */
+> diff --git a/lib/Makefile b/lib/Makefile
+> index d6b4bc4..6f21695 100644
+> --- a/lib/Makefile
+> +++ b/lib/Makefile
+> @@ -139,6 +139,8 @@ obj-$(CONFIG_DQL) += dynamic_queue_limits.o
+>  
+>  obj-$(CONFIG_GLOB) += glob.o
+>  
+> +obj-$(CONFIG_MEDIA_SUPPORT) += media_tknres.o
 
-Best Regards,
-Max
+I'd add a new Kconfig option for this, as it's only needed by a very
+specific kind of drivers. It could be automatically selected by those that
+need it.
 
-On 2014-11-20 20:56:07, Christopher Scheuring <chris@anke-und-chris.de> wrote:
->Hello,
->
->I yust checked the SNR Level the DVBSky-Card providing with the
->drivers from dvbsky.net (media_build-bst-14-141106):
->
-># ./femon -a 0
->using '/dev/dvb/adapter0/frontend0'
->FE: Montage DS3103/TS2022 (SAT)
->status 1f | signal 7323 | snr b064 | ber 00000000 | unc 00000000 |
->FE_HAS_LOCK
->
-># ./femon -a 1
->using '/dev/dvb/adapter1/frontend0'
->FE: Montage DS3103/TS2022 (SAT)
->status 1f | signal 7a71 | snr 2a17 | ber 00000000 | unc 00000000 |
->FE_HAS_LOCK
->
->
->Looks "better" than with driver from linuxtv.org via git. And I
->don't have any sync problems or video / audio drops.
->
->
->I currently determined following:
->* Using the drivers from dvbsky.net the card is "Montage DS3103/TS2022"
->  => Loading FW dvb-fe-ds3103.fw
->* With the drivers from linuxtv.org the card is "Montage M88DS3103"
->  => Loading FW dvb-demod-m88ds3103.fw
->
->
->I'm a bit confused... perhaps if I use the linuxtv.org drivers, the
->card is recognized wrong and that's the problem?
->
->
->Regards,
->Chris
->
->
->On Thu, 20 Nov 2014 09:01:23 +0200, Antti Palosaari <crope@iki.fi> wrote:
->> Moikka
->> According to logs, everything seems to be fine. You could not compare 
->> statistics numbers between two drivers. SNR 0096 is 150DEC, which means 
->> 15dB, IIRC it was max chip could return for DVB-S.
->> 
->> No idea about sync etc. problems, are you sure about those? I am pretty 
->> sure it works rather well as I haven't got bug reports from PCTV 461e 
->> users which has that same demod + tuner.
->> 
->> regards
->> Antti
->> 
->> 
->> 
->> On 11/19/2014 09:28 PM, Christopher Scheuring wrote:
->>> Hello Antti,
->>>
->>> the guys from tech@dvbsky.net told me to contact you because of my
->>> problems with the drivers for my DVBSKY S952.
->>>
->>> I attached the whole conversation. Currently the main problem is if i
->>> use the current drivers via
->>> git(http://git.linuxtv.org/cgit.cgi/media_build.git/about/) my single
->>> TT-Budget card works fine. But the signal from the DVDBSky S952 is very
->>> worse: Sync problems, bad SNR, drops on video and audio... If I use the
->>> driver dvbsky.net provides (media_build-bst-14-141106), the signal on
->>> booth tuners is fine - but then my TT-Budget doesn't works anymore (see
->>> end of this mail aka starting the conversation with tech@dvbsky.net).
->>>
->>> Do you have any ideas, how I could fix this problem? Before I updated
->my
->>> system (from Debian Wheezy with Kernel 3.2.0-4-amd64 everything was
->fine
->>> with both cards.
->>>
->>>
->>> If you need more detailed information, please let me know, so I could
->>> provide them as soon as possible,
->>>
->>> Thanks a lot and best wishes
->>> Chris
->>>
->>>
->>> -------- Weitergeleitete Nachricht --------
->>> Betreff: 	Re: Re: Problems with Linux drivers (Debian Jessie kernel
->>> 3.16.0-4)
->>> Datum: 	Wed, 19 Nov 2014 10:28:06 +0800
->>> Von: 	tech <tech@dvbsky.net>
->>> An: 	Christopher Scheuring <chris@anke-und-chris.de>
->>>
->>>
->>>
->>> Hello,
->>> Could you report this problem to Antti Palosaari crope@iki.fi
->>> <mailto:crope@iki.fi> and cc to linux-media@vger.kernel.org ?
->>> Antti is the author/maintainer of M88DS3103 driver.Montage M88DS3103
->(SAT)*
->>> Please list the compare result of the driver from DVBSky site and
->>> Linuxtv.org.
->>> Max from DVBSky also register linux-media mail list.
->>> He will get your report and co-work with Antti to fix this issue of
->>> M88DS3103 driver from Linuxtv.org.
->>> BR,
->>> tech
->>>
->------------------------------------------------------------------------
->>> *From:* Christopher Scheuring<chris@anke-und-chris.de
->>> <mailto:chris@anke-und-chris.de>>
->>> *Date:* 2014-11-19  04:42:10
->>> *To:* tech<tech@dvbsky.net <mailto:tech@dvbsky.net>>
->>> *Cc:* <>
->>> *Subject:* Re: Problems with Linux drivers (Debian Jessie kernel
->>> 3.16.0-4)
->>> Hello,
->>>
->>> with the drivers from linuxtv.org and the firmware provided by your
->>> site, both cards work.
->>>
->>> But the DVBSky card (Montage M88DS3103) do now have a really bad
->>> SNR!TT-Budget C-1501 works as expected. See the output of femon - the
->>> signal of the DVBSky card was excellent with the drivers from you
->>> site... Any idea, what could cause the problem? TV signal provided by
->>> the DVBSky sometimes drops :-(
->>>
->>> xxx@xxx:~/VDR/linuxtv-dvb-apps-1.1.1/util/szap$ ./femon -a1
->>> *using '/dev/dvb/adapter1/frontend0'**
->>> **FE: Montage M88DS3103 (SAT)*
->>> status 1f | signal 585e | *snr 0096* | ber 00000000 | unc 00000000 |
->>> FE_HAS_LOCK
->>> status 1f | signal 585e | *snr 0096* | ber 00000000 | unc 00000000 |
->>> FE_HAS_LOCK
->>>
->>>
->>> xxx@xxx:~/VDR/linuxtv-dvb-apps-1.1.1/util/szap$ ./femon -a2
->>> *using '/dev/dvb/adapter2/frontend0'**
->>> **FE: Montage M88DS3103 (SAT)*
->>> status 1f | signal 6c07 | *snr 0096* | ber 00000000 | unc 00000000 |
->>> FE_HAS_LOCK
->>> status 1f | signal 6c07 | *snr 0096* | ber 00000000 | unc 00000000 |
->>> FE_HAS_LOCK
->>>
->>>
->>> xxx@xxx:~/VDR/linuxtv-dvb-apps-1.1.1/util/szap$ ./femon -a0
->>> *using '/dev/dvb/adapter0/frontend0'**
->>> **FE: STV090x Multistandard (SAT)*
->>> status 1f | signal a3d6 | *snr bccb* | ber 00000000 | unc 00000000 |
->>> FE_HAS_LOCK
->>> status 1f | signal a3d6 | *snr bd2e* | ber 00000000 | unc 00000000 |
->>> FE_HAS_LOCK
->>>
->>>
->>> Here the dmesg output of the loaded drivers and firmware of the DVBSky
->>> Card:
->>>
->>> dmesg | egrep "cx23885|i2c|m88ds3103"
->>>      c02ef64aab828d80040b5dce934729312e698c33 [media] cx23885: add
->>> DVBSky T982(Dual DVB-T2/T/C) support
->>>      9aa785b1500a7bd40b736f31b341e204bd5fb174 [media] add lgdt330x
->>> device name i2c_devs array
->>>      c02ef64aab828d80040b5dce934729312e698c33 [media] cx23885: add
->>> DVBSky T982(Dual DVB-T2/T/C) support
->>>      9aa785b1500a7bd40b736f31b341e204bd5fb174 [media] add lgdt330x
->>> device name i2c_devs array
->>>      c02ef64aab828d80040b5dce934729312e698c33 [media] cx23885: add
->>> DVBSky T982(Dual DVB-T2/T/C) support
->>>      9aa785b1500a7bd40b736f31b341e204bd5fb174 [media] add lgdt330x
->>> device name i2c_devs array
->>> [   16.396426] cx23885 driver version 0.0.4 loaded
->>> [   16.396558] CORE cx23885[0]: subsystem: 4254:0952, board: DVBSky
->S952
->>> [card=50,autodetected]
->>> [   16.838409] cx25840 4-0044: cx23885 A/V decoder found @ 0x88
->>> (cx23885[0])
->>> [   16.909538] cx25840 4-0044: firmware: direct-loading firmware
->>> v4l-cx23885-avcore-01.fw
->>> [   17.518086] cx25840 4-0044: loaded v4l-cx23885-avcore-01.fw firmware
->>> (16382 bytes)
->>> [   17.533358] cx23885_dvb_register() allocating 1 frontend(s)
->>> [   17.533362] cx23885[0]: cx23885 based dvb card
->>> [   17.670143] i2c i2c-3: m88ds3103_attach: chip_id=70
->>> [   17.672970] i2c i2c-3: Added multiplexed i2c bus 5
->>> [   17.780353] DVB: registering new adapter (cx23885[0])
->>> [   17.780357] cx23885 0000:04:00.0: DVB: registering adapter 1
->frontend
->>> 0 (Montage M88DS3103)...
->>> [   17.807503] cx23885_dvb_register() allocating 1 frontend(s)
->>> [   17.807505] cx23885[0]: cx23885 based dvb card
->>> [   17.807987] i2c i2c-2: m88ds3103_attach: chip_id=70
->>> [   17.810783] i2c i2c-2: Added multiplexed i2c bus 6
->>> [   17.866021] DVB: registering new adapter (cx23885[0])
->>> [   17.866025] cx23885 0000:04:00.0: DVB: registering adapter 2
->frontend
->>> 0 (Montage M88DS3103)...
->>> [   17.893182] cx23885_dev_checkrevision() Hardware revision = 0xa5
->>> [   17.893187] cx23885[0]/0: found at 0000:04:00.0, rev: 4, irq: 19,
->>> latency: 0, mmio: 0xfda00000
->>> [   51.512292] i2c i2c-3: m88ds3103: found a 'Montage M88DS3103' in
->cold
->>> state
->>> [   51.818948] cx23885 0000:04:00.0: firmware: direct-loading firmware
->>> dvb-demod-m88ds3103.fw
->>> [   51.818958] i2c i2c-3: m88ds3103: downloading firmware from file
->>> 'dvb-demod-m88ds3103.fw'
->>> [   52.720270] i2c i2c-3: m88ds3103: found a 'Montage M88DS3103' in
->warm
->>> state
->>> [   52.720276] i2c i2c-3: m88ds3103: firmware version 3.B
->>> [   52.734588] i2c i2c-2: m88ds3103: found a 'Montage M88DS3103' in
->cold
->>> state
->>> [   52.734618] cx23885 0000:04:00.0: firmware: direct-loading firmware
->>> dvb-demod-m88ds3103.fw
->>> [   52.734621] i2c i2c-2: m88ds3103: downloading firmware from file
->>> 'dvb-demod-m88ds3103.fw'
->>> [   53.636110] i2c i2c-2: m88ds3103: found a 'Montage M88DS3103' in
->warm
->>> state
->>> [   53.636115] i2c i2c-2: m88ds3103: firmware version 3.B
->>>
->>>
->>> Thanks a lot for your help.
->>>
->>> Regards,
->>> Chris
->>>
->>>
->>>
->>> Am 18.11.2014 um 03:27 schrieb tech:
->>>> Hello,
->>>> Could you get the media code from linuxtv.org?
->>>> and build this driver and install.
->>>> http://git.linuxtv.org/cgit.cgi/media_build.git/about/
->>>> BR,
->>>> tech
->>>>
->------------------------------------------------------------------------
->>>> *From:* Christopher Scheuring<chris@anke-und-chris.de
->>>> <mailto:chris@anke-und-chris.de>>
->>>> *Date:* 2014-11-18  06:07:27
->>>> *To:* tech<tech@dvbsky.net <mailto:tech@dvbsky.net>>
->>>> *Cc:* <>
->>>> *Subject:* Problems with Linux drivers (Debian Jessie kernel 3.16.0-4)
->>>> Hi,
->>>>
->>>> I reinstalled after updating my system with the Linux drivers for the
->>>> dvbsky cards provided by your site (media_build-bst-14-141106).
->>>>
->>>> Compiling with the build_x64.sh script was successfully and I could
->>>> install the needed drivers via make install. After that the Conexant
->>>> Systems CX23885 (DVBSKY S952) card works perfectly.
->>>>
->>>> Unfortunately after installing the drivers my Philips Semiconductors
->>>> SAA7146 (TT-Budget C-1501) card doesn't runs anymore - the card worked
->>>> perfectly before installing the provided drivers from your page!
->>>>
->>>> If got following error message in the kernel-log:
->>>> [ 14.916814] budget_core: disagrees about version of symbol
->>>> dvb_dmxdev_init
->>>> [   14.916819] budget_core: Unknown symbol dvb_dmxdev_init (err -22)
->>>> [   14.916827] budget_core: disagrees about version of symbol
->>>> saa7146_wait_for_debi_done
->>>> [   14.916829] budget_core: Unknown symbol saa7146_wait_for_debi_done
->>>> (err -22)
->>>> [   14.916832] budget_core: disagrees about version of symbol
->>>> saa7146_i2c_adapter_prepare
->>>> [   14.916833] budget_core: Unknown symbol saa7146_i2c_adapter_prepare
->>>> (err -22)
->>>> [   14.916840] budget_core: disagrees about version of symbol
->>>> dvb_register_adapter
->>>> [   14.916841] budget_core: Unknown symbol dvb_register_adapter (err
->>>> -22)
->>>> [   14.916846] budget_core: disagrees about version of symbol
->>>> dvb_dmx_swfilter_packets
->>>> [   14.916848] budget_core: Unknown symbol dvb_dmx_swfilter_packets
->>>> (err -22)
->>>> [   14.916862] budget_core: disagrees about version of symbol
->>>> dvb_dmx_release
->>>> [   14.916864] budget_core: Unknown symbol dvb_dmx_release (err -22)
->>>> [   14.916869] budget_core: disagrees about version of symbol
->>>> dvb_net_init
->>>> [   14.916871] budget_core: Unknown symbol dvb_net_init (err -22)
->>>> [   14.916875] budget_core: disagrees about version of symbol
->>>> dvb_dmxdev_release
->>>> [   14.916877] budget_core: Unknown symbol dvb_dmxdev_release (err
->-22)
->>>> [   14.916890] budget_core: disagrees about version of symbol
->>>> dvb_net_release
->>>> [   14.916892] budget_core: Unknown symbol dvb_net_release (err -22)
->>>> [   14.916896] budget_core: disagrees about version of symbol
->>>> saa7146_setgpio
->>>> [   14.916897] budget_core: Unknown symbol saa7146_setgpio (err -22)
->>>> [   14.916902] budget_core: disagrees about version of symbol
->>>> dvb_unregister_adapter
->>>> [   14.916904] budget_core: Unknown symbol dvb_unregister_adapter (err
->>>> -22)
->>>> [   14.916907] budget_core: disagrees about version of symbol
->>>> dvb_dmx_init
->>>> [   14.916908] budget_core: Unknown symbol dvb_dmx_init (err -22)
->>>>
->>>>
->>>>
->>>> I think something went wrong with the provided driver packes or some
->>>> drivers where overwritten, and some necessary not... I couldn't found
->>>> any solution in the internet.
->>>>
->>>> Here my relevant system-infos:
->>>> Linux XXX 3.16.0-4-amd64 #1 SMP Debian 3.16.7-2 (2014-11-06) x86_64
->>>> GNU/Linux
->>>>
->>>> The needed kernel header files 3.16.0-4-amd64 are installed.
->>>>
->>>> lsmod | grep dvb
->>>> rc_dvbsky              12399  0
->>>> dvbsky_m88ds3103       25614  2
->>>> videobuf_dvb           12762  1 cx23885
->>>> videobuf_core          21832  3 videobuf_dma_sg,cx23885,videobuf_dvb
->>>> dvb_core              102010  3 cx23885,altera_ci,videobuf_dvb
->>>> i2c_core               46012  11
->>>>
->drm,i2c_i801,cx23885,cx25840,dvbsky_m88ds3103,nvidia,v4l2_common,tveeprom,ttpci_eeprom,tda18271,videodev
->>>> rc_core                22404  13
->>>>
->ir_sharp_decoder,lirc_dev,cx23885,ir_lirc_codec,ir_rc5_decoder,ir_nec_decoder,ir_sony_decoder,rc_dvbsky,ir_mce_kbd_decoder,ir_jvc_decoder,ir_rc6_decoder,ir_sanyo_decoder
->>>>
->>>>
->>>>
->>>> Could you provide me any help for a solution getting the SAA7146
->>>> (TT-Budget C-1501) card working again with the kernel 3.16.0-4? With
->>>> the kernel 3.2.0-4-amd64 (with Debian wheezy) and the drivers
->>>> media_build-bst-13-140526 I didn't had the problems... everything
->>>> worked fine. Downgrading is no solution :-)
->>>>
->>>> Attached the complete dmesg protocol.
->>>>
->>>>
->>>> Thanks a lot!
->>>>
->>>> Regards,
->>>> Chris
->>>>
->>>
->>>
->>>
->
->-- 
->Christopher Scheuring *** chris@anke-und-chris.de
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +
+>  obj-$(CONFIG_MPILIB) += mpi/
+>  obj-$(CONFIG_SIGNATURE) += digsig.o
+>  
+> diff --git a/lib/media_tknres.c b/lib/media_tknres.c
+> new file mode 100644
+> index 0000000..e0a36cb
+> --- /dev/null
+> +++ b/lib/media_tknres.c
+> @@ -0,0 +1,237 @@
+> +/*
+> + * media_tknres.c - managed media token resource
+> + *
+> + * Copyright (c) 2014 Shuah Khan <shuahkh@osg.samsung.com>
+> + * Copyright (c) 2014 Samsung Electronics Co., Ltd.
+> + *
+> + * This file is released under the GPLv2.
+> + */
+> +/*
+> + * Media devices often have hardware resources that are shared
+> + * across several functions. For instance, TV tuner cards often
+> + * have MUXes, converters, radios, tuners, etc. that are shared
+> + * across various functions. However, v4l2, alsa, DVB, usbfs, and
+> + * all other drivers have no knowledge of what resources are
+> + * shared. For example, users can't access DVB and alsa at the same
+> + * time, or the DVB and V4L analog API at the same time, since many
+> + * only have one converter that can be in either analog or digital
+> + * mode. Accessing and/or changing mode of a converter while it is
+> + * in use by another function results in video stream error.
+> + *
+> + * A shared media tokens resource is created using devres framework
+> + * for drivers to find and lock/unlock. Creating a shared devres
+> + * helps avoid creating data structure dependencies between drivers.
+> + * This media token resource contains media token for tuner, and
+> + * audio. When tuner token is requested, audio token is issued.
+> + * Subsequent token (for tuner and audio) gets from the same task
+> + * and task in the same tgid succeed. This allows applications that
+> + * make multiple v4l2 ioctls to work with the first call acquiring
+> + * the token and applications that create separate threads to handle
+> + * video and audio functions.
+> + *
+> + * API
+> + *	int media_tknres_create(struct device *dev);
+> + *	int media_tknres_destroy(struct device *dev);
+> + *
+> + *	int media_get_tuner_tkn(struct device *dev);
+> + *	int media_put_tuner_tkn(struct device *dev);
+> + *
+> + *	int media_get_audio_tkn(struct device *dev);
+> + *	int media_put_audio_tkn(struct device *dev);
+> +*/
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/device.h>
+> +#include <linux/sched.h>
+> +#include <linux/media_tknres.h>
 
+Alphabetical order, please.
+
+> +
+> +struct media_tkn {
+> +	spinlock_t lock;
+> +	unsigned int owner;	/* owner task pid */
+> +	unsigned int tgid;	/* owner task gid */
+> +	struct task_struct *task;
+> +};
+> +
+> +struct media_tknres {
+> +	struct media_tkn tuner;
+> +	struct media_tkn audio;
+> +};
+> +
+> +#define TUNER	"Tuner"
+> +#define AUDIO	"Audio"
+> +
+> +static void media_tknres_release(struct device *dev, void *res)
+> +{
+> +	dev_info(dev, "%s: Media Token Resource released\n", __func__);
+> +}
+> +
+> +int media_tknres_create(struct device *dev)
+> +{
+> +	struct media_tknres *tkn;
+> +
+> +	tkn = devres_alloc(media_tknres_release, sizeof(struct media_tknres),
+> +				GFP_KERNEL);
+> +	if (!tkn)
+> +		return -ENOMEM;
+> +
+> +	spin_lock_init(&tkn->tuner.lock);
+> +	tkn->tuner.owner = 0;
+> +	tkn->tuner.tgid = 0;
+> +	tkn->tuner.task = NULL;
+> +
+> +	spin_lock_init(&tkn->audio.lock);
+> +	tkn->audio.owner = 0;
+> +	tkn->audio.tgid = 0;
+> +	tkn->audio.task = NULL;
+> +
+> +	devres_add(dev, tkn);
+> +
+> +	dev_info(dev, "%s: Media Token Resource created\n", __func__);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(media_tknres_create);
+> +
+> +static int __media_get_tkn(struct media_tkn *tkn, char *tkn_str)
+> +{
+> +	int rc = 0;
+> +	unsigned tpid;
+> +	unsigned tgid;
+> +
+> +	spin_lock(&tkn->lock);
+> +
+> +	tpid = task_pid_nr(current);
+> +	tgid = task_tgid_nr(current);
+> +
+> +	/* allow task in the same group id to release */
+> +	if (tkn->task && ((tkn->task != current) && (tkn->tgid != tgid))) {
+> +			rc = -EBUSY;
+
+Indentation.
+
+I'd like to someone else comment on this approach in general, but I'm not
+aware of better ways to do this either as there's no common device node (so
+file handles can't be used either).
+
+> +	} else {
+> +		tkn->owner = tpid;
+> +		tkn->tgid = tgid;
+> +		tkn->task = current;
+> +	}
+> +	pr_debug("%s: Media %s Token get: owner (%d,%d) req (%d,%d) rc %d\n",
+> +		__func__, tkn_str, tkn->owner, tkn->tgid, tpid, tgid, rc);
+> +
+> +	spin_unlock(&tkn->lock);
+> +	return rc;
+> +}
+> +
+> +static int __media_put_tkn(struct media_tkn *tkn, char *tkn_str)
+> +{
+> +	int rc = 0;
+> +	unsigned tpid;
+> +	unsigned tgid;
+> +
+> +	spin_lock(&tkn->lock);
+> +
+> +	tpid = task_pid_nr(current);
+> +	tgid = task_tgid_nr(current);
+> +
+> +	/* allow task in the same group id to release */
+> +	if (tkn->task == NULL ||
+> +		((tkn->task != current) && (tkn->tgid != tgid))) {
+> +			rc = -EINVAL;
+
+Indentation.
+
+> +	} else {
+> +		tkn->owner = 0;
+> +		tkn->tgid = 0;
+> +		tkn->task = NULL;
+> +	}
+> +	pr_debug("%s: Media %s Token put: owner (%d,%d) req (%d,%d) rc %d\n",
+> +		__func__, tkn_str, tkn->owner, tkn->tgid, tpid, tgid, rc);
+> +
+> +	spin_unlock(&tkn->lock);
+
+No need to print things while holding the lock.
+
+> +	return rc;
+> +}
+> +
+> +/*
+> + * When media tknres doesn't exist, get and put interfaces
+> + * return 0 to let the callers take legacy code paths. This
+> + * will also cover the drivers that don't create media tknres.
+> + * Returning -ENODEV will require additional checks by callers.
+> + * Instead handle the media tknres not present case as a driver
+> + * not supporting media tknres and return 0.
+> +*/
+> +int media_get_tuner_tkn(struct device *dev)
+> +{
+> +	struct media_tknres *tkn_ptr;
+> +	int ret = 0;
+> +
+> +	tkn_ptr = devres_find(dev, media_tknres_release, NULL, NULL);
+> +	if (tkn_ptr == NULL) {
+> +		dev_dbg(dev, "%s: Media Token Resource not found\n",
+> +				__func__);
+> +		return 0;
+> +	}
+> +
+> +	ret = __media_get_tkn(&tkn_ptr->tuner, TUNER);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* get audio token */
+> +	ret = __media_get_tkn(&tkn_ptr->audio, AUDIO);
+> +	if (ret)
+> +		__media_put_tkn(&tkn_ptr->tuner, TUNER);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(media_get_tuner_tkn);
+
+You're calling media_get_tuner_tkn() from a number of V4L2 framework
+functions that handle common and often performance critical IOCTLs.
+devres_find() will loop over the entire list of resources associated with
+that device. I think this would be just fine if it was done just once in a
+non-performance critical time, but not every time everywhere.
+
+> +
+> +int media_put_tuner_tkn(struct device *dev)
+> +{
+> +	struct media_tknres *tkn_ptr;
+> +
+> +	tkn_ptr = devres_find(dev, media_tknres_release, NULL, NULL);
+> +	if (tkn_ptr == NULL) {
+> +		dev_dbg(dev, "%s: Media Token Resource not found\n",
+> +			__func__);
+> +		return 0;
+> +	}
+> +
+> +	/* put audio token and then tuner token */
+> +	__media_put_tkn(&tkn_ptr->audio, AUDIO);
+> +
+> +	return __media_put_tkn(&tkn_ptr->tuner, TUNER);
+> +}
+> +EXPORT_SYMBOL_GPL(media_put_tuner_tkn);
+> +
+> +int media_get_audio_tkn(struct device *dev)
+> +{
+> +	struct media_tknres *tkn_ptr;
+> +
+> +	tkn_ptr = devres_find(dev, media_tknres_release, NULL, NULL);
+> +	if (tkn_ptr == NULL) {
+> +		dev_dbg(dev, "%s: Media Token Resource not found\n",
+> +			__func__);
+> +		return 0;
+> +	}
+> +
+> +	return __media_get_tkn(&tkn_ptr->audio, AUDIO);
+> +}
+> +EXPORT_SYMBOL_GPL(media_get_audio_tkn);
+> +
+> +int media_put_audio_tkn(struct device *dev)
+> +{
+> +	struct media_tknres *tkn_ptr;
+> +
+> +	tkn_ptr = devres_find(dev, media_tknres_release, NULL, NULL);
+> +	if (tkn_ptr == NULL) {
+> +		dev_dbg(dev, "%s: Media Token Resource not found\n",
+> +			__func__);
+> +		return 0;
+> +	}
+> +
+> +	return __media_put_tkn(&tkn_ptr->audio, AUDIO);
+> +}
+> +EXPORT_SYMBOL_GPL(media_put_audio_tkn);
+> +
+> +int media_tknres_destroy(struct device *dev)
+> +{
+> +	int rc;
+> +
+> +	rc = devres_release(dev, media_tknres_release, NULL, NULL);
+> +	WARN_ON(rc);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(media_tknres_destroy);
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
