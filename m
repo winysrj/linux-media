@@ -1,115 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:59153 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752697AbaKGOIB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 09:08:01 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v3 07/10] [media] usb: Make use of media_bus_format enum
-Date: Fri,  7 Nov 2014 15:07:46 +0100
-Message-Id: <1415369269-5064-8-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40336 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753629AbaKRSfs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 13:35:48 -0500
+Date: Tue, 18 Nov 2014 19:35:45 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+	sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Message-ID: <20141118183545.GA16999@amd>
+References: <20141116075928.GA9763@amd>
+ <20141117101553.GA21151@amd>
+ <20141117145545.GC7046@atomide.com>
+ <201411171601.32311@pali>
+ <20141117150617.GD7046@atomide.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20141117150617.GD7046@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to have subsytem agnostic media bus format definitions we've
-moved media bus definition to include/uapi/linux/media-bus-format.h and
-prefixed enum values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
+On Mon 2014-11-17 07:06:17, Tony Lindgren wrote:
+> * Pali Rohár <pali.rohar@gmail.com> [141117 07:03]:
+> > On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
+> > > 
+> > > There's nothing stopping us from initializing the camera code
+> > > from pdata-quirks.c for now to keep it working. Certainly the
+> > > binding should be added to the driver, but that removes a
+> > > dependency to the legacy booting mode if things are otherwise
+> > > working.
+> > 
+> > Tony, legacy board code for n900 is not in mainline tree. And 
+> > that omap3 camera subsystem for n900 is broken since 3.5 
+> > kernel... (both Front and Back camera on n900 show only green 
+> > picture).
+> 
+> I'm still seeing the legacy board code for n900 in mainline tree :)
+> It's deprecated, but still there.
+> 
+> Are you maybe talking about some other piece of platform_data that's
+> no longer in the mainline kernel?
+> 
+> No idea what might be wrong with the camera though.
 
-Reference new definitions in all usb drivers.
+Camera support for main and secondary cameras was never mainline, AFAICT.
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- drivers/media/usb/cx231xx/cx231xx-417.c   | 2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c | 4 ++--
- drivers/media/usb/em28xx/em28xx-camera.c  | 2 +-
- drivers/media/usb/go7007/go7007-v4l2.c    | 2 +-
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c   | 2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+Merging it will not be easy, as it lacks DT support... and was broken
+for long time.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-index 459bb0e..95653ba 100644
---- a/drivers/media/usb/cx231xx/cx231xx-417.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-@@ -1878,7 +1878,7 @@ static int cx231xx_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
- 	/* fix videodecoder resolution */
- 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
- 	fmt.height = cxhdl->height;
--	fmt.code = V4L2_MBUS_FMT_FIXED;
-+	fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(dev->sd_cx25840, video, s_mbus_fmt, &fmt);
- 	return 0;
- }
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 3b3ada6..989d527 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -967,7 +967,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	dev->height = f->fmt.pix.height;
- 	dev->format = fmt;
- 
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	call_all(dev, video, s_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 
-@@ -1012,7 +1012,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
- 	   resolution (since a standard change effects things like the number
- 	   of lines in VACT, etc) */
- 	memset(&mbus_fmt, 0, sizeof(mbus_fmt));
--	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 	mbus_fmt.width = dev->width;
- 	mbus_fmt.height = dev->height;
- 	call_all(dev, video, s_mbus_fmt, &mbus_fmt);
-diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-index 6d2ea9a..38cf6c8 100644
---- a/drivers/media/usb/em28xx/em28xx-camera.c
-+++ b/drivers/media/usb/em28xx/em28xx-camera.c
-@@ -430,7 +430,7 @@ int em28xx_init_camera(struct em28xx *dev)
- 			break;
- 		}
- 
--		fmt.code = V4L2_MBUS_FMT_YUYV8_2X8;
-+		fmt.code = MEDIA_BUS_FMT_YUYV8_2X8;
- 		fmt.width = 640;
- 		fmt.height = 480;
- 		v4l2_subdev_call(subdev, video, s_mbus_fmt, &fmt);
-diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
-index ec799b4..d6bf982 100644
---- a/drivers/media/usb/go7007/go7007-v4l2.c
-+++ b/drivers/media/usb/go7007/go7007-v4l2.c
-@@ -252,7 +252,7 @@ static int set_capture_size(struct go7007 *go, struct v4l2_format *fmt, int try)
- 	if (go->board_info->sensor_flags & GO7007_SENSOR_SCALING) {
- 		struct v4l2_mbus_framefmt mbus_fmt;
- 
--		mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+		mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 		mbus_fmt.width = fmt ? fmt->fmt.pix.width : width;
- 		mbus_fmt.height = height;
- 		go->encoder_h_halve = 0;
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-index 9623b62..2fd9b5e 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-@@ -2966,7 +2966,7 @@ static void pvr2_subdev_update(struct pvr2_hdw *hdw)
- 		memset(&fmt, 0, sizeof(fmt));
- 		fmt.width = hdw->res_hor_val;
- 		fmt.height = hdw->res_ver_val;
--		fmt.code = V4L2_MBUS_FMT_FIXED;
-+		fmt.code = MEDIA_BUS_FMT_FIXED;
- 		pvr2_trace(PVR2_TRACE_CHIPS, "subdev v4l2 set_size(%dx%d)",
- 			   fmt.width, fmt.height);
- 		v4l2_device_call_all(&hdw->v4l2_dev, 0, video, s_mbus_fmt, &fmt);
+Anyway, flash is kind of important for me, since it makes phone useful
+as backup light; and it is simple piece of hw, so I intend to keep it
+useful.
+
+       	       	   	    	      	      	  		     Pavel
 -- 
-1.9.1
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
