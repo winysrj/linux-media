@@ -1,59 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.229]:53718 "EHLO
-	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S934095AbaKNBsz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46543 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752632AbaKRFoJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Nov 2014 20:48:55 -0500
-Date: Thu, 13 Nov 2014 20:48:41 -0500
-From: Steven Rostedt <rostedt@goodmis.org>
-To: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-kbuild@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, kernel-janitors@vger.kernel.org,
-	gregkh@linuxfoundation.org, mgorman@suse.de, ddstreet@ieee.org,
-	jeffrey.t.kirsher@intel.com, yamada.m@jp.panasonic.com,
-	kenhelias@firemail.de, oleg@redhat.com, akpm@linux-foundation.org,
-	shuah.kh@samsung.com, valentina.manea.m@gmail.com,
-	yann.morin.1998@free.fr, laijs@cn.fujitsu.com,
-	mathieu.desnoyers@efficios.com, josh@joshtriplett.org,
-	paulmck@linux.vnet.ibm.com, m.chehab@samsung.com,
-	awalls@md.metrocast.net, airlied@linux.ie,
-	christian.koenig@amd.com, alexander.deucher@amd.com,
-	trivial@kernel.org
-Subject: Re: [RESUBMIT] [PATCH] Replace mentions of "list_struct" to
- "list_head"
-Message-ID: <20141113204841.18898f4e@gandalf.local.home>
-In-Reply-To: <1415927395-11556-1-git-send-email-andrey.krieger.utkin@gmail.com>
-References: <20141107214100.GA1640@kroah.com>
-	<1415927395-11556-1-git-send-email-andrey.krieger.utkin@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 18 Nov 2014 00:44:09 -0500
+Received: from lanttu.localdomain (unknown [192.168.15.166])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id F395760093
+	for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 07:44:06 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [REVIEW PATCH v2 07/11] of: v4l: Document link-frequency property in video-interfaces.txt
+Date: Tue, 18 Nov 2014 07:43:42 +0200
+Message-Id: <1416289426-804-8-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1416289426-804-1-git-send-email-sakari.ailus@iki.fi>
+References: <1416289426-804-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 14 Nov 2014 05:09:55 +0400
-Andrey Utkin <andrey.krieger.utkin@gmail.com> wrote:
+link-frequency is a 64-bit unsigned integer array of allowed link
+frequencies.
 
-> There's no such thing as "list_struct".
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: devicetree@vger.kernel.org
+---
+ Documentation/devicetree/bindings/media/video-interfaces.txt |    3 +++
+ 1 file changed, 3 insertions(+)
 
-I guess there isn't.
-
-> 
-> Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-
--- Steve
-
-> ---
->  drivers/gpu/drm/radeon/mkregtable.c  | 24 ++++++++++++------------
->  drivers/media/pci/cx18/cx18-driver.h |  2 +-
->  include/linux/list.h                 | 34 +++++++++++++++++-----------------
->  include/linux/plist.h                | 10 +++++-----
->  include/linux/rculist.h              |  8 ++++----
->  scripts/kconfig/list.h               |  6 +++---
->  tools/usb/usbip/libsrc/list.h        |  2 +-
->  7 files changed, 43 insertions(+), 43 deletions(-)
-> 
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index ce719f8..7d8f07f 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -103,6 +103,9 @@ Optional endpoint properties
+   array contains only one entry.
+ - clock-noncontinuous: a boolean property to allow MIPI CSI-2 non-continuous
+   clock mode.
++- link-frequency: Allowed data bus frequencies. For MIPI CSI-2, for
++  instance, this is the actual frequency of the bus, not bits per clock per
++  lane value. An array of 64-bit unsigned integers.
+ 
+ 
+ Example
+-- 
+1.7.10.4
 
