@@ -1,54 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53707 "EHLO mail.kapsi.fi"
+Received: from tex.lwn.net ([70.33.254.29]:37059 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934144AbaKLELh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Nov 2014 23:11:37 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 10/11] mn88472: add staging TODO
-Date: Wed, 12 Nov 2014 06:11:16 +0200
-Message-Id: <1415765477-23153-11-git-send-email-crope@iki.fi>
-In-Reply-To: <1415765477-23153-1-git-send-email-crope@iki.fi>
-References: <1415765477-23153-1-git-send-email-crope@iki.fi>
+	id S1753650AbaKRNDT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 08:03:19 -0500
+Date: Tue, 18 Nov 2014 08:03:17 -0500
+From: Jonathan Corbet <corbet@lwn.net>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 06/12] media: marvell-ccic: use
+ vb2_ops_wait_prepare/finish helper
+Message-ID: <20141118080317.73b6b29e@lwn.net>
+In-Reply-To: <1416309821-5426-7-git-send-email-prabhakar.csengg@gmail.com>
+References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+	<1416309821-5426-7-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add TODO for mainlining.
+On Tue, 18 Nov 2014 11:23:35 +0000
+"Lad, Prabhakar" <prabhakar.csengg@gmail.com> wrote:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/mn88472/TODO | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
- create mode 100644 drivers/staging/media/mn88472/TODO
+>  drivers/media/platform/marvell-ccic/mcam-core.c | 29 +++++--------------------
+>  1 file changed, 5 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/staging/media/mn88472/TODO b/drivers/staging/media/mn88472/TODO
-new file mode 100644
-index 0000000..b90a14b
---- /dev/null
-+++ b/drivers/staging/media/mn88472/TODO
-@@ -0,0 +1,21 @@
-+Driver general quality is not good enough for mainline. Also, other
-+device drivers (USB-bridge, tuner) needed for Astrometa receiver in
-+question could need some changes. However, if that driver is mainlined
-+due to some other device than Astrometa, unrelated TODOs could be
-+skipped. In that case rtl28xxu driver needs module parameter to prevent
-+driver loading.
-+
-+Required TODOs:
-+* missing lock flags
-+* I2C errors
-+* tuner sensitivity
-+
-+*Do not* send any patch fixing checkpatch.pl issues. Currently it passes
-+checkpatch.pl tests. I don't want waste my time to review this kind of
-+trivial stuff. *Do not* add missing register I/O error checks. Those are
-+missing for the reason it is much easier to compare I2C data sniffs when
-+there is less lines. Those error checks are about the last thing to be added.
-+
-+Patches should be submitted to:
-+linux-media@vger.kernel.org and Antti Palosaari <crope@iki.fi>
-+
--- 
-http://palosaari.fi/
+So I'm not convinced that this patch improves things; it moves a tiny bit
+of code into another file where anybody reading the driver will have to
+go look to see what's going on.  But I guess it doesn't really make
+things worse either; I won't try to stand in its way.  It would be nice
+to see a real changelog on the patch, though.
 
+jon
