@@ -1,88 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55839 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751097AbaKCIvu (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58003 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753439AbaKRMva (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 03:51:50 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id ED7C72A0376
-	for <linux-media@vger.kernel.org>; Mon,  3 Nov 2014 09:51:40 +0100 (CET)
-Message-ID: <5457421C.4050100@xs4all.nl>
-Date: Mon, 03 Nov 2014 09:51:40 +0100
+	Tue, 18 Nov 2014 07:51:30 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.19] cx88: convert to vb2
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv7 PATCH 01/12] videobuf2-core.h: improve documentation
+Date: Tue, 18 Nov 2014 13:50:57 +0100
+Message-Id: <1416315068-22936-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl>
+References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This pull request contains this patch series:
+Document that drivers can access/modify the buffer contents in buf_prepare
+and buf_finish. That was not clearly stated before.
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg79597.html
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/videobuf2-core.h | 32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
-It's unchanged except for rebasing to the latest master and for fixing the
-somewhat garbled commit message of patch 02/16.
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 6ef2d01..70ace7c 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -270,22 +270,24 @@ struct vb2_buffer {
+  *			queue setup from completing successfully; optional.
+  * @buf_prepare:	called every time the buffer is queued from userspace
+  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
+- *			perform any initialization required before each hardware
+- *			operation in this callback; drivers that support
+- *			VIDIOC_CREATE_BUFS must also validate the buffer size;
+- *			if an error is returned, the buffer will not be queued
+- *			in driver; optional.
++ *			perform any initialization required before each
++ *			hardware operation in this callback; drivers can
++ *			access/modify the buffer here as it is still synced for
++ *			the CPU; drivers that support VIDIOC_CREATE_BUFS must
++ *			also validate the buffer size; if an error is returned,
++ *			the buffer will not be queued in driver; optional.
+  * @buf_finish:		called before every dequeue of the buffer back to
+- *			userspace; drivers may perform any operations required
+- *			before userspace accesses the buffer; optional. The
+- *			buffer state can be one of the following: DONE and
+- *			ERROR occur while streaming is in progress, and the
+- *			PREPARED state occurs when the queue has been canceled
+- *			and all pending buffers are being returned to their
+- *			default DEQUEUED state. Typically you only have to do
+- *			something if the state is VB2_BUF_STATE_DONE, since in
+- *			all other cases the buffer contents will be ignored
+- *			anyway.
++ *			userspace; the buffer is synced for the CPU, so drivers
++ *			can access/modify the buffer contents; drivers may
++ *			perform any operations required before userspace
++ *			accesses the buffer; optional. The buffer state can be
++ *			one of the following: DONE and ERROR occur while
++ *			streaming is in progress, and the PREPARED state occurs
++ *			when the queue has been canceled and all pending
++ *			buffers are being returned to their default DEQUEUED
++ *			state. Typically you only have to do something if the
++ *			state is VB2_BUF_STATE_DONE, since in all other cases
++ *			the buffer contents will be ignored anyway.
+  * @buf_cleanup:	called once before the buffer is freed; drivers may
+  *			perform any additional cleanup; optional.
+  * @start_streaming:	called once to enter 'streaming' state; the driver may
+-- 
+2.1.1
 
-I have also re-tested the DMA engine: stress testing with continuously
-switching between TV frequencies (one with and one without a channel) and
-between inputs (one with (TV) and one without a signal (Composite)) while
-streaming without ever detecting any DMA problems.
-
-I am convinced the whole DMA restart mess is due to misunderstandings of
-how format changes are handled. The author apparently thought that format
-changes can be done while streaming, which is not the case since you cannot
-change the size of the buffers without stopping first.
-
-So I am sticking by this patch series :-)
-
-Regards,
-
-	Hans
-
-The following changes since commit 082417d10fafe7be835d143ade7114b5ce26cb50:
-
-  [media] cx231xx: remove direct register PWR_CTL_EN modification that switches port3 (2014-11-01 08:59:06 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git cx88
-
-for you to fetch changes up to 1a48165e38da225fa187a756c6dd9941bdd85a9e:
-
-  cx88: fix VBI support (2014-11-03 09:39:12 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (16):
-      cx88: remove fmt from the buffer struct
-      cx88: drop the bogus 'queue' list in dmaqueue.
-      cx88: drop videobuf abuse in cx88-alsa
-      cx88: convert to vb2
-      cx88: fix sparse warning
-      cx88: return proper errors during fw load
-      cx88: drop cx88_free_buffer
-      cx88: remove dependency on btcx-risc
-      cx88: increase API command timeout
-      cx88: don't pollute the kernel log
-      cx88: move width, height and field to core struct
-      cx88: drop mpeg_active field.
-      cx88: don't allow changes while vb2_is_busy
-      cx88: consistently use UNSET for absent tuner
-      cx88: pci_disable_device comes after free_irq.
-      cx88: fix VBI support
-
- drivers/media/pci/cx88/Kconfig          |   5 +-
- drivers/media/pci/cx88/Makefile         |   1 -
- drivers/media/pci/cx88/cx88-alsa.c      | 112 +++++++++--
- drivers/media/pci/cx88/cx88-blackbird.c | 565 +++++++++++++++++++++++++-----------------------------
- drivers/media/pci/cx88/cx88-cards.c     |  71 +++----
- drivers/media/pci/cx88/cx88-core.c      | 113 ++++-------
- drivers/media/pci/cx88/cx88-dvb.c       | 158 +++++++++++-----
- drivers/media/pci/cx88/cx88-mpeg.c      | 159 ++++------------
- drivers/media/pci/cx88/cx88-vbi.c       | 216 +++++++++++----------
- drivers/media/pci/cx88/cx88-video.c     | 871 ++++++++++++++++++++++++++----------------------------------------------------------
- drivers/media/pci/cx88/cx88.h           | 104 +++++-----
- 11 files changed, 985 insertions(+), 1390 deletions(-)
