@@ -1,61 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57335 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932371AbaKLELg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Nov 2014 23:11:36 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 00/11] Panasonic MN88472 DVB-T/T2/C demod driver
-Date: Wed, 12 Nov 2014 06:11:06 +0200
-Message-Id: <1415765477-23153-1-git-send-email-crope@iki.fi>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:42683 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752006AbaKRK6L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 05:58:11 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: Kukjin Kim <kgene.kim@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: linux-samsung-soc@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: exynos-gsc: fix build warning
+Date: Tue, 18 Nov 2014 10:57:48 +0000
+Message-Id: <1416308268-22957-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reverse-engineered driver, which I moved to staging, due to
-quality issues. Chip documentation would be nice. Any help to
-pressure Panasonic to release documentation is welcome.
+this patch fixes following build warning:
 
+gsc-core.c:350:17: warning: 'low_plane' may be used uninitialized
+gsc-core.c:371:31: warning: 'high_plane' may be used uninitialized
 
-MS recently released Xbox One Digital TV Tuner is build upon that same demod chip.
-https://tvheadend.org/boards/5/topics/13685
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-
-Here is device internals:
-http://blog.palosaari.fi/2013/10/naked-hardware-14-dvb-t2-usb-tv-stick.html
-
-
-
-Antti Palosaari (11):
-  mn88472: Panasonic MN88472 demod driver (DVB-C only)
-  mn88472: correct attach symbol name
-  mn88472: add small delay to wait DVB-C lock
-  mn88472: rename mn88472_c.c => mn88472.c
-  mn88472: rename state to dev
-  mn88472: convert driver to I2C client
-  mn88472: Convert driver to I2C RegMap API
-  mn88472: implement DVB-T and DVB-T2
-  mn88472: move to staging
-  mn88472: add staging TODO
-  MAINTAINERS: add mn88472 (Panasonic MN88472)
-
- MAINTAINERS                                  |  11 +
- drivers/media/dvb-frontends/mn88472.h        |  38 ++
- drivers/staging/media/Kconfig                |   2 +
- drivers/staging/media/Makefile               |   1 +
- drivers/staging/media/mn88472/Kconfig        |   7 +
- drivers/staging/media/mn88472/Makefile       |   5 +
- drivers/staging/media/mn88472/TODO           |  21 ++
- drivers/staging/media/mn88472/mn88472.c      | 523 +++++++++++++++++++++++++++
- drivers/staging/media/mn88472/mn88472_priv.h |  36 ++
- 9 files changed, 644 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/mn88472.h
- create mode 100644 drivers/staging/media/mn88472/Kconfig
- create mode 100644 drivers/staging/media/mn88472/Makefile
- create mode 100644 drivers/staging/media/mn88472/TODO
- create mode 100644 drivers/staging/media/mn88472/mn88472.c
- create mode 100644 drivers/staging/media/mn88472/mn88472_priv.h
-
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 91d226b..6c71b17 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -347,8 +347,8 @@ void gsc_set_prefbuf(struct gsc_dev *gsc, struct gsc_frame *frm)
+ 		s_chk_addr = frm->addr.cb;
+ 		s_chk_len = frm->payload[1];
+ 	} else if (frm->fmt->num_planes == 3) {
+-		u32 low_addr, low_plane, mid_addr, mid_plane;
+-		u32 high_addr, high_plane;
++		u32 low_addr, low_plane = 0, mid_addr, mid_plane;
++		u32 high_addr, high_plane = 0;
+ 		u32 t_min, t_max;
+ 
+ 		t_min = min3(frm->addr.y, frm->addr.cb, frm->addr.cr);
 -- 
-http://palosaari.fi/
+1.9.1
 
