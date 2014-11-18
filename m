@@ -1,61 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:40468 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751045AbaKYUlM (ORCPT
+Received: from mail-lb0-f173.google.com ([209.85.217.173]:54778 "EHLO
+	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753041AbaKRKBP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Nov 2014 15:41:12 -0500
-Date: Tue, 25 Nov 2014 20:40:56 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: Joe Perches <joe@perches.com>
-Cc: linux-kernel@vger.kernel.org, jarod@wilsonet.com,
-	m.chehab@samsung.com, gregkh@linuxfoundation.org,
-	mahfouz.saif.elyazal@gmail.com, dan.carpenter@oracle.com,
-	tuomas.tynkkynen@iki.fi, gulsah.1004@gmail.com,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH] staging: media: lirc: lirc_zilog.c: fix quoted strings
- split across lines
-Message-ID: <20141125204056.GA12162@biggie>
-References: <20141125201905.GA10900@biggie>
- <1416947244.8358.12.camel@perches.com>
+	Tue, 18 Nov 2014 05:01:15 -0500
+Received: by mail-lb0-f173.google.com with SMTP id n15so17555102lbi.32
+        for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 02:01:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1416947244.8358.12.camel@perches.com>
+In-Reply-To: <1415623771-29634-12-git-send-email-hverkuil@xs4all.nl>
+References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl> <1415623771-29634-12-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Tue, 18 Nov 2014 17:55:28 +0800
+Message-ID: <CAMm-=zBDdqKGzKZOLNGOOYbP4bh14GG1C6tCm_pSrqoWrRtOvw@mail.gmail.com>
+Subject: Re: [RFCv6 PATCH 11/16] vb2: use dma_map_sg_attrs to prevent
+ unnecessary sync
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 25, 2014 at 12:27:24PM -0800, Joe Perches wrote:
-> On Tue, 2014-11-25 at 20:19 +0000, Luis de Bethencourt wrote:
-> > checkpatch makes an exception to the 80-colum rule for quotes strings, and
-> > Documentation/CodingStyle recommends not splitting quotes strings across lines
-> > because it breaks the ability to grep for the string. Fixing these.
-> []
-> > diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-> []
-> > @@ -794,8 +792,7 @@ static int fw_load(struct IR_tx *tx)
-> >  	if (!read_uint8(&data, tx_data->endp, &version))
-> >  		goto corrupt;
-> >  	if (version != 1) {
-> > -		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected"
-> > -			    "1) -- please upgrade to a newer driver",
-> > +		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected1) -- please upgrade to a newer driver",
-> >  			    version);
-> 
-> Hello Luis.
-> 
-> Please look at the strings being coalesced before
-> submitting patches.
-> 
-> It's a fairly common defect to have either a missing
-> space between the coalesced fragments or too many
-> spaces.
-> 
-> It's almost certain that there should be a space
-> between the "expected" and "1" here.
-> 
-> 
+On Mon, Nov 10, 2014 at 8:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> By default dma_map_sg syncs the mapped buffer to the device. But
+> buf_prepare expects a buffer syncs for the cpu and the buffer
+> will be synced to the device in the prepare memop.
+>
+> The reverse is true for dma_unmap_sg, buf_finish and the finish
+> memop.
+>
+> To prevent unnecessary syncs we ask dma_(un)map_sg to skip the
+> sync.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 29 +++++++++++++++++-----
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c     | 33 +++++++++++++++++++++-----
+>  2 files changed, 50 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index c4305bf..27f5926 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -317,8 +317,9 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+>                 attach->dma_dir = DMA_NONE;
+>         }
+>
+> -       /* mapping to the client with new direction */
+> -       ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
+> +       /* Mapping to the client with new direction */
+> +       ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+> +                        dma_dir);
 
-Hello Joe,
+Do we need this chunk?
 
-Thanks for taking the time to review this. I sent a new
-version fixing the missing space. 
+-- 
+Best regards,
+Pawel Osciak
