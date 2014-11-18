@@ -1,168 +1,316 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:51249 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751330AbaKFKMN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 05:12:13 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NEM00KF74CC5250@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 06 Nov 2014 19:12:12 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
-	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
-	sakari.ailus@linux.intel.com, kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [v4l-utils RFC v3 06/11] mediactl: Add subdev_fmt property to the
- media_entity
-Date: Thu, 06 Nov 2014 11:11:37 +0100
-Message-id: <1415268702-23685-7-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
-References: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:62978 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754814AbaKRUZd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 15:25:33 -0500
+From: Beniamino Galvani <b.galvani@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, Carlo Caione <carlo@caione.org>,
+	Sean Young <sean@mess.org>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Jerry Cao <jerry.cao@amlogic.com>,
+	Victor Wan <victor.wan@amlogic.com>,
+	Beniamino Galvani <b.galvani@gmail.com>
+Subject: [PATCH v3 2/3] media: rc: add driver for Amlogic Meson IR remote receiver
+Date: Tue, 18 Nov 2014 21:22:34 +0100
+Message-Id: <1416342155-26820-3-git-send-email-b.galvani@gmail.com>
+In-Reply-To: <1416342155-26820-1-git-send-email-b.galvani@gmail.com>
+References: <1416342155-26820-1-git-send-email-b.galvani@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add subdev_fmt field to the structure media_entity.
-Added is also API for setting the media_entity
-format and comparing two subdev formats.
+Amlogic Meson SoCs include a infrared remote control receiver that can
+operate in two modes: "NEC" mode in which the hardware decodes frames
+using the NEC IR protocol, and "general" mode in which the receiver
+simply reports the duration of pulses and spaces for software
+decoding.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+This is a driver for the IR receiver that implements software decoding
+of received frames.
+
+Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
 ---
- utils/media-ctl/libmediactl.c   |    6 ++++++
- utils/media-ctl/libv4l2subdev.c |   34 ++++++++++++++++++++++++++++++++++
- utils/media-ctl/mediactl-priv.h |    3 +++
- utils/media-ctl/mediactl.h      |   12 ++++++++++++
- utils/media-ctl/v4l2subdev.h    |   12 ++++++++++++
- 5 files changed, 67 insertions(+)
+ MAINTAINERS                 |   1 +
+ drivers/media/rc/Kconfig    |  11 +++
+ drivers/media/rc/Makefile   |   1 +
+ drivers/media/rc/meson-ir.c | 216 ++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 229 insertions(+)
+ create mode 100644 drivers/media/rc/meson-ir.c
 
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index 10f0491..27e7329 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -1260,3 +1260,9 @@ int media_entity_get_fd(struct media_entity *entity)
- {
- 	return entity->fd;
- }
-+
-+void media_entity_set_subdev_fmt(struct media_entity *entity,
-+				struct v4l2_subdev_format *fmt)
-+{
-+	entity->subdev_fmt = *fmt;
-+}
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 99ac6b2..449565c 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -786,3 +786,37 @@ int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
- 							entity->info.name);
- 	return 0;
- }
-+
-+int v4l2_subdev_format_compare(struct v4l2_mbus_framefmt *fmt1,
-+				struct v4l2_mbus_framefmt *fmt2)
-+{
-+	if (fmt1 == NULL || fmt2 == NULL)
-+		return 0;
-+
-+	if (fmt1->width != fmt2->width) {
-+		printf("width mismatch\n");
-+		return 0;
-+	}
-+
-+	if (fmt1->height != fmt2->height) {
-+		printf("height mismatch\n");
-+		return 0;
-+	}
-+
-+	if (fmt1->code != fmt2->code) {
-+		printf("mbus code mismatch\n");
-+		return 0;
-+	}
-+
-+	if (fmt1->field != fmt2->field) {
-+		printf("field mismatch\n");
-+		return 0;
-+	}
-+
-+	if (fmt1->colorspace != fmt2->colorspace) {
-+		printf("colorspace mismatch\n");
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-diff --git a/utils/media-ctl/mediactl-priv.h b/utils/media-ctl/mediactl-priv.h
-index b9e9b20..b2c466b 100644
---- a/utils/media-ctl/mediactl-priv.h
-+++ b/utils/media-ctl/mediactl-priv.h
-@@ -23,6 +23,7 @@
- #define __MEDIA_PRIV_H__
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0662378..f1bc045 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -850,6 +850,7 @@ ARM/Amlogic MesonX SoC support
+ M:	Carlo Caione <carlo@caione.org>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
++F:	drivers/media/rc/meson-ir.c
+ N:	meson[x68]
  
- #include <linux/media.h>
-+#include <linux/v4l2-subdev.h>
+ ARM/ATMEL AT91RM9200 AND AT91SAM ARM ARCHITECTURES
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 1aea732..ddfab25 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -223,6 +223,17 @@ config IR_FINTEK
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called fintek-cir.
  
- #include "mediactl.h"
- 
-@@ -34,6 +35,8 @@ struct media_entity {
- 	unsigned int max_links;
- 	unsigned int num_links;
- 
-+	struct v4l2_subdev_format subdev_fmt;
++config IR_MESON
++	tristate "Amlogic Meson IR remote receiver"
++	depends on RC_CORE
++	depends on ARCH_MESON || COMPILE_TEST
++	---help---
++	   Say Y if you want to use the IR remote receiver available
++	   on Amlogic Meson SoCs.
 +
- 	char devname[32];
- 	int fd;
- };
-diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
-index 0dc7f95..d28b0a8 100644
---- a/utils/media-ctl/mediactl.h
-+++ b/utils/media-ctl/mediactl.h
-@@ -42,6 +42,7 @@ struct media_pad {
- 
- struct media_device;
- struct media_entity;
-+struct v4l2_subdev_format;
- 
- /**
-  * @brief Create a new media device.
-@@ -611,4 +612,15 @@ int media_entity_get_sink_pad_index(struct media_entity *entity);
-  */
- int media_entity_get_fd(struct media_entity *entity);
- 
-+/**
-+ * @brief Set sub-device format
-+ * @param entity - media entity
-+ * @param fmt - pointer to the sub-device format structure
++	   To compile this driver as a module, choose M here: the
++	   module will be called meson-ir.
++
+ config IR_NUVOTON
+ 	tristate "Nuvoton w836x7hg Consumer Infrared Transceiver"
+ 	depends on PNP
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 8f509e0..379a5c0 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -22,6 +22,7 @@ obj-$(CONFIG_IR_IMON) += imon.o
+ obj-$(CONFIG_IR_ITE_CIR) += ite-cir.o
+ obj-$(CONFIG_IR_MCEUSB) += mceusb.o
+ obj-$(CONFIG_IR_FINTEK) += fintek-cir.o
++obj-$(CONFIG_IR_MESON) += meson-ir.o
+ obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
+ obj-$(CONFIG_IR_ENE) += ene_ir.o
+ obj-$(CONFIG_IR_REDRAT3) += redrat3.o
+diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
+new file mode 100644
+index 0000000..fcc3b82
+--- /dev/null
++++ b/drivers/media/rc/meson-ir.c
+@@ -0,0 +1,216 @@
++/*
++ * Driver for Amlogic Meson IR remote receiver
 + *
-+ * This function sets the format of the sub-device related
-+ * to this entity.
++ * Copyright (C) 2014 Beniamino Galvani <b.galvani@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
 + */
-+void media_entity_set_subdev_fmt(struct media_entity *entity,
-+				struct v4l2_subdev_format *fmt);
 +
- #endif
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 3bc0412..2c9d507 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -270,4 +270,16 @@ int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
- 	struct media_entity *entity,
- 	__u32 ctrl_id);
- 
-+/**
-+ * @brief Compare mbus formats
-+ * @param fmt1 - 1st mbus format to compare
-+ * @param fmt2 - 2nd mbus format to compare
-+ *
-+ * Check whether two mbus formats are compatible.
-+ *
-+ * @return 1 if formats are compatible, 0 otherwise
-+ */
-+int v4l2_subdev_format_compare(struct v4l2_mbus_framefmt *fmt1,
-+	struct v4l2_mbus_framefmt *fmt2);
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
++#include <linux/spinlock.h>
 +
- #endif
++#include <media/rc-core.h>
++
++#define DRIVER_NAME		"meson-ir"
++
++#define IR_DEC_LDR_ACTIVE	0x00
++#define IR_DEC_LDR_IDLE		0x04
++#define IR_DEC_LDR_REPEAT	0x08
++#define IR_DEC_BIT_0		0x0c
++#define IR_DEC_REG0		0x10
++#define IR_DEC_FRAME		0x14
++#define IR_DEC_STATUS		0x18
++#define IR_DEC_REG1		0x1c
++
++#define REG0_RATE_MASK		(BIT(11) - 1)
++
++#define REG1_MODE_MASK		(BIT(7) | BIT(8))
++#define REG1_MODE_NEC		(0 << 7)
++#define REG1_MODE_GENERAL	(2 << 7)
++
++#define REG1_TIME_IV_SHIFT	16
++#define REG1_TIME_IV_MASK	((BIT(13) - 1) << REG1_TIME_IV_SHIFT)
++
++#define REG1_IRQSEL_MASK	(BIT(2) | BIT(3))
++#define REG1_IRQSEL_NEC_MODE	(0 << 2)
++#define REG1_IRQSEL_RISE_FALL	(1 << 2)
++#define REG1_IRQSEL_FALL	(2 << 2)
++#define REG1_IRQSEL_RISE	(3 << 2)
++
++#define REG1_RESET		BIT(0)
++#define REG1_ENABLE		BIT(15)
++
++#define STATUS_IR_DEC_IN	BIT(8)
++
++#define MESON_TRATE		10	/* us */
++
++struct meson_ir {
++	void __iomem	*reg;
++	struct rc_dev	*rc;
++	int		irq;
++	spinlock_t	lock;
++};
++
++static void meson_ir_set_mask(struct meson_ir *ir, unsigned int reg,
++			      u32 mask, u32 value)
++{
++	u32 data;
++
++	data = readl(ir->reg + reg);
++	data &= ~mask;
++	data |= (value & mask);
++	writel(data, ir->reg + reg);
++}
++
++static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
++{
++	struct meson_ir *ir = dev_id;
++	u32 duration;
++	DEFINE_IR_RAW_EVENT(rawir);
++
++	spin_lock(&ir->lock);
++
++	duration = readl(ir->reg + IR_DEC_REG1);
++	duration = (duration & REG1_TIME_IV_MASK) >> REG1_TIME_IV_SHIFT;
++	rawir.duration = US_TO_NS(duration * MESON_TRATE);
++
++	rawir.pulse = !!(readl(ir->reg + IR_DEC_STATUS) & STATUS_IR_DEC_IN);
++
++	ir_raw_event_store_with_filter(ir->rc, &rawir);
++	ir_raw_event_handle(ir->rc);
++
++	spin_unlock(&ir->lock);
++
++	return IRQ_HANDLED;
++}
++
++static int meson_ir_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct device_node *node = dev->of_node;
++	struct resource *res;
++	const char *map_name;
++	struct meson_ir *ir;
++	int ret;
++
++	ir = devm_kzalloc(dev, sizeof(struct meson_ir), GFP_KERNEL);
++	if (!ir)
++		return -ENOMEM;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	ir->reg = devm_ioremap_resource(dev, res);
++	if (IS_ERR(ir->reg)) {
++		dev_err(dev, "failed to map registers\n");
++		return PTR_ERR(ir->reg);
++	}
++
++	ir->irq = platform_get_irq(pdev, 0);
++	if (ir->irq < 0) {
++		dev_err(dev, "no irq resource\n");
++		return ir->irq;
++	}
++
++	ir->rc = rc_allocate_device();
++	if (!ir->rc) {
++		dev_err(dev, "failed to allocate rc device\n");
++		return -ENOMEM;
++	}
++
++	ir->rc->priv = ir;
++	ir->rc->input_name = DRIVER_NAME;
++	ir->rc->input_phys = DRIVER_NAME "/input0";
++	ir->rc->input_id.bustype = BUS_HOST;
++	map_name = of_get_property(node, "linux,rc-map-name", NULL);
++	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
++	ir->rc->dev.parent = dev;
++	ir->rc->driver_type = RC_DRIVER_IR_RAW;
++	ir->rc->allowed_protocols = RC_BIT_ALL;
++	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
++	ir->rc->timeout = MS_TO_NS(200);
++	ir->rc->driver_name = DRIVER_NAME;
++
++	spin_lock_init(&ir->lock);
++	platform_set_drvdata(pdev, ir);
++
++	ret = rc_register_device(ir->rc);
++	if (ret) {
++		dev_err(dev, "failed to register rc device\n");
++		goto out_free;
++	}
++
++	ret = devm_request_irq(dev, ir->irq, meson_ir_irq, 0, "ir-meson", ir);
++	if (ret) {
++		dev_err(dev, "failed to request irq\n");
++		goto out_unreg;
++	}
++
++	/* Reset the decoder */
++	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, REG1_RESET);
++	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, 0);
++	/* Set general operation mode */
++	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK, REG1_MODE_GENERAL);
++	/* Set rate */
++	meson_ir_set_mask(ir, IR_DEC_REG0, REG0_RATE_MASK, MESON_TRATE - 1);
++	/* IRQ on rising and falling edges */
++	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_IRQSEL_MASK,
++			  REG1_IRQSEL_RISE_FALL);
++	/* Enable the decoder */
++	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, REG1_ENABLE);
++
++	dev_info(dev, "receiver initialized\n");
++
++	return 0;
++out_unreg:
++	rc_unregister_device(ir->rc);
++	ir->rc = NULL;
++out_free:
++	rc_free_device(ir->rc);
++
++	return ret;
++}
++
++static int meson_ir_remove(struct platform_device *pdev)
++{
++	struct meson_ir *ir = platform_get_drvdata(pdev);
++	unsigned long flags;
++
++	/* Disable the decoder */
++	spin_lock_irqsave(&ir->lock, flags);
++	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, 0);
++	spin_unlock_irqrestore(&ir->lock, flags);
++
++	rc_unregister_device(ir->rc);
++
++	return 0;
++}
++
++static const struct of_device_id meson_ir_match[] = {
++	{ .compatible = "amlogic,meson6-ir" },
++	{ },
++};
++
++static struct platform_driver meson_ir_driver = {
++	.probe		= meson_ir_probe,
++	.remove		= meson_ir_remove,
++	.driver = {
++		.name		= DRIVER_NAME,
++		.of_match_table	= meson_ir_match,
++	},
++};
++
++module_platform_driver(meson_ir_driver);
++
++MODULE_DESCRIPTION("Amlogic Meson IR remote receiver driver");
++MODULE_AUTHOR("Beniamino Galvani <b.galvani@gmail.com>");
++MODULE_LICENSE("GPL v2");
 -- 
-1.7.9.5
+1.9.1
 
