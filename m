@@ -1,69 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60301 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751538AbaK2K1o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Nov 2014 05:27:44 -0500
-Received: from dlelxv90.itg.ti.com ([172.17.2.17])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id sATARhfQ032251
-	for <linux-media@vger.kernel.org>; Sat, 29 Nov 2014 04:27:43 -0600
-Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
-	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id sATARhXx004583
-	for <linux-media@vger.kernel.org>; Sat, 29 Nov 2014 04:27:43 -0600
-From: Nikhil Devshatwar <nikhil.nd@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <nikhil.nd@ti.com>
-Subject: [PATCH v3 1/4] media: ti-vpe: Use data offset for getting dma_addr for a plane
-Date: Sat, 29 Nov 2014 15:57:36 +0530
-Message-ID: <1417256860-20233-2-git-send-email-nikhil.nd@ti.com>
-In-Reply-To: <1417256860-20233-1-git-send-email-nikhil.nd@ti.com>
-References: <1417256860-20233-1-git-send-email-nikhil.nd@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:62920 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754023AbaKRLYJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 06:24:09 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 07/12] media: s5p-tv: use vb2_ops_wait_prepare/finish helper
+Date: Tue, 18 Nov 2014 11:23:36 +0000
+Message-Id: <1416309821-5426-8-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The data_offset in v4l2_planes structure will help us point to the start of
-data content for that particular plane. This may be useful when a single
-buffer contains the data for different planes e.g. Y planes of two fields in
-the same buffer. With this, user space can pass queue top field and
-bottom field with same dmafd and different data_offsets.
-
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
 ---
-Changes from v2:
- * Use data_offset only for OUTPUT stream buffers
+ drivers/media/platform/s5p-tv/mixer_video.c | 21 +++------------------
+ 1 file changed, 3 insertions(+), 18 deletions(-)
 
- drivers/media/platform/ti-vpe/vpe.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 9a081c2..ba26b83 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -496,6 +496,14 @@ struct vpe_mmr_adb {
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index b4d2696..72d4f2e 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -926,22 +926,6 @@ static void buf_queue(struct vb2_buffer *vb)
+ 	mxr_dbg(mdev, "queuing buffer\n");
+ }
  
- #define VPE_SET_MMR_ADB_HDR(ctx, hdr, regs, offset_a)	\
- 	VPDMA_SET_MMR_ADB_HDR(ctx->mmr_adb, vpe_mmr_adb, hdr, regs, offset_a)
-+
-+static inline dma_addr_t vb2_dma_addr_plus_data_offset(struct vb2_buffer *vb,
-+	unsigned int plane_no)
-+{
-+	return vb2_dma_contig_plane_dma_addr(vb, plane_no) +
-+		vb->v4l2_planes[plane_no].data_offset;
-+}
-+
- /*
-  * Set the headers for all of the address/data block structures.
-  */
-@@ -1043,7 +1051,7 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+-static void wait_lock(struct vb2_queue *vq)
+-{
+-	struct mxr_layer *layer = vb2_get_drv_priv(vq);
+-
+-	mxr_dbg(layer->mdev, "%s\n", __func__);
+-	mutex_lock(&layer->mutex);
+-}
+-
+-static void wait_unlock(struct vb2_queue *vq)
+-{
+-	struct mxr_layer *layer = vb2_get_drv_priv(vq);
+-
+-	mxr_dbg(layer->mdev, "%s\n", __func__);
+-	mutex_unlock(&layer->mutex);
+-}
+-
+ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct mxr_layer *layer = vb2_get_drv_priv(vq);
+@@ -1040,8 +1024,8 @@ static void stop_streaming(struct vb2_queue *vq)
+ static struct vb2_ops mxr_video_qops = {
+ 	.queue_setup = queue_setup,
+ 	.buf_queue = buf_queue,
+-	.wait_prepare = wait_unlock,
+-	.wait_finish = wait_lock,
++	.wait_prepare = vb2_ops_wait_prepare,
++	.wait_finish = vb2_ops_wait_finish,
+ 	.start_streaming = start_streaming,
+ 	.stop_streaming = stop_streaming,
+ };
+@@ -1122,6 +1106,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
+ 		.ops = &mxr_video_qops,
+ 		.min_buffers_needed = 1,
+ 		.mem_ops = &vb2_dma_contig_memops,
++		.lock = &layer->mutex,
+ 	};
  
- 		vpdma_fmt = fmt->vpdma_fmt[plane];
- 
--		dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
-+		dma_addr = vb2_dma_addr_plus_data_offset(vb, plane);
- 		if (!dma_addr) {
- 			vpe_err(ctx->dev,
- 				"acquiring input buffer(%d) dma_addr failed\n",
+ 	return layer;
 -- 
-1.7.9.5
+1.9.1
 
