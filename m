@@ -1,126 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:32791 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752335AbaKCU45 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 15:56:57 -0500
-Date: Mon, 3 Nov 2014 21:54:53 +0100
-From: Beniamino Galvani <b.galvani@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	Carlo Caione <carlo@caione.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Jerry Cao <jerry.cao@amlogic.com>,
-	Victor Wan <victor.wan@amlogic.com>
-Subject: Re: [PATCH 1/3] media: rc: add driver for Amlogic Meson IR remote
- receiver
-Message-ID: <20141103205453.GA18529@gmail.com>
-References: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
- <1413144115-23188-2-git-send-email-b.galvani@gmail.com>
- <20141103111410.6b1147a0.m.chehab@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141103111410.6b1147a0.m.chehab@samsung.com>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:56414 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754252AbaKRLYL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 06:24:11 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>
+Subject: [PATCH 09/12] media: s5p-mfc: use vb2_ops_wait_prepare/finish helper
+Date: Tue, 18 Nov 2014 11:23:38 +0000
+Message-Id: <1416309821-5426-10-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 03, 2014 at 11:14:10AM -0200, Mauro Carvalho Chehab wrote:
-> Em Sun, 12 Oct 2014 22:01:53 +0200
-> Beniamino Galvani <b.galvani@gmail.com> escreveu:
-> 
-> > Amlogic Meson SoCs include a infrared remote control receiver that can
-> > operate in two modes: in "NEC" mode the hardware can decode frames
-> > using the NEC IR protocol, while in "general" mode the receiver simply
-> > reports the duration of pulses and spaces for software decoding.
-> > 
-> > This is a driver for the IR receiver that uses software decoding of
-> > received frames.
-> 
-> There are a few checkpatch warnings there:
-> 
-> WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
-> #71: 
-> new file mode 100644
-> 
-> WARNING: Missing a blank line after declarations
-> #151: FILE: drivers/media/rc/meson-ir.c:76:
-> +	u32 duration;
-> +	DEFINE_IR_RAW_EVENT(rawir);
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Kamil Debski <k.debski@samsung.com>
+Cc: Jeongtae Park <jtp.park@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c     |  1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 20 ++------------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 20 ++------------------
+ 3 files changed, 5 insertions(+), 36 deletions(-)
 
-Here the macro is actually a variable definition and so it makes sense
-to group it with the other definitions without blank lines. I checked
-other rc drivers and many of them have a similar pattern. Could we
-consider the warning as a false positive?
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 03204fd..52f65e9 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -810,6 +810,7 @@ static int s5p_mfc_open(struct file *file)
+ 	q = &ctx->vq_dst;
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+ 	q->drv_priv = &ctx->fh;
++	q->lock = &dev->mfc_mutex;
+ 	if (vdev == dev->vfd_dec) {
+ 		q->io_modes = VB2_MMAP;
+ 		q->ops = get_dec_queue_ops();
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 74bcec8..78b3e0e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -946,22 +946,6 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 	return 0;
+ }
+ 
+-static void s5p_mfc_unlock(struct vb2_queue *q)
+-{
+-	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
+-	struct s5p_mfc_dev *dev = ctx->dev;
+-
+-	mutex_unlock(&dev->mfc_mutex);
+-}
+-
+-static void s5p_mfc_lock(struct vb2_queue *q)
+-{
+-	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
+-	struct s5p_mfc_dev *dev = ctx->dev;
+-
+-	mutex_lock(&dev->mfc_mutex);
+-}
+-
+ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *vq = vb->vb2_queue;
+@@ -1109,8 +1093,8 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
+ 
+ static struct vb2_ops s5p_mfc_dec_qops = {
+ 	.queue_setup		= s5p_mfc_queue_setup,
+-	.wait_prepare		= s5p_mfc_unlock,
+-	.wait_finish		= s5p_mfc_lock,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ 	.buf_init		= s5p_mfc_buf_init,
+ 	.start_streaming	= s5p_mfc_start_streaming,
+ 	.stop_streaming		= s5p_mfc_stop_streaming,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index e7240cb..ffa9c1d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1869,22 +1869,6 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 	return 0;
+ }
+ 
+-static void s5p_mfc_unlock(struct vb2_queue *q)
+-{
+-	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
+-	struct s5p_mfc_dev *dev = ctx->dev;
+-
+-	mutex_unlock(&dev->mfc_mutex);
+-}
+-
+-static void s5p_mfc_lock(struct vb2_queue *q)
+-{
+-	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
+-	struct s5p_mfc_dev *dev = ctx->dev;
+-
+-	mutex_lock(&dev->mfc_mutex);
+-}
+-
+ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *vq = vb->vb2_queue;
+@@ -2054,8 +2038,8 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
+ 
+ static struct vb2_ops s5p_mfc_enc_qops = {
+ 	.queue_setup		= s5p_mfc_queue_setup,
+-	.wait_prepare		= s5p_mfc_unlock,
+-	.wait_finish		= s5p_mfc_lock,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ 	.buf_init		= s5p_mfc_buf_init,
+ 	.buf_prepare		= s5p_mfc_buf_prepare,
+ 	.start_streaming	= s5p_mfc_start_streaming,
+-- 
+1.9.1
 
-> 
-> WARNING: DT compatible string "amlogic,meson6-ir" appears un-documented -- check ./Documentation/devicetree/bindings/
-> #272: FILE: drivers/media/rc/meson-ir.c:197:
-> +	{ .compatible = "amlogic,meson6-ir" },
-> 
-> total: 0 errors, 3 warnings, 238 lines checked
-> 
-> patches/lmml_26418_1_3_media_rc_add_driver_for_amlogic_meson_ir_remote_receiver.patch has style problems, please review.
-> 
-> I'm seeing that the DT patches are there, after this one. The best
-> would be to add them before in the series.
-> 
-> Please add also an entry at the MAINTAINERS file.
-
-I'll reorder the patches and add the maintainer entry.
-
-> 
-> 
-> > 
-> > Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
-> > ---
-> >  drivers/media/rc/Kconfig    |  11 +++
-> >  drivers/media/rc/Makefile   |   1 +
-> >  drivers/media/rc/meson-ir.c | 214 ++++++++++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 226 insertions(+)
-> >  create mode 100644 drivers/media/rc/meson-ir.c
-> > 
-> > diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> > index 8ce0810..2d742e2 100644
-> > --- a/drivers/media/rc/Kconfig
-> > +++ b/drivers/media/rc/Kconfig
-> > @@ -223,6 +223,17 @@ config IR_FINTEK
-> >  	   To compile this driver as a module, choose M here: the
-> >  	   module will be called fintek-cir.
-> >  
-> > +config IR_MESON
-> > +	tristate "Amlogic Meson IR remote receiver"
-> > +	depends on RC_CORE
-> > +	depends on ARCH_MESON
-> 
-> Please add COMPILE_TEST too, as we want to be able to compile it on
-> x86 and other archs, in order to check if the driver builds fine and
-> to enable the static analyzers to look into this code.
-
-Ok.
-
-[...]
-
-> > +
-> > +	ir->rc->priv = ir;
-> > +	ir->rc->input_name = DRIVER_NAME;
-> > +	ir->rc->input_phys = DRIVER_NAME "/input0";
-> > +	ir->rc->input_id.bustype = BUS_HOST;
-> 
-> > +	ir->rc->input_id.vendor = 0x0001;
-> > +	ir->rc->input_id.product = 0x0001;
-> > +	ir->rc->input_id.version = 0x0100;
-> 
-> I don't like very much the idea of filling it like that. From where those
-> numbers came? Could you add a define for them somewhere?
-
-I've seen that other drivers as gpio-ir-recv and sunxi-cir assign
-those numbers to the fields of input_id but I couldn't find a
-documentation of the meaning. If the assignments are not needed I will
-drop them in the next version.
-
-Beniamino
