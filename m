@@ -1,78 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:42341 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755366AbaKEPBc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 10:01:32 -0500
-Date: Wed, 5 Nov 2014 16:01:28 +0100
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 02/15] [media] v4l: Update subdev-formats doc with new
- MEDIA_BUS_FMT values
-Message-ID: <20141105160128.0e3599be@bbrezillon>
-In-Reply-To: <20141105145726.GR3136@valkosipuli.retiisi.org.uk>
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1415094910-15899-3-git-send-email-boris.brezillon@free-electrons.com>
-	<20141105145726.GR3136@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:52213 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932308AbaKRUZa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 15:25:30 -0500
+From: Beniamino Galvani <b.galvani@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, Carlo Caione <carlo@caione.org>,
+	Sean Young <sean@mess.org>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Jerry Cao <jerry.cao@amlogic.com>,
+	Victor Wan <victor.wan@amlogic.com>,
+	Beniamino Galvani <b.galvani@gmail.com>
+Subject: [PATCH v3 1/3] media: rc: meson: document device tree bindings
+Date: Tue, 18 Nov 2014 21:22:33 +0100
+Message-Id: <1416342155-26820-2-git-send-email-b.galvani@gmail.com>
+In-Reply-To: <1416342155-26820-1-git-send-email-b.galvani@gmail.com>
+References: <1416342155-26820-1-git-send-email-b.galvani@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This adds binding documentation for the infrared remote control
+receiver available in Amlogic Meson SoCs.
 
-On Wed, 5 Nov 2014 16:57:27 +0200
-Sakari Ailus <sakari.ailus@iki.fi> wrote:
+Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
+---
+ Documentation/devicetree/bindings/media/meson-ir.txt | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/meson-ir.txt
 
-> Hi Boris,
-> 
-> On Tue, Nov 04, 2014 at 10:54:57AM +0100, Boris Brezillon wrote:
-> > In order to have subsytem agnostic media bus format definitions we've
-> > moved media bus definition to include/uapi/linux/media-bus-format.h and
-> > prefixed enum values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
-> > 
-> > Update the v4l documentation accordingly.
-> > 
-> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-> > ---
-> >  Documentation/DocBook/media/Makefile               |   2 +-
-> >  Documentation/DocBook/media/v4l/subdev-formats.xml | 308 ++++++++++-----------
-> >  include/uapi/linux/v4l2-mediabus.h                 |   2 +
-> >  3 files changed, 157 insertions(+), 155 deletions(-)
-> > 
-> 
-> ...
-> 
-> > diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-> > index f471064..9fbe891 100644
-> > --- a/include/uapi/linux/v4l2-mediabus.h
-> > +++ b/include/uapi/linux/v4l2-mediabus.h
-> > @@ -32,6 +32,8 @@ enum v4l2_mbus_pixelcode {
-> >  	MEDIA_BUS_TO_V4L2_MBUS(RGB888_2X12_BE),
-> >  	MEDIA_BUS_TO_V4L2_MBUS(RGB888_2X12_LE),
-> >  	MEDIA_BUS_TO_V4L2_MBUS(ARGB8888_1X32),
-> > +	MEDIA_BUS_TO_V4L2_MBUS(RGB444_1X12),
-> > +	MEDIA_BUS_TO_V4L2_MBUS(RGB565_1X16),
-> 
-> Shouldn't this to go to a separate patch?
-
-Absolutely, some changes from a different patch have slipped into this
-one.
-
-I'll fix that.
-
-Thanks,
-
-Boris
-
+diff --git a/Documentation/devicetree/bindings/media/meson-ir.txt b/Documentation/devicetree/bindings/media/meson-ir.txt
+new file mode 100644
+index 0000000..407848e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/meson-ir.txt
+@@ -0,0 +1,14 @@
++* Amlogic Meson IR remote control receiver
++
++Required properties:
++ - compatible	: should be "amlogic,meson6-ir"
++ - reg		: physical base address and length of the device registers
++ - interrupts	: a single specifier for the interrupt from the device
++
++Example:
++
++	ir-receiver@c8100480 {
++		compatible= "amlogic,meson6-ir";
++		reg = <0xc8100480 0x20>;
++		interrupts = <0 15 1>;
++	};
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+1.9.1
+
