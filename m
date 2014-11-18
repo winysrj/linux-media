@@ -1,84 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53955 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbaKZW6r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 17:58:47 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2 11/11] media: usb: uvc: use vb2_ops_wait_prepare/finish helper
-Date: Thu, 27 Nov 2014 00:59:12 +0200
-Message-ID: <2698849.pKqLKtTreZ@avalon>
-In-Reply-To: <1417041754-8714-12-git-send-email-prabhakar.csengg@gmail.com>
-References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com> <1417041754-8714-12-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mout.gmx.net ([212.227.17.22]:61058 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754127AbaKRVv6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 16:51:58 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Message-ID: <trinity-716c8cff-2dc6-4cd4-8ba4-9553c845ae35-1416347515868@3capp-gmx-bs58>
+From: "Peter Seiderer" <ps.report@gmx.net>
+To: "Fabio Estevam" <festevam@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Using the coda driver with Gstreamer
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 18 Nov 2014 22:51:55 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hello Fabio,
 
-Thank you for the patch.
+maybe trying to increase the following kernel option helps (for the v4l2 kernel
+driver failure message, not for the followup gstraemer errors):
 
-On Wednesday 26 November 2014 22:42:34 Lad, Prabhakar wrote:
-> This patch drops driver specific wait_prepare() and
-> wait_finish() callbacks from vb2_ops and instead uses
-> the the helpers vb2_ops_wait_prepare/finish() provided
-> by the vb2 core, the lock member of the queue needs
-> to be initalized to a mutex so that vb2 helpers
-> vb2_ops_wait_prepare/finish() can make use of it.
+CONFIG_CMA_SIZE_MBYTES=256
 
-The queue lock field isn't initialized by the uvcvideo driver, so you can't 
-use vb2_ops_wait_prepare|finish().
-
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/usb/uvc/uvc_queue.c | 18 ++----------------
->  1 file changed, 2 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_queue.c
-> b/drivers/media/usb/uvc/uvc_queue.c index cc96072..64147b5 100644
-> --- a/drivers/media/usb/uvc/uvc_queue.c
-> +++ b/drivers/media/usb/uvc/uvc_queue.c
-> @@ -143,20 +143,6 @@ static void uvc_buffer_finish(struct vb2_buffer *vb)
->  		uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
->  }
-> 
-> -static void uvc_wait_prepare(struct vb2_queue *vq)
-> -{
-> -	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
-> -
-> -	mutex_unlock(&queue->mutex);
-> -}
-> -
-> -static void uvc_wait_finish(struct vb2_queue *vq)
-> -{
-> -	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
-> -
-> -	mutex_lock(&queue->mutex);
-> -}
-> -
->  static int uvc_start_streaming(struct vb2_queue *vq, unsigned int count)
->  {
->  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
-> @@ -195,8 +181,8 @@ static struct vb2_ops uvc_queue_qops = {
->  	.buf_prepare = uvc_buffer_prepare,
->  	.buf_queue = uvc_buffer_queue,
->  	.buf_finish = uvc_buffer_finish,
-> -	.wait_prepare = uvc_wait_prepare,
-> -	.wait_finish = uvc_wait_finish,
-> +	.wait_prepare = vb2_ops_wait_prepare,
-> +	.wait_finish = vb2_ops_wait_finish,
->  	.start_streaming = uvc_start_streaming,
->  	.stop_streaming = uvc_stop_streaming,
->  };
-
--- 
 Regards,
+Peter
+---
+Sorry for loosing the CC list, reading the mailing list by web browser...
 
-Laurent Pinchart
-
+> Hi,
+>
+> I am running linux-next 20141117 on a mx6qsabresd board and trying to
+> play a mp4 video via Gstreamer 1.4.1, but I am getting the following
+> error:
+>
+> root@imx6qsabresd:/mnt/nfs# gst-play-1.0 sample.mp4
+> Volume: 100%
+> Now playing /mnt/nfs/sample.mp4
+> [  506.983809] ------------[ cut here ]------------
+> [  506.988522] WARNING: CPU: 0 PID: 954 at
+> drivers/media/v4l2-core/videobuf2-core.c:1781
+> vb2_start_streaming+0xc4/0x160()
+> [  506.999301] Modules linked in:
+> [  507.002489] CPU: 0 PID: 954 Comm: multiqueue0:src Tainted: G
+> W      3.18.0-rc4-next-20141117-dirty #2044
+> [  507.012660] Backtrace:
+> [  507.015253] [<80011f44>] (dump_backtrace) from [<800120e0>]
+> (show_stack+0x18/0x1c)
+> [  507.022891]  r6:000006f5 r5:00000000 r4:00000000 r3:00000000
+> [  507.028707] [<800120c8>] (show_stack) from [<806b730c>]
+> (dump_stack+0x88/0xa4)
+> [  507.035954] [<806b7284>] (dump_stack) from [<8002a4dc>]
+> (warn_slowpath_common+0x80/0xbc)
+> [  507.044135]  r5:804a80a8 r4:00000000
+> [  507.047802] [<8002a45c>] (warn_slowpath_common) from [<8002a53c>]
+> (warn_slowpath_null+0x24/0x2c)
+> [  507.056605]  r8:00000000 r7:bd71c640 r6:bd614ef0 r5:bd614ee0 r4:ffffffea
+> [  507.063470] [<8002a518>] (warn_slowpath_null) from [<804a80a8>]
+> (vb2_start_streaming+0xc4/0x160)
+> [  507.072293] [<804a7fe4>] (vb2_start_streaming) from [<804a9efc>]
+> (vb2_internal_streamon+0xfc/0x158)
+> [  507.081385]  r7:bd71c640 r6:bd6c29ec r5:bd614c00 r4:bd614de0
+> [  507.087133] [<804a9e00>] (vb2_internal_streamon) from [<804ab0a8>]
+> (vb2_streamon+0x34/0x58)
+> [  507.095567]  r5:bd614c00 r4:00000002
+> [  507.099231] [<804ab074>] (vb2_streamon) from [<804a3b10>]
+> (v4l2_m2m_streamon+0x28/0x40)
+> [  507.107287] [<804a3ae8>] (v4l2_m2m_streamon) from [<804a3b40>]
+> (v4l2_m2m_ioctl_streamon+0x18/0x1c)
+> [  507.116292]  r5:bd9083c8 r4:40045612
+> [  507.120016] [<804a3b28>] (v4l2_m2m_ioctl_streamon) from
+> [<80492e48>] (v4l_streamon+0x20/0x24)
+> [  507.128693] [<80492e28>] (v4l_streamon) from [<80494dc4>]
+> (__video_do_ioctl+0x24c/0x2e0)
+> [  507.136826] [<80494b78>] (__video_do_ioctl) from [<804953a8>]
+> (video_usercopy+0x118/0x480)
+> [  507.145133]  r10:00000001 r9:bd6cbe10 r8:74a1164c r7:00000000
+> r6:00000000 r5:80494b78
+> [  507.153073]  r4:40045612
+> [  507.155632] [<80495290>] (video_usercopy) from [<80495724>]
+> (video_ioctl2+0x14/0x1c)
+> [  507.163408]  r10:bd8fccb8 r9:74a1164c r8:bd909064 r7:74a1164c
+> r6:40045612 r5:bd71c640
+> [  507.171343]  r4:bd9083c8
+> [  507.173902] [<80495710>] (video_ioctl2) from [<804918f8>]
+> (v4l2_ioctl+0x104/0x14c)
+> [  507.181512] [<804917f4>] (v4l2_ioctl) from [<800fc944>]
+> (do_vfs_ioctl+0x80/0x634)
+> [  507.189019]  r8:00000009 r7:74a1164c r6:00000009 r5:800fcf34
+> r4:bd71c640 r3:804917f4
+> [  507.196870] [<800fc8c4>] (do_vfs_ioctl) from [<800fcf34>]
+> (SyS_ioctl+0x3c/0x60)
+> [  507.204203]  r10:00000000 r9:bd6ca000 r8:00000009 r7:74a1164c
+> r6:40045612 r5:bd71c640
+> [  507.212159]  r4:bd71c641
+> [  507.214722] [<800fcef8>] (SyS_ioctl) from [<8000ec60>]
+> (ret_fast_syscall+0x0/0x48)
+> [  507.222311]  r8:8000ee24 r7:00000036 r6:73c183a0 r5:754248e0
+> r4:00000000 r3:00000000
+> [  507.230168] ---[ end trace c3703a604edaf0d0 ]---
+> ERROR Failed to connect to X display server for file:///mnt/nfs/sample.mp4
+> ERROR debug information:
+> /code/yocto/dizzy/build/tmp/work/cortexa9hf-vfp-neon-mx6qdl-poky-linux-gnueabi/gstreamer1.0-plugins-bad/1.4.1-r0/gst-plugins-bad-1.4.1/ext/gl/gstglimagesink.c(453):
+> _ensure_gl_setup ():
+> /GstPlayBin:playbin/GstPlaySink:playsink/GstBin:vbin/GstGLImageSink:glimagesink0
+> GLib (gthread-posix.c): Unexpected error from C library during
+> 'pthread_mutex_lock': Invalid argument.  Aborting.
+> Aborted
+>
+> Any suggestions?
+>
+> Thanks,
+>
+> Fabio Estevam
+>
