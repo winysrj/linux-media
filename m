@@ -1,51 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:42948 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753673AbaKRJlX (ORCPT
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:51488 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752212AbaKRLYC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 04:41:23 -0500
-Received: by mail-la0-f41.google.com with SMTP id gf13so7927836lab.0
-        for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 01:41:21 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1415623771-29634-9-git-send-email-hverkuil@xs4all.nl>
-References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl> <1415623771-29634-9-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Tue, 18 Nov 2014 17:34:25 +0800
-Message-ID: <CAMm-=zC2OSgJoLiELtyqEGzt+LwOLfirvkk9GgE3Q24y2WXafg@mail.gmail.com>
-Subject: Re: [RFCv6 PATCH 08/16] vb2-vmalloc: add support for dmabuf exports
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hansverk@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 18 Nov 2014 06:24:02 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Kukjin Kim <kgene.kim@samsung.com>
+Subject: [PATCH 02/12] media: ti-vpe: use vb2_ops_wait_prepare/finish helper
+Date: Tue, 18 Nov 2014 11:23:31 +0000
+Message-Id: <1416309821-5426-3-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 10, 2014 at 8:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hansverk@cisco.com>
->
-> Add support for DMABUF exporting to the vb2-vmalloc implementation.
->
-> All memory models now have support for both importing and exporting of DMABUFs.
-> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-vmalloc.c | 174 ++++++++++++++++++++++++++++
->  1 file changed, 174 insertions(+)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> index bba2460..dfbb6d5 100644
-> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> @@ -31,6 +31,9 @@ struct vb2_vmalloc_buf {
->         atomic_t                        refcount;
->         struct vb2_vmarea_handler       handler;
->         struct dma_buf                  *dbuf;
-> +
-> +       /* DMABUF related */
-> +       struct dma_buf_attachment       *db_attach;
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-Unused?
-
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 9a081c2..d5d745d 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1913,30 +1913,19 @@ static void vpe_buf_queue(struct vb2_buffer *vb)
+ 	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
+ }
+ 
+-static void vpe_wait_prepare(struct vb2_queue *q)
+-{
+-	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
+-	vpe_unlock(ctx);
+-}
+-
+-static void vpe_wait_finish(struct vb2_queue *q)
+-{
+-	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
+-	vpe_lock(ctx);
+-}
+-
+ static struct vb2_ops vpe_qops = {
+ 	.queue_setup	 = vpe_queue_setup,
+ 	.buf_prepare	 = vpe_buf_prepare,
+ 	.buf_queue	 = vpe_buf_queue,
+-	.wait_prepare	 = vpe_wait_prepare,
+-	.wait_finish	 = vpe_wait_finish,
++	.wait_prepare	 = vb2_ops_wait_prepare,
++	.wait_finish	 = vb2_ops_wait_finish,
+ };
+ 
+ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 		      struct vb2_queue *dst_vq)
+ {
+ 	struct vpe_ctx *ctx = priv;
++	struct vpe_dev *dev = ctx->dev;
+ 	int ret;
+ 
+ 	memset(src_vq, 0, sizeof(*src_vq));
+@@ -1947,6 +1936,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->ops = &vpe_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	src_vq->lock = &dev->dev_mutex;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -1960,6 +1950,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->ops = &vpe_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	dst_vq->lock = &dev->dev_mutex;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
 -- 
-Best regards,
-Pawel Osciak
+1.9.1
+
