@@ -1,103 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:61402 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752868AbaKGWtF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Nov 2014 17:49:05 -0500
-Date: Fri, 7 Nov 2014 23:49:00 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: uvcvideo: Fix buffer completion size check
-In-Reply-To: <2530457.fbzKgqC21y@avalon>
-Message-ID: <Pine.LNX.4.64.1411072338250.4252@axis700.grange>
-References: <1412113371-11485-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <2530457.fbzKgqC21y@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from down.free-electrons.com ([37.187.137.238]:58352 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754075AbaKRNqZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 08:46:25 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@gmail.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v3 1/3] drm: add bus_formats and nbus_formats fields to drm_display_info
+Date: Tue, 18 Nov 2014 14:46:18 +0100
+Message-Id: <1416318380-20122-2-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Add bus_formats and nbus_formats fields and
+drm_display_info_set_bus_formats helper function to specify the bus
+formats supported by a given display.
 
-On Thu, 2 Oct 2014, Laurent Pinchart wrote:
+This information can be used by display controller drivers to configure
+the output interface appropriately (i.e. RGB565, RGB666 or RGB888 on raw
+RGB or LVDS busses).
 
-> Hi Guennadi,
-> 
-> Ping ?
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+---
+ drivers/gpu/drm/drm_crtc.c | 30 ++++++++++++++++++++++++++++++
+ include/drm/drm_crtc.h     |  7 +++++++
+ 2 files changed, 37 insertions(+)
 
-Uhm, yes, that's bad. 1 month and a week. Sorry. I'll try to test this on 
-Monday.
+diff --git a/drivers/gpu/drm/drm_crtc.c b/drivers/gpu/drm/drm_crtc.c
+index e79c8d3..17e3acf 100644
+--- a/drivers/gpu/drm/drm_crtc.c
++++ b/drivers/gpu/drm/drm_crtc.c
+@@ -763,6 +763,36 @@ static void drm_mode_remove(struct drm_connector *connector,
+ 	drm_mode_destroy(connector->dev, mode);
+ }
+ 
++/*
++ * drm_display_info_set_bus_formats - set the supported bus formats
++ * @info: display info to store bus formats in
++ * @fmts: array containing the supported bus formats
++ * @nfmts: the number of entries in the fmts array
++ *
++ * Store the suppported bus formats in display info structure.
++ */
++int drm_display_info_set_bus_formats(struct drm_display_info *info, const u32 *fmts,
++				     unsigned int num_fmts)
++{
++	u32 *formats = NULL;
++
++	if (!fmts && num_fmts)
++		return -EINVAL;
++
++	if (fmts && num_fmts) {
++		formats = kmemdup(fmts, sizeof(*fmts) * num_fmts, GFP_KERNEL);
++		if (!formats)
++			return -ENOMEM;
++	}
++
++	kfree(info->bus_formats);
++	info->bus_formats = formats;
++	info->num_bus_formats = num_fmts;
++
++	return 0;
++}
++EXPORT_SYMBOL(drm_display_info_set_bus_formats);
++
+ /**
+  * drm_connector_get_cmdline_mode - reads the user's cmdline mode
+  * @connector: connector to quwery
+diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
+index c40070a..2e0a3e8 100644
+--- a/include/drm/drm_crtc.h
++++ b/include/drm/drm_crtc.h
+@@ -31,6 +31,7 @@
+ #include <linux/idr.h>
+ #include <linux/fb.h>
+ #include <linux/hdmi.h>
++#include <linux/media-bus-format.h>
+ #include <uapi/drm/drm_mode.h>
+ #include <uapi/drm/drm_fourcc.h>
+ #include <drm/drm_modeset_lock.h>
+@@ -130,6 +131,9 @@ struct drm_display_info {
+ 	enum subpixel_order subpixel_order;
+ 	u32 color_formats;
+ 
++	const u32 *bus_formats;
++	int num_bus_formats;
++
+ 	/* Mask of supported hdmi deep color modes */
+ 	u8 edid_hdmi_dc_modes;
+ 
+@@ -982,6 +986,9 @@ extern int drm_mode_connector_set_path_property(struct drm_connector *connector,
+ extern int drm_mode_connector_update_edid_property(struct drm_connector *connector,
+ 						struct edid *edid);
+ 
++extern int drm_display_info_set_bus_formats(struct drm_display_info *info,
++					    const u32 *fmts, unsigned int nfmts);
++
+ static inline bool drm_property_type_is(struct drm_property *property,
+ 		uint32_t type)
+ {
+-- 
+1.9.1
 
-Thanks
-Guennadi
-
-> On Wednesday 01 October 2014 00:42:51 Laurent Pinchart wrote:
-> > Commit e93e7fd9f5a3fffec7792dbcc4c3574653effda7 ("v4l2: uvcvideo: Allow
-> > using larger buffers") reworked the buffer size sanity check at buffer
-> > completion time to use the frame size instead of the allocated buffer
-> > size. However, it introduced two bugs in doing so:
-> > 
-> > - it assigned the allocated buffer size to the frame_size field, instead
-> >   of assigning the correct frame size
-> > 
-> > - it performed the assignment in the S_FMT handler, resulting in the
-> >   frame_size field being uninitialized if the userspace application
-> >   doesn't call S_FMT.
-> > 
-> > Fix both issues by removing the frame_size field and validating the
-> > buffer size against the UVC video control dwMaxFrameSize.
-> > 
-> > Fixes: e93e7fd9f5a3 ("v4l2: uvcvideo: Allow using larger buffers")
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> >  drivers/media/usb/uvc/uvc_v4l2.c  | 1 -
-> >  drivers/media/usb/uvc/uvc_video.c | 2 +-
-> >  drivers/media/usb/uvc/uvcvideo.h  | 1 -
-> >  3 files changed, 1 insertion(+), 3 deletions(-)
-> > 
-> > Guennadi, could you please test and ack this ASAP, as the bug needs to be
-> > fixed for v3.18-rc1 if possible ?
-> > 
-> > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> > b/drivers/media/usb/uvc/uvc_v4l2.c index f205934..f33a067 100644
-> > --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> > @@ -318,7 +318,6 @@ static int uvc_v4l2_set_format(struct uvc_streaming
-> > *stream, stream->ctrl = probe;
-> >  	stream->cur_format = format;
-> >  	stream->cur_frame = frame;
-> > -	stream->frame_size = fmt->fmt.pix.sizeimage;
-> > 
-> >  done:
-> >  	mutex_unlock(&stream->mutex);
-> > diff --git a/drivers/media/usb/uvc/uvc_video.c
-> > b/drivers/media/usb/uvc/uvc_video.c index 9ace520..df81b9c 100644
-> > --- a/drivers/media/usb/uvc/uvc_video.c
-> > +++ b/drivers/media/usb/uvc/uvc_video.c
-> > @@ -1143,7 +1143,7 @@ static int uvc_video_encode_data(struct uvc_streaming
-> > *stream, static void uvc_video_validate_buffer(const struct uvc_streaming
-> > *stream, struct uvc_buffer *buf)
-> >  {
-> > -	if (stream->frame_size != buf->bytesused &&
-> > +	if (stream->ctrl.dwMaxVideoFrameSize != buf->bytesused &&
-> >  	    !(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
-> >  		buf->error = 1;
-> >  }
-> > diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> > b/drivers/media/usb/uvc/uvcvideo.h index f585c08..897cfd8 100644
-> > --- a/drivers/media/usb/uvc/uvcvideo.h
-> > +++ b/drivers/media/usb/uvc/uvcvideo.h
-> > @@ -458,7 +458,6 @@ struct uvc_streaming {
-> >  	struct uvc_format *def_format;
-> >  	struct uvc_format *cur_format;
-> >  	struct uvc_frame *cur_frame;
-> > -	size_t frame_size;
-> > 
-> >  	/* Protect access to ctrl, cur_format, cur_frame and hardware video
-> >  	 * probe control.
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
