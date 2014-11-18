@@ -1,44 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:44023 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755005AbaKPLlt (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46536 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752432AbaKRFoD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Nov 2014 06:41:49 -0500
-Received: from [192.168.1.22] (92-244-23-216.customers.ownit.se [92.244.23.216])
-	(Authenticated sender: ed8153)
-	by smtp.bredband2.com (Postfix) with ESMTPA id 79D38981E2
-	for <linux-media@vger.kernel.org>; Sun, 16 Nov 2014 12:36:37 +0100 (CET)
-Message-ID: <54688C45.1080507@southpole.se>
-Date: Sun, 16 Nov 2014 12:36:37 +0100
-From: Benjamin Larsson <benjamin@southpole.se>
-MIME-Version: 1.0
+	Tue, 18 Nov 2014 00:44:03 -0500
+Received: from lanttu.localdomain (unknown [192.168.15.166])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 1068D60093
+	for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 07:44:00 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/8] rtl2832: implement PIP mode
-References: <1415766190-24482-1-git-send-email-crope@iki.fi>	<1415766190-24482-3-git-send-email-crope@iki.fi>	<20141114173440.427324a8@recife.lan>	<54669210.1070101@iki.fi> <20141116082518.2144d9af@recife.lan>
-In-Reply-To: <20141116082518.2144d9af@recife.lan>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [REVIEW PATCH v2 03/11] smiapp-pll: include linux/device.h in smiapp-pll.c, not in smiapp-pll.h
+Date: Tue, 18 Nov 2014 07:43:38 +0200
+Message-Id: <1416289426-804-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1416289426-804-1-git-send-email-sakari.ailus@iki.fi>
+References: <1416289426-804-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/16/2014 11:25 AM, Mauro Carvalho Chehab wrote:
->
-> [...]
-> What demod(s) are exposed to userspace? both or just demod#1?
->
-> If both are exposed, how userspace knows that demod#0 should not be
-> used?
->
-> Regards,
-> Mauro
->
+struct device has a forward declaration in the header already. The header is
+only needed in the .c file.
 
-Currently both demods are exposed to userspace. While it is nice to have 
-both I suggest that if a NM8847x demod is activated only expose that 
-demod. That would remove the hack in master and would make it possible 
-to faster move the NM8847x demods out of staging. The main reason for 
-this hardware is the DVB-C and DVB-T2 support. Lets focus on getting 
-that in an easy obtainable way.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/i2c/smiapp-pll.c |    1 +
+ drivers/media/i2c/smiapp-pll.h |    2 --
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-MvH
-Benjamin Larsson
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index 2b84d09..e3348db 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -16,6 +16,7 @@
+  * General Public License for more details.
+  */
+ 
++#include <linux/device.h>
+ #include <linux/gcd.h>
+ #include <linux/lcm.h>
+ #include <linux/module.h>
+diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
+index 77f7ff2f..b98d143 100644
+--- a/drivers/media/i2c/smiapp-pll.h
++++ b/drivers/media/i2c/smiapp-pll.h
+@@ -19,8 +19,6 @@
+ #ifndef SMIAPP_PLL_H
+ #define SMIAPP_PLL_H
+ 
+-#include <linux/device.h>
+-
+ /* CSI-2 or CCP-2 */
+ #define SMIAPP_PLL_BUS_TYPE_CSI2				0x00
+ #define SMIAPP_PLL_BUS_TYPE_PARALLEL				0x01
+-- 
+1.7.10.4
+
