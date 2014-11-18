@@ -1,83 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:41037 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751418AbaKTMiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 07:38:51 -0500
-Date: Thu, 20 Nov 2014 12:38:48 +0000
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Andy Walls <awalls.cx18@gmail.com>,
-	Jarod Wilson <jwilson@redhat.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
-	linux-media@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: staging: media: lirc: lirc_zilog.c: replace custom print macros
- with dev_* and pr_*
-Message-ID: <20141120123848.GA2031@gofer.mess.org>
-References: <20141031130600.GA16310@mwanda>
- <20141031142644.GA4166@localhost.localdomain>
- <20141031143541.GM6890@mwanda>
- <20141106124629.GA898@gofer.mess.org>
- <20141106110549.1812acc7@recife.lan>
- <20141106132113.GA1367@gofer.mess.org>
- <697D038C-4BD9-4113-8E7E-B89BACF09AC2@gmail.com>
- <6BB6C08A-32A2-4A37-B6F7-332556C9626E@gmail.com>
- <20141109213517.GA1349@gofer.mess.org>
- <20141117125909.2729440b@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141117125909.2729440b@recife.lan>
+Received: from mail-wg0-f53.google.com ([74.125.82.53]:38688 "EHLO
+	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754262AbaKRLYN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 06:24:13 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 10/12] media: vivid: use vb2_ops_wait_prepare/finish helper
+Date: Tue, 18 Nov 2014 11:23:39 +0000
+Message-Id: <1416309821-5426-11-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 17, 2014 at 12:59:09PM -0200, Mauro Carvalho Chehab wrote:
-> Em Sun, 9 Nov 2014 21:35:17 +0000
-> Sean Young <sean@mess.org> escreveu:
-> 
-> > On Thu, Nov 06, 2014 at 08:56:47AM -0500, Andy Walls wrote:
-> > > On November 6, 2014 8:54:28 AM EST, Andy Walls <awalls.cx18@gmail.com> wrote:
-> > > >Sean,
-> > > >
-> > > >Ir-kbd-i2c was never intended for Tx.
-> > > >
-> > > >You can transmit *short* arbitrary pulse-space streams with the zilog
-> > > >chip, by feeding it a parameter block that has the pulse timing
-> > > >information and then subsequently has been obfuscated.  The firmware
-> > > >file that LIRC uses in userspace is full of predefined versions of
-> > > >these things for RC5 and NEC IIRC.  This LIRC firmware file also holds
-> > > >the (de)obfuscation key.
-> > > >
-> > > >I've got a bunch of old notes on this stuff from essentially reverse
-> > > >engineering the firmware in the Z8.  IANAL, but to me, its use in
-> > > >developing in-kernel stuff could be dubious.
-> > > >
-> > > >Regards,
-> > > >Andy
-> > 
-> > Very interesting.
-> > 
-> > I had considered reverse engineering the z8 firmware but I never found a
-> > way to access it. I guess we have three options:
-> > 
-> > 1. I could use Andy's notes to implement Tx. I have not seen the original
-> >    firmware code so I'm not contaminated by reverse engineering it. IANAL 
-> >    but I thought this is an acceptable way of writing a driver.
-> > 
-> > 2. Hauppauge could prove us with documentation to write a driver with.
-> 
-> I tried to get some info about that, but they are unable to get anything
-> related to this design so far.
-> 
-> So, I think that, if you have some time to dedicate to it, the best would
-> be to go for  option #1.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-core.c    | 19 +++++--------------
+ drivers/media/platform/vivid/vivid-core.h    |  3 ---
+ drivers/media/platform/vivid/vivid-sdr-cap.c |  4 ++--
+ drivers/media/platform/vivid/vivid-vbi-cap.c |  4 ++--
+ drivers/media/platform/vivid/vivid-vbi-out.c |  4 ++--
+ drivers/media/platform/vivid/vivid-vid-cap.c |  4 ++--
+ drivers/media/platform/vivid/vivid-vid-out.c |  4 ++--
+ 7 files changed, 15 insertions(+), 27 deletions(-)
 
-Ok, thanks for asking.
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 686c3c2..987a46c 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -195,20 +195,6 @@ static const u8 vivid_hdmi_edid[256] = {
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
+ };
+ 
+-void vivid_lock(struct vb2_queue *vq)
+-{
+-	struct vivid_dev *dev = vb2_get_drv_priv(vq);
+-
+-	mutex_lock(&dev->mutex);
+-}
+-
+-void vivid_unlock(struct vb2_queue *vq)
+-{
+-	struct vivid_dev *dev = vb2_get_drv_priv(vq);
+-
+-	mutex_unlock(&dev->mutex);
+-}
+-
+ static int vidioc_querycap(struct file *file, void  *priv,
+ 					struct v4l2_capability *cap)
+ {
+@@ -1018,6 +1004,7 @@ static int __init vivid_create_instance(int inst)
+ 		q->mem_ops = &vb2_vmalloc_memops;
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
++		q->lock = &dev->mutex;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1036,6 +1023,7 @@ static int __init vivid_create_instance(int inst)
+ 		q->mem_ops = &vb2_vmalloc_memops;
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
++		q->lock = &dev->mutex;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1054,6 +1042,7 @@ static int __init vivid_create_instance(int inst)
+ 		q->mem_ops = &vb2_vmalloc_memops;
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
++		q->lock = &dev->mutex;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1072,6 +1061,7 @@ static int __init vivid_create_instance(int inst)
+ 		q->mem_ops = &vb2_vmalloc_memops;
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
++		q->lock = &dev->mutex;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1089,6 +1079,7 @@ static int __init vivid_create_instance(int inst)
+ 		q->mem_ops = &vb2_vmalloc_memops;
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 8;
++		q->lock = &dev->mutex;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 811c286..6f4445a 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -514,7 +514,4 @@ static inline bool vivid_is_hdmi_out(const struct vivid_dev *dev)
+ 	return dev->output_type[dev->output] == HDMI;
+ }
+ 
+-void vivid_lock(struct vb2_queue *vq);
+-void vivid_unlock(struct vb2_queue *vq);
+-
+ #endif
+diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
+index 8c5d661..4af55f1 100644
+--- a/drivers/media/platform/vivid/vivid-sdr-cap.c
++++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
+@@ -297,8 +297,8 @@ const struct vb2_ops vivid_sdr_cap_qops = {
+ 	.buf_queue		= sdr_cap_buf_queue,
+ 	.start_streaming	= sdr_cap_start_streaming,
+ 	.stop_streaming		= sdr_cap_stop_streaming,
+-	.wait_prepare		= vivid_unlock,
+-	.wait_finish		= vivid_lock,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+ int vivid_sdr_enum_freq_bands(struct file *file, void *fh, struct v4l2_frequency_band *band)
+diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
+index 2166d0b..ef81b01 100644
+--- a/drivers/media/platform/vivid/vivid-vbi-cap.c
++++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
+@@ -236,8 +236,8 @@ const struct vb2_ops vivid_vbi_cap_qops = {
+ 	.buf_queue		= vbi_cap_buf_queue,
+ 	.start_streaming	= vbi_cap_start_streaming,
+ 	.stop_streaming		= vbi_cap_stop_streaming,
+-	.wait_prepare		= vivid_unlock,
+-	.wait_finish		= vivid_lock,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+ int vidioc_g_fmt_vbi_cap(struct file *file, void *priv,
+diff --git a/drivers/media/platform/vivid/vivid-vbi-out.c b/drivers/media/platform/vivid/vivid-vbi-out.c
+index 9d00a07..4e4c70e 100644
+--- a/drivers/media/platform/vivid/vivid-vbi-out.c
++++ b/drivers/media/platform/vivid/vivid-vbi-out.c
+@@ -131,8 +131,8 @@ const struct vb2_ops vivid_vbi_out_qops = {
+ 	.buf_queue		= vbi_out_buf_queue,
+ 	.start_streaming	= vbi_out_start_streaming,
+ 	.stop_streaming		= vbi_out_stop_streaming,
+-	.wait_prepare		= vivid_unlock,
+-	.wait_finish		= vivid_lock,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+ int vidioc_g_fmt_vbi_out(struct file *file, void *priv,
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 331c544..1309d31 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -288,8 +288,8 @@ const struct vb2_ops vivid_vid_cap_qops = {
+ 	.buf_queue		= vid_cap_buf_queue,
+ 	.start_streaming	= vid_cap_start_streaming,
+ 	.stop_streaming		= vid_cap_stop_streaming,
+-	.wait_prepare		= vivid_unlock,
+-	.wait_finish		= vivid_lock,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+ /*
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index 69c2dbd..078bc35 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -209,8 +209,8 @@ const struct vb2_ops vivid_vid_out_qops = {
+ 	.buf_queue		= vid_out_buf_queue,
+ 	.start_streaming	= vid_out_start_streaming,
+ 	.stop_streaming		= vid_out_stop_streaming,
+-	.wait_prepare		= vivid_unlock,
+-	.wait_finish		= vivid_lock,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+ /*
+-- 
+1.9.1
 
-Andy -- if you please send your notes please, I can work on implementing
-the driver. I have hardware and time for to work on this.
-
-Thanks
-
-Sean
