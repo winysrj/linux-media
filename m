@@ -1,143 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:59139 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752662AbaKGOH7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 09:07:59 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v3 05/10] [media] pci: Make use of MEDIA_BUS_FMT definitions
-Date: Fri,  7 Nov 2014 15:07:44 +0100
-Message-Id: <1415369269-5064-6-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:20573 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750912AbaKRIJR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 03:09:17 -0500
+Message-id: <546AFEA5.9020000@samsung.com>
+Date: Tue, 18 Nov 2014 09:09:09 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>, Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+References: <20141116075928.GA9763@amd>
+ <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
+In-reply-to: <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to have subsytem agnostic media bus format definitions we've
-moved media bus definition to include/uapi/linux/media-bus-format.h and
-prefixed values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
+Hi Pavel, Sakari,
 
-Replace all references to the old definitions in pci drivers.
+On 11/17/2014 03:58 PM, Sakari Ailus wrote:
+> Hi Pavel,
+>
+> On Sun, Nov 16, 2014 at 08:59:28AM +0100, Pavel Machek wrote:
+>> For device tree people: Yes, I know I'll have to create file in
+>> documentation, but does the binding below look acceptable?
+>>
+>> I'll clean up driver code a bit more, remove the printks. Anything
+>> else obviously wrong?
+>
+> Jacek Anaszewski is working on flash support for LED devices. I think it'd
+> be good to sync the DT bindings for the two, as the types of devices
+> supported by the LED API and the V4L2 flash API are quite similar.
+>
+> Cc Jacek.
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- drivers/media/pci/cx18/cx18-av-core.c       | 2 +-
- drivers/media/pci/cx18/cx18-controls.c      | 2 +-
- drivers/media/pci/cx18/cx18-ioctl.c         | 2 +-
- drivers/media/pci/cx23885/cx23885-video.c   | 2 +-
- drivers/media/pci/ivtv/ivtv-controls.c      | 2 +-
- drivers/media/pci/ivtv/ivtv-ioctl.c         | 2 +-
- drivers/media/pci/saa7134/saa7134-empress.c | 4 ++--
- 7 files changed, 8 insertions(+), 8 deletions(-)
+I've already submitted a patch [1] that updates leds common bindings.
+I hasn't been merged yet, as the related LED Flash class patch [2]
+still needs some indicator leds related discussion [3].
 
-diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
-index 2d3afe0..4c6ce21 100644
---- a/drivers/media/pci/cx18/cx18-av-core.c
-+++ b/drivers/media/pci/cx18/cx18-av-core.c
-@@ -952,7 +952,7 @@ static int cx18_av_s_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt
- 	int HSC, VSC, Vsrc, Hsrc, filter, Vlines;
- 	int is_50Hz = !(state->std & V4L2_STD_525_60);
- 
--	if (fmt->code != V4L2_MBUS_FMT_FIXED)
-+	if (fmt->code != MEDIA_BUS_FMT_FIXED)
- 		return -EINVAL;
- 
- 	fmt->field = V4L2_FIELD_INTERLACED;
-diff --git a/drivers/media/pci/cx18/cx18-controls.c b/drivers/media/pci/cx18/cx18-controls.c
-index 282a3d2..4aeb7c6 100644
---- a/drivers/media/pci/cx18/cx18-controls.c
-+++ b/drivers/media/pci/cx18/cx18-controls.c
-@@ -98,7 +98,7 @@ static int cx18_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
- 	/* fix videodecoder resolution */
- 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
- 	fmt.height = cxhdl->height;
--	fmt.code = V4L2_MBUS_FMT_FIXED;
-+	fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(cx->sd_av, video, s_mbus_fmt, &fmt);
- 	return 0;
- }
-diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
-index 6f2b590..71963db 100644
---- a/drivers/media/pci/cx18/cx18-ioctl.c
-+++ b/drivers/media/pci/cx18/cx18-ioctl.c
-@@ -294,7 +294,7 @@ static int cx18_s_fmt_vid_cap(struct file *file, void *fh,
- 
- 	mbus_fmt.width = cx->cxhdl.width = w;
- 	mbus_fmt.height = cx->cxhdl.height = h;
--	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(cx->sd_av, video, s_mbus_fmt, &mbus_fmt);
- 	return cx18_g_fmt_vid_cap(file, fh, fmt);
- }
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 682a4f9..091f5db 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -608,7 +608,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	dev->field	= f->fmt.pix.field;
- 	dprintk(2, "%s() width=%d height=%d field=%d\n", __func__,
- 		dev->width, dev->height, dev->field);
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	call_all(dev, video, s_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 	/* s_mbus_fmt overwrites f->fmt.pix.field, restore it */
-diff --git a/drivers/media/pci/ivtv/ivtv-controls.c b/drivers/media/pci/ivtv/ivtv-controls.c
-index 2b0ab26..ccf548c 100644
---- a/drivers/media/pci/ivtv/ivtv-controls.c
-+++ b/drivers/media/pci/ivtv/ivtv-controls.c
-@@ -69,7 +69,7 @@ static int ivtv_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
- 	/* fix videodecoder resolution */
- 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
- 	fmt.height = cxhdl->height;
--	fmt.code = V4L2_MBUS_FMT_FIXED;
-+	fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(itv->sd_video, video, s_mbus_fmt, &fmt);
- 	return 0;
- }
-diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-index 3e0cb77..4d8ee18 100644
---- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-@@ -595,7 +595,7 @@ static int ivtv_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
- 		fmt->fmt.pix.width /= 2;
- 	mbus_fmt.width = fmt->fmt.pix.width;
- 	mbus_fmt.height = h;
--	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(itv->sd_video, video, s_mbus_fmt, &mbus_fmt);
- 	return ivtv_g_fmt_vid_cap(file, fh, fmt);
- }
-diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-index e4ea85f..8b3bb78 100644
---- a/drivers/media/pci/saa7134/saa7134-empress.c
-+++ b/drivers/media/pci/saa7134/saa7134-empress.c
-@@ -140,7 +140,7 @@ static int empress_s_fmt_vid_cap(struct file *file, void *priv,
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	struct v4l2_mbus_framefmt mbus_fmt;
- 
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	saa_call_all(dev, video, s_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 
-@@ -157,7 +157,7 @@ static int empress_try_fmt_vid_cap(struct file *file, void *priv,
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	struct v4l2_mbus_framefmt mbus_fmt;
- 
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	saa_call_all(dev, video, try_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 
--- 
-1.9.1
+I think this is a good moment to discuss the flash related led common
+bindings.
+
+[1] http://www.spinics.net/lists/linux-leds/msg02121.html
+[2] http://www.spinics.net/lists/linux-media/msg83100.html
+[3] http://www.spinics.net/lists/linux-leds/msg02472.html
+
+Best Regards,
+Jacek Anaszewski
+
 
