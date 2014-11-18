@@ -1,112 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f50.google.com ([209.85.218.50]:48292 "EHLO
-	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750870AbaK0Ryi (ORCPT
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:60930 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753747AbaKRLYB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 12:54:38 -0500
-Received: by mail-oi0-f50.google.com with SMTP id a141so3672196oig.37
-        for <linux-media@vger.kernel.org>; Thu, 27 Nov 2014 09:54:38 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAL8zT=hY8XeAb4j7-eBt3VJX-3Kzg6-BOajvSpxvgc+o3ZRuYQ@mail.gmail.com>
-References: <CAL8zT=i+UZP7gpukW-cRe2M=xWW5Av9Mzd-FnnZAP5d+5J7Mzg@mail.gmail.com>
- <1417020934.3177.15.camel@pengutronix.de> <CAL8zT=hY8XeAb4j7-eBt3VJX-3Kzg6-BOajvSpxvgc+o3ZRuYQ@mail.gmail.com>
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Date: Thu, 27 Nov 2014 18:54:22 +0100
-Message-ID: <CAL8zT=gnkaD=9XbyBDcDh7D=w+rDSQPsi3dKfQ17ezvz6NZMCg@mail.gmail.com>
-Subject: Re: i.MX6 CODA960 encoder
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Sascha Hauer <kernel@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Schwebel <r.schwebel@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 18 Nov 2014 06:24:01 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH 01/12] media: s3c-camif: use vb2_ops_wait_prepare/finish helper
+Date: Tue, 18 Nov 2014 11:23:30 +0000
+Message-Id: <1416309821-5426-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+---
+ drivers/media/platform/s3c-camif/camif-capture.c | 17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-2014-11-26 18:31 GMT+01:00 Jean-Michel Hautbois
-<jean-michel.hautbois@vodalys.com>:
-> Hi Philipp,
->
-> Thanks for answering.
->
-> 2014-11-26 17:55 GMT+01:00 Philipp Zabel <p.zabel@pengutronix.de>:
->> Hi Jean-Michel,
->>
->> Am Mittwoch, den 26.11.2014, 14:33 +0100 schrieb Jean-Michel Hautbois:
->>> Hi,
->>>
->>> We are writing a gstreamer plugin to support CODA960 encoder on i.MX6,
->>> and it is not working so now trying to use v4l2-ctl for the moment.
->>> As I am asking about encoder, is there a way to make it support YUYV
->>> as input or is the firmware not able to do it ? I could not find a
->>> reference manual about that...
->>
->> The H.264 and MPEG-4 encoders support planar 4:2:0 subsampled formats
->> only: YU12, YV12, and chroma-interleaved NV12.
->> The JPEG encoder can also handle planar 4:2:2 subsampled frames, but
->> none of the interleaved (YUYV, UYVY, ...) variants.
->
-> OK, just read this in TRM. This means that when the sensor is YUV
-> 4:2:2 (say, a ADV76xx :)) it will have to be converted to NV12 in
-> order to have it as input of the encoder...
->
->>> So back to the issue.
->>> $> cat /sys/class/video4linux/video0/name
->>> coda-encoder
->>> $> v4l2-ctl -d0 --list-formats
->>> ioctl: VIDIOC_ENUM_FMT
->>>     Index       : 0
->>>     Type        : Video Capture
->>>     Pixel Format: 'H264' (compressed)
->>>     Name        : H264 Encoded Stream
->>>
->>>     Index       : 1
->>>     Type        : Video Capture
->>>     Pixel Format: 'MPG4' (compressed)
->>>     Name        : MPEG4 Encoded Stream
->>>
->>> $> v4l2-ctl -d0 --list-formats-out
->>> ioctl: VIDIOC_ENUM_FMT
->>>     Index       : 0
->>>     Type        : Video Output
->>>     Pixel Format: 'YU12'
->>>     Name        : YUV 4:2:0 Planar, YCbCr
->>>
->>>     Index       : 1
->>>     Type        : Video Output
->>>     Pixel Format: 'YV12'
->>>     Name        : YUV 4:2:0 Planar, YCrCb
->>
->> Please apply all coda patches in the media-tree master branch first.
->> The output format list should include NV12 then.
->
-> OK, applying right now.
->
->>> ==> First question, vid-cap should be related to the capture format,
->>> so YUV format in the encoder case, no ?
->>>
->>> $> v4l2-ctl -d0 --set-fmt-video-out=width=1280,height=720,pixelformat=YU12
->>> $> v4l2-ctl -d0 --stream-mmap --stream-out-mmap --stream-to x.raw
->>> unsupported pixelformat
->>> VIDIOC_STREAMON: failed: Invalid argument
->>
->> On v3.18-rc6 with the coda patches currently in the pipeline applied, I
->> get this:
->>
->> $ v4l2-ctl -d0 --set-fmt-video-out=width=1280,height=720,pixelformat=YU12
->> $ v4l2-ctl -d0 --stream-mmap --stream-out-mmap --stream-to x.raw
->> K>P>P>P>P>P>P>P>P>P>P>P>P>P>P>P>K>P>P>P>P>P>P>P>P>P>P>P>P>P>P>P>K>P>P>P>P>P>P 38 fps
->>> 38 fps
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index aa40c82..54479d6 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -536,24 +536,12 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&camif->slock, flags);
+ }
+ 
+-static void camif_lock(struct vb2_queue *vq)
+-{
+-	struct camif_vp *vp = vb2_get_drv_priv(vq);
+-	mutex_lock(&vp->camif->lock);
+-}
+-
+-static void camif_unlock(struct vb2_queue *vq)
+-{
+-	struct camif_vp *vp = vb2_get_drv_priv(vq);
+-	mutex_unlock(&vp->camif->lock);
+-}
+-
+ static const struct vb2_ops s3c_camif_qops = {
+ 	.queue_setup	 = queue_setup,
+ 	.buf_prepare	 = buffer_prepare,
+ 	.buf_queue	 = buffer_queue,
+-	.wait_prepare	 = camif_unlock,
+-	.wait_finish	 = camif_lock,
++	.wait_prepare	 = vb2_ops_wait_prepare,
++	.wait_finish	 = vb2_ops_wait_finish,
+ 	.start_streaming = start_streaming,
+ 	.stop_streaming	 = stop_streaming,
+ };
+@@ -1161,6 +1149,7 @@ int s3c_camif_register_video_node(struct camif_dev *camif, int idx)
+ 	q->buf_struct_size = sizeof(struct camif_buffer);
+ 	q->drv_priv = vp;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->lock = &vp->camif->lock;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret)
+-- 
+1.9.1
 
-I don't have the same behaviour, but I may have missed a patch.
-I have taken linux-next and rebased my work on it. I have some issues,
-but nothing to be worried about, no link with coda.
-I get the following :
-$> v4l2-ctl -d0 --set-fmt-video-out=width=1280,height=720,pixelfor
-$> v4l2-ctl -d0 --stream-mmap --stream-out-mmap --stream-to x.raw
-[  173.705701] coda 2040000.vpu: CODA PIC_RUN timeout
-
-JM
