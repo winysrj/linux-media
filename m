@@ -1,115 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:60714 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934141AbaKNDng (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:48791 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754264AbaKRMvf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Nov 2014 22:43:36 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B75062A0090
-	for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 04:43:24 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Tue, 18 Nov 2014 07:51:35 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141114034324.B75062A0090@tschai.lan>
-Date: Fri, 14 Nov 2014 04:43:24 +0100 (CET)
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv7 PATCH 11/12] vim2m: support expbuf
+Date: Tue, 18 Nov 2014 13:51:07 +0100
+Message-Id: <1416315068-22936-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl>
+References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/platform/vim2m.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-date:		Fri Nov 14 04:00:21 CET 2014
-git branch:	test
-git hash:	dd0a6fe2bc3055cd61e369f97982c88183b1f0a0
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-2.slh.2-amd64
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 87af47a..1105c11 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -697,6 +697,7 @@ static const struct v4l2_ioctl_ops vim2m_ioctl_ops = {
+ 	.vidioc_querybuf	= v4l2_m2m_ioctl_querybuf,
+ 	.vidioc_qbuf		= v4l2_m2m_ioctl_qbuf,
+ 	.vidioc_dqbuf		= v4l2_m2m_ioctl_dqbuf,
++	.vidioc_expbuf		= v4l2_m2m_ioctl_expbuf,
+ 
+ 	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
+ 	.vidioc_streamoff	= v4l2_m2m_ioctl_streamoff,
+-- 
+2.1.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
