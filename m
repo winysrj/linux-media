@@ -1,77 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:55994 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753109AbaKZXZ7 (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49229 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752060AbaKRI4p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 18:25:59 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v3] media: usb: uvc: use vb2_ops_wait_prepare/finish helper
-Date: Wed, 26 Nov 2014 23:25:44 +0000
-Message-Id: <1417044344-20611-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 18 Nov 2014 03:56:45 -0500
+Message-ID: <546B09A0.7060705@xs4all.nl>
+Date: Tue, 18 Nov 2014 09:56:00 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+CC: hans.verkuil@xs4all.nl
+Subject: Re: [REVIEW PATCH v2 3/5] v4l: Add intput and output capability flags
+ for native size setting
+References: <1416289220-32673-1-git-send-email-sakari.ailus@iki.fi> <1416289220-32673-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1416289220-32673-4-git-send-email-sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch drops driver specific wait_prepare() and
-wait_finish() callbacks from vb2_ops and instead uses
-the the helpers vb2_ops_wait_prepare/finish() provided
-by the vb2 core, the lock member of the queue needs
-to be initalized to a mutex so that vb2 helpers
-vb2_ops_wait_prepare/finish() can make use of it.
+Hi Sakari,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_queue.c | 19 +++----------------
- 1 file changed, 3 insertions(+), 16 deletions(-)
+A few notes:
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index cc96072..10c554e 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -143,20 +143,6 @@ static void uvc_buffer_finish(struct vb2_buffer *vb)
- 		uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
- }
- 
--static void uvc_wait_prepare(struct vb2_queue *vq)
--{
--	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
--
--	mutex_unlock(&queue->mutex);
--}
--
--static void uvc_wait_finish(struct vb2_queue *vq)
--{
--	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
--
--	mutex_lock(&queue->mutex);
--}
--
- static int uvc_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
-@@ -195,8 +181,8 @@ static struct vb2_ops uvc_queue_qops = {
- 	.buf_prepare = uvc_buffer_prepare,
- 	.buf_queue = uvc_buffer_queue,
- 	.buf_finish = uvc_buffer_finish,
--	.wait_prepare = uvc_wait_prepare,
--	.wait_finish = uvc_wait_finish,
-+	.wait_prepare = vb2_ops_wait_prepare,
-+	.wait_finish = vb2_ops_wait_finish,
- 	.start_streaming = uvc_start_streaming,
- 	.stop_streaming = uvc_stop_streaming,
- };
-@@ -214,6 +200,7 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
- 	queue->queue.mem_ops = &vb2_vmalloc_memops;
- 	queue->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
- 		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
-+	queue->queue.lock = &queue->mutex;
- 	ret = vb2_queue_init(&queue->queue);
- 	if (ret)
- 		return ret;
--- 
-1.9.1
+Typo in subject: intput -> input
+
+On 11/18/14 06:40, Sakari Ailus wrote:
+> Add input and output capability flags for setting native size of the device,
+> and document them.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/vidioc-enuminput.xml  |    8 ++++++++
+>  Documentation/DocBook/media/v4l/vidioc-enumoutput.xml |    8 ++++++++
+>  include/uapi/linux/videodev2.h                        |    2 ++
+>  3 files changed, 18 insertions(+)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-enuminput.xml b/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
+> index 493a39a..603fece 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-enuminput.xml
+> @@ -287,6 +287,14 @@ input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
+>  	    <entry>0x00000004</entry>
+>  	    <entry>This input supports setting the TV standard by using VIDIOC_S_STD.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_IN_CAP_NATIVE_SIZE</constant></entry>
+> +	    <entry>0x00000008</entry>
+> +	    <entry>This input supports setting the native size using
+> +	    the <constant>V4L2_SEL_TGT_NATIVE_SIZE</constant>
+> +	    selection target, see <xref
+> +	    linkend="v4l2-selections-common"/>.</entry>
+> +	  </row>
+
+I would expand on this a little bit (or alternatively add that to the
+V4L2_SEL_TGT_NATIVE_SIZE documentation itself, at your discretion):
+
+"Setting the native size will generally only make sense for memory
+to memory devices where the software can create a canvas of a given
+size in which for example a video frame can be composed. In that case
+V4L2_SEL_TGT_NATIVE_SIZE can be used to configure the size of that
+canvas."
+
+Or words to that effect.
+
+Regards,
+
+	Hans
+
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml b/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
+> index 2654e09..773fb12 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-enumoutput.xml
+> @@ -172,6 +172,14 @@ input/output interface to linux-media@vger.kernel.org on 19 Oct 2009.
+>  	    <entry>0x00000004</entry>
+>  	    <entry>This output supports setting the TV standard by using VIDIOC_S_STD.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_OUT_CAP_NATIVE_SIZE</constant></entry>
+> +	    <entry>0x00000008</entry>
+> +	    <entry>This output supports setting the native size using
+> +	    the <constant>V4L2_SEL_TGT_NATIVE_SIZE</constant>
+> +	    selection target, see <xref
+> +	    linkend="v4l2-selections-common"/>.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 1c2f84f..e445b48 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1249,6 +1249,7 @@ struct v4l2_input {
+>  #define V4L2_IN_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
+>  #define V4L2_IN_CAP_CUSTOM_TIMINGS	V4L2_IN_CAP_DV_TIMINGS /* For compatibility */
+>  #define V4L2_IN_CAP_STD			0x00000004 /* Supports S_STD */
+> +#define V4L2_IN_CAP_NATIVE_SIZE		0x00000008 /* Supports setting native size */
+>  
+>  /*
+>   *	V I D E O   O U T P U T S
+> @@ -1272,6 +1273,7 @@ struct v4l2_output {
+>  #define V4L2_OUT_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
+>  #define V4L2_OUT_CAP_CUSTOM_TIMINGS	V4L2_OUT_CAP_DV_TIMINGS /* For compatibility */
+>  #define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD */
+> +#define V4L2_OUT_CAP_NATIVE_SIZE	0x00000008 /* Supports setting native size */
+>  
+>  /*
+>   *	C O N T R O L S
+> 
 
