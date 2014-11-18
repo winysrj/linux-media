@@ -1,114 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:61058 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754127AbaKRVv6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 16:51:58 -0500
-MIME-Version: 1.0
-Message-ID: <trinity-716c8cff-2dc6-4cd4-8ba4-9553c845ae35-1416347515868@3capp-gmx-bs58>
-From: "Peter Seiderer" <ps.report@gmx.net>
-To: "Fabio Estevam" <festevam@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Using the coda driver with Gstreamer
-Content-Type: text/plain; charset=UTF-8
-Date: Tue, 18 Nov 2014 22:51:55 +0100
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:52344 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755161AbaKRQCT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 11:02:19 -0500
+Message-id: <546B6D86.8090701@samsung.com>
+Date: Tue, 18 Nov 2014 17:02:14 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com,
+	sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+References: <20141116075928.GA9763@amd>
+ <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
+ <546AFEA5.9020000@samsung.com> <20141118084603.GC4059@amd>
+ <546B19C8.2090008@samsung.com> <20141118113256.GA10022@amd>
+ <546B40FA.2070409@samsung.com> <20141118132159.GA21089@amd>
+In-reply-to: <20141118132159.GA21089@amd>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Fabio,
+Hi Pavel,
 
-maybe trying to increase the following kernel option helps (for the v4l2 kernel
-driver failure message, not for the followup gstraemer errors):
+On 11/18/2014 02:21 PM, Pavel Machek wrote:
+> Hi!
+>
+>>>>> @@ -19,5 +30,10 @@ Examples:
+>>>>>   system-status {
+>>>>>   	       label = "Status";
+>>>>>   	       linux,default-trigger = "heartbeat";
+>>>>> +	       iout-torch = <500 500>;
+>>>>> +	       iout-flash = <1000 1000>;
+>>>>> +	       iout-indicator = <100 100>;
+>>>>> +	       flash-timeout = <1000>;
+>>>>> +
+>>>>> 	...
+>>>>>   };
+>>>>>
+>>>>> I don't get it; system-status describes single LED, why are iout-torch
+>>>>> (and friends) arrays of two?
+>>>>
+>>>> Some devices can control more than one led. The array is for such
+>>>> purposes. The system-status should be probably renamed to
+>>>> something more generic for both common leds and flash leds,
+>>>> e.g. system-led.
+>>>
+>>> No, sorry. The Documentation/devicetree/bindings/leds/common.txt
+>>> describes binding for _one LED_. Yes, your device can have two leds,
+>>> so your devices should have two such blocks in the device tree... Each
+>>> led should have its own label and default trigger, for example. And I
+>>> guess flash-timeout be per-LED, too.
+>>
+>> I think that a device tree binding describes a single physical device.
+>> No matter how many sub-leds a device controls, it is still one
+>> piece of hardware.
+>
+> You got this wrong, sorry.
+>
+> In my case, there are three physical devices:
+>
+> adp1653
+> 	white LED
+> 	red LED
 
-CONFIG_CMA_SIZE_MBYTES=256
+You've mentioned that your white led is torch/flash and indicator
+is the red led. They are probably connected to the HPLED and
+ILED pins of the ADP1653 device respectively. The device is just
+a regulator, that delivers electric current to the leds connected
+to it. Kernel cannot directly activate leds, but has to talk
+to the device through I2C bus. One I2C device can have only one
+related device tree binding.
+
+> Each LED should have an label, and probably default trigger -- default
+> trigger for red one should be "we are recording video" and for white
+> should be "this is flash for default camera".
+
+default-trigger is not mandatory, the device doesn't have to have
+associated led-trigger. I think that you should look at
+Documentation/leds/leds-class.txt and drivers/leds/triggers for
+more detailed information. In a nutshell triggers are kernel
+sources of led events. You can set e.g. "heartbeat", "timer"
+trigger etc.
+As for now the driver belongs to the V4L2 subsystem it doesn't
+support triggers. Moreover your event "we are recording a video"
+should be activated by setting V4L2_CID_FLASH_INDICATOR_INTENSITY
+v4l2 control followed by V4L2_FLASH_LED_MODE_TORCH. Your event
+"this is flash for default camera" seems to be flash strobe,
+that can be activated by setting V4L2_CID_FLASH_STROBE control.
+The driver by default sets the indicator current for both actions
+to the value previously set with V4L2_CID_FLASH_INDICATOR_INTENSITY.
+
+> If the hardware LED changes with one that needs different current, the
+> block for the adp1653 stays the same, but white LED block should be
+> updated with different value.
+
+I think that you are talking about sub nodes. Indeed I am leaning
+towards this type of design.
+
+>> default-trigger property should also be an array of strings.
+>
+> That is not how it currently works.
+
+OK, I agree.
+
+>
+>> I agree that flash-timeout should be per led - an array, similarly
+>> as in case of iout's.
+>
+> Agreed about per-led, disagreed about the array. As all the fields
+> would need arrays, and as LED system currently does not use arrays for
+> label and linux,default-trigger, I believe we should follow existing
+> design and model it as three devices. (It _is_ physically three devices.)
+
+Right, I missed that the leds/common.txt describes child node.
+
+I propose following modifications to the binding:
+
+Optional properties for child nodes:
+- iout-mode-led : 	maximum intensity in microamperes of the LED
+		  	(torch LED for flash devices)
+- iout-mode-flash : 	initial intensity in microamperes of the
+			flash LED; it is required to enable support
+			for the flash led
+- iout-mode-indicator : initial intensity in microamperes of the
+			indicator LED; it is required to enable support
+			for the indicator led
+- max-iout-mode-led : 	maximum intensity in microamperes of the LED
+		  	(torch LED for flash devices)
+- max-iout-mode-flash : maximum intensity in microamperes of the
+			flash LED
+- max-iout-mode-indicator : maximum intensity in microamperes of the
+			indicator LED
+- flash-timeout :	timeout in microseconds after which flash
+			led is turned off
+
+system-status {
+         label = "max77693_1";
+         iout-mode-led = <500>;
+         max-iout-mode-led = <500>;
+         ...
+};
+
+camera-flash1 {
+         label = "max77693_2";
+         iout-mode-led = <500>;
+         iout-mode-flash = <1000>;
+	iout-mode-indicator = <100>;
+         max-iout-mode-led = <500>;
+         max-iout-mode-flash = <1000>;
+         max-iout-mode-indicator = <100>;
+         flash-timeout = <1000>;
+         ...
+};
+
+
+I propose to avoid name "torch", as for ordinary leds it would
+be misleading.
 
 Regards,
-Peter
----
-Sorry for loosing the CC list, reading the mailing list by web browser...
-
-> Hi,
->
-> I am running linux-next 20141117 on a mx6qsabresd board and trying to
-> play a mp4 video via Gstreamer 1.4.1, but I am getting the following
-> error:
->
-> root@imx6qsabresd:/mnt/nfs# gst-play-1.0 sample.mp4
-> Volume: 100%
-> Now playing /mnt/nfs/sample.mp4
-> [  506.983809] ------------[ cut here ]------------
-> [  506.988522] WARNING: CPU: 0 PID: 954 at
-> drivers/media/v4l2-core/videobuf2-core.c:1781
-> vb2_start_streaming+0xc4/0x160()
-> [  506.999301] Modules linked in:
-> [  507.002489] CPU: 0 PID: 954 Comm: multiqueue0:src Tainted: G
-> W      3.18.0-rc4-next-20141117-dirty #2044
-> [  507.012660] Backtrace:
-> [  507.015253] [<80011f44>] (dump_backtrace) from [<800120e0>]
-> (show_stack+0x18/0x1c)
-> [  507.022891]  r6:000006f5 r5:00000000 r4:00000000 r3:00000000
-> [  507.028707] [<800120c8>] (show_stack) from [<806b730c>]
-> (dump_stack+0x88/0xa4)
-> [  507.035954] [<806b7284>] (dump_stack) from [<8002a4dc>]
-> (warn_slowpath_common+0x80/0xbc)
-> [  507.044135]  r5:804a80a8 r4:00000000
-> [  507.047802] [<8002a45c>] (warn_slowpath_common) from [<8002a53c>]
-> (warn_slowpath_null+0x24/0x2c)
-> [  507.056605]  r8:00000000 r7:bd71c640 r6:bd614ef0 r5:bd614ee0 r4:ffffffea
-> [  507.063470] [<8002a518>] (warn_slowpath_null) from [<804a80a8>]
-> (vb2_start_streaming+0xc4/0x160)
-> [  507.072293] [<804a7fe4>] (vb2_start_streaming) from [<804a9efc>]
-> (vb2_internal_streamon+0xfc/0x158)
-> [  507.081385]  r7:bd71c640 r6:bd6c29ec r5:bd614c00 r4:bd614de0
-> [  507.087133] [<804a9e00>] (vb2_internal_streamon) from [<804ab0a8>]
-> (vb2_streamon+0x34/0x58)
-> [  507.095567]  r5:bd614c00 r4:00000002
-> [  507.099231] [<804ab074>] (vb2_streamon) from [<804a3b10>]
-> (v4l2_m2m_streamon+0x28/0x40)
-> [  507.107287] [<804a3ae8>] (v4l2_m2m_streamon) from [<804a3b40>]
-> (v4l2_m2m_ioctl_streamon+0x18/0x1c)
-> [  507.116292]  r5:bd9083c8 r4:40045612
-> [  507.120016] [<804a3b28>] (v4l2_m2m_ioctl_streamon) from
-> [<80492e48>] (v4l_streamon+0x20/0x24)
-> [  507.128693] [<80492e28>] (v4l_streamon) from [<80494dc4>]
-> (__video_do_ioctl+0x24c/0x2e0)
-> [  507.136826] [<80494b78>] (__video_do_ioctl) from [<804953a8>]
-> (video_usercopy+0x118/0x480)
-> [  507.145133]  r10:00000001 r9:bd6cbe10 r8:74a1164c r7:00000000
-> r6:00000000 r5:80494b78
-> [  507.153073]  r4:40045612
-> [  507.155632] [<80495290>] (video_usercopy) from [<80495724>]
-> (video_ioctl2+0x14/0x1c)
-> [  507.163408]  r10:bd8fccb8 r9:74a1164c r8:bd909064 r7:74a1164c
-> r6:40045612 r5:bd71c640
-> [  507.171343]  r4:bd9083c8
-> [  507.173902] [<80495710>] (video_ioctl2) from [<804918f8>]
-> (v4l2_ioctl+0x104/0x14c)
-> [  507.181512] [<804917f4>] (v4l2_ioctl) from [<800fc944>]
-> (do_vfs_ioctl+0x80/0x634)
-> [  507.189019]  r8:00000009 r7:74a1164c r6:00000009 r5:800fcf34
-> r4:bd71c640 r3:804917f4
-> [  507.196870] [<800fc8c4>] (do_vfs_ioctl) from [<800fcf34>]
-> (SyS_ioctl+0x3c/0x60)
-> [  507.204203]  r10:00000000 r9:bd6ca000 r8:00000009 r7:74a1164c
-> r6:40045612 r5:bd71c640
-> [  507.212159]  r4:bd71c641
-> [  507.214722] [<800fcef8>] (SyS_ioctl) from [<8000ec60>]
-> (ret_fast_syscall+0x0/0x48)
-> [  507.222311]  r8:8000ee24 r7:00000036 r6:73c183a0 r5:754248e0
-> r4:00000000 r3:00000000
-> [  507.230168] ---[ end trace c3703a604edaf0d0 ]---
-> ERROR Failed to connect to X display server for file:///mnt/nfs/sample.mp4
-> ERROR debug information:
-> /code/yocto/dizzy/build/tmp/work/cortexa9hf-vfp-neon-mx6qdl-poky-linux-gnueabi/gstreamer1.0-plugins-bad/1.4.1-r0/gst-plugins-bad-1.4.1/ext/gl/gstglimagesink.c(453):
-> _ensure_gl_setup ():
-> /GstPlayBin:playbin/GstPlaySink:playsink/GstBin:vbin/GstGLImageSink:glimagesink0
-> GLib (gthread-posix.c): Unexpected error from C library during
-> 'pthread_mutex_lock': Invalid argument.  Aborting.
-> Aborted
->
-> Any suggestions?
->
-> Thanks,
->
-> Fabio Estevam
->
+Jacek
