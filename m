@@ -1,97 +1,326 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:58331 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750845AbaKTMdo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 07:33:44 -0500
-Message-ID: <546DDF95.5090300@users.sourceforge.net>
-Date: Thu, 20 Nov 2014 13:33:25 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Mike Isely <isely@pobox.com>, linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH 1/1] [media] USB: Deletion of unnecessary checks before three
- function calls
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:45878 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753650AbaKRNBD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 08:01:03 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>, Archit Taneja <archit@ti.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: ti-vpe: Use mem-to-mem ioctl helpers
+Date: Tue, 18 Nov 2014 13:00:13 +0000
+Message-Id: <1416315613-24446-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 20 Nov 2014 13:26:36 +0100
+This patch does the following:
 
-The functions pvr2_hdw_destroy(), rc_unregister_device() and vfree() perform
-also input parameter validation. Thus the test around the call is not needed.
+1: Simplify the vpe mem-to-mem driver by using the m2m ioctl
+   and vb2 helpers.
+2: Minor code cleanup
 
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/usb/au0828/au0828-input.c     | 3 +--
- drivers/media/usb/em28xx/em28xx-input.c     | 3 +--
- drivers/media/usb/pvrusb2/pvrusb2-context.c | 2 +-
- drivers/media/usb/s2255/s2255drv.c          | 3 +--
- 4 files changed, 4 insertions(+), 7 deletions(-)
+ drivers/media/platform/ti-vpe/vpe.c | 152 +++++++++++-------------------------
+ 1 file changed, 47 insertions(+), 105 deletions(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-input.c b/drivers/media/usb/au0828/au0828-input.c
-index fd0d3a90..3357141 100644
---- a/drivers/media/usb/au0828/au0828-input.c
-+++ b/drivers/media/usb/au0828/au0828-input.c
-@@ -353,8 +353,7 @@ void au0828_rc_unregister(struct au0828_dev *dev)
- 	if (!ir)
- 		return;
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 74b858d..faf38d4 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -21,6 +21,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/err.h>
+ #include <linux/fs.h>
++#include <linux/of.h>
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/ioctl.h>
+@@ -377,7 +378,6 @@ struct vpe_dev {
+ struct vpe_ctx {
+ 	struct v4l2_fh		fh;
+ 	struct vpe_dev		*dev;
+-	struct v4l2_m2m_ctx	*m2m_ctx;
+ 	struct v4l2_ctrl_handler hdl;
  
--	if (ir->rc)
--		rc_unregister_device(ir->rc);
-+	rc_unregister_device(ir->rc);
+ 	unsigned int		field;			/* current field */
+@@ -916,8 +916,8 @@ static int job_ready(void *priv)
+ 	 * When called by m2m framework, this will always satisy, but when
+ 	 * called from vpe_irq, this might fail. (src stream with zero buffers)
+ 	 */
+-	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) <= 0 ||
+-		v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) <= 0)
++	if (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) <= 0 ||
++		v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx) <= 0)
+ 		return 0;
  
- 	/* done */
- 	kfree(ir);
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index ed843bd..67a22f4 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -838,8 +838,7 @@ static int em28xx_ir_fini(struct em28xx *dev)
- 	if (!ir)
- 		goto ref_put;
- 
--	if (ir->rc)
--		rc_unregister_device(ir->rc);
-+	rc_unregister_device(ir->rc);
- 
- 	/* done */
- 	kfree(ir);
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-context.c b/drivers/media/usb/pvrusb2/pvrusb2-context.c
-index 7c19ff7..c8761c7 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-context.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-context.c
-@@ -80,7 +80,7 @@ static void pvr2_context_set_notify(struct pvr2_context *mp, int fl)
- static void pvr2_context_destroy(struct pvr2_context *mp)
- {
- 	pvr2_trace(PVR2_TRACE_CTXT,"pvr2_context %p (destroy)",mp);
--	if (mp->hdw) pvr2_hdw_destroy(mp->hdw);
-+	pvr2_hdw_destroy(mp->hdw);
- 	pvr2_context_set_notify(mp, 0);
- 	mutex_lock(&pvr2_context_mutex);
- 	if (mp->exist_next) {
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 2c90186..3cab886 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -1976,8 +1976,7 @@ static int s2255_release_sys_buffers(struct s2255_vc *vc)
- {
- 	unsigned long i;
- 	for (i = 0; i < SYS_FRAMES; i++) {
--		if (vc->buffer.frame[i].lpvbits)
--			vfree(vc->buffer.frame[i].lpvbits);
-+		vfree(vc->buffer.frame[i].lpvbits);
- 		vc->buffer.frame[i].lpvbits = NULL;
+ 	return 1;
+@@ -1155,14 +1155,14 @@ static void device_run(void *priv)
+ 		 * in the same buffer. (so that job_ready won't fail)
+ 		 * It will be removed when using bottom field
+ 		 */
+-		ctx->src_vbs[0] = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
++		ctx->src_vbs[0] = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ 		WARN_ON(ctx->src_vbs[0] == NULL);
+ 	} else {
+-		ctx->src_vbs[0] = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
++		ctx->src_vbs[0] = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+ 		WARN_ON(ctx->src_vbs[0] == NULL);
  	}
+ 
+-	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
++	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+ 	WARN_ON(ctx->dst_vb == NULL);
+ 
+ 	if (ctx->deinterlacing) {
+@@ -1422,7 +1422,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ finished:
+ 	vpe_dbg(ctx->dev, "finishing transaction\n");
+ 	ctx->bufs_completed = 0;
+-	v4l2_m2m_job_finish(dev->m2m_dev, ctx->m2m_ctx);
++	v4l2_m2m_job_finish(dev->m2m_dev, ctx->fh.m2m_ctx);
+ handled:
+ 	return IRQ_HANDLED;
+ }
+@@ -1483,7 +1483,7 @@ static int vpe_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	struct vpe_q_data *q_data;
+ 	int i;
+ 
+-	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
+ 	if (!vq)
+ 		return -EINVAL;
+ 
+@@ -1624,7 +1624,7 @@ static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
+ 	struct vb2_queue *vq;
+ 	int i;
+ 
+-	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
+ 	if (!vq)
+ 		return -EINVAL;
+ 
+@@ -1852,55 +1852,6 @@ static int vpe_s_selection(struct file *file, void *fh,
+ 	return set_srcdst_params(ctx);
+ }
+ 
+-static int vpe_reqbufs(struct file *file, void *priv,
+-		       struct v4l2_requestbuffers *reqbufs)
+-{
+-	struct vpe_ctx *ctx = file2ctx(file);
+-
+-	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
+-}
+-
+-static int vpe_querybuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+-{
+-	struct vpe_ctx *ctx = file2ctx(file);
+-
+-	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
+-}
+-
+-static int vpe_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+-{
+-	struct vpe_ctx *ctx = file2ctx(file);
+-
+-	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
+-}
+-
+-static int vpe_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+-{
+-	struct vpe_ctx *ctx = file2ctx(file);
+-
+-	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
+-}
+-
+-static int vpe_streamon(struct file *file, void *priv, enum v4l2_buf_type type)
+-{
+-	struct vpe_ctx *ctx = file2ctx(file);
+-
+-	if (ctx->deinterlacing)
+-		config_edi_input_mode(ctx, 0x0);
+-
+-	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
+-}
+-
+-static int vpe_streamoff(struct file *file, void *priv, enum v4l2_buf_type type)
+-{
+-	struct vpe_ctx *ctx = file2ctx(file);
+-
+-	vpe_dump_regs(ctx->dev);
+-	vpdma_dump_regs(ctx->dev->vpdma);
+-
+-	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
+-}
+-
+ /*
+  * defines number of buffers/frames a context can process with VPE before
+  * switching to a different context. default value is 1 buffer per context
+@@ -1945,16 +1896,15 @@ static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
+ 	.vidioc_g_selection		= vpe_g_selection,
+ 	.vidioc_s_selection		= vpe_s_selection,
+ 
+-	.vidioc_reqbufs		= vpe_reqbufs,
+-	.vidioc_querybuf	= vpe_querybuf,
++	.vidioc_reqbufs			= v4l2_m2m_ioctl_reqbufs,
++	.vidioc_querybuf		= v4l2_m2m_ioctl_querybuf,
++	.vidioc_qbuf			= v4l2_m2m_ioctl_qbuf,
++	.vidioc_dqbuf			= v4l2_m2m_ioctl_dqbuf,
++	.vidioc_streamon		= v4l2_m2m_ioctl_streamon,
++	.vidioc_streamoff		= v4l2_m2m_ioctl_streamoff,
+ 
+-	.vidioc_qbuf		= vpe_qbuf,
+-	.vidioc_dqbuf		= vpe_dqbuf,
+-
+-	.vidioc_streamon	= vpe_streamon,
+-	.vidioc_streamoff	= vpe_streamoff,
+-	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+-	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
++	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
+ /*
+@@ -2027,7 +1977,25 @@ static int vpe_buf_prepare(struct vb2_buffer *vb)
+ static void vpe_buf_queue(struct vb2_buffer *vb)
+ {
+ 	struct vpe_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+-	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
++	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
++}
++
++static int vpe_start_streaming(struct vb2_queue *q, unsigned int count)
++{
++	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
++
++	if (ctx->deinterlacing)
++		config_edi_input_mode(ctx, 0x0);
++
++	return 0;
++}
++
++static void vpe_stop_streaming(struct vb2_queue *q)
++{
++	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
++
++	vpe_dump_regs(ctx->dev);
++	vpdma_dump_regs(ctx->dev->vpdma);
+ }
+ 
+ static struct vb2_ops vpe_qops = {
+@@ -2036,6 +2004,8 @@ static struct vb2_ops vpe_qops = {
+ 	.buf_queue	 = vpe_buf_queue,
+ 	.wait_prepare	 = vb2_ops_wait_prepare,
+ 	.wait_finish	 = vb2_ops_wait_finish,
++	.start_streaming = vpe_start_streaming,
++	.stop_streaming  = vpe_stop_streaming,
+ };
+ 
+ static int queue_init(void *priv, struct vb2_queue *src_vq,
+@@ -2089,7 +2059,7 @@ static const struct v4l2_ctrl_config vpe_bufs_per_job = {
+ static int vpe_open(struct file *file)
+ {
+ 	struct vpe_dev *dev = video_drvdata(file);
+-	struct vpe_ctx *ctx = NULL;
++	struct vpe_ctx *ctx;
+ 	struct vpe_q_data *s_q_data;
+ 	struct v4l2_ctrl_handler *hdl;
+ 	int ret;
+@@ -2164,10 +2134,10 @@ static int vpe_open(struct file *file)
+ 	if (ret)
+ 		goto exit_fh;
+ 
+-	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
++	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
+ 
+-	if (IS_ERR(ctx->m2m_ctx)) {
+-		ret = PTR_ERR(ctx->m2m_ctx);
++	if (IS_ERR(ctx->fh.m2m_ctx)) {
++		ret = PTR_ERR(ctx->fh.m2m_ctx);
+ 		goto exit_fh;
+ 	}
+ 
+@@ -2186,7 +2156,7 @@ static int vpe_open(struct file *file)
+ 	ctx->load_mmrs = true;
+ 
+ 	vpe_dbg(dev, "created instance %p, m2m_ctx: %p\n",
+-		ctx, ctx->m2m_ctx);
++		ctx, ctx->fh.m2m_ctx);
+ 
+ 	mutex_unlock(&dev->dev_mutex);
+ 
+@@ -2224,7 +2194,7 @@ static int vpe_release(struct file *file)
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
+ 	v4l2_ctrl_handler_free(&ctx->hdl);
+-	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+ 
+ 	kfree(ctx);
+ 
+@@ -2241,39 +2211,13 @@ static int vpe_release(struct file *file)
  	return 0;
+ }
+ 
+-static unsigned int vpe_poll(struct file *file,
+-			     struct poll_table_struct *wait)
+-{
+-	struct vpe_ctx *ctx = file2ctx(file);
+-	struct vpe_dev *dev = ctx->dev;
+-	int ret;
+-
+-	mutex_lock(&dev->dev_mutex);
+-	ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
+-	mutex_unlock(&dev->dev_mutex);
+-	return ret;
+-}
+-
+-static int vpe_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	struct vpe_ctx *ctx = file2ctx(file);
+-	struct vpe_dev *dev = ctx->dev;
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&dev->dev_mutex))
+-		return -ERESTARTSYS;
+-	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
+-	mutex_unlock(&dev->dev_mutex);
+-	return ret;
+-}
+-
+ static const struct v4l2_file_operations vpe_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= vpe_open,
+ 	.release	= vpe_release,
+-	.poll		= vpe_poll,
++	.poll		= v4l2_m2m_fop_poll,
+ 	.unlocked_ioctl	= video_ioctl2,
+-	.mmap		= vpe_mmap,
++	.mmap		= v4l2_m2m_fop_mmap,
+ };
+ 
+ static struct video_device vpe_videodev = {
+@@ -2475,8 +2419,6 @@ static const struct of_device_id vpe_of_match[] = {
+ 	},
+ 	{},
+ };
+-#else
+-#define vpe_of_match NULL
+ #endif
+ 
+ static struct platform_driver vpe_pdrv = {
+@@ -2485,7 +2427,7 @@ static struct platform_driver vpe_pdrv = {
+ 	.driver		= {
+ 		.name	= VPE_MODULE_NAME,
+ 		.owner	= THIS_MODULE,
+-		.of_match_table = vpe_of_match,
++		.of_match_table = of_match_ptr(vpe_of_match),
+ 	},
+ };
+ 
 -- 
-2.1.3
+1.9.1
 
