@@ -1,142 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:49077 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751298AbaKJU6V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 15:58:21 -0500
-Date: Mon, 10 Nov 2014 21:58:14 +0100
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	Tony Lindgren <tony@atomide.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [RFCv2 5/8] [media] si4713: add device tree support
-Message-ID: <20141110205814.GA2591@earth.universe>
-References: <1413904027-16767-1-git-send-email-sre@kernel.org>
- <1413904027-16767-6-git-send-email-sre@kernel.org>
- <54594962.2090207@iki.fi>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:50015 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752933AbaKRLdA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Nov 2014 06:33:00 -0500
+Date: Tue, 18 Nov 2014 12:32:56 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com,
+	sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Message-ID: <20141118113256.GA10022@amd>
+References: <20141116075928.GA9763@amd>
+ <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
+ <546AFEA5.9020000@samsung.com>
+ <20141118084603.GC4059@amd>
+ <546B19C8.2090008@samsung.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <54594962.2090207@iki.fi>
+In-Reply-To: <546B19C8.2090008@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---mP3DRpeJDSE+ciuQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Sakari,
-
-On Tue, Nov 04, 2014 at 11:47:14PM +0200, Sakari Ailus wrote:
-> Nice set of patches! Thanks! :-)
-
-Thanks :)
-
-> > [...]
-> >  	struct si4713_device *sdev;
-> > -	struct si4713_platform_data *pdata =3D client->dev.platform_data;
-> >  	struct v4l2_ctrl_handler *hdl;
-> > -	int rval, i;
-> > +	struct si4713_platform_data *pdata =3D client->dev.platform_data;
-> > +	struct device_node *np =3D client->dev.of_node;
-> > +	int rval;
-> > +
->=20
-> Why empty line here?
->=20
-> It's not a bad practice to declare short temporary variables etc. as last.
-
-Fixed in PATCHv3.
-
-> > +	struct radio_si4713_platform_data si4713_pdev_pdata;
-> > +	struct platform_device *si4713_pdev;
-> > =20
-> >  	sdev =3D devm_kzalloc(&client->dev, sizeof(*sdev), GFP_KERNEL);
-> >  	if (!sdev) {
-> > @@ -1608,8 +1612,31 @@ static int si4713_probe(struct i2c_client *clien=
-t,
-> >  		goto free_ctrls;
-> >  	}
-> > =20
-> > +	if ((pdata && pdata->is_platform_device) || np) {
-> > +		si4713_pdev =3D platform_device_alloc("radio-si4713", -1);
->=20
-> You could declare si4713_pdev here since you're not using it elsewhere.
-
-It has been used in the put_main_pdev jump label at the bottom
-outside of the scope and all access will happen out of the scope
-after the refactoring you suggested below.
-
-> > +		if (!si4713_pdev)
-> > +			goto put_main_pdev;
-> > +
-> > +		si4713_pdev_pdata.subdev =3D client;
-> > +		rval =3D platform_device_add_data(si4713_pdev, &si4713_pdev_pdata,
-> > +						sizeof(si4713_pdev_pdata));
-> > +		if (rval)
-> > +			goto put_main_pdev;
-> > +
-> > +		rval =3D platform_device_add(si4713_pdev);
-> > +		if (rval)
-> > +			goto put_main_pdev;
-> > +
-> > +		sdev->pd =3D si4713_pdev;
-> > +	} else {
-> > +		sdev->pd =3D NULL;
->=20
-> sdev->pd is NULL already here. You could simply return in if () and
-> proceed to create the platform device if need be.
-
-Right. I simplified the code accordingly in PATCHv3.
-
-> Speaking of which --- I wonder if there are other than historical
-> reasons to create the platform device. I guess that's out of the scope
-> of the set anyway.
-
-I think this was done, so that the usb device can export its own
-control functions.
-
-> > [...]
+> >>I've already submitted a patch [1] that updates leds common bindings.
+> >>I hasn't been merged yet, as the related LED Flash class patch [2]
+> >>still needs some indicator leds related discussion [3].
+> >>
+> >>I think this is a good moment to discuss the flash related led common
+> >>bindings.
 > >
-> > +	if (sdev->pd)
-> > +		platform_device_unregister(sdev->pd);
->=20
-> platform_device_unregister() may be safely called with NULL argument.
+> >Part of problem is that adp1653 is not regarded as "LED" device by
+> >current kernel driver.
+> 
+> It doesn't prevent us from keeping the flash devices related
+> DT bindings unified across kernel subsystems. The DT bindings
+> docs for the adp1653 could just provide a reference to the
+> led/common.txt bindings. In the future, when LED Flash
+> class will be merged, all the V4L2 Flash drivers might be
+> moved to the LED subsystem to gain the LED subsystem support.
 
-Ok. Changed in PATCHv3.
+Yeah, that makses sense.
 
-> > [...]
+> >@@ -19,5 +30,10 @@ Examples:
+> >  system-status {
+> >  	       label = "Status";
+> >  	       linux,default-trigger = "heartbeat";
+> >+	       iout-torch = <500 500>;
+> >+	       iout-flash = <1000 1000>;
+> >+	       iout-indicator = <100 100>;
+> >+	       flash-timeout = <1000>;
+> >+
+> >	...
+> >  };
+> >
+> >I don't get it; system-status describes single LED, why are iout-torch
+> >(and friends) arrays of two?
+> 
+> Some devices can control more than one led. The array is for such
+> purposes. The system-status should be probably renamed to
+> something more generic for both common leds and flash leds,
+> e.g. system-led.
 
--- Sebastian
+No, sorry. The Documentation/devicetree/bindings/leds/common.txt
+describes binding for _one LED_. Yes, your device can have two leds,
+so your devices should have two such blocks in the device tree... Each
+led should have its own label and default trigger, for example. And I
+guess flash-timeout be per-LED, too.
 
---mP3DRpeJDSE+ciuQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Would it make sense to include "-uA" and "-usec" suffixes in the dt
+property names?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> >Also, at least on adp1653, these are actually two leds -- white and
+> >red. Torch and flash is white led, indicator is red led.
+> 
+> Then you should define three properties:
+> 
+> iout-torch = <[uA]>;
+> iout-flash = <[uA]>;
+> iout-indicator = <[uA]>;
+> 
+> iout-torch and iout-flash properties would determine the current
+> for the white led in the torch and flash modes respectively and
+> the iout-indicator property would determine the current for
+> the indicator led.
 
-iQIcBAEBCgAGBQJUYSbmAAoJENju1/PIO/qa90IP/22e/fi1cIzIKoCeIjQKQsXB
-nMxwX5/ejk8JMbRe4d3dDVWtIBYE/FqDFpM5jwfF295WzykKqZUpwlrzPff+iDjV
-SRt33b163fim/qu7NhpgaMH4/i0dTJYtIoyx+pIlXdWy560j+YIN+FIU92DZvShp
-ZekibJUQRPiL8uXp8qLWngdO4A7oCEGDWr5G5Kb5aj5bzuXvcJGpTvx7aSOqfOen
-Rt1XXmLRd9314je1bMdtszjdXGqXmnejUnqynANtI7l7MyV9FgMWUaAqc97ei1o0
-uHZ4cYzBtocOUFqbHnUp3uOmbrp8ulBJAfn0xq+C/6d86qwVL/Oqgrxipy4cRDZl
-jPaI3GlPJz690OBGg4YfnjTXae/AHnWkLpgz39XaSOdmdG26KKg1jav0wosfsvsV
-3VbotsVwDQsgzIHUbKmYQmv4Pc7bHSaJLRHtsz/BJjcT46qSbe8I7ozyQFmAkFJ+
-o8uVybLrfaDdt9weH6WeJKJEmQBzMz66C2YoZEKRB8K86ILF8aCq1K7lmMorAQvH
-Nc0JDlp/CRlfCZdIuJqe2VES99bGOMnoQmdYiAC08f3Ns3K31cLlTS3cwTI/gG9B
-JSrJXRMPCycpw5lnS0SduHsK9tVWo/F/BU5EOoYLmDQ4LUFhy5ipPIVArmJJOKsq
-xiuIClevWOzCji0IXQZH
-=GQV+
------END PGP SIGNATURE-----
+Yes, that would work. I have used
 
---mP3DRpeJDSE+ciuQ--
++               max-flash-timeout-usec = <500000>;
++               max-flash-intensity-uA     = <320000>;
++               max-torch-intensity-uA     =  <50000>;
++               max-indicator-intensity-uA =  <17500>;
+
+. Which is pretty similar. (Actually, maybe the longer property names
+are easier to understand for more people?) (And yes, I should probably
+separate red and white led into separate groups).
+
+> >>[2] http://www.spinics.net/lists/linux-media/msg83100.html
+> >>[3] http://www.spinics.net/lists/linux-leds/msg02472.html
+> >
+> >What device are you using for testing? Can you cc me on future
+> >patches?
+> 
+> I am using max77693 [1] and aat1290 [2]. OK, I will add you on cc.
+
+Thanks for cc and thanks for links!
+
+I see max77693 has two different "white" leds, aat1290 has one "white"
+led, and neither of them has secondary red led for indication?
+
+> The v4l2-flash sub-device registers with v4l2-async API
+> in a media device. Exemplary support for v4l2-flash
+> sub-devices is added to the exynos4-is driver in the patch [5].
+
+Thanks for the links. It seems that aside from moving adp1653 driver
+to device tree, it should be moved to the LED framework, but that's a
+topic for another patch.
+
+Best regards,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
