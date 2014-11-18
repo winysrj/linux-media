@@ -1,136 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46545 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752437AbaKRFoM (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41593 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754205AbaKRMvb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 00:44:12 -0500
-Received: from lanttu.localdomain (unknown [192.168.15.166])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 12F3860093
-	for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 07:44:09 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Tue, 18 Nov 2014 07:51:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [REVIEW PATCH v2 10/11] smiapp: Split sub-device initialisation off from the registered callback
-Date: Tue, 18 Nov 2014 07:43:45 +0200
-Message-Id: <1416289426-804-11-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1416289426-804-1-git-send-email-sakari.ailus@iki.fi>
-References: <1416289426-804-1-git-send-email-sakari.ailus@iki.fi>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv7 PATCH 04/12] vb2: don't free alloc context if it is ERR_PTR
+Date: Tue, 18 Nov 2014 13:51:00 +0100
+Message-Id: <1416315068-22936-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl>
+References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The registered callback is called by the V4L2 async framework after the
-bound callback. This allows separating the functionality in the registered
-callback so that on DT based systems only sub-device registration is done
-there.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Don't try to free a pointer containing an ERR_PTR().
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c |   83 +++++++++++++++++++++-----------
- 1 file changed, 55 insertions(+), 28 deletions(-)
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 899d32d..8663dfb 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2469,6 +2469,57 @@ static const struct v4l2_subdev_ops smiapp_ops;
- static const struct v4l2_subdev_internal_ops smiapp_internal_ops;
- static const struct media_entity_operations smiapp_entity_ops;
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index c4305bf..0bfc488 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -854,7 +854,8 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
  
-+static int smiapp_register_subdevs(struct v4l2_subdev *subdev)
-+{
-+	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
-+	struct smiapp_subdev *ssds[] = {
-+		sensor->scaler,
-+		sensor->binner,
-+		sensor->pixel_array,
-+	};
-+	unsigned int i;
-+	int rval;
-+
-+	for (i = 0; i < SMIAPP_SUBDEVS - 1; i++) {
-+		struct smiapp_subdev *this = ssds[i + 1];
-+		struct smiapp_subdev *last = ssds[i];
-+
-+		if (!last)
-+			continue;
-+
-+		rval = media_entity_init(&this->sd.entity,
-+					 this->npads, this->pads, 0);
-+		if (rval) {
-+			dev_err(&client->dev,
-+				"media_entity_init failed\n");
-+			return rval;
-+		}
-+
-+		rval = media_entity_create_link(&this->sd.entity,
-+						this->source_pad,
-+						&last->sd.entity,
-+						last->sink_pad,
-+						MEDIA_LNK_FL_ENABLED |
-+						MEDIA_LNK_FL_IMMUTABLE);
-+		if (rval) {
-+			dev_err(&client->dev,
-+				"media_entity_create_link failed\n");
-+			return rval;
-+		}
-+
-+		rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
-+						   &this->sd);
-+		if (rval) {
-+			dev_err(&client->dev,
-+				"v4l2_device_register_subdev failed\n");
-+			return rval;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int smiapp_registered(struct v4l2_subdev *subdev)
+ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
  {
- 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
-@@ -2707,37 +2758,13 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 		this->sd.owner = THIS_MODULE;
- 		v4l2_set_subdevdata(&this->sd, client);
+-	kfree(alloc_ctx);
++	if (!IS_ERR_OR_NULL(alloc_ctx))
++		kfree(alloc_ctx);
+ }
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
  
--		rval = media_entity_init(&this->sd.entity,
--					 this->npads, this->pads, 0);
--		if (rval) {
--			dev_err(&client->dev,
--				"media_entity_init failed\n");
--			goto out_nvm_release;
--		}
--
--		rval = media_entity_create_link(&this->sd.entity,
--						this->source_pad,
--						&last->sd.entity,
--						last->sink_pad,
--						MEDIA_LNK_FL_ENABLED |
--						MEDIA_LNK_FL_IMMUTABLE);
--		if (rval) {
--			dev_err(&client->dev,
--				"media_entity_create_link failed\n");
--			goto out_nvm_release;
--		}
--
--		rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
--						   &this->sd);
--		if (rval) {
--			dev_err(&client->dev,
--				"v4l2_device_register_subdev failed\n");
--			goto out_nvm_release;
--		}
--
- 		last = this;
- 	}
- 
-+	rval = smiapp_register_subdevs(&sensor->src->sd);
-+	if (rval)
-+		goto out_nvm_release;
-+
- 	dev_dbg(&client->dev, "profile %d\n", sensor->minfo.smiapp_profile);
- 
- 	sensor->pixel_array->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
 -- 
-1.7.10.4
+2.1.1
 
