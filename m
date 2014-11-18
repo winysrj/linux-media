@@ -1,62 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:34102 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351AbaKYJdW (ORCPT
+Received: from mail-la0-f45.google.com ([209.85.215.45]:41332 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753848AbaKRSV3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Nov 2014 04:33:22 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<g.liakhovetski@gmx.de>, <voice.shen@atmel.com>,
-	<nicolas.ferre@atmel.com>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH] media: atmel-isi: increase the burst length to improve the performance
-Date: Tue, 25 Nov 2014 17:30:25 +0800
-Message-ID: <1416907825-23826-1-git-send-email-josh.wu@atmel.com>
+	Tue, 18 Nov 2014 13:21:29 -0500
 MIME-Version: 1.0
-Content-Type: text/plain
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Date: Tue, 18 Nov 2014 10:21:05 -0800
+Message-ID: <CAB=NE6Wwec_sq4muj7kshhyLJttcf1CytTPWkjc_+Ub3dqn0tw@mail.gmail.com>
+Subject: [ANN] Kernel integration now merged on backports
+To: "backports@vger.kernel.org" <backports@vger.kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-wireless <linux-wireless@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	linux-bluetooth <linux-bluetooth@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	linux-wpan@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The burst length could be BEATS_4/8/16. Before this patch, isi use default
-value BEATS_4. To imporve the performance we could set it to BEATS_16.
+Full kernel integration is now merged as part of Linux
+backports-20141114. I've written a bit about it [0] [1], what we need
+now are users and developer to give this a good spin as we wind down
+for the v3.19 release, which will be the first release that will
+support kernel integration down to any kernel >= 3.0 -- for now you
+can use the backports-20141114 tag which uses as base supported
+drivers from next-20141114. What this will mean is that you can opt in
+to integrate any device driver we support from any future backports
+release into any of >= 3.0 kernel with full kconfig support, enabling
+you to build everything as built-in. For all this you won't be using
+the packaged releases [2], instead you'll use the git tree directly as
+documented.
 
-Otherwise sometime it would cause the ISI overflow error.
+[0] http://www.do-not-panic.com/2014/11/automating-backport-kernel-integration.html
+[1] https://backports.wiki.kernel.org/index.php/Documentation/integration
+[2] https://backports.wiki.kernel.org/index.php/Documentation/packaging
 
-Reported-by: Bo Shen <voice.shen@atmel.com>
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
- drivers/media/platform/soc_camera/atmel-isi.c | 2 ++
- include/media/atmel-isi.h                     | 4 ++++
- 2 files changed, 6 insertions(+)
-
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index ee5650f..fda587b 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -839,6 +839,8 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
- 	if (isi->pdata.full_mode)
- 		cfg1 |= ISI_CFG1_FULL_MODE;
- 
-+	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
-+
- 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
- 	isi_writel(isi, ISI_CFG1, cfg1);
- 
-diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
-index c2e5703..6008b09 100644
---- a/include/media/atmel-isi.h
-+++ b/include/media/atmel-isi.h
-@@ -59,6 +59,10 @@
- #define		ISI_CFG1_FRATE_DIV_MASK		(7 << 8)
- #define ISI_CFG1_DISCR				(1 << 11)
- #define ISI_CFG1_FULL_MODE			(1 << 12)
-+/* Definition for THMASK(ISI_V2) */
-+#define		ISI_CFG1_THMASK_BEATS_4		(0 << 13)
-+#define		ISI_CFG1_THMASK_BEATS_8		(1 << 13)
-+#define		ISI_CFG1_THMASK_BEATS_16	(2 << 13)
- 
- /* Bitfields in CFG2 */
- #define ISI_CFG2_GRAYSCALE			(1 << 13)
--- 
-1.9.1
-
+  Luis
