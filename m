@@ -1,143 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:60840 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752761AbaKDJzV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 04:55:21 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH 05/15] [media] pci: Make use of media_bus_format enum
-Date: Tue,  4 Nov 2014 10:55:00 +0100
-Message-Id: <1415094910-15899-6-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:18992 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754233AbaKSJpO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Nov 2014 04:45:14 -0500
+Message-id: <546C66A5.6060201@samsung.com>
+Date: Wed, 19 Nov 2014 10:45:09 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+References: <20141116075928.GA9763@amd>
+ <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
+ <546AFEA5.9020000@samsung.com> <20141118084603.GC4059@amd>
+ <546B19C8.2090008@samsung.com> <20141118113256.GA10022@amd>
+ <546B40FA.2070409@samsung.com> <20141118132159.GA21089@amd>
+ <546B6D86.8090701@samsung.com> <20141118165148.GA11711@amd>
+In-reply-to: <20141118165148.GA11711@amd>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to have subsytem agnostic media bus format definitions we've
-moved media bus definition to include/uapi/linux/media-bus-format.h and
-prefixed enum values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
+Hi Pavel, Sakari,
 
-Replace all references to the old definition in pci drivers.
+On 11/18/2014 05:51 PM, Pavel Machek wrote:
+> Hi!
+>
+>>> If the hardware LED changes with one that needs different current, the
+>>> block for the adp1653 stays the same, but white LED block should be
+>>> updated with different value.
+>>
+>> I think that you are talking about sub nodes. Indeed I am leaning
+>> towards this type of design.
+>
+> I think I am :-).
+>
+>>>> I agree that flash-timeout should be per led - an array, similarly
+>>>> as in case of iout's.
+>>>
+>>> Agreed about per-led, disagreed about the array. As all the fields
+>>> would need arrays, and as LED system currently does not use arrays for
+>>> label and linux,default-trigger, I believe we should follow existing
+>>> design and model it as three devices. (It _is_ physically three devices.)
+>>
+>> Right, I missed that the leds/common.txt describes child node.
+>>
+>> I propose following modifications to the binding:
+>>
+>> Optional properties for child nodes:
+>> - iout-mode-led : 	maximum intensity in microamperes of the LED
+>> 		  	(torch LED for flash devices)
+>> - iout-mode-flash : 	initial intensity in microamperes of the
+>> 			flash LED; it is required to enable support
+>> 			for the flash led
+>> - iout-mode-indicator : initial intensity in microamperes of the
+>> 			indicator LED; it is required to enable support
+>> 			for the indicator led
+>> - max-iout-mode-led : 	maximum intensity in microamperes of the LED
+>> 		  	(torch LED for flash devices)
+>> - max-iout-mode-flash : maximum intensity in microamperes of the
+>> 			flash LED
+>> - max-iout-mode-indicator : maximum intensity in microamperes of the
+>> 			indicator LED
+>> - flash-timeout :	timeout in microseconds after which flash
+>> 			led is turned off
+>
+> Ok, I took a look, and "iout" is notation I understand, but people may
+> have trouble with and I don't see it used anywhere else.
+>
+> Also... do we need both "current" and "max-current" properties?
+>
+> But regulators already have "regulator-max-microamp" property. So what
+> about:
+>
+> max-microamp : 	maximum intensity in microamperes of the LED
+>   		  	(torch LED for flash devices)
+> max-flash-microamp : 	initial intensity in microamperes of the
+>   			flash LED; it is required to enable support
+>   			for the flash led
+> flash-timeout-microseconds : timeout in microseconds after which flash
+>   			led is turned off
+>
+> If you had indicator on the same led, I guess
+>
+> indicator-microamp : recommended intensity in microamperes of the LED
+> 		         for indication
+>
+> ...would do?
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- drivers/media/pci/cx18/cx18-av-core.c       | 2 +-
- drivers/media/pci/cx18/cx18-controls.c      | 2 +-
- drivers/media/pci/cx18/cx18-ioctl.c         | 2 +-
- drivers/media/pci/cx23885/cx23885-video.c   | 2 +-
- drivers/media/pci/ivtv/ivtv-controls.c      | 2 +-
- drivers/media/pci/ivtv/ivtv-ioctl.c         | 2 +-
- drivers/media/pci/saa7134/saa7134-empress.c | 4 ++--
- 7 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
-index 2d3afe0..4c6ce21 100644
---- a/drivers/media/pci/cx18/cx18-av-core.c
-+++ b/drivers/media/pci/cx18/cx18-av-core.c
-@@ -952,7 +952,7 @@ static int cx18_av_s_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt
- 	int HSC, VSC, Vsrc, Hsrc, filter, Vlines;
- 	int is_50Hz = !(state->std & V4L2_STD_525_60);
- 
--	if (fmt->code != V4L2_MBUS_FMT_FIXED)
-+	if (fmt->code != MEDIA_BUS_FMT_FIXED)
- 		return -EINVAL;
- 
- 	fmt->field = V4L2_FIELD_INTERLACED;
-diff --git a/drivers/media/pci/cx18/cx18-controls.c b/drivers/media/pci/cx18/cx18-controls.c
-index 282a3d2..4aeb7c6 100644
---- a/drivers/media/pci/cx18/cx18-controls.c
-+++ b/drivers/media/pci/cx18/cx18-controls.c
-@@ -98,7 +98,7 @@ static int cx18_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
- 	/* fix videodecoder resolution */
- 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
- 	fmt.height = cxhdl->height;
--	fmt.code = V4L2_MBUS_FMT_FIXED;
-+	fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(cx->sd_av, video, s_mbus_fmt, &fmt);
- 	return 0;
- }
-diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
-index 6f2b590..71963db 100644
---- a/drivers/media/pci/cx18/cx18-ioctl.c
-+++ b/drivers/media/pci/cx18/cx18-ioctl.c
-@@ -294,7 +294,7 @@ static int cx18_s_fmt_vid_cap(struct file *file, void *fh,
- 
- 	mbus_fmt.width = cx->cxhdl.width = w;
- 	mbus_fmt.height = cx->cxhdl.height = h;
--	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(cx->sd_av, video, s_mbus_fmt, &mbus_fmt);
- 	return cx18_g_fmt_vid_cap(file, fh, fmt);
- }
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 682a4f9..091f5db 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -608,7 +608,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	dev->field	= f->fmt.pix.field;
- 	dprintk(2, "%s() width=%d height=%d field=%d\n", __func__,
- 		dev->width, dev->height, dev->field);
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	call_all(dev, video, s_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 	/* s_mbus_fmt overwrites f->fmt.pix.field, restore it */
-diff --git a/drivers/media/pci/ivtv/ivtv-controls.c b/drivers/media/pci/ivtv/ivtv-controls.c
-index 2b0ab26..ccf548c 100644
---- a/drivers/media/pci/ivtv/ivtv-controls.c
-+++ b/drivers/media/pci/ivtv/ivtv-controls.c
-@@ -69,7 +69,7 @@ static int ivtv_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
- 	/* fix videodecoder resolution */
- 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
- 	fmt.height = cxhdl->height;
--	fmt.code = V4L2_MBUS_FMT_FIXED;
-+	fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(itv->sd_video, video, s_mbus_fmt, &fmt);
- 	return 0;
- }
-diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-index 3e0cb77..4d8ee18 100644
---- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-@@ -595,7 +595,7 @@ static int ivtv_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
- 		fmt->fmt.pix.width /= 2;
- 	mbus_fmt.width = fmt->fmt.pix.width;
- 	mbus_fmt.height = h;
--	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(itv->sd_video, video, s_mbus_fmt, &mbus_fmt);
- 	return ivtv_g_fmt_vid_cap(file, fh, fmt);
- }
-diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-index e4ea85f..8b3bb78 100644
---- a/drivers/media/pci/saa7134/saa7134-empress.c
-+++ b/drivers/media/pci/saa7134/saa7134-empress.c
-@@ -140,7 +140,7 @@ static int empress_s_fmt_vid_cap(struct file *file, void *priv,
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	struct v4l2_mbus_framefmt mbus_fmt;
- 
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	saa_call_all(dev, video, s_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 
-@@ -157,7 +157,7 @@ static int empress_try_fmt_vid_cap(struct file *file, void *priv,
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	struct v4l2_mbus_framefmt mbus_fmt;
- 
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	saa_call_all(dev, video, try_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 
--- 
-1.9.1
+Ongoing discussion allowed me for taking a look at the indicator issue
+from different perspective. This is also vital for the issue of
+whether a v4l2-flash sub-device should be created per device or
+per sub-led [1].
 
+Currently each sub-led is represented as a separate device tree
+sub node and the led drivers create separate LED class device for the
+sub nodes. What this implies is that indicator led also must be
+represented by the separate LED class device.
+
+This is contrary to the way how V4L2 Flash API approaches this issue,
+as it considers a flash device as a regulator chip driven through
+a bus. The API allows to set the led in torch or flash mode and
+implicitly assumes that there can be additional indicator led
+supported, which can't be turned on separately, but the drivers apply
+the indicator current to the indicator led when the torch or flash led
+is activated.
+
+I propose to create separate v4l2-flash device for the indicator led,
+and treat it as a regular sub-led similarly like it is done in the
+LED subsystem. LED Flash class driver would only add a flag
+LED_DEV_CAP_INDICATOR and basing on it the v4l2-flash sub-device
+would create only V4L2_CID_FLASH_INDICATOR_INTENSITY control for it.
+There could ba also additional control added:
+V4L2_CID_FLASH_INDICATOR_PATTERN to support the feature
+supported by some LED class drivers.
+
+ From the media device perspective such an approach would
+be harmful, as the indicator led could be turned on right
+before strobing the flash or turning the torch on, by
+separate calls to different v4l2-flash sub-devices.
+
+The design described above would allow for avoiding issues I touched
+in the message [1].
+
+Regarding DT documentation:
+
+I would also swap the segments of a property name to follow the 
+convention as in case of "regulator-max-microamp".
+
+Updated version:
+
+==========================================================
+
+Optional properties for child nodes:
+- max-microamp : maximum intensity in microamperes of the LED
+		 (torch LED for flash devices)
+- flash-max-microamp : maximum intensity in microamperes of the
+		       flash LED; it is mandatory if the led should
+		       support the flash mode
+- flash-timeout-microsec : timeout in microseconds after which the flash
+		           led is turned off
+- indicator-pattern : identifier of the blinking pattern for the
+		      indicator led
+
+==========================================================
+
+Regards,
+Jacek
+
+[1] 
+http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/84643
