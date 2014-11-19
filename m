@@ -1,664 +1,317 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48328 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751293AbaKGIum (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Nov 2014 03:50:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv5 PATCH 02/15] vb2-dma-sg: add allocation context to dma-sg
-Date: Fri,  7 Nov 2014 09:50:21 +0100
-Message-Id: <1415350234-9826-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail03.solnet.ch ([212.101.4.137]:27751 "EHLO mail03.solnet.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932464AbaKSX1m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Nov 2014 18:27:42 -0500
+Message-ID: <546D25D7.9050703@openelec.tv>
+Date: Thu, 20 Nov 2014 00:20:55 +0100
+From: Stephan Raue <mailinglists@openelec.tv>
+MIME-Version: 1.0
+To: =?windows-1252?Q?David_H=E4rdeman?= <david@hardeman.nu>
+CC: linux-input@vger.kernel.org, m.chehab@samsung.com,
+	linux-media@vger.kernel.org
+Subject: Re: bisected: IR press/release behavior changed in 3.17, repeat events
+References: <54679469.1010500@openelec.tv> <20141119195019.GA20784@hardeman.nu>
+In-Reply-To: <20141119195019.GA20784@hardeman.nu>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Am 19.11.2014 um 20:50 schrieb David Härdeman:
+> On Sat, Nov 15, 2014 at 06:59:05PM +0100, Stephan Raue wrote:
+>> Hi
+>>
+>> with kernel 3.17 using a RC6 remote with a buildin nuvoton IR receiver (not
+>> tested others, but i think its a common problem) when pressing/releasing the
+>> same button often within 1 second there will no release event sent. Instead
+>> we get repeat events. To get the release event i must press the same button
+>> with a delay of ~ 1sec.
+>>
+>> the evtest output for kernel with the difference 3.16 and 3.17 looks like
+> Hi,
+>
+> could you try the working and non-working versions with debugging output
+> enabled from the in-kernel rc6 decoder (i.e. set debug for the rc-core
+> module) and post the two different outputs?
+>
+> //David
+>
 
-Require that dma-sg also uses an allocation context. This is in preparation
-for adding prepare/finish memops to sync the memory between DMA and CPU.
+Hi David
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx23885/cx23885-417.c         |  1 +
- drivers/media/pci/cx23885/cx23885-core.c        | 10 +++++-
- drivers/media/pci/cx23885/cx23885-dvb.c         |  1 +
- drivers/media/pci/cx23885/cx23885-vbi.c         |  1 +
- drivers/media/pci/cx23885/cx23885-video.c       |  1 +
- drivers/media/pci/cx23885/cx23885.h             |  1 +
- drivers/media/pci/saa7134/saa7134-core.c        | 18 +++++++---
- drivers/media/pci/saa7134/saa7134-ts.c          |  1 +
- drivers/media/pci/saa7134/saa7134-vbi.c         |  1 +
- drivers/media/pci/saa7134/saa7134-video.c       |  1 +
- drivers/media/pci/saa7134/saa7134.h             |  1 +
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c  | 10 ++++++
- drivers/media/pci/solo6x10/solo6x10.h           |  1 +
- drivers/media/pci/tw68/tw68-core.c              | 15 +++++++--
- drivers/media/pci/tw68/tw68-video.c             |  1 +
- drivers/media/pci/tw68/tw68.h                   |  1 +
- drivers/media/platform/marvell-ccic/mcam-core.c |  7 ++++
- drivers/media/platform/marvell-ccic/mcam-core.h |  1 +
- drivers/media/v4l2-core/videobuf2-core.c        |  3 +-
- drivers/media/v4l2-core/videobuf2-dma-contig.c  |  4 ++-
- drivers/media/v4l2-core/videobuf2-dma-sg.c      | 44 +++++++++++++++++++++++--
- drivers/media/v4l2-core/videobuf2-vmalloc.c     |  3 +-
- include/media/videobuf2-core.h                  |  3 +-
- include/media/videobuf2-dma-sg.h                |  3 ++
- 24 files changed, 118 insertions(+), 15 deletions(-)
+with kernel 3.17: (you dont see the messages with "toggle 1" here)
+if i press once and wait:
 
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index 3948db3..d72a3ec 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -1148,6 +1148,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 	dev->ts1.ts_packet_count = mpeglines;
- 	*num_planes = 1;
- 	sizes[0] = mpeglinesize * mpeglines;
-+	alloc_ctxs[0] = dev->alloc_ctx;
- 	*num_buffers = mpegbufs;
- 	return 0;
- }
-diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
-index 331edda..0451522 100644
---- a/drivers/media/pci/cx23885/cx23885-core.c
-+++ b/drivers/media/pci/cx23885/cx23885-core.c
-@@ -1997,9 +1997,14 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
- 	if (!pci_dma_supported(pci_dev, 0xffffffff)) {
- 		printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
- 		err = -EIO;
--		goto fail_irq;
-+		goto fail_context;
- 	}
- 
-+	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
-+	if (IS_ERR(dev->alloc_ctx)) {
-+		err = -ENOMEM;
-+		goto fail_context;
-+	}
- 	err = request_irq(pci_dev->irq, cx23885_irq,
- 			  IRQF_SHARED, dev->name, dev);
- 	if (err < 0) {
-@@ -2028,6 +2033,8 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
- 	return 0;
- 
- fail_irq:
-+	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
-+fail_context:
- 	cx23885_dev_unregister(dev);
- fail_ctrl:
- 	v4l2_ctrl_handler_free(hdl);
-@@ -2053,6 +2060,7 @@ static void cx23885_finidev(struct pci_dev *pci_dev)
- 	free_irq(pci_dev->irq, dev);
- 
- 	cx23885_dev_unregister(dev);
-+	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
- 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
- 	v4l2_device_unregister(v4l2_dev);
- 	kfree(dev);
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 9da5cf3..e63759e 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -102,6 +102,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 	port->ts_packet_count = 32;
- 	*num_planes = 1;
- 	sizes[0] = port->ts_packet_size * port->ts_packet_count;
-+	alloc_ctxs[0] = port->dev->alloc_ctx;
- 	*num_buffers = 32;
- 	return 0;
- }
-diff --git a/drivers/media/pci/cx23885/cx23885-vbi.c b/drivers/media/pci/cx23885/cx23885-vbi.c
-index a7c6ef8..1d339a6 100644
---- a/drivers/media/pci/cx23885/cx23885-vbi.c
-+++ b/drivers/media/pci/cx23885/cx23885-vbi.c
-@@ -132,6 +132,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 		lines = VBI_NTSC_LINE_COUNT;
- 	*num_planes = 1;
- 	sizes[0] = lines * VBI_LINE_LENGTH * 2;
-+	alloc_ctxs[0] = dev->alloc_ctx;
- 	return 0;
- }
- 
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 682a4f9..1b04ab3 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -323,6 +323,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 
- 	*num_planes = 1;
- 	sizes[0] = (dev->fmt->depth * dev->width * dev->height) >> 3;
-+	alloc_ctxs[0] = dev->alloc_ctx;
- 	return 0;
- }
- 
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index 7eee2ea..fa43d1b 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -422,6 +422,7 @@ struct cx23885_dev {
- 	struct vb2_queue           vb2_vidq;
- 	struct cx23885_dmaqueue    vbiq;
- 	struct vb2_queue           vb2_vbiq;
-+	void			   *alloc_ctx;
- 
- 	spinlock_t                 slock;
- 
-diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
-index 236ed72..4f166c5 100644
---- a/drivers/media/pci/saa7134/saa7134-core.c
-+++ b/drivers/media/pci/saa7134/saa7134-core.c
-@@ -1001,13 +1001,18 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
- 	saa7134_board_init1(dev);
- 	saa7134_hwinit1(dev);
- 
-+	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
-+	if (IS_ERR(dev->alloc_ctx)) {
-+		err = -ENOMEM;
-+		goto fail3;
-+	}
- 	/* get irq */
- 	err = request_irq(pci_dev->irq, saa7134_irq,
- 			  IRQF_SHARED, dev->name, dev);
- 	if (err < 0) {
- 		printk(KERN_ERR "%s: can't get IRQ %d\n",
- 		       dev->name,pci_dev->irq);
--		goto fail3;
-+		goto fail4;
- 	}
- 
- 	/* wait a bit, register i2c bus */
-@@ -1065,7 +1070,7 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
- 	if (err < 0) {
- 		printk(KERN_INFO "%s: can't register video device\n",
- 		       dev->name);
--		goto fail4;
-+		goto fail5;
- 	}
- 	printk(KERN_INFO "%s: registered device %s [v4l2]\n",
- 	       dev->name, video_device_node_name(dev->video_dev));
-@@ -1078,7 +1083,7 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
- 	err = video_register_device(dev->vbi_dev,VFL_TYPE_VBI,
- 				    vbi_nr[dev->nr]);
- 	if (err < 0)
--		goto fail4;
-+		goto fail5;
- 	printk(KERN_INFO "%s: registered device %s\n",
- 	       dev->name, video_device_node_name(dev->vbi_dev));
- 
-@@ -1089,7 +1094,7 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
- 		err = video_register_device(dev->radio_dev,VFL_TYPE_RADIO,
- 					    radio_nr[dev->nr]);
- 		if (err < 0)
--			goto fail4;
-+			goto fail5;
- 		printk(KERN_INFO "%s: registered device %s\n",
- 		       dev->name, video_device_node_name(dev->radio_dev));
- 	}
-@@ -1103,10 +1108,12 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
- 	request_submodules(dev);
- 	return 0;
- 
-- fail4:
-+ fail5:
- 	saa7134_unregister_video(dev);
- 	saa7134_i2c_unregister(dev);
- 	free_irq(pci_dev->irq, dev);
-+ fail4:
-+	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
-  fail3:
- 	saa7134_hwfini(dev);
- 	iounmap(dev->lmmio);
-@@ -1173,6 +1180,7 @@ static void saa7134_finidev(struct pci_dev *pci_dev)
- 
- 	/* release resources */
- 	free_irq(pci_dev->irq, dev);
-+	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
- 	iounmap(dev->lmmio);
- 	release_mem_region(pci_resource_start(pci_dev,0),
- 			   pci_resource_len(pci_dev,0));
-diff --git a/drivers/media/pci/saa7134/saa7134-ts.c b/drivers/media/pci/saa7134/saa7134-ts.c
-index bd25323..8eff4a7 100644
---- a/drivers/media/pci/saa7134/saa7134-ts.c
-+++ b/drivers/media/pci/saa7134/saa7134-ts.c
-@@ -142,6 +142,7 @@ int saa7134_ts_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 		*nbuffers = 3;
- 	*nplanes = 1;
- 	sizes[0] = size;
-+	alloc_ctxs[0] = dev->alloc_ctx;
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(saa7134_ts_queue_setup);
-diff --git a/drivers/media/pci/saa7134/saa7134-vbi.c b/drivers/media/pci/saa7134/saa7134-vbi.c
-index 4f0b101..e2cc684 100644
---- a/drivers/media/pci/saa7134/saa7134-vbi.c
-+++ b/drivers/media/pci/saa7134/saa7134-vbi.c
-@@ -156,6 +156,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 	*nbuffers = saa7134_buffer_count(size, *nbuffers);
- 	*nplanes = 1;
- 	sizes[0] = size;
-+	alloc_ctxs[0] = dev->alloc_ctx;
- 	return 0;
- }
- 
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index fc4a427..ba02995 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -932,6 +932,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 	*nbuffers = saa7134_buffer_count(size, *nbuffers);
- 	*nplanes = 1;
- 	sizes[0] = size;
-+	alloc_ctxs[0] = dev->alloc_ctx;
- 	return 0;
- }
- 
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 1a82dd0..c644c7d 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -588,6 +588,7 @@ struct saa7134_dev {
- 
- 
- 	/* video+ts+vbi capture */
-+	void			   *alloc_ctx;
- 	struct saa7134_dmaqueue    video_q;
- 	struct vb2_queue           video_vbq;
- 	struct saa7134_dmaqueue    vbi_q;
-diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-index 28023f9..0517fc9 100644
---- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-@@ -720,7 +720,10 @@ static int solo_enc_queue_setup(struct vb2_queue *q,
- 				unsigned int *num_planes, unsigned int sizes[],
- 				void *alloc_ctxs[])
- {
-+	struct solo_enc_dev *solo_enc = vb2_get_drv_priv(q);
-+
- 	sizes[0] = FRAME_BUF_SIZE;
-+	alloc_ctxs[0] = solo_enc->alloc_ctx;
- 	*num_planes = 1;
- 
- 	if (*num_buffers < MIN_VID_BUFFERS)
-@@ -1263,6 +1266,11 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev,
- 		return ERR_PTR(-ENOMEM);
- 
- 	hdl = &solo_enc->hdl;
-+	solo_enc->alloc_ctx = vb2_dma_sg_init_ctx(&solo_dev->pdev->dev);
-+	if (IS_ERR(solo_enc->alloc_ctx)) {
-+		ret = -ENOMEM;
-+		goto hdl_free;
-+	}
- 	v4l2_ctrl_handler_init(hdl, 10);
- 	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
- 			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-@@ -1366,6 +1374,7 @@ pci_free:
- 			solo_enc->desc_items, solo_enc->desc_dma);
- hdl_free:
- 	v4l2_ctrl_handler_free(hdl);
-+	vb2_dma_sg_cleanup_ctx(solo_enc->alloc_ctx);
- 	kfree(solo_enc);
- 	return ERR_PTR(ret);
- }
-@@ -1377,6 +1386,7 @@ static void solo_enc_free(struct solo_enc_dev *solo_enc)
- 
- 	video_unregister_device(solo_enc->vfd);
- 	v4l2_ctrl_handler_free(&solo_enc->hdl);
-+	vb2_dma_sg_cleanup_ctx(solo_enc->alloc_ctx);
- 	kfree(solo_enc);
- }
- 
-diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
-index 72017b7..bd8edfa 100644
---- a/drivers/media/pci/solo6x10/solo6x10.h
-+++ b/drivers/media/pci/solo6x10/solo6x10.h
-@@ -180,6 +180,7 @@ struct solo_enc_dev {
- 	u32			sequence;
- 	struct vb2_queue	vidq;
- 	struct list_head	vidq_active;
-+	void			*alloc_ctx;
- 	int			desc_count;
- 	int			desc_nelts;
- 	struct solo_p2m_desc	*desc_items;
-diff --git a/drivers/media/pci/tw68/tw68-core.c b/drivers/media/pci/tw68/tw68-core.c
-index 63f0b64..1e450ed 100644
---- a/drivers/media/pci/tw68/tw68-core.c
-+++ b/drivers/media/pci/tw68/tw68-core.c
-@@ -304,13 +304,19 @@ static int tw68_initdev(struct pci_dev *pci_dev,
- 	/* Then do any initialisation wanted before interrupts are on */
- 	tw68_hw_init1(dev);
- 
-+	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
-+	if (IS_ERR(dev->alloc_ctx)) {
-+		err = -ENOMEM;
-+		goto fail3;
-+	}
-+
- 	/* get irq */
- 	err = devm_request_irq(&pci_dev->dev, pci_dev->irq, tw68_irq,
- 			  IRQF_SHARED, dev->name, dev);
- 	if (err < 0) {
- 		pr_err("%s: can't get IRQ %d\n",
- 		       dev->name, pci_dev->irq);
--		goto fail3;
-+		goto fail4;
- 	}
- 
- 	/*
-@@ -324,7 +330,7 @@ static int tw68_initdev(struct pci_dev *pci_dev,
- 	if (err < 0) {
- 		pr_err("%s: can't register video device\n",
- 		       dev->name);
--		goto fail4;
-+		goto fail5;
- 	}
- 	tw_setl(TW68_INTMASK, dev->pci_irqmask);
- 
-@@ -333,8 +339,10 @@ static int tw68_initdev(struct pci_dev *pci_dev,
- 
- 	return 0;
- 
--fail4:
-+fail5:
- 	video_unregister_device(&dev->vdev);
-+fail4:
-+	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
- fail3:
- 	iounmap(dev->lmmio);
- fail2:
-@@ -358,6 +366,7 @@ static void tw68_finidev(struct pci_dev *pci_dev)
- 	/* unregister */
- 	video_unregister_device(&dev->vdev);
- 	v4l2_ctrl_handler_free(&dev->hdl);
-+	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
- 
- 	/* release resources */
- 	iounmap(dev->lmmio);
-diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
-index 5c94ac7..50dcce6 100644
---- a/drivers/media/pci/tw68/tw68-video.c
-+++ b/drivers/media/pci/tw68/tw68-video.c
-@@ -384,6 +384,7 @@ static int tw68_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 	unsigned tot_bufs = q->num_buffers + *num_buffers;
- 
- 	sizes[0] = (dev->fmt->depth * dev->width * dev->height) >> 3;
-+	alloc_ctxs[0] = dev->alloc_ctx;
- 	/*
- 	 * We allow create_bufs, but only if the sizeimage is the same as the
- 	 * current sizeimage. The tw68_buffer_count calculation becomes quite
-diff --git a/drivers/media/pci/tw68/tw68.h b/drivers/media/pci/tw68/tw68.h
-index 2c8abe2..7a7501b 100644
---- a/drivers/media/pci/tw68/tw68.h
-+++ b/drivers/media/pci/tw68/tw68.h
-@@ -181,6 +181,7 @@ struct tw68_dev {
- 	unsigned		field;
- 	struct vb2_queue	vidq;
- 	struct list_head	active;
-+	void			*alloc_ctx;
- 
- 	/* various v4l controls */
- 	const struct tw68_tvnorm *tvnorm;	/* video */
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 7a86c77..20d53b6 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1080,6 +1080,8 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
- 		*nbufs = minbufs;
- 	if (cam->buffer_mode == B_DMA_contig)
- 		alloc_ctxs[0] = cam->vb_alloc_ctx;
-+	else if (cam->buffer_mode == B_DMA_sg)
-+		alloc_ctxs[0] = cam->vb_alloc_ctx_sg;
- 	return 0;
- }
- 
-@@ -1298,6 +1300,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
- 		vq->ops = &mcam_vb2_sg_ops;
- 		vq->mem_ops = &vb2_dma_sg_memops;
- 		vq->buf_struct_size = sizeof(struct mcam_vb_buffer);
-+		cam->vb_alloc_ctx_sg = vb2_dma_sg_init_ctx(cam->dev);
- 		vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 		cam->dma_setup = mcam_ctlr_dma_sg;
- 		cam->frame_complete = mcam_dma_sg_done;
-@@ -1326,6 +1329,10 @@ static void mcam_cleanup_vb2(struct mcam_camera *cam)
- 	if (cam->buffer_mode == B_DMA_contig)
- 		vb2_dma_contig_cleanup_ctx(cam->vb_alloc_ctx);
- #endif
-+#ifdef MCAM_MODE_DMA_SG
-+	if (cam->buffer_mode == B_DMA_sg)
-+		vb2_dma_sg_cleanup_ctx(cam->vb_alloc_ctx_sg);
-+#endif
- }
- 
- 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-index e0e628c..7b8c201 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.h
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-@@ -176,6 +176,7 @@ struct mcam_camera {
- 	/* DMA buffers - DMA modes */
- 	struct mcam_vb_buffer *vb_bufs[MAX_DMA_BUFS];
- 	struct vb2_alloc_ctx *vb_alloc_ctx;
-+	struct vb2_alloc_ctx *vb_alloc_ctx_sg;
- 
- 	/* Mode-specific ops, set at open time */
- 	void (*dma_setup)(struct mcam_camera *cam);
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index f2e43de..490defb 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -189,6 +189,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q);
- static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
- 	void *mem_priv;
- 	int plane;
- 
-@@ -200,7 +201,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
- 
- 		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
--				      size, q->gfp_flags);
-+				      size, write, q->gfp_flags);
- 		if (IS_ERR_OR_NULL(mem_priv))
- 			goto free;
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 4a02ade..6675f12 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -155,7 +155,8 @@ static void vb2_dc_put(void *buf_priv)
- 	kfree(buf);
- }
- 
--static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
-+static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, int write,
-+			  gfp_t gfp_flags)
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct device *dev = conf->dev;
-@@ -176,6 +177,7 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
- 	/* Prevent the device from being released while the buffer is used */
- 	buf->dev = get_device(dev);
- 	buf->size = size;
-+	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
- 
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_dc_put;
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 9b163a4..ff77be7 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -30,11 +30,17 @@ module_param(debug, int, 0644);
- 			printk(KERN_DEBUG "vb2-dma-sg: " fmt, ## arg);	\
- 	} while (0)
- 
-+struct vb2_dma_sg_conf {
-+	struct device		*dev;
-+};
-+
- struct vb2_dma_sg_buf {
-+	struct device			*dev;
- 	void				*vaddr;
- 	struct page			**pages;
- 	int				write;
- 	int				offset;
-+	enum dma_data_direction		dma_dir;
- 	struct sg_table			sg_table;
- 	size_t				size;
- 	unsigned int			num_pages;
-@@ -86,22 +92,27 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
- 	return 0;
- }
- 
--static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
-+static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
-+			      gfp_t gfp_flags)
- {
-+	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
- 	int ret;
- 	int num_pages;
- 
-+	if (WARN_ON(alloc_ctx == NULL))
-+		return NULL;
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
- 		return NULL;
- 
- 	buf->vaddr = NULL;
--	buf->write = 0;
-+	buf->write = write;
- 	buf->offset = 0;
- 	buf->size = size;
- 	/* size is already page aligned */
- 	buf->num_pages = size >> PAGE_SHIFT;
-+	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
- 
- 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
- 			     GFP_KERNEL);
-@@ -117,6 +128,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
- 	if (ret)
- 		goto fail_table_alloc;
- 
-+	/* Prevent the device from being released while the buffer is used */
-+	buf->dev = get_device(conf->dev);
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_dma_sg_put;
- 	buf->handler.arg = buf;
-@@ -152,6 +165,7 @@ static void vb2_dma_sg_put(void *buf_priv)
- 		while (--i >= 0)
- 			__free_page(buf->pages[i]);
- 		kfree(buf->pages);
-+		put_device(buf->dev);
- 		kfree(buf);
- 	}
- }
-@@ -164,6 +178,7 @@ static inline int vma_is_io(struct vm_area_struct *vma)
- static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 				    unsigned long size, int write)
- {
-+	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
- 	unsigned long first, last;
- 	int num_pages_from_user;
-@@ -177,6 +192,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->write = write;
- 	buf->offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
-+	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
- 
- 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
- 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
-@@ -233,6 +249,8 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 			buf->num_pages, buf->offset, size, 0))
- 		goto userptr_fail_alloc_table_from_pages;
- 
-+	/* Prevent the device from being released while the buffer is used */
-+	buf->dev = get_device(conf->dev);
- 	return buf;
- 
- userptr_fail_alloc_table_from_pages:
-@@ -272,6 +290,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 	}
- 	kfree(buf->pages);
- 	vb2_put_vma(buf->vma);
-+	put_device(buf->dev);
- 	kfree(buf);
- }
- 
-@@ -354,6 +373,27 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- };
- EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
- 
-+void *vb2_dma_sg_init_ctx(struct device *dev)
-+{
-+	struct vb2_dma_sg_conf *conf;
-+
-+	conf = kzalloc(sizeof(*conf), GFP_KERNEL);
-+	if (!conf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	conf->dev = dev;
-+
-+	return conf;
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_sg_init_ctx);
-+
-+void vb2_dma_sg_cleanup_ctx(void *alloc_ctx)
-+{
-+	if (!IS_ERR_OR_NULL(alloc_ctx))
-+		kfree(alloc_ctx);
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_sg_cleanup_ctx);
-+
- MODULE_DESCRIPTION("dma scatter/gather memory handling routines for videobuf2");
- MODULE_AUTHOR("Andrzej Pietrasiewicz");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 313d977..d77e397 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -35,7 +35,8 @@ struct vb2_vmalloc_buf {
- 
- static void vb2_vmalloc_put(void *buf_priv);
- 
--static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
-+static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, int write,
-+			       gfp_t gfp_flags)
- {
- 	struct vb2_vmalloc_buf *buf;
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 70ace7c..49e278b 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -82,7 +82,8 @@ struct vb2_threadio_data;
-  *				  unmap_dmabuf.
-  */
- struct vb2_mem_ops {
--	void		*(*alloc)(void *alloc_ctx, unsigned long size, gfp_t gfp_flags);
-+	void		*(*alloc)(void *alloc_ctx, unsigned long size, int write,
-+				  gfp_t gfp_flags);
- 	void		(*put)(void *buf_priv);
- 	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
- 
-diff --git a/include/media/videobuf2-dma-sg.h b/include/media/videobuf2-dma-sg.h
-index 7b89852..14ce306 100644
---- a/include/media/videobuf2-dma-sg.h
-+++ b/include/media/videobuf2-dma-sg.h
-@@ -21,6 +21,9 @@ static inline struct sg_table *vb2_dma_sg_plane_desc(
- 	return (struct sg_table *)vb2_plane_cookie(vb, plane_no);
- }
- 
-+void *vb2_dma_sg_init_ctx(struct device *dev);
-+void vb2_dma_sg_cleanup_ctx(void *alloc_ctx);
-+
- extern const struct vb2_mem_ops vb2_dma_sg_memops;
- 
- #endif
--- 
-2.1.1
+[   72.175548] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[   72.175555] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[   72.175559] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, protocol 0x0011, scancode 0x800f041f
+[   72.350377] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[   72.350385] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[   72.598265] keyup key 0x006c
+[   81.456175] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[   81.456182] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[   81.456186] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, protocol 0x0011, scancode 0x800f041f
+[   81.631033] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[   81.631045] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[   81.878230] keyup key 0x006c
+[   98.976060] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[   98.976067] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[   98.976071] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, protocol 0x0011, scancode 0x800f041f
+[   99.150910] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[   99.150918] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[   99.398575] keyup key 0x006c
+
+with kernel 3.17 if i press the same key often without a longer break:
+
+[  298.971043] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  298.971051] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  298.971055] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, protocol 0x0011, scancode 0x800f041f
+[  299.162854] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  299.162863] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  299.273112] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  299.273119] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  299.396907] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  299.396913] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  299.484521] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  299.484533] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  299.649523] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  299.649533] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  299.822100] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  299.822107] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  299.970903] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  299.970910] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  300.133381] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  300.133392] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  300.310163] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  300.310168] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  300.496736] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  300.496743] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  300.660526] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  300.660535] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  300.829385] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  300.829390] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  301.005423] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  301.005430] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  301.167183] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  301.167195] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  301.330419] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  301.330426] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  301.505621] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  301.505628] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  301.686007] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  301.686013] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  301.846361] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  301.846370] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  302.016169] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  302.016180] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  302.186990] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  302.186997] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  302.364885] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  302.364893] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  302.507666] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  302.507673] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  302.634184] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  302.634191] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  302.762198] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  302.762206] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  302.942671] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  302.942678] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  303.085449] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  303.085456] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  303.186777] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  303.186784] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  303.271129] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  303.271143] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  303.348733] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  303.348743] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  303.513377] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  303.513382] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  303.616009] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  303.616019] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  303.688259] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  303.688265] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  303.752897] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  303.752905] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  303.940450] RC6(6A) proto 0x0011, scancode 0x800f041f (toggle: 0)
+[  303.940458] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  304.187848] keyup key 0x006c
+[  311.405294] RC6 decode failed at state 0 (250us pulse)
+[  311.405302] RC6 decode failed at state 0 (6350us space)
+[  331.899445] RC6 decode failed at state 0 (250us pulse)
+[  331.899454] RC6 decode failed at state 0 (6350us space)
+
+with kernel 3.16: (you see messages with "RC6(6A) scancode 0x800f041f 
+(toggle: 1)"
+
+pressing the buttons with some delay between:
+
+[  112.360318] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  112.360326] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  112.360330] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  112.484703] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  112.484711] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  112.733389] keyup key 0x006c
+[  114.605782] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  114.605795] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  114.605802] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  114.730174] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  114.730182] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  114.979244] keyup key 0x006c
+[  117.093793] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  117.093800] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  117.093805] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  117.218137] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  117.218144] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  117.465012] keyup key 0x006c
+[  125.029704] RC6 decode failed at state 0 (300us pulse)
+[  125.029714] RC6 decode failed at state 0 (95250us space)
+[  125.795347] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  125.795354] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  125.795358] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  125.919612] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  125.919623] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  126.168501] keyup key 0x006c
+[  128.740748] RC6 decode failed at state 0 (250us pulse)
+[  128.740756] RC6 decode failed at state 0 (95250us space)
+
+
+pressing fast:
+
+[  192.644815] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  192.753373] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  192.753384] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  192.854618] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  192.854625] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  192.854627] keyup key 0x006c
+[  192.854631] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  192.960172] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  192.960178] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  193.063672] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  193.063686] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  193.063690] keyup key 0x006c
+[  193.063698] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  193.161351] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  193.161359] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  193.263223] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  193.263235] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  193.263238] keyup key 0x006c
+[  193.263245] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  193.366792] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  193.366800] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  193.487952] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  193.487959] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  193.487962] keyup key 0x006c
+[  193.487966] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  193.655452] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  193.655459] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  193.655462] keyup key 0x006c
+[  193.655466] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  193.757056] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  193.757064] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  193.858806] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  193.858811] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  193.858813] keyup key 0x006c
+[  193.858816] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  193.975154] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  193.975165] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  194.078759] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  194.078769] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  194.078772] keyup key 0x006c
+[  194.078776] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  194.204414] RC6(6A) scancode 0x800f041f (toggle: 1)
+[  194.204420] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  194.376145] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  194.376153] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  194.376156] keyup key 0x006c
+[  194.376160] Nuvoton w836x7hg Infrared Remote Transceiver: key down 
+event, key 0x006c, scancode 0x800f041f
+[  194.500541] RC6(6A) scancode 0x800f041f (toggle: 0)
+[  194.500548] Nuvoton w836x7hg Infrared Remote Transceiver: scancode 
+0x800f041f keycode 0x6c
+[  194.750393] keyup key 0x006c
+
+greetings and thanks for your help
+
+Stephan
 
