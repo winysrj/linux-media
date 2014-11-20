@@ -1,158 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:59128 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752719AbaKGOID (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 09:08:03 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v3 09/10] gpu: ipu-v3: Make use of media_bus_format enum
-Date: Fri,  7 Nov 2014 15:07:48 +0100
-Message-Id: <1415369269-5064-10-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from mx1.redhat.com ([209.132.183.28]:56664 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751406AbaKTUWL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 15:22:11 -0500
+Message-ID: <546E4D6B.30100@redhat.com>
+Date: Thu, 20 Nov 2014 21:22:03 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Gregor Jasny <gjasny@googlemail.com>, linux-media@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: v4l-utils stable release 1.6.1
+References: <546E093D.4030203@googlemail.com>
+In-Reply-To: <546E093D.4030203@googlemail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to have subsytem agnostic media bus format definitions we've
-moved media bus definition to include/uapi/linux/media-bus-format.h and
-prefixed enum values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
+Hi,
 
-Reference new definitions in the ipu-v3 driver.
+On 11/20/2014 04:31 PM, Gregor Jasny wrote:
+> Hello,
+> 
+> do you consider something from these commits as important enough for a bugfix release?
+> 
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- drivers/gpu/ipu-v3/ipu-csi.c | 66 ++++++++++++++++++++++----------------------
- 1 file changed, 33 insertions(+), 33 deletions(-)
+<snip>
 
-diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
-index d6f56471..752cdd2 100644
---- a/drivers/gpu/ipu-v3/ipu-csi.c
-+++ b/drivers/gpu/ipu-v3/ipu-csi.c
-@@ -227,83 +227,83 @@ static int ipu_csi_set_testgen_mclk(struct ipu_csi *csi, u32 pixel_clk,
- static int mbus_code_to_bus_cfg(struct ipu_csi_bus_config *cfg, u32 mbus_code)
- {
- 	switch (mbus_code) {
--	case V4L2_MBUS_FMT_BGR565_2X8_BE:
--	case V4L2_MBUS_FMT_BGR565_2X8_LE:
--	case V4L2_MBUS_FMT_RGB565_2X8_BE:
--	case V4L2_MBUS_FMT_RGB565_2X8_LE:
-+	case MEDIA_BUS_FMT_BGR565_2X8_BE:
-+	case MEDIA_BUS_FMT_BGR565_2X8_LE:
-+	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-+	case MEDIA_BUS_FMT_RGB565_2X8_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB565;
- 		cfg->mipi_dt = MIPI_DT_RGB565;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE:
--	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE:
-+	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
-+	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB444;
- 		cfg->mipi_dt = MIPI_DT_RGB444;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
--	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
-+	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
-+	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB555;
- 		cfg->mipi_dt = MIPI_DT_RGB555;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_UYVY8_2X8:
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_YUYV8_2X8:
-+	case MEDIA_BUS_FMT_YUYV8_2X8:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_UYVY8_1X16:
-+	case MEDIA_BUS_FMT_UYVY8_1X16:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
- 		break;
--	case V4L2_MBUS_FMT_YUYV8_1X16:
-+	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR8_1X8:
--	case V4L2_MBUS_FMT_SGBRG8_1X8:
--	case V4L2_MBUS_FMT_SGRBG8_1X8:
--	case V4L2_MBUS_FMT_SRGGB8_1X8:
-+	case MEDIA_BUS_FMT_SBGGR8_1X8:
-+	case MEDIA_BUS_FMT_SGBRG8_1X8:
-+	case MEDIA_BUS_FMT_SGRBG8_1X8:
-+	case MEDIA_BUS_FMT_SRGGB8_1X8:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW8;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE:
-+	case MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW10;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR10_1X10:
--	case V4L2_MBUS_FMT_SGBRG10_1X10:
--	case V4L2_MBUS_FMT_SGRBG10_1X10:
--	case V4L2_MBUS_FMT_SRGGB10_1X10:
-+	case MEDIA_BUS_FMT_SBGGR10_1X10:
-+	case MEDIA_BUS_FMT_SGBRG10_1X10:
-+	case MEDIA_BUS_FMT_SGRBG10_1X10:
-+	case MEDIA_BUS_FMT_SRGGB10_1X10:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW10;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_10;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR12_1X12:
--	case V4L2_MBUS_FMT_SGBRG12_1X12:
--	case V4L2_MBUS_FMT_SGRBG12_1X12:
--	case V4L2_MBUS_FMT_SRGGB12_1X12:
-+	case MEDIA_BUS_FMT_SBGGR12_1X12:
-+	case MEDIA_BUS_FMT_SGBRG12_1X12:
-+	case MEDIA_BUS_FMT_SGRBG12_1X12:
-+	case MEDIA_BUS_FMT_SRGGB12_1X12:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW12;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_12;
- 		break;
--	case V4L2_MBUS_FMT_JPEG_1X8:
-+	case MEDIA_BUS_FMT_JPEG_1X8:
- 		/* TODO */
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_JPEG;
- 		cfg->mipi_dt = MIPI_DT_RAW8;
--- 
-1.9.1
+>> Hans de Goede (2):
+>>       rc_keymaps: allwinner: S/KEY_HOME/KEY_HOMEPAGE/
+>>       v4lconvert: Fix decoding of jpeg data with no vertical sub-sampling
 
+Yes both of them (first one is not that important, but if you're doing
+a 1.6.1 anyways it is good to include it).
+
+Regards,
+
+Hans
