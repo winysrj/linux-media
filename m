@@ -1,57 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:59250 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132AbaKBPti (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 10:49:38 -0500
-Received: by mail-pd0-f174.google.com with SMTP id p10so10056983pdj.19
-        for <linux-media@vger.kernel.org>; Sun, 02 Nov 2014 07:49:38 -0800 (PST)
-Message-ID: <5456528D.6080304@gmail.com>
-Date: Mon, 03 Nov 2014 00:49:33 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
-MIME-Version: 1.0
-To: Gregor Jasny <gjasny@googlemail.com>, linux-media@vger.kernel.org
-CC: m.chehab@samsung.com
-Subject: Re: [PATCH v4] v4l-utils/libdvbv5: add gconv module for the text
- conversions of ISDB-S/T.
-References: <1414761224-32761-8-git-send-email-tskd08@gmail.com> <1414842019-15975-1-git-send-email-tskd08@gmail.com> <54563CE4.2080103@googlemail.com>
-In-Reply-To: <54563CE4.2080103@googlemail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:55737 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758033AbaKTUeG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 15:34:06 -0500
+Received: by mail-lb0-f181.google.com with SMTP id l4so2997509lbv.12
+        for <linux-media@vger.kernel.org>; Thu, 20 Nov 2014 12:34:05 -0800 (PST)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 3/3] em28xx: initialize si2168_config struct
+Date: Thu, 20 Nov 2014 22:33:49 +0200
+Message-Id: <1416515629-22183-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1416515629-22183-1-git-send-email-olli.salonen@iki.fi>
+References: <1416515629-22183-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+When new parameters are added for si2168 driver, the parameters have to be explicitly defined for each device if the
+si2168_config struct is not initialized to all zeros.
 
-> I would really prefer if you could use the autotools toolchain
-> (autoconf, automake, libtool) to produce the two gconv modules. You
-> might be able to have a look at the v4l-plugins Makefiles in this project.
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/em28xx/em28xx-dvb.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-As the upstream glibc does not use autotools,
-I looked through the Makefiles there and they were too complex for me
-to convert to the simple version for just building out-of-tree modules.
-So the current Makefile is pretty premitive.
-But I'll try to investigate it again.
-
-> In the existing Makefile I miss an install target.
-
-Those modules are not intended to be installed,
-instead GCONV_PATH is set to the directory at runtime.
-
-> Did you write the whole gconv module by yourself? Please clarify
-> copyright. Because libdvbv5 is useable without the gconv modules I would
-> move them into /contrib rather than /lib.
-
-the work was done by myself but it is based on the other existing
-modules (iso-2022-jp-3 and iso_6937).
-I'd like to assign copyrights to FSF as written in a file header,
-as I intend to contribute them to the upstream glibc.
-
-> Are you aware of any other software that ships gconv modules? I'd like
-> to take a look how it got packaged for distributions.
-
-Unfortunately I don't know one,
-and that's why those gconv modules are so badly packaged;)
-
---
-Akihiro
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 65a456d..5a94f17 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1553,6 +1553,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			struct si2157_config si2157_config;
+ 
+ 			/* attach demod */
++			memset(&si2168_config, 0, sizeof(si2168_config));
+ 			si2168_config.i2c_adapter = &adapter;
+ 			si2168_config.fe = &dvb->fe[0];
+ 			si2168_config.ts_mode = SI2168_TS_PARALLEL;
+-- 
+1.9.1
 
