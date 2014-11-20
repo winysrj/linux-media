@@ -1,73 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60564 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751899AbaKQKPz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 05:15:55 -0500
-Date: Mon, 17 Nov 2014 11:15:53 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Message-ID: <20141117101553.GA21151@amd>
-References: <20141116075928.GA9763@amd>
- <201411170943.20810@pali>
- <20141117100519.GA4353@amd>
- <201411171109.47795@pali>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <201411171109.47795@pali>
+Received: from mx1.redhat.com ([209.132.183.28]:56190 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756862AbaKTP4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 10:56:06 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 2/9] clk: sunxi: Make sun4i_a10_mod0_data available outside of clk-mod0.c
+Date: Thu, 20 Nov 2014 16:55:21 +0100
+Message-Id: <1416498928-1300-3-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
+References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 2014-11-17 11:09:45, Pali Rohár wrote:
-> On Monday 17 November 2014 11:05:19 Pavel Machek wrote:
-> > Hi!
-> > 
-> > On Mon 2014-11-17 09:43:19, Pali Rohár wrote:
-> > > On Sunday 16 November 2014 08:59:28 Pavel Machek wrote:
-> > > > For device tree people: Yes, I know I'll have to create
-> > > > file in documentation, but does the binding below look
-> > > > acceptable?
-> > > > 
-> > > > I'll clean up driver code a bit more, remove the printks.
-> > > > Anything else obviously wrong?
-> > > 
-> > > I think that this patch is probably not good and specially
-> > > not for n900. adp1653 should be registered throw omap3 isp
-> > > camera subsystem which does not have DT support yet.
-> > 
-> > Can you explain?
-> > 
-> > adp1653 is independend device on i2c bus, and we have kernel
-> > driver for it (unlike rest of n900 camera system). Just now
-> > it is unusable due to lack of DT binding. It has two
-> > functions, LED light and a camera flash; yes, the second one
-> > should be integrated to the rest of camera system, but that
-> > is not yet merged. That should not prevent us from merging DT
-> > support for the flash, so that this part can be
-> > tested/maintained.
-> > 
-> 
-> Ok. When ISP camera subsystem has DT support somebody will modify 
-> n900 DT to add camera flash from adp1653 to ISP... I believe it 
-> will not be hard.
+The sun6i prcm has mod0 compatible clocks, these need a separate driver
+because the prcm uses the mfd framework, but we do want to re-use the
+standard mod0 clk handling from clk-mod0.c for this, export
+sun4i_a10_mod0_data, so that the prcm mod0 clk driver can use this.
 
-Exactly. And yes, I'd like to get complete camera support for n900
-merged. But first step is "make sure existing support does not break".
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/clk/sunxi/clk-mod0.c | 2 +-
+ drivers/clk/sunxi/clk-mod0.h | 8 ++++++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/clk/sunxi/clk-mod0.h
 
-Best regards,
-								Pavel
+diff --git a/drivers/clk/sunxi/clk-mod0.c b/drivers/clk/sunxi/clk-mod0.c
+index 9530833..0989502 100644
+--- a/drivers/clk/sunxi/clk-mod0.c
++++ b/drivers/clk/sunxi/clk-mod0.c
+@@ -67,7 +67,7 @@ static struct clk_factors_config sun4i_a10_mod0_config = {
+ 	.pwidth = 2,
+ };
+ 
+-static const struct factors_data sun4i_a10_mod0_data __initconst = {
++const struct factors_data sun4i_a10_mod0_data = {
+ 	.enable = 31,
+ 	.mux = 24,
+ 	.table = &sun4i_a10_mod0_config,
+diff --git a/drivers/clk/sunxi/clk-mod0.h b/drivers/clk/sunxi/clk-mod0.h
+new file mode 100644
+index 0000000..49aa9ab
+--- /dev/null
++++ b/drivers/clk/sunxi/clk-mod0.h
+@@ -0,0 +1,8 @@
++#ifndef __MACH_SUNXI_CLK_MOD0_H
++#define __MACH_SUNXI_CLK_MOD0_H
++
++#include "clk-factors.h"
++
++extern const struct factors_data sun4i_a10_mod0_data;
++
++#endif
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.1.0
+
