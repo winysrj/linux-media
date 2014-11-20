@@ -1,178 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58988 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750990AbaK0NYL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 08:24:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 1/9] videodev2.h: improve colorspace support
-Date: Thu, 27 Nov 2014 14:23:44 +0100
-Message-Id: <1417094632-31980-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417094632-31980-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417094632-31980-1-git-send-email-hverkuil@xs4all.nl>
+Received: from gofer.mess.org ([80.229.237.210]:41037 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751418AbaKTMiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 07:38:51 -0500
+Date: Thu, 20 Nov 2014 12:38:48 +0000
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Andy Walls <awalls.cx18@gmail.com>,
+	Jarod Wilson <jwilson@redhat.com>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	linux-media@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: staging: media: lirc: lirc_zilog.c: replace custom print macros
+ with dev_* and pr_*
+Message-ID: <20141120123848.GA2031@gofer.mess.org>
+References: <20141031130600.GA16310@mwanda>
+ <20141031142644.GA4166@localhost.localdomain>
+ <20141031143541.GM6890@mwanda>
+ <20141106124629.GA898@gofer.mess.org>
+ <20141106110549.1812acc7@recife.lan>
+ <20141106132113.GA1367@gofer.mess.org>
+ <697D038C-4BD9-4113-8E7E-B89BACF09AC2@gmail.com>
+ <6BB6C08A-32A2-4A37-B6F7-332556C9626E@gmail.com>
+ <20141109213517.GA1349@gofer.mess.org>
+ <20141117125909.2729440b@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20141117125909.2729440b@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Nov 17, 2014 at 12:59:09PM -0200, Mauro Carvalho Chehab wrote:
+> Em Sun, 9 Nov 2014 21:35:17 +0000
+> Sean Young <sean@mess.org> escreveu:
+> 
+> > On Thu, Nov 06, 2014 at 08:56:47AM -0500, Andy Walls wrote:
+> > > On November 6, 2014 8:54:28 AM EST, Andy Walls <awalls.cx18@gmail.com> wrote:
+> > > >Sean,
+> > > >
+> > > >Ir-kbd-i2c was never intended for Tx.
+> > > >
+> > > >You can transmit *short* arbitrary pulse-space streams with the zilog
+> > > >chip, by feeding it a parameter block that has the pulse timing
+> > > >information and then subsequently has been obfuscated.  The firmware
+> > > >file that LIRC uses in userspace is full of predefined versions of
+> > > >these things for RC5 and NEC IIRC.  This LIRC firmware file also holds
+> > > >the (de)obfuscation key.
+> > > >
+> > > >I've got a bunch of old notes on this stuff from essentially reverse
+> > > >engineering the firmware in the Z8.  IANAL, but to me, its use in
+> > > >developing in-kernel stuff could be dubious.
+> > > >
+> > > >Regards,
+> > > >Andy
+> > 
+> > Very interesting.
+> > 
+> > I had considered reverse engineering the z8 firmware but I never found a
+> > way to access it. I guess we have three options:
+> > 
+> > 1. I could use Andy's notes to implement Tx. I have not seen the original
+> >    firmware code so I'm not contaminated by reverse engineering it. IANAL 
+> >    but I thought this is an acceptable way of writing a driver.
+> > 
+> > 2. Hauppauge could prove us with documentation to write a driver with.
+> 
+> I tried to get some info about that, but they are unable to get anything
+> related to this design so far.
+> 
+> So, I think that, if you have some time to dedicate to it, the best would
+> be to go for  option #1.
 
-Add support for the new AdobeRGB and BT.2020 colorspaces as needed for
-HDMI 2.0.
+Ok, thanks for asking.
 
-Add support to specify the Y'CbCr encoding and quantization range explicitly.
+Andy -- if you please send your notes please, I can work on implementing
+the driver. I have hardware and time for to work on this.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/videodev2.h | 99 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 89 insertions(+), 10 deletions(-)
+Thanks
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 1c2f84f..df37e0cf 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -178,30 +178,103 @@ enum v4l2_memory {
- 
- /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
- enum v4l2_colorspace {
--	/* ITU-R 601 -- broadcast NTSC/PAL */
-+	/* SMPTE 170M: used for broadcast NTSC/PAL SDTV */
- 	V4L2_COLORSPACE_SMPTE170M     = 1,
- 
--	/* 1125-Line (US) HDTV */
-+	/* Obsolete pre-1998 SMPTE 240M HDTV standard, superseded by Rec 709 */
- 	V4L2_COLORSPACE_SMPTE240M     = 2,
- 
--	/* HD and modern captures. */
-+	/* Rec.709: used for HDTV */
- 	V4L2_COLORSPACE_REC709        = 3,
- 
--	/* broken BT878 extents (601, luma range 16-253 instead of 16-235) */
-+	/*
-+	 * Deprecated, do not use. No driver will ever return this. This was
-+	 * based on a misunderstanding of the bt878 datasheet.
-+	 */
- 	V4L2_COLORSPACE_BT878         = 4,
- 
--	/* These should be useful.  Assume 601 extents. */
-+	/*
-+	 * NTSC 1953 colorspace. This only makes sense when dealing with
-+	 * really, really old NTSC recordings. Superseded by SMPTE 170M.
-+	 */
- 	V4L2_COLORSPACE_470_SYSTEM_M  = 5,
-+
-+	/*
-+	 * EBU Tech 3213 PAL/SECAM colorspace. This only makes sense when
-+	 * dealing with really old PAL/SECAM recordings. Superseded by
-+	 * SMPTE 170M.
-+	 */
- 	V4L2_COLORSPACE_470_SYSTEM_BG = 6,
- 
--	/* I know there will be cameras that send this.  So, this is
--	 * unspecified chromaticities and full 0-255 on each of the
--	 * Y'CbCr components
-+	/*
-+	 * Effectively shorthand for V4L2_COLORSPACE_SRGB, V4L2_YCBCR_ENC_601
-+	 * and V4L2_QUANTIZATION_FULL_RANGE. To be used for (Motion-)JPEG.
- 	 */
- 	V4L2_COLORSPACE_JPEG          = 7,
- 
--	/* For RGB colourspaces, this is probably a good start. */
-+	/* For RGB colorspaces such as produces by most webcams. */
- 	V4L2_COLORSPACE_SRGB          = 8,
-+
-+	/* AdobeRGB colorspace */
-+	V4L2_COLORSPACE_ADOBERGB      = 9,
-+
-+	/* BT.2020 colorspace, used for UHDTV. */
-+	V4L2_COLORSPACE_BT2020        = 10,
-+};
-+
-+enum v4l2_ycbcr_encoding {
-+	/*
-+	 * Mapping of V4L2_YCBCR_ENC_DEFAULT to actual encodings for the
-+	 * various colorspaces:
-+	 *
-+	 * V4L2_COLORSPACE_SMPTE170M, V4L2_COLORSPACE_470_SYSTEM_M,
-+	 * V4L2_COLORSPACE_470_SYSTEM_BG, V4L2_COLORSPACE_ADOBERGB and
-+	 * V4L2_COLORSPACE_JPEG: V4L2_YCBCR_ENC_601
-+	 *
-+	 * V4L2_COLORSPACE_REC709: V4L2_YCBCR_ENC_709
-+	 *
-+	 * V4L2_COLORSPACE_SRGB: V4L2_YCBCR_ENC_SYCC
-+	 *
-+	 * V4L2_COLORSPACE_BT2020: V4L2_YCBCR_ENC_BT2020NC
-+	 *
-+	 * V4L2_COLORSPACE_SMPTE240M: V4L2_YCBCR_ENC_SMPTE240M
-+	 */
-+	V4L2_YCBCR_ENC_DEFAULT        = 0,
-+
-+	/* ITU-R 601 -- SDTV */
-+	V4L2_YCBCR_ENC_601            = 1,
-+
-+	/* Rec. 709 -- HDTV */
-+	V4L2_YCBCR_ENC_709            = 2,
-+
-+	/* ITU-R 601/EN 61966-2-4 Extended Gamut -- SDTV */
-+	V4L2_YCBCR_ENC_XV601          = 3,
-+
-+	/* Rec. 709/EN 61966-2-4 Extended Gamut -- HDTV */
-+	V4L2_YCBCR_ENC_XV709          = 4,
-+
-+	/* sYCC (Y'CbCr encoding of sRGB) */
-+	V4L2_YCBCR_ENC_SYCC           = 5,
-+
-+	/* BT.2020 Non-constant Luminance Y'CbCr */
-+	V4L2_YCBCR_ENC_BT2020NC       = 6,
-+
-+	/* BT.2020 Constant Luminance Y'CbcCrc */
-+	V4L2_YCBCR_ENC_BT2020C        = 7,
-+
-+	/* SMPTE 240M -- Obsolete HDTV */
-+	V4L2_YCBCR_ENC_SMPTE240M      = 8,
-+};
-+
-+enum v4l2_quantization {
-+	/*
-+	 * The default for R'G'B' quantization is always full range. For
-+	 * Y'CbCr the quantization is always limited range, except for
-+	 * SYCC, XV601, XV709 or JPEG: those are full range.
-+	 */
-+	V4L2_QUANTIZATION_DEFAULT     = 0,
-+	V4L2_QUANTIZATION_FULL_RANGE  = 1,
-+	V4L2_QUANTIZATION_LIM_RANGE   = 2,
- };
- 
- enum v4l2_priority {
-@@ -294,6 +367,8 @@ struct v4l2_pix_format {
- 	__u32			colorspace;	/* enum v4l2_colorspace */
- 	__u32			priv;		/* private data, depends on pixelformat */
- 	__u32			flags;		/* format flags (V4L2_PIX_FMT_FLAG_*) */
-+	__u32			ycbcr_enc;	/* enum v4l2_ycbcr_encoding */
-+	__u32			quantization;	/* enum v4l2_quantization */
- };
- 
- /*      Pixel format         FOURCC                          depth  Description  */
-@@ -1777,6 +1852,8 @@ struct v4l2_plane_pix_format {
-  * @plane_fmt:		per-plane information
-  * @num_planes:		number of planes for this format
-  * @flags:		format flags (V4L2_PIX_FMT_FLAG_*)
-+ * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
-+ * @quantization:	enum v4l2_quantization, colorspace quantization
-  */
- struct v4l2_pix_format_mplane {
- 	__u32				width;
-@@ -1788,7 +1865,9 @@ struct v4l2_pix_format_mplane {
- 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
- 	__u8				num_planes;
- 	__u8				flags;
--	__u8				reserved[10];
-+	__u8				ycbcr_enc;
-+	__u8				quantization;
-+	__u8				reserved[8];
- } __attribute__ ((packed));
- 
- /**
--- 
-2.1.3
-
+Sean
