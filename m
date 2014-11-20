@@ -1,61 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52748 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751438AbaKEIR7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 03:17:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/8] videobuf: fix sparse warnings
-Date: Wed,  5 Nov 2014 09:17:46 +0100
-Message-Id: <1415175472-24203-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415175472-24203-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415175472-24203-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:56236 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756873AbaKTP4M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 10:56:12 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 7/9] ARM: dts: sun6i: Add ir node
+Date: Thu, 20 Nov 2014 16:55:26 +0100
+Message-Id: <1416498928-1300-8-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
+References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add a node for the ir receiver found on the A31.
 
-videobuf-core.c:834:23: warning: Using plain integer as NULL pointer
-videobuf-core.c:851:28: warning: Using plain integer as NULL pointer
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/v4l2-core/videobuf-core.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/sun6i-a31.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
-index b91a266..926836d 100644
---- a/drivers/media/v4l2-core/videobuf-core.c
-+++ b/drivers/media/v4l2-core/videobuf-core.c
-@@ -51,6 +51,8 @@ MODULE_LICENSE("GPL");
+diff --git a/arch/arm/boot/dts/sun6i-a31.dtsi b/arch/arm/boot/dts/sun6i-a31.dtsi
+index 4aa628b..d33e758 100644
+--- a/arch/arm/boot/dts/sun6i-a31.dtsi
++++ b/arch/arm/boot/dts/sun6i-a31.dtsi
+@@ -900,6 +900,16 @@
+ 			reg = <0x01f01c00 0x300>;
+ 		};
  
- #define CALL(q, f, arg...)						\
- 	((q->int_ops->f) ? q->int_ops->f(arg) : 0)
-+#define CALLPTR(q, f, arg...)						\
-+	((q->int_ops->f) ? q->int_ops->f(arg) : NULL)
- 
- struct videobuf_buffer *videobuf_alloc_vb(struct videobuf_queue *q)
- {
-@@ -831,7 +833,7 @@ static int __videobuf_copy_to_user(struct videobuf_queue *q,
- 				   char __user *data, size_t count,
- 				   int nonblocking)
- {
--	void *vaddr = CALL(q, vaddr, buf);
-+	void *vaddr = CALLPTR(q, vaddr, buf);
- 
- 	/* copy to userspace */
- 	if (count > buf->size - q->read_off)
-@@ -848,7 +850,7 @@ static int __videobuf_copy_stream(struct videobuf_queue *q,
- 				  char __user *data, size_t count, size_t pos,
- 				  int vbihack, int nonblocking)
- {
--	unsigned int *fc = CALL(q, vaddr, buf);
-+	unsigned int *fc = CALLPTR(q, vaddr, buf);
- 
- 	if (vbihack) {
- 		/* dirty, undocumented hack -- pass the frame counter
++		ir@01f02000 {
++			compatible = "allwinner,sun5i-a13-ir";
++			clocks = <&apb0_gates 1>, <&ir_clk>;
++			clock-names = "apb", "ir";
++			resets = <&apb0_rst 1>;
++			interrupts = <0 37 4>;
++			reg = <0x01f02000 0x40>;
++			status = "disabled";
++		};
++
+ 		r_pio: pinctrl@01f02c00 {
+ 			compatible = "allwinner,sun6i-a31-r-pinctrl";
+ 			reg = <0x01f02c00 0x400>;
 -- 
-2.1.1
+2.1.0
 
