@@ -1,107 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:40898 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752059AbaKQPBh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 10:01:37 -0500
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Mon, 17 Nov 2014 16:01:31 +0100
-Cc: Pavel Machek <pavel@ucw.cz>, sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel" <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <20141116075928.GA9763@amd> <20141117101553.GA21151@amd> <20141117145545.GC7046@atomide.com>
-In-Reply-To: <20141117145545.GC7046@atomide.com>
+Received: from mout.web.de ([212.227.15.3]:55937 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750838AbaKTIUE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 03:20:04 -0500
+Message-ID: <546DA419.7050405@users.sourceforge.net>
+Date: Thu, 20 Nov 2014 09:19:37 +0100
+From: SF Markus Elfring <elfring@users.sourceforge.net>
 MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart8237810.Y3XGAkWlkd";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+CC: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: [PATCH 0/3] [media] DVB-frontends: Deletion of a few unnecessary
+ checks
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201411171601.32311@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart8237810.Y3XGAkWlkd
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 19 Nov 2014 23:30:37 +0100
 
-On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [141117 02:17]:
-> > On Mon 2014-11-17 11:09:45, Pali Roh=C3=A1r wrote:
-> > > On Monday 17 November 2014 11:05:19 Pavel Machek wrote:
-> > > > Hi!
-> > > >=20
-> > > > On Mon 2014-11-17 09:43:19, Pali Roh=C3=A1r wrote:
-> > > > > On Sunday 16 November 2014 08:59:28 Pavel Machek wrote:
-> > > > > > For device tree people: Yes, I know I'll have to
-> > > > > > create file in documentation, but does the binding
-> > > > > > below look acceptable?
-> > > > > >=20
-> > > > > > I'll clean up driver code a bit more, remove the
-> > > > > > printks. Anything else obviously wrong?
-> > > > >=20
-> > > > > I think that this patch is probably not good and
-> > > > > specially not for n900. adp1653 should be registered
-> > > > > throw omap3 isp camera subsystem which does not have
-> > > > > DT support yet.
-> > > >=20
-> > > > Can you explain?
-> > > >=20
-> > > > adp1653 is independend device on i2c bus, and we have
-> > > > kernel driver for it (unlike rest of n900 camera
-> > > > system). Just now it is unusable due to lack of DT
-> > > > binding. It has two functions, LED light and a camera
-> > > > flash; yes, the second one should be integrated to the
-> > > > rest of camera system, but that is not yet merged. That
-> > > > should not prevent us from merging DT support for the
-> > > > flash, so that this part can be tested/maintained.
-> > >=20
-> > > Ok. When ISP camera subsystem has DT support somebody will
-> > > modify n900 DT to add camera flash from adp1653 to ISP...
-> > > I believe it will not be hard.
-> >=20
-> > Exactly. And yes, I'd like to get complete camera support
-> > for n900 merged. But first step is "make sure existing
-> > support does not break".
->=20
-> There's nothing stopping us from initializing the camera code
-> from pdata-quirks.c for now to keep it working. Certainly the
-> binding should be added to the driver, but that removes a
-> dependency to the legacy booting mode if things are otherwise
-> working.
->=20
-> Regards,
->=20
-> Tony
+Another update suggestion was taken into account after a patch was applied
+from static source code analysis.
 
-Tony, legacy board code for n900 is not in mainline tree. And=20
-that omap3 camera subsystem for n900 is broken since 3.5=20
-kernel... (both Front and Back camera on n900 show only green=20
-picture).
+Markus Elfring (3):
+  DVB-frontends: Deletion of unnecessary checks before the function
+    call "release_firmware"
+  m88ds3103: One function call less in m88ds3103_init() after error detection
+  si2168: One function call less in si2168_init() after error detection
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+ drivers/media/dvb-frontends/drx39xyj/drxj.c |  3 +--
+ drivers/media/dvb-frontends/drxk_hard.c     |  3 +--
+ drivers/media/dvb-frontends/m88ds3103.c     | 12 ++++++------
+ drivers/media/dvb-frontends/si2168.c        | 10 +++++-----
+ 4 files changed, 13 insertions(+), 15 deletions(-)
 
---nextPart8237810.Y3XGAkWlkd
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+-- 
+2.1.3
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlRqDcwACgkQi/DJPQPkQ1KKoQCgwQG6qZ6AnoH3oSTwVbrwqa6o
-BcAAn0kudF2gUH2gGE79y+X1d+p0T2Cz
-=8fDr
------END PGP SIGNATURE-----
-
---nextPart8237810.Y3XGAkWlkd--
