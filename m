@@ -1,172 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:52344 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755161AbaKRQCT (ORCPT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:40164 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756858AbaKTOmq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 11:02:19 -0500
-Message-id: <546B6D86.8090701@samsung.com>
-Date: Tue, 18 Nov 2014 17:02:14 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com,
-	sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-References: <20141116075928.GA9763@amd>
- <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
- <546AFEA5.9020000@samsung.com> <20141118084603.GC4059@amd>
- <546B19C8.2090008@samsung.com> <20141118113256.GA10022@amd>
- <546B40FA.2070409@samsung.com> <20141118132159.GA21089@amd>
-In-reply-to: <20141118132159.GA21089@amd>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Thu, 20 Nov 2014 09:42:46 -0500
+Date: Thu, 20 Nov 2014 15:41:48 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 1/1] [media] firewire: Deletion of an unnecessary check
+ before the function call "dvb_unregister_device"
+Message-ID: <20141120154148.724ab462@kant>
+In-Reply-To: <546DBA8E.6080401@users.sourceforge.net>
+References: <5307CAA2.8060406@users.sourceforge.net>
+	<alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
+	<530A086E.8010901@users.sourceforge.net>
+	<alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
+	<530A72AA.3000601@users.sourceforge.net>
+	<alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
+	<530B5FB6.6010207@users.sourceforge.net>
+	<alpine.DEB.2.10.1402241710370.2074@hadrien>
+	<530C5E18.1020800@users.sourceforge.net>
+	<alpine.DEB.2.10.1402251014170.2080@hadrien>
+	<530CD2C4.4050903@users.sourceforge.net>
+	<alpine.DEB.2.10.1402251840450.7035@hadrien>
+	<530CF8FF.8080600@users.sourceforge.net>
+	<alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
+	<530DD06F.4090703@users.sourceforge.net>
+	<alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+	<5317A59D.4@users.sourceforge.net>
+	<546DBA8E.6080401@users.sourceforge.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+On Nov 20 SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Thu, 20 Nov 2014 10:49:07 +0100
+> 
+> The dvb_unregister_device() function tests whether its argument is NULL
+> and then returns immediately. Thus the test around the call is not needed.
+> 
+> This issue was detected by using the Coccinelle software.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 
-On 11/18/2014 02:21 PM, Pavel Machek wrote:
-> Hi!
->
->>>>> @@ -19,5 +30,10 @@ Examples:
->>>>>   system-status {
->>>>>   	       label = "Status";
->>>>>   	       linux,default-trigger = "heartbeat";
->>>>> +	       iout-torch = <500 500>;
->>>>> +	       iout-flash = <1000 1000>;
->>>>> +	       iout-indicator = <100 100>;
->>>>> +	       flash-timeout = <1000>;
->>>>> +
->>>>> 	...
->>>>>   };
->>>>>
->>>>> I don't get it; system-status describes single LED, why are iout-torch
->>>>> (and friends) arrays of two?
->>>>
->>>> Some devices can control more than one led. The array is for such
->>>> purposes. The system-status should be probably renamed to
->>>> something more generic for both common leds and flash leds,
->>>> e.g. system-led.
->>>
->>> No, sorry. The Documentation/devicetree/bindings/leds/common.txt
->>> describes binding for _one LED_. Yes, your device can have two leds,
->>> so your devices should have two such blocks in the device tree... Each
->>> led should have its own label and default trigger, for example. And I
->>> guess flash-timeout be per-LED, too.
->>
->> I think that a device tree binding describes a single physical device.
->> No matter how many sub-leds a device controls, it is still one
->> piece of hardware.
->
-> You got this wrong, sorry.
->
-> In my case, there are three physical devices:
->
-> adp1653
-> 	white LED
-> 	red LED
+Reviewed-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 
-You've mentioned that your white led is torch/flash and indicator
-is the red led. They are probably connected to the HPLED and
-ILED pins of the ADP1653 device respectively. The device is just
-a regulator, that delivers electric current to the leds connected
-to it. Kernel cannot directly activate leds, but has to talk
-to the device through I2C bus. One I2C device can have only one
-related device tree binding.
-
-> Each LED should have an label, and probably default trigger -- default
-> trigger for red one should be "we are recording video" and for white
-> should be "this is flash for default camera".
-
-default-trigger is not mandatory, the device doesn't have to have
-associated led-trigger. I think that you should look at
-Documentation/leds/leds-class.txt and drivers/leds/triggers for
-more detailed information. In a nutshell triggers are kernel
-sources of led events. You can set e.g. "heartbeat", "timer"
-trigger etc.
-As for now the driver belongs to the V4L2 subsystem it doesn't
-support triggers. Moreover your event "we are recording a video"
-should be activated by setting V4L2_CID_FLASH_INDICATOR_INTENSITY
-v4l2 control followed by V4L2_FLASH_LED_MODE_TORCH. Your event
-"this is flash for default camera" seems to be flash strobe,
-that can be activated by setting V4L2_CID_FLASH_STROBE control.
-The driver by default sets the indicator current for both actions
-to the value previously set with V4L2_CID_FLASH_INDICATOR_INTENSITY.
-
-> If the hardware LED changes with one that needs different current, the
-> block for the adp1653 stays the same, but white LED block should be
-> updated with different value.
-
-I think that you are talking about sub nodes. Indeed I am leaning
-towards this type of design.
-
->> default-trigger property should also be an array of strings.
->
-> That is not how it currently works.
-
-OK, I agree.
-
->
->> I agree that flash-timeout should be per led - an array, similarly
->> as in case of iout's.
->
-> Agreed about per-led, disagreed about the array. As all the fields
-> would need arrays, and as LED system currently does not use arrays for
-> label and linux,default-trigger, I believe we should follow existing
-> design and model it as three devices. (It _is_ physically three devices.)
-
-Right, I missed that the leds/common.txt describes child node.
-
-I propose following modifications to the binding:
-
-Optional properties for child nodes:
-- iout-mode-led : 	maximum intensity in microamperes of the LED
-		  	(torch LED for flash devices)
-- iout-mode-flash : 	initial intensity in microamperes of the
-			flash LED; it is required to enable support
-			for the flash led
-- iout-mode-indicator : initial intensity in microamperes of the
-			indicator LED; it is required to enable support
-			for the indicator led
-- max-iout-mode-led : 	maximum intensity in microamperes of the LED
-		  	(torch LED for flash devices)
-- max-iout-mode-flash : maximum intensity in microamperes of the
-			flash LED
-- max-iout-mode-indicator : maximum intensity in microamperes of the
-			indicator LED
-- flash-timeout :	timeout in microseconds after which flash
-			led is turned off
-
-system-status {
-         label = "max77693_1";
-         iout-mode-led = <500>;
-         max-iout-mode-led = <500>;
-         ...
-};
-
-camera-flash1 {
-         label = "max77693_2";
-         iout-mode-led = <500>;
-         iout-mode-flash = <1000>;
-	iout-mode-indicator = <100>;
-         max-iout-mode-led = <500>;
-         max-iout-mode-flash = <1000>;
-         max-iout-mode-indicator = <100>;
-         flash-timeout = <1000>;
-         ...
-};
+> ---
+>  drivers/media/firewire/firedtv-ci.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/firewire/firedtv-ci.c b/drivers/media/firewire/firedtv-ci.c
+> index e5ebdbf..e63f582 100644
+> --- a/drivers/media/firewire/firedtv-ci.c
+> +++ b/drivers/media/firewire/firedtv-ci.c
+> @@ -253,6 +253,5 @@ int fdtv_ca_register(struct firedtv *fdtv)
+>  
+>  void fdtv_ca_release(struct firedtv *fdtv)
+>  {
+> -	if (fdtv->cadev)
+> -		dvb_unregister_device(fdtv->cadev);
+> +	dvb_unregister_device(fdtv->cadev);
+>  }
 
 
-I propose to avoid name "torch", as for ordinary leds it would
-be misleading.
 
-Regards,
-Jacek
+-- 
+Stefan Richter
+-=====-====- =-== =-=--
+http://arcgraph.de/sr/
