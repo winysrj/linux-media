@@ -1,162 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:45370 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753931AbaKJR2r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 12:28:47 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v6 RESEND 09/10] gpu: ipu-v3: Make use of media_bus_format enum
-Date: Mon, 10 Nov 2014 18:28:34 +0100
-Message-Id: <1415640515-15069-10-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415640515-15069-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415640515-15069-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from lists.s-osg.org ([54.187.51.154]:51089 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756865AbaKTQ3C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 11:29:02 -0500
+Date: Thu, 20 Nov 2014 14:28:56 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH 5/9] rc: sunxi-cir: Add support for the larger fifo
+ found on sun5i and sun6i
+Message-ID: <20141120142856.16b6562d@recife.lan>
+In-Reply-To: <1416498928-1300-6-git-send-email-hdegoede@redhat.com>
+References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
+	<1416498928-1300-6-git-send-email-hdegoede@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to have subsytem agnostic media bus format definitions we've
-moved media bus definition to include/uapi/linux/media-bus-format.h and
-prefixed enum values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
+Em Thu, 20 Nov 2014 16:55:24 +0100
+Hans de Goede <hdegoede@redhat.com> escreveu:
 
-Reference new definitions in the ipu-v3 driver.
+> Add support for the larger fifo found on sun5i and sun6i, having a separate
+> compatible for the ir found on sun5i & sun6i also is useful if we ever want
+> to add ir transmit support, because the sun5i & sun6i version do not have
+> transmit support.
+> 
+> Note this commits also adds checking for the end-of-packet interrupt flag
+> (which was already enabled), as the fifo-data-available interrupt flag only
+> gets set when the trigger-level is exceeded. So far we've been getting away
+> with not doing this because of the low trigger-level, but this is something
+> which we should have done since day one.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/gpu/ipu-v3/ipu-csi.c | 66 ++++++++++++++++++++++----------------------
- 1 file changed, 33 insertions(+), 33 deletions(-)
+As this is meant to be merged via some other tree:
 
-diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
-index d6f56471..752cdd2 100644
---- a/drivers/gpu/ipu-v3/ipu-csi.c
-+++ b/drivers/gpu/ipu-v3/ipu-csi.c
-@@ -227,83 +227,83 @@ static int ipu_csi_set_testgen_mclk(struct ipu_csi *csi, u32 pixel_clk,
- static int mbus_code_to_bus_cfg(struct ipu_csi_bus_config *cfg, u32 mbus_code)
- {
- 	switch (mbus_code) {
--	case V4L2_MBUS_FMT_BGR565_2X8_BE:
--	case V4L2_MBUS_FMT_BGR565_2X8_LE:
--	case V4L2_MBUS_FMT_RGB565_2X8_BE:
--	case V4L2_MBUS_FMT_RGB565_2X8_LE:
-+	case MEDIA_BUS_FMT_BGR565_2X8_BE:
-+	case MEDIA_BUS_FMT_BGR565_2X8_LE:
-+	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-+	case MEDIA_BUS_FMT_RGB565_2X8_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB565;
- 		cfg->mipi_dt = MIPI_DT_RGB565;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE:
--	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE:
-+	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
-+	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB444;
- 		cfg->mipi_dt = MIPI_DT_RGB444;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
--	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
-+	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
-+	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB555;
- 		cfg->mipi_dt = MIPI_DT_RGB555;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_UYVY8_2X8:
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_YUYV8_2X8:
-+	case MEDIA_BUS_FMT_YUYV8_2X8:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_UYVY8_1X16:
-+	case MEDIA_BUS_FMT_UYVY8_1X16:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
- 		break;
--	case V4L2_MBUS_FMT_YUYV8_1X16:
-+	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
- 		cfg->mipi_dt = MIPI_DT_YUV422;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR8_1X8:
--	case V4L2_MBUS_FMT_SGBRG8_1X8:
--	case V4L2_MBUS_FMT_SGRBG8_1X8:
--	case V4L2_MBUS_FMT_SRGGB8_1X8:
-+	case MEDIA_BUS_FMT_SBGGR8_1X8:
-+	case MEDIA_BUS_FMT_SGBRG8_1X8:
-+	case MEDIA_BUS_FMT_SGRBG8_1X8:
-+	case MEDIA_BUS_FMT_SRGGB8_1X8:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW8;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE:
--	case V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE:
-+	case MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE:
-+	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW10;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR10_1X10:
--	case V4L2_MBUS_FMT_SGBRG10_1X10:
--	case V4L2_MBUS_FMT_SGRBG10_1X10:
--	case V4L2_MBUS_FMT_SRGGB10_1X10:
-+	case MEDIA_BUS_FMT_SBGGR10_1X10:
-+	case MEDIA_BUS_FMT_SGBRG10_1X10:
-+	case MEDIA_BUS_FMT_SGRBG10_1X10:
-+	case MEDIA_BUS_FMT_SRGGB10_1X10:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW10;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_10;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR12_1X12:
--	case V4L2_MBUS_FMT_SGBRG12_1X12:
--	case V4L2_MBUS_FMT_SGRBG12_1X12:
--	case V4L2_MBUS_FMT_SRGGB12_1X12:
-+	case MEDIA_BUS_FMT_SBGGR12_1X12:
-+	case MEDIA_BUS_FMT_SGBRG12_1X12:
-+	case MEDIA_BUS_FMT_SGRBG12_1X12:
-+	case MEDIA_BUS_FMT_SRGGB12_1X12:
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
- 		cfg->mipi_dt = MIPI_DT_RAW12;
- 		cfg->data_width = IPU_CSI_DATA_WIDTH_12;
- 		break;
--	case V4L2_MBUS_FMT_JPEG_1X8:
-+	case MEDIA_BUS_FMT_JPEG_1X8:
- 		/* TODO */
- 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_JPEG;
- 		cfg->mipi_dt = MIPI_DT_RAW8;
--- 
-1.9.1
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
+
+> ---
+>  .../devicetree/bindings/media/sunxi-ir.txt          |  2 +-
+>  drivers/media/rc/sunxi-cir.c                        | 21 ++++++++++++---------
+>  2 files changed, 13 insertions(+), 10 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> index 23dd5ad..5767128 100644
+> --- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> @@ -1,7 +1,7 @@
+>  Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
+>  
+>  Required properties:
+> -- compatible	    : should be "allwinner,sun4i-a10-ir";
+> +- compatible	    : "allwinner,sun4i-a10-ir" or "allwinner,sun5i-a13-ir"
+>  - clocks	    : list of clock specifiers, corresponding to
+>  		      entries in clock-names property;
+>  - clock-names	    : should contain "apb" and "ir" entries;
+> diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+> index 895fb65..559b0e3 100644
+> --- a/drivers/media/rc/sunxi-cir.c
+> +++ b/drivers/media/rc/sunxi-cir.c
+> @@ -56,12 +56,12 @@
+>  #define REG_RXINT_RAI_EN		BIT(4)
+>  
+>  /* Rx FIFO available byte level */
+> -#define REG_RXINT_RAL(val)    (((val) << 8) & (GENMASK(11, 8)))
+> +#define REG_RXINT_RAL(val)    ((val) << 8)
+>  
+>  /* Rx Interrupt Status */
+>  #define SUNXI_IR_RXSTA_REG    0x30
+>  /* RX FIFO Get Available Counter */
+> -#define REG_RXSTA_GET_AC(val) (((val) >> 8) & (GENMASK(5, 0)))
+> +#define REG_RXSTA_GET_AC(val) (((val) >> 8) & (ir->fifo_size * 2 - 1))
+>  /* Clear all interrupt status value */
+>  #define REG_RXSTA_CLEARALL    0xff
+>  
+> @@ -72,10 +72,6 @@
+>  /* CIR_REG register idle threshold */
+>  #define REG_CIR_ITHR(val)    (((val) << 8) & (GENMASK(15, 8)))
+>  
+> -/* Hardware supported fifo size */
+> -#define SUNXI_IR_FIFO_SIZE    16
+> -/* How many messages in FIFO trigger IRQ */
+> -#define TRIGGER_LEVEL         8
+>  /* Required frequency for IR0 or IR1 clock in CIR mode */
+>  #define SUNXI_IR_BASE_CLK     8000000
+>  /* Frequency after IR internal divider  */
+> @@ -94,6 +90,7 @@ struct sunxi_ir {
+>  	struct rc_dev   *rc;
+>  	void __iomem    *base;
+>  	int             irq;
+> +	int		fifo_size;
+>  	struct clk      *clk;
+>  	struct clk      *apb_clk;
+>  	struct reset_control *rst;
+> @@ -115,11 +112,11 @@ static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
+>  	/* clean all pending statuses */
+>  	writel(status | REG_RXSTA_CLEARALL, ir->base + SUNXI_IR_RXSTA_REG);
+>  
+> -	if (status & REG_RXINT_RAI_EN) {
+> +	if (status & (REG_RXINT_RAI_EN | REG_RXINT_RPEI_EN)) {
+>  		/* How many messages in fifo */
+>  		rc  = REG_RXSTA_GET_AC(status);
+>  		/* Sanity check */
+> -		rc = rc > SUNXI_IR_FIFO_SIZE ? SUNXI_IR_FIFO_SIZE : rc;
+> +		rc = rc > ir->fifo_size ? ir->fifo_size : rc;
+>  		/* If we have data */
+>  		for (cnt = 0; cnt < rc; cnt++) {
+>  			/* for each bit in fifo */
+> @@ -156,6 +153,11 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+>  	if (!ir)
+>  		return -ENOMEM;
+>  
+> +	if (of_device_is_compatible(dn, "allwinner,sun5i-a13-ir"))
+> +		ir->fifo_size = 64;
+> +	else
+> +		ir->fifo_size = 16;
+> +
+>  	/* Clock */
+>  	ir->apb_clk = devm_clk_get(dev, "apb");
+>  	if (IS_ERR(ir->apb_clk)) {
+> @@ -271,7 +273,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+>  	 * level
+>  	 */
+>  	writel(REG_RXINT_ROI_EN | REG_RXINT_RPEI_EN |
+> -	       REG_RXINT_RAI_EN | REG_RXINT_RAL(TRIGGER_LEVEL - 1),
+> +	       REG_RXINT_RAI_EN | REG_RXINT_RAL(ir->fifo_size / 2 - 1),
+>  	       ir->base + SUNXI_IR_RXINT_REG);
+>  
+>  	/* Enable IR Module */
+> @@ -319,6 +321,7 @@ static int sunxi_ir_remove(struct platform_device *pdev)
+>  
+>  static const struct of_device_id sunxi_ir_match[] = {
+>  	{ .compatible = "allwinner,sun4i-a10-ir", },
+> +	{ .compatible = "allwinner,sun5i-a13-ir", },
+>  	{},
+>  };
+>  
