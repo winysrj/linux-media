@@ -1,107 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f48.google.com ([209.85.192.48]:39050 "EHLO
-	mail-qg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753944AbaK0Fpq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 00:45:46 -0500
-Received: by mail-qg0-f48.google.com with SMTP id q107so3043986qgd.7
-        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 21:45:46 -0800 (PST)
-Date: Thu, 27 Nov 2014 02:45:42 -0300
-From: Ismael Luceno <ismael.luceno@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-	"hans.verkuil" <hans.verkuil@cisco.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Curtis Hall <chall@corp.bluecherry.net>
-Subject: Re: [RFC] solo6x10 freeze, even with Oct 31's linux-next... any
- ideas or help?
-Message-ID: <20141127024542.071fa54e@pirotess.bf.iodev.co.uk>
-In-Reply-To: <54624FF1.2060102@xs4all.nl>
-References: <CAM_ZknVTqh0VnhuT3MdULtiqHJzxRhK-Pjyb58W=4Ldof0+jgA@mail.gmail.com>
-	<54624FF1.2060102@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:53530 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751406AbaKTTc4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 14:32:56 -0500
+Message-ID: <546E41C1.1070800@redhat.com>
+Date: Thu, 20 Nov 2014 20:32:17 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/w3.oc4=GE1v6JtNxDTGQ2Pv"; protocol="application/pgp-signature"
+To: Chen-Yu Tsai <wens@csie.org>
+CC: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi <linux-sunxi@googlegroups.com>
+Subject: Re: [linux-sunxi] [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
+References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com> <1416498928-1300-4-git-send-email-hdegoede@redhat.com> <CAGb2v66zoAy93mjZn+yf8zvCmkQ8AVWH92jKL-gyu90E5HLuuw@mail.gmail.com>
+In-Reply-To: <CAGb2v66zoAy93mjZn+yf8zvCmkQ8AVWH92jKL-gyu90E5HLuuw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/w3.oc4=GE1v6JtNxDTGQ2Pv
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Tue, 11 Nov 2014 19:05:37 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 11/11/2014 06:46 PM, Andrey Utkin wrote:
-> > At Bluecherry, we have issues with servers which have 3 solo6110
-> > cards (and cards have up to 16 analog video cameras connected to
-> > them, and being actively read).
-> > This is a kernel which I tested with such a server last time. It is
-> > based on linux-next of October, 31, with few patches of mine (all
-> > are in review for upstream).
-> > https://github.com/krieger-od/linux/ . The HEAD commit is
-> > 949e18db86ebf45acab91d188b247abd40b6e2a1 at the moment.
-> >=20
-> > The problem is the following: after ~1 hour of uptime with working
-> > application reading the streams, one card (the same one every time)
-> > stops producing interrupts (counter in /proc/interrupts freezes),
-> > and all threads reading from that card hang forever in
-> > ioctl(VIDIOC_DQBUF). The application uses libavformat (ffmpeg) API
-> > to read the corresponding /dev/videoX devices of H264 encoders.
-> > Application restart doesn't help, just interrupt counter increases
-> > by 64. To help that, we need reboot or programmatic PCI device
-> > reset by "echo 1 > /sys/bus/pci/devices/0000\:03\:05.0/reset",
-> > which requires unloading app and driver and is not a solution
-> > obviously.
-> >=20
-> > We had this issue for a long time, even before we used libavformat
-> > for reading from such sources.
-> > A few days ago, we had standalone ffmpeg processes working stable
-> > for several days. The kernel was 3.17, the only probably-relevant
-> > change in code over the above mentioned revision is an additional
-> > bool variable set in solo_enc_v4l2_isr() and checked in
-> > solo_ring_thread() to figure out whether to do or skip
-> > solo_handle_ring(). The variable was guarded with
-> > spin_lock_irqsave(). I am not sure if it makes any difference, will
-> > try it again eventually.
-> >=20
-> > Any thoughts, can it be a bug in driver code causing that (please
-> > point which areas of code to review/fix)? Or is that desperate
-> > hardware issue? How to figure out for sure whether it is the former
-> > or the latter?
->=20
-> I would first try to exclude hardware issues: since you say it is
-> always the same card, try either replacing it or swapping it with
-> another solo card and see if the problem follows the card or not. If
-> it does, then it is likely a hardware problem. If it doesn't, then it
-> suggests a race condition in the interrupt handling somewhere.
->=20
-> Regards,
->=20
-> 	Hans
+On 11/20/2014 07:24 PM, Chen-Yu Tsai wrote:
+> Hi,
+> 
+> On Thu, Nov 20, 2014 at 7:55 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> Add a driver for mod0 clocks found in the prcm. Currently there is only
+>> one mod0 clocks in the prcm, the ir clock.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>  Documentation/devicetree/bindings/clock/sunxi.txt |  1 +
+>>  drivers/clk/sunxi/Makefile                        |  2 +-
+>>  drivers/clk/sunxi/clk-sun6i-prcm-mod0.c           | 63 +++++++++++++++++++++++
+>>  drivers/mfd/sun6i-prcm.c                          | 14 +++++
+>>  4 files changed, 79 insertions(+), 1 deletion(-)
+>>  create mode 100644 drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
+>>
+>> diff --git a/Documentation/devicetree/bindings/clock/sunxi.txt b/Documentation/devicetree/bindings/clock/sunxi.txt
+>> index ed116df..342c75a 100644
+>> --- a/Documentation/devicetree/bindings/clock/sunxi.txt
+>> +++ b/Documentation/devicetree/bindings/clock/sunxi.txt
+>> @@ -56,6 +56,7 @@ Required properties:
+>>         "allwinner,sun4i-a10-usb-clk" - for usb gates + resets on A10 / A20
+>>         "allwinner,sun5i-a13-usb-clk" - for usb gates + resets on A13
+>>         "allwinner,sun6i-a31-usb-clk" - for usb gates + resets on A31
+>> +       "allwinner,sun6i-a31-ir-clk" - for the ir clock on A31
+>>
+>>  Required properties for all clocks:
+>>  - reg : shall be the control register address for the clock.
+>> diff --git a/drivers/clk/sunxi/Makefile b/drivers/clk/sunxi/Makefile
+>> index 7ddc2b5..daf8b1c 100644
+>> --- a/drivers/clk/sunxi/Makefile
+>> +++ b/drivers/clk/sunxi/Makefile
+>> @@ -10,4 +10,4 @@ obj-y += clk-sun8i-mbus.o
+>>
+>>  obj-$(CONFIG_MFD_SUN6I_PRCM) += \
+>>         clk-sun6i-ar100.o clk-sun6i-apb0.o clk-sun6i-apb0-gates.o \
+>> -       clk-sun8i-apb0.o
+>> +       clk-sun8i-apb0.o clk-sun6i-prcm-mod0.o
+>> diff --git a/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c b/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
+>> new file mode 100644
+>> index 0000000..e80f18e
+>> --- /dev/null
+>> +++ b/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
+>> @@ -0,0 +1,63 @@
+>> +/*
+>> + * Allwinner A31 PRCM mod0 clock driver
+>> + *
+>> + * Copyright (C) 2014 Hans de Goede <hdegoede@redhat.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License as published by
+>> + * the Free Software Foundation; either version 2 of the License, or
+>> + * (at your option) any later version.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
+>> +
+>> +#include <linux/clk-provider.h>
+>> +#include <linux/clkdev.h>
+>> +#include <linux/module.h>
+>> +#include <linux/of_address.h>
+>> +#include <linux/platform_device.h>
+>> +
+>> +#include "clk-factors.h"
+>> +#include "clk-mod0.h"
+>> +
+>> +static const struct of_device_id sun6i_a31_prcm_mod0_clk_dt_ids[] = {
+>> +       { .compatible = "allwinner,sun6i-a31-ir-clk" },
+> 
+> Could we use a generic name, like "sun6i-a31-prcm-mod0-clk"?
+> IIRC, there is another one, the module clock for the 1-wire interface.
 
-CC'ing Curtis, hope you don't mind.
+I wish we could use a generic name, but that does not work for mfd device
+subnodes, as the mfd framework attaches resources (such as registers) to
+the subnodes based on the compatible.
 
-It's just coincidence. This has been a long standing issue, and only
-depends on having enough cards.
+BTW it seems that that the 1-wire clock is not 100% mod0 clock compatible,
+at least the ccmu.h in the allwinner SDK uses a different struct definition
+for it.
 
-One of the problems I had to weed out this one was that I didn't
-have the right hardware (only one 16-port card), and my guess is that
-Andrey is in the same position.
+Regards,
 
---Sig_/w3.oc4=GE1v6JtNxDTGQ2Pv
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQEcBAEBAgAGBQJUdrqGAAoJEBH/VE8bKTLbScUIAI1kNAgTpBLzvWO5jm3LZRT/
-WlJ7nXPzzYgop2Q5DtwcTCz1/qCnlO/sjgrP2HfxYp6zg6zZr3voeQ3DNBCmSvfY
-y/FzicimItCYRmyZkKwxULS6QQpuJLJc5rzq9evfObmzPsxyv84USPa0CK4Eb/7s
-mH38UfNiIYesMKCfWtkJ/UBJCsiV8fCiTZ+Jjlhy4zsJpOG7qD7xajPMhjq1UCGE
-gjPkWeVvQy8CE5BODX95T0AFRe8KwsBEj9jUZ4iWxIM/lJlmrwsYeZz5bwo+tzwz
-plOmJzHUAswKD76r2bSOcmyEhhynJ3N58nlC5U89QcAVZAIlhn+zWMeylLYOQNc=
-=RE6p
------END PGP SIGNATURE-----
-
---Sig_/w3.oc4=GE1v6JtNxDTGQ2Pv--
+Hans
