@@ -1,100 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:35810 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753793AbaKHPrT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Nov 2014 10:47:19 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v5 10/10] [media] v4l: Forbid usage of V4L2_MBUS_FMT definitions inside the kernel
-Date: Sat,  8 Nov 2014 16:47:12 +0100
-Message-Id: <1415461632-31236-1-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33679 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751066AbaKTMMG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 07:12:06 -0500
+Date: Thu, 20 Nov 2014 13:12:02 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com,
+	sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Message-ID: <20141120121202.GA27527@amd>
+References: <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
+ <546AFEA5.9020000@samsung.com>
+ <20141118084603.GC4059@amd>
+ <546B19C8.2090008@samsung.com>
+ <20141118113256.GA10022@amd>
+ <546B40FA.2070409@samsung.com>
+ <20141118132159.GA21089@amd>
+ <546B6D86.8090701@samsung.com>
+ <20141118165148.GA11711@amd>
+ <546C66A5.6060201@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <546C66A5.6060201@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Place v4l2_mbus_pixelcode in a #ifndef __KERNEL__ section so that kernel
-users don't have access to these definitions.
+Hi!
 
-We have to keep this definition for user-space users even though they're
-encouraged to move to the new media_bus_format enum.
+> I would also swap the segments of a property name to follow the convention
+> as in case of "regulator-max-microamp".
+> 
+> Updated version:
+> 
+> ==========================================================
+> 
+> Optional properties for child nodes:
+> - max-microamp : maximum intensity in microamperes of the LED
+> 		 (torch LED for flash devices)
+> - flash-max-microamp : maximum intensity in microamperes of the
+> 		       flash LED; it is mandatory if the led should
+> 		       support the flash mode
+> - flash-timeout-microsec : timeout in microseconds after which the flash
+> 		           led is turned off
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/uapi/linux/v4l2-mediabus.h | 45 ++++++++++++++++++++++++--------------
- 1 file changed, 28 insertions(+), 17 deletions(-)
+Works for me. Do you want to submit a patch or should I do it?
 
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index d712df8..5c9410d 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -15,6 +15,33 @@
- #include <linux/types.h>
- #include <linux/videodev2.h>
- 
-+/**
-+ * struct v4l2_mbus_framefmt - frame format on the media bus
-+ * @width:	frame width
-+ * @height:	frame height
-+ * @code:	data format code (from enum v4l2_mbus_pixelcode)
-+ * @field:	used interlacing type (from enum v4l2_field)
-+ * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-+ */
-+struct v4l2_mbus_framefmt {
-+	__u32			width;
-+	__u32			height;
-+	__u32			code;
-+	__u32			field;
-+	__u32			colorspace;
-+	__u32			reserved[7];
-+};
-+
-+#ifndef __KERNEL__
-+/*
-+ * enum v4l2_mbus_pixelcode and its definitions are now deprecated, and
-+ * MEDIA_BUS_FMT_ definitions (defined in media-bus-format.h) should be
-+ * used instead.
-+ *
-+ * New defines should only be added to media-bus-format.h. The
-+ * v4l2_mbus_pixelcode enum is frozen.
-+ */
-+
- #define V4L2_MBUS_FROM_MEDIA_BUS_FMT(name)	\
- 	MEDIA_BUS_FMT_ ## name = V4L2_MBUS_FMT_ ## name
- 
-@@ -102,22 +129,6 @@ enum v4l2_mbus_pixelcode {
- 
- 	V4L2_MBUS_FROM_MEDIA_BUS_FMT(AHSV8888_1X32),
- };
--
--/**
-- * struct v4l2_mbus_framefmt - frame format on the media bus
-- * @width:	frame width
-- * @height:	frame height
-- * @code:	data format code (from enum v4l2_mbus_pixelcode)
-- * @field:	used interlacing type (from enum v4l2_field)
-- * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-- */
--struct v4l2_mbus_framefmt {
--	__u32			width;
--	__u32			height;
--	__u32			code;
--	__u32			field;
--	__u32			colorspace;
--	__u32			reserved[7];
--};
-+#endif /* __KERNEL__ */
- 
- #endif
+> - indicator-pattern : identifier of the blinking pattern for the
+> 		      indicator led
+> 
+
+This would need a bit more documentation, no?
+
+									Pavel
 -- 
-1.9.1
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
