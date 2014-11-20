@@ -1,60 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52222 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932396AbaKEPX0 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33782 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751418AbaKTMNu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 10:23:26 -0500
-Date: Wed, 5 Nov 2014 17:22:52 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 11/15] [media] Deprecate v4l2_mbus_pixelcode
-Message-ID: <20141105152252.GV3136@valkosipuli.retiisi.org.uk>
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
- <1415094910-15899-12-git-send-email-boris.brezillon@free-electrons.com>
- <20141105150814.GT3136@valkosipuli.retiisi.org.uk>
- <20141105161538.7a1686d5@bbrezillon>
+	Thu, 20 Nov 2014 07:13:50 -0500
+Date: Thu, 20 Nov 2014 13:13:48 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>, pali.rohar@gmail.com,
+	sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Message-ID: <20141120121348.GB27527@amd>
+References: <546AFEA5.9020000@samsung.com>
+ <20141118084603.GC4059@amd>
+ <546B19C8.2090008@samsung.com>
+ <20141118113256.GA10022@amd>
+ <546B40FA.2070409@samsung.com>
+ <20141118132159.GA21089@amd>
+ <546B6D86.8090701@samsung.com>
+ <20141118165148.GA11711@amd>
+ <546C66A5.6060201@samsung.com>
+ <546CD90B.8060903@iki.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20141105161538.7a1686d5@bbrezillon>
+In-Reply-To: <546CD90B.8060903@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Boris,
+Hi!
 
-On Wed, Nov 05, 2014 at 04:15:38PM +0100, Boris Brezillon wrote:
-> On Wed, 5 Nov 2014 17:08:15 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > I would keep the original file name, even if the compatibility definitions
-> > are there. I don't see any harm in having them around as well.
-> > 
+> >> But regulators already have "regulator-max-microamp" property. So what
+> >> about:
+> >>
+> >> max-microamp :     maximum intensity in microamperes of the LED
+> >>                 (torch LED for flash devices)
+> >> max-flash-microamp :     initial intensity in microamperes of the
+> >>               flash LED; it is required to enable support
+> >>               for the flash led
+> >> flash-timeout-microseconds : timeout in microseconds after which flash
+> >>               led is turned off
+> >>
+> >> If you had indicator on the same led, I guess
+> >>
+> >> indicator-microamp : recommended intensity in microamperes of the LED
+> >>                  for indication
 > 
-> That's the part I was not sure about.
-> The goal of this patch (and the following ones) is to deprecate
-> v4l2_mbus_pixelcode enum and its values by adding a #warning when
-> v4l2-mediabus.h file is included, thus encouraging people to use new
-> definitions.
-> 
-> Do you see another solution to generate such warnings at compilation
-> time ?
+> The value for the indicator is maximum as well, not just a
+> recommendation.
 
-Do you think we need a warning? In a general case we can't start renaming
-interface headers once the preferred interface changes, albeit in this case
-it would be a possibility.
+Actually, no.
 
-The presence of the formats defined from now on only in the new definitions
-should be good enough. There are many cases such as this in the V4L2 and
-other APIs.
+This is all for one LED, if you want to use it as a flash, torch and
+indicator. You already know the maximum value with max-microamp.
 
-I wonder what others think.
-
+Best regards,
+									Pavel
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
