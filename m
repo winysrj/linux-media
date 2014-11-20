@@ -1,180 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56019 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752439AbaKJUiB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 15:38:01 -0500
-Date: Mon, 10 Nov 2014 12:37:15 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCHv3 3/4] ARM: OMAP2: RX-51: update si4713 platform data
-Message-ID: <20141110203714.GV31454@atomide.com>
-References: <1415651684-3894-1-git-send-email-sre@kernel.org>
- <1415651684-3894-4-git-send-email-sre@kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1415651684-3894-4-git-send-email-sre@kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:47629 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757329AbaKTP4H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 10:56:07 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
+Date: Thu, 20 Nov 2014 16:55:22 +0100
+Message-Id: <1416498928-1300-4-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
+References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Sebastian Reichel <sre@kernel.org> [141110 12:37]:
-> This updates platform data related to Si4713, which
-> has been updated to be compatible with DT interface.
-> 
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+Add a driver for mod0 clocks found in the prcm. Currently there is only
+one mod0 clocks in the prcm, the ir clock.
 
-Please feel free to merge this one along with the
-other camera patches, this should not conflict with
-anything in the linux-omap tree:
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ Documentation/devicetree/bindings/clock/sunxi.txt |  1 +
+ drivers/clk/sunxi/Makefile                        |  2 +-
+ drivers/clk/sunxi/clk-sun6i-prcm-mod0.c           | 63 +++++++++++++++++++++++
+ drivers/mfd/sun6i-prcm.c                          | 14 +++++
+ 4 files changed, 79 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+diff --git a/Documentation/devicetree/bindings/clock/sunxi.txt b/Documentation/devicetree/bindings/clock/sunxi.txt
+index ed116df..342c75a 100644
+--- a/Documentation/devicetree/bindings/clock/sunxi.txt
++++ b/Documentation/devicetree/bindings/clock/sunxi.txt
+@@ -56,6 +56,7 @@ Required properties:
+ 	"allwinner,sun4i-a10-usb-clk" - for usb gates + resets on A10 / A20
+ 	"allwinner,sun5i-a13-usb-clk" - for usb gates + resets on A13
+ 	"allwinner,sun6i-a31-usb-clk" - for usb gates + resets on A31
++	"allwinner,sun6i-a31-ir-clk" - for the ir clock on A31
+ 
+ Required properties for all clocks:
+ - reg : shall be the control register address for the clock.
+diff --git a/drivers/clk/sunxi/Makefile b/drivers/clk/sunxi/Makefile
+index 7ddc2b5..daf8b1c 100644
+--- a/drivers/clk/sunxi/Makefile
++++ b/drivers/clk/sunxi/Makefile
+@@ -10,4 +10,4 @@ obj-y += clk-sun8i-mbus.o
+ 
+ obj-$(CONFIG_MFD_SUN6I_PRCM) += \
+ 	clk-sun6i-ar100.o clk-sun6i-apb0.o clk-sun6i-apb0-gates.o \
+-	clk-sun8i-apb0.o
++	clk-sun8i-apb0.o clk-sun6i-prcm-mod0.o
+diff --git a/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c b/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
+new file mode 100644
+index 0000000..e80f18e
+--- /dev/null
++++ b/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
+@@ -0,0 +1,63 @@
++/*
++ * Allwinner A31 PRCM mod0 clock driver
++ *
++ * Copyright (C) 2014 Hans de Goede <hdegoede@redhat.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/clk-provider.h>
++#include <linux/clkdev.h>
++#include <linux/module.h>
++#include <linux/of_address.h>
++#include <linux/platform_device.h>
++
++#include "clk-factors.h"
++#include "clk-mod0.h"
++
++static const struct of_device_id sun6i_a31_prcm_mod0_clk_dt_ids[] = {
++	{ .compatible = "allwinner,sun6i-a31-ir-clk" },
++	{ /* sentinel */ }
++};
++
++static DEFINE_SPINLOCK(sun6i_prcm_mod0_lock);
++
++static int sun6i_a31_prcm_mod0_clk_probe(struct platform_device *pdev)
++{
++	struct device_node *np = pdev->dev.of_node;
++	struct resource *r;
++	void __iomem *reg;
++
++	if (!np)
++		return -ENODEV;
++
++	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	reg = devm_ioremap_resource(&pdev->dev, r);
++	if (IS_ERR(reg))
++		return PTR_ERR(reg);
++
++	sunxi_factors_register(np, &sun4i_a10_mod0_data,
++			       &sun6i_prcm_mod0_lock, reg);
++	return 0;
++}
++
++static struct platform_driver sun6i_a31_prcm_mod0_clk_driver = {
++	.driver = {
++		.name = "sun6i-a31-prcm-mod0-clk",
++		.of_match_table = sun6i_a31_prcm_mod0_clk_dt_ids,
++	},
++	.probe = sun6i_a31_prcm_mod0_clk_probe,
++};
++module_platform_driver(sun6i_a31_prcm_mod0_clk_driver);
++
++MODULE_DESCRIPTION("Allwinner A31 PRCM mod0 clock driver");
++MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/mfd/sun6i-prcm.c b/drivers/mfd/sun6i-prcm.c
+index 283ab8d..ff1254f 100644
+--- a/drivers/mfd/sun6i-prcm.c
++++ b/drivers/mfd/sun6i-prcm.c
+@@ -41,6 +41,14 @@ static const struct resource sun6i_a31_apb0_gates_clk_res[] = {
+ 	},
+ };
+ 
++static const struct resource sun6i_a31_ir_clk_res[] = {
++	{
++		.start = 0x54,
++		.end = 0x57,
++		.flags = IORESOURCE_MEM,
++	},
++};
++
+ static const struct resource sun6i_a31_apb0_rstc_res[] = {
+ 	{
+ 		.start = 0xb0,
+@@ -69,6 +77,12 @@ static const struct mfd_cell sun6i_a31_prcm_subdevs[] = {
+ 		.resources = sun6i_a31_apb0_gates_clk_res,
+ 	},
+ 	{
++		.name = "sun6i-a31-ir-clk",
++		.of_compatible = "allwinner,sun6i-a31-ir-clk",
++		.num_resources = ARRAY_SIZE(sun6i_a31_ir_clk_res),
++		.resources = sun6i_a31_ir_clk_res,
++	},
++	{
+ 		.name = "sun6i-a31-apb0-clock-reset",
+ 		.of_compatible = "allwinner,sun6i-a31-clock-reset",
+ 		.num_resources = ARRAY_SIZE(sun6i_a31_apb0_rstc_res),
+-- 
+2.1.0
 
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c | 69 +++++++++++++---------------
->  1 file changed, 31 insertions(+), 38 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index ddfc8df..ec2e410 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -23,6 +23,7 @@
->  #include <linux/regulator/machine.h>
->  #include <linux/gpio.h>
->  #include <linux/gpio_keys.h>
-> +#include <linux/gpio/machine.h>
->  #include <linux/mmc/host.h>
->  #include <linux/power/isp1704_charger.h>
->  #include <linux/platform_data/spi-omap2-mcspi.h>
-> @@ -38,7 +39,6 @@
->  
->  #include <sound/tlv320aic3x.h>
->  #include <sound/tpa6130a2-plat.h>
-> -#include <media/radio-si4713.h>
->  #include <media/si4713.h>
->  #include <linux/platform_data/leds-lp55xx.h>
->  
-> @@ -760,46 +760,17 @@ static struct regulator_init_data rx51_vintdig = {
->  	},
->  };
->  
-> -static const char * const si4713_supply_names[] = {
-> -	"vio",
-> -	"vdd",
-> -};
-> -
-> -static struct si4713_platform_data rx51_si4713_i2c_data __initdata_or_module = {
-> -	.supplies	= ARRAY_SIZE(si4713_supply_names),
-> -	.supply_names	= si4713_supply_names,
-> -	.gpio_reset	= RX51_FMTX_RESET_GPIO,
-> -};
-> -
-> -static struct i2c_board_info rx51_si4713_board_info __initdata_or_module = {
-> -	I2C_BOARD_INFO("si4713", SI4713_I2C_ADDR_BUSEN_HIGH),
-> -	.platform_data	= &rx51_si4713_i2c_data,
-> -};
-> -
-> -static struct radio_si4713_platform_data rx51_si4713_data __initdata_or_module = {
-> -	.i2c_bus	= 2,
-> -	.subdev_board_info = &rx51_si4713_board_info,
-> -};
-> -
-> -static struct platform_device rx51_si4713_dev __initdata_or_module = {
-> -	.name	= "radio-si4713",
-> -	.id	= -1,
-> -	.dev	= {
-> -		.platform_data	= &rx51_si4713_data,
-> +static struct gpiod_lookup_table rx51_fmtx_gpios_table = {
-> +	.dev_id = "2-0063",
-> +	.table = {
-> +		GPIO_LOOKUP("gpio.6", 3, "reset", GPIO_ACTIVE_HIGH), /* 163 */
-> +		{ },
->  	},
->  };
->  
-> -static __init void rx51_init_si4713(void)
-> +static __init void rx51_gpio_init(void)
->  {
-> -	int err;
-> -
-> -	err = gpio_request_one(RX51_FMTX_IRQ, GPIOF_DIR_IN, "si4713 irq");
-> -	if (err) {
-> -		printk(KERN_ERR "Cannot request si4713 irq gpio. %d\n", err);
-> -		return;
-> -	}
-> -	rx51_si4713_board_info.irq = gpio_to_irq(RX51_FMTX_IRQ);
-> -	platform_device_register(&rx51_si4713_dev);
-> +	gpiod_add_lookup_table(&rx51_fmtx_gpios_table);
->  }
->  
->  static int rx51_twlgpio_setup(struct device *dev, unsigned gpio, unsigned n)
-> @@ -1029,7 +1000,17 @@ static struct aic3x_pdata rx51_aic3x_data2 = {
->  	.gpio_reset = 60,
->  };
->  
-> +static struct si4713_platform_data rx51_si4713_platform_data = {
-> +	.is_platform_device = true
-> +};
-> +
->  static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
-> +#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713)
-> +	{
-> +		I2C_BOARD_INFO("si4713", 0x63),
-> +		.platform_data = &rx51_si4713_platform_data,
-> +	},
-> +#endif
->  	{
->  		I2C_BOARD_INFO("tlv320aic3x", 0x18),
->  		.platform_data = &rx51_aic3x_data,
-> @@ -1070,6 +1051,10 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_3[] = {
->  
->  static int __init rx51_i2c_init(void)
->  {
-> +#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713)
-> +	int err;
-> +#endif
-> +
->  	if ((system_rev >= SYSTEM_REV_S_USES_VAUX3 && system_rev < 0x100) ||
->  	    system_rev >= SYSTEM_REV_B_USES_VAUX3) {
->  		rx51_twldata.vaux3 = &rx51_vaux3_mmc;
-> @@ -1087,6 +1072,14 @@ static int __init rx51_i2c_init(void)
->  	rx51_twldata.vdac->constraints.name = "VDAC";
->  
->  	omap_pmic_init(1, 2200, "twl5030", 7 + OMAP_INTC_START, &rx51_twldata);
-> +#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713)
-> +	err = gpio_request_one(RX51_FMTX_IRQ, GPIOF_DIR_IN, "si4713 irq");
-> +	if (err) {
-> +		printk(KERN_ERR "Cannot request si4713 irq gpio. %d\n", err);
-> +		return err;
-> +	}
-> +	rx51_peripherals_i2c_board_info_2[0].irq = gpio_to_irq(RX51_FMTX_IRQ);
-> +#endif
->  	omap_register_i2c_bus(2, 100, rx51_peripherals_i2c_board_info_2,
->  			      ARRAY_SIZE(rx51_peripherals_i2c_board_info_2));
->  #if defined(CONFIG_SENSORS_LIS3_I2C) || defined(CONFIG_SENSORS_LIS3_I2C_MODULE)
-> @@ -1300,6 +1293,7 @@ static void __init rx51_init_omap3_rom_rng(void)
->  
->  void __init rx51_peripherals_init(void)
->  {
-> +	rx51_gpio_init();
->  	rx51_i2c_init();
->  	regulator_has_full_constraints();
->  	gpmc_onenand_init(board_onenand_data);
-> @@ -1307,7 +1301,6 @@ void __init rx51_peripherals_init(void)
->  	rx51_add_gpio_keys();
->  	rx51_init_wl1251();
->  	rx51_init_tsc2005();
-> -	rx51_init_si4713();
->  	rx51_init_lirc();
->  	spi_register_board_info(rx51_peripherals_spi_board_info,
->  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
-> -- 
-> 2.1.1
-> 
