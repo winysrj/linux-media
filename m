@@ -1,87 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:61657 "EHLO mga01.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:51078 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750736AbaKZTaz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 14:30:55 -0500
-Date: Wed, 26 Nov 2014 11:30:53 -0800
-From: Fengguang Wu <fengguang.wu@intel.com>
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [linuxtv-media:master 7661/7664] ERROR: "omapdss_compat_init"
- [drivers/media/platform/omap/omap-vout.ko] undefined!
-Message-ID: <20141126193053.GD19633@wfg-t540p.sh.intel.com>
-References: <201411260931.8e2dBfm8%fengguang.wu@intel.com>
- <1416988241.29407.5.camel@x220>
+	id S1756899AbaKTQ2h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 11:28:37 -0500
+Date: Thu, 20 Nov 2014 14:28:31 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH 4/9] rc: sunxi-cir: Add support for an optional reset
+ controller
+Message-ID: <20141120142831.003fb63e@recife.lan>
+In-Reply-To: <1416498928-1300-5-git-send-email-hdegoede@redhat.com>
+References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
+	<1416498928-1300-5-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1416988241.29407.5.camel@x220>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul,
+Em Thu, 20 Nov 2014 16:55:23 +0100
+Hans de Goede <hdegoede@redhat.com> escreveu:
 
-On Wed, Nov 26, 2014 at 08:50:41AM +0100, Paul Bolle wrote:
-> Hi Fengguang,
+> On sun6i the cir block is attached to the reset controller, add support
+> for de-asserting the reset if a reset controller is specified in dt.
 > 
-> On Wed, 2014-11-26 at 09:34 +0800, kbuild test robot wrote:
-> > tree:   git://linuxtv.org/media_tree.git master
-> > head:   504febc3f98c87a8bebd8f2f274f32c0724131e4
-> > commit: 6b213e81ddf8b265383c9a1a1884432df88f701e [7661/7664] [media] omap: Fix typo "HAS_MMU"
-> > config: m68k-allmodconfig (attached as .config)
-> > reproduce:
-> >   wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-> >   chmod +x ~/bin/make.cross
-> >   git checkout 6b213e81ddf8b265383c9a1a1884432df88f701e
-> >   # save the attached .config to linux build tree
-> >   make.cross ARCH=m68k 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+As this is meant to be merged via some other tree:
+
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+
+> ---
+>  drivers/media/rc/sunxi-cir.c | 25 +++++++++++++++++++++++--
+>  1 file changed, 23 insertions(+), 2 deletions(-)
 > 
-> This is the first time I've made the kbuild test robot trip. So I'm not
-> sure how to interpret this.
-> 
-> Is ARCH=m68k the only build that failed through this commit? Or is it
-> the first build that failed? If so, how can I determine which arches
-> build correctly?
-
-It's the first build that failed. I checked log and find these
-failures, which covers m68k, mips and i386.
-
-ERROR: "omapdss_compat_init" [drivers/media/platform/omap/omap-vout.ko] undefined!
-
-linuxtv-media:master:504febc3f98c87a8bebd8f2f274f32c0724131e4 m68k-allmodconfig 504febc3f98c87a8bebd8f2f274f32c0724131e4
-
-ERROR: "omapdss_compat_init" undefined!
-
-linuxtv-media:master:504febc3f98c87a8bebd8f2f274f32c0724131e4 mips-allmodconfig 504febc3f98c87a8bebd8f2f274f32c0724131e4
-
-omap_vout.c:(.init.text+0xb2706): undefined reference to `omapdss_compat_init'
-
-linuxtv-media:master:504febc3f98c87a8bebd8f2f274f32c0724131e4 i386-allyesconfig 504febc3f98c87a8bebd8f2f274f32c0724131e4
-
-Thanks,
-Fengguang
-
-> > All error/warnings:
-> > 
-> > >> ERROR: "omapdss_compat_init" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omap_dss_get_overlay_manager" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omap_dss_get_num_overlay_managers" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omap_dss_get_overlay" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omapdss_is_initialized" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omap_dispc_register_isr" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omapdss_get_version" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omap_dss_put_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omap_dss_get_next_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omap_dispc_unregister_isr" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omapdss_compat_uninit" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omap_dss_get_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > >> ERROR: "omap_dss_get_num_overlays" [drivers/media/platform/omap/omap-vout.ko] undefined!
-> > 
-> > ---
-> > 0-DAY kernel test infrastructure                Open Source Technology Center
-> > http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
-> 
-> Thanks,
-> 
-> Paul Bolle
+> diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+> index bcee8e1..895fb65 100644
+> --- a/drivers/media/rc/sunxi-cir.c
+> +++ b/drivers/media/rc/sunxi-cir.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/module.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/reset.h>
+>  #include <media/rc-core.h>
+>  
+>  #define SUNXI_IR_DEV "sunxi-ir"
+> @@ -95,6 +96,7 @@ struct sunxi_ir {
+>  	int             irq;
+>  	struct clk      *clk;
+>  	struct clk      *apb_clk;
+> +	struct reset_control *rst;
+>  	const char      *map_name;
+>  };
+>  
+> @@ -166,15 +168,29 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+>  		return PTR_ERR(ir->clk);
+>  	}
+>  
+> +	/* Reset (optional) */
+> +	ir->rst = devm_reset_control_get_optional(dev, NULL);
+> +	if (IS_ERR(ir->rst)) {
+> +		ret = PTR_ERR(ir->rst);
+> +		if (ret == -EPROBE_DEFER)
+> +			return ret;
+> +		ir->rst = NULL;
+> +	} else {
+> +		ret = reset_control_deassert(ir->rst);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+>  	ret = clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
+>  	if (ret) {
+>  		dev_err(dev, "set ir base clock failed!\n");
+> -		return ret;
+> +		goto exit_reset_assert;
+>  	}
+>  
+>  	if (clk_prepare_enable(ir->apb_clk)) {
+>  		dev_err(dev, "try to enable apb_ir_clk failed\n");
+> -		return -EINVAL;
+> +		ret = -EINVAL;
+> +		goto exit_reset_assert;
+>  	}
+>  
+>  	if (clk_prepare_enable(ir->clk)) {
+> @@ -271,6 +287,9 @@ exit_clkdisable_clk:
+>  	clk_disable_unprepare(ir->clk);
+>  exit_clkdisable_apb_clk:
+>  	clk_disable_unprepare(ir->apb_clk);
+> +exit_reset_assert:
+> +	if (ir->rst)
+> +		reset_control_assert(ir->rst);
+>  
+>  	return ret;
+>  }
+> @@ -282,6 +301,8 @@ static int sunxi_ir_remove(struct platform_device *pdev)
+>  
+>  	clk_disable_unprepare(ir->clk);
+>  	clk_disable_unprepare(ir->apb_clk);
+> +	if (ir->rst)
+> +		reset_control_assert(ir->rst);
+>  
+>  	spin_lock_irqsave(&ir->ir_lock, flags);
+>  	/* disable IR IRQ */
