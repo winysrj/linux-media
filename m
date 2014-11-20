@@ -1,64 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51742 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752417AbaKCPP7 (ORCPT
+Received: from lists.s-osg.org ([54.187.51.154]:51072 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755212AbaKTQQA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 10:15:59 -0500
-Message-ID: <54579C25.5060705@xs4all.nl>
-Date: Mon, 03 Nov 2014 16:15:49 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 20 Nov 2014 11:16:00 -0500
+Date: Thu, 20 Nov 2014 14:15:54 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: v4l-utils stable release 1.6.1
+Message-ID: <20141120141554.4a2e36e8@recife.lan>
+In-Reply-To: <546E093D.4030203@googlemail.com>
+References: <546E093D.4030203@googlemail.com>
 MIME-Version: 1.0
-To: Andrey Utkin <andrey.krieger.utkin@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org
-CC: ismael.luceno@corp.bluecherry.net, m.chehab@samsung.com
-Subject: Re: [PATCH 4/4] [media] solo6x10: don't turn off/on encoder interrupt
- in processing loop
-References: <1414598634-13446-1-git-send-email-andrey.krieger.utkin@gmail.com> <1414598634-13446-4-git-send-email-andrey.krieger.utkin@gmail.com>
-In-Reply-To: <1414598634-13446-4-git-send-email-andrey.krieger.utkin@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrey,
+Em Thu, 20 Nov 2014 16:31:09 +0100
+Gregor Jasny <gjasny@googlemail.com> escreveu:
 
-On 10/29/2014 05:03 PM, Andrey Utkin wrote:
-> The used approach actually cannot prevent new encoder interrupt to
-> appear, because interrupt handler can execute in different thread, and
-> in current implementation there is still race condition regarding this.
+> Hello,
+> 
+> do you consider something from these commits as important enough for a 
+> bugfix release?
 
-I don't understand what you mean with 'interrupt handler can execute in
-different thread'. Can you elaborate?
+>From my side, those are bug fixes that affect two RC6 tables:
+       ir-keytable: fix a regression introduced by fe2aa5f767eba
+       rc: Update the protocol name at RC6 tables
 
-Note that I do think that this change makes sense, but I do like to have a
-better explanation.
+Applying just the first is enough. Basically, RC6 tables are described
+as RC6_MCE. The first patch makes the ir-keytable to accept both syntaxes;
+the second one fixes the two existing RC6_MCE tables.
+
+This one is an important bug fixes for DVB-S/S2 frequency storage:
+       libdvbv5: properly represent Satellite frequencies
+
+This is not properly a bug fix, but I would also add it, as it fixes the
+documentation:
+	README: better document the package
+
+This is a bug fix, but it affects only the keymap sync from Kernel,
+so probably not worth backporting, except if you also intend to run
+make sync-with-kernel at the fix tree:
+       gen_keytables.pl: Fix a regression at RC map file generation
+
+In such case, I also suggest to backport those patches:
+       rc_maps.cfg: reorder entries alphabetically
+       rc: sync with Kernel
+       rc: copy userspace-only maps to a separate dir
+
+This one also seems to be a backport fix:
+       rc_keymaps: allwinner: S/KEY_HOME/KEY_HOMEPAGE/
+
+That's all from remote controllers and libdvbv5 API side.
 
 Regards,
-
-	Hans
-
-> Also from practice the code with this change seems to work as stable as
-> before.
-> 
-> Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-> ---
->  drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-> index b9b61b9..30e09d9 100644
-> --- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-> +++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-> @@ -703,9 +703,7 @@ static int solo_ring_thread(void *data)
->  
->  		if (timeout == -ERESTARTSYS || kthread_should_stop())
->  			break;
-> -		solo_irq_off(solo_dev, SOLO_IRQ_ENCODER);
->  		solo_handle_ring(solo_dev);
-> -		solo_irq_on(solo_dev, SOLO_IRQ_ENCODER);
->  		try_to_freeze();
->  	}
->  
-> 
-
+Mauro
