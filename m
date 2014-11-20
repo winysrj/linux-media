@@ -1,40 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:45495 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754598AbaKSTuR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Nov 2014 14:50:17 -0500
-Date: Wed, 19 Nov 2014 20:50:19 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Stephan Raue <mailinglists@openelec.tv>
-Cc: linux-input@vger.kernel.org, m.chehab@samsung.com,
-	linux-media@vger.kernel.org
-Subject: Re: bisected: IR press/release behavior changed in 3.17, repeat
- events
-Message-ID: <20141119195019.GA20784@hardeman.nu>
-References: <54679469.1010500@openelec.tv>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:51594 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751406AbaKTUKJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 15:10:09 -0500
+Received: by mail-la0-f52.google.com with SMTP id q1so3016520lam.25
+        for <linux-media@vger.kernel.org>; Thu, 20 Nov 2014 12:10:08 -0800 (PST)
+Date: Thu, 20 Nov 2014 22:10:05 +0200 (EET)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: Michael Holzer <michael.w.holzer@gmail.com>
+cc: "olli.salonen" <olli.salonen@iki.fi>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	crazycat69@narod.ru
+Subject: Re: [PATCH 1/3] tuners: si2157: Si2148 support.
+In-Reply-To: <CA++x_yB3PA=gsFO-Lbhvn7ayUjUDdVJfmkLKqTOn1H14-ytmPQ@mail.gmail.com>
+Message-ID: <alpine.DEB.2.10.1411202204550.1388@dl160.lan>
+References: <CA++x_yD6oxb4mkbP_8UtHU13LM5dgacbtHXWKe+qpDEfFp5bMw@mail.gmail.com> <CA++x_yB3PA=gsFO-Lbhvn7ayUjUDdVJfmkLKqTOn1H14-ytmPQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54679469.1010500@openelec.tv>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 15, 2014 at 06:59:05PM +0100, Stephan Raue wrote:
->Hi
->
->with kernel 3.17 using a RC6 remote with a buildin nuvoton IR receiver (not
->tested others, but i think its a common problem) when pressing/releasing the
->same button often within 1 second there will no release event sent. Instead
->we get repeat events. To get the release event i must press the same button
->with a delay of ~ 1sec.
->
->the evtest output for kernel with the difference 3.16 and 3.17 looks like
+On Mon, 17 Nov 2014, Michael Holzer wrote:
 
-Hi,
+> I'd see merit to show the supported chips explicitly as otherwise users
+> may be confused if a new unsupported chip  (lets assume Si2159)
+> appears and the message is generic as proposed "Si215x".
+> To get clarity for this case source code reading would be required.
 
-could you try the working and non-working versions with debugging output
-enabled from the in-kernel rc6 decoder (i.e. set debug for the rc-core
-module) and post the two different outputs?
+Well, the user of a Si2159 would never see the printout as the driver 
+would not be loaded for a Si2159 user. I'd say just print something like 
+"Si215x/Si216x Silicon Tuner" in the printouts and list all the chips in 
+the source code. But that's not something that needs to be fixed now 
+anyway, we can do that later.
 
-//David
+Crazycat, do you think you could change the firmware loading for Si2148 
+as discussed here though and send a new patch?
 
+Cheers,
+-olli
