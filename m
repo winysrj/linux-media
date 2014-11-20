@@ -1,236 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:52224 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932646AbaKMLBT (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42996 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756898AbaKTJmW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Nov 2014 06:01:19 -0500
-Received: by mail-la0-f46.google.com with SMTP id gm9so12883492lab.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Nov 2014 03:01:18 -0800 (PST)
-Date: Thu, 13 Nov 2014 13:01:11 +0200 (EET)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Nibble Max <nibble.max@gmail.com>
-cc: Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>,
-	Olli Salonen <olli.salonen@iki.fi>
-Subject: Re: [PATCH 1/1] dvb-usb-dvbsky: add T680CI dvb-t2/t/c usb ci box
- support
-In-Reply-To: <201411131610389068314@gmail.com>
-Message-ID: <alpine.DEB.2.10.1411131258010.1384@dl160.lan>
-References: <201411131610389068314@gmail.com>
+	Thu, 20 Nov 2014 04:42:22 -0500
+Date: Thu, 20 Nov 2014 11:36:37 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH/RFC v6 1/2] media: Add registration helpers for V4L2 flash
+Message-ID: <20141120093637.GX8907@valkosipuli.retiisi.org.uk>
+References: <1411399309-16418-1-git-send-email-j.anaszewski@samsung.com>
+ <1411399309-16418-2-git-send-email-j.anaszewski@samsung.com>
+ <5469DD4F.1040706@samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5469DD4F.1040706@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Max,
+Hi Jacek,
 
-My understanding is that T680CI is the same device as TechnoTrend CT2-4650 
-CI that is already supported by the cxusb driver. I think we should not 
-duplicate this over two drivers. In my opinion, two options exist:
+Thank you for your thoughtful writing on the subject.
 
-- you add T680CI in the dvbsky driver and move CT2-4650 also to dvbsky
-- you add T680CI into cxusb driver
+Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> On 09/22/2014 05:21 PM, Jacek Anaszewski wrote:
+>> This patch adds helper functions for registering/unregistering
+>> LED class flash devices as V4L2 subdevs. The functions should
+>> be called from the LED subsystem device driver. In case the
+>> support for V4L2 Flash sub-devices is disabled in the kernel
+>> config the functions' empty versions will be used.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Bryan Wu <cooloney@gmail.com>
+>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>> ---
+>>   drivers/media/v4l2-core/Kconfig      |   11 +
+>>   drivers/media/v4l2-core/Makefile     |    2 +
+>>   drivers/media/v4l2-core/v4l2-flash.c |  502
+>> ++++++++++++++++++++++++++++++++++
+>>   include/media/v4l2-flash.h           |  135 +++++++++
+>>   4 files changed, 650 insertions(+)
+>>   create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
+>>   create mode 100644 include/media/v4l2-flash.h
+> 
+> [...]
+> 
+> After discussing on IRC the way of using compound controls for
+> v4l2-flash sub-device I started to re-implement the patch but
+> encountered subsequent issues, which make my inclination for
+> abiding by the current version of the patch (separate v4l2-flash
+> device for each sub-led) even stronger.
+> 
+> Let's list arguments for both options:
+> 
+> 1. Single v4l2-flash sub-device for a flash device that can control
+>    several sub-leds:
+> 
+> a) a flash device driver has one related i2c device
+> b) there exist hardware designs where some registers are
+>    shared between sub-leds (e.g. flash timeout, flash status)
+> 
+> 2. Separate v4l2-flash sub-device for each sub-led of a flash device
+> 
+> a) LED Flash class drivers create separate LED Flash device for
+>   sub-leds (enforced by led-triggers design). This way there is
+>   a simple one-to-one "LED Flash device" - "v4l2-flash sub-device"
+>   relation.
+> b) if a single v4l2-flash sub-device was to control several
+>   LED Flash devices then array controls would have to be
+>   used for accessing the settings of every LED Flash device.
+>   This poses following issues:
+>     - the type of each V4L2 Flash control would have to be
+>       set to the compound one (e.g. V4L2_CTRL_TYPE_U32), which in
+>       turn would make the menu controls unavailable for querying
+>       and displaying e.g. in qv4l2. Also the types as bitmask, button
+>       would have to be avoided.
 
-What do you think?
+Good point. Currently the button control type is used for the strobe
+control. For two leds we'd need an array of two button controls.
 
-Cheers,
--olli
+>     - All elements of an array control have to have the same
+>       constraints and it would make impossible setting different min,
+>       max values (e.g. current, timeout, external strobe) for each
+>       sub-led. All the advantageous v4l2-ctrl mechanism related
+>       to validating and caching controls would have to be avoided
+>       and the user space would only get feedback in the form of
+>       failing ioctl when the value to be set is not properly aligned
 
-On Thu, 13 Nov 2014, Nibble Max wrote:
+True. This is quite unpleasant to the user indeed.
 
-> DVBSky T680CI dvb-t2/t/c usb ci box:
-> 1>dvb frontend: SI2158A20(tuner), SI2168A30(demod)
-> 2>usb controller: CY7C86013A
-> 3>ci controller: CIMAX SP2 or its clone.
->
-> Signed-off-by: Nibble Max <nibble.max@gmail.com>
-> ---
-> drivers/media/usb/dvb-usb-v2/Kconfig  |   2 +
-> drivers/media/usb/dvb-usb-v2/dvbsky.c | 122 ++++++++++++++++++++++++++++++++++
-> 2 files changed, 124 insertions(+)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
-> index 7423033..0982e73 100644
-> --- a/drivers/media/usb/dvb-usb-v2/Kconfig
-> +++ b/drivers/media/usb/dvb-usb-v2/Kconfig
-> @@ -145,7 +145,9 @@ config DVB_USB_DVBSKY
-> 	tristate "DVBSky USB support"
-> 	depends on DVB_USB_V2
-> 	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
-> +	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
-> 	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
-> +	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
-> 	select DVB_SP2 if MEDIA_SUBDRV_AUTOSELECT
-> 	help
-> 	  Say Y here to support the USB receivers from DVBSky.
-> diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-> index 8be8447..b6326c6 100644
-> --- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-> +++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-> @@ -22,6 +22,8 @@
-> #include "m88ds3103.h"
-> #include "m88ts2022.h"
-> #include "sp2.h"
-> +#include "si2168.h"
-> +#include "si2157.h"
->
-> #define DVBSKY_MSG_DELAY	0/*2000*/
-> #define DVBSKY_BUF_LEN	64
-> @@ -37,6 +39,7 @@ struct dvbsky_state {
-> 	u8 ibuf[DVBSKY_BUF_LEN];
-> 	u8 obuf[DVBSKY_BUF_LEN];
-> 	u8 last_lock;
-> +	struct i2c_client *i2c_client_demod;
-> 	struct i2c_client *i2c_client_tuner;
-> 	struct i2c_client *i2c_client_ci;
->
-> @@ -517,6 +520,90 @@ fail_attach:
-> 	return ret;
-> }
->
-> +static int dvbsky_t680c_attach(struct dvb_usb_adapter *adap)
-> +{
-> +	struct dvbsky_state *state = adap_to_priv(adap);
-> +	struct dvb_usb_device *d = adap_to_d(adap);
-> +	int ret = 0;
-> +	struct i2c_adapter *i2c_adapter;
-> +	struct i2c_client *client_demod, *client_tuner, *client_ci;
-> +	struct i2c_board_info info;
-> +	struct si2168_config si2168_config;
-> +	struct si2157_config si2157_config;
-> +	struct sp2_config sp2_config;
-> +
-> +	/* attach demod */
-> +	memset(&si2168_config, 0, sizeof(si2168_config));
-> +	si2168_config.i2c_adapter = &i2c_adapter;
-> +	si2168_config.fe = &adap->fe[0];
-> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
-> +	memset(&info, 0, sizeof(struct i2c_board_info));
-> +	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
-> +	info.addr = 0x64;
-> +	info.platform_data = &si2168_config;
-> +
-> +	request_module(info.type);
-> +	client_demod = i2c_new_device(&d->i2c_adap, &info);
-> +	if (client_demod == NULL ||
-> +			client_demod->dev.driver == NULL)
-> +		goto fail_demod_device;
-> +	if (!try_module_get(client_demod->dev.driver->owner))
-> +		goto fail_demod_module;
-> +
-> +	/* attach tuner */
-> +	memset(&si2157_config, 0, sizeof(si2157_config));
-> +	si2157_config.fe = adap->fe[0];
-> +	memset(&info, 0, sizeof(struct i2c_board_info));
-> +	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
-> +	info.addr = 0x60;
-> +	info.platform_data = &si2157_config;
-> +
-> +	request_module(info.type);
-> +	client_tuner = i2c_new_device(i2c_adapter, &info);
-> +	if (client_tuner == NULL ||
-> +			client_tuner->dev.driver == NULL)
-> +		goto fail_tuner_device;
-> +	if (!try_module_get(client_tuner->dev.driver->owner))
-> +		goto fail_tuner_module;
-> +
-> +	/* attach ci controller */
-> +	memset(&sp2_config, 0, sizeof(sp2_config));
-> +	sp2_config.dvb_adap = &adap->dvb_adap;
-> +	sp2_config.priv = d;
-> +	sp2_config.ci_control = dvbsky_ci_ctrl;
-> +	memset(&info, 0, sizeof(struct i2c_board_info));
-> +	strlcpy(info.type, "sp2", I2C_NAME_SIZE);
-> +	info.addr = 0x40;
-> +	info.platform_data = &sp2_config;
-> +
-> +	request_module(info.type);
-> +	client_ci = i2c_new_device(&d->i2c_adap, &info);
-> +
-> +	if (client_ci == NULL || client_ci->dev.driver == NULL)
-> +		goto fail_ci_device;
-> +
-> +	if (!try_module_get(client_ci->dev.driver->owner))
-> +		goto fail_ci_module;
-> +
-> +	state->i2c_client_demod = client_demod;
-> +	state->i2c_client_tuner = client_tuner;
-> +	state->i2c_client_ci = client_ci;
-> +	return ret;
-> +fail_ci_module:
-> +	i2c_unregister_device(client_ci);
-> +fail_ci_device:
-> +	module_put(client_tuner->dev.driver->owner);
-> +fail_tuner_module:
-> +	i2c_unregister_device(client_tuner);
-> +fail_tuner_device:
-> +	module_put(client_demod->dev.driver->owner);
-> +fail_demod_module:
-> +	i2c_unregister_device(client_demod);
-> +fail_demod_device:
-> +	ret = -ENODEV;
-> +	return ret;
-> +}
-> +
-> static int dvbsky_identify_state(struct dvb_usb_device *d, const char **name)
-> {
-> 	dvbsky_gpio_ctrl(d, 0x04, 1);
-> @@ -559,6 +646,12 @@ static void dvbsky_exit(struct dvb_usb_device *d)
-> 		module_put(client->dev.driver->owner);
-> 		i2c_unregister_device(client);
-> 	}
-> +	client = state->i2c_client_demod;
-> +	/* remove I2C demod */
-> +	if (client) {
-> +		module_put(client->dev.driver->owner);
-> +		i2c_unregister_device(client);
-> +	}
-> 	client = state->i2c_client_ci;
-> 	/* remove I2C ci */
-> 	if (client) {
-> @@ -622,11 +715,40 @@ static struct dvb_usb_device_properties dvbsky_s960c_props = {
-> 	}
-> };
->
-> +static struct dvb_usb_device_properties dvbsky_t680c_props = {
-> +	.driver_name = KBUILD_MODNAME,
-> +	.owner = THIS_MODULE,
-> +	.adapter_nr = adapter_nr,
-> +	.size_of_priv = sizeof(struct dvbsky_state),
-> +
-> +	.generic_bulk_ctrl_endpoint = 0x01,
-> +	.generic_bulk_ctrl_endpoint_response = 0x81,
-> +	.generic_bulk_ctrl_delay = DVBSKY_MSG_DELAY,
-> +
-> +	.i2c_algo         = &dvbsky_i2c_algo,
-> +	.frontend_attach  = dvbsky_t680c_attach,
-> +	.init             = dvbsky_init,
-> +	.get_rc_config    = dvbsky_get_rc_config,
-> +	.streaming_ctrl   = dvbsky_streaming_ctrl,
-> +	.identify_state	  = dvbsky_identify_state,
-> +	.exit             = dvbsky_exit,
-> +	.read_mac_address = dvbsky_read_mac_addr,
-> +
-> +	.num_adapters = 1,
-> +	.adapter = {
-> +		{
-> +			.stream = DVB_USB_STREAM_BULK(0x82, 8, 4096),
-> +		}
-> +	}
-> +};
-> +
-> static const struct usb_device_id dvbsky_id_table[] = {
-> 	{ DVB_USB_DEVICE(0x0572, 0x6831,
-> 		&dvbsky_s960_props, "DVBSky S960/S860", RC_MAP_DVBSKY) },
-> 	{ DVB_USB_DEVICE(0x0572, 0x960c,
-> 		&dvbsky_s960c_props, "DVBSky S960CI", RC_MAP_DVBSKY) },
-> +	{ DVB_USB_DEVICE(0x0572, 0x680c,
-> +		&dvbsky_t680c_props, "DVBSky T680CI", RC_MAP_DVBSKY) },
-> 	{ }
-> };
-> MODULE_DEVICE_TABLE(usb, dvbsky_id_table);
->
-> -- 
-> 1.9.1
->
->
+>     - it is not possible to set only one element of the control
+>       array and thus the settings of each sub-led would have to be
+>       cached to avoid superfluous device register access
+>       (functionality already secured by non-array v4l2-controls)
+
+Agreed. But this is still a relatively minor nuisance in the implementation.
+
+>     - the flash devices supporting single led could be provided
+>       with standard non-array controls, but it would produce
+>       cumbersome v4l2-flash code and inconsistent user space interface
+
+> From the above it looks like the option 2. has much more advantages.
+> The argument 1.a doesn't seem to be so vital in view of the fact
+> that LED subsystem already breaks it. The argument 1.b can be obviated
+> by caching the relevant values in the driver as it is for max77693-led.
+> 
+> I think that choosing option 2. would allow for avoiding much work
+> that is already done in v4l2-ctrls.c. Moreover it would keep the
+> V4L2 Flash controls maintainable with qv4l2.
+
+Fair enough.
+
+My remaining concerns in using two sub-devices to expose the LEDs to user
+space are thus:
+
+- Software strobe synchronisation. This one is important. There's no way to
+  push a button control from two sub-devices at the same time. AFAIR your
+  device lets the user to strobe the LEDs separately, but they are still
+  controlled through a single register. Either we could implement the strobe
+  only for the first LED, and it'd also affect the other. Alternatively we
+  could add one more boolean control to the second LED (while both
+  sub-devices would have the strobe button) to tell the strobe is
+  synchronous with the other sub-device.
+
+- Faults. There's usually just a single set of faults. Do we expose them for
+  both sub-devices, even if they are the same? I think I'd do just that.
+  Reading the faults on either sub-device will reset both.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@iki.fi
