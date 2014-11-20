@@ -1,39 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:52269 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759752AbaKAREK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 13:04:10 -0400
-Received: by mail-ie0-f176.google.com with SMTP id rd18so2963150iec.7
-        for <linux-media@vger.kernel.org>; Sat, 01 Nov 2014 10:04:10 -0700 (PDT)
-Received: from [192.168.1.68] (99-9-127-25.lightspeed.livnmi.sbcglobal.net. [99.9.127.25])
-        by mx.google.com with ESMTPSA id k141sm6895975iok.13.2014.11.01.10.04.08
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Sat, 01 Nov 2014 10:04:09 -0700 (PDT)
-From: Evol Johnson <evolmark@gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Subject: Synching app to live tv
-Message-Id: <3BC84EDE-BDFE-4742-A442-76639C63B22C@gmail.com>
-Date: Sat, 1 Nov 2014 13:03:52 -0400
-To: linux-media@vger.kernel.org
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Received: from mout.web.de ([212.227.15.4]:63539 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750949AbaKTKuz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 05:50:55 -0500
+Message-ID: <546DC778.8050204@users.sourceforge.net>
+Date: Thu, 20 Nov 2014 11:50:32 +0100
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+MIME-Version: 1.0
+To: Kukjin Kim <kgene.kim@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+CC: linux-samsung-soc@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: [PATCH 1/1] [media] platform: Deletion of unnecessary checks before
+ two function calls
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 20 Nov 2014 11:44:20 +0100
 
-I'm an app developer and no experience with linuxtv.  I want to build an app capable of synch with live tv.
+The functions i2c_put_adapter() and release_firmware() test whether their
+argument is NULL and then return immediately. Thus the test around the call
+is not needed.
 
-What i figured so far is that i could have a linux computer with a capture card,  analyze  the MPEG-2 stream, somehow obtain the PCR(?) and i would be able to broadcast the timestamp and maybe other data that to my app.
+This issue was detected by using the Coccinelle software.
 
-Questions/comments:
-Is this a good approach
-This has done before and you only need to download _____XYz software______ (free or $$)
-Not done before, but you here a few resources that should get you started.
-I use ubuntu and card recommendations are welcomed.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/exynos4-is/fimc-is.c   | 6 ++----
+ drivers/media/platform/s3c-camif/camif-core.c | 3 +--
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-Thanks in advance 
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 5476dce..a1db27b 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -428,8 +428,7 @@ static void fimc_is_load_firmware(const struct firmware *fw, void *context)
+ 	 * needed around for copying to the IS working memory every
+ 	 * time before the Cortex-A5 is restarted.
+ 	 */
+-	if (is->fw.f_w)
+-		release_firmware(is->fw.f_w);
++	release_firmware(is->fw.f_w);
+ 	is->fw.f_w = fw;
+ done:
+ 	mutex_unlock(&is->lock);
+@@ -937,8 +936,7 @@ static int fimc_is_remove(struct platform_device *pdev)
+ 	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
+ 	fimc_is_put_clocks(is);
+ 	fimc_is_debugfs_remove(is);
+-	if (is->fw.f_w)
+-		release_firmware(is->fw.f_w);
++	release_firmware(is->fw.f_w);
+ 	fimc_is_free_cpu_memory(is);
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/s3c-camif/camif-core.c b/drivers/media/platform/s3c-camif/camif-core.c
+index b385747..3b09b5b 100644
+--- a/drivers/media/platform/s3c-camif/camif-core.c
++++ b/drivers/media/platform/s3c-camif/camif-core.c
+@@ -256,8 +256,7 @@ static void camif_unregister_sensor(struct camif_dev *camif)
+ 	v4l2_device_unregister_subdev(sd);
+ 	camif->sensor.sd = NULL;
+ 	i2c_unregister_device(client);
+-	if (adapter)
+-		i2c_put_adapter(adapter);
++	i2c_put_adapter(adapter);
+ }
+ 
+ static int camif_create_media_links(struct camif_dev *camif)
+-- 
+2.1.3
 
-
-Mark Johnson
