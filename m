@@ -1,52 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:55892 "EHLO mout.web.de"
+Received: from vader.hardeman.nu ([95.142.160.32]:45530 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757290AbaKTJzp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 04:55:45 -0500
-Message-ID: <546DBA8E.6080401@users.sourceforge.net>
-Date: Thu, 20 Nov 2014 10:55:26 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
+	id S1756223AbaKTVJx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 16:09:53 -0500
+Subject: [PATCH] rc-core: fix toggle handling in the rc6 decoder
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: mailinglists@openelec.tv, m.chehab@samsung.com
+Date: Thu, 20 Nov 2014 22:09:54 +0100
+Message-ID: <20141120210954.26599.144.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	linux-media@vger.kernel.org, linux1394-devel@lists.sourceforge.net
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH 1/1] [media] firewire: Deletion of an unnecessary check before
- the function call "dvb_unregister_device"
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 20 Nov 2014 10:49:07 +0100
+The toggle bit shouldn't be cleared before the toggle value is calculated.
 
-The dvb_unregister_device() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
+This should probably go into 3.17.x as well.
 
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Fixes: 120703f9eb32 ([media] rc-core: document the protocol type)
+Tested-by: Stephan Raue <mailinglists@openelec.tv>
+Signed-off-by: David Härdeman <david@hardeman.nu>
+Cc: stable@vger.kernel.org
 ---
- drivers/media/firewire/firedtv-ci.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/rc/ir-rc6-decoder.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/firewire/firedtv-ci.c b/drivers/media/firewire/firedtv-ci.c
-index e5ebdbf..e63f582 100644
---- a/drivers/media/firewire/firedtv-ci.c
-+++ b/drivers/media/firewire/firedtv-ci.c
-@@ -253,6 +253,5 @@ int fdtv_ca_register(struct firedtv *fdtv)
- 
- void fdtv_ca_release(struct firedtv *fdtv)
- {
--	if (fdtv->cadev)
--		dvb_unregister_device(fdtv->cadev);
-+	dvb_unregister_device(fdtv->cadev);
- }
--- 
-2.1.3
+diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
+index f1f098e..d16bc67 100644
+--- a/drivers/media/rc/ir-rc6-decoder.c
++++ b/drivers/media/rc/ir-rc6-decoder.c
+@@ -259,8 +259,8 @@ again:
+ 			case 32:
+ 				if ((scancode & RC6_6A_LCC_MASK) == RC6_6A_MCE_CC) {
+ 					protocol = RC_TYPE_RC6_MCE;
+-					scancode &= ~RC6_6A_MCE_TOGGLE_MASK;
+ 					toggle = !!(scancode & RC6_6A_MCE_TOGGLE_MASK);
++					scancode &= ~RC6_6A_MCE_TOGGLE_MASK;
+ 				} else {
+ 					protocol = RC_BIT_RC6_6A_32;
+ 					toggle = 0;
 
