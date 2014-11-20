@@ -1,111 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:53104 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132AbaK1JTc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 04:19:32 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH/RFC v8 04/14] v4l2-async: change custom.match callback argument
- type
-Date: Fri, 28 Nov 2014 10:17:56 +0100
-Message-id: <1417166286-27685-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mout.web.de ([212.227.17.12]:55892 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757290AbaKTJzp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 04:55:45 -0500
+Message-ID: <546DBA8E.6080401@users.sourceforge.net>
+Date: Thu, 20 Nov 2014 10:55:26 +0100
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	linux-media@vger.kernel.org, linux1394-devel@lists.sourceforge.net
+CC: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: [PATCH 1/1] [media] firewire: Deletion of an unnecessary check before
+ the function call "dvb_unregister_device"
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is useful to have an access to the async sub-device
-being matched, not only to the related struct device.
-Change match callback argument from struct device
-to struct v4l2_subdev. It will allow e.g. for matching
-a sub-device by its "name" property.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 20 Nov 2014 10:49:07 +0100
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
+The dvb_unregister_device() function tests whether its argument is NULL
+and then returns immediately. Thus the test around the call is not needed.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/v4l2-core/v4l2-async.c |   16 ++++++++--------
- include/media/v4l2-async.h           |    2 +-
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/media/firewire/firedtv-ci.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 85a6a34..8140992 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -22,10 +22,10 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
+diff --git a/drivers/media/firewire/firedtv-ci.c b/drivers/media/firewire/firedtv-ci.c
+index e5ebdbf..e63f582 100644
+--- a/drivers/media/firewire/firedtv-ci.c
++++ b/drivers/media/firewire/firedtv-ci.c
+@@ -253,6 +253,5 @@ int fdtv_ca_register(struct firedtv *fdtv)
  
--static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ void fdtv_ca_release(struct firedtv *fdtv)
  {
- #if IS_ENABLED(CONFIG_I2C)
--	struct i2c_client *client = i2c_verify_client(dev);
-+	struct i2c_client *client = i2c_verify_client(sd->dev);
- 	return client &&
- 		asd->match.i2c.adapter_id == client->adapter->nr &&
- 		asd->match.i2c.address == client->addr;
-@@ -34,14 +34,14 @@ static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
- #endif
+-	if (fdtv->cadev)
+-		dvb_unregister_device(fdtv->cadev);
++	dvb_unregister_device(fdtv->cadev);
  }
- 
--static bool match_devname(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_devname(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
--	return !strcmp(asd->match.device_name.name, dev_name(dev));
-+	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
- }
- 
--static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
--	return dev->of_node == asd->match.of.node;
-+	return sd->dev->of_node == asd->match.of.node;
- }
- 
- static LIST_HEAD(subdev_list);
-@@ -52,7 +52,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 						    struct v4l2_subdev *sd)
- {
- 	struct v4l2_async_subdev *asd;
--	bool (*match)(struct device *, struct v4l2_async_subdev *);
-+	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
- 
- 	list_for_each_entry(asd, &notifier->waiting, list) {
- 		/* bus_type has been verified valid before */
-@@ -79,7 +79,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 		}
- 
- 		/* match cannot be NULL here */
--		if (match(sd->dev, asd))
-+		if (match(sd, asd))
- 			return asd;
- 	}
- 
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 7683569..1c0b586 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -51,7 +51,7 @@ struct v4l2_async_subdev {
- 			unsigned short address;
- 		} i2c;
- 		struct {
--			bool (*match)(struct device *,
-+			bool (*match)(struct v4l2_subdev *,
- 				      struct v4l2_async_subdev *);
- 			void *priv;
- 		} custom;
 -- 
-1.7.9.5
+2.1.3
 
