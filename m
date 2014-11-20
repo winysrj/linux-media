@@ -1,34 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58094 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:56203 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751464AbaKZRoT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 12:44:19 -0500
-Message-ID: <54761171.90409@iki.fi>
-Date: Wed, 26 Nov 2014 19:44:17 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Nibble Max <nibble.max@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/3] dvb-usb-dvbsky: add T330 dvb-t2/t/c usb stick support
-References: <201411262034428907954@gmail.com>
-In-Reply-To: <201411262034428907954@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1757241AbaKTP4H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Nov 2014 10:56:07 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 5/9] rc: sunxi-cir: Add support for the larger fifo found on sun5i and sun6i
+Date: Thu, 20 Nov 2014 16:55:24 +0100
+Message-Id: <1416498928-1300-6-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
+References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/26/2014 02:34 PM, Nibble Max wrote:
-> DVBSky T330 dvb-t2/t/c usb stick:
-> 1>dvb frontend: SI2157A30(tuner), SI2168B40(demod)
-> 2>usb controller: CY7C68013A
->
-> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+Add support for the larger fifo found on sun5i and sun6i, having a separate
+compatible for the ir found on sun5i & sun6i also is useful if we ever want
+to add ir transmit support, because the sun5i & sun6i version do not have
+transmit support.
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Note this commits also adds checking for the end-of-packet interrupt flag
+(which was already enabled), as the fifo-data-available interrupt flag only
+gets set when the trigger-level is exceeded. So far we've been getting away
+with not doing this because of the low trigger-level, but this is something
+which we should have done since day one.
 
-regards
-Antti
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ .../devicetree/bindings/media/sunxi-ir.txt          |  2 +-
+ drivers/media/rc/sunxi-cir.c                        | 21 ++++++++++++---------
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
+diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+index 23dd5ad..5767128 100644
+--- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
++++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+@@ -1,7 +1,7 @@
+ Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
+ 
+ Required properties:
+-- compatible	    : should be "allwinner,sun4i-a10-ir";
++- compatible	    : "allwinner,sun4i-a10-ir" or "allwinner,sun5i-a13-ir"
+ - clocks	    : list of clock specifiers, corresponding to
+ 		      entries in clock-names property;
+ - clock-names	    : should contain "apb" and "ir" entries;
+diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+index 895fb65..559b0e3 100644
+--- a/drivers/media/rc/sunxi-cir.c
++++ b/drivers/media/rc/sunxi-cir.c
+@@ -56,12 +56,12 @@
+ #define REG_RXINT_RAI_EN		BIT(4)
+ 
+ /* Rx FIFO available byte level */
+-#define REG_RXINT_RAL(val)    (((val) << 8) & (GENMASK(11, 8)))
++#define REG_RXINT_RAL(val)    ((val) << 8)
+ 
+ /* Rx Interrupt Status */
+ #define SUNXI_IR_RXSTA_REG    0x30
+ /* RX FIFO Get Available Counter */
+-#define REG_RXSTA_GET_AC(val) (((val) >> 8) & (GENMASK(5, 0)))
++#define REG_RXSTA_GET_AC(val) (((val) >> 8) & (ir->fifo_size * 2 - 1))
+ /* Clear all interrupt status value */
+ #define REG_RXSTA_CLEARALL    0xff
+ 
+@@ -72,10 +72,6 @@
+ /* CIR_REG register idle threshold */
+ #define REG_CIR_ITHR(val)    (((val) << 8) & (GENMASK(15, 8)))
+ 
+-/* Hardware supported fifo size */
+-#define SUNXI_IR_FIFO_SIZE    16
+-/* How many messages in FIFO trigger IRQ */
+-#define TRIGGER_LEVEL         8
+ /* Required frequency for IR0 or IR1 clock in CIR mode */
+ #define SUNXI_IR_BASE_CLK     8000000
+ /* Frequency after IR internal divider  */
+@@ -94,6 +90,7 @@ struct sunxi_ir {
+ 	struct rc_dev   *rc;
+ 	void __iomem    *base;
+ 	int             irq;
++	int		fifo_size;
+ 	struct clk      *clk;
+ 	struct clk      *apb_clk;
+ 	struct reset_control *rst;
+@@ -115,11 +112,11 @@ static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
+ 	/* clean all pending statuses */
+ 	writel(status | REG_RXSTA_CLEARALL, ir->base + SUNXI_IR_RXSTA_REG);
+ 
+-	if (status & REG_RXINT_RAI_EN) {
++	if (status & (REG_RXINT_RAI_EN | REG_RXINT_RPEI_EN)) {
+ 		/* How many messages in fifo */
+ 		rc  = REG_RXSTA_GET_AC(status);
+ 		/* Sanity check */
+-		rc = rc > SUNXI_IR_FIFO_SIZE ? SUNXI_IR_FIFO_SIZE : rc;
++		rc = rc > ir->fifo_size ? ir->fifo_size : rc;
+ 		/* If we have data */
+ 		for (cnt = 0; cnt < rc; cnt++) {
+ 			/* for each bit in fifo */
+@@ -156,6 +153,11 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 	if (!ir)
+ 		return -ENOMEM;
+ 
++	if (of_device_is_compatible(dn, "allwinner,sun5i-a13-ir"))
++		ir->fifo_size = 64;
++	else
++		ir->fifo_size = 16;
++
+ 	/* Clock */
+ 	ir->apb_clk = devm_clk_get(dev, "apb");
+ 	if (IS_ERR(ir->apb_clk)) {
+@@ -271,7 +273,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 	 * level
+ 	 */
+ 	writel(REG_RXINT_ROI_EN | REG_RXINT_RPEI_EN |
+-	       REG_RXINT_RAI_EN | REG_RXINT_RAL(TRIGGER_LEVEL - 1),
++	       REG_RXINT_RAI_EN | REG_RXINT_RAL(ir->fifo_size / 2 - 1),
+ 	       ir->base + SUNXI_IR_RXINT_REG);
+ 
+ 	/* Enable IR Module */
+@@ -319,6 +321,7 @@ static int sunxi_ir_remove(struct platform_device *pdev)
+ 
+ static const struct of_device_id sunxi_ir_match[] = {
+ 	{ .compatible = "allwinner,sun4i-a10-ir", },
++	{ .compatible = "allwinner,sun5i-a13-ir", },
+ 	{},
+ };
+ 
 -- 
-http://palosaari.fi/
+2.1.0
+
