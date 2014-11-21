@@ -1,42 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:48244 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758033AbaKTUeE (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:26005 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932620AbaKUQPZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 15:34:04 -0500
-Received: by mail-lb0-f169.google.com with SMTP id p9so1949553lbv.28
-        for <linux-media@vger.kernel.org>; Thu, 20 Nov 2014 12:34:02 -0800 (PST)
-From: Olli Salonen <olli.salonen@iki.fi>
+	Fri, 21 Nov 2014 11:15:25 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NFE00KTCD5NI260@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 22 Nov 2014 01:15:23 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 2/3] af9035: initialize si2168_config struct
-Date: Thu, 20 Nov 2014 22:33:48 +0200
-Message-Id: <1416515629-22183-2-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1416515629-22183-1-git-send-email-olli.salonen@iki.fi>
-References: <1416515629-22183-1-git-send-email-olli.salonen@iki.fi>
+Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
+	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
+	kyungmin.park@samsung.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v4 09/11] mediactl: Close only pipeline sub-devices
+Date: Fri, 21 Nov 2014 17:14:38 +0100
+Message-id: <1416586480-19982-10-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
+References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When new parameters are added for si2168 driver, the parameters have to be explicitly defined for each device if the
-si2168_config struct is not initialized to all zeros.
+The function media_device_new_by_entity_devname queries
+media devices available in the system for containment
+if given media entity. If a verification is negative
+the media_device is released with media_device_unref.
+In the previous approach media_device_unref was closing
+all media entities it contained, which was undesirable
+behavior as there might exist other initialized plugins
+which had opened the same media_device and initialized
+a pipeline. With this patch only the sub-devices that
+belong to the pipeline of current media_device instance
+will be closed.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 1 +
- 1 file changed, 1 insertion(+)
+ utils/media-ctl/libmediactl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 1896ab2..80a29f5 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -1171,6 +1171,7 @@ static int it930x_frontend_attach(struct dvb_usb_adapter *adap)
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 003902b..9419fb4 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -917,13 +917,13 @@ void media_device_unref(struct media_device *media)
+ 	if (media->refcount > 0)
+ 		return;
  
- 	dev_dbg(&d->udev->dev, "adap->id=%d\n", adap->id);
++	media_close_pipeline_subdevs(media);
++
+ 	for (i = 0; i < media->entities_count; ++i) {
+ 		struct media_entity *entity = &media->entities[i];
  
-+	memset(&si2168_config, 0, sizeof(si2168_config));
- 	si2168_config.i2c_adapter = &adapter;
- 	si2168_config.fe = &adap->fe[0];
- 	si2168_config.ts_mode = SI2168_TS_SERIAL;
+ 		free(entity->pads);
+ 		free(entity->links);
+-		if (entity->sd->fd != -1)
+-			close(entity->sd->fd);
+ 		free(entity->sd->v4l2_controls);
+ 		free(entity->sd);
+ 	}
 -- 
-1.9.1
+1.7.9.5
 
