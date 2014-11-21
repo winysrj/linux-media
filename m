@@ -1,134 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:60382 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751278AbaKGQJh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 11:09:37 -0500
-Date: Fri, 7 Nov 2014 17:09:33 +0100
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v3 01/10] [media] Move mediabus format definition to a
- more standard place
-Message-ID: <20141107170933.20234344@bbrezillon>
-In-Reply-To: <20141107152416.GC3136@valkosipuli.retiisi.org.uk>
-References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1415369269-5064-2-git-send-email-boris.brezillon@free-electrons.com>
-	<20141107152416.GC3136@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:41229 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750821AbaKURuW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Nov 2014 12:50:22 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] MAINTAINERS: Update mchehab's addresses
+Date: Fri, 21 Nov 2014 15:50:11 -0200
+Message-Id: <1416592211-22287-1-git-send-email-mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+I'm using the new Open Source Group address for my upstream work.
+While the other email is still valid, it is better for me to receive
+patches via the new address.
 
-On Fri, 7 Nov 2014 17:24:16 +0200
-Sakari Ailus <sakari.ailus@iki.fi> wrote:
+So, replace it everywhere inside MAINTAINERS.
 
-> Hi Boris,
-> 
-> On Fri, Nov 07, 2014 at 03:07:40PM +0100, Boris Brezillon wrote:
-> > Define MEDIA_BUS_FMT macros (re-using the values defined in the
-> > v4l2_mbus_pixelcode enum) into a separate header file so that they can be
-> > used from the DRM/KMS subsystem without any reference to the V4L2
-> > subsystem.
-> > 
-> > Then set V4L2_MBUS_FMT definitions to the MEDIA_BUS_FMT values using the
-> > V4L2_MBUS_FROM_MEDIA_BUS_FMT macro.
-> > 
-> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-> > ---
-> >  include/uapi/linux/Kbuild             |   1 +
-> >  include/uapi/linux/media-bus-format.h | 125 +++++++++++++++++++++++
-> >  include/uapi/linux/v4l2-mediabus.h    | 184 +++++++++++++++-------------------
-> >  3 files changed, 206 insertions(+), 104 deletions(-)
-> >  create mode 100644 include/uapi/linux/media-bus-format.h
-> > 
-> > diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
-> > index b70237e..ed39ac8 100644
-> > --- a/include/uapi/linux/Kbuild
-> > +++ b/include/uapi/linux/Kbuild
-> > @@ -241,6 +241,7 @@ header-y += map_to_7segment.h
-> >  header-y += matroxfb.h
-> >  header-y += mdio.h
-> >  header-y += media.h
-> > +header-y += media-bus-format.h
-> >  header-y += mei.h
-> >  header-y += memfd.h
-> >  header-y += mempolicy.h
-> > diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-> > new file mode 100644
-> > index 0000000..23b4090
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ MAINTAINERS | 34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-[...]
-
-> > +/* Vendor specific formats - next is	0x5002 */
-> > +
-> > +/* S5C73M3 sensor specific interleaved UYVY and JPEG */
-> > +#define MEDIA_BUS_FMT_S5C_UYVY_JPEG_1X8		0x5001
-> > +
-> > +/* HSV - next is	0x6002 */
-> > +#define MEDIA_BUS_FMT_AHSV8888_1X32		0x6001
-> > +
-> > +#endif /* __LINUX_MEDIA_BUS_FORMAT_H */
-> > diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-> > index 1445e85..3d87db7 100644
-> > --- a/include/uapi/linux/v4l2-mediabus.h
-> > +++ b/include/uapi/linux/v4l2-mediabus.h
-> > @@ -13,118 +13,94 @@
-> >  
-> >  #include <linux/types.h>
-> >  #include <linux/videodev2.h>
-> > +#include <linux/media-bus-format.h>
-> 
-> Alphabetical order, please.
-
-I'll fix that.
-
-> 
-> >  
-> > -/*
-> > - * These pixel codes uniquely identify data formats on the media bus. Mostly
-> > - * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
-> > - * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
-> > - * data format is fixed. Additionally, "2X8" means that one pixel is transferred
-> > - * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
-> > - * transferred over the bus: "LE" means that the least significant bits are
-> > - * transferred first, "BE" means that the most significant bits are transferred
-> > - * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-> > - * incomplete high byte, are filled with padding bits.
-> > - *
-> > - * The pixel codes are grouped by type, bus_width, bits per component, samples
-> > - * per pixel and order of subsamples. Numerical values are sorted using generic
-> > - * numerical sort order (8 thus comes before 10).
-> > - *
-> > - * As their value can't change when a new pixel code is inserted in the
-> > - * enumeration, the pixel codes are explicitly given a numerical value. The next
-> > - * free values for each category are listed below, update them when inserting
-> > - * new pixel codes.
-> > - */
-> > -enum v4l2_mbus_pixelcode {
-> > -	V4L2_MBUS_FMT_FIXED = 0x0001,
-> > +#define V4L2_MBUS_FROM_MEDIA_BUS_FMT(name)	\
-> > +	MEDIA_BUS_FMT_ ## name = V4L2_MBUS_FMT_ ## name
-> 
-> Could you add a comment telling these values should no longer be changed?
-
-I'll add this comment in patch 10 as suggested by Hans.
-
-Regards,
-
-Boris
-
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 5af7cb642c41..629c5b127292 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1827,7 +1827,7 @@ F:	include/net/ax25.h
+ F:	net/ax25/
+ 
+ AZ6007 DVB DRIVER
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
+@@ -2196,7 +2196,7 @@ F:	Documentation/filesystems/btrfs.txt
+ F:	fs/btrfs/
+ 
+ BTTV VIDEO4LINUX DRIVER
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
+@@ -2717,7 +2717,7 @@ F:	drivers/media/common/cx2341x*
+ F:	include/media/cx2341x*
+ 
+ CX88 VIDEO4LINUX DRIVER
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
+@@ -3386,7 +3386,7 @@ F:	fs/ecryptfs/
+ EDAC-CORE
+ M:	Doug Thompson <dougthompson@xmission.com>
+ M:	Borislav Petkov <bp@alien8.de>
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-edac@vger.kernel.org
+ W:	bluesmoke.sourceforge.net
+ S:	Supported
+@@ -3435,7 +3435,7 @@ S:	Maintained
+ F:	drivers/edac/e7xxx_edac.c
+ 
+ EDAC-GHES
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-edac@vger.kernel.org
+ W:	bluesmoke.sourceforge.net
+ S:	Maintained
+@@ -3463,21 +3463,21 @@ S:	Maintained
+ F:	drivers/edac/i5000_edac.c
+ 
+ EDAC-I5400
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-edac@vger.kernel.org
+ W:	bluesmoke.sourceforge.net
+ S:	Maintained
+ F:	drivers/edac/i5400_edac.c
+ 
+ EDAC-I7300
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-edac@vger.kernel.org
+ W:	bluesmoke.sourceforge.net
+ S:	Maintained
+ F:	drivers/edac/i7300_edac.c
+ 
+ EDAC-I7CORE
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-edac@vger.kernel.org
+ W:	bluesmoke.sourceforge.net
+ S:	Maintained
+@@ -3520,7 +3520,7 @@ S:	Maintained
+ F:	drivers/edac/r82600_edac.c
+ 
+ EDAC-SBRIDGE
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-edac@vger.kernel.org
+ W:	bluesmoke.sourceforge.net
+ S:	Maintained
+@@ -3580,7 +3580,7 @@ S:	Maintained
+ F:	drivers/net/ethernet/ibm/ehea/
+ 
+ EM28XX VIDEO4LINUX DRIVER
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
+@@ -5941,7 +5941,7 @@ S:	Maintained
+ F:	drivers/media/radio/radio-maxiradio*
+ 
+ MEDIA INPUT INFRASTRUCTURE (V4L/DVB)
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ P:	LinuxTV.org Project
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
+@@ -7970,7 +7970,7 @@ S:	Odd Fixes
+ F:	drivers/media/i2c/saa6588*
+ 
+ SAA7134 VIDEO4LINUX DRIVER
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
+@@ -8428,7 +8428,7 @@ S:	Maintained
+ F:	drivers/media/radio/si4713/radio-usb-si4713.c
+ 
+ SIANO DVB DRIVER
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
+@@ -9117,7 +9117,7 @@ S:	Maintained
+ F:	drivers/media/i2c/tda9840*
+ 
+ TEA5761 TUNER DRIVER
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
+@@ -9125,7 +9125,7 @@ S:	Odd fixes
+ F:	drivers/media/tuners/tea5761.*
+ 
+ TEA5767 TUNER DRIVER
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
+@@ -9437,7 +9437,7 @@ F:	include/linux/shmem_fs.h
+ F:	mm/shmem.c
+ 
+ TM6000 VIDEO4LINUX DRIVER
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
+@@ -10264,7 +10264,7 @@ S:	Maintained
+ F:	arch/x86/kernel/cpu/mcheck/*
+ 
+ XC2028/3028 TUNER DRIVER
+-M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+1.9.3
+
