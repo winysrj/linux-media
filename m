@@ -1,62 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44817 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:59678 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751160AbaKYQuQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Nov 2014 11:50:16 -0500
-Message-ID: <5474B343.1070600@iki.fi>
-Date: Tue, 25 Nov 2014 18:50:11 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1750826AbaKUImt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Nov 2014 03:42:49 -0500
+Message-ID: <546EFAE1.9050506@redhat.com>
+Date: Fri, 21 Nov 2014 09:42:09 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [git:media_tree/master] [media] em28xx: Add support for Terratec
- Cinergy T2 Stick HD
-References: <E1XtHEF-0002RQ-0i@www.linuxtv.org>
-In-Reply-To: <E1XtHEF-0002RQ-0i@www.linuxtv.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Emilio Lopez <emilio@elopez.com.ar>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH 5/9] rc: sunxi-cir: Add support for the larger fifo found
+ on sun5i and sun6i
+References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com> <1416498928-1300-6-git-send-email-hdegoede@redhat.com> <20141120142856.16b6562d@recife.lan> <20141121082620.GJ24143@lukather>
+In-Reply-To: <20141121082620.GJ24143@lukather>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/25/2014 01:13 PM, Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the
-> http://git.linuxtv.org/media_tree.git tree:
->
-> Subject: [media] em28xx: Add support for Terratec Cinergy T2 Stick HD
-> Author:  Olli Salonen <olli.salonen@iki.fi>
-> Date:    Mon Nov 24 03:57:34 2014 -0300
->
-> Terratec Cinergy T2 Stick HD [eb1a:8179] is a USB DVB-T/T2/C tuner that
-> contains following components:
->
-> * Empia EM28178 USB bridge
-> * Silicon Labs Si2168-A30 demodulator
-> * Silicon Labs Si2146-A10 tuner
->
-> I don't have the remote, so the RC_MAP is a best guess based on the pictures of
-> the remote controllers and other supported Terratec devices with a similar
-> remote.
->
-> [Antti: Resolved conflict caused by Leadtek VC100 patch]
->
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Hi,
 
+On 11/21/2014 09:26 AM, Maxime Ripard wrote:
+> Hi Mauro,
+> 
+> On Thu, Nov 20, 2014 at 02:28:56PM -0200, Mauro Carvalho Chehab wrote:
+>> Em Thu, 20 Nov 2014 16:55:24 +0100
+>> Hans de Goede <hdegoede@redhat.com> escreveu:
+>>
+>>> Add support for the larger fifo found on sun5i and sun6i, having a separate
+>>> compatible for the ir found on sun5i & sun6i also is useful if we ever want
+>>> to add ir transmit support, because the sun5i & sun6i version do not have
+>>> transmit support.
+>>>
+>>> Note this commits also adds checking for the end-of-packet interrupt flag
+>>> (which was already enabled), as the fifo-data-available interrupt flag only
+>>> gets set when the trigger-level is exceeded. So far we've been getting away
+>>> with not doing this because of the low trigger-level, but this is something
+>>> which we should have done since day one.
+>>>
+>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>
+>> As this is meant to be merged via some other tree:
+>>
+>> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> I think merging it through your tree would be just fine.
+> 
+> Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
 
-Mauro, May I ask why you remove all the time my Reviewed-by tags? I have 
-added it explicitly when I do careful review for the patch. I think it 
-could be there even there is my Signed-off-by tag, which is there mainly 
-because patch was submitted via my tree (patch's delivery path).
+Heh, I was thinking it would be best if it went through Maxime's tree because
+it also has some deps on new clk stuff (well the dts have deps on that), but either
+way works for me.
 
-I cannot see any rule which says I cannot add both tags (especially 
-because meaning of both tags is bit different):
+Maxime if you want this go through Mauro's tree, I can send a pull-req to Mauro
+(I'm a linux-media sub-maintainer), so if that is the case let me know and I'll
+prepare a pull-req (after fixing the missing reset documentation in the bindings).
 
-Documentation/SubmittingPatches
+Regards,
 
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Hans
