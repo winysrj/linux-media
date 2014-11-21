@@ -1,147 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:46020 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751500AbaKCKQO (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:57010 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750918AbaKUTiT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 05:16:14 -0500
-Message-ID: <545755E8.4010305@xs4all.nl>
-Date: Mon, 03 Nov 2014 11:16:08 +0100
+	Fri, 21 Nov 2014 14:38:19 -0500
+Message-ID: <546F9496.9020207@xs4all.nl>
+Date: Fri, 21 Nov 2014 20:37:58 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 00/13] Xilinx Video IP Core support
-References: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
+To: Gregor Jasny <gjasny@googlemail.com>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: v4l-utils stable release 1.6.1
+References: <546E093D.4030203@googlemail.com>
+In-Reply-To: <546E093D.4030203@googlemail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Gregor,
 
-On 11/02/2014 03:53 PM, Laurent Pinchart wrote:
+On 11/20/2014 04:31 PM, Gregor Jasny wrote:
 > Hello,
 > 
-> Here's the second version of the Xilinx FPGA Video IP Cores kernel drivers.
+> do you consider something from these commits as important enough for a 
+> bugfix release?
 > 
-> I won't detail in great lengths the Xilinx Video IP architecture here, as that
-> would result in dozens of pages of documentation. The interested reader can
-> refer to the Zynq ZC702 Base TRD (Targeted Reference Design) User Guide
-> (http://www.xilinx.com/support/documentation/boards_and_kits/zc702_zvik/2014_2/ug925-zynq-zc702-base-trd.pdf).
+> Thanks,
+> Gregor
 > 
-> In a nutshell, the Xilinx Video IP Cores architecture specifies how
-> video-related IP cores need to be designed to interoperate and how to assemble
-> them in pipelines of various complexities. The concepts map neatly to the
-> media controller architecture, which this patch set uses extensively.
-> 
-> The series starts with various new V4L2 core features, bug fixes or cleanups,
-> with a small documentation enhancement (01/13), the addition of new media bus
-> formats needed by the new drivers (02/13 to 04/13) and a new V4L2 OF link
-> parsing function (05/13).
-> 
-> The next two patches (06/13 and 07/13) fix two race conditions in videobuf2.
-> They could be applied seperately from this series as they're not specific to
-> Xilinx drivers.
-> 
-> The next three patches (08/13 to 10/13) fix bugs in the Xilinx Video DMA
-> driver. They are required as a runtime dependency but will not break
-> compilation. I will submit a separate pull request for them through the DMA
-> engine tree.
-> 
-> The last three patches are the core of this series.
-> 
-> Patch 11/13 adds support for the Xilinx Video IP architecture core in the form
-> of a base object to model video IP cores (xilinx-vip.c - Video IP), a
-> framework that parses a DT representation of a video pipeline and connects the
-> corresponding V4L2 subdevices together (xilinx-vipp.c - Video IP Pipeline) and
-> a glue between the Video DMA engine driver and the V4L2 API (xilinx-dma.c).
-> 
-> Patch 12/13 adds a driver for the Video Timing Controller (VTC) IP core. While
-> not strictly a video processing IP core, the VTC is required by other video IP
-> core drivers.
-> 
-> Finally, patch 13/13 adds a first video IP core driver for the Test Pattern
-> Generator (TPG). Drivers for other IP cores will be added in the future.
+>> Akihiro Tsukada (9):
+>>       libdvbv5, dvbv5-scan: generalize channel duplication check
+>>       libdvbv5: add as many channels as possible in scanning DVB-T2
+>>       libdvbv5: wrong frequency in the output of satellite delsys scans
+>>       libdvbv5: add support for ISDB-S tuning
+>>       libdvbv5: add support for ISDB-S scanning
+>>       libdvbv5: add COUNTRY property
+>>       v4l-utils/libdvbv5: restore deleted functions to keep API/ABI compatible
+>>       v4l-utils/libdvbv5: fix memory leak in dvb_guess_user_country()
+>>       v4l-utils/libdvbv5: add gconv module for the text conversions of ISDB-S/T.
+>>
+>> Gregor Jasny (7):
+>>       Start v4l-utils 1.7.0 development cycle
+>>       man: remove duplicate backslash from NAME section
+>>       man: Use Unicode character for ellipsis and fall back to ...
+>>       man: add generated files to .gitignore
+>>       libdvbv5: Remove stray semicolon
+>>       v4l2-compliance: Explicitely link against rt library
+>>       v4l2-ctl: Explicitely link against rt library
+>>
+>> Hans Verkuil (10):
+>>       qv4l2/v4l2-ctl: fix buffer overrun in vivid-tpg.
 
-Can you add a 'Changes since' section next time? It helps reviewing.
+This one should go in (critical bug fix).
 
-For patches 1-7 and 12-13:
+>>       v4l2-ctl: fix sliced vbi mode parsing
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+And this one.
+
+>>       v4l2-compliance: when streaming used at least 2 buffers.
+>>       v4l2-compliance: add initial checks for VIDIOC_QUERY_EXT_CTRL
+>>       v4l2-ctl: add support for U32 control type.
+>>       v4l2-ctl: fix array handling
+
+And these two for v4l2-ctl.
+
+Sorry for being late with replying.
 
 Regards,
 
 	Hans
 
+>>       v4l2-compliance: allow the V4L2_IN_ST_NO_SYNC status flag.
+>>       qv4l2: add single step support
+>>       qv4l2: don't select alsa device for video output.
+>>       v4l2-compliance: select(): split "ret <= 0" test in two
+>>
+>> Hans de Goede (2):
+>>       rc_keymaps: allwinner: S/KEY_HOME/KEY_HOMEPAGE/
+>>       v4lconvert: Fix decoding of jpeg data with no vertical sub-sampling
+>>
+>> Mauro Carvalho Chehab (41):
+>>       libdvbv5: properly represent Satellite frequencies
+>>       README: better document the package
+>>       libdvbv5: Fix some Doxygen warnings at dvb-fe.h
+>>       Doxygen: Document libdvbv5 countries.h
+>>       configure.ac: Fix gconv compilation with 64 bits
+>>       parse_tcpdump_log.pl: only adjust direction for control EP
+>>       contrib: add a parser for af9035
+>>       parse_af9035.pl: properly handle URB errors
+>>       parse_af9035.pl: Add two other commands from ITE driver
+>>       parse_af9035.pl: add arguments to show timestamp and debug
+>>       parse_af9035.pl: group write/read URBs
+>>       parse_af9035.pl: create a routine to print send/race
+>>       parse_af9035.pl: print read/write as C lines
+>>       parse_af9035.pl: add support for firmware commands
+>>       parse_af9035.pl: fix firmware write size
+>>       ir-keytable: fix a regression introduced by fe2aa5f767eba
+>>       gen_keytables.pl: Fix a regression at RC map file generation
+>>       rc: Update the protocol name at RC6 tables
+>>       rc_maps.cfg: reorder entries alphabetically
+>>       rc: sync with Kernel
+>>       rc: copy userspace-only maps to a separate dir
+>>       README: Add the steps needed to syncronize with the Kernel tree
+>>       vivid-tpg.h.patch: update to match current upstream tree
+>>       Synchronize with the Kernel
+>>       parse_af9035.pl: proper handle when stack is not filled
+>>       parse_af9035.pl: add support for CMD_IR_GET
+>>       parse_af9035.pl: add options to hide part of the messages
+>>       parse_af9035.pl: Add firmware boot message to the parser
+>>       parse_af9035.pl: improve IR handling
+>>       parse_af9035.pl: add support for generic I2C read/write
+>>       parse_af9035.pl: better handle the read data
+>>       parse_af9035.pl: allow to hide parsing errors
+>>       parse_af9035.pl: add support for standard I2C commands
+>>       parse_af9035.pl: some cleanups
+>>       parse_af9035.pl: Fix decoding order at I2C read/write
+>>       parse_af9035.pl: Fix size on rd/wr regs prints
+>>       parse_af9035.pl: Fix some hide conditions
+>>       parse_af9035.pl: Improve argument handling
+>>       libdvbv5: add experimental DTMB support
+>>       parse_tcpdump_log.pl: simplify non-control data
+>>       parse_tcpdump_log.pl: remove some leftovers
+>>
+>> Niels Ole Salscheider (1):
+>>       qv4l2: Fix out-of-source build
+>>
+>> Patrick Boettcher (4):
+>>       parse_tcpdump_log.pl: skip filtered frames and remove them from pending
+>>       parse_tcpdump_log.pl: show transfer-direction for non-ctrl-transfers
+>>       parse_tcpdump_log.pl: add external frame_processor-option
+>>       parse_tcpdump_log.pl: remove --all option which was not documented and not working as expected
 > 
-> Cc: devicetree@vger.kernel.org
-> 
-> Hyun Kwon (2):
->   v4l: Sort YUV formats of v4l2_mbus_pixelcode
->   v4l: Add VUY8 24 bits bus format
-> 
-> Laurent Pinchart (8):
->   media: entity: Document the media_entity_ops structure
->   v4l: Add RBG and RGB 8:8:8 media bus formats on 24 and 32 bit busses
->   v4l: of: Add v4l2_of_parse_link() function
->   v4l: vb2: Fix race condition in vb2_fop_poll
->   v4l: vb2: Fix race condition in _vb2_fop_release
->   v4l: xilinx: Add Xilinx Video IP core
->   v4l: xilinx: Add Video Timing Controller driver
->   v4l: xilinx: Add Test Pattern Generator driver
-> 
-> Srikanth Thokala (3):
->   dma: xilinx: vdma: Check if the segment list is empty in a descriptor
->   dma: xilinx: vdma: Allow only one chunk in a line
->   dma: xilinx: vdma: icg should be difference of stride and hsize
-> 
->  Documentation/DocBook/media/v4l/subdev-formats.xml | 719 +++++++++-------
->  .../devicetree/bindings/media/xilinx/video.txt     |  52 ++
->  .../devicetree/bindings/media/xilinx/xlnx,v-tc.txt |  33 +
->  .../bindings/media/xilinx/xlnx,v-tpg.txt           |  68 ++
->  .../bindings/media/xilinx/xlnx,video.txt           |  55 ++
->  MAINTAINERS                                        |  10 +
->  drivers/dma/xilinx/xilinx_vdma.c                   |  13 +-
->  drivers/media/platform/Kconfig                     |   1 +
->  drivers/media/platform/Makefile                    |   2 +
->  drivers/media/platform/xilinx/Kconfig              |  23 +
->  drivers/media/platform/xilinx/Makefile             |   5 +
->  drivers/media/platform/xilinx/xilinx-dma.c         | 770 +++++++++++++++++
->  drivers/media/platform/xilinx/xilinx-dma.h         | 109 +++
->  drivers/media/platform/xilinx/xilinx-tpg.c         | 921 +++++++++++++++++++++
->  drivers/media/platform/xilinx/xilinx-vip.c         | 269 ++++++
->  drivers/media/platform/xilinx/xilinx-vip.h         | 227 +++++
->  drivers/media/platform/xilinx/xilinx-vipp.c        | 669 +++++++++++++++
->  drivers/media/platform/xilinx/xilinx-vipp.h        |  49 ++
->  drivers/media/platform/xilinx/xilinx-vtc.c         | 386 +++++++++
->  drivers/media/platform/xilinx/xilinx-vtc.h         |  42 +
->  drivers/media/v4l2-core/v4l2-of.c                  |  61 ++
->  drivers/media/v4l2-core/videobuf2-core.c           |  35 +-
->  include/media/media-entity.h                       |   9 +
->  include/media/v4l2-of.h                            |  27 +
->  include/uapi/linux/Kbuild                          |   1 +
->  include/uapi/linux/v4l2-mediabus.h                 |  19 +-
->  include/uapi/linux/xilinx-v4l2-controls.h          |  73 ++
->  27 files changed, 4302 insertions(+), 346 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/xilinx/video.txt
->  create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,v-tc.txt
->  create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,v-tpg.txt
->  create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt
->  create mode 100644 drivers/media/platform/xilinx/Kconfig
->  create mode 100644 drivers/media/platform/xilinx/Makefile
->  create mode 100644 drivers/media/platform/xilinx/xilinx-dma.c
->  create mode 100644 drivers/media/platform/xilinx/xilinx-dma.h
->  create mode 100644 drivers/media/platform/xilinx/xilinx-tpg.c
->  create mode 100644 drivers/media/platform/xilinx/xilinx-vip.c
->  create mode 100644 drivers/media/platform/xilinx/xilinx-vip.h
->  create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.c
->  create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.h
->  create mode 100644 drivers/media/platform/xilinx/xilinx-vtc.c
->  create mode 100644 drivers/media/platform/xilinx/xilinx-vtc.h
->  create mode 100644 include/uapi/linux/xilinx-v4l2-controls.h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 
