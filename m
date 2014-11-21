@@ -1,42 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52748 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753457AbaKEISD (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:31429 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932288AbaKUQPN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 03:18:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 21 Nov 2014 11:15:13 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NFE00GWCD5CL030@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 22 Nov 2014 01:15:12 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 5/8] stk1160: fix sparse warning
-Date: Wed,  5 Nov 2014 09:17:49 +0100
-Message-Id: <1415175472-24203-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415175472-24203-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415175472-24203-1-git-send-email-hverkuil@xs4all.nl>
+Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
+	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
+	kyungmin.park@samsung.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v4 06/11] mediactl: Add media_device creation helpers
+Date: Fri, 21 Nov 2014 17:14:35 +0100
+Message-id: <1416586480-19982-7-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
+References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add helper functions that allow for easy instantiation
+of media_device object basing on whether the media device
+contains video device with given node name.
 
-stk1160-v4l.c:478:49: warning: incorrect type in argument 3 (different base types)
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/stk1160/stk1160-v4l.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ utils/media-ctl/libmediactl.c |   75 +++++++++++++++++++++++++++++++++++++++++
+ utils/media-ctl/mediactl.h    |   29 ++++++++++++++++
+ 2 files changed, 104 insertions(+)
 
-diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
-index 2330543..a476291 100644
---- a/drivers/media/usb/stk1160/stk1160-v4l.c
-+++ b/drivers/media/usb/stk1160/stk1160-v4l.c
-@@ -475,7 +475,7 @@ static int vidioc_s_register(struct file *file, void *priv,
- 	struct stk1160 *dev = video_drvdata(file);
- 
- 	/* Match host */
--	return stk1160_write_reg(dev, reg->reg, cpu_to_le16(reg->val));
-+	return stk1160_write_reg(dev, reg->reg, reg->val);
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index a476601..9c81711 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -853,6 +853,43 @@ struct media_device *media_device_new(const char *devnode)
+ 	return media;
  }
- #endif
  
++struct media_device *media_device_new_by_entity_devname(char *entity_devname)
++{
++	struct media_device *media;
++	char media_devname[32];
++	int i, ret;
++
++	if (entity_devname == NULL)
++		return NULL;
++
++	/* query all available media devices */
++	for (i = 0;; ++i) {
++		sprintf(media_devname, "/dev/media%d", i);
++
++		media = media_device_new(media_devname);
++		if (media == NULL)
++			return NULL;
++
++		ret = media_device_enumerate(media);
++		if (ret < 0) {
++			media_dbg(media, "Failed to enumerate %s (%d)\n", media_devname, ret);
++			goto err_dev_enum;
++		}
++
++		/* Check if the media device contains entity with entity_devname */
++		if (media_get_entity_by_devname(media, entity_devname, strlen(entity_devname)))
++			return media;
++
++		if (media)
++			media_device_unref(media);
++	}
++
++err_dev_enum:
++	if (media)
++		media_device_unref(media);
++	return NULL;
++}
++
+ struct media_device *media_device_new_emulated(struct media_device_info *info)
+ {
+ 	struct media_device *media;
+@@ -896,6 +933,44 @@ void media_device_unref(struct media_device *media)
+ 	free(media);
+ }
+ 
++int media_get_devname_by_fd(int fd, char *node_name)
++{
++	struct udev *udev;
++	struct media_entity tmp_entity;
++	struct stat stat;
++	int ret;
++
++	if (node_name == NULL)
++		return -EINVAL;
++
++	ret = fstat(fd, &stat);
++	if (ret < 0)
++		return -EINVAL;
++
++	tmp_entity.info.v4l.major = MAJOR(stat.st_rdev);
++	tmp_entity.info.v4l.minor = MINOR(stat.st_rdev);
++
++	ret = media_udev_open(&udev);
++	if (ret < 0)
++		printf("Can't get udev context\n");
++
++	/* Try to get the device name via udev */
++	ret = media_get_devname_udev(udev, &tmp_entity);
++	if (!ret)
++		goto out;
++
++	ret = media_get_devname_sysfs(&tmp_entity);
++	if (ret < 0)
++		goto err_get_devname;
++
++out:
++	strcpy(node_name, tmp_entity.devname);
++err_get_devname:
++	media_udev_close(udev);
++	return ret;
++}
++
++
+ int media_device_add_entity(struct media_device *media,
+ 			    const struct media_entity_desc *desc,
+ 			    const char *devnode)
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index 18a1e0e..7f16097 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -77,6 +77,23 @@ struct media_device *media_device_new(const char *devnode);
+ struct media_device *media_device_new_emulated(struct media_device_info *info);
+ 
+ /**
++ * @brief Create a new media device if it comprises entity with entity_devname
++ * @param entity_devname - device node name of the entity to be matched
++ *
++ * Query all media devices available in the system to find the one comprising
++ * the entity with device node name equal to entity_devname. If the media
++ * device is matched then its instance is created and initialized with
++ * enumerated entities and links. The returned device can be accessed.
++ *
++ * Media devices are reference-counted, see media_device_ref() and
++ * media_device_unref() for more information.
++ *
++ * @return A pointer to the new media device or NULL if video_devname cannot
++ * be matched or memory cannot be allocated.
++ */
++struct media_device *media_device_new_by_entity_devname(char *video_devname);
++
++/**
+  * @brief Take a reference to the device.
+  * @param media - device instance.
+  *
+@@ -242,6 +259,18 @@ const char *media_entity_get_devname(struct media_entity *entity);
+ const char *media_entity_get_name(struct media_entity *entity);
+ 
+ /**
++ * @brief Get the device node name by its file descriptor
++ * @param fd - file descriptor of a device
++ * @param node_name - output device node name string
++ *
++ * This function returns the full path and name to the device node corresponding
++ * to the given file descriptor.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int media_get_devname_by_fd(int fd, char *node_name);
++
++/**
+  * @brief Get the type of an entity.
+  * @param entity - the entity.
+  *
 -- 
-2.1.1
+1.7.9.5
 
