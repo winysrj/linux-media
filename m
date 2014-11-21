@@ -1,74 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:26463 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752628AbaKLQJv (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:52974 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751175AbaKUIzN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Nov 2014 11:09:51 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v7 0/3] LED / flash API integration - LED Flash Class
-Date: Wed, 12 Nov 2014 17:09:14 +0100
-Message-id: <1415808557-29557-1-git-send-email-j.anaszewski@samsung.com>
+	Fri, 21 Nov 2014 03:55:13 -0500
+Date: Fri, 21 Nov 2014 09:51:07 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Emilio Lopez <emilio@elopez.com.ar>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH 4/9] rc: sunxi-cir: Add support for an optional reset
+ controller
+Message-ID: <20141121085107.GM24143@lukather>
+References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
+ <1416498928-1300-5-git-send-email-hdegoede@redhat.com>
+ <20141120142831.003fb63e@recife.lan>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lRF4gxo9Z9M++D0O"
+Content-Disposition: inline
+In-Reply-To: <20141120142831.003fb63e@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set is the follow-up of the LED / flash API integration
-series [1].
 
-========================
-Changes since version 6:
-========================
+--lRF4gxo9Z9M++D0O
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-- removed addition of public LED subsystem API for setting
-  torch brightness in favour of internal API for
-  synchronous and asynchronous led brightness level setting
-- fixed possible race condition upon creating LED Flash class
-  related sysfs attributes
+Hi Mauro,
 
-========================
-Changes since version 5:
-========================
+On Thu, Nov 20, 2014 at 02:28:31PM -0200, Mauro Carvalho Chehab wrote:
+> Em Thu, 20 Nov 2014 16:55:23 +0100
+> Hans de Goede <hdegoede@redhat.com> escreveu:
+>=20
+> > On sun6i the cir block is attached to the reset controller, add support
+> > for de-asserting the reset if a reset controller is specified in dt.
+> >=20
+> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>=20
+> As this is meant to be merged via some other tree:
+>=20
+> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-- removed flash manager framework - its implementation needs
-  further thorough discussion.
-- removed external strobe facilities from the LED Flash Class
-  and provided external_strobe_set op in v4l2-flash. LED subsystem
-  should be strobe provider agnostic.
+Again, I think it'll be perfectly fine in your tree :)
+
+Once the documentation is updated,
+Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
 
 Thanks,
-Jacek Anaszewski
+Maxime
 
-[1] https://lkml.org/lkml/2014/7/11/914
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
 
+--lRF4gxo9Z9M++D0O
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Jacek Anaszewski (3):
-  leds: Add support for setting brightness in a synchronous way
-  leds: Add LED Flash Class wrapper to LED subsystem
-  Documentation: leds: Add description of LED Flash Class extension
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
- Documentation/leds/leds-class-flash.txt   |   39 +++
- drivers/leds/Kconfig                      |   11 +
- drivers/leds/Makefile                     |    1 +
- drivers/leds/led-class-flash.c            |  511 +++++++++++++++++++++++++++++
- drivers/leds/led-class.c                  |   14 +-
- drivers/leds/led-core.c                   |   19 +-
- drivers/leds/leds.h                       |   20 +-
- drivers/leds/trigger/ledtrig-backlight.c  |    8 +-
- drivers/leds/trigger/ledtrig-default-on.c |    2 +-
- drivers/leds/trigger/ledtrig-gpio.c       |    6 +-
- drivers/leds/trigger/ledtrig-heartbeat.c  |    2 +-
- drivers/leds/trigger/ledtrig-oneshot.c    |    4 +-
- drivers/leds/trigger/ledtrig-transient.c  |   10 +-
- include/linux/led-class-flash.h           |  229 +++++++++++++
- include/linux/leds.h                      |   11 +
- 15 files changed, 861 insertions(+), 26 deletions(-)
- create mode 100644 Documentation/leds/leds-class-flash.txt
- create mode 100644 drivers/leds/led-class-flash.c
- create mode 100644 include/linux/led-class-flash.h
+iQIcBAEBAgAGBQJUbvz7AAoJEBx+YmzsjxAgoDoP/RB1X7qt9AejV6y1SANDQdQV
+JAwggSwpyrTFkgcS71EpbFlPmC7PEZC5cJCH5WJ1wUAxsqb7BNYaWgN7arHisORq
+H6VxBbh5czCkHiVFUxVseFbERI1V12NU9vt2zVGtRf8HCOLye+xHsqb91sNUd1OM
+yZQo/fNKJeB3mPVu/A0Gnx4ZGhcgsBw3VIysxrtkykNR2iwXiOJrBahQ0srTWfuW
+aS4mOZlG7gCSLTWOia9lNa4b5oS1hiEeVjIJogswngNVTas7CIEKIHr9mHaiR9/W
+ogifA8B055TaanmSSsX1NRPB5en1/S60VczKvBQruqon8/lwdRexCQIq19TygDr7
+q/7eMzFwnKm/CmrvJQRXwcZWo4t6mP7IhineC3KbzLC23s67d4NgdetgYWhoW6Qy
++VHA9JrGDwhr6mAWngldAINROAtYzLdmpXXbL4GtgWNKldGNB+VhEihHMBUwGHeh
+v9B/Tlk3R0kNPyI2jT4wUyCdTnLl/fvHNc9ujVMMrIZwVPJz1Gz6/AS31YNZlJZO
+4p0hG0LzqQtl7m1GdtlBTPdFoE/wE7ce199WL1bGgmiddRE1cQ+vt9tDaM6MrosE
+ngmpvcIdTWWfcBxHLlreYOhDJeA0Hc2NgqzyBJz96YI+BNuYkE6eW5pbrZsh7M1B
+baCewwWTWY9+c9k2yRyZ
+=n+LL
+-----END PGP SIGNATURE-----
 
--- 
-1.7.9.5
-
+--lRF4gxo9Z9M++D0O--
