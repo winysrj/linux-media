@@ -1,115 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46231 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751689AbaK3DnB (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:33718 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838AbaKURwR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Nov 2014 22:43:01 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 05CBD2A008E
-	for <linux-media@vger.kernel.org>; Sun, 30 Nov 2014 04:42:45 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20141130034245.05CBD2A008E@tschai.lan>
-Date: Sun, 30 Nov 2014 04:42:45 +0100 (CET)
+	Fri, 21 Nov 2014 12:52:17 -0500
+Received: by mail-wi0-f172.google.com with SMTP id n3so12754378wiv.11
+        for <linux-media@vger.kernel.org>; Fri, 21 Nov 2014 09:52:13 -0800 (PST)
+From: Andreas Ruprecht <rupran@einserver.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-next@vger.kernel.org, sfr@canb.auug.org.au,
+	Andreas Ruprecht <rupran@einserver.de>
+Subject: [PATCH] media: pci: smipcie: Fix dependency for DVB_SMIPCIE
+Date: Fri, 21 Nov 2014 18:51:59 +0100
+Message-Id: <1416592319-23644-1-git-send-email-rupran@einserver.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+In smipcie.c, the function i2c_bit_add_bus() is called. This
+function is defined by the I2C bit-banging interfaces enabled
+with CONFIG_I2C_ALGOBIT.
 
-Results of the daily build of media_tree:
+As there was no dependency in Kconfig, CONFIG_I2C_ALGOBIT could
+be set to "m" while CONFIG_DVB_SMIPCIE was set to "y", resulting
+in a build error due to an undefined reference. This patch adds
+the dependency on CONFIG_I2C_ALGOBIT in Kconfig.
 
-date:		Sun Nov 30 04:00:15 CET 2014
-git branch:	test
-git hash:	504febc3f98c87a8bebd8f2f274f32c0724131e4
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+Signed-off-by: Andreas Ruprecht <rupran@einserver.de>
+Reported-by: Jim Davis <jim.epost@gmail.com>
+---
+ drivers/media/pci/smipcie/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
+index 75a2992..c728721 100644
+--- a/drivers/media/pci/smipcie/Kconfig
++++ b/drivers/media/pci/smipcie/Kconfig
+@@ -1,6 +1,6 @@
+ config DVB_SMIPCIE
+ 	tristate "SMI PCIe DVBSky cards"
+-	depends on DVB_CORE && PCI && I2C
++	depends on DVB_CORE && PCI && I2C && I2C_ALGOBIT
+ 	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
+-- 
+1.9.1
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
