@@ -1,36 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:54381 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750980AbaK2Nnk (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56546 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750876AbaKUK5b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Nov 2014 08:43:40 -0500
-Received: by mail-pd0-f181.google.com with SMTP id v10so2796986pde.12
-        for <linux-media@vger.kernel.org>; Sat, 29 Nov 2014 05:43:39 -0800 (PST)
-Message-ID: <5479CD87.6060608@gmail.com>
-Date: Sat, 29 Nov 2014 22:43:35 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
+	Fri, 21 Nov 2014 05:57:31 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B35AB2A002F
+	for <linux-media@vger.kernel.org>; Fri, 21 Nov 2014 11:57:12 +0100 (CET)
+Message-ID: <546F1A88.3080702@xs4all.nl>
+Date: Fri, 21 Nov 2014 11:57:12 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: David Liontooth <lionteeth@cogweb.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ISDB caption support
-References: <5478D31E.5000402@cogweb.net> <CAGoCfizK4kN5QnmFs_trAk2w3xuSVtXYVF2wSmdXDazxbhk=yQ@mail.gmail.com> <547934E1.3050609@cogweb.net>
-In-Reply-To: <547934E1.3050609@cogweb.net>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] bttv/cx25821/cx88/ivtv: use sg_next instead of sg++
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I realize captions is an application-layer function, and intend to work
-> with the CCExtractor team. Do any other applications already have ISDB
-> caption support?
+Never use sg++, always use sg = sg_next(sg). Scatterlist entries can
+be combined if the memory is contiguous but sg++ won't know about that.
 
-there's a mplayer patch for subtitle support:
-https://github.com/0p1pp1/mplayer/commit/6debc831d34cad98d1b251920fbdb48f74a880df
+As far as I can tell cx88 and ivtv are really broken because of this,
+and bttv and cx25821 are OK because vb1 doesn't combine scatterlist
+entries.
 
-It translates subtitle stream PES to ASS, but is is for ISDB-T/Japan.
-Subtitling in ISDB-T depends heavily on the control sequences
-of the original character encoding (ARIB STD-B24),
-so I'm afraid that (at least) PES format is very different in ISDB-Tb. 
+But regardless, sg++ should never be used, only sg_next is safe.
 
-regards,
-akihiro
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/bt8xx/bttv-risc.c      | 12 ++++++------
+ drivers/media/pci/cx25821/cx25821-core.c | 12 ++++++------
+ drivers/media/pci/cx88/cx88-core.c       |  6 +++---
+ drivers/media/pci/ivtv/ivtv-udma.c       |  2 +-
+ 4 files changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/pci/bt8xx/bttv-risc.c b/drivers/media/pci/bt8xx/bttv-risc.c
+index 82cc47d..4d3f05a 100644
+--- a/drivers/media/pci/bt8xx/bttv-risc.c
++++ b/drivers/media/pci/bt8xx/bttv-risc.c
+@@ -84,7 +84,7 @@ bttv_risc_packed(struct bttv *btv, struct btcx_riscmem *risc,
+ 			continue;
+ 		while (offset && offset >= sg_dma_len(sg)) {
+ 			offset -= sg_dma_len(sg);
+-			sg++;
++			sg = sg_next(sg);
+ 		}
+ 		if (bpl <= sg_dma_len(sg)-offset) {
+ 			/* fits into current chunk */
+@@ -100,13 +100,13 @@ bttv_risc_packed(struct bttv *btv, struct btcx_riscmem *risc,
+ 			*(rp++)=cpu_to_le32(sg_dma_address(sg)+offset);
+ 			todo -= (sg_dma_len(sg)-offset);
+ 			offset = 0;
+-			sg++;
++			sg = sg_next(sg);
+ 			while (todo > sg_dma_len(sg)) {
+ 				*(rp++)=cpu_to_le32(BT848_RISC_WRITE|
+ 						    sg_dma_len(sg));
+ 				*(rp++)=cpu_to_le32(sg_dma_address(sg));
+ 				todo -= sg_dma_len(sg);
+-				sg++;
++				sg = sg_next(sg);
+ 			}
+ 			*(rp++)=cpu_to_le32(BT848_RISC_WRITE|BT848_RISC_EOL|
+ 					    todo);
+@@ -187,15 +187,15 @@ bttv_risc_planar(struct bttv *btv, struct btcx_riscmem *risc,
+ 			/* go to next sg entry if needed */
+ 			while (yoffset && yoffset >= sg_dma_len(ysg)) {
+ 				yoffset -= sg_dma_len(ysg);
+-				ysg++;
++				ysg = sg_next(ysg);
+ 			}
+ 			while (uoffset && uoffset >= sg_dma_len(usg)) {
+ 				uoffset -= sg_dma_len(usg);
+-				usg++;
++				usg = sg_next(usg);
+ 			}
+ 			while (voffset && voffset >= sg_dma_len(vsg)) {
+ 				voffset -= sg_dma_len(vsg);
+-				vsg++;
++				vsg = sg_next(vsg);
+ 			}
+ 
+ 			/* calculate max number of bytes we can write */
+diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
+index e81173c..389fffd 100644
+--- a/drivers/media/pci/cx25821/cx25821-core.c
++++ b/drivers/media/pci/cx25821/cx25821-core.c
+@@ -996,7 +996,7 @@ static __le32 *cx25821_risc_field(__le32 * rp, struct scatterlist *sglist,
+ 	for (line = 0; line < lines; line++) {
+ 		while (offset && offset >= sg_dma_len(sg)) {
+ 			offset -= sg_dma_len(sg);
+-			sg++;
++			sg = sg_next(sg);
+ 		}
+ 		if (bpl <= sg_dma_len(sg) - offset) {
+ 			/* fits into current chunk */
+@@ -1014,14 +1014,14 @@ static __le32 *cx25821_risc_field(__le32 * rp, struct scatterlist *sglist,
+ 			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
+ 			todo -= (sg_dma_len(sg) - offset);
+ 			offset = 0;
+-			sg++;
++			sg = sg_next(sg);
+ 			while (todo > sg_dma_len(sg)) {
+ 				*(rp++) = cpu_to_le32(RISC_WRITE |
+ 						sg_dma_len(sg));
+ 				*(rp++) = cpu_to_le32(sg_dma_address(sg));
+ 				*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
+ 				todo -= sg_dma_len(sg);
+-				sg++;
++				sg = sg_next(sg);
+ 			}
+ 			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_EOL | todo);
+ 			*(rp++) = cpu_to_le32(sg_dma_address(sg));
+@@ -1101,7 +1101,7 @@ static __le32 *cx25821_risc_field_audio(__le32 * rp, struct scatterlist *sglist,
+ 	for (line = 0; line < lines; line++) {
+ 		while (offset && offset >= sg_dma_len(sg)) {
+ 			offset -= sg_dma_len(sg);
+-			sg++;
++			sg = sg_next(sg);
+ 		}
+ 
+ 		if (lpi && line > 0 && !(line % lpi))
+@@ -1125,14 +1125,14 @@ static __le32 *cx25821_risc_field_audio(__le32 * rp, struct scatterlist *sglist,
+ 			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
+ 			todo -= (sg_dma_len(sg) - offset);
+ 			offset = 0;
+-			sg++;
++			sg = sg_next(sg);
+ 			while (todo > sg_dma_len(sg)) {
+ 				*(rp++) = cpu_to_le32(RISC_WRITE |
+ 						sg_dma_len(sg));
+ 				*(rp++) = cpu_to_le32(sg_dma_address(sg));
+ 				*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
+ 				todo -= sg_dma_len(sg);
+-				sg++;
++				sg = sg_next(sg);
+ 			}
+ 			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_EOL | todo);
+ 			*(rp++) = cpu_to_le32(sg_dma_address(sg));
+diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
+index 9fa4acb..dee177e 100644
+--- a/drivers/media/pci/cx88/cx88-core.c
++++ b/drivers/media/pci/cx88/cx88-core.c
+@@ -95,7 +95,7 @@ static __le32* cx88_risc_field(__le32 *rp, struct scatterlist *sglist,
+ 	for (line = 0; line < lines; line++) {
+ 		while (offset && offset >= sg_dma_len(sg)) {
+ 			offset -= sg_dma_len(sg);
+-			sg++;
++			sg = sg_next(sg);
+ 		}
+ 		if (lpi && line>0 && !(line % lpi))
+ 			sol = RISC_SOL | RISC_IRQ1 | RISC_CNT_INC;
+@@ -114,13 +114,13 @@ static __le32* cx88_risc_field(__le32 *rp, struct scatterlist *sglist,
+ 			*(rp++)=cpu_to_le32(sg_dma_address(sg)+offset);
+ 			todo -= (sg_dma_len(sg)-offset);
+ 			offset = 0;
+-			sg++;
++			sg = sg_next(sg);
+ 			while (todo > sg_dma_len(sg)) {
+ 				*(rp++)=cpu_to_le32(RISC_WRITE|
+ 						    sg_dma_len(sg));
+ 				*(rp++)=cpu_to_le32(sg_dma_address(sg));
+ 				todo -= sg_dma_len(sg);
+-				sg++;
++				sg = sg_next(sg);
+ 			}
+ 			*(rp++)=cpu_to_le32(RISC_WRITE|RISC_EOL|todo);
+ 			*(rp++)=cpu_to_le32(sg_dma_address(sg));
+diff --git a/drivers/media/pci/ivtv/ivtv-udma.c b/drivers/media/pci/ivtv/ivtv-udma.c
+index 7338cb2..bee2329 100644
+--- a/drivers/media/pci/ivtv/ivtv-udma.c
++++ b/drivers/media/pci/ivtv/ivtv-udma.c
+@@ -76,7 +76,7 @@ void ivtv_udma_fill_sg_array (struct ivtv_user_dma *dma, u32 buffer_offset, u32
+ 	int i;
+ 	struct scatterlist *sg;
+ 
+-	for (i = 0, sg = dma->SGlist; i < dma->SG_length; i++, sg++) {
++	for (i = 0, sg = dma->SGlist; i < dma->SG_length; i++, sg = sg_next(sg)) {
+ 		dma->SGarray[i].size = cpu_to_le32(sg_dma_len(sg));
+ 		dma->SGarray[i].src = cpu_to_le32(sg_dma_address(sg));
+ 		dma->SGarray[i].dst = cpu_to_le32(buffer_offset);
+-- 
+2.1.1
+
