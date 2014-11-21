@@ -1,85 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:37460 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752342AbaK0BZM (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:9520 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758534AbaKUQPC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 20:25:12 -0500
-Received: by mail-pd0-f175.google.com with SMTP id y10so3864770pdj.34
-        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 17:25:11 -0800 (PST)
-From: Takanari Hayama <taki@igel.co.jp>
+	Fri, 21 Nov 2014 11:15:02 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NFE00F2DD51CU40@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 22 Nov 2014 01:15:01 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 1/2] v4l: vsp1: Reset VSP1 RPF source address
-Date: Thu, 27 Nov 2014 10:25:01 +0900
-Message-Id: <1417051502-30169-2-git-send-email-taki@igel.co.jp>
-In-Reply-To: <1417051502-30169-1-git-send-email-taki@igel.co.jp>
-References: <1417051502-30169-1-git-send-email-taki@igel.co.jp>
+Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
+	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
+	kyungmin.park@samsung.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v4 03/11] mediactl: Separate entity and pad parsing
+Date: Fri, 21 Nov 2014 17:14:32 +0100
+Message-id: <1416586480-19982-4-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
+References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Source address of VSP1 RPF needs to be reset whenever crop offsets are
-recalculated.
+Sometimes it's useful to be able to parse the entity independent of the pad.
+Separate entity parsing into media_parse_entity().
 
-This correctly reflects a crop setting even VIDIOC_QBUF is called
-before VIDIOIC_STREAMON is called.
-
-Signed-off-by: Takanari Hayama <taki@igel.co.jp>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/vsp1/vsp1_rpf.c  | 15 +++++++++++++++
- drivers/media/platform/vsp1/vsp1_rwpf.h |  2 ++
- 2 files changed, 17 insertions(+)
+ utils/media-ctl/libmediactl.c |   28 ++++++++++++++++++++++++----
+ utils/media-ctl/mediactl.h    |   14 ++++++++++++++
+ 2 files changed, 38 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index d14d26b..79c0db8 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -106,11 +106,22 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 			+ crop->left * fmtinfo->bpp[0] / 8;
- 	pstride = format->plane_fmt[0].bytesperline
- 		<< VI6_RPF_SRCM_PSTRIDE_Y_SHIFT;
-+
-+	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y,
-+		       rpf->buf_addr[0] + rpf->offsets[0]);
-+
- 	if (format->num_planes > 1) {
- 		rpf->offsets[1] = crop->top * format->plane_fmt[1].bytesperline
- 				+ crop->left * fmtinfo->bpp[1] / 8;
- 		pstride |= format->plane_fmt[1].bytesperline
- 			<< VI6_RPF_SRCM_PSTRIDE_C_SHIFT;
-+
-+		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0,
-+			       rpf->buf_addr[1] + rpf->offsets[1]);
-+
-+		if (format->num_planes > 2)
-+			vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C1,
-+				       rpf->buf_addr[2] + rpf->offsets[1]);
- 	}
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 4c4ddbe..af7dd43 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -787,10 +787,10 @@ int media_device_add_entity(struct media_device *media,
+ 	return 0;
+ }
  
- 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_PSTRIDE, pstride);
-@@ -179,6 +190,10 @@ static void rpf_vdev_queue(struct vsp1_video *video,
- 			   struct vsp1_video_buffer *buf)
+-struct media_pad *media_parse_pad(struct media_device *media,
+-				  const char *p, char **endp)
++struct media_entity *media_parse_entity(struct media_device *media,
++					const char *p, char **endp)
  {
- 	struct vsp1_rwpf *rpf = container_of(video, struct vsp1_rwpf, video);
-+	int i;
+-	unsigned int entity_id, pad;
++	unsigned int entity_id;
+ 	struct media_entity *entity;
+ 	char *end;
+ 
+@@ -827,7 +827,27 @@ struct media_pad *media_parse_pad(struct media_device *media,
+ 			return NULL;
+ 		}
+ 	}
+-	for (; isspace(*end); ++end);
++	for (p = end; isspace(*p); ++p);
 +
-+	for (i = 0; i < 3; i++)
-+		rpf->buf_addr[i] = buf->addr[i];
- 
- 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y,
- 		       buf->addr[0] + rpf->offsets[0]);
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index 28dd9e7..1c793bc 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -39,6 +39,8 @@ struct vsp1_rwpf {
- 	struct v4l2_rect crop;
- 
- 	unsigned int offsets[2];
++	*endp = (char *)p;
 +
-+	dma_addr_t buf_addr[3];
- };
++	return entity;
++}
++
++struct media_pad *media_parse_pad(struct media_device *media,
++				  const char *p, char **endp)
++{
++	unsigned int pad;
++	struct media_entity *entity;
++	char *end;
++
++	if (endp == NULL)
++		endp = &end;
++
++	entity = media_parse_entity(media, p, &end);
++	if (!entity)
++		return NULL;
++	*endp = end;
  
- static inline struct vsp1_rwpf *to_rwpf(struct v4l2_subdev *subdev)
+ 	if (*end != ':') {
+ 		media_dbg(media, "Expected ':'\n", *end);
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index b8cefe8..7309b16 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -368,6 +368,20 @@ int media_setup_link(struct media_device *media,
+ int media_reset_links(struct media_device *media);
+ 
+ /**
++ * @brief Parse string to an entity on the media device.
++ * @param media - media device.
++ * @param p - input string
++ * @param endp - pointer to string where parsing ended
++ *
++ * Parse NULL terminated string describing an entity and return its
++ * struct media_entity instance.
++ *
++ * @return Pointer to struct media_entity on success, NULL on failure.
++ */
++struct media_entity *media_parse_entity(struct media_device *media,
++					const char *p, char **endp);
++
++/**
+  * @brief Parse string to a pad on the media device.
+  * @param media - media device.
+  * @param p - input string
 -- 
-1.8.0
+1.7.9.5
 
