@@ -1,88 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:53665 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750822AbaKWLYN (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:25924 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932155AbaKUQOv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Nov 2014 06:24:13 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 3A0902A0083
-	for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 12:24:05 +0100 (CET)
-Message-ID: <5471C3D5.9040309@xs4all.nl>
-Date: Sun, 23 Nov 2014 12:24:05 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.19] vb2: improvements
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Fri, 21 Nov 2014 11:14:51 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NFE00A0FD4PN8C0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 22 Nov 2014 01:14:49 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
+	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
+	kyungmin.park@samsung.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v4 00/11] Add a plugin for Exynos4 camera
+Date: Fri, 21 Nov 2014 17:14:29 +0100
+Message-id: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- Add allocation context to dma-sg and have vb2 do the dma mapping instead of
-  the driver. This makes it consistent with the way dma-contig behaves and
-  simplifies drivers.
-- Add support for DMABUF import to dma-sg.
-- Add support for DMABUF export to dma-sg and dma-vmalloc.
-- Clarify (and fix) when buffers can safely be written to by the cpu.
+This is a fourth version of the patch series adding a plugin for the 
+Exynos4 camera.
 
-After this patch series DMABUF is available for all v4l2_memory variants.
+Temporarily the plugin doesn't link against libmediactl, but
+has its sources compiled in. Currently libmediactl is built
+after the plugins and it can't be easily changed because
+it depends on the core libs.
 
-Regards,
+================
+Changes from v3:
+================
 
-	Hans
+- added struct v4l2_subdev and put entity fd and 
+  information about supported controls to it
+- improved functions for negotiating and setting
+  pipeline format by using available libv4lsubdev API
+- applied minor improvements and cleanups
 
-The following changes since commit 5937a784c3e5fe8fd1e201f42a2b1ece6c36a6c0:
+================
+Changes from v2:
+================
 
-  [media] staging: media: bcm2048: fix coding style error (2014-11-21 16:50:37 -0200)
+- switched to using mediatext library for parsing
+  the media device configuration
+- extended libmediactl
+- switched to using libmediactl
 
-are available in the git repository at:
+================
+Changes from v1:
+================
 
-  git://linuxtv.org/hverkuil/media_tree.git vb2
+- removed redundant mbus code negotiation
+- split the parser, media device helpers and ioctl wrappers
+  to the separate modules
+- added mechanism for querying extended controls
+- applied various fixes and modifications
 
-for you to fetch changes up to 4ca2ff8bfe1594c1b3aa68a005429ed4d49714e3:
+The plugin was tested on latest media-tree.git master with patches for
+exynos4-is that fix failing open ioctl when a sensor sub-device is not
+linked [1] [2] [3].
 
-  vb2: use dma_map_sg_attrs to prevent unnecessary sync (2014-11-23 12:13:06 +0100)
+The plugin expects a configuration file:
+/var/lib/libv4l/exynos4_capture_conf
 
-----------------------------------------------------------------
-Hans Verkuil (12):
-      videobuf2-core.h: improve documentation
-      vb2: replace 'write' by 'dma_dir'
-      vb2: add dma_dir to the alloc memop.
-      vb2: don't free alloc context if it is ERR_PTR
-      vb2-dma-sg: add allocation context to dma-sg
-      vb2-dma-sg: move dma_(un)map_sg here
-      vb2-dma-sg: add dmabuf import support
-      vb2-dma-sg: add support for dmabuf exports
-      vb2-vmalloc: add support for dmabuf exports
-      vivid: enable vb2_expbuf support.
-      vim2m: support expbuf
-      vb2: use dma_map_sg_attrs to prevent unnecessary sync
+Exemplary configuration file:
 
- drivers/media/pci/cx23885/cx23885-417.c         |   4 +-
- drivers/media/pci/cx23885/cx23885-core.c        |  15 +--
- drivers/media/pci/cx23885/cx23885-dvb.c         |   4 +-
- drivers/media/pci/cx23885/cx23885-vbi.c         |  10 +-
- drivers/media/pci/cx23885/cx23885-video.c       |  10 +-
- drivers/media/pci/cx23885/cx23885.h             |   1 +
- drivers/media/pci/saa7134/saa7134-core.c        |  18 +++-
- drivers/media/pci/saa7134/saa7134-empress.c     |   1 -
- drivers/media/pci/saa7134/saa7134-ts.c          |  17 +---
- drivers/media/pci/saa7134/saa7134-vbi.c         |  16 +--
- drivers/media/pci/saa7134/saa7134-video.c       |  16 +--
- drivers/media/pci/saa7134/saa7134.h             |   2 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c  |  60 ++++++-----
- drivers/media/pci/solo6x10/solo6x10.h           |   1 +
- drivers/media/pci/tw68/tw68-core.c              |  15 ++-
- drivers/media/pci/tw68/tw68-video.c             |   9 +-
- drivers/media/pci/tw68/tw68.h                   |   1 +
- drivers/media/platform/marvell-ccic/mcam-core.c |  31 +++---
- drivers/media/platform/marvell-ccic/mcam-core.h |   1 +
- drivers/media/platform/vim2m.c                  |   1 +
- drivers/media/platform/vivid/vivid-core.c       |   2 +-
- drivers/media/v4l2-core/videobuf2-core.c        |  14 ++-
- drivers/media/v4l2-core/videobuf2-dma-contig.c  |  71 ++++++++-----
- drivers/media/v4l2-core/videobuf2-dma-sg.c      | 423 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----
- drivers/media/v4l2-core/videobuf2-vmalloc.c     | 191 ++++++++++++++++++++++++++++++++--
- include/media/videobuf2-core.h                  |  42 ++++----
- include/media/videobuf2-dma-sg.h                |   3 +
- 27 files changed, 764 insertions(+), 215 deletions(-)
+==========================================
+
+link-conf "s5p-mipi-csis.0":1 -> "FIMC.0":0 [1]
+ctrl-to-subdev-conf 0x0098091f -> "fimc.0.capture"
+ctrl-to-subdev-conf 0x00980902 -> "S5C73M3"
+ctrl-to-subdev-conf 0x00980922 -> "fimc.0.capture"
+ctrl-to-subdev-conf 0x009a0914 -> "S5C73M3"
+
+==========================================
+
+With this settings the plugin can be tested on the exynos4412-trats2 board
+using following gstreamer pipeline:
+
+gst-launch-1.0 v4l2src device=/dev/video1 ! video/x-raw,width=960,height=720 ! fbdevsink
+
+In order to avoid fbdevsink element failure the fix [4]
+for exynos-drm driver is required.
+
+Thanks,
+Jacek Anaszewski
+
+[1] https://patchwork.linuxtv.org/patch/26366/
+[2] https://patchwork.linuxtv.org/patch/26367/
+[3] https://patchwork.linuxtv.org/patch/26368/
+[4] http://www.spinics.net/lists/dri-devel/msg66494.html
+
+Jacek Anaszewski (11):
+  mediactl: Introduce v4l2_subdev structure
+  mediactl: Add support for v4l2 controls
+  mediactl: Separate entity and pad parsing
+  mediatext: Add library
+  mediactl: Add media device graph helpers
+  mediactl: Add media_device creation helpers
+  media-ctl: libv4l2subdev: add VYUY8_2X8 mbus code
+  mediactl: Add support for media device pipelines
+  mediactl: Close only pipeline sub-devices
+  mediactl: Add media device ioctl API
+  Add a libv4l plugin for Exynos4 camera
+
+ configure.ac                                      |    1 +
+ lib/Makefile.am                                   |    7 +-
+ lib/libv4l-exynos4-camera/Makefile.am             |    7 +
+ lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c |  595 +++++++++++++++++++++
+ utils/media-ctl/Makefile.am                       |   12 +-
+ utils/media-ctl/libmediactl.c                     |  486 ++++++++++++++++-
+ utils/media-ctl/libmediatext.pc.in                |   10 +
+ utils/media-ctl/libv4l2media_ioctl.c              |  325 +++++++++++
+ utils/media-ctl/libv4l2media_ioctl.h              |   40 ++
+ utils/media-ctl/libv4l2subdev.c                   |  204 ++++++-
+ utils/media-ctl/mediactl-priv.h                   |   15 +
+ utils/media-ctl/mediactl.h                        |  256 +++++++++
+ utils/media-ctl/mediatext-test.c                  |   66 +++
+ utils/media-ctl/mediatext.c                       |  286 ++++++++++
+ utils/media-ctl/mediatext.h                       |   52 ++
+ utils/media-ctl/v4l2subdev.h                      |   70 +++
+ 16 files changed, 2401 insertions(+), 31 deletions(-)
+ create mode 100644 lib/libv4l-exynos4-camera/Makefile.am
+ create mode 100644 lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c
+ create mode 100644 utils/media-ctl/libmediatext.pc.in
+ create mode 100644 utils/media-ctl/libv4l2media_ioctl.c
+ create mode 100644 utils/media-ctl/libv4l2media_ioctl.h
+ create mode 100644 utils/media-ctl/mediatext-test.c
+ create mode 100644 utils/media-ctl/mediatext.c
+ create mode 100644 utils/media-ctl/mediatext.h
+
+-- 
+1.7.9.5
+
