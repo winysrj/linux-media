@@ -1,53 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:47699 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756223AbaKTTwG (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:49205 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758075AbaKUKvp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 14:52:06 -0500
-Received: by mail-la0-f46.google.com with SMTP id gd6so3025270lab.5
-        for <linux-media@vger.kernel.org>; Thu, 20 Nov 2014 11:52:04 -0800 (PST)
-Date: Thu, 20 Nov 2014 21:51:58 +0200 (EET)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: =?ISO-8859-15?Q?=C9der_Zsolt?= <zsolt.eder@edernet.hu>
-cc: linux-media@vger.kernel.org
-Subject: Re: SAA7164 firmware for Asus MyCinema
-In-Reply-To: <546C5494.4000908@edernet.hu>
-Message-ID: <alpine.DEB.2.10.1411202148420.1388@dl160.lan>
-References: <546C5494.4000908@edernet.hu>
+	Fri, 21 Nov 2014 05:51:45 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B04242A002F
+	for <linux-media@vger.kernel.org>; Fri, 21 Nov 2014 11:51:26 +0100 (CET)
+Message-ID: <546F192E.5080003@xs4all.nl>
+Date: Fri, 21 Nov 2014 11:51:26 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323329-634191264-1416513123=:1388"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT FIXES FOR v3.18] Various fixes for 3.18
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Mauro,
 
---8323329-634191264-1416513123=:1388
-Content-Type: TEXT/PLAIN; charset=iso-8859-2; format=flowed
-Content-Transfer-Encoding: 8BIT
+Here are three fixes and one MAINTAINERS update that should go to 3.18.
 
-On Wed, 19 Nov 2014, …der Zsolt wrote:
+Regards,
 
-> Hi,
->
-> I found at the site: http://www.linuxtv.org/wiki/index.php/ATSC_PCIe_Cards 
-> that if I have a TV-tuner card which is currently unsupported, you may help 
-> me how I can make workable this device.
->
-> I have an Asus MyCinema EHD3-100/NAQ/FM/AV/MCE RC dual TV-Tuner card with 
-> SAA7164 chipset.
+	Hans
 
-Did we talk about this in IRC a couple of days ago?
+The following changes since commit c02ef64aab828d80040b5dce934729312e698c33:
 
-If not, you will need to find out which demodulator and tuner are used on 
-that card. You can find those by looking at the physical card. Read the 
-text on the bigger ICs and try to put them in the google to find out the 
-components used. The tuner might be under metal shielding, in which case 
-it might be a bit more tricky to find out.
+  [media] cx23885: add DVBSky T982(Dual DVB-T2/T/C) support (2014-11-14 18:28:41 -0200)
 
-Looking at the files in the Windows driver package might give you some 
-hints as well.
+are available in the git repository at:
 
-Cheers,
--olli
---8323329-634191264-1416513123=:1388--
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.18g
+
+for you to fetch changes up to ddc5bee72f9707a8729d214156d7e4e09eecbd3a:
+
+  cx23885: use sg = sg_next(sg) instead of sg++ (2014-11-21 11:43:19 +0100)
+
+----------------------------------------------------------------
+Andrey Utkin (1):
+      Update MAINTAINERS for solo6x10
+
+Hans Verkuil (1):
+      cx23885: use sg = sg_next(sg) instead of sg++
+
+Krzysztof Ha≈Çasa (1):
+      solo6x10: fix a race in IRQ handler.
+
+sensoray-dev (1):
+      s2255drv: fix payload size for JPG, MJPEG
+
+ MAINTAINERS                                |  4 +++-
+ drivers/media/pci/cx23885/cx23885-core.c   |  6 +++---
+ drivers/media/pci/solo6x10/solo6x10-core.c | 10 ++--------
+ drivers/media/usb/s2255/s2255drv.c         |  2 +-
+ 4 files changed, 9 insertions(+), 13 deletions(-)
