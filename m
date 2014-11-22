@@ -1,97 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43032 "EHLO mail.kapsi.fi"
+Received: from edernet.hu ([78.131.56.161]:42931 "EHLO mail.edernet.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756202AbaKLEXX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Nov 2014 23:23:23 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/8] rtl28xxu: enable demod ADC only when needed
-Date: Wed, 12 Nov 2014 06:23:05 +0200
-Message-Id: <1415766190-24482-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1415766190-24482-1-git-send-email-crope@iki.fi>
-References: <1415766190-24482-1-git-send-email-crope@iki.fi>
+	id S1750863AbaKVVmV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Nov 2014 16:42:21 -0500
+Message-ID: <54710310.6070806@edernet.hu>
+Date: Sat, 22 Nov 2014 22:41:36 +0100
+From: =?ISO-8859-2?Q?=C9der_Zsolt?= <zsolt.eder@edernet.hu>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: SAA7164 firmware for Asus MyCinema
+References: <546C5494.4000908@edernet.hu> <alpine.DEB.2.10.1411202148420.1388@dl160.lan>
+In-Reply-To: <alpine.DEB.2.10.1411202148420.1388@dl160.lan>
+Content-Type: text/plain; charset=iso-8859-2; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable integrated demod ADC only when demod is used. Keep integrated
-demod ADC disabled when external demod is used. This fixes corrupted
-stream in a case external demod was used.
+Hi Olli,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 37 ++++++++++++++++++++++-----------
- 1 file changed, 25 insertions(+), 12 deletions(-)
+Sorry, unfortunately was not me on IRC.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 27b1e03..5ea52c7 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1201,13 +1201,6 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 		if (ret)
- 			goto err;
- 
--		mdelay(5);
--
--		/* enable ADC */
--		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x48, 0x48);
--		if (ret)
--			goto err;
--
- 		/* streaming EP: clear stall & reset */
- 		ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x00\x00", 2);
- 		if (ret)
-@@ -1222,11 +1215,6 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 		if (ret)
- 			goto err;
- 
--		/* disable ADC */
--		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x00, 0x48);
--		if (ret)
--			goto err;
--
- 		/* disable PLL */
- 		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x00, 0x80);
- 		if (ret)
-@@ -1244,6 +1232,30 @@ err:
- 	return ret;
- }
- 
-+static int rtl2832u_frontend_ctrl(struct dvb_frontend *fe, int onoff)
-+{
-+	struct dvb_usb_device *d = fe_to_d(fe);
-+	int ret;
-+	u8 val;
-+
-+	dev_dbg(&d->udev->dev, "%s: fe=%d onoff=%d\n", __func__, fe->id, onoff);
-+
-+	/* control internal demod ADC */
-+	if (fe->id == 0 && onoff)
-+		val = 0x48; /* enable ADC */
-+	else
-+		val = 0x00; /* disable ADC */
-+
-+	ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, val, 0x48);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+err:
-+	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-+	return ret;
-+}
-+
- #if IS_ENABLED(CONFIG_RC_CORE)
- static int rtl2831u_rc_query(struct dvb_usb_device *d)
- {
-@@ -1467,6 +1479,7 @@ static const struct dvb_usb_device_properties rtl2832u_props = {
- 	.size_of_priv = sizeof(struct rtl28xxu_priv),
- 
- 	.power_ctrl = rtl2832u_power_ctrl,
-+	.frontend_ctrl = rtl2832u_frontend_ctrl,
- 	.i2c_algo = &rtl28xxu_i2c_algo,
- 	.read_config = rtl2832u_read_config,
- 	.frontend_attach = rtl2832u_frontend_attach,
--- 
-http://palosaari.fi/
+So as you wrote, I followed your instructions, and I collect as 
+information as I can from the board.
+I made a small site quickly with some photos, you found it here:
+http://myoop.hu/tuner.html
+
+While I took the photos I found that my card is Asus MyCinema 
+EHD2-100/PT/FM/AV/RC.
+
+Can you help me how should I continue my work with this tuner?
+
+Thank you very much in advance.
+
+Best regards,
+Zsolt
+
+2014.11.20. 20:51 keltezéssel, Olli Salonen írta:
+> On Wed, 19 Nov 2014, Éder Zsolt wrote:
+>
+>> Hi,
+>>
+>> I found at the site: 
+>> http://www.linuxtv.org/wiki/index.php/ATSC_PCIe_Cards that if I have 
+>> a TV-tuner card which is currently unsupported, you may help me how I 
+>> can make workable this device.
+>>
+>> I have an Asus MyCinema EHD3-100/NAQ/FM/AV/MCE RC dual TV-Tuner card 
+>> with SAA7164 chipset.
+>
+> Did we talk about this in IRC a couple of days ago?
+>
+> If not, you will need to find out which demodulator and tuner are used 
+> on that card. You can find those by looking at the physical card. Read 
+> the text on the bigger ICs and try to put them in the google to find 
+> out the components used. The tuner might be under metal shielding, in 
+> which case it might be a bit more tricky to find out.
+>
+> Looking at the files in the Windows driver package might give you some 
+> hints as well.
+>
+> Cheers,
+> -olli
 
