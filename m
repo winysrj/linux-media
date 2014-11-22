@@ -1,339 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:62310 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864AbaKCNOT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 08:14:19 -0500
-Date: Mon, 03 Nov 2014 11:14:10 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Beniamino Galvani <b.galvani@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	Carlo Caione <carlo@caione.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Jerry Cao <jerry.cao@amlogic.com>,
-	Victor Wan <victor.wan@amlogic.com>
-Subject: Re: [PATCH 1/3] media: rc: add driver for Amlogic Meson IR remote
- receiver
-Message-id: <20141103111410.6b1147a0.m.chehab@samsung.com>
-In-reply-to: <1413144115-23188-2-git-send-email-b.galvani@gmail.com>
-References: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
- <1413144115-23188-2-git-send-email-b.galvani@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47869 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751760AbaKVDn0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Nov 2014 22:43:26 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6D0632A002F
+	for <linux-media@vger.kernel.org>; Sat, 22 Nov 2014 04:43:06 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141122034306.6D0632A002F@tschai.lan>
+Date: Sat, 22 Nov 2014 04:43:06 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 12 Oct 2014 22:01:53 +0200
-Beniamino Galvani <b.galvani@gmail.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Amlogic Meson SoCs include a infrared remote control receiver that can
-> operate in two modes: in "NEC" mode the hardware can decode frames
-> using the NEC IR protocol, while in "general" mode the receiver simply
-> reports the duration of pulses and spaces for software decoding.
-> 
-> This is a driver for the IR receiver that uses software decoding of
-> received frames.
+Results of the daily build of media_tree:
 
-There are a few checkpatch warnings there:
+date:		Sat Nov 22 04:00:19 CET 2014
+git branch:	test
+git hash:	5937a784c3e5fe8fd1e201f42a2b1ece6c36a6c0
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-2.slh.2-amd64
 
-WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
-#71: 
-new file mode 100644
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-WARNING: Missing a blank line after declarations
-#151: FILE: drivers/media/rc/meson-ir.c:76:
-+	u32 duration;
-+	DEFINE_IR_RAW_EVENT(rawir);
+Detailed results are available here:
 
-WARNING: DT compatible string "amlogic,meson6-ir" appears un-documented -- check ./Documentation/devicetree/bindings/
-#272: FILE: drivers/media/rc/meson-ir.c:197:
-+	{ .compatible = "amlogic,meson6-ir" },
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-total: 0 errors, 3 warnings, 238 lines checked
+Full logs are available here:
 
-patches/lmml_26418_1_3_media_rc_add_driver_for_amlogic_meson_ir_remote_receiver.patch has style problems, please review.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-I'm seeing that the DT patches are there, after this one. The best
-would be to add them before in the series.
+The Media Infrastructure API from this daily build is here:
 
-Please add also an entry at the MAINTAINERS file.
-
-
-> 
-> Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
-> ---
->  drivers/media/rc/Kconfig    |  11 +++
->  drivers/media/rc/Makefile   |   1 +
->  drivers/media/rc/meson-ir.c | 214 ++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 226 insertions(+)
->  create mode 100644 drivers/media/rc/meson-ir.c
-> 
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index 8ce0810..2d742e2 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -223,6 +223,17 @@ config IR_FINTEK
->  	   To compile this driver as a module, choose M here: the
->  	   module will be called fintek-cir.
->  
-> +config IR_MESON
-> +	tristate "Amlogic Meson IR remote receiver"
-> +	depends on RC_CORE
-> +	depends on ARCH_MESON
-
-Please add COMPILE_TEST too, as we want to be able to compile it on
-x86 and other archs, in order to check if the driver builds fine and
-to enable the static analyzers to look into this code.
-
-> +	---help---
-> +	   Say Y if you want to use the IR remote receiver available
-> +	   on Amlogic Meson SoCs.
-> +
-> +	   To compile this driver as a module, choose M here: the
-> +	   module will be called meson-ir.
-> +
->  config IR_NUVOTON
->  	tristate "Nuvoton w836x7hg Consumer Infrared Transceiver"
->  	depends on PNP
-> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-> index 0989f94..06859bf 100644
-> --- a/drivers/media/rc/Makefile
-> +++ b/drivers/media/rc/Makefile
-> @@ -22,6 +22,7 @@ obj-$(CONFIG_IR_IMON) += imon.o
->  obj-$(CONFIG_IR_ITE_CIR) += ite-cir.o
->  obj-$(CONFIG_IR_MCEUSB) += mceusb.o
->  obj-$(CONFIG_IR_FINTEK) += fintek-cir.o
-> +obj-$(CONFIG_IR_MESON) += meson-ir.o
->  obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
->  obj-$(CONFIG_IR_ENE) += ene_ir.o
->  obj-$(CONFIG_IR_REDRAT3) += redrat3.o
-> diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-> new file mode 100644
-> index 0000000..0900ece
-> --- /dev/null
-> +++ b/drivers/media/rc/meson-ir.c
-> @@ -0,0 +1,214 @@
-> +/*
-> + * Driver for Amlogic Meson IR remote receiver
-> + *
-> + * Copyright (C) 2014 Beniamino Galvani <b.galvani@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program. If not, see <http://www.gnu.org/licenses/>.
-> + */
-> +
-> +#include <linux/interrupt.h>
-> +#include <linux/module.h>
-> +#include <linux/of_platform.h>
-> +#include <linux/spinlock.h>
-> +
-> +#include <media/rc-core.h>
-> +
-> +#define DRIVER_NAME		"meson-ir"
-> +
-> +#define IR_DEC_LDR_ACTIVE	0x00
-> +#define IR_DEC_LDR_IDLE		0x04
-> +#define IR_DEC_LDR_REPEAT	0x08
-> +#define IR_DEC_BIT_0		0x0c
-> +#define IR_DEC_REG0		0x10
-> +#define IR_DEC_FRAME		0x14
-> +#define IR_DEC_STATUS		0x18
-> +#define IR_DEC_REG1		0x1c
-> +
-> +#define REG0_RATE_MASK		(BIT(11) - 1)
-> +
-> +#define REG1_MODE_MASK		(BIT(7) | BIT(8))
-> +#define REG1_MODE_NEC		(0 << 7)
-> +#define REG1_MODE_GENERAL	(2 << 7)
-> +
-> +#define REG1_TIME_IV_SHIFT	16
-> +#define REG1_TIME_IV_MASK	((BIT(13) - 1) << REG1_TIME_IV_SHIFT)
-> +
-> +#define REG1_IRQSEL_MASK	(BIT(2) | BIT(3))
-> +#define REG1_IRQSEL_NEC_MODE	(0 << 2)
-> +#define REG1_IRQSEL_RISE_FALL	(1 << 2)
-> +#define REG1_IRQSEL_FALL	(2 << 2)
-> +#define REG1_IRQSEL_RISE	(3 << 2)
-> +
-> +#define REG1_RESET		BIT(0)
-> +#define REG1_ENABLE		BIT(15)
-> +
-> +#define STATUS_IR_DEC_IN	BIT(8)
-> +
-> +#define MESON_TRATE		10	/* us */
-> +
-> +struct meson_ir {
-> +	void __iomem	*reg;
-> +	struct rc_dev	*rc;
-> +	int		irq;
-> +	spinlock_t	lock;
-> +};
-> +
-> +static void meson_ir_set_mask(struct meson_ir *ir, unsigned int reg,
-> +			      u32 mask, u32 value)
-> +{
-> +	u32 data;
-> +
-> +	data = readl(ir->reg + reg);
-> +	data &= ~mask;
-> +	data |= (value & mask);
-> +	writel(data, ir->reg + reg);
-> +}
-> +
-> +static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
-> +{
-> +	struct meson_ir *ir = dev_id;
-> +	u32 duration;
-> +	DEFINE_IR_RAW_EVENT(rawir);
-> +
-> +	spin_lock(&ir->lock);
-> +
-> +	duration = readl(ir->reg + IR_DEC_REG1);
-> +	duration = (duration & REG1_TIME_IV_MASK) >> REG1_TIME_IV_SHIFT;
-> +	rawir.duration = US_TO_NS(duration * MESON_TRATE);
-> +
-> +	rawir.pulse = !!(readl(ir->reg + IR_DEC_STATUS) & STATUS_IR_DEC_IN);
-> +
-> +	ir_raw_event_store_with_filter(ir->rc, &rawir);
-> +	ir_raw_event_handle(ir->rc);
-> +
-> +	spin_unlock(&ir->lock);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static int meson_ir_probe(struct platform_device *pdev)
-> +{
-> +	struct device *dev = &pdev->dev;
-> +	struct device_node *node = dev->of_node;
-> +	struct resource *res;
-> +	const char *map_name;
-> +	struct meson_ir *ir;
-> +	int ret;
-> +
-> +	ir = devm_kzalloc(dev, sizeof(struct meson_ir), GFP_KERNEL);
-> +	if (!ir)
-> +		return -ENOMEM;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	ir->reg = devm_ioremap_resource(dev, res);
-> +	if (IS_ERR(ir->reg)) {
-> +		dev_err(dev, "failed to map registers\n");
-> +		return PTR_ERR(ir->reg);
-> +	}
-> +
-> +	ir->irq = platform_get_irq(pdev, 0);
-> +	if (ir->irq < 0) {
-> +		dev_err(dev, "no irq resource\n");
-> +		return ir->irq;
-> +	}
-> +
-> +	ir->rc = rc_allocate_device();
-> +	if (!ir->rc) {
-> +		dev_err(dev, "failed to allocate rc device\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	ir->rc->priv = ir;
-> +	ir->rc->input_name = DRIVER_NAME;
-> +	ir->rc->input_phys = DRIVER_NAME "/input0";
-> +	ir->rc->input_id.bustype = BUS_HOST;
-
-> +	ir->rc->input_id.vendor = 0x0001;
-> +	ir->rc->input_id.product = 0x0001;
-> +	ir->rc->input_id.version = 0x0100;
-
-I don't like very much the idea of filling it like that. From where those
-numbers came? Could you add a define for them somewhere?
-
-> +	map_name = of_get_property(node, "linux,rc-map-name", NULL);
-> +	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
-> +	ir->rc->dev.parent = dev;
-> +	ir->rc->driver_type = RC_DRIVER_IR_RAW;
-> +	ir->rc->allowed_protocols = RC_BIT_ALL;
-> +	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
-> +	ir->rc->timeout = MS_TO_NS(200);
-> +	ir->rc->driver_name = DRIVER_NAME;
-> +
-> +	spin_lock_init(&ir->lock);
-> +	platform_set_drvdata(pdev, ir);
-> +
-> +	ret = rc_register_device(ir->rc);
-> +	if (ret) {
-> +		dev_err(dev, "failed to register rc device\n");
-> +		goto out_free;
-> +	}
-> +
-> +	ret = devm_request_irq(dev, ir->irq, meson_ir_irq, 0, "ir-meson", ir);
-> +	if (ret) {
-> +		dev_err(dev, "failed to request irq\n");
-> +		goto out_unreg;
-> +	}
-> +
-> +	/* Reset the decoder */
-> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, REG1_RESET);
-> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, 0);
-> +	/* Set general operation mode */
-> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK, REG1_MODE_GENERAL);
-> +	/* Set rate */
-> +	meson_ir_set_mask(ir, IR_DEC_REG0, REG0_RATE_MASK, MESON_TRATE - 1);
-> +	/* IRQ on rising and falling edges */
-> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_IRQSEL_MASK,
-> +			  REG1_IRQSEL_RISE_FALL);
-> +	/* Enable the decoder */
-> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, REG1_ENABLE);
-> +
-> +	dev_info(dev, "receiver initialized\n");
-> +
-> +	return 0;
-> +out_unreg:
-> +	rc_unregister_device(ir->rc);
-> +out_free:
-> +	rc_free_device(ir->rc);
-> +
-> +	return ret;
-> +}
-> +
-> +static int meson_ir_remove(struct platform_device *pdev)
-> +{
-> +	struct meson_ir *ir = platform_get_drvdata(pdev);
-> +	unsigned long flags;
-> +
-> +	/* Disable the decoder */
-> +	spin_lock_irqsave(&ir->lock, flags);
-> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, 0);
-> +	spin_unlock_irqrestore(&ir->lock, flags);
-> +
-> +	rc_unregister_device(ir->rc);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct of_device_id meson_ir_match[] = {
-> +	{ .compatible = "amlogic,meson6-ir" },
-> +	{ },
-> +};
-> +
-> +static struct platform_driver meson_ir_driver = {
-> +	.probe		= meson_ir_probe,
-> +	.remove		= meson_ir_remove,
-> +	.driver = {
-> +		.name		= DRIVER_NAME,
-> +		.of_match_table	= meson_ir_match,
-> +	},
-> +};
-> +
-> +module_platform_driver(meson_ir_driver);
-> +
-> +MODULE_DESCRIPTION("Amlogic Meson IR remote receiver driver");
-> +MODULE_AUTHOR("Beniamino Galvani <b.galvani@gmail.com>");
-> +MODULE_LICENSE("GPL v2");
+http://www.xs4all.nl/~hverkuil/spec/media.html
