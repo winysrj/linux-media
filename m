@@ -1,118 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:45119 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752785AbaKJRWE (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56256 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750889AbaKWMxZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 12:22:04 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v6 07/10] [media] usb: Make use of media_bus_format enum
-Date: Mon, 10 Nov 2014 18:21:51 +0100
-Message-Id: <1415640114-14930-8-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
+	Sun, 23 Nov 2014 07:53:25 -0500
+Message-ID: <5471D8BF.6000903@xs4all.nl>
+Date: Sun, 23 Nov 2014 13:53:19 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Nikhil Devshatwar <nikhil.nd@ti.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/4] media: ti-vpe: Use data offset for getting dma_addr
+ for a plane
+References: <1415964052-30351-1-git-send-email-nikhil.nd@ti.com> <1415964052-30351-2-git-send-email-nikhil.nd@ti.com>
+In-Reply-To: <1415964052-30351-2-git-send-email-nikhil.nd@ti.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to have subsytem agnostic media bus format definitions we've
-moved media bus definition to include/uapi/linux/media-bus-format.h and
-prefixed enum values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
+On 11/14/2014 12:20 PM, Nikhil Devshatwar wrote:
+> The data_offset in v4l2_planes structure will help us point to the start of
+> data content for that particular plane. This may be useful when a single
+> buffer contains the data for different planes e.g. Y planes of two fields in
+> the same buffer. With this, user space can pass queue top field and
+> bottom field with same dmafd and different data_offsets.
+> 
+> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+> ---
+>  drivers/media/platform/ti-vpe/vpe.c |   12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+> index 0ae19ee..e59eb81 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -495,6 +495,14 @@ struct vpe_mmr_adb {
+>  
+>  #define VPE_SET_MMR_ADB_HDR(ctx, hdr, regs, offset_a)	\
+>  	VPDMA_SET_MMR_ADB_HDR(ctx->mmr_adb, vpe_mmr_adb, hdr, regs, offset_a)
+> +
+> +static inline dma_addr_t vb2_dma_addr_plus_data_offset(struct vb2_buffer *vb,
+> +	unsigned int plane_no)
+> +{
+> +	return vb2_dma_contig_plane_dma_addr(vb, plane_no) +
+> +		vb->v4l2_planes[plane_no].data_offset;
+> +}
+> +
+>  /*
+>   * Set the headers for all of the address/data block structures.
+>   */
+> @@ -1002,7 +1010,7 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
+>  		int plane = fmt->coplanar ? p_data->vb_part : 0;
+>  
+>  		vpdma_fmt = fmt->vpdma_fmt[plane];
+> -		dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
+> +		dma_addr = vb2_dma_addr_plus_data_offset(vb, plane);
+>  		if (!dma_addr) {
+>  			vpe_err(ctx->dev,
+>  				"acquiring output buffer(%d) dma_addr failed\n",
+> @@ -1042,7 +1050,7 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+>  
+>  		vpdma_fmt = fmt->vpdma_fmt[plane];
+>  
+> -		dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
+> +		dma_addr = vb2_dma_addr_plus_data_offset(vb, plane);
+>  		if (!dma_addr) {
+>  			vpe_err(ctx->dev,
+>  				"acquiring input buffer(%d) dma_addr failed\n",
+> 
 
-Reference new definitions in all usb drivers.
+I suspect this does not do what you want. data_offset is set by the application
+for an output stream (i.e. from memory to the hardware) and it is set by the
+driver for a capture stream (i.e. from hardware to memory). It looks like you
+expect that it is set by the application for capture streams as well, but
+that's not true.
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/usb/cx231xx/cx231xx-417.c   | 2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c | 4 ++--
- drivers/media/usb/em28xx/em28xx-camera.c  | 2 +-
- drivers/media/usb/go7007/go7007-v4l2.c    | 2 +-
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c   | 2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+Regards,
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-index 459bb0e..95653ba 100644
---- a/drivers/media/usb/cx231xx/cx231xx-417.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-@@ -1878,7 +1878,7 @@ static int cx231xx_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
- 	/* fix videodecoder resolution */
- 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
- 	fmt.height = cxhdl->height;
--	fmt.code = V4L2_MBUS_FMT_FIXED;
-+	fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(dev->sd_cx25840, video, s_mbus_fmt, &fmt);
- 	return 0;
- }
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 3b3ada6..989d527 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -967,7 +967,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	dev->height = f->fmt.pix.height;
- 	dev->format = fmt;
- 
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	call_all(dev, video, s_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 
-@@ -1012,7 +1012,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
- 	   resolution (since a standard change effects things like the number
- 	   of lines in VACT, etc) */
- 	memset(&mbus_fmt, 0, sizeof(mbus_fmt));
--	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 	mbus_fmt.width = dev->width;
- 	mbus_fmt.height = dev->height;
- 	call_all(dev, video, s_mbus_fmt, &mbus_fmt);
-diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-index 6d2ea9a..38cf6c8 100644
---- a/drivers/media/usb/em28xx/em28xx-camera.c
-+++ b/drivers/media/usb/em28xx/em28xx-camera.c
-@@ -430,7 +430,7 @@ int em28xx_init_camera(struct em28xx *dev)
- 			break;
- 		}
- 
--		fmt.code = V4L2_MBUS_FMT_YUYV8_2X8;
-+		fmt.code = MEDIA_BUS_FMT_YUYV8_2X8;
- 		fmt.width = 640;
- 		fmt.height = 480;
- 		v4l2_subdev_call(subdev, video, s_mbus_fmt, &fmt);
-diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
-index ec799b4..d6bf982 100644
---- a/drivers/media/usb/go7007/go7007-v4l2.c
-+++ b/drivers/media/usb/go7007/go7007-v4l2.c
-@@ -252,7 +252,7 @@ static int set_capture_size(struct go7007 *go, struct v4l2_format *fmt, int try)
- 	if (go->board_info->sensor_flags & GO7007_SENSOR_SCALING) {
- 		struct v4l2_mbus_framefmt mbus_fmt;
- 
--		mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+		mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 		mbus_fmt.width = fmt ? fmt->fmt.pix.width : width;
- 		mbus_fmt.height = height;
- 		go->encoder_h_halve = 0;
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-index 9623b62..2fd9b5e 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-@@ -2966,7 +2966,7 @@ static void pvr2_subdev_update(struct pvr2_hdw *hdw)
- 		memset(&fmt, 0, sizeof(fmt));
- 		fmt.width = hdw->res_hor_val;
- 		fmt.height = hdw->res_ver_val;
--		fmt.code = V4L2_MBUS_FMT_FIXED;
-+		fmt.code = MEDIA_BUS_FMT_FIXED;
- 		pvr2_trace(PVR2_TRACE_CHIPS, "subdev v4l2 set_size(%dx%d)",
- 			   fmt.width, fmt.height);
- 		v4l2_device_call_all(&hdw->v4l2_dev, 0, video, s_mbus_fmt, &fmt);
--- 
-1.9.1
-
+	Hans
