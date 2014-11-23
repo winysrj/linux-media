@@ -1,55 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36536 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750849AbaKDBHP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 20:07:15 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/6] af9033: improve read_signal_strength error handling slightly
-Date: Tue,  4 Nov 2014 03:07:01 +0200
-Message-Id: <1415063224-28453-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1415063224-28453-1-git-send-email-crope@iki.fi>
-References: <1415063224-28453-1-git-send-email-crope@iki.fi>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:41358 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750759AbaKWKgn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Nov 2014 05:36:43 -0500
+Received: by mail-la0-f46.google.com with SMTP id gd6so6388456lab.33
+        for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 02:36:41 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1416315068-22936-6-git-send-email-hverkuil@xs4all.nl>
+References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl> <1416315068-22936-6-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sun, 23 Nov 2014 19:36:01 +0900
+Message-ID: <CAMm-=zBybAq4t_RBC9-4V3fdA0UTb3=uF_=8KqTDfUJQ+7WRhA@mail.gmail.com>
+Subject: Re: [REVIEWv7 PATCH 05/12] vb2-dma-sg: add allocation context to dma-sg
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check return status after each register access routine and avoid
-masking return status values.
+On Tue, Nov 18, 2014 at 9:51 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Require that dma-sg also uses an allocation context. This is in preparation
+> for adding prepare/finish memops to sync the memory between DMA and CPU.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9033.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+Acked-by: Pawel Osciak <pawel@osciak.com>
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index e3bae77..3f688de 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -876,7 +876,12 @@ static int af9033_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- 		*strength = u8tmp * 0xffff / 100;
- 	} else {
- 		ret = af9033_rd_reg(dev, 0x8000f7, &u8tmp);
--		ret |= af9033_rd_regs(dev, 0x80f900, buf, 7);
-+		if (ret < 0)
-+			goto err;
-+
-+		ret = af9033_rd_regs(dev, 0x80f900, buf, 7);
-+		if (ret < 0)
-+			goto err;
- 
- 		if (c->frequency <= 300000000)
- 			gain_offset = 7; /* VHF */
-@@ -901,9 +906,6 @@ static int af9033_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- 		*strength = tmp * 0xffff / 100;
- 	}
- 
--	if (ret)
--		goto err;
--
- 	return 0;
- 
- err:
 -- 
-http://palosaari.fi/
-
+Best regards,
+Pawel Osciak
