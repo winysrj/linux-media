@@ -1,64 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:47427 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753359AbaKHJTY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Nov 2014 04:19:24 -0500
-MIME-Version: 1.0
-In-Reply-To: <1415369269-5064-7-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
- <1415369269-5064-7-git-send-email-boris.brezillon@free-electrons.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 8 Nov 2014 09:18:51 +0000
-Message-ID: <CA+V-a8t79gYYGcgg5wvM-eqW8H2D6WD7xM9t2Px=WHb2rf34ow@mail.gmail.com>
-Subject: Re: [PATCH v3 06/10] [media] platform: Make use of media_bus_format enum
-To: Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Sekhar Nori <nsekhar@ti.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	linux-api <linux-api@vger.kernel.org>,
-	OSUOSL Drivers <devel@driverdev.osuosl.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LDOC <linux-doc@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=UTF-8
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:33316 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751304AbaKWDnH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Nov 2014 22:43:07 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6D33B2A0081
+	for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 04:43:00 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141123034300.6D33B2A0081@tschai.lan>
+Date: Sun, 23 Nov 2014 04:43:00 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the patch,
+Results of the daily build of media_tree:
 
-On Fri, Nov 7, 2014 at 2:07 PM, Boris Brezillon
-<boris.brezillon@free-electrons.com> wrote:
-> In order to have subsytem agnostic media bus format definitions we've
-> moved media bus definition to include/uapi/linux/media-bus-format.h and
-> prefixed values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
->
-> Reference new definitions in all platform drivers.
->
-> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-> ---
->  arch/arm/mach-davinci/board-dm355-evm.c            |   2 +-
->  arch/arm/mach-davinci/board-dm365-evm.c            |   4 +-
->  arch/arm/mach-davinci/dm355.c                      |   7 +-
->  arch/arm/mach-davinci/dm365.c                      |   7 +-
+date:		Sun Nov 23 04:00:30 CET 2014
+git branch:	test
+git hash:	5937a784c3e5fe8fd1e201f42a2b1ece6c36a6c0
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-@Sekhar can you ack for the machine changes for davinci ?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-[Snip]
->  drivers/media/platform/davinci/vpbe.c              |   2 +-
->  drivers/media/platform/davinci/vpfe_capture.c      |   4 +-
-[snip]
->  include/media/davinci/vpbe.h                       |   2 +-
->  include/media/davinci/vpbe_venc.h                  |   5 +-
+Detailed results are available here:
 
-For all the above.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Full logs are available here:
 
-Thanks,
---Prabhakar Lad
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
