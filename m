@@ -1,107 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:63242 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751608AbaK1OLI (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:48761 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750738AbaKWLCF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 09:11:08 -0500
-Message-id: <54788278.7080101@samsung.com>
-Date: Fri, 28 Nov 2014 15:11:04 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"b.zolnierkie@samsung.com" <b.zolnierkie@samsung.com>,
-	"pavel@ucw.cz" <pavel@ucw.cz>,
-	"cooloney@gmail.com" <cooloney@gmail.com>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH/RFC v8 08/14] DT: Add documentation for exynos4-is
- 'flashes' property
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-9-git-send-email-j.anaszewski@samsung.com>
- <20141128111404.GB25883@leverpostej> <547865EA.5010700@samsung.com>
- <20141128123003.GE25883@leverpostej>
-In-reply-to: <20141128123003.GE25883@leverpostej>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Sun, 23 Nov 2014 06:02:05 -0500
+Received: by mail-lb0-f178.google.com with SMTP id f15so5088893lbj.37
+        for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 03:02:03 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1416315068-22936-2-git-send-email-hverkuil@xs4all.nl>
+References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl> <1416315068-22936-2-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sun, 23 Nov 2014 20:01:22 +0900
+Message-ID: <CAMm-=zADQpwW8+A24vWo0hAS+h=5eqGVsKQfn4ApEiL5czxSgA@mail.gmail.com>
+Subject: Re: [REVIEWv7 PATCH 01/12] videobuf2-core.h: improve documentation
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/28/2014 01:30 PM, Mark Rutland wrote:
-> On Fri, Nov 28, 2014 at 12:09:14PM +0000, Jacek Anaszewski wrote:
->> On 11/28/2014 12:14 PM, Mark Rutland wrote:
->>> On Fri, Nov 28, 2014 at 09:18:00AM +0000, Jacek Anaszewski wrote:
->>>> This patch adds a description of 'flashes' property
->>>> to the samsung-fimc.txt.
->>>>
->>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->>>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->>>> Cc: Rob Herring <robh+dt@kernel.org>
->>>> Cc: Pawel Moll <pawel.moll@arm.com>
->>>> Cc: Mark Rutland <mark.rutland@arm.com>
->>>> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
->>>> Cc: Kumar Gala <galak@codeaurora.org>
->>>> Cc: <devicetree@vger.kernel.org>
->>>> ---
->>>>    .../devicetree/bindings/media/samsung-fimc.txt     |    7 +++++++
->>>>    1 file changed, 7 insertions(+)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->>>> index 922d6f8..4b7ed03 100644
->>>> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
->>>> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->>>> @@ -40,6 +40,12 @@ should be inactive. For the "active-a" state the camera port A must be activated
->>>>    and the port B deactivated and for the state "active-b" it should be the other
->>>>    way around.
->>>>
->>>> +Optional properties:
->>>> +
->>>> +- flashes - array of strings with flash led names; the name has to
->>>> +	    be same with the related led label
->>>> +	    (see Documentation/devicetree/bindings/leds/common.txt)
->>>> +
->>>
->>> Why is this not an array of phandles to the LED nodes? That's much
->>> better than strings.
->>
->> This is because a single flash led device can control many sub-leds,
->> which are represented by child nodes in the Device Tree.
->> Every sub-led is registered as a separate LED Flash class device
->> in the LED subsystem, but in fact they share the same struct device
->> and thus have access only to the parent's phandle.
+On Tue, Nov 18, 2014 at 9:50 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 >
-> But that's a Linux infrastrcture issue, no? You don't have to use the
-> node from the struct device to find the relevant phandle.
-
-Right.
-
->> The LED Flash
->> class devices are wrapped by V4L2 sub-devices and register
->> asynchronously within a media device. Since the v4l2_subdev structure
->> has a 'name' field, it is convenient to initialize it with
->> parsed 'label' property of a child led node and match the
->> sub-devices in the media device basing on it.
+> Document that drivers can access/modify the buffer contents in buf_prepare
+> and buf_finish. That was not clearly stated before.
 >
-> While that might be convenient, I don't think it's fantastic to use that
-> to describe the relationship, as this leaks Linux internals (e.g. I can
-> refer to a name that doesn't exist in the DT but happens to be what
-> Linux used, and it would work). Also, are the labels guaranteed to be
-> globally unique?
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-The labels are used for initializing class device name and kernel
-doesn't allow to initialize two devices with same names.
-This implies that labels are guaranteed to be globally unique.
-Unless I am missing something.
+Acked-by: Pawel Osciak <pawel@osciak.com>
 
-Regards,
-Jacek
+> ---
+>  include/media/videobuf2-core.h | 32 +++++++++++++++++---------------
+>  1 file changed, 17 insertions(+), 15 deletions(-)
+>
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 6ef2d01..70ace7c 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -270,22 +270,24 @@ struct vb2_buffer {
+>   *                     queue setup from completing successfully; optional.
+>   * @buf_prepare:       called every time the buffer is queued from userspace
+>   *                     and from the VIDIOC_PREPARE_BUF ioctl; drivers may
+> - *                     perform any initialization required before each hardware
+> - *                     operation in this callback; drivers that support
+> - *                     VIDIOC_CREATE_BUFS must also validate the buffer size;
+> - *                     if an error is returned, the buffer will not be queued
+> - *                     in driver; optional.
+> + *                     perform any initialization required before each
+> + *                     hardware operation in this callback; drivers can
+> + *                     access/modify the buffer here as it is still synced for
+> + *                     the CPU; drivers that support VIDIOC_CREATE_BUFS must
+> + *                     also validate the buffer size; if an error is returned,
+> + *                     the buffer will not be queued in driver; optional.
+>   * @buf_finish:                called before every dequeue of the buffer back to
+> - *                     userspace; drivers may perform any operations required
+> - *                     before userspace accesses the buffer; optional. The
+> - *                     buffer state can be one of the following: DONE and
+> - *                     ERROR occur while streaming is in progress, and the
+> - *                     PREPARED state occurs when the queue has been canceled
+> - *                     and all pending buffers are being returned to their
+> - *                     default DEQUEUED state. Typically you only have to do
+> - *                     something if the state is VB2_BUF_STATE_DONE, since in
+> - *                     all other cases the buffer contents will be ignored
+> - *                     anyway.
+> + *                     userspace; the buffer is synced for the CPU, so drivers
+> + *                     can access/modify the buffer contents; drivers may
+> + *                     perform any operations required before userspace
+> + *                     accesses the buffer; optional. The buffer state can be
+> + *                     one of the following: DONE and ERROR occur while
+> + *                     streaming is in progress, and the PREPARED state occurs
+> + *                     when the queue has been canceled and all pending
+> + *                     buffers are being returned to their default DEQUEUED
+> + *                     state. Typically you only have to do something if the
+> + *                     state is VB2_BUF_STATE_DONE, since in all other cases
+> + *                     the buffer contents will be ignored anyway.
+>   * @buf_cleanup:       called once before the buffer is freed; drivers may
+>   *                     perform any additional cleanup; optional.
+>   * @start_streaming:   called once to enter 'streaming' state; the driver may
+> --
+> 2.1.1
+>
+
+
+
+-- 
+Best regards,
+Pawel Osciak
