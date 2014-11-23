@@ -1,115 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47869 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751760AbaKVDn0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 22:43:26 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6D0632A002F
-	for <linux-media@vger.kernel.org>; Sat, 22 Nov 2014 04:43:06 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141122034306.6D0632A002F@tschai.lan>
-Date: Sat, 22 Nov 2014 04:43:06 +0100 (CET)
+Received: from mx1.redhat.com ([209.132.183.28]:47335 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751143AbaKWNiu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Nov 2014 08:38:50 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2 1/9] clk: sunxi: Give sunxi_factors_register a registers parameter
+Date: Sun, 23 Nov 2014 14:38:07 +0100
+Message-Id: <1416749895-25013-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
+References: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Before this commit sunxi_factors_register uses of_iomap(node, 0) to get
+the clk registers. The sun6i prcm has factor clocks, for which we want to
+use sunxi_factors_register, but of_iomap(node, 0) does not work for the prcm
+factor clocks, because the prcm uses the mfd framework, so the registers
+are not part of the dt-node, instead they are added to the platform_device,
+as platform_device resources.
 
-Results of the daily build of media_tree:
+This commit makes getting the registers the callers duty, so that
+sunxi_factors_register can be used with mfd instantiated platform device too.
 
-date:		Sat Nov 22 04:00:19 CET 2014
-git branch:	test
-git hash:	5937a784c3e5fe8fd1e201f42a2b1ece6c36a6c0
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-2.slh.2-amd64
+While at it also add error checking to the of_iomap calls.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+This commit also drops the __init function from sunxi_factors_register since
+platform driver probe functions are not __init.
 
-Detailed results are available here:
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/clk/sunxi/clk-factors.c    | 10 ++++------
+ drivers/clk/sunxi/clk-factors.h    |  7 ++++---
+ drivers/clk/sunxi/clk-mod0.c       | 24 ++++++++++++++++++++++--
+ drivers/clk/sunxi/clk-sun8i-mbus.c | 13 +++++++++++--
+ drivers/clk/sunxi/clk-sunxi.c      | 11 ++++++++++-
+ 5 files changed, 51 insertions(+), 14 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+diff --git a/drivers/clk/sunxi/clk-factors.c b/drivers/clk/sunxi/clk-factors.c
+index f83ba09..fc4f4b5 100644
+--- a/drivers/clk/sunxi/clk-factors.c
++++ b/drivers/clk/sunxi/clk-factors.c
+@@ -156,9 +156,10 @@ static const struct clk_ops clk_factors_ops = {
+ 	.set_rate = clk_factors_set_rate,
+ };
+ 
+-struct clk * __init sunxi_factors_register(struct device_node *node,
+-					   const struct factors_data *data,
+-					   spinlock_t *lock)
++struct clk *sunxi_factors_register(struct device_node *node,
++				   const struct factors_data *data,
++				   spinlock_t *lock,
++				   void __iomem *reg)
+ {
+ 	struct clk *clk;
+ 	struct clk_factors *factors;
+@@ -168,11 +169,8 @@ struct clk * __init sunxi_factors_register(struct device_node *node,
+ 	struct clk_hw *mux_hw = NULL;
+ 	const char *clk_name = node->name;
+ 	const char *parents[FACTORS_MAX_PARENTS];
+-	void __iomem *reg;
+ 	int i = 0;
+ 
+-	reg = of_iomap(node, 0);
+-
+ 	/* if we have a mux, we will have >1 parents */
+ 	while (i < FACTORS_MAX_PARENTS &&
+ 	       (parents[i] = of_clk_get_parent_name(node, i)) != NULL)
+diff --git a/drivers/clk/sunxi/clk-factors.h b/drivers/clk/sunxi/clk-factors.h
+index 9913840..1f5526d 100644
+--- a/drivers/clk/sunxi/clk-factors.h
++++ b/drivers/clk/sunxi/clk-factors.h
+@@ -37,8 +37,9 @@ struct clk_factors {
+ 	spinlock_t *lock;
+ };
+ 
+-struct clk * __init sunxi_factors_register(struct device_node *node,
+-					   const struct factors_data *data,
+-					   spinlock_t *lock);
++struct clk *sunxi_factors_register(struct device_node *node,
++				   const struct factors_data *data,
++				   spinlock_t *lock,
++				   void __iomem *reg);
+ 
+ #endif
+diff --git a/drivers/clk/sunxi/clk-mod0.c b/drivers/clk/sunxi/clk-mod0.c
+index 4a56385..5fb1f7e 100644
+--- a/drivers/clk/sunxi/clk-mod0.c
++++ b/drivers/clk/sunxi/clk-mod0.c
+@@ -78,7 +78,17 @@ static DEFINE_SPINLOCK(sun4i_a10_mod0_lock);
+ 
+ static void __init sun4i_a10_mod0_setup(struct device_node *node)
+ {
+-	sunxi_factors_register(node, &sun4i_a10_mod0_data, &sun4i_a10_mod0_lock);
++	void __iomem *reg;
++
++	reg = of_iomap(node, 0);
++	if (!reg) {
++		pr_err("Could not get registers for mod0-clk: %s\n",
++		       node->name);
++		return;
++	}
++
++	sunxi_factors_register(node, &sun4i_a10_mod0_data,
++			       &sun4i_a10_mod0_lock, reg);
+ }
+ CLK_OF_DECLARE(sun4i_a10_mod0, "allwinner,sun4i-a10-mod0-clk", sun4i_a10_mod0_setup);
+ 
+@@ -86,7 +96,17 @@ static DEFINE_SPINLOCK(sun5i_a13_mbus_lock);
+ 
+ static void __init sun5i_a13_mbus_setup(struct device_node *node)
+ {
+-	struct clk *mbus = sunxi_factors_register(node, &sun4i_a10_mod0_data, &sun5i_a13_mbus_lock);
++	struct clk *mbus;
++	void __iomem *reg;
++
++	reg = of_iomap(node, 0);
++	if (!reg) {
++		pr_err("Could not get registers for a13-mbus-clk\n");
++		return;
++	}
++
++	mbus = sunxi_factors_register(node, &sun4i_a10_mod0_data,
++				      &sun5i_a13_mbus_lock, reg);
+ 
+ 	/* The MBUS clocks needs to be always enabled */
+ 	__clk_get(mbus);
+diff --git a/drivers/clk/sunxi/clk-sun8i-mbus.c b/drivers/clk/sunxi/clk-sun8i-mbus.c
+index 8e49b44..c0629ff 100644
+--- a/drivers/clk/sunxi/clk-sun8i-mbus.c
++++ b/drivers/clk/sunxi/clk-sun8i-mbus.c
+@@ -68,8 +68,17 @@ static DEFINE_SPINLOCK(sun8i_a23_mbus_lock);
+ 
+ static void __init sun8i_a23_mbus_setup(struct device_node *node)
+ {
+-	struct clk *mbus = sunxi_factors_register(node, &sun8i_a23_mbus_data,
+-						  &sun8i_a23_mbus_lock);
++	struct clk *mbus;
++	void __iomem *reg;
++
++	reg = of_iomap(node, 0);
++	if (!reg) {
++		pr_err("Could not get registers for a23-mbus-clk\n");
++		return;
++	}
++
++	mbus = sunxi_factors_register(node, &sun8i_a23_mbus_data,
++				      &sun8i_a23_mbus_lock, reg);
+ 
+ 	/* The MBUS clocks needs to be always enabled */
+ 	__clk_get(mbus);
+diff --git a/drivers/clk/sunxi/clk-sunxi.c b/drivers/clk/sunxi/clk-sunxi.c
+index b1f66ad..6062a3e 100644
+--- a/drivers/clk/sunxi/clk-sunxi.c
++++ b/drivers/clk/sunxi/clk-sunxi.c
+@@ -521,7 +521,16 @@ static const struct factors_data sun7i_a20_out_data __initconst = {
+ static struct clk * __init sunxi_factors_clk_setup(struct device_node *node,
+ 						   const struct factors_data *data)
+ {
+-	return sunxi_factors_register(node, data, &clk_lock);
++	void __iomem *reg;
++
++	reg = of_iomap(node, 0);
++	if (!reg) {
++		pr_err("Could not get registers for factors-clk: %s\n",
++		       node->name);
++		return NULL;
++	}
++
++	return sunxi_factors_register(node, data, &clk_lock, reg);
+ }
+ 
+ 
+-- 
+2.1.0
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
