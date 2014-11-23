@@ -1,40 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42166 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751312AbaKGIuq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Nov 2014 03:50:46 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv5 PATCH 09/15] vim2m: support expbuf
-Date: Fri,  7 Nov 2014 09:50:28 +0100
-Message-Id: <1415350234-9826-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:54261 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752050AbaKWVel (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Nov 2014 16:34:41 -0500
+Message-ID: <547252EF.3000400@iki.fi>
+Date: Sun, 23 Nov 2014 23:34:39 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] em28xx: Add support for Terratec Cinergy T2 Stick
+ HD
+References: <1416773873-27221-1-git-send-email-olli.salonen@iki.fi> <1416773873-27221-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1416773873-27221-2-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 11/23/2014 10:17 PM, Olli Salonen wrote:
+> Terratec Cinergy T2 Stick HD [eb1a:8179] is a USB DVB-T/T2/C tuner that contains following components:
+>
+> * Empia EM28178 USB bridge
+> * Silicon Labs Si2168-A30 demodulator
+> * Silicon Labs Si2146-A10 tuner
+>
+> I don't have the remote, so the RC_MAP is a best guess based on the pictures of the remote controllers and other supported Terratec devices with a similar remote.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vim2m.c | 1 +
- 1 file changed, 1 insertion(+)
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 87af47a..1105c11 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -697,6 +697,7 @@ static const struct v4l2_ioctl_ops vim2m_ioctl_ops = {
- 	.vidioc_querybuf	= v4l2_m2m_ioctl_querybuf,
- 	.vidioc_qbuf		= v4l2_m2m_ioctl_qbuf,
- 	.vidioc_dqbuf		= v4l2_m2m_ioctl_dqbuf,
-+	.vidioc_expbuf		= v4l2_m2m_ioctl_expbuf,
- 
- 	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
- 	.vidioc_streamoff	= v4l2_m2m_ioctl_streamoff,
+Antti
+
 -- 
-2.1.1
-
+http://palosaari.fi/
