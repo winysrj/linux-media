@@ -1,56 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53213 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751752AbaKBW5O (ORCPT
+Received: from mail-la0-f45.google.com ([209.85.215.45]:56547 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750738AbaKWLB0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Nov 2014 17:57:14 -0500
-Date: Mon, 3 Nov 2014 00:57:05 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
-Message-ID: <20141102225704.GM3136@valkosipuli.retiisi.org.uk>
-References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com>
+	Sun, 23 Nov 2014 06:01:26 -0500
+Received: by mail-la0-f45.google.com with SMTP id gq15so6382385lab.18
+        for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 03:01:24 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com>
+In-Reply-To: <1416315068-22936-10-git-send-email-hverkuil@xs4all.nl>
+References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl> <1416315068-22936-10-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sun, 23 Nov 2014 19:52:52 +0900
+Message-ID: <CAMm-=zAAU8C+73unc6z4jpo4sNvj0yfWJYP5cJdZ4nWA=4f0LQ@mail.gmail.com>
+Subject: Re: [REVIEWv7 PATCH 09/12] vb2-vmalloc: add support for dmabuf exports
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hansverk@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Grazvydas,
+On Tue, Nov 18, 2014 at 9:51 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hansverk@cisco.com>
+>
+> Add support for DMABUF exporting to the vb2-vmalloc implementation.
+>
+> All memory models now have support for both importing and exporting of DMABUFs.
+>
+> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 
-On Sun, Nov 02, 2014 at 04:03:55AM +0200, Grazvydas Ignotas wrote:
-> There is periodic stutter (seen in vlc, for example) since 3.9 where
-> the stream stops for around half a second every 3-5 seconds or so.
-> Bisecting points to 1b18e7a0be859911b22138ce27258687efc528b8 "v4l:
-> Tell user space we're using monotonic timestamps". I've verified the
-> problem is there on stock Ubuntu 14.04 kernel, 3.16.7 from kernel.org
-> and when using media_build.git . The commit does not revert on newer
-> kernels as that code changed, but checking out a commit before the one
-> mentioned gives properly working kernel.
-> 
-> I'm using Logitech C920 which can do h264 compression and playing the
-> video using vlc:
-> cvlc v4l2:///dev/video0:chroma=h264:width=1280:height=720
+Acked-by: Pawel Osciak <pawel@osciak.com>
 
-I've got Logitech C270 here but I can't reproduce the problem. The frame
-rate with the above command is really low, around 5. With a smaller
-resolution it works quite smoothly. The reason might be that the pixel
-format is still YUYV. The other option appears to be MJPG.
+> ---
+>  drivers/media/v4l2-core/videobuf2-vmalloc.c | 171 ++++++++++++++++++++++++++++
+>  1 file changed, 171 insertions(+)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index bba2460..3966b12 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -213,6 +213,176 @@ static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
+>  }
+>
+>  /*********************************************/
+> +/*         DMABUF ops for exporters          */
+> +/*********************************************/
+> +
+> +struct vb2_vmalloc_attachment {
+> +       struct sg_table sgt;
+> +       enum dma_data_direction dma_dir;
+> +};
+> +
+> +static int vb2_vmalloc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
+> +       struct dma_buf_attachment *dbuf_attach)
+> +{
+> +       struct vb2_vmalloc_attachment *attach;
+> +       struct vb2_vmalloc_buf *buf = dbuf->priv;
+> +       int num_pages = PAGE_ALIGN(buf->size) / PAGE_SIZE;
+> +       struct sg_table *sgt;
+> +       struct scatterlist *sg;
+> +       void *vaddr = buf->vaddr;
+> +       int ret;
+> +       int i;
+> +
+> +       attach = kzalloc(sizeof(*attach), GFP_KERNEL);
+> +       if (!attach)
+> +               return -ENOMEM;
+> +
+> +       sgt = &attach->sgt;
+> +       ret = sg_alloc_table(sgt, num_pages, GFP_KERNEL);
+> +       if (ret) {
+> +               kfree(attach);
+> +               return ret;
+> +       }
+> +       for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+> +               struct page *page = vmalloc_to_page(vaddr);
+> +
+> +               if (!page) {
+> +                       sg_free_table(sgt);
+> +                       kfree(attach);
+> +                       return -ENOMEM;
+> +               }
+> +               sg_set_page(sg, page, PAGE_SIZE, 0);
+> +               vaddr += PAGE_SIZE;
+> +       }
+> +
+> +       attach->dma_dir = DMA_NONE;
+> +       dbuf_attach->priv = attach;
+> +       return 0;
+> +}
+> +
+> +static void vb2_vmalloc_dmabuf_ops_detach(struct dma_buf *dbuf,
+> +       struct dma_buf_attachment *db_attach)
+> +{
+> +       struct vb2_vmalloc_attachment *attach = db_attach->priv;
+> +       struct sg_table *sgt;
+> +
+> +       if (!attach)
+> +               return;
+> +
+> +       sgt = &attach->sgt;
+> +
+> +       /* release the scatterlist cache */
+> +       if (attach->dma_dir != DMA_NONE)
+> +               dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+> +                       attach->dma_dir);
+> +       sg_free_table(sgt);
+> +       kfree(attach);
+> +       db_attach->priv = NULL;
+> +}
+> +
+> +static struct sg_table *vb2_vmalloc_dmabuf_ops_map(
+> +       struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
+> +{
+> +       struct vb2_vmalloc_attachment *attach = db_attach->priv;
+> +       /* stealing dmabuf mutex to serialize map/unmap operations */
+> +       struct mutex *lock = &db_attach->dmabuf->lock;
+> +       struct sg_table *sgt;
+> +       int ret;
+> +
+> +       mutex_lock(lock);
+> +
+> +       sgt = &attach->sgt;
+> +       /* return previously mapped sg table */
+> +       if (attach->dma_dir == dma_dir) {
+> +               mutex_unlock(lock);
+> +               return sgt;
+> +       }
+> +
+> +       /* release any previous cache */
+> +       if (attach->dma_dir != DMA_NONE) {
+> +               dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+> +                       attach->dma_dir);
+> +               attach->dma_dir = DMA_NONE;
+> +       }
+> +
+> +       /* mapping to the client with new direction */
+> +       ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
+> +       if (ret <= 0) {
+> +               pr_err("failed to map scatterlist\n");
+> +               mutex_unlock(lock);
+> +               return ERR_PTR(-EIO);
+> +       }
+> +
+> +       attach->dma_dir = dma_dir;
+> +
+> +       mutex_unlock(lock);
+> +
+> +       return sgt;
+> +}
+> +
+> +static void vb2_vmalloc_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
+> +       struct sg_table *sgt, enum dma_data_direction dma_dir)
+> +{
+> +       /* nothing to be done here */
+> +}
+> +
+> +static void vb2_vmalloc_dmabuf_ops_release(struct dma_buf *dbuf)
+> +{
+> +       /* drop reference obtained in vb2_vmalloc_get_dmabuf */
+> +       vb2_vmalloc_put(dbuf->priv);
+> +}
+> +
+> +static void *vb2_vmalloc_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
+> +{
+> +       struct vb2_vmalloc_buf *buf = dbuf->priv;
+> +
+> +       return buf->vaddr + pgnum * PAGE_SIZE;
+> +}
+> +
+> +static void *vb2_vmalloc_dmabuf_ops_vmap(struct dma_buf *dbuf)
+> +{
+> +       struct vb2_vmalloc_buf *buf = dbuf->priv;
+> +
+> +       return buf->vaddr;
+> +}
+> +
+> +static int vb2_vmalloc_dmabuf_ops_mmap(struct dma_buf *dbuf,
+> +       struct vm_area_struct *vma)
+> +{
+> +       return vb2_vmalloc_mmap(dbuf->priv, vma);
+> +}
+> +
+> +static struct dma_buf_ops vb2_vmalloc_dmabuf_ops = {
+> +       .attach = vb2_vmalloc_dmabuf_ops_attach,
+> +       .detach = vb2_vmalloc_dmabuf_ops_detach,
+> +       .map_dma_buf = vb2_vmalloc_dmabuf_ops_map,
+> +       .unmap_dma_buf = vb2_vmalloc_dmabuf_ops_unmap,
+> +       .kmap = vb2_vmalloc_dmabuf_ops_kmap,
+> +       .kmap_atomic = vb2_vmalloc_dmabuf_ops_kmap,
+> +       .vmap = vb2_vmalloc_dmabuf_ops_vmap,
+> +       .mmap = vb2_vmalloc_dmabuf_ops_mmap,
+> +       .release = vb2_vmalloc_dmabuf_ops_release,
+> +};
+> +
+> +static struct dma_buf *vb2_vmalloc_get_dmabuf(void *buf_priv, unsigned long flags)
+> +{
+> +       struct vb2_vmalloc_buf *buf = buf_priv;
+> +       struct dma_buf *dbuf;
+> +
+> +       if (WARN_ON(!buf->vaddr))
+> +               return NULL;
+> +
+> +       dbuf = dma_buf_export(buf, &vb2_vmalloc_dmabuf_ops, buf->size, flags, NULL);
+> +       if (IS_ERR(dbuf))
+> +               return NULL;
+> +
+> +       /* dmabuf keeps reference to vb2 buffer */
+> +       atomic_inc(&buf->refcount);
+> +
+> +       return dbuf;
+> +}
+> +
+> +/*********************************************/
+>  /*       callbacks for DMABUF buffers        */
+>  /*********************************************/
+>
+> @@ -268,6 +438,7 @@ const struct vb2_mem_ops vb2_vmalloc_memops = {
+>         .put            = vb2_vmalloc_put,
+>         .get_userptr    = vb2_vmalloc_get_userptr,
+>         .put_userptr    = vb2_vmalloc_put_userptr,
+> +       .get_dmabuf     = vb2_vmalloc_get_dmabuf,
+>         .map_dmabuf     = vb2_vmalloc_map_dmabuf,
+>         .unmap_dmabuf   = vb2_vmalloc_unmap_dmabuf,
+>         .attach_dmabuf  = vb2_vmalloc_attach_dmabuf,
+> --
+> 2.1.1
+>
 
-My vlc is of version 2.0.3 (Debian). Which one do you have, and does it use
-libv4l2?
 
-Have you tried with a different application to see if the problem persists?
-If the cause of the stutter you described is this patch, it might be how
-the information the flag provides is used in the user space.
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Best regards,
+Pawel Osciak
