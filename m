@@ -1,42 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:62381 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753988AbaKRNMq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 08:12:46 -0500
-Received: by mail-wg0-f45.google.com with SMTP id b13so1131845wgh.18
-        for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 05:12:45 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1415964052-30351-1-git-send-email-nikhil.nd@ti.com>
-References: <1415964052-30351-1-git-send-email-nikhil.nd@ti.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 18 Nov 2014 13:12:14 +0000
-Message-ID: <CA+V-a8sJW=yjQ_sEDmq2Mb+SGAHPFr-hs7pqc1BRqsMRMz9d2Q@mail.gmail.com>
-Subject: Re: [PATCH v2 0/4] VPE improvements
-To: Nikhil Devshatwar <nikhil.nd@ti.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mx1.redhat.com ([209.132.183.28]:52676 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751235AbaKWNjB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Nov 2014 08:39:01 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2 6/9] ARM: dts: sun6i: Add ir_clk node
+Date: Sun, 23 Nov 2014 14:38:12 +0100
+Message-Id: <1416749895-25013-7-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
+References: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nikhil,
+Add an ir_clk sub-node to the prcm node.
 
-On Fri, Nov 14, 2014 at 11:20 AM, Nikhil Devshatwar <nikhil.nd@ti.com> wrote:
-> This patchset adds following improvements for the ti-vpe driver.
-> * Support SEQ_TB format for interlaced buffers
->         Some of the video decoders generate interlaced content in SEQ_TB format
->         Y top, T bottom in one plane and UV top, UV bottom in another
-> * Improve multi instance latency
->         Improve m2m job scheduling in multi instance use cases
->         Start processing even if all buffers aren't present
-> * N frame de-interlace support
->         For N input fields, generate N progressive frames
->
-While you are at it can you test the following 2 patches ?
-(had CCed to Archit but the mail bounced back)
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ arch/arm/boot/dts/sun6i-a31.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-https://patchwork.kernel.org/patch/5328481/
-https://patchwork.kernel.org/patch/5327801/
+diff --git a/arch/arm/boot/dts/sun6i-a31.dtsi b/arch/arm/boot/dts/sun6i-a31.dtsi
+index a01b215..4aa628b 100644
+--- a/arch/arm/boot/dts/sun6i-a31.dtsi
++++ b/arch/arm/boot/dts/sun6i-a31.dtsi
+@@ -882,6 +882,13 @@
+ 						"apb0_i2c";
+ 			};
+ 
++			ir_clk: ir_clk {
++				#clock-cells = <0>;
++				compatible = "allwinner,sun6i-a31-ir-clk";
++				clocks = <&osc32k>, <&osc24M>;
++				clock-output-names = "ir";
++			};
++
+ 			apb0_rst: apb0_rst {
+ 				compatible = "allwinner,sun6i-a31-clock-reset";
+ 				#reset-cells = <1>;
+-- 
+2.1.0
 
-Thanks,
---Prabhakar Lad
