@@ -1,68 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50973 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753888AbaKEMV4 (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59534 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751118AbaKWM4H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 07:21:56 -0500
-Message-ID: <545A164B.2010908@xs4all.nl>
-Date: Wed, 05 Nov 2014 13:21:31 +0100
+	Sun, 23 Nov 2014 07:56:07 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 8A9292A0083
+	for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 13:56:01 +0100 (CET)
+Message-ID: <5471D961.5080607@xs4all.nl>
+Date: Sun, 23 Nov 2014 13:56:01 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 2/5] [media] cx24110: Fix a spatch warning
-References: <667c952e7191ffb0a2703c8e173b0d5f0231a764.1415188985.git.mchehab@osg.samsung.com> <b8e64df00231a4c4d59b68d8eda9f8db1adc1ea4.1415188985.git.mchehab@osg.samsung.com>
-In-Reply-To: <b8e64df00231a4c4d59b68d8eda9f8db1adc1ea4.1415188985.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.19] Various cleanups &  sg_next fix
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-spatch or smatch? I assume smatch :-)
+The following changes since commit 5937a784c3e5fe8fd1e201f42a2b1ece6c36a6c0:
 
-BTW, I've just added smatch support to the daily build.
+  [media] staging: media: bcm2048: fix coding style error (2014-11-21 16:50:37 -0200)
 
-Regards,
+are available in the git repository at:
 
-	Hans
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.19i
 
-On 11/05/14 13:03, Mauro Carvalho Chehab wrote:
-> This is actually a false positive:
-> 	drivers/media/dvb-frontends/cx24110.c:210 cx24110_set_fec() error: buffer overflow 'rate' 7 <= 8
-> 
-> But fixing it is easy: just ensure that the table size will be
-> limited to FEC_AUTO.
-> 
-> While here, fix spacing on the affected lines.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/dvb-frontends/cx24110.c b/drivers/media/dvb-frontends/cx24110.c
-> index 95b981cd7115..e78e7893e8aa 100644
-> --- a/drivers/media/dvb-frontends/cx24110.c
-> +++ b/drivers/media/dvb-frontends/cx24110.c
-> @@ -181,16 +181,16 @@ static int cx24110_set_fec (struct cx24110_state* state, fe_code_rate_t fec)
->  {
->  /* fixme (low): error handling */
->  
-> -	static const int rate[]={-1,1,2,3,5,7,-1};
-> -	static const int g1[]={-1,0x01,0x02,0x05,0x15,0x45,-1};
-> -	static const int g2[]={-1,0x01,0x03,0x06,0x1a,0x7a,-1};
-> +	static const int rate[FEC_AUTO] = {-1,    1,    2,    3,    5,    7, -1};
-> +	static const int g1[FEC_AUTO]   = {-1, 0x01, 0x02, 0x05, 0x15, 0x45, -1};
-> +	static const int g2[FEC_AUTO]   = {-1, 0x01, 0x03, 0x06, 0x1a, 0x7a, -1};
->  
->  	/* Well, the AutoAcq engine of the cx24106 and 24110 automatically
->  	   searches all enabled viterbi rates, and can handle non-standard
->  	   rates as well. */
->  
-> -	if (fec>FEC_AUTO)
-> -		fec=FEC_AUTO;
-> +	if (fec > FEC_AUTO)
-> +		fec = FEC_AUTO;
->  
->  	if (fec==FEC_AUTO) { /* (re-)establish AutoAcq behaviour */
->  		cx24110_writereg(state,0x37,cx24110_readreg(state,0x37)&0xdf);
-> 
+for you to fetch changes up to 8b81fc8f5b8b92ff280fe7dc5071eae29c1a7fd3:
 
+  v4l2-common: move v4l2_ctrl_check to cx2341x (2014-11-23 13:54:21 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (5):
+      bttv/cx25821/cx88/ivtv: use sg_next instead of sg++
+      v4l2-dev: vdev->v4l2_dev is always set, so simplify code.
+      v4l2-common: remove unused helper functions.
+      v4l2-ctrl: move function prototypes from common.h to ctrls.h
+      v4l2-common: move v4l2_ctrl_check to cx2341x
+
+Prabhakar Lad (1):
+      media: vivid: use vb2_ops_wait_prepare/finish helper
+
+ drivers/media/common/cx2341x.c               |  29 +++++++++++++++++++
+ drivers/media/pci/bt8xx/bttv-risc.c          |  12 ++++----
+ drivers/media/pci/cx25821/cx25821-core.c     |  12 ++++----
+ drivers/media/pci/cx88/cx88-core.c           |   6 ++--
+ drivers/media/pci/ivtv/ivtv-udma.c           |   2 +-
+ drivers/media/platform/vivid/vivid-core.c    |  19 ++++--------
+ drivers/media/platform/vivid/vivid-core.h    |   3 --
+ drivers/media/platform/vivid/vivid-sdr-cap.c |   4 +--
+ drivers/media/platform/vivid/vivid-vbi-cap.c |   4 +--
+ drivers/media/platform/vivid/vivid-vbi-out.c |   4 +--
+ drivers/media/platform/vivid/vivid-vid-cap.c |   4 +--
+ drivers/media/platform/vivid/vivid-vid-out.c |   4 +--
+ drivers/media/v4l2-core/v4l2-common.c        | 125 -------------------------------------------------------------------------------
+ drivers/media/v4l2-core/v4l2-dev.c           |  34 +++++++++-------------
+ include/media/v4l2-common.h                  |  17 +----------
+ include/media/v4l2-ctrls.h                   |  25 ++++++++++++++++
+ 16 files changed, 100 insertions(+), 204 deletions(-)
