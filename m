@@ -1,57 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51202 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751500AbaKEN7w (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:40618 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751116AbaKWObk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 08:59:52 -0500
-Date: Wed, 5 Nov 2014 15:52:41 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: Re: [PATCH v2 01/13] media: entity: Document the media_entity_ops
- structure
-Message-ID: <20141105135241.GQ3136@valkosipuli.retiisi.org.uk>
-References: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1414940018-3016-2-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sun, 23 Nov 2014 09:31:40 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 8EB152A0083
+	for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 15:31:34 +0100 (CET)
+Message-ID: <5471EFC6.6040806@xs4all.nl>
+Date: Sun, 23 Nov 2014 15:31:34 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1414940018-3016-2-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.19] Various cleanups &  sg_next fix
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 02, 2014 at 04:53:26PM +0200, Laurent Pinchart wrote:
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  include/media/media-entity.h | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index e004591..786906b 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -44,6 +44,15 @@ struct media_pad {
->  	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
->  };
->  
-> +/**
-> + * struct media_entity_operations - Media entity operations
-> + * @link_setup:		Notify the entity of link changes. The operation can
-> + *			return an error, in which case link setup will be
-> + *			cancelled. Optional.
-> + * @link_validate:	Return whether a link is valid from the entity point of
-> + *			view. The media_entity_pipeline_start() function
-> + *			validates all links by calling this operation. Optional.
-> + */
->  struct media_entity_operations {
->  	int (*link_setup)(struct media_entity *entity,
->  			  const struct media_pad *local,
+This supersedes the previous pull request. It's identical, but the omap24xx
+Makefile patch was added.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+	Hans
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+The following changes since commit 5937a784c3e5fe8fd1e201f42a2b1ece6c36a6c0:
+
+  [media] staging: media: bcm2048: fix coding style error (2014-11-21 16:50:37 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.19i
+
+for you to fetch changes up to b0856f476664018cd75dedde9fc1e8d28a194e3c:
+
+  staging/media/Makefile: drop omap24xx reference (2014-11-23 15:29:48 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (6):
+      bttv/cx25821/cx88/ivtv: use sg_next instead of sg++
+      v4l2-dev: vdev->v4l2_dev is always set, so simplify code.
+      v4l2-common: remove unused helper functions.
+      v4l2-ctrl: move function prototypes from common.h to ctrls.h
+      v4l2-common: move v4l2_ctrl_check to cx2341x
+      staging/media/Makefile: drop omap24xx reference
+
+Prabhakar Lad (1):
+      media: vivid: use vb2_ops_wait_prepare/finish helper
+
+ drivers/media/common/cx2341x.c               |  29 +++++++++++++++++++
+ drivers/media/pci/bt8xx/bttv-risc.c          |  12 ++++----
+ drivers/media/pci/cx25821/cx25821-core.c     |  12 ++++----
+ drivers/media/pci/cx88/cx88-core.c           |   6 ++--
+ drivers/media/pci/ivtv/ivtv-udma.c           |   2 +-
+ drivers/media/platform/vivid/vivid-core.c    |  19 ++++--------
+ drivers/media/platform/vivid/vivid-core.h    |   3 --
+ drivers/media/platform/vivid/vivid-sdr-cap.c |   4 +--
+ drivers/media/platform/vivid/vivid-vbi-cap.c |   4 +--
+ drivers/media/platform/vivid/vivid-vbi-out.c |   4 +--
+ drivers/media/platform/vivid/vivid-vid-cap.c |   4 +--
+ drivers/media/platform/vivid/vivid-vid-out.c |   4 +--
+ drivers/media/v4l2-core/v4l2-common.c        | 125 -------------------------------------------------------------------------------
+ drivers/media/v4l2-core/v4l2-dev.c           |  34 +++++++++-------------
+ drivers/staging/media/Makefile               |   1 -
+ include/media/v4l2-common.h                  |  17 +----------
+ include/media/v4l2-ctrls.h                   |  25 ++++++++++++++++
+ 17 files changed, 100 insertions(+), 205 deletions(-)
