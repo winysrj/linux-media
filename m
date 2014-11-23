@@ -1,53 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42961 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753179AbaKKKgj (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:59428 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750837AbaKWMOH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Nov 2014 05:36:39 -0500
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 6F16A60097
-	for <linux-media@vger.kernel.org>; Tue, 11 Nov 2014 12:36:36 +0200 (EET)
-Date: Tue, 11 Nov 2014 12:36:04 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT FIXES for v3.18] Fix unintended BUG() in smiapp driver
-Message-ID: <20141111103604.GB8214@valkosipuli.retiisi.org.uk>
+	Sun, 23 Nov 2014 07:14:07 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 87F492A0083
+	for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 13:14:01 +0100 (CET)
+Message-ID: <5471CF89.30209@xs4all.nl>
+Date: Sun, 23 Nov 2014 13:14:01 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] v4l2-dev: vdev->v4l2_dev is always set, so simplify code.
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+These days vdev->v4l2_dev must always be set. This means that some
+old code that still tests for a NULL vdev->v4l2_dev can be removed
+or simplified.
 
-This simple patch fixes an unintended BUG() in the smiapp driver. This
-should go to stable as well.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 34 ++++++++++++++--------------------
+ 1 file changed, 14 insertions(+), 20 deletions(-)
 
-The patch in the tree is the same than sent to the list, except it cc's
-stable@vger.kernel.org. This issue has existed since the very beginning so
-the patch should be applied to the stable series as well.
-
-The following changes since commit 4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
-
-  [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git smiapp-fix-v3.18
-
-for you to fetch changes up to b88104c04eb9611a34a6e6ab3fead33d0e93a19c:
-
-  smiapp: Only some selection targets are settable (2014-11-09 01:57:49 +0200)
-
-----------------------------------------------------------------
-Sakari Ailus (1):
-      smiapp: Only some selection targets are settable
-
- drivers/media/i2c/smiapp/smiapp-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 33617c3..9aa530a 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -194,7 +194,7 @@ static void v4l2_device_release(struct device *cd)
+ 	mutex_unlock(&videodev_lock);
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	if (v4l2_dev && v4l2_dev->mdev &&
++	if (v4l2_dev->mdev &&
+ 	    vdev->vfl_type != VFL_TYPE_SUBDEV)
+ 		media_device_unregister_entity(&vdev->entity);
+ #endif
+@@ -207,7 +207,7 @@ static void v4l2_device_release(struct device *cd)
+ 	 * TODO: In the long run all drivers that use v4l2_device should use the
+ 	 * v4l2_device release callback. This check will then be unnecessary.
+ 	 */
+-	if (v4l2_dev && v4l2_dev->release == NULL)
++	if (v4l2_dev->release == NULL)
+ 		v4l2_dev = NULL;
+ 
+ 	/* Release video_device and perform other
+@@ -360,27 +360,22 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		 * hack but it will have to do for those drivers that are not
+ 		 * yet converted to use unlocked_ioctl.
+ 		 *
+-		 * There are two options: if the driver implements struct
+-		 * v4l2_device, then the lock defined there is used to
+-		 * serialize the ioctls. Otherwise the v4l2 core lock defined
+-		 * below is used. This lock is really bad since it serializes
+-		 * completely independent devices.
++		 * All drivers implement struct v4l2_device, so we use the
++		 * lock defined there to serialize the ioctls.
+ 		 *
+-		 * Both variants suffer from the same problem: if the driver
+-		 * sleeps, then it blocks all ioctls since the lock is still
+-		 * held. This is very common for VIDIOC_DQBUF since that
+-		 * normally waits for a frame to arrive. As a result any other
+-		 * ioctl calls will proceed very, very slowly since each call
+-		 * will have to wait for the VIDIOC_QBUF to finish. Things that
+-		 * should take 0.01s may now take 10-20 seconds.
++		 * However, if the driver sleeps, then it blocks all ioctls
++		 * since the lock is still held. This is very common for
++		 * VIDIOC_DQBUF since that normally waits for a frame to arrive.
++		 * As a result any other ioctl calls will proceed very, very
++		 * slowly since each call will have to wait for the VIDIOC_QBUF
++		 * to finish. Things that should take 0.01s may now take 10-20
++		 * seconds.
+ 		 *
+ 		 * The workaround is to *not* take the lock for VIDIOC_DQBUF.
+ 		 * This actually works OK for videobuf-based drivers, since
+ 		 * videobuf will take its own internal lock.
+ 		 */
+-		static DEFINE_MUTEX(v4l2_ioctl_mutex);
+-		struct mutex *m = vdev->v4l2_dev ?
+-			&vdev->v4l2_dev->ioctl_lock : &v4l2_ioctl_mutex;
++		struct mutex *m = &vdev->v4l2_dev->ioctl_lock;
+ 
+ 		if (cmd != VIDIOC_DQBUF && mutex_lock_interruptible(m))
+ 			return -ERESTARTSYS;
+@@ -938,12 +933,11 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 			name_base, nr, video_device_node_name(vdev));
+ 
+ 	/* Increase v4l2_device refcount */
+-	if (vdev->v4l2_dev)
+-		v4l2_device_get(vdev->v4l2_dev);
++	v4l2_device_get(vdev->v4l2_dev);
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	/* Part 5: Register the entity. */
+-	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
++	if (vdev->v4l2_dev->mdev &&
+ 	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
+ 		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
+ 		vdev->entity.name = vdev->name;
 -- 
-Kind regards,
+2.1.3
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
