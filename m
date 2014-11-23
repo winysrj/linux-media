@@ -1,72 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:59045 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754278AbaKRLYP (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40686 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751466AbaKWOX6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 06:24:15 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 12/12] media: usb: uvc: use vb2_ops_wait_prepare/finish helper
-Date: Tue, 18 Nov 2014 11:23:41 +0000
-Message-Id: <1416309821-5426-13-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+	Sun, 23 Nov 2014 09:23:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: "Ira W. Snyder" <iws@ovro.caltech.edu>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 0/3] carma-fpga: remove videobuf dependency
+Date: Sun, 23 Nov 2014 15:23:47 +0100
+Message-Id: <1416752630-47360-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_queue.c | 19 +++----------------
- 1 file changed, 3 insertions(+), 16 deletions(-)
+While checking which drivers were still abusing internal videobuf API
+functions I came across these carma fpga misc drivers. These drivers
+have absolutely nothing to do with videobuf or the media subsystem.
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index 6e92d20..9c42ac6f 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -117,27 +117,13 @@ static void uvc_buffer_finish(struct vb2_buffer *vb)
- 		uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
- }
- 
--static void uvc_wait_prepare(struct vb2_queue *vq)
--{
--	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
--
--	mutex_unlock(&queue->mutex);
--}
--
--static void uvc_wait_finish(struct vb2_queue *vq)
--{
--	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
--
--	mutex_lock(&queue->mutex);
--}
--
- static struct vb2_ops uvc_queue_qops = {
- 	.queue_setup = uvc_queue_setup,
- 	.buf_prepare = uvc_buffer_prepare,
- 	.buf_queue = uvc_buffer_queue,
- 	.buf_finish = uvc_buffer_finish,
--	.wait_prepare = uvc_wait_prepare,
--	.wait_finish = uvc_wait_finish,
-+	.wait_prepare = vb2_ops_wait_prepare,
-+	.wait_finish = vb2_ops_wait_finish,
- };
- 
- int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
-@@ -153,6 +139,7 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
- 	queue->queue.mem_ops = &vb2_vmalloc_memops;
- 	queue->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
- 		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
-+	queue->queue.lock = &queue->mutex;
- 	ret = vb2_queue_init(&queue->queue);
- 	if (ret)
- 		return ret;
--- 
-1.9.1
+Drivers shouldn't use those low-level functions in the first place,
+and in fact in the long run the videobuf API will be removed altogether.
+
+So remove the videobuf dependency from these two drivers.
+
+This has been compile tested (and that clearly hasn't been done for
+carma-fpga-program.c recently).
+
+Greg, is this something you want to take as misc driver maintainer?
+That makes more sense than going through the media tree.
+
+The first patch should probably go to 3.18.
+
+I have no idea if anyone can test this with actual hardware. Ira, is
+that something you can do?
+
+Regards,
+
+	Hans
 
