@@ -1,61 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:43975 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681AbaK0BZP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 20:25:15 -0500
-Received: by mail-pa0-f51.google.com with SMTP id ey11so3978167pad.10
-        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 17:25:14 -0800 (PST)
-From: Takanari Hayama <taki@igel.co.jp>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 2/2] v4l: vsp1: Always enable virtual RPF when BRU is in use
-Date: Thu, 27 Nov 2014 10:25:02 +0900
-Message-Id: <1417051502-30169-3-git-send-email-taki@igel.co.jp>
-In-Reply-To: <1417051502-30169-1-git-send-email-taki@igel.co.jp>
-References: <1417051502-30169-1-git-send-email-taki@igel.co.jp>
+Received: from mx1.redhat.com ([209.132.183.28]:52789 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751183AbaKWNjA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Nov 2014 08:39:00 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2 7/9] ARM: dts: sun6i: Add ir node
+Date: Sun, 23 Nov 2014 14:38:13 +0100
+Message-Id: <1416749895-25013-8-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
+References: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Regardless of a number of inputs, we should always enable virtual RPF
-when BRU is used. This allows the case when there's only one input to
-BRU, and a size of the input is smaller than a size of an output of BRU.
+Add a node for the ir receiver found on the A31.
 
-Signed-off-by: Takanari Hayama <taki@igel.co.jp>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/platform/vsp1/vsp1_wpf.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/sun6i-a31.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 6e05776..cb17c4d 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -92,19 +92,20 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 		return 0;
- 	}
+diff --git a/arch/arm/boot/dts/sun6i-a31.dtsi b/arch/arm/boot/dts/sun6i-a31.dtsi
+index 4aa628b..d33e758 100644
+--- a/arch/arm/boot/dts/sun6i-a31.dtsi
++++ b/arch/arm/boot/dts/sun6i-a31.dtsi
+@@ -900,6 +900,16 @@
+ 			reg = <0x01f01c00 0x300>;
+ 		};
  
--	/* Sources. If the pipeline has a single input configure it as the
--	 * master layer. Otherwise configure all inputs as sub-layers and
--	 * select the virtual RPF as the master layer.
-+	/* Sources. If the pipeline has a single input and BRU is not used,
-+	 * configure it as the master layer. Otherwise configure all
-+	 * inputs as sub-layers and select the virtual RPF as the master
-+	 * layer.
- 	 */
- 	for (i = 0; i < pipe->num_inputs; ++i) {
- 		struct vsp1_rwpf *input = pipe->inputs[i];
- 
--		srcrpf |= pipe->num_inputs == 1
-+		srcrpf |= (!pipe->bru && pipe->num_inputs == 1)
- 			? VI6_WPF_SRCRPF_RPF_ACT_MST(input->entity.index)
- 			: VI6_WPF_SRCRPF_RPF_ACT_SUB(input->entity.index);
- 	}
- 
--	if (pipe->num_inputs > 1)
-+	if (pipe->bru || pipe->num_inputs > 1)
- 		srcrpf |= VI6_WPF_SRCRPF_VIRACT_MST;
- 
- 	vsp1_wpf_write(wpf, VI6_WPF_SRCRPF, srcrpf);
++		ir@01f02000 {
++			compatible = "allwinner,sun5i-a13-ir";
++			clocks = <&apb0_gates 1>, <&ir_clk>;
++			clock-names = "apb", "ir";
++			resets = <&apb0_rst 1>;
++			interrupts = <0 37 4>;
++			reg = <0x01f02000 0x40>;
++			status = "disabled";
++		};
++
+ 		r_pio: pinctrl@01f02c00 {
+ 			compatible = "allwinner,sun6i-a31-r-pinctrl";
+ 			reg = <0x01f02c00 0x400>;
 -- 
-1.8.0
+2.1.0
 
