@@ -1,146 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:45338 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753850AbaKJR2n (ORCPT
+Received: from mail-la0-f50.google.com ([209.85.215.50]:42430 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751419AbaKWUSL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 12:28:43 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v6 RESEND 05/10] [media] pci: Make use of MEDIA_BUS_FMT definitions
-Date: Mon, 10 Nov 2014 18:28:30 +0100
-Message-Id: <1415640515-15069-6-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415640515-15069-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415640515-15069-1-git-send-email-boris.brezillon@free-electrons.com>
+	Sun, 23 Nov 2014 15:18:11 -0500
+Received: by mail-la0-f50.google.com with SMTP id pv20so6564891lab.23
+        for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 12:18:09 -0800 (PST)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 1/2] si2157: Add support for Si2146-A10
+Date: Sun, 23 Nov 2014 22:17:52 +0200
+Message-Id: <1416773873-27221-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to have subsytem agnostic media bus format definitions we've
-moved media bus definition to include/uapi/linux/media-bus-format.h and
-prefixed values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
+The Silicon Labs Si2146 tuner seems to work with the same driver as the Si2157, but there a few exceptions. The powerup command seems to be quite a bit different. In addition there's a property 0207 that requires a different value. Thus another entry is created in the si2157_id table to support also si2146 in this driver.
 
-Replace all references to the old definitions in pci drivers.
+The datasheet is available on manufacturer's website:
+http://www.silabs.com/support%20documents/technicaldocs/Si2146-short.pdf
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/pci/cx18/cx18-av-core.c       | 2 +-
- drivers/media/pci/cx18/cx18-controls.c      | 2 +-
- drivers/media/pci/cx18/cx18-ioctl.c         | 2 +-
- drivers/media/pci/cx23885/cx23885-video.c   | 2 +-
- drivers/media/pci/ivtv/ivtv-controls.c      | 2 +-
- drivers/media/pci/ivtv/ivtv-ioctl.c         | 2 +-
- drivers/media/pci/saa7134/saa7134-empress.c | 4 ++--
- 7 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/media/tuners/si2157.c      | 23 +++++++++++++++++++----
+ drivers/media/tuners/si2157_priv.h |  5 +++++
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
-index 2d3afe0..4c6ce21 100644
---- a/drivers/media/pci/cx18/cx18-av-core.c
-+++ b/drivers/media/pci/cx18/cx18-av-core.c
-@@ -952,7 +952,7 @@ static int cx18_av_s_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt
- 	int HSC, VSC, Vsrc, Hsrc, filter, Vlines;
- 	int is_50Hz = !(state->std & V4L2_STD_525_60);
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index b086b87..e867b28 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -93,8 +93,13 @@ static int si2157_init(struct dvb_frontend *fe)
+ 		goto warm;
  
--	if (fmt->code != V4L2_MBUS_FMT_FIXED)
-+	if (fmt->code != MEDIA_BUS_FMT_FIXED)
- 		return -EINVAL;
+ 	/* power up */
+-	memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
+-	cmd.wlen = 15;
++	if (s->chiptype == SI2157_CHIPTYPE_SI2146) {
++		memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
++		cmd.wlen = 9;
++	} else {
++		memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
++		cmd.wlen = 15;
++	}
+ 	cmd.rlen = 1;
+ 	ret = si2157_cmd_execute(s, &cmd);
+ 	if (ret)
+@@ -114,6 +119,7 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	#define SI2158_A20 ('A' << 24 | 58 << 16 | '2' << 8 | '0' << 0)
+ 	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
+ 	#define SI2147_A30 ('A' << 24 | 47 << 16 | '3' << 8 | '0' << 0)
++	#define SI2146_A10 ('A' << 24 | 46 << 16 | '1' << 8 | '0' << 0)
  
- 	fmt->field = V4L2_FIELD_INTERLACED;
-diff --git a/drivers/media/pci/cx18/cx18-controls.c b/drivers/media/pci/cx18/cx18-controls.c
-index 282a3d2..4aeb7c6 100644
---- a/drivers/media/pci/cx18/cx18-controls.c
-+++ b/drivers/media/pci/cx18/cx18-controls.c
-@@ -98,7 +98,7 @@ static int cx18_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
- 	/* fix videodecoder resolution */
- 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
- 	fmt.height = cxhdl->height;
--	fmt.code = V4L2_MBUS_FMT_FIXED;
-+	fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(cx->sd_av, video, s_mbus_fmt, &fmt);
+ 	switch (chip_id) {
+ 	case SI2158_A20:
+@@ -121,6 +127,7 @@ static int si2157_init(struct dvb_frontend *fe)
+ 		break;
+ 	case SI2157_A30:
+ 	case SI2147_A30:
++	case SI2146_A10:
+ 		goto skip_fw_download;
+ 		break;
+ 	default:
+@@ -275,7 +282,10 @@ static int si2157_set_params(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	memcpy(cmd.args, "\x14\x00\x02\x07\x01\x00", 6);
++	if (s->chiptype == SI2157_CHIPTYPE_SI2146)
++		memcpy(cmd.args, "\x14\x00\x02\x07\x00\x01", 6);
++	else
++		memcpy(cmd.args, "\x14\x00\x02\x07\x01\x00", 6);
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+ 	ret = si2157_cmd_execute(s, &cmd);
+@@ -339,6 +349,7 @@ static int si2157_probe(struct i2c_client *client,
+ 	s->fe = cfg->fe;
+ 	s->inversion = cfg->inversion;
+ 	s->fw_loaded = false;
++	s->chiptype = (u8)id->driver_data;
+ 	mutex_init(&s->i2c_mutex);
+ 
+ 	/* check if the tuner is there */
+@@ -355,7 +366,10 @@ static int si2157_probe(struct i2c_client *client,
+ 	i2c_set_clientdata(client, s);
+ 
+ 	dev_info(&s->client->dev,
+-			"Silicon Labs Si2157/Si2158 successfully attached\n");
++			"Silicon Labs %s successfully attached\n",
++			s->chiptype == SI2157_CHIPTYPE_SI2146 ?
++			"Si2146" : "Si2147/2157/2158");
++
  	return 0;
- }
-diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
-index 6f2b590..71963db 100644
---- a/drivers/media/pci/cx18/cx18-ioctl.c
-+++ b/drivers/media/pci/cx18/cx18-ioctl.c
-@@ -294,7 +294,7 @@ static int cx18_s_fmt_vid_cap(struct file *file, void *fh,
+ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+@@ -380,6 +394,7 @@ static int si2157_remove(struct i2c_client *client)
  
- 	mbus_fmt.width = cx->cxhdl.width = w;
- 	mbus_fmt.height = cx->cxhdl.height = h;
--	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(cx->sd_av, video, s_mbus_fmt, &mbus_fmt);
- 	return cx18_g_fmt_vid_cap(file, fh, fmt);
- }
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 682a4f9..091f5db 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -608,7 +608,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	dev->field	= f->fmt.pix.field;
- 	dprintk(2, "%s() width=%d height=%d field=%d\n", __func__,
- 		dev->width, dev->height, dev->field);
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	call_all(dev, video, s_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 	/* s_mbus_fmt overwrites f->fmt.pix.field, restore it */
-diff --git a/drivers/media/pci/ivtv/ivtv-controls.c b/drivers/media/pci/ivtv/ivtv-controls.c
-index 2b0ab26..ccf548c 100644
---- a/drivers/media/pci/ivtv/ivtv-controls.c
-+++ b/drivers/media/pci/ivtv/ivtv-controls.c
-@@ -69,7 +69,7 @@ static int ivtv_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
- 	/* fix videodecoder resolution */
- 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
- 	fmt.height = cxhdl->height;
--	fmt.code = V4L2_MBUS_FMT_FIXED;
-+	fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(itv->sd_video, video, s_mbus_fmt, &fmt);
- 	return 0;
- }
-diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-index 3e0cb77..4d8ee18 100644
---- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-@@ -595,7 +595,7 @@ static int ivtv_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
- 		fmt->fmt.pix.width /= 2;
- 	mbus_fmt.width = fmt->fmt.pix.width;
- 	mbus_fmt.height = h;
--	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(itv->sd_video, video, s_mbus_fmt, &mbus_fmt);
- 	return ivtv_g_fmt_vid_cap(file, fh, fmt);
- }
-diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-index e4ea85f..8b3bb78 100644
---- a/drivers/media/pci/saa7134/saa7134-empress.c
-+++ b/drivers/media/pci/saa7134/saa7134-empress.c
-@@ -140,7 +140,7 @@ static int empress_s_fmt_vid_cap(struct file *file, void *priv,
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	struct v4l2_mbus_framefmt mbus_fmt;
+ static const struct i2c_device_id si2157_id[] = {
+ 	{"si2157", 0},
++	{"si2146", 1},
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(i2c, si2157_id);
+diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+index e71ffaf..66ecf30 100644
+--- a/drivers/media/tuners/si2157_priv.h
++++ b/drivers/media/tuners/si2157_priv.h
+@@ -28,8 +28,13 @@ struct si2157 {
+ 	bool active;
+ 	bool fw_loaded;
+ 	bool inversion;
++	u8 chiptype;
+ };
  
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	saa_call_all(dev, video, s_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 
-@@ -157,7 +157,7 @@ static int empress_try_fmt_vid_cap(struct file *file, void *priv,
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	struct v4l2_mbus_framefmt mbus_fmt;
- 
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	saa_call_all(dev, video, try_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 
++#define SI2157_CHIPTYPE_SI2157 0
++#define SI2157_CHIPTYPE_SI2146 1
++
++
+ /* firmare command struct */
+ #define SI2157_ARGLEN      30
+ struct si2157_cmd {
 -- 
 1.9.1
 
