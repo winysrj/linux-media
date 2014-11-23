@@ -1,126 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:62298 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751004AbaKQPPj (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:41848 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751419AbaKWUTK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 10:15:39 -0500
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Mon, 17 Nov 2014 16:15:19 +0100
-Cc: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>,
-	sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel" <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	freemangordon@abv.bg
-References: <20141116075928.GA9763@amd> <201411171601.32311@pali> <20141117150407.GP8907@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20141117150407.GP8907@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2555655.kPujV8QnPf";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Message-Id: <201411171615.34822@pali>
+	Sun, 23 Nov 2014 15:19:10 -0500
+Received: by mail-la0-f46.google.com with SMTP id gd6so6606437lab.5
+        for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 12:19:09 -0800 (PST)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 2/2] em28xx: Add support for Terratec Cinergy T2 Stick HD
+Date: Sun, 23 Nov 2014 22:17:53 +0200
+Message-Id: <1416773873-27221-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1416773873-27221-1-git-send-email-olli.salonen@iki.fi>
+References: <1416773873-27221-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart2555655.kPujV8QnPf
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Terratec Cinergy T2 Stick HD [eb1a:8179] is a USB DVB-T/T2/C tuner that contains following components:
 
-On Monday 17 November 2014 16:04:07 Sakari Ailus wrote:
-> Hi Pali,
->=20
-> On Mon, Nov 17, 2014 at 04:01:31PM +0100, Pali Roh=C3=A1r wrote:
-> > On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
-> > > * Pavel Machek <pavel@ucw.cz> [141117 02:17]:
-> > > > On Mon 2014-11-17 11:09:45, Pali Roh=C3=A1r wrote:
-> > > > > On Monday 17 November 2014 11:05:19 Pavel Machek wrote:
-> > > > > > Hi!
-> > > > > >=20
-> > > > > > On Mon 2014-11-17 09:43:19, Pali Roh=C3=A1r wrote:
-> > > > > > > On Sunday 16 November 2014 08:59:28 Pavel Machek=20
-wrote:
-> > > > > > > > For device tree people: Yes, I know I'll have to
-> > > > > > > > create file in documentation, but does the
-> > > > > > > > binding below look acceptable?
-> > > > > > > >=20
-> > > > > > > > I'll clean up driver code a bit more, remove the
-> > > > > > > > printks. Anything else obviously wrong?
-> > > > > > >=20
-> > > > > > > I think that this patch is probably not good and
-> > > > > > > specially not for n900. adp1653 should be
-> > > > > > > registered throw omap3 isp camera subsystem which
-> > > > > > > does not have DT support yet.
-> > > > > >=20
-> > > > > > Can you explain?
-> > > > > >=20
-> > > > > > adp1653 is independend device on i2c bus, and we
-> > > > > > have kernel driver for it (unlike rest of n900
-> > > > > > camera system). Just now it is unusable due to lack
-> > > > > > of DT binding. It has two functions, LED light and
-> > > > > > a camera flash; yes, the second one should be
-> > > > > > integrated to the rest of camera system, but that
-> > > > > > is not yet merged. That should not prevent us from
-> > > > > > merging DT support for the flash, so that this part
-> > > > > > can be tested/maintained.
-> > > > >=20
-> > > > > Ok. When ISP camera subsystem has DT support somebody
-> > > > > will modify n900 DT to add camera flash from adp1653
-> > > > > to ISP... I believe it will not be hard.
-> > > >=20
-> > > > Exactly. And yes, I'd like to get complete camera
-> > > > support for n900 merged. But first step is "make sure
-> > > > existing support does not break".
-> > >=20
-> > > There's nothing stopping us from initializing the camera
-> > > code from pdata-quirks.c for now to keep it working.
-> > > Certainly the binding should be added to the driver, but
-> > > that removes a dependency to the legacy booting mode if
-> > > things are otherwise working.
-> > >=20
-> > > Regards,
-> > >=20
-> > > Tony
-> >=20
-> > Tony, legacy board code for n900 is not in mainline tree.
-> > And that omap3 camera subsystem for n900 is broken since
-> > 3.5 kernel... (both Front and Back camera on n900 show only
-> > green picture).
->=20
-> Can you capture raw bayer images correctly? I assume green
-> means YUV buffers that are all zero.
->=20
-> Do you know more specifically which patch breaks it?
+* Empia EM28178 USB bridge
+* Silicon Labs Si2168-A30 demodulator
+* Silicon Labs Si2146-A10 tuner
 
-CCing freemangordon (Ivaylo Dimitrov). He tried to debug it=20
-months ago but without success. Should know more info about this=20
-problem.
+I don't have the remote, so the RC_MAP is a best guess based on the pictures of the remote controllers and other supported Terratec devices with a similar remote.
 
-I think that commit which broke it was not bisected...
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 27 +++++++++++++++
+ drivers/media/usb/em28xx/em28xx-dvb.c   | 58 +++++++++++++++++++++++++++++++++
+ drivers/media/usb/em28xx/em28xx.h       |  1 +
+ 3 files changed, 86 insertions(+)
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 71fa51e..382018d 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -479,6 +479,20 @@ static struct em28xx_reg_seq pctv_292e[] = {
+ 	{-1,                             -1,   -1,     -1},
+ };
+ 
++static struct em28xx_reg_seq terratec_t2_stick_hd[] = {
++	{EM2874_R80_GPIO_P0_CTRL,	0xff,	0xff,	0},
++	{0x0d,				0xff,	0xff,	600},
++	{EM2874_R80_GPIO_P0_CTRL,	0xfc,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xbc,	0xff,	100},
++	{EM2874_R80_GPIO_P0_CTRL,	0xfc,	0xff,	100},
++	{EM2874_R80_GPIO_P0_CTRL,	0x00,	0xff,	300},
++	{EM2874_R80_GPIO_P0_CTRL,	0xf8,	0xff,	100},
++	{EM2874_R80_GPIO_P0_CTRL,	0xfc,	0xff,	300},
++	{0x0d,				0x42,	0xff,	1000},
++	{EM2874_R5F_TS_ENABLE,		0x85,	0xff,	0},
++	{-1,                             -1,   -1,     -1},
++};
++
+ /*
+  *  Button definitions
+  */
+@@ -2243,6 +2257,17 @@ struct em28xx_board em28xx_boards[] = {
+ 		.has_dvb       = 1,
+ 		.ir_codes      = RC_MAP_PINNACLE_PCTV_HD,
+ 	},
++	/* eb1a:8179 Terratec Cinergy T2 Stick HD.
++	 * Empia EM28178, Silicon Labs Si2168, Silicon Labs Si2146 */
++	[EM28178_BOARD_TERRATEC_T2_STICK_HD] = {
++		.name          = "Terratec Cinergy T2 Stick HD",
++		.def_i2c_bus   = 1,
++		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE | EM28XX_I2C_FREQ_400_KHZ,
++		.tuner_type    = TUNER_ABSENT,
++		.tuner_gpio    = terratec_t2_stick_hd,
++		.has_dvb       = 1,
++		.ir_codes      = RC_MAP_TERRATEC_SLIM_2,
++	},
+ };
+ EXPORT_SYMBOL_GPL(em28xx_boards);
+ 
+@@ -2424,6 +2449,8 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM28178_BOARD_PCTV_461E },
+ 	{ USB_DEVICE(0x2013, 0x025f),
+ 			.driver_info = EM28178_BOARD_PCTV_292E },
++	{ USB_DEVICE(0xeb1a, 0x8179),
++			.driver_info = EM28178_BOARD_TERRATEC_T2_STICK_HD },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(usb, em28xx_id_table);
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 65a456d..536815f 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1603,6 +1603,64 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			dvb->fe[0]->ops.set_lna = em28xx_pctv_292e_set_lna;
+ 		}
+ 		break;
++	case EM28178_BOARD_TERRATEC_T2_STICK_HD:
++		{
++			struct i2c_adapter *adapter;
++			struct i2c_client *client;
++			struct i2c_board_info info;
++			struct si2168_config si2168_config;
++			struct si2157_config si2157_config;
++
++			/* attach demod */
++			si2168_config.i2c_adapter = &adapter;
++			si2168_config.fe = &dvb->fe[0];
++			si2168_config.ts_mode = SI2168_TS_PARALLEL;
++			memset(&info, 0, sizeof(struct i2c_board_info));
++			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
++			info.addr = 0x64;
++			info.platform_data = &si2168_config;
++			request_module(info.type);
++			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
++			if (client == NULL || client->dev.driver == NULL) {
++				result = -ENODEV;
++				goto out_free;
++			}
++
++			if (!try_module_get(client->dev.driver->owner)) {
++				i2c_unregister_device(client);
++				result = -ENODEV;
++				goto out_free;
++			}
++
++			dvb->i2c_client_demod = client;
++
++			/* attach tuner */
++			memset(&si2157_config, 0, sizeof(si2157_config));
++			si2157_config.fe = dvb->fe[0];
++			memset(&info, 0, sizeof(struct i2c_board_info));
++			strlcpy(info.type, "si2146", I2C_NAME_SIZE);
++			info.addr = 0x60;
++			info.platform_data = &si2157_config;
++			request_module("si2157");
++			client = i2c_new_device(adapter, &info);
++			if (client == NULL || client->dev.driver == NULL) {
++				module_put(dvb->i2c_client_demod->dev.driver->owner);
++				i2c_unregister_device(dvb->i2c_client_demod);
++				result = -ENODEV;
++				goto out_free;
++			}
++
++			if (!try_module_get(client->dev.driver->owner)) {
++				i2c_unregister_device(client);
++				module_put(dvb->i2c_client_demod->dev.driver->owner);
++				i2c_unregister_device(dvb->i2c_client_demod);
++				result = -ENODEV;
++				goto out_free;
++			}
++
++			dvb->i2c_client_tuner = client;
++		}
++		break;
+ 	default:
+ 		em28xx_errdev("/2: The frontend of your DVB/ATSC card"
+ 				" isn't supported yet\n");
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index a21a746..16dd880 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -141,6 +141,7 @@
+ #define EM28178_BOARD_PCTV_461E                   92
+ #define EM2874_BOARD_KWORLD_UB435Q_V3		  93
+ #define EM28178_BOARD_PCTV_292E                   94
++#define EM28178_BOARD_TERRATEC_T2_STICK_HD        95
+ 
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
+-- 
+1.9.1
 
---nextPart2555655.kPujV8QnPf
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlRqERYACgkQi/DJPQPkQ1IBYwCgzhsqRQpQfxZG0dnW1YH87R3Q
-nxYAnjpVF3iWJp95KDWjl5Xf/mVWpHV+
-=nJ+y
------END PGP SIGNATURE-----
-
---nextPart2555655.kPujV8QnPf--
