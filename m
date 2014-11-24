@@ -1,72 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58988 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751074AbaK0NY1 (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37166 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751424AbaKXHHJ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 08:24:27 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 3/9] v4l2-ioctl.c: log the new ycbcr_enc and quantization fields
-Date: Thu, 27 Nov 2014 14:23:46 +0100
-Message-Id: <1417094632-31980-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417094632-31980-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417094632-31980-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 24 Nov 2014 02:07:09 -0500
+From: "Devshatwar, Nikhil" <nikhil.nd@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH v2 1/4] media: ti-vpe: Use data offset for getting
+ dma_addr for a plane
+Date: Mon, 24 Nov 2014 07:07:04 +0000
+Message-ID: <E60A9E1B4132A24DB80BD56ABC9268473500A4FA@DBDE04.ent.ti.com>
+References: <1415964052-30351-1-git-send-email-nikhil.nd@ti.com>
+ <1415964052-30351-2-git-send-email-nikhil.nd@ti.com>
+ <5471D8BF.6000903@xs4all.nl>
+In-Reply-To: <5471D8BF.6000903@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Log the new ycbcr_enc and quantization fields. Note that it now
-also logs the flags field for the multiplanar buffer type. This was
-forgotten when the flags field was added.
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Sunday, November 23, 2014 6:23 PM
+> To: Devshatwar, Nikhil; linux-media@vger.kernel.org
+> Subject: Re: [PATCH v2 1/4] media: ti-vpe: Use data offset for getting
+> dma_addr for a plane
+> 
+> On 11/14/2014 12:20 PM, Nikhil Devshatwar wrote:
+> > The data_offset in v4l2_planes structure will help us point to the
+> > start of data content for that particular plane. This may be useful
+> > when a single buffer contains the data for different planes e.g. Y
+> > planes of two fields in the same buffer. With this, user space can
+> > pass queue top field and bottom field with same dmafd and different
+> data_offsets.
+> >
+> > Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+> > ---
+> >  drivers/media/platform/ti-vpe/vpe.c |   12 ++++++++++--
+> >  1 file changed, 10 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/media/platform/ti-vpe/vpe.c
+> > b/drivers/media/platform/ti-vpe/vpe.c
+> > index 0ae19ee..e59eb81 100644
+> > --- a/drivers/media/platform/ti-vpe/vpe.c
+> > +++ b/drivers/media/platform/ti-vpe/vpe.c
+> > @@ -495,6 +495,14 @@ struct vpe_mmr_adb {
+> >
+> >  #define VPE_SET_MMR_ADB_HDR(ctx, hdr, regs, offset_a)	\
+> >  	VPDMA_SET_MMR_ADB_HDR(ctx->mmr_adb, vpe_mmr_adb, hdr, regs,
+> > offset_a)
+> > +
+> > +static inline dma_addr_t vb2_dma_addr_plus_data_offset(struct
+> vb2_buffer *vb,
+> > +	unsigned int plane_no)
+> > +{
+> > +	return vb2_dma_contig_plane_dma_addr(vb, plane_no) +
+> > +		vb->v4l2_planes[plane_no].data_offset;
+> > +}
+> > +
+> >  /*
+> >   * Set the headers for all of the address/data block structures.
+> >   */
+> > @@ -1002,7 +1010,7 @@ static void add_out_dtd(struct vpe_ctx *ctx,
+> int port)
+> >  		int plane = fmt->coplanar ? p_data->vb_part : 0;
+> >
+> >  		vpdma_fmt = fmt->vpdma_fmt[plane];
+> > -		dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
+> > +		dma_addr = vb2_dma_addr_plus_data_offset(vb, plane);
+> >  		if (!dma_addr) {
+> >  			vpe_err(ctx->dev,
+> >  				"acquiring output buffer(%d) dma_addr
+> failed\n", @@ -1042,7
+> > +1050,7 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+> >
+> >  		vpdma_fmt = fmt->vpdma_fmt[plane];
+> >
+> > -		dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
+> > +		dma_addr = vb2_dma_addr_plus_data_offset(vb, plane);
+> >  		if (!dma_addr) {
+> >  			vpe_err(ctx->dev,
+> >  				"acquiring input buffer(%d) dma_addr failed\n",
+> >
+> 
+> I suspect this does not do what you want. data_offset is set by the
+> application for an output stream (i.e. from memory to the hardware) and
+> it is set by the driver for a capture stream (i.e. from hardware to
+> memory). It looks like you expect that it is set by the application for
+> capture streams as well, but that's not true.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+Yes, I agree
+I should use the new function (with data_offset) only in the add_in_dtd
+add_in_dtd is called for the OUTPUT streams only
+(And some internal buffers)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 1bf84a5..7565871 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -257,7 +257,7 @@ static void v4l_print_format(const void *arg, bool write_only)
- 		pr_cont(", width=%u, height=%u, "
- 			"pixelformat=%c%c%c%c, field=%s, "
- 			"bytesperline=%u, sizeimage=%u, colorspace=%d, "
--			"flags %u\n",
-+			"flags %x, ycbcr_enc=%u, quantization=%u\n",
- 			pix->width, pix->height,
- 			(pix->pixelformat & 0xff),
- 			(pix->pixelformat >>  8) & 0xff,
-@@ -265,21 +265,24 @@ static void v4l_print_format(const void *arg, bool write_only)
- 			(pix->pixelformat >> 24) & 0xff,
- 			prt_names(pix->field, v4l2_field_names),
- 			pix->bytesperline, pix->sizeimage,
--			pix->colorspace, pix->flags);
-+			pix->colorspace, pix->flags, pix->ycbcr_enc,
-+			pix->quantization);
- 		break;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
- 		mp = &p->fmt.pix_mp;
- 		pr_cont(", width=%u, height=%u, "
- 			"format=%c%c%c%c, field=%s, "
--			"colorspace=%d, num_planes=%u\n",
-+			"colorspace=%d, num_planes=%u, flags=%x, "
-+			"ycbcr_enc=%u, quantization=%u\n",
- 			mp->width, mp->height,
- 			(mp->pixelformat & 0xff),
- 			(mp->pixelformat >>  8) & 0xff,
- 			(mp->pixelformat >> 16) & 0xff,
- 			(mp->pixelformat >> 24) & 0xff,
- 			prt_names(mp->field, v4l2_field_names),
--			mp->colorspace, mp->num_planes);
-+			mp->colorspace, mp->num_planes, mp->flags,
-+			mp->ycbcr_enc, mp->quantization);
- 		for (i = 0; i < mp->num_planes; i++)
- 			printk(KERN_DEBUG "plane %u: bytesperline=%u sizeimage=%u\n", i,
- 					mp->plane_fmt[i].bytesperline,
--- 
-2.1.3
-
+> 
+> Regards,
+> 
+> 	Hans
