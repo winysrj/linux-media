@@ -1,114 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:60747 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751187AbaKDDbD (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50250 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751978AbaKXJG2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 22:31:03 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B5C8B2A0376
-	for <linux-media@vger.kernel.org>; Tue,  4 Nov 2014 04:30:57 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20141104033057.B5C8B2A0376@tschai.lan>
-Date: Tue,  4 Nov 2014 04:30:57 +0100 (CET)
+	Mon, 24 Nov 2014 04:06:28 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL FOR v3.19] uvcvideo changes
+Date: Mon, 24 Nov 2014 11:06:49 +0200
+Message-ID: <2578174.1LaTmadn8H@avalon>
+In-Reply-To: <20141111085626.3f1201dc@recife.lan>
+References: <1524049.TLSF8qZEUD@avalon> <20141111085626.3f1201dc@recife.lan>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+On Tuesday 11 November 2014 08:56:26 Mauro Carvalho Chehab wrote:
+> Em Fri, 07 Nov 2014 08:16:28 +0200 Laurent Pinchart escreveu:
+> > Hi Mauro,
+> > 
+> > The following changes since commit 
+4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
+> >   [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
+> > 
+> > are available in the git repository at:
+> >   git://linuxtv.org/pinchartl/media.git remotes/media/uvc/next
+> 
+> It seems that there's something weird with this URL... remotes????
 
-date:		Tue Nov  4 04:00:22 CET 2014
-git branch:	test
-git hash:	f4df95bcbb7b142bdb4cf201f5e1bd3985f8c804
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-34-g71e642a
-host hardware:	x86_64
-host os:	3.17-2.slh.2-amd64
+git isn't playing nicely :-/
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: WARNINGS
-linux-git-sh: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16-i686: WARNINGS
-linux-3.17-i686: WARNINGS
-linux-3.18-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-x86_64: WARNINGS
-linux-3.17-x86_64: WARNINGS
-linux-3.18-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-sparse: ERRORS
+I've pushed the changes to the uvc/next branch on 
+git://linuxtv.org/pinchartl/media.git, up to commit a1bee5f9f606. 
+http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/commit/?h=uvc/next 
+confirms that everything is in order.
 
-Detailed results are available here:
+However, running
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+git request-pull local-linuxtv-master media remotes/media/uvc/next
 
-Full logs are available here:
+with the media remote pointing to git://linuxtv.org/pinchartl/media.git 
+generates
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+----------
+warn: No match for commit a1bee5f9f606f89ff30171658a82bf532cca7f3d found at 
+git://linuxtv.org/pinchartl/media.git
+warn: Are you sure you pushed 'remotes/media/uvc/next' there?
+The following changes since commit 4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
 
-The Media Infrastructure API from this daily build is here:
+  [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git remotes/media/uvc/next
+
+for you to fetch changes up to a1bee5f9f606f89ff30171658a82bf532cca7f3d:
+
+  uvcvideo: Return all buffers to vb2 at stream stop and start failure 
+(2014-11-07 08:13:21 +0200)
+----------
+
+For some reason git can't find the remote branch (hence the warning) and thus 
+generates the URL line incorrectly.
+
+I've tried upgrading from git 2.0.4 to git 2.1.3 but the problem is still 
+present. Creating a local branch named uvc/next fixes the problem. I wonder if 
+I'm doing something really stupid or if it's a git bug.
+
+Can you pull from
+
+        git://linuxtv.org/pinchartl/media.git uvc/next
+
+? I haven't updated the branch since I've sent the last pull request.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
