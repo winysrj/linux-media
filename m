@@ -1,73 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43026 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752478AbaKAOJF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Nov 2014 10:09:05 -0400
-Date: Sat, 1 Nov 2014 12:08:58 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Takashi Iwai <tiwai@suse.de>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: Re: [PATCH 3/7] [media] cx231xx: Cleanup printk at the driver
-Message-ID: <20141101120858.47dc0bd7@recife.lan>
-In-Reply-To: <5454E7A8.40707@iki.fi>
-References: <1414849139-29609-1-git-send-email-mchehab@osg.samsung.com>
-	<c347502e632c69c80dcf5d4df1396cb59973af2f.1414849031.git.mchehab@osg.samsung.com>
-	<5454E7A8.40707@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50373 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751033AbaKXKkt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Nov 2014 05:40:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL FOR v3.19] uvcvideo changes
+Date: Mon, 24 Nov 2014 12:41:10 +0200
+Message-ID: <3359544.inIet0M21q@avalon>
+In-Reply-To: <20141124081211.46d546d3@recife.lan>
+References: <1524049.TLSF8qZEUD@avalon> <2578174.1LaTmadn8H@avalon> <20141124081211.46d546d3@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 01 Nov 2014 16:01:12 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+Hi Mauro,
 
-> On 11/01/2014 03:38 PM, Mauro Carvalho Chehab wrote:
-> > There are lots of debug printks printed with pr_info. Also, the
-> > printk's data are not too coherent:
-> >
-> > - there are duplicated driver name at the print format;
-> > - function name format string differs from function to function;
-> > - long strings broken into multiple lines;
-> > - some printks just produce ugly reports, being almost useless
-> >    as-is.
-> >
-> > Do a cleanup on that.
-> >
-> > Still, there are much to be done in order to do a better printk
-> > job on this driver, but, at least it will now be a way less
-> > verbose, if debug printks are disabled, and some logs might
-> > actually be useful.
+On Monday 24 November 2014 08:12:11 Mauro Carvalho Chehab wrote:
+> Em Mon, 24 Nov 2014 11:06:49 +0200 Laurent Pinchart escreveu:
+> > On Tuesday 11 November 2014 08:56:26 Mauro Carvalho Chehab wrote:
+> > > Em Fri, 07 Nov 2014 08:16:28 +0200 Laurent Pinchart escreveu:
+> > > > Hi Mauro,
+> > > > 
+> > > > The following changes since commit
+> > 
+> > 4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
+> > > >   [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
+> > > > 
+> > > > are available in the git repository at:
+> > > >   git://linuxtv.org/pinchartl/media.git remotes/media/uvc/next
+> > > 
+> > > It seems that there's something weird with this URL... remotes????
+> > 
+> > git isn't playing nicely :-/
+> > 
+> > I've pushed the changes to the uvc/next branch on
+> > git://linuxtv.org/pinchartl/media.git, up to commit a1bee5f9f606.
+> > http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/commit/?h=uvc/next
+> > confirms that everything is in order.
+> > 
+> > However, running
+> > 
+> > git request-pull local-linuxtv-master media remotes/media/uvc/next
 > 
-> As you do that kind of cleanup, why don't just use a bit more time and 
-> do it properly using dev_foo() logging. Basically all device drivers 
-> should use dev_foo() logging, it prints module name, bus number etc. 
-> automatically in a standard manner. pr_foo() is worse, which should be 
-> only used for cases where pointer to device is not available (like library).
+> Seriously? Do you want git to change remotes? I don't think you can
+> do that. The remotes branches are to track something remote, e. g.
+> the references there should be already at the remote tree.
 
-Please notice that my only goal with this series is to be able to
-check if analog/digital is still working after Mattias's i2c mux
-patchsets. I don't have much time right now for a more complete
-cleanup.
+I don't want git to change remotes, I want git to react to what is in the 
+remote tree.
 
-Several of the printks are done before creating the cx231xx device
-struct. See the places where cx231xx_errdev() were called before
-patch 1/7.
+For historical reasons my local branch is named uvcvideo/next, while the 
+remote branch is named uvc/next. They both point to the same commit. Before 
+upgrading to git v2.0.4 running
 
-The cx231xx probing is complex. Not sure if it is possible
-to convert everything to dev_foo() and mixing pr_foo with dev_foo()
-seems to be worse.
+	git request-pull local-linuxtv-master media remotes/media/uvc/next
 
-I may revisit it some other time and try to evaluate the impact of
-doing such change when I have more spare time.
+would not incorrectly warn that the commit ID isn't available remotely (as it 
+is available) and would produce the git URL
 
+	git://linuxtv.org/pinchartl/media.git uvc/next
+
+> You should, instead, create a local branch and push it upstream.
+
+I've done that, the problem is that the local and remote branches have 
+different names.
+
+I should of course have read the latest git-request-pull man page and run
+
+	git request-pull local-linuxtv-master media uvcvideo/next:uvc/next
+
+That works fine.
+
+> > with the media remote pointing to git://linuxtv.org/pinchartl/media.git
+> > generates
+> > 
+> > ----------
+> > warn: No match for commit a1bee5f9f606f89ff30171658a82bf532cca7f3d found
+> > at git://linuxtv.org/pinchartl/media.git
+> > warn: Are you sure you pushed 'remotes/media/uvc/next' there?
+> > 
+> > The following changes since commit 
+4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
+> >   [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
+> > 
+> > are available in the git repository at:
+> >   git://linuxtv.org/pinchartl/media.git remotes/media/uvc/next
+> > 
+> > for you to fetch changes up to a1bee5f9f606f89ff30171658a82bf532cca7f3d:
+> >   uvcvideo: Return all buffers to vb2 at stream stop and start failure
+> > 
+> > (2014-11-07 08:13:21 +0200)
+> > ----------
+> > 
+> > For some reason git can't find the remote branch (hence the warning) and
+> > thus generates the URL line incorrectly.
+> > 
+> > I've tried upgrading from git 2.0.4 to git 2.1.3 but the problem is still
+> > present. Creating a local branch named uvc/next fixes the problem.
+> 
+> Yes, that's the right thing to do. Only modify local branches.
+> 
+> Git considers that the branches under remotes/* will be handled by
+> it. If you ever do a "git remote update". You'll see that git will override
+> all references that are on a remote branch and you'll loose your work!
+> 
+> I think that even git revlog won't help you to recover the missing heads,
+> as it won't track branches under remotes/*.
+> 
+> > I wonder if I'm doing something really stupid or if it's a git bug.
+> 
+> Well, git is right. You should not use remotes/foo for the branches
+> you're modifying. Such namespace is reserved for git to be able to
+> track the upstream branches.
+>
+> > Can you pull from
+> > 
+> >         git://linuxtv.org/pinchartl/media.git uvc/next
+> 
+> Sure, I'll do it along this week.
+
+Thank you.
+
+> > ? I haven't updated the branch since I've sent the last pull request.
+
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
