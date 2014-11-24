@@ -1,47 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:42683 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752006AbaKRK6L (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56048 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750954AbaKXKty (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 05:58:11 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: Kukjin Kim <kgene.kim@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: linux-samsung-soc@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: exynos-gsc: fix build warning
-Date: Tue, 18 Nov 2014 10:57:48 +0000
-Message-Id: <1416308268-22957-1-git-send-email-prabhakar.csengg@gmail.com>
+	Mon, 24 Nov 2014 05:49:54 -0500
+Message-ID: <54730D1D.7010500@xs4all.nl>
+Date: Mon, 24 Nov 2014 11:49:01 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+CC: hans.verkuil@xs4all.nl
+Subject: Re: [REVIEW PATCH v2.1 2/5] v4l: Add V4L2_SEL_TGT_NATIVE_SIZE selection
+ target
+References: <1416289220-32673-3-git-send-email-sakari.ailus@iki.fi> <1416344890-28142-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1416344890-28142-1-git-send-email-sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch fixes following build warning:
+On 11/18/14 22:08, Sakari Ailus wrote:
+> The V4L2_SEL_TGT_NATIVE_SIZE target is used to denote e.g. the size of a
+> sensor's pixel array.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-gsc-core.c:350:17: warning: 'low_plane' may be used uninitialized
-gsc-core.c:371:31: warning: 'high_plane' may be used uninitialized
+For the whole patch series:
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/exynos-gsc/gsc-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 91d226b..6c71b17 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -347,8 +347,8 @@ void gsc_set_prefbuf(struct gsc_dev *gsc, struct gsc_frame *frm)
- 		s_chk_addr = frm->addr.cb;
- 		s_chk_len = frm->payload[1];
- 	} else if (frm->fmt->num_planes == 3) {
--		u32 low_addr, low_plane, mid_addr, mid_plane;
--		u32 high_addr, high_plane;
-+		u32 low_addr, low_plane = 0, mid_addr, mid_plane;
-+		u32 high_addr, high_plane = 0;
- 		u32 t_min, t_max;
- 
- 		t_min = min3(frm->addr.y, frm->addr.cb, frm->addr.cr);
--- 
-1.9.1
+Thanks!
+
+Once this is mainlined, can you update v4l2-ctl so it supports this
+new target?
+
+Regards,
+
+	Hans
+
+> ---
+> since v2:
+> - Add a note on s_selection support for native selection target on mem2mem
+>   devices only.
+> - Reverse the order or left and top fields, i.e. make it the same as in
+>   struct v4l2_rect.
+> 
+>  Documentation/DocBook/media/v4l/selections-common.xml |   16 ++++++++++++++++
+>  include/uapi/linux/v4l2-common.h                      |    2 ++
+>  2 files changed, 18 insertions(+)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
+> index 7502f78..d6d56fb 100644
+> --- a/Documentation/DocBook/media/v4l/selections-common.xml
+> +++ b/Documentation/DocBook/media/v4l/selections-common.xml
+> @@ -63,6 +63,22 @@
+>  	    <entry>Yes</entry>
+>  	  </row>
+>  	  <row>
+> +	    <entry><constant>V4L2_SEL_TGT_NATIVE_SIZE</constant></entry>
+> +	    <entry>0x0003</entry>
+> +	    <entry>The native size of the device, e.g. a sensor's
+> +	    pixel array. <structfield>left</structfield> and
+> +	    <structfield>top</structfield> fields are zero for this
+> +	    target. Setting the native size will generally only make
+> +	    sense for memory to memory devices where the software can
+> +	    create a canvas of a given size in which for example a
+> +	    video frame can be composed. In that case
+> +	    V4L2_SEL_TGT_NATIVE_SIZE can be used to configure the size
+> +	    of that canvas.
+> +	    </entry>
+> +	    <entry>Yes</entry>
+> +	    <entry>Yes</entry>
+> +	  </row>
+> +	  <row>
+>  	    <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
+>  	    <entry>0x0100</entry>
+>  	    <entry>Compose rectangle. Used to configure scaling
+> diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
+> index 2f6f8ca..1527398 100644
+> --- a/include/uapi/linux/v4l2-common.h
+> +++ b/include/uapi/linux/v4l2-common.h
+> @@ -43,6 +43,8 @@
+>  #define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
+>  /* Cropping bounds */
+>  #define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
+> +/* Native frame size */
+> +#define V4L2_SEL_TGT_NATIVE_SIZE	0x0003
+>  /* Current composing area */
+>  #define V4L2_SEL_TGT_COMPOSE		0x0100
+>  /* Default composing area */
+> 
 
