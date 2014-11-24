@@ -1,40 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53009 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42757 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753163AbaKHXJn (ORCPT
+	by vger.kernel.org with ESMTP id S1752466AbaKXKhU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Nov 2014 18:09:43 -0500
+	Mon, 24 Nov 2014 05:37:20 -0500
+Date: Mon, 24 Nov 2014 12:37:15 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 05/10] smiapp: The sensor only needs a single clock, name may be NULL
-Date: Sun,  9 Nov 2014 01:09:26 +0200
-Message-Id: <1415488171-27636-6-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1415488171-27636-1-git-send-email-sakari.ailus@iki.fi>
-References: <1415488171-27636-1-git-send-email-sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 2/3] v4l2-ctrl: move function prototypes from common.h to
+ ctrls.h
+Message-ID: <20141124103715.GH8907@valkosipuli.retiisi.org.uk>
+References: <1416746395-48631-1-git-send-email-hverkuil@xs4all.nl>
+ <1416746395-48631-3-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1416746395-48631-3-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The SMIA compatible sensors only need a single clock.
+On Sun, Nov 23, 2014 at 01:39:54PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> For some unknown reason several control prototypes where in v4l2-common.c
+> instead of in v4l2-ctrls.h. Move them and document them.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/i2c/smiapp/smiapp-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Nice one!
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 7c79e72..c2c9a1f 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2483,7 +2483,7 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 	}
- 
- 	if (!sensor->platform_data->set_xclk) {
--		sensor->ext_clk = devm_clk_get(&client->dev, "ext_clk");
-+		sensor->ext_clk = devm_clk_get(&client->dev, NULL);
- 		if (IS_ERR(sensor->ext_clk)) {
- 			dev_err(&client->dev, "could not get clock\n");
- 			return PTR_ERR(sensor->ext_clk);
+For the set:
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
 -- 
-1.7.10.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
