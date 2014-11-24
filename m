@@ -1,53 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:50390 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751570AbaKIIes (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Nov 2014 03:34:48 -0500
-From: Beniamino Galvani <b.galvani@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, Carlo Caione <carlo@caione.org>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Jerry Cao <jerry.cao@amlogic.com>,
-	Victor Wan <victor.wan@amlogic.com>,
-	Beniamino Galvani <b.galvani@gmail.com>
-Subject: [PATCH v2 3/3] ARM: dts: meson: add IR receiver node
-Date: Sun,  9 Nov 2014 09:32:08 +0100
-Message-Id: <1415521928-25251-4-git-send-email-b.galvani@gmail.com>
-In-Reply-To: <1415521928-25251-1-git-send-email-b.galvani@gmail.com>
-References: <1415521928-25251-1-git-send-email-b.galvani@gmail.com>
+Received: from cpsmtpb-ews05.kpnxchange.com ([213.75.39.8]:62438 "EHLO
+	cpsmtpb-ews05.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750946AbaKXLPL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Nov 2014 06:15:11 -0500
+Message-ID: <1416827708.10073.13.camel@x220>
+Subject: Re: [PATCH] [media] omap24xx/tcm825x: remove pointless Makefile
+ entry
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Valentin Rothberg <valentinrothberg@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Date: Mon, 24 Nov 2014 12:15:08 +0100
+In-Reply-To: <5473119D.6080205@cisco.com>
+References: <1416826438.10073.11.camel@x220> <5473119D.6080205@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds a node for the IR remote control receiver to the Amlogic
-Meson DTS.
+On Mon, 2014-11-24 at 12:08 +0100, Hans Verkuil wrote:
+> I found the same thing and it is already part of my pull request
+> to Mauro.
 
-Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
----
- arch/arm/boot/dts/meson.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+Either way, this trivial issue will be solved.
 
-diff --git a/arch/arm/boot/dts/meson.dtsi b/arch/arm/boot/dts/meson.dtsi
-index e6539ea..6a37f15 100644
---- a/arch/arm/boot/dts/meson.dtsi
-+++ b/arch/arm/boot/dts/meson.dtsi
-@@ -106,5 +106,12 @@
- 			clocks = <&clk81>;
- 			status = "disabled";
- 		};
-+
-+		ir_receiver: ir-receiver@c8100480 {
-+			compatible= "amlogic,meson6-ir";
-+			reg = <0xc8100480 0x20>;
-+			interrupts = <0 15 1>;
-+			status = "disabled";
-+		};
- 	};
- }; /* end of / */
--- 
-1.9.1
+Thanks,
+
+
+Paul Bolle
 
