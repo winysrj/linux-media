@@ -1,60 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59826 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750966AbaKXNdH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Nov 2014 08:33:07 -0500
-Message-ID: <54733390.7070901@iki.fi>
-Date: Mon, 24 Nov 2014 15:33:04 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: CrazyCat <crazycat69@narod.ru>, Olli Salonen <olli.salonen@iki.fi>
-Subject: [GIT PULL] si2157 si2168 cxusb em28xx
-Content-Type: text/plain; charset=utf-8; format=flowed
+Received: from cpsmtpb-ews09.kpnxchange.com ([213.75.39.14]:63136 "EHLO
+	cpsmtpb-ews09.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752203AbaKXMHt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Nov 2014 07:07:49 -0500
+Message-ID: <1416830865.10073.35.camel@x220>
+Subject: [PATCH] [media] omap: Fix typo "HAS_MMU"
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Valentin Rothberg <valentinrothberg@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Mon, 24 Nov 2014 13:07:45 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 5937a784c3e5fe8fd1e201f42a2b1ece6c36a6c0:
+Commit 38a073116525 ("[media] omap: be sure that MMU is there for
+COMPILE_TEST") added a dependency on HAS_MMU. There's no Kconfig symbol
+HAS_MMU. Use MMU instead.
 
-   [media] staging: media: bcm2048: fix coding style error (2014-11-21 
-16:50:37 -0200)
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+0) Perhaps it would have been better to add a line or two explaining why
+MMU is now a separate dependency, as Mauro suggested.
 
-are available in the git repository at:
+Commit 38a073116525 tells us that "COMPILE_TEST fail[s] on (some) archs
+without MMU". It doesn't tell on which architectures nor how it fails.
+And I was unable to figure that out myself so I decided to stay silent
+on that aspect of this patch.
 
-   git://linuxtv.org/anttip/media_tree.git silabs
+1) A Fixes: line seems not worth the trouble here.
 
-for you to fetch changes up to d5036ca91a48ca0841d4f9075952f705e4cac58e:
+2) Tested on top of next-20141124 by doing, in short:
+    cp arch/x86/configs/x86_64_defconfig .config
+    echo CONFIG_COMPILE_TEST=y >> .config
+    echo CONFIG_MEDIA_SUPPORT=y >> .config
+    echo CONFIG_MEDIA_CAMERA_SUPPORT=y >> .config
+    echo CONFIG_V4L_PLATFORM_DRIVERS=y >> .config
+    echo CONFIG_VIDEO_OMAP2_VOUT=[ym] >> .config
+    yes "" | make oldconfig
 
-   cxusb: Geniatech T230 support. (2014-11-24 12:44:59 +0200)
+both before and after applying this patch and diffing the "before" and
+"after" .config. Only with this patch I see CONFIG_VIDEO_OMAP2_VOUT=[ym]
+appear in the .config.
 
-----------------------------------------------------------------
-CrazyCat (3):
-       si2157: Si2148 support.
-       si2168: TS clock inversion control.
-       cxusb: Geniatech T230 support.
+3) Actually, I've wasted quite a bit of time cobbling together a script
+to test commits locally. The test(s) I want to run is (are) saved in a
+git note for that commit. The script parses this note and runs the
+test(s).
 
-Olli Salonen (3):
-       si2157: Add support for Si2146-A10
-       em28xx: Add support for Terratec Cinergy T2 Stick HD
-       si2157: make checkpatch.pl happy (remove break after goto)
+Have I been reinventing the wheel?
 
-  drivers/media/dvb-core/dvb-usb-ids.h      |   1 +
-  drivers/media/dvb-frontends/si2168.c      |   7 +++++--
-  drivers/media/dvb-frontends/si2168.h      |   4 ++++
-  drivers/media/dvb-frontends/si2168_priv.h |   1 +
-  drivers/media/tuners/si2157.c             |  32 
-++++++++++++++++++++++++--------
-  drivers/media/tuners/si2157.h             |   2 +-
-  drivers/media/tuners/si2157_priv.h        |   8 ++++++--
-  drivers/media/usb/dvb-usb/cxusb.c         | 127 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/usb/em28xx/em28xx-cards.c   |  27 
-+++++++++++++++++++++++++++
-  drivers/media/usb/em28xx/em28xx-dvb.c     |  59 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/usb/em28xx/em28xx.h         |   1 +
-  11 files changed, 256 insertions(+), 13 deletions(-)
+ drivers/media/platform/omap/Kconfig | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/platform/omap/Kconfig b/drivers/media/platform/omap/Kconfig
+index 05de442d24e4..8f27cdadf8b8 100644
+--- a/drivers/media/platform/omap/Kconfig
++++ b/drivers/media/platform/omap/Kconfig
+@@ -3,7 +3,8 @@ config VIDEO_OMAP2_VOUT_VRFB
+ 
+ config VIDEO_OMAP2_VOUT
+ 	tristate "OMAP2/OMAP3 V4L2-Display driver"
+-	depends on ARCH_OMAP2 || ARCH_OMAP3 || (COMPILE_TEST && HAS_MMU)
++	depends on MMU
++	depends on ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
+ 	select VIDEOBUF_GEN
+ 	select VIDEOBUF_DMA_CONTIG
+ 	select OMAP2_DSS if HAS_IOMEM && ARCH_OMAP2PLUS
 -- 
-http://palosaari.fi/
+1.9.3
+
