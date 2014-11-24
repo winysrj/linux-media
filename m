@@ -1,110 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward3p.cmail.yandex.net ([77.88.31.18]:34174 "EHLO
-	forward3p.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754335AbaKNV1b (ORCPT
+Received: from mail-oi0-f48.google.com ([209.85.218.48]:61357 "EHLO
+	mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750765AbaKXJ5I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Nov 2014 16:27:31 -0500
-Received: from smtp19.mail.yandex.net (smtp19.mail.yandex.net [95.108.252.19])
-	by forward3p.cmail.yandex.net (Yandex) with ESMTP id AF67211E3
-	for <linux-media@vger.kernel.org>; Sat, 15 Nov 2014 00:19:41 +0300 (MSK)
-Received: from smtp19.mail.yandex.net (localhost [127.0.0.1])
-	by smtp19.mail.yandex.net (Yandex) with ESMTP id 88C0DBE0380
-	for <linux-media@vger.kernel.org>; Sat, 15 Nov 2014 00:19:41 +0300 (MSK)
-From: CrazyCat <crazycat69@narod.ru>
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [PATCH 1/3] tuners: si2157: Si2148 support.
-Date: Fri, 14 Nov 2014 23:19:37 +0200
-Message-ID: <1918522.5V5b9CGsli@computer>
+	Mon, 24 Nov 2014 04:57:08 -0500
+Received: by mail-oi0-f48.google.com with SMTP id u20so6251748oif.7
+        for <linux-media@vger.kernel.org>; Mon, 24 Nov 2014 01:57:07 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Mon, 24 Nov 2014 09:57:07 +0000
+Message-ID: <CAPuGpVx8QrWe4gJr5UVDU8KDh0_pNSabLr0GuVfY7kpuQVGR=g@mail.gmail.com>
+Subject: bttv:The output of card name is truncated to 32 characters
+From: triniton adam <trinitonadam@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Si2148-A20 silicon tuner support.
+When use struct v4l2_capability to get out card name in bttv the
+output of card name is truncated to 32 characters.
+I use this code to get card name:
 
-Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
----
- drivers/media/tuners/si2157.c      | 10 ++++++----
- drivers/media/tuners/si2157.h      |  2 +-
- drivers/media/tuners/si2157_priv.h |  2 +-
- 3 files changed, 8 insertions(+), 6 deletions(-)
+    char *v4l2_get_name(char *device)
+    {
+        struct v4l2_capability caps;
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 25146fa..91f8290 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -1,5 +1,5 @@
- /*
-- * Silicon Labs Si2147/2157/2158 silicon tuner driver
-+ * Silicon Labs Si2147/2148/2157/2158 silicon tuner driver
-  *
-  * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
-  *
-@@ -112,11 +112,13 @@ static int si2157_init(struct dvb_frontend *fe)
- 			cmd.args[4] << 0;
- 
- 	#define SI2158_A20 ('A' << 24 | 58 << 16 | '2' << 8 | '0' << 0)
-+	#define SI2148_A20 ('A' << 24 | 48 << 16 | '2' << 8 | '0' << 0)
- 	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2147_A30 ('A' << 24 | 47 << 16 | '3' << 8 | '0' << 0)
- 
- 	switch (chip_id) {
- 	case SI2158_A20:
-+	case SI2148_A20:
- 		fw_file = SI2158_A20_FIRMWARE;
- 		break;
- 	case SI2157_A30:
-@@ -309,7 +311,7 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- 
- static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
--		.name           = "Silicon Labs Si2157/Si2158",
-+		.name           = "Silicon Labs Si2147/2148/2157/Si2158",
- 		.frequency_min  = 110000000,
- 		.frequency_max  = 862000000,
- 	},
-@@ -373,7 +375,7 @@ static int si2157_probe(struct i2c_client *client,
- 	i2c_set_clientdata(client, s);
- 
- 	dev_info(&s->client->dev,
--			"Silicon Labs Si2157/Si2158 successfully attached\n");
-+			"Silicon Labs Si2147/2148/2157/Si2158 successfully attached\n");
- 	return 0;
- err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
-@@ -414,7 +416,7 @@ static struct i2c_driver si2157_driver = {
- 
- module_i2c_driver(si2157_driver);
- 
--MODULE_DESCRIPTION("Silicon Labs Si2157/Si2158 silicon tuner driver");
-+MODULE_DESCRIPTION("Silicon Labs Si2147/2148/2157/Si2158 silicon tuner driver");
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_LICENSE("GPL");
- MODULE_FIRMWARE(SI2158_A20_FIRMWARE);
-diff --git a/drivers/media/tuners/si2157.h b/drivers/media/tuners/si2157.h
-index d3b19ca..c439d0e 100644
---- a/drivers/media/tuners/si2157.h
-+++ b/drivers/media/tuners/si2157.h
-@@ -1,5 +1,5 @@
- /*
-- * Silicon Labs Si2147/2157/2158 silicon tuner driver
-+ * Silicon Labs Si2147/2148/2157/2158 silicon tuner driver
-  *
-  * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
-  *
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index e71ffaf..6d2aac4 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -1,5 +1,5 @@
- /*
-- * Silicon Labs Si2147/2157/2158 silicon tuner driver
-+ * Silicon Labs Si2147/2148/2157/2158 silicon tuner driver
-  *
-  * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
-  *
--- 
-1.9.1
+        if ((fd = open(device, O_RDONLY)) < 0)
+            goto err;
 
+        if (ioctl(fd, VIDIOC_QUERYCAP, &caps) < 0) {
+            perror("VIDIOC_QUERYCAP");
+            goto err;
+        }
+        close(fd);
 
+        return strndup((char *)caps.card, sizeof(caps.card));
+
+    err:
+        if (fd >= 0)
+            close(dev->fd);
+        fd = -1;
+
+        return NULL;
+    }
+
+print truncated card name output (example for card=165):
+
+    BT878 video (Kworld V-Stream XP
+
+instade of full card name:
+
+    Kworld V-Stream Xpert TV PVR878
+
+I here same way to get full card name?
