@@ -1,115 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42445 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751462AbaKBMcs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:48 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 00/14] Reduce cx231xx verbosity and do some cleanups
-Date: Sun,  2 Nov 2014 10:32:23 -0200
-Message-Id: <cover.1414929816.git.mchehab@osg.samsung.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:38469 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750871AbaKXJhp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Nov 2014 04:37:45 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Andy Walls <awalls@md.metrocast.net>
+Subject: [PATCH 1/6] cx18: add device_caps support
+Date: Mon, 24 Nov 2014 10:37:21 +0100
+Message-Id: <1416821846-7677-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1416821846-7677-1-git-send-email-hverkuil@xs4all.nl>
+References: <1416821846-7677-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cx231xx driver is too verbose. Several debug messages
-are sent to dmesg. Do some cleanup and fix i2c_scan.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-After this patch, it will now produce:
+This was missing in this driver, so add this functionality.
 
-[  608.359255] usb 1-2: New device Conexant Corporation Polaris AV Capturb @ 480 Mbps (1554:5010) with 7 interfaces
-[  608.360009] usb 1-2: Identified as Pixelview PlayTV USB Hybrid (card=10)
-[  608.363129] i2c i2c-8: Added multiplexed i2c bus 10
-[  608.363201] i2c i2c-8: Added multiplexed i2c bus 11
-[  610.968904] cx25840 7-0044: loaded v4l-cx231xx-avcore-01.fw firmware (16382 bytes)
-[  611.041317] Chip ID is not zero. It is not a TEA5767
-[  611.041351] tuner 9-0060: Tuner -1 found with type(s) Radio TV.
-[  611.041429] tda18271 9-0060: creating new instance
-[  611.044096] TDA18271HD/C2 detected @ 9-0060
-[  611.239460] tda18271: performing RF tracking filter calibration
-[  612.800569] tda18271: RF tracking filter calibration complete
-[  612.835365] usb 1-2: v4l2 driver version 0.0.3
-[  613.055006] usb 1-2: Registered video device video0 [v4l2]
-[  613.055461] usb 1-2: Registered VBI device vbi0
-[  613.110279] Registered IR keymap rc-pixelview-002t
-[  613.110574] input: i2c IR (Pixelview PlayTV USB Hy as /devices/virtual/rc/rc0/input12
-[  613.111398] rc0: i2c IR (Pixelview PlayTV USB Hy as /devices/virtual/rc/rc0
-[  613.111409] ir-kbd-i2c: i2c IR (Pixelview PlayTV USB Hy detected at i2c-9/9-0030/ir0 [cx231xx #0-2]
-[  613.111444] usb 1-2: video EndPoint Addr 0x84, Alternate settings: 5
-[  613.111454] usb 1-2: VBI EndPoint Addr 0x85, Alternate settings: 2
-[  613.111465] usb 1-2: sliced CC EndPoint Addr 0x86, Alternate settings: 2
-[  613.111474] usb 1-2: TS EndPoint Addr 0x81, Alternate settings: 6
-[  613.111654] usbcore: registered new interface driver cx231xx
-[  613.136510] usb 1-2: audio EndPoint Addr 0x83, Alternate settings: 3
-[  613.136521] usb 1-2: Cx231xx Audio Extension initialized
-[  613.199085] usb 1-2: dvb_init: looking for demod on i2c bus: 9
-[  613.232349] i2c i2c-11: Detected a Fujitsu mb86a20s frontend
-[  613.232385] tda18271 9-0060: attaching existing instance
-[  613.232392] DVB: registering new adapter (cx231xx #0)
-[  613.232402] usb 1-2: DVB: registering adapter 0 frontend 0 (Fujitsu mb86A20s)...
-[  613.234528] usb 1-2: Successfully loaded cx231xx-dvb
-[  613.234618] usb 1-2: Cx231xx dvb Extension initialized
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/media/pci/cx18/cx18-cards.h   | 3 ++-
+ drivers/media/pci/cx18/cx18-driver.h  | 1 +
+ drivers/media/pci/cx18/cx18-ioctl.c   | 7 ++++---
+ drivers/media/pci/cx18/cx18-streams.c | 9 +++++++++
+ 4 files changed, 16 insertions(+), 4 deletions(-)
 
-Still verbose, but at least it doesn't produce extra logs during normal
-work.
-
-I2C scan is now fixed and not too verbose:
-
-[  608.371656] usb 1-2: i2c scan: found device @ port 0 addr 0x40  [???]
-[  608.374750] usb 1-2: i2c scan: found device @ port 0 addr 0x60  [colibri]
-[  608.378433] usb 1-2: i2c scan: found device @ port 0 addr 0x88  [hammerhead]
-[  608.380226] usb 1-2: i2c scan: found device @ port 0 addr 0x98  [???]
-[  608.405747] usb 1-2: i2c scan: found device @ port 3 addr 0xa0  [eeprom]
-[  608.422310] usb 1-2: i2c scan: found device @ port 2 addr 0x60  [colibri]
-[  608.430229] usb 1-2: i2c scan: found device @ port 2 addr 0xc0  [tuner]
-[  608.438793] usb 1-2: i2c scan: found device @ port 4 addr 0x20  [demod]
-[  608.560247] cx25840 7-0044: cx23102 A/V decoder found @ 0x88 (cx231xx #0-0)
-
-Tested with a Pixelview PlayTV USB Hybrid SBTVD.
-
--
-
-v2:
- - The i2c scan fix patch got replaced by the one sent by Matthias;
- - Converted to dev_foo() instead of pr_foo();
- - Some minor CodingStyle cleanups;
- - Be a little less verbose on i2c_scan;
- - Bumped version string.
-
-Matthias Schwarzott (1):
-  [media] cx231xx: use 1 byte read for i2c scan
-
-Mauro Carvalho Chehab (13):
-  [media] cx231xx: get rid of driver-defined printk macros
-  [media] cx231xx: Fix identation
-  [media] cx231xx: Cleanup printk at the driver
-  [media] cx25840: Don't report an error if max size is adjusted
-  [media] cx25840: convert max_buf_size var to lowercase
-  [media] cx231xx: disable I2C errors during i2c_scan
-  [media] cx231xx: convert from pr_foo to dev_foo
-  [media] cx231xx: get rid of audio debug parameter
-  [media] cx231xx: use dev_foo instead of printk
-  [media] cx231xx: add addr for demod and make i2c_devs const
-  [media] cx231xx: use dev_info() for extension load/unload
-  [media] cx231xx: too much changes. Bump version number
-  [media] cx231xx: simplify I2C scan debug messages
-
- drivers/media/i2c/cx25840/cx25840-firmware.c |  11 +-
- drivers/media/usb/cx231xx/cx231xx-417.c      |  53 +++--
- drivers/media/usb/cx231xx/cx231xx-audio.c    |  93 +++++----
- drivers/media/usb/cx231xx/cx231xx-avcore.c   | 292 +++++++++++++++------------
- drivers/media/usb/cx231xx/cx231xx-cards.c    | 158 ++++++++-------
- drivers/media/usb/cx231xx/cx231xx-core.c     | 150 +++++++-------
- drivers/media/usb/cx231xx/cx231xx-dvb.c      | 114 ++++++-----
- drivers/media/usb/cx231xx/cx231xx-i2c.c      |  37 ++--
- drivers/media/usb/cx231xx/cx231xx-input.c    |   1 -
- drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c  |  47 +++--
- drivers/media/usb/cx231xx/cx231xx-vbi.c      |  48 +++--
- drivers/media/usb/cx231xx/cx231xx-video.c    |  85 ++++----
- drivers/media/usb/cx231xx/cx231xx.h          |  21 +-
- 13 files changed, 583 insertions(+), 527 deletions(-)
-
+diff --git a/drivers/media/pci/cx18/cx18-cards.h b/drivers/media/pci/cx18/cx18-cards.h
+index add7391..f6b921f 100644
+--- a/drivers/media/pci/cx18/cx18-cards.h
++++ b/drivers/media/pci/cx18/cx18-cards.h
+@@ -57,7 +57,8 @@
+ /* V4L2 capability aliases */
+ #define CX18_CAP_ENCODER (V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER | \
+ 			  V4L2_CAP_AUDIO | V4L2_CAP_READWRITE | \
+-			  V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE)
++			  V4L2_CAP_STREAMING | V4L2_CAP_VBI_CAPTURE | \
++			  V4L2_CAP_SLICED_VBI_CAPTURE)
+ 
+ struct cx18_card_video_input {
+ 	u8  video_type; 	/* video input type */
+diff --git a/drivers/media/pci/cx18/cx18-driver.h b/drivers/media/pci/cx18/cx18-driver.h
+index 57f4688..dcfd7a1 100644
+--- a/drivers/media/pci/cx18/cx18-driver.h
++++ b/drivers/media/pci/cx18/cx18-driver.h
+@@ -379,6 +379,7 @@ struct cx18_stream {
+ 	const char *name;		/* name of the stream */
+ 	int type;			/* stream type */
+ 	u32 handle;			/* task handle */
++	u32 v4l2_dev_caps;		/* device capabilities */
+ 	unsigned int mdl_base_idx;
+ 
+ 	u32 id;
+diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
+index 71963db..b8e4b68 100644
+--- a/drivers/media/pci/cx18/cx18-ioctl.c
++++ b/drivers/media/pci/cx18/cx18-ioctl.c
+@@ -393,15 +393,16 @@ static int cx18_querycap(struct file *file, void *fh,
+ 				struct v4l2_capability *vcap)
+ {
+ 	struct cx18_open_id *id = fh2id(fh);
++	struct cx18_stream *s = video_drvdata(file);
+ 	struct cx18 *cx = id->cx;
+ 
+ 	strlcpy(vcap->driver, CX18_DRIVER_NAME, sizeof(vcap->driver));
+ 	strlcpy(vcap->card, cx->card_name, sizeof(vcap->card));
+ 	snprintf(vcap->bus_info, sizeof(vcap->bus_info),
+ 		 "PCI:%s", pci_name(cx->pci_dev));
+-	vcap->capabilities = cx->v4l2_cap; 	    /* capabilities */
+-	if (id->type == CX18_ENC_STREAM_TYPE_YUV)
+-		vcap->capabilities |= V4L2_CAP_STREAMING;
++	vcap->capabilities = cx->v4l2_cap;	/* capabilities */
++	vcap->device_caps = s->v4l2_dev_caps;	/* device capabilities */
++	vcap->capabilities |= V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/pci/cx18/cx18-streams.c b/drivers/media/pci/cx18/cx18-streams.c
+index f3541b5..369445f 100644
+--- a/drivers/media/pci/cx18/cx18-streams.c
++++ b/drivers/media/pci/cx18/cx18-streams.c
+@@ -58,11 +58,14 @@ static struct {
+ 	int vfl_type;
+ 	int num_offset;
+ 	int dma;
++	u32 caps;
+ } cx18_stream_info[] = {
+ 	{	/* CX18_ENC_STREAM_TYPE_MPG */
+ 		"encoder MPEG",
+ 		VFL_TYPE_GRABBER, 0,
+ 		PCI_DMA_FROMDEVICE,
++		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
++		V4L2_CAP_AUDIO | V4L2_CAP_TUNER
+ 	},
+ 	{	/* CX18_ENC_STREAM_TYPE_TS */
+ 		"TS",
+@@ -73,11 +76,15 @@ static struct {
+ 		"encoder YUV",
+ 		VFL_TYPE_GRABBER, CX18_V4L2_ENC_YUV_OFFSET,
+ 		PCI_DMA_FROMDEVICE,
++		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
++		V4L2_CAP_STREAMING | V4L2_CAP_AUDIO | V4L2_CAP_TUNER
+ 	},
+ 	{	/* CX18_ENC_STREAM_TYPE_VBI */
+ 		"encoder VBI",
+ 		VFL_TYPE_VBI, 0,
+ 		PCI_DMA_FROMDEVICE,
++		V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE |
++		V4L2_CAP_READWRITE | V4L2_CAP_TUNER
+ 	},
+ 	{	/* CX18_ENC_STREAM_TYPE_PCM */
+ 		"encoder PCM audio",
+@@ -93,6 +100,7 @@ static struct {
+ 		"encoder radio",
+ 		VFL_TYPE_RADIO, 0,
+ 		PCI_DMA_NONE,
++		V4L2_CAP_RADIO | V4L2_CAP_TUNER
+ 	},
+ };
+ 
+@@ -260,6 +268,7 @@ static void cx18_stream_init(struct cx18 *cx, int type)
+ 	s->handle = CX18_INVALID_TASK_HANDLE;
+ 
+ 	s->dma = cx18_stream_info[type].dma;
++	s->v4l2_dev_caps = cx18_stream_info[type].caps;
+ 	s->buffers = cx->stream_buffers[type];
+ 	s->buf_size = cx->stream_buf_size[type];
+ 	INIT_LIST_HEAD(&s->buf_pool);
 -- 
-1.9.3
+2.1.3
 
