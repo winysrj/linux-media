@@ -1,35 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:62729 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751938AbaKPNgI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Nov 2014 08:36:08 -0500
-Received: by mail-la0-f42.google.com with SMTP id s18so3255730lam.29
-        for <linux-media@vger.kernel.org>; Sun, 16 Nov 2014 05:36:06 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:59826 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750966AbaKXNdH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Nov 2014 08:33:07 -0500
+Message-ID: <54733390.7070901@iki.fi>
+Date: Mon, 24 Nov 2014 15:33:04 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1415623771-29634-8-git-send-email-hverkuil@xs4all.nl>
-References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl> <1415623771-29634-8-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Sun, 16 Nov 2014 21:35:26 +0800
-Message-ID: <CAMm-=zDY-i-K6F1A0pFo+mfUPadssUQhfCG=VSZuZ=TBMSS1Ow@mail.gmail.com>
-Subject: Re: [RFCv6 PATCH 07/16] vb2-dma-sg: add support for dmabuf exports
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hansverk@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+To: LMML <linux-media@vger.kernel.org>
+CC: CrazyCat <crazycat69@narod.ru>, Olli Salonen <olli.salonen@iki.fi>
+Subject: [GIT PULL] si2157 si2168 cxusb em28xx
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 10, 2014 at 8:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hansverk@cisco.com>
->
-> Add DMABUF export support to vb2-dma-sg.
->
-> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+The following changes since commit 5937a784c3e5fe8fd1e201f42a2b1ece6c36a6c0:
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
+   [media] staging: media: bcm2048: fix coding style error (2014-11-21 
+16:50:37 -0200)
+
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git silabs
+
+for you to fetch changes up to d5036ca91a48ca0841d4f9075952f705e4cac58e:
+
+   cxusb: Geniatech T230 support. (2014-11-24 12:44:59 +0200)
+
+----------------------------------------------------------------
+CrazyCat (3):
+       si2157: Si2148 support.
+       si2168: TS clock inversion control.
+       cxusb: Geniatech T230 support.
+
+Olli Salonen (3):
+       si2157: Add support for Si2146-A10
+       em28xx: Add support for Terratec Cinergy T2 Stick HD
+       si2157: make checkpatch.pl happy (remove break after goto)
+
+  drivers/media/dvb-core/dvb-usb-ids.h      |   1 +
+  drivers/media/dvb-frontends/si2168.c      |   7 +++++--
+  drivers/media/dvb-frontends/si2168.h      |   4 ++++
+  drivers/media/dvb-frontends/si2168_priv.h |   1 +
+  drivers/media/tuners/si2157.c             |  32 
+++++++++++++++++++++++++--------
+  drivers/media/tuners/si2157.h             |   2 +-
+  drivers/media/tuners/si2157_priv.h        |   8 ++++++--
+  drivers/media/usb/dvb-usb/cxusb.c         | 127 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  drivers/media/usb/em28xx/em28xx-cards.c   |  27 
++++++++++++++++++++++++++++
+  drivers/media/usb/em28xx/em28xx-dvb.c     |  59 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  drivers/media/usb/em28xx/em28xx.h         |   1 +
+  11 files changed, 256 insertions(+), 13 deletions(-)
 
 -- 
-Best regards,
-Pawel Osciak
+http://palosaari.fi/
