@@ -1,42 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:35043 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753039AbaKZVv7 (ORCPT
+Received: from cpsmtpb-ews02.kpnxchange.com ([213.75.39.5]:54994 "EHLO
+	cpsmtpb-ews02.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753113AbaKXKyB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 16:51:59 -0500
-Received: from localhost.localdomain (92-244-23-216.customers.ownit.se [92.244.23.216])
-	(Authenticated sender: ed8153)
-	by smtp.bredband2.com (Postfix) with ESMTPA id 9845C121856
-	for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 22:51:47 +0100 (CET)
-From: Benjamin Larsson <benjamin@southpole.se>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] mn88472: document demod reset
-Date: Wed, 26 Nov 2014 22:51:47 +0100
-Message-Id: <1417038707-6297-2-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1417038707-6297-1-git-send-email-benjamin@southpole.se>
-References: <1417038707-6297-1-git-send-email-benjamin@southpole.se>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 24 Nov 2014 05:54:01 -0500
+Message-ID: <1416826438.10073.11.camel@x220>
+Subject: [PATCH] [media] omap24xx/tcm825x: remove pointless Makefile entry
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Valentin Rothberg <valentinrothberg@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Date: Mon, 24 Nov 2014 11:53:58 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/staging/media/mn88472/mn88472.c | 2 ++
- 1 file changed, 2 insertions(+)
+The deprecated omap2 camera drivers were recently removed. Both the
+Kconfig symbol VIDEO_TCM825X and the drivers/staging/media/omap24xx
+directory are gone. So the Makefile entry that references both is now
+pointless. Remove it too.
 
-diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-index f648b58..36ef39b 100644
---- a/drivers/staging/media/mn88472/mn88472.c
-+++ b/drivers/staging/media/mn88472/mn88472.c
-@@ -190,6 +190,8 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
- 	ret = regmap_write(dev->regmap[0], 0xae, 0x00);
- 	ret = regmap_write(dev->regmap[2], 0x08, 0x1d);
- 	ret = regmap_write(dev->regmap[0], 0xd9, 0xe3);
-+
-+	/* Reset demod */
- 	ret = regmap_write(dev->regmap[2], 0xf8, 0x9f);
- 	if (ret)
- 		goto err;
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+Tested by grepping the tree.
+
+Triggered by commit db85a0403be4 ("[media] omap24xx/tcm825x: remove
+deprecated omap2 camera drivers."), which is included in next-20141124.
+What happened is that it removed only one of the two Makefile entries
+for omap24xx.
+
+ drivers/staging/media/Makefile | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index 97bfef97f838..30fb352fc4a9 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -4,7 +4,6 @@ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+ obj-$(CONFIG_VIDEO_DT3155)	+= dt3155v4l/
+ obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+ obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
+-obj-$(CONFIG_VIDEO_TCM825X)     += omap24xx/
+ obj-$(CONFIG_DVB_MN88472)       += mn88472/
+ obj-$(CONFIG_DVB_MN88473)       += mn88473/
+ 
 -- 
-2.1.0
+1.9.3
 
