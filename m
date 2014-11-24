@@ -1,91 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:61660 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880AbaKQKJy (ORCPT
+Received: from mail-la0-f51.google.com ([209.85.215.51]:34534 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751400AbaKXHBI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 05:09:54 -0500
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Mon, 17 Nov 2014 11:09:45 +0100
-Cc: sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel" <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <20141116075928.GA9763@amd> <201411170943.20810@pali> <20141117100519.GA4353@amd>
-In-Reply-To: <20141117100519.GA4353@amd>
-MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1476038.VxUQSkjrrd";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Message-Id: <201411171109.47795@pali>
+	Mon, 24 Nov 2014 02:01:08 -0500
+Received: by mail-la0-f51.google.com with SMTP id mc6so7124182lab.10
+        for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 23:01:05 -0800 (PST)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 3/4] si2157: make checkpatch.pl happy (remove break after goto)
+Date: Mon, 24 Nov 2014 08:57:35 +0200
+Message-Id: <1416812256-27894-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1416812256-27894-1-git-send-email-olli.salonen@iki.fi>
+References: <1416812256-27894-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart1476038.VxUQSkjrrd
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Break after goto is unnecessary.
 
-On Monday 17 November 2014 11:05:19 Pavel Machek wrote:
-> Hi!
->=20
-> On Mon 2014-11-17 09:43:19, Pali Roh=C3=A1r wrote:
-> > On Sunday 16 November 2014 08:59:28 Pavel Machek wrote:
-> > > For device tree people: Yes, I know I'll have to create
-> > > file in documentation, but does the binding below look
-> > > acceptable?
-> > >=20
-> > > I'll clean up driver code a bit more, remove the printks.
-> > > Anything else obviously wrong?
-> >=20
-> > I think that this patch is probably not good and specially
-> > not for n900. adp1653 should be registered throw omap3 isp
-> > camera subsystem which does not have DT support yet.
->=20
-> Can you explain?
->=20
-> adp1653 is independend device on i2c bus, and we have kernel
-> driver for it (unlike rest of n900 camera system). Just now
-> it is unusable due to lack of DT binding. It has two
-> functions, LED light and a camera flash; yes, the second one
-> should be integrated to the rest of camera system, but that
-> is not yet merged. That should not prevent us from merging DT
-> support for the flash, so that this part can be
-> tested/maintained.
->=20
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/tuners/si2157.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Ok. When ISP camera subsystem has DT support somebody will modify=20
-n900 DT to add camera flash from adp1653 to ISP... I believe it=20
-will not be hard.
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index a8f2edb9..3bdf00a 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -129,7 +129,6 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	case SI2147_A30:
+ 	case SI2146_A10:
+ 		goto skip_fw_download;
+-		break;
+ 	default:
+ 		dev_err(&s->client->dev,
+ 				"unknown chip version Si21%d-%c%c%c\n",
+-- 
+1.9.1
 
-> > See n900 legacy board camera code in file
-> > board-rx51-camera.c.
->=20
-> I have seen that.
-> 									Pavel
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1476038.VxUQSkjrrd
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlRpyWsACgkQi/DJPQPkQ1Jy6QCglBKZqhyJBNS8eLewXZ7URYoB
-2bwAoMfx6J2TFeyK/vaZlkPvXdihCxKe
-=IbyL
------END PGP SIGNATURE-----
-
---nextPart1476038.VxUQSkjrrd--
