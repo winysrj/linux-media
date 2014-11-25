@@ -1,178 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48806 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752562AbaKQORQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 09:17:16 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 1/8] videodev2.h: improve colorspace support
-Date: Mon, 17 Nov 2014 15:16:47 +0100
-Message-Id: <1416233814-40579-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1416233814-40579-1-git-send-email-hverkuil@xs4all.nl>
-References: <1416233814-40579-1-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:60532 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750998AbaKYO2g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Nov 2014 09:28:36 -0500
+Date: Tue, 25 Nov 2014 12:28:30 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: "Nibble Max" <nibble.max@gmail.com>
+Cc: "Antti Palosaari" <crope@iki.fi>,
+	"linux-media" <linux-media@vger.kernel.org>,
+	"Olli Salonen" <olli.salonen@iki.fi>
+Subject: Re: [PATCH v2 2/2] smipcie: add DVBSky T9580 V3 support
+Message-ID: <20141125122830.7ac3d8cc@recife.lan>
+In-Reply-To: <20141125122538.1a87e268@recife.lan>
+References: <201411081935169219971@gmail.com>
+	<201411101009107186933@gmail.com>
+	<20141125122538.1a87e268@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Tue, 25 Nov 2014 12:25:38 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Add support for the new AdobeRGB and BT.2020 colorspaces as needed for
-HDMI 2.0.
+> Em Mon, 10 Nov 2014 10:09:13 +0800
+> "Nibble Max" <nibble.max@gmail.com> escreveu:
+> 
+> > Hello Antti,
+> > 
+> > On 2014-11-10 06:13:07, Antti Palosaari wrote:
+> > >On 11/08/2014 01:35 PM, Nibble Max wrote:
+> > >> v2:
+> > >> - Update Kconfig file.
+> > >>
+> > >> DVBSky T9580 V3 card is the dual tuner card, which supports S/S2 and T2/T/C.
+> > >> 1>DVB-S/S2 frontend: M88DS3103/M88TS2022
+> > >> 2>DVB-T2/T/C frontend: SI2168B40/SI2157A30
+> > >> 2>PCIe bridge: SMI PCIe
+> > >>
+> > >> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+> > >
+> > >Reviewed-by: Antti Palosaari <crope@iki.fi>
+> > >
+> > >I reviewed the patch v1 also :]
+> > >
+> > >Antti
+> > 
+> > Thanks for your review!
+> 
+> This patch doesn't compile:
+> 
+> drivers/media/pci/smipcie/smipcie.c: In function 'smi_dvbsky_sit2_fe_attach':
+> drivers/media/pci/smipcie/smipcie.c:637:2: error: implicit declaration of function 'smi_add_i2c_client' [-Werror=implicit-function-declaration]
+>   client_demod = smi_add_i2c_client(i2c, &client_info);
+>   ^
+> drivers/media/pci/smipcie/smipcie.c:637:15: warning: assignment makes pointer from integer without a cast [enabled by default]
+>   client_demod = smi_add_i2c_client(i2c, &client_info);
+>                ^
+> drivers/media/pci/smipcie/smipcie.c:653:15: warning: assignment makes pointer from integer without a cast [enabled by default]
+>   client_tuner = smi_add_i2c_client(tuner_i2c_adapter, &client_info);
+>                ^
+> drivers/media/pci/smipcie/smipcie.c:655:3: error: implicit declaration of function 'smi_del_i2c_client' [-Werror=implicit-function-declaration]
+>    smi_del_i2c_client(port->i2c_client_demod);
+>    ^
+> 
 
-Add support to specify the Y'CbCr encoding and quantization range explicitly.
+Hmm... actually patch 1/2 was marked as superseded, not sure why... 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/videodev2.h | 99 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 89 insertions(+), 10 deletions(-)
+Let me review/apply patch 1/2 first and see if it will fixes the issue.
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 1c2f84f..df37e0cf 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -178,30 +178,103 @@ enum v4l2_memory {
- 
- /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
- enum v4l2_colorspace {
--	/* ITU-R 601 -- broadcast NTSC/PAL */
-+	/* SMPTE 170M: used for broadcast NTSC/PAL SDTV */
- 	V4L2_COLORSPACE_SMPTE170M     = 1,
- 
--	/* 1125-Line (US) HDTV */
-+	/* Obsolete pre-1998 SMPTE 240M HDTV standard, superseded by Rec 709 */
- 	V4L2_COLORSPACE_SMPTE240M     = 2,
- 
--	/* HD and modern captures. */
-+	/* Rec.709: used for HDTV */
- 	V4L2_COLORSPACE_REC709        = 3,
- 
--	/* broken BT878 extents (601, luma range 16-253 instead of 16-235) */
-+	/*
-+	 * Deprecated, do not use. No driver will ever return this. This was
-+	 * based on a misunderstanding of the bt878 datasheet.
-+	 */
- 	V4L2_COLORSPACE_BT878         = 4,
- 
--	/* These should be useful.  Assume 601 extents. */
-+	/*
-+	 * NTSC 1953 colorspace. This only makes sense when dealing with
-+	 * really, really old NTSC recordings. Superseded by SMPTE 170M.
-+	 */
- 	V4L2_COLORSPACE_470_SYSTEM_M  = 5,
-+
-+	/*
-+	 * EBU Tech 3213 PAL/SECAM colorspace. This only makes sense when
-+	 * dealing with really old PAL/SECAM recordings. Superseded by
-+	 * SMPTE 170M.
-+	 */
- 	V4L2_COLORSPACE_470_SYSTEM_BG = 6,
- 
--	/* I know there will be cameras that send this.  So, this is
--	 * unspecified chromaticities and full 0-255 on each of the
--	 * Y'CbCr components
-+	/*
-+	 * Effectively shorthand for V4L2_COLORSPACE_SRGB, V4L2_YCBCR_ENC_601
-+	 * and V4L2_QUANTIZATION_FULL_RANGE. To be used for (Motion-)JPEG.
- 	 */
- 	V4L2_COLORSPACE_JPEG          = 7,
- 
--	/* For RGB colourspaces, this is probably a good start. */
-+	/* For RGB colorspaces such as produces by most webcams. */
- 	V4L2_COLORSPACE_SRGB          = 8,
-+
-+	/* AdobeRGB colorspace */
-+	V4L2_COLORSPACE_ADOBERGB      = 9,
-+
-+	/* BT.2020 colorspace, used for UHDTV. */
-+	V4L2_COLORSPACE_BT2020        = 10,
-+};
-+
-+enum v4l2_ycbcr_encoding {
-+	/*
-+	 * Mapping of V4L2_YCBCR_ENC_DEFAULT to actual encodings for the
-+	 * various colorspaces:
-+	 *
-+	 * V4L2_COLORSPACE_SMPTE170M, V4L2_COLORSPACE_470_SYSTEM_M,
-+	 * V4L2_COLORSPACE_470_SYSTEM_BG, V4L2_COLORSPACE_ADOBERGB and
-+	 * V4L2_COLORSPACE_JPEG: V4L2_YCBCR_ENC_601
-+	 *
-+	 * V4L2_COLORSPACE_REC709: V4L2_YCBCR_ENC_709
-+	 *
-+	 * V4L2_COLORSPACE_SRGB: V4L2_YCBCR_ENC_SYCC
-+	 *
-+	 * V4L2_COLORSPACE_BT2020: V4L2_YCBCR_ENC_BT2020NC
-+	 *
-+	 * V4L2_COLORSPACE_SMPTE240M: V4L2_YCBCR_ENC_SMPTE240M
-+	 */
-+	V4L2_YCBCR_ENC_DEFAULT        = 0,
-+
-+	/* ITU-R 601 -- SDTV */
-+	V4L2_YCBCR_ENC_601            = 1,
-+
-+	/* Rec. 709 -- HDTV */
-+	V4L2_YCBCR_ENC_709            = 2,
-+
-+	/* ITU-R 601/EN 61966-2-4 Extended Gamut -- SDTV */
-+	V4L2_YCBCR_ENC_XV601          = 3,
-+
-+	/* Rec. 709/EN 61966-2-4 Extended Gamut -- HDTV */
-+	V4L2_YCBCR_ENC_XV709          = 4,
-+
-+	/* sYCC (Y'CbCr encoding of sRGB) */
-+	V4L2_YCBCR_ENC_SYCC           = 5,
-+
-+	/* BT.2020 Non-constant Luminance Y'CbCr */
-+	V4L2_YCBCR_ENC_BT2020NC       = 6,
-+
-+	/* BT.2020 Constant Luminance Y'CbcCrc */
-+	V4L2_YCBCR_ENC_BT2020C        = 7,
-+
-+	/* SMPTE 240M -- Obsolete HDTV */
-+	V4L2_YCBCR_ENC_SMPTE240M      = 8,
-+};
-+
-+enum v4l2_quantization {
-+	/*
-+	 * The default for R'G'B' quantization is always full range. For
-+	 * Y'CbCr the quantization is always limited range, except for
-+	 * SYCC, XV601, XV709 or JPEG: those are full range.
-+	 */
-+	V4L2_QUANTIZATION_DEFAULT     = 0,
-+	V4L2_QUANTIZATION_FULL_RANGE  = 1,
-+	V4L2_QUANTIZATION_LIM_RANGE   = 2,
- };
- 
- enum v4l2_priority {
-@@ -294,6 +367,8 @@ struct v4l2_pix_format {
- 	__u32			colorspace;	/* enum v4l2_colorspace */
- 	__u32			priv;		/* private data, depends on pixelformat */
- 	__u32			flags;		/* format flags (V4L2_PIX_FMT_FLAG_*) */
-+	__u32			ycbcr_enc;	/* enum v4l2_ycbcr_encoding */
-+	__u32			quantization;	/* enum v4l2_quantization */
- };
- 
- /*      Pixel format         FOURCC                          depth  Description  */
-@@ -1777,6 +1852,8 @@ struct v4l2_plane_pix_format {
-  * @plane_fmt:		per-plane information
-  * @num_planes:		number of planes for this format
-  * @flags:		format flags (V4L2_PIX_FMT_FLAG_*)
-+ * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
-+ * @quantization:	enum v4l2_quantization, colorspace quantization
-  */
- struct v4l2_pix_format_mplane {
- 	__u32				width;
-@@ -1788,7 +1865,9 @@ struct v4l2_pix_format_mplane {
- 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
- 	__u8				num_planes;
- 	__u8				flags;
--	__u8				reserved[10];
-+	__u8				ycbcr_enc;
-+	__u8				quantization;
-+	__u8				reserved[8];
- } __attribute__ ((packed));
- 
- /**
--- 
-2.1.1
+Regards,
+Mauro
 
+> 
+> > 
+> > Best Regards,
+> > Max
+> > 
+> > >
+> > >> ---
+> > >>   drivers/media/pci/smipcie/Kconfig   |  3 ++
+> > >>   drivers/media/pci/smipcie/smipcie.c | 67 +++++++++++++++++++++++++++++++++++++
+> > >>   2 files changed, 70 insertions(+)
+> > >>
+> > >> diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
+> > >> index 75a2992..35ace80 100644
+> > >> --- a/drivers/media/pci/smipcie/Kconfig
+> > >> +++ b/drivers/media/pci/smipcie/Kconfig
+> > >> @@ -2,12 +2,15 @@ config DVB_SMIPCIE
+> > >>   	tristate "SMI PCIe DVBSky cards"
+> > >>   	depends on DVB_CORE && PCI && I2C
+> > >>   	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
+> > >> +	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
+> > >>   	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
+> > >>   	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
+> > >> +	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+> > >>   	help
+> > >>   	  Support for cards with SMI PCIe bridge:
+> > >>   	  - DVBSky S950 V3
+> > >>   	  - DVBSky S952 V3
+> > >> +	  - DVBSky T9580 V3
+> > >>
+> > >>   	  Say Y or M if you own such a device and want to use it.
+> > >>   	  If unsure say N.
+> > >> diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
+> > >> index c27e45b..5d1932b 100644
+> > >> --- a/drivers/media/pci/smipcie/smipcie.c
+> > >> +++ b/drivers/media/pci/smipcie/smipcie.c
+> > >> @@ -18,6 +18,8 @@
+> > >>   #include "m88ds3103.h"
+> > >>   #include "m88ts2022.h"
+> > >>   #include "m88rs6000t.h"
+> > >> +#include "si2168.h"
+> > >> +#include "si2157.h"
+> > >>
+> > >>   DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+> > >>
+> > >> @@ -618,6 +620,58 @@ err_tuner_i2c_device:
+> > >>   	return ret;
+> > >>   }
+> > >>
+> > >> +static int smi_dvbsky_sit2_fe_attach(struct smi_port *port)
+> > >> +{
+> > >> +	int ret = 0;
+> > >> +	struct smi_dev *dev = port->dev;
+> > >> +	struct i2c_adapter *i2c;
+> > >> +	struct i2c_adapter *tuner_i2c_adapter;
+> > >> +	struct i2c_client *client_tuner, *client_demod;
+> > >> +	struct i2c_board_info client_info;
+> > >> +	struct si2168_config si2168_config;
+> > >> +	struct si2157_config si2157_config;
+> > >> +
+> > >> +	/* select i2c bus */
+> > >> +	i2c = (port->idx == 0) ? &dev->i2c_bus[0] : &dev->i2c_bus[1];
+> > >> +
+> > >> +	/* attach demod */
+> > >> +	memset(&si2168_config, 0, sizeof(si2168_config));
+> > >> +	si2168_config.i2c_adapter = &tuner_i2c_adapter;
+> > >> +	si2168_config.fe = &port->fe;
+> > >> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> > >> +
+> > >> +	memset(&client_info, 0, sizeof(struct i2c_board_info));
+> > >> +	strlcpy(client_info.type, "si2168", I2C_NAME_SIZE);
+> > >> +	client_info.addr = 0x64;
+> > >> +	client_info.platform_data = &si2168_config;
+> > >> +
+> > >> +	client_demod = smi_add_i2c_client(i2c, &client_info);
+> > >> +	if (!client_demod) {
+> > >> +		ret = -ENODEV;
+> > >> +		return ret;
+> > >> +	}
+> > >> +	port->i2c_client_demod = client_demod;
+> > >> +
+> > >> +	/* attach tuner */
+> > >> +	memset(&si2157_config, 0, sizeof(si2157_config));
+> > >> +	si2157_config.fe = port->fe;
+> > >> +
+> > >> +	memset(&client_info, 0, sizeof(struct i2c_board_info));
+> > >> +	strlcpy(client_info.type, "si2157", I2C_NAME_SIZE);
+> > >> +	client_info.addr = 0x60;
+> > >> +	client_info.platform_data = &si2157_config;
+> > >> +
+> > >> +	client_tuner = smi_add_i2c_client(tuner_i2c_adapter, &client_info);
+> > >> +	if (!client_tuner) {
+> > >> +		smi_del_i2c_client(port->i2c_client_demod);
+> > >> +		port->i2c_client_demod = NULL;
+> > >> +		ret = -ENODEV;
+> > >> +		return ret;
+> > >> +	}
+> > >> +	port->i2c_client_tuner = client_tuner;
+> > >> +	return ret;
+> > >> +}
+> > >> +
+> > >>   static int smi_fe_init(struct smi_port *port)
+> > >>   {
+> > >>   	int ret = 0;
+> > >> @@ -635,6 +689,9 @@ static int smi_fe_init(struct smi_port *port)
+> > >>   	case DVBSKY_FE_M88RS6000:
+> > >>   		ret = smi_dvbsky_m88rs6000_fe_attach(port);
+> > >>   		break;
+> > >> +	case DVBSKY_FE_SIT2:
+> > >> +		ret = smi_dvbsky_sit2_fe_attach(port);
+> > >> +		break;
+> > >>   	}
+> > >>   	if (ret < 0)
+> > >>   		return ret;
+> > >> @@ -1005,6 +1062,15 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
+> > >>   	.fe_1 = DVBSKY_FE_M88RS6000,
+> > >>   };
+> > >>
+> > >> +static struct smi_cfg_info dvbsky_t9580_cfg = {
+> > >> +	.type = SMI_DVBSKY_T9580,
+> > >> +	.name = "DVBSky T9580 V3",
+> > >> +	.ts_0 = SMI_TS_DMA_BOTH,
+> > >> +	.ts_1 = SMI_TS_DMA_BOTH,
+> > >> +	.fe_0 = DVBSKY_FE_SIT2,
+> > >> +	.fe_1 = DVBSKY_FE_M88DS3103,
+> > >> +};
+> > >> +
+> > >>   /* PCI IDs */
+> > >>   #define SMI_ID(_subvend, _subdev, _driverdata) {	\
+> > >>   	.vendor      = SMI_VID,    .device    = SMI_PID, \
+> > >> @@ -1014,6 +1080,7 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
+> > >>   static const struct pci_device_id smi_id_table[] = {
+> > >>   	SMI_ID(0x4254, 0x0550, dvbsky_s950_cfg),
+> > >>   	SMI_ID(0x4254, 0x0552, dvbsky_s952_cfg),
+> > >> +	SMI_ID(0x4254, 0x5580, dvbsky_t9580_cfg),
+> > >>   	{0}
+> > >>   };
+> > >>   MODULE_DEVICE_TABLE(pci, smi_id_table);
+> > >>
+> > >>
+> > >
+> > >-- 
+> > >http://palosaari.fi/
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
