@@ -1,90 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:62648 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751402AbaK2S0P convert rfc822-to-8bit (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55671 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750836AbaKYDmu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Nov 2014 13:26:15 -0500
-MIME-Version: 1.0
-In-Reply-To: <1532665.63kW7uD9fo@avalon>
-References: <1417044344-20611-1-git-send-email-prabhakar.csengg@gmail.com>
- <4838705.gmGJIAUqrM@avalon> <CA+V-a8sAUDo+ut1t2_twy6hNjX5WQpridCEm6NrNmrwQvR1Nrw@mail.gmail.com>
- <1532665.63kW7uD9fo@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 29 Nov 2014 18:25:42 +0000
-Message-ID: <CA+V-a8vVepBkjMdQyckqXjciqPKGJJLHnW0Y3144BUx4q42=FA@mail.gmail.com>
-Subject: Re: [PATCH v3] media: usb: uvc: use vb2_ops_wait_prepare/finish helper
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 24 Nov 2014 22:42:50 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 52D2B2A0085
+	for <linux-media@vger.kernel.org>; Tue, 25 Nov 2014 04:42:40 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141125034240.52D2B2A0085@tschai.lan>
+Date: Tue, 25 Nov 2014 04:42:40 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Sat, Nov 29, 2014 at 6:11 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> On Friday 28 November 2014 17:06:52 Prabhakar Lad wrote:
->> On Thu, Nov 27, 2014 at 9:32 PM, Laurent Pinchart wrote:
->> > Hi Prabhakar,
->>
->> [Snip]
->>
->> >> +     queue->queue.lock = &queue->mutex;
->> >
->> > I'm a bit concerned that this would introduce future breakages. Setting
->> > the queue.lock pointer enables locking in all vb2_fop_* and vb2_ops_wait_*
->> > functions. The uvcvideo driver isn't ready for that, but doesn't use the
->> > vb2_fop_* functions yet, so that's not an issue. However, in the future,
->> > videobuf2 might use the lock in more places, including functions used by
->> > the uvcvideo driver. This could then cause breakages.
->>
->> Even if in future if videobuf2 uses this lock it would be in helpers mostly,
->> so any way it doesn’t harm :)
->
-> My concern is about vb2 starting using the lock in existing helpers used by
-> the uvcvideo driver. I suppose we can deal with it later.
->
->> > It would be better to completely convert the uvcvideo driver to the
->> > vb2_fop_* functions if we want to use vb2_ops_*. I'm not sure how complex
->> > that would be though, and whether it would be possible while still
->> > keeping the fine-grained locking implemented by the uvcvideo driver. Do
->> > you think it should be attempted ?
->>
->> mmap & poll should be fairly simple, looks like open & release cannot be
->> dropped as it does some usb_autopm_get/put_interface() calls which I am not
->> aware of.
->
-> I've looked at that, and there's a race condition in vb2_fop_poll() (for which
-> I've already sent a patch) and possible in vb2_mmap() (raised the issue on
-> #v4l today) as well that need to be fixed first.
->
-> Anyway, for this patch
->
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-> Have you tested it by the way ?
->
-I have just compile tested it.
+Results of the daily build of media_tree:
 
-> Should I take it in my tree or will you send a pull request for the whole
-> series ?
->
-Probably you can pick this up via your tree.
+date:		Tue Nov 25 04:00:16 CET 2014
+git branch:	test
+git hash:	5937a784c3e5fe8fd1e201f42a2b1ece6c36a6c0
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-Thanks,
---Prabhakar Lad
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
->> >>       ret = vb2_queue_init(&queue->queue);
->> >>       if (ret)
->> >>               return ret;
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
