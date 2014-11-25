@@ -1,222 +1,523 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wblv-ip-smtp-10-1.saix.net ([196.25.240.106]:37479 "EHLO
-	wblv-ip-smtp-10-1.saix.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751055AbaKVKXF (ORCPT
+Received: from smtprelay0129.hostedemail.com ([216.40.44.129]:47227 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750812AbaKYVAM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Nov 2014 05:23:05 -0500
-Received: from [192.168.0.6] (ti-224-220-120.telkomadsl.co.za [105.224.220.120])
-	by wblv-ip-smtp-10-1.saix.net (Postfix) with ESMTP id A65071E26
-	for <linux-media@vger.kernel.org>; Sat, 22 Nov 2014 11:44:50 +0200 (SAST)
-Message-ID: <54705B11.1030602@telkomsa.net>
-Date: Sat, 22 Nov 2014 11:44:49 +0200
-From: Martin Colley <qsolutions@telkomsa.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Missdetected USB device
-Content-Type: text/plain; charset=utf-8; format=flowed
+	Tue, 25 Nov 2014 16:00:12 -0500
+Message-ID: <1416949207.8358.14.camel@perches.com>
+Subject: Re: [PATCH] staging: media: lirc: lirc_zilog.c: fix quoted strings
+ split across lines
+From: Joe Perches <joe@perches.com>
+To: Luis de Bethencourt <luis@debethencourt.com>
+Cc: linux-kernel@vger.kernel.org, jarod@wilsonet.com,
+	m.chehab@samsung.com, gregkh@linuxfoundation.org,
+	mahfouz.saif.elyazal@gmail.com, dan.carpenter@oracle.com,
+	tuomas.tynkkynen@iki.fi, gulsah.1004@gmail.com,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Date: Tue, 25 Nov 2014 13:00:07 -0800
+In-Reply-To: <20141125204056.GA12162@biggie>
+References: <20141125201905.GA10900@biggie>
+	 <1416947244.8358.12.camel@perches.com> <20141125204056.GA12162@biggie>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+On Tue, 2014-11-25 at 20:40 +0000, Luis de Bethencourt wrote:
+> On Tue, Nov 25, 2014 at 12:27:24PM -0800, Joe Perches wrote:
+> > On Tue, 2014-11-25 at 20:19 +0000, Luis de Bethencourt wrote:
+> > > checkpatch makes an exception to the 80-colum rule for quotes strings, and
+> > > Documentation/CodingStyle recommends not splitting quotes strings across lines
+> > > because it breaks the ability to grep for the string. Fixing these.
+> > []
+> > > diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+> > []
+> > > @@ -794,8 +792,7 @@ static int fw_load(struct IR_tx *tx)
+> > >  	if (!read_uint8(&data, tx_data->endp, &version))
+> > >  		goto corrupt;
+> > >  	if (version != 1) {
+> > > -		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected"
+> > > -			    "1) -- please upgrade to a newer driver",
+> > > +		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected1) -- please upgrade to a newer driver",
+> > >  			    version);
+> > 
+> > Hello Luis.
+> > 
+> > Please look at the strings being coalesced before
+> > submitting patches.
+> > 
+> > It's a fairly common defect to have either a missing
+> > space between the coalesced fragments or too mano
+> > spaces.
+> > 
+> > It's almost certain that there should be a space
+> > between the "expected" and "1" here.
+> > 
+> > 
+> 
+> Hello Joe,
+> 
+> Thanks for taking the time to review this. I sent a new
+> version fixing the missing space. 
 
-I believe my USB card is being miss-detected. I am hoping the invite in 
-my system logs to report this
-via the V4L Mailing list is still open? I have searched forums for a 
-solution, but have not found anything useful.
+Thanks.
 
-I am running Ubuntu 14.04.1
+In the future, you might consider being more
+comprehensive with your patches.
 
-uname -a reports:
-Linux james 3.13.0-39-generic #66-Ubuntu SMP Tue Oct 28 13:30:27 UTC 
-2014 x86_64 x86_64 x86_64 GNU/Linux
+This code could be neatened a bit by:
 
-The device is a Chronos USB Movie Grabber:
-http://www.chronos.com.tw/Product/E/2/USB%20Movie%20Editor/USB%20Movie%20Editor.htm
+o using another set of logging macros
+o removing the unnecessary ftrace like logging
+o realigning arguments
 
-Testing of the device with cheese and vlc is unsuccessful (cheese hangs, 
-vlc shows no video but remains responsive).
-Testing of these apps with a USB webcam is successful.
-Testing of the device under windows on a different machine is successful.
+Something like:
 
-syslog entries when the USB device is plugged in:
+---
+ drivers/staging/media/lirc/lirc_zilog.c | 151 +++++++++++++++-----------------
+ 1 file changed, 73 insertions(+), 78 deletions(-)
 
-Nov 21 19:14:09 james kernel: [952932.084433] usb 2-1.6: new high-speed 
-USB device number 10 using ehci-pci
-Nov 21 19:14:09 james kernel: [952932.176773] usb 2-1.6: New USB device 
-found, idVendor=eb1a, idProduct=2863
-Nov 21 19:14:09 james kernel: [952932.176779] usb 2-1.6: New USB device 
-strings: Mfr=0, Product=0, SerialNumber=0
-Nov 21 19:14:09 james kernel: [952932.177168] em28xx: New device   @ 480 
-Mbps (eb1a:2863, interface 0, class 0)
-Nov 21 19:14:09 james kernel: [952932.177172] em28xx: Audio interface 0 
-found (Vendor Class)
-Nov 21 19:14:09 james kernel: [952932.177174] em28xx: Video interface 0 
-found: isoc
-Nov 21 19:14:09 james kernel: [952932.177260] em28xx: chip ID is em2860
-Nov 21 19:14:09 james kernel: [952932.268734] em2860 #0: board has no eeprom
-Nov 21 19:14:09 james kernel: [952932.340462] em2860 #0: No sensor detected
-Nov 21 19:14:09 james kernel: [952932.374916] em2860 #0: found i2c 
-device @ 0xb8 on bus 0 [tvp5150a]
-Nov 21 19:14:09 james kernel: [952932.387785] em2860 #0: Your board has 
-no unique USB ID.
-Nov 21 19:14:09 james kernel: [952932.387788] em2860 #0: A hint were 
-successfully done, based on i2c devicelist hash.
-Nov 21 19:14:09 james kernel: [952932.387790] em2860 #0: This method is 
-not 100% failproof.
-Nov 21 19:14:09 james kernel: [952932.387791] em2860 #0: If the board 
-were missdetected, please email this log to:
-Nov 21 19:14:09 james kernel: [952932.387792] em2860 #0:     V4L Mailing 
-List  <linux-media@vger.kernel.org>
-Nov 21 19:14:09 james kernel: [952932.387794] em2860 #0: Board detected 
-as EM2860/TVP5150 Reference Design
-Nov 21 19:14:09 james kernel: [952932.464223] em2860 #0: Identified as 
-EM2860/TVP5150 Reference Design (card=29)
-Nov 21 19:14:10 james kernel: [952932.708718] tvp5150 6-005c: chip found 
-@ 0xb8 (em2860 #0)
-Nov 21 19:14:10 james kernel: [952932.708723] tvp5150 6-005c: tvp5150am1 
-detected.
-Nov 21 19:14:10 james kernel: [952932.796687] em2860 #0: Config register 
-raw data: 0x10
-Nov 21 19:14:10 james kernel: [952932.820306] em2860 #0: AC97 vendor ID 
-= 0x83847650
-Nov 21 19:14:10 james kernel: [952932.832150] em2860 #0: AC97 features = 
-0x6a90
-Nov 21 19:14:10 james kernel: [952932.832154] em2860 #0: Empia 202 AC97 
-audio processor detected
-Nov 21 19:14:12 james kernel: [952935.447452] em2860 #0: v4l2 driver 
-version 0.2.0
-Nov 21 19:14:14 james kernel: [952937.358984] em2860 #0: V4L2 video 
-device registered as video0
-Nov 21 19:14:14 james kernel: [952937.358989] em2860 #0: V4L2 VBI device 
-registered as vbi0
-Nov 21 19:14:14 james kernel: [952937.358993] em2860 #0: analog set to 
-isoc mode.
-Nov 21 19:14:14 james kernel: [952937.359084] em28xx-audio.c: probing 
-for em28xx Audio Vendor Class
-Nov 21 19:14:14 james kernel: [952937.359086] em28xx-audio.c: Copyright 
-(C) 2006 Markus Rechberger
-Nov 21 19:14:14 james kernel: [952937.359087] em28xx-audio.c: Copyright 
-(C) 2007-2011 Mauro Carvalho Chehab
-Nov 21 19:14:15 james mtp-probe: checking bus 2, device 10: 
-"/sys/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.6"
-Nov 21 19:14:15 james mtp-probe: bus: 2, device: 10 was not an MTP device
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index bebb9f1..523af12 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -158,6 +158,17 @@ static bool debug;	/* debug output */
+ static bool tx_only;	/* only handle the IR Tx function */
+ static int minor = -1;	/* minor number */
+ 
++/* logging macros */
++#define ir_err(ir, fmt, ...)				\
++	dev_err((ir)->l.dev, fmt, ##__VA_ARGS__)
++#define ir_warn(ir, fmt, ...)				\
++	dev_warn((ir)->l.dev, fmt, ##__VA_ARGS__)
++#define ir_notice(ir, fmt, ...)				\
++	dev_notice((ir)->l.dev, fmt, ##__VA_ARGS__)
++#define ir_info(ir, fmt, ...)				\
++	dev_info((ir)->l.dev, fmt, ##__VA_ARGS__)
++#define ir_dbg(ir, fmt, ...)				\
++	dev_dbg((ir)->l.dev, fmt, ##__VA_ARGS__)
+ 
+ /* struct IR reference counting */
+ static struct IR *get_ir_device(struct IR *ir, bool ir_devices_lock_held)
+@@ -322,7 +333,7 @@ static int add_to_buf(struct IR *ir)
+ 	struct IR_tx *tx;
+ 
+ 	if (lirc_buffer_full(rbuf)) {
+-		dev_dbg(ir->l.dev, "buffer overflow\n");
++		ir_dbg(ir, "buffer overflow\n");
+ 		return -EOVERFLOW;
+ 	}
+ 
+@@ -368,18 +379,15 @@ static int add_to_buf(struct IR *ir)
+ 		 */
+ 		ret = i2c_master_send(rx->c, sendbuf, 1);
+ 		if (ret != 1) {
+-			dev_err(ir->l.dev, "i2c_master_send failed with %d\n",
+-					   ret);
++			ir_err(ir, "i2c_master_send failed with %d\n", ret);
+ 			if (failures >= 3) {
+ 				mutex_unlock(&ir->ir_lock);
+-				dev_err(ir->l.dev, "unable to read from the IR chip "
+-					    "after 3 resets, giving up\n");
++				ir_err(ir, "unable to read from the IR chip after 3 resets, giving up\n");
+ 				break;
+ 			}
+ 
+ 			/* Looks like the chip crashed, reset it */
+-			dev_err(ir->l.dev, "polling the IR receiver chip failed, "
+-				    "trying reset\n");
++			ir_err(ir, "polling the IR receiver chip failed, trying reset\n");
+ 
+ 			set_current_state(TASK_UNINTERRUPTIBLE);
+ 			if (kthread_should_stop()) {
+@@ -405,14 +413,13 @@ static int add_to_buf(struct IR *ir)
+ 		ret = i2c_master_recv(rx->c, keybuf, sizeof(keybuf));
+ 		mutex_unlock(&ir->ir_lock);
+ 		if (ret != sizeof(keybuf)) {
+-			dev_err(ir->l.dev, "i2c_master_recv failed with %d -- "
+-				    "keeping last read buffer\n", ret);
++			ir_err(ir, "i2c_master_recv failed with %d -- keeping last read buffer\n",
++			       ret);
+ 		} else {
+ 			rx->b[0] = keybuf[3];
+ 			rx->b[1] = keybuf[4];
+ 			rx->b[2] = keybuf[5];
+-			dev_dbg(ir->l.dev, "key (0x%02x/0x%02x)\n",
+-					   rx->b[0], rx->b[1]);
++			ir_dbg(ir, "key (0x%02x/0x%02x)\n", rx->b[0], rx->b[1]);
+ 		}
+ 
+ 		/* key pressed ? */
+@@ -463,7 +470,7 @@ static int lirc_thread(void *arg)
+ 	struct IR *ir = arg;
+ 	struct lirc_buffer *rbuf = ir->l.rbuf;
+ 
+-	dev_dbg(ir->l.dev, "poll thread started\n");
++	ir_dbg(ir, "poll thread started\n");
+ 
+ 	while (!kthread_should_stop()) {
+ 		set_current_state(TASK_INTERRUPTIBLE);
+@@ -491,7 +498,7 @@ static int lirc_thread(void *arg)
+ 			wake_up_interruptible(&rbuf->wait_poll);
+ 	}
+ 
+-	dev_dbg(ir->l.dev, "poll thread ended\n");
++	ir_dbg(ir, "poll thread ended\n");
+ 	return 0;
+ }
+ 
+@@ -653,11 +660,10 @@ static int send_data_block(struct IR_tx *tx, unsigned char *data_block)
+ 		buf[0] = (unsigned char)(i + 1);
+ 		for (j = 0; j < tosend; ++j)
+ 			buf[1 + j] = data_block[i + j];
+-		dev_dbg(tx->ir->l.dev, "%*ph", 5, buf);
++		ir_dbg(tx->ir, "%*ph\n", 5, buf);
+ 		ret = i2c_master_send(tx->c, buf, tosend + 1);
+ 		if (ret != tosend + 1) {
+-			dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n",
+-					       ret);
++			ir_err(tx->ir, "i2c_master_send failed with %d\n", ret);
+ 			return ret < 0 ? ret : -EFAULT;
+ 		}
+ 		i += tosend;
+@@ -681,7 +687,7 @@ static int send_boot_data(struct IR_tx *tx)
+ 	buf[1] = 0x20;
+ 	ret = i2c_master_send(tx->c, buf, 2);
+ 	if (ret != 2) {
+-		dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n", ret);
++		ir_err(tx->ir, "i2c_master_send failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+@@ -698,23 +704,23 @@ static int send_boot_data(struct IR_tx *tx)
+ 	}
+ 
+ 	if (ret != 1) {
+-		dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n", ret);
++		ir_err(tx->ir, "i2c_master_send failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+ 	/* Here comes the firmware version... (hopefully) */
+ 	ret = i2c_master_recv(tx->c, buf, 4);
+ 	if (ret != 4) {
+-		dev_err(tx->ir->l.dev, "i2c_master_recv failed with %d\n", ret);
++		ir_err(tx->ir, "i2c_master_recv failed with %d\n", ret);
+ 		return 0;
+ 	}
+ 	if ((buf[0] != 0x80) && (buf[0] != 0xa0)) {
+-		dev_err(tx->ir->l.dev, "unexpected IR TX init response: %02x\n",
+-				       buf[0]);
++		ir_err(tx->ir, "unexpected IR TX init response: %02x\n",
++		       buf[0]);
+ 		return 0;
+ 	}
+-	dev_notice(tx->ir->l.dev, "Zilog/Hauppauge IR blaster firmware version "
+-		     "%d.%d.%d loaded\n", buf[1], buf[2], buf[3]);
++	ir_notice(tx->ir, "Zilog/Hauppauge IR blaster firmware version %d.%d.%d loaded\n",
++		  buf[1], buf[2], buf[3]);
+ 
+ 	return 0;
+ }
+@@ -761,12 +767,12 @@ static int fw_load(struct IR_tx *tx)
+ 	/* Request codeset data file */
+ 	ret = request_firmware(&fw_entry, "haup-ir-blaster.bin", tx->ir->l.dev);
+ 	if (ret != 0) {
+-		dev_err(tx->ir->l.dev, "firmware haup-ir-blaster.bin not available (%d)\n",
+-			    ret);
++		ir_err(tx->ir, "firmware haup-ir-blaster.bin not available (%d)\n",
++		       ret);
+ 		ret = ret < 0 ? ret : -EFAULT;
+ 		goto out;
+ 	}
+-	dev_dbg(tx->ir->l.dev, "firmware of size %zu loaded\n", fw_entry->size);
++	ir_dbg(tx->ir, "firmware of size %zu loaded\n", fw_entry->size);
+ 
+ 	/* Parse the file */
+ 	tx_data = vmalloc(sizeof(*tx_data));
+@@ -794,9 +800,8 @@ static int fw_load(struct IR_tx *tx)
+ 	if (!read_uint8(&data, tx_data->endp, &version))
+ 		goto corrupt;
+ 	if (version != 1) {
+-		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected"
+-			    "1) -- please upgrade to a newer driver",
+-			    version);
++		ir_err(tx->ir, "unsupported code set file version (%u, expected 1) -- please upgrade to a newer driver\n",
++		       version);
+ 		fw_unload_locked();
+ 		ret = -EFAULT;
+ 		goto out;
+@@ -811,8 +816,8 @@ static int fw_load(struct IR_tx *tx)
+ 			      &tx_data->num_code_sets))
+ 		goto corrupt;
+ 
+-	dev_dbg(tx->ir->l.dev, "%u IR blaster codesets loaded\n",
+-			       tx_data->num_code_sets);
++	ir_dbg(tx->ir, "%u IR blaster codesets loaded\n",
++	       tx_data->num_code_sets);
+ 
+ 	tx_data->code_sets = vmalloc(
+ 		tx_data->num_code_sets * sizeof(char *));
+@@ -876,7 +881,7 @@ static int fw_load(struct IR_tx *tx)
+ 	goto out;
+ 
+ corrupt:
+-	dev_err(tx->ir->l.dev, "firmware is corrupt\n");
++	ir_err(tx->ir, "firmware is corrupt\n");
+ 	fw_unload_locked();
+ 	ret = -EFAULT;
+ 
+@@ -896,9 +901,8 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
+ 	unsigned int m;
+ 	DECLARE_WAITQUEUE(wait, current);
+ 
+-	dev_dbg(ir->l.dev, "read called\n");
+ 	if (n % rbuf->chunk_size) {
+-		dev_dbg(ir->l.dev, "read result = -EINVAL\n");
++		ir_dbg(ir, "read result = -EINVAL\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -942,8 +946,8 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
+ 			unsigned char buf[MAX_XFER_SIZE];
+ 
+ 			if (rbuf->chunk_size > sizeof(buf)) {
+-				dev_err(ir->l.dev, "chunk_size is too big (%d)!\n",
+-					    rbuf->chunk_size);
++				ir_err(ir, "chunk_size is too big (%d)!\n",
++				       rbuf->chunk_size);
+ 				ret = -EINVAL;
+ 				break;
+ 			}
+@@ -956,7 +960,7 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
+ 				retries++;
+ 			}
+ 			if (retries >= 5) {
+-				dev_err(ir->l.dev, "Buffer read failed!\n");
++				ir_err(ir, "Buffer read failed!\n");
+ 				ret = -EIO;
+ 			}
+ 		}
+@@ -966,8 +970,7 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
+ 	put_ir_rx(rx, false);
+ 	set_current_state(TASK_RUNNING);
+ 
+-	dev_dbg(ir->l.dev, "read result = %d (%s)\n",
+-			   ret, ret ? "Error" : "OK");
++	ir_dbg(ir, "read result = %d (%s)\n", ret, ret ? "Error" : "OK");
+ 
+ 	return ret ? ret : written;
+ }
+@@ -983,8 +986,8 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	ret = get_key_data(data_block, code, key);
+ 
+ 	if (ret == -EPROTO) {
+-		dev_err(tx->ir->l.dev, "failed to get data for code %u, key %u -- check "
+-			    "lircd.conf entries\n", code, key);
++		ir_err(tx->ir, "failed to get data for code %u, key %u -- check lircd.conf entries\n",
++		       code, key);
+ 		return ret;
+ 	} else if (ret != 0)
+ 		return ret;
+@@ -999,7 +1002,7 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	buf[1] = 0x40;
+ 	ret = i2c_master_send(tx->c, buf, 2);
+ 	if (ret != 2) {
+-		dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n", ret);
++		ir_err(tx->ir, "i2c_master_send failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+@@ -1012,19 +1015,18 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	}
+ 
+ 	if (ret != 1) {
+-		dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n", ret);
++		ir_err(tx->ir, "i2c_master_send failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+ 	/* Send finished download? */
+ 	ret = i2c_master_recv(tx->c, buf, 1);
+ 	if (ret != 1) {
+-		dev_err(tx->ir->l.dev, "i2c_master_recv failed with %d\n", ret);
++		ir_err(tx->ir, "i2c_master_recv failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 	if (buf[0] != 0xA0) {
+-		dev_err(tx->ir->l.dev, "unexpected IR TX response #1: %02x\n",
+-			buf[0]);
++		ir_err(tx->ir, "unexpected IR TX response #1: %02x\n", buf[0]);
+ 		return -EFAULT;
+ 	}
+ 
+@@ -1033,7 +1035,7 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	buf[1] = 0x80;
+ 	ret = i2c_master_send(tx->c, buf, 2);
+ 	if (ret != 2) {
+-		dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n", ret);
++		ir_err(tx->ir, "i2c_master_send failed with %d\n", ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+@@ -1043,7 +1045,7 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	 * going to skip this whole mess and say we're done on the HD PVR
+ 	 */
+ 	if (!tx->post_tx_ready_poll) {
+-		dev_dbg(tx->ir->l.dev, "sent code %u, key %u\n", code, key);
++		ir_dbg(tx->ir, "sent code %u, key %u\n", code, key);
+ 		return 0;
+ 	}
+ 
+@@ -1059,29 +1061,28 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 		ret = i2c_master_send(tx->c, buf, 1);
+ 		if (ret == 1)
+ 			break;
+-		dev_dbg(tx->ir->l.dev, "NAK expected: i2c_master_send "
+-			"failed with %d (try %d)\n", ret, i+1);
++		ir_dbg(tx->ir, "NAK expected: i2c_master_send failed with %d (try %d)\n",
++		       ret, i + 1);
+ 	}
+ 	if (ret != 1) {
+-		dev_err(tx->ir->l.dev, "IR TX chip never got ready: last i2c_master_send "
+-			    "failed with %d\n", ret);
++		ir_err(tx->ir, "IR TX chip never got ready: last i2c_master_send failed with %d\n",
++		       ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+ 	/* Seems to be an 'ok' response */
+ 	i = i2c_master_recv(tx->c, buf, 1);
+ 	if (i != 1) {
+-		dev_err(tx->ir->l.dev, "i2c_master_recv failed with %d\n", ret);
++		ir_err(tx->ir, "i2c_master_recv failed with %d\n", ret);
+ 		return -EFAULT;
+ 	}
+ 	if (buf[0] != 0x80) {
+-		dev_err(tx->ir->l.dev, "unexpected IR TX response #2: %02x\n",
+-				       buf[0]);
++		ir_err(tx->ir, "unexpected IR TX response #2: %02x\n", buf[0]);
+ 		return -EFAULT;
+ 	}
+ 
+ 	/* Oh good, it worked */
+-	dev_dbg(tx->ir->l.dev, "sent code %u, key %u\n", code, key);
++	ir_dbg(tx->ir, "sent code %u, key %u\n", code, key);
+ 	return 0;
+ }
+ 
+@@ -1167,12 +1168,10 @@ static ssize_t write(struct file *filep, const char __user *buf, size_t n,
+ 		 */
+ 		if (ret != 0) {
+ 			/* Looks like the chip crashed, reset it */
+-			dev_err(tx->ir->l.dev, "sending to the IR transmitter chip "
+-				    "failed, trying reset\n");
++			ir_err(tx->ir, "sending to the IR transmitter chip failed, trying reset\n");
+ 
+ 			if (failures >= 3) {
+-				dev_err(tx->ir->l.dev, "unable to send to the IR chip "
+-					    "after 3 resets, giving up\n");
++				ir_err(tx->ir, "unable to send to the IR chip after 3 resets, giving up\n");
+ 				mutex_unlock(&ir->ir_lock);
+ 				mutex_unlock(&tx->client_lock);
+ 				put_ir_tx(tx, false);
+@@ -1206,15 +1205,13 @@ static unsigned int poll(struct file *filep, poll_table *wait)
+ 	struct lirc_buffer *rbuf = ir->l.rbuf;
+ 	unsigned int ret;
+ 
+-	dev_dbg(ir->l.dev, "poll called\n");
+-
+ 	rx = get_ir_rx(ir);
+ 	if (rx == NULL) {
+ 		/*
+ 		 * Revisit this, if our poll function ever reports writeable
+ 		 * status for Tx
+ 		 */
+-		dev_dbg(ir->l.dev, "poll result = POLLERR\n");
++		ir_dbg(ir, "poll result = POLLERR\n");
+ 		return POLLERR;
+ 	}
+ 
+@@ -1227,8 +1224,7 @@ static unsigned int poll(struct file *filep, poll_table *wait)
+ 	/* Indicate what ops could happen immediately without blocking */
+ 	ret = lirc_buffer_empty(rbuf) ? 0 : (POLLIN|POLLRDNORM);
+ 
+-	dev_dbg(ir->l.dev, "poll result = %s\n",
+-			   ret ? "POLLIN|POLLRDNORM" : "none");
++	ir_dbg(ir, "poll result = %s\n", ret ? "POLLIN|POLLRDNORM" : "none");
+ 	return ret;
+ }
+ 
+@@ -1335,7 +1331,7 @@ static int close(struct inode *node, struct file *filep)
+ 	struct IR *ir = filep->private_data;
+ 
+ 	if (ir == NULL) {
+-		dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
++		ir_err(ir, "close: no private_data attached to the file!\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -1542,8 +1538,8 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 
+ 		/* Proceed only if the Rx client is also ready or not needed */
+ 		if (rx == NULL && !tx_only) {
+-			dev_info(tx->ir->l.dev, "probe of IR Tx on %s (i2c-%d) done. Waiting"
+-				   " on IR Rx.\n", adap->name, adap->nr);
++			ir_info(tx->ir, "probe of IR Tx on %s (i2c-%d) done. Waiting on IR Rx.\n",
++				adap->name, adap->nr);
+ 			goto out_ok;
+ 		}
+ 	} else {
+@@ -1581,8 +1577,8 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 				       "zilog-rx-i2c-%d", adap->nr);
+ 		if (IS_ERR(rx->task)) {
+ 			ret = PTR_ERR(rx->task);
+-			dev_err(tx->ir->l.dev, "%s: could not start IR Rx polling thread"
+-				    "\n", __func__);
++			ir_err(tx->ir, "%s: could not start IR Rx polling thread\n",
++			       __func__);
+ 			/* Failed kthread, so put back the ir ref */
+ 			put_ir_device(ir, true);
+ 			/* Failure exit, so put back rx ref from i2c_client */
+@@ -1604,13 +1600,13 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	ir->l.minor = minor; /* module option: user requested minor number */
+ 	ir->l.minor = lirc_register_driver(&ir->l);
+ 	if (ir->l.minor < 0 || ir->l.minor >= MAX_IRCTL_DEVICES) {
+-		dev_err(tx->ir->l.dev, "%s: \"minor\" must be between 0 and %d (%d)!\n",
+-			    __func__, MAX_IRCTL_DEVICES-1, ir->l.minor);
++		ir_err(tx->ir, "%s: \"minor\" must be between 0 and %d (%d)!\n",
++		       __func__, MAX_IRCTL_DEVICES - 1, ir->l.minor);
+ 		ret = -EBADRQC;
+ 		goto out_put_xx;
+ 	}
+-	dev_info(ir->l.dev, "IR unit on %s (i2c-%d) registered as lirc%d and ready\n",
+-		   adap->name, adap->nr, ir->l.minor);
++	ir_info(ir, "IR unit on %s (i2c-%d) registered as lirc%d and ready\n",
++		adap->name, adap->nr, ir->l.minor);
+ 
+ out_ok:
+ 	if (rx != NULL)
+@@ -1618,8 +1614,8 @@ out_ok:
+ 	if (tx != NULL)
+ 		put_ir_tx(tx, true);
+ 	put_ir_device(ir, true);
+-	dev_info(ir->l.dev, "probe of IR %s on %s (i2c-%d) done\n",
+-		   tx_probe ? "Tx" : "Rx", adap->name, adap->nr);
++	ir_info(ir, "probe of IR %s on %s (i2c-%d) done\n",
++		tx_probe ? "Tx" : "Rx", adap->name, adap->nr);
+ 	mutex_unlock(&ir_devices_lock);
+ 	return 0;
+ 
+@@ -1632,8 +1628,7 @@ out_put_ir:
+ 	put_ir_device(ir, true);
+ out_no_ir:
+ 	dev_err(&client->dev, "%s: probing IR %s on %s (i2c-%d) failed with %d\n",
+-		    __func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr,
+-		   ret);
++		__func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr, ret);
+ 	mutex_unlock(&ir_devices_lock);
+ 	return ret;
+ }
 
-This is followed by multiple coppies of the following, which I believe 
-is related:
-
-Nov 21 19:14:23 james kernel: [952945.856318] ------------[ cut here 
-]------------
-Nov 21 19:14:23 james kernel: [952945.856329] WARNING: CPU: 2 PID: 23518 
-at /build/buildd/linux-3.13.0/fs/sysfs/dir.c:486 sysfs_warn_dup+0x86/0xa0()
-Nov 21 19:14:23 james kernel: [952945.856331] sysfs: cannot create 
-duplicate filename 
-'/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.6/2-1.6:1.0/ep_81'
-Nov 21 19:14:23 james kernel: [952945.856332] Modules linked in: 
-em28xx_alsa tvp5150 em28xx tveeprom v4l2_common videobuf2_vmalloc 
-videobuf2_memops videobuf2_core videodev rfcomm bnep bluetooth joydev 
-snd_hda_codec_realtek snd_hda_intel snd_hda_codec snd_hwdep snd_pcm 
-snd_page_alloc snd_seq_midi snd_seq_midi_event snd_rawmidi parport_pc 
-snd_seq ppdev snd_seq_device snd_timer lp snd parport intel_rapl 
-x86_pkg_temp_thermal intel_powerclamp coretemp kvm_intel kvm 
-crct10dif_pclmul crc32_pclmul ghash_clmulni_intel aesni_intel aes_x86_64 
-lrw gf128mul glue_helper ablk_helper cryptd serio_raw i915 lpc_ich 
-mei_me drm_kms_helper drm video i2c_algo_bit mei mac_hid soundcore 
-intel_smartconnect hid_generic usbhid hid ahci libahci psmouse r8169 mii
-Nov 21 19:14:23 james kernel: [952945.856383] CPU: 2 PID: 23518 Comm: 
-pulseaudio Not tainted 3.13.0-39-generic #66-Ubuntu
-Nov 21 19:14:23 james kernel: [952945.856385] Hardware name: To Be 
-Filled By O.E.M. To Be Filled By O.E.M./H61M-VS3, BIOS P1.50 01/07/2013
-Nov 21 19:14:23 james kernel: [952945.856388]  0000000000000009 
-ffff88007a06d7d0 ffffffff8171ece7 ffff88007a06d818
-Nov 21 19:14:23 james kernel: [952945.856392]  ffff88007a06d808 
-ffffffff8106773d ffff8801f7f09000 ffff8801f7f09000
-Nov 21 19:14:23 james kernel: [952945.856395]  ffff880100c86700 
-ffff88007a06d910 0000000000000000 ffff88007a06d868
-Nov 21 19:14:23 james kernel: [952945.856399] Call Trace:
-Nov 21 19:14:23 james kernel: [952945.856405] [<ffffffff8171ece7>] 
-dump_stack+0x45/0x56
-Nov 21 19:14:23 james kernel: [952945.856409] [<ffffffff8106773d>] 
-warn_slowpath_common+0x7d/0xa0
-Nov 21 19:14:23 james kernel: [952945.856412] [<ffffffff810677ac>] 
-warn_slowpath_fmt+0x4c/0x50
-Nov 21 19:14:23 james kernel: [952945.856416] [<ffffffff81234976>] 
-sysfs_warn_dup+0x86/0xa0
-Nov 21 19:14:23 james kernel: [952945.856419] [<ffffffff812349d0>] 
-sysfs_add_one+0x40/0x50
-Nov 21 19:14:23 james kernel: [952945.856422] [<ffffffff81234b11>] 
-create_dir+0x71/0xf0
-Nov 21 19:14:23 james kernel: [952945.856425] [<ffffffff81234e43>] 
-sysfs_create_dir_ns+0x73/0xc0
-Nov 21 19:14:23 james kernel: [952945.856430] [<ffffffff81364c80>] 
-kobject_add_internal+0xd0/0x330
-Nov 21 19:14:23 james kernel: [952945.856435] [<ffffffff8101bb19>] ? 
-sched_clock+0x9/0x10
-Nov 21 19:14:23 james kernel: [952945.856439] [<ffffffff81365305>] 
-kobject_add+0x65/0xb0
-Nov 21 19:14:23 james kernel: [952945.856445] [<ffffffff81492b53>] ? 
-device_private_init+0x23/0x80
-Nov 21 19:14:23 james kernel: [952945.856449] [<ffffffff81492cd5>] 
-device_add+0x125/0x640
-Nov 21 19:14:23 james kernel: [952945.856453] [<ffffffff8149320a>] 
-device_register+0x1a/0x20
-Nov 21 19:14:23 james kernel: [952945.856458] [<ffffffff8154ddc1>] 
-usb_create_ep_devs+0x81/0xd0
-Nov 21 19:14:23 james kernel: [952945.856461] [<ffffffff815473d5>] ? 
-usb_enable_endpoint+0x85/0x90
-Nov 21 19:14:23 james kernel: [952945.856464] [<ffffffff81546739>] 
-create_intf_ep_devs+0x59/0x80
-Nov 21 19:14:23 james kernel: [952945.856467] [<ffffffff8154766a>] 
-usb_set_interface+0x22a/0x360
-Nov 21 19:14:23 james kernel: [952945.856473] [<ffffffffa02e9930>] 
-snd_em28xx_capture_open+0x120/0x230 [em28xx_alsa]
-Nov 21 19:14:23 james kernel: [952945.856481] [<ffffffffa036cb59>] 
-snd_pcm_open_substream+0x59/0x110 [snd_pcm]
-Nov 21 19:14:23 james kernel: [952945.856488] [<ffffffffa036ccc2>] 
-snd_pcm_open+0xb2/0x250 [snd_pcm]
-Nov 21 19:14:23 james kernel: [952945.856493] [<ffffffff8109a8d0>] ? 
-wake_up_state+0x20/0x20
-Nov 21 19:14:23 james kernel: [952945.856499] [<ffffffffa036cea3>] 
-snd_pcm_capture_open+0x43/0x60 [snd_pcm]
-Nov 21 19:14:23 james kernel: [952945.856505] [<ffffffffa030c5a4>] 
-snd_open+0xb4/0x190 [snd]
-Nov 21 19:14:23 james kernel: [952945.856510] [<ffffffff811c1b9f>] 
-chrdev_open+0x9f/0x1d0
-Nov 21 19:14:23 james kernel: [952945.856514] [<ffffffff811ba6e3>] 
-do_dentry_open+0x233/0x2e0
-Nov 21 19:14:23 james kernel: [952945.856516] [<ffffffff811c1b00>] ? 
-cdev_put+0x30/0x30
-Nov 21 19:14:23 james kernel: [952945.856519] [<ffffffff811baa19>] 
-vfs_open+0x49/0x50
-Nov 21 19:14:23 james kernel: [952945.856523] [<ffffffff811c95b4>] 
-do_last+0x554/0x1200
-Nov 21 19:14:23 james kernel: [952945.856529] [<ffffffff81312ecb>] ? 
-apparmor_file_alloc_security+0x5b/0x180
-Nov 21 19:14:23 james kernel: [952945.856532] [<ffffffff811cca3b>] 
-path_openat+0xbb/0x640
-Nov 21 19:14:23 james kernel: [952945.856536] [<ffffffff811cd1e9>] ? 
-putname+0x29/0x40
-Nov 21 19:14:23 james kernel: [952945.856540] [<ffffffff811cdd2f>] ? 
-user_path_at_empty+0x5f/0x90
-Nov 21 19:14:23 james kernel: [952945.856545] [<ffffffff811a25b6>] ? 
-kmem_cache_alloc_trace+0x1c6/0x1f0
-Nov 21 19:14:23 james kernel: [952945.856549] [<ffffffff811cde1a>] 
-do_filp_open+0x3a/0x90
-Nov 21 19:14:23 james kernel: [952945.856554] [<ffffffff811daca7>] ? 
-__alloc_fd+0xa7/0x130
-Nov 21 19:14:23 james kernel: [952945.856558] [<ffffffff811bc539>] 
-do_sys_open+0x129/0x280
-Nov 21 19:14:23 james kernel: [952945.856561] [<ffffffff811bc6ae>] 
-SyS_open+0x1e/0x20
-Nov 21 19:14:23 james kernel: [952945.856565] [<ffffffff8172f7ed>] 
-system_call_fastpath+0x1a/0x1f
-Nov 21 19:14:23 james kernel: [952945.856567] ---[ end trace 
-407e8b9250899a01 ]---
-Nov 21 19:14:23 james kernel: [952945.856570] ------------[ cut here 
-]------------
-
-Any assistance would be appreciated.
-
-Thanks
-Martin
 
