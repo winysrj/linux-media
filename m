@@ -1,48 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f44.google.com ([209.85.218.44]:65165 "EHLO
-	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751758AbaKKEhH (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:41934 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752414AbaKYLT3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 23:37:07 -0500
-Received: by mail-oi0-f44.google.com with SMTP id h136so6521655oig.17
-        for <linux-media@vger.kernel.org>; Mon, 10 Nov 2014 20:37:07 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1411101243230.23739@axis700.grange>
-References: <CANC6fRFjG6002rDiJjfDHteQSAnRkwfpyWV8wB39oHu5P8Q2mA@mail.gmail.com>
-	<Pine.LNX.4.64.1411101243230.23739@axis700.grange>
-Date: Tue, 11 Nov 2014 12:37:06 +0800
-Message-ID: <CANC6fRGVdWq5sBxLW=Z2ijVTrLv-RsuMkiq94uQV7yHQq7vi3Q@mail.gmail.com>
-Subject: Re: Add controls to query camera read only paramters
-From: Bin Chen <bin.chen@linaro.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Tue, 25 Nov 2014 06:19:29 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH] [media] lmed04: add missing breaks
+Date: Tue, 25 Nov 2014 09:19:16 -0200
+Message-Id: <d442b15fb4deb2b5d516e2dae1f569b1d5472399.1416914348.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+drivers/media/usb/dvb-usb-v2/lmedm04.c:828 lme_firmware_switch() warn: missing break? reassigning 'st->dvb_usb_lme2510_firmware'
+drivers/media/usb/dvb-usb-v2/lmedm04.c:849 lme_firmware_switch() warn: missing break? reassigning 'st->dvb_usb_lme2510_firmware'
 
-On 10 November 2014 19:46, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> Hi Bin,
->
-> On Sat, 8 Nov 2014, Bin Chen wrote:
->
->> Hi Everyone,
->>
->> I need suggestions with regard to adding controls to query camera read
->> only parameters (e.g maxZoom/maxExposureCompensation) as needed by
->> Android Camera API[1].
->
-> I'm not sure all Android HAL metadata tags should be 1-to-1 implemented in
-> V4L2.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Yes, we won't need 1-1 mapping and I'm just trying to identify the
-gaps and will add only those that are make sense.
+diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+index 9f2c5459b73a..99587418f4f0 100644
+--- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
++++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+@@ -826,6 +826,7 @@ static const char *lme_firmware_switch(struct dvb_usb_device *d, int cold)
+ 				break;
+ 			}
+ 			st->dvb_usb_lme2510_firmware = TUNER_LG;
++			break;
+ 		case TUNER_LG:
+ 			fw_lme = fw_lg;
+ 			ret = request_firmware(&fw, fw_lme, &udev->dev);
+@@ -847,6 +848,7 @@ static const char *lme_firmware_switch(struct dvb_usb_device *d, int cold)
+ 				break;
+ 			}
+ 			st->dvb_usb_lme2510_firmware = TUNER_LG;
++			break;
+ 		case TUNER_LG:
+ 			fw_lme = fw_c_lg;
+ 			ret = request_firmware(&fw, fw_lme, &udev->dev);
+-- 
+1.9.3
 
-> Some of them can be derived from existing information, some are even
-> more relevant to the HAL, then to the camera (kernel driver).
-We can do it in both places and the boundary is kind of blur, at least
-for me:). Any guideline to follow? Putting them in driver maybe
-reasonable in the sense that all hardware related information are put
-together in one place - the driver. V4L2_CID_PIXEL_RATE is an example
-in V4l2 to provide such read-only information.
