@@ -1,46 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:37056 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752753AbaKOMeI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 07:34:08 -0500
-Received: by mail-lb0-f179.google.com with SMTP id l4so13972304lbv.24
-        for <linux-media@vger.kernel.org>; Sat, 15 Nov 2014 04:34:04 -0800 (PST)
-Date: Sat, 15 Nov 2014 14:33:58 +0200 (EET)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Antti Palosaari <crope@iki.fi>
-cc: Olli Salonen <olli.salonen@iki.fi>, CrazyCat <crazycat69@narod.ru>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/3] tuners: si2157: Si2148 support.
-In-Reply-To: <546732BA.8010008@iki.fi>
-Message-ID: <alpine.DEB.2.10.1411151431070.1385@dl160.lan>
-References: <1918522.5V5b9CGsli@computer> <5466A606.8030805@iki.fi> <525911416014537@web7h.yandex.ru> <CAAZRmGw=uLyS+enctwq0To8Gc1dAeG6EZgE+t0v80gBEXg=H5A@mail.gmail.com> <546732BA.8010008@iki.fi>
+Received: from devil.pb.cz ([109.72.0.18]:57457 "EHLO smtp4.pb.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751317AbaKYSpI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Nov 2014 13:45:08 -0500
+Message-ID: <5474CE31.7090000@mizera.cz>
+Date: Tue, 25 Nov 2014 19:45:05 +0100
+From: kapetr@mizera.cz
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: it913x: probe of 8-001c failed with error -22
+References: <5474A116.3050604@mizera.cz> <5474ABCA.9080609@iki.fi>
+In-Reply-To: <5474ABCA.9080609@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 15 Nov 2014, Antti Palosaari wrote:
+Hello,
 
-> Assuming you rename possible new firmware:
-> dvb-tuner-si2158-a20-01.fw
-> dvb-tuner-si2158-a20-02.fw ?
+# modinfo regmap-i2c
+ERROR: modinfo: could not find module regmap-i2c
+
+I'm using standard Ubuntu kernel.
+
+-> don't know, how to get regmap-i2c module.
+
+It is a part of V4L ?
+
+
+THX --kapetr
+
+
+Dne 25.11.2014 v 17:18 Antti Palosaari napsal(a):
 >
-> Basically, you would not like to rename firmware when it is updated if it is 
-> compatible with the driver. Lets say firmware gets bug fixes, just introduce 
-> new firmware with same name. If driver changes are needed, then you have to 
-> rename it. These firmware changes are always problematic as you have to think 
-> possible regression - it is regression from the user point of view if kernel 
-> driver updates but it does not work as firmware incompatibility.
-
-Indeed, I assumed whenever there's a firmware update, we create a new 
-filename for that. If that's not the case, then better to keep Si2148 and 
-Si2158 totally separate. At this point the files would be identical of 
-course.
-
-> How about Si2146 firmware you are working?
-
-No firmware loaded for that.
-
-Cheers,
--olli
+>
+> On 11/25/2014 05:32 PM, kapetr@mizera.cz wrote:
+>> Hello.
+>>
+>> U12.04 with newly installed 3.8 kernel:
+>>
+>> 3.8.0-44-generic #66~precise1-Ubuntu SMP Tue Jul 15 04:01:04 UTC 2014
+>> x86_64 x86_64 x86_64 GNU/Linux
+>>
+>> USB dvb-t tuner:
+>>
+>> Bus 001 Device 005: ID 048d:9135 Integrated Technology Express, Inc.
+>> Zolid Mini DVB-T Stick
+>>
+>> Newest V4L drivers installed. But there is an error in log by inserting
+>> of the USB tuner:
+>>
+>> -------------------
+>> Nov 25 16:24:38 zly-hugo kernel: [  315.927923] usb 1-1.3: new
+>> high-speed USB device number 5 using ehci-pci
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.021755] usb 1-1.3: New USB
+>> device found, idVendor=048d, idProduct=9135
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.021760] usb 1-1.3: New USB
+>> device strings: Mfr=0, Product=0, SerialNumber=0
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.023071] usb 1-1.3:
+>> dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.023443] usb 1-1.3: dvb_usb_v2:
+>> found a 'ITE 9135 Generic' in cold state
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.023519] usb 1-1.3: dvb_usb_v2:
+>> downloading firmware from file 'dvb-usb-it9135-02.fw'
+>> Nov 25 16:24:38 zly-hugo mtp-probe: checking bus 1, device 5:
+>> "/sys/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3"
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.119961] usb 1-1.3:
+>> dvb_usb_af9035: firmware version=3.40.1.0
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.119974] usb 1-1.3: dvb_usb_v2:
+>> found a 'ITE 9135 Generic' in warm state
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.120972] usb 1-1.3: dvb_usb_v2:
+>> will pass the complete MPEG2 transport stream to the software demuxer
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.120996] DVB: registering new
+>> adapter (ITE 9135 Generic)
+>> Nov 25 16:24:38 zly-hugo mtp-probe: bus: 1, device: 5 was not an MTP
+>> device
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.123808] af9033 8-0038: firmware
+>> version: LINK 3.40.1.0 - OFDM 3.40.1.0
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.123812] af9033 8-0038: Afatech
+>> AF9033 successfully attached
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.123822] usb 1-1.3: DVB:
+>> registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
+>> Nov 25 16:24:38 zly-hugo kernel: [  316.125115] it913x: probe of 8-001c
+>> failed with error -22
+>> ---------------------
+>>
+>> What is wrong ?
+>
+> it913x_probe() fails with error -EINVAL. There is only 2 ways it could
+> fail, kzalloc() and regmap_init_i2c(). It must be later one.
+>
+> Do you have regmap module installed?
+> What says: "modinfo regmap-i2c" command?
+>
+> Antti
