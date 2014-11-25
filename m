@@ -1,70 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:52931 "EHLO ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752185AbaKJUfW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 15:35:22 -0500
-From: Sebastian Reichel <sre@kernel.org>
-To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv3 2/4] [media] si4713: add DT binding documentation
-Date: Mon, 10 Nov 2014 21:34:42 +0100
-Message-Id: <1415651684-3894-3-git-send-email-sre@kernel.org>
-In-Reply-To: <1415651684-3894-1-git-send-email-sre@kernel.org>
-References: <1415651684-3894-1-git-send-email-sre@kernel.org>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:19762 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752262AbaKYKec (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Nov 2014 05:34:32 -0500
+Message-id: <54745B2F.70003@samsung.com>
+Date: Tue, 25 Nov 2014 11:34:23 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Josh Wu <josh.wu@atmel.com>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	linux-kernel@vger.kernel.org, g.liakhovetski@gmx.de
+Subject: Re: [PATCH 1/2] media: v4l2-image-sizes.h: add SVGA,
+ XGA and UXGA size definitions
+References: <1416905668-23029-1-git-send-email-josh.wu@atmel.com>
+In-reply-to: <1416905668-23029-1-git-send-email-josh.wu@atmel.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the DT bindings documentation for Silicon Labs Si4713 FM
-radio transmitter.
+Hi Josh,
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
+On 25/11/14 09:54, Josh Wu wrote:
+> Add SVGA, UXGA and XGA size definitions to v4l2-image-sizes.h.
+> The definitions are sorted by alphabet order.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> ---
+>  include/media/v4l2-image-sizes.h | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/include/media/v4l2-image-sizes.h b/include/media/v4l2-image-sizes.h
+> index 10daf92..c70c917 100644
+> --- a/include/media/v4l2-image-sizes.h
+> +++ b/include/media/v4l2-image-sizes.h
+> @@ -25,10 +25,19 @@
+>  #define QVGA_WIDTH	320
+>  #define QVGA_HEIGHT	240
+>  
+> +#define SVGA_WIDTH	800
+> +#define SVGA_HEIGHT	680
 
-diff --git a/Documentation/devicetree/bindings/media/si4713.txt b/Documentation/devicetree/bindings/media/si4713.txt
-new file mode 100644
-index 0000000..5ee5552
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/si4713.txt
-@@ -0,0 +1,30 @@
-+* Silicon Labs FM Radio transmitter
-+
-+The Silicon Labs Si4713 is an FM radio transmitter with receive power scan
-+supporting 76-108 MHz. It includes an RDS encoder and has both, a stereo-analog
-+and a digital interface, which supports I2S, left-justified and a custom
-+DSP-mode format. It is programmable through an I2C interface.
-+
-+Required Properties:
-+- compatible: Should contain "silabs,si4713"
-+- reg: the I2C address of the device
-+
-+Optional Properties:
-+- interrupts-extended: Interrupt specifier for the chips interrupt
-+- reset-gpios: GPIO specifier for the chips reset line
-+- vdd-supply: phandle for Vdd regulator
-+- vio-supply: phandle for Vio regulator
-+
-+Example:
-+
-+&i2c2 {
-+        fmtx: si4713@63 {
-+                compatible = "silabs,si4713";
-+                reg = <0x63>;
-+
-+                interrupts-extended = <&gpio2 21 IRQ_TYPE_EDGE_FALLING>; /* 53 */
-+                reset-gpios = <&gpio6 3 GPIO_ACTIVE_HIGH>; /* 163 */
-+                vio-supply = <&vio>;
-+                vdd-supply = <&vaux1>;
-+        };
-+};
--- 
-2.1.1
+I think this should be 600. With that fixed, for both patches:
 
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+>  #define SXGA_WIDTH	1280
+>  #define SXGA_HEIGHT	1024
+>  
+>  #define VGA_WIDTH	640
+>  #define VGA_HEIGHT	480
+>  
+> +#define UXGA_WIDTH	1600
+> +#define UXGA_HEIGHT	1200
+> +
+> +#define XGA_WIDTH	1024
+> +#define XGA_HEIGHT	768
+> +
+>  #endif /* _IMAGE_SIZES_H */
+
+--
+Regards,
+Sylwester
