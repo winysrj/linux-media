@@ -1,65 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f48.google.com ([209.85.216.48]:39143 "EHLO
-	mail-qa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751354AbaKZUc2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 15:32:28 -0500
-Received: by mail-qa0-f48.google.com with SMTP id v10so2432584qac.7
-        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 12:32:28 -0800 (PST)
-From: Fabio Estevam <festevam@gmail.com>
-To: p.zabel@pengutronix.de
-Cc: linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH 2/2] of: Add named interrupts to CODA bindings
-Date: Wed, 26 Nov 2014 18:32:04 -0200
-Message-Id: <1417033924-27513-2-git-send-email-festevam@gmail.com>
-In-Reply-To: <1417033924-27513-1-git-send-email-festevam@gmail.com>
-References: <1417033924-27513-1-git-send-email-festevam@gmail.com>
+Received: from m12-17.163.com ([220.181.12.17]:47993 "EHLO m12-17.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752291AbaKYHVL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Nov 2014 02:21:11 -0500
+Date: Tue, 25 Nov 2014 15:23:20 +0800
+From: "Jane" <firstgrade45@163.com>
+Reply-To: inam@mhgyjs.com
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: RFID Mifare 1k chip cards
+Message-ID: <201411251523201710257@163.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="GB2312"
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
-
-This patch documents named interrupt bindings for the CODA
-video processing units.
-
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
- Documentation/devicetree/bindings/media/coda.txt | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/media/coda.txt b/Documentation/devicetree/bindings/media/coda.txt
-index f5e4d4b..a44c4aa 100644
---- a/Documentation/devicetree/bindings/media/coda.txt
-+++ b/Documentation/devicetree/bindings/media/coda.txt
-@@ -12,19 +12,24 @@ Required properties:
-   (d) "fsl,imx6dl-vpu", "cnm,coda960" for CODA960 present in i.MX6DL/S
- - reg: should be register base and length as documented in the
-   SoC reference manual
--- interrupts : Should contain the VPU interrupt. For CODA960,
--  a second interrupt is needed for the MJPEG unit.
-+- interrupts : Should contain the VPU (BIT processor) interrupt.
-+  For CODA960, a second interrupt is needed for the JPEG unit.
- - clocks : Should contain the ahb and per clocks, in the order
-   determined by the clock-names property.
- - clock-names : Should be "ahb", "per"
- - iram : phandle pointing to the SRAM device node
- 
-+Optional properties:
-+- interrupt-names: Should be "bit" for the BIT processor interrupt
-+  and "jpeg" for the JPEG unit interrupt on CODA960.
-+
- Example:
- 
- vpu: vpu@63ff4000 {
- 	compatible = "fsl,imx53-vpu", "cnm,coda7541";
- 	reg = <0x63ff4000 0x1000>;
- 	interrupts = <9>;
-+	interrupt-names = "bit";
- 	clocks = <&clks 63>, <&clks 63>;
- 	clock-names = "ahb", "per";
- 	iram = <&ocram>;
--- 
-1.9.1
+SGVsbG8gRGVhciwNCg0KSXQncyBJbmFtIGZyb20gTWVpaGUgQ29tcGFueSBpbiBDaGluYSwgd3d3
+LmNoaW5hbmZjY2FyZC5jb20gDQoNCldlIG1ha2UgcGxhc3RpYyBjYXJkcyZ0YWdzJlJGSUQgY2Fy
+ZCZjb250YWN0IGNoaXAgaWMgY2FyZHMmd3Jpc3RiYW5kJmNhcmQgaW5sYXkgZm9yIDE0IHllYXJz
+LiBFc3BlY2lhbGx5IGluIE1pZmFyZSBjYXJkLCBpdCBpcyBvdXIgYmVzdCBzZWxsaW5nIGFuZCBj
+b21wZXRpdGl2ZSBwcm9kdWN0Lg0KDQpJZiB5b3UgaGF2ZSBhbnkgaW5xdWlyaWVzLHdlbGNvbWUg
+dG8gY29udGFjdCBtZSBmb3IgcHJpY2UgY29tcGFyaXNvbiBmaXJzdC4NCg0KRnJlZSBzYW1wbGVz
+IGFyZSBhdmFpbGFibGUuDQpUaGFua3MmQmVzdCBSZWdhcmRzDQpJbmFtDQoNClNreXBlOiBpbmFt
+MzE0DQpUZWw7MTg4OTg3NjMxNTQNCkVtYWlsOiBpbmFtQG1oZ3lqcy5jb20=
 
