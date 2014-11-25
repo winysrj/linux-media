@@ -1,58 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43534 "EHLO lists.s-osg.org"
+Received: from mout.gmx.net ([212.227.17.22]:60352 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751732AbaKEJO7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 04:14:59 -0500
-Date: Wed, 5 Nov 2014 07:14:54 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 4/8] sp2: fix sparse warnings
-Message-ID: <20141105071454.6fe2b595@recife.lan>
-In-Reply-To: <1415175472-24203-5-git-send-email-hverkuil@xs4all.nl>
-References: <1415175472-24203-1-git-send-email-hverkuil@xs4all.nl>
-	<1415175472-24203-5-git-send-email-hverkuil@xs4all.nl>
+	id S1751795AbaKYWVx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Nov 2014 17:21:53 -0500
+Date: Tue, 25 Nov 2014 23:21:12 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	linux-arm-kernel@lists.infradead.org, voice.shen@atmel.com,
+	nicolas.ferre@atmel.com
+Subject: Re: [PATCH] media: atmel-isi: increase the burst length to improve
+ the performance
+In-Reply-To: <1416907825-23826-1-git-send-email-josh.wu@atmel.com>
+Message-ID: <Pine.LNX.4.64.1411252319430.17362@axis700.grange>
+References: <1416907825-23826-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  5 Nov 2014 09:17:48 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Josh,
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, 25 Nov 2014, Josh Wu wrote:
+
+> The burst length could be BEATS_4/8/16. Before this patch, isi use default
+> value BEATS_4. To imporve the performance we could set it to BEATS_16.
 > 
-> sp2.c:272:5: warning: symbol 'sp2_init' was not declared. Should it be static?
-> sp2.c:354:5: warning: symbol 'sp2_exit' was not declared. Should it be static?
+> Otherwise sometime it would cause the ISI overflow error.
 
-This one was fixed already (at fixes branch).
+Without looking at datasheets - what does this bit do? Change the transfer 
+length? What happens then if the data amount isn't a multiple of the 
+transfer size?
+
+Thanks
+Guennadi
 
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reported-by: Bo Shen <voice.shen@atmel.com>
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
 > ---
->  drivers/media/dvb-frontends/sp2.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/media/platform/soc_camera/atmel-isi.c | 2 ++
+>  include/media/atmel-isi.h                     | 4 ++++
+>  2 files changed, 6 insertions(+)
 > 
-> diff --git a/drivers/media/dvb-frontends/sp2.c b/drivers/media/dvb-frontends/sp2.c
-> index 320cbe9..cc1ef96 100644
-> --- a/drivers/media/dvb-frontends/sp2.c
-> +++ b/drivers/media/dvb-frontends/sp2.c
-> @@ -269,7 +269,7 @@ int sp2_ci_poll_slot_status(struct dvb_ca_en50221 *en50221,
->  	return s->status;
->  }
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> index ee5650f..fda587b 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -839,6 +839,8 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+>  	if (isi->pdata.full_mode)
+>  		cfg1 |= ISI_CFG1_FULL_MODE;
 >  
-> -int sp2_init(struct sp2 *s)
-> +static int sp2_init(struct sp2 *s)
->  {
->  	int ret = 0;
->  	u8 buf;
-> @@ -351,7 +351,7 @@ err:
->  	return ret;
->  }
+> +	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
+> +
+>  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+>  	isi_writel(isi, ISI_CFG1, cfg1);
 >  
-> -int sp2_exit(struct i2c_client *client)
-> +static int sp2_exit(struct i2c_client *client)
->  {
->  	struct sp2 *s;
+> diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
+> index c2e5703..6008b09 100644
+> --- a/include/media/atmel-isi.h
+> +++ b/include/media/atmel-isi.h
+> @@ -59,6 +59,10 @@
+>  #define		ISI_CFG1_FRATE_DIV_MASK		(7 << 8)
+>  #define ISI_CFG1_DISCR				(1 << 11)
+>  #define ISI_CFG1_FULL_MODE			(1 << 12)
+> +/* Definition for THMASK(ISI_V2) */
+> +#define		ISI_CFG1_THMASK_BEATS_4		(0 << 13)
+> +#define		ISI_CFG1_THMASK_BEATS_8		(1 << 13)
+> +#define		ISI_CFG1_THMASK_BEATS_16	(2 << 13)
 >  
+>  /* Bitfields in CFG2 */
+>  #define ISI_CFG2_GRAYSCALE			(1 << 13)
+> -- 
+> 1.9.1
+> 
