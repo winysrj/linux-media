@@ -1,62 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:54778 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753041AbaKRKBP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 05:01:15 -0500
-Received: by mail-lb0-f173.google.com with SMTP id n15so17555102lbi.32
-        for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 02:01:14 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:54616 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751067AbaKYQSV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Nov 2014 11:18:21 -0500
+Message-ID: <5474ABCA.9080609@iki.fi>
+Date: Tue, 25 Nov 2014 18:18:18 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1415623771-29634-12-git-send-email-hverkuil@xs4all.nl>
-References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl> <1415623771-29634-12-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Tue, 18 Nov 2014 17:55:28 +0800
-Message-ID: <CAMm-=zBDdqKGzKZOLNGOOYbP4bh14GG1C6tCm_pSrqoWrRtOvw@mail.gmail.com>
-Subject: Re: [RFCv6 PATCH 11/16] vb2: use dma_map_sg_attrs to prevent
- unnecessary sync
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+To: kapetr@mizera.cz, linux-media@vger.kernel.org
+Subject: Re: it913x: probe of 8-001c failed with error -22
+References: <5474A116.3050604@mizera.cz>
+In-Reply-To: <5474A116.3050604@mizera.cz>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 10, 2014 at 8:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> By default dma_map_sg syncs the mapped buffer to the device. But
-> buf_prepare expects a buffer syncs for the cpu and the buffer
-> will be synced to the device in the prepare memop.
->
-> The reverse is true for dma_unmap_sg, buf_finish and the finish
-> memop.
->
-> To prevent unnecessary syncs we ask dma_(un)map_sg to skip the
-> sync.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-dma-contig.c | 29 +++++++++++++++++-----
->  drivers/media/v4l2-core/videobuf2-dma-sg.c     | 33 +++++++++++++++++++++-----
->  2 files changed, 50 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index c4305bf..27f5926 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -317,8 +317,9 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
->                 attach->dma_dir = DMA_NONE;
->         }
->
-> -       /* mapping to the client with new direction */
-> -       ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
-> +       /* Mapping to the client with new direction */
-> +       ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-> +                        dma_dir);
 
-Do we need this chunk?
 
+On 11/25/2014 05:32 PM, kapetr@mizera.cz wrote:
+> Hello.
+>
+> U12.04 with newly installed 3.8 kernel:
+>
+> 3.8.0-44-generic #66~precise1-Ubuntu SMP Tue Jul 15 04:01:04 UTC 2014
+> x86_64 x86_64 x86_64 GNU/Linux
+>
+> USB dvb-t tuner:
+>
+> Bus 001 Device 005: ID 048d:9135 Integrated Technology Express, Inc.
+> Zolid Mini DVB-T Stick
+>
+> Newest V4L drivers installed. But there is an error in log by inserting
+> of the USB tuner:
+>
+> -------------------
+> Nov 25 16:24:38 zly-hugo kernel: [  315.927923] usb 1-1.3: new
+> high-speed USB device number 5 using ehci-pci
+> Nov 25 16:24:38 zly-hugo kernel: [  316.021755] usb 1-1.3: New USB
+> device found, idVendor=048d, idProduct=9135
+> Nov 25 16:24:38 zly-hugo kernel: [  316.021760] usb 1-1.3: New USB
+> device strings: Mfr=0, Product=0, SerialNumber=0
+> Nov 25 16:24:38 zly-hugo kernel: [  316.023071] usb 1-1.3:
+> dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135
+> Nov 25 16:24:38 zly-hugo kernel: [  316.023443] usb 1-1.3: dvb_usb_v2:
+> found a 'ITE 9135 Generic' in cold state
+> Nov 25 16:24:38 zly-hugo kernel: [  316.023519] usb 1-1.3: dvb_usb_v2:
+> downloading firmware from file 'dvb-usb-it9135-02.fw'
+> Nov 25 16:24:38 zly-hugo mtp-probe: checking bus 1, device 5:
+> "/sys/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3"
+> Nov 25 16:24:38 zly-hugo kernel: [  316.119961] usb 1-1.3:
+> dvb_usb_af9035: firmware version=3.40.1.0
+> Nov 25 16:24:38 zly-hugo kernel: [  316.119974] usb 1-1.3: dvb_usb_v2:
+> found a 'ITE 9135 Generic' in warm state
+> Nov 25 16:24:38 zly-hugo kernel: [  316.120972] usb 1-1.3: dvb_usb_v2:
+> will pass the complete MPEG2 transport stream to the software demuxer
+> Nov 25 16:24:38 zly-hugo kernel: [  316.120996] DVB: registering new
+> adapter (ITE 9135 Generic)
+> Nov 25 16:24:38 zly-hugo mtp-probe: bus: 1, device: 5 was not an MTP device
+> Nov 25 16:24:38 zly-hugo kernel: [  316.123808] af9033 8-0038: firmware
+> version: LINK 3.40.1.0 - OFDM 3.40.1.0
+> Nov 25 16:24:38 zly-hugo kernel: [  316.123812] af9033 8-0038: Afatech
+> AF9033 successfully attached
+> Nov 25 16:24:38 zly-hugo kernel: [  316.123822] usb 1-1.3: DVB:
+> registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
+> Nov 25 16:24:38 zly-hugo kernel: [  316.125115] it913x: probe of 8-001c
+> failed with error -22
+> ---------------------
+>
+> What is wrong ?
+
+it913x_probe() fails with error -EINVAL. There is only 2 ways it could 
+fail, kzalloc() and regmap_init_i2c(). It must be later one.
+
+Do you have regmap module installed?
+What says: "modinfo regmap-i2c" command?
+
+Antti
 -- 
-Best regards,
-Pawel Osciak
+http://palosaari.fi/
