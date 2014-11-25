@@ -1,59 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:39898 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751317AbaKGMQA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 07:16:00 -0500
-MIME-Version: 1.0
-In-Reply-To: <1415279067-653-1-git-send-email-sudipm.mukherjee@gmail.com>
-References: <1415279067-653-1-git-send-email-sudipm.mukherjee@gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 7 Nov 2014 12:08:59 +0000
-Message-ID: <CA+V-a8vk3Ct8wGCsqzr4Bj9ACw__E0wB1-HuYNfohV847d7ycA@mail.gmail.com>
-Subject: Re: [PATCH] media: davinci: vpbe: missing clk_put
-To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from smtprelay0031.hostedemail.com ([216.40.44.31]:43113 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751343AbaKYU12 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Nov 2014 15:27:28 -0500
+Message-ID: <1416947244.8358.12.camel@perches.com>
+Subject: Re: [PATCH] staging: media: lirc: lirc_zilog.c: fix quoted strings
+ split across lines
+From: Joe Perches <joe@perches.com>
+To: Luis de Bethencourt <luis@debethencourt.com>
+Cc: linux-kernel@vger.kernel.org, jarod@wilsonet.com,
+	m.chehab@samsung.com, gregkh@linuxfoundation.org,
+	mahfouz.saif.elyazal@gmail.com, dan.carpenter@oracle.com,
+	tuomas.tynkkynen@iki.fi, gulsah.1004@gmail.com,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Date: Tue, 25 Nov 2014 12:27:24 -0800
+In-Reply-To: <20141125201905.GA10900@biggie>
+References: <20141125201905.GA10900@biggie>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, 2014-11-25 at 20:19 +0000, Luis de Bethencourt wrote:
+> checkpatch makes an exception to the 80-colum rule for quotes strings, and
+> Documentation/CodingStyle recommends not splitting quotes strings across lines
+> because it breaks the ability to grep for the string. Fixing these.
+[]
+> diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+[]
+> @@ -794,8 +792,7 @@ static int fw_load(struct IR_tx *tx)
+>  	if (!read_uint8(&data, tx_data->endp, &version))
+>  		goto corrupt;
+>  	if (version != 1) {
+> -		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected"
+> -			    "1) -- please upgrade to a newer driver",
+> +		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected1) -- please upgrade to a newer driver",
+>  			    version);
 
-Thanks for the patch!
+Hello Luis.
 
-On Thu, Nov 6, 2014 at 1:04 PM, Sudip Mukherjee
-<sudipm.mukherjee@gmail.com> wrote:
-> we are getting struct clk using clk_get before calling
-> clk_prepare_enable. but if clk_prepare_enable fails, then we are
-> jumping to fail_mutex_unlock where we are just unlocking the mutex,
-> but we are not freeing the clock source.
-> this patch just adds a call to clk_put before jumping to
-> fail_mutex_unlock.
->
-> Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+Please look at the strings being coalesced before
+submitting patches.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+It's a fairly common defect to have either a missing
+space between the coalesced fragments or too many
+spaces.
 
-Thanks,
---Prabhakar
+It's almost certain that there should be a space
+between the "expected" and "1" here.
 
-> ---
->  drivers/media/platform/davinci/vpbe.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-> index 49d2de0..e5df991 100644
-> --- a/drivers/media/platform/davinci/vpbe.c
-> +++ b/drivers/media/platform/davinci/vpbe.c
-> @@ -625,6 +625,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
->                 }
->                 if (clk_prepare_enable(vpbe_dev->dac_clk)) {
->                         ret =  -ENODEV;
-> +                       clk_put(vpbe_dev->dac_clk);
->                         goto fail_mutex_unlock;
->                 }
->         }
-> --
-> 1.8.1.2
->
+
