@@ -1,115 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:60881 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752697AbaKDJz2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 04:55:28 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH 07/15] [media] usb: Make use of media_bus_format enum
-Date: Tue,  4 Nov 2014 10:55:02 +0100
-Message-Id: <1415094910-15899-8-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:39963 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750834AbaKYSvr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Nov 2014 13:51:47 -0500
+Message-ID: <5474CFC1.3060007@iki.fi>
+Date: Tue, 25 Nov 2014 20:51:45 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: kapetr@mizera.cz, linux-media@vger.kernel.org
+Subject: Re: it913x: probe of 8-001c failed with error -22
+References: <5474A116.3050604@mizera.cz> <5474ABCA.9080609@iki.fi> <5474CE31.7090000@mizera.cz>
+In-Reply-To: <5474CE31.7090000@mizera.cz>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to have subsytem agnostic media bus format definitions we've
-moved media bus definition to include/uapi/linux/media-bus-format.h and
-prefixed enum values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
+Moikka!
+RegMap does not belong to media (v4l) but driver core. Maybe kernel 3.8 
+is too old and does not have that functionality.
 
-Reference new definitions in all usb drivers.
+Update your kernel. Why you don't use it9135 driver shipped with 3.8 kernel?
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- drivers/media/usb/cx231xx/cx231xx-417.c   | 2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c | 4 ++--
- drivers/media/usb/em28xx/em28xx-camera.c  | 2 +-
- drivers/media/usb/go7007/go7007-v4l2.c    | 2 +-
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c   | 2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+regards
+Antti
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-index 459bb0e..95653ba 100644
---- a/drivers/media/usb/cx231xx/cx231xx-417.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-@@ -1878,7 +1878,7 @@ static int cx231xx_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
- 	/* fix videodecoder resolution */
- 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
- 	fmt.height = cxhdl->height;
--	fmt.code = V4L2_MBUS_FMT_FIXED;
-+	fmt.code = MEDIA_BUS_FMT_FIXED;
- 	v4l2_subdev_call(dev->sd_cx25840, video, s_mbus_fmt, &fmt);
- 	return 0;
- }
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 3b3ada6..989d527 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -967,7 +967,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	dev->height = f->fmt.pix.height;
- 	dev->format = fmt;
- 
--	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
-+	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
- 	call_all(dev, video, s_mbus_fmt, &mbus_fmt);
- 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
- 
-@@ -1012,7 +1012,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
- 	   resolution (since a standard change effects things like the number
- 	   of lines in VACT, etc) */
- 	memset(&mbus_fmt, 0, sizeof(mbus_fmt));
--	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 	mbus_fmt.width = dev->width;
- 	mbus_fmt.height = dev->height;
- 	call_all(dev, video, s_mbus_fmt, &mbus_fmt);
-diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-index 6d2ea9a..38cf6c8 100644
---- a/drivers/media/usb/em28xx/em28xx-camera.c
-+++ b/drivers/media/usb/em28xx/em28xx-camera.c
-@@ -430,7 +430,7 @@ int em28xx_init_camera(struct em28xx *dev)
- 			break;
- 		}
- 
--		fmt.code = V4L2_MBUS_FMT_YUYV8_2X8;
-+		fmt.code = MEDIA_BUS_FMT_YUYV8_2X8;
- 		fmt.width = 640;
- 		fmt.height = 480;
- 		v4l2_subdev_call(subdev, video, s_mbus_fmt, &fmt);
-diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
-index ec799b4..d6bf982 100644
---- a/drivers/media/usb/go7007/go7007-v4l2.c
-+++ b/drivers/media/usb/go7007/go7007-v4l2.c
-@@ -252,7 +252,7 @@ static int set_capture_size(struct go7007 *go, struct v4l2_format *fmt, int try)
- 	if (go->board_info->sensor_flags & GO7007_SENSOR_SCALING) {
- 		struct v4l2_mbus_framefmt mbus_fmt;
- 
--		mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
-+		mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
- 		mbus_fmt.width = fmt ? fmt->fmt.pix.width : width;
- 		mbus_fmt.height = height;
- 		go->encoder_h_halve = 0;
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-index 9623b62..2fd9b5e 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-@@ -2966,7 +2966,7 @@ static void pvr2_subdev_update(struct pvr2_hdw *hdw)
- 		memset(&fmt, 0, sizeof(fmt));
- 		fmt.width = hdw->res_hor_val;
- 		fmt.height = hdw->res_ver_val;
--		fmt.code = V4L2_MBUS_FMT_FIXED;
-+		fmt.code = MEDIA_BUS_FMT_FIXED;
- 		pvr2_trace(PVR2_TRACE_CHIPS, "subdev v4l2 set_size(%dx%d)",
- 			   fmt.width, fmt.height);
- 		v4l2_device_call_all(&hdw->v4l2_dev, 0, video, s_mbus_fmt, &fmt);
+On 11/25/2014 08:45 PM, kapetr@mizera.cz wrote:
+> Hello,
+>
+> # modinfo regmap-i2c
+> ERROR: modinfo: could not find module regmap-i2c
+>
+> I'm using standard Ubuntu kernel.
+>
+> -> don't know, how to get regmap-i2c module.
+>
+> It is a part of V4L ?
+>
+>
+> THX --kapetr
+>
+>
+> Dne 25.11.2014 v 17:18 Antti Palosaari napsal(a):
+>>
+>>
+>> On 11/25/2014 05:32 PM, kapetr@mizera.cz wrote:
+>>> Hello.
+>>>
+>>> U12.04 with newly installed 3.8 kernel:
+>>>
+>>> 3.8.0-44-generic #66~precise1-Ubuntu SMP Tue Jul 15 04:01:04 UTC 2014
+>>> x86_64 x86_64 x86_64 GNU/Linux
+>>>
+>>> USB dvb-t tuner:
+>>>
+>>> Bus 001 Device 005: ID 048d:9135 Integrated Technology Express, Inc.
+>>> Zolid Mini DVB-T Stick
+>>>
+>>> Newest V4L drivers installed. But there is an error in log by inserting
+>>> of the USB tuner:
+>>>
+>>> -------------------
+>>> Nov 25 16:24:38 zly-hugo kernel: [  315.927923] usb 1-1.3: new
+>>> high-speed USB device number 5 using ehci-pci
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.021755] usb 1-1.3: New USB
+>>> device found, idVendor=048d, idProduct=9135
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.021760] usb 1-1.3: New USB
+>>> device strings: Mfr=0, Product=0, SerialNumber=0
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.023071] usb 1-1.3:
+>>> dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.023443] usb 1-1.3: dvb_usb_v2:
+>>> found a 'ITE 9135 Generic' in cold state
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.023519] usb 1-1.3: dvb_usb_v2:
+>>> downloading firmware from file 'dvb-usb-it9135-02.fw'
+>>> Nov 25 16:24:38 zly-hugo mtp-probe: checking bus 1, device 5:
+>>> "/sys/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3"
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.119961] usb 1-1.3:
+>>> dvb_usb_af9035: firmware version=3.40.1.0
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.119974] usb 1-1.3: dvb_usb_v2:
+>>> found a 'ITE 9135 Generic' in warm state
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.120972] usb 1-1.3: dvb_usb_v2:
+>>> will pass the complete MPEG2 transport stream to the software demuxer
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.120996] DVB: registering new
+>>> adapter (ITE 9135 Generic)
+>>> Nov 25 16:24:38 zly-hugo mtp-probe: bus: 1, device: 5 was not an MTP
+>>> device
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.123808] af9033 8-0038: firmware
+>>> version: LINK 3.40.1.0 - OFDM 3.40.1.0
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.123812] af9033 8-0038: Afatech
+>>> AF9033 successfully attached
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.123822] usb 1-1.3: DVB:
+>>> registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
+>>> Nov 25 16:24:38 zly-hugo kernel: [  316.125115] it913x: probe of 8-001c
+>>> failed with error -22
+>>> ---------------------
+>>>
+>>> What is wrong ?
+>>
+>> it913x_probe() fails with error -EINVAL. There is only 2 ways it could
+>> fail, kzalloc() and regmap_init_i2c(). It must be later one.
+>>
+>> Do you have regmap module installed?
+>> What says: "modinfo regmap-i2c" command?
+>>
+>> Antti
+
 -- 
-1.9.1
-
+http://palosaari.fi/
