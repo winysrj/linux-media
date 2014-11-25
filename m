@@ -1,57 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:58362 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754037AbaKRNqZ (ORCPT
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:60472 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750792AbaKYPVx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 08:46:25 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
-	Thierry Reding <thierry.reding@gmail.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v3 2/3] drm: panel: simple-panel: add support for bus_format retrieval
-Date: Tue, 18 Nov 2014 14:46:19 +0100
-Message-Id: <1416318380-20122-3-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com>
+	Tue, 25 Nov 2014 10:21:53 -0500
+MIME-Version: 1.0
+In-Reply-To: <CA+V-a8sgWarzFQvoHhe2uxQDJ1bZ5PM4x03wss1k5vuuuvfT0Q@mail.gmail.com>
+References: <1416308268-22957-1-git-send-email-prabhakar.csengg@gmail.com>
+ <20141125130416.457e48b0@recife.lan> <CA+V-a8sgWarzFQvoHhe2uxQDJ1bZ5PM4x03wss1k5vuuuvfT0Q@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 25 Nov 2014 15:21:21 +0000
+Message-ID: <CA+V-a8vz2dPwotm24GOX+Ut6uyp81dFrqsZJeBBkL1Ykfd+9kA@mail.gmail.com>
+Subject: Re: [PATCH] media: exynos-gsc: fix build warning
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Kukjin Kim <kgene.kim@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Provide a way to specify panel requirement in terms of supported media bus
-format (particularly useful for panels connected to an RGB or LVDS bus).
+Hi,
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- drivers/gpu/drm/panel/panel-simple.c | 5 +++++
- 1 file changed, 5 insertions(+)
+On Tue, Nov 25, 2014 at 3:18 PM, Prabhakar Lad
+<prabhakar.csengg@gmail.com> wrote:
+> Hi Mauro,
+>
+> On Tue, Nov 25, 2014 at 3:04 PM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+>> Em Tue, 18 Nov 2014 10:57:48 +0000
+> [Snip]
+>>
+>> -static u32 get_plane_info(struct gsc_frame *frm, u32 addr, u32 *index)
+>> +static int get_plane_info(struct gsc_frame *frm, u32 addr, u32 *index, u32 *ret_addr)
+>>  {
+>>         if (frm->addr.y == addr) {
+>>                 *index = 0;
+>> -               return frm->addr.y;
+>> +               *ret_addr = frm->addr.y;
+>>         } else if (frm->addr.cb == addr) {
+>>                 *index = 1;
+>> -               return frm->addr.cb;
+>> +               *ret_addr = frm->addr.cb;
+>>         } else if (frm->addr.cr == addr) {
+>>                 *index = 2;
+>> -               return frm->addr.cr;
+>> +               *ret_addr = frm->addr.cr;
+>>         } else {
+>>                 pr_err("Plane address is wrong");
+>>                 return -EINVAL;
+>>         }
+>> +       return 0;
+> the control wont reach here! may be you can remove the complete else
+> part outside ?
+>
+Ah my bad :(, I missread 'ret_addr' to return.
 
-diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-index 23de22f..66838a5 100644
---- a/drivers/gpu/drm/panel/panel-simple.c
-+++ b/drivers/gpu/drm/panel/panel-simple.c
-@@ -61,6 +61,8 @@ struct panel_desc {
- 		unsigned int disable;
- 		unsigned int unprepare;
- 	} delay;
-+
-+	u32 bus_format;
- };
- 
- struct panel_simple {
-@@ -111,6 +113,9 @@ static int panel_simple_get_fixed_modes(struct panel_simple *panel)
- 	connector->display_info.bpc = panel->desc->bpc;
- 	connector->display_info.width_mm = panel->desc->size.width;
- 	connector->display_info.height_mm = panel->desc->size.height;
-+	if (panel->desc->bus_format)
-+		drm_display_info_set_bus_formats(&connector->display_info,
-+						 &panel->desc->bus_format, 1);
- 
- 	return num;
- }
--- 
-1.9.1
+Thanks,
+--Prabhakar Lad
 
+> with that change,
+>
+> Reported-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>
+> Thanks,
+> --Prabhakar Lad
+>
+>>  }
+>>
+>>  void gsc_set_prefbuf(struct gsc_dev *gsc, struct gsc_frame *frm)
+>> @@ -352,9 +353,11 @@ void gsc_set_prefbuf(struct gsc_dev *gsc, struct gsc_frame *frm)
+>>                 u32 t_min, t_max;
+>>
+>>                 t_min = min3(frm->addr.y, frm->addr.cb, frm->addr.cr);
+>> -               low_addr = get_plane_info(frm, t_min, &low_plane);
+>> +               if (get_plane_info(frm, t_min, &low_plane, &low_addr))
+>> +                       return;
+>>                 t_max = max3(frm->addr.y, frm->addr.cb, frm->addr.cr);
+>> -               high_addr = get_plane_info(frm, t_max, &high_plane);
+>> +               if (get_plane_info(frm, t_max, &high_plane, &high_addr))
+>> +                       return;
+>>
+>>                 mid_plane = 3 - (low_plane + high_plane);
+>>                 if (mid_plane == 0)
