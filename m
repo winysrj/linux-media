@@ -1,96 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailex.mailcore.me ([94.136.40.62]:36095 "EHLO
-	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753718AbaKRWwz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 17:52:55 -0500
-Received: from [187.123.53.75] (helo=[192.168.0.2])
-	by smtp04.mailcore.me with esmtpa (Exim 4.80.1)
-	(envelope-from <it@sca-uk.com>)
-	id 1XqrM0-0007TM-55
-	for linux-media@vger.kernel.org; Tue, 18 Nov 2014 22:34:34 +0000
-Message-ID: <546BC96D.0@sca-uk.com>
-Date: Tue, 18 Nov 2014 22:34:21 +0000
-From: Steve Cookson <it@sca-uk.com>
+Received: from mx1.redhat.com ([209.132.183.28]:55858 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751035AbaKYI3z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Nov 2014 03:29:55 -0500
+Message-ID: <54743DE1.7020704@redhat.com>
+Date: Tue, 25 Nov 2014 09:29:21 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org >> Linux Media Mailing List"
-	<linux-media@vger.kernel.org>
-Subject: WARNING: CPU: 2 PID: 28560 at /home/apw/COD/linux/drivers/media/v4l2-core/videobuf2-core.c:2144
- __vb2_queue_cancel+0x1d0/0x240 [videobuf2_core]()
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+CC: Emilio Lopez <emilio@elopez.com.ar>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
+References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com> <1416498928-1300-4-git-send-email-hdegoede@redhat.com> <20141121084933.GL24143@lukather> <546F0226.2040700@redhat.com> <20141124220327.GS4752@lukather>
+In-Reply-To: <20141124220327.GS4752@lukather>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While trying to debug a particularly recalcitrant segfault on entering 
-GStreamer, I found all this on dmesg.  I don't know if it is connected, 
-but I haven't seen it before.  I'm using a Dazzle DVC 100 Rev 1.1.
+Hi,
 
-I get it across several different platforms (this is an Asus Zen 
-laptop).  The operating system is Kubuntu 14.04 LTS and 
-3.17.0-031700-generic.
+On 11/24/2014 11:03 PM, Maxime Ripard wrote:
+> On Fri, Nov 21, 2014 at 10:13:10AM +0100, Hans de Goede wrote:
+>> Hi,
+>>
+>> On 11/21/2014 09:49 AM, Maxime Ripard wrote:
+>>> Hi,
+>>>
+>>> On Thu, Nov 20, 2014 at 04:55:22PM +0100, Hans de Goede wrote:
+>>>> Add a driver for mod0 clocks found in the prcm. Currently there is only
+>>>> one mod0 clocks in the prcm, the ir clock.
+>>>>
+>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>>> ---
+>>>>   Documentation/devicetree/bindings/clock/sunxi.txt |  1 +
+>>>>   drivers/clk/sunxi/Makefile                        |  2 +-
+>>>>   drivers/clk/sunxi/clk-sun6i-prcm-mod0.c           | 63 +++++++++++++++++++++++
+>>>>   drivers/mfd/sun6i-prcm.c                          | 14 +++++
+>>>>   4 files changed, 79 insertions(+), 1 deletion(-)
+>>>>   create mode 100644 drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/clock/sunxi.txt b/Documentation/devicetree/bindings/clock/sunxi.txt
+>>>> index ed116df..342c75a 100644
+>>>> --- a/Documentation/devicetree/bindings/clock/sunxi.txt
+>>>> +++ b/Documentation/devicetree/bindings/clock/sunxi.txt
+>>>> @@ -56,6 +56,7 @@ Required properties:
+>>>>   	"allwinner,sun4i-a10-usb-clk" - for usb gates + resets on A10 / A20
+>>>>   	"allwinner,sun5i-a13-usb-clk" - for usb gates + resets on A13
+>>>>   	"allwinner,sun6i-a31-usb-clk" - for usb gates + resets on A31
+>>>> +	"allwinner,sun6i-a31-ir-clk" - for the ir clock on A31
+>>>>
+>>>>   Required properties for all clocks:
+>>>>   - reg : shall be the control register address for the clock.
+>>>> diff --git a/drivers/clk/sunxi/Makefile b/drivers/clk/sunxi/Makefile
+>>>> index 7ddc2b5..daf8b1c 100644
+>>>> --- a/drivers/clk/sunxi/Makefile
+>>>> +++ b/drivers/clk/sunxi/Makefile
+>>>> @@ -10,4 +10,4 @@ obj-y += clk-sun8i-mbus.o
+>>>>
+>>>>   obj-$(CONFIG_MFD_SUN6I_PRCM) += \
+>>>>   	clk-sun6i-ar100.o clk-sun6i-apb0.o clk-sun6i-apb0-gates.o \
+>>>> -	clk-sun8i-apb0.o
+>>>> +	clk-sun8i-apb0.o clk-sun6i-prcm-mod0.o
+>>>> diff --git a/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c b/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
+>>>> new file mode 100644
+>>>> index 0000000..e80f18e
+>>>> --- /dev/null
+>>>> +++ b/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
+>>>> @@ -0,0 +1,63 @@
+>>>> +/*
+>>>> + * Allwinner A31 PRCM mod0 clock driver
+>>>> + *
+>>>> + * Copyright (C) 2014 Hans de Goede <hdegoede@redhat.com>
+>>>> + *
+>>>> + * This program is free software; you can redistribute it and/or modify
+>>>> + * it under the terms of the GNU General Public License as published by
+>>>> + * the Free Software Foundation; either version 2 of the License, or
+>>>> + * (at your option) any later version.
+>>>> + *
+>>>> + * This program is distributed in the hope that it will be useful,
+>>>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>>> + * GNU General Public License for more details.
+>>>> + */
+>>>> +
+>>>> +#include <linux/clk-provider.h>
+>>>> +#include <linux/clkdev.h>
+>>>> +#include <linux/module.h>
+>>>> +#include <linux/of_address.h>
+>>>> +#include <linux/platform_device.h>
+>>>> +
+>>>> +#include "clk-factors.h"
+>>>> +#include "clk-mod0.h"
+>>>> +
+>>>> +static const struct of_device_id sun6i_a31_prcm_mod0_clk_dt_ids[] = {
+>>>> +	{ .compatible = "allwinner,sun6i-a31-ir-clk" },
+>>>> +	{ /* sentinel */ }
+>>>> +};
+>>>> +
+>>>> +static DEFINE_SPINLOCK(sun6i_prcm_mod0_lock);
+>>>> +
+>>>> +static int sun6i_a31_prcm_mod0_clk_probe(struct platform_device *pdev)
+>>>> +{
+>>>> +	struct device_node *np = pdev->dev.of_node;
+>>>> +	struct resource *r;
+>>>> +	void __iomem *reg;
+>>>> +
+>>>> +	if (!np)
+>>>> +		return -ENODEV;
+>>>> +
+>>>> +	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>>> +	reg = devm_ioremap_resource(&pdev->dev, r);
+>>>> +	if (IS_ERR(reg))
+>>>> +		return PTR_ERR(reg);
+>>>> +
+>>>> +	sunxi_factors_register(np, &sun4i_a10_mod0_data,
+>>>> +			       &sun6i_prcm_mod0_lock, reg);
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>> +static struct platform_driver sun6i_a31_prcm_mod0_clk_driver = {
+>>>> +	.driver = {
+>>>> +		.name = "sun6i-a31-prcm-mod0-clk",
+>>>> +		.of_match_table = sun6i_a31_prcm_mod0_clk_dt_ids,
+>>>> +	},
+>>>> +	.probe = sun6i_a31_prcm_mod0_clk_probe,
+>>>> +};
+>>>> +module_platform_driver(sun6i_a31_prcm_mod0_clk_driver);
+>>>> +
+>>>> +MODULE_DESCRIPTION("Allwinner A31 PRCM mod0 clock driver");
+>>>> +MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
+>>>> +MODULE_LICENSE("GPL");
+>>>
+>>> I don't think this is the right approach, mainly for two reasons: the
+>>> compatible shouldn't change, and you're basically duplicating code
+>>> there.
+>>>
+>>> I understand that you need the new compatible in order to avoid a
+>>> double probing: one by CLK_OF_DECLARE, and one by the usual mechanism,
+>>> and that also implies the second reason.
+>>
+>> Not only for that, we need a new compatible also because the mfd framework
+>> needs a separate compatible per sub-node as that is how it finds nodes
+>> to attach to the platform devices, so we need a new compatible anyways,
+>> with your make the mod0 clock driver a platform driver solution we could
+>> use:
+>
+> We have a single mod0 clock in there, so no, not really.
 
-Can anyone offer any guidance?
+We have a single mod0 clock there today, but who knows what tomorrow brings,
+arguably the 1wire clock is a mod0 clock too, so we already have 2 today.
+
+> Plus, that seems like a bogus limitation from MFD, and it really
+> shouldn't work that way.
+
+Well AFAIK that is how it works.
+
+>> 	compatible = "allwinner,sun6i-a31-ir-clk", "allwinner,sun4i-a10-mod0-clk";
+>>
+>> To work around this, but there are other problems, your make mod0clk a
+>> platform driver solution cannot work because the clocks node in the dtsi
+>> is not simple-bus compatible, so no platform-devs will be instantiated for
+>> the clocks there.
+>
+> Then add the simple-bus compatible.
+
+No, just no, that goes against the whole design of how of-clocks work.
+
+>> Besides the compatible (which as said we need a separate one anyways),
+>> your other worry is code duplication, but I've avoided that as much
+>> as possible already, the new drivers/clk/sunxi/clk-sun6i-prcm-mod0.c is
+>> just a very thin wrapper, waying in with all of 63 lines including
+>> 16 lines GPL header.
+>
+> 47 lines that are doing exactly the same thing as the other code is
+> doing. I'm sorry but you can't really argue it's not code duplication,
+> it really is.
+
+It is not doing the exact same thing, it is a platform driver, where as
+the other code is an of_clk driver.
+
+>> So sorry, I disagree I believe that this is the best solution.
+>>
+>>> However, as those are not critical clocks that need to be here early
+>>> at boot, you can also fix this by turning the mod0 driver into a
+>>> platform driver itself. The compatible will be kept, the driver will
+>>> be the same.
+>>>
+>>> The only thing we need to pay attention to is how "client" drivers
+>>> react when they cannot grab their clock. They should return
+>>> -EPROBE_DEFER, but that remains to be checked.
+>>
+>> -EPROBE_DEFER is yet another reason to not make mod0-clk a platform
+>> driver. Yes drivers should be able to handle this, but it is a pain,
+>> and the more we use it the more pain it is. Also it makes booting a lot
+>> slower as any driver using a mod0 clk now, will not complete its probe
+>> until all the other drivers are done probing and the late_initcall
+>> which starts the deferred-probe wq runs.
+>
+> The whole EPROBE_DEFER mechanism might need some fixing, but it's not
+> really the point is it?
+
+Well one reasons why clocks are instantiated the way they are is to have
+them available as early as possible, which is really convenient and works
+really well.
+
+You are asking for a whole lot of stuff to be changed, arguably in a way
+which makes it worse, just to save 47 lines of code...
 
 Regards,
 
-Steve.
-
-[32550.400043] ------------[ cut here ]------------
-[32550.400079] WARNING: CPU: 2 PID: 28560 at 
-/home/apw/COD/linux/drivers/media/v4l2-core/videobuf2-core.c:2144 
-__vb2_queue_cancel+0x1d0/0x240 [videobuf2_core]()
-[32550.400083] Modules linked in: saa7115 em28xx_v4l snd_usb_audio 
-snd_usbmidi_lib em28xx tveeprom hid_sensor_accel_3d hid_sensor_gyro_3d 
-hid_sensor_magn_3d hid_sensor_incl_3d hid_sensor_rotation 
-hid_sensor_trigger industrialio_triggered_buffer kfifo_buf industrialio 
-hid_sensor_iio_common hid_sensor_hub ctr ccm snd_hda_codec_hdmi 
-snd_hda_codec_realtek snd_hda_codec_generic snd_hda_intel 
-snd_hda_controller snd_hda_codec snd_hwdep snd_pcm asus_nb_wmi asus_wmi 
-sparse_keymap snd_seq_midi intel_rapl x86_pkg_temp_thermal 
-intel_powerclamp coretemp kvm_intel snd_seq_midi_event kvm arc4 
-snd_rawmidi crct10dif_pclmul uvcvideo crc32_pclmul iwldvm 
-ghash_clmulni_intel videobuf2_vmalloc videobuf2_memops aesni_intel 
-mac80211 videobuf2_core aes_x86_64 v4l2_common lrw videodev gf128mul 
-media glue_helper ablk_helper snd_seq cryptd joydev rtc_efi serio_raw 
-iwlwifi hid_multitouch cfg80211 btusb snd_seq_device lpc_ich snd_timer 
-int3403_thermal snd soundcore intel_rst mac_hid bnep rfcomm bluetooth 
-mei_me mei parport_pc ppdev lp parport nls_iso8859_1 hid_generic usbhid 
-hid i915 i2c_algo_bit psmouse drm_kms_helper ahci libahci drm wmi video
-[32550.400152] CPU: 2 PID: 28560 Comm: qv4l2 Tainted: G W 
-3.17.0-031700-generic #201410060605
-[32550.400153] Hardware name: ASUSTeK COMPUTER INC. TAICHI21A/TAICHI21A, 
-BIOS TAICHI21A.203 02/04/2013
-[32550.400154]  0000000000000860 ffff880117a6fbd8 ffffffff81796bd7 
-0000000000000007
-[32550.400156]  0000000000000000 ffff880117a6fc18 ffffffff81074a3c 
-0000000000000292
-[32550.400158]  ffff880112d73148 0000000000000001 ffff88005fceca00 
-ffffffffc0aa4960
-[32550.400160] Call Trace:
-[32550.400165]  [<ffffffff81796bd7>] dump_stack+0x46/0x58
-[32550.400168]  [<ffffffff81074a3c>] warn_slowpath_common+0x8c/0xc0
-[32550.400171]  [<ffffffff81074a8a>] warn_slowpath_null+0x1a/0x20
-[32550.400175]  [<ffffffffc0790a10>] __vb2_queue_cancel+0x1d0/0x240 
-[videobuf2_core]
-[32550.400179]  [<ffffffffc0792755>] vb2_internal_streamoff+0x45/0xe0 
-[videobuf2_core]
-[32550.400182]  [<ffffffffc0792825>] vb2_streamoff+0x35/0x60 
-[videobuf2_core]
-[32550.400186]  [<ffffffffc07928a8>] vb2_ioctl_streamoff+0x58/0x70 
-[videobuf2_core]
-[32550.400191]  [<ffffffffc0756b5a>] v4l_streamoff+0x1a/0x20 [videodev]
-[32550.400196]  [<ffffffffc075bca4>] __video_do_ioctl+0x274/0x310 [videodev]
-[32550.400202]  [<ffffffffc0759adc>] video_usercopy+0x29c/0x4a0 [videodev]
-[32550.400207]  [<ffffffffc075ba30>] ? v4l_printk_ioctl+0xb0/0xb0 [videodev]
-[32550.400210]  [<ffffffff811ea7a7>] ? do_readv_writev+0x187/0x2e0
-[32550.400214]  [<ffffffffc0759cf5>] video_ioctl2+0x15/0x20 [videodev]
-[32550.400218]  [<ffffffffc0755723>] v4l2_ioctl+0x133/0x160 [videodev]
-[32550.400221]  [<ffffffff81206535>] ? __fget_light+0x25/0x70
-[32550.400223]  [<ffffffff811fbfe5>] do_vfs_ioctl+0x75/0x2c0
-[32550.400226]  [<ffffffff816707b5>] ? __sys_recvmsg+0x75/0x90
-[32550.400228]  [<ffffffff81206535>] ? __fget_light+0x25/0x70
-[32550.400229]  [<ffffffff811fc2c1>] SyS_ioctl+0x91/0xb0
-[32550.400232]  [<ffffffff817a472d>] system_call_fastpath+0x1a/0x1f
-[32550.400233] ---[ end trace 039a366d7d2aff19 ]---
-
+Hans
