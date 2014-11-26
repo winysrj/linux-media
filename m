@@ -1,43 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42453 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752045AbaKBMcs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:48 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 11/14] [media] cx231xx: add addr for demod and make i2c_devs const
-Date: Sun,  2 Nov 2014 10:32:34 -0200
-Message-Id: <c8a1b2e008308f136c4f21d2e6e937d3d926fa20.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
+Received: from smtp.bredband2.com ([83.219.192.166]:35043 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753039AbaKZVv7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Nov 2014 16:51:59 -0500
+Received: from localhost.localdomain (92-244-23-216.customers.ownit.se [92.244.23.216])
+	(Authenticated sender: ed8153)
+	by smtp.bredband2.com (Postfix) with ESMTPA id 9845C121856
+	for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 22:51:47 +0100 (CET)
+From: Benjamin Larsson <benjamin@southpole.se>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] mn88472: document demod reset
+Date: Wed, 26 Nov 2014 22:51:47 +0100
+Message-Id: <1417038707-6297-2-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1417038707-6297-1-git-send-email-benjamin@southpole.se>
+References: <1417038707-6297-1-git-send-email-benjamin@southpole.se>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I2C address 0x10 is the demod. While here, make the array const.
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+---
+ drivers/staging/media/mn88472/mn88472.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index c4dc13afbe05..87b26157cad0 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -471,7 +471,8 @@ static struct i2c_adapter cx231xx_adap_template = {
-  * i2c_devs
-  * incomplete list of known devices
-  */
--static char *i2c_devs[128] = {
-+static const char *i2c_devs[128] = {
-+	[0x20 >> 1] = "demod",
- 	[0x60 >> 1] = "colibri",
- 	[0x88 >> 1] = "hammerhead",
- 	[0x8e >> 1] = "CIR",
+diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+index f648b58..36ef39b 100644
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -190,6 +190,8 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
+ 	ret = regmap_write(dev->regmap[0], 0xae, 0x00);
+ 	ret = regmap_write(dev->regmap[2], 0x08, 0x1d);
+ 	ret = regmap_write(dev->regmap[0], 0xd9, 0xe3);
++
++	/* Reset demod */
+ 	ret = regmap_write(dev->regmap[2], 0xf8, 0x9f);
+ 	if (ret)
+ 		goto err;
 -- 
-1.9.3
+2.1.0
 
