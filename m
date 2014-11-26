@@ -1,51 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:31436 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932617AbaKUQPR (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:65474 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753545AbaKZWnS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 11:15:17 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NFE003HYD5G7LB0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Sat, 22 Nov 2014 01:15:16 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
-	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
-	kyungmin.park@samsung.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v4 07/11] media-ctl: libv4l2subdev: add VYUY8_2X8 mbus code
-Date: Fri, 21 Nov 2014 17:14:36 +0100
-Message-id: <1416586480-19982-8-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
-References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
+	Wed, 26 Nov 2014 17:43:18 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Josh Wu <josh.wu@atmel.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v2 04/11] media: soc_camera: use vb2_ops_wait_prepare/finish helper
+Date: Wed, 26 Nov 2014 22:42:27 +0000
+Message-Id: <1417041754-8714-5-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VYUY8_2X8 media bus format is the only one supported
-by the S5C73M3 camera sensor, that is a part of the media
-device on the Exynos4412-trats2 board.
+This patch drops driver specific wait_prepare() and
+wait_finish() callbacks from vb2_ops and instead uses
+the the helpers vb2_ops_wait_prepare/finish() provided
+by the vb2 core, the lock member of the queue needs
+to be initalized to a mutex so that vb2 helpers
+vb2_ops_wait_prepare/finish() can make use of it.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Josh Wu <josh.wu@atmel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- utils/media-ctl/libv4l2subdev.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/platform/soc_camera/atmel-isi.c            |  7 +++++--
+ drivers/media/platform/soc_camera/mx3_camera.c           |  7 +++++--
+ drivers/media/platform/soc_camera/rcar_vin.c             |  7 +++++--
+ drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c |  7 +++++--
+ drivers/media/platform/soc_camera/soc_camera.c           | 16 ----------------
+ 5 files changed, 20 insertions(+), 24 deletions(-)
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 4c5fb12..a96ed7a 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -704,6 +704,7 @@ static struct {
- 	{ "YUYV", V4L2_MBUS_FMT_YUYV8_1X16 },
- 	{ "YUYV1_5X8", V4L2_MBUS_FMT_YUYV8_1_5X8 },
- 	{ "YUYV2X8", V4L2_MBUS_FMT_YUYV8_2X8 },
-+	{ "VYUY8_2X8", V4L2_MBUS_FMT_VYUY8_2X8 },
- 	{ "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
- 	{ "UYVY1_5X8", V4L2_MBUS_FMT_UYVY8_1_5X8 },
- 	{ "UYVY2X8", V4L2_MBUS_FMT_UYVY8_2X8 },
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index ee5650f..6306ba5 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -455,8 +455,8 @@ static struct vb2_ops isi_video_qops = {
+ 	.buf_queue		= buffer_queue,
+ 	.start_streaming	= start_streaming,
+ 	.stop_streaming		= stop_streaming,
+-	.wait_prepare		= soc_camera_unlock,
+-	.wait_finish		= soc_camera_lock,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+ /* ------------------------------------------------------------------
+@@ -465,6 +465,8 @@ static struct vb2_ops isi_video_qops = {
+ static int isi_camera_init_videobuf(struct vb2_queue *q,
+ 				     struct soc_camera_device *icd)
+ {
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	q->io_modes = VB2_MMAP;
+ 	q->drv_priv = icd;
+@@ -472,6 +474,7 @@ static int isi_camera_init_videobuf(struct vb2_queue *q,
+ 	q->ops = &isi_video_qops;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->lock = &ici->host_lock;
+ 
+ 	return vb2_queue_init(q);
+ }
+diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
+index 8e52ccc..1000c2e 100644
+--- a/drivers/media/platform/soc_camera/mx3_camera.c
++++ b/drivers/media/platform/soc_camera/mx3_camera.c
+@@ -435,14 +435,16 @@ static struct vb2_ops mx3_videobuf_ops = {
+ 	.buf_queue	= mx3_videobuf_queue,
+ 	.buf_cleanup	= mx3_videobuf_release,
+ 	.buf_init	= mx3_videobuf_init,
+-	.wait_prepare	= soc_camera_unlock,
+-	.wait_finish	= soc_camera_lock,
++	.wait_prepare	= vb2_ops_wait_prepare,
++	.wait_finish	= vb2_ops_wait_finish,
+ 	.stop_streaming	= mx3_stop_streaming,
+ };
+ 
+ static int mx3_camera_init_videobuf(struct vb2_queue *q,
+ 				     struct soc_camera_device *icd)
+ {
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	q->io_modes = VB2_MMAP | VB2_USERPTR;
+ 	q->drv_priv = icd;
+@@ -450,6 +452,7 @@ static int mx3_camera_init_videobuf(struct vb2_queue *q,
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->buf_struct_size = sizeof(struct mx3_camera_buffer);
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->lock = &ici->host_lock;
+ 
+ 	return vb2_queue_init(q);
+ }
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 8d8438b..724e239 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -535,8 +535,8 @@ static struct vb2_ops rcar_vin_vb2_ops = {
+ 	.buf_cleanup	= rcar_vin_videobuf_release,
+ 	.buf_queue	= rcar_vin_videobuf_queue,
+ 	.stop_streaming	= rcar_vin_stop_streaming,
+-	.wait_prepare	= soc_camera_unlock,
+-	.wait_finish	= soc_camera_lock,
++	.wait_prepare	= vb2_ops_wait_prepare,
++	.wait_finish	= vb2_ops_wait_finish,
+ };
+ 
+ static irqreturn_t rcar_vin_irq(int irq, void *data)
+@@ -1364,6 +1364,8 @@ static int rcar_vin_querycap(struct soc_camera_host *ici,
+ static int rcar_vin_init_videobuf2(struct vb2_queue *vq,
+ 				   struct soc_camera_device *icd)
+ {
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++
+ 	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	vq->io_modes = VB2_MMAP | VB2_USERPTR;
+ 	vq->drv_priv = icd;
+@@ -1371,6 +1373,7 @@ static int rcar_vin_init_videobuf2(struct vb2_queue *vq,
+ 	vq->mem_ops = &vb2_dma_contig_memops;
+ 	vq->buf_struct_size = sizeof(struct rcar_vin_buffer);
+ 	vq->timestamp_flags  = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	vq->lock = &ici->host_lock;
+ 
+ 	return vb2_queue_init(vq);
+ }
+diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+index 5f58ed9..d92b746 100644
+--- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
++++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+@@ -496,8 +496,8 @@ static struct vb2_ops sh_mobile_ceu_videobuf_ops = {
+ 	.buf_queue	= sh_mobile_ceu_videobuf_queue,
+ 	.buf_cleanup	= sh_mobile_ceu_videobuf_release,
+ 	.buf_init	= sh_mobile_ceu_videobuf_init,
+-	.wait_prepare	= soc_camera_unlock,
+-	.wait_finish	= soc_camera_lock,
++	.wait_prepare	= vb2_ops_wait_prepare,
++	.wait_finish	= vb2_ops_wait_finish,
+ 	.stop_streaming	= sh_mobile_ceu_stop_streaming,
+ };
+ 
+@@ -1659,6 +1659,8 @@ static int sh_mobile_ceu_querycap(struct soc_camera_host *ici,
+ static int sh_mobile_ceu_init_videobuf(struct vb2_queue *q,
+ 				       struct soc_camera_device *icd)
+ {
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	q->io_modes = VB2_MMAP | VB2_USERPTR;
+ 	q->drv_priv = icd;
+@@ -1666,6 +1668,7 @@ static int sh_mobile_ceu_init_videobuf(struct vb2_queue *q,
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->buf_struct_size = sizeof(struct sh_mobile_ceu_buffer);
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->lock = &ici->host_lock;
+ 
+ 	return vb2_queue_init(q);
+ }
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index f4be2a1..5aad197 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -843,22 +843,6 @@ static unsigned int soc_camera_poll(struct file *file, poll_table *pt)
+ 	return res;
+ }
+ 
+-void soc_camera_lock(struct vb2_queue *vq)
+-{
+-	struct soc_camera_device *icd = vb2_get_drv_priv(vq);
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+-	mutex_lock(&ici->host_lock);
+-}
+-EXPORT_SYMBOL(soc_camera_lock);
+-
+-void soc_camera_unlock(struct vb2_queue *vq)
+-{
+-	struct soc_camera_device *icd = vb2_get_drv_priv(vq);
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+-	mutex_unlock(&ici->host_lock);
+-}
+-EXPORT_SYMBOL(soc_camera_unlock);
+-
+ static struct v4l2_file_operations soc_camera_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= soc_camera_open,
 -- 
-1.7.9.5
+1.9.1
 
