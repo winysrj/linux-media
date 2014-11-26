@@ -1,65 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:19424 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942AbaKFKM1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 05:12:27 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NEM00F9W4CPH340@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 06 Nov 2014 19:12:25 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
-	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
-	sakari.ailus@linux.intel.com, kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [v4l-utils RFC v3 10/11] mediactl: Close only pipeline sub-devices
-Date: Thu, 06 Nov 2014 11:11:41 +0100
-Message-id: <1415268702-23685-11-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
-References: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:37969 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750895AbaKZM0I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Nov 2014 07:26:08 -0500
+Date: Wed, 26 Nov 2014 10:26:03 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: kbuild test robot <fengguang.wu@intel.com>, kbuild-all@01.org,
+	linux-media@vger.kernel.org
+Subject: Re: [linuxtv-media:master 7661/7664] ERROR: "omapdss_compat_init"
+ [drivers/media/platform/omap/omap-vout.ko] undefined!
+Message-ID: <20141126102603.440cb221@recife.lan>
+In-Reply-To: <1416988241.29407.5.camel@x220>
+References: <201411260931.8e2dBfm8%fengguang.wu@intel.com>
+	<1416988241.29407.5.camel@x220>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function media_device_new_by_entity_devname queries
-media devices available in the system for containment
-if given media entity. If a verification is negative
-the media_device is released with media_device_unref.
-In the previous approach media_device_unref was closing
-all media entities it contained, which was undesirable
-behavior as there might exist other initialized plugins
-which had opened the same media_device and initialized
-a pipeline. With this patch only the sub-devices that
-belong to the pipeline of current media_device instance
-will be closed.
+Em Wed, 26 Nov 2014 08:50:41 +0100
+Paul Bolle <pebolle@tiscali.nl> escreveu:
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- utils/media-ctl/libmediactl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> Hi Fengguang,
+> 
+> On Wed, 2014-11-26 at 09:34 +0800, kbuild test robot wrote:
+> > tree:   git://linuxtv.org/media_tree.git master
+> > head:   504febc3f98c87a8bebd8f2f274f32c0724131e4
+> > commit: 6b213e81ddf8b265383c9a1a1884432df88f701e [7661/7664] [media] omap: Fix typo "HAS_MMU"
+> > config: m68k-allmodconfig (attached as .config)
+> > reproduce:
+> >   wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+> >   chmod +x ~/bin/make.cross
+> >   git checkout 6b213e81ddf8b265383c9a1a1884432df88f701e
+> >   # save the attached .config to linux build tree
+> >   make.cross ARCH=m68k 
+> 
+> This is the first time I've made the kbuild test robot trip. So I'm not
+> sure how to interpret this.
 
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index 75021e7..fe38270 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -919,13 +919,13 @@ void media_device_unref(struct media_device *media)
- 	if (media->refcount > 0)
- 		return;
- 
-+	media_close_pipeline_subdevs(media);
-+
- 	for (i = 0; i < media->entities_count; ++i) {
- 		struct media_entity *entity = &media->entities[i];
- 
- 		free(entity->pads);
- 		free(entity->links);
--		if (entity->fd != -1)
--			close(entity->fd);
- 	}
- 
- 	free(media->entities);
--- 
-1.7.9.5
+I did some tests yesterday, and compilation of this driver also broke
+on other archs.
 
+So, I removed COMPILE_TEST:
+	http://git.linuxtv.org/cgit.cgi/mchehab/media-next.git/commit/
+
+We may be able to re-enable if someone do some work on this driver for
+it to use the standard DMA API, instead of an omap-specific one.
+
+Btw, I had to do a similar patch also for OMAP1 driver sometime ago:
+
+commit 4228cd5682f07b6cf5dfd3eb5e003766f5640ee2
+Author: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Date:   Tue Sep 9 14:55:15 2014 -0300
+
+    [media] disable COMPILE_TEST for omap1_camera
+    
+    This driver depends on a legacy OMAP DMA API. So, it won't
+    compile-test on other archs.
+    
+    While we might add stubs to the functions, this is not a
+    good idea, as the hole API should be replaced.
+    
+    So, for now, let's just remove COMPILE_TEST and wait for
+    some time for people to fix. If not fixed, then we'll end
+    by removing this driver as a hole.
+
+> 
+> Is ARCH=m68k the only build that failed through this commit? Or is it
+> the first build that failed? If so, how can I determine which arches
+> build correctly?
+> 
+> > All error/warnings:
+> > 
+> > >> ERROR: "omapdss_compat_init" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_overlay_manager" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_num_overlay_managers" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_overlay" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omapdss_is_initialized" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dispc_register_isr" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omapdss_get_version" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_put_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_next_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dispc_unregister_isr" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omapdss_compat_uninit" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_num_overlays" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > 
+> > ---
+> > 0-DAY kernel test infrastructure                Open Source Technology Center
+> > http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+> 
+> Thanks,
+> 
+> Paul Bolle
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
