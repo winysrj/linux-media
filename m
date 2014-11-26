@@ -1,66 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f49.google.com ([209.85.192.49]:47375 "EHLO
-	mail-qg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751043AbaK2DXO (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53955 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793AbaKZW6r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 22:23:14 -0500
-Received: by mail-qg0-f49.google.com with SMTP id a108so5356042qge.8
-        for <linux-media@vger.kernel.org>; Fri, 28 Nov 2014 19:23:13 -0800 (PST)
+	Wed, 26 Nov 2014 17:58:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 11/11] media: usb: uvc: use vb2_ops_wait_prepare/finish helper
+Date: Thu, 27 Nov 2014 00:59:12 +0200
+Message-ID: <2698849.pKqLKtTreZ@avalon>
+In-Reply-To: <1417041754-8714-12-git-send-email-prabhakar.csengg@gmail.com>
+References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com> <1417041754-8714-12-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <547934E1.3050609@cogweb.net>
-References: <5478D31E.5000402@cogweb.net>
-	<CAGoCfizK4kN5QnmFs_trAk2w3xuSVtXYVF2wSmdXDazxbhk=yQ@mail.gmail.com>
-	<547934E1.3050609@cogweb.net>
-Date: Fri, 28 Nov 2014 22:23:13 -0500
-Message-ID: <CAGoCfix11OiF5_kojJ4jKZadz3XYdYJccPGtivtzDepFfn4Rnw@mail.gmail.com>
-Subject: Re: ISDB caption support
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: David Liontooth <lionteeth@cogweb.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I realize captions is an application-layer function, and intend to work with
-> the CCExtractor team. Do any other applications already have ISDB caption
-> support?
+Hi Prabhakar,
 
-Based on a Google search, it looks like dvbviewer can decode them:
+Thank you for the patch.
 
-http://www.dvbviewer.tv/forum/topic/41933-brazilian-terrestrial-isdb-tb-subtitles-closed-caption/
-http://www.dvbviewer.com/en/index.php
+On Wednesday 26 November 2014 22:42:34 Lad, Prabhakar wrote:
+> This patch drops driver specific wait_prepare() and
+> wait_finish() callbacks from vb2_ops and instead uses
+> the the helpers vb2_ops_wait_prepare/finish() provided
+> by the vb2 core, the lock member of the queue needs
+> to be initalized to a mutex so that vb2 helpers
+> vb2_ops_wait_prepare/finish() can make use of it.
 
-It's not open source, and it's not Linux, but at least it may give you
-something to compare against if you want to build the functionality
-yourself.
+The queue lock field isn't initialized by the uvcvideo driver, so you can't 
+use vb2_ops_wait_prepare|finish().
 
-> For DVB and ATSC there's quite a bit of code written by several people for
-> teletext and captions -- has anything at all been done for ISDB captions?
-
-Not to my knowledge.  I've done a ton of work with CC decoding in VLC,
-but haven't poked around at the other formats.
-
-> It's used in nearly all of Central and South America, plus the Philippines
-> and of course Japan -- you would have thought someone has started on the
-> task?
-
->From what I understand, most terrestrial TV in Japan is encrypted, so
-you're likely to not find many open source solutions which targeted at
-that market.  Presumably there is less of that in Brazil (why else
-would Mauro be doing all that ISDB-T work if there was no way to watch
-the actual video?).
-
-> We're looking for a good solution for capturing television in Brazil, when
-> the signal is encrypted -- are there set-top boxes or tv capture cards that
-> handle the decryption so that the decoded signal is passed on with the
-> ISDB-Tb caption stream intact?
-
-This would be very unusual.  Satellite captioning often has the same
-issues - the decoders only support overlaying the captions over the
-video and provide no means to access the underlying data.
-
-Devin
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/usb/uvc/uvc_queue.c | 18 ++----------------
+>  1 file changed, 2 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index cc96072..64147b5 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -143,20 +143,6 @@ static void uvc_buffer_finish(struct vb2_buffer *vb)
+>  		uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
+>  }
+> 
+> -static void uvc_wait_prepare(struct vb2_queue *vq)
+> -{
+> -	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+> -
+> -	mutex_unlock(&queue->mutex);
+> -}
+> -
+> -static void uvc_wait_finish(struct vb2_queue *vq)
+> -{
+> -	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+> -
+> -	mutex_lock(&queue->mutex);
+> -}
+> -
+>  static int uvc_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  {
+>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+> @@ -195,8 +181,8 @@ static struct vb2_ops uvc_queue_qops = {
+>  	.buf_prepare = uvc_buffer_prepare,
+>  	.buf_queue = uvc_buffer_queue,
+>  	.buf_finish = uvc_buffer_finish,
+> -	.wait_prepare = uvc_wait_prepare,
+> -	.wait_finish = uvc_wait_finish,
+> +	.wait_prepare = vb2_ops_wait_prepare,
+> +	.wait_finish = vb2_ops_wait_finish,
+>  	.start_streaming = uvc_start_streaming,
+>  	.stop_streaming = uvc_stop_streaming,
+>  };
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
+
