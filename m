@@ -1,219 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:50208 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754256AbaKRMve (ORCPT
+Received: from mail-qg0-f45.google.com ([209.85.192.45]:56285 "EHLO
+	mail-qg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750895AbaKZUc0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 07:51:34 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: [REVIEWv7 PATCH 08/12] vb2-dma-sg: add support for dmabuf exports
-Date: Tue, 18 Nov 2014 13:51:04 +0100
-Message-Id: <1416315068-22936-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl>
-References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 26 Nov 2014 15:32:26 -0500
+Received: by mail-qg0-f45.google.com with SMTP id f51so2623124qge.32
+        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 12:32:25 -0800 (PST)
+From: Fabio Estevam <festevam@gmail.com>
+To: p.zabel@pengutronix.de
+Cc: linux-media@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH 1/2] of: Add new compatibles for CODA bindings
+Date: Wed, 26 Nov 2014 18:32:03 -0200
+Message-Id: <1417033924-27513-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Add DMABUF export support to vb2-dma-sg.
+This patch adds new compatibles using the new Chips&Media vendor
+prefix "cnm" and CODA model name as well as a Freescale specific
+compatible value for i.MX6DL/S.
+The latter is because for some reason the i.MX6DL/S firmware
+provided by Freescale differs from the i.MX6Q/D version.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 170 +++++++++++++++++++++++++++++
- 1 file changed, 170 insertions(+)
+ Documentation/devicetree/bindings/media/coda.txt | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index ad6d5c7..c2ec2c4 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -406,6 +406,175 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
- }
+diff --git a/Documentation/devicetree/bindings/media/coda.txt b/Documentation/devicetree/bindings/media/coda.txt
+index 2865d04..f5e4d4b 100644
+--- a/Documentation/devicetree/bindings/media/coda.txt
++++ b/Documentation/devicetree/bindings/media/coda.txt
+@@ -5,10 +5,11 @@ Coda codec IPs are present in i.MX SoCs in various versions,
+ called VPU (Video Processing Unit).
  
- /*********************************************/
-+/*         DMABUF ops for exporters          */
-+/*********************************************/
-+
-+struct vb2_dma_sg_attachment {
-+	struct sg_table sgt;
-+	enum dma_data_direction dma_dir;
-+};
-+
-+static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
-+	struct dma_buf_attachment *dbuf_attach)
-+{
-+	struct vb2_dma_sg_attachment *attach;
-+	unsigned int i;
-+	struct scatterlist *rd, *wr;
-+	struct sg_table *sgt;
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+	int ret;
-+
-+	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
-+	if (!attach)
-+		return -ENOMEM;
-+
-+	sgt = &attach->sgt;
-+	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
-+	 * map the same scatter list to multiple attachments at the same time.
-+	 */
-+	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
-+	if (ret) {
-+		kfree(attach);
-+		return -ENOMEM;
-+	}
-+
-+	rd = buf->dma_sgt->sgl;
-+	wr = sgt->sgl;
-+	for (i = 0; i < sgt->orig_nents; ++i) {
-+		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
-+		rd = sg_next(rd);
-+		wr = sg_next(wr);
-+	}
-+
-+	attach->dma_dir = DMA_NONE;
-+	dbuf_attach->priv = attach;
-+
-+	return 0;
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
-+	struct dma_buf_attachment *db_attach)
-+{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
-+	struct sg_table *sgt;
-+
-+	if (!attach)
-+		return;
-+
-+	sgt = &attach->sgt;
-+
-+	/* release the scatterlist cache */
-+	if (attach->dma_dir != DMA_NONE)
-+		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-+			attach->dma_dir);
-+	sg_free_table(sgt);
-+	kfree(attach);
-+	db_attach->priv = NULL;
-+}
-+
-+static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
-+	struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
-+{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
-+	/* stealing dmabuf mutex to serialize map/unmap operations */
-+	struct mutex *lock = &db_attach->dmabuf->lock;
-+	struct sg_table *sgt;
-+	int ret;
-+
-+	mutex_lock(lock);
-+
-+	sgt = &attach->sgt;
-+	/* return previously mapped sg table */
-+	if (attach->dma_dir == dma_dir) {
-+		mutex_unlock(lock);
-+		return sgt;
-+	}
-+
-+	/* release any previous cache */
-+	if (attach->dma_dir != DMA_NONE) {
-+		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-+			attach->dma_dir);
-+		attach->dma_dir = DMA_NONE;
-+	}
-+
-+	/* mapping to the client with new direction */
-+	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
-+	if (ret <= 0) {
-+		pr_err("failed to map scatterlist\n");
-+		mutex_unlock(lock);
-+		return ERR_PTR(-EIO);
-+	}
-+
-+	attach->dma_dir = dma_dir;
-+
-+	mutex_unlock(lock);
-+
-+	return sgt;
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
-+	struct sg_table *sgt, enum dma_data_direction dma_dir)
-+{
-+	/* nothing to be done here */
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_release(struct dma_buf *dbuf)
-+{
-+	/* drop reference obtained in vb2_dma_sg_get_dmabuf */
-+	vb2_dma_sg_put(dbuf->priv);
-+}
-+
-+static void *vb2_dma_sg_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
-+{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+
-+	return buf->vaddr ? buf->vaddr + pgnum * PAGE_SIZE : NULL;
-+}
-+
-+static void *vb2_dma_sg_dmabuf_ops_vmap(struct dma_buf *dbuf)
-+{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+
-+	return vb2_dma_sg_vaddr(buf);
-+}
-+
-+static int vb2_dma_sg_dmabuf_ops_mmap(struct dma_buf *dbuf,
-+	struct vm_area_struct *vma)
-+{
-+	return vb2_dma_sg_mmap(dbuf->priv, vma);
-+}
-+
-+static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
-+	.attach = vb2_dma_sg_dmabuf_ops_attach,
-+	.detach = vb2_dma_sg_dmabuf_ops_detach,
-+	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
-+	.unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
-+	.kmap = vb2_dma_sg_dmabuf_ops_kmap,
-+	.kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
-+	.vmap = vb2_dma_sg_dmabuf_ops_vmap,
-+	.mmap = vb2_dma_sg_dmabuf_ops_mmap,
-+	.release = vb2_dma_sg_dmabuf_ops_release,
-+};
-+
-+static struct dma_buf *vb2_dma_sg_get_dmabuf(void *buf_priv, unsigned long flags)
-+{
-+	struct vb2_dma_sg_buf *buf = buf_priv;
-+	struct dma_buf *dbuf;
-+
-+	if (WARN_ON(!buf->dma_sgt))
-+		return NULL;
-+
-+	dbuf = dma_buf_export(buf, &vb2_dma_sg_dmabuf_ops, buf->size, flags, NULL);
-+	if (IS_ERR(dbuf))
-+		return NULL;
-+
-+	/* dmabuf keeps reference to vb2 buffer */
-+	atomic_inc(&buf->refcount);
-+
-+	return dbuf;
-+}
-+
-+/*********************************************/
- /*       callbacks for DMABUF buffers        */
- /*********************************************/
+ Required properties:
+-- compatible : should be "fsl,<chip>-src" for i.MX SoCs:
+-  (a) "fsl,imx27-vpu" for CodaDx6 present in i.MX27
+-  (b) "fsl,imx53-vpu" for CODA7541 present in i.MX53
+-  (c) "fsl,imx6q-vpu" for CODA960 present in i.MX6q
++- compatible : should be "fsl,<chip>-src", "cnm,coda<model>" for i.MX SoCs:
++  (a) "fsl,imx27-vpu", "cnm,codadx6" for CodaDx6 present in i.MX27
++  (b) "fsl,imx53-vpu", "cnm,coda7541" for CODA7541 present in i.MX53
++  (c) "fsl,imx6q-vpu", "cnm,coda960" for CODA960 present in i.MX6Q/D
++  (d) "fsl,imx6dl-vpu", "cnm,coda960" for CODA960 present in i.MX6DL/S
+ - reg: should be register base and length as documented in the
+   SoC reference manual
+ - interrupts : Should contain the VPU interrupt. For CODA960,
+@@ -21,7 +22,7 @@ Required properties:
+ Example:
  
-@@ -521,6 +690,7 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- 	.vaddr		= vb2_dma_sg_vaddr,
- 	.mmap		= vb2_dma_sg_mmap,
- 	.num_users	= vb2_dma_sg_num_users,
-+	.get_dmabuf	= vb2_dma_sg_get_dmabuf,
- 	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
- 	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
- 	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
+ vpu: vpu@63ff4000 {
+-	compatible = "fsl,imx53-vpu";
++	compatible = "fsl,imx53-vpu", "cnm,coda7541";
+ 	reg = <0x63ff4000 0x1000>;
+ 	interrupts = <9>;
+ 	clocks = <&clks 63>, <&clks 63>;
 -- 
-2.1.1
+1.9.1
 
