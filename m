@@ -1,61 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:51072 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755212AbaKTQQA convert rfc822-to-8bit (ORCPT
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:40048 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752135AbaKZGT7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 11:16:00 -0500
-Date: Thu, 20 Nov 2014 14:15:54 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: v4l-utils stable release 1.6.1
-Message-ID: <20141120141554.4a2e36e8@recife.lan>
-In-Reply-To: <546E093D.4030203@googlemail.com>
-References: <546E093D.4030203@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+	Wed, 26 Nov 2014 01:19:59 -0500
+Received: by mail-pa0-f41.google.com with SMTP id rd3so2196301pab.28
+        for <linux-media@vger.kernel.org>; Tue, 25 Nov 2014 22:19:58 -0800 (PST)
+From: Takanari Hayama <taki@igel.co.jp>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 0/2] v4l: vsp1: crop and a single input issues
+Date: Wed, 26 Nov 2014 15:19:50 +0900
+Message-Id: <1416982792-11917-1-git-send-email-taki@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 20 Nov 2014 16:31:09 +0100
-Gregor Jasny <gjasny@googlemail.com> escreveu:
+Hi,
 
-> Hello,
-> 
-> do you consider something from these commits as important enough for a 
-> bugfix release?
+We've found a couple of issues in VSP1 driver. Each issue is described
+in each patch. They can be applied separetely.
 
->From my side, those are bug fixes that affect two RC6 tables:
-       ir-keytable: fix a regression introduced by fe2aa5f767eba
-       rc: Update the protocol name at RC6 tables
+Takanari Hayama (2):
+  v4l: vsp1: Reset VSP1 RPF source address
+  v4l: vsp1: Always enable virtual RPF when BRU is in use
 
-Applying just the first is enough. Basically, RC6 tables are described
-as RC6_MCE. The first patch makes the ir-keytable to accept both syntaxes;
-the second one fixes the two existing RC6_MCE tables.
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 15 +++++++++++++++
+ drivers/media/platform/vsp1/vsp1_rwpf.h |  2 ++
+ drivers/media/platform/vsp1/vsp1_wpf.c  | 11 ++++++-----
+ 3 files changed, 23 insertions(+), 5 deletions(-)
 
-This one is an important bug fixes for DVB-S/S2 frequency storage:
-       libdvbv5: properly represent Satellite frequencies
+Best Regards,
+Takanari Hayama
+-- 
+1.8.0
 
-This is not properly a bug fix, but I would also add it, as it fixes the
-documentation:
-	README: better document the package
-
-This is a bug fix, but it affects only the keymap sync from Kernel,
-so probably not worth backporting, except if you also intend to run
-make sync-with-kernel at the fix tree:
-       gen_keytables.pl: Fix a regression at RC map file generation
-
-In such case, I also suggest to backport those patches:
-       rc_maps.cfg: reorder entries alphabetically
-       rc: sync with Kernel
-       rc: copy userspace-only maps to a separate dir
-
-This one also seems to be a backport fix:
-       rc_keymaps: allwinner: S/KEY_HOME/KEY_HOMEPAGE/
-
-That's all from remote controllers and libdvbv5 API side.
-
-Regards,
-Mauro
