@@ -1,82 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:52803 "EHLO mout.web.de"
+Received: from mga01.intel.com ([192.55.52.88]:61657 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755854AbaKTI3q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 03:29:46 -0500
-Message-ID: <546DA65E.4020100@users.sourceforge.net>
-Date: Thu, 20 Nov 2014 09:29:18 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	id S1750736AbaKZTaz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Nov 2014 14:30:55 -0500
+Date: Wed, 26 Nov 2014 11:30:53 -0800
+From: Fengguang Wu <fengguang.wu@intel.com>
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH 2/3] [media] m88ds3103: One function call less in m88ds3103_init()
- after error detection
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net> <546DA419.7050405@users.sourceforge.net>
-In-Reply-To: <546DA419.7050405@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Subject: Re: [linuxtv-media:master 7661/7664] ERROR: "omapdss_compat_init"
+ [drivers/media/platform/omap/omap-vout.ko] undefined!
+Message-ID: <20141126193053.GD19633@wfg-t540p.sh.intel.com>
+References: <201411260931.8e2dBfm8%fengguang.wu@intel.com>
+ <1416988241.29407.5.camel@x220>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1416988241.29407.5.camel@x220>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 19 Nov 2014 23:20:51 +0100
+Hi Paul,
 
-The release_firmware() function was called in some cases by the
-m88ds3103_init() function during error handling even if the passed variable
-contained still a null pointer. This implementation detail could be improved
-by the introduction of another jump label.
+On Wed, Nov 26, 2014 at 08:50:41AM +0100, Paul Bolle wrote:
+> Hi Fengguang,
+> 
+> On Wed, 2014-11-26 at 09:34 +0800, kbuild test robot wrote:
+> > tree:   git://linuxtv.org/media_tree.git master
+> > head:   504febc3f98c87a8bebd8f2f274f32c0724131e4
+> > commit: 6b213e81ddf8b265383c9a1a1884432df88f701e [7661/7664] [media] omap: Fix typo "HAS_MMU"
+> > config: m68k-allmodconfig (attached as .config)
+> > reproduce:
+> >   wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+> >   chmod +x ~/bin/make.cross
+> >   git checkout 6b213e81ddf8b265383c9a1a1884432df88f701e
+> >   # save the attached .config to linux build tree
+> >   make.cross ARCH=m68k 
+> 
+> This is the first time I've made the kbuild test robot trip. So I'm not
+> sure how to interpret this.
+> 
+> Is ARCH=m68k the only build that failed through this commit? Or is it
+> the first build that failed? If so, how can I determine which arches
+> build correctly?
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/dvb-frontends/m88ds3103.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+It's the first build that failed. I checked log and find these
+failures, which covers m68k, mips and i386.
 
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index e88f0f6..82da715 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -590,7 +590,7 @@ static int m88ds3103_init(struct dvb_frontend *fe)
- 
- 	ret = m88ds3103_wr_reg(priv, 0xb2, 0x01);
- 	if (ret)
--		goto err;
-+		goto error_fw_release;
- 
- 	for (remaining = fw->size; remaining > 0;
- 			remaining -= (priv->cfg->i2c_wr_max - 1)) {
-@@ -604,13 +604,13 @@ static int m88ds3103_init(struct dvb_frontend *fe)
- 			dev_err(&priv->i2c->dev,
- 					"%s: firmware download failed=%d\n",
- 					KBUILD_MODNAME, ret);
--			goto err;
-+			goto error_fw_release;
- 		}
- 	}
- 
- 	ret = m88ds3103_wr_reg(priv, 0xb2, 0x00);
- 	if (ret)
--		goto err;
-+		goto error_fw_release;
- 
- 	release_firmware(fw);
- 	fw = NULL;
-@@ -636,9 +636,10 @@ skip_fw_download:
- 	priv->warm = true;
- 
- 	return 0;
--err:
--	release_firmware(fw);
- 
-+error_fw_release:
-+	release_firmware(fw);
-+err:
- 	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
--- 
-2.1.3
+ERROR: "omapdss_compat_init" [drivers/media/platform/omap/omap-vout.ko] undefined!
 
+linuxtv-media:master:504febc3f98c87a8bebd8f2f274f32c0724131e4 m68k-allmodconfig 504febc3f98c87a8bebd8f2f274f32c0724131e4
+
+ERROR: "omapdss_compat_init" undefined!
+
+linuxtv-media:master:504febc3f98c87a8bebd8f2f274f32c0724131e4 mips-allmodconfig 504febc3f98c87a8bebd8f2f274f32c0724131e4
+
+omap_vout.c:(.init.text+0xb2706): undefined reference to `omapdss_compat_init'
+
+linuxtv-media:master:504febc3f98c87a8bebd8f2f274f32c0724131e4 i386-allyesconfig 504febc3f98c87a8bebd8f2f274f32c0724131e4
+
+Thanks,
+Fengguang
+
+> > All error/warnings:
+> > 
+> > >> ERROR: "omapdss_compat_init" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_overlay_manager" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_num_overlay_managers" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_overlay" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omapdss_is_initialized" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dispc_register_isr" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omapdss_get_version" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_put_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_next_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dispc_unregister_isr" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omapdss_compat_uninit" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > >> ERROR: "omap_dss_get_num_overlays" [drivers/media/platform/omap/omap-vout.ko] undefined!
+> > 
+> > ---
+> > 0-DAY kernel test infrastructure                Open Source Technology Center
+> > http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+> 
+> Thanks,
+> 
+> Paul Bolle
