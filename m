@@ -1,921 +1,571 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45670 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751031AbaK0Io3 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53799 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793AbaKZUAk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 03:44:29 -0500
-Date: Thu, 27 Nov 2014 10:43:55 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	sakari.ailus@linux.intel.com, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: Re: [PATCH/RFC v7 2/3] leds: Add LED Flash Class wrapper to LED
- subsystem
-Message-ID: <20141127084354.GN8907@valkosipuli.retiisi.org.uk>
-References: <1415808557-29557-1-git-send-email-j.anaszewski@samsung.com>
- <1415808557-29557-3-git-send-email-j.anaszewski@samsung.com>
+	Wed, 26 Nov 2014 15:00:40 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv7 PATCH 05/12] vb2-dma-sg: add allocation context to dma-sg
+Date: Wed, 26 Nov 2014 22:01:05 +0200
+Message-ID: <6651864.AMf1vVF0Vu@avalon>
+In-Reply-To: <1416315068-22936-6-git-send-email-hverkuil@xs4all.nl>
+References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl> <1416315068-22936-6-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1415808557-29557-3-git-send-email-j.anaszewski@samsung.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hi Hans,
 
 Thank you for the patch.
 
-One generic question: how do you support flash controllers with multiple
-flash LEDs? I thought that once was a part of the patchset?
+On Tuesday 18 November 2014 13:51:01 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Require that dma-sg also uses an allocation context. This is in preparation
+> for adding prepare/finish memops to sync the memory between DMA and CPU.
 
-On Wed, Nov 12, 2014 at 05:09:16PM +0100, Jacek Anaszewski wrote:
-> Some LED devices support two operation modes - torch and flash.
-> This patch provides support for flash LED devices in the LED subsystem
-> by introducing new sysfs attributes and kernel internal interface.
-> The attributes being introduced are: flash_brightness, flash_strobe,
-> flash_timeout, max_flash_timeout, max_flash_brightness, flash_fault,
-> indicator_brightness and  max_indicator_brightness. All the flash
-> related features are placed in a separate module.
-> 
-> The modifications aim to be compatible with V4L2 framework requirements
-> related to the flash devices management. The design assumes that V4L2
-> sub-device can take of the LED class device control and communicate
-> with it through the kernel internal interface. When V4L2 Flash sub-device
-> file is opened, the LED class device sysfs interface is made
-> unavailable.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
+I think this has been raised before, but given that our allocation contexts 
+just hold a struct device pointer, wouldn't it be simpler to just pass it 
+explicitly when creating the queue ? Do we have use cases for using different 
+struct device instances per plane ?
+
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
->  drivers/leds/Kconfig            |   11 +
->  drivers/leds/Makefile           |    1 +
->  drivers/leds/led-class-flash.c  |  511 +++++++++++++++++++++++++++++++++++++++
->  drivers/leds/led-class.c        |    4 +
->  include/linux/led-class-flash.h |  229 ++++++++++++++++++
->  include/linux/leds.h            |    3 +
->  6 files changed, 759 insertions(+)
->  create mode 100644 drivers/leds/led-class-flash.c
->  create mode 100644 include/linux/led-class-flash.h
+>  drivers/media/pci/cx23885/cx23885-417.c         |  1 +
+>  drivers/media/pci/cx23885/cx23885-core.c        | 10 +++++++-
+>  drivers/media/pci/cx23885/cx23885-dvb.c         |  1 +
+>  drivers/media/pci/cx23885/cx23885-vbi.c         |  1 +
+>  drivers/media/pci/cx23885/cx23885-video.c       |  1 +
+>  drivers/media/pci/cx23885/cx23885.h             |  1 +
+>  drivers/media/pci/saa7134/saa7134-core.c        | 18 ++++++++++----
+>  drivers/media/pci/saa7134/saa7134-ts.c          |  1 +
+>  drivers/media/pci/saa7134/saa7134-vbi.c         |  1 +
+>  drivers/media/pci/saa7134/saa7134-video.c       |  1 +
+>  drivers/media/pci/saa7134/saa7134.h             |  1 +
+>  drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c  | 10 ++++++++
+>  drivers/media/pci/solo6x10/solo6x10.h           |  1 +
+>  drivers/media/pci/tw68/tw68-core.c              | 15 +++++++++---
+>  drivers/media/pci/tw68/tw68-video.c             |  1 +
+>  drivers/media/pci/tw68/tw68.h                   |  1 +
+>  drivers/media/platform/marvell-ccic/mcam-core.c | 13 +++++++++-
+>  drivers/media/platform/marvell-ccic/mcam-core.h |  1 +
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c      | 32 ++++++++++++++++++++++
+>  include/media/videobuf2-dma-sg.h                |  3 +++
+>  20 files changed, 104 insertions(+), 10 deletions(-)
 > 
-> diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-> index 808095b..50c4370 100644
-> --- a/drivers/leds/Kconfig
-> +++ b/drivers/leds/Kconfig
-> @@ -19,6 +19,17 @@ config LEDS_CLASS
->  	  This option enables the led sysfs class in /sys/class/leds.  You'll
->  	  need this to do anything useful with LEDs.  If unsure, say N.
->  
-> +config LEDS_CLASS_FLASH
-> +	tristate "LED Flash Class Support"
-> +	depends on LEDS_CLASS
-> +	depends on OF
-
-Why the dependency? I don't see any references to Open Firmware.
-
-> +	help
-> +	  This option enables the flash led sysfs class in /sys/class/leds.
-> +	  It wrapps LED Class and adds flash LEDs specific sysfs attributes
-> +	  and kernel internal API to it. You'll need this to provide support
-> +	  for the flash related features of a LED device. It can be built
-> +	  as a module.
-> +
->  comment "LED drivers"
->  
->  config LEDS_88PM860X
-> diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-> index a2b1647..73c0cec 100644
-> --- a/drivers/leds/Makefile
-> +++ b/drivers/leds/Makefile
-> @@ -2,6 +2,7 @@
->  # LED Core
->  obj-$(CONFIG_NEW_LEDS)			+= led-core.o
->  obj-$(CONFIG_LEDS_CLASS)		+= led-class.o
-> +obj-$(CONFIG_LEDS_CLASS_FLASH)		+= led-class-flash.o
->  obj-$(CONFIG_LEDS_TRIGGERS)		+= led-triggers.o
->  
->  # LED Platform Drivers
-> diff --git a/drivers/leds/led-class-flash.c b/drivers/leds/led-class-flash.c
-> new file mode 100644
-> index 0000000..bec99f6
-> --- /dev/null
-> +++ b/drivers/leds/led-class-flash.c
-> @@ -0,0 +1,511 @@
-> +/*
-> + * LED Flash Class interface
-> + *
-> + * Copyright (C) 2014 Samsung Electronics Co., Ltd.
-> + * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/device.h>
-> +#include <linux/init.h>
-> +#include <linux/leds.h>
-> +#include <linux/led-class-flash.h>
-
-Nitpicking... "-" comes before "s".
-
-> +#include <linux/module.h>
-> +#include <linux/slab.h>
-> +#include "leds.h"
-> +
-> +#define has_flash_op(flash, op)				\
-> +	(flash && flash->ops->op)
-> +
-> +#define call_flash_op(flash, op, args...)		\
-> +	((has_flash_op(flash, op)) ?			\
-> +			(flash->ops->op(flash, args)) :	\
-> +			-EINVAL)
-> +
-> +static ssize_t flash_brightness_store(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t size)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +	unsigned long state;
-> +	ssize_t ret;
-> +
-> +	mutex_lock(&led_cdev->led_access);
-> +
-> +	if (led_sysfs_is_disabled(led_cdev)) {
-> +		ret = -EBUSY;
-> +		goto unlock;
-> +	}
-> +
-> +	ret = kstrtoul(buf, 10, &state);
-> +	if (ret)
-> +		goto unlock;
-> +
-> +	ret = led_set_flash_brightness(flash, state);
-> +	if (ret < 0)
-> +		goto unlock;
-> +
-> +	ret = size;
-> +unlock:
-> +	mutex_unlock(&led_cdev->led_access);
-> +	return ret;
-> +}
-> +
-> +static ssize_t flash_brightness_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +
-> +	/* no lock needed for this */
-> +	led_update_flash_brightness(flash);
-> +
-> +	return sprintf(buf, "%u\n", flash->brightness.val);
-> +}
-> +static DEVICE_ATTR_RW(flash_brightness);
-> +
-> +static ssize_t max_flash_brightness_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +
-> +	return sprintf(buf, "%u\n", flash->brightness.max);
-> +}
-> +static DEVICE_ATTR_RO(max_flash_brightness);
-> +
-> +static ssize_t indicator_brightness_store(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t size)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +	unsigned long state;
-> +	ssize_t ret;
-> +
-> +	mutex_lock(&led_cdev->led_access);
-> +
-> +	if (led_sysfs_is_disabled(led_cdev)) {
-> +		ret = -EBUSY;
-> +		goto unlock;
-> +	}
-> +
-> +	ret = kstrtoul(buf, 10, &state);
-> +	if (ret)
-> +		goto unlock;
-> +
-> +	ret = led_set_indicator_brightness(flash, state);
-> +	if (ret < 0)
-> +		goto unlock;
-> +
-> +	ret = size;
-> +unlock:
-> +	mutex_unlock(&led_cdev->led_access);
-> +	return ret;
-> +}
-> +
-> +static ssize_t indicator_brightness_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +
-> +	/* no lock needed for this */
-> +	led_update_indicator_brightness(flash);
-> +
-> +	return sprintf(buf, "%u\n", flash->indicator_brightness->val);
-> +}
-> +static DEVICE_ATTR_RW(indicator_brightness);
-> +
-> +static ssize_t max_indicator_brightness_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +
-> +	return sprintf(buf, "%u\n", flash->indicator_brightness->max);
-> +}
-> +static DEVICE_ATTR_RO(max_indicator_brightness);
-> +
-> +static ssize_t flash_strobe_store(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t size)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +	unsigned long state;
-> +	ssize_t ret = -EINVAL;
-> +
-> +	mutex_lock(&led_cdev->led_access);
-> +
-> +	if (led_sysfs_is_disabled(led_cdev)) {
-> +		ret = -EBUSY;
-> +		goto unlock;
-> +	}
-> +
-> +	ret = kstrtoul(buf, 10, &state);
-> +	if (ret)
-> +		goto unlock;
-> +
-> +	if (state < 0 || state > 1) {
-> +		ret = -EINVAL;
-> +		goto unlock;
-> +	}
-> +
-> +	ret = led_set_flash_strobe(flash, state);
-> +	if (ret < 0)
-> +		goto unlock;
-> +	ret = size;
-> +unlock:
-> +	mutex_unlock(&led_cdev->led_access);
-> +	return ret;
-> +}
-> +
-> +static ssize_t flash_strobe_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +	bool state;
-> +	int ret;
-> +
-> +	/* no lock needed for this */
-> +	ret = led_get_flash_strobe(flash, &state);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return sprintf(buf, "%u\n", state);
-> +}
-> +static DEVICE_ATTR_RW(flash_strobe);
-> +
-> +static ssize_t flash_timeout_store(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t size)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +	unsigned long flash_timeout;
-> +	ssize_t ret;
-> +
-> +	mutex_lock(&led_cdev->led_access);
-> +
-> +	if (led_sysfs_is_disabled(led_cdev)) {
-> +		ret = -EBUSY;
-> +		goto unlock;
-> +	}
-> +
-> +	ret = kstrtoul(buf, 10, &flash_timeout);
-> +	if (ret)
-> +		goto unlock;
-> +
-> +	ret = led_set_flash_timeout(flash, flash_timeout);
-> +	if (ret < 0)
-> +		goto unlock;
-> +
-> +	ret = size;
-> +unlock:
-> +	mutex_unlock(&led_cdev->led_access);
-> +	return ret;
-> +}
-> +
-> +static ssize_t flash_timeout_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +
-> +	return sprintf(buf, "%u\n", flash->timeout.val);
-> +}
-> +static DEVICE_ATTR_RW(flash_timeout);
-> +
-> +static ssize_t max_flash_timeout_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +
-> +	return sprintf(buf, "%u\n", flash->timeout.max);
-> +}
-> +static DEVICE_ATTR_RO(max_flash_timeout);
-> +
-> +static ssize_t flash_fault_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +	u32 fault;
-> +	int ret;
-> +
-> +	ret = led_get_flash_fault(flash, &fault);
-> +	if (ret < 0)
-> +		return -EINVAL;
-> +
-> +	return sprintf(buf, "0x%8.8x\n", fault);
-> +}
-> +static DEVICE_ATTR_RO(flash_fault);
-> +
-> +static struct attribute *led_flash_strobe_attrs[] = {
-> +	&dev_attr_flash_strobe.attr,
-> +	NULL,
-> +};
-> +
-> +static struct attribute *led_flash_indicator_attrs[] = {
-> +	&dev_attr_indicator_brightness.attr,
-> +	&dev_attr_max_indicator_brightness.attr,
-> +	NULL,
-> +};
-> +
-> +static struct attribute *led_flash_timeout_attrs[] = {
-> +	&dev_attr_flash_timeout.attr,
-> +	&dev_attr_max_flash_timeout.attr,
-> +	NULL,
-> +};
-> +
-> +static struct attribute *led_flash_brightness_attrs[] = {
-> +	&dev_attr_flash_brightness.attr,
-> +	&dev_attr_max_flash_brightness.attr,
-> +	NULL,
-> +};
-> +
-> +static struct attribute *led_flash_fault_attrs[] = {
-> +	&dev_attr_flash_fault.attr,
-> +	NULL,
-> +};
-> +
-> +static const struct attribute_group led_flash_strobe_group = {
-> +	.attrs = led_flash_strobe_attrs,
-> +};
-> +
-> +static const struct attribute_group led_flash_indicator_group = {
-> +	.attrs = led_flash_indicator_attrs,
-> +};
-> +
-> +static const struct attribute_group led_flash_timeout_group = {
-> +	.attrs = led_flash_timeout_attrs,
-> +};
-> +
-> +static const struct attribute_group led_flash_brightness_group = {
-> +	.attrs = led_flash_brightness_attrs,
-> +};
-> +
-> +static const struct attribute_group led_flash_fault_group = {
-> +	.attrs = led_flash_fault_attrs,
-> +};
-> +
-> +static const struct attribute_group *flash_groups[] = {
-> +	&led_flash_strobe_group,
-> +	NULL,
-> +	NULL,
-> +	NULL,
-> +	NULL,
-> +	NULL,
-> +};
-> +
-> +static void led_flash_resume(struct led_classdev *led_cdev)
-> +{
-> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> +
-> +	call_flash_op(flash, flash_brightness_set, flash->brightness.val);
-> +	call_flash_op(flash, timeout_set, flash->timeout.val);
-> +	call_flash_op(flash, indicator_brightness_set,
-> +				flash->indicator_brightness->val);
-> +}
-> +
-> +static void led_flash_init_sysfs_groups(struct led_classdev_flash *flash)
-> +{
-> +	struct led_classdev *led_cdev = &flash->led_cdev;
-> +	const struct led_flash_ops *ops = flash->ops;
-> +	int num_sysfs_groups = 1;
-> +
-> +	if (led_cdev->flags & LED_DEV_CAP_INDICATOR)
-> +		flash_groups[num_sysfs_groups++] = &led_flash_indicator_group;
-> +
-> +	if (ops->flash_brightness_set)
-> +		flash_groups[num_sysfs_groups++] = &led_flash_brightness_group;
-> +
-> +	if (ops->timeout_set)
-> +		flash_groups[num_sysfs_groups++] = &led_flash_timeout_group;
-> +
-> +	if (ops->fault_get)
-> +		flash_groups[num_sysfs_groups++] = &led_flash_fault_group;
-> +
-> +	led_cdev->groups = flash_groups;
-> +}
-> +
-> +int led_classdev_flash_register(struct device *parent,
-> +				struct led_classdev_flash *flash)
-> +{
-> +	struct led_classdev *led_cdev;
-> +	const struct led_flash_ops *ops;
-> +	int ret;
-> +
-> +	if (!flash)
-> +		return -EINVAL;
-> +
-> +	led_cdev = &flash->led_cdev;
-> +
-> +	if (led_cdev->flags & LED_DEV_CAP_FLASH) {
-> +		if (!led_cdev->brightness_set_sync)
-> +			return -EINVAL;
-> +
-> +		ops = flash->ops;
-> +		if (!ops || !ops->strobe_set)
-> +			return -EINVAL;
-> +
-> +		if ((led_cdev->flags & LED_DEV_CAP_INDICATOR) &&
-> +		    (!flash->indicator_brightness ||
-> +		     !ops->indicator_brightness_set))
-> +			return -EINVAL;
-> +
-> +		led_cdev->flash_resume = led_flash_resume;
-> +	}
-> +
-> +	/* Select the sysfs attributes to be created for the device */
-> +	led_flash_init_sysfs_groups(flash);
-> +
-> +	/* Register led class device */
-> +	ret = led_classdev_register(parent, led_cdev);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	/* Setting a torch brightness needs to have immediate effect */
-> +	led_cdev->flags &= ~SET_BRIGHTNESS_ASYNC;
-> +	led_cdev->flags |= SET_BRIGHTNESS_SYNC;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(led_classdev_flash_register);
-> +
-> +void led_classdev_flash_unregister(struct led_classdev_flash *flash)
-> +{
-> +	if (!flash)
-> +		return;
-> +
-> +	led_classdev_unregister(&flash->led_cdev);
-> +}
-> +EXPORT_SYMBOL_GPL(led_classdev_flash_unregister);
-> +
-> +int led_set_flash_strobe(struct led_classdev_flash *flash, bool state)
-> +{
-> +	return call_flash_op(flash, strobe_set, state);
-> +}
-> +EXPORT_SYMBOL_GPL(led_set_flash_strobe);
-> +
-> +int led_get_flash_strobe(struct led_classdev_flash *flash, bool *state)
-> +{
-> +	return call_flash_op(flash, strobe_get, state);
-> +}
-> +EXPORT_SYMBOL_GPL(led_get_flash_strobe);
-> +
-> +static void led_clamp_align(struct led_flash_setting *s)
-> +{
-> +	u32 v, offset;
-> +
-> +	v = s->val + s->step / 2;
-> +	v = clamp(v, s->min, s->max);
-> +	offset = v - s->min;
-> +	offset = s->step * (offset / s->step);
-
-You could use the rounddown() macro. I.e.
-
-rounddown(v - s->min, s->step) + s->min;
-
-> +	s->val = s->min + offset;
-> +}
-> +
-> +int led_set_flash_timeout(struct led_classdev_flash *flash, u32 timeout)
-> +{
-> +	struct led_classdev *led_cdev = &flash->led_cdev;
-> +	struct led_flash_setting *s = &flash->timeout;
-> +	int ret = 0;
-> +
-> +	s->val = timeout;
-> +	led_clamp_align(s);
-> +
-> +	if (!(led_cdev->flags & LED_SUSPENDED))
-> +		ret = call_flash_op(flash, timeout_set, s->val);
-> +
-> +	return ret;
-
-ret is pretty much redundant here.
-
-> +}
-> +EXPORT_SYMBOL_GPL(led_set_flash_timeout);
-> +
-> +int led_get_flash_fault(struct led_classdev_flash *flash, u32 *fault)
-> +{
-> +	return call_flash_op(flash, fault_get, fault);
-> +}
-> +EXPORT_SYMBOL_GPL(led_get_flash_fault);
-> +
-> +int led_set_flash_brightness(struct led_classdev_flash *flash,
-> +				u32 brightness)
-> +{
-> +	struct led_classdev *led_cdev = &flash->led_cdev;
-> +	struct led_flash_setting *s = &flash->brightness;
-> +	int ret = 0;
-> +
-> +	s->val = brightness;
-> +	led_clamp_align(s);
-> +
-> +	if (!(led_cdev->flags & LED_SUSPENDED))
-> +		ret = call_flash_op(flash, flash_brightness_set, s->val);
-
-Same here.
-
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(led_set_flash_brightness);
-> +
-> +int led_update_flash_brightness(struct led_classdev_flash *flash)
-> +{
-> +	struct led_flash_setting *s = &flash->brightness;
-> +	u32 brightness;
-> +	int ret = 0;
-> +
-> +	if (has_flash_op(flash, flash_brightness_get)) {
-> +		ret = call_flash_op(flash, flash_brightness_get,
-> +						&brightness);
-> +		if (ret < 0)
-> +			return ret;
-> +		s->val = brightness;
-> +	}
-> +
-> +	return ret;
-
-Shouldn't ret be always zero here? You can declare ret inside if () { }.
-Same for brightness.
-
-> +}
-> +EXPORT_SYMBOL_GPL(led_update_flash_brightness);
-> +
-> +int led_set_indicator_brightness(struct led_classdev_flash *flash,
-> +					u32 brightness)
-> +{
-> +	struct led_classdev *led_cdev = &flash->led_cdev;
-> +	struct led_flash_setting *s = flash->indicator_brightness;
-> +	int ret = 0;
-> +
-> +	if (!s)
-> +		return -EINVAL;
-> +
-> +	s->val = brightness;
-> +	led_clamp_align(s);
-> +
-> +	if (!(led_cdev->flags & LED_SUSPENDED))
-> +		ret = call_flash_op(flash, indicator_brightness_set, s->val);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(led_set_indicator_brightness);
-> +
-> +int led_update_indicator_brightness(struct led_classdev_flash *flash)
-> +{
-> +	struct led_flash_setting *s = flash->indicator_brightness;
-> +	u32 brightness;
-> +	int ret = 0;
-> +
-> +	if (!s)
-> +		return -EINVAL;
-> +
-> +	if (has_flash_op(flash, indicator_brightness_get)) {
-> +		ret = call_flash_op(flash, indicator_brightness_get,
-> +							&brightness);
-> +		if (ret < 0)
-> +			return ret;
-> +		s->val = brightness;
-> +	}
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(led_update_indicator_brightness);
-> +
-> +MODULE_AUTHOR("Jacek Anaszewski <j.anaszewski@samsung.com>");
-> +MODULE_LICENSE("GPL");
-> +MODULE_DESCRIPTION("LED Flash Class Interface");
-> diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
-> index dbeebac..02564c5 100644
-> --- a/drivers/leds/led-class.c
-> +++ b/drivers/leds/led-class.c
-> @@ -179,6 +179,10 @@ EXPORT_SYMBOL_GPL(led_classdev_suspend);
->  void led_classdev_resume(struct led_classdev *led_cdev)
->  {
->  	led_cdev->brightness_set(led_cdev, led_cdev->brightness);
-> +
-> +	if (led_cdev->flash_resume)
-> +		led_cdev->flash_resume(led_cdev);
-> +
->  	led_cdev->flags &= ~LED_SUSPENDED;
+> diff --git a/drivers/media/pci/cx23885/cx23885-417.c
+> b/drivers/media/pci/cx23885/cx23885-417.c index 3948db3..d72a3ec 100644
+> --- a/drivers/media/pci/cx23885/cx23885-417.c
+> +++ b/drivers/media/pci/cx23885/cx23885-417.c
+> @@ -1148,6 +1148,7 @@ static int queue_setup(struct vb2_queue *q, const
+> struct v4l2_format *fmt, dev->ts1.ts_packet_count = mpeglines;
+>  	*num_planes = 1;
+>  	sizes[0] = mpeglinesize * mpeglines;
+> +	alloc_ctxs[0] = dev->alloc_ctx;
+>  	*num_buffers = mpegbufs;
+>  	return 0;
 >  }
->  EXPORT_SYMBOL_GPL(led_classdev_resume);
-> diff --git a/include/linux/led-class-flash.h b/include/linux/led-class-flash.h
-> new file mode 100644
-> index 0000000..df95b8a
-> --- /dev/null
-> +++ b/include/linux/led-class-flash.h
-> @@ -0,0 +1,229 @@
-> +/*
-> + * LED Flash Class interface
-> + *
-> + * Copyright (C) 2014 Samsung Electronics Co., Ltd.
-> + * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +#ifndef __LINUX_FLASH_LEDS_H_INCLUDED
-> +#define __LINUX_FLASH_LEDS_H_INCLUDED
+> diff --git a/drivers/media/pci/cx23885/cx23885-core.c
+> b/drivers/media/pci/cx23885/cx23885-core.c index 331edda..d452b5c 100644
+> --- a/drivers/media/pci/cx23885/cx23885-core.c
+> +++ b/drivers/media/pci/cx23885/cx23885-core.c
+> @@ -1997,9 +1997,14 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
+>  	if (!pci_dma_supported(pci_dev, 0xffffffff)) {
+>  		printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
+>  		err = -EIO;
+> -		goto fail_irq;
+> +		goto fail_context;
+>  	}
+> 
+> +	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
+> +	if (IS_ERR(dev->alloc_ctx)) {
+> +		err = PTR_ERR(dev->alloc_ctx);
+> +		goto fail_context;
+> +	}
+>  	err = request_irq(pci_dev->irq, cx23885_irq,
+>  			  IRQF_SHARED, dev->name, dev);
+>  	if (err < 0) {
+> @@ -2028,6 +2033,8 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
+>  	return 0;
+> 
+>  fail_irq:
+> +	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+> +fail_context:
+>  	cx23885_dev_unregister(dev);
+>  fail_ctrl:
+>  	v4l2_ctrl_handler_free(hdl);
+> @@ -2053,6 +2060,7 @@ static void cx23885_finidev(struct pci_dev *pci_dev)
+>  	free_irq(pci_dev->irq, dev);
+> 
+>  	cx23885_dev_unregister(dev);
+> +	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+>  	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+>  	v4l2_device_unregister(v4l2_dev);
+>  	kfree(dev);
+> diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c
+> b/drivers/media/pci/cx23885/cx23885-dvb.c index 1ed92ee..44fafba 100644
+> --- a/drivers/media/pci/cx23885/cx23885-dvb.c
+> +++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+> @@ -102,6 +102,7 @@ static int queue_setup(struct vb2_queue *q, const struct
+> v4l2_format *fmt, port->ts_packet_count = 32;
+>  	*num_planes = 1;
+>  	sizes[0] = port->ts_packet_size * port->ts_packet_count;
+> +	alloc_ctxs[0] = port->dev->alloc_ctx;
+>  	*num_buffers = 32;
+>  	return 0;
+>  }
+> diff --git a/drivers/media/pci/cx23885/cx23885-vbi.c
+> b/drivers/media/pci/cx23885/cx23885-vbi.c index a7c6ef8..1d339a6 100644
+> --- a/drivers/media/pci/cx23885/cx23885-vbi.c
+> +++ b/drivers/media/pci/cx23885/cx23885-vbi.c
+> @@ -132,6 +132,7 @@ static int queue_setup(struct vb2_queue *q, const struct
+> v4l2_format *fmt, lines = VBI_NTSC_LINE_COUNT;
+>  	*num_planes = 1;
+>  	sizes[0] = lines * VBI_LINE_LENGTH * 2;
+> +	alloc_ctxs[0] = dev->alloc_ctx;
+>  	return 0;
+>  }
+> 
+> diff --git a/drivers/media/pci/cx23885/cx23885-video.c
+> b/drivers/media/pci/cx23885/cx23885-video.c index 091f5db..371eecf 100644
+> --- a/drivers/media/pci/cx23885/cx23885-video.c
+> +++ b/drivers/media/pci/cx23885/cx23885-video.c
+> @@ -323,6 +323,7 @@ static int queue_setup(struct vb2_queue *q, const struct
+> v4l2_format *fmt,
+> 
+>  	*num_planes = 1;
+>  	sizes[0] = (dev->fmt->depth * dev->width * dev->height) >> 3;
+> +	alloc_ctxs[0] = dev->alloc_ctx;
+>  	return 0;
+>  }
+> 
+> diff --git a/drivers/media/pci/cx23885/cx23885.h
+> b/drivers/media/pci/cx23885/cx23885.h index cf4efa4..f55cd12 100644
+> --- a/drivers/media/pci/cx23885/cx23885.h
+> +++ b/drivers/media/pci/cx23885/cx23885.h
+> @@ -425,6 +425,7 @@ struct cx23885_dev {
+>  	struct vb2_queue           vb2_vidq;
+>  	struct cx23885_dmaqueue    vbiq;
+>  	struct vb2_queue           vb2_vbiq;
+> +	void			   *alloc_ctx;
+> 
+>  	spinlock_t                 slock;
+> 
+> diff --git a/drivers/media/pci/saa7134/saa7134-core.c
+> b/drivers/media/pci/saa7134/saa7134-core.c index 236ed72..a349e96 100644
+> --- a/drivers/media/pci/saa7134/saa7134-core.c
+> +++ b/drivers/media/pci/saa7134/saa7134-core.c
+> @@ -1001,13 +1001,18 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
+>  	saa7134_board_init1(dev);
+>  	saa7134_hwinit1(dev);
+> 
+> +	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
+> +	if (IS_ERR(dev->alloc_ctx)) {
+> +		err = PTR_ERR(dev->alloc_ctx);
+> +		goto fail3;
+> +	}
+>  	/* get irq */
+>  	err = request_irq(pci_dev->irq, saa7134_irq,
+>  			  IRQF_SHARED, dev->name, dev);
+>  	if (err < 0) {
+>  		printk(KERN_ERR "%s: can't get IRQ %d\n",
+>  		       dev->name,pci_dev->irq);
+> -		goto fail3;
+> +		goto fail4;
+>  	}
+> 
+>  	/* wait a bit, register i2c bus */
+> @@ -1065,7 +1070,7 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
+>  	if (err < 0) {
+>  		printk(KERN_INFO "%s: can't register video device\n",
+>  		       dev->name);
+> -		goto fail4;
+> +		goto fail5;
+>  	}
+>  	printk(KERN_INFO "%s: registered device %s [v4l2]\n",
+>  	       dev->name, video_device_node_name(dev->video_dev));
+> @@ -1078,7 +1083,7 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
+>  	err = video_register_device(dev->vbi_dev,VFL_TYPE_VBI,
+>  				    vbi_nr[dev->nr]);
+>  	if (err < 0)
+> -		goto fail4;
+> +		goto fail5;
+>  	printk(KERN_INFO "%s: registered device %s\n",
+>  	       dev->name, video_device_node_name(dev->vbi_dev));
+> 
+> @@ -1089,7 +1094,7 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
+>  		err = video_register_device(dev->radio_dev,VFL_TYPE_RADIO,
+>  					    radio_nr[dev->nr]);
+>  		if (err < 0)
+> -			goto fail4;
+> +			goto fail5;
+>  		printk(KERN_INFO "%s: registered device %s\n",
+>  		       dev->name, video_device_node_name(dev->radio_dev));
+>  	}
+> @@ -1103,10 +1108,12 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
+>  	request_submodules(dev);
+>  	return 0;
+> 
+> - fail4:
+> + fail5:
+>  	saa7134_unregister_video(dev);
+>  	saa7134_i2c_unregister(dev);
+>  	free_irq(pci_dev->irq, dev);
+> + fail4:
+> +	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+>   fail3:
+>  	saa7134_hwfini(dev);
+>  	iounmap(dev->lmmio);
+> @@ -1173,6 +1180,7 @@ static void saa7134_finidev(struct pci_dev *pci_dev)
+> 
+>  	/* release resources */
+>  	free_irq(pci_dev->irq, dev);
+> +	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+>  	iounmap(dev->lmmio);
+>  	release_mem_region(pci_resource_start(pci_dev,0),
+>  			   pci_resource_len(pci_dev,0));
+> diff --git a/drivers/media/pci/saa7134/saa7134-ts.c
+> b/drivers/media/pci/saa7134/saa7134-ts.c index bd25323..8eff4a7 100644
+> --- a/drivers/media/pci/saa7134/saa7134-ts.c
+> +++ b/drivers/media/pci/saa7134/saa7134-ts.c
+> @@ -142,6 +142,7 @@ int saa7134_ts_queue_setup(struct vb2_queue *q, const
+> struct v4l2_format *fmt, *nbuffers = 3;
+>  	*nplanes = 1;
+>  	sizes[0] = size;
+> +	alloc_ctxs[0] = dev->alloc_ctx;
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(saa7134_ts_queue_setup);
+> diff --git a/drivers/media/pci/saa7134/saa7134-vbi.c
+> b/drivers/media/pci/saa7134/saa7134-vbi.c index 4f0b101..e2cc684 100644
+> --- a/drivers/media/pci/saa7134/saa7134-vbi.c
+> +++ b/drivers/media/pci/saa7134/saa7134-vbi.c
+> @@ -156,6 +156,7 @@ static int queue_setup(struct vb2_queue *q, const struct
+> v4l2_format *fmt, *nbuffers = saa7134_buffer_count(size, *nbuffers);
+>  	*nplanes = 1;
+>  	sizes[0] = size;
+> +	alloc_ctxs[0] = dev->alloc_ctx;
+>  	return 0;
+>  }
+> 
+> diff --git a/drivers/media/pci/saa7134/saa7134-video.c
+> b/drivers/media/pci/saa7134/saa7134-video.c index fc4a427..ba02995 100644
+> --- a/drivers/media/pci/saa7134/saa7134-video.c
+> +++ b/drivers/media/pci/saa7134/saa7134-video.c
+> @@ -932,6 +932,7 @@ static int queue_setup(struct vb2_queue *q, const struct
+> v4l2_format *fmt, *nbuffers = saa7134_buffer_count(size, *nbuffers);
+>  	*nplanes = 1;
+>  	sizes[0] = size;
+> +	alloc_ctxs[0] = dev->alloc_ctx;
+>  	return 0;
+>  }
+> 
+> diff --git a/drivers/media/pci/saa7134/saa7134.h
+> b/drivers/media/pci/saa7134/saa7134.h index 1a82dd0..c644c7d 100644
+> --- a/drivers/media/pci/saa7134/saa7134.h
+> +++ b/drivers/media/pci/saa7134/saa7134.h
+> @@ -588,6 +588,7 @@ struct saa7134_dev {
+> 
+> 
+>  	/* video+ts+vbi capture */
+> +	void			   *alloc_ctx;
+>  	struct saa7134_dmaqueue    video_q;
+>  	struct vb2_queue           video_vbq;
+>  	struct saa7134_dmaqueue    vbi_q;
+> diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+> b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c index 30e09d9..4f6bfba
+> 100644
+> --- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+> +++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+> @@ -718,7 +718,10 @@ static int solo_enc_queue_setup(struct vb2_queue *q,
+>  				unsigned int *num_planes, unsigned int sizes[],
+>  				void *alloc_ctxs[])
+>  {
+> +	struct solo_enc_dev *solo_enc = vb2_get_drv_priv(q);
 > +
-> +#include <linux/leds.h>
-
-If you use the V4L2 flash fault definitions, you should include
-uapi/linux/v4l2-controls.h .
-
-> +struct led_classdev_flash;
-> +struct device_node;
+>  	sizes[0] = FRAME_BUF_SIZE;
+> +	alloc_ctxs[0] = solo_enc->alloc_ctx;
+>  	*num_planes = 1;
+> 
+>  	if (*num_buffers < MIN_VID_BUFFERS)
+> @@ -1266,6 +1269,11 @@ static struct solo_enc_dev *solo_enc_alloc(struct
+> solo_dev *solo_dev, return ERR_PTR(-ENOMEM);
+> 
+>  	hdl = &solo_enc->hdl;
+> +	solo_enc->alloc_ctx = vb2_dma_sg_init_ctx(&solo_dev->pdev->dev);
+> +	if (IS_ERR(solo_enc->alloc_ctx)) {
+> +		ret = PTR_ERR(solo_enc->alloc_ctx);
+> +		goto hdl_free;
+> +	}
+>  	v4l2_ctrl_handler_init(hdl, 10);
+>  	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
+>  			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
+> @@ -1369,6 +1377,7 @@ pci_free:
+>  			solo_enc->desc_items, solo_enc->desc_dma);
+>  hdl_free:
+>  	v4l2_ctrl_handler_free(hdl);
+> +	vb2_dma_sg_cleanup_ctx(solo_enc->alloc_ctx);
+>  	kfree(solo_enc);
+>  	return ERR_PTR(ret);
+>  }
+> @@ -1383,6 +1392,7 @@ static void solo_enc_free(struct solo_enc_dev
+> *solo_enc) solo_enc->desc_items, solo_enc->desc_dma);
+>  	video_unregister_device(solo_enc->vfd);
+>  	v4l2_ctrl_handler_free(&solo_enc->hdl);
+> +	vb2_dma_sg_cleanup_ctx(solo_enc->alloc_ctx);
+>  	kfree(solo_enc);
+>  }
+> 
+> diff --git a/drivers/media/pci/solo6x10/solo6x10.h
+> b/drivers/media/pci/solo6x10/solo6x10.h index 72017b7..bd8edfa 100644
+> --- a/drivers/media/pci/solo6x10/solo6x10.h
+> +++ b/drivers/media/pci/solo6x10/solo6x10.h
+> @@ -180,6 +180,7 @@ struct solo_enc_dev {
+>  	u32			sequence;
+>  	struct vb2_queue	vidq;
+>  	struct list_head	vidq_active;
+> +	void			*alloc_ctx;
+>  	int			desc_count;
+>  	int			desc_nelts;
+>  	struct solo_p2m_desc	*desc_items;
+> diff --git a/drivers/media/pci/tw68/tw68-core.c
+> b/drivers/media/pci/tw68/tw68-core.c index 63f0b64..c135165 100644
+> --- a/drivers/media/pci/tw68/tw68-core.c
+> +++ b/drivers/media/pci/tw68/tw68-core.c
+> @@ -304,13 +304,19 @@ static int tw68_initdev(struct pci_dev *pci_dev,
+>  	/* Then do any initialisation wanted before interrupts are on */
+>  	tw68_hw_init1(dev);
+> 
+> +	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
+> +	if (IS_ERR(dev->alloc_ctx)) {
+> +		err = PTR_ERR(dev->alloc_ctx);
+> +		goto fail3;
+> +	}
 > +
-> +/*
-> + * Supported led fault bits - must be kept in synch
-> + * with V4L2_FLASH_FAULT bits.
-> + */
-> +#define LED_FAULT_OVER_VOLTAGE		 V4L2_FLASH_FAULT_OVER_VOLTAGE
-> +#define LED_FAULT_TIMEOUT		 V4L2_FLASH_FAULT_TIMEOUT
-> +#define LED_FAULT_OVER_TEMPERATURE	 V4L2_FLASH_FAULT_OVER_TEMPERATURE
-> +#define LED_FAULT_SHORT_CIRCUIT		 V4L2_FLASH_FAULT_SHORT_CIRCUIT
-> +#define LED_FAULT_OVER_CURRENT		 V4L2_FLASH_FAULT_OVER_CURRENT
-> +#define LED_FAULT_INDICATOR		 V4L2_FLASH_FAULT_INDICATOR
-> +#define LED_FAULT_UNDER_VOLTAGE		 V4L2_FLASH_FAULT_UNDER_VOLTAGE
-> +#define LED_FAULT_INPUT_VOLTAGE		 V4L2_FLASH_FAULT_INPUT_VOLTAGE
-> +#define LED_FAULT_LED_OVER_TEMPERATURE	 V4L2_FLASH_OVER_TEMPERATURE
-> +
-> +struct led_flash_ops {
-> +	/* set flash brightness */
-> +	int (*flash_brightness_set)(struct led_classdev_flash *flash,
-> +					u32 brightness);
-> +	/* get flash brightness */
-> +	int (*flash_brightness_get)(struct led_classdev_flash *flash,
-> +					u32 *brightness);
-> +	/* set flash indicator brightness */
-> +	int (*indicator_brightness_set)(struct led_classdev_flash *flash,
-> +					u32 brightness);
-> +	/* get flash indicator brightness */
-> +	int (*indicator_brightness_get)(struct led_classdev_flash *flash,
-> +					u32 *brightness);
-> +	/* set flash strobe state */
-> +	int (*strobe_set)(struct led_classdev_flash *flash, bool state);
-> +	/* get flash strobe state */
-> +	int (*strobe_get)(struct led_classdev_flash *flash, bool *state);
-> +	/* set flash timeout */
-> +	int (*timeout_set)(struct led_classdev_flash *flash, u32 timeout);
-> +	/* get the flash LED fault */
-> +	int (*fault_get)(struct led_classdev_flash *flash, u32 *fault);
+>  	/* get irq */
+>  	err = devm_request_irq(&pci_dev->dev, pci_dev->irq, tw68_irq,
+>  			  IRQF_SHARED, dev->name, dev);
+>  	if (err < 0) {
+>  		pr_err("%s: can't get IRQ %d\n",
+>  		       dev->name, pci_dev->irq);
+> -		goto fail3;
+> +		goto fail4;
+>  	}
+> 
+>  	/*
+> @@ -324,7 +330,7 @@ static int tw68_initdev(struct pci_dev *pci_dev,
+>  	if (err < 0) {
+>  		pr_err("%s: can't register video device\n",
+>  		       dev->name);
+> -		goto fail4;
+> +		goto fail5;
+>  	}
+>  	tw_setl(TW68_INTMASK, dev->pci_irqmask);
+> 
+> @@ -333,8 +339,10 @@ static int tw68_initdev(struct pci_dev *pci_dev,
+> 
+>  	return 0;
+> 
+> -fail4:
+> +fail5:
+>  	video_unregister_device(&dev->vdev);
+> +fail4:
+> +	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+>  fail3:
+>  	iounmap(dev->lmmio);
+>  fail2:
+> @@ -358,6 +366,7 @@ static void tw68_finidev(struct pci_dev *pci_dev)
+>  	/* unregister */
+>  	video_unregister_device(&dev->vdev);
+>  	v4l2_ctrl_handler_free(&dev->hdl);
+> +	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+> 
+>  	/* release resources */
+>  	iounmap(dev->lmmio);
+> diff --git a/drivers/media/pci/tw68/tw68-video.c
+> b/drivers/media/pci/tw68/tw68-video.c index 5c94ac7..50dcce6 100644
+> --- a/drivers/media/pci/tw68/tw68-video.c
+> +++ b/drivers/media/pci/tw68/tw68-video.c
+> @@ -384,6 +384,7 @@ static int tw68_queue_setup(struct vb2_queue *q, const
+> struct v4l2_format *fmt, unsigned tot_bufs = q->num_buffers + *num_buffers;
+> 
+>  	sizes[0] = (dev->fmt->depth * dev->width * dev->height) >> 3;
+> +	alloc_ctxs[0] = dev->alloc_ctx;
+>  	/*
+>  	 * We allow create_bufs, but only if the sizeimage is the same as the
+>  	 * current sizeimage. The tw68_buffer_count calculation becomes quite
+> diff --git a/drivers/media/pci/tw68/tw68.h b/drivers/media/pci/tw68/tw68.h
+> index 2c8abe2..7a7501b 100644
+> --- a/drivers/media/pci/tw68/tw68.h
+> +++ b/drivers/media/pci/tw68/tw68.h
+> @@ -181,6 +181,7 @@ struct tw68_dev {
+>  	unsigned		field;
+>  	struct vb2_queue	vidq;
+>  	struct list_head	active;
+> +	void			*alloc_ctx;
+> 
+>  	/* various v4l controls */
+>  	const struct tw68_tvnorm *tvnorm;	/* video */
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c
+> b/drivers/media/platform/marvell-ccic/mcam-core.c index f0eeb6c..c3ff538
+> 100644
+> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+> @@ -1079,6 +1079,8 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
+>  		*nbufs = minbufs;
+>  	if (cam->buffer_mode == B_DMA_contig)
+>  		alloc_ctxs[0] = cam->vb_alloc_ctx;
+> +	else if (cam->buffer_mode == B_DMA_sg)
+> +		alloc_ctxs[0] = cam->vb_alloc_ctx_sg;
+>  	return 0;
+>  }
+> 
+> @@ -1286,10 +1288,12 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
+>  		vq->ops = &mcam_vb2_ops;
+>  		vq->mem_ops = &vb2_dma_contig_memops;
+>  		vq->buf_struct_size = sizeof(struct mcam_vb_buffer);
+> -		cam->vb_alloc_ctx = vb2_dma_contig_init_ctx(cam->dev);
+>  		vq->io_modes = VB2_MMAP | VB2_USERPTR;
+>  		cam->dma_setup = mcam_ctlr_dma_contig;
+>  		cam->frame_complete = mcam_dma_contig_done;
+> +		cam->vb_alloc_ctx = vb2_dma_contig_init_ctx(cam->dev);
+> +		if (IS_ERR(cam->vb_alloc_ctx))
+> +			return PTR_ERR(cam->vb_alloc_ctx);
+>  #endif
+>  		break;
+>  	case B_DMA_sg:
+> @@ -1300,6 +1304,9 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
+>  		vq->io_modes = VB2_MMAP | VB2_USERPTR;
+>  		cam->dma_setup = mcam_ctlr_dma_sg;
+>  		cam->frame_complete = mcam_dma_sg_done;
+> +		cam->vb_alloc_ctx_sg = vb2_dma_sg_init_ctx(cam->dev);
+> +		if (IS_ERR(cam->vb_alloc_ctx_sg))
+> +			return PTR_ERR(cam->vb_alloc_ctx_sg);
+>  #endif
+>  		break;
+>  	case B_vmalloc:
+> @@ -1325,6 +1332,10 @@ static void mcam_cleanup_vb2(struct mcam_camera *cam)
+> if (cam->buffer_mode == B_DMA_contig)
+>  		vb2_dma_contig_cleanup_ctx(cam->vb_alloc_ctx);
+>  #endif
+> +#ifdef MCAM_MODE_DMA_SG
+> +	if (cam->buffer_mode == B_DMA_sg)
+> +		vb2_dma_sg_cleanup_ctx(cam->vb_alloc_ctx_sg);
+> +#endif
+>  }
+> 
+> 
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h
+> b/drivers/media/platform/marvell-ccic/mcam-core.h index 60a8e1c..aa0c6ea
+> 100644
+> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+> @@ -176,6 +176,7 @@ struct mcam_camera {
+>  	/* DMA buffers - DMA modes */
+>  	struct mcam_vb_buffer *vb_bufs[MAX_DMA_BUFS];
+>  	struct vb2_alloc_ctx *vb_alloc_ctx;
+> +	struct vb2_alloc_ctx *vb_alloc_ctx_sg;
+> 
+>  	/* Mode-specific ops, set at open time */
+>  	void (*dma_setup)(struct mcam_camera *cam);
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> b/drivers/media/v4l2-core/videobuf2-dma-sg.c index 2529b83..2bf13dc 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -30,7 +30,12 @@ module_param(debug, int, 0644);
+>  			printk(KERN_DEBUG "vb2-dma-sg: " fmt, ## arg);	\
+>  	} while (0)
+> 
+> +struct vb2_dma_sg_conf {
+> +	struct device		*dev;
 > +};
 > +
-> +/*
-> + * Current value of a flash setting along
-> + * with its constraints.
-> + */
-> +struct led_flash_setting {
-> +	/* maximum allowed value */
-> +	u32 min;
-> +	/* maximum allowed value */
-> +	u32 max;
-> +	/* step value */
-> +	u32 step;
-> +	/* current value */
-> +	u32 val;
-> +};
-> +
-> +/*
-> + * Aggregated flash settings - designed for ease
-> + * of passing initialization data to the clients
-> + * wrapping a LED Flash class device.
-> + */
-> +struct led_flash_config {
-> +	struct led_flash_setting torch_brightness;
-> +	struct led_flash_setting flash_brightness;
-> +	struct led_flash_setting indicator_brightness;
-> +	struct led_flash_setting flash_timeout;
-> +	u32 flash_faults;
-> +};
-> +
-> +struct led_classdev_flash {
-> +	/* led class device */
-> +	struct led_classdev led_cdev;
-> +
-> +	/* flash led specific ops */
-> +	const struct led_flash_ops *ops;
-> +
-> +	/* flash brightness value in microamperes along with its constraints */
-> +	struct led_flash_setting brightness;
-> +
-> +	/* timeout value in microseconds along with its constraints */
-> +	struct led_flash_setting timeout;
-> +
-> +	/*
-> +	 * Indicator brightness value in microamperes along with
-> +	 * its constraints - this is an optional setting and must
-> +	 * be allocated by the driver if the device supports privacy
-> +	 * indicator led.
-> +	 */
-> +	struct led_flash_setting *indicator_brightness;
-> +};
-> +
-> +static inline struct led_classdev_flash *lcdev_to_flash(
-> +						struct led_classdev *lcdev)
+>  struct vb2_dma_sg_buf {
+> +	struct device			*dev;
+>  	void				*vaddr;
+>  	struct page			**pages;
+>  	int				offset;
+> @@ -89,10 +94,13 @@ static int vb2_dma_sg_alloc_compacted(struct
+> vb2_dma_sg_buf *buf, static void *vb2_dma_sg_alloc(void *alloc_ctx,
+> unsigned long size, enum dma_data_direction dma_dir, gfp_t gfp_flags)
+>  {
+> +	struct vb2_dma_sg_conf *conf = alloc_ctx;
+>  	struct vb2_dma_sg_buf *buf;
+>  	int ret;
+>  	int num_pages;
+> 
+> +	if (WARN_ON(alloc_ctx == NULL))
+> +		return NULL;
+>  	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+>  	if (!buf)
+>  		return NULL;
+> @@ -118,6 +126,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
+> long size, if (ret)
+>  		goto fail_table_alloc;
+> 
+> +	/* Prevent the device from being released while the buffer is used */
+> +	buf->dev = get_device(conf->dev);
+>  	buf->handler.refcount = &buf->refcount;
+>  	buf->handler.put = vb2_dma_sg_put;
+>  	buf->handler.arg = buf;
+> @@ -153,6 +163,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+>  		while (--i >= 0)
+>  			__free_page(buf->pages[i]);
+>  		kfree(buf->pages);
+> +		put_device(buf->dev);
+>  		kfree(buf);
+>  	}
+>  }
+> @@ -356,6 +367,27 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+>  };
+>  EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
+> 
+> +void *vb2_dma_sg_init_ctx(struct device *dev)
 > +{
-> +	return container_of(lcdev, struct led_classdev_flash, led_cdev);
+> +	struct vb2_dma_sg_conf *conf;
+> +
+> +	conf = kzalloc(sizeof(*conf), GFP_KERNEL);
+> +	if (!conf)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	conf->dev = dev;
+> +
+> +	return conf;
 > +}
+> +EXPORT_SYMBOL_GPL(vb2_dma_sg_init_ctx);
 > +
-> +/**
-> + * led_classdev_flash_register - register a new object of led_classdev class
-> +				 with support for flash LEDs
-
-" *" ...
-
-> + * @parent: the flash LED to register
-> + * @flash: the led_classdev_flash structure for this device
-> + *
-> + * Returns: 0 on success or negative error value on failure
-> + */
-> +int led_classdev_flash_register(struct device *parent,
-> +				struct led_classdev_flash *flash);
+> +void vb2_dma_sg_cleanup_ctx(void *alloc_ctx)
+> +{
+> +	if (!IS_ERR_OR_NULL(alloc_ctx))
+> +		kfree(alloc_ctx);
+> +}
+> +EXPORT_SYMBOL_GPL(vb2_dma_sg_cleanup_ctx);
 > +
-> +/**
-> + * led_classdev_flash_unregister - unregisters an object of led_classdev class
-> +				   with support for flash LEDs
-> + * @flash: the flash LED to unregister
-> + *
-> + * Unregister a previously registered via led_classdev_flash_register object
-> + */
-> +void led_classdev_flash_unregister(struct led_classdev_flash *flash);
+>  MODULE_DESCRIPTION("dma scatter/gather memory handling routines for
+> videobuf2"); MODULE_AUTHOR("Andrzej Pietrasiewicz");
+>  MODULE_LICENSE("GPL");
+> diff --git a/include/media/videobuf2-dma-sg.h
+> b/include/media/videobuf2-dma-sg.h index 7b89852..14ce306 100644
+> --- a/include/media/videobuf2-dma-sg.h
+> +++ b/include/media/videobuf2-dma-sg.h
+> @@ -21,6 +21,9 @@ static inline struct sg_table *vb2_dma_sg_plane_desc(
+>  	return (struct sg_table *)vb2_plane_cookie(vb, plane_no);
+>  }
+> 
+> +void *vb2_dma_sg_init_ctx(struct device *dev);
+> +void vb2_dma_sg_cleanup_ctx(void *alloc_ctx);
 > +
-> +/**
-> + * led_set_flash_strobe - setup flash strobe
-> + * @flash: the flash LED to set strobe on
-> + * @state: 1 - strobe flash, 0 - stop flash strobe
-> + *
-> + * Strobe the flash LED.
-> + *
-> + * Returns: 0 on success or negative error value on failure
-> + */
-> +extern int led_set_flash_strobe(struct led_classdev_flash *flash,
-> +				bool state);
-> +
-> +/**
-> + * led_get_flash_strobe - get flash strobe status
-> + * @flash: the flash LED to query
-> + * @state: 1 - flash is strobing, 0 - flash is off
-> + *
-> + * Check whether the flash is strobing at the moment.
-> + *
-> +u* Returns: 0 on success or negative error value on failure
-> + */
-> +extern int led_get_flash_strobe(struct led_classdev_flash *flash,
-> +				bool *state);
-
-I'd put a newline here.
-
-> +/**
-> + * led_set_flash_brightness - set flash LED brightness
-> + * @flash: the flash LED to set
-> + * @brightness: the brightness to set it to
-> + *
-> + * Set a flash LED's brightness.
-> + *
-> + * Returns: 0 on success or negative error value on failure
-> + */
-> +extern int led_set_flash_brightness(struct led_classdev_flash *flash,
-> +					u32 brightness);
-> +
-> +/**
-> + * led_update_flash_brightness - update flash LED brightness
-> + * @flash: the flash LED to query
-> + *
-> + * Get a flash LED's current brightness and update led_flash->brightness
-> + * member with the obtained value.
-> + *
-> + * Returns: 0 on success or negative error value on failure
-> + */
-> +extern int led_update_flash_brightness(struct led_classdev_flash *flash);
-> +
-> +/**
-> + * led_set_flash_timeout - set flash LED timeout
-> + * @flash: the flash LED to set
-> + * @timeout: the flash timeout to set it to
-> + *
-> + * Set the flash strobe duration. The duration set by the driver
-> + * is returned in the timeout argument and may differ from the
-> + * one that was originally passed.
-> + *
-> + * Returns: 0 on success or negative error value on failure
-> + */
-> +extern int led_set_flash_timeout(struct led_classdev_flash *flash,
-> +					u32 timeout);
-> +
-> +/**
-> + * led_get_flash_fault - get the flash LED fault
-> + * @flash: the flash LED to query
-> + * @fault: bitmask containing flash faults
-> + *
-> + * Get the flash LED fault.
-> + *
-> + * Returns: 0 on success or negative error value on failure
-> + */
-> +extern int led_get_flash_fault(struct led_classdev_flash *flash,
-> +					u32 *fault);
-> +
-> +/**
-> + * led_set_indicator_brightness - set indicator LED brightness
-> + * @flash: the flash LED to set
-> + * @brightness: the brightness to set it to
-> + *
-> + * Set an indicator LED's brightness.
-> + *
-> + * Returns: 0 on success or negative error value on failure
-> + */
-> +extern int led_set_indicator_brightness(struct led_classdev_flash *flash,
-> +					u32 led_brightness);
-> +
-> +/**
-> + * led_update_indicator_brightness - update flash indicator LED brightness
-> + * @flash: the flash LED to query
-> + *
-> + * Get a flash indicator LED's current brightness and update
-> + * led_flash->indicator_brightness member with the obtained value.
-> + *
-> + * Returns: 0 on success or negative error value on failure
-> + */
-> +extern int led_update_indicator_brightness(struct led_classdev_flash *flash);
-> +
-> +
-> +#endif	/* __LINUX_FLASH_LEDS_H_INCLUDED */
-> diff --git a/include/linux/leds.h b/include/linux/leds.h
-> index cfceef3..b9a2797 100644
-> --- a/include/linux/leds.h
-> +++ b/include/linux/leds.h
-> @@ -46,6 +46,8 @@ struct led_classdev {
->  #define LED_SYSFS_DISABLE	(1 << 20)
->  #define SET_BRIGHTNESS_ASYNC	(1 << 21)
->  #define SET_BRIGHTNESS_SYNC	(1 << 22)
-> +#define LED_DEV_CAP_FLASH	(1 << 23)
-> +#define LED_DEV_CAP_INDICATOR	(1 << 24)
->  
->  	/* Set LED brightness level */
->  	/* Must not sleep, use a workqueue if needed */
-> @@ -81,6 +83,7 @@ struct led_classdev {
->  	unsigned long		 blink_delay_on, blink_delay_off;
->  	struct timer_list	 blink_timer;
->  	int			 blink_brightness;
-> +	void			(*flash_resume)(struct led_classdev *led_cdev);
->  
->  	struct work_struct	set_brightness_work;
->  	int			delayed_set_value;
+>  extern const struct vb2_mem_ops vb2_dma_sg_memops;
+> 
+>  #endif
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
