@@ -1,101 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:45322 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753934AbaKJR2s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 12:28:48 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v6 RESEND 10/10] [media] v4l: Forbid usage of V4L2_MBUS_FMT definitions inside the kernel
-Date: Mon, 10 Nov 2014 18:28:35 +0100
-Message-Id: <1415640515-15069-11-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415640515-15069-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415640515-15069-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from mx1.redhat.com ([209.132.183.28]:50264 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752055AbaKZIFc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Nov 2014 03:05:32 -0500
+Message-ID: <547589A9.5060802@redhat.com>
+Date: Wed, 26 Nov 2014 09:04:57 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Lee Jones <lee.jones@linaro.org>
+CC: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 3/9] clk: sunxi: Add prcm mod0 clock driver
+References: <1416749895-25013-1-git-send-email-hdegoede@redhat.com> <1416749895-25013-4-git-send-email-hdegoede@redhat.com> <20141125165744.GA17789@x1>
+In-Reply-To: <20141125165744.GA17789@x1>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Place v4l2_mbus_pixelcode in a #ifndef __KERNEL__ section so that kernel
-users don't have access to these definitions.
+Hi,
 
-We have to keep this definition for user-space users even though they're
-encouraged to move to the new media_bus_format enum.
+On 11/25/2014 05:57 PM, Lee Jones wrote:
+> On Sun, 23 Nov 2014, Hans de Goede wrote:
+>
+>> Add a driver for mod0 clocks found in the prcm. Currently there is only
+>> one mod0 clocks in the prcm, the ir clock.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>   Documentation/devicetree/bindings/clock/sunxi.txt |  1 +
+>>   drivers/clk/sunxi/Makefile                        |  2 +-
+>>   drivers/clk/sunxi/clk-sun6i-prcm-mod0.c           | 63 +++++++++++++++++++++++
+>>   drivers/mfd/sun6i-prcm.c                          | 14 +++++
+>>   4 files changed, 79 insertions(+), 1 deletion(-)
+>>   create mode 100644 drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
+>
+> [...]
+>
+>> diff --git a/drivers/mfd/sun6i-prcm.c b/drivers/mfd/sun6i-prcm.c
+>> index 283ab8d..ff1254f 100644
+>> --- a/drivers/mfd/sun6i-prcm.c
+>> +++ b/drivers/mfd/sun6i-prcm.c
+>> @@ -41,6 +41,14 @@ static const struct resource sun6i_a31_apb0_gates_clk_res[] = {
+>>   	},
+>>   };
+>>
+>> +static const struct resource sun6i_a31_ir_clk_res[] = {
+>> +	{
+>> +		.start = 0x54,
+>> +		.end = 0x57,
+>> +		.flags = IORESOURCE_MEM,
+>> +	},
+>> +};
+>
+> I'm not overly keen on these magic numbers (and yes, I'm well aware
+> that I SoB'ed the patch which started them off).
+>
+> It's not a show stopper, although I'd prefer if they were fixed with a
+> subsequent patch.
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/uapi/linux/v4l2-mediabus.h | 45 ++++++++++++++++++++++++--------------
- 1 file changed, 28 insertions(+), 17 deletions(-)
+These are offsets of the relevant registers inside the prcm register block,
+if not done this way, then how should they be done ?
 
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index 2618084..b1934a3 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -15,6 +15,33 @@
- #include <linux/types.h>
- #include <linux/videodev2.h>
- 
-+/**
-+ * struct v4l2_mbus_framefmt - frame format on the media bus
-+ * @width:	frame width
-+ * @height:	frame height
-+ * @code:	data format code (from enum v4l2_mbus_pixelcode)
-+ * @field:	used interlacing type (from enum v4l2_field)
-+ * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-+ */
-+struct v4l2_mbus_framefmt {
-+	__u32			width;
-+	__u32			height;
-+	__u32			code;
-+	__u32			field;
-+	__u32			colorspace;
-+	__u32			reserved[7];
-+};
-+
-+#ifndef __KERNEL__
-+/*
-+ * enum v4l2_mbus_pixelcode and its definitions are now deprecated, and
-+ * MEDIA_BUS_FMT_ definitions (defined in media-bus-format.h) should be
-+ * used instead.
-+ *
-+ * New defines should only be added to media-bus-format.h. The
-+ * v4l2_mbus_pixelcode enum is frozen.
-+ */
-+
- #define V4L2_MBUS_FROM_MEDIA_BUS_FMT(name)	\
- 	V4L2_MBUS_FMT_ ## name = MEDIA_BUS_FMT_ ## name
- 
-@@ -102,22 +129,6 @@ enum v4l2_mbus_pixelcode {
- 
- 	V4L2_MBUS_FROM_MEDIA_BUS_FMT(AHSV8888_1X32),
- };
--
--/**
-- * struct v4l2_mbus_framefmt - frame format on the media bus
-- * @width:	frame width
-- * @height:	frame height
-- * @code:	data format code (from enum v4l2_mbus_pixelcode)
-- * @field:	used interlacing type (from enum v4l2_field)
-- * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-- */
--struct v4l2_mbus_framefmt {
--	__u32			width;
--	__u32			height;
--	__u32			code;
--	__u32			field;
--	__u32			colorspace;
--	__u32			reserved[7];
--};
-+#endif /* __KERNEL__ */
- 
- #endif
--- 
-1.9.1
+Regards,
 
+Hans
