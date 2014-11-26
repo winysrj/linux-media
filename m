@@ -1,42 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43073 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751094AbaKBJmA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Nov 2014 04:42:00 -0500
-Date: Sun, 2 Nov 2014 07:41:53 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Akihiro TSUKADA <tskd08@gmail.com>
-Cc: Gregor Jasny <gjasny@googlemail.com>, linux-media@vger.kernel.org
-Subject: Re: [git:v4l-utils/master] libdvbv5, dvbv5-scan: generalize channel
- duplication check
-Message-ID: <20141102074153.7cbad706@recife.lan>
-In-Reply-To: <5455F9C6.4070002@gmail.com>
-References: <E1XkI3i-00082l-Jd@www.linuxtv.org>
-	<54556AC9.40309@googlemail.com>
-	<5455F9C6.4070002@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:33099 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753653AbaKZWn0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Nov 2014 17:43:26 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 10/11] media: davinci: vpif_capture: use vb2_ops_wait_prepare/finish helper
+Date: Wed, 26 Nov 2014 22:42:33 +0000
+Message-Id: <1417041754-8714-11-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 02 Nov 2014 18:30:46 +0900
-Akihiro TSUKADA <tskd08@gmail.com> escreveu:
+This patch adds support in the capture driver for using
+vb2_ops_wait_prepare/finish()  helpers provided by the
+vb2 core.
 
-> Hi,
-> 
-> After I re-checked the source,
-> I noticed that dvb_scan_add_entry() also breaks API/ABI compatibility
-> as well as dvb_new_freq_is_needed(), and those functions are
-> marked as "ancillary functions used internally inside the library"
-> in dvb-scan.h.
-> So I think it would rather be better to move those funcs to a private
-> header (dvb-scan-priv.h?).
-> Which way should we go? ver bump/compat-soname.c/dvb-scan-priv.h ?
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-I would keep them exported. It shouldn't be hard to provide a backward
-compatible function with the same name where the extra parameter would
-be filled internally, and passed to a new function with one extra argument.
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 3ccb26f..d8e1b98 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -311,6 +311,8 @@ static struct vb2_ops video_qops = {
+ 	.start_streaming	= vpif_start_streaming,
+ 	.stop_streaming		= vpif_stop_streaming,
+ 	.buf_queue		= vpif_buffer_queue,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+ /**
+-- 
+1.9.1
 
-Regards,
-Mauro
