@@ -1,44 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:50285 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752342AbaKDK0q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 05:26:46 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] MAINTAINERS: add maintainer for CODA video4linux mem2mem driver
-Date: Tue,  4 Nov 2014 11:26:35 +0100
-Message-Id: <1415096795-15440-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:35541 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753573AbaKZWnV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Nov 2014 17:43:21 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v2 06/11] media: marvell-ccic: use vb2_ops_wait_prepare/finish helper
+Date: Wed, 26 Nov 2014 22:42:29 +0000
+Message-Id: <1417041754-8714-7-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add myself as maintainer for the CODA V4L2 mem2mem driver.
+This patch drops driver specific wait_prepare() and
+wait_finish() callbacks from vb2_ops and instead uses
+the the helpers vb2_ops_wait_prepare/finish() provided
+by the vb2 core, the lock member of the queue needs
+to be initalized to a mutex so that vb2 helpers
+vb2_ops_wait_prepare/finish() can make use of it.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 ---
- MAINTAINERS | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/media/platform/marvell-ccic/mcam-core.c | 29 +++++--------------------
+ 1 file changed, 5 insertions(+), 24 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 3c64271..34d3671 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2487,6 +2487,13 @@ F:	fs/coda/
- F:	include/linux/coda*.h
- F:	include/uapi/linux/coda*.h
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index ce00cba..4ec29c0 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1102,26 +1102,6 @@ static void mcam_vb_buf_queue(struct vb2_buffer *vb)
+ 		mcam_read_setup(cam);
+ }
  
-+CODA V4L2 MEM2MEM DRIVER
-+M:	Philipp Zabel <p.zabel@pengutronix.de>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	Documentation/devicetree/bindings/media/coda.txt
-+F:	drivers/media/platform/coda/
-+
- COMMON CLK FRAMEWORK
- M:	Mike Turquette <mturquette@linaro.org>
- L:	linux-kernel@vger.kernel.org
+-
+-/*
+- * vb2 uses these to release the mutex when waiting in dqbuf.  I'm
+- * not actually sure we need to do this (I'm not sure that vb2_dqbuf() needs
+- * to be called with the mutex held), but better safe than sorry.
+- */
+-static void mcam_vb_wait_prepare(struct vb2_queue *vq)
+-{
+-	struct mcam_camera *cam = vb2_get_drv_priv(vq);
+-
+-	mutex_unlock(&cam->s_mutex);
+-}
+-
+-static void mcam_vb_wait_finish(struct vb2_queue *vq)
+-{
+-	struct mcam_camera *cam = vb2_get_drv_priv(vq);
+-
+-	mutex_lock(&cam->s_mutex);
+-}
+-
+ /*
+  * These need to be called with the mutex held from vb2
+  */
+@@ -1191,8 +1171,8 @@ static const struct vb2_ops mcam_vb2_ops = {
+ 	.buf_queue		= mcam_vb_buf_queue,
+ 	.start_streaming	= mcam_vb_start_streaming,
+ 	.stop_streaming		= mcam_vb_stop_streaming,
+-	.wait_prepare		= mcam_vb_wait_prepare,
+-	.wait_finish		= mcam_vb_wait_finish,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+ 
+@@ -1252,8 +1232,8 @@ static const struct vb2_ops mcam_vb2_sg_ops = {
+ 	.buf_cleanup		= mcam_vb_sg_buf_cleanup,
+ 	.start_streaming	= mcam_vb_start_streaming,
+ 	.stop_streaming		= mcam_vb_stop_streaming,
+-	.wait_prepare		= mcam_vb_wait_prepare,
+-	.wait_finish		= mcam_vb_wait_finish,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+ #endif /* MCAM_MODE_DMA_SG */
+@@ -1265,6 +1245,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
+ 	memset(vq, 0, sizeof(*vq));
+ 	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	vq->drv_priv = cam;
++	vq->lock = &cam->s_mutex;
+ 	INIT_LIST_HEAD(&cam->buffers);
+ 	switch (cam->buffer_mode) {
+ 	case B_DMA_contig:
 -- 
-2.1.1
+1.9.1
 
