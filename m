@@ -1,40 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:50883 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754249AbaKOTrg (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53843 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750811AbaKZUp5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 14:47:36 -0500
-Date: Sat, 15 Nov 2014 20:43:37 +0100
-From: Christian Resell <christian.resell@gmail.com>
-To: m.chehab@samsung.com
-Cc: gregkh@linuxfoundation.org, hans.verkuil@cisco.com,
-	pali.rohar@gmail.com, pavel@ucw.cz, fengguang.wu@intel.com,
-	yongjun_wei@trendmicro.com.cn, askb23@gmail.com,
-	luke.hart@birchleys.eu, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: media: bcm2048: fix coding style error
-Message-ID: <20141115194337.GF15904@Kosekroken.jensen.com>
+	Wed, 26 Nov 2014 15:45:57 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv7 PATCH 11/12] vim2m: support expbuf
+Date: Wed, 26 Nov 2014 22:46:22 +0200
+Message-ID: <3137751.VuWyuCONSS@avalon>
+In-Reply-To: <1416315068-22936-12-git-send-email-hverkuil@xs4all.nl>
+References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl> <1416315068-22936-12-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simple style fix (checkpatch.pl: "space prohibited before that ','").
-For the eudyptula challenge (http://eudyptula-challenge.org/).
+Hi Hans,
 
-Signed-off-by: Christian F. Resell <christian.resell@gmail.com>
----
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 2bba370..bdc6854 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -2707,7 +2707,7 @@ static int __exit bcm2048_i2c_driver_remove(struct i2c_client *client)
-  *	bcm2048_i2c_driver - i2c driver interface
-  */
- static const struct i2c_device_id bcm2048_id[] = {
--	{ "bcm2048" , 0 },
-+	{ "bcm2048", 0 },
- 	{ },
- };
- MODULE_DEVICE_TABLE(i2c, bcm2048_id);
+Thank you for the patch.
+
+On Tuesday 18 November 2014 13:51:07 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reviewed-by: Pawel Osciak <pawel@osciak.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/vim2m.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+> index 87af47a..1105c11 100644
+> --- a/drivers/media/platform/vim2m.c
+> +++ b/drivers/media/platform/vim2m.c
+> @@ -697,6 +697,7 @@ static const struct v4l2_ioctl_ops vim2m_ioctl_ops = {
+>  	.vidioc_querybuf	= v4l2_m2m_ioctl_querybuf,
+>  	.vidioc_qbuf		= v4l2_m2m_ioctl_qbuf,
+>  	.vidioc_dqbuf		= v4l2_m2m_ioctl_dqbuf,
+> +	.vidioc_expbuf		= v4l2_m2m_ioctl_expbuf,
+> 
+>  	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
+>  	.vidioc_streamoff	= v4l2_m2m_ioctl_streamoff,
+
+-- 
+Regards,
+
+Laurent Pinchart
+
