@@ -1,106 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44133 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933977AbaKNBwP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Nov 2014 20:52:15 -0500
-Received: from dyn3-82-128-184-234.psoas.suomi.net ([82.128.184.234] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1Xp63Z-0006f0-Mv
-	for linux-media@vger.kernel.org; Fri, 14 Nov 2014 03:52:13 +0200
-Message-ID: <5465604D.4090003@iki.fi>
-Date: Fri, 14 Nov 2014 03:52:13 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] Panasonic MN8847 and MN88473
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-qa0-f48.google.com ([209.85.216.48]:39143 "EHLO
+	mail-qa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751354AbaKZUc2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Nov 2014 15:32:28 -0500
+Received: by mail-qa0-f48.google.com with SMTP id v10so2432584qac.7
+        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 12:32:28 -0800 (PST)
+From: Fabio Estevam <festevam@gmail.com>
+To: p.zabel@pengutronix.de
+Cc: linux-media@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH 2/2] of: Add named interrupts to CODA bindings
+Date: Wed, 26 Nov 2014 18:32:04 -0200
+Message-Id: <1417033924-27513-2-git-send-email-festevam@gmail.com>
+In-Reply-To: <1417033924-27513-1-git-send-email-festevam@gmail.com>
+References: <1417033924-27513-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit dd0a6fe2bc3055cd61e369f97982c88183b1f0a0:
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-   [media] dvb-usb-dvbsky: fix i2c adapter for sp2 device (2014-11-11 
-12:55:32 -0200)
+This patch documents named interrupt bindings for the CODA
+video processing units.
 
-are available in the git repository at:
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+---
+ Documentation/devicetree/bindings/media/coda.txt | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-   git://linuxtv.org/anttip/media_tree.git astrometa
-
-for you to fetch changes up to 9e0d9707648a6ef3def5a468ac57047bf8632d29:
-
-   rtl28xxu: add SDR module for devices having R828D tuner (2014-11-12 
-05:58:07 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (28):
-       mn88472: Panasonic MN88472 demod driver (DVB-C only)
-       mn88472: correct attach symbol name
-       mn88472: add small delay to wait DVB-C lock
-       mn88472: rename mn88472_c.c => mn88472.c
-       mn88472: rename state to dev
-       mn88472: convert driver to I2C client
-       mn88472: Convert driver to I2C RegMap API
-       mn88472: implement DVB-T and DVB-T2
-       mn88472: move to staging
-       mn88472: add staging TODO
-       MAINTAINERS: add mn88472 (Panasonic MN88472)
-       mn88473: Panasonic MN88473 DVB-T/T2/C demod driver
-       mn88473: add support for DVB-T2
-       mn88473: implement DVB-T mode
-       mn88473: improve IF frequency and BW handling
-       mn88473: convert driver to I2C binding
-       mn88473: convert to RegMap API
-       mn88473: move to staging
-       mn88473: add staging TODO
-       MAINTAINERS: add mn88473 (Panasonic MN88473)
-       r820t: add DVB-C config
-       rtl2832: implement PIP mode
-       rtl28xxu: enable demod ADC only when needed
-       rtl28xxu: add support for Panasonic MN88472 slave demod
-       rtl28xxu: add support for Panasonic MN88473 slave demod
-       rtl28xxu: rename tuner I2C client pointer
-       rtl28xxu: remove unused SDR attach logic
-       rtl28xxu: add SDR module for devices having R828D tuner
-
-  MAINTAINERS                                  |  22 +++++++
-  drivers/media/dvb-frontends/mn88472.h        |  38 ++++++++++++
-  drivers/media/dvb-frontends/mn88473.h        |  38 ++++++++++++
-  drivers/media/dvb-frontends/rtl2832.c        |  42 ++++++++++++-
-  drivers/media/tuners/r820t.c                 |  12 ++++
-  drivers/media/usb/dvb-usb-v2/Kconfig         |   2 +
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c      | 239 
-++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.h      |   8 ++-
-  drivers/staging/media/Kconfig                |   4 ++
-  drivers/staging/media/Makefile               |   2 +
-  drivers/staging/media/mn88472/Kconfig        |   7 +++
-  drivers/staging/media/mn88472/Makefile       |   5 ++
-  drivers/staging/media/mn88472/TODO           |  21 +++++++
-  drivers/staging/media/mn88472/mn88472.c      | 523 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/staging/media/mn88472/mn88472_priv.h |  36 +++++++++++
-  drivers/staging/media/mn88473/Kconfig        |   7 +++
-  drivers/staging/media/mn88473/Makefile       |   5 ++
-  drivers/staging/media/mn88473/TODO           |  21 +++++++
-  drivers/staging/media/mn88473/mn88473.c      | 464 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/staging/media/mn88473/mn88473_priv.h |  36 +++++++++++
-  20 files changed, 1464 insertions(+), 68 deletions(-)
-  create mode 100644 drivers/media/dvb-frontends/mn88472.h
-  create mode 100644 drivers/media/dvb-frontends/mn88473.h
-  create mode 100644 drivers/staging/media/mn88472/Kconfig
-  create mode 100644 drivers/staging/media/mn88472/Makefile
-  create mode 100644 drivers/staging/media/mn88472/TODO
-  create mode 100644 drivers/staging/media/mn88472/mn88472.c
-  create mode 100644 drivers/staging/media/mn88472/mn88472_priv.h
-  create mode 100644 drivers/staging/media/mn88473/Kconfig
-  create mode 100644 drivers/staging/media/mn88473/Makefile
-  create mode 100644 drivers/staging/media/mn88473/TODO
-  create mode 100644 drivers/staging/media/mn88473/mn88473.c
-  create mode 100644 drivers/staging/media/mn88473/mn88473_priv.h
-
+diff --git a/Documentation/devicetree/bindings/media/coda.txt b/Documentation/devicetree/bindings/media/coda.txt
+index f5e4d4b..a44c4aa 100644
+--- a/Documentation/devicetree/bindings/media/coda.txt
++++ b/Documentation/devicetree/bindings/media/coda.txt
+@@ -12,19 +12,24 @@ Required properties:
+   (d) "fsl,imx6dl-vpu", "cnm,coda960" for CODA960 present in i.MX6DL/S
+ - reg: should be register base and length as documented in the
+   SoC reference manual
+-- interrupts : Should contain the VPU interrupt. For CODA960,
+-  a second interrupt is needed for the MJPEG unit.
++- interrupts : Should contain the VPU (BIT processor) interrupt.
++  For CODA960, a second interrupt is needed for the JPEG unit.
+ - clocks : Should contain the ahb and per clocks, in the order
+   determined by the clock-names property.
+ - clock-names : Should be "ahb", "per"
+ - iram : phandle pointing to the SRAM device node
+ 
++Optional properties:
++- interrupt-names: Should be "bit" for the BIT processor interrupt
++  and "jpeg" for the JPEG unit interrupt on CODA960.
++
+ Example:
+ 
+ vpu: vpu@63ff4000 {
+ 	compatible = "fsl,imx53-vpu", "cnm,coda7541";
+ 	reg = <0x63ff4000 0x1000>;
+ 	interrupts = <9>;
++	interrupt-names = "bit";
+ 	clocks = <&clks 63>, <&clks 63>;
+ 	clock-names = "ahb", "per";
+ 	iram = <&ocram>;
 -- 
-http://palosaari.fi/
+1.9.1
+
