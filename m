@@ -1,165 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:52816 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757320AbaKUIkO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36060 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751088AbaKZK2X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 03:40:14 -0500
-Date: Fri, 21 Nov 2014 09:35:55 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Emilio Lopez <emilio@elopez.com.ar>,
-	Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com
-Subject: Re: [PATCH 1/9] clk: sunxi: Give sunxi_factors_register a registers
- parameter
-Message-ID: <20141121083555.GK24143@lukather>
-References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
- <1416498928-1300-2-git-send-email-hdegoede@redhat.com>
+	Wed, 26 Nov 2014 05:28:23 -0500
+Date: Wed, 26 Nov 2014 12:20:39 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hans.verkuil@cisco.com,
+	b.zolnierkie@samsung.com, kyungmin.park@samsung.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH/RFC v4 01/11] mediactl: Introduce v4l2_subdev structure
+Message-ID: <20141126102039.GL8907@valkosipuli.retiisi.org.uk>
+References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
+ <1416586480-19982-2-git-send-email-j.anaszewski@samsung.com>
+ <20141125113655.GK8907@valkosipuli.retiisi.org.uk>
+ <5474749A.7090804@samsung.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KjSGHOmKKB2VUiQn"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1416498928-1300-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <5474749A.7090804@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Jacek,
 
---KjSGHOmKKB2VUiQn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Nov 25, 2014 at 01:22:50PM +0100, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> On 11/25/2014 12:36 PM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >Thank you for the updated patchset.
+> >
+> >On Fri, Nov 21, 2014 at 05:14:30PM +0100, Jacek Anaszewski wrote:
+> >>Add struct v4l2_subdev as a representation of the v4l2 sub-device
+> >>related to a media entity. Add sd property, the pointer to
+> >>the newly introduced structure, to the struct media_entity
+> >>and move fd property to it.
+> >>
+> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>---
+> >>  utils/media-ctl/libmediactl.c   |   30 +++++++++++++++++++++++++-----
+> >>  utils/media-ctl/libv4l2subdev.c |   34 +++++++++++++++++-----------------
+> >>  utils/media-ctl/mediactl-priv.h |    5 +++++
+> >>  utils/media-ctl/mediactl.h      |   22 ++++++++++++++++++++++
+> >>  4 files changed, 69 insertions(+), 22 deletions(-)
+> >>
+> >>diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+> >>index ec360bd..53921f5 100644
+> >>--- a/utils/media-ctl/libmediactl.c
+> >>+++ b/utils/media-ctl/libmediactl.c
+> >>@@ -511,7 +511,6 @@ static int media_enum_entities(struct media_device *media)
+> >>
+> >>  		entity = &media->entities[media->entities_count];
+> >>  		memset(entity, 0, sizeof(*entity));
+> >>-		entity->fd = -1;
+> >
+> >I think I'd definitely leave the fd to the media_entity itself. Not all the
+> >entities are sub-devices, even right now.
+> 
+> I am aware of it, I even came across this issue while implementing the
+> function v4l2_subdev_apply_pipeline_fmt. I added suitable comment
+> explaining why the entity not being a sub-device has its representation.
+> 
+> I moved the fd out of media_entity by following Laurent's message [1],
+> where he mentioned this, however I think that it would be indeed
+> best if it remained intact.
 
-Hi Hans,
+I read Laurent's reply again, and I can see why he suggested that. I
+wouldn't mind, but then we should avoid touching it from libmediactl, and
+only access it from libv4l2subdev.
 
-On Thu, Nov 20, 2014 at 04:55:20PM +0100, Hans de Goede wrote:
-> Before this commit sunxi_factors_register uses of_iomap(node, 0) to get
-> the clk registers. The sun6i prcm has factor clocks, for which we want to
-> use sunxi_factors_register, but of_iomap(node, 0) does not work for the p=
-rcm
-> factor clocks, because the prcm uses the mfd framework, so the registers
-> are not part of the dt-node, instead they are added to the platform_devic=
-e,
-> as platform_device resources.
->=20
-> This commit makes getting the registers the callers duty, so that
-> sunxi_factors_register can be used with mfd instantiated platform device =
-too.
->=20
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> >>  		entity->info.id = id | MEDIA_ENT_ID_FLAG_NEXT;
+> >>  		entity->media = media;
+> >>
+> >>@@ -529,11 +528,13 @@ static int media_enum_entities(struct media_device *media)
+> >>
+> >>  		entity->pads = malloc(entity->info.pads * sizeof(*entity->pads));
+> >>  		entity->links = malloc(entity->max_links * sizeof(*entity->links));
+> >>-		if (entity->pads == NULL || entity->links == NULL) {
+> >>+		entity->sd = calloc(1, sizeof(*entity->sd));
+> >>+		if (entity->pads == NULL || entity->links == NULL || entity->sd == NULL) {
+> >>  			ret = -ENOMEM;
+> >>  			break;
+> >>  		}
+> >>
+> >>+		entity->sd->fd = -1;
+> >>  		media->entities_count++;
+> >>
+> >>  		if (entity->info.flags & MEDIA_ENT_FL_DEFAULT) {
+> >>@@ -704,8 +705,9 @@ void media_device_unref(struct media_device *media)
+> >>
+> >>  		free(entity->pads);
+> >>  		free(entity->links);
+> >>-		if (entity->fd != -1)
+> >>-			close(entity->fd);
+> >>+		if (entity->sd->fd != -1)
+> >>+			close(entity->sd->fd);
+> >>+		free(entity->sd);
+> >>  	}
+> >>
+> >>  	free(media->entities);
+> >>@@ -726,13 +728,17 @@ int media_device_add_entity(struct media_device *media,
+> >>  	if (entity == NULL)
+> >>  		return -ENOMEM;
+> >>
+> >>+	entity->sd = calloc(1, sizeof(*entity->sd));
+> >>+	if (entity->sd == NULL)
+> >>+		return -ENOMEM;
+> >>+
+> >>  	media->entities = entity;
+> >>  	media->entities_count++;
+> >>
+> >>  	entity = &media->entities[media->entities_count - 1];
+> >>  	memset(entity, 0, sizeof *entity);
+> >>
+> >>-	entity->fd = -1;
+> >>+	entity->sd->fd = -1;
+> >>  	entity->media = media;
+> >>  	strncpy(entity->devname, devnode, sizeof entity->devname);
+> >>  	entity->devname[sizeof entity->devname - 1] = '\0';
+> >>@@ -955,3 +961,17 @@ int media_parse_setup_links(struct media_device *media, const char *p)
+> >>
+> >>  	return *end ? -EINVAL : 0;
+> >>  }
+> >>+
+> >>+/* -----------------------------------------------------------------------------
+> >>+ * Media entity access
+> >>+ */
+> >>+
+> >>+int media_entity_get_fd(struct media_entity *entity)
+> >>+{
+> >>+	return entity->sd->fd;
+> >>+}
+> >>+
+> >>+void media_entity_set_fd(struct media_entity *entity, int fd)
+> >>+{
+> >>+	entity->sd->fd = fd;
+> >>+}
+> >
+> >You access the fd directly now inside the library. I don't think there
+> >should be a need to set it.
+> 
+> struct media_entity is defined in mediactl-priv.h, whose name implies
+> that it shouldn't be made public. Thats way I implemented the setter.
+> I use it in the libv4l-exynos4-camera.c.
 
-Funny, I was thinking of doing exactly the same thing for MMC clocks :)
+Ah, I now understand why you wnat to do this. You should also close the file
+handle --- this is used internally by the library, and simply setting the
+value will lead the loss of the existing handle.
 
-> ---
->  drivers/clk/sunxi/clk-factors.c    | 10 ++++------
->  drivers/clk/sunxi/clk-factors.h    |  7 ++++---
->  drivers/clk/sunxi/clk-mod0.c       |  6 ++++--
->  drivers/clk/sunxi/clk-sun8i-mbus.c |  2 +-
->  drivers/clk/sunxi/clk-sunxi.c      |  3 ++-
->  5 files changed, 15 insertions(+), 13 deletions(-)
->=20
-> diff --git a/drivers/clk/sunxi/clk-factors.c b/drivers/clk/sunxi/clk-fact=
-ors.c
-> index f83ba09..fc4f4b5 100644
-> --- a/drivers/clk/sunxi/clk-factors.c
-> +++ b/drivers/clk/sunxi/clk-factors.c
-> @@ -156,9 +156,10 @@ static const struct clk_ops clk_factors_ops =3D {
->  	.set_rate =3D clk_factors_set_rate,
->  };
-> =20
-> -struct clk * __init sunxi_factors_register(struct device_node *node,
-> -					   const struct factors_data *data,
-> -					   spinlock_t *lock)
-> +struct clk *sunxi_factors_register(struct device_node *node,
-> +				   const struct factors_data *data,
-> +				   spinlock_t *lock,
-> +				   void __iomem *reg)
->  {
->  	struct clk *clk;
->  	struct clk_factors *factors;
-> @@ -168,11 +169,8 @@ struct clk * __init sunxi_factors_register(struct de=
-vice_node *node,
->  	struct clk_hw *mux_hw =3D NULL;
->  	const char *clk_name =3D node->name;
->  	const char *parents[FACTORS_MAX_PARENTS];
-> -	void __iomem *reg;
->  	int i =3D 0;
-> =20
-> -	reg =3D of_iomap(node, 0);
-> -
->  	/* if we have a mux, we will have >1 parents */
->  	while (i < FACTORS_MAX_PARENTS &&
->  	       (parents[i] =3D of_clk_get_parent_name(node, i)) !=3D NULL)
-> diff --git a/drivers/clk/sunxi/clk-factors.h b/drivers/clk/sunxi/clk-fact=
-ors.h
-> index 9913840..1f5526d 100644
-> --- a/drivers/clk/sunxi/clk-factors.h
-> +++ b/drivers/clk/sunxi/clk-factors.h
-> @@ -37,8 +37,9 @@ struct clk_factors {
->  	spinlock_t *lock;
->  };
-> =20
-> -struct clk * __init sunxi_factors_register(struct device_node *node,
-> -					   const struct factors_data *data,
-> -					   spinlock_t *lock);
-> +struct clk *sunxi_factors_register(struct device_node *node,
-> +				   const struct factors_data *data,
-> +				   spinlock_t *lock,
-> +				   void __iomem *reg);
+-- 
+Kind regards,
 
-Why are you dropping the __init there?
-
-> =20
->  #endif
-> diff --git a/drivers/clk/sunxi/clk-mod0.c b/drivers/clk/sunxi/clk-mod0.c
-> index 4a56385..9530833 100644
-> --- a/drivers/clk/sunxi/clk-mod0.c
-> +++ b/drivers/clk/sunxi/clk-mod0.c
-> @@ -78,7 +78,8 @@ static DEFINE_SPINLOCK(sun4i_a10_mod0_lock);
-> =20
->  static void __init sun4i_a10_mod0_setup(struct device_node *node)
->  {
-> -	sunxi_factors_register(node, &sun4i_a10_mod0_data, &sun4i_a10_mod0_lock=
-);
-> +	sunxi_factors_register(node, &sun4i_a10_mod0_data,
-> +			       &sun4i_a10_mod0_lock, of_iomap(node, 0));
-
-As of_iomap can fail, I'd rather check the returned value before
-calling sunxi_factors_register.
-
-I know it wasn't done before, but it's the right thing to do, as it
-would lead to an instant crash if that fails.
-
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---KjSGHOmKKB2VUiQn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUbvlrAAoJEBx+YmzsjxAggycQAK5zmjWkRP6ZhQWMJCTDroFC
-B7FtShdKg4YdOS6m8ZCb/IV+astUyMHQsqMcs1BEyKGJcJOpkDR6S2cEZBhighE7
-pIwPom3Vy6AHCGcXpgkRzyimtfXiwRvTAwFVeIAGvmkv0+kRsgl7bd5iv2o5ibTj
-AKvzjGEL5tmV2CbfYlajTjbTeA9qMQ+TcMgzF0eTIzrejC2hs3wJXy3wCVwa3FdY
-QKghYL8E9ztP5sgwiaBMR4izQ8M60KEBUFLsDqR/cw0qWBHF35sU1DoTZq3MQ5uK
-Jj19HbqYv1+EUbNzM1z6EfFjFqiUVA/VaaBlL2b0NRyzkF1vceok6MGo/Op5DWwP
-v+rMxEQxsxQJqk8sbIG4AftBcKSE41c9IkdSR4GUACHmDDETCmITS8ynltzOuSvL
-oMvEUJjATSI8G9fe0Ni2i4JSc7fRQ+JgIk5pGrqTISOTPpnK5dCUHbM5/eqzmzac
-hs+X0tnjjnTnxII1+RUe8z4mrQsZ9bbqDPB0OoNz2HW4IfZamNLEij/jjH0oVzyj
-iJT/l7LBBmJdt7cQPy+2AL5CNSq7Q1wBE2uawn2OkENaNdhfwu0Lz7p+4b5xs4F+
-WoT6M6PDSRrnkkyGnMXIBkqX+cSrNq77EemwMw0hTYknO4SJLukdDUIy+eo3jPM/
-SKMDag7n7csPzMFimmMb
-=iMgp
------END PGP SIGNATURE-----
-
---KjSGHOmKKB2VUiQn--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
