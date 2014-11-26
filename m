@@ -1,94 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward8l.mail.yandex.net ([84.201.143.141]:48798 "EHLO
-	forward8l.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754335AbaKNV3g (ORCPT
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:52964 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752651AbaKZWnN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Nov 2014 16:29:36 -0500
-Received: from smtp1m.mail.yandex.net (smtp1m.mail.yandex.net [77.88.61.132])
-	by forward8l.mail.yandex.net (Yandex) with ESMTP id 598E31A41270
-	for <linux-media@vger.kernel.org>; Sat, 15 Nov 2014 00:22:14 +0300 (MSK)
-Received: from smtp1m.mail.yandex.net (localhost [127.0.0.1])
-	by smtp1m.mail.yandex.net (Yandex) with ESMTP id F0BB267401E4
-	for <linux-media@vger.kernel.org>; Sat, 15 Nov 2014 00:22:13 +0300 (MSK)
-From: CrazyCat <crazycat69@narod.ru>
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [PATCH 2/3] si2168: TS clock inversion control.
-Date: Fri, 14 Nov 2014 23:22:10 +0200
-Message-ID: <2586479.jPeNbxzlMS@computer>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 26 Nov 2014 17:43:13 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 00/11] media: use vb2_ops_wait_prepare/finish helper
+Date: Wed, 26 Nov 2014 22:42:23 +0000
+Message-Id: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-TS clock polarity control implemented.
+Hi All,
 
-Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
----
- drivers/media/dvb-frontends/si2168.c      | 7 +++++--
- drivers/media/dvb-frontends/si2168.h      | 4 ++++
- drivers/media/dvb-frontends/si2168_priv.h | 1 +
- 3 files changed, 10 insertions(+), 2 deletions(-)
+This patch set uses the vb2 ops helpers for wait_prepare and
+wait_finish callbacks for drivers which using vb2 helpers.
+This patchset is compile tested only.
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 7bac748..16a347a 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -308,14 +308,16 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	memcpy(cmd.args, "\x14\x00\x09\x10\xe3\x18", 6);
-+	memcpy(cmd.args, "\x14\x00\x09\x10\xe3\x08", 6);
-+	cmd.args[5] |= s->ts_clock_inv ? 0x00 : 0x10;
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
- 	ret = si2168_cmd_execute(s, &cmd);
- 	if (ret)
- 		goto err;
- 
--	memcpy(cmd.args, "\x14\x00\x08\x10\xd7\x15", 6);
-+	memcpy(cmd.args, "\x14\x00\x08\x10\xd7\x05", 6);
-+	cmd.args[5] |= s->ts_clock_inv ? 0x00 : 0x10;
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
- 	ret = si2168_cmd_execute(s, &cmd);
-@@ -669,6 +671,7 @@ static int si2168_probe(struct i2c_client *client,
- 	*config->i2c_adapter = s->adapter;
- 	*config->fe = &s->fe;
- 	s->ts_mode = config->ts_mode;
-+	s->ts_clock_inv = config->ts_clock_inv;
- 	s->fw_loaded = false;
- 
- 	i2c_set_clientdata(client, s);
-diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-index e086d67..87bc121 100644
---- a/drivers/media/dvb-frontends/si2168.h
-+++ b/drivers/media/dvb-frontends/si2168.h
-@@ -37,6 +37,10 @@ struct si2168_config {
- 
- 	/* TS mode */
- 	u8 ts_mode;
-+
-+	/* TS clock inverted */
-+	bool ts_clock_inv;
-+
- };
- 
- #define SI2168_TS_PARALLEL	0x06
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 132df67..66ed675 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -36,6 +36,7 @@ struct si2168 {
- 	fe_delivery_system_t delivery_system;
- 	fe_status_t fe_status;
- 	u8 ts_mode;
-+	bool ts_clock_inv;
- 	bool active;
- 	bool fw_loaded;
- };
+Changes for v2:
+a: Included proper commit message.
+b: included Ack.
+
+Lad, Prabhakar (11):
+  media: s3c-camif: use vb2_ops_wait_prepare/finish helper
+  media: ti-vpe: use vb2_ops_wait_prepare/finish helper
+  media: exynos-gsc: use vb2_ops_wait_prepare/finish helper
+  media: soc_camera: use vb2_ops_wait_prepare/finish helper
+  media: sh_veu: use vb2_ops_wait_prepare/finish helper
+  media: marvell-ccic: use vb2_ops_wait_prepare/finish helper
+  media: s5p-tv: use vb2_ops_wait_prepare/finish helper
+  media: blackfin: use vb2_ops_wait_prepare/finish helper
+  media: s5p-mfc: use vb2_ops_wait_prepare/finish helper
+  media: davinci: vpif_capture: use vb2_ops_wait_prepare/finish helper
+  media: usb: uvc: use vb2_ops_wait_prepare/finish helper
+
+ drivers/media/platform/blackfin/bfin_capture.c     | 17 ++---------
+ drivers/media/platform/davinci/vpif_capture.c      |  2 ++
+ drivers/media/platform/exynos-gsc/gsc-core.h       | 12 --------
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |  6 ++--
+ drivers/media/platform/marvell-ccic/mcam-core.c    | 29 ++++--------------
+ drivers/media/platform/s3c-camif/camif-capture.c   | 17 ++---------
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |  1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 20 ++-----------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 20 ++-----------
+ drivers/media/platform/s5p-tv/mixer_video.c        | 21 ++-----------
+ drivers/media/platform/sh_veu.c                    | 35 +++++-----------------
+ drivers/media/platform/soc_camera/atmel-isi.c      |  7 +++--
+ drivers/media/platform/soc_camera/mx3_camera.c     |  7 +++--
+ drivers/media/platform/soc_camera/rcar_vin.c       |  7 +++--
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  7 +++--
+ drivers/media/platform/soc_camera/soc_camera.c     | 16 ----------
+ drivers/media/platform/ti-vpe/vpe.c                | 19 ++++--------
+ drivers/media/usb/uvc/uvc_queue.c                  | 18 ++---------
+ 18 files changed, 59 insertions(+), 202 deletions(-)
+
 -- 
 1.9.1
-
 
