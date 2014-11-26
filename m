@@ -1,115 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:48750 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751685AbaKJDne (ORCPT
+Received: from mail-ob0-f173.google.com ([209.85.214.173]:63214 "EHLO
+	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750927AbaKZNeP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Nov 2014 22:43:34 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0DC362A0C2B
-	for <linux-media@vger.kernel.org>; Mon, 10 Nov 2014 04:43:25 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141110034325.0DC362A0C2B@tschai.lan>
-Date: Mon, 10 Nov 2014 04:43:25 +0100 (CET)
+	Wed, 26 Nov 2014 08:34:15 -0500
+Received: by mail-ob0-f173.google.com with SMTP id uy5so2170021obc.18
+        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 05:34:14 -0800 (PST)
+MIME-Version: 1.0
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Date: Wed, 26 Nov 2014 14:33:59 +0100
+Message-ID: <CAL8zT=i+UZP7gpukW-cRe2M=xWW5Av9Mzd-FnnZAP5d+5J7Mzg@mail.gmail.com>
+Subject: i.MX6 CODA960 encoder
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Schwebel <r.schwebel@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+We are writing a gstreamer plugin to support CODA960 encoder on i.MX6,
+and it is not working so now trying to use v4l2-ctl for the moment.
+As I am asking about encoder, is there a way to make it support YUYV
+as input or is the firmware not able to do it ? I could not find a
+reference manual about that...
 
-date:		Mon Nov 10 04:00:18 CET 2014
-git branch:	test
-git hash:	4895cc47a072dcb32d3300d0a46a251a8c6db5f1
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-2.slh.2-amd64
+So back to the issue.
+$> cat /sys/class/video4linux/video0/name
+coda-encoder
+$> v4l2-ctl -d0 --list-formats
+ioctl: VIDIOC_ENUM_FMT
+    Index       : 0
+    Type        : Video Capture
+    Pixel Format: 'H264' (compressed)
+    Name        : H264 Encoded Stream
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+    Index       : 1
+    Type        : Video Capture
+    Pixel Format: 'MPG4' (compressed)
+    Name        : MPEG4 Encoded Stream
 
-Detailed results are available here:
+$> v4l2-ctl -d0 --list-formats-out
+ioctl: VIDIOC_ENUM_FMT
+    Index       : 0
+    Type        : Video Output
+    Pixel Format: 'YU12'
+    Name        : YUV 4:2:0 Planar, YCbCr
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+    Index       : 1
+    Type        : Video Output
+    Pixel Format: 'YV12'
+    Name        : YUV 4:2:0 Planar, YCrCb
 
-Full logs are available here:
+==> First question, vid-cap should be related to the capture format,
+so YUV format in the encoder case, no ?
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+$> v4l2-ctl -d0 --set-fmt-video-out=width=1280,height=720,pixelformat=YU12
+$> v4l2-ctl -d0 --stream-mmap --stream-out-mmap --stream-to x.raw
+unsupported pixelformat
+VIDIOC_STREAMON: failed: Invalid argument
 
-The Media Infrastructure API from this daily build is here:
+And here is the dmesg :
+[  444.470057] coda 2040000.vpu: s_ctrl: id = 9963796, val = 0
+[  444.470093] coda 2040000.vpu: s_ctrl: id = 9963797, val = 0
+[  444.470118] coda 2040000.vpu: s_ctrl: id = 10029519, val = 0
+[  444.470140] coda 2040000.vpu: s_ctrl: id = 10029515, val = 16
+[  444.470162] coda 2040000.vpu: s_ctrl: id = 10029662, val = 25
+[  444.470183] coda 2040000.vpu: s_ctrl: id = 10029663, val = 25
+[  444.470205] coda 2040000.vpu: s_ctrl: id = 10029666, val = 51
+[  444.470226] coda 2040000.vpu: s_ctrl: id = 10029672, val = 0
+[  444.470248] coda 2040000.vpu: s_ctrl: id = 10029673, val = 0
+[  444.470268] coda 2040000.vpu: s_ctrl: id = 10029674, val = 0
+[  444.470289] coda 2040000.vpu: s_ctrl: id = 10029712, val = 2
+[  444.470310] coda 2040000.vpu: s_ctrl: id = 10029713, val = 2
+[  444.470330] coda 2040000.vpu: s_ctrl: id = 10029533, val = 0
+[  444.470351] coda 2040000.vpu: s_ctrl: id = 10029532, val = 1
+[  444.470372] coda 2040000.vpu: s_ctrl: id = 10029531, val = 500
+[  444.470393] coda 2040000.vpu: s_ctrl: id = 10029528, val = 1
+[  444.470414] coda 2040000.vpu: s_ctrl: id = 10029526, val = 0
+[  444.484473] coda 2040000.vpu: Created instance 0 (bdade800)
+[  444.484503] video0: open (0)
+[  444.484586] video0: VIDIOC_QUERYCAP: driver=coda, card=CODA960,
+bus=platform:coda, version=0x00031200, capabilities=0x84208000,
+device_caps=0x04208000
+[  444.484685] video0: VIDIOC_QUERYCTRL: id=0x980001, type=6,
+name=User Controls, min/max=0/0, step=0, default=0, flags=0x00000044
+[  444.484768] video0: VIDIOC_QUERYCTRL: id=0x980914, type=2,
+name=Horizontal Flip, min/max=0/1, step=1, default=0, flags=0x00000000
+[  444.487570] video0: VIDIOC_QUERYCTRL: id=0x980915, type=2,
+name=Vertical Flip, min/max=0/1, step=1, default=0, flags=0x00000000
+[  444.487741] video0: VIDIOC_QUERYCTRL: id=0x990001, type=6,
+name=Codec Controls, min/max=0/0, step=0, default=0, flags=0x00000044
+[  444.487818] video0: VIDIOC_QUERYCTRL: id=0x9909cb, type=1,
+name=Video GOP Size, min/max=1/60, step=1, default=16,
+flags=0x00000000
+[  444.487954] video0: VIDIOC_QUERYCTRL: id=0x9909cf, type=1,
+name=Video Bitrate, min/max=0/32767000, step=1, default=0,
+flags=0x00000000
+[  444.488109] video0: VIDIOC_QUERYCTRL: id=0x9909d6, type=1,
+name=Number of Intra Refresh MBs, min/max=0/8160, step=1, default=0,
+flags=0x00000000
+[  444.488280] video0: VIDIOC_QUERYCTRL: id=0x9909d8, type=3,
+name=Sequence Header Mode, min/max=0/1, step=1, default=1,
+flags=0x00000000
+[  444.488434] video0: VIDIOC_QUERYCTRL: id=0x9909db, type=1,
+name=Maximum Bytes in a Slice, min/max=1/1073741823, step=1,
+default=500, flags=0x00000000
+[  444.488599] video0: VIDIOC_QUERYCTRL: id=0x9909dc, type=1,
+name=Number of MBs in a Slice, min/max=1/1073741823, step=1,
+default=1, flags=0x00000000
+[  444.488760] video0: VIDIOC_QUERYCTRL: id=0x9909dd, type=3,
+name=Slice Partitioning Method, min/max=0/2, step=1, default=0,
+flags=0x00000000
+[  444.488928] video0: VIDIOC_QUERYCTRL: id=0x990a5e, type=1,
+name=H264 I-Frame QP Value, min/max=0/51, step=1, default=25,
+flags=0x00000000
+[  444.489080] video0: VIDIOC_QUERYCTRL: id=0x990a5f, type=1,
+name=H264 P-Frame QP Value, min/max=0/51, step=1, default=25,
+flags=0x00000000
+[  444.489234] video0: VIDIOC_QUERYCTRL: id=0x990a62, type=1,
+name=H264 Maximum QP Value, min/max=0/51, step=1, default=51,
+flags=0x00000000
+[  444.489390] video0: VIDIOC_QUERYCTRL: id=0x990a68, type=1,
+name=H264 Loop Filter Alpha Offset, min/max=0/15, step=1, default=0,
+flags=0x00000000
+[  444.489565] video0: VIDIOC_QUERYCTRL: id=0x990a69, type=1,
+name=H264 Loop Filter Beta Offset, min/max=0/15, step=1, default=0,
+flags=0x00000000
+[  444.489737] video0: VIDIOC_QUERYCTRL: id=0x990a6a, type=3,
+name=H264 Loop Filter Mode, min/max=0/1, step=1, default=0,
+flags=0x00000000
+[  444.489892] video0: VIDIOC_QUERYCTRL: id=0x990a90, type=1,
+name=MPEG4 I-Frame QP Value, min/max=1/31, step=1, default=2,
+flags=0x00000000
+[  444.490046] video0: VIDIOC_QUERYCTRL: id=0x990a91, type=1,
+name=MPEG4 P-Frame QP Value, min/max=1/31, step=1, default=2,
+flags=0x00000000
+[  444.490225] video0: VIDIOC_QUERYCTRL: error -22: id=0x80990a91,
+type=0, name=, min/max=0/0, step=0, default=0, flags=0x00000000
+[  444.490373] video0: VIDIOC_SUBSCRIBE_EVENT: type=0x2, id=0x0, flags=0x0
+[  444.490734] coda 2040000.vpu: get 3 buffer(s) of size 1048576 each.
+[  444.519024] video0: VIDIOC_REQBUFS: count=3, type=vid-cap, memory=mmap
+[  444.519140] coda 2040000.vpu: get 3 buffer(s) of size 3133440 each.
+[  444.566697] video0: VIDIOC_REQBUFS: count=3, type=vid-out, memory=mmap
+[  444.566745] video0: VIDIOC_QUERYBUF: 00:00:00.00000000 index=0,
+type=vid-cap, flags=0x00004000, field=any, sequence=0, memory=mmap,
+bytesused=0, offset/userptr=0x40000000, length=1048576
+[  444.566780] timecode=00:00:00 type=0, flags=0x00000000, frames=0,
+userbits=0x00000000
+[  444.566870] video0: mmap (0)
+[  444.566901] video0: VIDIOC_QBUF: 00:00:00.00000000 index=0,
+type=vid-cap, flags=0x00004003, field=any, sequence=0, memory=mmap,
+bytesused=0, offset/userptr=0x0, length=1048576
+[  444.566935] timecode=00:00:00 type=0, flags=0x00000000, frames=0,
+userbits=0x00000000
+[  444.566951] video0: VIDIOC_QUERYBUF: 00:00:00.00000000 index=1,
+type=vid-cap, flags=0x00004000, field=any, sequence=0, memory=mmap,
+bytesused=0, offset/userptr=0x40100000, length=1048576
+[  444.566983] timecode=00:00:00 type=0, flags=0x00000000, frames=0,
+userbits=0x00000000
+[  444.567022] video0: mmap (0)
+[  444.567042] video0: VIDIOC_QBUF: 00:00:00.00000000 index=1,
+type=vid-cap, flags=0x00004003, field=any, sequence=0, memory=mmap,
+bytesused=0, offset/userptr=0x100000, length=1048576
+[  444.567075] timecode=00:00:00 type=0, flags=0x00000000, frames=0,
+userbits=0x00000000
+[  444.567090] video0: VIDIOC_QUERYBUF: 00:00:00.00000000 index=2,
+type=vid-cap, flags=0x00004000, field=any, sequence=0, memory=mmap,
+bytesused=0, offset/userptr=0x40200000, length=1048576
+[  444.567122] timecode=00:00:00 type=0, flags=0x00000000, frames=0,
+userbits=0x00000000
+[  444.567171] video0: mmap (0)
+[  444.567193] video0: VIDIOC_QBUF: 00:00:00.00000000 index=2,
+type=vid-cap, flags=0x00004003, field=any, sequence=0, memory=mmap,
+bytesused=0, offset/userptr=0x200000, length=1048576
+[  444.567224] timecode=00:00:00 type=0, flags=0x00000000, frames=0,
+userbits=0x00000000
+[  444.567241] video0: VIDIOC_G_FMT: type=vid-out, width=1920,
+height=1088, pixelformat=YU12, field=none, bytesperline=1920,
+sizeimage=3133440, colorspace=3, flags 0
+[  444.567986] video0: VIDIOC_STREAMON: type=vid-cap
+[  444.568019] video0: VIDIOC_STREAMON: error -22: type=vid-out
+[  444.569843] coda 2040000.vpu: Releasing instance bdade800
+[  444.569930] coda 2040000.vpu: coda_stop_streaming: capture
+[  444.574044] video0: release
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+What did I miss ?
+How has it been tested (this would give me a way to test it the same way) ?
+
+Thanks,
+JM
