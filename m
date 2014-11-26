@@ -1,107 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:60346 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754035AbaKMS7E (ORCPT
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:35898 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754123AbaKZXSD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Nov 2014 13:59:04 -0500
+	Wed, 26 Nov 2014 18:18:03 -0500
 MIME-Version: 1.0
-In-Reply-To: <1415808557-29557-4-git-send-email-j.anaszewski@samsung.com>
-References: <1415808557-29557-1-git-send-email-j.anaszewski@samsung.com> <1415808557-29557-4-git-send-email-j.anaszewski@samsung.com>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Thu, 13 Nov 2014 10:58:43 -0800
-Message-ID: <CAK5ve-JH0KQs1Q4TcgaxmfAhOP9kDc-9r7HnbfOKECRPWQ2aXQ@mail.gmail.com>
-Subject: Re: [PATCH/RFC v7 3/3] Documentation: leds: Add description of LED
- Flash Class extension
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	sakari.ailus@linux.intel.com,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	b.zolnierkie@samsung.com, Richard Purdie <rpurdie@rpsys.net>
+In-Reply-To: <2698849.pKqLKtTreZ@avalon>
+References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1417041754-8714-12-git-send-email-prabhakar.csengg@gmail.com> <2698849.pKqLKtTreZ@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 26 Nov 2014 23:17:32 +0000
+Message-ID: <CA+V-a8tQj0nG44k2FZUD3N=v4+PmmWG-tD5WC_nKz4E1bEU9hQ@mail.gmail.com>
+Subject: Re: [PATCH v2 11/11] media: usb: uvc: use vb2_ops_wait_prepare/finish helper
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 12, 2014 at 8:09 AM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> The documentation being added contains overall description of the
-> LED Flash Class and the related sysfs attributes.
+Hi Laurent,
+
+Thanks for the review.
+
+On Wed, Nov 26, 2014 at 10:59 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
 >
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> ---
->  Documentation/leds/leds-class-flash.txt |   39 +++++++++++++++++++++++++++++++
->  1 file changed, 39 insertions(+)
->  create mode 100644 Documentation/leds/leds-class-flash.txt
+> Thank you for the patch.
 >
-> diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-> new file mode 100644
-> index 0000000..0164329
-> --- /dev/null
-> +++ b/Documentation/leds/leds-class-flash.txt
-> @@ -0,0 +1,39 @@
-> +
-> +Flash LED handling under Linux
-> +==============================
-> +
-> +Some LED devices support two modes - torch and flash. In order to enable
+> On Wednesday 26 November 2014 22:42:34 Lad, Prabhakar wrote:
+>> This patch drops driver specific wait_prepare() and
+>> wait_finish() callbacks from vb2_ops and instead uses
+>> the the helpers vb2_ops_wait_prepare/finish() provided
+>> by the vb2 core, the lock member of the queue needs
+>> to be initalized to a mutex so that vb2 helpers
+>> vb2_ops_wait_prepare/finish() can make use of it.
+>
+> The queue lock field isn't initialized by the uvcvideo driver, so you can't
+> use vb2_ops_wait_prepare|finish().
+>
+Oops not sure what happened here I just took the patch from [1]
+and added commit message. anyway will post a single patch v3.
 
-I think I asked this question before, Torch, Flash and Indicator. As
-you answered torch is implemented by sync led brightness set operation
-in our LEDS_CLASS and Flash is implemented in this LEDS_CLASS_FLASH.
+[1] https://patchwork.kernel.org/patch/5327451/
 
-I suggest put this information in document or code comments. Then
-people know how to use torch and flash.
+Thanks,
+--Prabhakar Lad
 
-For indicator I still don't know why we need this since indicator is
-like blinking and it should be support by LEDS_CLASS right?
-
-Flash is for some camera capture, right?
-
-> +support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol must be defined
-> +in the kernel config. A flash LED driver must register in the LED subsystem
-> +with led_classdev_flash_register to gain flash capabilities.
-> +
-> +Following sysfs attributes are exposed for controlling flash led devices:
-> +
-> +       - flash_brightness - flash LED brightness in microamperes (RW)
-> +       - max_flash_brightness - maximum available flash LED brightness (RO)
-> +       - indicator_brightness - privacy LED brightness in microamperes (RW)
-> +       - max_indicator_brightness - maximum privacy LED brightness in
-> +                                    microamperes (RO)
-
-What's the privacy mean here?
-
-> +       - flash_timeout - flash strobe duration in microseconds (RW)
-> +       - max_flash_timeout - maximum available flash strobe duration (RO)
-> +       - flash_strobe - flash strobe state (RW)
-> +       - flash_fault - bitmask of flash faults that may have occurred,
-> +                       possible flags are:
-> +               * 0x01 - flash controller voltage to the flash LED has exceeded
-> +                        the limit specific to the flash controller
-> +               * 0x02 - the flash strobe was still on when the timeout set by
-> +                        the user has expired; not all flash controllers may
-> +                        set this in all such conditions
-> +               * 0x04 - the flash controller has overheated
-> +               * 0x08 - the short circuit protection of the flash controller
-> +                        has been triggered
-> +               * 0x10 - current in the LED power supply has exceeded the limit
-> +                        specific to the flash controller
-> +               * 0x40 - flash controller voltage to the flash LED has been
-> +                        below the minimum limit specific to the flash
-> +               * 0x80 - the input voltage of the flash controller is below
-> +                        the limit under which strobing the flash at full
-> +                        current will not be possible. The condition persists
-> +                        until this flag is no longer set
-> +               * 0x100 - the temperature of the LED has exceeded its allowed
-> +                         upper limit
-
-Are these error code the same for all the LED controller? Or just for
-some specific chip?
-
-
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> ---
+>>  drivers/media/usb/uvc/uvc_queue.c | 18 ++----------------
+>>  1 file changed, 2 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+>> b/drivers/media/usb/uvc/uvc_queue.c index cc96072..64147b5 100644
+>> --- a/drivers/media/usb/uvc/uvc_queue.c
+>> +++ b/drivers/media/usb/uvc/uvc_queue.c
+>> @@ -143,20 +143,6 @@ static void uvc_buffer_finish(struct vb2_buffer *vb)
+>>               uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
+>>  }
+>>
+>> -static void uvc_wait_prepare(struct vb2_queue *vq)
+>> -{
+>> -     struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+>> -
+>> -     mutex_unlock(&queue->mutex);
+>> -}
+>> -
+>> -static void uvc_wait_finish(struct vb2_queue *vq)
+>> -{
+>> -     struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+>> -
+>> -     mutex_lock(&queue->mutex);
+>> -}
+>> -
+>>  static int uvc_start_streaming(struct vb2_queue *vq, unsigned int count)
+>>  {
+>>       struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+>> @@ -195,8 +181,8 @@ static struct vb2_ops uvc_queue_qops = {
+>>       .buf_prepare = uvc_buffer_prepare,
+>>       .buf_queue = uvc_buffer_queue,
+>>       .buf_finish = uvc_buffer_finish,
+>> -     .wait_prepare = uvc_wait_prepare,
+>> -     .wait_finish = uvc_wait_finish,
+>> +     .wait_prepare = vb2_ops_wait_prepare,
+>> +     .wait_finish = vb2_ops_wait_finish,
+>>       .start_streaming = uvc_start_streaming,
+>>       .stop_streaming = uvc_stop_streaming,
+>>  };
+>
 > --
-> 1.7.9.5
+> Regards,
+>
+> Laurent Pinchart
 >
