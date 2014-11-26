@@ -1,110 +1,446 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:57966 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751919AbaK3XrO (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:43585 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750951AbaKZRNN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Nov 2014 18:47:14 -0500
-Received: from [192.168.1.22] (92-244-23-216.customers.ownit.se [92.244.23.216])
-	(Authenticated sender: ed8153)
-	by smtp.bredband2.com (Postfix) with ESMTPA id 3D8672D07B
-	for <linux-media@vger.kernel.org>; Mon,  1 Dec 2014 00:47:06 +0100 (CET)
-Message-ID: <547BAC79.50702@southpole.se>
-Date: Mon, 01 Dec 2014 00:47:05 +0100
-From: Benjamin Larsson <benjamin@southpole.se>
+	Wed, 26 Nov 2014 12:13:13 -0500
+Received: by mail-lb0-f174.google.com with SMTP id w7so2855623lbi.33
+        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 09:13:12 -0800 (PST)
+Date: Wed, 26 Nov 2014 19:13:10 +0200 (EET)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: Nibble Max <nibble.max@gmail.com>
+cc: Olli Salonen <olli.salonen@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH 2/3] cxusb: remove TechnoTrend CT2-4400 and CT2-4650
+ devices
+In-Reply-To: <201411262035117039244@gmail.com>
+Message-ID: <alpine.DEB.2.10.1411261912360.1900@dl160.lan>
+References: <201411262035117039244@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Random memory corruption of fe[1]->dvb pointer
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While working on a driver I noticed that I had trouble unloading the 
-module after testing, it crashed while running
-dvb_usbv2_adapter_frontend_exit. So I added a print out of some pointers 
-and got this:
+Reviewed-by: Olli Salonen <olli.salonen@iki.fi>
 
-Init:
-usb 1-1: dvb_usbv2_adapter_frontend_init: adap=fe[0] ffff88006afa6818
-usb 1-1: dvb_usbv2_adapter_frontend_init: adap=fe[0]->dvb ffff880078cba580
-usb 1-1: dvb_usbv2_adapter_frontend_init: adap=fe[1] ffff88003698e830
-usb 1-1: dvb_usbv2_adapter_frontend_init: adap=fe[1]->dvb ffff880078cba580
+On Wed, 26 Nov 2014, Nibble Max wrote:
 
-ok looking 64bit pointers
-
-Deinit:
-usb 1-1: dvb_usbv2_exit:
-usb 1-1: dvb_usbv2_remote_exit:
-usb 1-1: dvb_usbv2_adapter_exit:
-usb 1-1: dvb_usbv2_adapter_exit: fe0[0]= ffff88006afa6818
-usb 1-1: dvb_usbv2_adapter_exit: fe0[0]->dvb= ffff880078cba580
-usb 1-1: dvb_usbv2_adapter_exit: fe1[0]= ffff88003698e830
-usb 1-1: dvb_usbv2_adapter_exit: fe1[0]->dvb= 003a746165733a3d
-usb 1-1: dvb_usbv2_adapter_frontend_exit: adap=0
-usb 1-1: dvb_usbv2_adapter_frontend_exit: fe[1]= ffff88003698e830
-usb 1-1: dvb_usbv2_adapter_frontend_exit: fe[1]->dvb= 003a746165733a3d
-
-Later on in dvb_usbv2_adapter_frontend_exit() fe[1]->dvb is dereferenced 
-and thus causes a kernel crash.
-
-So for some reason fe[1]->dvb gets corrupted. It doesn't happen all the 
-time but after max 3 times I get this crash. I have reproduced this on 
-my main machine running Ubuntu 14.04, 14.10 and a VM running Ubuntu 
-14.04 all running stock kernel (3.13 and 3.16) and the media_build back 
-port code.
-
-After some investigation I saw that fe[1]->demodulator_priv also gets 
-corrupted. Something is overwriting the pointers.
-
-So with that knowledge I wrote the following patch and now I can freely 
-reload the driver without a crash. This of course doesn't fix the issue 
-but just corrupts unused dummy memory.
-
-So does anyone have any hunch on what might be causing this issue or how 
-to track it down ?
-Keep in mind that this could be caused by me running the media_build 
-code or some bug in the driver. Or it could also affect the regular tree 
-when unplugging devices with more then 1 frontend.
-
-MvH
-Benjamin Larsson
-
-
-diff --git a/drivers/media/dvb-core/dvb_frontend.h 
-b/drivers/media/dvb-core/dvb_frontend.h
-index 816269e..e0ba434 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -413,19 +413,30 @@ struct dtv_frontend_properties {
-  #define DVB_FE_DEVICE_RESUME    3
-
-  struct dvb_frontend {
--       struct dvb_frontend_ops ops;
--       struct dvb_adapter *dvb;
-         void *demodulator_priv;
-+       int dummy1[16000];
-         void *tuner_priv;
-+       int dummy2[16000];
-         void *frontend_priv;
-+       int dummy3[16000];
-         void *sec_priv;
-+       int dummy4[16000];
-         void *analog_demod_priv;
-+       int dummy5[16000];
-         struct dtv_frontend_properties dtv_property_cache;
-+       int dummy6[16000];
-  #define DVB_FRONTEND_COMPONENT_TUNER 0
-  #define DVB_FRONTEND_COMPONENT_DEMOD 1
-         int (*callback)(void *adapter_priv, int component, int cmd, int 
-arg);
-+       int dummy7[16000];
-         int id;
-+       int dummy8[16000];
-         unsigned int exit;
-+       int dummy9[16000];
-+       struct dvb_frontend_ops ops;
-+       int dummy10[16000];
-+       struct dvb_adapter *dvb;
-+       int dummy11[16000];
-  };
-
+> Remove TechnoTrend CT2-4400 and CT2-4650 devices from cxusb.
+> They are supported by dvb-usb-dvbsky driver in PATCH 3/3.
+>
+> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+> ---
+> drivers/media/usb/dvb-usb/Kconfig |   1 -
+> drivers/media/usb/dvb-usb/cxusb.c | 298 --------------------------------------
+> drivers/media/usb/dvb-usb/cxusb.h |   4 -
+> 3 files changed, 303 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+> index 41d3eb9..3364200 100644
+> --- a/drivers/media/usb/dvb-usb/Kconfig
+> +++ b/drivers/media/usb/dvb-usb/Kconfig
+> @@ -130,7 +130,6 @@ config DVB_USB_CXUSB
+>
+> 	  Medion MD95700 hybrid USB2.0 device.
+> 	  DViCO FusionHDTV (Bluebird) USB2.0 devices
+> -	  TechnoTrend TVStick CT2-4400 and CT2-4650 CI devices
+>
+> config DVB_USB_M920X
+> 	tristate "Uli m920x DVB-T USB2.0 support"
+> diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+> index 643d88f..0f345b1 100644
+> --- a/drivers/media/usb/dvb-usb/cxusb.c
+> +++ b/drivers/media/usb/dvb-usb/cxusb.c
+> @@ -44,7 +44,6 @@
+> #include "atbm8830.h"
+> #include "si2168.h"
+> #include "si2157.h"
+> -#include "sp2.h"
+>
+> /* Max transfer size done by I2C transfer functions */
+> #define MAX_XFER_SIZE  80
+> @@ -147,22 +146,6 @@ static int cxusb_d680_dmb_gpio_tuner(struct dvb_usb_device *d,
+> 	}
+> }
+>
+> -static int cxusb_tt_ct2_4400_gpio_tuner(struct dvb_usb_device *d, int onoff)
+> -{
+> -	u8 o[2], i;
+> -	int rc;
+> -
+> -	o[0] = 0x83;
+> -	o[1] = onoff;
+> -	rc = cxusb_ctrl_msg(d, CMD_GPIO_WRITE, o, 2, &i, 1);
+> -
+> -	if (rc) {
+> -		deb_info("gpio_write failed.\n");
+> -		return -EIO;
+> -	}
+> -	return 0;
+> -}
+> -
+> /* I2C */
+> static int cxusb_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+> 			  int num)
+> @@ -524,30 +507,6 @@ static int cxusb_d680_dmb_rc_query(struct dvb_usb_device *d, u32 *event,
+> 	return 0;
+> }
+>
+> -static int cxusb_tt_ct2_4400_rc_query(struct dvb_usb_device *d)
+> -{
+> -	u8 i[2];
+> -	int ret;
+> -	u32 cmd, keycode;
+> -	u8 rc5_cmd, rc5_addr, rc5_toggle;
+> -
+> -	ret = cxusb_ctrl_msg(d, 0x10, NULL, 0, i, 2);
+> -	if (ret)
+> -		return ret;
+> -
+> -	cmd = (i[0] << 8) | i[1];
+> -
+> -	if (cmd != 0xffff) {
+> -		rc5_cmd = cmd & 0x3F; /* bits 1-6 for command */
+> -		rc5_addr = (cmd & 0x07C0) >> 6; /* bits 7-11 for address */
+> -		rc5_toggle = (cmd & 0x0800) >> 11; /* bit 12 for toggle */
+> -		keycode = (rc5_addr << 8) | rc5_cmd;
+> -		rc_keydown(d->rc_dev, RC_BIT_RC5, keycode, rc5_toggle);
+> -	}
+> -
+> -	return 0;
+> -}
+> -
+> static struct rc_map_table rc_map_dvico_mce_table[] = {
+> 	{ 0xfe02, KEY_TV },
+> 	{ 0xfe0e, KEY_MP3 },
+> @@ -673,70 +632,6 @@ static struct rc_map_table rc_map_d680_dmb_table[] = {
+> 	{ 0x0025, KEY_POWER },
+> };
+>
+> -static int cxusb_tt_ct2_4400_read_mac_address(struct dvb_usb_device *d, u8 mac[6])
+> -{
+> -	u8 wbuf[2];
+> -	u8 rbuf[6];
+> -	int ret;
+> -	struct i2c_msg msg[] = {
+> -		{
+> -			.addr = 0x51,
+> -			.flags = 0,
+> -			.buf = wbuf,
+> -			.len = 2,
+> -		}, {
+> -			.addr = 0x51,
+> -			.flags = I2C_M_RD,
+> -			.buf = rbuf,
+> -			.len = 6,
+> -		}
+> -	};
+> -
+> -	wbuf[0] = 0x1e;
+> -	wbuf[1] = 0x00;
+> -	ret = cxusb_i2c_xfer(&d->i2c_adap, msg, 2);
+> -
+> -	if (ret == 2) {
+> -		memcpy(mac, rbuf, 6);
+> -		return 0;
+> -	} else {
+> -		if (ret < 0)
+> -			return ret;
+> -		return -EIO;
+> -	}
+> -}
+> -
+> -static int cxusb_tt_ct2_4650_ci_ctrl(void *priv, u8 read, int addr,
+> -					u8 data, int *mem)
+> -{
+> -	struct dvb_usb_device *d = priv;
+> -	u8 wbuf[3];
+> -	u8 rbuf[2];
+> -	int ret;
+> -
+> -	wbuf[0] = (addr >> 8) & 0xff;
+> -	wbuf[1] = addr & 0xff;
+> -
+> -	if (read) {
+> -		ret = cxusb_ctrl_msg(d, CMD_SP2_CI_READ, wbuf, 2, rbuf, 2);
+> -	} else {
+> -		wbuf[2] = data;
+> -		ret = cxusb_ctrl_msg(d, CMD_SP2_CI_WRITE, wbuf, 3, rbuf, 1);
+> -	}
+> -
+> -	if (ret)
+> -		goto err;
+> -
+> -	if (read)
+> -		*mem = rbuf[1];
+> -
+> -	return 0;
+> -err:
+> -	deb_info("%s: ci usb write returned %d\n", __func__, ret);
+> -	return ret;
+> -
+> -}
+> -
+> static int cxusb_dee1601_demod_init(struct dvb_frontend* fe)
+> {
+> 	static u8 clock_config []  = { CLOCK_CTL,  0x38, 0x28 };
+> @@ -1478,127 +1373,6 @@ static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
+> 	return 0;
+> }
+>
+> -static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+> -{
+> -	struct dvb_usb_device *d = adap->dev;
+> -	struct cxusb_state *st = d->priv;
+> -	struct i2c_adapter *adapter;
+> -	struct i2c_client *client_demod;
+> -	struct i2c_client *client_tuner;
+> -	struct i2c_client *client_ci;
+> -	struct i2c_board_info info;
+> -	struct si2168_config si2168_config;
+> -	struct si2157_config si2157_config;
+> -	struct sp2_config sp2_config;
+> -	u8 o[2], i;
+> -
+> -	/* reset the tuner */
+> -	if (cxusb_tt_ct2_4400_gpio_tuner(d, 0) < 0) {
+> -		err("clear tuner gpio failed");
+> -		return -EIO;
+> -	}
+> -	msleep(100);
+> -	if (cxusb_tt_ct2_4400_gpio_tuner(d, 1) < 0) {
+> -		err("set tuner gpio failed");
+> -		return -EIO;
+> -	}
+> -	msleep(100);
+> -
+> -	/* attach frontend */
+> -	memset(&si2168_config, 0, sizeof(si2168_config));
+> -	si2168_config.i2c_adapter = &adapter;
+> -	si2168_config.fe = &adap->fe_adap[0].fe;
+> -	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> -
+> -	/* CT2-4400v2 TS gets corrupted without this */
+> -	if (le16_to_cpu(d->udev->descriptor.idProduct) ==
+> -		USB_PID_TECHNOTREND_TVSTICK_CT2_4400)
+> -		si2168_config.ts_mode |= 0x40;
+> -
+> -	memset(&info, 0, sizeof(struct i2c_board_info));
+> -	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+> -	info.addr = 0x64;
+> -	info.platform_data = &si2168_config;
+> -	request_module(info.type);
+> -	client_demod = i2c_new_device(&d->i2c_adap, &info);
+> -	if (client_demod == NULL || client_demod->dev.driver == NULL)
+> -		return -ENODEV;
+> -
+> -	if (!try_module_get(client_demod->dev.driver->owner)) {
+> -		i2c_unregister_device(client_demod);
+> -		return -ENODEV;
+> -	}
+> -
+> -	st->i2c_client_demod = client_demod;
+> -
+> -	/* attach tuner */
+> -	memset(&si2157_config, 0, sizeof(si2157_config));
+> -	si2157_config.fe = adap->fe_adap[0].fe;
+> -	memset(&info, 0, sizeof(struct i2c_board_info));
+> -	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+> -	info.addr = 0x60;
+> -	info.platform_data = &si2157_config;
+> -	request_module(info.type);
+> -	client_tuner = i2c_new_device(adapter, &info);
+> -	if (client_tuner == NULL || client_tuner->dev.driver == NULL) {
+> -		module_put(client_demod->dev.driver->owner);
+> -		i2c_unregister_device(client_demod);
+> -		return -ENODEV;
+> -	}
+> -	if (!try_module_get(client_tuner->dev.driver->owner)) {
+> -		i2c_unregister_device(client_tuner);
+> -		module_put(client_demod->dev.driver->owner);
+> -		i2c_unregister_device(client_demod);
+> -		return -ENODEV;
+> -	}
+> -
+> -	st->i2c_client_tuner = client_tuner;
+> -
+> -	/* initialize CI */
+> -	if (le16_to_cpu(d->udev->descriptor.idProduct) ==
+> -		USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI) {
+> -
+> -		memcpy(o, "\xc0\x01", 2);
+> -		cxusb_ctrl_msg(d, CMD_GPIO_WRITE, o, 2, &i, 1);
+> -		msleep(100);
+> -
+> -		memcpy(o, "\xc0\x00", 2);
+> -		cxusb_ctrl_msg(d, CMD_GPIO_WRITE, o, 2, &i, 1);
+> -		msleep(100);
+> -
+> -		memset(&sp2_config, 0, sizeof(sp2_config));
+> -		sp2_config.dvb_adap = &adap->dvb_adap;
+> -		sp2_config.priv = d;
+> -		sp2_config.ci_control = cxusb_tt_ct2_4650_ci_ctrl;
+> -		memset(&info, 0, sizeof(struct i2c_board_info));
+> -		strlcpy(info.type, "sp2", I2C_NAME_SIZE);
+> -		info.addr = 0x40;
+> -		info.platform_data = &sp2_config;
+> -		request_module(info.type);
+> -		client_ci = i2c_new_device(&d->i2c_adap, &info);
+> -		if (client_ci == NULL || client_ci->dev.driver == NULL) {
+> -			module_put(client_tuner->dev.driver->owner);
+> -			i2c_unregister_device(client_tuner);
+> -			module_put(client_demod->dev.driver->owner);
+> -			i2c_unregister_device(client_demod);
+> -			return -ENODEV;
+> -		}
+> -		if (!try_module_get(client_ci->dev.driver->owner)) {
+> -			i2c_unregister_device(client_ci);
+> -			module_put(client_tuner->dev.driver->owner);
+> -			i2c_unregister_device(client_tuner);
+> -			module_put(client_demod->dev.driver->owner);
+> -			i2c_unregister_device(client_demod);
+> -			return -ENODEV;
+> -		}
+> -
+> -		st->i2c_client_ci = client_ci;
+> -
+> -	}
+> -
+> -	return 0;
+> -}
+> -
+> /*
+>  * DViCO has shipped two devices with the same USB ID, but only one of them
+>  * needs a firmware download.  Check the device class details to see if they
+> @@ -1681,7 +1455,6 @@ static struct dvb_usb_device_properties cxusb_aver_a868r_properties;
+> static struct dvb_usb_device_properties cxusb_d680_dmb_properties;
+> static struct dvb_usb_device_properties cxusb_mygica_d689_properties;
+> static struct dvb_usb_device_properties cxusb_mygica_t230_properties;
+> -static struct dvb_usb_device_properties cxusb_tt_ct2_4400_properties;
+>
+> static int cxusb_probe(struct usb_interface *intf,
+> 		       const struct usb_device_id *id)
+> @@ -1714,8 +1487,6 @@ static int cxusb_probe(struct usb_interface *intf,
+> 				     THIS_MODULE, NULL, adapter_nr) ||
+> 	    0 == dvb_usb_device_init(intf, &cxusb_mygica_t230_properties,
+> 				     THIS_MODULE, NULL, adapter_nr) ||
+> -	    0 == dvb_usb_device_init(intf, &cxusb_tt_ct2_4400_properties,
+> -				     THIS_MODULE, NULL, adapter_nr) ||
+> 	    0)
+> 		return 0;
+>
+> @@ -1728,13 +1499,6 @@ static void cxusb_disconnect(struct usb_interface *intf)
+> 	struct cxusb_state *st = d->priv;
+> 	struct i2c_client *client;
+>
+> -	/* remove I2C client for CI */
+> -	client = st->i2c_client_ci;
+> -	if (client) {
+> -		module_put(client->dev.driver->owner);
+> -		i2c_unregister_device(client);
+> -	}
+> -
+> 	/* remove I2C client for tuner */
+> 	client = st->i2c_client_tuner;
+> 	if (client) {
+> @@ -1773,8 +1537,6 @@ static struct usb_device_id cxusb_table [] = {
+> 	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_4_REV_2) },
+> 	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_CONEXANT_D680_DMB) },
+> 	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_D689) },
+> -	{ USB_DEVICE(USB_VID_TECHNOTREND, USB_PID_TECHNOTREND_TVSTICK_CT2_4400) },
+> -	{ USB_DEVICE(USB_VID_TECHNOTREND, USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI) },
+> 	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230) },
+> 	{}		/* Terminating entry */
+> };
+> @@ -2422,66 +2184,6 @@ static struct dvb_usb_device_properties cxusb_mygica_d689_properties = {
+> 	}
+> };
+>
+> -static struct dvb_usb_device_properties cxusb_tt_ct2_4400_properties = {
+> -	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
+> -
+> -	.usb_ctrl         = CYPRESS_FX2,
+> -
+> -	.size_of_priv     = sizeof(struct cxusb_state),
+> -
+> -	.num_adapters = 1,
+> -	.read_mac_address = cxusb_tt_ct2_4400_read_mac_address,
+> -
+> -	.adapter = {
+> -		{
+> -		.num_frontends = 1,
+> -		.fe = {{
+> -			.streaming_ctrl   = cxusb_streaming_ctrl,
+> -			/* both frontend and tuner attached in the
+> -			   same function */
+> -			.frontend_attach  = cxusb_tt_ct2_4400_attach,
+> -
+> -			/* parameter for the MPEG2-data transfer */
+> -			.stream = {
+> -				.type = USB_BULK,
+> -				.count = 8,
+> -				.endpoint = 0x82,
+> -				.u = {
+> -					.bulk = {
+> -						.buffersize = 4096,
+> -					}
+> -				}
+> -			},
+> -		} },
+> -		},
+> -	},
+> -
+> -	.i2c_algo = &cxusb_i2c_algo,
+> -	.generic_bulk_ctrl_endpoint = 0x01,
+> -	.generic_bulk_ctrl_endpoint_response = 0x81,
+> -
+> -	.rc.core = {
+> -		.rc_codes       = RC_MAP_TT_1500,
+> -		.allowed_protos = RC_BIT_RC5,
+> -		.rc_query       = cxusb_tt_ct2_4400_rc_query,
+> -		.rc_interval    = 150,
+> -	},
+> -
+> -	.num_device_descs = 2,
+> -	.devices = {
+> -		{
+> -			"TechnoTrend TVStick CT2-4400",
+> -			{ NULL },
+> -			{ &cxusb_table[20], NULL },
+> -		},
+> -		{
+> -			"TechnoTrend TT-connect CT2-4650 CI",
+> -			{ NULL },
+> -			{ &cxusb_table[21], NULL },
+> -		},
+> -	}
+> -};
+> -
+> static struct dvb_usb_device_properties cxusb_mygica_t230_properties = {
+> 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
+>
+> diff --git a/drivers/media/usb/dvb-usb/cxusb.h b/drivers/media/usb/dvb-usb/cxusb.h
+> index 29f3e2e..527ff79 100644
+> --- a/drivers/media/usb/dvb-usb/cxusb.h
+> +++ b/drivers/media/usb/dvb-usb/cxusb.h
+> @@ -28,14 +28,10 @@
+> #define CMD_ANALOG        0x50
+> #define CMD_DIGITAL       0x51
+>
+> -#define CMD_SP2_CI_WRITE  0x70
+> -#define CMD_SP2_CI_READ   0x71
+> -
+> struct cxusb_state {
+> 	u8 gpio_write_state[3];
+> 	struct i2c_client *i2c_client_demod;
+> 	struct i2c_client *i2c_client_tuner;
+> -	struct i2c_client *i2c_client_ci;
+> };
+>
+> #endif
+>
+> -- 
+> 1.9.1
+>
+>
