@@ -1,113 +1,327 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53530 "EHLO mx1.redhat.com"
+Received: from lists.s-osg.org ([54.187.51.154]:37988 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751406AbaKTTc4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 14:32:56 -0500
-Message-ID: <546E41C1.1070800@redhat.com>
-Date: Thu, 20 Nov 2014 20:32:17 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752376AbaKZPFA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Nov 2014 10:05:00 -0500
+Date: Wed, 26 Nov 2014 13:04:51 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Beniamino Galvani <b.galvani@gmail.com>,
+	Carlo Caione <carlo@caione.org>
+Cc: linux-media@vger.kernel.org, Sean Young <sean@mess.org>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Jerry Cao <jerry.cao@amlogic.com>,
+	Victor Wan <victor.wan@amlogic.com>
+Subject: Re: [PATCH v3 2/3] media: rc: add driver for Amlogic Meson IR
+ remote receiver
+Message-ID: <20141126130451.5789e7f9@recife.lan>
+In-Reply-To: <1416342155-26820-3-git-send-email-b.galvani@gmail.com>
+References: <1416342155-26820-1-git-send-email-b.galvani@gmail.com>
+	<1416342155-26820-3-git-send-email-b.galvani@gmail.com>
 MIME-Version: 1.0
-To: Chen-Yu Tsai <wens@csie.org>
-CC: Emilio Lopez <emilio@elopez.com.ar>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi <linux-sunxi@googlegroups.com>
-Subject: Re: [linux-sunxi] [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
-References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com> <1416498928-1300-4-git-send-email-hdegoede@redhat.com> <CAGb2v66zoAy93mjZn+yf8zvCmkQ8AVWH92jKL-gyu90E5HLuuw@mail.gmail.com>
-In-Reply-To: <CAGb2v66zoAy93mjZn+yf8zvCmkQ8AVWH92jKL-gyu90E5HLuuw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Tue, 18 Nov 2014 21:22:34 +0100
+Beniamino Galvani <b.galvani@gmail.com> escreveu:
 
-On 11/20/2014 07:24 PM, Chen-Yu Tsai wrote:
-> Hi,
+> Amlogic Meson SoCs include a infrared remote control receiver that can
+> operate in two modes: "NEC" mode in which the hardware decodes frames
+> using the NEC IR protocol, and "general" mode in which the receiver
+> simply reports the duration of pulses and spaces for software
+> decoding.
 > 
-> On Thu, Nov 20, 2014 at 7:55 AM, Hans de Goede <hdegoede@redhat.com> wrote:
->> Add a driver for mod0 clocks found in the prcm. Currently there is only
->> one mod0 clocks in the prcm, the ir clock.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>  Documentation/devicetree/bindings/clock/sunxi.txt |  1 +
->>  drivers/clk/sunxi/Makefile                        |  2 +-
->>  drivers/clk/sunxi/clk-sun6i-prcm-mod0.c           | 63 +++++++++++++++++++++++
->>  drivers/mfd/sun6i-prcm.c                          | 14 +++++
->>  4 files changed, 79 insertions(+), 1 deletion(-)
->>  create mode 100644 drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
->>
->> diff --git a/Documentation/devicetree/bindings/clock/sunxi.txt b/Documentation/devicetree/bindings/clock/sunxi.txt
->> index ed116df..342c75a 100644
->> --- a/Documentation/devicetree/bindings/clock/sunxi.txt
->> +++ b/Documentation/devicetree/bindings/clock/sunxi.txt
->> @@ -56,6 +56,7 @@ Required properties:
->>         "allwinner,sun4i-a10-usb-clk" - for usb gates + resets on A10 / A20
->>         "allwinner,sun5i-a13-usb-clk" - for usb gates + resets on A13
->>         "allwinner,sun6i-a31-usb-clk" - for usb gates + resets on A31
->> +       "allwinner,sun6i-a31-ir-clk" - for the ir clock on A31
->>
->>  Required properties for all clocks:
->>  - reg : shall be the control register address for the clock.
->> diff --git a/drivers/clk/sunxi/Makefile b/drivers/clk/sunxi/Makefile
->> index 7ddc2b5..daf8b1c 100644
->> --- a/drivers/clk/sunxi/Makefile
->> +++ b/drivers/clk/sunxi/Makefile
->> @@ -10,4 +10,4 @@ obj-y += clk-sun8i-mbus.o
->>
->>  obj-$(CONFIG_MFD_SUN6I_PRCM) += \
->>         clk-sun6i-ar100.o clk-sun6i-apb0.o clk-sun6i-apb0-gates.o \
->> -       clk-sun8i-apb0.o
->> +       clk-sun8i-apb0.o clk-sun6i-prcm-mod0.o
->> diff --git a/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c b/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
->> new file mode 100644
->> index 0000000..e80f18e
->> --- /dev/null
->> +++ b/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
->> @@ -0,0 +1,63 @@
->> +/*
->> + * Allwinner A31 PRCM mod0 clock driver
->> + *
->> + * Copyright (C) 2014 Hans de Goede <hdegoede@redhat.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; either version 2 of the License, or
->> + * (at your option) any later version.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + */
->> +
->> +#include <linux/clk-provider.h>
->> +#include <linux/clkdev.h>
->> +#include <linux/module.h>
->> +#include <linux/of_address.h>
->> +#include <linux/platform_device.h>
->> +
->> +#include "clk-factors.h"
->> +#include "clk-mod0.h"
->> +
->> +static const struct of_device_id sun6i_a31_prcm_mod0_clk_dt_ids[] = {
->> +       { .compatible = "allwinner,sun6i-a31-ir-clk" },
+> This is a driver for the IR receiver that implements software decoding
+> of received frames.
 > 
-> Could we use a generic name, like "sun6i-a31-prcm-mod0-clk"?
-> IIRC, there is another one, the module clock for the 1-wire interface.
+> Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
+> ---
+>  MAINTAINERS                 |   1 +
+>  drivers/media/rc/Kconfig    |  11 +++
+>  drivers/media/rc/Makefile   |   1 +
+>  drivers/media/rc/meson-ir.c | 216 ++++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 229 insertions(+)
+>  create mode 100644 drivers/media/rc/meson-ir.c
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 0662378..f1bc045 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -850,6 +850,7 @@ ARM/Amlogic MesonX SoC support
+>  M:	Carlo Caione <carlo@caione.org>
+>  L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+>  S:	Maintained
+> +F:	drivers/media/rc/meson-ir.c
+>  N:	meson[x68]
 
-I wish we could use a generic name, but that does not work for mfd device
-subnodes, as the mfd framework attaches resources (such as registers) to
-the subnodes based on the compatible.
+Hmm... you're putting this driver at Carlo's maintenance shoulders.
 
-BTW it seems that that the 1-wire clock is not 100% mod0 clock compatible,
-at least the ccmu.h in the allwinner SDK uses a different struct definition
-for it.
+I need his ack in order to apply this patch.
 
 Regards,
+Mauro
 
-Hans
+>  
+>  ARM/ATMEL AT91RM9200 AND AT91SAM ARM ARCHITECTURES
+> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+> index 1aea732..ddfab25 100644
+> --- a/drivers/media/rc/Kconfig
+> +++ b/drivers/media/rc/Kconfig
+> @@ -223,6 +223,17 @@ config IR_FINTEK
+>  	   To compile this driver as a module, choose M here: the
+>  	   module will be called fintek-cir.
+>  
+> +config IR_MESON
+> +	tristate "Amlogic Meson IR remote receiver"
+> +	depends on RC_CORE
+> +	depends on ARCH_MESON || COMPILE_TEST
+> +	---help---
+> +	   Say Y if you want to use the IR remote receiver available
+> +	   on Amlogic Meson SoCs.
+> +
+> +	   To compile this driver as a module, choose M here: the
+> +	   module will be called meson-ir.
+> +
+>  config IR_NUVOTON
+>  	tristate "Nuvoton w836x7hg Consumer Infrared Transceiver"
+>  	depends on PNP
+> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+> index 8f509e0..379a5c0 100644
+> --- a/drivers/media/rc/Makefile
+> +++ b/drivers/media/rc/Makefile
+> @@ -22,6 +22,7 @@ obj-$(CONFIG_IR_IMON) += imon.o
+>  obj-$(CONFIG_IR_ITE_CIR) += ite-cir.o
+>  obj-$(CONFIG_IR_MCEUSB) += mceusb.o
+>  obj-$(CONFIG_IR_FINTEK) += fintek-cir.o
+> +obj-$(CONFIG_IR_MESON) += meson-ir.o
+>  obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
+>  obj-$(CONFIG_IR_ENE) += ene_ir.o
+>  obj-$(CONFIG_IR_REDRAT3) += redrat3.o
+> diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
+> new file mode 100644
+> index 0000000..fcc3b82
+> --- /dev/null
+> +++ b/drivers/media/rc/meson-ir.c
+> @@ -0,0 +1,216 @@
+> +/*
+> + * Driver for Amlogic Meson IR remote receiver
+> + *
+> + * Copyright (C) 2014 Beniamino Galvani <b.galvani@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program. If not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#include <linux/device.h>
+> +#include <linux/err.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/io.h>
+> +#include <linux/module.h>
+> +#include <linux/of_platform.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/spinlock.h>
+> +
+> +#include <media/rc-core.h>
+> +
+> +#define DRIVER_NAME		"meson-ir"
+> +
+> +#define IR_DEC_LDR_ACTIVE	0x00
+> +#define IR_DEC_LDR_IDLE		0x04
+> +#define IR_DEC_LDR_REPEAT	0x08
+> +#define IR_DEC_BIT_0		0x0c
+> +#define IR_DEC_REG0		0x10
+> +#define IR_DEC_FRAME		0x14
+> +#define IR_DEC_STATUS		0x18
+> +#define IR_DEC_REG1		0x1c
+> +
+> +#define REG0_RATE_MASK		(BIT(11) - 1)
+> +
+> +#define REG1_MODE_MASK		(BIT(7) | BIT(8))
+> +#define REG1_MODE_NEC		(0 << 7)
+> +#define REG1_MODE_GENERAL	(2 << 7)
+> +
+> +#define REG1_TIME_IV_SHIFT	16
+> +#define REG1_TIME_IV_MASK	((BIT(13) - 1) << REG1_TIME_IV_SHIFT)
+> +
+> +#define REG1_IRQSEL_MASK	(BIT(2) | BIT(3))
+> +#define REG1_IRQSEL_NEC_MODE	(0 << 2)
+> +#define REG1_IRQSEL_RISE_FALL	(1 << 2)
+> +#define REG1_IRQSEL_FALL	(2 << 2)
+> +#define REG1_IRQSEL_RISE	(3 << 2)
+> +
+> +#define REG1_RESET		BIT(0)
+> +#define REG1_ENABLE		BIT(15)
+> +
+> +#define STATUS_IR_DEC_IN	BIT(8)
+> +
+> +#define MESON_TRATE		10	/* us */
+> +
+> +struct meson_ir {
+> +	void __iomem	*reg;
+> +	struct rc_dev	*rc;
+> +	int		irq;
+> +	spinlock_t	lock;
+> +};
+> +
+> +static void meson_ir_set_mask(struct meson_ir *ir, unsigned int reg,
+> +			      u32 mask, u32 value)
+> +{
+> +	u32 data;
+> +
+> +	data = readl(ir->reg + reg);
+> +	data &= ~mask;
+> +	data |= (value & mask);
+> +	writel(data, ir->reg + reg);
+> +}
+> +
+> +static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
+> +{
+> +	struct meson_ir *ir = dev_id;
+> +	u32 duration;
+> +	DEFINE_IR_RAW_EVENT(rawir);
+> +
+> +	spin_lock(&ir->lock);
+> +
+> +	duration = readl(ir->reg + IR_DEC_REG1);
+> +	duration = (duration & REG1_TIME_IV_MASK) >> REG1_TIME_IV_SHIFT;
+> +	rawir.duration = US_TO_NS(duration * MESON_TRATE);
+> +
+> +	rawir.pulse = !!(readl(ir->reg + IR_DEC_STATUS) & STATUS_IR_DEC_IN);
+> +
+> +	ir_raw_event_store_with_filter(ir->rc, &rawir);
+> +	ir_raw_event_handle(ir->rc);
+> +
+> +	spin_unlock(&ir->lock);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static int meson_ir_probe(struct platform_device *pdev)
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	struct device_node *node = dev->of_node;
+> +	struct resource *res;
+> +	const char *map_name;
+> +	struct meson_ir *ir;
+> +	int ret;
+> +
+> +	ir = devm_kzalloc(dev, sizeof(struct meson_ir), GFP_KERNEL);
+> +	if (!ir)
+> +		return -ENOMEM;
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	ir->reg = devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(ir->reg)) {
+> +		dev_err(dev, "failed to map registers\n");
+> +		return PTR_ERR(ir->reg);
+> +	}
+> +
+> +	ir->irq = platform_get_irq(pdev, 0);
+> +	if (ir->irq < 0) {
+> +		dev_err(dev, "no irq resource\n");
+> +		return ir->irq;
+> +	}
+> +
+> +	ir->rc = rc_allocate_device();
+> +	if (!ir->rc) {
+> +		dev_err(dev, "failed to allocate rc device\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	ir->rc->priv = ir;
+> +	ir->rc->input_name = DRIVER_NAME;
+> +	ir->rc->input_phys = DRIVER_NAME "/input0";
+> +	ir->rc->input_id.bustype = BUS_HOST;
+> +	map_name = of_get_property(node, "linux,rc-map-name", NULL);
+> +	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
+> +	ir->rc->dev.parent = dev;
+> +	ir->rc->driver_type = RC_DRIVER_IR_RAW;
+> +	ir->rc->allowed_protocols = RC_BIT_ALL;
+> +	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
+> +	ir->rc->timeout = MS_TO_NS(200);
+> +	ir->rc->driver_name = DRIVER_NAME;
+> +
+> +	spin_lock_init(&ir->lock);
+> +	platform_set_drvdata(pdev, ir);
+> +
+> +	ret = rc_register_device(ir->rc);
+> +	if (ret) {
+> +		dev_err(dev, "failed to register rc device\n");
+> +		goto out_free;
+> +	}
+> +
+> +	ret = devm_request_irq(dev, ir->irq, meson_ir_irq, 0, "ir-meson", ir);
+> +	if (ret) {
+> +		dev_err(dev, "failed to request irq\n");
+> +		goto out_unreg;
+> +	}
+> +
+> +	/* Reset the decoder */
+> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, REG1_RESET);
+> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, 0);
+> +	/* Set general operation mode */
+> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK, REG1_MODE_GENERAL);
+> +	/* Set rate */
+> +	meson_ir_set_mask(ir, IR_DEC_REG0, REG0_RATE_MASK, MESON_TRATE - 1);
+> +	/* IRQ on rising and falling edges */
+> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_IRQSEL_MASK,
+> +			  REG1_IRQSEL_RISE_FALL);
+> +	/* Enable the decoder */
+> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, REG1_ENABLE);
+> +
+> +	dev_info(dev, "receiver initialized\n");
+> +
+> +	return 0;
+> +out_unreg:
+> +	rc_unregister_device(ir->rc);
+> +	ir->rc = NULL;
+> +out_free:
+> +	rc_free_device(ir->rc);
+> +
+> +	return ret;
+> +}
+> +
+> +static int meson_ir_remove(struct platform_device *pdev)
+> +{
+> +	struct meson_ir *ir = platform_get_drvdata(pdev);
+> +	unsigned long flags;
+> +
+> +	/* Disable the decoder */
+> +	spin_lock_irqsave(&ir->lock, flags);
+> +	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, 0);
+> +	spin_unlock_irqrestore(&ir->lock, flags);
+> +
+> +	rc_unregister_device(ir->rc);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id meson_ir_match[] = {
+> +	{ .compatible = "amlogic,meson6-ir" },
+> +	{ },
+> +};
+> +
+> +static struct platform_driver meson_ir_driver = {
+> +	.probe		= meson_ir_probe,
+> +	.remove		= meson_ir_remove,
+> +	.driver = {
+> +		.name		= DRIVER_NAME,
+> +		.of_match_table	= meson_ir_match,
+> +	},
+> +};
+> +
+> +module_platform_driver(meson_ir_driver);
+> +
+> +MODULE_DESCRIPTION("Amlogic Meson IR remote receiver driver");
+> +MODULE_AUTHOR("Beniamino Galvani <b.galvani@gmail.com>");
+> +MODULE_LICENSE("GPL v2");
