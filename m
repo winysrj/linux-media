@@ -1,57 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:60892 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752846AbaKDJz2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 04:55:28 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH 10/15] [media] v4l: Forbid usage of V4L2_MBUS_FMT definitions inside the kernel
-Date: Tue,  4 Nov 2014 10:55:05 +0100
-Message-Id: <1415094910-15899-11-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43991 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752080AbaKZDRc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Nov 2014 22:17:32 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 9E2D72A0086
+	for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 04:17:22 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141126031722.9E2D72A0086@tschai.lan>
+Date: Wed, 26 Nov 2014 04:17:22 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Place v4l2_mbus_pixelcode in a #ifndef __KERNEL__ section so that kernel
-users don't have access to these definitions.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-We have to keep this definition for user-space users even though they're
-encouraged to move to the new media_bus_format enum.
+Results of the daily build of media_tree:
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- include/uapi/linux/v4l2-mediabus.h | 2 ++
- 1 file changed, 2 insertions(+)
+date:		Wed Nov 26 04:00:18 CET 2014
+git branch:	test
+git hash:	504febc3f98c87a8bebd8f2f274f32c0724131e4
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index 9fbe891..5a3e797 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -15,6 +15,7 @@
- #include <linux/videodev2.h>
- #include <linux/media-bus-format.h>
- 
-+#ifndef __KERNEL__
- #define MEDIA_BUS_TO_V4L2_MBUS(x)	V4L2_MBUS_FMT_ ## x = MEDIA_BUS_FMT_ ## x
- 
- enum v4l2_mbus_pixelcode {
-@@ -102,6 +103,7 @@ enum v4l2_mbus_pixelcode {
- 
- 	MEDIA_BUS_TO_V4L2_MBUS(AHSV8888_1X32),
- };
-+#endif /* __KERNEL__ */
- 
- /**
-  * struct v4l2_mbus_framefmt - frame format on the media bus
--- 
-1.9.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16-i686: ERRORS
+linux-3.17-i686: ERRORS
+linux-3.18-rc1-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17-x86_64: ERRORS
+linux-3.18-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
