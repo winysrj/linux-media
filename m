@@ -1,64 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33286 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751345AbaK1Xx3 (ORCPT
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:56630 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753357AbaKZWnP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 18:53:29 -0500
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 2C9BA60093
-	for <linux-media@vger.kernel.org>; Sat, 29 Nov 2014 01:53:25 +0200 (EET)
-Date: Sat, 29 Nov 2014 01:53:24 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.19] Add V4L2_SEL_TGT_NATIVE_SIZE target
-Message-ID: <20141128235324.GQ8907@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Wed, 26 Nov 2014 17:43:15 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Kukjin Kim <kgene.kim@samsung.com>
+Subject: [PATCH v2 02/11] media: ti-vpe: use vb2_ops_wait_prepare/finish helper
+Date: Wed, 26 Nov 2014 22:42:25 +0000
+Message-Id: <1417041754-8714-3-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This patch drops driver specific wait_prepare() and
+wait_finish() callbacks from vb2_ops and instead uses
+the the helpers vb2_ops_wait_prepare/finish() provided
+by the vb2 core, the lock member of the queue needs
+to be initalized to a mutex so that vb2 helpers
+vb2_ops_wait_prepare/finish() can make use of it.
 
-This pull request adds support for the V4L2_SEL_TGT_NATIVE_SIZE selection
-target to access the device's native size. Among is also a patch to clean up
-sub-device interface documentation and capability flags to tell whether
-setting the native size is possible.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-Please pull.
-
-
-The following changes since commit 504febc3f98c87a8bebd8f2f274f32c0724131e4:
-
-  Revert "[media] lmed04: add missing breaks" (2014-11-25 22:16:25 -0200)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git native-size
-
-for you to fetch changes up to da7cf8011adc281a878dde254f5642745648decd:
-
-  smiapp: Support V4L2_SEL_TGT_NATIVE_SIZE (2014-11-29 01:48:54 +0200)
-
-----------------------------------------------------------------
-Sakari Ailus (5):
-      v4l: Clean up sub-device format documentation
-      v4l: Add V4L2_SEL_TGT_NATIVE_SIZE selection target
-      v4l: Add input and output capability flags for native size setting
-      smiapp: Set left and top to zero for crop bounds selection
-      smiapp: Support V4L2_SEL_TGT_NATIVE_SIZE
-
- Documentation/DocBook/media/v4l/dev-subdev.xml     |  109 +++++++++++---------
- .../DocBook/media/v4l/selections-common.xml        |   16 +++
- .../DocBook/media/v4l/vidioc-enuminput.xml         |    8 ++
- .../DocBook/media/v4l/vidioc-enumoutput.xml        |    8 ++
- drivers/media/i2c/smiapp/smiapp-core.c             |    7 ++
- include/uapi/linux/v4l2-common.h                   |    2 +
- include/uapi/linux/videodev2.h                     |    2 +
- 7 files changed, 106 insertions(+), 46 deletions(-)
-
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 9a081c2..d5d745d 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1913,30 +1913,19 @@ static void vpe_buf_queue(struct vb2_buffer *vb)
+ 	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
+ }
+ 
+-static void vpe_wait_prepare(struct vb2_queue *q)
+-{
+-	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
+-	vpe_unlock(ctx);
+-}
+-
+-static void vpe_wait_finish(struct vb2_queue *q)
+-{
+-	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
+-	vpe_lock(ctx);
+-}
+-
+ static struct vb2_ops vpe_qops = {
+ 	.queue_setup	 = vpe_queue_setup,
+ 	.buf_prepare	 = vpe_buf_prepare,
+ 	.buf_queue	 = vpe_buf_queue,
+-	.wait_prepare	 = vpe_wait_prepare,
+-	.wait_finish	 = vpe_wait_finish,
++	.wait_prepare	 = vb2_ops_wait_prepare,
++	.wait_finish	 = vb2_ops_wait_finish,
+ };
+ 
+ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 		      struct vb2_queue *dst_vq)
+ {
+ 	struct vpe_ctx *ctx = priv;
++	struct vpe_dev *dev = ctx->dev;
+ 	int ret;
+ 
+ 	memset(src_vq, 0, sizeof(*src_vq));
+@@ -1947,6 +1936,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->ops = &vpe_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	src_vq->lock = &dev->dev_mutex;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -1960,6 +1950,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->ops = &vpe_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	dst_vq->lock = &dev->dev_mutex;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
 -- 
-Kind regards,
+1.9.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
