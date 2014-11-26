@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.59.15.196]:10250 "EHLO
-	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751626AbaKQMSH (ORCPT
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:61473 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036AbaKZKVb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 07:18:07 -0500
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>
-CC: James Hogan <james.hogan@imgtec.com>
-Subject: [REVIEW PATCH 2/5] img-ir/hw: Drop [un]register_decoder declarations
-Date: Mon, 17 Nov 2014 12:17:46 +0000
-Message-ID: <1416226669-2983-3-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1416226669-2983-1-git-send-email-james.hogan@imgtec.com>
-References: <1416226669-2983-1-git-send-email-james.hogan@imgtec.com>
+	Wed, 26 Nov 2014 05:21:31 -0500
+Received: by mail-lb0-f179.google.com with SMTP id z11so2153435lbi.10
+        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 02:21:30 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CAL+AA1nEyE1+EX21gO8Sztknk45pVFYeVc-4+0MTMxTRJXvqHA@mail.gmail.com>
+References: <CAL+AA1nEyE1+EX21gO8Sztknk45pVFYeVc-4+0MTMxTRJXvqHA@mail.gmail.com>
+Date: Wed, 26 Nov 2014 13:21:29 +0300
+Message-ID: <CAL+AA1mfcFx1o=MYVCYpYQWpaB2NZkPYf4yWAoxP=Uky66zM6g@mail.gmail.com>
+Subject: Re: Compiling STK1160 driver for Android
+From: =?UTF-8?B?0JHQsNGA0YIg0JPQvtC/0L3QuNC6?= <bart.gopnik@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The img_ir_register_decoder() and img_ir_unregister_decoder() functions
-were dropped prior to the img-ir driver being applied to simplify the
-protocol decoder setup. However the declarations of these functions in
-img-ir-hw.h were still included. Delete them since they're completely
-unused.
+> Hi, guys!
+>
+> I have:
+> 1. 05e1:0408 USB ID STK1160 chip GM7113 (SAA7113 clone) video processor device.
+> 2. Google Nexus 5 LG D821 Hammerhead smartphone.
+>
+> I need compile STK1160 driver for Android.
+>
+> EasyCap driver can be found in CyanogenMod (Android based OS) git
+> (https://github.com/CyanogenMod/android_kernel_lge_hammerhead/search?q=easycap)
+>
+> Looks like Ezequiel Garcia commited it (it is signed-off-by: Ezequiel
+> Garcia <elezegarcia@gmail.com> and Mauro Carvalho Chehab
+> <mchehab@redhat.com>). But it is the old driver by Mike Thomas.
+>
+> I successfully compiled this old driver by Mike Thomas as kernel
+> module (easycap.ko) for my smartphone. It is working, but very very
+> bad. It don't work without bars=0 key and I have only 12 fps (instead
+> of 25 fps as expected). Any ideas why? I think the problem is in
+> driver.
+>
+> What about new STK1160 driver by Ezequiel Garcia? Can I extract it
+> from latest Linux kernel (stable 3.17.3 or mainline 3.18-rc5 or
+> linux-next) and compile it for Android/CyanogenMod (without or with
+> small changes in source code)?
+>
+> The new driver by Ezequiel Garcia can be found in AOSP git
+> (https://google.com/search?q=stk1160+site%3Aandroid.googlesource.com),
+> but, unfortunately, only for kernel versions 3.10+. But I need compile
+> the new driver for kernel version 3.4 (for my Nexus 5).
+>
+> Hope for your help. Thanks in advance!
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/rc/img-ir/img-ir-hw.h | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
-index 8fcc16c32c5b..a8c6a8d40206 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.h
-+++ b/drivers/media/rc/img-ir/img-ir-hw.h
-@@ -186,9 +186,6 @@ struct img_ir_reg_timings {
- 	struct img_ir_timing_regvals	rtimings;
- };
- 
--int img_ir_register_decoder(struct img_ir_decoder *dec);
--void img_ir_unregister_decoder(struct img_ir_decoder *dec);
--
- struct img_ir_priv;
- 
- #ifdef CONFIG_IR_IMG_HW
--- 
-2.0.4
-
+Please anybody answer my questions.
