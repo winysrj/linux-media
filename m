@@ -1,42 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43120 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750759AbaKSPa1 (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:36200 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753570AbaKZWnX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Nov 2014 10:30:27 -0500
-From: Markus Pargmann <mpa@pengutronix.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Cc: linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
-	Markus Pargmann <mpa@pengutronix.de>
-Subject: [PATCH] DocBook: media: Fix Makefile clean target
-Date: Wed, 19 Nov 2014 16:29:52 +0100
-Message-Id: <1416410992-24950-1-git-send-email-mpa@pengutronix.de>
+	Wed, 26 Nov 2014 17:43:23 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 08/11] media: blackfin: use vb2_ops_wait_prepare/finish helper
+Date: Wed, 26 Nov 2014 22:42:31 +0000
+Message-Id: <1417041754-8714-9-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cleanmediadocs target will fail if the given files do not exist.
-This should not happen, instead we want the cleaning to be successful
-even if the files do not exist.
+This patch drops driver specific wait_prepare() and
+wait_finish() callbacks from vb2_ops and instead uses
+the the helpers vb2_ops_wait_prepare/finish() provided
+by the vb2 core, the lock member of the queue needs
+to be initalized to a mutex so that vb2 helpers
+vb2_ops_wait_prepare/finish() can make use of it.
 
-Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
 ---
- Documentation/DocBook/media/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/blackfin/bfin_capture.c | 17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index df2962d9e11e..8bf7c6191296 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -25,7 +25,7 @@ GENFILES := $(addprefix $(MEDIA_OBJ_DIR)/, $(MEDIA_TEMP))
- PHONY += cleanmediadocs
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index b3345b3..819ec0e 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -349,18 +349,6 @@ static void bcap_buffer_cleanup(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&bcap_dev->lock, flags);
+ }
  
- cleanmediadocs:
--	-@rm `find $(MEDIA_OBJ_DIR) -type l` $(GENFILES) $(OBJIMGFILES) 2>/dev/null
-+	-@rm -f `find $(MEDIA_OBJ_DIR) -type l` $(GENFILES) $(OBJIMGFILES) 2>/dev/null
+-static void bcap_lock(struct vb2_queue *vq)
+-{
+-	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
+-	mutex_lock(&bcap_dev->mutex);
+-}
+-
+-static void bcap_unlock(struct vb2_queue *vq)
+-{
+-	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
+-	mutex_unlock(&bcap_dev->mutex);
+-}
+-
+ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
+@@ -457,8 +445,8 @@ static struct vb2_ops bcap_video_qops = {
+ 	.buf_prepare            = bcap_buffer_prepare,
+ 	.buf_cleanup            = bcap_buffer_cleanup,
+ 	.buf_queue              = bcap_buffer_queue,
+-	.wait_prepare           = bcap_unlock,
+-	.wait_finish            = bcap_lock,
++	.wait_prepare           = vb2_ops_wait_prepare,
++	.wait_finish            = vb2_ops_wait_finish,
+ 	.start_streaming        = bcap_start_streaming,
+ 	.stop_streaming         = bcap_stop_streaming,
+ };
+@@ -995,6 +983,7 @@ static int bcap_probe(struct platform_device *pdev)
+ 	q->ops = &bcap_video_qops;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->lock = &bcap_dev->mutex;
  
- $(obj)/media_api.xml: $(GENFILES) FORCE
- 
+ 	ret = vb2_queue_init(q);
+ 	if (ret)
 -- 
-2.1.1
+1.9.1
 
