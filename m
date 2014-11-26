@@ -1,80 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:34817 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752042AbaKDVZw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Nov 2014 16:25:52 -0500
-Date: Tue, 4 Nov 2014 21:25:49 +0000
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Martin Kittel <linux@martin-kittel.de>,
-	linux-media@vger.kernel.org
-Subject: Re: Patch mceusb: fix invalid urb interval
-Message-ID: <20141104212548.GA1508@gofer.mess.org>
-References: <loom.20131110T113621-661@post.gmane.org>
- <20131211131751.GA434@pequod.mess.org>
- <l8ai94$cbr$1@ger.gmane.org>
- <20140115134917.1450f87c@samsung.com>
- <20140115165245.GA23620@pequod.mess.org>
- <20140115155923.0b8978da.m.chehab@samsung.com>
- <52DC3E0B.6010202@martin-kittel.de>
- <20140119215648.GA15388@pequod.mess.org>
- <20140120173625.GA18257@redhat.com>
- <20141103144945.00288499.m.chehab@samsung.com>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:57071 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750856AbaKZRM0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Nov 2014 12:12:26 -0500
+Received: by mail-lb0-f177.google.com with SMTP id 10so2764345lbg.22
+        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 09:12:24 -0800 (PST)
+Date: Wed, 26 Nov 2014 19:12:18 +0200 (EET)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: Nibble Max <nibble.max@gmail.com>
+cc: Olli Salonen <olli.salonen@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH 1/3] dvb-usb-dvbsky: add T330 dvb-t2/t/c usb stick
+ support
+In-Reply-To: <201411262034428907954@gmail.com>
+Message-ID: <alpine.DEB.2.10.1411261911430.1900@dl160.lan>
+References: <201411262034428907954@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141103144945.00288499.m.chehab@samsung.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 03, 2014 at 02:49:45PM -0200, Mauro Carvalho Chehab wrote:
-> Em Mon, 20 Jan 2014 12:36:26 -0500
-> Jarod Wilson <jarod@redhat.com> escreveu:
-> 
-> > On Sun, Jan 19, 2014 at 09:56:48PM +0000, Sean Young wrote:
-> > > On Sun, Jan 19, 2014 at 10:05:15PM +0100, Martin Kittel wrote:
-> > > > Hi Mauro, hi Sean,
-> > ...
-> > > > >From a71676dad29adef9cafb08598e693ec308ba2e95 Mon Sep 17 00:00:00 2001
-> > > > From: Martin Kittel <linux@martin-kittel.de>
-> > > > Date: Sun, 19 Jan 2014 21:24:55 +0100
-> > > > Subject: [PATCH] mceusb: use endpoint xfer mode as advertised
-> > > > 
-> > > > mceusb always sets endpoints to interrupt transfer mode no matter
-> > > > what the device itself is advertising. This causes trouble on xhci
-> > > > hubs. This patch changes the behavior to honor the device endpoint
-> > > > settings.
-> > > 
-> > > This patch is wrong. I get:
-> > > 
-> > > [   60.962727] ------------[ cut here ]------------
-> > > [   60.962729] WARNING: CPU: 0 PID: 0 at drivers/usb/core/urb.c:452 usb_submit_u
-> > > rb+0x1fd/0x5b0()
-> > > [   60.962730] usb 3-2: BOGUS urb xfer, pipe 1 != type 3
-> > > 
-> > > This is because the patch no longer sets the endpoints to interrupt
-> > > endpoints, but still uses the interrupt functions like
-> > > usb_fill_int_urb().
-> > 
-> > Crap, I sent a working patch to everyone a few days ago, but from a new
-> > host that didn't have relay stuff set up yet, so I don't think anyone got
-> > the message. Oops... I'll try to dig it back up. Its a quick fix, but its
-> > tested as fully functional on multiple devices here, including a mix of
-> > ones that claim bulk and interrupt, ones with no bInterval, ones with
-> > different non-0 bIntervals, etc.
-> 
-> Hi All,
-> 
-> This is still pending on my queue. Any news?
+Reviewed-by: Olli Salonen <olli.salonen@iki.fi>
 
-I'm pretty sure the proper fix for this problem has been merged already:
+On Wed, 26 Nov 2014, Nibble Max wrote:
 
-commit 0cacb46ace1f433f0ab02af10686f6dc50b5d268
-Author: Matt DeVillier <matt.devillier@gmail.com>
-Date:   Thu Apr 24 11:16:31 2014 -0300
-
-    [media] fix mceusb endpoint type identification/handling
-
-
-Sean
+> DVBSky T330 dvb-t2/t/c usb stick:
+> 1>dvb frontend: SI2157A30(tuner), SI2168B40(demod)
+> 2>usb controller: CY7C68013A
+>
+> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+> ---
+> drivers/media/usb/dvb-usb-v2/dvbsky.c | 88 +++++++++++++++++++++++++++++++++++
+> 1 file changed, 88 insertions(+)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> index b6326c6..86db800 100644
+> --- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> +++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> @@ -604,6 +604,65 @@ fail_demod_device:
+> 	return ret;
+> }
+>
+> +static int dvbsky_t330_attach(struct dvb_usb_adapter *adap)
+> +{
+> +	struct dvbsky_state *state = adap_to_priv(adap);
+> +	struct dvb_usb_device *d = adap_to_d(adap);
+> +	int ret = 0;
+> +	struct i2c_adapter *i2c_adapter;
+> +	struct i2c_client *client_demod, *client_tuner;
+> +	struct i2c_board_info info;
+> +	struct si2168_config si2168_config;
+> +	struct si2157_config si2157_config;
+> +
+> +	/* attach demod */
+> +	memset(&si2168_config, 0, sizeof(si2168_config));
+> +	si2168_config.i2c_adapter = &i2c_adapter;
+> +	si2168_config.fe = &adap->fe[0];
+> +	si2168_config.ts_mode = SI2168_TS_PARALLEL | 0x40;
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+> +	info.addr = 0x64;
+> +	info.platform_data = &si2168_config;
+> +
+> +	request_module(info.type);
+> +	client_demod = i2c_new_device(&d->i2c_adap, &info);
+> +	if (client_demod == NULL ||
+> +			client_demod->dev.driver == NULL)
+> +		goto fail_demod_device;
+> +	if (!try_module_get(client_demod->dev.driver->owner))
+> +		goto fail_demod_module;
+> +
+> +	/* attach tuner */
+> +	memset(&si2157_config, 0, sizeof(si2157_config));
+> +	si2157_config.fe = adap->fe[0];
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+> +	info.addr = 0x60;
+> +	info.platform_data = &si2157_config;
+> +
+> +	request_module(info.type);
+> +	client_tuner = i2c_new_device(i2c_adapter, &info);
+> +	if (client_tuner == NULL ||
+> +			client_tuner->dev.driver == NULL)
+> +		goto fail_tuner_device;
+> +	if (!try_module_get(client_tuner->dev.driver->owner))
+> +		goto fail_tuner_module;
+> +
+> +	state->i2c_client_demod = client_demod;
+> +	state->i2c_client_tuner = client_tuner;
+> +	return ret;
+> +fail_tuner_module:
+> +	i2c_unregister_device(client_tuner);
+> +fail_tuner_device:
+> +	module_put(client_demod->dev.driver->owner);
+> +fail_demod_module:
+> +	i2c_unregister_device(client_demod);
+> +fail_demod_device:
+> +	ret = -ENODEV;
+> +	return ret;
+> +}
+> +
+> static int dvbsky_identify_state(struct dvb_usb_device *d, const char **name)
+> {
+> 	dvbsky_gpio_ctrl(d, 0x04, 1);
+> @@ -742,6 +801,33 @@ static struct dvb_usb_device_properties dvbsky_t680c_props = {
+> 	}
+> };
+>
+> +static struct dvb_usb_device_properties dvbsky_t330_props = {
+> +	.driver_name = KBUILD_MODNAME,
+> +	.owner = THIS_MODULE,
+> +	.adapter_nr = adapter_nr,
+> +	.size_of_priv = sizeof(struct dvbsky_state),
+> +
+> +	.generic_bulk_ctrl_endpoint = 0x01,
+> +	.generic_bulk_ctrl_endpoint_response = 0x81,
+> +	.generic_bulk_ctrl_delay = DVBSKY_MSG_DELAY,
+> +
+> +	.i2c_algo         = &dvbsky_i2c_algo,
+> +	.frontend_attach  = dvbsky_t330_attach,
+> +	.init             = dvbsky_init,
+> +	.get_rc_config    = dvbsky_get_rc_config,
+> +	.streaming_ctrl   = dvbsky_streaming_ctrl,
+> +	.identify_state	  = dvbsky_identify_state,
+> +	.exit             = dvbsky_exit,
+> +	.read_mac_address = dvbsky_read_mac_addr,
+> +
+> +	.num_adapters = 1,
+> +	.adapter = {
+> +		{
+> +			.stream = DVB_USB_STREAM_BULK(0x82, 8, 4096),
+> +		}
+> +	}
+> +};
+> +
+> static const struct usb_device_id dvbsky_id_table[] = {
+> 	{ DVB_USB_DEVICE(0x0572, 0x6831,
+> 		&dvbsky_s960_props, "DVBSky S960/S860", RC_MAP_DVBSKY) },
+> @@ -749,6 +835,8 @@ static const struct usb_device_id dvbsky_id_table[] = {
+> 		&dvbsky_s960c_props, "DVBSky S960CI", RC_MAP_DVBSKY) },
+> 	{ DVB_USB_DEVICE(0x0572, 0x680c,
+> 		&dvbsky_t680c_props, "DVBSky T680CI", RC_MAP_DVBSKY) },
+> +	{ DVB_USB_DEVICE(0x0572, 0x0320,
+> +		&dvbsky_t330_props, "DVBSky T330", RC_MAP_DVBSKY) },
+> 	{ }
+> };
+> MODULE_DEVICE_TABLE(usb, dvbsky_id_table);
+>
+> -- 
+> 1.9.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
