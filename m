@@ -1,85 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:47777 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757AbaKSJdU convert rfc822-to-8bit (ORCPT
+Received: from mail-la0-f52.google.com ([209.85.215.52]:34666 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750927AbaK0SKm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Nov 2014 04:33:20 -0500
-Received: by mail-wi0-f172.google.com with SMTP id n3so4670912wiv.5
-        for <linux-media@vger.kernel.org>; Wed, 19 Nov 2014 01:33:17 -0800 (PST)
-Date: Wed, 19 Nov 2014 10:33:06 +0100
-From: Francesco Marletta <fmarletta@movia.biz>
-To: Carlos =?UTF-8?B?U2FubWFydMOtbg==?= Bustos <carsanbu@gmail.com>
-Cc: Linux Media <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Help required for TVP5151 on Overo
-Message-ID: <20141119103306.07e52744@crow>
-In-Reply-To: <CAPW4HR0RS3oPRLKRiD-h0e-xbK95ODFur1_VtD2aTFwZ6NEjBQ@mail.gmail.com>
-References: <20141119094656.5459258b@crow>
-	<CAPW4HR0RS3oPRLKRiD-h0e-xbK95ODFur1_VtD2aTFwZ6NEjBQ@mail.gmail.com>
-Mime-Version: 1.0
+	Thu, 27 Nov 2014 13:10:42 -0500
+Received: by mail-la0-f52.google.com with SMTP id q1so4473688lam.25
+        for <linux-media@vger.kernel.org>; Thu, 27 Nov 2014 10:10:41 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAL8zT=gnkaD=9XbyBDcDh7D=w+rDSQPsi3dKfQ17ezvz6NZMCg@mail.gmail.com>
+References: <CAL8zT=i+UZP7gpukW-cRe2M=xWW5Av9Mzd-FnnZAP5d+5J7Mzg@mail.gmail.com>
+	<1417020934.3177.15.camel@pengutronix.de>
+	<CAL8zT=hY8XeAb4j7-eBt3VJX-3Kzg6-BOajvSpxvgc+o3ZRuYQ@mail.gmail.com>
+	<CAL8zT=gnkaD=9XbyBDcDh7D=w+rDSQPsi3dKfQ17ezvz6NZMCg@mail.gmail.com>
+Date: Thu, 27 Nov 2014 16:10:40 -0200
+Message-ID: <CAOMZO5BsikrKPCjV129FWWW2DVe-ziLz_kMGSh6aM2JC=wnkhA@mail.gmail.com>
+Subject: Re: i.MX6 CODA960 encoder
+From: Fabio Estevam <festevam@gmail.com>
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Schwebel <r.schwebel@pengutronix.de>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Carlos,
-thanks for your response.
+On Thu, Nov 27, 2014 at 3:54 PM, Jean-Michel Hautbois
+<jean-michel.hautbois@vodalys.com> wrote:
 
-I've read your message on permalink.
+> I don't have the same behaviour, but I may have missed a patch.
+> I have taken linux-next and rebased my work on it. I have some issues,
+> but nothing to be worried about, no link with coda.
+> I get the following :
+> $> v4l2-ctl -d0 --set-fmt-video-out=width=1280,height=720,pixelfor
+> $> v4l2-ctl -d0 --stream-mmap --stream-out-mmap --stream-to x.raw
+> [  173.705701] coda 2040000.vpu: CODA PIC_RUN timeout
 
-I'm not sure the ISP is broken, or at least it may be broken but it can
-be fixed.
+I have this same error with linux-next when I try to decode a file.
 
-I'm trying to work the tvp5151 board described in [1], the author
-states (and told me) that it was successfull in using that board, using
-a patch that he also publish, but my board is not working (using the
-same patch set). Maybe there is something different in my kernel, even
-if the version is the same? 
+Philipp,
 
-I'm going to try applying the patch by hand, to check if there is
-something different respect the source that the patch is made from.
+Do you know if linux-next contains all required coda patches?
 
-It will be useful to me to have a kernel (with modules) that works with
-that board, this way I could check if the problem is in the hw or in
-the sw.
+Could this be caused by the fact that we are using an unsupported VPU
+firmware version?
 
-I'll continue to try.
-
-Regards
-Francesco
-
-[1] http://www.sleepyrobot.com/?p=253
-
-
-Il giorno Wed, 19 Nov 2014 10:15:36 +0100
-Carlos Sanmartín Bustos <carsanbu@gmail.com> ha scritto:
-
-> Hi Francesco,
-> 
-> Yesterday I sent a mail asking about similar behaviour in another
-> OMAP3 board [1], I'm starting to think that OMAP3 ISP is broken in
-> latest kernel versions.
-> 
-> I hope someone give us a solution.
-> 
-> Regards,
-> 
-> Carlos
-> 
-> [1]
-> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/84744
-> 
-> 2014-11-19 9:46 GMT+01:00 Francesco Marletta <fmarletta@movia.biz>:
-> > Hello to everyone,
-> > I'd like to know who have used the TVP5151 video decoder with the
-> > OMAP3 Overo module.
-> >
-> > I'm trying to have the processor to capture the video from a TVP5151
-> > boarda, but without success (both gstreamer and yavta wait forever
-> > the data from the V4L2 subsystem).
-> >
-> > Thanks in advance!
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe
-> > linux-media" in the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
