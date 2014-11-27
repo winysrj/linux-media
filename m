@@ -1,63 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34695 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751268AbaKJNQW (ORCPT
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:54622 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753880AbaK0Igg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 08:16:22 -0500
-Date: Mon, 10 Nov 2014 15:06:59 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Marina Vasilevsky <marinavasilevsky@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] v4l: omap4iss: Fix dual lane camera mode problem
-Message-ID: <20141110130659.GA8214@valkosipuli.retiisi.org.uk>
-References: <CAGU7XX3ODOJ+xRk9GAJi8Wk8bj5LONR7WVFh3ujVM1oL=HBL7g@mail.gmail.com>
+	Thu, 27 Nov 2014 03:36:36 -0500
+Received: by mail-ie0-f170.google.com with SMTP id rd18so4198549iec.15
+        for <linux-media@vger.kernel.org>; Thu, 27 Nov 2014 00:36:35 -0800 (PST)
+Date: Thu, 27 Nov 2014 08:36:29 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Emilio Lopez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 3/9] clk: sunxi: Add prcm mod0 clock driver
+Message-ID: <20141127083629.GA4628@x1>
+References: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
+ <1416749895-25013-4-git-send-email-hdegoede@redhat.com>
+ <20141125165744.GA17789@x1>
+ <547589A9.5060802@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAGU7XX3ODOJ+xRk9GAJi8Wk8bj5LONR7WVFh3ujVM1oL=HBL7g@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <547589A9.5060802@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marina,
+On Wed, 26 Nov 2014, Hans de Goede wrote:
 
-On Mon, Nov 10, 2014 at 10:11:31AM +0200, Marina Vasilevsky wrote:
-> ---
->  drivers/staging/media/omap4iss/iss_csiphy.c |    3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
+> Hi,
 > 
-> diff --git a/drivers/staging/media/omap4iss/iss_csiphy.c
-> b/drivers/staging/media/omap4iss/iss_csiphy.c
-> index 7c3d55d..b6e0b32 100644
-> --- a/drivers/staging/media/omap4iss/iss_csiphy.c
-> +++ b/drivers/staging/media/omap4iss/iss_csiphy.c
-> @@ -196,8 +196,7 @@ int omap4iss_csiphy_config(struct iss_device *iss,
->          return -EINVAL;
+> On 11/25/2014 05:57 PM, Lee Jones wrote:
+> >On Sun, 23 Nov 2014, Hans de Goede wrote:
+> >
+> >>Add a driver for mod0 clocks found in the prcm. Currently there is only
+> >>one mod0 clocks in the prcm, the ir clock.
+> >>
+> >>Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> >>---
+> >>  Documentation/devicetree/bindings/clock/sunxi.txt |  1 +
+> >>  drivers/clk/sunxi/Makefile                        |  2 +-
+> >>  drivers/clk/sunxi/clk-sun6i-prcm-mod0.c           | 63 +++++++++++++++++++++++
+> >>  drivers/mfd/sun6i-prcm.c                          | 14 +++++
+> >>  4 files changed, 79 insertions(+), 1 deletion(-)
+> >>  create mode 100644 drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
+> >
+> >[...]
+> >
+> >>diff --git a/drivers/mfd/sun6i-prcm.c b/drivers/mfd/sun6i-prcm.c
+> >>index 283ab8d..ff1254f 100644
+> >>--- a/drivers/mfd/sun6i-prcm.c
+> >>+++ b/drivers/mfd/sun6i-prcm.c
+> >>@@ -41,6 +41,14 @@ static const struct resource sun6i_a31_apb0_gates_clk_res[] = {
+> >>  	},
+> >>  };
+> >>
+> >>+static const struct resource sun6i_a31_ir_clk_res[] = {
+> >>+	{
+> >>+		.start = 0x54,
+> >>+		.end = 0x57,
+> >>+		.flags = IORESOURCE_MEM,
+> >>+	},
+> >>+};
+> >
+> >I'm not overly keen on these magic numbers (and yes, I'm well aware
+> >that I SoB'ed the patch which started them off).
+> >
+> >It's not a show stopper, although I'd prefer if they were fixed with a
+> >subsequent patch.
 > 
->      csi2_ddrclk_khz = pipe->external_rate / 1000
-> -        / (2 * csi2->phy->used_data_lanes)
-> -        * pipe->external_bpp;
-> +        / 2 * pipe->external_bpp;
-> 
->      /*
->       * THS_TERM: Programmed value = ceil(12.5 ns/DDRClk period) - 1.
-> -- 
-> 
-> Hello,
-> 
-> I tested this fix with OMAP4 connected to OV5640 camera using 2 lanes.
-> Have anybody tested other camera with 2 lanes connected to OMAP?
-> 
-> The value csi2_ddrclk_khz is different per camera.
-> I have also driver for OV7695. Current iss params structure does not
-> allow to configure it properly from board file.
+> These are offsets of the relevant registers inside the prcm register block,
+> if not done this way, then how should they be done ?
 
-Are you certain the pixel rate value provided by the sensor driver is
-correct?
-
-The formula in iss_csiphy.c is fine as far as I understand.
+I like these kinds of things to be defined.  No implementation changes
+are necessary.
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
