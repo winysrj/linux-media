@@ -1,65 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:47457 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752021AbaK3VbI (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:54708 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751204AbaK0BBv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Nov 2014 16:31:08 -0500
+	Wed, 26 Nov 2014 20:01:51 -0500
+Received: by mail-pd0-f174.google.com with SMTP id w10so3833692pde.33
+        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 17:01:51 -0800 (PST)
+Message-ID: <547677FB.10901@igel.co.jp>
+Date: Thu, 27 Nov 2014 10:01:47 +0900
+From: Takanari Hayama <taki@igel.co.jp>
 MIME-Version: 1.0
-In-Reply-To: <1680188.7K1XCBdsCk@avalon>
-References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com>
- <3017627.SLutb67dz2@avalon> <CA+V-a8tNW8JXKEeaAwEKkB+SCS2_My228spsgpbb5JQPjdC2Og@mail.gmail.com>
- <1680188.7K1XCBdsCk@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sun, 30 Nov 2014 21:30:35 +0000
-Message-ID: <CA+V-a8uaw2X_a3rfx0=avbuGnUdbqveMvJaU25hewzv9eAA8+Q@mail.gmail.com>
-Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API
- for v4l2_subdev_get_try_*()
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=UTF-8
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	linux-media@vger.kernel.org
+CC: linux-sh@vger.kernel.org
+Subject: Re: [PATCH 2/2] v4l: vsp1: Always enable virtual RPF when BRU is
+ in use
+References: <1416982792-11917-1-git-send-email-taki@igel.co.jp> <1416982792-11917-3-git-send-email-taki@igel.co.jp> <5475CDD2.1010104@cogentembedded.com>
+In-Reply-To: <5475CDD2.1010104@cogentembedded.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Sergei,
 
-On Sun, Nov 30, 2014 at 9:16 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Sunday 30 November 2014 21:05:50 Prabhakar Lad wrote:
->> On Sat, Nov 29, 2014 at 7:12 PM, Laurent Pinchart wrote:
->> > Hi Prabhakar,
+On 11/26/14, 9:55 PM, Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 11/26/2014 9:19 AM, Takanari Hayama wrote:
+> 
+>> Regardless of a number of inputs, we should always enable virtual RPF
+>> when BRU is used. This allows the case when there's only one input to
+>> BRU, and a size of the input is smaller than a size of an output of BRU.
+> 
+>> Signed-off-by: Takanari Hayama <taki@igel.co.jp>
+>> ---
+>>   drivers/media/platform/vsp1/vsp1_wpf.c | 11 ++++++-----
+>>   1 file changed, 6 insertions(+), 5 deletions(-)
+> 
+>> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c
+>> b/drivers/media/platform/vsp1/vsp1_wpf.c
+>> index 6e05776..29ea28b 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+>> @@ -92,19 +92,20 @@ static int wpf_s_stream(struct v4l2_subdev
+>> *subdev, int enable)
+>>           return 0;
+>>       }
 >>
->> [Snip]
+>> -    /* Sources. If the pipeline has a single input configure it as the
+>> -     * master layer. Otherwise configure all inputs as sub-layers and
+>> -     * select the virtual RPF as the master layer.
+>> +    /* Sources. If the pipeline has a single input and BRU is not used,
+>> +     * configure it as the master layer. Otherwise configure all
+>> +     * inputs as sub-layers and select the virtual RPF as the master
+>> +     * layer.
+>>        */
+>>       for (i = 0; i < pipe->num_inputs; ++i) {
+>>           struct vsp1_rwpf *input = pipe->inputs[i];
 >>
->> >> > Sure. That's a better choice than removing the config option dependency
->> >> > of the fields struct v4l2_subdev.
->> >
->> > Decoupling CONFIG_VIDEO_V4L2_SUBDEV_API from the availability of the
->> > in-kernel pad format and selection rectangles helpers is definitely a
->> > good idea. I was thinking about decoupling the try format and rectangles
->> > from v4l2_subdev_fh by creating a kind of configuration store structure
->> > to store them, and embedding that structure in v4l2_subdev_fh. The
->> > pad-level operations would then take a pointer to the configuration store
->> > instead of the v4l2_subdev_fh. Bridge drivers that want to implement
->> > TRY_FMT based on pad-level operations would create a configuration store,
->> > use the pad-level operations, and destroy the configuration store. The
->> > userspace subdev API would use the configuration store from the file
->> > handle.
->>
->> are planning to work/post any time soon ? Or are you OK with suggestion from
->> Hans ?
->
-> I have no plan to work on that myself now, I was hoping you could implement it
-> ;-)
->
-OK will implement it.
+>> -        srcrpf |= pipe->num_inputs == 1
+>> +        srcrpf |= ((!pipe->bru) && (pipe->num_inputs == 1))
+> 
+>    Inner parens not needed, especially in the first case.
 
-Can you please elaborate a more on this "The userspace subdev API would use
-the configuration store from the file  handle."
+Ok. Will fix it.
 
-Thanks,
---Prabhakar Lad
+>>               ? VI6_WPF_SRCRPF_RPF_ACT_MST(input->entity.index)
+>>               : VI6_WPF_SRCRPF_RPF_ACT_SUB(input->entity.index);
+>>       }
+>>
+>> -    if (pipe->num_inputs > 1)
+>> +    if ((pipe->bru) || (pipe->num_inputs > 1))
+> 
+>    Likewise.
+
+Here too. Thanks!
+
+> [...]
+> 
+> WBR, Sergei
+
+Cheers,
+Takanari Hayama, Ph.D. (taki@igel.co.jp)
+IGEL Co.,Ltd.
+http://www.igel.co.jp/
