@@ -1,96 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devil.pb.cz ([109.72.0.18]:57457 "EHLO smtp4.pb.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751317AbaKYSpI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Nov 2014 13:45:08 -0500
-Message-ID: <5474CE31.7090000@mizera.cz>
-Date: Tue, 25 Nov 2014 19:45:05 +0100
-From: kapetr@mizera.cz
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: it913x: probe of 8-001c failed with error -22
-References: <5474A116.3050604@mizera.cz> <5474ABCA.9080609@iki.fi>
-In-Reply-To: <5474ABCA.9080609@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-la0-f48.google.com ([209.85.215.48]:45226 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751111AbaK0Tmh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Nov 2014 14:42:37 -0500
+Received: by mail-la0-f48.google.com with SMTP id s18so4574400lam.7
+        for <linux-media@vger.kernel.org>; Thu, 27 Nov 2014 11:42:36 -0800 (PST)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 2/2] si2168: add support for firmware files in new format
+Date: Thu, 27 Nov 2014 21:42:23 +0200
+Message-Id: <1417117343-1793-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1417117343-1793-1-git-send-email-olli.salonen@iki.fi>
+References: <1417117343-1793-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This patch adds support for new type of firmware versions of Si2168 chip. 
 
-# modinfo regmap-i2c
-ERROR: modinfo: could not find module regmap-i2c
+Old type: n x 8 bytes (all data, first byte seems to be 04 or 05)
+New type: n x 17 bytes (1 byte indicates len and max 16 bytes data)
 
-I'm using standard Ubuntu kernel.
+New version of TechnoTrend CT2-4400 drivers 
+(http://www.tt-downloads.de/bda-treiber_4.3.0.0.zip) contains newer
+firmware for Si2168-B40 that is in the new format. It can be extracted
+with the following command:
 
--> don't know, how to get regmap-i2c module.
+dd if=ttTVStick4400_64.sys ibs=1 skip=323872 count=6919 of=dvb-demod-si2168-b40-01.fw
 
-It is a part of V4L ?
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/dvb-frontends/si2168.c | 46 +++++++++++++++++++++++++-----------
+ 1 file changed, 32 insertions(+), 14 deletions(-)
 
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 6da38e8..ce9ab44 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -462,20 +462,38 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	dev_info(&s->client->dev, "downloading firmware from file '%s'\n",
+ 			fw_file);
+ 
+-	for (remaining = fw->size; remaining > 0; remaining -= i2c_wr_max) {
+-		len = remaining;
+-		if (len > i2c_wr_max)
+-			len = i2c_wr_max;
+-
+-		memcpy(cmd.args, &fw->data[fw->size - remaining], len);
+-		cmd.wlen = len;
+-		cmd.rlen = 1;
+-		ret = si2168_cmd_execute(s, &cmd);
+-		if (ret) {
+-			dev_err(&s->client->dev,
+-					"firmware download failed=%d\n",
+-					ret);
+-			goto error_fw_release;
++	if ((fw->size % 17 == 0) && (fw->data[0] > 5)) {
++		/* firmware is in the new format */
++		for (remaining = fw->size; remaining > 0; remaining -= 17) {
++			len = fw->data[fw->size - remaining];
++			memcpy(cmd.args, &fw->data[(fw->size - remaining) + 1], len);
++			cmd.wlen = len;
++			cmd.rlen = 1;
++			ret = si2168_cmd_execute(s, &cmd);
++			if (ret) {
++				dev_err(&s->client->dev,
++						"firmware download failed=%d\n",
++						ret);
++				goto error_fw_release;
++			}
++		}
++	} else {
++		/* firmware is in the old format */
++		for (remaining = fw->size; remaining > 0; remaining -= i2c_wr_max) {
++			len = remaining;
++			if (len > i2c_wr_max)
++				len = i2c_wr_max;
++
++			memcpy(cmd.args, &fw->data[fw->size - remaining], len);
++			cmd.wlen = len;
++			cmd.rlen = 1;
++			ret = si2168_cmd_execute(s, &cmd);
++			if (ret) {
++				dev_err(&s->client->dev,
++						"firmware download failed=%d\n",
++						ret);
++				goto error_fw_release;
++			}
+ 		}
+ 	}
+ 
+-- 
+1.9.1
 
-THX --kapetr
-
-
-Dne 25.11.2014 v 17:18 Antti Palosaari napsal(a):
->
->
-> On 11/25/2014 05:32 PM, kapetr@mizera.cz wrote:
->> Hello.
->>
->> U12.04 with newly installed 3.8 kernel:
->>
->> 3.8.0-44-generic #66~precise1-Ubuntu SMP Tue Jul 15 04:01:04 UTC 2014
->> x86_64 x86_64 x86_64 GNU/Linux
->>
->> USB dvb-t tuner:
->>
->> Bus 001 Device 005: ID 048d:9135 Integrated Technology Express, Inc.
->> Zolid Mini DVB-T Stick
->>
->> Newest V4L drivers installed. But there is an error in log by inserting
->> of the USB tuner:
->>
->> -------------------
->> Nov 25 16:24:38 zly-hugo kernel: [  315.927923] usb 1-1.3: new
->> high-speed USB device number 5 using ehci-pci
->> Nov 25 16:24:38 zly-hugo kernel: [  316.021755] usb 1-1.3: New USB
->> device found, idVendor=048d, idProduct=9135
->> Nov 25 16:24:38 zly-hugo kernel: [  316.021760] usb 1-1.3: New USB
->> device strings: Mfr=0, Product=0, SerialNumber=0
->> Nov 25 16:24:38 zly-hugo kernel: [  316.023071] usb 1-1.3:
->> dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135
->> Nov 25 16:24:38 zly-hugo kernel: [  316.023443] usb 1-1.3: dvb_usb_v2:
->> found a 'ITE 9135 Generic' in cold state
->> Nov 25 16:24:38 zly-hugo kernel: [  316.023519] usb 1-1.3: dvb_usb_v2:
->> downloading firmware from file 'dvb-usb-it9135-02.fw'
->> Nov 25 16:24:38 zly-hugo mtp-probe: checking bus 1, device 5:
->> "/sys/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3"
->> Nov 25 16:24:38 zly-hugo kernel: [  316.119961] usb 1-1.3:
->> dvb_usb_af9035: firmware version=3.40.1.0
->> Nov 25 16:24:38 zly-hugo kernel: [  316.119974] usb 1-1.3: dvb_usb_v2:
->> found a 'ITE 9135 Generic' in warm state
->> Nov 25 16:24:38 zly-hugo kernel: [  316.120972] usb 1-1.3: dvb_usb_v2:
->> will pass the complete MPEG2 transport stream to the software demuxer
->> Nov 25 16:24:38 zly-hugo kernel: [  316.120996] DVB: registering new
->> adapter (ITE 9135 Generic)
->> Nov 25 16:24:38 zly-hugo mtp-probe: bus: 1, device: 5 was not an MTP
->> device
->> Nov 25 16:24:38 zly-hugo kernel: [  316.123808] af9033 8-0038: firmware
->> version: LINK 3.40.1.0 - OFDM 3.40.1.0
->> Nov 25 16:24:38 zly-hugo kernel: [  316.123812] af9033 8-0038: Afatech
->> AF9033 successfully attached
->> Nov 25 16:24:38 zly-hugo kernel: [  316.123822] usb 1-1.3: DVB:
->> registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
->> Nov 25 16:24:38 zly-hugo kernel: [  316.125115] it913x: probe of 8-001c
->> failed with error -22
->> ---------------------
->>
->> What is wrong ?
->
-> it913x_probe() fails with error -EINVAL. There is only 2 ways it could
-> fail, kzalloc() and regmap_init_i2c(). It must be later one.
->
-> Do you have regmap module installed?
-> What says: "modinfo regmap-i2c" command?
->
-> Antti
