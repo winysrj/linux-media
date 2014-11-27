@@ -1,69 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36978 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754499AbaKOU7g (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:58582 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753857AbaK0JPF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 15:59:36 -0500
-Date: Sat, 15 Nov 2014 21:59:34 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Konrad Zapalowicz <bergo.torino@gmail.com>
-Cc: Christian Resell <christian.resell@gmail.com>,
-	m.chehab@samsung.com, devel@driverdev.osuosl.org, askb23@gmail.com,
-	gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
-	yongjun_wei@trendmicro.com.cn, hans.verkuil@cisco.com,
-	pali.rohar@gmail.com, fengguang.wu@intel.com,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] staging: media: bcm2048: fix coding style error
-Message-ID: <20141115205934.GB21240@amd>
-References: <20141115194337.GF15904@Kosekroken.jensen.com>
- <20141115201218.GC8088@t400>
+	Thu, 27 Nov 2014 04:15:05 -0500
+Date: Thu, 27 Nov 2014 10:14:27 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Emilio Lopez <emilio@elopez.com.ar>,
+	Mike Turquette <mturquette@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 8/9] ARM: dts: sun6i: Add pinmux settings for the ir
+ pins
+Message-ID: <20141127091427.GP25249@lukather>
+References: <1416749895-25013-1-git-send-email-hdegoede@redhat.com>
+ <1416749895-25013-9-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6sj9mcRtP+pTWLOo"
 Content-Disposition: inline
-In-Reply-To: <20141115201218.GC8088@t400>
+In-Reply-To: <1416749895-25013-9-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat 2014-11-15 21:12:18, Konrad Zapalowicz wrote:
-> On 11/15, Christian Resell wrote:
-> > Simple style fix (checkpatch.pl: "space prohibited before that ','").
-> > For the eudyptula challenge (http://eudyptula-challenge.org/).
-> 
-> Nice, however we do not need the information about the 'eudyptula
-> challenge' in the commit message.
-> 
-> If you want to include extra information please do it after the '---'
-> line (just below the signed-off). You will find more details in the
-> SubmittingPatches (chapter 15) of the kernel documentation.
 
-Greg is staging tree maintainer... And if single extra space is all
-you can fix in the driver, perhaps it is not worth the patch?
+--6sj9mcRtP+pTWLOo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-									Pavel
+On Sun, Nov 23, 2014 at 02:38:14PM +0100, Hans de Goede wrote:
+> Add pinmux settings for the ir receive pin of the A31.
+>=20
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-> Thanks,
-> Konrad
->  
-> > Signed-off-by: Christian F. Resell <christian.resell@gmail.com>
-> > ---
-> > diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> > index 2bba370..bdc6854 100644
-> > --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-> > +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> > @@ -2707,7 +2707,7 @@ static int __exit bcm2048_i2c_driver_remove(struct i2c_client *client)
-> >   *	bcm2048_i2c_driver - i2c driver interface
-> >   */
-> >  static const struct i2c_device_id bcm2048_id[] = {
-> > -	{ "bcm2048" , 0 },
-> > +	{ "bcm2048", 0 },
-> >  	{ },
-> >  };
-> >  MODULE_DEVICE_TABLE(i2c, bcm2048_id);
-> > _______________________________________________
-> > devel mailing list
-> > devel@linuxdriverproject.org
-> > http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+Applied, thanks!
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
+
+--6sj9mcRtP+pTWLOo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUdutzAAoJEBx+YmzsjxAgwpUP/0GJ/d4Kz/juzWvA7GTX+cON
+vT36Y1Pi3x5CMdlIIHtMTPup+auNwmrSEIeUWOl3yuIdQHG8UWgv8rImfReXeMka
+s53yIyYGgE50CyHdRkZCYwfFTvdqoyM1F7WrQNF6w1Xx2WWtW6FlrP1zaHGrp82K
+ocWs68ciPBmo3zmBZhQtaQCWdf3wPAyaAENcs5y/sbhDzRLe9bUdP/AK+gfEHkUl
+mVphBU/sz8LE9q78VLOoGwoFEKTNLiTm4ZxSfdyOSVhQTJNxab93R64C548EBOaE
+obkImq5iwtWZVp26UZrCPuW294J/B6fJBF8ZGINlVBRjEHes+txZcOGTh4r1blXu
+nxCAb3V9j84AGCZSD9izas5hU/sOqhMcCILPbQXl8KJvOh2KRhZh6wA45SasMyzs
+7yprDY3HmnHJ5nOe4F8NFkXHEG6cYDadyYMh/ox9x/leWTgCUGa1iCh7M6MYxY7Q
+khnjiJIFweBOjUuzR95bLjh6oYT8YKxQrbm+kP1lsCcNg2Qqsm/S1IjnpZtnO4+E
+/jGMIh8AmOD6dp0D2LcoLileDayAweJBmyzOHFNuGFJ8KIT+g84qtkyXrVD8KwVp
+XSb+Bxs7t9haYK/+XBcuUJeGVD64OqNSifssWQw6OcovyFx18lL1iAn2Oaih8KFb
+skv1XMM6zwgUcR6xA5Ap
+=xDmn
+-----END PGP SIGNATURE-----
+
+--6sj9mcRtP+pTWLOo--
