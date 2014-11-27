@@ -1,50 +1,319 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f171.google.com ([209.85.220.171]:61572 "EHLO
-	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846AbaKONsa (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:54398 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932109AbaK0JCU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 08:48:30 -0500
-Received: by mail-vc0-f171.google.com with SMTP id id10so5663401vcb.16
-        for <linux-media@vger.kernel.org>; Sat, 15 Nov 2014 05:48:29 -0800 (PST)
+	Thu, 27 Nov 2014 04:02:20 -0500
+Message-ID: <5476E896.1070701@xs4all.nl>
+Date: Thu, 27 Nov 2014 10:02:14 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CANZNk81y8=ugk3Ds0FhoeYBzh7ATy1Uyo8gxUQFoiPcYcwD+yQ@mail.gmail.com>
-References: <CAM_ZknVTqh0VnhuT3MdULtiqHJzxRhK-Pjyb58W=4Ldof0+jgA@mail.gmail.com>
-	<m3sihmf3mc.fsf@t19.piap.pl>
-	<CANZNk81y8=ugk3Ds0FhoeYBzh7ATy1Uyo8gxUQFoiPcYcwD+yQ@mail.gmail.com>
-Date: Sat, 15 Nov 2014 17:48:29 +0400
-Message-ID: <CAM_ZknUoNBfnKJW-76FE1tW29O6oFAw+KDYPsViTLw7u-vFXuw@mail.gmail.com>
-Subject: Re: [RFC] solo6x10 freeze, even with Oct 31's linux-next... any ideas
- or help?
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-Cc: =?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>,
-	"hans.verkuil" <hans.verkuil@cisco.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, pawel@osciak.com,
+	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv7 PATCH 07/12] vb2-dma-sg: add dmabuf import support
+References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl> <1416315068-22936-8-git-send-email-hverkuil@xs4all.nl> <1506297.83XqYLfUIF@avalon>
+In-Reply-To: <1506297.83XqYLfUIF@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks to all for the great help so far, but I've got another issue
-with upstream driver.
+Hi Laurent,
 
-In upstream there's no more module parameter for video standard
-(NTSC/PAL). But there's VIDIOC_S_STD handling procedure. But it turns
-out not to work correctly: the frame is offset, so that in the bottom
-there's black horizontal bar.
-The S_STD ioctl call actually makes difference, because without that
-the frame "slides" vertically all the time. But after the call the
-picture is not correct.
+On 11/26/2014 10:00 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the patch.
+> 
+> On Tuesday 18 November 2014 13:51:03 Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add support for importing dmabuf to videobuf2-dma-sg.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Acked-by: Pawel Osciak <pawel@osciak.com>
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-dma-sg.c | 149 +++++++++++++++++++++++---
+>>  1 file changed, 136 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> b/drivers/media/v4l2-core/videobuf2-dma-sg.c index f671fab..ad6d5c7 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> @@ -41,11 +41,19 @@ struct vb2_dma_sg_buf {
+>>  	int				offset;
+>>  	enum dma_data_direction		dma_dir;
+>>  	struct sg_table			sg_table;
+>> +	/*
+>> +	 * This will point to sg_table when used with the MMAP or USERPTR
+>> +	 * memory model, and to the dma_buf sglist when used with the
+>> +	 * DMABUF memory model.
+>> +	 */
+>> +	struct sg_table			*dma_sgt;
+>>  	size_t				size;
+>>  	unsigned int			num_pages;
+>>  	atomic_t			refcount;
+>>  	struct vb2_vmarea_handler	handler;
+>>  	struct vm_area_struct		*vma;
+>> +
+>> +	struct dma_buf_attachment	*db_attach;
+>>  };
+>>
+>>  static void vb2_dma_sg_put(void *buf_priv);
+>> @@ -112,6 +120,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
+>> long size, buf->size = size;
+>>  	/* size is already page aligned */
+>>  	buf->num_pages = size >> PAGE_SHIFT;
+>> +	buf->dma_sgt = &buf->sg_table;
+>>
+>>  	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+>>  			     GFP_KERNEL);
+>> @@ -122,7 +131,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
+>> long size, if (ret)
+>>  		goto fail_pages_alloc;
+>>
+>> -	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
+>> +	ret = sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+>>  			buf->num_pages, 0, size, GFP_KERNEL);
+>>  	if (ret)
+>>  		goto fail_table_alloc;
+>> @@ -171,7 +180,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+>>  		dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+>>  		if (buf->vaddr)
+>>  			vm_unmap_ram(buf->vaddr, buf->num_pages);
+>> -		sg_free_table(&buf->sg_table);
+>> +		sg_free_table(buf->dma_sgt);
+>>  		while (--i >= 0)
+>>  			__free_page(buf->pages[i]);
+>>  		kfree(buf->pages);
+>> @@ -183,7 +192,11 @@ static void vb2_dma_sg_put(void *buf_priv)
+>>  static void vb2_dma_sg_prepare(void *buf_priv)
+>>  {
+>>  	struct vb2_dma_sg_buf *buf = buf_priv;
+>> -	struct sg_table *sgt = &buf->sg_table;
+>> +	struct sg_table *sgt = buf->dma_sgt;
+>> +
+>> +	/* DMABUF exporter will flush the cache for us */
+>> +	if (buf->db_attach)
+>> +		return;
+> 
+> Is this actually true ? If you look at the export code in patch 08/12, I don't 
+> see where the exporter would sync the buffer for the importer device.
 
-Such change didn't help:
-https://github.com/krieger-od/linux/commit/55b796c010b622430cb85f5b8d7d14fef6f04fb4
-So, temporarily, I've hardcoded this for exact customer who uses PAL:
-https://github.com/krieger-od/linux/commit/2c26302dfa6d7aa74cf17a89793daecbb89ae93a
-rmmod/modprobe cycle works fine and doesn't make any difference from
-reboot, but still it works correctly only with PAL hardcoded for the
-first-time initialization.
+I think this was true at some point in the past. It ties in with my comment for
+patch 06/12: cpu/device syncing for dma-buf is (and was) broken, although nobody
+has noticed since none of the DMABUF-aware drivers that are used as such today
+need CPU access to the buffer, or are only used on Intel architectures where
+this is all moot. Patches 12-16 of my RFCv6 series really fix this. This particular
+comment was copied from the dma-contig version. The basic idea was that when the
+driver needs CPU access it will call the vaddr memop, which will map the buffer
+for CPU access.
 
-Any ideas why wouldn't it work to change the mode after the driver load?
-Would it be allowed to add back that kernel module parameter (the one
-passed at module load time)?
--- 
-Bluecherry developer.
+However, I am not sure whether dmabuf actually did the right thing there originally.
+Later dmabuf was extended with begin/end_for_cpu_access ops to make this explicit,
+but that was never implemented in vb2. That's what the second part of RFCv6 does.
+
+Right now dma-sg is bug-compatible with dma-contig.
+
+I spend 1-2 hours with Pawel in Düsseldorf figuring this out, it is not exactly
+trivial to understand.
+
+Regards,
+
+	Hans
+
+> 
+>>
+>>  	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+>>  }
+>> @@ -191,7 +204,11 @@ static void vb2_dma_sg_prepare(void *buf_priv)
+>>  static void vb2_dma_sg_finish(void *buf_priv)
+>>  {
+>>  	struct vb2_dma_sg_buf *buf = buf_priv;
+>> -	struct sg_table *sgt = &buf->sg_table;
+>> +	struct sg_table *sgt = buf->dma_sgt;
+>> +
+>> +	/* DMABUF exporter will flush the cache for us */
+>> +	if (buf->db_attach)
+>> +		return;
+>>
+>>  	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+>>  }
+>> @@ -219,6 +236,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx,
+>> unsigned long vaddr, buf->dma_dir = dma_dir;
+>>  	buf->offset = vaddr & ~PAGE_MASK;
+>>  	buf->size = size;
+>> +	buf->dma_sgt = &buf->sg_table;
+>>
+>>  	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+>>  	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+>> @@ -271,7 +289,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx,
+>> unsigned long vaddr, if (num_pages_from_user != buf->num_pages)
+>>  		goto userptr_fail_get_user_pages;
+>>
+>> -	if (sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
+>> +	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+>>  			buf->num_pages, buf->offset, size, 0))
+>>  		goto userptr_fail_alloc_table_from_pages;
+>>
+>> @@ -313,7 +331,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+>>  	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+>>  	if (buf->vaddr)
+>>  		vm_unmap_ram(buf->vaddr, buf->num_pages);
+>> -	sg_free_table(&buf->sg_table);
+>> +	sg_free_table(buf->dma_sgt);
+>>  	while (--i >= 0) {
+>>  		if (buf->dma_dir == DMA_FROM_DEVICE)
+>>  			set_page_dirty_lock(buf->pages[i]);
+>> @@ -331,14 +349,16 @@ static void *vb2_dma_sg_vaddr(void *buf_priv)
+>>
+>>  	BUG_ON(!buf);
+>>
+>> -	if (!buf->vaddr)
+>> -		buf->vaddr = vm_map_ram(buf->pages,
+>> -					buf->num_pages,
+>> -					-1,
+>> -					PAGE_KERNEL);
+>> +	if (!buf->vaddr) {
+>> +		if (buf->db_attach)
+>> +			buf->vaddr = dma_buf_vmap(buf->db_attach->dmabuf);
+>> +		else
+>> +			buf->vaddr = vm_map_ram(buf->pages,
+>> +					buf->num_pages, -1, PAGE_KERNEL);
+>> +	}
+>>
+>>  	/* add offset in case userptr is not page-aligned */
+>> -	return buf->vaddr + buf->offset;
+>> +	return buf->vaddr ? buf->vaddr + buf->offset : NULL;
+> 
+> Just nitpicking here, can vm_map_ram fail and return NULL ? If so this change 
+> is a separate bug fix and should be split to a separate patch.
+> 
+>>  }
+>>
+>>  static unsigned int vb2_dma_sg_num_users(void *buf_priv)
+>> @@ -385,11 +405,110 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct
+>> vm_area_struct *vma) return 0;
+>>  }
+>>
+>> +/*********************************************/
+>> +/*       callbacks for DMABUF buffers        */
+>> +/*********************************************/
+>> +
+>> +static int vb2_dma_sg_map_dmabuf(void *mem_priv)
+>> +{
+>> +	struct vb2_dma_sg_buf *buf = mem_priv;
+>> +	struct sg_table *sgt;
+>> +
+>> +	if (WARN_ON(!buf->db_attach)) {
+>> +		pr_err("trying to pin a non attached buffer\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	if (WARN_ON(buf->dma_sgt)) {
+>> +		pr_err("dmabuf buffer is already pinned\n");
+>> +		return 0;
+>> +	}
+>> +
+>> +	/* get the associated scatterlist for this buffer */
+>> +	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
+>> +	if (IS_ERR(sgt)) {
+>> +		pr_err("Error getting dmabuf scatterlist\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	buf->dma_sgt = sgt;
+>> +	buf->vaddr = NULL;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static void vb2_dma_sg_unmap_dmabuf(void *mem_priv)
+>> +{
+>> +	struct vb2_dma_sg_buf *buf = mem_priv;
+>> +	struct sg_table *sgt = buf->dma_sgt;
+>> +
+>> +	if (WARN_ON(!buf->db_attach)) {
+>> +		pr_err("trying to unpin a not attached buffer\n");
+>> +		return;
+>> +	}
+>> +
+>> +	if (WARN_ON(!sgt)) {
+>> +		pr_err("dmabuf buffer is already unpinned\n");
+>> +		return;
+>> +	}
+>> +
+>> +	if (buf->vaddr) {
+>> +		dma_buf_vunmap(buf->db_attach->dmabuf, buf->vaddr);
+>> +		buf->vaddr = NULL;
+>> +	}
+>> +	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
+>> +
+>> +	buf->dma_sgt = NULL;
+>> +}
+>> +
+>> +static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
+>> +{
+>> +	struct vb2_dma_sg_buf *buf = mem_priv;
+>> +
+>> +	/* if vb2 works correctly you should never detach mapped buffer */
+>> +	if (WARN_ON(buf->dma_sgt))
+>> +		vb2_dma_sg_unmap_dmabuf(buf);
+>> +
+>> +	/* detach this attachment */
+>> +	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
+>> +	kfree(buf);
+>> +}
+>> +
+>> +static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf
+>> *dbuf, +	unsigned long size, enum dma_data_direction dma_dir)
+>> +{
+>> +	struct vb2_dma_sg_conf *conf = alloc_ctx;
+>> +	struct vb2_dma_sg_buf *buf;
+>> +	struct dma_buf_attachment *dba;
+>> +
+>> +	if (dbuf->size < size)
+>> +		return ERR_PTR(-EFAULT);
+>> +
+>> +	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+>> +	if (!buf)
+>> +		return ERR_PTR(-ENOMEM);
+>> +
+>> +	buf->dev = conf->dev;
+>> +	/* create attachment for the dmabuf with the user device */
+>> +	dba = dma_buf_attach(dbuf, buf->dev);
+>> +	if (IS_ERR(dba)) {
+>> +		pr_err("failed to attach dmabuf\n");
+>> +		kfree(buf);
+>> +		return dba;
+>> +	}
+>> +
+>> +	buf->dma_dir = dma_dir;
+>> +	buf->size = size;
+>> +	buf->db_attach = dba;
+>> +
+>> +	return buf;
+>> +}
+>> +
+>>  static void *vb2_dma_sg_cookie(void *buf_priv)
+>>  {
+>>  	struct vb2_dma_sg_buf *buf = buf_priv;
+>>
+>> -	return &buf->sg_table;
+>> +	return buf->dma_sgt;
+>>  }
+>>
+>>  const struct vb2_mem_ops vb2_dma_sg_memops = {
+>> @@ -402,6 +521,10 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+>>  	.vaddr		= vb2_dma_sg_vaddr,
+>>  	.mmap		= vb2_dma_sg_mmap,
+>>  	.num_users	= vb2_dma_sg_num_users,
+>> +	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
+>> +	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
+>> +	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
+>> +	.detach_dmabuf	= vb2_dma_sg_detach_dmabuf,
+>>  	.cookie		= vb2_dma_sg_cookie,
+>>  };
+>>  EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
+> 
