@@ -1,122 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41410 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161286AbaKNTep (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47102 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750802AbaK0NYD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Nov 2014 14:34:45 -0500
-Date: Fri, 14 Nov 2014 17:34:40 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/8] rtl2832: implement PIP mode
-Message-ID: <20141114173440.427324a8@recife.lan>
-In-Reply-To: <1415766190-24482-3-git-send-email-crope@iki.fi>
-References: <1415766190-24482-1-git-send-email-crope@iki.fi>
-	<1415766190-24482-3-git-send-email-crope@iki.fi>
+	Thu, 27 Nov 2014 08:24:03 -0500
+Received: from durdane.cisco.com (173-38-208-170.cisco.com [173.38.208.170])
+	by tschai.lan (Postfix) with ESMTPSA id 4CAC42A0088
+	for <linux-media@vger.kernel.org>; Thu, 27 Nov 2014 14:23:48 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv2 0/9] Improve colorspace support
+Date: Thu, 27 Nov 2014 14:23:43 +0100
+Message-Id: <1417094632-31980-1-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 12 Nov 2014 06:23:04 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+Changes since RFCv1:
 
-> Implement PIP mode to stream from slave demodulator. PIP mode is
-> enabled when .set_frontend is called with RF frequency 0, otherwise
-> normal demod mode is enabled.
+- Added the adv7511 patch (so that this is used in a real driver)
+- Made some small improvements to the DocBook patch (improved the xyY
+  colorspace description, added links to other colorspace resources
+  and mention the opRGB (aka AdobeRGB) standard.
 
-This would be an API change, so, a DocBook patch is required.
+This patch series improves the V4L2 colorspace support. Specifically
+it adds support for AdobeRGB and BT.2020 (UHDTV) colorspaces and it allows
+configuring the Y'CbCr encoding and the quantization explicitly if
+non-standard methods are used.
 
-Anyway, using frequency=0 for PIP doesn't seem to be a good idea,
-as a read from GET_PROPERTY should override the cache with the real
-frequency.
+It's almost identical to the version shown during the mini-summit in Düsseldorf,
+but the V4L2_QUANTIZATION_ALT_RANGE has been replaced by LIM_RANGE and
+FULL_RANGE. After some more research additional YCbCr encodings have
+been added as well:
 
-Also, someone came with me with a case where auto-frequency would
-be interesting, and proposed frequency=0. I was not convinced
-(and patches weren't sent), but using 0 for AUTO seems more
-appropriate, as we do the same for bandwidth (and may do the same
-for symbol_rate).
+- V4L2_YCBCR_ENC_BT2020NC
+- V4L2_YCBCR_ENC_SYCC
+- V4L2_YCBCR_ENC_SMPTE240M
 
-So, the best seems to add a new property to enable PIP mode.
+The SYCC encoding was missing (I thought I could use ENC_601 for this, but
+it's not quite the same) and the other two were implicitly defined via
+YCBCR_ENC_DEFAULT and the current colorspace. That's a bit too magical
+and these encodings should be defined explicitly.
+
+The first three patches add the new defines and fields to the core. The 
+changes are very minor.
+
+The fourth patch completely overhauls the Colorspace chapter in the spec.
+There is no point trying to read the diff, instead I've made the html
+available here:
+
+http://hverkuil.home.xs4all.nl/media_api.html#colorspaces
+
+The remaining patches add support for the new colorspace functionality
+to the test pattern generator and the vivid driver and to adv7511. I
+have tested that the adv7511 correctly sets the InfoFrame information
+and that it can be received by an adv7604. In the near future support
+for this for the adv7604 will be added as well.
+
+I am planning to post a pull request for this some time next week if
+there are no comments.
 
 Regards,
-Mauro
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/dvb-frontends/rtl2832.c | 42 ++++++++++++++++++++++++++++++++---
->  1 file changed, 39 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-> index eb737cf..a58b456 100644
-> --- a/drivers/media/dvb-frontends/rtl2832.c
-> +++ b/drivers/media/dvb-frontends/rtl2832.c
-> @@ -258,13 +258,11 @@ static int rtl2832_rd_regs(struct rtl2832_priv *priv, u8 reg, u8 page, u8 *val,
->  	return rtl2832_rd(priv, reg, val, len);
->  }
->  
-> -#if 0 /* currently not used */
->  /* write single register */
->  static int rtl2832_wr_reg(struct rtl2832_priv *priv, u8 reg, u8 page, u8 val)
->  {
->  	return rtl2832_wr_regs(priv, reg, page, &val, 1);
->  }
-> -#endif
->  
->  /* read single register */
->  static int rtl2832_rd_reg(struct rtl2832_priv *priv, u8 reg, u8 page, u8 *val)
-> @@ -595,6 +593,44 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
->  			"%s: frequency=%d bandwidth_hz=%d inversion=%d\n",
->  			__func__, c->frequency, c->bandwidth_hz, c->inversion);
->  
-> +	/* PIP mode */
-> +	if (c->frequency == 0) {
-> +		dev_dbg(&priv->i2c->dev, "%s: setting PIP mode\n", __func__);
-> +		ret = rtl2832_wr_regs(priv, 0x0c, 1, "\x5f\xff", 2);
-> +		if (ret)
-> +			goto err;
-> +
-> +		ret = rtl2832_wr_demod_reg(priv, DVBT_PIP_ON, 0x1);
-> +		if (ret)
-> +			goto err;
-> +
-> +		ret = rtl2832_wr_reg(priv, 0xbc, 0, 0x18);
-> +		if (ret)
-> +			goto err;
-> +
-> +		ret = rtl2832_wr_reg(priv, 0x22, 0, 0x01);
-> +		if (ret)
-> +			goto err;
-> +
-> +		ret = rtl2832_wr_reg(priv, 0x26, 0, 0x1f);
-> +		if (ret)
-> +			goto err;
-> +
-> +		ret = rtl2832_wr_reg(priv, 0x27, 0, 0xff);
-> +		if (ret)
-> +			goto err;
-> +
-> +		ret = rtl2832_wr_regs(priv, 0x92, 1, "\x7f\xf7\xff", 3);
-> +		if (ret)
-> +			goto err;
-> +
-> +		goto exit_soft_reset;
-> +	} else {
-> +		ret = rtl2832_wr_regs(priv, 0x92, 1, "\x00\x0f\xff", 3);
-> +		if (ret)
-> +			goto err;
-> +	}
-> +
->  	/* program tuner */
->  	if (fe->ops.tuner_ops.set_params)
->  		fe->ops.tuner_ops.set_params(fe);
-> @@ -661,7 +697,7 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
->  	if (ret)
->  		goto err;
->  
-> -
-> +exit_soft_reset:
->  	/* soft reset */
->  	ret = rtl2832_wr_demod_reg(priv, DVBT_SOFT_RST, 0x1);
->  	if (ret)
+
+        Hans
+
