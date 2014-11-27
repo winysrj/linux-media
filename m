@@ -1,41 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:24992 "EHLO mga11.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:38205 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754982AbaKEQOb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 11:14:31 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: pj.assis@gmail.com
-Cc: remi@remlab.net, notasas@gmail.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com
-Subject: [RFC 2/2] uvc: Use UVC_QUIRK_BAD_TIMESTAMP quirk flag for Logitech C920
-Date: Wed,  5 Nov 2014 18:12:34 +0200
-Message-Id: <1415203954-16718-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1415203954-16718-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <20141105161147.GW3136@valkosipuli.retiisi.org.uk>
- <1415203954-16718-1-git-send-email-sakari.ailus@linux.intel.com>
+	id S1750792AbaK0S7b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Nov 2014 13:59:31 -0500
+Date: Thu, 27 Nov 2014 16:59:25 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Michael Ira Krufky <mkrufky@linuxtv.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] tda18271: Fix identation
+Message-ID: <20141127165925.05723c7b@recife.lan>
+In-Reply-To: <CAOcJUbwiDEvp3-c+j7B1L9MxFjnrw9mT0116C+Dy9p4hOQNEhg@mail.gmail.com>
+References: <ebd316f3f4f7cefa937562adba8ce60f2057ca9d.1417015567.git.mchehab@osg.samsung.com>
+	<CAOcJUbwiDEvp3-c+j7B1L9MxFjnrw9mT0116C+Dy9p4hOQNEhg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/usb/uvc/uvc_driver.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Em Thu, 27 Nov 2014 13:47:09 -0500
+Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 7c8322d..3908e2f 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -2183,7 +2183,9 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceClass	= USB_CLASS_VIDEO,
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0,
--	  .driver_info		= UVC_QUIRK_RESTORE_CTRLS_ON_INIT },
-+	  .driver_info		= UVC_QUIRK_RESTORE_CTRLS_ON_INIT
-+				| UVC_QUIRK_BAD_TIMESTAMP
-+	},
- 	/* Chicony CNF7129 (Asus EEE 100HE) */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_INT_INFO,
--- 
-2.1.0.231.g7484e3b
+> On Wed, Nov 26, 2014 at 10:26 AM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> > As reported by smatch:
+> >         drivers/media/tuners/tda18271-common.c:176 tda18271_read_extended() warn: if statement not indented
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >
+> > diff --git a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
+> > index 86e5e3110118..6118203543ea 100644
+> > --- a/drivers/media/tuners/tda18271-common.c
+> > +++ b/drivers/media/tuners/tda18271-common.c
+> > @@ -173,12 +173,9 @@ int tda18271_read_extended(struct dvb_frontend *fe)
+> >
+> >         for (i = 0; i < TDA18271_NUM_REGS; i++) {
+> >                 /* don't update write-only registers */
+> > -               if ((i != R_EB9)  &&
+> > -                   (i != R_EB16) &&
+> > -                   (i != R_EB17) &&
+> > -                   (i != R_EB19) &&
+> > -                   (i != R_EB20))
+> > -               regs[i] = regdump[i];
+> > +               if ((i != R_EB9)  && (i != R_EB16) && (i != R_EB17) &&
+> > +                   (i != R_EB19) && (i != R_EB20))
+> > +                       regs[i] = regdump[i];
+> >         }
+> >
+> >         if (tda18271_debug & DBG_REG)
+> > --
+> > 1.9.3
+> >
+> 
+> Mauro,
+> 
+> I would actually rather NOT merge this patch.  This hurts the
+> readability of the code.  If applied already, please revert it.
 
+What hurts readability is to not indent regs[i] = regdump[i];
+
+> 
+> Cheers,
+> 
+> Mike
