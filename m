@@ -1,187 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:38688 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754262AbaKRLYN (ORCPT
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:56278 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750831AbaK0FgP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 06:24:13 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 10/12] media: vivid: use vb2_ops_wait_prepare/finish helper
-Date: Tue, 18 Nov 2014 11:23:39 +0000
-Message-Id: <1416309821-5426-11-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 27 Nov 2014 00:36:15 -0500
+Received: by mail-qa0-f49.google.com with SMTP id s7so2829609qap.8
+        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 21:36:14 -0800 (PST)
+Date: Thu, 27 Nov 2014 02:36:10 -0300
+From: Ismael Luceno <ismael.luceno@gmail.com>
+To: khalasa@piap.pl (Krzysztof =?UTF-8?B?SGHFgmFzYQ==?=)
+Cc: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: SOLO6x10: fix a race in IRQ handler.
+Message-ID: <20141127023610.36d13623@pirotess.bf.iodev.co.uk>
+In-Reply-To: <m3lhneez9h.fsf@t19.piap.pl>
+References: <m3lhneez9h.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/7klwMzGhsvYPCHwS1R7Zw7_"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-core.c    | 19 +++++--------------
- drivers/media/platform/vivid/vivid-core.h    |  3 ---
- drivers/media/platform/vivid/vivid-sdr-cap.c |  4 ++--
- drivers/media/platform/vivid/vivid-vbi-cap.c |  4 ++--
- drivers/media/platform/vivid/vivid-vbi-out.c |  4 ++--
- drivers/media/platform/vivid/vivid-vid-cap.c |  4 ++--
- drivers/media/platform/vivid/vivid-vid-out.c |  4 ++--
- 7 files changed, 15 insertions(+), 27 deletions(-)
+--Sig_/7klwMzGhsvYPCHwS1R7Zw7_
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 686c3c2..987a46c 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -195,20 +195,6 @@ static const u8 vivid_hdmi_edid[256] = {
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
- };
- 
--void vivid_lock(struct vb2_queue *vq)
--{
--	struct vivid_dev *dev = vb2_get_drv_priv(vq);
--
--	mutex_lock(&dev->mutex);
--}
--
--void vivid_unlock(struct vb2_queue *vq)
--{
--	struct vivid_dev *dev = vb2_get_drv_priv(vq);
--
--	mutex_unlock(&dev->mutex);
--}
--
- static int vidioc_querycap(struct file *file, void  *priv,
- 					struct v4l2_capability *cap)
- {
-@@ -1018,6 +1004,7 @@ static int __init vivid_create_instance(int inst)
- 		q->mem_ops = &vb2_vmalloc_memops;
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
-+		q->lock = &dev->mutex;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1036,6 +1023,7 @@ static int __init vivid_create_instance(int inst)
- 		q->mem_ops = &vb2_vmalloc_memops;
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
-+		q->lock = &dev->mutex;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1054,6 +1042,7 @@ static int __init vivid_create_instance(int inst)
- 		q->mem_ops = &vb2_vmalloc_memops;
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
-+		q->lock = &dev->mutex;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1072,6 +1061,7 @@ static int __init vivid_create_instance(int inst)
- 		q->mem_ops = &vb2_vmalloc_memops;
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
-+		q->lock = &dev->mutex;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1089,6 +1079,7 @@ static int __init vivid_create_instance(int inst)
- 		q->mem_ops = &vb2_vmalloc_memops;
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 8;
-+		q->lock = &dev->mutex;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index 811c286..6f4445a 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -514,7 +514,4 @@ static inline bool vivid_is_hdmi_out(const struct vivid_dev *dev)
- 	return dev->output_type[dev->output] == HDMI;
- }
- 
--void vivid_lock(struct vb2_queue *vq);
--void vivid_unlock(struct vb2_queue *vq);
--
- #endif
-diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
-index 8c5d661..4af55f1 100644
---- a/drivers/media/platform/vivid/vivid-sdr-cap.c
-+++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
-@@ -297,8 +297,8 @@ const struct vb2_ops vivid_sdr_cap_qops = {
- 	.buf_queue		= sdr_cap_buf_queue,
- 	.start_streaming	= sdr_cap_start_streaming,
- 	.stop_streaming		= sdr_cap_stop_streaming,
--	.wait_prepare		= vivid_unlock,
--	.wait_finish		= vivid_lock,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
- 
- int vivid_sdr_enum_freq_bands(struct file *file, void *fh, struct v4l2_frequency_band *band)
-diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
-index 2166d0b..ef81b01 100644
---- a/drivers/media/platform/vivid/vivid-vbi-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
-@@ -236,8 +236,8 @@ const struct vb2_ops vivid_vbi_cap_qops = {
- 	.buf_queue		= vbi_cap_buf_queue,
- 	.start_streaming	= vbi_cap_start_streaming,
- 	.stop_streaming		= vbi_cap_stop_streaming,
--	.wait_prepare		= vivid_unlock,
--	.wait_finish		= vivid_lock,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
- 
- int vidioc_g_fmt_vbi_cap(struct file *file, void *priv,
-diff --git a/drivers/media/platform/vivid/vivid-vbi-out.c b/drivers/media/platform/vivid/vivid-vbi-out.c
-index 9d00a07..4e4c70e 100644
---- a/drivers/media/platform/vivid/vivid-vbi-out.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-out.c
-@@ -131,8 +131,8 @@ const struct vb2_ops vivid_vbi_out_qops = {
- 	.buf_queue		= vbi_out_buf_queue,
- 	.start_streaming	= vbi_out_start_streaming,
- 	.stop_streaming		= vbi_out_stop_streaming,
--	.wait_prepare		= vivid_unlock,
--	.wait_finish		= vivid_lock,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
- 
- int vidioc_g_fmt_vbi_out(struct file *file, void *priv,
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 331c544..1309d31 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -288,8 +288,8 @@ const struct vb2_ops vivid_vid_cap_qops = {
- 	.buf_queue		= vid_cap_buf_queue,
- 	.start_streaming	= vid_cap_start_streaming,
- 	.stop_streaming		= vid_cap_stop_streaming,
--	.wait_prepare		= vivid_unlock,
--	.wait_finish		= vivid_lock,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
- 
- /*
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index 69c2dbd..078bc35 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -209,8 +209,8 @@ const struct vb2_ops vivid_vid_out_qops = {
- 	.buf_queue		= vid_out_buf_queue,
- 	.start_streaming	= vid_out_start_streaming,
- 	.stop_streaming		= vid_out_stop_streaming,
--	.wait_prepare		= vivid_unlock,
--	.wait_finish		= vivid_lock,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
- 
- /*
--- 
-1.9.1
+On Fri, 14 Nov 2014 13:35:06 +0100
+khalasa@piap.pl (Krzysztof Ha=C5=82asa) wrote:
+> The IRQs have to be acknowledged before they are serviced, otherwise
+> some events may be skipped. Also, acknowledging IRQs just before
+> returning from the handler doesn't leave enough time for the device
+> to deassert the INTx line, and for bridges to propagate this change.
+> This resulted in twice the IRQ rate on ARMv6 dual core CPU.
+>=20
+> Signed-off-by: Krzysztof Ha=C5=82asa <khalasa@piap.pl>
+>=20
+> --- a/drivers/media/pci/solo6x10/solo6x10-core.c
+> +++ b/drivers/media/pci/solo6x10/solo6x10-core.c
+> @@ -105,11 +105,8 @@ static irqreturn_t solo_isr(int irq, void *data)
+>  	if (!status)
+>  		return IRQ_NONE;
+> =20
+> -	if (status & ~solo_dev->irq_mask) {
+> -		solo_reg_write(solo_dev, SOLO_IRQ_STAT,
+> -			       status & ~solo_dev->irq_mask);
+> -		status &=3D solo_dev->irq_mask;
+> -	}
+> +	/* Acknowledge all interrupts immediately */
+> +	solo_reg_write(solo_dev, SOLO_IRQ_STAT, status);
+> =20
+>  	if (status & SOLO_IRQ_PCI_ERR)
+>  		solo_p2m_error_isr(solo_dev);
+> @@ -132,9 +129,6 @@ static irqreturn_t solo_isr(int irq, void *data)
+>  	if (status & SOLO_IRQ_G723)
+>  		solo_g723_isr(solo_dev);
+> =20
+> -	/* Clear all interrupts handled */
+> -	solo_reg_write(solo_dev, SOLO_IRQ_STAT, status);
+> -
+>  	return IRQ_HANDLED;
+>  }
+> =20
+>=20
 
+Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+
+--Sig_/7klwMzGhsvYPCHwS1R7Zw7_
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQEcBAEBAgAGBQJUdrhKAAoJEBH/VE8bKTLb4TYIANRRAtXUy+tjVMHLca2FEa37
+nB37JaElX/uUBMnDLahmdacFZsJDm+IPFvFP64k9H/UvZXGZorT7B20UqzpUr2Jy
+kgMrNY4GGMRfXMTssCesgolfToWZSHWHS9ihPhI58im2Z4KsIdAlpJ5LwxEf6Vle
+FNi6J7lFzFUe4k//7ySgH6eJMqh4jepp47U59Hm6+NGC1dQVtqVXpZmvTShrktD+
+o6Q2Ezjd9t2l3EIOsWeBXtapgAfjpso0Qk0LGVcBltSKtykCkfBoEUdP7aU8vg1/
+9vE1atPr72L35vXpDV2eE9HEQsRJDuMbTBdCrmlXsbPg3tEKQeE84oXI9AyDTag=
+=2IsW
+-----END PGP SIGNATURE-----
+
+--Sig_/7klwMzGhsvYPCHwS1R7Zw7_--
