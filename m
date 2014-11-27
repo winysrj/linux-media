@@ -1,45 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:58143 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751138AbaKQQ7p (ORCPT
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:60296 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485AbaK0SrJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 11:59:45 -0500
-Received: by mail-wi0-f181.google.com with SMTP id r20so3411897wiv.2
-        for <linux-media@vger.kernel.org>; Mon, 17 Nov 2014 08:59:44 -0800 (PST)
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: linux-kernel@vger.kernel.org, jg1.han@samsung.com, crope@iki.fi,
-	mchehab@osg.samsung.com, joe@perches.com,
-	gregkh@linuxfoundation.org, davem@davemloft.net,
-	akpm@linux-foundation.org, linux-media@vger.kernel.org
-Cc: maintainers@bluecherrydvr.com, andrey.krieger.utkin@gmail.com,
-	ismael.luceno@gmail.com,
-	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Subject: [PATCH] Update MAINTAINERS for solo6x10
-Date: Mon, 17 Nov 2014 20:59:23 +0400
-Message-Id: <1416243563-8087-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+	Thu, 27 Nov 2014 13:47:09 -0500
+Received: by mail-pd0-f181.google.com with SMTP id z10so5215022pdj.26
+        for <linux-media@vger.kernel.org>; Thu, 27 Nov 2014 10:47:09 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <ebd316f3f4f7cefa937562adba8ce60f2057ca9d.1417015567.git.mchehab@osg.samsung.com>
+References: <ebd316f3f4f7cefa937562adba8ce60f2057ca9d.1417015567.git.mchehab@osg.samsung.com>
+Date: Thu, 27 Nov 2014 13:47:09 -0500
+Message-ID: <CAOcJUbwiDEvp3-c+j7B1L9MxFjnrw9mT0116C+Dy9p4hOQNEhg@mail.gmail.com>
+Subject: Re: [PATCH] [media] tda18271: Fix identation
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
----
- MAINTAINERS | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+On Wed, Nov 26, 2014 at 10:26 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> As reported by smatch:
+>         drivers/media/tuners/tda18271-common.c:176 tda18271_read_extended() warn: if statement not indented
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
+> index 86e5e3110118..6118203543ea 100644
+> --- a/drivers/media/tuners/tda18271-common.c
+> +++ b/drivers/media/tuners/tda18271-common.c
+> @@ -173,12 +173,9 @@ int tda18271_read_extended(struct dvb_frontend *fe)
+>
+>         for (i = 0; i < TDA18271_NUM_REGS; i++) {
+>                 /* don't update write-only registers */
+> -               if ((i != R_EB9)  &&
+> -                   (i != R_EB16) &&
+> -                   (i != R_EB17) &&
+> -                   (i != R_EB19) &&
+> -                   (i != R_EB20))
+> -               regs[i] = regdump[i];
+> +               if ((i != R_EB9)  && (i != R_EB16) && (i != R_EB17) &&
+> +                   (i != R_EB19) && (i != R_EB20))
+> +                       regs[i] = regdump[i];
+>         }
+>
+>         if (tda18271_debug & DBG_REG)
+> --
+> 1.9.3
+>
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index bb38f02..f5cef1b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8787,7 +8787,9 @@ S:	Maintained
- F:	drivers/leds/leds-net48xx.c
- 
- SOFTLOGIC 6x10 MPEG CODEC
--M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-+M:	Bluecherry Maintainers <maintainers@bluecherrydvr.com>
-+M:	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-+M:	Andrey Utkin <andrey.krieger.utkin@gmail.com>
- L:	linux-media@vger.kernel.org
- S:	Supported
- F:	drivers/media/pci/solo6x10/
--- 
-2.0.4
+Mauro,
 
+I would actually rather NOT merge this patch.  This hurts the
+readability of the code.  If applied already, please revert it.
+
+Cheers,
+
+Mike
