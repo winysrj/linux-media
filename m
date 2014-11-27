@@ -1,93 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43128 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751338AbaKCIvi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 03:51:38 -0500
-Date: Mon, 3 Nov 2014 06:51:32 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 12/14] [media] cx231xx: use dev_info() for extension
- load/unload
-Message-ID: <20141103065132.15d6498e@recife.lan>
-In-Reply-To: <54566AB5.3020803@iki.fi>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
-	<58369096f1fee7d71942eae7a40db6d7c1c368bf.1414929816.git.mchehab@osg.samsung.com>
-	<54566AB5.3020803@iki.fi>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:48292 "EHLO
+	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750870AbaK0Ryi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Nov 2014 12:54:38 -0500
+Received: by mail-oi0-f50.google.com with SMTP id a141so3672196oig.37
+        for <linux-media@vger.kernel.org>; Thu, 27 Nov 2014 09:54:38 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAL8zT=hY8XeAb4j7-eBt3VJX-3Kzg6-BOajvSpxvgc+o3ZRuYQ@mail.gmail.com>
+References: <CAL8zT=i+UZP7gpukW-cRe2M=xWW5Av9Mzd-FnnZAP5d+5J7Mzg@mail.gmail.com>
+ <1417020934.3177.15.camel@pengutronix.de> <CAL8zT=hY8XeAb4j7-eBt3VJX-3Kzg6-BOajvSpxvgc+o3ZRuYQ@mail.gmail.com>
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Date: Thu, 27 Nov 2014 18:54:22 +0100
+Message-ID: <CAL8zT=gnkaD=9XbyBDcDh7D=w+rDSQPsi3dKfQ17ezvz6NZMCg@mail.gmail.com>
+Subject: Re: i.MX6 CODA960 encoder
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Sascha Hauer <kernel@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Schwebel <r.schwebel@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 02 Nov 2014 19:32:37 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+Hi Philipp,
 
-> 
-> 
-> On 11/02/2014 02:32 PM, Mauro Carvalho Chehab wrote:
-> > Now that we're using dev_foo, the logs become like:
-> >
-> > 	usb 1-2: DVB: registering adapter 0 frontend 0 (Fujitsu mb86A20s)...
-> > 	usb 1-2: Successfully loaded cx231xx-dvb
-> > 	cx231xx: Cx231xx dvb Extension initialized
-> >
-> > It is not clear, by the logs, that usb 1-2 name is an alias for
-> > cx231xx. So, we also need to use dvb_info() at extension load/unload.
-> >
-> > After the patch, it will print:
-> > 	usb 1-2: Cx231xx dvb Extension initialized
-> >
-> > With is coherent with the other logs.
-> 
-> 
-> That is not correct as wrong device pointer passed to dev_. Go cx231xx 
-> usb driver probe function and add following test log to see how is 
-> should look like:
-> dev_info(&intf->dev, "Hello World\n");
+2014-11-26 18:31 GMT+01:00 Jean-Michel Hautbois
+<jean-michel.hautbois@vodalys.com>:
+> Hi Philipp,
+>
+> Thanks for answering.
+>
+> 2014-11-26 17:55 GMT+01:00 Philipp Zabel <p.zabel@pengutronix.de>:
+>> Hi Jean-Michel,
+>>
+>> Am Mittwoch, den 26.11.2014, 14:33 +0100 schrieb Jean-Michel Hautbois:
+>>> Hi,
+>>>
+>>> We are writing a gstreamer plugin to support CODA960 encoder on i.MX6,
+>>> and it is not working so now trying to use v4l2-ctl for the moment.
+>>> As I am asking about encoder, is there a way to make it support YUYV
+>>> as input or is the firmware not able to do it ? I could not find a
+>>> reference manual about that...
+>>
+>> The H.264 and MPEG-4 encoders support planar 4:2:0 subsampled formats
+>> only: YU12, YV12, and chroma-interleaved NV12.
+>> The JPEG encoder can also handle planar 4:2:2 subsampled frames, but
+>> none of the interleaved (YUYV, UYVY, ...) variants.
+>
+> OK, just read this in TRM. This means that when the sensor is YUV
+> 4:2:2 (say, a ADV76xx :)) it will have to be converted to NV12 in
+> order to have it as input of the encoder...
+>
+>>> So back to the issue.
+>>> $> cat /sys/class/video4linux/video0/name
+>>> coda-encoder
+>>> $> v4l2-ctl -d0 --list-formats
+>>> ioctl: VIDIOC_ENUM_FMT
+>>>     Index       : 0
+>>>     Type        : Video Capture
+>>>     Pixel Format: 'H264' (compressed)
+>>>     Name        : H264 Encoded Stream
+>>>
+>>>     Index       : 1
+>>>     Type        : Video Capture
+>>>     Pixel Format: 'MPG4' (compressed)
+>>>     Name        : MPEG4 Encoded Stream
+>>>
+>>> $> v4l2-ctl -d0 --list-formats-out
+>>> ioctl: VIDIOC_ENUM_FMT
+>>>     Index       : 0
+>>>     Type        : Video Output
+>>>     Pixel Format: 'YU12'
+>>>     Name        : YUV 4:2:0 Planar, YCbCr
+>>>
+>>>     Index       : 1
+>>>     Type        : Video Output
+>>>     Pixel Format: 'YV12'
+>>>     Name        : YUV 4:2:0 Planar, YCrCb
+>>
+>> Please apply all coda patches in the media-tree master branch first.
+>> The output format list should include NV12 then.
+>
+> OK, applying right now.
+>
+>>> ==> First question, vid-cap should be related to the capture format,
+>>> so YUV format in the encoder case, no ?
+>>>
+>>> $> v4l2-ctl -d0 --set-fmt-video-out=width=1280,height=720,pixelformat=YU12
+>>> $> v4l2-ctl -d0 --stream-mmap --stream-out-mmap --stream-to x.raw
+>>> unsupported pixelformat
+>>> VIDIOC_STREAMON: failed: Invalid argument
+>>
+>> On v3.18-rc6 with the coda patches currently in the pipeline applied, I
+>> get this:
+>>
+>> $ v4l2-ctl -d0 --set-fmt-video-out=width=1280,height=720,pixelformat=YU12
+>> $ v4l2-ctl -d0 --stream-mmap --stream-out-mmap --stream-to x.raw
+>> K>P>P>P>P>P>P>P>P>P>P>P>P>P>P>P>K>P>P>P>P>P>P>P>P>P>P>P>P>P>P>P>K>P>P>P>P>P>P 38 fps
+>>> 38 fps
 
-I changed the probe to be:
+I don't have the same behaviour, but I may have missed a patch.
+I have taken linux-next and rebased my work on it. I have some issues,
+but nothing to be worried about, no link with coda.
+I get the following :
+$> v4l2-ctl -d0 --set-fmt-video-out=width=1280,height=720,pixelfor
+$> v4l2-ctl -d0 --stream-mmap --stream-out-mmap --stream-to x.raw
+[  173.705701] coda 2040000.vpu: CODA PIC_RUN timeout
 
-static int cx231xx_usb_probe(struct usb_interface *interface,
-                             const struct usb_device_id *id)
-{
-        struct usb_device *udev;
-	...
-        struct usb_interface_assoc_descriptor *assoc_desc;
-
-        udev = usb_get_dev(interface_to_usbdev(interface));
-        ifnum = interface->altsetting[0].desc.bInterfaceNumber;
-
-        dev_info(&interface->dev, "intf Hello World\n");
-        dev_info(&udev->dev, "udev Hello World\n");
-
-The result is:
-
-[54915.036082] cx231xx 1-2:1.2: intf Hello World
-[54915.036090] usb 1-2: udev Hello World
-[54915.036163] cx231xx 1-2:1.3: intf Hello World
-[54915.036171] usb 1-2: udev Hello World
-[54915.036197] cx231xx 1-2:1.4: intf Hello World
-[54915.036204] usb 1-2: udev Hello World
-[54915.036228] cx231xx 1-2:1.5: intf Hello World
-[54915.036234] usb 1-2: udev Hello World
-[54915.036258] cx231xx 1-2:1.6: intf Hello World
-[54915.036264] usb 1-2: udev Hello World
-
-Devices with multiple interfaces seem to have intf->dev filled with
-a different device than udev->dev. The cx231xx is likely the most
-complex device we have at media, as it has lots of interfaces, each
-with lots of alternates, plus its 3 I2C physical buses and one I2C
-mux internally.
-
-I may work on a patch that would be storing intf->dev into
-cx231xx dev struct. That's probably the easiest way for this
-device.
-
-Do you have any other idea?
-
-Regards,
-Mauro
+JM
