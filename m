@@ -1,82 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:13820 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbaKLQKp (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58988 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750990AbaK0NYL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Nov 2014 11:10:45 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: [PATCH/RFC v7 3/3] Documentation: leds: Add description of LED Flash
- Class extension
-Date: Wed, 12 Nov 2014 17:09:17 +0100
-Message-id: <1415808557-29557-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1415808557-29557-1-git-send-email-j.anaszewski@samsung.com>
-References: <1415808557-29557-1-git-send-email-j.anaszewski@samsung.com>
+	Thu, 27 Nov 2014 08:24:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 1/9] videodev2.h: improve colorspace support
+Date: Thu, 27 Nov 2014 14:23:44 +0100
+Message-Id: <1417094632-31980-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417094632-31980-1-git-send-email-hverkuil@xs4all.nl>
+References: <1417094632-31980-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The documentation being added contains overall description of the
-LED Flash Class and the related sysfs attributes.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Add support for the new AdobeRGB and BT.2020 colorspaces as needed for
+HDMI 2.0.
+
+Add support to specify the Y'CbCr encoding and quantization range explicitly.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/leds/leds-class-flash.txt |   39 +++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
- create mode 100644 Documentation/leds/leds-class-flash.txt
+ include/uapi/linux/videodev2.h | 99 +++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 89 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-new file mode 100644
-index 0000000..0164329
---- /dev/null
-+++ b/Documentation/leds/leds-class-flash.txt
-@@ -0,0 +1,39 @@
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 1c2f84f..df37e0cf 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -178,30 +178,103 @@ enum v4l2_memory {
+ 
+ /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
+ enum v4l2_colorspace {
+-	/* ITU-R 601 -- broadcast NTSC/PAL */
++	/* SMPTE 170M: used for broadcast NTSC/PAL SDTV */
+ 	V4L2_COLORSPACE_SMPTE170M     = 1,
+ 
+-	/* 1125-Line (US) HDTV */
++	/* Obsolete pre-1998 SMPTE 240M HDTV standard, superseded by Rec 709 */
+ 	V4L2_COLORSPACE_SMPTE240M     = 2,
+ 
+-	/* HD and modern captures. */
++	/* Rec.709: used for HDTV */
+ 	V4L2_COLORSPACE_REC709        = 3,
+ 
+-	/* broken BT878 extents (601, luma range 16-253 instead of 16-235) */
++	/*
++	 * Deprecated, do not use. No driver will ever return this. This was
++	 * based on a misunderstanding of the bt878 datasheet.
++	 */
+ 	V4L2_COLORSPACE_BT878         = 4,
+ 
+-	/* These should be useful.  Assume 601 extents. */
++	/*
++	 * NTSC 1953 colorspace. This only makes sense when dealing with
++	 * really, really old NTSC recordings. Superseded by SMPTE 170M.
++	 */
+ 	V4L2_COLORSPACE_470_SYSTEM_M  = 5,
 +
-+Flash LED handling under Linux
-+==============================
++	/*
++	 * EBU Tech 3213 PAL/SECAM colorspace. This only makes sense when
++	 * dealing with really old PAL/SECAM recordings. Superseded by
++	 * SMPTE 170M.
++	 */
+ 	V4L2_COLORSPACE_470_SYSTEM_BG = 6,
+ 
+-	/* I know there will be cameras that send this.  So, this is
+-	 * unspecified chromaticities and full 0-255 on each of the
+-	 * Y'CbCr components
++	/*
++	 * Effectively shorthand for V4L2_COLORSPACE_SRGB, V4L2_YCBCR_ENC_601
++	 * and V4L2_QUANTIZATION_FULL_RANGE. To be used for (Motion-)JPEG.
+ 	 */
+ 	V4L2_COLORSPACE_JPEG          = 7,
+ 
+-	/* For RGB colourspaces, this is probably a good start. */
++	/* For RGB colorspaces such as produces by most webcams. */
+ 	V4L2_COLORSPACE_SRGB          = 8,
 +
-+Some LED devices support two modes - torch and flash. In order to enable
-+support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol must be defined
-+in the kernel config. A flash LED driver must register in the LED subsystem
-+with led_classdev_flash_register to gain flash capabilities.
++	/* AdobeRGB colorspace */
++	V4L2_COLORSPACE_ADOBERGB      = 9,
 +
-+Following sysfs attributes are exposed for controlling flash led devices:
++	/* BT.2020 colorspace, used for UHDTV. */
++	V4L2_COLORSPACE_BT2020        = 10,
++};
 +
-+	- flash_brightness - flash LED brightness in microamperes (RW)
-+	- max_flash_brightness - maximum available flash LED brightness (RO)
-+	- indicator_brightness - privacy LED brightness in microamperes (RW)
-+	- max_indicator_brightness - maximum privacy LED brightness in
-+				     microamperes (RO)
-+	- flash_timeout - flash strobe duration in microseconds (RW)
-+	- max_flash_timeout - maximum available flash strobe duration (RO)
-+	- flash_strobe - flash strobe state (RW)
-+	- flash_fault - bitmask of flash faults that may have occurred,
-+			possible flags are:
-+		* 0x01 - flash controller voltage to the flash LED has exceeded
-+			 the limit specific to the flash controller
-+		* 0x02 - the flash strobe was still on when the timeout set by
-+			 the user has expired; not all flash controllers may
-+			 set this in all such conditions
-+		* 0x04 - the flash controller has overheated
-+		* 0x08 - the short circuit protection of the flash controller
-+			 has been triggered
-+		* 0x10 - current in the LED power supply has exceeded the limit
-+			 specific to the flash controller
-+		* 0x40 - flash controller voltage to the flash LED has been
-+			 below the minimum limit specific to the flash
-+		* 0x80 - the input voltage of the flash controller is below
-+			 the limit under which strobing the flash at full
-+			 current will not be possible. The condition persists
-+			 until this flag is no longer set
-+		* 0x100 - the temperature of the LED has exceeded its allowed
-+			  upper limit
++enum v4l2_ycbcr_encoding {
++	/*
++	 * Mapping of V4L2_YCBCR_ENC_DEFAULT to actual encodings for the
++	 * various colorspaces:
++	 *
++	 * V4L2_COLORSPACE_SMPTE170M, V4L2_COLORSPACE_470_SYSTEM_M,
++	 * V4L2_COLORSPACE_470_SYSTEM_BG, V4L2_COLORSPACE_ADOBERGB and
++	 * V4L2_COLORSPACE_JPEG: V4L2_YCBCR_ENC_601
++	 *
++	 * V4L2_COLORSPACE_REC709: V4L2_YCBCR_ENC_709
++	 *
++	 * V4L2_COLORSPACE_SRGB: V4L2_YCBCR_ENC_SYCC
++	 *
++	 * V4L2_COLORSPACE_BT2020: V4L2_YCBCR_ENC_BT2020NC
++	 *
++	 * V4L2_COLORSPACE_SMPTE240M: V4L2_YCBCR_ENC_SMPTE240M
++	 */
++	V4L2_YCBCR_ENC_DEFAULT        = 0,
++
++	/* ITU-R 601 -- SDTV */
++	V4L2_YCBCR_ENC_601            = 1,
++
++	/* Rec. 709 -- HDTV */
++	V4L2_YCBCR_ENC_709            = 2,
++
++	/* ITU-R 601/EN 61966-2-4 Extended Gamut -- SDTV */
++	V4L2_YCBCR_ENC_XV601          = 3,
++
++	/* Rec. 709/EN 61966-2-4 Extended Gamut -- HDTV */
++	V4L2_YCBCR_ENC_XV709          = 4,
++
++	/* sYCC (Y'CbCr encoding of sRGB) */
++	V4L2_YCBCR_ENC_SYCC           = 5,
++
++	/* BT.2020 Non-constant Luminance Y'CbCr */
++	V4L2_YCBCR_ENC_BT2020NC       = 6,
++
++	/* BT.2020 Constant Luminance Y'CbcCrc */
++	V4L2_YCBCR_ENC_BT2020C        = 7,
++
++	/* SMPTE 240M -- Obsolete HDTV */
++	V4L2_YCBCR_ENC_SMPTE240M      = 8,
++};
++
++enum v4l2_quantization {
++	/*
++	 * The default for R'G'B' quantization is always full range. For
++	 * Y'CbCr the quantization is always limited range, except for
++	 * SYCC, XV601, XV709 or JPEG: those are full range.
++	 */
++	V4L2_QUANTIZATION_DEFAULT     = 0,
++	V4L2_QUANTIZATION_FULL_RANGE  = 1,
++	V4L2_QUANTIZATION_LIM_RANGE   = 2,
+ };
+ 
+ enum v4l2_priority {
+@@ -294,6 +367,8 @@ struct v4l2_pix_format {
+ 	__u32			colorspace;	/* enum v4l2_colorspace */
+ 	__u32			priv;		/* private data, depends on pixelformat */
+ 	__u32			flags;		/* format flags (V4L2_PIX_FMT_FLAG_*) */
++	__u32			ycbcr_enc;	/* enum v4l2_ycbcr_encoding */
++	__u32			quantization;	/* enum v4l2_quantization */
+ };
+ 
+ /*      Pixel format         FOURCC                          depth  Description  */
+@@ -1777,6 +1852,8 @@ struct v4l2_plane_pix_format {
+  * @plane_fmt:		per-plane information
+  * @num_planes:		number of planes for this format
+  * @flags:		format flags (V4L2_PIX_FMT_FLAG_*)
++ * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
++ * @quantization:	enum v4l2_quantization, colorspace quantization
+  */
+ struct v4l2_pix_format_mplane {
+ 	__u32				width;
+@@ -1788,7 +1865,9 @@ struct v4l2_pix_format_mplane {
+ 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
+ 	__u8				num_planes;
+ 	__u8				flags;
+-	__u8				reserved[10];
++	__u8				ycbcr_enc;
++	__u8				quantization;
++	__u8				reserved[8];
+ } __attribute__ ((packed));
+ 
+ /**
 -- 
-1.7.9.5
+2.1.3
 
