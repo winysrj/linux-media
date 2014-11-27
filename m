@@ -1,64 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51350 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:48009 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751686AbaKKHuF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Nov 2014 02:50:05 -0500
-Message-ID: <5461BF75.8000808@ti.com>
-Date: Tue, 11 Nov 2014 13:19:09 +0530
-From: Sekhar Nori <nsekhar@ti.com>
+	id S1751761AbaK0KLf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Nov 2014 05:11:35 -0500
+Message-ID: <5476F8AB.2000601@redhat.com>
+Date: Thu, 27 Nov 2014 11:10:51 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	linux-api <linux-api@vger.kernel.org>,
-	OSUOSL Drivers <devel@driverdev.osuosl.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LDOC <linux-doc@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v3 06/10] [media] platform: Make use of media_bus_format
- enum
-References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com> <1415369269-5064-7-git-send-email-boris.brezillon@free-electrons.com> <CA+V-a8t79gYYGcgg5wvM-eqW8H2D6WD7xM9t2Px=WHb2rf34ow@mail.gmail.com> <546193CF.8090107@ti.com>
-In-Reply-To: <546193CF.8090107@ti.com>
-Content-Type: text/plain; charset="utf-8"
+To: Chen-Yu Tsai <wens@csie.org>
+CC: Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Boris Brezillon <boris@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Emilio Lopez <emilio@elopez.com.ar>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi <linux-sunxi@googlegroups.com>
+Subject: Re: [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
+References: <20141126211318.GN25249@lukather> <5476E3A5.4000708@redhat.com> <CAGb2v652m0bCdPWFF4LWwjcrCJZvnLibFPw8xXJ3Q-Ge+_-p7g@mail.gmail.com>
+In-Reply-To: <CAGb2v652m0bCdPWFF4LWwjcrCJZvnLibFPw8xXJ3Q-Ge+_-p7g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 11 November 2014 10:12 AM, Sekhar Nori wrote:
-> On Saturday 08 November 2014 02:48 PM, Prabhakar Lad wrote:
->> Hi,
->>
->> Thanks for the patch,
->>
->> On Fri, Nov 7, 2014 at 2:07 PM, Boris Brezillon
->> <boris.brezillon@free-electrons.com> wrote:
->>> In order to have subsytem agnostic media bus format definitions we've
->>> moved media bus definition to include/uapi/linux/media-bus-format.h and
->>> prefixed values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
->>>
->>> Reference new definitions in all platform drivers.
->>>
->>> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
->>> ---
->>>  arch/arm/mach-davinci/board-dm355-evm.c            |   2 +-
->>>  arch/arm/mach-davinci/board-dm365-evm.c            |   4 +-
->>>  arch/arm/mach-davinci/dm355.c                      |   7 +-
->>>  arch/arm/mach-davinci/dm365.c                      |   7 +-
->>
->> @Sekhar can you ack for the machine changes for davinci ?
-> 
-> Heh, I don't have 6/10 in my inbox but have rest of the series. Can you
-> forward 6/10 to me?
+Hi,
 
-Based on the patch Prabhakar forwarded, for the mach-davinci changes,
-you can add:
+On 11/27/2014 10:28 AM, Chen-Yu Tsai wrote:
+> Hi,
+>
+> On Thu, Nov 27, 2014 at 4:41 PM, Hans de Goede <hdegoede@redhat.com> wrote:
 
-Acked-by: Sekhar Nori <nsekhar@ti.com>
+<snip>
 
-Thanks,
-Sekhar
+>> I notice that you've not responded to my proposal to simple make the clock
+>> node a child node of the clocks node in the dt, that should work nicely, and
+>> avoid the need for any kernel level changes to support it, I'm beginning to
+>> think that that is probably the best solution.
+>
+> Would that not cause an overlap of the io regions, and cause one of them
+> to fail? AFAIK the OF subsystem doesn't like overlapping resources.
+
+No the overlap check is done by the platform dev resource code, and of_clk_declare
+does not use that. So the overlap would be there, but not an issue (in theory
+I did not test this).
+
+Thinking more about this, I believe that using the MFD framework for the prcm seems
+like a mistake to me. It gains us nothing, since we have no irq to de-multiplex or
+some such. We're not using MFD for the CMU, why use it for CMU2 (which the prcm
+effectively is) ?
+
+So I think it would be best to remove the prcm node from the dt, and simply put the
+different blocks inside it directly under the soc node, this will work fine with
+current kernels, since as said we do not use any MFD features, we use it to
+create platform devs and assign resources, something which will happen automatically
+if we put the nodes directly under the soc node, since then simple-bus will do the
+work for us.
+
+And then in a release or 2 we can remove the mfd prcm driver from the kernel, and we
+have the same functionality we have now with less code.
+
+We could then also chose to move the existing prcm clock nodes to of_clk_declare
+(this will work once they are nodes directly under soc with a proper reg property).
+and the ir-clk can use allwinner,sun4i-a10-mod0-clk compatible and can live under
+either clocks or soc, depending on what we want to do with the other prcm clocks.
+
+Regards,
+
+Hans
