@@ -1,121 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43539 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754309AbaKEJQq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 04:16:46 -0500
-Date: Wed, 5 Nov 2014 07:16:40 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Andreas Steinmetz <ast@domdv.de>,
-	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-Cc: linux-media@vger.kernel.org, Bob Liu <Bob@Turbosight.com>,
-	"Igor M. Liplianin" <liplianin@me.by>
-Subject: Re: [PATCH 1/3] TBS USB drivers (DVB-S/S2) - basic driver
-Message-ID: <20141105071640.2a22d094@recife.lan>
-In-Reply-To: <1395865966.23074.60.camel@host028-server-9.lan.domdv.de>
-References: <1395865966.23074.60.camel@host028-server-9.lan.domdv.de>
+Received: from nasmtp01.atmel.com ([192.199.1.246]:39597 "EHLO
+	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750896AbaK1K2G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Nov 2014 05:28:06 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<g.liakhovetski@gmx.de>, <laurent.pinchart@ideasonboard.com>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 1/4] media: ov2640: add async probe function
+Date: Fri, 28 Nov 2014 18:28:24 +0800
+Message-ID: <1417170507-11172-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1417170507-11172-1-git-send-email-josh.wu@atmel.com>
+References: <1417170507-11172-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andreas,
+To support async probe for ov2640, we need remove the code to get 'mclk'
+in ov2640_probe() function. oterwise, if soc_camera host is not probed
+in the moment, then we will fail to get 'mclk' and quit the ov2640_probe()
+function.
 
-(c/c the others that are listed as the authors of the TBS driver)
+So in this patch, we move such 'mclk' getting code to ov2640_s_power()
+function. That make ov2640 survive, as we can pass a NULL (priv-clk) to
+soc_camera_set_power() function.
 
-Em Wed, 26 Mar 2014 21:32:46 +0100
-Andreas Steinmetz <ast@domdv.de> escreveu:
+And if soc_camera host is probed, the when ov2640_s_power() is called,
+then we can get the 'mclk' and that make us enable/disable soc_camera
+host's clock as well.
 
-> [Please CC me on replies, I'm not subscribed]
-> 
-> The patch adds a driver for TBS USB DVB-S/S2 devices for which complete
-> GPLv2 code exists. Code was taken from:
-> 
-> http://www.tbsdtv.com/download/
-> https://bitbucket.org/CrazyCat/linux-tbs-drivers/
-> https://bitbucket.org/updatelee/v4l-updatelee
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+ drivers/media/i2c/soc_camera/ov2640.c | 31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
 
-We have already a driver for the chipsets used on this driver.
-So, instead of adding a new driver, you should work on adding support
-on the existing ones.
-> 
-> Supported devices:
-> ------------------
-> 
-> TBS5980 - complete open source by manufacturer, current device
-> TBS5928 - complete open source by manufacturer, old device
-> TBS5920 - complete open source by manufacturer, old device
-> TBS5910 - complete open source by manufacturer, old device
-> TBS5925 - open source by manufacturer except 13V/18V control,
->           voltage switching of TBS5980 however works,
->           current device
-> TBS5921 - open source from CrazyCat's bitbucket repository,
->           old device
-> 
-> Unsupported devices:
-> --------------------
-> 
-> TBS5922 - mostly closed source, current device
-> TBS5990 - mostly closed source, current device
-> TBS???? with USB PID 0x2601 - very old device for which the actual
-> hardware used couldn't be determined.
-> 
-> General:
-> --------
-> 
-> I do not have any manufacturer relationship. I'm just a user of TBS5980
-> and TBS5925 which work quite well as far as the hardware is concerned.
-> 
-> I'm sufficiently annoyed, however, by the manufacturer's driver build
-> system which actually is an old v4l tree replacing the kernel's current
-> v4l tree. Thus I have reworked all available open source code for the
-> TBS USB DVB-S/S2 hardware into a combined driver that is working with
-> the current kernel.
-> 
-> Testing:
-> --------
-> 
-> TBS5925 gets used daily and is working fine.
-> TBS5980 gets used daily minus an actual CAM and is working fine without
-> a CAM.
-> 
-> The old devices can't be tested by me, I don't own them and they are not
-> sold anymore.
-> 
-> Maintenance:
-> ------------
-> 
-> As a TBS5925/TBS5980 user I'm willing to maintain the driver as far as
-> this is possible (see below).
-> 
-> Regarding the older devices I'm willing to fix bugs for owners of these
-> devices as long as I did introduce them in my combined driver.
-> 
-> What I cannot do for any device is to fix any problems that would
-> require manufacturer support or manufacturer documentation.
-> 
-> As the TBS5980 manufacturer sources on which this driver is based didn't
-> change for more than one and a half years (since when I started to
-> collect manufacturer source archives) I'm quite confident that not much
-> maintenance will be necessary.
-> 
-> Firmware:
-> ---------
-> 
-> All required firmware except for the TBS5921 is available at
-> http://www.tbsdtv.com/download/ (manufacturer website). The tda10071
-> firmware required additionally for the TBS5921 is already supported by
-> the get_dvb_firmware script of the kernel.
-> 
-> Due to the way the manufacturer handles software distribution I can't
-> include the TBS firmware in the get_dvb_firmware script (no archive url,
-> archive files updated every few months under a different file name).
-> 
-> Notes:
-> ------
-> 
-> The ifdefs in the driver will go away by a followup patch after a
-> necessary patch to some frontends.
-> 
-> Please go on easy with me. I'm usually not writing kernel drivers. And
-> I'm neither young nor healthy enough for flame wars.
+diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+index 1fdce2f..9ee910d 100644
+--- a/drivers/media/i2c/soc_camera/ov2640.c
++++ b/drivers/media/i2c/soc_camera/ov2640.c
+@@ -739,6 +739,15 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct ov2640_priv *priv = to_ov2640(client);
++	struct v4l2_clk *clk;
++
++	if (!priv->clk) {
++		clk = v4l2_clk_get(&client->dev, "mclk");
++		if (IS_ERR(clk))
++			dev_warn(&client->dev, "Cannot get the mclk. maybe soc-camera host is not probed yet.\n");
++		else
++			priv->clk = clk;
++	}
+ 
+ 	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
+ }
+@@ -1078,21 +1087,21 @@ static int ov2640_probe(struct i2c_client *client,
+ 	if (priv->hdl.error)
+ 		return priv->hdl.error;
+ 
+-	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+-	if (IS_ERR(priv->clk)) {
+-		ret = PTR_ERR(priv->clk);
+-		goto eclkget;
+-	}
+-
+ 	ret = ov2640_video_probe(client);
+ 	if (ret) {
+-		v4l2_clk_put(priv->clk);
+-eclkget:
+-		v4l2_ctrl_handler_free(&priv->hdl);
++		goto evideoprobe;
+ 	} else {
+ 		dev_info(&adapter->dev, "OV2640 Probed\n");
+ 	}
+ 
++	ret = v4l2_async_register_subdev(&priv->subdev);
++	if (ret < 0)
++		goto evideoprobe;
++
++	return 0;
++
++evideoprobe:
++	v4l2_ctrl_handler_free(&priv->hdl);
+ 	return ret;
+ }
+ 
+@@ -1100,7 +1109,9 @@ static int ov2640_remove(struct i2c_client *client)
+ {
+ 	struct ov2640_priv       *priv = to_ov2640(client);
+ 
+-	v4l2_clk_put(priv->clk);
++	v4l2_async_unregister_subdev(&priv->subdev);
++	if (priv->clk)
++		v4l2_clk_put(priv->clk);
+ 	v4l2_device_unregister_subdev(&priv->subdev);
+ 	v4l2_ctrl_handler_free(&priv->hdl);
+ 	return 0;
+-- 
+1.9.1
+
