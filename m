@@ -1,39 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37063 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751735AbaK2Xo4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Nov 2014 18:44:56 -0500
-Date: Sun, 30 Nov 2014 01:44:17 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com
-Subject: Re: [PATCH/RFC v8 03/14] Documentation: leds: Add description of
- v4l2-flash sub-device
-Message-ID: <20141129234416.GR8907@valkosipuli.retiisi.org.uk>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-4-git-send-email-j.anaszewski@samsung.com>
+Received: from mout.gmx.net ([212.227.17.21]:61991 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751176AbaK1WPg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Nov 2014 17:15:36 -0500
+Received: from axis700.grange ([87.79.214.157]) by mail.gmx.com (mrgmx101)
+ with ESMTPSA (Nemesis) id 0MSIf1-1XScFa3oBH-00TUJC for
+ <linux-media@vger.kernel.org>; Fri, 28 Nov 2014 23:15:33 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 7890C40BD9
+	for <linux-media@vger.kernel.org>; Fri, 28 Nov 2014 23:15:32 +0100 (CET)
+Date: Fri, 28 Nov 2014 23:15:32 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera: 1st set for 3.19
+Message-ID: <Pine.LNX.4.64.1411282307180.15467@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1417166286-27685-4-git-send-email-j.anaszewski@samsung.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 28, 2014 at 10:17:55AM +0100, Jacek Anaszewski wrote:
-> This patch extends LED Flash class documention by
-> the description of interactions with v4l2-flash sub-device.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
+Hi Mauro,
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+IIUC, this coming Sunday might be the last -rc, so, postponing pull 
+requests to subsystem maintainers even further isn't a good idea, so, here 
+goes an soc-camera request. I know it isn't complete, there are a few more 
+patches waiting to be pushed upstream, but I won't have time this coming 
+weekend and next two weeks I'm traveling, which won't simplify things 
+either. Some more patches are being reworked, if they arrive soon and we 
+do get another -rc, I might try to push them too, but I don't want to 
+postpone these ones, while waiting. One of these patches has also been 
+modified by me and hasn't been tested yet. But changes weren't too 
+complex. If however I did break something, we'll have to fix it in an 
+incremental patch.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+The following changes since commit d298a59791fad3a707c1dadbef0935ee2664a10e:
+
+  Merge branch 'patchwork' into to_next (2014-11-21 17:01:46 -0200)
+
+are available in the git repository at:
+
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.19-1
+
+for you to fetch changes up to d8f5c144e57d99d2a7325bf8877812bf560e22dd:
+
+  rcar_vin: Fix interrupt enable in progressive (2014-11-23 12:08:19 +0100)
+
+----------------------------------------------------------------
+Koji Matsuoka (4):
+      rcar_vin: Add YUYV capture format support
+      rcar_vin: Add scaling support
+      rcar_vin: Enable VSYNC field toggle mode
+      rcar_vin: Fix interrupt enable in progressive
+
+Yoshihiro Kaneko (1):
+      rcar_vin: Add DT support for r8a7793 and r8a7794 SoCs
+
+ .../devicetree/bindings/media/rcar_vin.txt         |   2 +
+ drivers/media/platform/soc_camera/rcar_vin.c       | 466 ++++++++++++++++++++-
+ 2 files changed, 457 insertions(+), 11 deletions(-)
+
+Thanks
+Guennadi
