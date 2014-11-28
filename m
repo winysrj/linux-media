@@ -1,76 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48806 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752562AbaKQORS (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:53104 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132AbaK1JTc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 09:17:18 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 2/8] v4l2-mediabus: improve colorspace support
-Date: Mon, 17 Nov 2014 15:16:48 +0100
-Message-Id: <1416233814-40579-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1416233814-40579-1-git-send-email-hverkuil@xs4all.nl>
-References: <1416233814-40579-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 28 Nov 2014 04:19:32 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH/RFC v8 04/14] v4l2-async: change custom.match callback argument
+ type
+Date: Fri, 28 Nov 2014 10:17:56 +0100
+Message-id: <1417166286-27685-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+It is useful to have an access to the async sub-device
+being matched, not only to the related struct device.
+Change match callback argument from struct device
+to struct v4l2_subdev. It will allow e.g. for matching
+a sub-device by its "name" property.
 
-Add and copy the new ycbcr_enc and quantization fields.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/media/v4l2-mediabus.h      | 4 ++++
- include/uapi/linux/v4l2-mediabus.h | 6 +++++-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-async.c |   16 ++++++++--------
+ include/media/v4l2-async.h           |    2 +-
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 59d7397..38d960d 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -94,6 +94,8 @@ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
- 	pix_fmt->height = mbus_fmt->height;
- 	pix_fmt->field = mbus_fmt->field;
- 	pix_fmt->colorspace = mbus_fmt->colorspace;
-+	pix_fmt->ycbcr_enc = mbus_fmt->ycbcr_enc;
-+	pix_fmt->quantization = mbus_fmt->quantization;
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 85a6a34..8140992 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -22,10 +22,10 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
+ 
+-static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
++static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+ #if IS_ENABLED(CONFIG_I2C)
+-	struct i2c_client *client = i2c_verify_client(dev);
++	struct i2c_client *client = i2c_verify_client(sd->dev);
+ 	return client &&
+ 		asd->match.i2c.adapter_id == client->adapter->nr &&
+ 		asd->match.i2c.address == client->addr;
+@@ -34,14 +34,14 @@ static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
+ #endif
  }
  
- static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
-@@ -104,6 +106,8 @@ static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
- 	mbus_fmt->height = pix_fmt->height;
- 	mbus_fmt->field = pix_fmt->field;
- 	mbus_fmt->colorspace = pix_fmt->colorspace;
-+	mbus_fmt->ycbcr_enc = pix_fmt->ycbcr_enc;
-+	mbus_fmt->quantization = pix_fmt->quantization;
- 	mbus_fmt->code = code;
+-static bool match_devname(struct device *dev, struct v4l2_async_subdev *asd)
++static bool match_devname(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+-	return !strcmp(asd->match.device_name.name, dev_name(dev));
++	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
  }
  
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index b1934a3..5a86d8e 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -22,6 +22,8 @@
-  * @code:	data format code (from enum v4l2_mbus_pixelcode)
-  * @field:	used interlacing type (from enum v4l2_field)
-  * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-+ * @ycbcr_enc:	YCbCr encoding of the data (from enum v4l2_ycbcr_encoding)
-+ * @quantization: quantization of the data (from enum v4l2_quantization)
-  */
- struct v4l2_mbus_framefmt {
- 	__u32			width;
-@@ -29,7 +31,9 @@ struct v4l2_mbus_framefmt {
- 	__u32			code;
- 	__u32			field;
- 	__u32			colorspace;
--	__u32			reserved[7];
-+	__u32			ycbcr_enc;
-+	__u32			quantization;
-+	__u32			reserved[5];
- };
+-static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
++static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+-	return dev->of_node == asd->match.of.node;
++	return sd->dev->of_node == asd->match.of.node;
+ }
  
- #ifndef __KERNEL__
+ static LIST_HEAD(subdev_list);
+@@ -52,7 +52,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+ 						    struct v4l2_subdev *sd)
+ {
+ 	struct v4l2_async_subdev *asd;
+-	bool (*match)(struct device *, struct v4l2_async_subdev *);
++	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
+ 
+ 	list_for_each_entry(asd, &notifier->waiting, list) {
+ 		/* bus_type has been verified valid before */
+@@ -79,7 +79,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+ 		}
+ 
+ 		/* match cannot be NULL here */
+-		if (match(sd->dev, asd))
++		if (match(sd, asd))
+ 			return asd;
+ 	}
+ 
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 7683569..1c0b586 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -51,7 +51,7 @@ struct v4l2_async_subdev {
+ 			unsigned short address;
+ 		} i2c;
+ 		struct {
+-			bool (*match)(struct device *,
++			bool (*match)(struct v4l2_subdev *,
+ 				      struct v4l2_async_subdev *);
+ 			void *priv;
+ 		} custom;
 -- 
-2.1.1
+1.7.9.5
 
