@@ -1,59 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42448 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906AbaKBMcs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:48 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 05/14] [media] cx25840: convert max_buf_size var to lowercase
-Date: Sun,  2 Nov 2014 10:32:28 -0200
-Message-Id: <5c067f2ed388b0c40ca1e85db328bb76408c8b01.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:44250 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750919AbaK1K3S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Nov 2014 05:29:18 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<g.liakhovetski@gmx.de>, <laurent.pinchart@ideasonboard.com>,
+	Josh Wu <josh.wu@atmel.com>, <devicetree@vger.kernel.org>
+Subject: [PATCH 4/4] media: ov2640: dt: add the device tree binding document
+Date: Fri, 28 Nov 2014 18:28:27 +0800
+Message-ID: <1417170507-11172-5-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1417170507-11172-1-git-send-email-josh.wu@atmel.com>
+References: <1417170507-11172-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CodingStyle fix: vars should be in lowercase.
+Add the document for ov2640 dt.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+ .../devicetree/bindings/media/i2c/ov2640.txt       | 43 ++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
 
-diff --git a/drivers/media/i2c/cx25840/cx25840-firmware.c b/drivers/media/i2c/cx25840/cx25840-firmware.c
-index 6092bf71300f..9bbb31adc29d 100644
---- a/drivers/media/i2c/cx25840/cx25840-firmware.c
-+++ b/drivers/media/i2c/cx25840/cx25840-firmware.c
-@@ -113,7 +113,7 @@ int cx25840_loadfw(struct i2c_client *client)
- 	const u8 *ptr;
- 	const char *fwname = get_fw_name(client);
- 	int size, retval;
--	int MAX_BUF_SIZE = FWSEND;
-+	int max_buf_size = FWSEND;
- 	u32 gpio_oe = 0, gpio_da = 0;
- 
- 	if (is_cx2388x(state)) {
-@@ -123,8 +123,8 @@ int cx25840_loadfw(struct i2c_client *client)
- 	}
- 
- 	/* cx231xx cannot accept more than 16 bytes at a time */
--	if (is_cx231xx(state) && MAX_BUF_SIZE > 16)
--		MAX_BUF_SIZE = 16;
-+	if (is_cx231xx(state) && max_buf_size > 16)
-+		max_buf_size = 16;
- 
- 	if (request_firmware(&fw, fwname, FWDEV(client)) != 0) {
- 		v4l_err(client, "unable to open firmware %s\n", fwname);
-@@ -139,7 +139,7 @@ int cx25840_loadfw(struct i2c_client *client)
- 	size = fw->size;
- 	ptr = fw->data;
- 	while (size > 0) {
--		int len = min(MAX_BUF_SIZE - 2, size);
-+		int len = min(max_buf_size - 2, size);
- 
- 		memcpy(buffer + 2, ptr, len);
- 
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+new file mode 100644
+index 0000000..adec147
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+@@ -0,0 +1,43 @@
++* Omnivision ov2640 CMOS sensor
++
++The Omnivision OV2640 sensor support multiple resolutions output, such as
++CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
++output format.
++
++Required Properties :
++- compatible      : Must be "omnivision,ov2640"
++- reset-gpio      : reset pin
++- power-down-gpio : power down pin
++
++Optional Properties:
++- clocks          : reference master clock, if using external fixed clock, you
++                    no need to have such property.
++- clock-names     : Must be "mck", it means the master clock for ov2640.
++
++For further reading of port node refer Documentation/devicetree/bindings/media/
++video-interfaces.txt.
++
++Example:
++
++	i2c1: i2c@f0018000 {
++		ov2640: camera@0x30 {
++			compatible = "omnivision,ov2640";
++			reg = <0x30>;
++
++			... ...
++
++			reset-gpio = <&pioE 24 GPIO_ACTIVE_HIGH>;
++			power-down-gpio = <&pioE 29 GPIO_ACTIVE_HIGH>;
++
++			/* use pck1 for the master clock of ov2640 */
++			clocks = <&pck1>;
++			clock-names = "mck";
++
++			port {
++				ov2640_0: endpoint {
++					remote-endpoint = <&isi_0>;
++					bus-width = <8>;
++				};
++			};
++		};
++	};
 -- 
-1.9.3
+1.9.1
 
