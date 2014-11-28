@@ -1,176 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:44424 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751325AbaK1K3w (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:63242 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751608AbaK1OLI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 05:29:52 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<g.liakhovetski@gmx.de>, <laurent.pinchart@ideasonboard.com>,
-	Josh Wu <josh.wu@atmel.com>, <devicetree@vger.kernel.org>
-Subject: [PATCH 2/4] media: ov2640: add primary dt support
-Date: Fri, 28 Nov 2014 18:28:25 +0800
-Message-ID: <1417170507-11172-3-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1417170507-11172-1-git-send-email-josh.wu@atmel.com>
-References: <1417170507-11172-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Fri, 28 Nov 2014 09:11:08 -0500
+Message-id: <54788278.7080101@samsung.com>
+Date: Fri, 28 Nov 2014 15:11:04 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"b.zolnierkie@samsung.com" <b.zolnierkie@samsung.com>,
+	"pavel@ucw.cz" <pavel@ucw.cz>,
+	"cooloney@gmail.com" <cooloney@gmail.com>,
+	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
+	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH/RFC v8 08/14] DT: Add documentation for exynos4-is
+ 'flashes' property
+References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+ <1417166286-27685-9-git-send-email-j.anaszewski@samsung.com>
+ <20141128111404.GB25883@leverpostej> <547865EA.5010700@samsung.com>
+ <20141128123003.GE25883@leverpostej>
+In-reply-to: <20141128123003.GE25883@leverpostej>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree support for ov2640.
+On 11/28/2014 01:30 PM, Mark Rutland wrote:
+> On Fri, Nov 28, 2014 at 12:09:14PM +0000, Jacek Anaszewski wrote:
+>> On 11/28/2014 12:14 PM, Mark Rutland wrote:
+>>> On Fri, Nov 28, 2014 at 09:18:00AM +0000, Jacek Anaszewski wrote:
+>>>> This patch adds a description of 'flashes' property
+>>>> to the samsung-fimc.txt.
+>>>>
+>>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>>>> Cc: Rob Herring <robh+dt@kernel.org>
+>>>> Cc: Pawel Moll <pawel.moll@arm.com>
+>>>> Cc: Mark Rutland <mark.rutland@arm.com>
+>>>> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+>>>> Cc: Kumar Gala <galak@codeaurora.org>
+>>>> Cc: <devicetree@vger.kernel.org>
+>>>> ---
+>>>>    .../devicetree/bindings/media/samsung-fimc.txt     |    7 +++++++
+>>>>    1 file changed, 7 insertions(+)
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>>>> index 922d6f8..4b7ed03 100644
+>>>> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>>>> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>>>> @@ -40,6 +40,12 @@ should be inactive. For the "active-a" state the camera port A must be activated
+>>>>    and the port B deactivated and for the state "active-b" it should be the other
+>>>>    way around.
+>>>>
+>>>> +Optional properties:
+>>>> +
+>>>> +- flashes - array of strings with flash led names; the name has to
+>>>> +	    be same with the related led label
+>>>> +	    (see Documentation/devicetree/bindings/leds/common.txt)
+>>>> +
+>>>
+>>> Why is this not an array of phandles to the LED nodes? That's much
+>>> better than strings.
+>>
+>> This is because a single flash led device can control many sub-leds,
+>> which are represented by child nodes in the Device Tree.
+>> Every sub-led is registered as a separate LED Flash class device
+>> in the LED subsystem, but in fact they share the same struct device
+>> and thus have access only to the parent's phandle.
+>
+> But that's a Linux infrastrcture issue, no? You don't have to use the
+> node from the struct device to find the relevant phandle.
 
-Cc: devicetree@vger.kernel.org
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
- drivers/media/i2c/soc_camera/ov2640.c | 95 ++++++++++++++++++++++++++++++++---
- 1 file changed, 89 insertions(+), 6 deletions(-)
+Right.
 
-diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-index 9ee910d..6506126 100644
---- a/drivers/media/i2c/soc_camera/ov2640.c
-+++ b/drivers/media/i2c/soc_camera/ov2640.c
-@@ -18,6 +18,8 @@
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
-+#include <linux/gpio.h>
-+#include <linux/of_gpio.h>
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
- 
-@@ -283,6 +285,10 @@ struct ov2640_priv {
- 	u32	cfmt_code;
- 	struct v4l2_clk			*clk;
- 	const struct ov2640_win_size	*win;
-+
-+	struct soc_camera_subdev_desc	ssdd_dt;
-+	int reset_pin;
-+	int pwr_down_pin;
- };
- 
- /*
-@@ -1047,6 +1053,70 @@ static struct v4l2_subdev_ops ov2640_subdev_ops = {
- 	.video	= &ov2640_subdev_video_ops,
- };
- 
-+/* OF probe functions */
-+static int ov2640_hw_power(struct device *dev, int on)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ov2640_priv *priv = to_ov2640(client);
-+
-+	dev_dbg(&client->dev, "%s: %s the camera\n",
-+			__func__, on ? "ENABLE" : "DISABLE");
-+
-+	/* enable or disable the camera */
-+	gpio_direction_output(priv->pwr_down_pin, !on);
-+
-+	return 0;
-+}
-+
-+static int ov2640_hw_reset(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ov2640_priv *priv = to_ov2640(client);
-+
-+	/* If enabled, give a reset impulse */
-+	gpio_direction_output(priv->reset_pin, 0);
-+	msleep(20);
-+	gpio_direction_output(priv->reset_pin, 1);
-+	msleep(100);
-+
-+	return 0;
-+}
-+
-+static int ov2640_probe_dt(struct i2c_client *client,
-+		struct ov2640_priv *priv)
-+{
-+	struct device_node *np = client->dev.of_node;
-+	int ret;
-+
-+	priv->reset_pin = of_get_named_gpio(np, "reset-gpio", 0);
-+	priv->pwr_down_pin = of_get_named_gpio(np, "power-down-gpio", 0);
-+	if (!gpio_is_valid(priv->reset_pin) ||
-+			!gpio_is_valid(priv->pwr_down_pin))
-+		return -EINVAL;
-+
-+	ret = devm_gpio_request(&client->dev, priv->pwr_down_pin,
-+			"power-down-pin");
-+	if (ret < 0) {
-+		dev_err(&client->dev, "request gpio pin %d failed\n",
-+				priv->pwr_down_pin);
-+		return ret;
-+	}
-+
-+	ret = devm_gpio_request(&client->dev, priv->reset_pin, "reset_pin");
-+	if (ret < 0) {
-+		dev_err(&client->dev, "request gpio pin %d failed\n",
-+				priv->reset_pin);
-+		return ret;
-+	}
-+
-+	/* Initialize the soc_camera_subdev_desc */
-+	priv->ssdd_dt.power = ov2640_hw_power;
-+	priv->ssdd_dt.reset = ov2640_hw_reset;
-+	client->dev.platform_data = &priv->ssdd_dt;
-+
-+	return 0;
-+}
-+
- /*
-  * i2c_driver functions
-  */
-@@ -1058,12 +1128,6 @@ static int ov2640_probe(struct i2c_client *client,
- 	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
- 	int			ret;
- 
--	if (!ssdd) {
--		dev_err(&adapter->dev,
--			"OV2640: Missing platform_data for driver\n");
--		return -EINVAL;
--	}
--
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_err(&adapter->dev,
- 			"OV2640: I2C-Adapter doesn't support SMBUS\n");
-@@ -1077,6 +1141,18 @@ static int ov2640_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	}
- 
-+	if (!ssdd) {
-+		if (client->dev.of_node) {
-+			ret = ov2640_probe_dt(client, priv);
-+			if (ret)
-+				return ret;
-+		} else {
-+			dev_err(&client->dev,
-+				"Missing platform_data for driver\n");
-+			return  -EINVAL;
-+		}
-+	}
-+
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 2);
- 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
-@@ -1123,9 +1199,16 @@ static const struct i2c_device_id ov2640_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, ov2640_id);
- 
-+static const struct of_device_id ov2640_of_match[] = {
-+	{.compatible = "omnivision,ov2640", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, ov2640_of_match);
-+
- static struct i2c_driver ov2640_i2c_driver = {
- 	.driver = {
- 		.name = "ov2640",
-+		.of_match_table = of_match_ptr(ov2640_of_match),
- 	},
- 	.probe    = ov2640_probe,
- 	.remove   = ov2640_remove,
--- 
-1.9.1
+>> The LED Flash
+>> class devices are wrapped by V4L2 sub-devices and register
+>> asynchronously within a media device. Since the v4l2_subdev structure
+>> has a 'name' field, it is convenient to initialize it with
+>> parsed 'label' property of a child led node and match the
+>> sub-devices in the media device basing on it.
+>
+> While that might be convenient, I don't think it's fantastic to use that
+> to describe the relationship, as this leaks Linux internals (e.g. I can
+> refer to a name that doesn't exist in the DT but happens to be what
+> Linux used, and it would work). Also, are the labels guaranteed to be
+> globally unique?
 
+The labels are used for initializing class device name and kernel
+doesn't allow to initialize two devices with same names.
+This implies that labels are guaranteed to be globally unique.
+Unless I am missing something.
+
+Regards,
+Jacek
