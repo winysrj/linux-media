@@ -1,226 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34154 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750869AbaKCNia (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59861 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751799AbaK1RKz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 08:38:30 -0500
-Message-ID: <54578551.7070002@xs4all.nl>
-Date: Mon, 03 Nov 2014 14:38:25 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 28 Nov 2014 12:10:55 -0500
+Date: Fri, 28 Nov 2014 19:10:52 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hans.verkuil@cisco.com,
+	b.zolnierkie@samsung.com, kyungmin.park@samsung.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH/RFC v4 07/11] media-ctl: libv4l2subdev: add VYUY8_2X8
+ mbus code
+Message-ID: <20141128171052.GP8907@valkosipuli.retiisi.org.uk>
+References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
+ <1416586480-19982-8-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH 4/5] [media] vivid: add support for contiguous DMA buffers
-References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de> <1413972221-13669-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1413972221-13669-5-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1416586480-19982-8-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
-
-I've been playing with this and I cannot make it work. One thing that is missing
-in this patch is that the device struct isn't passed to v4l2_device_register.
-Without that the vb2 allocation context will actually be a NULL pointer.
-
-But after fixing that and a few other minor things (see this branch of mine:
-git://linuxtv.org/hverkuil/media_tree.git vivid) it still won't work because
-dma_alloc_coherent fails and that's because the device is not DMA capable.
-
-I'm not sure how to fix this. I'd like to support dma-contig (and dma-sg in the
-future), but I think someone with a better understanding of this needs to look
-at this.
-
-BTW, I'm testing this on a regular x86_64 architecture.
-
-Regards,
-
-	Hans
-
-On 10/22/2014 12:03 PM, Philipp Zabel wrote:
-> To simulate the behaviour of real hardware with such limitations or to
-> connect vivid to real hardware with such limitations, add an option to
-> let vivid use the dma-contig allocator instead of vmalloc.
+On Fri, Nov 21, 2014 at 05:14:36PM +0100, Jacek Anaszewski wrote:
+> The VYUY8_2X8 media bus format is the only one supported
+> by the S5C73M3 camera sensor, that is a part of the media
+> device on the Exynos4412-trats2 board.
 > 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 > ---
->  drivers/media/platform/vivid/Kconfig         |  1 +
->  drivers/media/platform/vivid/vivid-core.c    | 30 +++++++++++++++++++++++-----
->  drivers/media/platform/vivid/vivid-core.h    |  1 +
->  drivers/media/platform/vivid/vivid-vid-cap.c |  4 +++-
->  drivers/media/platform/vivid/vivid-vid-out.c |  5 ++++-
->  5 files changed, 34 insertions(+), 7 deletions(-)
+>  utils/media-ctl/libv4l2subdev.c |    1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
-> index 3bfda25..f48c998 100644
-> --- a/drivers/media/platform/vivid/Kconfig
-> +++ b/drivers/media/platform/vivid/Kconfig
-> @@ -4,6 +4,7 @@ config VIDEO_VIVID
->  	select FONT_SUPPORT
->  	select FONT_8x16
->  	select VIDEOBUF2_VMALLOC
-> +	select VIDEOBUF2_DMA_CONTIG
->  	select FB_CFB_FILLRECT
->  	select FB_CFB_COPYAREA
->  	select FB_CFB_IMAGEBLIT
-> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-> index c79d60d..4c4fc3d 100644
-> --- a/drivers/media/platform/vivid/vivid-core.c
-> +++ b/drivers/media/platform/vivid/vivid-core.c
-> @@ -29,6 +29,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/videodev2.h>
->  #include <linux/v4l2-dv-timings.h>
-> +#include <media/videobuf2-dma-contig.h>
->  #include <media/videobuf2-vmalloc.h>
->  #include <media/v4l2-dv-timings.h>
->  #include <media/v4l2-ioctl.h>
-> @@ -107,6 +108,11 @@ MODULE_PARM_DESC(multiplanar, " 0 (default) is alternating single and multiplana
->  			      "\t\t    1 is single planar devices,\n"
->  			      "\t\t    2 is multiplanar devices");
->  
-> +static unsigned allocators[VIVID_MAX_DEVS];
-> +module_param_array(allocators, uint, NULL, 0444);
-> +MODULE_PARM_DESC(allocators, " memory allocator selection, default is 0.\n"
-> +			     "\t\t    0=vmalloc, 1=dma-contig");
-> +
->  /* Default: video + vbi-cap (raw and sliced) + radio rx + radio tx + sdr + vbi-out + vid-out */
->  static unsigned node_types[VIVID_MAX_DEVS] = { [0 ... (VIVID_MAX_DEVS - 1)] = 0x1d3d };
->  module_param_array(node_types, uint, NULL, 0444);
-> @@ -640,6 +646,10 @@ static int __init vivid_create_instance(int inst)
->  {
->  	static const struct v4l2_dv_timings def_dv_timings =
->  					V4L2_DV_BT_CEA_1280X720P60;
-> +	static const struct vb2_mem_ops * const vivid_mem_ops[2] = {
-> +		&vb2_vmalloc_memops,
-> +		&vb2_dma_contig_memops,
-> +	};
->  	unsigned in_type_counter[4] = { 0, 0, 0, 0 };
->  	unsigned out_type_counter[4] = { 0, 0, 0, 0 };
->  	int ccs_cap = ccs_cap_mode[inst];
-> @@ -650,6 +660,7 @@ static int __init vivid_create_instance(int inst)
->  	struct video_device *vfd;
->  	struct vb2_queue *q;
->  	unsigned node_type = node_types[inst];
-> +	unsigned allocator = allocators[inst];
->  	v4l2_std_id tvnorms_cap = 0, tvnorms_out = 0;
->  	int ret;
->  	int i;
-> @@ -1001,6 +1012,15 @@ static int __init vivid_create_instance(int inst)
->  	dev->fb_cap.fmt.bytesperline = dev->src_rect.width * tpg_g_twopixelsize(&dev->tpg, 0) / 2;
->  	dev->fb_cap.fmt.sizeimage = dev->src_rect.height * dev->fb_cap.fmt.bytesperline;
->  
-> +	/* initialize allocator context */
-> +	if (allocator == 1) {
-> +		dev->alloc_ctx = vb2_dma_contig_init_ctx(dev->v4l2_dev.dev);
-> +		if (IS_ERR(dev->alloc_ctx))
-> +			goto unreg_dev;
-> +	} else if (allocator >= ARRAY_SIZE(vivid_mem_ops)) {
-> +		allocator = 0;
-> +	}
-> +
->  	/* initialize locks */
->  	spin_lock_init(&dev->slock);
->  	mutex_init(&dev->mutex);
-> @@ -1022,7 +1042,7 @@ static int __init vivid_create_instance(int inst)
->  		q->drv_priv = dev;
->  		q->buf_struct_size = sizeof(struct vivid_buffer);
->  		q->ops = &vivid_vid_cap_qops;
-> -		q->mem_ops = &vb2_vmalloc_memops;
-> +		q->mem_ops = vivid_mem_ops[allocator];
->  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  		q->min_buffers_needed = 2;
->  
-> @@ -1040,7 +1060,7 @@ static int __init vivid_create_instance(int inst)
->  		q->drv_priv = dev;
->  		q->buf_struct_size = sizeof(struct vivid_buffer);
->  		q->ops = &vivid_vid_out_qops;
-> -		q->mem_ops = &vb2_vmalloc_memops;
-> +		q->mem_ops = vivid_mem_ops[allocator];
->  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  		q->min_buffers_needed = 2;
->  
-> @@ -1058,7 +1078,7 @@ static int __init vivid_create_instance(int inst)
->  		q->drv_priv = dev;
->  		q->buf_struct_size = sizeof(struct vivid_buffer);
->  		q->ops = &vivid_vbi_cap_qops;
-> -		q->mem_ops = &vb2_vmalloc_memops;
-> +		q->mem_ops = vivid_mem_ops[allocator];
->  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  		q->min_buffers_needed = 2;
->  
-> @@ -1076,7 +1096,7 @@ static int __init vivid_create_instance(int inst)
->  		q->drv_priv = dev;
->  		q->buf_struct_size = sizeof(struct vivid_buffer);
->  		q->ops = &vivid_vbi_out_qops;
-> -		q->mem_ops = &vb2_vmalloc_memops;
-> +		q->mem_ops = vivid_mem_ops[allocator];
->  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  		q->min_buffers_needed = 2;
->  
-> @@ -1093,7 +1113,7 @@ static int __init vivid_create_instance(int inst)
->  		q->drv_priv = dev;
->  		q->buf_struct_size = sizeof(struct vivid_buffer);
->  		q->ops = &vivid_sdr_cap_qops;
-> -		q->mem_ops = &vb2_vmalloc_memops;
-> +		q->mem_ops = vivid_mem_ops[allocator];
->  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  		q->min_buffers_needed = 8;
->  
-> diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-> index 811c286..4fefb0d 100644
-> --- a/drivers/media/platform/vivid/vivid-core.h
-> +++ b/drivers/media/platform/vivid/vivid-core.h
-> @@ -142,6 +142,7 @@ struct vivid_dev {
->  	struct v4l2_ctrl_handler	ctrl_hdl_radio_tx;
->  	struct video_device		sdr_cap_dev;
->  	struct v4l2_ctrl_handler	ctrl_hdl_sdr_cap;
-> +	struct vb2_alloc_ctx		*alloc_ctx;
->  	spinlock_t			slock;
->  	struct mutex			mutex;
->  
-> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-> index 331c544..04b5fbf 100644
-> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-> @@ -151,8 +151,10 @@ static int vid_cap_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
->  
->  	/*
->  	 * videobuf2-vmalloc allocator is context-less so no need to set
-> -	 * alloc_ctxs array.
-> +	 * alloc_ctxs array. videobuf2-dma-contig needs a context, though.
->  	 */
-> +	for (p = 0; p < planes; p++)
-> +		alloc_ctxs[p] = dev->alloc_ctx;
->  
->  	if (planes == 2)
->  		dprintk(dev, 1, "%s, count=%d, sizes=%u, %u\n", __func__,
-> diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-> index 69c2dbd..6b8dfd6 100644
-> --- a/drivers/media/platform/vivid/vivid-vid-out.c
-> +++ b/drivers/media/platform/vivid/vivid-vid-out.c
-> @@ -39,6 +39,7 @@ static int vid_out_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
->  	unsigned planes = dev->fmt_out->planes;
->  	unsigned h = dev->fmt_out_rect.height;
->  	unsigned size = dev->bytesperline_out[0] * h;
-> +	unsigned p;
->  
->  	if (dev->field_out == V4L2_FIELD_ALTERNATE) {
->  		/*
-> @@ -98,8 +99,10 @@ static int vid_out_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
->  
->  	/*
->  	 * videobuf2-vmalloc allocator is context-less so no need to set
-> -	 * alloc_ctxs array.
-> +	 * alloc_ctxs array. videobuf2-dma-contig needs a context, though.
->  	 */
-> +	for (p = 0; p < planes; p++)
-> +		alloc_ctxs[p] = dev->alloc_ctx;
->  
->  	if (planes == 2)
->  		dprintk(dev, 1, "%s, count=%d, sizes=%u, %u\n", __func__,
-> 
+> diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+> index 4c5fb12..a96ed7a 100644
+> --- a/utils/media-ctl/libv4l2subdev.c
+> +++ b/utils/media-ctl/libv4l2subdev.c
+> @@ -704,6 +704,7 @@ static struct {
+>  	{ "YUYV", V4L2_MBUS_FMT_YUYV8_1X16 },
+>  	{ "YUYV1_5X8", V4L2_MBUS_FMT_YUYV8_1_5X8 },
+>  	{ "YUYV2X8", V4L2_MBUS_FMT_YUYV8_2X8 },
+> +	{ "VYUY8_2X8", V4L2_MBUS_FMT_VYUY8_2X8 },
+>  	{ "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
+>  	{ "UYVY1_5X8", V4L2_MBUS_FMT_UYVY8_1_5X8 },
+>  	{ "UYVY2X8", V4L2_MBUS_FMT_UYVY8_2X8 },
 
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
