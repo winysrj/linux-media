@@ -1,101 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:45144 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752886AbaKJRWH (ORCPT
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:36919 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751648AbaK1Oi0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 12:22:07 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v6 10/10] [media] v4l: Forbid usage of V4L2_MBUS_FMT definitions inside the kernel
-Date: Mon, 10 Nov 2014 18:21:54 +0100
-Message-Id: <1415640114-14930-11-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
+	Fri, 28 Nov 2014 09:38:26 -0500
+Date: Fri, 28 Nov 2014 14:38:23 +0000
+From: Mark Rutland <mark.rutland@arm.com>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"b.zolnierkie@samsung.com" <b.zolnierkie@samsung.com>,
+	"pavel@ucw.cz" <pavel@ucw.cz>,
+	"cooloney@gmail.com" <cooloney@gmail.com>,
+	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
+	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH/RFC v8 08/14] DT: Add documentation for exynos4-is
+ 'flashes' property
+Message-ID: <20141128143823.GJ25883@leverpostej>
+References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+ <1417166286-27685-9-git-send-email-j.anaszewski@samsung.com>
+ <20141128111404.GB25883@leverpostej>
+ <547865EA.5010700@samsung.com>
+ <20141128123003.GE25883@leverpostej>
+ <54788278.7080101@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <54788278.7080101@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Place v4l2_mbus_pixelcode in a #ifndef __KERNEL__ section so that kernel
-users don't have access to these definitions.
+On Fri, Nov 28, 2014 at 02:11:04PM +0000, Jacek Anaszewski wrote:
+> On 11/28/2014 01:30 PM, Mark Rutland wrote:
+> > On Fri, Nov 28, 2014 at 12:09:14PM +0000, Jacek Anaszewski wrote:
+> >> On 11/28/2014 12:14 PM, Mark Rutland wrote:
+> >>> On Fri, Nov 28, 2014 at 09:18:00AM +0000, Jacek Anaszewski wrote:
+> >>>> This patch adds a description of 'flashes' property
+> >>>> to the samsung-fimc.txt.
+> >>>>
+> >>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >>>> Cc: Rob Herring <robh+dt@kernel.org>
+> >>>> Cc: Pawel Moll <pawel.moll@arm.com>
+> >>>> Cc: Mark Rutland <mark.rutland@arm.com>
+> >>>> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+> >>>> Cc: Kumar Gala <galak@codeaurora.org>
+> >>>> Cc: <devicetree@vger.kernel.org>
+> >>>> ---
+> >>>>    .../devicetree/bindings/media/samsung-fimc.txt     |    7 +++++++
+> >>>>    1 file changed, 7 insertions(+)
+> >>>>
+> >>>> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+> >>>> index 922d6f8..4b7ed03 100644
+> >>>> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
+> >>>> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+> >>>> @@ -40,6 +40,12 @@ should be inactive. For the "active-a" state the camera port A must be activated
+> >>>>    and the port B deactivated and for the state "active-b" it should be the other
+> >>>>    way around.
+> >>>>
+> >>>> +Optional properties:
+> >>>> +
+> >>>> +- flashes - array of strings with flash led names; the name has to
+> >>>> +	    be same with the related led label
+> >>>> +	    (see Documentation/devicetree/bindings/leds/common.txt)
+> >>>> +
+> >>>
+> >>> Why is this not an array of phandles to the LED nodes? That's much
+> >>> better than strings.
+> >>
+> >> This is because a single flash led device can control many sub-leds,
+> >> which are represented by child nodes in the Device Tree.
+> >> Every sub-led is registered as a separate LED Flash class device
+> >> in the LED subsystem, but in fact they share the same struct device
+> >> and thus have access only to the parent's phandle.
+> >
+> > But that's a Linux infrastrcture issue, no? You don't have to use the
+> > node from the struct device to find the relevant phandle.
+> 
+> Right.
+> 
+> >> The LED Flash
+> >> class devices are wrapped by V4L2 sub-devices and register
+> >> asynchronously within a media device. Since the v4l2_subdev structure
+> >> has a 'name' field, it is convenient to initialize it with
+> >> parsed 'label' property of a child led node and match the
+> >> sub-devices in the media device basing on it.
+> >
+> > While that might be convenient, I don't think it's fantastic to use that
+> > to describe the relationship, as this leaks Linux internals (e.g. I can
+> > refer to a name that doesn't exist in the DT but happens to be what
+> > Linux used, and it would work). Also, are the labels guaranteed to be
+> > globally unique?
+> 
+> The labels are used for initializing class device name and kernel
+> doesn't allow to initialize two devices with same names.
+> This implies that labels are guaranteed to be globally unique.
 
-We have to keep this definition for user-space users even though they're
-encouraged to move to the new media_bus_format enum.
+On Linux, yes, but that's an implementation detail, not a property of
+the binding·
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/uapi/linux/v4l2-mediabus.h | 45 ++++++++++++++++++++++++--------------
- 1 file changed, 28 insertions(+), 17 deletions(-)
-
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index d712df8..5c9410d 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -15,6 +15,33 @@
- #include <linux/types.h>
- #include <linux/videodev2.h>
- 
-+/**
-+ * struct v4l2_mbus_framefmt - frame format on the media bus
-+ * @width:	frame width
-+ * @height:	frame height
-+ * @code:	data format code (from enum v4l2_mbus_pixelcode)
-+ * @field:	used interlacing type (from enum v4l2_field)
-+ * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-+ */
-+struct v4l2_mbus_framefmt {
-+	__u32			width;
-+	__u32			height;
-+	__u32			code;
-+	__u32			field;
-+	__u32			colorspace;
-+	__u32			reserved[7];
-+};
-+
-+#ifndef __KERNEL__
-+/*
-+ * enum v4l2_mbus_pixelcode and its definitions are now deprecated, and
-+ * MEDIA_BUS_FMT_ definitions (defined in media-bus-format.h) should be
-+ * used instead.
-+ *
-+ * New defines should only be added to media-bus-format.h. The
-+ * v4l2_mbus_pixelcode enum is frozen.
-+ */
-+
- #define V4L2_MBUS_FROM_MEDIA_BUS_FMT(name)	\
- 	MEDIA_BUS_FMT_ ## name = V4L2_MBUS_FMT_ ## name
- 
-@@ -102,22 +129,6 @@ enum v4l2_mbus_pixelcode {
- 
- 	V4L2_MBUS_FROM_MEDIA_BUS_FMT(AHSV8888_1X32),
- };
--
--/**
-- * struct v4l2_mbus_framefmt - frame format on the media bus
-- * @width:	frame width
-- * @height:	frame height
-- * @code:	data format code (from enum v4l2_mbus_pixelcode)
-- * @field:	used interlacing type (from enum v4l2_field)
-- * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-- */
--struct v4l2_mbus_framefmt {
--	__u32			width;
--	__u32			height;
--	__u32			code;
--	__u32			field;
--	__u32			colorspace;
--	__u32			reserved[7];
--};
-+#endif /* __KERNEL__ */
- 
- #endif
--- 
-1.9.1
-
+Mark.
