@@ -1,193 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52126 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751293AbaKGJAD (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38495 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751386AbaK1Ov3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Nov 2014 04:00:03 -0500
+	Fri, 28 Nov 2014 09:51:29 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+Cc: Thierry Reding <thierry.reding@avionic-design.de>,
+	marbugge@cisco.com, dri-devel@lists.freedesktop.org,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv5 PATCH 10/15] vb2: use dma_map_sg_attrs to prevent unnecessary sync
-Date: Fri,  7 Nov 2014 09:50:29 +0100
-Message-Id: <1415350234-9826-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [PATCH 3/3] adv7842: simplify InfoFrame logging
+Date: Fri, 28 Nov 2014 15:50:51 +0100
+Message-Id: <1417186251-6542-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417186251-6542-1-git-send-email-hverkuil@xs4all.nl>
+References: <1417186251-6542-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Martin Bugge <marbugge@cisco.com>
 
-By default dma_map_sg syncs the mapped buffer to the device. But
-buf_prepare expects a buffer syncs for the cpu and the buffer
-will be synced to the device in the prepare memop.
+Use the new logging functions from the hdmi module.
 
-The reverse is true for dma_unmap_sg, buf_finish and the finish
-memop.
-
-To prevent unnecessary syncs we ask dma_(un)map_sg to skip the
-sync.
-
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 29 +++++++++++++++++-----
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 33 +++++++++++++++++++++-----
- 2 files changed, 50 insertions(+), 12 deletions(-)
+ drivers/media/i2c/Kconfig   |   1 +
+ drivers/media/i2c/adv7842.c | 174 ++++++++++++--------------------------------
+ 2 files changed, 47 insertions(+), 128 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index c4305bf..27f5926 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -317,8 +317,9 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
- 		attach->dma_dir = DMA_NONE;
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index f40b4cf..66fd1c1 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -209,6 +209,7 @@ config VIDEO_ADV7604
+ config VIDEO_ADV7842
+ 	tristate "Analog Devices ADV7842 decoder"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
++	select HDMI
+ 	---help---
+ 	  Support for the Analog Devices ADV7842 video decoder.
+ 
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 75d26df..7dceed7 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -38,6 +38,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/workqueue.h>
+ #include <linux/v4l2-dv-timings.h>
++#include <linux/hdmi.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-dv-timings.h>
+@@ -2108,149 +2109,65 @@ static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *e)
+ 	return err;
+ }
+ 
+-/*********** avi info frame CEA-861-E **************/
+-/* TODO move to common library */
+-
+-struct avi_info_frame {
+-	uint8_t f17;
+-	uint8_t y10;
+-	uint8_t a0;
+-	uint8_t b10;
+-	uint8_t s10;
+-	uint8_t c10;
+-	uint8_t m10;
+-	uint8_t r3210;
+-	uint8_t itc;
+-	uint8_t ec210;
+-	uint8_t q10;
+-	uint8_t sc10;
+-	uint8_t f47;
+-	uint8_t vic;
+-	uint8_t yq10;
+-	uint8_t cn10;
+-	uint8_t pr3210;
+-	uint16_t etb;
+-	uint16_t sbb;
+-	uint16_t elb;
+-	uint16_t srb;
++struct adv7842_cfg_read_infoframe {
++	const char *desc;
++	u8 present_mask;
++	u8 head_addr;
++	u8 payload_addr;
+ };
+ 
+-static const char *y10_txt[4] = {
+-	"RGB",
+-	"YCbCr 4:2:2",
+-	"YCbCr 4:4:4",
+-	"Future",
+-};
+-
+-static const char *c10_txt[4] = {
+-	"No Data",
+-	"SMPTE 170M",
+-	"ITU-R 709",
+-	"Extended Colorimetry information valied",
+-};
+-
+-static const char *itc_txt[2] = {
+-	"No Data",
+-	"IT content",
+-};
+-
+-static const char *ec210_txt[8] = {
+-	"xvYCC601",
+-	"xvYCC709",
+-	"sYCC601",
+-	"AdobeYCC601",
+-	"AdobeRGB",
+-	"5 reserved",
+-	"6 reserved",
+-	"7 reserved",
+-};
+-
+-static const char *q10_txt[4] = {
+-	"Default",
+-	"Limited Range",
+-	"Full Range",
+-	"Reserved",
+-};
+-
+-static void parse_avi_infoframe(struct v4l2_subdev *sd, uint8_t *buf,
+-				struct avi_info_frame *avi)
+-{
+-	avi->f17 = (buf[1] >> 7) & 0x1;
+-	avi->y10 = (buf[1] >> 5) & 0x3;
+-	avi->a0 = (buf[1] >> 4) & 0x1;
+-	avi->b10 = (buf[1] >> 2) & 0x3;
+-	avi->s10 = buf[1] & 0x3;
+-	avi->c10 = (buf[2] >> 6) & 0x3;
+-	avi->m10 = (buf[2] >> 4) & 0x3;
+-	avi->r3210 = buf[2] & 0xf;
+-	avi->itc = (buf[3] >> 7) & 0x1;
+-	avi->ec210 = (buf[3] >> 4) & 0x7;
+-	avi->q10 = (buf[3] >> 2) & 0x3;
+-	avi->sc10 = buf[3] & 0x3;
+-	avi->f47 = (buf[4] >> 7) & 0x1;
+-	avi->vic = buf[4] & 0x7f;
+-	avi->yq10 = (buf[5] >> 6) & 0x3;
+-	avi->cn10 = (buf[5] >> 4) & 0x3;
+-	avi->pr3210 = buf[5] & 0xf;
+-	avi->etb = buf[6] + 256*buf[7];
+-	avi->sbb = buf[8] + 256*buf[9];
+-	avi->elb = buf[10] + 256*buf[11];
+-	avi->srb = buf[12] + 256*buf[13];
+-}
+-
+-static void print_avi_infoframe(struct v4l2_subdev *sd)
++static void log_infoframe(struct v4l2_subdev *sd, struct adv7842_cfg_read_infoframe *cri)
+ {
+ 	int i;
+-	uint8_t buf[14];
+-	u8 avi_len;
+-	u8 avi_ver;
+-	struct avi_info_frame avi;
++	uint8_t buffer[32];
++	union hdmi_infoframe frame;
++	u8 len;
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct device *dev = &client->dev;
+ 
+-	if (!(hdmi_read(sd, 0x05) & 0x80)) {
+-		v4l2_info(sd, "receive DVI-D signal (AVI infoframe not supported)\n");
+-		return;
+-	}
+-	if (!(io_read(sd, 0x60) & 0x01)) {
+-		v4l2_info(sd, "AVI infoframe not received\n");
++	if (!(io_read(sd, 0x60) & cri->present_mask)) {
++		v4l2_info(sd, "%s infoframe not received\n", cri->desc);
+ 		return;
  	}
  
--	/* mapping to the client with new direction */
--	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
-+	/* Mapping to the client with new direction */
-+	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-+			 dma_dir);
- 	if (ret <= 0) {
- 		pr_err("failed to map scatterlist\n");
- 		mutex_unlock(lock);
-@@ -511,7 +512,15 @@ static void vb2_dc_put_userptr(void *buf_priv)
- 	struct sg_table *sgt = buf->dma_sgt;
+-	if (io_read(sd, 0x88) & 0x10) {
+-		v4l2_info(sd, "AVI infoframe checksum error has occurred earlier\n");
+-		io_write(sd, 0x8a, 0x10); /* clear AVI_INF_CKS_ERR_RAW */
+-		if (io_read(sd, 0x88) & 0x10) {
+-			v4l2_info(sd, "AVI infoframe checksum error still present\n");
+-			io_write(sd, 0x8a, 0x10); /* clear AVI_INF_CKS_ERR_RAW */
+-		}
+-	}
++	for (i = 0; i < 3; i++)
++		buffer[i] = infoframe_read(sd, cri->head_addr + i);
  
- 	if (sgt) {
--		dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
-+		DEFINE_DMA_ATTRS(attrs);
+-	avi_len = infoframe_read(sd, 0xe2);
+-	avi_ver = infoframe_read(sd, 0xe1);
+-	v4l2_info(sd, "AVI infoframe version %d (%d byte)\n",
+-		  avi_ver, avi_len);
++	len = buffer[2] + 1;
+ 
+-	if (avi_ver != 0x02)
++	if (len + 3 > sizeof(buffer)) {
++		v4l2_err(sd, "%s: invalid %s infoframe length %d\n", __func__, cri->desc, len);
+ 		return;
++	}
+ 
+-	for (i = 0; i < 14; i++)
+-		buf[i] = infoframe_read(sd, i);
++	for (i = 0; i < len; i++)
++		buffer[i + 3] = infoframe_read(sd, cri->payload_addr + i);
+ 
+-	v4l2_info(sd, "\t%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+-		  buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7],
+-		  buf[8], buf[9], buf[10], buf[11], buf[12], buf[13]);
++	if (hdmi_infoframe_unpack(buffer, &frame) < 0) {
++		v4l2_err(sd, "%s: unpack of %s infoframe failed\n", __func__, cri->desc);
++		return;
++	}
+ 
+-	parse_avi_infoframe(sd, buf, &avi);
++	hdmi_infoframe_log(dev, &frame);
++}
+ 
+-	if (avi.vic)
+-		v4l2_info(sd, "\tVIC: %d\n", avi.vic);
+-	if (avi.itc)
+-		v4l2_info(sd, "\t%s\n", itc_txt[avi.itc]);
++static void adv7842_log_infoframes(struct v4l2_subdev *sd)
++{
++	int i;
++	struct adv7842_cfg_read_infoframe cri[] = {
++		{ "AVI", 0x01, 0xe0, 0x00 },
++		{ "Audio", 0x02, 0xe3, 0x1c },
++		{ "SDP", 0x04, 0xe6, 0x2a },
++		{ "Vendor", 0x10, 0xec, 0x54 }
++	};
+ 
+-	if (avi.y10)
+-		v4l2_info(sd, "\t%s %s\n", y10_txt[avi.y10], !avi.c10 ? "" :
+-			(avi.c10 == 0x3 ? ec210_txt[avi.ec210] : c10_txt[avi.c10]));
+-	else
+-		v4l2_info(sd, "\t%s %s\n", y10_txt[avi.y10], q10_txt[avi.q10]);
++	if (!(hdmi_read(sd, 0x05) & 0x80)) {
++		v4l2_info(sd, "receive DVI-D signal, no infoframes\n");
++		return;
++	}
 +
-+		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
-+		/*
-+		 * No need to sync to CPU, it's already synced to the CPU
-+		 * since the finish() memop will have been called before this.
-+		 */
-+		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
-+				   buf->dma_dir, &attrs);
- 		if (!vma_is_io(buf->vma))
- 			vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
++	for (i = 0; i < ARRAY_SIZE(cri); i++)
++		log_infoframe(sd, &cri[i]);
+ }
  
-@@ -568,6 +577,9 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	struct sg_table *sgt;
- 	unsigned long contig_size;
- 	unsigned long dma_align = dma_get_cache_alignment();
-+	DEFINE_DMA_ATTRS(attrs);
+ static const char * const prim_mode_txt[] = {
+@@ -2464,7 +2381,8 @@ static int adv7842_cp_log_status(struct v4l2_subdev *sd)
+ 	v4l2_info(sd, "Deep color mode: %s\n",
+ 			deep_color_mode_txt[hdmi_read(sd, 0x0b) >> 6]);
+ 
+-	print_avi_infoframe(sd);
++	adv7842_log_infoframes(sd);
 +
-+	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 	return 0;
+ }
  
- 	/* Only cache aligned DMA transfers are reliable */
- 	if (!IS_ALIGNED(vaddr | size, dma_align)) {
-@@ -654,8 +666,12 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	kfree(pages);
- 	pages = NULL;
- 
--	sgt->nents = dma_map_sg(buf->dev, sgt->sgl, sgt->orig_nents,
--		buf->dma_dir);
-+	/*
-+	 * No need to sync to the device, this will happen later when the
-+	 * prepare() memop is called.
-+	 */
-+	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
-+				      buf->dma_dir, &attrs);
- 	if (sgt->nents <= 0) {
- 		pr_err("failed to map scatterlist\n");
- 		ret = -EIO;
-@@ -677,7 +693,8 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	return buf;
- 
- fail_map_sg:
--	dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
-+	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
-+			   buf->dma_dir, &attrs);
- 
- fail_sgt_init:
- 	if (!vma_is_io(buf->vma))
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 49ba502..4d0e552 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -103,6 +103,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
- 	struct sg_table *sgt;
- 	int ret;
- 	int num_pages;
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
- 
- 	if (WARN_ON(alloc_ctx == NULL))
- 		return NULL;
-@@ -136,9 +139,13 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
- 	buf->dev = get_device(conf->dev);
- 
- 	sgt = &buf->sg_table;
--	if (dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) == 0)
-+	/*
-+	 * No need to sync to the device, this will happen later when the
-+	 * prepare() memop is called.
-+	 */
-+	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
-+			     buf->dma_dir, &attrs) == 0)
- 		goto fail_map;
--	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- 
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_dma_sg_put;
-@@ -171,9 +178,13 @@ static void vb2_dma_sg_put(void *buf_priv)
- 	int i = buf->num_pages;
- 
- 	if (atomic_dec_and_test(&buf->refcount)) {
-+		DEFINE_DMA_ATTRS(attrs);
-+
-+		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
- 		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
- 			buf->num_pages);
--		dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
-+				   buf->dma_dir, &attrs);
- 		if (buf->vaddr)
- 			vm_unmap_ram(buf->vaddr, buf->num_pages);
- 		sg_free_table(buf->dma_sgt);
-@@ -224,6 +235,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	int num_pages_from_user;
- 	struct vm_area_struct *vma;
- 	struct sg_table *sgt;
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
-@@ -294,9 +308,13 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->dev = get_device(conf->dev);
- 
- 	sgt = &buf->sg_table;
--	if (dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) == 0)
-+	/*
-+	 * No need to sync to the device, this will happen later when the
-+	 * prepare() memop is called.
-+	 */
-+	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
-+			     buf->dma_dir, &attrs) == 0)
- 		goto userptr_fail_map;
--	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- 	return buf;
- 
- userptr_fail_map:
-@@ -325,10 +343,13 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 	struct vb2_dma_sg_buf *buf = buf_priv;
- 	struct sg_table *sgt = &buf->sg_table;
- 	int i = buf->num_pages;
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
- 
- 	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
- 	       __func__, buf->num_pages);
--	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir, &attrs);
- 	if (buf->vaddr)
- 		vm_unmap_ram(buf->vaddr, buf->num_pages);
- 	sg_free_table(buf->dma_sgt);
 -- 
-2.1.1
+2.1.3
 
