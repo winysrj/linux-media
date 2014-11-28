@@ -1,187 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:52671 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751732AbaKDO7k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 09:59:40 -0500
-Received: by mail-pa0-f41.google.com with SMTP id rd3so14573872pab.14
-        for <linux-media@vger.kernel.org>; Tue, 04 Nov 2014 06:59:40 -0800 (PST)
-Date: Tue, 4 Nov 2014 22:59:36 +0800
-From: "Nibble Max" <nibble.max@gmail.com>
-To: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	"Olli Salonen" <olli.salonen@iki.fi>,
-	"Antti Palosaari" <crope@iki.fi>
-Subject: Re: [PATCH 1/1] smipcie: add DVBSky S952 V3 support
-Message-ID: <201411042259337816423@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:53041 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132AbaK1JTH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Nov 2014 04:19:07 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v8 00/14] LED / flash API integration
+Date: Fri, 28 Nov 2014 10:17:52 +0100
+Message-id: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+This patch set is a follow-up of the LED / flash API integration
+series [1].
 
-I check media_tree.git on linuxtv.org that the media tree does not include S952 V3 code.
-S952 V3 card has M88RS6000 dvb frontend. S950 V3 card has M88TS2022/M88DS3103 dvb frontend.
-There are 2 reasons:
-1> I submit two patchs for smipcie bridge driver.
- first one for S950 V3: http://patchwork.linuxtv.org/patch/26364/ 
- later one for S950 V3 and S952 V3: http://patchwork.linuxtv.org/patch/26436
-2> I do not resend the patch for smipcie bridge driver together with the updated patchs for m88rs6000t and m88ds3103.
+========================
+Changes since version 7:
+========================
 
-Sorry for my wrong actions. It makes you to pick up the first one which has no S952 V3 code.
-So I submit S952 V3 patch for the current media_tree.git code again.
+- removed explicit support for indicator leds from
+  LED Flash class - indicator leds will be registered
+  as a separate LED Flash class devices
+- added flash_sync_strobe sysfs attribute and related
+  V4L2_CID_FLASH_SYNC_STROBE control
+- changed the way of matching V4L2 Flash sub-devices
+  in a media device, which entailed modification in
+  v4l2-async driver
+- modified max77693 DT bindings documentation
+- applied various fixes an cleanups
 
-BR,
-Max
+========================
+Changes since version 6:
+========================
 
-On 2014-11-04 22:46:01, Nibble Max wrote:
->DVBSky S952 V3 card has a dual channels of dvb-s/s2.
->1>Frontend: Integrated tuner and demod: M88RS6000
->2>PCIe bridge: SMI PCIe
->
->Signed-off-by: Nibble Max <nibble.max@gmail.com>
->---
-> drivers/media/pci/smipcie/Kconfig   |  2 +
-> drivers/media/pci/smipcie/smipcie.c | 78 +++++++++++++++++++++++++++++++++++++
-> 2 files changed, 80 insertions(+)
->
->diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
->index 78b76ca..75a2992 100644
->--- a/drivers/media/pci/smipcie/Kconfig
->+++ b/drivers/media/pci/smipcie/Kconfig
->@@ -3,9 +3,11 @@ config DVB_SMIPCIE
-> 	depends on DVB_CORE && PCI && I2C
-> 	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
-> 	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
->+	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
-> 	help
-> 	  Support for cards with SMI PCIe bridge:
-> 	  - DVBSky S950 V3
->+	  - DVBSky S952 V3
-> 
-> 	  Say Y or M if you own such a device and want to use it.
-> 	  If unsure say N.
->diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
->index 6ad6cc5..d1c1463 100644
->--- a/drivers/media/pci/smipcie/smipcie.c
->+++ b/drivers/media/pci/smipcie/smipcie.c
->@@ -17,6 +17,7 @@
-> #include "smipcie.h"
-> #include "m88ds3103.h"
-> #include "m88ts2022.h"
->+#include "m88rs6000t.h"
-> 
-> DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
-> 
->@@ -542,6 +543,70 @@ err_tuner_i2c_device:
-> 	return ret;
-> }
-> 
->+static const struct m88ds3103_config smi_dvbsky_m88rs6000_cfg = {
->+	.i2c_addr = 0x69,
->+	.clock = 27000000,
->+	.i2c_wr_max = 33,
->+	.ts_mode = M88DS3103_TS_PARALLEL,
->+	.ts_clk = 16000,
->+	.ts_clk_pol = 1,
->+	.agc = 0x99,
->+	.lnb_hv_pol = 0,
->+	.lnb_en_pol = 1,
->+};
->+
->+static int smi_dvbsky_m88rs6000_fe_attach(struct smi_port *port)
->+{
->+	int ret = 0;
->+	struct smi_dev *dev = port->dev;
->+	struct i2c_adapter *i2c;
->+	/* tuner I2C module */
->+	struct i2c_adapter *tuner_i2c_adapter;
->+	struct i2c_client *tuner_client;
->+	struct i2c_board_info tuner_info;
->+	struct m88rs6000t_config m88rs6000t_config;
->+
->+	memset(&tuner_info, 0, sizeof(struct i2c_board_info));
->+	i2c = (port->idx == 0) ? &dev->i2c_bus[0] : &dev->i2c_bus[1];
->+
->+	/* attach demod */
->+	port->fe = dvb_attach(m88ds3103_attach,
->+			&smi_dvbsky_m88rs6000_cfg, i2c, &tuner_i2c_adapter);
->+	if (!port->fe) {
->+		ret = -ENODEV;
->+		return ret;
->+	}
->+	/* attach tuner */
->+	m88rs6000t_config.fe = port->fe;
->+	strlcpy(tuner_info.type, "m88rs6000t", I2C_NAME_SIZE);
->+	tuner_info.addr = 0x21;
->+	tuner_info.platform_data = &m88rs6000t_config;
->+	request_module("m88rs6000t");
->+	tuner_client = i2c_new_device(tuner_i2c_adapter, &tuner_info);
->+	if (tuner_client == NULL || tuner_client->dev.driver == NULL) {
->+		ret = -ENODEV;
->+		goto err_tuner_i2c_device;
->+	}
->+
->+	if (!try_module_get(tuner_client->dev.driver->owner)) {
->+		ret = -ENODEV;
->+		goto err_tuner_i2c_module;
->+	}
->+
->+	/* delegate signal strength measurement to tuner */
->+	port->fe->ops.read_signal_strength =
->+			port->fe->ops.tuner_ops.get_rf_strength;
->+
->+	port->i2c_client_tuner = tuner_client;
->+	return ret;
->+
->+err_tuner_i2c_module:
->+	i2c_unregister_device(tuner_client);
->+err_tuner_i2c_device:
->+	dvb_frontend_detach(port->fe);
->+	return ret;
->+}
->+
-> static int smi_fe_init(struct smi_port *port)
-> {
-> 	int ret = 0;
->@@ -556,6 +621,9 @@ static int smi_fe_init(struct smi_port *port)
-> 	case DVBSKY_FE_M88DS3103:
-> 		ret = smi_dvbsky_m88ds3103_fe_attach(port);
-> 		break;
->+	case DVBSKY_FE_M88RS6000:
->+		ret = smi_dvbsky_m88rs6000_fe_attach(port);
->+		break;
-> 	}
-> 	if (ret < 0)
-> 		return ret;
->@@ -917,6 +985,15 @@ static struct smi_cfg_info dvbsky_s950_cfg = {
-> 	.fe_1 = DVBSKY_FE_M88DS3103,
-> };
-> 
->+static struct smi_cfg_info dvbsky_s952_cfg = {
->+	.type = SMI_DVBSKY_S952,
->+	.name = "DVBSky S952 V3",
->+	.ts_0 = SMI_TS_DMA_BOTH,
->+	.ts_1 = SMI_TS_DMA_BOTH,
->+	.fe_0 = DVBSKY_FE_M88RS6000,
->+	.fe_1 = DVBSKY_FE_M88RS6000,
->+};
->+
-> /* PCI IDs */
-> #define SMI_ID(_subvend, _subdev, _driverdata) {	\
-> 	.vendor      = SMI_VID,    .device    = SMI_PID, \
->@@ -925,6 +1002,7 @@ static struct smi_cfg_info dvbsky_s950_cfg = {
-> 
-> static const struct pci_device_id smi_id_table[] = {
-> 	SMI_ID(0x4254, 0x0550, dvbsky_s950_cfg),
->+	SMI_ID(0x4254, 0x0552, dvbsky_s952_cfg),
-> 	{0}
-> };
-> MODULE_DEVICE_TABLE(pci, smi_id_table);
->
->-- 
->1.9.1
->
+- removed addition of public LED subsystem API for setting
+  torch brightness in favour of internal API for
+  synchronous and asynchronous led brightness level setting
+- fixed possible race condition upon creating LED Flash class
+  related sysfs attributes
+
+========================
+Changes since version 5:
+========================
+
+- removed flash manager framework - its implementation needs
+  further thorough discussion.
+- removed external strobe facilities from the LED Flash Class
+  and provided external_strobe_set op in v4l2-flash. LED subsystem
+  should be strobe provider agnostic.
+
+Thanks,
+Jacek Anaszewski
+
+[1] https://lkml.org/lkml/2014/7/11/914
+
+Jacek Anaszewski (14):
+  leds: Add LED Flash class extension to the LED subsystem
+  Documentation: leds: Add description of LED Flash class extension
+  Documentation: leds: Add description of v4l2-flash sub-device
+  v4l2-async: change custom.match callback argument type
+  v4l2-ctrls: Add V4L2_CID_FLASH_SYNC_STROBE control
+  media: Add registration helpers for V4L2 flash sub-devices
+  exynos4-is: Add support for v4l2-flash subdevs
+  DT: Add documentation for exynos4-is 'flashes' property
+  mfd: max77693: adjust max77693_led_platform_data
+  leds: Add support for max77693 mfd flash cell
+  DT: Add documentation for the mfd Maxim max77693
+  leds: Add driver for AAT1290 current regulator
+  of: Add Skyworks Solutions, Inc. vendor prefix
+  DT: Add documentation for the Skyworks AAT1290
+
+ Documentation/DocBook/media/v4l/controls.xml       |    9 +
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   17 +
+ .../devicetree/bindings/media/samsung-fimc.txt     |    7 +
+ Documentation/devicetree/bindings/mfd/max77693.txt |   74 ++
+ .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+ Documentation/leds/leds-class-flash.txt            |   61 ++
+ drivers/leds/Kconfig                               |   27 +
+ drivers/leds/Makefile                              |    3 +
+ drivers/leds/led-class-flash.c                     |  446 ++++++++
+ drivers/leds/led-class.c                           |    4 +
+ drivers/leds/leds-aat1290.c                        |  472 ++++++++
+ drivers/leds/leds-max77693.c                       | 1152 ++++++++++++++++++++
+ drivers/media/platform/exynos4-is/media-dev.c      |   65 +-
+ drivers/media/platform/exynos4-is/media-dev.h      |   13 +-
+ drivers/media/v4l2-core/Kconfig                    |   11 +
+ drivers/media/v4l2-core/Makefile                   |    2 +
+ drivers/media/v4l2-core/v4l2-async.c               |   16 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c               |    2 +
+ drivers/media/v4l2-core/v4l2-flash.c               |  516 +++++++++
+ include/linux/led-class-flash.h                    |  198 ++++
+ include/linux/leds.h                               |    3 +
+ include/linux/mfd/max77693.h                       |    3 +-
+ include/media/v4l2-async.h                         |    2 +-
+ include/media/v4l2-flash.h                         |  138 +++
+ include/uapi/linux/v4l2-controls.h                 |    1 +
+ 25 files changed, 3230 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
+ create mode 100644 Documentation/leds/leds-class-flash.txt
+ create mode 100644 drivers/leds/led-class-flash.c
+ create mode 100644 drivers/leds/leds-aat1290.c
+ create mode 100644 drivers/leds/leds-max77693.c
+ create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
+ create mode 100644 include/linux/led-class-flash.h
+ create mode 100644 include/media/v4l2-flash.h
+
+-- 
+1.7.9.5
 
