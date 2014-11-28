@@ -1,49 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56238 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757543AbaKTP4M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 10:56:12 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Emilio Lopez <emilio@elopez.com.ar>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 6/9] ARM: dts: sun6i: Add ir_clk node
-Date: Thu, 20 Nov 2014 16:55:25 +0100
-Message-Id: <1416498928-1300-7-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
-References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56600 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176AbaK1W2n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Nov 2014 17:28:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Dave Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: Re: [PATCH v3 0/3] drm: describe display bus format
+Date: Sat, 29 Nov 2014 00:29:10 +0200
+Message-ID: <7292023.aOo0xYF6kL@avalon>
+In-Reply-To: <20141127143750.3984ddd0@bbrezillon>
+References: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com> <20141127143750.3984ddd0@bbrezillon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an ir_clk sub-node to the prcm node.
+Hi Boris,
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- arch/arm/boot/dts/sun6i-a31.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+On Thursday 27 November 2014 14:37:50 Boris Brezillon wrote:
+> On Tue, 18 Nov 2014 14:46:17 +0100 Boris Brezillon wrote:
+> > Hello,
+> > 
+> > This series makes use of the MEDIA_BUS_FMT definition to describe how
+> > the data are transmitted to the display.
+> > 
+> > This will allow drivers to configure their output display bus according
+> > to the display capabilities.
+> > For example some display controllers support DPI (or raw RGB) connectors
+> > and need to specify which format will be transmitted on the DPI bus
+> > (RGB444, RGB565, RGB888, ...).
+> > 
+> > This series also adds a field to the panel_desc struct so that one
+> > can specify which format is natevely supported by a panel.
+> 
+> Thierry, Laurent, Dave, can you take a look at this patch series: this
+> is the last missing dependency to get the atmel-hlcdc DRM driver
+> mainlined, and I was expecting to get this driver in 3.19...
 
-diff --git a/arch/arm/boot/dts/sun6i-a31.dtsi b/arch/arm/boot/dts/sun6i-a31.dtsi
-index a01b215..4aa628b 100644
---- a/arch/arm/boot/dts/sun6i-a31.dtsi
-+++ b/arch/arm/boot/dts/sun6i-a31.dtsi
-@@ -882,6 +882,13 @@
- 						"apb0_i2c";
- 			};
- 
-+			ir_clk: ir_clk {
-+				#clock-cells = <0>;
-+				compatible = "allwinner,sun6i-a31-ir-clk";
-+				clocks = <&osc32k>, <&osc24M>;
-+				clock-output-names = "ir";
-+			};
-+
- 			apb0_rst: apb0_rst {
- 				compatible = "allwinner,sun6i-a31-clock-reset";
- 				#reset-cells = <1>;
+I've reviewed the series, it looks globally fine to me. I just had two small 
+comments on patch 1/3.
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
