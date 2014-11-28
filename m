@@ -1,173 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43535 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751350AbaKIWNH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Nov 2014 17:13:07 -0500
-Message-ID: <545FE6F1.8090409@iki.fi>
-Date: Mon, 10 Nov 2014 00:13:05 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Nibble Max <nibble.max@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 2/2] smipcie: add DVBSky T9580 V3 support
-References: <201411081935169219971@gmail.com>
-In-Reply-To: <201411081935169219971@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33217 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751293AbaK1Xm6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Nov 2014 18:42:58 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2.1 1/5] v4l: Clean up sub-device format documentation
+Date: Sat, 29 Nov 2014 01:42:19 +0200
+Message-Id: <1417218139-25763-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1416289220-32673-2-git-send-email-sakari.ailus@iki.fi>
+References: <1416289220-32673-2-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/08/2014 01:35 PM, Nibble Max wrote:
-> v2:
-> - Update Kconfig file.
->
-> DVBSky T9580 V3 card is the dual tuner card, which supports S/S2 and T2/T/C.
-> 1>DVB-S/S2 frontend: M88DS3103/M88TS2022
-> 2>DVB-T2/T/C frontend: SI2168B40/SI2157A30
-> 2>PCIe bridge: SMI PCIe
->
-> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+The sub-device format documentation documented scaling configuration through
+formats. Instead the compose selection rectangle is elsewhere documented to
+be used for the purpose. Remove scaling related part of the documentation.
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+since v2:
+- Fix the last documentation paragraph to tell the driver propagates the
+  size to source pad format, instead of the application having to set it.
 
-I reviewed the patch v1 also :]
+ Documentation/DocBook/media/v4l/dev-subdev.xml |  109 ++++++++++++++----------
+ 1 file changed, 63 insertions(+), 46 deletions(-)
 
-Antti
-
-> ---
->   drivers/media/pci/smipcie/Kconfig   |  3 ++
->   drivers/media/pci/smipcie/smipcie.c | 67 +++++++++++++++++++++++++++++++++++++
->   2 files changed, 70 insertions(+)
->
-> diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
-> index 75a2992..35ace80 100644
-> --- a/drivers/media/pci/smipcie/Kconfig
-> +++ b/drivers/media/pci/smipcie/Kconfig
-> @@ -2,12 +2,15 @@ config DVB_SMIPCIE
->   	tristate "SMI PCIe DVBSky cards"
->   	depends on DVB_CORE && PCI && I2C
->   	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
-> +	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
->   	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
->   	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
-> +	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
->   	help
->   	  Support for cards with SMI PCIe bridge:
->   	  - DVBSky S950 V3
->   	  - DVBSky S952 V3
-> +	  - DVBSky T9580 V3
->
->   	  Say Y or M if you own such a device and want to use it.
->   	  If unsure say N.
-> diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
-> index c27e45b..5d1932b 100644
-> --- a/drivers/media/pci/smipcie/smipcie.c
-> +++ b/drivers/media/pci/smipcie/smipcie.c
-> @@ -18,6 +18,8 @@
->   #include "m88ds3103.h"
->   #include "m88ts2022.h"
->   #include "m88rs6000t.h"
-> +#include "si2168.h"
-> +#include "si2157.h"
->
->   DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
->
-> @@ -618,6 +620,58 @@ err_tuner_i2c_device:
->   	return ret;
->   }
->
-> +static int smi_dvbsky_sit2_fe_attach(struct smi_port *port)
-> +{
-> +	int ret = 0;
-> +	struct smi_dev *dev = port->dev;
-> +	struct i2c_adapter *i2c;
-> +	struct i2c_adapter *tuner_i2c_adapter;
-> +	struct i2c_client *client_tuner, *client_demod;
-> +	struct i2c_board_info client_info;
-> +	struct si2168_config si2168_config;
-> +	struct si2157_config si2157_config;
-> +
-> +	/* select i2c bus */
-> +	i2c = (port->idx == 0) ? &dev->i2c_bus[0] : &dev->i2c_bus[1];
-> +
-> +	/* attach demod */
-> +	memset(&si2168_config, 0, sizeof(si2168_config));
-> +	si2168_config.i2c_adapter = &tuner_i2c_adapter;
-> +	si2168_config.fe = &port->fe;
-> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
-> +
-> +	memset(&client_info, 0, sizeof(struct i2c_board_info));
-> +	strlcpy(client_info.type, "si2168", I2C_NAME_SIZE);
-> +	client_info.addr = 0x64;
-> +	client_info.platform_data = &si2168_config;
-> +
-> +	client_demod = smi_add_i2c_client(i2c, &client_info);
-> +	if (!client_demod) {
-> +		ret = -ENODEV;
-> +		return ret;
-> +	}
-> +	port->i2c_client_demod = client_demod;
-> +
-> +	/* attach tuner */
-> +	memset(&si2157_config, 0, sizeof(si2157_config));
-> +	si2157_config.fe = port->fe;
-> +
-> +	memset(&client_info, 0, sizeof(struct i2c_board_info));
-> +	strlcpy(client_info.type, "si2157", I2C_NAME_SIZE);
-> +	client_info.addr = 0x60;
-> +	client_info.platform_data = &si2157_config;
-> +
-> +	client_tuner = smi_add_i2c_client(tuner_i2c_adapter, &client_info);
-> +	if (!client_tuner) {
-> +		smi_del_i2c_client(port->i2c_client_demod);
-> +		port->i2c_client_demod = NULL;
-> +		ret = -ENODEV;
-> +		return ret;
-> +	}
-> +	port->i2c_client_tuner = client_tuner;
-> +	return ret;
-> +}
-> +
->   static int smi_fe_init(struct smi_port *port)
->   {
->   	int ret = 0;
-> @@ -635,6 +689,9 @@ static int smi_fe_init(struct smi_port *port)
->   	case DVBSKY_FE_M88RS6000:
->   		ret = smi_dvbsky_m88rs6000_fe_attach(port);
->   		break;
-> +	case DVBSKY_FE_SIT2:
-> +		ret = smi_dvbsky_sit2_fe_attach(port);
-> +		break;
->   	}
->   	if (ret < 0)
->   		return ret;
-> @@ -1005,6 +1062,15 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
->   	.fe_1 = DVBSKY_FE_M88RS6000,
->   };
->
-> +static struct smi_cfg_info dvbsky_t9580_cfg = {
-> +	.type = SMI_DVBSKY_T9580,
-> +	.name = "DVBSky T9580 V3",
-> +	.ts_0 = SMI_TS_DMA_BOTH,
-> +	.ts_1 = SMI_TS_DMA_BOTH,
-> +	.fe_0 = DVBSKY_FE_SIT2,
-> +	.fe_1 = DVBSKY_FE_M88DS3103,
-> +};
-> +
->   /* PCI IDs */
->   #define SMI_ID(_subvend, _subdev, _driverdata) {	\
->   	.vendor      = SMI_VID,    .device    = SMI_PID, \
-> @@ -1014,6 +1080,7 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
->   static const struct pci_device_id smi_id_table[] = {
->   	SMI_ID(0x4254, 0x0550, dvbsky_s950_cfg),
->   	SMI_ID(0x4254, 0x0552, dvbsky_s952_cfg),
-> +	SMI_ID(0x4254, 0x5580, dvbsky_t9580_cfg),
->   	{0}
->   };
->   MODULE_DEVICE_TABLE(pci, smi_id_table);
->
->
-
+diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
+index d15aaf8..4f0ba58 100644
+--- a/Documentation/DocBook/media/v4l/dev-subdev.xml
++++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+@@ -195,53 +195,59 @@
+ 	<title>Sample Pipeline Configuration</title>
+ 	<tgroup cols="3">
+ 	  <colspec colname="what"/>
+-	  <colspec colname="sensor-0" />
+-	  <colspec colname="frontend-0" />
+-	  <colspec colname="frontend-1" />
+-	  <colspec colname="scaler-0" />
+-	  <colspec colname="scaler-1" />
++	  <colspec colname="sensor-0 format" />
++	  <colspec colname="frontend-0 format" />
++	  <colspec colname="frontend-1 format" />
++	  <colspec colname="scaler-0 format" />
++	  <colspec colname="scaler-0 compose" />
++	  <colspec colname="scaler-1 format" />
+ 	  <thead>
+ 	    <row>
+ 	      <entry></entry>
+-	      <entry>Sensor/0</entry>
+-	      <entry>Frontend/0</entry>
+-	      <entry>Frontend/1</entry>
+-	      <entry>Scaler/0</entry>
+-	      <entry>Scaler/1</entry>
++	      <entry>Sensor/0 format</entry>
++	      <entry>Frontend/0 format</entry>
++	      <entry>Frontend/1 format</entry>
++	      <entry>Scaler/0 format</entry>
++	      <entry>Scaler/0 compose selection rectangle</entry>
++	      <entry>Scaler/1 format</entry>
+ 	    </row>
+ 	  </thead>
+ 	  <tbody valign="top">
+ 	    <row>
+ 	      <entry>Initial state</entry>
+-	      <entry>2048x1536</entry>
+-	      <entry>-</entry>
+-	      <entry>-</entry>
+-	      <entry>-</entry>
+-	      <entry>-</entry>
++	      <entry>2048x1536/SGRBG8_1X8</entry>
++	      <entry>(default)</entry>
++	      <entry>(default)</entry>
++	      <entry>(default)</entry>
++	      <entry>(default)</entry>
++	      <entry>(default)</entry>
+ 	    </row>
+ 	    <row>
+-	      <entry>Configure frontend input</entry>
+-	      <entry>2048x1536</entry>
+-	      <entry><emphasis>2048x1536</emphasis></entry>
+-	      <entry><emphasis>2046x1534</emphasis></entry>
+-	      <entry>-</entry>
+-	      <entry>-</entry>
++	      <entry>Configure frontend sink format</entry>
++	      <entry>2048x1536/SGRBG8_1X8</entry>
++	      <entry><emphasis>2048x1536/SGRBG8_1X8</emphasis></entry>
++	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
++	      <entry>(default)</entry>
++	      <entry>(default)</entry>
++	      <entry>(default)</entry>
+ 	    </row>
+ 	    <row>
+-	      <entry>Configure scaler input</entry>
+-	      <entry>2048x1536</entry>
+-	      <entry>2048x1536</entry>
+-	      <entry>2046x1534</entry>
+-	      <entry><emphasis>2046x1534</emphasis></entry>
+-	      <entry><emphasis>2046x1534</emphasis></entry>
++	      <entry>Configure scaler sink format</entry>
++	      <entry>2048x1536/SGRBG8_1X8</entry>
++	      <entry>2048x1536/SGRBG8_1X8</entry>
++	      <entry>2046x1534/SGRBG8_1X8</entry>
++	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
++	      <entry><emphasis>0,0/2046x1534</emphasis></entry>
++	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
+ 	    </row>
+ 	    <row>
+-	      <entry>Configure scaler output</entry>
+-	      <entry>2048x1536</entry>
+-	      <entry>2048x1536</entry>
+-	      <entry>2046x1534</entry>
+-	      <entry>2046x1534</entry>
+-	      <entry><emphasis>1280x960</emphasis></entry>
++	      <entry>Configure scaler sink compose selection</entry>
++	      <entry>2048x1536/SGRBG8_1X8</entry>
++	      <entry>2048x1536/SGRBG8_1X8</entry>
++	      <entry>2046x1534/SGRBG8_1X8</entry>
++	      <entry>2046x1534/SGRBG8_1X8</entry>
++	      <entry><emphasis>0,0/1280x960</emphasis></entry>
++	      <entry><emphasis>1280x960/SGRBG8_1X8</emphasis></entry>
+ 	    </row>
+ 	  </tbody>
+ 	</tgroup>
+@@ -249,19 +255,30 @@
+ 
+       <para>
+       <orderedlist>
+-	<listitem><para>Initial state. The sensor output is set to its native 3MP
+-	resolution. Resolutions on the host frontend and scaler input and output
+-	pads are undefined.</para></listitem>
+-	<listitem><para>The application configures the frontend input pad resolution to
+-	2048x1536. The driver propagates the format to the frontend output pad.
+-	Note that the propagated output format can be different, as in this case,
+-	than the input format, as the hardware might need to crop pixels (for
+-	instance when converting a Bayer filter pattern to RGB or YUV).</para></listitem>
+-	<listitem><para>The application configures the scaler input pad resolution to
+-	2046x1534 to match the frontend output resolution. The driver propagates
+-	the format to the scaler output pad.</para></listitem>
+-	<listitem><para>The application configures the scaler output pad resolution to
+-	1280x960.</para></listitem>
++	<listitem><para>Initial state. The sensor source pad format is
++	set to its native 3MP size and V4L2_MBUS_FMT_SGRBG8_1X8
++	media bus code. Formats on the host frontend and scaler sink
++	and source pads have the default values, as well as the
++	compose rectangle on the scaler's sink pad.</para></listitem>
++
++	<listitem><para>The application configures the frontend sink
++	pad format's size to 2048x1536 and its media bus code to
++	V4L2_MBUS_FMT_SGRBG_1X8. The driver propagates the format to
++	the frontend source pad.</para></listitem>
++
++	<listitem><para>The application configures the scaler sink pad
++	format's size to 2046x1534 and the media bus code to
++	V4L2_MBUS_FMT_SGRBG_1X8 to match the frontend source size and
++	media bus code. The media bus code on the sink pad is set to
++	V4L2_MBUS_FMT_SGRBG_1X8. The driver propagates the size to the
++	compose selection rectangle on the scaler's sink pad, and the
++	format to the scaler source pad.</para></listitem>
++
++	<listitem><para>The application configures the size of the compose
++	selection rectangle of the scaler's sink pad 1280x960. The driver
++	propagates the size to the scaler's source pad
++	format.</para></listitem>
++
+       </orderedlist>
+       </para>
+ 
 -- 
-http://palosaari.fi/
+1.7.10.4
+
