@@ -1,109 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51919 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753068AbaKRHVg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 02:21:36 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 3/6] rtl28xxu: add support for Panasonic MN88473 slave demod
-Date: Tue, 18 Nov 2014 09:20:40 +0200
-Message-Id: <1416295243-27300-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1416295243-27300-1-git-send-email-crope@iki.fi>
-References: <1416295243-27300-1-git-send-email-crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56584 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176AbaK1WNV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Nov 2014 17:13:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 1/3] drm: add bus_formats and nbus_formats fields to drm_display_info
+Date: Sat, 29 Nov 2014 00:13:47 +0200
+Message-ID: <56712774.y8GaD3rGMh@avalon>
+In-Reply-To: <1416318380-20122-2-git-send-email-boris.brezillon@free-electrons.com>
+References: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com> <1416318380-20122-2-git-send-email-boris.brezillon@free-electrons.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is RTL2832P devices having extra MN88473 demodulator. This
-patch add support for such configuration. Logically MN88473 slave
-demodulator is connected to RTL2832 master demodulator, both I2C
-bus and TS input. RTL2832 is integrated to RTL2832U and RTL2832P
-chips. Chip version RTL2832P has extra TS interface for connecting
-slave demodulator.
+Hi Boris,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 31 +++++++++++++++++++++++++++++++
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  3 ++-
- 2 files changed, 33 insertions(+), 1 deletion(-)
+Thank you for the patch. I just have two small comments.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index d9ee1a9..cb54d2a 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -25,6 +25,7 @@
- #include "rtl2830.h"
- #include "rtl2832.h"
- #include "mn88472.h"
-+#include "mn88473.h"
- 
- #include "qt1010.h"
- #include "mt2060.h"
-@@ -422,6 +423,7 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
- 	struct rtl28xxu_req req_r820t = {0x0034, CMD_I2C_RD, 1, buf};
- 	struct rtl28xxu_req req_r828d = {0x0074, CMD_I2C_RD, 1, buf};
- 	struct rtl28xxu_req req_mn88472 = {0xff38, CMD_I2C_RD, 1, buf};
-+	struct rtl28xxu_req req_mn88473 = {0xff38, CMD_I2C_RD, 1, buf};
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
-@@ -567,6 +569,13 @@ tuner_found:
- 			priv->slave_demod = SLAVE_DEMOD_MN88472;
- 			goto demod_found;
- 		}
-+
-+		ret = rtl28xxu_ctrl_msg(d, &req_mn88473);
-+		if (ret == 0 && buf[0] == 0x03) {
-+			dev_dbg(&d->udev->dev, "%s: MN88473 found\n", __func__);
-+			priv->slave_demod = SLAVE_DEMOD_MN88473;
-+			goto demod_found;
-+		}
- 	}
- 
- demod_found:
-@@ -877,6 +886,28 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 			}
- 
- 			priv->i2c_client_slave_demod = client;
-+		} else {
-+			struct mn88473_config mn88473_config = {};
-+
-+			mn88473_config.fe = &adap->fe[1];
-+			mn88473_config.i2c_wr_max = 22,
-+			strlcpy(info.type, "mn88473", I2C_NAME_SIZE);
-+			info.addr = 0x18;
-+			info.platform_data = &mn88473_config;
-+			request_module(info.type);
-+			client = i2c_new_device(priv->demod_i2c_adapter, &info);
-+			if (client == NULL || client->dev.driver == NULL) {
-+				priv->slave_demod = SLAVE_DEMOD_NONE;
-+				goto err_slave_demod_failed;
-+			}
-+
-+			if (!try_module_get(client->dev.driver->owner)) {
-+				i2c_unregister_device(client);
-+				priv->slave_demod = SLAVE_DEMOD_NONE;
-+				goto err_slave_demod_failed;
-+			}
-+
-+			priv->i2c_client_slave_demod = client;
- 		}
- 	}
- 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-index c1b00b9..7f959ff 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-@@ -61,7 +61,8 @@ struct rtl28xxu_priv {
- 	struct i2c_client *i2c_client_slave_demod;
- 	#define SLAVE_DEMOD_NONE           0
- 	#define SLAVE_DEMOD_MN88472        1
--	unsigned int slave_demod:1;
-+	#define SLAVE_DEMOD_MN88473        2
-+	unsigned int slave_demod:2;
- };
- 
- enum rtl28xxu_chip_id {
+On Tuesday 18 November 2014 14:46:18 Boris Brezillon wrote:
+> Add bus_formats and nbus_formats fields and
+> drm_display_info_set_bus_formats helper function to specify the bus
+> formats supported by a given display.
+> 
+> This information can be used by display controller drivers to configure
+> the output interface appropriately (i.e. RGB565, RGB666 or RGB888 on raw
+> RGB or LVDS busses).
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> ---
+>  drivers/gpu/drm/drm_crtc.c | 30 ++++++++++++++++++++++++++++++
+>  include/drm/drm_crtc.h     |  7 +++++++
+>  2 files changed, 37 insertions(+)
+> 
+> diff --git a/drivers/gpu/drm/drm_crtc.c b/drivers/gpu/drm/drm_crtc.c
+> index e79c8d3..17e3acf 100644
+> --- a/drivers/gpu/drm/drm_crtc.c
+> +++ b/drivers/gpu/drm/drm_crtc.c
+> @@ -763,6 +763,36 @@ static void drm_mode_remove(struct drm_connector
+> *connector, drm_mode_destroy(connector->dev, mode);
+>  }
+> 
+> +/*
+> + * drm_display_info_set_bus_formats - set the supported bus formats
+> + * @info: display info to store bus formats in
+> + * @fmts: array containing the supported bus formats
+> + * @nfmts: the number of entries in the fmts array
+> + *
+> + * Store the suppported bus formats in display info structure.
+
+Could you document that the formats are specified as MEDIA_BUS_FMT_* values ?
+
+> + */
+> +int drm_display_info_set_bus_formats(struct drm_display_info *info, const
+> u32 *fmts, +				     unsigned int num_fmts)
+> +{
+> +	u32 *formats = NULL;
+> +
+> +	if (!fmts && num_fmts)
+> +		return -EINVAL;
+> +
+> +	if (fmts && num_fmts) {
+> +		formats = kmemdup(fmts, sizeof(*fmts) * num_fmts, GFP_KERNEL);
+> +		if (!formats)
+> +			return -ENOMEM;
+> +	}
+> +
+> +	kfree(info->bus_formats);
+> +	info->bus_formats = formats;
+> +	info->num_bus_formats = num_fmts;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(drm_display_info_set_bus_formats);
+> +
+>  /**
+>   * drm_connector_get_cmdline_mode - reads the user's cmdline mode
+>   * @connector: connector to quwery
+> diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
+> index c40070a..2e0a3e8 100644
+> --- a/include/drm/drm_crtc.h
+> +++ b/include/drm/drm_crtc.h
+> @@ -31,6 +31,7 @@
+>  #include <linux/idr.h>
+>  #include <linux/fb.h>
+>  #include <linux/hdmi.h>
+> +#include <linux/media-bus-format.h>
+>  #include <uapi/drm/drm_mode.h>
+>  #include <uapi/drm/drm_fourcc.h>
+>  #include <drm/drm_modeset_lock.h>
+> @@ -130,6 +131,9 @@ struct drm_display_info {
+>  	enum subpixel_order subpixel_order;
+>  	u32 color_formats;
+> 
+> +	const u32 *bus_formats;
+> +	int num_bus_formats;
+
+As the number of formats is never negative, I would make it an unsigned int.
+
+> +
+>  	/* Mask of supported hdmi deep color modes */
+>  	u8 edid_hdmi_dc_modes;
+> 
+> @@ -982,6 +986,9 @@ extern int drm_mode_connector_set_path_property(struct
+> drm_connector *connector, extern int
+> drm_mode_connector_update_edid_property(struct drm_connector *connector,
+> struct edid *edid);
+> 
+> +extern int drm_display_info_set_bus_formats(struct drm_display_info *info,
+> +					    const u32 *fmts, unsigned int nfmts);
+> +
+>  static inline bool drm_property_type_is(struct drm_property *property,
+>  		uint32_t type)
+>  {
+
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
 
