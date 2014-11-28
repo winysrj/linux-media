@@ -1,53 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55330 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750859AbaKUSNW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 13:13:22 -0500
-Date: Fri, 21 Nov 2014 16:13:16 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Andreas Ruprecht <rupran@einserver.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-next@vger.kernel.org, sfr@canb.auug.org.au
-Subject: Re: [PATCH] media: pci: smipcie: Fix dependency for DVB_SMIPCIE
-Message-ID: <20141121161316.23963dc5@recife.lan>
-In-Reply-To: <1416592319-23644-1-git-send-email-rupran@einserver.de>
-References: <1416592319-23644-1-git-send-email-rupran@einserver.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:26907 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132AbaK1JTP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Nov 2014 04:19:15 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v8 02/14] Documentation: leds: Add description of LED Flash
+ class extension
+Date: Fri, 28 Nov 2014 10:17:54 +0100
+Message-id: <1417166286-27685-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 21 Nov 2014 18:51:59 +0100
-Andreas Ruprecht <rupran@einserver.de> escreveu:
+The documentation being added contains overall description of the
+LED Flash Class and the related sysfs attributes.
 
-> In smipcie.c, the function i2c_bit_add_bus() is called. This
-> function is defined by the I2C bit-banging interfaces enabled
-> with CONFIG_I2C_ALGOBIT.
-> 
-> As there was no dependency in Kconfig, CONFIG_I2C_ALGOBIT could
-> be set to "m" while CONFIG_DVB_SMIPCIE was set to "y", resulting
-> in a build error due to an undefined reference. This patch adds
-> the dependency on CONFIG_I2C_ALGOBIT in Kconfig.
-> 
-> Signed-off-by: Andreas Ruprecht <rupran@einserver.de>
-> Reported-by: Jim Davis <jim.epost@gmail.com>
-> ---
->  drivers/media/pci/smipcie/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
-> index 75a2992..c728721 100644
-> --- a/drivers/media/pci/smipcie/Kconfig
-> +++ b/drivers/media/pci/smipcie/Kconfig
-> @@ -1,6 +1,6 @@
->  config DVB_SMIPCIE
->  	tristate "SMI PCIe DVBSky cards"
-> -	depends on DVB_CORE && PCI && I2C
-> +	depends on DVB_CORE && PCI && I2C && I2C_ALGOBIT
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ Documentation/leds/leds-class-flash.txt |   48 +++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+ create mode 100644 Documentation/leds/leds-class-flash.txt
 
-IMHO, the best would be, instead, to select I2C_ALGOBIT.
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+new file mode 100644
+index 0000000..d68565c
+--- /dev/null
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -0,0 +1,48 @@
++
++Flash LED handling under Linux
++==============================
++
++Some LED devices support two modes - torch and flash. The modes are
++supported by the LED class (see Documentation/leds/leds-class.txt)
++and LED Flash class respectively.
++
++In order to enable support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
++must be defined in the kernel config. A flash LED driver must register
++in the LED subsystem with led_classdev_flash_register to gain flash
++capabilities.
++
++Following sysfs attributes are exposed for controlling flash led devices:
++
++	- flash_brightness - flash LED brightness in microamperes (RW)
++	- max_flash_brightness - maximum available flash LED brightness (RO)
++	- indicator_brightness - privacy LED brightness in microamperes (RW)
++	- max_indicator_brightness - maximum privacy LED brightness in
++				     microamperes (RO)
++	- flash_timeout - flash strobe duration in microseconds (RW)
++	- max_flash_timeout - maximum available flash strobe duration (RO)
++	- flash_strobe - flash strobe state (RW)
++	- flash_sync_strobe - one flash device can control more than one
++			      sub-led; when this atrribute is set to 1
++			      the flash led will be strobed synchronously
++			      with the other ones controlled by the same
++			      device (RW)
++	- flash_fault - bitmask of flash faults that may have occurred,
++			possible flags are:
++		* 0x01 - flash controller voltage to the flash LED has exceeded
++			 the limit specific to the flash controller
++		* 0x02 - the flash strobe was still on when the timeout set by
++			 the user has expired; not all flash controllers may
++			 set this in all such conditions
++		* 0x04 - the flash controller has overheated
++		* 0x08 - the short circuit protection of the flash controller
++			 has been triggered
++		* 0x10 - current in the LED power supply has exceeded the limit
++			 specific to the flash controller
++		* 0x40 - flash controller voltage to the flash LED has been
++			 below the minimum limit specific to the flash
++		* 0x80 - the input voltage of the flash controller is below
++			 the limit under which strobing the flash at full
++			 current will not be possible. The condition persists
++			 until this flag is no longer set
++		* 0x100 - the temperature of the LED has exceeded its allowed
++			  upper limit
+-- 
+1.7.9.5
 
->  	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
->  	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
->  	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
