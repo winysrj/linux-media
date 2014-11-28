@@ -1,100 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45230 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751283AbaKQIlr (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45965 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751583AbaK1POX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 03:41:47 -0500
-Message-ID: <5469B4BB.2040208@xs4all.nl>
-Date: Mon, 17 Nov 2014 09:41:31 +0100
+	Fri, 28 Nov 2014 10:14:23 -0500
+Received: from [192.168.1.106] (marune.xs4all.nl [80.101.105.217])
+	by tschai.lan (Postfix) with ESMTPSA id 5AFFE2A008C
+	for <linux-media@vger.kernel.org>; Fri, 28 Nov 2014 16:14:11 +0100 (CET)
+Message-ID: <5478914A.1060104@xs4all.nl>
+Date: Fri, 28 Nov 2014 16:14:18 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 03/11] videodev2.h: rename reserved2 to config_store
- in v4l2_buffer.
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl> <1411310909-32825-4-git-send-email-hverkuil@xs4all.nl> <20141114144202.GD8907@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20141114144202.GD8907@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] omap_vout: fix compile warnings
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/14/2014 03:42 PM, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Sun, Sep 21, 2014 at 04:48:21PM +0200, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> When queuing buffers allow for passing the configuration store ID that
->> should be associated with this buffer. Use the 'reserved2' field for this.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/usb/cpia2/cpia2_v4l.c           | 2 +-
->>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ++--
->>  drivers/media/v4l2-core/videobuf2-core.c      | 4 +++-
->>  include/uapi/linux/videodev2.h                | 3 ++-
->>  4 files changed, 8 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
->> index 9caea83..0f28d2b 100644
->> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
->> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
->> @@ -952,7 +952,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
->>  	buf->sequence = cam->buffers[buf->index].seq;
->>  	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
->>  	buf->length = cam->frame_size;
->> -	buf->reserved2 = 0;
->> +	buf->config_store = 0;
->>  	buf->reserved = 0;
->>  	memset(&buf->timecode, 0, sizeof(buf->timecode));
->>  
->> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->> index e502a5f..5afef3a 100644
->> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->> @@ -324,7 +324,7 @@ struct v4l2_buffer32 {
->>  		__s32		fd;
->>  	} m;
->>  	__u32			length;
->> -	__u32			reserved2;
->> +	__u32			config_store;
->>  	__u32			reserved;
->>  };
->>  
->> @@ -489,7 +489,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->>  		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
->>  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
->>  		put_user(kp->sequence, &up->sequence) ||
->> -		put_user(kp->reserved2, &up->reserved2) ||
->> +		put_user(kp->config_store, &up->config_store) ||
->>  		put_user(kp->reserved, &up->reserved))
->>  			return -EFAULT;
->>  
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index 7e6aff6..e3b6c50 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -655,7 +655,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->>  
->>  	/* Copy back data such as timestamp, flags, etc. */
->>  	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
->> -	b->reserved2 = vb->v4l2_buf.reserved2;
->> +	b->config_store = vb->v4l2_buf.config_store;
->>  	b->reserved = vb->v4l2_buf.reserved;
->>  
->>  	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
->> @@ -680,6 +680,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->>  		else if (q->memory == V4L2_MEMORY_DMABUF)
->>  			b->m.fd = vb->v4l2_planes[0].m.fd;
->>  	}
->> +	b->config_store = vb->v4l2_buf.config_store;
-> 
-> Either this chunk or the one above it is redundant. I'd keep the upper one.
+When compiling under COMPILE_TEST on a x86_64 the following warnings
+appear:
 
-Well spotted. I agree, I'll keep the upper one.
+drivers/media/platform/omap/omap_vout.c: In function 'omap_vout_uservirt_to_phys':
+drivers/media/platform/omap/omap_vout.c:209:23: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+   return virt_to_phys((void *) virtp);
+                       ^
+drivers/media/platform/omap/omap_vout.c: In function 'omapvid_setup_overlay':
+drivers/media/platform/omap/omap_vout.c:420:2: warning: format '%x' expects argument of type 'unsigned int', but argument 5 has type 'dma_addr_t' [-Wformat=]
+  v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
+  ^
+drivers/media/platform/omap/omap_vout.c: In function 'omap_vout_buffer_prepare':
+drivers/media/platform/omap/omap_vout.c:794:34: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+   vout->queued_buf_addr[vb->i] = (u8 *)
+                                  ^
+In file included from arch/x86/include/asm/dma-mapping.h:44:0,
+                 from include/linux/dma-mapping.h:82,
+                 from drivers/media/platform/omap/omap_vout.c:40:
+drivers/media/platform/omap/omap_vout.c:803:58: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+   dma_addr = dma_map_single(vout->vid_dev->v4l2_dev.dev, (void *) addr,
+                                                          ^
+include/asm-generic/dma-mapping-common.h:174:60: note: in definition of macro 'dma_map_single'
+ #define dma_map_single(d, a, s, r) dma_map_single_attrs(d, a, s, r, NULL)
+                                                            ^
 
-Regards,
+These are fixed by this patch.
 
-	Hans
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/omap/omap_vout.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 64ab6fb..e6c8199 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -198,7 +198,7 @@ static int omap_vout_try_format(struct v4l2_pix_format *pix)
+  * omap_vout_uservirt_to_phys: This inline function is used to convert user
+  * space virtual address to physical address.
+  */
+-static u32 omap_vout_uservirt_to_phys(u32 virtp)
++static unsigned long omap_vout_uservirt_to_phys(unsigned long virtp)
+ {
+ 	unsigned long physp = 0;
+ 	struct vm_area_struct *vma;
+@@ -418,7 +418,7 @@ static int omapvid_setup_overlay(struct omap_vout_device *vout,
+ 	}
+ 
+ 	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
+-		"%s enable=%d addr=%x width=%d\n height=%d color_mode=%d\n"
++		"%s enable=%d addr=%pad width=%d\n height=%d color_mode=%d\n"
+ 		"rotation=%d mirror=%d posx=%d posy=%d out_width = %d \n"
+ 		"out_height=%d rotation_type=%d screen_width=%d\n",
+ 		__func__, ovl->is_enabled(ovl), info.paddr, info.width, info.height,
+-- 
+2.1.3
+
