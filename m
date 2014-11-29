@@ -1,278 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:38244 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752626AbaKJMtl (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57364 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751506AbaK2TL6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 07:49:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv6 PATCH 06/16] vb2-dma-sg: add dmabuf import support
-Date: Mon, 10 Nov 2014 13:49:21 +0100
-Message-Id: <1415623771-29634-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 29 Nov 2014 14:11:58 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API for v4l2_subdev_get_try_*()
+Date: Sat, 29 Nov 2014 21:12:25 +0200
+Message-ID: <3017627.SLutb67dz2@avalon>
+In-Reply-To: <CA+V-a8s-mP+Fjok2s_nDUAOb4vN3RWyRc5VHuZqPdk4pJtv03A@mail.gmail.com>
+References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com> <20141118180759.GT8907@valkosipuli.retiisi.org.uk> <CA+V-a8s-mP+Fjok2s_nDUAOb4vN3RWyRc5VHuZqPdk4pJtv03A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Prabhakar,
 
-Add support for importing dmabuf to videobuf2-dma-sg.
+On Saturday 29 November 2014 18:30:09 Prabhakar Lad wrote:
+> On Tue, Nov 18, 2014 at 6:07 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > On Tue, Nov 18, 2014 at 10:39:24AM +0100, Hans Verkuil wrote:
+> >> On 11/17/14 11:41, Lad, Prabhakar wrote:
+> >> > this patch removes the guard CONFIG_VIDEO_V4L2_SUBDEV_API
+> >> > for v4l2_subdev_get_try_*() functions.
+> >> > In cases where a subdev using v4l2_subdev_get_try_*() calls
+> >> > internally and the bridge using subdev pad ops which is
+> >> > not MC aware forces to select MEDIA_CONTROLLER, as
+> >> > VIDEO_V4L2_SUBDEV_API is dependent on it.
+> >> > 
+> >> > Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >> > ---
+> >> > 
+> >> >  include/media/v4l2-subdev.h | 2 --
+> >> >  1 file changed, 2 deletions(-)
+> >> > 
+> >> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> >> > index 5860292..076ca11 100644
+> >> > --- a/include/media/v4l2-subdev.h
+> >> > +++ b/include/media/v4l2-subdev.h
+> >> > @@ -642,7 +642,6 @@ struct v4l2_subdev_fh {
+> >> >  #define to_v4l2_subdev_fh(fh)      \
+> >> >     container_of(fh, struct v4l2_subdev_fh, vfh)
+> >> > 
+> >> > -#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> >> >  #define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)         
+> >> >      \
+> >> >     static inline struct rtype *                                    \
+> >> >     v4l2_subdev_get_try_##fun_name(struct v4l2_subdev_fh *fh,       \
+> >> > 
+> >> > @@ -656,7 +655,6 @@ struct v4l2_subdev_fh {
+> >> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
+> >> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_crop)
+> >> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
+> >> > -#endif
+> >> > 
+> >> >  extern const struct v4l2_file_operations v4l2_subdev_fops;
+> >> 
+> >> The problem is that v4l2_subdev_get_try_*() needs a v4l2_subdev_fh which
+> >> you don't have if CONFIG_VIDEO_V4L2_SUBDEV_API is not defined. So I don't
+> >> see how removing the guards help with that.
+> >> 
+> >> What can be done is that if CONFIG_VIDEO_V4L2_SUBDEV_API is not defined,
+> >> then these functions return NULL.
+> > 
+> > Sure. That's a better choice than removing the config option dependency of
+> > the fields struct v4l2_subdev.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 149 ++++++++++++++++++++++++++---
- 1 file changed, 136 insertions(+), 13 deletions(-)
+Decoupling CONFIG_VIDEO_V4L2_SUBDEV_API from the availability of the in-kernel 
+pad format and selection rectangles helpers is definitely a good idea. I was 
+thinking about decoupling the try format and rectangles from v4l2_subdev_fh by 
+creating a kind of configuration store structure to store them, and embedding 
+that structure in v4l2_subdev_fh. The pad-level operations would then take a 
+pointer to the configuration store instead of the v4l2_subdev_fh. Bridge 
+drivers that want to implement TRY_FMT based on pad-level operations would 
+create a configuration store, use the pad-level operations, and destroy the 
+configuration store. The userspace subdev API would use the configuration 
+store from the file handle.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index bda3293..85e2e09 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -41,11 +41,19 @@ struct vb2_dma_sg_buf {
- 	int				offset;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			sg_table;
-+	/*
-+	 * This will point to sg_table when used with the MMAP or USERPTR
-+	 * memory model, and to the dma_buf sglist when used with the
-+	 * DMABUF memory model.
-+	 */
-+	struct sg_table			*dma_sgt;
- 	size_t				size;
- 	unsigned int			num_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
- 	struct vm_area_struct		*vma;
-+
-+	struct dma_buf_attachment	*db_attach;
- };
- 
- static void vb2_dma_sg_put(void *buf_priv);
-@@ -112,6 +120,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
- 	buf->size = size;
- 	/* size is already page aligned */
- 	buf->num_pages = size >> PAGE_SHIFT;
-+	buf->dma_sgt = &buf->sg_table;
- 
- 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
- 			     GFP_KERNEL);
-@@ -122,7 +131,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
- 	if (ret)
- 		goto fail_pages_alloc;
- 
--	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
-+	ret = sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
- 			buf->num_pages, 0, size, GFP_KERNEL);
- 	if (ret)
- 		goto fail_table_alloc;
-@@ -171,7 +180,7 @@ static void vb2_dma_sg_put(void *buf_priv)
- 		dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- 		if (buf->vaddr)
- 			vm_unmap_ram(buf->vaddr, buf->num_pages);
--		sg_free_table(&buf->sg_table);
-+		sg_free_table(buf->dma_sgt);
- 		while (--i >= 0)
- 			__free_page(buf->pages[i]);
- 		kfree(buf->pages);
-@@ -183,7 +192,11 @@ static void vb2_dma_sg_put(void *buf_priv)
- static void vb2_dma_sg_prepare(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
--	struct sg_table *sgt = &buf->sg_table;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	/* DMABUF exporter will flush the cache for us */
-+	if (buf->db_attach)
-+		return;
- 
- 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- }
-@@ -191,7 +204,11 @@ static void vb2_dma_sg_prepare(void *buf_priv)
- static void vb2_dma_sg_finish(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
--	struct sg_table *sgt = &buf->sg_table;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	/* DMABUF exporter will flush the cache for us */
-+	if (buf->db_attach)
-+		return;
- 
- 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- }
-@@ -220,6 +237,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->dma_dir = dma_dir;
- 	buf->offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
-+	buf->dma_sgt = &buf->sg_table;
- 
- 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
- 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
-@@ -272,7 +290,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (num_pages_from_user != buf->num_pages)
- 		goto userptr_fail_get_user_pages;
- 
--	if (sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
-+	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
- 			buf->num_pages, buf->offset, size, 0))
- 		goto userptr_fail_alloc_table_from_pages;
- 
-@@ -317,7 +335,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- 	if (buf->vaddr)
- 		vm_unmap_ram(buf->vaddr, buf->num_pages);
--	sg_free_table(&buf->sg_table);
-+	sg_free_table(buf->dma_sgt);
- 	while (--i >= 0) {
- 		if (buf->dma_dir == DMA_FROM_DEVICE)
- 			set_page_dirty_lock(buf->pages[i]);
-@@ -336,14 +354,16 @@ static void *vb2_dma_sg_vaddr(void *buf_priv)
- 
- 	BUG_ON(!buf);
- 
--	if (!buf->vaddr)
--		buf->vaddr = vm_map_ram(buf->pages,
--					buf->num_pages,
--					-1,
--					PAGE_KERNEL);
-+	if (!buf->vaddr) {
-+		if (buf->db_attach)
-+			buf->vaddr = dma_buf_vmap(buf->db_attach->dmabuf);
-+		else
-+			buf->vaddr = vm_map_ram(buf->pages,
-+					buf->num_pages, -1, PAGE_KERNEL);
-+	}
- 
- 	/* add offset in case userptr is not page-aligned */
--	return buf->vaddr + buf->offset;
-+	return buf->vaddr ? buf->vaddr + buf->offset : NULL;
- }
- 
- static unsigned int vb2_dma_sg_num_users(void *buf_priv)
-@@ -390,11 +410,110 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
- 	return 0;
- }
- 
-+/*********************************************/
-+/*       callbacks for DMABUF buffers        */
-+/*********************************************/
-+
-+static int vb2_dma_sg_map_dmabuf(void *mem_priv)
-+{
-+	struct vb2_dma_sg_buf *buf = mem_priv;
-+	struct sg_table *sgt;
-+
-+	if (WARN_ON(!buf->db_attach)) {
-+		pr_err("trying to pin a non attached buffer\n");
-+		return -EINVAL;
-+	}
-+
-+	if (WARN_ON(buf->dma_sgt)) {
-+		pr_err("dmabuf buffer is already pinned\n");
-+		return 0;
-+	}
-+
-+	/* get the associated scatterlist for this buffer */
-+	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
-+	if (IS_ERR(sgt)) {
-+		pr_err("Error getting dmabuf scatterlist\n");
-+		return -EINVAL;
-+	}
-+
-+	buf->dma_sgt = sgt;
-+	buf->vaddr = NULL;
-+
-+	return 0;
-+}
-+
-+static void vb2_dma_sg_unmap_dmabuf(void *mem_priv)
-+{
-+	struct vb2_dma_sg_buf *buf = mem_priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	if (WARN_ON(!buf->db_attach)) {
-+		pr_err("trying to unpin a not attached buffer\n");
-+		return;
-+	}
-+
-+	if (WARN_ON(!sgt)) {
-+		pr_err("dmabuf buffer is already unpinned\n");
-+		return;
-+	}
-+
-+	if (buf->vaddr) {
-+		dma_buf_vunmap(buf->db_attach->dmabuf, buf->vaddr);
-+		buf->vaddr = NULL;
-+	}
-+	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
-+
-+	buf->dma_sgt = NULL;
-+}
-+
-+static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
-+{
-+	struct vb2_dma_sg_buf *buf = mem_priv;
-+
-+	/* if vb2 works correctly you should never detach mapped buffer */
-+	if (WARN_ON(buf->dma_sgt))
-+		vb2_dma_sg_unmap_dmabuf(buf);
-+
-+	/* detach this attachment */
-+	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
-+	kfree(buf);
-+}
-+
-+static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
-+	unsigned long size, enum dma_data_direction dma_dir)
-+{
-+	struct vb2_dma_sg_conf *conf = alloc_ctx;
-+	struct vb2_dma_sg_buf *buf;
-+	struct dma_buf_attachment *dba;
-+
-+	if (dbuf->size < size)
-+		return ERR_PTR(-EFAULT);
-+
-+	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	buf->dev = conf->dev;
-+	/* create attachment for the dmabuf with the user device */
-+	dba = dma_buf_attach(dbuf, buf->dev);
-+	if (IS_ERR(dba)) {
-+		pr_err("failed to attach dmabuf\n");
-+		kfree(buf);
-+		return dba;
-+	}
-+
-+	buf->dma_dir = dma_dir;
-+	buf->size = size;
-+	buf->db_attach = dba;
-+
-+	return buf;
-+}
-+
- static void *vb2_dma_sg_cookie(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
- 
--	return &buf->sg_table;
-+	return buf->dma_sgt;
- }
- 
- const struct vb2_mem_ops vb2_dma_sg_memops = {
-@@ -407,6 +526,10 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- 	.vaddr		= vb2_dma_sg_vaddr,
- 	.mmap		= vb2_dma_sg_mmap,
- 	.num_users	= vb2_dma_sg_num_users,
-+	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
-+	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
-+	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
-+	.detach_dmabuf	= vb2_dma_sg_detach_dmabuf,
- 	.cookie		= vb2_dma_sg_cookie,
- };
- EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
+> >> BTW, one patch I will very happily accept is one where the
+> >> __V4L2_SUBDEV_MK_GET_TRY is removed and these three try functions are
+> >> just written as proper static inlines. I find it very obfuscated code.
+> > 
+> > I originally wrote them like that in order to avoid writing essentially
+> > the same code three times over. If there will be more targets, the same
+> > repeats further, should one write those functions open for all different
+> > macro arguments. That's why it was a macro to begin with.
+> > 
+> >> In addition, because it is a macro you won't find the function
+> >> definitions if you grep on the function name.
+> > 
+> > True as well. You could simply change the macro to include the full
+> > function name. This was not suggested in review back then AFAIR.
+> > 
+> >> But any functional changes here need to be Acked by Laurent first.
+> 
+> How do you want me to proceed on this ?
+
 -- 
-2.1.1
+Regards,
+
+Laurent Pinchart
 
