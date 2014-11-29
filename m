@@ -1,49 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44742 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751198AbaKEKeM (ORCPT
+Received: from mail-qa0-f51.google.com ([209.85.216.51]:56913 "EHLO
+	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751082AbaK2Ck5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 05:34:12 -0500
-Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
-	by tschai.lan (Postfix) with ESMTPSA id 87EA12A0432
-	for <linux-media@vger.kernel.org>; Wed,  5 Nov 2014 11:34:06 +0100 (CET)
-Message-ID: <5459FD11.1000903@xs4all.nl>
-Date: Wed, 05 Nov 2014 11:33:53 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 28 Nov 2014 21:40:57 -0500
+Received: by mail-qa0-f51.google.com with SMTP id k15so5033691qaq.38
+        for <linux-media@vger.kernel.org>; Fri, 28 Nov 2014 18:40:56 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.19] Sparse warning fixes
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <5478D31E.5000402@cogweb.net>
+References: <5478D31E.5000402@cogweb.net>
+Date: Fri, 28 Nov 2014 21:40:56 -0500
+Message-ID: <CAGoCfizK4kN5QnmFs_trAk2w3xuSVtXYVF2wSmdXDazxbhk=yQ@mail.gmail.com>
+Subject: Re: ISDB caption support
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: David Liontooth <lionteeth@cogweb.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
+Hi David,
 
-  [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
+ISDB-T subtitles are done in a similar manner to DVB-T subtitles -
+there is a PID in the stream which contains the subtitle data, which
+needs to be decoded by the application (just as you would handle DVB-T
+subtitles or ATSC closed captions).  It's entirely an application
+level function, having nothing to do with the driver layer.
 
-are available in the git repository at:
+In short, this has nothing to do with DVBv5, as that is all about how
+the tuner is controlled, not what gets done with the resulting MPEG
+stream.  You would need to talk to whoever is responsible for the
+application you are working with (whether that be VLC, mplayer,
+ccextractor, etc).
 
-  git://linuxtv.org/hverkuil/media_tree.git sparse
+Cheers,
 
-for you to fetch changes up to acccdfd5898bfc3047febd3275015796874c760c:
+Devin
 
-  ti-vpe: fix sparse warnings (2014-11-05 11:32:58 +0100)
+On Fri, Nov 28, 2014 at 2:55 PM, David Liontooth <lionteeth@cogweb.net> wrote:
+>
+> What is the status of ISDB-Tb / ISDB-T International / ISDB Japanese closed
+> captioning support?
+>
+> If anyone is working on this, please get in touch -- we're particularly
+> interested in getting Brazilian SBTVD working.
+>
+> I see Mauro has been working on DVBv5 support, but does this include
+> captioning?
+>
+> Cheers,
+> David
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-----------------------------------------------------------------
-Hans Verkuil (6):
-      bttv: fix sparse warning
-      videobuf: fix sparse warnings
-      smipcie: fix sparse warnings
-      stk1160: fix sparse warning
-      cxusb: fix sparse warnings
-      ti-vpe: fix sparse warnings
 
- drivers/media/pci/bt8xx/bttv-cards.c    | 6 +++---
- drivers/media/pci/smipcie/smipcie.c     | 4 ++--
- drivers/media/platform/ti-vpe/csc.c     | 2 +-
- drivers/media/platform/ti-vpe/sc.c      | 2 +-
- drivers/media/usb/dvb-usb/cxusb.c       | 4 ++--
- drivers/media/usb/stk1160/stk1160-v4l.c | 2 +-
- drivers/media/v4l2-core/videobuf-core.c | 6 ++++--
- 7 files changed, 14 insertions(+), 12 deletions(-)
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
