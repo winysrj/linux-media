@@ -1,43 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:54256 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973AbaKBJw5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 04:52:57 -0500
-Received: by mail-pa0-f50.google.com with SMTP id eu11so10304634pac.23
-        for <linux-media@vger.kernel.org>; Sun, 02 Nov 2014 01:52:56 -0800 (PST)
-Message-ID: <5455FEF4.6010803@gmail.com>
-Date: Sun, 02 Nov 2014 18:52:52 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37063 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751735AbaK2Xo4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Nov 2014 18:44:56 -0500
+Date: Sun, 30 Nov 2014 01:44:17 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com
+Subject: Re: [PATCH/RFC v8 03/14] Documentation: leds: Add description of
+ v4l2-flash sub-device
+Message-ID: <20141129234416.GR8907@valkosipuli.retiisi.org.uk>
+References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+ <1417166286-27685-4-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 3/7] v4l-utils/libdvbv5: add support for ISDB-S scanning
-References: <1414323983-15996-1-git-send-email-tskd08@gmail.com> <1414323983-15996-4-git-send-email-tskd08@gmail.com> <20141027124650.522d394b.m.chehab@samsung.com> <54539EC6.8090001@gmail.com> <20141031175353.4b1dec17.m.chehab@samsung.com>
-In-Reply-To: <20141031175353.4b1dec17.m.chehab@samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1417166286-27685-4-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hmm... Is this due to a spec definition, or is it just how satellite
-> operators decided?
+On Fri, Nov 28, 2014 at 10:17:55AM +0100, Jacek Anaszewski wrote:
+> This patch extends LED Flash class documention by
+> the description of interactions with v4l2-flash sub-device.
 > 
-> If ARIB spec doesn't allow polarization set, we should remove it from the
-> Kernel DocBook. 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
 
-ARIB spec does NOT limit polarization, just the satellite operators do.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-> 
-> Btw, how does the PT1 driver handle those parameters? If it just uses
-> frequency (it seems so), then the only valid parameters for ISDB-S are
-> 	DTV_FREQUENCY
-> and
-> 	DTV_STREAM_ID
-> 
-> (and, eventually, polarization, if ARIB spec allows it)
-> 
-> right?
-
-Yes, right. PT1 uses DTV_FREQUENCY and DTV_STREAM_ID.
---
-Akihiro
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
