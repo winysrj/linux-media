@@ -1,96 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:45085 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752910AbaKJRV7 (ORCPT
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:54381 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750980AbaK2Nnk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 12:21:59 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v6 03/10] [media] Make use of the new media_bus_format definitions
-Date: Mon, 10 Nov 2014 18:21:47 +0100
-Message-Id: <1415640114-14930-4-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
+	Sat, 29 Nov 2014 08:43:40 -0500
+Received: by mail-pd0-f181.google.com with SMTP id v10so2796986pde.12
+        for <linux-media@vger.kernel.org>; Sat, 29 Nov 2014 05:43:39 -0800 (PST)
+Message-ID: <5479CD87.6060608@gmail.com>
+Date: Sat, 29 Nov 2014 22:43:35 +0900
+From: Akihiro TSUKADA <tskd08@gmail.com>
+MIME-Version: 1.0
+To: David Liontooth <lionteeth@cogweb.net>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: ISDB caption support
+References: <5478D31E.5000402@cogweb.net> <CAGoCfizK4kN5QnmFs_trAk2w3xuSVtXYVF2wSmdXDazxbhk=yQ@mail.gmail.com> <547934E1.3050609@cogweb.net>
+In-Reply-To: <547934E1.3050609@cogweb.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace references to the v4l2_mbus_pixelcode enum with the new
-media_bus_format enum in all common headers.
+> I realize captions is an application-layer function, and intend to work
+> with the CCExtractor team. Do any other applications already have ISDB
+> caption support?
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/v4l2-mediabus.h    | 2 +-
- include/media/v4l2-subdev.h      | 2 +-
- include/uapi/linux/v4l2-subdev.h | 6 +++---
- 3 files changed, 5 insertions(+), 5 deletions(-)
+there's a mplayer patch for subtitle support:
+https://github.com/0p1pp1/mplayer/commit/6debc831d34cad98d1b251920fbdb48f74a880df
 
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 395c4a9..59d7397 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -98,7 +98,7 @@ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
- 
- static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
- 			   const struct v4l2_pix_format *pix_fmt,
--			   enum v4l2_mbus_pixelcode code)
-+			   u32 code)
- {
- 	mbus_fmt->width = pix_fmt->width;
- 	mbus_fmt->height = pix_fmt->height;
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index d746572..5860292 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -341,7 +341,7 @@ struct v4l2_subdev_video_ops {
- 	int (*query_dv_timings)(struct v4l2_subdev *sd,
- 			struct v4l2_dv_timings *timings);
- 	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
--			     enum v4l2_mbus_pixelcode *code);
-+			     u32 *code);
- 	int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
- 			     struct v4l2_frmsizeenum *fsize);
- 	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index a619cdd..e0a7e3d 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -68,7 +68,7 @@ struct v4l2_subdev_crop {
-  * struct v4l2_subdev_mbus_code_enum - Media bus format enumeration
-  * @pad: pad number, as reported by the media API
-  * @index: format index during enumeration
-- * @code: format code (from enum v4l2_mbus_pixelcode)
-+ * @code: format code (MEDIA_BUS_FMT_ definitions)
-  */
- struct v4l2_subdev_mbus_code_enum {
- 	__u32 pad;
-@@ -81,7 +81,7 @@ struct v4l2_subdev_mbus_code_enum {
-  * struct v4l2_subdev_frame_size_enum - Media bus format enumeration
-  * @pad: pad number, as reported by the media API
-  * @index: format index during enumeration
-- * @code: format code (from enum v4l2_mbus_pixelcode)
-+ * @code: format code (MEDIA_BUS_FMT_ definitions)
-  */
- struct v4l2_subdev_frame_size_enum {
- 	__u32 index;
-@@ -109,7 +109,7 @@ struct v4l2_subdev_frame_interval {
-  * struct v4l2_subdev_frame_interval_enum - Frame interval enumeration
-  * @pad: pad number, as reported by the media API
-  * @index: frame interval index during enumeration
-- * @code: format code (from enum v4l2_mbus_pixelcode)
-+ * @code: format code (MEDIA_BUS_FMT_ definitions)
-  * @width: frame width in pixels
-  * @height: frame height in pixels
-  * @interval: frame interval in seconds
--- 
-1.9.1
+It translates subtitle stream PES to ASS, but is is for ISDB-T/Japan.
+Subtitling in ISDB-T depends heavily on the control sequences
+of the original character encoding (ARIB STD-B24),
+so I'm afraid that (at least) PES format is very different in ISDB-Tb. 
 
+regards,
+akihiro
