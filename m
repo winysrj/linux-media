@@ -1,134 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53015 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752814AbaKHXJo (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47654 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751043AbaK2DnF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Nov 2014 18:09:44 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Fri, 28 Nov 2014 22:43:05 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E3AFC2A008C
+	for <linux-media@vger.kernel.org>; Sat, 29 Nov 2014 04:42:47 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 09/10] smiapp: Split sub-device initialisation off from the registered callback
-Date: Sun,  9 Nov 2014 01:09:30 +0200
-Message-Id: <1415488171-27636-10-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1415488171-27636-1-git-send-email-sakari.ailus@iki.fi>
-References: <1415488171-27636-1-git-send-email-sakari.ailus@iki.fi>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20141129034247.E3AFC2A008C@tschai.lan>
+Date: Sat, 29 Nov 2014 04:42:47 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The registered callback is called by the V4L2 async framework after the
-bound callback. This allows separating the functionality in the registered
-callback so that on DT based systems only sub-device registration is done
-there.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/i2c/smiapp/smiapp-core.c |   83 +++++++++++++++++++++-----------
- 1 file changed, 55 insertions(+), 28 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index bc57e5d..c00f0a4 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2468,6 +2468,57 @@ static const struct v4l2_subdev_ops smiapp_ops;
- static const struct v4l2_subdev_internal_ops smiapp_internal_ops;
- static const struct media_entity_operations smiapp_entity_ops;
- 
-+static int smiapp_register_subdevs(struct v4l2_subdev *subdev)
-+{
-+	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
-+	struct smiapp_subdev *ssds[] = {
-+		sensor->scaler,
-+		sensor->binner,
-+		sensor->pixel_array,
-+	};
-+	unsigned int i;
-+	int rval;
-+
-+	for (i = 0; i < SMIAPP_SUBDEVS - 1; i++) {
-+		struct smiapp_subdev *this = ssds[i + 1];
-+		struct smiapp_subdev *last = ssds[i];
-+
-+		if (!last)
-+			continue;
-+
-+		rval = media_entity_init(&this->sd.entity,
-+					 this->npads, this->pads, 0);
-+		if (rval) {
-+			dev_err(&client->dev,
-+				"media_entity_init failed\n");
-+			return rval;
-+		}
-+
-+		rval = media_entity_create_link(&this->sd.entity,
-+						this->source_pad,
-+						&last->sd.entity,
-+						last->sink_pad,
-+						MEDIA_LNK_FL_ENABLED |
-+						MEDIA_LNK_FL_IMMUTABLE);
-+		if (rval) {
-+			dev_err(&client->dev,
-+				"media_entity_create_link failed\n");
-+			return rval;
-+		}
-+
-+		rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
-+						   &this->sd);
-+		if (rval) {
-+			dev_err(&client->dev,
-+				"v4l2_device_register_subdev failed\n");
-+			return rval;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int smiapp_registered(struct v4l2_subdev *subdev)
- {
- 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
-@@ -2706,37 +2757,13 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 		this->sd.owner = THIS_MODULE;
- 		v4l2_set_subdevdata(&this->sd, client);
- 
--		rval = media_entity_init(&this->sd.entity,
--					 this->npads, this->pads, 0);
--		if (rval) {
--			dev_err(&client->dev,
--				"media_entity_init failed\n");
--			goto out_nvm_release;
--		}
--
--		rval = media_entity_create_link(&this->sd.entity,
--						this->source_pad,
--						&last->sd.entity,
--						last->sink_pad,
--						MEDIA_LNK_FL_ENABLED |
--						MEDIA_LNK_FL_IMMUTABLE);
--		if (rval) {
--			dev_err(&client->dev,
--				"media_entity_create_link failed\n");
--			goto out_nvm_release;
--		}
--
--		rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
--						   &this->sd);
--		if (rval) {
--			dev_err(&client->dev,
--				"v4l2_device_register_subdev failed\n");
--			goto out_nvm_release;
--		}
--
- 		last = this;
- 	}
- 
-+	rval = smiapp_register_subdevs(&sensor->src->sd);
-+	if (rval)
-+		goto out_nvm_release;
-+
- 	dev_dbg(&client->dev, "profile %d\n", sensor->minfo.smiapp_profile);
- 
- 	sensor->pixel_array->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
--- 
-1.7.10.4
+date:		Sat Nov 29 04:00:15 CET 2014
+git branch:	test
+git hash:	504febc3f98c87a8bebd8f2f274f32c0724131e4
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
