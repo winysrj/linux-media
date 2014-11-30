@@ -1,153 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39735 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753265AbaKRHVi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 02:21:38 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp.bredband2.com ([83.219.192.166]:57966 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751919AbaK3XrO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Nov 2014 18:47:14 -0500
+Received: from [192.168.1.22] (92-244-23-216.customers.ownit.se [92.244.23.216])
+	(Authenticated sender: ed8153)
+	by smtp.bredband2.com (Postfix) with ESMTPA id 3D8672D07B
+	for <linux-media@vger.kernel.org>; Mon,  1 Dec 2014 00:47:06 +0100 (CET)
+Message-ID: <547BAC79.50702@southpole.se>
+Date: Mon, 01 Dec 2014 00:47:05 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 1/6] rtl2832: implement option to bypass slave demod TS
-Date: Tue, 18 Nov 2014 09:20:38 +0200
-Message-Id: <1416295243-27300-1-git-send-email-crope@iki.fi>
+Subject: Random memory corruption of fe[1]->dvb pointer
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement partial PIP mode to carry TS from slave demodulator,
-through that master demodulator. RTL2832 demod has TS input
-interface to connected another demodulator TS output.
+While working on a driver I noticed that I had trouble unloading the 
+module after testing, it crashed while running
+dvb_usbv2_adapter_frontend_exit. So I added a print out of some pointers 
+and got this:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832.c | 60 +++++++++++++++++++++++++++++++++--
- drivers/media/dvb-frontends/rtl2832.h | 11 +++++++
- 2 files changed, 68 insertions(+), 3 deletions(-)
+Init:
+usb 1-1: dvb_usbv2_adapter_frontend_init: adap=fe[0] ffff88006afa6818
+usb 1-1: dvb_usbv2_adapter_frontend_init: adap=fe[0]->dvb ffff880078cba580
+usb 1-1: dvb_usbv2_adapter_frontend_init: adap=fe[1] ffff88003698e830
+usb 1-1: dvb_usbv2_adapter_frontend_init: adap=fe[1]->dvb ffff880078cba580
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index eb737cf..9026e1a 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -258,13 +258,11 @@ static int rtl2832_rd_regs(struct rtl2832_priv *priv, u8 reg, u8 page, u8 *val,
- 	return rtl2832_rd(priv, reg, val, len);
- }
- 
--#if 0 /* currently not used */
- /* write single register */
- static int rtl2832_wr_reg(struct rtl2832_priv *priv, u8 reg, u8 page, u8 val)
- {
- 	return rtl2832_wr_regs(priv, reg, page, &val, 1);
- }
--#endif
- 
- /* read single register */
- static int rtl2832_rd_reg(struct rtl2832_priv *priv, u8 reg, u8 page, u8 *val)
-@@ -599,6 +597,11 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
- 	if (fe->ops.tuner_ops.set_params)
- 		fe->ops.tuner_ops.set_params(fe);
- 
-+	/* PIP mode related */
-+	ret = rtl2832_wr_regs(priv, 0x92, 1, "\x00\x0f\xff", 3);
-+	if (ret)
-+		goto err;
-+
- 	/* If the frontend has get_if_frequency(), use it */
- 	if (fe->ops.tuner_ops.get_if_frequency) {
- 		u32 if_freq;
-@@ -661,7 +664,6 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--
- 	/* soft reset */
- 	ret = rtl2832_wr_demod_reg(priv, DVBT_SOFT_RST, 0x1);
- 	if (ret)
-@@ -1020,6 +1022,58 @@ static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv,
- 	return 0;
- }
- 
-+int rtl2832_enable_external_ts_if(struct dvb_frontend *fe)
-+{
-+	struct rtl2832_priv *priv = fe->demodulator_priv;
-+	int ret;
-+
-+	dev_dbg(&priv->i2c->dev, "%s: setting PIP mode\n", __func__);
-+
-+	ret = rtl2832_wr_regs(priv, 0x0c, 1, "\x5f\xff", 2);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_wr_demod_reg(priv, DVBT_PIP_ON, 0x1);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_wr_reg(priv, 0xbc, 0, 0x18);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_wr_reg(priv, 0x22, 0, 0x01);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_wr_reg(priv, 0x26, 0, 0x1f);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_wr_reg(priv, 0x27, 0, 0xff);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_wr_regs(priv, 0x92, 1, "\x7f\xf7\xff", 3);
-+	if (ret)
-+		goto err;
-+
-+	/* soft reset */
-+	ret = rtl2832_wr_demod_reg(priv, DVBT_SOFT_RST, 0x1);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_wr_demod_reg(priv, DVBT_SOFT_RST, 0x0);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+err:
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	return ret;
-+
-+}
-+EXPORT_SYMBOL(rtl2832_enable_external_ts_if);
-+
- struct i2c_adapter *rtl2832_get_i2c_adapter(struct dvb_frontend *fe)
- {
- 	struct rtl2832_priv *priv = fe->demodulator_priv;
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index cb3b6b0..5254c1d 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -64,6 +64,10 @@ extern struct i2c_adapter *rtl2832_get_private_i2c_adapter(
- 	struct dvb_frontend *fe
- );
- 
-+extern int rtl2832_enable_external_ts_if(
-+	struct dvb_frontend *fe
-+);
-+
- #else
- 
- static inline struct dvb_frontend *rtl2832_attach(
-@@ -89,6 +93,13 @@ static inline struct i2c_adapter *rtl2832_get_private_i2c_adapter(
- 	return NULL;
- }
- 
-+static inline int rtl2832_enable_external_ts_if(
-+	struct dvb_frontend *fe
-+)
-+{
-+	return -ENODEV;
-+}
-+
- #endif
- 
- 
--- 
-http://palosaari.fi/
+ok looking 64bit pointers
+
+Deinit:
+usb 1-1: dvb_usbv2_exit:
+usb 1-1: dvb_usbv2_remote_exit:
+usb 1-1: dvb_usbv2_adapter_exit:
+usb 1-1: dvb_usbv2_adapter_exit: fe0[0]= ffff88006afa6818
+usb 1-1: dvb_usbv2_adapter_exit: fe0[0]->dvb= ffff880078cba580
+usb 1-1: dvb_usbv2_adapter_exit: fe1[0]= ffff88003698e830
+usb 1-1: dvb_usbv2_adapter_exit: fe1[0]->dvb= 003a746165733a3d
+usb 1-1: dvb_usbv2_adapter_frontend_exit: adap=0
+usb 1-1: dvb_usbv2_adapter_frontend_exit: fe[1]= ffff88003698e830
+usb 1-1: dvb_usbv2_adapter_frontend_exit: fe[1]->dvb= 003a746165733a3d
+
+Later on in dvb_usbv2_adapter_frontend_exit() fe[1]->dvb is dereferenced 
+and thus causes a kernel crash.
+
+So for some reason fe[1]->dvb gets corrupted. It doesn't happen all the 
+time but after max 3 times I get this crash. I have reproduced this on 
+my main machine running Ubuntu 14.04, 14.10 and a VM running Ubuntu 
+14.04 all running stock kernel (3.13 and 3.16) and the media_build back 
+port code.
+
+After some investigation I saw that fe[1]->demodulator_priv also gets 
+corrupted. Something is overwriting the pointers.
+
+So with that knowledge I wrote the following patch and now I can freely 
+reload the driver without a crash. This of course doesn't fix the issue 
+but just corrupts unused dummy memory.
+
+So does anyone have any hunch on what might be causing this issue or how 
+to track it down ?
+Keep in mind that this could be caused by me running the media_build 
+code or some bug in the driver. Or it could also affect the regular tree 
+when unplugging devices with more then 1 frontend.
+
+MvH
+Benjamin Larsson
+
+
+diff --git a/drivers/media/dvb-core/dvb_frontend.h 
+b/drivers/media/dvb-core/dvb_frontend.h
+index 816269e..e0ba434 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -413,19 +413,30 @@ struct dtv_frontend_properties {
+  #define DVB_FE_DEVICE_RESUME    3
+
+  struct dvb_frontend {
+-       struct dvb_frontend_ops ops;
+-       struct dvb_adapter *dvb;
+         void *demodulator_priv;
++       int dummy1[16000];
+         void *tuner_priv;
++       int dummy2[16000];
+         void *frontend_priv;
++       int dummy3[16000];
+         void *sec_priv;
++       int dummy4[16000];
+         void *analog_demod_priv;
++       int dummy5[16000];
+         struct dtv_frontend_properties dtv_property_cache;
++       int dummy6[16000];
+  #define DVB_FRONTEND_COMPONENT_TUNER 0
+  #define DVB_FRONTEND_COMPONENT_DEMOD 1
+         int (*callback)(void *adapter_priv, int component, int cmd, int 
+arg);
++       int dummy7[16000];
+         int id;
++       int dummy8[16000];
+         unsigned int exit;
++       int dummy9[16000];
++       struct dvb_frontend_ops ops;
++       int dummy10[16000];
++       struct dvb_adapter *dvb;
++       int dummy11[16000];
+  };
 
