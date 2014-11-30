@@ -1,81 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38451 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755137AbaKUKN7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 05:13:59 -0500
-Message-ID: <546F103D.6050004@redhat.com>
-Date: Fri, 21 Nov 2014 11:13:17 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-qa0-f51.google.com ([209.85.216.51]:46997 "EHLO
+	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751104AbaK3PvW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Nov 2014 10:51:22 -0500
+Received: by mail-qa0-f51.google.com with SMTP id k15so6091783qaq.38
+        for <linux-media@vger.kernel.org>; Sun, 30 Nov 2014 07:51:22 -0800 (PST)
 MIME-Version: 1.0
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Emilio Lopez <emilio@elopez.com.ar>,
-	Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com
-Subject: Re: [PATCH 5/9] rc: sunxi-cir: Add support for the larger fifo found
- on sun5i and sun6i
-References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com> <1416498928-1300-6-git-send-email-hdegoede@redhat.com> <20141120142856.16b6562d@recife.lan> <20141121082620.GJ24143@lukather> <546EFAE1.9050506@redhat.com> <20141121095934.GA4752@lukather>
-In-Reply-To: <20141121095934.GA4752@lukather>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20141129185012.714473bc@recife.lan>
+References: <5478D31E.5000402@cogweb.net>
+	<CAGoCfizK4kN5QnmFs_trAk2w3xuSVtXYVF2wSmdXDazxbhk=yQ@mail.gmail.com>
+	<547934E1.3050609@cogweb.net>
+	<CAGoCfix11OiF5_kojJ4jKZadz3XYdYJccPGtivtzDepFfn4Rnw@mail.gmail.com>
+	<20141129090408.1b52c9ea@recife.lan>
+	<5479F19A.9000408@cogweb.net>
+	<20141129185012.714473bc@recife.lan>
+Date: Sun, 30 Nov 2014 10:51:21 -0500
+Message-ID: <CAGoCfizVVJMkOLXk5LdYAWJdvFmzzA-uZHyyWS5k-GcNKJiLAw@mail.gmail.com>
+Subject: Re: ISDB caption support
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: David Liontooth <lionteeth@cogweb.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+> With regards to CC decoding, IMHO, the best would be to add a parser
+> for ISDB CC at libdvbv5.
 
-On 11/21/2014 10:59 AM, Maxime Ripard wrote:
-> On Fri, Nov 21, 2014 at 09:42:09AM +0100, Hans de Goede wrote:
->> Hi,
->>
->> On 11/21/2014 09:26 AM, Maxime Ripard wrote:
->>> Hi Mauro,
->>>
->>> On Thu, Nov 20, 2014 at 02:28:56PM -0200, Mauro Carvalho Chehab wrote:
->>>> Em Thu, 20 Nov 2014 16:55:24 +0100
->>>> Hans de Goede <hdegoede@redhat.com> escreveu:
->>>>
->>>>> Add support for the larger fifo found on sun5i and sun6i, having a separate
->>>>> compatible for the ir found on sun5i & sun6i also is useful if we ever want
->>>>> to add ir transmit support, because the sun5i & sun6i version do not have
->>>>> transmit support.
->>>>>
->>>>> Note this commits also adds checking for the end-of-packet interrupt flag
->>>>> (which was already enabled), as the fifo-data-available interrupt flag only
->>>>> gets set when the trigger-level is exceeded. So far we've been getting away
->>>>> with not doing this because of the low trigger-level, but this is something
->>>>> which we should have done since day one.
->>>>>
->>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->>>>
->>>> As this is meant to be merged via some other tree:
->>>>
->>>> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>
->>> I think merging it through your tree would be just fine.
->>>
->>> Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
->>
->> Heh, I was thinking it would be best if it went through Maxime's tree because
->> it also has some deps on new clk stuff (well the dts have deps on that), but either
->> way works for me.
->>
->> Maxime if you want this go through Mauro's tree, I can send a pull-req to Mauro
->> (I'm a linux-media sub-maintainer), so if that is the case let me know and I'll
->> prepare a pull-req (after fixing the missing reset documentation in the bindings).
-> 
-> So much for not reading the cover letter... Sorry.
-> 
-> We're getting quite close to the end of the ARM merge window, and I
-> got a couple comments, Lee hasn't commented yet, so I'd say it's a bit
-> too late for this to come in.
+It probably makes more sense to extend one of the existing libraries
+that supports captions/subtitles to include support for ISDB (such as
+libzvbi or ccextractor).  The libdvbv5 library has no infrastructure
+today for subtitle rendering for any other formats, so generating a
+generic caption/subtitle API within libdvbv5 that is extensible enough
+to support other formats seems redundant.  It also means that
+applications that already use libzvbi will get the support for ISDB
+effectively "for free" (in fact, I'm considering moving VLC over to
+using libzvbi for CC rendering - it's already used today for raw VBI
+slicing).
 
-Oh, but this was not intended for 3.19, this can wait till 3.20 from my pov,
-sorry if that was not clear. I was assuming that the merge window was more
-or less closed already, so that this going into 3.20 was expected.
+Devin
 
-Regrrds,
-
-Hans
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
