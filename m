@@ -1,152 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60620 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750848AbaKYSAi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Nov 2014 13:00:38 -0500
-Date: Tue, 25 Nov 2014 16:00:33 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Malcolm Priestley <malcolmpriestley@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] lmed04: add missing breaks
-Message-ID: <20141125160033.4d613dd7@recife.lan>
-In-Reply-To: <5474B7E8.5020402@gmail.com>
-References: <d442b15fb4deb2b5d516e2dae1f569b1d5472399.1416914348.git.mchehab@osg.samsung.com>
-	<5474B7E8.5020402@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46231 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751689AbaK3DnB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Nov 2014 22:43:01 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 05CBD2A008E
+	for <linux-media@vger.kernel.org>; Sun, 30 Nov 2014 04:42:45 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20141130034245.05CBD2A008E@tschai.lan>
+Date: Sun, 30 Nov 2014 04:42:45 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Nov 2014 17:10:00 +0000
-Malcolm Priestley <malcolmpriestley@gmail.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On 25/11/14 11:19, Mauro Carvalho Chehab wrote:
-> > drivers/media/usb/dvb-usb-v2/lmedm04.c:828 lme_firmware_switch() warn: missing break? reassigning 'st->dvb_usb_lme2510_firmware'
-> > drivers/media/usb/dvb-usb-v2/lmedm04.c:849 lme_firmware_switch() warn: missing break? reassigning 'st->dvb_usb_lme2510_firmware'
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >
-> > diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-> > index 9f2c5459b73a..99587418f4f0 100644
-> > --- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-> > +++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-> > @@ -826,6 +826,7 @@ static const char *lme_firmware_switch(struct dvb_usb_device *d, int cold)
-> >   				break;
-> >   			}
-> >   			st->dvb_usb_lme2510_firmware = TUNER_LG;
-> > +			break;
-> >   		case TUNER_LG:
-> >   			fw_lme = fw_lg;
-> >   			ret = request_firmware(&fw, fw_lme, &udev->dev);
-> > @@ -847,6 +848,7 @@ static const char *lme_firmware_switch(struct dvb_usb_device *d, int cold)
-> >   				break;
-> >   			}
-> >   			st->dvb_usb_lme2510_firmware = TUNER_LG;
-> > +			break;
-> >   		case TUNER_LG:
-> >   			fw_lme = fw_c_lg;
-> >   			ret = request_firmware(&fw, fw_lme, &udev->dev);
-> >
-> The break is not missing it's three lines above.
-> 
-> All these switches are fall through until it finds firmware the user has.
-> 
-> The switch comes into play when the firmware needs to changed.
+Results of the daily build of media_tree:
 
-Oh! Well, I was so sure that the patch was right that I merged it already.
-My bad.
+date:		Sun Nov 30 04:00:15 CET 2014
+git branch:	test
+git hash:	504febc3f98c87a8bebd8f2f274f32c0724131e4
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-Anyway, smatch complains if dvb_usb_lme2510_firmware is rewritten,
-and that bothers people that use static analyzers. So, IMO, the best
-is to rework the code in order to:
-- document that the breaks should not be used there;
-- remove smatch warning.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-What do you think about the following patch?
+Detailed results are available here:
 
-Revert "[media] lmed04: add missing breaks"
- 
-According with Malcolm, the missing breaks are intentional.
-    
-So, let's revert commit d442b15fb4deb2b5d516e2dae1f569b1d5472399,
-add some comments to document it and fix the two smatch warnings:
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-drivers/media/usb/dvb-usb-v2/lmedm04.c:828 lme_firmware_switch() warn: missing break? reassigning 'st->dvb_usb_lme2510_firmware'
-drivers/media/usb/dvb-usb-v2/lmedm04.c:850 lme_firmware_switch() warn: missing break? reassigning 'st->dvb_usb_lme2510_firmware'
+Full logs are available here:
 
-using a different strategy to avoid reassign values to
-st->dvb_usb_lme2510_firmware.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Requested-by: Malcolm Priestley <malcolmpriestley@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+The Media Infrastructure API from this daily build is here:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-index 99587418f4f0..994de53a574b 100644
---- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-+++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-@@ -817,21 +817,22 @@ static const char *lme_firmware_switch(struct dvb_usb_device *d, int cold)
- 	case 0x1122:
- 		switch (st->dvb_usb_lme2510_firmware) {
- 		default:
--			st->dvb_usb_lme2510_firmware = TUNER_S0194;
- 		case TUNER_S0194:
- 			fw_lme = fw_s0194;
- 			ret = request_firmware(&fw, fw_lme, &udev->dev);
- 			if (ret == 0) {
-+				st->dvb_usb_lme2510_firmware = TUNER_S0194;
- 				cold = 0;
- 				break;
- 			}
--			st->dvb_usb_lme2510_firmware = TUNER_LG;
--			break;
-+			/* fall through */
- 		case TUNER_LG:
- 			fw_lme = fw_lg;
- 			ret = request_firmware(&fw, fw_lme, &udev->dev);
--			if (ret == 0)
-+			if (ret == 0) {
-+				st->dvb_usb_lme2510_firmware = TUNER_LG;
- 				break;
-+			}
- 			st->dvb_usb_lme2510_firmware = TUNER_DEFAULT;
- 			break;
- 		}
-@@ -839,27 +840,30 @@ static const char *lme_firmware_switch(struct dvb_usb_device *d, int cold)
- 	case 0x1120:
- 		switch (st->dvb_usb_lme2510_firmware) {
- 		default:
--			st->dvb_usb_lme2510_firmware = TUNER_S7395;
- 		case TUNER_S7395:
- 			fw_lme = fw_c_s7395;
- 			ret = request_firmware(&fw, fw_lme, &udev->dev);
- 			if (ret == 0) {
-+				st->dvb_usb_lme2510_firmware = TUNER_S7395;
- 				cold = 0;
- 				break;
- 			}
--			st->dvb_usb_lme2510_firmware = TUNER_LG;
--			break;
-+			/* fall through */
- 		case TUNER_LG:
- 			fw_lme = fw_c_lg;
- 			ret = request_firmware(&fw, fw_lme, &udev->dev);
--			if (ret == 0)
-+			if (ret == 0) {
-+				st->dvb_usb_lme2510_firmware = TUNER_LG;
- 				break;
--			st->dvb_usb_lme2510_firmware = TUNER_S0194;
-+			}
-+			/* fall through */
- 		case TUNER_S0194:
- 			fw_lme = fw_c_s0194;
- 			ret = request_firmware(&fw, fw_lme, &udev->dev);
--			if (ret == 0)
-+			if (ret == 0) {
-+				st->dvb_usb_lme2510_firmware = TUNER_S0194;
- 				break;
-+			}
- 			st->dvb_usb_lme2510_firmware = TUNER_DEFAULT;
- 			cold = 0;
- 			break;
+http://www.xs4all.nl/~hverkuil/spec/media.html
