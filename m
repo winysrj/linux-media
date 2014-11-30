@@ -1,110 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:34310 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750984AbaK1MaH (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:45906 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751943AbaK3MjQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 07:30:07 -0500
-Date: Fri, 28 Nov 2014 12:30:03 +0000
-From: Mark Rutland <mark.rutland@arm.com>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"b.zolnierkie@samsung.com" <b.zolnierkie@samsung.com>,
-	"pavel@ucw.cz" <pavel@ucw.cz>,
-	"cooloney@gmail.com" <cooloney@gmail.com>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH/RFC v8 08/14] DT: Add documentation for exynos4-is
- 'flashes' property
-Message-ID: <20141128123003.GE25883@leverpostej>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-9-git-send-email-j.anaszewski@samsung.com>
- <20141128111404.GB25883@leverpostej>
- <547865EA.5010700@samsung.com>
+	Sun, 30 Nov 2014 07:39:16 -0500
+Date: Sun, 30 Nov 2014 13:39:11 +0100
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 1/3] drm: add bus_formats and nbus_formats fields to
+ drm_display_info
+Message-ID: <20141130133911.2daef8f4@bbrezillon>
+In-Reply-To: <56712774.y8GaD3rGMh@avalon>
+References: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1416318380-20122-2-git-send-email-boris.brezillon@free-electrons.com>
+	<56712774.y8GaD3rGMh@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <547865EA.5010700@samsung.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 28, 2014 at 12:09:14PM +0000, Jacek Anaszewski wrote:
-> On 11/28/2014 12:14 PM, Mark Rutland wrote:
-> > On Fri, Nov 28, 2014 at 09:18:00AM +0000, Jacek Anaszewski wrote:
-> >> This patch adds a description of 'flashes' property
-> >> to the samsung-fimc.txt.
-> >>
-> >> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >> Cc: Rob Herring <robh+dt@kernel.org>
-> >> Cc: Pawel Moll <pawel.moll@arm.com>
-> >> Cc: Mark Rutland <mark.rutland@arm.com>
-> >> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-> >> Cc: Kumar Gala <galak@codeaurora.org>
-> >> Cc: <devicetree@vger.kernel.org>
-> >> ---
-> >>   .../devicetree/bindings/media/samsung-fimc.txt     |    7 +++++++
-> >>   1 file changed, 7 insertions(+)
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >> index 922d6f8..4b7ed03 100644
-> >> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >> @@ -40,6 +40,12 @@ should be inactive. For the "active-a" state the camera port A must be activated
-> >>   and the port B deactivated and for the state "active-b" it should be the other
-> >>   way around.
-> >>
-> >> +Optional properties:
-> >> +
-> >> +- flashes - array of strings with flash led names; the name has to
-> >> +	    be same with the related led label
-> >> +	    (see Documentation/devicetree/bindings/leds/common.txt)
-> >> +
-> >
-> > Why is this not an array of phandles to the LED nodes? That's much
-> > better than strings.
+Hi Laurent,
+
+On Sat, 29 Nov 2014 00:13:47 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+
+> Hi Boris,
 > 
-> This is because a single flash led device can control many sub-leds,
-> which are represented by child nodes in the Device Tree.
-> Every sub-led is registered as a separate LED Flash class device
-> in the LED subsystem, but in fact they share the same struct device
-> and thus have access only to the parent's phandle.
-
-But that's a Linux infrastrcture issue, no? You don't have to use the
-node from the struct device to find the relevant phandle.
-
-> The LED Flash
-> class devices are wrapped by V4L2 sub-devices and register
-> asynchronously within a media device. Since the v4l2_subdev structure
-> has a 'name' field, it is convenient to initialize it with
-> parsed 'label' property of a child led node and match the
-> sub-devices in the media device basing on it.
-
-While that might be convenient, I don't think it's fantastic to use that
-to describe the relationship, as this leaks Linux internals (e.g. I can
-refer to a name that doesn't exist in the DT but happens to be what
-Linux used, and it would work). Also, are the labels guaranteed to be
-globally unique?
-
-Using phandles is much better for the binding. I appreciate that this
-may require more code, but IMO it's worth that for the safety and
-uniformity given by the use of phandles for referring to nodes.
-
-> > Also, I only seem to have recevied the documentation patches and none of
-> > the code -- in future when posting RFC DT patches, please Cc for the
-> > code too as it's useful context.
+> Thank you for the patch. I just have two small comments.
 > 
-> Of course, I'll keep it in mind.
+> On Tuesday 18 November 2014 14:46:18 Boris Brezillon wrote:
+> > Add bus_formats and nbus_formats fields and
+> > drm_display_info_set_bus_formats helper function to specify the bus
+> > formats supported by a given display.
+> > 
+> > This information can be used by display controller drivers to configure
+> > the output interface appropriately (i.e. RGB565, RGB666 or RGB888 on raw
+> > RGB or LVDS busses).
+> > 
+> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> > ---
+> >  drivers/gpu/drm/drm_crtc.c | 30 ++++++++++++++++++++++++++++++
+> >  include/drm/drm_crtc.h     |  7 +++++++
+> >  2 files changed, 37 insertions(+)
+> > 
+> > diff --git a/drivers/gpu/drm/drm_crtc.c b/drivers/gpu/drm/drm_crtc.c
+> > index e79c8d3..17e3acf 100644
+> > --- a/drivers/gpu/drm/drm_crtc.c
+> > +++ b/drivers/gpu/drm/drm_crtc.c
+> > @@ -763,6 +763,36 @@ static void drm_mode_remove(struct drm_connector
+> > *connector, drm_mode_destroy(connector->dev, mode);
+> >  }
+> > 
+> > +/*
+> > + * drm_display_info_set_bus_formats - set the supported bus formats
+> > + * @info: display info to store bus formats in
+> > + * @fmts: array containing the supported bus formats
+> > + * @nfmts: the number of entries in the fmts array
+> > + *
+> > + * Store the suppported bus formats in display info structure.
+> 
+> Could you document that the formats are specified as MEDIA_BUS_FMT_* values ?
 
-Thanks!
+Sure, I'll clearly state that.
 
-Mark.
+> 
+> > + */
+> > +int drm_display_info_set_bus_formats(struct drm_display_info *info, const
+> > u32 *fmts, +				     unsigned int num_fmts)
+> > +{
+> > +	u32 *formats = NULL;
+> > +
+> > +	if (!fmts && num_fmts)
+> > +		return -EINVAL;
+> > +
+> > +	if (fmts && num_fmts) {
+> > +		formats = kmemdup(fmts, sizeof(*fmts) * num_fmts, GFP_KERNEL);
+> > +		if (!formats)
+> > +			return -ENOMEM;
+> > +	}
+> > +
+> > +	kfree(info->bus_formats);
+> > +	info->bus_formats = formats;
+> > +	info->num_bus_formats = num_fmts;
+> > +
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL(drm_display_info_set_bus_formats);
+> > +
+> >  /**
+> >   * drm_connector_get_cmdline_mode - reads the user's cmdline mode
+> >   * @connector: connector to quwery
+> > diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
+> > index c40070a..2e0a3e8 100644
+> > --- a/include/drm/drm_crtc.h
+> > +++ b/include/drm/drm_crtc.h
+> > @@ -31,6 +31,7 @@
+> >  #include <linux/idr.h>
+> >  #include <linux/fb.h>
+> >  #include <linux/hdmi.h>
+> > +#include <linux/media-bus-format.h>
+> >  #include <uapi/drm/drm_mode.h>
+> >  #include <uapi/drm/drm_fourcc.h>
+> >  #include <drm/drm_modeset_lock.h>
+> > @@ -130,6 +131,9 @@ struct drm_display_info {
+> >  	enum subpixel_order subpixel_order;
+> >  	u32 color_formats;
+> > 
+> > +	const u32 *bus_formats;
+> > +	int num_bus_formats;
+> 
+> As the number of formats is never negative, I would make it an unsigned int.
+
+Okay, I'll make it an unsigned int.
+
+Regards,
+
+Boris
+
+
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
