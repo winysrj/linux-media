@@ -1,115 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53887 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751368AbaKPDhL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40181 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752175AbaK3Q07 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 22:37:11 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 8486A2A0092
-	for <linux-media@vger.kernel.org>; Sun, 16 Nov 2014 04:36:58 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sun, 30 Nov 2014 11:26:59 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20141116033658.8486A2A0092@tschai.lan>
-Date: Sun, 16 Nov 2014 04:36:58 +0100 (CET)
+Cc: devicetree@vger.kernel.org
+Subject: [REVIEW PATCH v2.1 08/11] of: smiapp: Add documentation
+Date: Sun, 30 Nov 2014 18:26:48 +0200
+Message-Id: <1417364809-4693-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1416289426-804-9-git-send-email-sakari.ailus@iki.fi>
+References: <1416289426-804-9-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Document the smiapp device tree properties.
 
-Results of the daily build of media_tree:
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+since v2:
+- Cleanups
+- Removed clock-names property documentation
+- Port node documentation was really endpoint node documentation
+- Added remote-endpoint as mandatory endpoint node properties
 
-date:		Sun Nov 16 04:00:15 CET 2014
-git branch:	test
-git hash:	c02ef64aab828d80040b5dce934729312e698c33
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-2.slh.2-amd64
+ .../devicetree/bindings/media/i2c/nokia,smia.txt   |   64 ++++++++++++++++++++
+ MAINTAINERS                                        |    1 +
+ 2 files changed, 65 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+new file mode 100644
+index 0000000..2114a4d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+@@ -0,0 +1,64 @@
++SMIA/SMIA++ sensor
++
++SMIA (Standard Mobile Imaging Architecture) is an image sensor standard
++defined jointly by Nokia and ST. SMIA++, defined by Nokia, is an extension
++of that. These definitions are valid for both types of sensors.
++
++More detailed documentation can be found in
++Documentation/devicetree/bindings/media/video-interfaces.txt .
++
++
++Mandatory properties
++--------------------
++
++- compatible: "nokia,smia"
++- reg: I2C address (0x10, or an alternative address)
++- vana-supply: Analogue voltage supply (VANA), typically 2,8 volts (sensor
++  dependent).
++- clocks: External clock phandle
++- clock-frequency: Frequency of the external clock to the sensor
++- link-frequency: List of allowed data link frequencies. An array of 64-bit
++  elements.
++
++
++Optional properties
++-------------------
++
++- nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
++  the NVM contents will not be read.
++- reset-gpios: XSHUTDOWN GPIO
++
++
++Endpoint node mandatory properties
++----------------------------------
++
++- clock-lanes: <0>
++- data-lanes: <1..n>
++- remote-endpoint: A phandle to the bus receiver's endpoint node.
++
++
++Example
++-------
++
++&i2c2 {
++	clock-frequency = <400000>;
++
++	smiapp_1: camera@10 {
++		compatible = "nokia,smia";
++		reg = <0x10>;
++		reset-gpios = <&gpio3 20 0>;
++		vana-supply = <&vaux3>;
++		clocks = <&omap3_isp 0>;
++		clock-names = "ext_clk";
++		clock-frequency = <9600000>;
++		nokia,nvm-size = <512>; /* 8 * 64 */
++		link-frequency = /bits/ 64 <199200000 210000000 499200000>;
++		port {
++			smiapp_1_1: endpoint {
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++				remote-endpoint = <&csi2a_ep>;
++			};
++		};
++	};
++};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 2378a5f..285c1ba 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8619,6 +8619,7 @@ F:	include/media/smiapp.h
+ F:	drivers/media/i2c/smiapp-pll.c
+ F:	drivers/media/i2c/smiapp-pll.h
+ F:	include/uapi/linux/smiapp.h
++F:	Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+ 
+ SMM665 HARDWARE MONITOR DRIVER
+ M:	Guenter Roeck <linux@roeck-us.net>
+-- 
+1.7.10.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
