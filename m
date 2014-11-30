@@ -1,61 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:62524 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751193AbaKFW3N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Nov 2014 17:29:13 -0500
-Date: Thu, 6 Nov 2014 23:29:06 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Andrew Chew <AChew@nvidia.com>
-cc: "Pawel Osciak (posciak@google.com)" <posciak@google.com>,
-	Bryan Wu <pengw@nvidia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: soc-camera and focuser vcm devices
-In-Reply-To: <804f809f79cf4e5ca24ec02be61402bd@HQMAIL103.nvidia.com>
-Message-ID: <Pine.LNX.4.64.1411062304450.25946@axis700.grange>
-References: <804f809f79cf4e5ca24ec02be61402bd@HQMAIL103.nvidia.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58368 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751900AbaK3VQS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Nov 2014 16:16:18 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API for v4l2_subdev_get_try_*()
+Date: Sun, 30 Nov 2014 23:16:48 +0200
+Message-ID: <1680188.7K1XCBdsCk@avalon>
+In-Reply-To: <CA+V-a8tNW8JXKEeaAwEKkB+SCS2_My228spsgpbb5JQPjdC2Og@mail.gmail.com>
+References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com> <3017627.SLutb67dz2@avalon> <CA+V-a8tNW8JXKEeaAwEKkB+SCS2_My228spsgpbb5JQPjdC2Og@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 4 Nov 2014, Andrew Chew wrote:
-
-> Hello, Guennadi
+On Sunday 30 November 2014 21:05:50 Prabhakar Lad wrote:
+> On Sat, Nov 29, 2014 at 7:12 PM, Laurent Pinchart wrote:
+> > Hi Prabhakar,
 > 
-> I was wondering if you can provide some advice as to how focuser vcm 
-> devices would fit into the soc-camera framework.  We have a raw sensor 
-> (an IMX219) with an AD5823 VCM (it's just a simple I2C device) to 
-> provide variable focus.
+> [Snip]
 > 
-> I currently have the sensor and camera host driver instantiated via 
-> device tree, following the guidelines in 
-> Documentation/devicetree/bindings/media/video-interfaces.txt, by using 
-> the of_graph stuff, and that all works fine.  However, I'm not sure what 
-> the proper way is to associate a focuser with that particular image 
-> pipeline, and I couldn't find any examples to draw from.
-
-As discussed in an earlier thread [1], in principle soc-camera has support 
-for attaching multiple subdevices to a camera-host (camera DMA engine) 
-driver. In [2] you can see how I initially implemented DT for soc-camera, 
-which also supported multiple subdevices. Beware, very old code. Some more 
-comments are in [3].
-
-Thanks
-Guennadi
-
-[1] http://www.spinics.net/lists/linux-sh/msg31436.html - see comment, 
-following "Hm, I think, this isn't quite correct."
-
-[2] http://marc.info/?l=linux-sh&m=134875489304837&w=1
-
-[3] https://www.mail-archive.com/linux-media@vger.kernel.org/msg70514.html
-
+> >> > Sure. That's a better choice than removing the config option dependency
+> >> > of the fields struct v4l2_subdev.
+> > 
+> > Decoupling CONFIG_VIDEO_V4L2_SUBDEV_API from the availability of the
+> > in-kernel pad format and selection rectangles helpers is definitely a
+> > good idea. I was thinking about decoupling the try format and rectangles
+> > from v4l2_subdev_fh by creating a kind of configuration store structure
+> > to store them, and embedding that structure in v4l2_subdev_fh. The
+> > pad-level operations would then take a pointer to the configuration store
+> > instead of the v4l2_subdev_fh. Bridge drivers that want to implement
+> > TRY_FMT based on pad-level operations would create a configuration store,
+> > use the pad-level operations, and destroy the configuration store. The
+> > userspace subdev API would use the configuration store from the file
+> > handle.
 > 
-> Any help/guidance would be appreciated!
-> -----------------------------------------------------------------------------------
-> This email message is for the sole use of the intended recipient(s) and may contain
-> confidential information.  Any unauthorized review, use, disclosure or distribution
-> is prohibited.  If you are not the intended recipient, please contact the sender by
-> reply email and destroy all copies of the original message.
-> -----------------------------------------------------------------------------------
-> 
+> are planning to work/post any time soon ? Or are you OK with suggestion from
+> Hans ?
+
+I have no plan to work on that myself now, I was hoping you could implement it 
+;-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
