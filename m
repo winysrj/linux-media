@@ -1,57 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:56344 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752092AbaKJLrB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 06:47:01 -0500
-Date: Mon, 10 Nov 2014 12:46:56 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Bin Chen <bin.chen@linaro.org>
-cc: linux-media@vger.kernel.org
-Subject: Re: Add controls to query camera read only paramters
-In-Reply-To: <CANC6fRFjG6002rDiJjfDHteQSAnRkwfpyWV8wB39oHu5P8Q2mA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1411101243230.23739@axis700.grange>
-References: <CANC6fRFjG6002rDiJjfDHteQSAnRkwfpyWV8wB39oHu5P8Q2mA@mail.gmail.com>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:39145 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752352AbaK3Rzc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Nov 2014 12:55:32 -0500
+Received: by mail-ob0-f179.google.com with SMTP id va2so6910027obc.38
+        for <linux-media@vger.kernel.org>; Sun, 30 Nov 2014 09:55:31 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Sun, 30 Nov 2014 18:55:31 +0100
+Message-ID: <CA+QJwyhPLM32nR4UUy9vZ_xMSzZrRbnjh2yv__bW=GJRix3XHw@mail.gmail.com>
+Subject: Re: Kernel 3.17.0 broke xc4000-based DTV1800h
+From: =?UTF-8?B?SXN0dsOhbiwgVmFyZ2E=?= <istvan_v@mailbox.hu>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bin,
+By the way, from the xc4000_firmware.tar.gz package, the only files
+that are actually needed are:
+  build_fw.c (source code of simple program to write the firmware file)
+  xc4000_firmwares.h (header file from Xceive)
+  xc4000_scodes.h (also from Xceive)
 
-On Sat, 8 Nov 2014, Bin Chen wrote:
+Everything else is related to extracting the firmware from Windows drivers,
+and was included only for completeness.
 
-> Hi Everyone,
-> 
-> I need suggestions with regard to adding controls to query camera read
-> only parameters (e.g maxZoom/maxExposureCompensation) as needed by
-> Android Camera API[1].
-
-I'm not sure all Android HAL metadata tags should be 1-to-1 implemented in 
-V4L2. Some of them can be derived from existing information, some are even 
-more relevant to the HAL, then to the camera (kernel driver). E.g. 
-wouldn't it be possible and make sense to calculate 
-android.scaler.availableMaxDigitalZoom camera cropping capabilities?
-
-Thanks
-Guennadi
-
-> What is in my mind is to add a customized camera control ID for each
-> parameter I want to query and return EACCES when being used wit
-> VIDIOC_S_EXT_CTRLS.
-> 
-> Or, I can port the compound controls [2] patch and then I only need to
-> add one customized control ID.
-> 
-> Comments? What is the better way to do this?
-> 
-> [1] http://developer.android.com/reference/android/hardware/Camera.Parameters.html
-> [2]http://comments.gmane.org/gmane.comp.video.linuxtv.scm/19545
-> 
-> -- 
-> Regards,
-> Bin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+The license for the Xceive header files can be found here:
+  http://www.kernellabs.com/firmware/xc4000/README.xc4000
