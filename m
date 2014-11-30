@@ -1,175 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60759 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753183AbaKPOGu (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:47457 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752021AbaK3VbI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Nov 2014 09:06:50 -0500
-Date: Sun, 16 Nov 2014 16:06:16 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] v4l: Clean up sub-device format documentation
-Message-ID: <20141116140616.GK8907@valkosipuli.retiisi.org.uk>
-References: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi>
- <1415487872-27500-2-git-send-email-sakari.ailus@iki.fi>
- <5465BD6F.8030208@xs4all.nl>
+	Sun, 30 Nov 2014 16:31:08 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5465BD6F.8030208@xs4all.nl>
+In-Reply-To: <1680188.7K1XCBdsCk@avalon>
+References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com>
+ <3017627.SLutb67dz2@avalon> <CA+V-a8tNW8JXKEeaAwEKkB+SCS2_My228spsgpbb5JQPjdC2Og@mail.gmail.com>
+ <1680188.7K1XCBdsCk@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sun, 30 Nov 2014 21:30:35 +0000
+Message-ID: <CA+V-a8uaw2X_a3rfx0=avbuGnUdbqveMvJaU25hewzv9eAA8+Q@mail.gmail.com>
+Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API
+ for v4l2_subdev_get_try_*()
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Laurent,
 
-On Fri, Nov 14, 2014 at 09:29:35AM +0100, Hans Verkuil wrote:
-> Two small notes...
-> 
-> On 11/09/2014 12:04 AM, Sakari Ailus wrote:
-> > The sub-device format documentation documented scaling configuration through
-> > formats. Instead the compose selection rectangle is elsewhere documented to
-> > be used for the purpose. Remove scaling related part of the documentation.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  Documentation/DocBook/media/v4l/dev-subdev.xml |  108 ++++++++++++++----------
-> >  1 file changed, 62 insertions(+), 46 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-> > index d15aaf8..dbf9965 100644
-> > --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-> > +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-> > @@ -195,53 +195,59 @@
-> >  	<title>Sample Pipeline Configuration</title>
-> >  	<tgroup cols="3">
-> >  	  <colspec colname="what"/>
-> > -	  <colspec colname="sensor-0" />
-> > -	  <colspec colname="frontend-0" />
-> > -	  <colspec colname="frontend-1" />
-> > -	  <colspec colname="scaler-0" />
-> > -	  <colspec colname="scaler-1" />
-> > +	  <colspec colname="sensor-0 format" />
-> > +	  <colspec colname="frontend-0 format" />
-> > +	  <colspec colname="frontend-1 format" />
-> > +	  <colspec colname="scaler-0 format" />
-> > +	  <colspec colname="scaler-0 compose" />
-> > +	  <colspec colname="scaler-1 format" />
-> >  	  <thead>
-> >  	    <row>
-> >  	      <entry></entry>
-> > -	      <entry>Sensor/0</entry>
-> > -	      <entry>Frontend/0</entry>
-> > -	      <entry>Frontend/1</entry>
-> > -	      <entry>Scaler/0</entry>
-> > -	      <entry>Scaler/1</entry>
-> > +	      <entry>Sensor/0 format</entry>
-> > +	      <entry>Frontend/0 format</entry>
-> > +	      <entry>Frontend/1 format</entry>
-> > +	      <entry>Scaler/0 format</entry>
-> > +	      <entry>Scaler/0 compose selection rectangle</entry>
-> > +	      <entry>Scaler/1 format</entry>
-> >  	    </row>
-> >  	  </thead>
-> >  	  <tbody valign="top">
-> >  	    <row>
-> >  	      <entry>Initial state</entry>
-> > -	      <entry>2048x1536</entry>
-> > -	      <entry>-</entry>
-> > -	      <entry>-</entry>
-> > -	      <entry>-</entry>
-> > -	      <entry>-</entry>
-> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> > +	      <entry>(default)</entry>
-> > +	      <entry>(default)</entry>
-> > +	      <entry>(default)</entry>
-> > +	      <entry>(default)</entry>
-> > +	      <entry>(default)</entry>
-> >  	    </row>
-> >  	    <row>
-> > -	      <entry>Configure frontend input</entry>
-> > -	      <entry>2048x1536</entry>
-> > -	      <entry><emphasis>2048x1536</emphasis></entry>
-> > -	      <entry><emphasis>2046x1534</emphasis></entry>
-> > -	      <entry>-</entry>
-> > -	      <entry>-</entry>
-> > +	      <entry>Configure frontend sink format</entry>
-> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> > +	      <entry><emphasis>2048x1536/SGRBG8_1X8</emphasis></entry>
-> > +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
-> > +	      <entry>(default)</entry>
-> > +	      <entry>(default)</entry>
-> > +	      <entry>(default)</entry>
-> >  	    </row>
-> >  	    <row>
-> > -	      <entry>Configure scaler input</entry>
-> > -	      <entry>2048x1536</entry>
-> > -	      <entry>2048x1536</entry>
-> > -	      <entry>2046x1534</entry>
-> > -	      <entry><emphasis>2046x1534</emphasis></entry>
-> > -	      <entry><emphasis>2046x1534</emphasis></entry>
-> > +	      <entry>Configure scaler sink format</entry>
-> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> > +	      <entry>2046x1534/SGRBG8_1X8</entry>
-> > +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
-> > +	      <entry><emphasis>0,0/2046x1534</emphasis></entry>
-> > +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
-> >  	    </row>
-> >  	    <row>
-> > -	      <entry>Configure scaler output</entry>
-> > -	      <entry>2048x1536</entry>
-> > -	      <entry>2048x1536</entry>
-> > -	      <entry>2046x1534</entry>
-> > -	      <entry>2046x1534</entry>
-> > -	      <entry><emphasis>1280x960</emphasis></entry>
-> > +	      <entry>Configure scaler sink compose selection</entry>
-> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> > +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> > +	      <entry>2046x1534/SGRBG8_1X8</entry>
-> > +	      <entry>2046x1534/SGRBG8_1X8</entry>
-> > +	      <entry><emphasis>0,0/1280x960</emphasis></entry>
-> > +	      <entry><emphasis>1280x960/SGRBG8_1X8</emphasis></entry>
-> >  	    </row>
-> >  	  </tbody>
-> >  	</tgroup>
-> > @@ -249,19 +255,29 @@
-> >  
-> >        <para>
-> >        <orderedlist>
-> > -	<listitem><para>Initial state. The sensor output is set to its native 3MP
-> > -	resolution. Resolutions on the host frontend and scaler input and output
-> > -	pads are undefined.</para></listitem>
-> > -	<listitem><para>The application configures the frontend input pad resolution to
-> > -	2048x1536. The driver propagates the format to the frontend output pad.
-> > -	Note that the propagated output format can be different, as in this case,
-> > -	than the input format, as the hardware might need to crop pixels (for
-> > -	instance when converting a Bayer filter pattern to RGB or YUV).
-> 
-> Does this Bayer filter note no longer apply?
+On Sun, Nov 30, 2014 at 9:16 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Sunday 30 November 2014 21:05:50 Prabhakar Lad wrote:
+>> On Sat, Nov 29, 2014 at 7:12 PM, Laurent Pinchart wrote:
+>> > Hi Prabhakar,
+>>
+>> [Snip]
+>>
+>> >> > Sure. That's a better choice than removing the config option dependency
+>> >> > of the fields struct v4l2_subdev.
+>> >
+>> > Decoupling CONFIG_VIDEO_V4L2_SUBDEV_API from the availability of the
+>> > in-kernel pad format and selection rectangles helpers is definitely a
+>> > good idea. I was thinking about decoupling the try format and rectangles
+>> > from v4l2_subdev_fh by creating a kind of configuration store structure
+>> > to store them, and embedding that structure in v4l2_subdev_fh. The
+>> > pad-level operations would then take a pointer to the configuration store
+>> > instead of the v4l2_subdev_fh. Bridge drivers that want to implement
+>> > TRY_FMT based on pad-level operations would create a configuration store,
+>> > use the pad-level operations, and destroy the configuration store. The
+>> > userspace subdev API would use the configuration store from the file
+>> > handle.
+>>
+>> are planning to work/post any time soon ? Or are you OK with suggestion from
+>> Hans ?
+>
+> I have no plan to work on that myself now, I was hoping you could implement it
+> ;-)
+>
+OK will implement it.
 
-Cropping is out of scope as it requires using the selection API. I can add
-this where selections are discussed in more detail, if you think it's
-relevant. IMO this may be a property of a particular piece of hardware, and
-there are a lot more reasons to crop a a few pixels than just that.
+Can you please elaborate a more on this "The userspace subdev API would use
+the configuration store from the file  handle."
 
-> > </para></listitem>
-> > -	<listitem><para>The application configures the scaler input pad resolution to
-> > -	2046x1534 to match the frontend output resolution. The driver propagates
-> > -	the format to the scaler output pad.</para></listitem>
-> > -	<listitem><para>The application configures the scaler output pad resolution to
-> > -	1280x960.</para></listitem>
-> > +	<listitem><para>Initial state. The sensor source pad format is
-> > +	set to its native 3MP size and V4L2_MBUS_FMT_SGRBG8_1X8
-> > +	media bus code. Formats on the host frontend and scaler sink
-> > +	and source pads have the default values, as well as the
-> > +	compose rectangle on the scaler's sind pad.</para></listitem>
-> 
-> sind -> sink
-
-I'll fix that.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks,
+--Prabhakar Lad
