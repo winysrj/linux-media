@@ -1,43 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:35765 "EHLO
-	mail-1.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932984AbaLBWnF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Dec 2014 17:43:05 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 0/3] Deprecate drivers
-Date: Tue, 2 Dec 2014 23:42:18 +0100
-Cc: linux-media@vger.kernel.org
-References: <1417534833-46844-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417534833-46844-1-git-send-email-hverkuil@xs4all.nl>
+Received: from tex.lwn.net ([70.33.254.29]:56897 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932156AbaLATwP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Dec 2014 14:52:15 -0500
+Date: Mon, 1 Dec 2014 14:52:08 -0500
+From: Jonathan Corbet <corbet@lwn.net>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 06/11] media: marvell-ccic: use
+ vb2_ops_wait_prepare/finish helper
+Message-ID: <20141201145208.228b5d55@lwn.net>
+In-Reply-To: <1417041754-8714-7-git-send-email-prabhakar.csengg@gmail.com>
+References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
+	<1417041754-8714-7-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201412022342.19472.linux@rainbow-software.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 02 December 2014 16:40:30 Hans Verkuil wrote:
-> This patch series deprecates the vino/saa7191 video driver (ancient SGI
-> Indy computer), the parallel port webcams bw-qcam, c-qcam and w9966, the
-> ISA video capture driver pms and the USB video capture tlg2300 driver.
->
-> Hardware for these devices is next to impossible to obtain, these drivers
-> haven't seen any development in ages, they often use deprecated APIs and
-> without hardware that's very difficult to port. And cheap alternative
-> products are easily available today.
+On Wed, 26 Nov 2014 22:42:29 +0000
+"Lad, Prabhakar" <prabhakar.csengg@gmail.com> wrote:
 
-Just bought a QuickCam Pro parallel and some unknown parallel port webcam.
-Will you accept patches? :)
+> This patch drops driver specific wait_prepare() and
+> wait_finish() callbacks from vb2_ops and instead uses
+> the the helpers vb2_ops_wait_prepare/finish() provided
+> by the vb2 core
 
-> So move these drivers to staging for 3.19 and plan on removing them in
-> 3.20.
->
-> Regards,
->
-> 	Hans
+This is good, what I had in mind.
 
--- 
-Ondrej Zary
+> the lock member of the queue needs
+> to be initalized to a mutex so that vb2 helpers
+> vb2_ops_wait_prepare/finish() can make use of it.
+
+This is excessive, but not worth worrying about.  Thanks for redoing
+things.
+
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+
+jon
