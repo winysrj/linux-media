@@ -1,91 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:65299 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752041AbaLUR4B (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44361 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753323AbaLANLk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Dec 2014 12:56:01 -0500
-Received: by mail-wi0-f182.google.com with SMTP id h11so6079270wiw.15
-        for <linux-media@vger.kernel.org>; Sun, 21 Dec 2014 09:56:00 -0800 (PST)
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-To: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: pci: solo6x10: solo6x10-enc.c:  Remove unused function
-Date: Sun, 21 Dec 2014 18:58:47 +0100
-Message-Id: <1419184727-11224-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+	Mon, 1 Dec 2014 08:11:40 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/4] v4l2-framework.txt: document debug attribute
+Date: Mon,  1 Dec 2014 14:10:45 +0100
+Message-Id: <1417439445-34862-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417439445-34862-1-git-send-email-hverkuil@xs4all.nl>
+References: <1417439445-34862-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the function solo_s_jpeg_qp() that is not used anywhere.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This was partially found by using a static code analysis program called cppcheck.
+The debug attribute in /sys/class/video4linux/<devX>/debug was never
+documented. Add this.
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/solo6x10/solo6x10-enc.c |   35 -----------------------------
- drivers/media/pci/solo6x10/solo6x10.h     |    2 --
- 2 files changed, 37 deletions(-)
+ Documentation/video4linux/v4l2-framework.txt | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-enc.c b/drivers/media/pci/solo6x10/solo6x10-enc.c
-index d19c0ae..6b589b8 100644
---- a/drivers/media/pci/solo6x10/solo6x10-enc.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-enc.c
-@@ -175,41 +175,6 @@ out:
- 	return 0;
- }
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index a11dff0..f586e29 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -793,8 +793,10 @@ video_register_device_no_warn() instead.
  
--/**
-- * Set channel Quality Profile (0-3).
-- */
--void solo_s_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch,
--		    unsigned int qp)
--{
--	unsigned long flags;
--	unsigned int idx, reg;
--
--	if ((ch > 31) || (qp > 3))
--		return;
--
--	if (solo_dev->type == SOLO_DEV_6010)
--		return;
--
--	if (ch < 16) {
--		idx = 0;
--		reg = SOLO_VE_JPEG_QP_CH_L;
--	} else {
--		ch -= 16;
--		idx = 1;
--		reg = SOLO_VE_JPEG_QP_CH_H;
--	}
--	ch *= 2;
--
--	spin_lock_irqsave(&solo_dev->jpeg_qp_lock, flags);
--
--	solo_dev->jpeg_qp[idx] &= ~(3 << ch);
--	solo_dev->jpeg_qp[idx] |= (qp & 3) << ch;
--
--	solo_reg_write(solo_dev, reg, solo_dev->jpeg_qp[idx]);
--
--	spin_unlock_irqrestore(&solo_dev->jpeg_qp_lock, flags);
--}
--
- int solo_g_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch)
- {
- 	int idx;
-diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
-index 72017b7..ad5afc6 100644
---- a/drivers/media/pci/solo6x10/solo6x10.h
-+++ b/drivers/media/pci/solo6x10/solo6x10.h
-@@ -399,8 +399,6 @@ int solo_eeprom_write(struct solo_dev *solo_dev, int loc,
- 		      __be16 data);
+ Whenever a device node is created some attributes are also created for you.
+ If you look in /sys/class/video4linux you see the devices. Go into e.g.
+-video0 and you will see 'name' and 'index' attributes. The 'name' attribute
+-is the 'name' field of the video_device struct.
++video0 and you will see 'name', 'debug' and 'index' attributes. The 'name'
++attribute is the 'name' field of the video_device struct. The 'debug' attribute
++can be used to enable core debugging. See the next section for more detailed
++information on this.
  
- /* JPEG Qp functions */
--void solo_s_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch,
--		    unsigned int qp);
- int solo_g_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch);
+ The 'index' attribute is the index of the device node: for each call to
+ video_register_device() the index is just increased by 1. The first video
+@@ -816,6 +818,25 @@ video_device was embedded in it. The vdev->release() callback will never
+ be called if the registration failed, nor should you ever attempt to
+ unregister the device if the registration failed.
  
- #define CHK_FLAGS(v, flags) (((v) & (flags)) == (flags))
++video device debugging
++----------------------
++
++The 'debug' attribute that is created for each video, vbi, radio or swradio
++device in /sys/class/video4linux/<devX>/ allows you to enable logging of
++file operations.
++
++It is a bitmask and the following bits can be set:
++
++0x01: Log the ioctl name and error code. VIDIOC_(D)QBUF ioctls are only logged
++      if bit 0x08 is also set.
++0x02: Log the ioctl name arguments and error code. VIDIOC_(D)QBUF ioctls are
++      only logged if bit 0x08 is also set.
++0x04: Log the file operations open, release, read, write, mmap and
++      get_unmapped_area. The read and write operations are only logged if
++      bit 0x08 is also set.
++0x08: Log the read and write file operations and the VIDIOC_QBUF and
++      VIDIOC_DQBUF ioctls.
++0x10: Log the poll file operation.
+ 
+ video_device cleanup
+ --------------------
 -- 
-1.7.10.4
+2.1.3
 
