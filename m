@@ -1,101 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33713 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750913AbaLPDer (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 22:34:47 -0500
-Message-ID: <548FA852.50004@iki.fi>
-Date: Tue, 16 Dec 2014 05:34:42 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailapp01.imgtec.com ([195.59.15.196]:46904 "EHLO
+	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752922AbaLAMzV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 07:55:21 -0500
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Sifan Naeem <sifan.naeem@imgtec.com>,
+	James Hogan <james.hogan@imgtec.com>,
+	<linux-media@vger.kernel.org>
+Subject: [REVIEW PATCH 0/2] img-ir: Some more fixes
+Date: Mon, 1 Dec 2014 12:55:08 +0000
+Message-ID: <1417438510-18977-1-git-send-email-james.hogan@imgtec.com>
 MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] mn88472: implement lock for all delivery systems
-References: <1418686808-2530-1-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1418686808-2530-1-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
+A few more fixes for the img-ir RC driver in addition to the ones I
+posted a couple of weeks ago.
 
-On 12/16/2014 01:40 AM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
-> ---
->   drivers/staging/media/mn88472/mn88472.c | 23 ++++++++++++++++++++---
->   1 file changed, 20 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-> index 68f5036..426f0ed 100644
-> --- a/drivers/staging/media/mn88472/mn88472.c
-> +++ b/drivers/staging/media/mn88472/mn88472.c
-> @@ -238,6 +238,7 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
->   	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->   	int ret;
->   	unsigned int utmp;
-> +	int lock = 0;
->
->   	*status = 0;
->
-> @@ -248,21 +249,37 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
->
->   	switch (c->delivery_system) {
->   	case SYS_DVBT:
-> +		ret = regmap_read(dev->regmap[0], 0x7F, &utmp);
-> +		if (ret)
-> +			goto err;
-> +		if ((utmp&0xF) > 8)
+The first patch fixes some broken behaviour when the same protocol is
+set twice and the effective scancode filter gets cleared as a result.
 
-You didn't read Kernel coding style doc?
+The second patch fixes a potential deadlock and lockdep splat due to the
+repeat end timer being del_timer_sync'd with the spin lock held when
+changing protocols.
 
-around line 206 Documentation/CodingStyle
----------------------------
-Use one space around (on each side of) most binary and ternary operators,
-such as any of these:
+The second patch here depends on "img-ir/hw: Always read data to clear
+buffer" (patch 1 in the previous img-ir patchset) to avoid conflicts, so
+that patch should be applied first.
 
-	=  +  -  <  >  *  /  %  |  &  ^  <=  >=  ==  !=  ?  :
----------------------------
+I've tagged both for stable (v3.15+).
 
-> +			lock = 1;
-> +		break;
->   	case SYS_DVBT2:
-> -		/* FIXME: implement me */
-> -		utmp = 0x08; /* DVB-C lock value */
-> +		msleep(150);
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Sifan Naeem <sifan.naeem@imgtec.com>
+Cc: linux-media@vger.kernel.org
 
-This sleep does not look correct. Why it is here? In order to provide 
-more time for lock waiting? In that case you must increase 
-.get_tune_settings() timeout. On some other case you will need to add 
-comment why such strange thing is needed.
+James Hogan (2):
+  img-ir/hw: Avoid clearing filter for no-op protocol change
+  img-ir/hw: Fix potential deadlock stopping timer
 
-> +		ret = regmap_read(dev->regmap[2], 0x92, &utmp);
-> +		if (ret)
-> +			goto err;
-> +		if ((utmp&0xF) >= 0x07)
-> +			*status |= FE_HAS_SIGNAL;
-> +		if ((utmp&0xF) >= 0x0a)
-> +			*status |= FE_HAS_CARRIER;
-> +		if ((utmp&0xF) >= 0x0d)
-> +			*status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
->   		break;
->   	case SYS_DVBC_ANNEX_A:
->   		ret = regmap_read(dev->regmap[1], 0x84, &utmp);
->   		if (ret)
->   			goto err;
-> +		if ((utmp&0xF) > 7)
-> +			lock = 1;
->   		break;
->   	default:
->   		ret = -EINVAL;
->   		goto err;
->   	}
->
-> -	if (utmp == 0x08)
-> +	if (lock)
->   		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
->   				FE_HAS_SYNC | FE_HAS_LOCK;
-
-Antti
+ drivers/media/rc/img-ir/img-ir-hw.c | 28 +++++++++++++++++++++++++---
+ drivers/media/rc/img-ir/img-ir-hw.h |  3 +++
+ 2 files changed, 28 insertions(+), 3 deletions(-)
 
 -- 
-http://palosaari.fi/
+2.0.4
+
