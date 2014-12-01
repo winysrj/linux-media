@@ -1,35 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40062 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752083AbaLGAH2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Dec 2014 19:07:28 -0500
-Date: Sun, 7 Dec 2014 02:07:22 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH for v3.19 0/4] v4l2-mediabus.h & documentation updates
-Message-ID: <20141207000722.GE15559@valkosipuli.retiisi.org.uk>
-References: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
+Received: from 201-249-174-170.estatic.cantv.net ([201.249.174.170]:48172 "EHLO
+	correo.inavi.gob.ve" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753103AbaLAQ7J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 11:59:09 -0500
+Date: Mon, 1 Dec 2014 10:02:31 -0430 (VET)
+From: Finance Department <vdelgado@inavi.gob.ve>
+Reply-To: Finance Department <defnce@qq.com>
+Message-ID: <618819075.906506.1417444351590.JavaMail.zimbra@inavi.gob.ve>
+Subject: Payment
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 05, 2014 at 03:19:20PM +0100, Hans Verkuil wrote:
-> These patches change the type of the two new fields in struct v4l2_mbus_framefmt
-> from __u32 to __u16, as per Sakari's suggestion. We don't need 4 bytes per field
-> for this, and this way we save one __u32.
-> 
-> It also updates docbook with the new fields (I somehow missed that) and
-> documents the new vivid controls in vivid.txt.
+Dear Recipient,
 
-For the set:
+You have been awarded the sum of  8,000,000.00 (Eight Million Pounds sterling) with reference number 77100146 by office of the ministry of finance UK.Send us your personal details to deliver your funds.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Gloria Peter
