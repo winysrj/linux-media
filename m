@@ -1,115 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48466 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753437AbaLJDoI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Dec 2014 22:44:08 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1CEC12A0085
-	for <linux-media@vger.kernel.org>; Wed, 10 Dec 2014 04:44:01 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141210034401.1CEC12A0085@tschai.lan>
-Date: Wed, 10 Dec 2014 04:44:01 +0100 (CET)
+Received: from mail-ob0-f169.google.com ([209.85.214.169]:42318 "EHLO
+	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752835AbaLAMYv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 07:24:51 -0500
+Received: by mail-ob0-f169.google.com with SMTP id vb8so7851099obc.0
+        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 04:24:50 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20141201072028.6466a2b3@recife.lan>
+References: <CA+QJwyh2OupTtNJ89TWgyBZm0dhaHQ2Ax1XPDPjaFat-aTKsCA@mail.gmail.com>
+	<20141201072028.6466a2b3@recife.lan>
+Date: Mon, 1 Dec 2014 13:24:50 +0100
+Message-ID: <CA+QJwyh-3YL1UCR7Q1d3jy8z49YM2yqNp_WmiD3zXLRzEuC-Uw@mail.gmail.com>
+Subject: Re: Kernel 3.17.0 broke xc4000-based DTV1800h
+From: =?UTF-8?B?SXN0dsOhbiwgVmFyZ2E=?= <istvan_v@mailbox.hu>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+2014-12-01 10:20 GMT+01:00 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
 
-Results of the daily build of media_tree:
+> Hi István,
+>
+> Yeah, Xceive granted a license to redistribute such firmware file via
+> Hauppauge. The firmware we sent to linux-firmware is this one with
+> the proper license.
 
-date:		Wed Dec 10 04:00:27 CET 2014
-git branch:	test
-git hash:	71947828caef0c83d4245f7d1eaddc799b4ff1d1
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+Hi, does the license apply specifically to the kernellabs.com firmware file,
+or the header files released by Xceive (xc4000_firmwares.h, xc4000_scodes.h) ?
+In the latter case, it should cover my firmware file
+(dvb-fe-xc4000-1.4.fw) as well,
+because it is generated from the same headers. Also, it is no longer generated
+from the Leadtek Windows drivers (like it was in the past before I had access to
+the Xceive header files), so it should in theory only be licensed by
+Xceive, rather
+than Leadtek.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+> Hmm... I remember I did some tests with PCTV 340e using that firmware
+> and it works for me.
 
-Detailed results are available here:
+>From a quick look at the contents of dvb-fe-xc4000-1.4.1.fw (the kernellabs.com
+file), it appears to be missing all the firmware data related to
+analog TV and radio
+standards, and all scodes are (incorrectly) a copy of the one needed for
+int_freq = 5400. Therefore, it only works with the demodulator used on the PCTV
+340e, which is using that frequency, but not with the Leadtek cards
+with zl10153,
+since those require 4560 instead. It also seems to be missing some standard and
+firmware type flags. I am not sure if those are responsible for the
+I2C errors, or
+simply the lack of the analog firmwares. Perhaps the latter if the errors do not
+occur with the (currently DVB-only) PCTV 340e.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> Such change shouldn't affect devices with zl10153, as this demod doesn't
+> call tuner's get_frequency().
 
-Full logs are available here:
+The get_frequency() change is not an issue, the kernellabs.com firmware that is
+now the default and part of the kernel packages does not include data that is
+required for the Leadtek cards to work.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+> However, if the firmware doesn't work properly with PCTV 340e and/or
+> Leadtek/Xceive cannot grant a license to redistribute the other version
+> of the firmware, the best would be to rename the firmware file used
+> by Leadtek devices to dvb-fe-xc4000-leadtek-1.4.fw, in order to avoid
+> confusion.
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Although I did not test it, the firmware should work with the PCTV 340e as
+well. It definitely does with the Leadtek devices in DVB-T mode, and on the
+PCTV 340e the only difference is the IF (5400 vs. 4560).
