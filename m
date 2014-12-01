@@ -1,45 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:36118 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933125AbaLKAYS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 19:24:18 -0500
-Date: Thu, 11 Dec 2014 00:23:42 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: m.chehab@samsung.com
-Cc: jarod@wilsonet.com, gregkh@linuxfoundation.org,
-	mahfouz.saif.elyazal@gmail.com, gulsah.1004@gmail.com,
-	tuomas.tynkkynen@iki.fi, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v5 3/3] staging: media: lirc: lirc_zilog.c: missing newline
- in dev_err()
-Message-ID: <20141211002342.GA11173@biggie>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:50140 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752922AbaLANEj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 08:04:39 -0500
+Date: Mon, 1 Dec 2014 14:04:37 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
+	sakari.ailus@iki.fi, s.nawrocki@samsung.com
+Subject: Re: [PATCH/RFC v8 02/14] Documentation: leds: Add description of LED
+ Flash class extension
+Message-ID: <20141201130437.GB24737@amd>
+References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+ <1417166286-27685-3-git-send-email-j.anaszewski@samsung.com>
+ <20141129125832.GA315@amd>
+ <547C539A.4010500@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <547C539A.4010500@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Missing newline character at the end of string passed to dev_err()
+Hi!
 
-Signed-off-by: Luis de Bethencourt <luis@debethencourt.com>
----
- drivers/staging/media/lirc/lirc_zilog.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> >How are faults cleared? Should it be list of strings, instead of
+> >bitmask? We may want to add new fault modes in future...
+> 
+> Faults are cleared by reading the attribute. I will add this note.
+> There can be more than one fault at a time. I think that the bitmask
+> is a flexible solution. I don't see any troubles related to adding
+> new fault modes in the future, do you?
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 27464da..7def690 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -799,7 +799,7 @@ static int fw_load(struct IR_tx *tx)
- 		goto corrupt;
- 	if (version != 1) {
- 		dev_err(tx->ir->l.dev,
--			"unsupported code set file version (%u, expected 1) -- please upgrade to a newer driver",
-+			"unsupported code set file version (%u, expected 1) -- please upgrade to a newer driver\n",
- 			version);
- 		fw_unload_locked();
- 		ret = -EFAULT;
+I do not think that "read attribute to clear" is good idea. Normally,
+you'd want the error attribute world-readable, but you don't want
+non-root users to clear the errors.
+
+I am not sure if bitmask is good solution. I'd return space-separated
+strings like "overtemp". That way, there's good chance that other LED
+drivers would be able to use similar interface...
+
+Best regards,
+								Pavel
 -- 
-2.1.3
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
