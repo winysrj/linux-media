@@ -1,115 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:49580 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750804AbaLODoD (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51786 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932280AbaLBAEO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Dec 2014 22:44:03 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B64432A0090
-	for <linux-media@vger.kernel.org>; Mon, 15 Dec 2014 04:43:51 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20141215034351.B64432A0090@tschai.lan>
-Date: Mon, 15 Dec 2014 04:43:51 +0100 (CET)
+	Mon, 1 Dec 2014 19:04:14 -0500
+Date: Tue, 2 Dec 2014 01:56:27 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [REVIEW PATCH v2.1 08/11] of: smiapp: Add documentation
+Message-ID: <20141201235626.GU8907@valkosipuli.retiisi.org.uk>
+References: <1416289426-804-9-git-send-email-sakari.ailus@iki.fi>
+ <1417364809-4693-1-git-send-email-sakari.ailus@iki.fi>
+ <20141201104200.GC17070@leverpostej>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20141201104200.GC17070@leverpostej>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mark,
 
-Results of the daily build of media_tree:
+Thank you for the review.
 
-date:		Mon Dec 15 04:00:21 CET 2014
-git branch:	test
-git hash:	e272d95f8c0544cff55c485a10828b063c8e417c
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+On Mon, Dec 01, 2014 at 10:42:01AM +0000, Mark Rutland wrote:
+> On Sun, Nov 30, 2014 at 04:26:48PM +0000, Sakari Ailus wrote:
+> > Document the smiapp device tree properties.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> > since v2:
+> > - Cleanups
+> > - Removed clock-names property documentation
+> > - Port node documentation was really endpoint node documentation
+> > - Added remote-endpoint as mandatory endpoint node properties
+> > 
+> >  .../devicetree/bindings/media/i2c/nokia,smia.txt   |   64 ++++++++++++++++++++
+> >  MAINTAINERS                                        |    1 +
+> >  2 files changed, 65 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > new file mode 100644
+> > index 0000000..2114a4d
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > @@ -0,0 +1,64 @@
+> > +SMIA/SMIA++ sensor
+> > +
+> > +SMIA (Standard Mobile Imaging Architecture) is an image sensor standard
+> > +defined jointly by Nokia and ST. SMIA++, defined by Nokia, is an extension
+> > +of that. These definitions are valid for both types of sensors.
+> > +
+> > +More detailed documentation can be found in
+> > +Documentation/devicetree/bindings/media/video-interfaces.txt .
+> > +
+> > +
+> > +Mandatory properties
+> > +--------------------
+> > +
+> > +- compatible: "nokia,smia"
+> > +- reg: I2C address (0x10, or an alternative address)
+> > +- vana-supply: Analogue voltage supply (VANA), typically 2,8 volts (sensor
+> > +  dependent).
+> > +- clocks: External clock phandle
+> 
+> Not just a phandle, there's a clock-specifier too.
+> 
+> Just describe what the clock logically is, don't bother with describing
+> the format of the property (whcih is standardised elsewhere).
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-x86_64: OK
-apps: ERRORS
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+I'll change this to "External clock to the sensor".
 
-Detailed results are available here:
+> > +- clock-frequency: Frequency of the external clock to the sensor
+> 
+> Is this the preferred frequency to operate the device at? Is there not a
+> standard frequency to use? We can query the rate from the clock
+> otherwise.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+This is a board-specific fixed frequency. There is no standard one, but
+this depends on several factors such as EMC-safe frequency bands and which
+frequencies can actually be supported by the clock source.
 
-Full logs are available here:
+The sensor has a PLL so other frequencies can be produced later on.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+> > +- link-frequency: List of allowed data link frequencies. An array of 64-bit
+> > +  elements.
+> 
+> Something like 'allowed-link-frequencies' might be better, unlesss this
+> is derived from another binding?
 
-The Media Infrastructure API from this daily build is here:
+I'll use that instead.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+This is an array of safe link frequencies (e.g. CSI-2 bus) that can be
+derived from the clock-frequency.
+
+> > +
+> > +
+> > +Optional properties
+> > +-------------------
+> > +
+> > +- nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
+> > +  the NVM contents will not be read.
+> 
+> Where 'NVM' standas for what?
+> 
+> What is this used for?
+
+NVM is for non-volatile memory. All except cheapest camera modules contain
+an EEPROM chip which contains unit specific tuning data. This data is parsed
+and used by the user space.
+
+The smiapp driver only provides read access to this data over sysfs
+interface.
+
+The EEPROM chip is typically a part of the same I2C device and thus accessed
+through the sensor --- see smiapp_read_nvm() in
+drivers/media/i2c/smiapp/smiapp-core.c .
+
+> > +- reset-gpios: XSHUTDOWN GPIO
+> > +
+> > +
+> > +Endpoint node mandatory properties
+> > +----------------------------------
+> > +
+> > +- clock-lanes: <0>
+> > +- data-lanes: <1..n>
+> > +- remote-endpoint: A phandle to the bus receiver's endpoint node.
+> > +
+> > +
+> > +Example
+> > +-------
+> > +
+> > +&i2c2 {
+> > +	clock-frequency = <400000>;
+> > +
+> > +	smiapp_1: camera@10 {
+> > +		compatible = "nokia,smia";
+> > +		reg = <0x10>;
+> > +		reset-gpios = <&gpio3 20 0>;
+> > +		vana-supply = <&vaux3>;
+> > +		clocks = <&omap3_isp 0>;
+> > +		clock-names = "ext_clk";
+> 
+> This wasn't described above. Either mandate it in the binding (and
+> define clock in terms of clock-names) or drop it.
+
+This is leftover from time when I had this property around. There's just a
+single clock so I guess there's no need to call it by a name.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
