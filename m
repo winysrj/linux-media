@@ -1,125 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:53942 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751985AbaLSV7Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 16:59:25 -0500
-Date: Fri, 19 Dec 2014 19:24:05 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>,
-	Lee Jones <lee.jones@linaro.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 06/13] clk: sunxi: Make the mod0 clk driver also a
- platform driver
-Message-ID: <20141219182405.GU4820@lukather>
-References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
- <1418836704-15689-7-git-send-email-hdegoede@redhat.com>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:64704 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753618AbaLAPdg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 10:33:36 -0500
+Received: by mail-pd0-f180.google.com with SMTP id p10so11133904pdj.39
+        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 07:33:35 -0800 (PST)
+Date: Mon, 1 Dec 2014 16:33:31 +0100
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, marbugge@cisco.com,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH 2/3] hdmi: added unpack and logging functions for
+ InfoFrames
+Message-ID: <20141201153329.GC11943@ulmo.nvidia.com>
+References: <1417186251-6542-1-git-send-email-hverkuil@xs4all.nl>
+ <1417186251-6542-3-git-send-email-hverkuil@xs4all.nl>
+ <20141201131507.GB11763@ulmo.nvidia.com>
+ <547C71BF.4040907@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8Tx+BDMK09J610+l"
+	protocol="application/pgp-signature"; boundary="+nBD6E3TurpgldQp"
 Content-Disposition: inline
-In-Reply-To: <1418836704-15689-7-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <547C71BF.4040907@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---8Tx+BDMK09J610+l
+--+nBD6E3TurpgldQp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Wed, Dec 17, 2014 at 06:18:17PM +0100, Hans de Goede wrote:
-> With the prcm in sun6i (and some later SoCs) some mod0 clocks are instant=
-iated
-> through the mfd framework, and as such do not work with of_clk_declare, s=
-ince
-> they do not have registers assigned to them yet at of_clk_declare init ti=
-me.
+On Mon, Dec 01, 2014 at 02:48:47PM +0100, Hans Verkuil wrote:
+> Hi Thierry,
 >=20
-> Silence the error on not finding registers in the of_clk_declare mod0 clk
-> setup method, and also register mod0-clk support as a platform driver to =
-work
-> properly with mfd instantiated mod0 clocks.
+> Thanks for the review, see my comments below.
 >=20
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/clk/sunxi/clk-mod0.c | 41 ++++++++++++++++++++++++++++++++++++--=
----
->  1 file changed, 36 insertions(+), 5 deletions(-)
+> On 12/01/2014 02:15 PM, Thierry Reding wrote:
+> > On Fri, Nov 28, 2014 at 03:50:50PM +0100, Hans Verkuil wrote:
+[...]
+> >> +{
+> >> +	switch (type) {
+> >> +	case HDMI_INFOFRAME_TYPE_VENDOR: return "Vendor";
+> >> +	case HDMI_INFOFRAME_TYPE_AVI: return "Auxiliary Video Information (A=
+VI)";
+> >> +	case HDMI_INFOFRAME_TYPE_SPD: return "Source Product Description (SP=
+D)";
+> >> +	case HDMI_INFOFRAME_TYPE_AUDIO: return "Audio";
+> >=20
+> > I'd prefer "case ...:" and "return ...;" on separate lines for
+> > readability.
 >=20
-> diff --git a/drivers/clk/sunxi/clk-mod0.c b/drivers/clk/sunxi/clk-mod0.c
-> index 658d74f..7ddab6f 100644
-> --- a/drivers/clk/sunxi/clk-mod0.c
-> +++ b/drivers/clk/sunxi/clk-mod0.c
-> @@ -17,6 +17,7 @@
->  #include <linux/clk-provider.h>
->  #include <linux/clkdev.h>
->  #include <linux/of_address.h>
-> +#include <linux/platform_device.h>
-> =20
->  #include "clk-factors.h"
-> =20
-> @@ -67,7 +68,7 @@ static struct clk_factors_config sun4i_a10_mod0_config =
-=3D {
->  	.pwidth =3D 2,
->  };
-> =20
-> -static const struct factors_data sun4i_a10_mod0_data __initconst =3D {
-> +static const struct factors_data sun4i_a10_mod0_data =3D {
->  	.enable =3D 31,
->  	.mux =3D 24,
->  	.muxmask =3D BIT(1) | BIT(0),
-> @@ -82,17 +83,47 @@ static void __init sun4i_a10_mod0_setup(struct device=
-_node *node)
->  	void __iomem *reg;
-> =20
->  	reg =3D of_iomap(node, 0);
-> -	if (!reg) {
-> -		pr_err("Could not get registers for mod0-clk: %s\n",
-> -		       node->name);
-> +	if (!reg)
->  		return;
-> -	}
+> I actually think that makes it *less* readable. If you really want that, =
+then I'll
+> change it, but I would suggest that you try it yourself first to see if i=
+t is
+> really more readable for you. It isn't for me, so I'll keep this for the =
+next
+> version.
 
-A comment here would be nice to mention that this is intentional.
+I did, and I still think separate lines are more readable, especially if
+you throw in a blank line after the "return ...;". Anyway, I could keep
+my OCD in check if it weren't for the fact that half of these are the
+cause for checkpatch to complain. And then if you change the ones that
+checkpatch wants you to change, all the others would be inconsistent and
+then I'd complain about the inconsistency...
 
-It looks good otherwise, thanks!
+checkpatch flagged a couple other issues, please make sure to address
+those as well.
 
-Maxime
+> > Maybe include the numerical value here? Of course that either means that
+> > callers must pass in a buffer or we sacrifice thread-safety. The buffer
+> > could be optional, somewhat like this:
+> >=20
+> > 	const char *hdmi_infoframe_get_name(char *buffer, size_t length,
+> > 					    enum hdmi_infoframe_type type)
+> > 	{
+> > 		const char *name =3D NULL;
+> >=20
+> > 		switch (type) {
+> > 		case HDMI_INFOFRAME_TYPE_VENDOR:
+> > 			name =3D "Vendor";
+> > 			break;
+> > 		...
+> > 		}
+> >=20
+> > 		if (buffer) {
+> > 			if (!name)
+> > 				snprintf(buffer, length, "unknown (%d)", type);
+> > 			else
+> > 				snprintf(buffer, length, name);
+> >=20
+> > 			name =3D buffer;
+> > 		}
+> >=20
+> > 		return name;
+> > 	}
+> >=20
+> > That way the function would be generally useful and could even be made
+> > publicly available.
+>=20
+> I would do this only where it makes sense. Some of these fields have only=
+ one or
+> two reserved bits left, and in that case is it easier to just say somethi=
+ng
+> like "Reserved (3)" and do that for each reserved value.
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+Okay.
 
---8Tx+BDMK09J610+l
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> >> +/**
+> >> + * hdmi_infoframe_log() - log info of HDMI infoframe
+> >> + * @dev: device
+> >> + * @frame: HDMI infoframe
+> >> + */
+> >> +void hdmi_infoframe_log(struct device *dev, union hdmi_infoframe *fra=
+me)
+> >> +{
+> >> +	switch (frame->any.type) {
+> >> +	case HDMI_INFOFRAME_TYPE_AVI:
+> >> +		hdmi_avi_infoframe_log(dev, &frame->avi);
+> >> +		break;
+> >> +	case HDMI_INFOFRAME_TYPE_SPD:
+> >> +		hdmi_spd_infoframe_log(dev, &frame->spd);
+> >> +		break;
+> >> +	case HDMI_INFOFRAME_TYPE_AUDIO:
+> >> +		hdmi_audio_infoframe_log(dev, &frame->audio);
+> >> +		break;
+> >> +	case HDMI_INFOFRAME_TYPE_VENDOR:
+> >> +		hdmi_vendor_any_infoframe_log(dev, &frame->vendor);
+> >> +		break;
+> >> +	default:
+> >> +		WARN(1, "Bad infoframe type %d\n", frame->any.type);
+> >=20
+> > Does it make sense for this to be WARN? It's perfectly legal for future
+> > devices to expose new types of infoframes. Perhaps even expected. But if
+> > we want to keep this here to help get bug reports so that we don't
+> > forget to update this code, then maybe we should do the same wherever we
+> > query the name of enum values above.
+>=20
+> I'll drop the WARN from the log function. I think it should also be dropp=
+ed
+> from the unpack. The only place it makes sense is for pack() since there =
+the
+> data comes from the driver, not from an external source.
+
+Sounds good.
+
+Thierry
+
+--+nBD6E3TurpgldQp
+Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAEBAgAGBQJUlG1FAAoJEBx+YmzsjxAgG8IP/jQ5/K9ng9byYeZ/xwA1Z5QL
-a1HnERImkO9LKl+CVicfJkil+p7jSN21zgWIkObdLgBAsRbNqXnXdbvc5hM9k+fz
-RJYCasyQotWFHxrWtgElCqtj17CJNdaWqiAFa2YQjecL4KjN4LPzJ4eFgVb/Dluo
-EyYJ5L/gy+EMKHXgKPcgaIhfuikcyr0sLEhpe+bAwgfN6zEW0tIxar7jqo+pDSB9
-rlTa+CXts8ABP5pGg/cshlOdpLyxqHJ2+dkxPiZEJ2Ph6JRdJfFQ9uqTtkSNTpVI
-NYmTm1/6le5P+7IBCASaFNOSrrqiotRhbw/xD0510KX2nGP9pDmM6NCAfsRlWrk/
-tuonA7gt6+DEj+XBqhQ5f9l/E4H9caxiMxry+fmfekkaMYoZlFP1SiT76AHUgWTM
-orXQaZf03aX9FqnKiDvNE6Xlwxhu1TyY3ycePlFzSSPFhV0myeR0awTJyyAg/y55
-FLdPpVCIRU0BFvoVed27EXpSHZEPp3ImzR1tPJbIgByQwK+5wyfKwBdrxD3xnp1V
-QPePtIEXGuJkIMmqblW0v2GcRPDyd9FnbtCVRnNn48AyYxvsFO5Yarc1/Z9TsO8w
-pEorBEsNxoAfFdiBkX72UzXC0qNvnQ5cjjvRyNlBw8wWd4Vk61t+0pqRDao56pT+
-JawCbUZqlxtr9j1A3qMN
-=N/zi
+iQIcBAEBAgAGBQJUfIpJAAoJEN0jrNd/PrOhg84QAJYzcGJ/1vEcORT8UytrBD60
+Gy0aw1BQOnhs/eGJmhXZ+bBxEZtVBKZRuoWJBifxnvz1I3I+FBQoLH0ZN6PzKLt/
+eeT0us1xlc7SAqdA/SHYeSBfx+BA8tfzkzySgdiCVM69u5OxjNSTphy16xi7Od+M
+w+1k5SseOWQ/tUoo1nVawfg/YpLv7g8+X3iQT7jRFLLvaiwJboPFMnwdEE/vcjEV
+EYwhhv2vb0ZtxP8Y6usOlfAarojtY3dZ8E2pknd6MkIj7My2eMxcDPNaOfEU6Fy4
+2Ky8u/rL3TVUO68Nv1cRcG5ee58SIfSmp5PcTmJIQ1Fe6gwc1oLY4tDPmagU3uQn
+0hcPK3OZYmdgLGMn2GsuN8xm2CYzIks6xCDxrDjWmQqlZbNo614QBhhnS6C7Sxti
+wmo/If8II/YBxFCk7osH9St4obJBj50NRgukJLEBNOXXHF72xQjhsjKpYIw/amhp
+GR2XwIi01oC2s5F9aW2T6Orh64b40oshHk6DGtGfIyNCnI94XLXJ2s3ADL+jcjx7
+sy2l18Co8Po2/gRjHQb43Obl91U6/svnUnxFiYt+XByQ/OaVn9Fl7/MwXz8SuWLb
+xrqVUwRTFNhfGClug3RUzkQGgsKBhmCKYvzRYp6bTnE+xOYBpjaLTA5thNOhyS0h
+Cb+JxrBwEf/a/G19o+N6
+=0P6F
 -----END PGP SIGNATURE-----
 
---8Tx+BDMK09J610+l--
+--+nBD6E3TurpgldQp--
