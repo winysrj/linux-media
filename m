@@ -1,44 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41153 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751243AbaLSKvw (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:46147 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752563AbaLACVg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 05:51:52 -0500
-Received: from [10.61.169.145] (173-38-208-170.cisco.com [173.38.208.170])
-	by tschai.lan (Postfix) with ESMTPSA id 22CFC2A002F
-	for <linux-media@vger.kernel.org>; Fri, 19 Dec 2014 11:51:36 +0100 (CET)
-Message-ID: <54940342.3040802@xs4all.nl>
-Date: Fri, 19 Dec 2014 11:51:46 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 30 Nov 2014 21:21:36 -0500
+Date: Sun, 30 Nov 2014 21:21:32 -0500
+From: Kyle McMartin <kyle@infradead.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Firmware Mailing List <linux-firmware@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Rainer Miethling <RMiethling@pctvsystems.com>
+Subject: Re: [PATCH] linux-firmware: Add firmware files for Siano DTV devices
+Message-ID: <20141201022132.GF2930@merlin.infradead.org>
+References: <1415577499-30850-1-git-send-email-mchehab@osg.samsung.com>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [GIT FIXES FOR v3.19]
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1415577499-30850-1-git-send-email-mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sh_veu has been broken since 3.11. Fix this for 3.19 with a CC to stable.
+On Sun, Nov 09, 2014 at 09:58:19PM -0200, Mauro Carvalho Chehab wrote:
+> From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> 
+> Acked-by: Rainer Miethling <RMiethling@pctvsystems.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+> ---
+>  LICENCE.siano                 |  31 +++++++++++++++++++++++++++++++
+>  WHENCE                        |  18 ++++++++++++++++++
+>  cmmb_vega_12mhz.inp           | Bin 0 -> 62780 bytes
+>  cmmb_venice_12mhz.inp         | Bin 0 -> 97016 bytes
+>  dvb_nova_12mhz.inp            | Bin 0 -> 93516 bytes
+>  dvb_nova_12mhz_b0.inp         | Bin 0 -> 101888 bytes
+>  isdbt_nova_12mhz.inp          | Bin 0 -> 75876 bytes
+>  isdbt_nova_12mhz_b0.inp       | Bin 0 -> 98384 bytes
+>  isdbt_rio.inp                 | Bin 0 -> 85840 bytes
+>  sms1xxx-hcw-55xxx-dvbt-02.fw  | Bin 0 -> 85656 bytes
+>  sms1xxx-hcw-55xxx-isdbt-02.fw | Bin 0 -> 70472 bytes
+>  sms1xxx-nova-a-dvbt-01.fw     | Bin 0 -> 85656 bytes
+>  sms1xxx-nova-b-dvbt-01.fw     | Bin 0 -> 76364 bytes
+>  sms1xxx-stellar-dvbt-01.fw    | Bin 0 -> 39900 bytes
+>  tdmb_nova_12mhz.inp           | Bin 0 -> 40096 bytes
+>  15 files changed, 49 insertions(+)
 
-Regards,
+bleh, it would have been nice to have made a dvb/ namespace for some of
+these to group them all...
 
-	Hans
+in any event, i've applied this patch (After a slight fixup to WHENCE.)
 
-The following changes since commit 427ae153c65ad7a08288d86baf99000569627d03:
-
-  [media] bq/c-qcam, w9966, pms: move to staging in preparation for removal (2014-12-16 23:21:44 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.19n
-
-for you to fetch changes up to 02c0cd83680ebd62eebfe2e863d8e16db0e19582:
-
-  sh_veu: v4l2_dev wasn't set (2014-12-19 11:49:44 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      sh_veu: v4l2_dev wasn't set
-
- drivers/media/platform/sh_veu.c | 1 +
- 1 file changed, 1 insertion(+)
+regards, Kyle
