@@ -1,183 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:57470 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751655AbaLRCac (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Dec 2014 21:30:32 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<laurent.pinchart@ideasonboard.com>, <s.nawrocki@samsung.com>,
-	<festevam@gmail.com>, Josh Wu <josh.wu@atmel.com>,
-	<devicetree@vger.kernel.org>
-Subject: [PATCH v4 3/5] media: ov2640: add primary dt support
-Date: Thu, 18 Dec 2014 10:27:24 +0800
-Message-ID: <1418869646-17071-4-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
-References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:56322 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752690AbaLALD1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 06:03:27 -0500
+Received: by mail-pa0-f48.google.com with SMTP id rd3so10873478pab.7
+        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 03:03:27 -0800 (PST)
+Date: Mon, 1 Dec 2014 12:03:22 +0100
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, marbugge@cisco.com,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH 1/3] hdmi: add new HDMI 2.0 defines
+Message-ID: <20141201110321.GA11763@ulmo.nvidia.com>
+References: <1417186251-6542-1-git-send-email-hverkuil@xs4all.nl>
+ <1417186251-6542-2-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
+Content-Disposition: inline
+In-Reply-To: <1417186251-6542-2-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree support for ov2640.
 
-Cc: devicetree@vger.kernel.org
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
-v3 -> v4:
-  1.modify the code comment.
-  2. Add Laurent's acked by.
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-v2 -> v3:
-  1. fix gpiod usage.
-  2. refine the ov2640_probe() function.
+On Fri, Nov 28, 2014 at 03:50:49PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>=20
+> Add new Video InfoFrame colorspace information introduced in HDMI 2.0
+> and new Audio Coding Extension Types, also from HDMI 2.0.
+>=20
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  include/linux/hdmi.h | 20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
+>=20
+> diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
+> index 11c0182..38fd2a0 100644
+> --- a/include/linux/hdmi.h
+> +++ b/include/linux/hdmi.h
+> @@ -37,6 +37,8 @@ enum hdmi_colorspace {
+>  	HDMI_COLORSPACE_RGB,
+>  	HDMI_COLORSPACE_YUV422,
+>  	HDMI_COLORSPACE_YUV444,
+> +	HDMI_COLORSPACE_YUV420,
+> +	HDMI_COLORSPACE_IDO_DEFINED =3D 7,
+>  };
+> =20
+>  enum hdmi_scan_mode {
+> @@ -77,6 +79,10 @@ enum hdmi_extended_colorimetry {
+>  	HDMI_EXTENDED_COLORIMETRY_S_YCC_601,
+>  	HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601,
+>  	HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB,
+> +
+> +	/* The following EC values are only defined in CEA-861-F. */
+> +	HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM,
+> +	HDMI_EXTENDED_COLORIMETRY_BT2020,
+>  };
+> =20
+>  enum hdmi_quantization_range {
+> @@ -201,9 +207,23 @@ enum hdmi_audio_sample_frequency {
+> =20
+>  enum hdmi_audio_coding_type_ext {
+>  	HDMI_AUDIO_CODING_TYPE_EXT_STREAM,
+> +
+> +	/*
+> +	 * The next three CXT values are defined in CEA-861-E only.
+> +	 * They do not exist in older versions, and in CEA-861-F they are
+> +	 * defined as 'Not in use'.
+> +	 */
+>  	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC,
+>  	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC_V2,
+>  	HDMI_AUDIO_CODING_TYPE_EXT_MPEG_SURROUND,
+> +
+> +	/* The following CXT values are only defined in CEA-861-F. */
+> +	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC,
+> +	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_V2,
+> +	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC,
+> +	HDMI_AUDIO_CODING_TYPE_EXT_DRA,
+> +	HDMI_AUDIO_CODING_TYPE_EXT_MPEG_HE_AAC_SURROUND,
+> +	HDMI_AUDIO_CODING_TYPE_EXT_MPEG_AAC_LC_SURROUND =3D 10,
 
-v1 -> v2:
-  1. use gpiod APIs.
-  2. change the gpio pin's name according to datasheet.
-  3. reduce the delay for .reset() function.
+I think the last two should be MPEG4_{HE_AAC,AAC}_SURROUND, and with
+that fixed:
 
- drivers/media/i2c/soc_camera/ov2640.c | 87 ++++++++++++++++++++++++++++++++---
- 1 file changed, 81 insertions(+), 6 deletions(-)
+Reviewed-by: Thierry Reding <treding@nvidia.com>
 
-diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-index 9ee910d..4c2868c 100644
---- a/drivers/media/i2c/soc_camera/ov2640.c
-+++ b/drivers/media/i2c/soc_camera/ov2640.c
-@@ -18,6 +18,8 @@
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
-+#include <linux/gpio.h>
-+#include <linux/of_gpio.h>
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
- 
-@@ -283,6 +285,10 @@ struct ov2640_priv {
- 	u32	cfmt_code;
- 	struct v4l2_clk			*clk;
- 	const struct ov2640_win_size	*win;
-+
-+	struct soc_camera_subdev_desc	ssdd_dt;
-+	struct gpio_desc *resetb_gpio;
-+	struct gpio_desc *pwdn_gpio;
- };
- 
- /*
-@@ -1047,6 +1053,63 @@ static struct v4l2_subdev_ops ov2640_subdev_ops = {
- 	.video	= &ov2640_subdev_video_ops,
- };
- 
-+/* OF probe functions */
-+static int ov2640_hw_power(struct device *dev, int on)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ov2640_priv *priv = to_ov2640(client);
-+
-+	dev_dbg(&client->dev, "%s: %s the camera\n",
-+			__func__, on ? "ENABLE" : "DISABLE");
-+
-+	if (priv->pwdn_gpio)
-+		gpiod_direction_output(priv->pwdn_gpio, !on);
-+
-+	return 0;
-+}
-+
-+static int ov2640_hw_reset(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ov2640_priv *priv = to_ov2640(client);
-+
-+	if (priv->resetb_gpio) {
-+		/* Active the resetb pin to perform a reset pulse */
-+		gpiod_direction_output(priv->resetb_gpio, 1);
-+		usleep_range(3000, 5000);
-+		gpiod_direction_output(priv->resetb_gpio, 0);
-+	}
-+
-+	return 0;
-+}
-+
-+static int ov2640_probe_dt(struct i2c_client *client,
-+		struct ov2640_priv *priv)
-+{
-+	/* Request the reset GPIO deasserted */
-+	priv->resetb_gpio = devm_gpiod_get_optional(&client->dev, "resetb",
-+			GPIOD_OUT_LOW);
-+	if (!priv->resetb_gpio)
-+		dev_dbg(&client->dev, "resetb gpio is not assigned!\n");
-+	else if (IS_ERR(priv->resetb_gpio))
-+		return PTR_ERR(priv->resetb_gpio);
-+
-+	/* Request the power down GPIO asserted */
-+	priv->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "pwdn",
-+			GPIOD_OUT_HIGH);
-+	if (!priv->pwdn_gpio)
-+		dev_dbg(&client->dev, "pwdn gpio is not assigned!\n");
-+	else if (IS_ERR(priv->pwdn_gpio))
-+		return PTR_ERR(priv->pwdn_gpio);
-+
-+	/* Initialize the soc_camera_subdev_desc */
-+	priv->ssdd_dt.power = ov2640_hw_power;
-+	priv->ssdd_dt.reset = ov2640_hw_reset;
-+	client->dev.platform_data = &priv->ssdd_dt;
-+
-+	return 0;
-+}
-+
- /*
-  * i2c_driver functions
-  */
-@@ -1058,12 +1121,6 @@ static int ov2640_probe(struct i2c_client *client,
- 	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
- 	int			ret;
- 
--	if (!ssdd) {
--		dev_err(&adapter->dev,
--			"OV2640: Missing platform_data for driver\n");
--		return -EINVAL;
--	}
--
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_err(&adapter->dev,
- 			"OV2640: I2C-Adapter doesn't support SMBUS\n");
-@@ -1077,6 +1134,17 @@ static int ov2640_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	}
- 
-+	if (!ssdd && !client->dev.of_node) {
-+		dev_err(&client->dev, "Missing platform_data for driver\n");
-+		return  -EINVAL;
-+	}
-+
-+	if (!ssdd) {
-+		ret = ov2640_probe_dt(client, priv);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 2);
- 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
-@@ -1123,9 +1191,16 @@ static const struct i2c_device_id ov2640_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, ov2640_id);
- 
-+static const struct of_device_id ov2640_of_match[] = {
-+	{.compatible = "ovti,ov2640", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, ov2640_of_match);
-+
- static struct i2c_driver ov2640_i2c_driver = {
- 	.driver = {
- 		.name = "ov2640",
-+		.of_match_table = of_match_ptr(ov2640_of_match),
- 	},
- 	.probe    = ov2640_probe,
- 	.remove   = ov2640_remove,
--- 
-1.9.1
+--tKW2IUtsqtDRztdT
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUfEr5AAoJEN0jrNd/PrOhtOQP/jw5xOCfTjH+JdO6CfXP3RDb
+o758f8Y6L42q73NkyME1Zkqotxzk1a1MHrhKcyp0hEXFxs0xMBsBlfH+T8inB3tZ
+IdIXs2lO1wEjJoMHMQb62IuzdZtbEXuUWdrMd8MJxmBfBdxurmknnW4Srg+3zKbC
+pxDPHh+YmqdBHNPGzJLRsgtdAiHg0+rnL8L/jWkVAs/AJM5HjXt6oWHXXoZn6Swm
+M9zHRQbjcePmSO5FwcJxqgI+cS2oWwZ/CIDZXaymiv+GPM4RfUqSZV71emuLOrVk
+mEKDuK55E3bSVoevlbgJgCrQWkOScxeDDaE5Zu8xIhbBOpC7oXojzC6kxd3FYoCA
+MJUD51nq1+aQVwUrANkV3v0TId2Vk9CNTkCBDxqg8AwYR90ur/DKEwA4Z875su46
+eN9zUN7OMG4BCgxMMB/b3DHCrFmZ9zF4h238xJCgVk9jSbeqiTI8VpdA7OL8QtVu
+EBHp9xXqyIm8D6tuP+yaMANoq6uYhydfVc3Q1ITXbj81YGLspmgnCKteYMKcrdwy
+4jm8YUFDvfv9FP372TS2SoHTdUKP57lrhyV8IE5Boildbq3jN6thM2ZqYguS8Xa4
+eywL8RoOL0eFms1UPb2/J0RPz8V9URyQyXFiM9zZ0O/r5wsDFgeFw+5Fn6PusIDr
+KpWUN/V+fDQlkx4O9Uk8
+=4JXG
+-----END PGP SIGNATURE-----
+
+--tKW2IUtsqtDRztdT--
