@@ -1,87 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:42098 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753046AbaLTMpT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 07:45:19 -0500
-In-Reply-To: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-References: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 1/8] [media] em28xx: fix em28xx-input removal
+Received: from mout.web.de ([212.227.17.11]:55468 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932636AbaLAWgI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Dec 2014 17:36:08 -0500
+Message-ID: <547CED4A.9000207@users.sourceforge.net>
+Date: Mon, 01 Dec 2014 23:35:54 +0100
+From: SF Markus Elfring <elfring@users.sourceforge.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1Y2JPH-0006UN-SW@rmk-PC.arm.linux.org.uk>
-Date: Sat, 20 Dec 2014 12:45:15 +0000
+To: Antti Palosaari <crope@iki.fi>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
+CC: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: [PATCH 2/2] [media] mn88473: One function call less in mn88473_init()
+ after error detection
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net> <547CEBF5.4040004@users.sourceforge.net>
+In-Reply-To: <547CEBF5.4040004@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removing the em28xx-rc module results in the following lockdep splat,
-which is caused by trying to call cancel_delayed_work_sync() on an
-uninitialised delayed work.  Fix this by ensuring we always initialise
-the work.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 1 Dec 2014 23:15:20 +0100
 
-INFO: trying to register non-static key.
-the code is fine but needs lockdep annotation.
-turning off the locking correctness validator.
-CPU: 0 PID: 2183 Comm: rmmod Not tainted 3.18.0+ #1464
-Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
-Backtrace:
-[<c0012228>] (dump_backtrace) from [<c00123c0>] (show_stack+0x18/0x1c)
- r6:c1419d2c r5:00000000 r4:00000000 r3:00000000
-[<c00123a8>] (show_stack) from [<c06e2550>] (dump_stack+0x7c/0x98)
-[<c06e24d4>] (dump_stack) from [<c0061c94>] (__lock_acquire+0x16d4/0x1bb0)
- r4:edf19f74 r3:df049380
-[<c00605c0>] (__lock_acquire) from [<c00626d4>] (lock_acquire+0xb0/0x124)
- r10:00000000 r9:c003ba90 r8:00000000 r7:00000000 r6:00000000 r5:edf19f74
- r4:00000000
-[<c0062624>] (lock_acquire) from [<c003bad4>] (flush_work+0x44/0x264)
- r10:00000000 r9:eaa86000 r8:edf190b0 r7:edf19f74 r6:00000001 r5:edf19f64
- r4:00000000
-[<c003ba90>] (flush_work) from [<c003d8f0>] (__cancel_work_timer+0x8c/0x124)
- r7:00000000 r6:00000001 r5:00000000 r4:edf19f64
-[<c003d864>] (__cancel_work_timer) from [<c003d99c>] (cancel_delayed_work_sync+0x14/0x18)
- r7:00000000 r6:eccc3600 r5:00000000 r4:edf19000
-[<c003d988>] (cancel_delayed_work_sync) from [<bf0b5c10>] (em28xx_ir_fini+0x48/0xd8 [em28xx_rc])
-[<bf0b5bc8>] (em28xx_ir_fini [em28xx_rc]) from [<bf08a0a8>] (em28xx_unregister_extension+0x40/0x94 [em28xx])
- r8:c000edc4 r7:00000081 r6:bf092bf4 r5:bf0b6a2c r4:edf19000 r3:bf0b5bc8
-[<bf08a068>] (em28xx_unregister_extension [em28xx]) from [<bf0b64dc>] (em28xx_rc_unregister+0x14/0x1c [em28xx_rc])
- r6:00000800 r5:00000000 r4:bf0b6a50 r3:bf0b64c8
-[<bf0b64c8>] (em28xx_rc_unregister [em28xx_rc]) from [<c0096710>] (SyS_delete_module+0x11c/0x180)
-[<c00965f4>] (SyS_delete_module) from [<c000ec00>] (ret_fast_syscall+0x0/0x48)
- r6:00000001 r5:beb0f813 r4:b8b17d00
+The release_firmware() function was called by the mn88473_init() function even
+if a previous function call "request_firmware" failed.
+This implementation detail could be improved by the introduction of another
+jump label.
 
-Cc: <stable@vger.kernel.org>
-Fixes: f52226099382 ("[media] em28xx: extend the support for device buttons")
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/usb/em28xx/em28xx-input.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/staging/media/mn88473/mn88473.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index d8dc03aadfbd..ef36c49ef166 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -654,8 +654,6 @@ static void em28xx_init_buttons(struct em28xx *dev)
- 	if (dev->num_button_polling_addresses) {
- 		memset(dev->button_polling_last_values, 0,
- 		       EM28XX_NUM_BUTTON_ADDRESSES_MAX);
--		INIT_DELAYED_WORK(&dev->buttons_query_work,
--				  em28xx_query_buttons);
- 		schedule_delayed_work(&dev->buttons_query_work,
- 				      msecs_to_jiffies(dev->button_polling_interval));
- 	}
-@@ -689,6 +687,7 @@ static int em28xx_ir_init(struct em28xx *dev)
+diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
+index 52180bb..a333744 100644
+--- a/drivers/staging/media/mn88473/mn88473.c
++++ b/drivers/staging/media/mn88473/mn88473.c
+@@ -225,7 +225,7 @@ static int mn88473_init(struct dvb_frontend *fe)
+ 	ret = request_firmware(&fw, fw_file, &client->dev);
+ 	if (ret) {
+ 		dev_err(&client->dev, "firmare file '%s' not found\n", fw_file);
+-		goto err;
++		goto err_request_firmware;
  	}
  
- 	kref_get(&dev->ref);
-+	INIT_DELAYED_WORK(&dev->buttons_query_work, em28xx_query_buttons);
+ 	dev_info(&client->dev, "downloading firmware from file '%s'\n",
+@@ -261,9 +261,10 @@ static int mn88473_init(struct dvb_frontend *fe)
+ 	dev->warm = true;
  
- 	if (dev->board.buttons)
- 		em28xx_init_buttons(dev);
+ 	return 0;
++
+ err:
+ 	release_firmware(fw);
+-
++err_request_firmware:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
 -- 
-1.8.3.1
+2.1.3
 
