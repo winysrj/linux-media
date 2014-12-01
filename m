@@ -1,177 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:33089 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753067AbaLALPq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 06:15:46 -0500
-Received: by mail-ie0-f181.google.com with SMTP id tp5so8865437ieb.26
-        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 03:15:46 -0800 (PST)
-Date: Mon, 1 Dec 2014 11:15:35 +0000
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	SangYoung Son <hello.son@smasung.com>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH/RFC v8 11/14] DT: Add documentation for the mfd Maxim
- max77693
-Message-ID: <20141201111535.GA15845@x1>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-12-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1417166286-27685-12-git-send-email-j.anaszewski@samsung.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38878 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753323AbaLANLb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Dec 2014 08:11:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/4] v4l2 core: improve debug flag handling
+Date: Mon,  1 Dec 2014 14:10:44 +0100
+Message-Id: <1417439445-34862-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417439445-34862-1-git-send-email-hverkuil@xs4all.nl>
+References: <1417439445-34862-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 28 Nov 2014, Jacek Anaszewski wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> This patch adds device tree binding documentation for
-> the flash cell of the Maxim max77693 multifunctional device.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: SangYoung Son <hello.son@smasung.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Pawel Moll <pawel.moll@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-> Cc: Kumar Gala <galak@codeaurora.org>
-> Cc: <devicetree@vger.kernel.org>
-> ---
->  Documentation/devicetree/bindings/mfd/max77693.txt |   74 ++++++++++++++++++++
->  1 file changed, 74 insertions(+)
+The old debug field is renamed to dev_debug to ensure that existing drivers
+(including out-of-tree drivers) that try to use the old name will no longer
+compile. A comment has also been added that makes it explicit that drivers
+shouldn't use this field.
 
-This definitely requires a DT Ack.
+Additional bits have been added to the debug flag to be more fine-grained
+when debugging, especially when dealing with streaming ioctls and read,
+write and poll. You want to enable those explicitly to prevent flooding
+the log when streaming unless you actually want to do that.
 
-> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-> index 01e9f30..50a8dad 100644
-> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
-> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-> @@ -41,6 +41,62 @@ Optional properties:
->  	 To get more informations, please refer to documentaion.
->  	[*] refer Documentation/devicetree/bindings/pwm/pwm.txt
->  
-> +- led-flash : the LED submodule device node
-> +
-> +There are two led outputs available - fled1 and fled2. Each of them can
-> +control a separate led or they can be connected together to double
-> +the maximum current for a single connected led. One led is represented
-> +by one child node.
-> +
-> +Required properties:
-> +- compatible : must be "maxim,max77693-flash"
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c   | 28 +++++++++++++++-------------
+ drivers/media/v4l2-core/v4l2-ioctl.c | 10 +++++++---
+ include/media/v4l2-dev.h             |  3 ++-
+ include/media/v4l2-ioctl.h           | 15 ++++++++++++---
+ 4 files changed, 36 insertions(+), 20 deletions(-)
 
-I'm not sure this compatible string is suitable.  It looks like
-NOR/NAND Flash to me.  Perhaps 'fled', or just 'led' would be better.
-
-> +Optional properties:
-> +- maxim,fleds : array of current outputs in order: fled1, fled2
-
-Nit: Sentences start with an uppercase character.
-
-This is true for all other occurrences.
-
-> +	Note: both current outputs can be connected to a single led
-> +	Possible values:
-> +		0 - the output is left disconnected,
-> +		1 - a diode is connected to the output.
-> +- maxim,trigger-type : Array of trigger types in order: flash, torch
-> +	Possible trigger types:
-> +		0 - Rising edge of the signal triggers the flash/torch,
-> +		1 - Signal level controls duration of the flash/torch.
-> +- maxim,trigger : Array of flags indicating which trigger can activate given led
-> +	in order: fled1, fled2
-> +	Possible flag values (can be combined):
-> +		1 - FLASH pin of the chip,
-> +		2 - TORCH pin of the chip,
-> +		4 - software via I2C command.
-> +- maxim,boost-mode :
-> +	In boost mode the device can produce up to 1.2A of total current
-> +	on both outputs. The maximum current on each output is reduced
-> +	to 625mA then. If there are two child led nodes defined then boost
-> +	is enabled by default.
-> +	Possible values:
-> +		0 - no boost,
-> +		1 - adaptive mode,
-> +		2 - fixed mode.
-> +- maxim,boost-vout : Output voltage of the boost module in millivolts.
-> +- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
-> +	if chip estimates that system voltage could drop below this level due
-> +	to flash power consumption.
-> +
-> +A child node must be defined per sub-led.
-> +
-> +Required properties of the LED child node:
-> +- label : see Documentation/devicetree/bindings/leds/common.txt
-> +- maxim,fled_id : identifier of the fled output the led is connected to:
-> +		1 - FLED1,
-> +		2 - FLED2.
-
-Better to define all of these random numbers in include/dt-bindings.
-
-> +Optional properties of the LED child node:
-> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +		Range: 15625 - 250000
-> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +		Range: 15625 - 1000000
-> +- flash-timeout-microsec : see Documentation/devicetree/bindings/leds/common.txt
-> +		Range: 62500 - 1000000
-> +
->  Example:
->  	max77693@66 {
->  		compatible = "maxim,max77693";
-> @@ -73,4 +129,22 @@ Example:
->  			pwms = <&pwm 0 40000 0>;
->  			pwm-names = "haptic";
->  		};
-> +
-> +		led_flash: led-flash {
-
-Should both be underscore.  I believe the second portion here should
-be more generic "led" for instance.
-
-> +			compatible = "maxim,max77693-flash";
-> +			maxim,fleds = <1 0>;
-> +			maxim,trigger = <7 0>;
-> +			maxim,trigger-type = <0 1>;
-> +			maxim,boost-mode = <0>;
-> +			maxim,boost-vout = <5000>;
-> +			maxim,vsys-min = <2400>;
-
-These will all have to be signed off by a DT maintainer.
-
-> +			camera-flash {
-> +				maxim,fled_id = <1>
-> +				label = "max77693-flash";
-> +				max-microamp = <250000>;
-> +				flash-max-microamp = <1000000>;
-> +				flash-timeout-microsec = <1000000>;
-> +			}
-
-Missing ';'
-
-You should probably test your example code.
-
-> +		};
->  	};
-
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index a13cc61..86bb93f 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -47,15 +47,15 @@ static ssize_t index_show(struct device *cd,
+ }
+ static DEVICE_ATTR_RO(index);
+ 
+-static ssize_t debug_show(struct device *cd,
++static ssize_t dev_debug_show(struct device *cd,
+ 			  struct device_attribute *attr, char *buf)
+ {
+ 	struct video_device *vdev = to_video_device(cd);
+ 
+-	return sprintf(buf, "%i\n", vdev->debug);
++	return sprintf(buf, "%i\n", vdev->dev_debug);
+ }
+ 
+-static ssize_t debug_store(struct device *cd, struct device_attribute *attr,
++static ssize_t dev_debug_store(struct device *cd, struct device_attribute *attr,
+ 			  const char *buf, size_t len)
+ {
+ 	struct video_device *vdev = to_video_device(cd);
+@@ -66,10 +66,10 @@ static ssize_t debug_store(struct device *cd, struct device_attribute *attr,
+ 	if (res)
+ 		return res;
+ 
+-	vdev->debug = value;
++	vdev->dev_debug = value;
+ 	return len;
+ }
+-static DEVICE_ATTR_RW(debug);
++static DEVICE_ATTR_RW(dev_debug);
+ 
+ static ssize_t name_show(struct device *cd,
+ 			 struct device_attribute *attr, char *buf)
+@@ -82,7 +82,7 @@ static DEVICE_ATTR_RO(name);
+ 
+ static struct attribute *video_device_attrs[] = {
+ 	&dev_attr_name.attr,
+-	&dev_attr_debug.attr,
++	&dev_attr_dev_debug.attr,
+ 	&dev_attr_index.attr,
+ 	NULL,
+ };
+@@ -304,7 +304,8 @@ static ssize_t v4l2_read(struct file *filp, char __user *buf,
+ 		return -EINVAL;
+ 	if (video_is_registered(vdev))
+ 		ret = vdev->fops->read(filp, buf, sz, off);
+-	if (vdev->debug)
++	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
++	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
+ 		printk(KERN_DEBUG "%s: read: %zd (%d)\n",
+ 			video_device_node_name(vdev), sz, ret);
+ 	return ret;
+@@ -320,7 +321,8 @@ static ssize_t v4l2_write(struct file *filp, const char __user *buf,
+ 		return -EINVAL;
+ 	if (video_is_registered(vdev))
+ 		ret = vdev->fops->write(filp, buf, sz, off);
+-	if (vdev->debug)
++	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
++	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
+ 		printk(KERN_DEBUG "%s: write: %zd (%d)\n",
+ 			video_device_node_name(vdev), sz, ret);
+ 	return ret;
+@@ -335,7 +337,7 @@ static unsigned int v4l2_poll(struct file *filp, struct poll_table_struct *poll)
+ 		return DEFAULT_POLLMASK;
+ 	if (video_is_registered(vdev))
+ 		res = vdev->fops->poll(filp, poll);
+-	if (vdev->debug > 2)
++	if (vdev->dev_debug & V4L2_DEV_DEBUG_POLL)
+ 		printk(KERN_DEBUG "%s: poll: %08x\n",
+ 			video_device_node_name(vdev), res);
+ 	return res;
+@@ -404,7 +406,7 @@ static unsigned long v4l2_get_unmapped_area(struct file *filp,
+ 	if (!video_is_registered(vdev))
+ 		return -ENODEV;
+ 	ret = vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
+-	if (vdev->debug)
++	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+ 		printk(KERN_DEBUG "%s: get_unmapped_area (%d)\n",
+ 			video_device_node_name(vdev), ret);
+ 	return ret;
+@@ -420,7 +422,7 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
+ 		return -ENODEV;
+ 	if (video_is_registered(vdev))
+ 		ret = vdev->fops->mmap(filp, vm);
+-	if (vdev->debug)
++	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+ 		printk(KERN_DEBUG "%s: mmap (%d)\n",
+ 			video_device_node_name(vdev), ret);
+ 	return ret;
+@@ -450,7 +452,7 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+ 			ret = -ENODEV;
+ 	}
+ 
+-	if (vdev->debug)
++	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+ 		printk(KERN_DEBUG "%s: open (%d)\n",
+ 			video_device_node_name(vdev), ret);
+ 	/* decrease the refcount in case of an error */
+@@ -467,7 +469,7 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 
+ 	if (vdev->fops->release)
+ 		ret = vdev->fops->release(filp);
+-	if (vdev->debug)
++	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+ 		printk(KERN_DEBUG "%s: release\n",
+ 			video_device_node_name(vdev));
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 1bf84a5..8fc0d98 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2330,7 +2330,7 @@ static long __video_do_ioctl(struct file *file,
+ 	const struct v4l2_ioctl_info *info;
+ 	void *fh = file->private_data;
+ 	struct v4l2_fh *vfh = NULL;
+-	int debug = vfd->debug;
++	int dev_debug = vfd->dev_debug;
+ 	long ret = -ENOTTY;
+ 
+ 	if (ops == NULL) {
+@@ -2379,11 +2379,15 @@ static long __video_do_ioctl(struct file *file,
+ 	}
+ 
+ done:
+-	if (debug) {
++	if (dev_debug & (V4L2_DEV_DEBUG_IOCTL | V4L2_DEV_DEBUG_IOCTL_ARG)) {
++		if (!(dev_debug & V4L2_DEV_DEBUG_STREAMING) &&
++		    (cmd == VIDIOC_QBUF || cmd == VIDIOC_DQBUF))
++			return ret;
++
+ 		v4l_printk_ioctl(video_device_node_name(vfd), cmd);
+ 		if (ret < 0)
+ 			pr_cont(": error %ld", ret);
+-		if (debug == V4L2_DEBUG_IOCTL)
++		if (!(dev_debug & V4L2_DEV_DEBUG_IOCTL_ARG))
+ 			pr_cont("\n");
+ 		else if (_IOC_DIR(cmd) == _IOC_NONE)
+ 			info->debug(arg, write_only);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index eb76cfd..3e4fddf 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -124,7 +124,8 @@ struct video_device
+ 	spinlock_t		fh_lock; /* Lock for all v4l2_fhs */
+ 	struct list_head	fh_list; /* List of struct v4l2_fh */
+ 
+-	int debug;			/* Activates debug level*/
++	/* Internal device debug flags, not for use by drivers */
++	int dev_debug;
+ 
+ 	/* Video standard vars */
+ 	v4l2_std_id tvnorms;		/* Supported tv norms */
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 53605f0..8537983 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -291,9 +291,18 @@ struct v4l2_ioctl_ops {
+ 
+ /* v4l debugging and diagnostics */
+ 
+-/* Debug bitmask flags to be used on V4L2 */
+-#define V4L2_DEBUG_IOCTL     0x01
+-#define V4L2_DEBUG_IOCTL_ARG 0x02
++/* Device debug flags to be used with the video device debug attribute */
++
++/* Just log the ioctl name + error code */
++#define V4L2_DEV_DEBUG_IOCTL		0x01
++/* Log the ioctl name arguments + error code */
++#define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
++/* Log the file operations open, release, mmap and get_unmapped_area */
++#define V4L2_DEV_DEBUG_FOP		0x04
++/* Log the read and write file operations and the VIDIOC_(D)QBUF ioctls */
++#define V4L2_DEV_DEBUG_STREAMING	0x08
++/* Log poll() */
++#define V4L2_DEV_DEBUG_POLL		0x10
+ 
+ /*  Video standard functions  */
+ extern const char *v4l2_norm_to_name(v4l2_std_id id);
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+2.1.3
+
