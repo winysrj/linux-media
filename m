@@ -1,63 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:34845 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051AbaLFAZZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 19:25:25 -0500
-Received: by mail-ob0-f174.google.com with SMTP id nt9so1478793obb.33
-        for <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 16:25:25 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <10129477.C7LMJl3dKC@avalon>
-References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com>
-	<7185728.KDKlKP9htJ@avalon>
-	<CANOLnOMrdk9Gq+9Cv_e5cboXtbtxHoKVQdNgBvb_NcJfFT7bHQ@mail.gmail.com>
-	<10129477.C7LMJl3dKC@avalon>
-Date: Sat, 6 Dec 2014 02:25:25 +0200
-Message-ID: <CANOLnOMvBFiR2n0BMBO+DQ+b21Veb3r1dsw7C72OSyskxorY0w@mail.gmail.com>
-Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
-From: Grazvydas Ignotas <notasas@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: =?UTF-8?Q?R=C3=A9mi_Denis=2DCourmont?= <remi@remlab.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47977 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753535AbaLAMft (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 07:35:49 -0500
+Message-ID: <1417437343.4624.14.camel@pengutronix.de>
+Subject: Re: [PATCH v5 1/6] of: Decrement refcount of previous endpoint in
+ of_graph_get_next_endpoint
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Philipp Zabel <pza@pengutronix.de>,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de
+Date: Mon, 01 Dec 2014 13:35:43 +0100
+In-Reply-To: <Pine.LNX.4.64.1411091651210.17370@axis700.grange>
+References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
+	 <1412013819-29181-2-git-send-email-p.zabel@pengutronix.de>
+	 <Pine.LNX.4.64.1411072255130.4252@axis700.grange>
+	 <20141109153644.GA3132@pengutronix.de>
+	 <Pine.LNX.4.64.1411091651210.17370@axis700.grange>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Am Sonntag, den 09.11.2014, 16:51 +0100 schrieb Guennadi Liakhovetski:
+> On Sun, 9 Nov 2014, Philipp Zabel wrote:
+> 
+> > Hi Guennadi,
+> > 
+> > On Fri, Nov 07, 2014 at 11:06:21PM +0100, Guennadi Liakhovetski wrote:
+> > > Hi Philipp,
+> > > 
+> > > Thanks for the patch and sorry for a late reply. I did look at your 
+> > > patches earlier too, but maybe not attentively enough, or maybe I'm 
+> > > misunderstanding something now. In the scan_of_host() function in 
+> > > soc_camera.c as of current -next I see:
+> > > 
+> > > 		epn = of_graph_get_next_endpoint(np, epn);
+> > > 
+> > > which already looks like a refcount leak to me. If epn != NULL, its 
+> > > refcount is incremented, but then immediately the variable gets 
+> > > overwritten, and there's no extra copy of that variable to fix this. If 
+> > > I'm right, then that bug in itself should be fixed, ideally before your 
+> > > patch is applied. But in fact, your patch fixes this, since it modifies 
+> > > of_graph_get_next_endpoint() to return with prev's refcount not 
+> > > incremented, right? Whereas the of_node_put(epn) later down in 
+> > > scan_of_host() decrements refcount of the _next_ endpoint, not the 
+> > > previous one, so, it should be left alone? I.e. AFAICT your modification 
+> > > to of_graph_get_next_endpoint() fixes soc_camera.c with no further 
+> > > modifications to it required?
+> > 
+> > You are right. With the old implementation, you'd have to do the
+> > epn = of_graph_get_next_endpoint(np, prev); of_node_put(prev); prev = epn;
+> > dance to avoid leaking a reference to the first endpoint. This series
+> > accidentally fixes soc_camera by changing of_graph_get_next_endpoint
+> > to decrement the reference count itself.
+> 
+> Right, so, the patch has to be adjusted not to touch soc_camera.c at all.
 
-On Fri, Dec 5, 2014 at 1:46 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Grazvydas,
->
-> On Thursday 06 November 2014 00:29:53 Grazvydas Ignotas wrote:
->> On Wed, Nov 5, 2014 at 4:05 PM, Laurent Pinchart wrote:
->> > Would you be able to capture images from the C920 using yavta, with the
->> > uvcvideo trace parameter set to 4096, and send me both the yavta log and
->> > the kernel log ? Let's start with a capture sequence of 50 to 100 images.
->>
->> I've done 2 captures, if that helps:
->> http://notaz.gp2x.de/tmp/c920_yavta/
->>
->> The second one was done using low exposure setting, which allows
->> camera to achieve higher frame rate.
->
-> Thank you for the log, they were very helpful. They revealed that the USB SOF
-> (Start Of Frame) counter values on the device and host side are not in sync.
-> The counters get incremented are very different rates. What USB controller are
-> you using ?
+No. As of the current media-tree we still need move the of_node_put(epn)
+out of the loop:
 
-00:1d.7 USB controller: Intel Corporation NM10/ICH7 Family USB2 EHCI
-Controller (rev 01) (prog-if 20 [EHCI])
-        Subsystem: Micro-Star International Co., Ltd. [MSI] Device 7592
-        Flags: bus master, medium devsel, latency 0, IRQ 23
-        Memory at fe9fbc00 (32-bit, non-prefetchable) [size=1K]
-        Capabilities: [50] Power Management version 2
-        Capabilities: [58] Debug port: BAR=1 offset=00a0
-        Kernel driver in use: ehci-pci
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index f4308fe..619b2d4 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1696,7 +1696,6 @@ static void scan_of_host(struct soc_camera_host *ici)
+ 		if (!i)
+ 			soc_of_bind(ici, epn, ren->parent);
+ 
+-		of_node_put(epn);
+ 		of_node_put(ren);
+ 
+ 		if (i) {
+@@ -1704,6 +1703,8 @@ static void scan_of_host(struct soc_camera_host *ici)
+ 			break;
+ 		}
+ 	}
++
++	of_node_put(epn);
+ }
+ 
+ #else
 
-If it helps, I could try on an ARM board, currently don't have any
-other x86 hardware around.
+We can do this in two steps (step 1 fixing the current status quo, step
+2 as part of this series). Step 1:
 
---
-Gražvydas
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1691,11 +1691,13 @@ static void scan_of_host(struct soc_camera_host *ici)
+ {
+ 	struct device *dev = ici->v4l2_dev.dev;
+ 	struct device_node *np = dev->of_node;
+-	struct device_node *epn = NULL, *ren;
++	struct device_node *epn, *prev = NULL, *ren;
+ 	unsigned int i;
+ 
+ 	for (i = 0; ; i++) {
+-		epn = of_graph_get_next_endpoint(np, epn);
++		epn = of_graph_get_next_endpoint(np, prev);
++		of_node_put(prev);
++		prev = epn;
+ 		if (!epn)
+ 			break;
+ 
+@@ -1710,7 +1712,6 @@ static void scan_of_host(struct soc_camera_host *ici)
+ 		if (!i)
+ 			soc_of_bind(ici, epn, ren->parent);
+ 
+-		of_node_put(epn);
+ 		of_node_put(ren);
+ 
+ 		if (i) {
+
+And step 2:
+
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 3d44773..1de62bf 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1691,13 +1691,11 @@ static void scan_of_host(struct soc_camera_host *ici)
+ {
+ 	struct device *dev = ici->v4l2_dev.dev;
+ 	struct device_node *np = dev->of_node;
+-	struct device_node *epn, *prev = NULL, *ren;
++	struct device_node *epn = NULL, *ren;
+ 	unsigned int i;
+ 
+ 	for (i = 0; ; i++) {
+-		epn = of_graph_get_next_endpoint(np, prev);
+-		of_node_put(prev);
+-		prev = epn;
++		epn = of_graph_get_next_endpoint(np, epn);
+ 		if (!epn)
+ 			break;
+ 
+@@ -1719,6 +1717,8 @@ static void scan_of_host(struct soc_camera_host *ici)
+ 			break;
+ 		}
+ 	}
++
++	of_node_put(epn);
+ }
+ 
+ #else
+
+Would you prefer that option?
+
+regards
+Philipp
+
+
