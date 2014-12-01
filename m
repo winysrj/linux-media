@@ -1,78 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55086 "EHLO mx1.redhat.com"
+Received: from lists.s-osg.org ([54.187.51.154]:38512 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754449AbaLHITk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Dec 2014 03:19:40 -0500
-Message-ID: <54855EF6.1000900@redhat.com>
-Date: Mon, 08 Dec 2014 09:19:02 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752838AbaLAJUe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 04:20:34 -0500
+Date: Mon, 1 Dec 2014 07:20:28 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: "=?UTF-8?B?SXN0dsOhbiw=?= Varga" <istvan_v@mailbox.hu>
+Cc: linux-media@vger.kernel.org,
+	Rodney Baker <rodney@jeremiah31-10.net>
+Subject: Re: Kernel 3.17.0 broke xc4000-based DTV1800h
+Message-ID: <20141201072028.6466a2b3@recife.lan>
+In-Reply-To: <CA+QJwyh2OupTtNJ89TWgyBZm0dhaHQ2Ax1XPDPjaFat-aTKsCA@mail.gmail.com>
+References: <CA+QJwyh2OupTtNJ89TWgyBZm0dhaHQ2Ax1XPDPjaFat-aTKsCA@mail.gmail.com>
 MIME-Version: 1.0
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-CC: Chen-Yu Tsai <wens@csie.org>,
-	Boris Brezillon <boris@free-electrons.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Emilio Lopez <emilio@elopez.com.ar>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi <linux-sunxi@googlegroups.com>
-Subject: Re: [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
-References: <20141126211318.GN25249@lukather> <5476E3A5.4000708@redhat.com> <CAGb2v652m0bCdPWFF4LWwjcrCJZvnLibFPw8xXJ3Q-Ge+_-p7g@mail.gmail.com> <5476F8AB.2000601@redhat.com> <20141127190509.GR25249@lukather> <54787A8A.6040209@redhat.com> <20141202154524.GD30256@lukather> <547EDCA0.4040805@redhat.com> <20141207180808.GO12434@lukather>
-In-Reply-To: <20141207180808.GO12434@lukather>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi István,
 
-On 07-12-14 19:08, Maxime Ripard wrote:
-> On Wed, Dec 03, 2014 at 10:49:20AM +0100, Hans de Goede wrote:
+Em Sun, 30 Nov 2014 18:38:24 +0100
+"István, Varga" <istvan_v@mailbox.hu> escreveu:
 
-<snip>
+> > On 16 Oct 2014, at 17:33, Rodney Baker <rodney.baker <at> iinet.net.au> wrote:
+> >
+> > Since installing kernel 3.17.0-1.gc467423-desktop (on openSuSE 13.1) my
+> > xc4000/zl10353/cx88 based DTV card has failed to initialise on boot.
+> 
+> Apparently, the default firmware file name has been changed to
+> dvb-fe-xc4000-1.4.1.fw,
 
->> So it should not have a simple-bus compatible either, and as such we cannot
->> simply change the mod0 driver from of_clk_define to a platform driver because
->> then we need to instantiate platform devs for the mod0 clock nodes, which
->> means making the clock node a simple-bus.
->
-> I guess we can do that as a temporary measure until we get things
-> right on that front. I'm totally open to doing that work, so I'm not
-> asking you to do it.
->
->> I can see your logic in wanting the ir_clk prcm sub-node to use the
->> mod0 compatible string, so how about we make the mod0 driver both
->> register through of_declare and as a platform driver. Note this means
->> that it will try to bind twice to the ir_clk node, since of_clk_declare
->> will cause it to try and bind there too AFAIK.
->
-> Hmmm, I could live with that for a while too. That shouldn't even
-> require too much work, since the first thing we check in the mod0 code
-> is that we actually have something in reg, which will not be the case
-> in the OF_CLK_DECLARE case.
->
->> The of_clk_declare bind will fail though because there is no regs
->> property, so this double bind is not an issue as long as we do not
->> log errors on the first bind failure.
->
-> Yep, exactly.
->
->> Note that the ir_clk node will still need an "ir-clk" compatible as
->> well for the MFD to find it and assign the proper resources to it.
->
-> No, it really doesn't. At least for now, we have a single mod0 clock
-> under the PRCM MFD. If (and only if) one day, we find ourselves in a
-> position where we have two mod0 clocks under the PRCM, then we'll fix
-> the MFD code to deal with that, because it really should deal with it.
+Actually, changeset da7bfa2c5df3 added support for both names. It tries
+first dvb-fe-xc4000-1.4.1.fw. If not found, it falls back to 
+dvb-fe-xc4000-1.4.fw.
 
-Ok, using only the mod0 compat string works for me. I'll respin my
-patch-set (minus the one patch you've already merged) to make the modo
-clk driver use both of_clk_declare and make it a platfrom driver, and
-use the mod0 compat string for the ir-clk node.
+> and the firmware package for the kernel now includes this file from
+> kernellabs.com.
 
-Not sure when I'll get this done exactly though, but we still have
-a while before 3.20 :)
+Yeah, Xceive granted a license to redistribute such firmware file via
+Hauppauge. The firmware we sent to linux-firmware is this one with
+the proper license.
 
-Regards,
+> However, this firmware file is incomplete (only includes minimal DVB-T
+> support for the
+> PCTV 340e), and also incompatible with the driver. That is why trying
+> to load it results
+> in i2c errors.
 
-Hans
+Hmm... I remember I did some tests with PCTV 340e using that firmware
+and it works for me.
+
+There were a bug at xc4000 that were causing PCTV 340e to not work,
+that got fixed on changeset 4c07e32884ab6957. Basically, get_frequency()
+were returning the wrong frequency, with caused dib7000p to adjust IF
+to a wrong value. With that change, at least for pctv 340e, xc4000 driver
+is working fine.
+
+Such change shouldn't affect devices with zl10153, as this demod doesn't
+call tuner's get_frequency().
+
+> 
+> To get a firmware file that actually works, download this package, and build it:
+>   http://juropnet.hu/~istvan_v/xc4000_firmware.tar.gz
+> Actually, it was posted to the linux-media list in the past, but the
+> file did not end up being
+> included with the kernel firmware packages for some reason.
+
+For a firmware to be added at the Kernel firmware, the manufacturer
+has to grant a license to redistribute the binaries. I was not aware
+that there are actually two different versions of the xc4000 firmware
+with the same name. This is a really bad idea.
+
+What we should do is to name those versions differently, and pass the
+firmware name as a parameter to the xc4000 attach function.
+
+On a quick look, it seems that those are the devices that use the
+xc4000 tuner:
+
+cx23885:
+	Leadtek Winfast PxDVR3200 H XC4000
+cx88:
+	Leadtek WinFast DTV1800 H (XC4000)
+	Leadtek WinFast DTV2000 H PLUS
+
+dib0700:
+	PCTV 340e
+
+Do you know if the firmware that works with Leadtek devices also work
+without any regressions with PCTV 340e? If so, then if Leadtek could
+get a license from Xceive to redistribute the firmwares at the Kernel,
+we could update the firmware file at the linux-firmware tree.
+
+However, if the firmware doesn't work properly with PCTV 340e and/or
+Leadtek/Xceive cannot grant a license to redistribute the other version
+of the firmware, the best would be to rename the firmware file used
+by Leadtek devices to dvb-fe-xc4000-leadtek-1.4.fw, in order to avoid
+confusion.
+
+I won't doubt that the version that works with dib0700 would be different
+than the ones that work with other devices, as the IF used on dib0700
+could be different (I think most dib0700 devices use a zero-IF tuner).
+
+> The include path to
+> tuner-xc2028-types.h needs to be changed in build_fw.c, since the
+> "tuners" subdirectory is
+> now in "drivers/media", rather than "drivers/media/common". After
+> that, running make will
+> produce a correct firmware file named dvb-fe-xc4000-1.4.fw.
+> 
+> Some distributions include older firmware files from this page:
+>   http://istvanv.users.sourceforge.net/v4l/xc4000.html
+> These are slightly different from the newer one, and are extracted
+> from the Windows
+> drivers, rather than from the xc4000_firmwares.h file provided by
+> Xceive, but should still
+> work nevertheless.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
