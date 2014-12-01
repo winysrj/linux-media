@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57597 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756957AbaLIOJe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Dec 2014 09:09:34 -0500
-Date: Tue, 9 Dec 2014 16:09:27 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:19926 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753852AbaLAN7A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 08:59:00 -0500
+Message-id: <547C7420.4080801@samsung.com>
+Date: Mon, 01 Dec 2014 14:58:56 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Pavel Machek <pavel@ucw.cz>
 Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
 	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH/RFC v9 06/19] DT: Add documentation for the mfd Maxim
- max77693
-Message-ID: <20141209140927.GL15559@valkosipuli.retiisi.org.uk>
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
- <1417622814-10845-7-git-send-email-j.anaszewski@samsung.com>
- <20141204100706.GP14746@valkosipuli.retiisi.org.uk>
- <54804840.4030202@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54804840.4030202@samsung.com>
+	b.zolnierkie@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
+	sakari.ailus@iki.fi, s.nawrocki@samsung.com
+Subject: Re: [PATCH/RFC v8 02/14] Documentation: leds: Add description of LED
+ Flash class extension
+References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+ <1417166286-27685-3-git-send-email-j.anaszewski@samsung.com>
+ <20141129125832.GA315@amd> <547C539A.4010500@samsung.com>
+ <20141201130437.GB24737@amd>
+In-reply-to: <20141201130437.GB24737@amd>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hi Pavel,
 
-On Thu, Dec 04, 2014 at 12:40:48PM +0100, Jacek Anaszewski wrote:
-> >>+			the flash/torch.
-> >>+- maxim,trigger : Array of flags indicating which trigger can activate given led
-> >>+	in order: fled1, fled2.
-> >>+	Possible flag values (can be combined):
-> >>+		MAX77693_LED_TRIG_FLASHEN - FLASHEN pin of the chip,
-> >>+		MAX77693_LED_TRIG_TORCHEN - TORCHEN pin of the chip,
-> >>+		MAX77693_LED_TRIG_SOFTWARE - software via I2C command.
-> >
-> >Is there a need to prevent strobing using a certain method? Just wondering.
-> 
-> In some cases it could be convenient to prevent some options through
-> device tree.
+On 12/01/2014 02:04 PM, Pavel Machek wrote:
+> Hi!
+>
+>>> How are faults cleared? Should it be list of strings, instead of
+>>> bitmask? We may want to add new fault modes in future...
+>>
+>> Faults are cleared by reading the attribute. I will add this note.
+>> There can be more than one fault at a time. I think that the bitmask
+>> is a flexible solution. I don't see any troubles related to adding
+>> new fault modes in the future, do you?
+>
+> I do not think that "read attribute to clear" is good idea. Normally,
+> you'd want the error attribute world-readable, but you don't want
+> non-root users to clear the errors.
 
-Do you have that need now?
+This is also V4L2_CID_FLASH_FAULT control semantics.
+Moreover many devices clear the errors upon reading register.
+I don't see anything wrong in the fact that an user can clear
+an error. If the user has a permission to use a device then
+it also should be allowed to clear the errors.
 
-If not, I'd propose to postpone this and add it only if there ever is one.
+> I am not sure if bitmask is good solution. I'd return space-separated
+> strings like "overtemp". That way, there's good chance that other LED
+> drivers would be able to use similar interface...
 
--- 
-Kind regards,
+The format of a sysfs attribute should be concise.
+The error codes are generic and map directly to the V4L2 Flash
+error codes.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Best Regards,
+Jacek Anaszewski
