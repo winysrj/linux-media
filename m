@@ -1,218 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37440 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751992AbaLCLOw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Dec 2014 06:14:52 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: aviv.d.greenberg@intel.com
-Subject: [REVIEW PATCH 1/2] v4l: Add data_offset to struct v4l2_buffer
-Date: Wed,  3 Dec 2014 13:14:08 +0200
-Message-Id: <1417605249-5322-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1417605249-5322-1-git-send-email-sakari.ailus@iki.fi>
-References: <1417605249-5322-1-git-send-email-sakari.ailus@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50223 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753684AbaLAPLs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 10:11:48 -0500
+Message-ID: <1417446703.4624.18.camel@pengutronix.de>
+Subject: Re: [PATCH 1/3] staging: imx-drm: document internal HDMI I2C master
+ controller DT binding
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Cc: Shawn Guo <shawn.guo@linaro.org>, Wolfram Sang <wsa@the-dreams.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org
+Date: Mon, 01 Dec 2014 16:11:43 +0100
+In-Reply-To: <547C8113.3050100@mentor.com>
+References: <1416073759-19939-1-git-send-email-vladimir_zapolskiy@mentor.com>
+	 <1416073759-19939-2-git-send-email-vladimir_zapolskiy@mentor.com>
+	 <547C8113.3050100@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Am Montag, den 01.12.2014, 16:54 +0200 schrieb Vladimir Zapolskiy:
+> Hi Philipp and Shawn,
+> 
+> On 15.11.2014 19:49, Vladimir Zapolskiy wrote:
+> > Provide information about how to bind internal iMX6Q/DL HDMI DDC I2C
+> > master controller. The property is set as optional one, because iMX6
+> > HDMI DDC bus may be represented by one of general purpose I2C busses
+> > found on SoC.
+> > 
+> > Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+> > Cc: Wolfram Sang <wsa@the-dreams.de>
+> > Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> > Cc: Shawn Guo <shawn.guo@linaro.org>
+> > Cc: devicetree@vger.kernel.org
+> > Cc: linux-media@vger.kernel.org
+> > Cc: linux-arm-kernel@lists.infradead.org
+> > Cc: linux-i2c@vger.kernel.org
+> > ---
+> >  Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt |   10 +++++++++-
+> >  1 file changed, 9 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt b/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+> > index 1b756cf..43c8924 100644
+> > --- a/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+> > +++ b/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+> > @@ -10,6 +10,8 @@ Required properties:
+> >   - #address-cells : should be <1>
+> >   - #size-cells : should be <0>
+> >   - compatible : should be "fsl,imx6q-hdmi" or "fsl,imx6dl-hdmi".
+> > +   If internal HDMI DDC I2C master controller is supposed to be used,
+> > +   then "simple-bus" should be added to compatible value.
+> >   - gpr : should be <&gpr>.
+> >     The phandle points to the iomuxc-gpr region containing the HDMI
+> >     multiplexer control register.
+> > @@ -22,6 +24,7 @@ Required properties:
+> >  
+> >  Optional properties:
+> >   - ddc-i2c-bus: phandle of an I2C controller used for DDC EDID probing
+> > + - ddc: internal HDMI DDC I2C master controller
+> >  
+> >  example:
+> >  
+> > @@ -32,7 +35,7 @@ example:
+> >          hdmi: hdmi@0120000 {
+> >                  #address-cells = <1>;
+> >                  #size-cells = <0>;
+> > -                compatible = "fsl,imx6q-hdmi";
+> > +                compatible = "fsl,imx6q-hdmi", "simple-bus";
+> >                  reg = <0x00120000 0x9000>;
+> >                  interrupts = <0 115 0x04>;
+> >                  gpr = <&gpr>;
+> > @@ -40,6 +43,11 @@ example:
+> >                  clock-names = "iahb", "isfr";
+> >                  ddc-i2c-bus = <&i2c2>;
+> >  
+> > +                hdmi_ddc: ddc {
+> > +                        compatible = "fsl,imx6q-hdmi-ddc";
+> > +                        status = "disabled";
+> > +                };
+> > +
+> >                  port@0 {
+> >                          reg = <0>;
+> >  
+> > 
+> 
+> knowing in advance that I2C framework lacks a graceful support of non
+> fully compliant I2C devices, do you have any objections to the proposed
+> iMX HDMI DTS change?
 
-The data_offset field tells the start of the image data from the beginning
-of the buffer. The bsize field in struct v4l2_buffer includes this, but the
-sizeimage field in struct v4l2_pix_format does not.
+I'm not sure about this. Have you seen "drm: Decouple EDID parsing from
+I2C adapter"? I feel like in the absence of a ddc-i2c-bus property the
+imx-hdmi/dw-hdmi driver should try to use the internal HDMI DDC I2C
+master controller, bypassing the I2C framework altogether.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/DocBook/media/v4l/compat.xml      | 11 +++++++++++
- Documentation/DocBook/media/v4l/io.xml          | 18 +++++++++++++++---
- Documentation/DocBook/media/v4l/vidioc-qbuf.xml |  3 +--
- drivers/media/usb/cpia2/cpia2_v4l.c             |  2 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  4 ++--
- drivers/media/v4l2-core/videobuf2-core.c        | 17 ++++++++++++-----
- include/uapi/linux/videodev2.h                  |  4 +++-
- 7 files changed, 45 insertions(+), 14 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 0a2debf..ad54e72 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2579,6 +2579,17 @@ fields changed from _s32 to _u32.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 3.20</title>
-+      <orderedlist>
-+	<listitem>
-+	  <para>Replaced <structfield>reserved2</structfield> by
-+	  <strucfield>data_offset<structfield> in struct
-+	  <structname>v4l2_buffer</structname>.</para>
-+	</listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 1c17f80..13baeac 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -839,10 +839,22 @@ is the file descriptor associated with a DMABUF buffer.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved2</structfield></entry>
-+	    <entry><structfield>data_offset</structfield></entry>
- 	    <entry></entry>
--	    <entry>A place holder for future extensions. Applications
--should set this to 0.</entry>
-+	    <entry>
-+	      Start of the image data from the beginning of the buffer in
-+	      bytes. Applications must set this for both
-+	      <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> buffers
-+	      whereas driver must set this for
-+	      <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant> buffers
-+	      before &VIDIOC-PREPARE-BUF; and &VIDIOC-QBUF; IOCTLs. Note
-+	      that data_offset is included in
-+	      <structfield>bytesused</structfield>. So the size of the image
-+	      in the plane is <structfield>bytesused</structfield>-
-+	      <structfield>data_offset</structfield> at offset
-+	      <structfield>data_offset</structfield> from the start of the
-+	      plane.
-+	    </entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-index 3504a7f..f529e4d 100644
---- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-@@ -72,8 +72,7 @@ initialize the <structfield>bytesused</structfield>,
- <structfield>timestamp</structfield> fields, see <xref
- linkend="buffer" /> for details.
- Applications must also set <structfield>flags</structfield> to 0.
--The <structfield>reserved2</structfield> and
--<structfield>reserved</structfield> fields must be set to 0. When using
-+The <structfield>reserved</structfield> field must be set to 0. When using
- the <link linkend="planar-apis">multi-planar API</link>, the
- <structfield>m.planes</structfield> field must contain a userspace pointer
- to a filled-in array of &v4l2-plane; and the <structfield>length</structfield>
-diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-index 9caea83..a94e83a 100644
---- a/drivers/media/usb/cpia2/cpia2_v4l.c
-+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-@@ -952,7 +952,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	buf->sequence = cam->buffers[buf->index].seq;
- 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
- 	buf->length = cam->frame_size;
--	buf->reserved2 = 0;
-+	buf->data_offset = 0;
- 	buf->reserved = 0;
- 	memset(&buf->timecode, 0, sizeof(buf->timecode));
- 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index af63543..e238066 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -326,7 +326,7 @@ struct v4l2_buffer32 {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__u32			data_offset;
- 	__u32			reserved;
- };
- 
-@@ -491,7 +491,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
- 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
- 		put_user(kp->sequence, &up->sequence) ||
--		put_user(kp->reserved2, &up->reserved2) ||
-+		put_user(kp->data_offset, &up->data_offset) ||
- 		put_user(kp->reserved, &up->reserved))
- 			return -EFAULT;
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7aed8f2..3162de8 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -607,6 +607,9 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 
- 		if (b->bytesused > length)
- 			return -EINVAL;
-+
-+		if (b->data_offset > 0 && b->data_offset >= bytesused)
-+			return -EINVAL;
- 	}
- 
- 	return 0;
-@@ -657,7 +660,6 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 
- 	/* Copy back data such as timestamp, flags, etc. */
- 	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
--	b->reserved2 = vb->v4l2_buf.reserved2;
- 	b->reserved = vb->v4l2_buf.reserved;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
-@@ -666,14 +668,17 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 		 * for it. The caller has already verified memory and size.
- 		 */
- 		b->length = vb->num_planes;
-+		b->data_offset = vb->v4l2_buf.data_offset;
- 		memcpy(b->m.planes, vb->v4l2_planes,
- 			b->length * sizeof(struct v4l2_plane));
- 	} else {
- 		/*
--		 * We use length and offset in v4l2_planes array even for
--		 * single-planar buffers, but userspace does not.
-+		 * We use length, data_offset and bytesused in
-+		 * v4l2_planes array even for single-planar buffers,
-+		 * but userspace does not.
- 		 */
- 		b->length = vb->v4l2_planes[0].length;
-+		b->data_offset = vb->v4l2_planes[0].data_offset;
- 		b->bytesused = vb->v4l2_planes[0].bytesused;
- 		if (q->memory == V4L2_MEMORY_MMAP)
- 			b->m.offset = vb->v4l2_planes[0].m.mem_offset;
-@@ -1306,11 +1311,13 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 			v4l2_planes[0].length = b->length;
- 		}
- 
--		if (V4L2_TYPE_IS_OUTPUT(b->type))
-+		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
- 			v4l2_planes[0].bytesused = b->bytesused ?
- 				b->bytesused : v4l2_planes[0].length;
--		else
-+			v4l2_planes[0].data_offset = b->data_offset;
-+		} else {
- 			v4l2_planes[0].bytesused = 0;
-+		}
- 
- 	}
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 1c2f84f..e9806c6 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -675,6 +675,8 @@ struct v4l2_plane {
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-  *		buffers (when type != *_MPLANE); number of elements in the
-  *		planes array for multi-plane buffers
-+ * @data_offset: Offset of the start of data from the beginning of the
-+ *		buffer. Typically zero.
-  *
-  * Contains data exchanged by application and driver using one of the Streaming
-  * I/O methods.
-@@ -698,7 +700,7 @@ struct v4l2_buffer {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__u32			data_offset;
- 	__u32			reserved;
- };
- 
--- 
-1.9.1
+regards
+Philipp
 
