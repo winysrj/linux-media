@@ -1,61 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f41.google.com ([209.85.192.41]:43480 "EHLO
-	mail-qg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030233AbaLLQqO (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:32942 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752919AbaLALBO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 11:46:14 -0500
-Received: by mail-qg0-f41.google.com with SMTP id j5so5757400qga.28
-        for <linux-media@vger.kernel.org>; Fri, 12 Dec 2014 08:46:13 -0800 (PST)
+	Mon, 1 Dec 2014 06:01:14 -0500
+Message-ID: <547C4A69.8020002@xs4all.nl>
+Date: Mon, 01 Dec 2014 12:00:57 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <548B1884.6090005@xs4all.nl>
-References: <548AC061.3050700@xs4all.nl>
-	<20141212104942.0ea3c1d7@recife.lan>
-	<548AE5B2.1070306@xs4all.nl>
-	<20141212111424.0595125b@recife.lan>
-	<548B092F.2090803@osg.samsung.com>
-	<548B09A5.80506@xs4all.nl>
-	<CAGoCfiw1pdJGGfG5Gs-3Jf2e48buzwEA1O3+j-E+2Pjj657eEQ@mail.gmail.com>
-	<548B1884.6090005@xs4all.nl>
-Date: Fri, 12 Dec 2014 11:46:13 -0500
-Message-ID: <CAGoCfiywSrq0f-L6a2LOS=ZS7xzfUJym46njesR8TkfoybQ5Pw@mail.gmail.com>
-Subject: Re: [REVIEW] au0828-video.c
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devicetree@vger.kernel.org
+CC: linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] media: platform: add VPFE capture driver support for
+ AM437X
+References: <1416791411-9731-1-git-send-email-prabhakar.csengg@gmail.com> <547C3ED3.1060205@xs4all.nl>
+In-Reply-To: <547C3ED3.1060205@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> In short, that code cannot be removed.
->
-> Sure it can. I just tried tvtime and you are right, it blocks the GUI.
-> But the fix is very easy as well. So now I've updated tvtime so that
-> it timeouts and gives the GUI time to update itself.
+On 12/01/2014 11:11 AM, Hans Verkuil wrote:
+> Hi all,
+> 
+> Thanks for the patch, review comments are below.
+> 
+> For the next version I would appreciate if someone can test this driver with
+> the latest v4l2-compliance from the v4l-utils git repo. If possible test streaming
+> as well (v4l2-compliance -s), ideally with both a sensor and a STD receiver input.
+> But that depends on the available hardware of course.
+> 
+> I'd like to see the v4l2-compliance output. It's always good to have that on
+> record.
+> 
+> 
+> On 11/24/2014 02:10 AM, Lad, Prabhakar wrote:
+>> From: Benoit Parrot <bparrot@ti.com>
+>>
+>> This patch adds Video Processing Front End (VPFE) driver for
+>> AM437X family of devices
+>> Driver supports the following:
+>> - V4L2 API using MMAP buffer access based on videobuf2 api
+>> - Asynchronous sensor/decoder sub device registration
+>> - DT support
+>>
+>> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+>> Signed-off-by: Darren Etheridge <detheridge@ti.com>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> ---
+>>  .../devicetree/bindings/media/ti-am437xx-vpfe.txt  |   61 +
+>>  MAINTAINERS                                        |    9 +
+>>  drivers/media/platform/Kconfig                     |    1 +
+>>  drivers/media/platform/Makefile                    |    2 +
+>>  drivers/media/platform/am437x/Kconfig              |   10 +
+>>  drivers/media/platform/am437x/Makefile             |    2 +
+>>  drivers/media/platform/am437x/vpfe.c               | 2764 ++++++++++++++++++++
+>>  drivers/media/platform/am437x/vpfe.h               |  286 ++
+>>  drivers/media/platform/am437x/vpfe_regs.h          |  140 +
+>>  include/uapi/linux/Kbuild                          |    1 +
+>>  include/uapi/linux/am437x_vpfe.h                   |  122 +
+>>  11 files changed, 3398 insertions(+)
 
-That's a nice change to tvtime and I'm sure it will make it more robust.
+Can the source names be improved? There are too many 'vpfe' sources.
+Perhaps prefix all with 'am437x-'?
 
-> No more need for such an ugly hack in au0828. The au0828 isn't the only
-> driver that can block, others do as well. Admittedly, they aren't very
-> common, but they do exist. So it is much better to fix the application
-> than adding application workarounds in the kernel.
+In general I prefer '-' over '_' in a source name: it's looks better
+IMHO.
 
-You're breaking the ABI.  You're making a change to the kernel that
-causes existing applications to stop working.  Sure you can make the
-argument that applications probably never should have expected such
-behavior (even if it's relied on that behavior for 15+ years).  And
-sure, you can make a change to the application in some random git
-repository that avoids the issue, and that change might get sucked in
-to the major distributions over the next couple of years.  That
-doesn't change the fact that you're breaking the ABI and everybody who
-has the existing application that updates their kernel will stop
-working.
+One question, unrelated to this patch series:
 
-Please don't do this.
+Prabhakar, would it make sense to look at the various existing TI sources
+as well and rename them to make it more explicit for which SoCs they are
+meant? Most are pretty vague with variations on vpe, vpif, vpfe, etc. but
+no reference to the actual SoC they are for.
 
-Devin
+Regards,
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+	Hans
