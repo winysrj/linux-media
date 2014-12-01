@@ -1,47 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59517 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752024AbaLSOwI (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:48463 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752711AbaLAJEP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 09:52:08 -0500
+	Mon, 1 Dec 2014 04:04:15 -0500
+Received: from tschai.cisco.com (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1782A2A01A8
+	for <linux-media@vger.kernel.org>; Mon,  1 Dec 2014 10:03:55 +0100 (CET)
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	prabhakar.csengg@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 03/11] v4l2-subdev: drop unused op enum_mbus_fsizes
-Date: Fri, 19 Dec 2014 15:51:28 +0100
-Message-Id: <1419000696-25202-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1419000696-25202-1-git-send-email-hverkuil@xs4all.nl>
-References: <1419000696-25202-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [PATCHv3 0/9] Improve colorspace support
+Date: Mon,  1 Dec 2014 10:03:44 +0100
+Message-Id: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Changes since v2:
 
-Weird, this op isn't used at all. Seems to be orphaned code.
-Remove it.
+- Use symbolic constants from linux/hdmi.h in adv7511.
+- Renamed V4L2_YCBCR_ENC_BT2020NC to V4L2_YCBCR_ENC_BT2020 and
+  V4L2_YCBCR_ENC_BT2020C to V4L2_YCBCR_ENC_BT2020_CONST_LUM to be
+  consistent with the proposed hdmi.h changes:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- include/media/v4l2-subdev.h | 2 --
- 1 file changed, 2 deletions(-)
+  https://www.mail-archive.com/linux-media@vger.kernel.org/msg82422.html
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index b052184..5beeb87 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -342,8 +342,6 @@ struct v4l2_subdev_video_ops {
- 			struct v4l2_dv_timings *timings);
- 	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
- 			     u32 *code);
--	int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
--			     struct v4l2_frmsizeenum *fsize);
- 	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
- 			  struct v4l2_mbus_framefmt *fmt);
- 	int (*try_mbus_fmt)(struct v4l2_subdev *sd,
--- 
-2.1.3
+See the cover letter of v2 for more information:
+http://www.spinics.net/lists/linux-media/msg83709.html
+
+I'll make a pull request for this series as well.
+
+Regards,
+
+        Hans
+
 
