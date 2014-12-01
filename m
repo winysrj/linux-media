@@ -1,128 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:36458 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752331AbaLIIzF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 03:55:05 -0500
-Date: Tue, 9 Dec 2014 09:51:37 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Chen-Yu Tsai <wens@csie.org>,
-	Boris Brezillon <boris@free-electrons.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Emilio Lopez <emilio@elopez.com.ar>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi <linux-sunxi@googlegroups.com>
-Subject: Re: [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
-Message-ID: <20141209085137.GQ8739@lukather>
-References: <20141126211318.GN25249@lukather>
- <5476E3A5.4000708@redhat.com>
- <CAGb2v652m0bCdPWFF4LWwjcrCJZvnLibFPw8xXJ3Q-Ge+_-p7g@mail.gmail.com>
- <5476F8AB.2000601@redhat.com>
- <20141127190509.GR25249@lukather>
- <54787A8A.6040209@redhat.com>
- <20141202154524.GD30256@lukather>
- <547EDCA0.4040805@redhat.com>
- <20141207180808.GO12434@lukather>
- <54855EF6.1000900@redhat.com>
+Received: from relay1.mentorg.com ([192.94.38.131]:64437 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753659AbaLAPjN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 10:39:13 -0500
+Message-ID: <547C8B9E.8050605@mentor.com>
+Date: Mon, 1 Dec 2014 17:39:10 +0200
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6tPipYVl+OcoAvSh"
-Content-Disposition: inline
-In-Reply-To: <54855EF6.1000900@redhat.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: Shawn Guo <shawn.guo@linaro.org>, Wolfram Sang <wsa@the-dreams.de>,
+	<devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-i2c@vger.kernel.org>
+Subject: Re: [PATCH 1/3] staging: imx-drm: document internal HDMI I2C master
+ controller DT binding
+References: <1416073759-19939-1-git-send-email-vladimir_zapolskiy@mentor.com>	 <1416073759-19939-2-git-send-email-vladimir_zapolskiy@mentor.com>	 <547C8113.3050100@mentor.com> <1417446703.4624.18.camel@pengutronix.de>
+In-Reply-To: <1417446703.4624.18.camel@pengutronix.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 01.12.2014 17:11, Philipp Zabel wrote:
+> Am Montag, den 01.12.2014, 16:54 +0200 schrieb Vladimir Zapolskiy:
+>> Hi Philipp and Shawn,
+>>
+>> On 15.11.2014 19:49, Vladimir Zapolskiy wrote:
+>>> Provide information about how to bind internal iMX6Q/DL HDMI DDC I2C
+>>> master controller. The property is set as optional one, because iMX6
+>>> HDMI DDC bus may be represented by one of general purpose I2C busses
+>>> found on SoC.
+>>>
+>>> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+>>> Cc: Wolfram Sang <wsa@the-dreams.de>
+>>> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+>>> Cc: Shawn Guo <shawn.guo@linaro.org>
+>>> Cc: devicetree@vger.kernel.org
+>>> Cc: linux-media@vger.kernel.org
+>>> Cc: linux-arm-kernel@lists.infradead.org
+>>> Cc: linux-i2c@vger.kernel.org
+>>> ---
+>>>  Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt |   10 +++++++++-
+>>>  1 file changed, 9 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt b/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+>>> index 1b756cf..43c8924 100644
+>>> --- a/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+>>> +++ b/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+>>> @@ -10,6 +10,8 @@ Required properties:
+>>>   - #address-cells : should be <1>
+>>>   - #size-cells : should be <0>
+>>>   - compatible : should be "fsl,imx6q-hdmi" or "fsl,imx6dl-hdmi".
+>>> +   If internal HDMI DDC I2C master controller is supposed to be used,
+>>> +   then "simple-bus" should be added to compatible value.
+>>>   - gpr : should be <&gpr>.
+>>>     The phandle points to the iomuxc-gpr region containing the HDMI
+>>>     multiplexer control register.
+>>> @@ -22,6 +24,7 @@ Required properties:
+>>>  
+>>>  Optional properties:
+>>>   - ddc-i2c-bus: phandle of an I2C controller used for DDC EDID probing
+>>> + - ddc: internal HDMI DDC I2C master controller
+>>>  
+>>>  example:
+>>>  
+>>> @@ -32,7 +35,7 @@ example:
+>>>          hdmi: hdmi@0120000 {
+>>>                  #address-cells = <1>;
+>>>                  #size-cells = <0>;
+>>> -                compatible = "fsl,imx6q-hdmi";
+>>> +                compatible = "fsl,imx6q-hdmi", "simple-bus";
+>>>                  reg = <0x00120000 0x9000>;
+>>>                  interrupts = <0 115 0x04>;
+>>>                  gpr = <&gpr>;
+>>> @@ -40,6 +43,11 @@ example:
+>>>                  clock-names = "iahb", "isfr";
+>>>                  ddc-i2c-bus = <&i2c2>;
+>>>  
+>>> +                hdmi_ddc: ddc {
+>>> +                        compatible = "fsl,imx6q-hdmi-ddc";
+>>> +                        status = "disabled";
+>>> +                };
+>>> +
+>>>                  port@0 {
+>>>                          reg = <0>;
+>>>  
+>>>
+>>
+>> knowing in advance that I2C framework lacks a graceful support of non
+>> fully compliant I2C devices, do you have any objections to the proposed
+>> iMX HDMI DTS change?
+> 
+> I'm not sure about this. Have you seen "drm: Decouple EDID parsing from
+> I2C adapter"? I feel like in the absence of a ddc-i2c-bus property the
+> imx-hdmi/dw-hdmi driver should try to use the internal HDMI DDC I2C
+> master controller, bypassing the I2C framework altogether.
+> 
 
---6tPipYVl+OcoAvSh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+My idea is exactly not to bypass the I2C framework, briefly the
+rationale is that
+* it allows to reuse I2C UAPI/tools naturally applied to the internal
+iMX HDMI DDC bus,
+* it allows to use iMX HDMI DDC bus as an additional feature-limited I2C
+bus on SoC (who knows, I absolutely won't be surprised, if anyone needs
+it on practice),
+* if an HDMI controller supports an external I2C bus, the integration
+with HDMI DDC bus driver based on I2C framework is seamless.
 
-On Mon, Dec 08, 2014 at 09:19:02AM +0100, Hans de Goede wrote:
-> Hi,
->=20
-> On 07-12-14 19:08, Maxime Ripard wrote:
-> >On Wed, Dec 03, 2014 at 10:49:20AM +0100, Hans de Goede wrote:
->=20
-> <snip>
->=20
-> >>So it should not have a simple-bus compatible either, and as such we ca=
-nnot
-> >>simply change the mod0 driver from of_clk_define to a platform driver b=
-ecause
-> >>then we need to instantiate platform devs for the mod0 clock nodes, whi=
-ch
-> >>means making the clock node a simple-bus.
-> >
-> >I guess we can do that as a temporary measure until we get things
-> >right on that front. I'm totally open to doing that work, so I'm not
-> >asking you to do it.
-> >
-> >>I can see your logic in wanting the ir_clk prcm sub-node to use the
-> >>mod0 compatible string, so how about we make the mod0 driver both
-> >>register through of_declare and as a platform driver. Note this means
-> >>that it will try to bind twice to the ir_clk node, since of_clk_declare
-> >>will cause it to try and bind there too AFAIK.
-> >
-> >Hmmm, I could live with that for a while too. That shouldn't even
-> >require too much work, since the first thing we check in the mod0 code
-> >is that we actually have something in reg, which will not be the case
-> >in the OF_CLK_DECLARE case.
-> >
-> >>The of_clk_declare bind will fail though because there is no regs
-> >>property, so this double bind is not an issue as long as we do not
-> >>log errors on the first bind failure.
-> >
-> >Yep, exactly.
-> >
-> >>Note that the ir_clk node will still need an "ir-clk" compatible as
-> >>well for the MFD to find it and assign the proper resources to it.
-> >
-> >No, it really doesn't. At least for now, we have a single mod0 clock
-> >under the PRCM MFD. If (and only if) one day, we find ourselves in a
-> >position where we have two mod0 clocks under the PRCM, then we'll fix
-> >the MFD code to deal with that, because it really should deal with it.
->=20
-> Ok, using only the mod0 compat string works for me. I'll respin my
-> patch-set (minus the one patch you've already merged) to make the modo
-> clk driver use both of_clk_declare and make it a platfrom driver, and
-> use the mod0 compat string for the ir-clk node.
->=20
-> Not sure when I'll get this done exactly though, but we still have
-> a while before 3.20 :)
+However I agree that the selected approach may look odd, the question is
+if the oddness comes from the technical side or from the fact that
+nobody has done it before this way.
 
-Indeed :)
+I'm open to any critique, if the proposal of creating an I2C bus from
+HDMI DDC bus is lame, then I suppose the shared iMX HDMI DDC bus driver
+should be converted to something formless and internally used by
+imx-hdmi. The negative side-effects of such a change from my point of
+view are
+* more or less natural modularity is lost,
+* a number of I2C framework API/functions should be copy-pasted to the
+updated HDMI DDC bus driver to support a subset of I2C read/write
+transactions.
 
-Thanks!
-Maxime
+--
+With best wishes,
+Vladimir
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---6tPipYVl+OcoAvSh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUhrgZAAoJEBx+YmzsjxAgfxgP/Ai+4MRv3LfYb51Or8KwhtP8
-D7y4sgMAIT+NoAq1iphaegBQ8F+A51nqcJL1KV86FTTHCNFv3AJVz71nrz4U0lOK
-Eth+MiBfP626r7yhlzAAkMire9glwbBJCD4/S1OnDMo6Y1tN0u62Szl74GczFGUn
-Vwvgs1bqpbB/M+4Ilb2itNofB2khH0VpkTKF5yI+CytWGkXwRTQldmGOaI3JaQqY
-7waOMdZ/5gNuV2ZBvBZZ7dMcm27x7pa9uMtrmKWmR6AFsOb/oTruNKOZ+9wlNkQl
-oXyY7c9olebjx1Xyb9q2v/Ny4fiUdK0weJvmJkOdNa+oeSqAG2DdCtCu/VAHWLXs
-IYZ4p0yGw4KRmO/9BPT8jmMtubLgI22jciw0ZoeWHwQcJLAYEw/7EflSBQvv0uSV
-RaKRyNZ4didaXHBc/W4e2ixS3PdgNXT6SXxfNPc5+er+wFNGlTNF+A9nNLmgHi1f
-JVVkH7dFhnJ4CZqrSoBA07569FsY6KosygkO8pxDV3oHQ/VsO+SmyyYXkILV35Kt
-5E04QwdB48BtWFFJLIck5aMiTQJ2iFPt5FiJNDC0eYLPn9i0zcj3L3EYPZtpNQfn
-PL69YwSYgMCKqeD/u+nu9+/snL7E/jLFYdgOBJLVV5YH04ZuSfg7PEGhheKRiv00
-QGfHDltIEd6J2wKF2ufv
-=NJgj
------END PGP SIGNATURE-----
-
---6tPipYVl+OcoAvSh--
