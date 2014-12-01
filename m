@@ -1,81 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58259 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754596AbaLVOCB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 09:02:01 -0500
-Message-ID: <54982454.6040306@iki.fi>
-Date: Mon, 22 Dec 2014 16:01:56 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] cx23885: Split Hauppauge WinTV Starburst from HVR4400
- card entry
-References: <1419191964-29833-1-git-send-email-zzam@gentoo.org>	<54972866.3030101@gentoo.org> <20141222112550.5f5e80c7@concha.lan.sisa.samsung.com> <54981E79.5090601@gentoo.org>
-In-Reply-To: <54981E79.5090601@gentoo.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46441 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752685AbaLAJEf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Dec 2014 04:04:35 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 2/9] v4l2-mediabus: improve colorspace support
+Date: Mon,  1 Dec 2014 10:03:46 +0100
+Message-Id: <1417424633-15781-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
+References: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+Add and copy the new ycbcr_enc and quantization fields.
 
-On 12/22/2014 03:36 PM, Matthias Schwarzott wrote:
-> On 22.12.2014 14:25, Mauro Carvalho Chehab wrote:
->> Em Sun, 21 Dec 2014 21:07:02 +0100
->> Matthias Schwarzott <zzam@gentoo.org> escreveu:
->>
->>> Hi!
->>>
->>> Should the commit message directly point to the breaking commit
->>> 36efec48e2e6016e05364906720a0ec350a5d768?
->>
->> Yes, if this fixes an issue that happened on a previous commit, then
->> you should add the original commit there.
->>
->> That likely means that this is a regression fix, right? So, you should
->> c/c the patch to stable, adding a comment msg telling to what Kernel
->> version it applies (assuming that the patch was merged on 3.18).
->> Also, please add "PATCH FIX" to the subject, as this patch should be
->> sent to 3.19 as well.
->>
->>>
->>> This commit hopefully reverts the problematic attach for the Starburst
->>> card. I kept the GPIO-part in common, but I can split this also if
->>> necessary.
->>
->> Keep the GPIO part in common is better, if the GPIOs are the same.
->
-> Hi!
->
-> The GPIO-Pins that are used are the same on both cards. And I assume the
-> ones that control Si2165 on HVR-5500 are just unused on Starburst, so
-> setting them does not hurt (and Antti confirmed that the patch works).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/v4l2-mediabus.h      | 4 ++++
+ include/uapi/linux/v4l2-mediabus.h | 6 +++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-It registers all the chips correctly, I didn't test it actually anymore 
-:] I don't even have live signal, just generator, satellite finder to 
-test voltage/tone and one 4-port DiSEqC switch.
-
-> The cards have more in common, but I could not find a clean way to share
-> attaching and TS-config of the DVB-S2 frontend.
-
-In my understanding Starburst is HVR-4400, but only satellite tuner is 
-installed to PCB - whilst terrestrial/cable is left out.
-
-I think the root of mistake was done years ago when all these HVR-4400 
-revisions were put to same profile. Matthias didn't realized there is 
-device missing totally another tuner when he added later support for 
-these full-featured models.
-
-> So I will change the commit message, prefix subject with PATCH fix, and
-> resend the patch here and c/c to stable.
-
-It is not so simple as there is multiple new devices added to that 
-driver after that. You will need to make stable patch against older 
-kernel version.
-
-regards
-Antti
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 59d7397..38d960d 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -94,6 +94,8 @@ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
+ 	pix_fmt->height = mbus_fmt->height;
+ 	pix_fmt->field = mbus_fmt->field;
+ 	pix_fmt->colorspace = mbus_fmt->colorspace;
++	pix_fmt->ycbcr_enc = mbus_fmt->ycbcr_enc;
++	pix_fmt->quantization = mbus_fmt->quantization;
+ }
+ 
+ static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
+@@ -104,6 +106,8 @@ static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
+ 	mbus_fmt->height = pix_fmt->height;
+ 	mbus_fmt->field = pix_fmt->field;
+ 	mbus_fmt->colorspace = pix_fmt->colorspace;
++	mbus_fmt->ycbcr_enc = pix_fmt->ycbcr_enc;
++	mbus_fmt->quantization = pix_fmt->quantization;
+ 	mbus_fmt->code = code;
+ }
+ 
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index b1934a3..5a86d8e 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -22,6 +22,8 @@
+  * @code:	data format code (from enum v4l2_mbus_pixelcode)
+  * @field:	used interlacing type (from enum v4l2_field)
+  * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
++ * @ycbcr_enc:	YCbCr encoding of the data (from enum v4l2_ycbcr_encoding)
++ * @quantization: quantization of the data (from enum v4l2_quantization)
+  */
+ struct v4l2_mbus_framefmt {
+ 	__u32			width;
+@@ -29,7 +31,9 @@ struct v4l2_mbus_framefmt {
+ 	__u32			code;
+ 	__u32			field;
+ 	__u32			colorspace;
+-	__u32			reserved[7];
++	__u32			ycbcr_enc;
++	__u32			quantization;
++	__u32			reserved[5];
+ };
+ 
+ #ifndef __KERNEL__
 -- 
-http://palosaari.fi/
+2.1.3
+
