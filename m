@@ -1,62 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57423 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754844AbaLVNxN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 08:53:13 -0500
-Message-ID: <54982246.20300@iki.fi>
-Date: Mon, 22 Dec 2014 15:53:10 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-la0-f51.google.com ([209.85.215.51]:59899 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932094AbaLATRl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 14:17:41 -0500
+Received: by mail-la0-f51.google.com with SMTP id ms9so9334923lab.38
+        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 11:17:40 -0800 (PST)
 MIME-Version: 1.0
-To: Mark Brown <broonie@kernel.org>
-CC: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
-References: <1419114892-4550-1-git-send-email-crope@iki.fi> <20141222124411.GK17800@sirena.org.uk> <549814BB.3040808@iki.fi> <20141222133142.GM17800@sirena.org.uk>
-In-Reply-To: <20141222133142.GM17800@sirena.org.uk>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <546B92E3.30105@collabora.com>
+References: <CAOMZO5AX0R-s94-5m0G=SKkNb38u+jZo=7Toa+LDOkiJLAh=Tg@mail.gmail.com>
+	<20141117185554.GW25554@pengutronix.de>
+	<CAOMZO5DGR=Y1MVAc46OG6f26s9kEAoT+XCXgyezFOefM6H_NQg@mail.gmail.com>
+	<CAOMZO5CtXEzBw2_McwTpn3S4FB_8wRE-HYTghv=ceBo_AAuMqA@mail.gmail.com>
+	<546B92E3.30105@collabora.com>
+Date: Mon, 1 Dec 2014 17:17:40 -0200
+Message-ID: <CAOMZO5AkyqNt5g8+AVhoLdLiKv20_q9YRQidNv+2JuOO4BBzSg@mail.gmail.com>
+Subject: Re: Using the coda driver with Gstreamer
+From: Fabio Estevam <festevam@gmail.com>
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Cc: Robert Schwebel <r.schwebel@pengutronix.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Jean-Michel Hautbois <jhautbois@gmail.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sascha Hauer <kernel@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/22/2014 03:31 PM, Mark Brown wrote:
-> On Mon, Dec 22, 2014 at 02:55:23PM +0200, Antti Palosaari wrote:
->> On 12/22/2014 02:44 PM, Mark Brown wrote:
->>> On Sun, Dec 21, 2014 at 12:34:51AM +0200, Antti Palosaari wrote:
+On Tue, Nov 18, 2014 at 4:41 PM, Nicolas Dufresne
+<nicolas.dufresne@collabora.com> wrote:
+
+> Ok, let us know when the switch is made. Assuming your goal is to get
+> the HW decoder working, you should test with simpler pipeline. In your
+> specific case, you should try and get this pipeline to preroll:
 >
->>>> I2C client and I2C adapter are using regmap. As a solution, add
->>>> configuration option to pass custom lock class key for lockdep
->>>> validator.
->
->>> Why is this configurable, how would a device know if the system it is in
->>> needs a custom locking class and can safely use one?
->
->> If RegMap instance is bus master, eg. I2C adapter, then you should define
->> own custom key. If you don't define own key and there will be slave on that
->> bus which uses RegMap too, there will be recursive locking from a lockdep
->> point of view.
->
-> That doesn't really explain to me why this is configurable, why should
-> drivers have to worry about this?
+> gst-launch-1.0 \
+>   filesrc location=/home/H264_test1_Talk inghead_mp4_480x360.mp4 \
+>   ! qtdemux ! h264parse ! v4l2video1dec ! fakesink
 
-Did you read the lockdep documentation I pointed previous mail?
-from: Documentation/locking/lockdep-design.txt
+After applying Philipp's dts patch:
+http://www.spinics.net/lists/arm-kernel/msg382314.html
 
-There is not very detailed documentation available, but the section 
-"Exception: Nested data dependencies leading to nested locking" explains 
-something.
+,I am able to play the video clip with the following Gstreamer pipeline:
 
-One possibility is to disable lockdep checking from that driver totally, 
-then drivers do not need to care it about. But I don't think it is 
-proper way. One solution is to use custom regmap locking available 
-already, but Mauro nor me didn't like that hack:
-[RFC HACK] rtl2832: implement own lock for RegMap
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg83323.html
+gst-launch-1.0 filesrc
+location=/home/H264_test1_Talkinghead_mp4_480x360.mp4 ! qtdemux !
+h264parse ! v4l2video1dec ! videoconvert ! fbdevsink
 
-> Please also write technical terms like regmap normally.
+(Still on Gstreamer 1.4.1 version though, as I was not able to upgrade it yet).
 
-Lower-case letters?
+Regards,
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Fabio Estevam
