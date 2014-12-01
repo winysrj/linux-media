@@ -1,48 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:40621 "EHLO
-	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752834AbaLUDY7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 22:24:59 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: m.chehab@samsung.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [RESEND PATCH] media: fix au0828_analog_register() to not free au0828_dev
-Date: Sat, 20 Dec 2014 20:24:48 -0700
-Message-Id: <1419132288-4529-1-git-send-email-shuahkh@osg.samsung.com>
+Received: from relay1.mentorg.com ([192.94.38.131]:59573 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753898AbaLAOyT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 09:54:19 -0500
+Message-ID: <547C8113.3050100@mentor.com>
+Date: Mon, 1 Dec 2014 16:54:11 +0200
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+MIME-Version: 1.0
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>
+CC: Wolfram Sang <wsa@the-dreams.de>, <devicetree@vger.kernel.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-i2c@vger.kernel.org>
+Subject: Re: [PATCH 1/3] staging: imx-drm: document internal HDMI I2C master
+ controller DT binding
+References: <1416073759-19939-1-git-send-email-vladimir_zapolskiy@mentor.com> <1416073759-19939-2-git-send-email-vladimir_zapolskiy@mentor.com>
+In-Reply-To: <1416073759-19939-2-git-send-email-vladimir_zapolskiy@mentor.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-au0828_analog_register() frees au0828_dev when it fails to
-locate isoc endpoint. au0828_usb_probe() continues with dvb
-and rc probe and registration assuming dev is still valid.
-When au0828_analog_register() fails to locate isoc endpoint,
-it should return without free'ing au0828_dev. Otherwise, the
-probe will fail as dev is null when au0828_dvb_register() is
-called.
+Hi Philipp and Shawn,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
+On 15.11.2014 19:49, Vladimir Zapolskiy wrote:
+> Provide information about how to bind internal iMX6Q/DL HDMI DDC I2C
+> master controller. The property is set as optional one, because iMX6
+> HDMI DDC bus may be represented by one of general purpose I2C busses
+> found on SoC.
+> 
+> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+> Cc: Wolfram Sang <wsa@the-dreams.de>
+> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> Cc: Shawn Guo <shawn.guo@linaro.org>
+> Cc: devicetree@vger.kernel.org
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-i2c@vger.kernel.org
+> ---
+>  Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt |   10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt b/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+> index 1b756cf..43c8924 100644
+> --- a/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+> +++ b/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+> @@ -10,6 +10,8 @@ Required properties:
+>   - #address-cells : should be <1>
+>   - #size-cells : should be <0>
+>   - compatible : should be "fsl,imx6q-hdmi" or "fsl,imx6dl-hdmi".
+> +   If internal HDMI DDC I2C master controller is supposed to be used,
+> +   then "simple-bus" should be added to compatible value.
+>   - gpr : should be <&gpr>.
+>     The phandle points to the iomuxc-gpr region containing the HDMI
+>     multiplexer control register.
+> @@ -22,6 +24,7 @@ Required properties:
+>  
+>  Optional properties:
+>   - ddc-i2c-bus: phandle of an I2C controller used for DDC EDID probing
+> + - ddc: internal HDMI DDC I2C master controller
+>  
+>  example:
+>  
+> @@ -32,7 +35,7 @@ example:
+>          hdmi: hdmi@0120000 {
+>                  #address-cells = <1>;
+>                  #size-cells = <0>;
+> -                compatible = "fsl,imx6q-hdmi";
+> +                compatible = "fsl,imx6q-hdmi", "simple-bus";
+>                  reg = <0x00120000 0x9000>;
+>                  interrupts = <0 115 0x04>;
+>                  gpr = <&gpr>;
+> @@ -40,6 +43,11 @@ example:
+>                  clock-names = "iahb", "isfr";
+>                  ddc-i2c-bus = <&i2c2>;
+>  
+> +                hdmi_ddc: ddc {
+> +                        compatible = "fsl,imx6q-hdmi-ddc";
+> +                        status = "disabled";
+> +                };
+> +
+>                  port@0 {
+>                          reg = <0>;
+>  
+> 
 
-Resending as the first one had malformed changelog
+knowing in advance that I2C framework lacks a graceful support of non
+fully compliant I2C devices, do you have any objections to the proposed
+iMX HDMI DTS change?
 
- drivers/media/usb/au0828/au0828-video.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 3bdf132..94b65b8 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1713,7 +1713,6 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	}
- 	if (!(dev->isoc_in_endpointaddr)) {
- 		pr_info("Could not locate isoc endpoint\n");
--		kfree(dev);
- 		return -ENODEV;
- 	}
- 
--- 
-2.1.0
-
+--
+With best wishes,
+Vladimir
