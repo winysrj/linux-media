@@ -1,182 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.59.15.196]:4291 "EHLO
-	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753335AbaLDPjP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 10:39:15 -0500
-From: Sifan Naeem <sifan.naeem@imgtec.com>
-To: <james.hogan@imgtec.com>, <mchehab@osg.samsung.com>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<james.hartley@imgtec.com>, <ezequiel.garcia@imgtec.com>,
-	Sifan Naeem <sifan.naeem@imgtec.com>
-Subject: [PATCH 4/5] rc: img-ir: add philips rc5 decoder module
-Date: Thu, 4 Dec 2014 15:38:41 +0000
-Message-ID: <1417707523-7730-5-git-send-email-sifan.naeem@imgtec.com>
-In-Reply-To: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com>
-References: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:21399 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753376AbaLAOVH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 09:21:07 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NFW00GVKQNWNKB0@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Dec 2014 14:23:56 +0000 (GMT)
+Message-id: <547C794C.1090105@samsung.com>
+Date: Mon, 01 Dec 2014 15:21:00 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
+	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH/RFC v4 05/11] mediactl: Add media device graph helpers
+References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
+ <1416586480-19982-6-git-send-email-j.anaszewski@samsung.com>
+ <20141128170655.GO8907@valkosipuli.retiisi.org.uk>
+ <547C4FA3.30605@samsung.com> <547C5F4A.7050400@linux.intel.com>
+In-reply-to: <547C5F4A.7050400@linux.intel.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add img-ir module for decoding Philips rc5 protocol.
+Hi Sakari,
 
-Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
----
- drivers/media/rc/img-ir/Kconfig      |    7 +++
- drivers/media/rc/img-ir/Makefile     |    1 +
- drivers/media/rc/img-ir/img-ir-hw.c  |    3 ++
- drivers/media/rc/img-ir/img-ir-hw.h  |    1 +
- drivers/media/rc/img-ir/img-ir-rc5.c |   88 ++++++++++++++++++++++++++++++++++
- 5 files changed, 100 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-rc5.c
+On 12/01/2014 01:30 PM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> Jacek Anaszewski wrote:
+> ...
+>>>> +int media_get_busy_pads_by_entity(struct media_device *media,
+>>>> +                struct media_entity *entity,
+>>>> +                unsigned int type,
+>>>> +                struct media_pad **busy_pads,
+>>>> +                int *num_busy_pads)
+>>>
+>>> Are you looking for enabled links that someone else would have
+>>> configured
+>>> here?
+>>
+>> The assumption is made here that there will be no concurrent users of
+>> a media device and an entity will have no more than one link connected
+>> to its sink pad. If this assumption is not valid than all the links
+>> in the pipeline would have to be defined in the media config and
+>> the pipeline would have to be only validated not discovered.
+>> By pipeline validation I mean checking whether all config links are
+>> enabled
+>
+> You do get an error from MEDIA_IOC_LINK_SETUP if enabling a link fails.
 
-diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
-index 03ba9fc..b5b114f 100644
---- a/drivers/media/rc/img-ir/Kconfig
-+++ b/drivers/media/rc/img-ir/Kconfig
-@@ -59,3 +59,10 @@ config IR_IMG_SANYO
- 	help
- 	   Say Y here to enable support for the Sanyo protocol (used by Sanyo,
- 	   Aiwa, Chinon remotes) in the ImgTec infrared decoder block.
-+
-+config IR_IMG_RC5
-+	bool "Phillips RC5 protocol support"
-+	depends on IR_IMG_HW
-+	help
-+	   Say Y here to enable support for the RC5 protocol in the ImgTec
-+	   infrared decoder block.
-diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
-index 92a459d..898b1b8 100644
---- a/drivers/media/rc/img-ir/Makefile
-+++ b/drivers/media/rc/img-ir/Makefile
-@@ -6,6 +6,7 @@ img-ir-$(CONFIG_IR_IMG_JVC)	+= img-ir-jvc.o
- img-ir-$(CONFIG_IR_IMG_SONY)	+= img-ir-sony.o
- img-ir-$(CONFIG_IR_IMG_SHARP)	+= img-ir-sharp.o
- img-ir-$(CONFIG_IR_IMG_SANYO)	+= img-ir-sanyo.o
-+img-ir-$(CONFIG_IR_IMG_RC5)	+= img-ir-rc5.o
- img-ir-objs			:= $(img-ir-y)
- 
- obj-$(CONFIG_IR_IMG)		+= img-ir.o
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-index a977467..322cdf8 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.c
-+++ b/drivers/media/rc/img-ir/img-ir-hw.c
-@@ -42,6 +42,9 @@ static struct img_ir_decoder *img_ir_decoders[] = {
- #ifdef CONFIG_IR_IMG_SANYO
- 	&img_ir_sanyo,
- #endif
-+#ifdef CONFIG_IR_IMG_RC5
-+	&img_ir_rc5,
-+#endif
- 	NULL
- };
- 
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
-index 8578aa7..f124ec5 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.h
-+++ b/drivers/media/rc/img-ir/img-ir-hw.h
-@@ -187,6 +187,7 @@ extern struct img_ir_decoder img_ir_jvc;
- extern struct img_ir_decoder img_ir_sony;
- extern struct img_ir_decoder img_ir_sharp;
- extern struct img_ir_decoder img_ir_sanyo;
-+extern struct img_ir_decoder img_ir_rc5;
- 
- /**
-  * struct img_ir_reg_timings - Reg values for decoder timings at clock rate.
-diff --git a/drivers/media/rc/img-ir/img-ir-rc5.c b/drivers/media/rc/img-ir/img-ir-rc5.c
-new file mode 100644
-index 0000000..e1a0829
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-rc5.c
-@@ -0,0 +1,88 @@
-+/*
-+ * ImgTec IR Decoder setup for Phillips RC-5 protocol.
-+ *
-+ * Copyright 2012-2014 Imagination Technologies Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ */
-+
-+#include "img-ir-hw.h"
-+
-+/* Convert RC5 data to a scancode */
-+static int img_ir_rc5_scancode(int len, u64 raw, u64 enabled_protocols,
-+				struct img_ir_scancode_req *request)
-+{
-+	unsigned int addr, cmd, tgl, start;
-+
-+	/* Quirk in the decoder shifts everything by 2 to the left. */
-+	raw   >>= 2;
-+
-+	start	=  (raw >> 13)	& 0x01;
-+	tgl	=  (raw >> 11)	& 0x01;
-+	addr	=  (raw >>  6)	& 0x1f;
-+	cmd	=   raw		& 0x3f;
-+	/*
-+	 * 12th bit is used to extend the command in extended RC5 and has
-+	 * no effect on standard RC5.
-+	 */
-+	cmd	+= ((raw >> 12) & 0x01) ? 0 : 0x40;
-+
-+	if (!start)
-+		return -EINVAL;
-+
-+	request->protocol = RC_TYPE_RC5;
-+	request->scancode = addr << 8 | cmd;
-+	request->toggle   = tgl;
-+	return IMG_IR_SCANCODE;
-+}
-+
-+/* Convert RC5 scancode to RC5 data filter */
-+static int img_ir_rc5_filter(const struct rc_scancode_filter *in,
-+				 struct img_ir_filter *out, u64 protocols)
-+{
-+	/* Not supported by the hw. */
-+	return -EINVAL;
-+}
-+
-+/*
-+ * RC-5 decoder
-+ * see http://www.sbprojects.com/knowledge/ir/rc5.php
-+ */
-+struct img_ir_decoder img_ir_rc5 = {
-+	.type      = RC_BIT_RC5,
-+	.control   = {
-+		.bitoriend2	= 1,
-+		.code_type	= IMG_IR_CODETYPE_BIPHASE,
-+		.decodend2	= 1,
-+	},
-+	/* main timings */
-+	.tolerance	= 16,
-+	.unit		= 888888, /* 1/36k*32=888.888microseconds */
-+	.timings	= {
-+		/* 10 symbol */
-+		.s10 = {
-+			.pulse	= { 1 },
-+			.space	= { 1 },
-+		},
-+
-+		/* 11 symbol */
-+		.s11 = {
-+			.pulse	= { 1 },
-+			.space	= { 1 },
-+		},
-+
-+		/* free time */
-+		.ft  = {
-+			.minlen = 14,
-+			.maxlen = 14,
-+			.ft_min = 5,
-+		},
-+	},
-+
-+	/* scancode logic */
-+	.scancode	= img_ir_rc5_scancode,
-+	.filter		= img_ir_rc5_filter,
-+};
--- 
-1.7.9.5
+My intention here was to discuss the situation when there is more
+than one active link connected to an entity sink pad(s).
 
+There are two options:
+a) more than one active link connected to the same sink pad
+    (I don't know if this has been ever considered a valid arrangement)
+b) more than one active link connected to separate sink pads
+    if the same entity.
+
+In both cases discovering a pipeline will require different approach
+than in the recent patch set, where there are only configurable
+links expected in the media config and those fixed aren't taken
+into account. After the config links are set up, the pipeline
+is discovered by walking from the sink entity upstream, until
+the entity with no sink pads is encountered.
+
+If more than one link is connected to the sink pad(s) of
+an entity the situation becomes ambiguous.
+
+Therefore I propose to define all the links for the pipeline
+in the media config. The fixed links could be marked with
+relevant flags. By validating the pipeline I meant checking
+whether all links from the media configuration file are
+active.
+
+>>> I think we should have a more generic solution to that. This one still
+>>> does
+>>> not guard against concurrent user space processes that attempt to
+>>> configure
+>>> the media device.
+>>> One possibility would be to add IOCTLs to grant and release exclusive
+>>> write
+>>> (i.e. change configuration) access to the device. Once streaming is
+>>> started,
+>>> exclusive access could be released by the user. I wonder what Laurent
+>>> would
+>>> think about that. I think this would be very robust --- one could
+>>> start with
+>>> resetting all the links one can, and then configure those that are
+>>> needed;
+>>> if this fails, then the pipeline is already used by someone else and
+>>> streaming cannot taken place on it. No cleanup of the configuration is
+>>> needed.
+>>
+>> This approach would preclude having more than one pipeline configured
+>> in a media device.
+>
+> That's not true. You can *configure* a single pipeline at once, but once
+> that one is streaming (or write access is allowed from other file
+> handles again), you can configure another one that does no conflict with
+> the first one.
+
+OK, I missed that.
+
+>>> But this is definitely out of scope of this patchset (also because
+>>> this is
+>>> for the user space).
+>>
+>> Taking into account that there are cases when it would be useful
+>> to allow for having more than one active pipelines in a media device
+>> I think that we would require changes in the media controller API.
+>>
+>> I would hide from the user a possibility of reconfiguring the links
+>> one by one, but instead provide an ioctl which would accept
+>> a definition of a whole pipeline to be linked. Something
+>> similar to extended controls.
+>> A user space process calling such an ioctl would take the ownership
+>> of the all involved sub-devices, and their linkage couldn't be
+>> reconfigured until released.
+>
+> That does not mean someone else could reconfigure the links before you
+> attempt to start streaming.
+
+Therefore this ioctl should lock media device until VIDIOC_STREAMON
+on the configured pipeline. I am not sure about other implications and
+feasibility of such a design though.
+
+Best Regards,
+Jacek Anaszewski
