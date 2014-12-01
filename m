@@ -1,99 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51773 "EHLO mx1.redhat.com"
+Received: from lists.s-osg.org ([54.187.51.154]:38534 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751924AbaLCJt5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Dec 2014 04:49:57 -0500
-Message-ID: <547EDCA0.4040805@redhat.com>
-Date: Wed, 03 Dec 2014 10:49:20 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1753298AbaLAMwj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 07:52:39 -0500
+Date: Mon, 1 Dec 2014 10:52:35 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: "=?UTF-8?B?SXN0dsOhbiw=?= Varga" <istvan_v@mailbox.hu>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Kernel 3.17.0 broke xc4000-based DTV1800h
+Message-ID: <20141201105235.5cacf881@recife.lan>
+In-Reply-To: <CA+QJwyh-3YL1UCR7Q1d3jy8z49YM2yqNp_WmiD3zXLRzEuC-Uw@mail.gmail.com>
+References: <CA+QJwyh2OupTtNJ89TWgyBZm0dhaHQ2Ax1XPDPjaFat-aTKsCA@mail.gmail.com>
+	<20141201072028.6466a2b3@recife.lan>
+	<CA+QJwyh-3YL1UCR7Q1d3jy8z49YM2yqNp_WmiD3zXLRzEuC-Uw@mail.gmail.com>
 MIME-Version: 1.0
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-CC: Chen-Yu Tsai <wens@csie.org>,
-	Boris Brezillon <boris@free-electrons.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Emilio Lopez <emilio@elopez.com.ar>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi <linux-sunxi@googlegroups.com>
-Subject: Re: [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
-References: <20141126211318.GN25249@lukather> <5476E3A5.4000708@redhat.com> <CAGb2v652m0bCdPWFF4LWwjcrCJZvnLibFPw8xXJ3Q-Ge+_-p7g@mail.gmail.com> <5476F8AB.2000601@redhat.com> <20141127190509.GR25249@lukather> <54787A8A.6040209@redhat.com> <20141202154524.GD30256@lukather>
-In-Reply-To: <20141202154524.GD30256@lukather>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Mon, 01 Dec 2014 13:24:50 +0100
+"István, Varga" <istvan_v@mailbox.hu> escreveu:
 
-On 12/02/2014 04:45 PM, Maxime Ripard wrote:
+> 2014-12-01 10:20 GMT+01:00 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+> 
+> > Hi István,
+> >
+> > Yeah, Xceive granted a license to redistribute such firmware file via
+> > Hauppauge. The firmware we sent to linux-firmware is this one with
+> > the proper license.
+> 
+> Hi, does the license apply specifically to the kernellabs.com firmware file,
+> or the header files released by Xceive (xc4000_firmwares.h, xc4000_scodes.h) ?
 
- >> Ok, so thinking more about this, I'm still convinced that the MFD
->> framework is only getting in the way here.
->
-> You still haven't said of what exactly it's getting in the way of.
+My understanding is that it covers that specific firmware file.
 
-Of using of_clk_define to bind to the mod0 clk in the prcm, because the
-ir_clk node does not have its own reg property when the mfd framework is
-used and of_clk_define requires the node to have its own reg property.
+> In the latter case, it should cover my firmware file
+> (dvb-fe-xc4000-1.4.fw) as well,
+> because it is generated from the same headers. Also, it is no longer generated
+> from the Leadtek Windows drivers (like it was in the past before I had access to
+> the Xceive header files), so it should in theory only be licensed by
+> Xceive, rather
+> than Leadtek.
 
->> But I can see having things represented in devicetree properly, with
->> the clocks, etc. as child nodes of the prcm being something which we
->> want.
->
-> Clocks and reset are the only thing set so far, because we need
-> reference to them from the DT itself, nothing more.
->
-> We could very much have more devices instatiated from the MFD itself.
->
->> So since all we are using the MFD for is to instantiate platform
->> devices under the prcm nodes, and assign an io resource for the regs
->> to them, why not simply make the prcm node itself a simple-bus.
->
-> No, this is really not a bus. It shouldn't be described at all as
-> such. It is a device, that has multiple functionnalities in the system
-> => MFD. It really is that simple.
+True, just Xceive's SOB would be enough, but in general, it is easier
+to get chipset manufacturer's license via the hardware manufacturer
+(Leadtek, in this case).
 
-Ok, I can live with that, but likewise the clocks node is not a bus either!
+So, we need either someone at Xceive to SOB the patch or someone at Leadtek
+that has internally some authorization to release the firmware files in their
+behalf.
 
-So it should not have a simple-bus compatible either, and as such we cannot
-simply change the mod0 driver from of_clk_define to a platform driver because
-then we need to instantiate platform devs for the mod0 clock nodes, which
-means making the clock node a simple-bus.
+> 
+> > Hmm... I remember I did some tests with PCTV 340e using that firmware
+> > and it works for me.
+> 
+> >From a quick look at the contents of dvb-fe-xc4000-1.4.1.fw (the kernellabs.com
+> file), it appears to be missing all the firmware data related to
+> analog TV and radio
+> standards, and all scodes are (incorrectly) a copy of the one needed for
+> int_freq = 5400.
 
-I can see your logic in wanting the ir_clk prcm sub-node to use the
-mod0 compatible string, so how about we make the mod0 driver both
-register through of_declare and as a platform driver. Note this means
-that it will try to bind twice to the ir_clk node, since of_clk_declare
-will cause it to try and bind there too AFAIK.
+Maybe the scodes are patched for some specific interworking scenario with
+dib0700.
 
-The of_clk_declare bind will fail though because there is no regs
-property, so this double bind is not an issue as long as we do not
-log errors on the first bind failure.
+> Therefore, it only works with the demodulator used on the PCTV
+> 340e, which is using that frequency, but not with the Leadtek cards
+> with zl10153,
+> since those require 4560 instead. It also seems to be missing some standard and
+> firmware type flags. 
 
-Note that the ir_clk node will still need an "ir-clk" compatible as
-well for the MFD to find it and assign the proper resources to it.
+I see.
 
-But this way we will have the clk driver binding to the mod0 clk compatible,
-which is what you want, while having the MFD assign resources on the
-fact that it is the ir-clk node, so that things will still work if
-there are multiple mod0 clks in the prcm.
+> I am not sure if those are responsible for the
+> I2C errors, or
+> simply the lack of the analog firmwares. Perhaps the latter if the errors do not
+> occur with the (currently DVB-only) PCTV 340e.
 
->> This does everything the MFD prcm driver currently does, without
->> actually needing a specific kernel driver, and as added bonus this
->> will move the definition of the mfd function reg offsets out of the
->> kernel and into the devicetree where they belong in the first place.
->
-> Which was nacked in the first place because such offsets are not
-> supposed to be in the DT.
->
-> Really, we have something that work here, there's no need to refactor
-> it.
+Maybe.
 
-Ok, but that does bring us back to the original problem wrt the ir-clk,
-see above for how I think we should solve this then. If you agree I
-can implement the proposed fix.
+> > Such change shouldn't affect devices with zl10153, as this demod doesn't
+> > call tuner's get_frequency().
+> 
+> The get_frequency() change is not an issue,
 
-Regards,
+It used to be for PCTV 340e before the fixup patch, after some changes that
+happened at dib0700 driver.
 
-Hans
+> the kernellabs.com firmware that is
+> now the default and part of the kernel packages does not include data that is
+> required for the Leadtek cards to work.
+
+I see.
+> 
+> > However, if the firmware doesn't work properly with PCTV 340e and/or
+> > Leadtek/Xceive cannot grant a license to redistribute the other version
+> > of the firmware, the best would be to rename the firmware file used
+> > by Leadtek devices to dvb-fe-xc4000-leadtek-1.4.fw, in order to avoid
+> > confusion.
+> 
+> Although I did not test it, the firmware should work with the PCTV 340e as
+> well. It definitely does with the Leadtek devices in DVB-T mode, and on the
+> PCTV 340e the only difference is the IF (5400 vs. 4560).
