@@ -1,100 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38864 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751704AbaLNI3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Dec 2014 03:29:49 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 14/18] rtl2830: wrap DVBv5 CNR to DVBv3 SNR
-Date: Sun, 14 Dec 2014 10:28:39 +0200
-Message-Id: <1418545723-9536-14-git-send-email-crope@iki.fi>
-In-Reply-To: <1418545723-9536-1-git-send-email-crope@iki.fi>
-References: <1418545723-9536-1-git-send-email-crope@iki.fi>
+Received: from smtp.bredband2.com ([83.219.192.166]:47818 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753571AbaLAXaH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 18:30:07 -0500
+Message-ID: <547CF9FC.5010101@southpole.se>
+Date: Tue, 02 Dec 2014 00:30:04 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Subject: Re: Random memory corruption of fe[1]->dvb pointer
+References: <547BAC79.50702@southpole.se>
+In-Reply-To: <547BAC79.50702@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change legacy DVBv3 read SNR to return values calculated by DVBv5
-statistics.
+I think I have found the issue for this error and it looks like a use 
+after free that affects multiple drivers. The effect is that the driver 
+crashes on unload.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2830.c      | 44 ++----------------------------
- drivers/media/dvb-frontends/rtl2830_priv.h |  1 +
- 2 files changed, 4 insertions(+), 41 deletions(-)
+I added the following code to the mn88472 driver, it should behave as a nop:
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index 0112b3f..f1f1cfb 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -544,52 +544,14 @@ err:
- 
- static int rtl2830_read_snr(struct dvb_frontend *fe, u16 *snr)
- {
--	struct i2c_client *client = fe->demodulator_priv;
--	struct rtl2830_dev *dev = i2c_get_clientdata(client);
--	int ret, hierarchy, constellation;
--	u8 buf[2], tmp;
--	u16 tmp16;
--#define CONSTELLATION_NUM 3
--#define HIERARCHY_NUM 4
--	static const u32 snr_constant[CONSTELLATION_NUM][HIERARCHY_NUM] = {
--		{70705899, 70705899, 70705899, 70705899},
--		{82433173, 82433173, 87483115, 94445660},
--		{92888734, 92888734, 95487525, 99770748},
--	};
--
--	if (dev->sleeping)
--		return 0;
--
--	/* reports SNR in resolution of 0.1 dB */
--
--	ret = rtl2830_rd_reg(client, 0x33c, &tmp);
--	if (ret)
--		goto err;
--
--	constellation = (tmp >> 2) & 0x03; /* [3:2] */
--	if (constellation > CONSTELLATION_NUM - 1)
--		goto err;
--
--	hierarchy = (tmp >> 4) & 0x07; /* [6:4] */
--	if (hierarchy > HIERARCHY_NUM - 1)
--		goto err;
--
--	ret = rtl2830_rd_regs(client, 0x40c, buf, 2);
--	if (ret)
--		goto err;
--
--	tmp16 = buf[0] << 8 | buf[1];
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 
--	if (tmp16)
--		*snr = (snr_constant[constellation][hierarchy] -
--				intlog10(tmp16)) / ((1 << 24) / 100);
-+	if (c->cnr.stat[0].scale == FE_SCALE_DECIBEL)
-+		*snr = div_s64(c->cnr.stat[0].svalue, 100);
- 	else
- 		*snr = 0;
- 
- 	return 0;
--err:
--	dev_dbg(&client->dev, "failed=%d\n", ret);
--	return ret;
- }
- 
- static int rtl2830_read_ber(struct dvb_frontend *fe, u32 *ber)
-diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
-index 6636834..6a0e982 100644
---- a/drivers/media/dvb-frontends/rtl2830_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2830_priv.h
-@@ -22,6 +22,7 @@
- #include "dvb_math.h"
- #include "rtl2830.h"
- #include <linux/i2c-mux.h>
-+#include <linux/math64.h>
- 
- struct rtl2830_dev {
- 	struct rtl2830_platform_data *pdata;
--- 
-http://palosaari.fi/
+diff --git a/drivers/staging/media/mn88472/mn88472.c 
+b/drivers/staging/media/mn88472/mn88472.c
+index 52de8f8..58af319 100644
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -494,6 +494,7 @@ static int mn88472_remove(struct i2c_client *client)
 
+         regmap_exit(dev->regmap[0]);
+
++       memset(dev, 0, sizeof(*dev));
+         kfree(dev);
+
+
+When I now unload the driver I get the following code flow:
+
+usb 1-1: rtl28xxu_exit:
+mn88472 2-0018: mn88472_remove:  <-- this call will actually free the 
+fe[1] pointer, I added the memset to make sure they where null
+usb 1-1: dvb_usbv2_exit:
+usb 1-1: dvb_usbv2_remote_exit:
+usb 1-1: dvb_usbv2_adapter_exit:
+usb 1-1: dvb_usbv2_adapter_exit: fe0[0]=0xffff88007a8b0018
+usb 1-1: dvb_usbv2_adapter_exit: fe0[0]->dvb=0xffff88007a142580
+usb 1-1: dvb_usbv2_adapter_exit: fe0[0]->demodulator_priv=0xffff88007a8b0000
+usb 1-1: dvb_usbv2_adapter_exit: fe1[0]=0xffff88007a8d0030
+usb 1-1: dvb_usbv2_adapter_exit: fe1[0]->dvb=0x          (null)
+usb 1-1: dvb_usbv2_adapter_exit: fe1[0]->demodulator_priv=0x          (null)
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000040
+IP: [<ffffffffa021f3de>] dvb_unregister_frontend+0x2a/0xf1 [dvb_core]
+
+dvb_unregister_frontend() is sent the fe[1] pointer which now is null 
+and thus crashes with a null pointer dereference. A use after free issue.
+
+I looked for similar code and found it in:
+si2168.c
+af9033.c
+tc90522.c
+
+sp2.c has the same structure but I think it is fine.
+
+So at first it would be nice if someone could confirm my findings. 
+Applying the same kind of code like my patch and unplug something that 
+uses the affected frontend should be enough.
+
+MvH
+Benjamin Larsson
