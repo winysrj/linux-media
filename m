@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:39489 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932079AbaLBMJJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 07:09:09 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, dri-devel@lists.freedesktop.org,
-	thierry.reding@gmail.com
-Subject: [PATCHv2 0/3] hdmi: add unpack and logging functions
-Date: Tue,  2 Dec 2014 13:08:43 +0100
-Message-Id: <1417522126-31771-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-oi0-f48.google.com ([209.85.218.48]:40243 "EHLO
+	mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753102AbaLAPat (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 10:30:49 -0500
+Received: by mail-oi0-f48.google.com with SMTP id u20so7465078oif.7
+        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 07:30:48 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAGoCfiyi87PSAkHGpMAxz2Y0k6Nryh0EWYemDMEB=NvG+=qygg@mail.gmail.com>
+References: <CA+QJwyh2OupTtNJ89TWgyBZm0dhaHQ2Ax1XPDPjaFat-aTKsCA@mail.gmail.com>
+	<20141201072028.6466a2b3@recife.lan>
+	<CA+QJwyh-3YL1UCR7Q1d3jy8z49YM2yqNp_WmiD3zXLRzEuC-Uw@mail.gmail.com>
+	<20141201105235.5cacf881@recife.lan>
+	<CAGoCfiyi87PSAkHGpMAxz2Y0k6Nryh0EWYemDMEB=NvG+=qygg@mail.gmail.com>
+Date: Mon, 1 Dec 2014 16:30:47 +0100
+Message-ID: <CA+QJwyiZ4J_rz=HVkS6z7v1SMD1viZOP7TZRcGJmZDgGPXne_Q@mail.gmail.com>
+Subject: Re: Kernel 3.17.0 broke xc4000-based DTV1800h
+From: =?UTF-8?B?SXN0dsOhbiwgVmFyZ2E=?= <istvan_v@mailbox.hu>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds new HDMI 2.0/CEA-861-F defines to hdmi.h and
-adds unpacking and logging functions to hdmi.c. It also uses those
-in the V4L2 adv7842 driver (and they will be used in other HDMI drivers
-once this functionality is merged).
+2014-12-01 15:15 GMT+01:00 Devin Heitmueller <dheitmueller@kernellabs.com>:
 
-Patches 2 and 3 have been posted before by Martin Bugge. It stalled, but
-I am taking over from Martin to try and get this is. I want to use this
-in a bunch of v4l2 drivers, so I would really like to see this merged.
+> If somebody wants to send me an updated blob, I'm happy to host a copy
+> at kernellabs.com alongside the file that is currently there (please
+> make sure it has a different filename though).
 
-Changes since v1:
+My firmware package is available here:
+  http://juropnet.hu/~istvan_v/xc4000_firmware.tar.gz
+The only relevant files are build_fw.c and the two original headers from Xceive
+(xc4000_*.h). Although other programs for extracting the firmware from the
+Windows drivers are also included, they are no longer needed.
 
-- rename HDMI_CONTENT_TYPE_NONE to HDMI_CONTENT_TYPE_GRAPHICS to conform
-  to CEA-861-F.
-- added missing HDMI_AUDIO_CODING_TYPE_CXT.
-- Be explicit: out of range values are called "Invalid", reserved
-  values are called "Reserved".
-- Incorporated most of Thierry's suggestions. Exception: I didn't
-  create ..._get_name(buffer, length, ...) functions. I think it makes
-  the API awkward and I am not convinced that it is that useful.
-  I also kept "No Data" since that's what CEA-861-F calls it. I also
-  think that "No Data" is a better description than "None" since it
-  really means that nobody bothered to fill this in.
-
-Please let me know if there are more things that need to be addressed in
-these patches before they can be merged.
-
-Regards,
-
-	Hans
-
+To compile build_fw.c on current kernels without errors, the include path to
+tuner-xc2028-types.h needs to be fixed at line 11. Other than that, it should
+work without problems. It takes one optional command line argument, which
+is the name of the output file.
