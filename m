@@ -1,78 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57077 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932335AbaLDQS1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 11:18:27 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] stv090x: Some whitespace cleanups
-Date: Thu,  4 Dec 2014 14:18:14 -0200
-Message-Id: <284cbf4a87a6a4981b8e7089aa753103d747351c.1417709889.git.mchehab@osg.samsung.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51832 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752463AbaLADnG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Nov 2014 22:43:06 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4D31F2A0090
+	for <linux-media@vger.kernel.org>; Mon,  1 Dec 2014 04:42:49 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20141201034249.4D31F2A0090@tschai.lan>
+Date: Mon,  1 Dec 2014 04:42:49 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While writing changeset fdf1bc9fa2cf, I noticed some checkpatch
-complains about the CodingStyle for function parameters. So,
-clean them.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-While here, also removes uneeded "extern" from function prototype.
+Results of the daily build of media_tree:
 
-No functional changes.
+date:		Mon Dec  1 04:00:14 CET 2014
+git branch:	test
+git hash:	504febc3f98c87a8bebd8f2f274f32c0724131e4
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-diff --git a/drivers/media/dvb-frontends/stv090x.h b/drivers/media/dvb-frontends/stv090x.h
-index f7f452f435f2..742eeda99000 100644
---- a/drivers/media/dvb-frontends/stv090x.h
-+++ b/drivers/media/dvb-frontends/stv090x.h
-@@ -89,29 +89,29 @@ struct stv090x_config {
- 
- 	bool diseqc_envelope_mode;
- 
--	int (*tuner_init) (struct dvb_frontend *fe);
--	int (*tuner_sleep) (struct dvb_frontend *fe);
--	int (*tuner_set_mode) (struct dvb_frontend *fe, enum tuner_mode mode);
--	int (*tuner_set_frequency) (struct dvb_frontend *fe, u32 frequency);
--	int (*tuner_get_frequency) (struct dvb_frontend *fe, u32 *frequency);
--	int (*tuner_set_bandwidth) (struct dvb_frontend *fe, u32 bandwidth);
--	int (*tuner_get_bandwidth) (struct dvb_frontend *fe, u32 *bandwidth);
--	int (*tuner_set_bbgain) (struct dvb_frontend *fe, u32 gain);
--	int (*tuner_get_bbgain) (struct dvb_frontend *fe, u32 *gain);
--	int (*tuner_set_refclk)  (struct dvb_frontend *fe, u32 refclk);
--	int (*tuner_get_status) (struct dvb_frontend *fe, u32 *status);
--	void (*tuner_i2c_lock) (struct dvb_frontend *fe, int lock);
-+	int (*tuner_init)(struct dvb_frontend *fe);
-+	int (*tuner_sleep)(struct dvb_frontend *fe);
-+	int (*tuner_set_mode)(struct dvb_frontend *fe, enum tuner_mode mode);
-+	int (*tuner_set_frequency)(struct dvb_frontend *fe, u32 frequency);
-+	int (*tuner_get_frequency)(struct dvb_frontend *fe, u32 *frequency);
-+	int (*tuner_set_bandwidth)(struct dvb_frontend *fe, u32 bandwidth);
-+	int (*tuner_get_bandwidth)(struct dvb_frontend *fe, u32 *bandwidth);
-+	int (*tuner_set_bbgain)(struct dvb_frontend *fe, u32 gain);
-+	int (*tuner_get_bbgain)(struct dvb_frontend *fe, u32 *gain);
-+	int (*tuner_set_refclk)(struct dvb_frontend *fe, u32 refclk);
-+	int (*tuner_get_status)(struct dvb_frontend *fe, u32 *status);
-+	void (*tuner_i2c_lock)(struct dvb_frontend *fe, int lock);
- 
- 	/* dir = 0 -> output, dir = 1 -> input/open-drain */
- 	int (*set_gpio)(struct dvb_frontend *fe, u8 gpio, u8 dir, u8 value,
--			 u8 xor_value);
-+			u8 xor_value);
- };
- 
- #if IS_ENABLED(CONFIG_DVB_STV090x)
- 
--extern struct dvb_frontend *stv090x_attach(struct stv090x_config *config,
--					   struct i2c_adapter *i2c,
--					   enum stv090x_demodulator demod);
-+struct dvb_frontend *stv090x_attach(struct stv090x_config *config,
-+				    struct i2c_adapter *i2c,
-+				    enum stv090x_demodulator demod);
- 
- #else
- 
--- 
-1.9.3
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
