@@ -1,76 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46441 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752685AbaLAJEf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 04:04:35 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59765 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932268AbaLAUNP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 15:13:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 2/9] v4l2-mediabus: improve colorspace support
-Date: Mon,  1 Dec 2014 10:03:46 +0100
-Message-Id: <1417424633-15781-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>
+Subject: [PATCH v4 04/10] v4l: Add VUY8 24 bits bus format
+Date: Mon,  1 Dec 2014 22:13:34 +0200
+Message-Id: <1417464820-6718-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hyun Kwon <hyun.kwon@xilinx.com>
 
-Add and copy the new ycbcr_enc and quantization fields.
+Add VUY8 24 bits bus format, V4L2_MBUS_FMT_VUY8_1X24.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/media/v4l2-mediabus.h      | 4 ++++
- include/uapi/linux/v4l2-mediabus.h | 6 +++++-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 30 ++++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h              |  3 ++-
+ 2 files changed, 32 insertions(+), 1 deletion(-)
 
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 59d7397..38d960d 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -94,6 +94,8 @@ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
- 	pix_fmt->height = mbus_fmt->height;
- 	pix_fmt->field = mbus_fmt->field;
- 	pix_fmt->colorspace = mbus_fmt->colorspace;
-+	pix_fmt->ycbcr_enc = mbus_fmt->ycbcr_enc;
-+	pix_fmt->quantization = mbus_fmt->quantization;
- }
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 872ff89..a41e70c 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -2999,6 +2999,36 @@
+ 	      <entry>u<subscript>1</subscript></entry>
+ 	      <entry>u<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="MEDIA-BUS-FMT-VUY8-1X24">
++	      <entry>MEDIA_BUS_FMT_VUY8_1X24</entry>
++	      <entry>0x201a</entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="MEDIA-BUS-FMT-UYVY12-1X24">
+ 	      <entry>MEDIA_BUS_FMT_UYVY12_1X24</entry>
+ 	      <entry>0x2020</entry>
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 363a30f..d391893 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -50,7 +50,7 @@
+ #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
+ #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
  
- static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
-@@ -104,6 +106,8 @@ static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
- 	mbus_fmt->height = pix_fmt->height;
- 	mbus_fmt->field = pix_fmt->field;
- 	mbus_fmt->colorspace = pix_fmt->colorspace;
-+	mbus_fmt->ycbcr_enc = pix_fmt->ycbcr_enc;
-+	mbus_fmt->quantization = pix_fmt->quantization;
- 	mbus_fmt->code = code;
- }
- 
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index b1934a3..5a86d8e 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -22,6 +22,8 @@
-  * @code:	data format code (from enum v4l2_mbus_pixelcode)
-  * @field:	used interlacing type (from enum v4l2_field)
-  * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-+ * @ycbcr_enc:	YCbCr encoding of the data (from enum v4l2_ycbcr_encoding)
-+ * @quantization: quantization of the data (from enum v4l2_quantization)
-  */
- struct v4l2_mbus_framefmt {
- 	__u32			width;
-@@ -29,7 +31,9 @@ struct v4l2_mbus_framefmt {
- 	__u32			code;
- 	__u32			field;
- 	__u32			colorspace;
--	__u32			reserved[7];
-+	__u32			ycbcr_enc;
-+	__u32			quantization;
-+	__u32			reserved[5];
- };
- 
- #ifndef __KERNEL__
+-/* YUV (including grey) - next is	0x2024 */
++/* YUV (including grey) - next is	0x2025 */
+ #define MEDIA_BUS_FMT_Y8_1X8			0x2001
+ #define MEDIA_BUS_FMT_UV8_1X8			0x2015
+ #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
+@@ -80,6 +80,7 @@
+ #define MEDIA_BUS_FMT_VYUY10_1X20		0x201b
+ #define MEDIA_BUS_FMT_YUYV10_1X20		0x200d
+ #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
++#define MEDIA_BUS_FMT_VUY8_1X24			0x2024
+ #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
+ #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
+ #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
 -- 
-2.1.3
+2.0.4
 
