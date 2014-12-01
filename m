@@ -1,180 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34522 "EHLO mail.kapsi.fi"
+Received: from mout.web.de ([212.227.15.14]:49667 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932307AbaLBOcF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 09:32:05 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Benjamin Larsson <benjamin@southpole.se>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/3] rtl2832: convert driver to I2C binding
-Date: Tue,  2 Dec 2014 16:31:21 +0200
-Message-Id: <1417530683-5063-1-git-send-email-crope@iki.fi>
+	id S1752854AbaLAS4S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Dec 2014 13:56:18 -0500
+Message-ID: <547CB9BD.5050101@users.sourceforge.net>
+Date: Mon, 01 Dec 2014 19:55:57 +0100
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+MIME-Version: 1.0
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+CC: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: [PATCH 1/1] [media] lirc_zilog: Deletion of unnecessary checks before
+ the function call "vfree"
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert that driver to I2C driver model.
-Legacy DVB binding is left also for later removal...
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 1 Dec 2014 19:49:39 +0100
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The vfree() function performs also input parameter validation. Thus the test
+around the call is not needed.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/dvb-frontends/rtl2832.c      | 108 +++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/rtl2832.h      |  10 +++
- drivers/media/dvb-frontends/rtl2832_priv.h |   1 +
- 3 files changed, 119 insertions(+)
+ drivers/staging/media/lirc/lirc_zilog.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 9026e1a..53b446a 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -1183,6 +1183,114 @@ static struct dvb_frontend_ops rtl2832_ops = {
- 	.i2c_gate_ctrl = rtl2832_i2c_gate_ctrl,
- };
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index 3259aac..50b255a 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -729,11 +729,9 @@ static int send_boot_data(struct IR_tx *tx)
+ static void fw_unload_locked(void)
+ {
+ 	if (tx_data) {
+-		if (tx_data->code_sets)
+-			vfree(tx_data->code_sets);
++		vfree(tx_data->code_sets);
  
-+static int rtl2832_probe(struct i2c_client *client,
-+		const struct i2c_device_id *id)
-+{
-+	struct rtl2832_platform_data *pdata = client->dev.platform_data;
-+	const struct rtl2832_config *config = pdata->config;
-+	struct i2c_adapter *i2c = client->adapter;
-+	struct rtl2832_priv *priv;
-+	int ret;
-+	u8 tmp;
-+
-+	dev_dbg(&client->dev, "\n");
-+
-+	/* Caller really need to provide pointer for frontend we create. */
-+	if (pdata->dvb_frontend == NULL) {
-+		dev_err(&client->dev, "frontend pointer not defined\n");
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	/* allocate memory for the internal state */
-+	priv = kzalloc(sizeof(struct rtl2832_priv), GFP_KERNEL);
-+	if (priv == NULL) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	/* setup the priv */
-+	priv->client = client;
-+	priv->i2c = i2c;
-+	priv->tuner = config->tuner;
-+	priv->sleeping = true;
-+	memcpy(&priv->cfg, config, sizeof(struct rtl2832_config));
-+	INIT_DELAYED_WORK(&priv->i2c_gate_work, rtl2832_i2c_gate_work);
-+
-+	/* create muxed i2c adapter for demod itself */
-+	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
-+			rtl2832_select, NULL);
-+	if (priv->i2c_adapter == NULL) {
-+		ret = -ENODEV;
-+		goto err_kfree;
-+	}
-+
-+	/* check if the demod is there */
-+	ret = rtl2832_rd_reg(priv, 0x00, 0x0, &tmp);
-+	if (ret)
-+		goto err_i2c_del_mux_adapter;
-+
-+	/* create muxed i2c adapter for demod tuner bus */
-+	priv->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, priv,
-+			0, 1, 0, rtl2832_select, rtl2832_deselect);
-+	if (priv->i2c_adapter_tuner == NULL) {
-+		ret = -ENODEV;
-+		goto err_i2c_del_mux_adapter;
-+	}
-+
-+	/* create dvb_frontend */
-+	memcpy(&priv->fe.ops, &rtl2832_ops, sizeof(struct dvb_frontend_ops));
-+	priv->fe.ops.release = NULL;
-+	priv->fe.demodulator_priv = priv;
-+	i2c_set_clientdata(client, priv);
-+	*pdata->dvb_frontend = &priv->fe;
-+
-+	dev_info(&client->dev, "Realtek RTL2832 successfully attached\n");
-+	return 0;
-+err_i2c_del_mux_adapter:
-+	i2c_del_mux_adapter(priv->i2c_adapter);
-+err_kfree:
-+	kfree(priv);
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
-+	return ret;
-+}
-+
-+static int rtl2832_remove(struct i2c_client *client)
-+{
-+	struct rtl2832_priv *priv = i2c_get_clientdata(client);
-+
-+	dev_dbg(&client->dev, "\n");
-+
-+	cancel_delayed_work_sync(&priv->i2c_gate_work);
-+
-+	i2c_del_mux_adapter(priv->i2c_adapter_tuner);
-+
-+	i2c_del_mux_adapter(priv->i2c_adapter);
-+
-+	kfree(priv);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id rtl2832_id_table[] = {
-+	{"rtl2832", 0},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, rtl2832_id_table);
-+
-+static struct i2c_driver rtl2832_driver = {
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "rtl2832",
-+	},
-+	.probe		= rtl2832_probe,
-+	.remove		= rtl2832_remove,
-+	.id_table	= rtl2832_id_table,
-+};
-+
-+module_i2c_driver(rtl2832_driver);
-+
- MODULE_AUTHOR("Thomas Mair <mair.thomas86@gmail.com>");
- MODULE_DESCRIPTION("Realtek RTL2832 DVB-T demodulator driver");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index 5254c1d..cfd69d8 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -50,6 +50,16 @@ struct rtl2832_config {
- 	u8 tuner;
- };
+-		if (tx_data->datap)
+-			vfree(tx_data->datap);
++		vfree(tx_data->datap);
  
-+struct rtl2832_platform_data {
-+	const struct rtl2832_config *config;
-+
-+	/*
-+	 * frontend
-+	 * returned by driver
-+	 */
-+	struct dvb_frontend **dvb_frontend;
-+};
-+
- #if IS_ENABLED(CONFIG_DVB_RTL2832)
- struct dvb_frontend *rtl2832_attach(
- 	const struct rtl2832_config *cfg,
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index ae469f0..05b2b62 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -26,6 +26,7 @@
- #include <linux/i2c-mux.h>
- 
- struct rtl2832_priv {
-+	struct i2c_client *client;
- 	struct i2c_adapter *i2c;
- 	struct i2c_adapter *i2c_adapter;
- 	struct i2c_adapter *i2c_adapter_tuner;
+ 		vfree(tx_data);
+ 		tx_data = NULL;
 -- 
-http://palosaari.fi/
+2.1.3
 
