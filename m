@@ -1,85 +1,337 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:44730 "EHLO butterbrot.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750745AbaLOWPN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 17:15:13 -0500
-Message-ID: <548F5D6E.4070907@butterbrot.org>
-Date: Mon, 15 Dec 2014 23:15:10 +0100
-From: Florian Echtler <floe@butterbrot.org>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41547 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753897AbaLANtF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Dec 2014 08:49:05 -0500
+Message-ID: <547C71BF.4040907@xs4all.nl>
+Date: Mon, 01 Dec 2014 14:48:47 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [RFC] video support for Samsung SUR40
-References: <548F029C.20907@butterbrot.org> <548F05EF.8080700@xs4all.nl>
-In-Reply-To: <548F05EF.8080700@xs4all.nl>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="27PTGm7BcMisbkw7DNEC1nXBq0aARLTT5"
+To: Thierry Reding <thierry.reding@gmail.com>
+CC: linux-media@vger.kernel.org, marbugge@cisco.com,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH 2/3] hdmi: added unpack and logging functions for InfoFrames
+References: <1417186251-6542-1-git-send-email-hverkuil@xs4all.nl> <1417186251-6542-3-git-send-email-hverkuil@xs4all.nl> <20141201131507.GB11763@ulmo.nvidia.com>
+In-Reply-To: <20141201131507.GB11763@ulmo.nvidia.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---27PTGm7BcMisbkw7DNEC1nXBq0aARLTT5
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Hi Thierry,
 
-Hello Hans,
+Thanks for the review, see my comments below.
 
-On 15.12.2014 17:01, Hans Verkuil wrote:
-> On 12/15/2014 04:47 PM, Florian Echtler wrote:
->> However, I'm running into an issue I have a hard time understanding. I=
-n
->> particular, as soon as I load the kernel module, I'm getting a kernel
->> oops (NULL pointer dereference) in line 354 or 355 of the attached
->> source code. The reason is probably that the previous check (in line
->> 350) doesn't abort - even though I didn't actually provide a buffer, s=
-o
->> the list_head should be empty. As no user space program has actually
->> opened the video device yet, there shouldn't be any buffers queued,
->> right? (AFAICT the list is initialized properly in line 490).
->> I'd be quite grateful if somebody with more experience can look over t=
-he
->> code and tell me what mistakes I made :-)
-First of all, thanks for the quick feedback.
+On 12/01/2014 02:15 PM, Thierry Reding wrote:
+> On Fri, Nov 28, 2014 at 03:50:50PM +0100, Hans Verkuil wrote:
+>> From: Martin Bugge <marbugge@cisco.com>
+>>
+>> When receiving video it is very useful to be able to unpack the InfoFrames.
+>> Logging is useful as well, both for transmitters and receivers.
+>>
+>> Especially when implementing the VIDIOC_LOG_STATUS ioctl (supported by many
+>> V4L2 drivers) for a receiver it is important to be able to easily log what
+>> the InfoFrame contains. This greatly simplifies debugging.
+>>
+>> Signed-off-by: Martin Bugge <marbugge@cisco.com>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/video/hdmi.c | 622 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+>>  include/linux/hdmi.h |   3 +
+>>  2 files changed, 618 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
+>> index 9e758a8..9f0f554 100644
+>> --- a/drivers/video/hdmi.c
+>> +++ b/drivers/video/hdmi.c
+>> @@ -27,10 +27,10 @@
+>>  #include <linux/export.h>
+>>  #include <linux/hdmi.h>
+>>  #include <linux/string.h>
+>> +#include <linux/device.h>
+>>  
+>> -static void hdmi_infoframe_checksum(void *buffer, size_t size)
+>> +static u8 hdmi_infoframe_calc_checksum(u8 *ptr, size_t size)
+> 
+> I'd personally keep the name here.
 
-> Why on earth is sur40_poll doing anything with video buffers? That's
-> all handled by vb2. As far as I can tell you can just delete everything=
+I'll do that.
 
-> from '// deal with video data here' until the end of the poll function.=
+> 
+>> @@ -434,3 +441,604 @@ hdmi_infoframe_pack(union hdmi_infoframe *frame, void *buffer, size_t size)
+>>  	return length;
+>>  }
+>>  EXPORT_SYMBOL(hdmi_infoframe_pack);
+>> +
+>> +static const char *hdmi_infoframe_type_txt(enum hdmi_infoframe_type type)
+> 
+> Perhaps: hdmi_infoframe_type_get_name()?
 
-Right now, the code doesn't do anything, but I'm planning to add the
-actual data retrieval at this point later. I'd like to use the
-input_polldev thread for this, as a) the video data should be fetched
-synchronously with the input device data and b) the thread will be
-running continuously anyway.
+I think that's better as well, I'll change it.
 
-> The probably cause of the crash here is that the input device node is
-> created before the 'INIT_LIST_HEAD(&sur40->buf_list);' call, and since
-> udevd (I think) opens new devices immediately after they are created
-> it is likely that sur40_poll is called before buf_list is initialized.
-OK, that sounds plausible, will test that tomorrow.
+> 
+>> +{
+>> +	switch (type) {
+>> +	case HDMI_INFOFRAME_TYPE_VENDOR: return "Vendor";
+>> +	case HDMI_INFOFRAME_TYPE_AVI: return "Auxiliary Video Information (AVI)";
+>> +	case HDMI_INFOFRAME_TYPE_SPD: return "Source Product Description (SPD)";
+>> +	case HDMI_INFOFRAME_TYPE_AUDIO: return "Audio";
+> 
+> I'd prefer "case ...:" and "return ...;" on separate lines for
+> readability.
 
-> But, as I said, that code doesn't belong there at all, so just remove i=
-t.
-See above - that was actually intentional. It's kind of a hackish
-solution, but for the moment, I'd just like to get a video stream with
-minimal overhead, so I'm reusing the polldev thread.
+I actually think that makes it *less* readable. If you really want that, then I'll
+change it, but I would suggest that you try it yourself first to see if it is
+really more readable for you. It isn't for me, so I'll keep this for the next
+version.
 
-Best regards, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
+> 
+>> +	}
+>> +	return "Invalid/Unknown";
+>> +}
+> 
+> Maybe include the numerical value here? Of course that either means that
+> callers must pass in a buffer or we sacrifice thread-safety. The buffer
+> could be optional, somewhat like this:
+> 
+> 	const char *hdmi_infoframe_get_name(char *buffer, size_t length,
+> 					    enum hdmi_infoframe_type type)
+> 	{
+> 		const char *name = NULL;
+> 
+> 		switch (type) {
+> 		case HDMI_INFOFRAME_TYPE_VENDOR:
+> 			name = "Vendor";
+> 			break;
+> 		...
+> 		}
+> 
+> 		if (buffer) {
+> 			if (!name)
+> 				snprintf(buffer, length, "unknown (%d)", type);
+> 			else
+> 				snprintf(buffer, length, name);
+> 
+> 			name = buffer;
+> 		}
+> 
+> 		return name;
+> 	}
+> 
+> That way the function would be generally useful and could even be made
+> publicly available.
 
+I would do this only where it makes sense. Some of these fields have only one or
+two reserved bits left, and in that case is it easier to just say something
+like "Reserved (3)" and do that for each reserved value.
 
---27PTGm7BcMisbkw7DNEC1nXBq0aARLTT5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> 
+>> +static void hdmi_infoframe_log_header(struct device *dev, void *f)
+>> +{
+>> +	struct hdmi_any_infoframe *frame = f;
+>> +	dev_info(dev, "HDMI infoframe: %s, version %d, length %d\n",
+>> +		hdmi_infoframe_type_txt(frame->type), frame->version, frame->length);
+>> +}
+>> +
+>> +static const char *hdmi_colorspace_txt(enum hdmi_colorspace colorspace)
+>> +{
+>> +	switch (colorspace) {
+>> +	case HDMI_COLORSPACE_RGB: return "RGB";
+>> +	case HDMI_COLORSPACE_YUV422: return "YCbCr 4:2:2";
+>> +	case HDMI_COLORSPACE_YUV444: return "YCbCr 4:4:4";
+>> +	case HDMI_COLORSPACE_YUV420: return "YCbCr 4:2:0";
+>> +	case HDMI_COLORSPACE_IDO_DEFINED: return "IDO Defined";
+>> +	}
+>> +	return "Future";
+>> +}
+> 
+> Similar comments as for the above.
+> 
+>> +static const char *hdmi_scan_mode_txt(enum hdmi_scan_mode scan_mode)
+>> +{
+>> +	switch(scan_mode) {
+>> +	case HDMI_SCAN_MODE_NONE: return "No Data";
+>> +	case HDMI_SCAN_MODE_OVERSCAN: return "Composed for overscanned display";
+>> +	case HDMI_SCAN_MODE_UNDERSCAN: return "Composed for underscanned display";
+>> +	}
+>> +	return "Future";
+>> +}
+> 
+> This isn't really a name any more, I think it should either stick to
+> names like "None", "Overscan", "Underscan"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+I agree with that, I'll change it.
 
-iEYEARECAAYFAlSPXW4ACgkQ7CzyshGvatgn8ACg2i8R3aMn07mVm4spS+aQwKz/
-W2gAmwX9yYxyqGD+aRu1qvFHQ1UHmK6I
-=OJ2F
------END PGP SIGNATURE-----
+> or it should return a
+> description, in which case hdmi_scan_mode_get_description() might be
+> more accurate for a name.
+> 
+>> +static const char *hdmi_colorimetry_txt(enum hdmi_colorimetry colorimetry)
+>> +{
+>> +	switch(colorimetry) {
+>> +	case HDMI_COLORIMETRY_NONE: return "No Data";
+>> +	case HDMI_COLORIMETRY_ITU_601: return "ITU601";
+>> +	case HDMI_COLORIMETRY_ITU_709: return "ITU709";
+>> +	case HDMI_COLORIMETRY_EXTENDED: return "Extended";
+>> +	}
+>> +	return "Invalid/Unknown";
+>> +}
+> 
+> These are names again, so same comments as for the infoframe type. And
+> perhaps "No Data" -> "None" in that case.
 
---27PTGm7BcMisbkw7DNEC1nXBq0aARLTT5--
+Yep.
+
+> 
+>> +
+>> +static const char *hdmi_picture_aspect_txt(enum hdmi_picture_aspect picture_aspect)
+>> +{
+>> +	switch (picture_aspect) {
+>> +	case HDMI_PICTURE_ASPECT_NONE: return "No Data";
+>> +	case HDMI_PICTURE_ASPECT_4_3: return "4:3";
+>> +	case HDMI_PICTURE_ASPECT_16_9: return "16:9";
+>> +	}
+>> +	return "Future";
+>> +}
+> 
+> Same here.
+> 
+>> +static const char *hdmi_quantization_range_txt(enum hdmi_quantization_range quantization_range)
+>> +{
+>> +	switch (quantization_range) {
+>> +	case HDMI_QUANTIZATION_RANGE_DEFAULT: return "Default (depends on video format)";
+> 
+> I think "Default" would do here ("depends on video format" can be
+> derived from the reading of the specification). Generally I think these
+> should focus on providing a human-readable version of the infoframes,
+> not be a replacement for reading the specification.
+
+Indeed.
+
+> 
+>> +/**
+>> + * hdmi_avi_infoframe_log() - log info of HDMI AVI infoframe
+>> + * @dev: device
+>> + * @frame: HDMI AVI infoframe
+>> + */
+>> +static void hdmi_avi_infoframe_log(struct device *dev, struct hdmi_avi_infoframe *frame)
+> 
+> Perhaps allow this to take a log level? I can imagine drivers wanting to
+> use this with dev_dbg() instead.
+
+Makes sense.
+
+> 
+>> +/**
+>> + * hdmi_vendor_infoframe_log() - log info of HDMI VENDOR infoframe
+>> + * @dev: device
+>> + * @frame: HDMI VENDOR infoframe
+>> + */
+>> +static void hdmi_vendor_any_infoframe_log(struct device *dev, union hdmi_vendor_any_infoframe *frame)
+>> +{
+>> +	struct hdmi_vendor_infoframe *hvf = &frame->hdmi;
+>> +
+>> +	hdmi_infoframe_log_header(dev, frame);
+>> +
+>> +	if (frame->any.oui != HDMI_IEEE_OUI) {
+>> +		dev_info(dev, "    not a HDMI vendor infoframe\n");
+>> +		return;
+>> +	}
+>> +	if (hvf->vic == 0 && hvf->s3d_struct == HDMI_3D_STRUCTURE_INVALID) {
+>> +		dev_info(dev, "    empty frame\n");
+>> +		return;
+>> +	}
+>> +
+>> +	if (hvf->vic) {
+>> +		dev_info(dev, "    Hdmi Vic: %d\n", hvf->vic);
+> 
+> "HDMI VIC"?
+
+Will change.
+
+> 
+>> +	}
+> 
+> No need for these braces.
+
+Will change.
+
+> 
+>> +/**
+>> + * hdmi_infoframe_log() - log info of HDMI infoframe
+>> + * @dev: device
+>> + * @frame: HDMI infoframe
+>> + */
+>> +void hdmi_infoframe_log(struct device *dev, union hdmi_infoframe *frame)
+>> +{
+>> +	switch (frame->any.type) {
+>> +	case HDMI_INFOFRAME_TYPE_AVI:
+>> +		hdmi_avi_infoframe_log(dev, &frame->avi);
+>> +		break;
+>> +	case HDMI_INFOFRAME_TYPE_SPD:
+>> +		hdmi_spd_infoframe_log(dev, &frame->spd);
+>> +		break;
+>> +	case HDMI_INFOFRAME_TYPE_AUDIO:
+>> +		hdmi_audio_infoframe_log(dev, &frame->audio);
+>> +		break;
+>> +	case HDMI_INFOFRAME_TYPE_VENDOR:
+>> +		hdmi_vendor_any_infoframe_log(dev, &frame->vendor);
+>> +		break;
+>> +	default:
+>> +		WARN(1, "Bad infoframe type %d\n", frame->any.type);
+> 
+> Does it make sense for this to be WARN? It's perfectly legal for future
+> devices to expose new types of infoframes. Perhaps even expected. But if
+> we want to keep this here to help get bug reports so that we don't
+> forget to update this code, then maybe we should do the same wherever we
+> query the name of enum values above.
+
+I'll drop the WARN from the log function. I think it should also be dropped
+from the unpack. The only place it makes sense is for pack() since there the
+data comes from the driver, not from an external source.
+
+> 
+>> +/**
+>> + * hdmi_avi_infoframe_unpack() - unpack binary buffer to a HDMI AVI infoframe
+>> + * @buffer: source buffer
+>> + * @frame: HDMI AVI infoframe
+>> + *
+>> + * Unpacks the information contained in binary @buffer into a structured
+>> + * @frame of the HDMI Auxiliary Video (AVI) information frame.
+>> + * Also verifies the checksum as required by section 5.3.5 of the HDMI 1.4 specification.
+>> + *
+>> + * Returns 0 on success or a negative error code on failure.
+>> + */
+>> +static int hdmi_avi_infoframe_unpack(void *buffer, struct hdmi_avi_infoframe *frame)
+> 
+> I'm on the fence about ordering of arguments here. I think I'd slightly
+> prefer the infoframe to be the first, to make the API more object-
+> oriented.
+
+I'll swap this. It's more consistent with pack() anyway.
+
+> 
+>> +{
+>> +	u8 *ptr = buffer;
+>> +	int ret;
+>> +
+>> +	if (ptr[0] != HDMI_INFOFRAME_TYPE_AVI ||
+>> +	    ptr[1] != 2 ||
+>> +	    ptr[2] != HDMI_AVI_INFOFRAME_SIZE) {
+>> +		return -EINVAL;
+>> +	}
+> 
+> No need for the braces.
+
+Will change.
+
+> 
+> Thierry
+> 
+
+Regards,
+
+	Hans
