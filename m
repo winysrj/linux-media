@@ -1,43 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38158 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753891AbaLWRDJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 12:03:09 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 1/2] vino: Fix media dependencies
-Date: Tue, 23 Dec 2014 15:02:56 -0200
-Message-Id: <0e0a5eabdd703a7afcf310cc24ea1425eea3ef07.1419354167.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:55359 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752809AbaLANn4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 08:43:56 -0500
+Message-id: <547C7097.4040907@samsung.com>
+Date: Mon, 01 Dec 2014 14:43:51 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
+	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	SangYoung Son <hello.son@smasung.com>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
+Subject: Re: [PATCH/RFC v8 11/14] DT: Add documentation for the mfd Maxim
+ max77693
+References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+ <1417166286-27685-12-git-send-email-j.anaszewski@samsung.com>
+ <20141129192607.GB17355@amd> <547C65F7.4090801@samsung.com>
+ <20141201130231.GA24737@amd>
+In-reply-to: <20141201130231.GA24737@amd>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changeset c1d9e03d4ef4 moved the driver to staging, but it forgot to
-preserve the existing dependency.
+Hi Pavel,
 
-fixes: c1d9e03d4ef4 ("[media] vino/saa7191: move to staging in preparation for removal")
+On 12/01/2014 02:02 PM, Pavel Machek wrote:
+> Hi!
+>
+>>> Is this one needed? Just ommit child note if it is not there.
+>>
+>> It is needed because you can have one led connected two both
+>> outputs. This allows to describe such a design.
+>
+> Ok.
+>
+>>>> +- maxim,trigger-type : Array of trigger types in order: flash, torch
+>>>> +	Possible trigger types:
+>>>> +		0 - Rising edge of the signal triggers the flash/torch,
+>>>> +		1 - Signal level controls duration of the flash/torch.
+>>>> +- maxim,trigger : Array of flags indicating which trigger can activate given led
+>>>> +	in order: fled1, fled2
+>>>> +	Possible flag values (can be combined):
+>>>> +		1 - FLASH pin of the chip,
+>>>> +		2 - TORCH pin of the chip,
+>>>> +		4 - software via I2C command.
+>>>
+>>> Is it good idea to have bitfields like this?
+>>>
+>>> Make these required properties of the subnode?
+>>
+>> This is related to a single property: trigger. I think that splitting
+>> it to three properties would make unnecessary noise in the
+>> binding.
+>
+> Well, maybe it is not that much noise, and you'll have useful names
+> (not a bitfield).
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+I think we'd need an opinion of at least one more person :)
 
-diff --git a/drivers/staging/media/vino/Kconfig b/drivers/staging/media/vino/Kconfig
-index 03700dadafd8..8fc1a7a9bd10 100644
---- a/drivers/staging/media/vino/Kconfig
-+++ b/drivers/staging/media/vino/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_VINO
- 	tristate "SGI Vino Video For Linux (Deprecated)"
- 	depends on I2C && SGI_IP22 && VIDEO_V4L2
-+	depends on V4L_PLATFORM_DRIVERS
- 	select VIDEO_SAA7191 if MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Say Y here to build in support for the Vino video input system found
--- 
-2.1.0
+> Should these properties move to the LED subnode?
 
+I would leave them device specific.
+
+Regards,
+Jacek
