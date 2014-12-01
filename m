@@ -1,72 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35410 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752681AbaLAJEn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 04:04:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 3/9] v4l2-ioctl.c: log the new ycbcr_enc and quantization fields
-Date: Mon,  1 Dec 2014 10:03:47 +0100
-Message-Id: <1417424633-15781-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59894 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932516AbaLAWOZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 17:14:25 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	linux-arm-kernel@lists.infradead.org, g.liakhovetski@gmx.de,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH 4/4] media: ov2640: dt: add the device tree binding document
+Date: Tue, 02 Dec 2014 00:14:57 +0200
+Message-ID: <3353234.ED9pHT6goB@avalon>
+In-Reply-To: <1417170507-11172-5-git-send-email-josh.wu@atmel.com>
+References: <1417170507-11172-1-git-send-email-josh.wu@atmel.com> <1417170507-11172-5-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Josh,
 
-Log the new ycbcr_enc and quantization fields. Note that it now
-also logs the flags field for the multiplanar buffer type. This was
-forgotten when the flags field was added.
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+On Friday 28 November 2014 18:28:27 Josh Wu wrote:
+> Add the document for ov2640 dt.
+> 
+> Cc: devicetree@vger.kernel.org
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov2640.txt       | 43 +++++++++++++++++++
+>  1 file changed, 43 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+> b/Documentation/devicetree/bindings/media/i2c/ov2640.txt new file mode
+> 100644
+> index 0000000..adec147
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+> @@ -0,0 +1,43 @@
+> +* Omnivision ov2640 CMOS sensor
+> +
+> +The Omnivision OV2640 sensor support multiple resolutions output, such as
+> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+> +output format.
+> +
+> +Required Properties :
+> +- compatible      : Must be "omnivision,ov2640"
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 1bf84a5..7565871 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -257,7 +257,7 @@ static void v4l_print_format(const void *arg, bool write_only)
- 		pr_cont(", width=%u, height=%u, "
- 			"pixelformat=%c%c%c%c, field=%s, "
- 			"bytesperline=%u, sizeimage=%u, colorspace=%d, "
--			"flags %u\n",
-+			"flags %x, ycbcr_enc=%u, quantization=%u\n",
- 			pix->width, pix->height,
- 			(pix->pixelformat & 0xff),
- 			(pix->pixelformat >>  8) & 0xff,
-@@ -265,21 +265,24 @@ static void v4l_print_format(const void *arg, bool write_only)
- 			(pix->pixelformat >> 24) & 0xff,
- 			prt_names(pix->field, v4l2_field_names),
- 			pix->bytesperline, pix->sizeimage,
--			pix->colorspace, pix->flags);
-+			pix->colorspace, pix->flags, pix->ycbcr_enc,
-+			pix->quantization);
- 		break;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
- 		mp = &p->fmt.pix_mp;
- 		pr_cont(", width=%u, height=%u, "
- 			"format=%c%c%c%c, field=%s, "
--			"colorspace=%d, num_planes=%u\n",
-+			"colorspace=%d, num_planes=%u, flags=%x, "
-+			"ycbcr_enc=%u, quantization=%u\n",
- 			mp->width, mp->height,
- 			(mp->pixelformat & 0xff),
- 			(mp->pixelformat >>  8) & 0xff,
- 			(mp->pixelformat >> 16) & 0xff,
- 			(mp->pixelformat >> 24) & 0xff,
- 			prt_names(mp->field, v4l2_field_names),
--			mp->colorspace, mp->num_planes);
-+			mp->colorspace, mp->num_planes, mp->flags,
-+			mp->ycbcr_enc, mp->quantization);
- 		for (i = 0; i < mp->num_planes; i++)
- 			printk(KERN_DEBUG "plane %u: bytesperline=%u sizeimage=%u\n", i,
- 					mp->plane_fmt[i].bytesperline,
+The usual practice is to use the company's stock ticker as a prefix. In this 
+case the compatible string would be "ovti,ov2640". You need to add the prefix 
+to Documentation/devicetree/bindings/vendor-prefixes.txt.
+
+> +- reset-gpio      : reset pin
+> +- power-down-gpio : power down pin
+
+That should be reset-gpios and power-down-gpios, even if there's a single 
+GPIO. Furthermore, given that the power down pin is named PWDN you might want 
+to name the property pwdn-gpios.
+
+The reset and pwdn signals won't be connected on all boards, so the two 
+properties should be optional.
+
+> +Optional Properties:
+> +- clocks          : reference master clock, if using external fixed clock,
+> you
+> +                    no need to have such property.
+
+The clock is required by the chip, so even when using an external fixed clock 
+the property should be present, and reference a fixed clock node. The clocks 
+and clock-names properties should thus be mandatory.
+
+> +- clock-names     : Must be "mck", it means the master clock for ov2640.
+
+The clock input is named xvclk in the datasheet, you should use the same name 
+here.
+
+> +
+> +For further reading of port node refer
+> Documentation/devicetree/bindings/media/
+> +video-interfaces.txt.
+
+Even if you reference that document you should still mention what port node(s) 
+these bindings require. Something like the following text should be enough.
+
+"The device node must contain one 'port' child node for its digital output 
+video port, in accordance with the video interface bindings defined in
+Documentation/devicetree/bindings/media/video-interfaces.txt."
+
+> +
+> +Example:
+> +
+> +	i2c1: i2c@f0018000 {
+> +		ov2640: camera@0x30 {
+> +			compatible = "omnivision,ov2640";
+> +			reg = <0x30>;
+> +
+> +			... ...
+
+No need for an ellipsis, what are you trying to hide ? :-)
+
+> +
+> +			reset-gpio = <&pioE 24 GPIO_ACTIVE_HIGH>;
+> +			power-down-gpio = <&pioE 29 GPIO_ACTIVE_HIGH>;
+> +
+> +			/* use pck1 for the master clock of ov2640 */
+
+I think you can drop the comment.
+
+> +			clocks = <&pck1>;
+> +			clock-names = "mck";
+> +
+> +			port {
+> +				ov2640_0: endpoint {
+> +					remote-endpoint = <&isi_0>;
+> +					bus-width = <8>;
+> +				};
+> +			};
+> +		};
+> +	};
+
 -- 
-2.1.3
+Regards,
+
+Laurent Pinchart
 
