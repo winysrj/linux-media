@@ -1,68 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:55422 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030233AbaLLQcN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 11:32:13 -0500
-Message-ID: <548B1884.6090005@xs4all.nl>
-Date: Fri, 12 Dec 2014 17:32:04 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:63811 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753705AbaLAPl3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 10:41:29 -0500
+Received: by mail-wg0-f52.google.com with SMTP id a1so14547588wgh.39
+        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 07:41:27 -0800 (PST)
+Date: Mon, 1 Dec 2014 16:41:56 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, marbugge@cisco.com,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] hdmi: added unpack and logging functions for
+ InfoFrames
+Message-ID: <20141201154156.GU32117@phenom.ffwll.local>
+References: <1417186251-6542-1-git-send-email-hverkuil@xs4all.nl>
+ <1417186251-6542-3-git-send-email-hverkuil@xs4all.nl>
+ <20141201131507.GB11763@ulmo.nvidia.com>
+ <547C71BF.4040907@xs4all.nl>
+ <20141201153329.GC11943@ulmo.nvidia.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Shuah Khan <shuahkh@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [REVIEW] au0828-video.c
-References: <548AC061.3050700@xs4all.nl>	<20141212104942.0ea3c1d7@recife.lan>	<548AE5B2.1070306@xs4all.nl>	<20141212111424.0595125b@recife.lan>	<548B092F.2090803@osg.samsung.com>	<548B09A5.80506@xs4all.nl> <CAGoCfiw1pdJGGfG5Gs-3Jf2e48buzwEA1O3+j-E+2Pjj657eEQ@mail.gmail.com>
-In-Reply-To: <CAGoCfiw1pdJGGfG5Gs-3Jf2e48buzwEA1O3+j-E+2Pjj657eEQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20141201153329.GC11943@ulmo.nvidia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/12/2014 04:52 PM, Devin Heitmueller wrote:
->> No, tvtime no longer hangs if no frames arrive, so there is no need for
->> this timeout handling. I'd strip it out, which can be done in a separate
->> patch.
+On Mon, Dec 01, 2014 at 04:33:31PM +0100, Thierry Reding wrote:
+> On Mon, Dec 01, 2014 at 02:48:47PM +0100, Hans Verkuil wrote:
+> > Hi Thierry,
+> > 
+> > Thanks for the review, see my comments below.
+> > 
+> > On 12/01/2014 02:15 PM, Thierry Reding wrote:
+> > > On Fri, Nov 28, 2014 at 03:50:50PM +0100, Hans Verkuil wrote:
+> [...]
+> > >> +{
+> > >> +	switch (type) {
+> > >> +	case HDMI_INFOFRAME_TYPE_VENDOR: return "Vendor";
+> > >> +	case HDMI_INFOFRAME_TYPE_AVI: return "Auxiliary Video Information (AVI)";
+> > >> +	case HDMI_INFOFRAME_TYPE_SPD: return "Source Product Description (SPD)";
+> > >> +	case HDMI_INFOFRAME_TYPE_AUDIO: return "Audio";
+> > > 
+> > > I'd prefer "case ...:" and "return ...;" on separate lines for
+> > > readability.
+> > 
+> > I actually think that makes it *less* readable. If you really want that, then I'll
+> > change it, but I would suggest that you try it yourself first to see if it is
+> > really more readable for you. It isn't for me, so I'll keep this for the next
+> > version.
 > 
-> Did you actually try it?
+> I did, and I still think separate lines are more readable, especially if
+> you throw in a blank line after the "return ...;". Anyway, I could keep
+> my OCD in check if it weren't for the fact that half of these are the
+> cause for checkpatch to complain. And then if you change the ones that
+> checkpatch wants you to change, all the others would be inconsistent and
+> then I'd complain about the inconsistency...
 
-Mauro tried it, not me. I'm not sure if he looked at whether the user
-interface is blocked when waiting for a frame.
+Throwing in my own unasked-for bikshed opinion ;-)
 
-> Do you have some patches to tvtime which
-> aren't upstream?
-> 
-> I wrote the comment in question (and added the associated code).  The
-> issue is that tvtime does *everything* in a single thread (except the
-> recent ALSA audio work), that includes servicing the video/vbi devices
-> as well as the user interface.  That thread blocks on a DQBUF ioctl
-> until data arrives, and thus if frames are not being delivered it will
-> hang the entire tvtime user interface.
-> 
-> Now you can certainly argue that is a bad design decision, but it's
-> been that way for 15+ years, so we can't break it now.  Hence why I
-> generate dummy frames on a timeout if the decoder isn't delivering
-> video.  Unfortunately the au8522 doesn't have a free running mode
-> (i.e. blue screen if no video), which is why most of the other devices
-> work fine (decoders by Conexant, NXP, Trident, etc all have such
-> functionality).
-> 
-> Don't get me wrong - I *hate* that I had to put that timer crap in the
-> driver, but it was necessary to be compatible with one of the most
-> popular applications out there.
-> 
-> In short, that code cannot be removed.
+I agree with Thierry that it's more readable since this way the key and
+the value can be lined up easily. That's also possible with the
+single-line case/return like you do with some more tabs, but usually means
+all the lines overflow the 80 limit badly. So only really works for small
+defines/values. So my rule of thumb is
+- go with single-line case/return and align them
+- but break the lines if they would be too long.
 
-Sure it can. I just tried tvtime and you are right, it blocks the GUI.
-But the fix is very easy as well. So now I've updated tvtime so that
-it timeouts and gives the GUI time to update itself.
+Now back to doing useful stuff for me.
 
-No more need for such an ugly hack in au0828. The au0828 isn't the only
-driver that can block, others do as well. Admittedly, they aren't very
-common, but they do exist. So it is much better to fix the application
-than adding application workarounds in the kernel.
-
-Regards,
-
-	Hans
+Cheers, Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
