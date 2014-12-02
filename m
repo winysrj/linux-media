@@ -1,122 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43466 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758549AbaLLCNH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Dec 2014 21:13:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	m.chehab@samsung.com, linux-arm-kernel@lists.infradead.org,
-	s.nawrocki@samsung.com, festevam@gmail.com,
-	devicetree@vger.kernel.org
-Subject: Re: [v3][PATCH 4/5] media: ov2640: add a master clock for sensor
-Date: Fri, 12 Dec 2014 04:13:54 +0200
-Message-ID: <2368220.9kzqcjNO4y@avalon>
-In-Reply-To: <1418283339-16281-5-git-send-email-josh.wu@atmel.com>
-References: <1418283339-16281-1-git-send-email-josh.wu@atmel.com> <1418283339-16281-5-git-send-email-josh.wu@atmel.com>
+Received: from mail.southpole.se ([37.247.8.11]:33359 "EHLO mail.southpole.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932079AbaLBLwa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Dec 2014 06:52:30 -0500
+Message-ID: <547DA7EF.50600@southpole.se>
+Date: Tue, 02 Dec 2014 12:52:15 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Antti Palosaari <crope@iki.fi>, Akihiro TSUKADA <tskd08@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Random memory corruption of fe[1]->dvb pointer
+References: <547BAC79.50702@southpole.se> <547CF9FC.5010101@southpole.se> <547D8AA0.4000403@gmail.com> <547D8E1A.5050307@iki.fi> <547D976D.2040205@southpole.se> <547D9B92.8060900@iki.fi>
+In-Reply-To: <547D9B92.8060900@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+On 2014-12-02 11:59, Antti Palosaari wrote:
+> [...]
+>> So the solution is to change rtl2832.c to the I2C model? And does this
+>> issue only affect the mn8847x drivers ?
+>
+> It likely affects some other dvb-usb-v2 drivers too. But not af9035 as 
+> I fixed it initially there I think.
+>
+>> If this is the case would a patch that does not free the buffer but
+>> leaks the memory be ok ? I can add a todo item and log it in syslog.
+>> That would for sure be better then crashing the subsystem and the driver
+>> is still in staging for a reason.
+>
+> Maybe yes, but it does not sound absolute any good. I think you will 
+> need to set FE pointer NULL after driver is removed.
 
-Thank you for the patch.
+It is NULL now, that is why it is crashing, or the current code leads to 
+random corruptions.
 
-On Thursday 11 December 2014 15:35:38 Josh Wu wrote:
-> The master clock (xvclk) is mandatory. It's a common clock framework clock.
-> It can make sensor output a pixel clock to the camera interface.
-> 
-> Cc: devicetree@vger.kernel.org
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> Then unregister frontend will not call members of that struct anymore, 
+> but leak memory?
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Well any solution that does not randomly crash the kernel when unloading 
+the module is fine by me. My suggestion is to leak the memory and put a 
+note about it in syslog. But I guess there are only a handful of users 
+of this driver so maybe leave it as it is right now? It must be fixed 
+anyway before the driver is moved out of staging.
 
-> ---
-> v2 -> v3:
->   1. should return PTR_ERR().
-> 
-> v1 -> v2:
->   1. change the clock's name.
->   2. Make the clock is mandatory.
-> 
->  drivers/media/i2c/soc_camera/ov2640.c | 23 ++++++++++++++++++++++-
->  1 file changed, 22 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov2640.c
-> b/drivers/media/i2c/soc_camera/ov2640.c index e0bcf5b..055702c 100644
-> --- a/drivers/media/i2c/soc_camera/ov2640.c
-> +++ b/drivers/media/i2c/soc_camera/ov2640.c
-> @@ -13,6 +13,7 @@
->   * published by the Free Software Foundation.
->   */
-> 
-> +#include <linux/clk.h>
->  #include <linux/init.h>
->  #include <linux/module.h>
->  #include <linux/i2c.h>
-> @@ -31,6 +32,7 @@
-> 
->  #define VAL_SET(x, mask, rshift, lshift)  \
->  		((((x) >> rshift) & mask) << lshift)
-> +
->  /*
->   * DSP registers
->   * register offset for BANK_SEL == BANK_SEL_DSP
-> @@ -284,6 +286,7 @@ struct ov2640_priv {
->  	struct v4l2_ctrl_handler	hdl;
->  	u32	cfmt_code;
->  	struct v4l2_clk			*clk;
-> +	struct clk			*master_clk;
->  	const struct ov2640_win_size	*win;
-> 
->  	struct soc_camera_subdev_desc	ssdd_dt;
-> @@ -746,6 +749,7 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int
-> on) struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> struct ov2640_priv *priv = to_ov2640(client);
->  	struct v4l2_clk *clk;
-> +	int ret;
-> 
->  	if (!priv->clk) {
->  		clk = v4l2_clk_get(&client->dev, "mclk");
-> @@ -755,7 +759,20 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int
-> on) priv->clk = clk;
->  	}
-> 
-> -	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-> +	if (on) {
-> +		ret = clk_prepare_enable(priv->master_clk);
-> +		if (ret)
-> +			return ret;
-> +	} else {
-> +		clk_disable_unprepare(priv->master_clk);
-> +	}
-> +
-> +	ret = soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-> +
-> +	if (ret && on)
-> +		clk_disable_unprepare(priv->master_clk);
-> +
-> +	return ret;
->  }
-> 
->  /* Select the nearest higher resolution for capture */
-> @@ -1145,6 +1162,10 @@ static int ov2640_probe(struct i2c_client *client,
->  			return ret;
->  	}
-> 
-> +	priv->master_clk = devm_clk_get(&client->dev, "xvclk");
-> +	if (IS_ERR(priv->master_clk))
-> +		return PTR_ERR(priv->master_clk);
-> +
->  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
->  	v4l2_ctrl_handler_init(&priv->hdl, 2);
->  	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+>
+> regards
+> Antti
+>
 
--- 
-Regards,
-
-Laurent Pinchart
-
+MvH
+Benjamin Larsson
