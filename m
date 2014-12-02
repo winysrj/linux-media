@@ -1,39 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:38202 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750871AbaLOVLR (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51587 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753924AbaLBPk4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 16:11:17 -0500
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+	Tue, 2 Dec 2014 10:40:56 -0500
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1F9EE2A0092
+	for <linux-media@vger.kernel.org>; Tue,  2 Dec 2014 16:40:36 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Arun Kumar K <arun.kk@samsung.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: [PATCH 0/3] Various fixes for s5p-mfc driver
-Date: Mon, 15 Dec 2014 16:10:56 -0500
-Message-Id: <1418677859-31440-1-git-send-email-nicolas.dufresne@collabora.com>
+Subject: [PATCH 0/3] Deprecate drivers
+Date: Tue,  2 Dec 2014 16:40:30 +0100
+Message-Id: <1417534833-46844-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset fixes ability to drain the decoder due to use of wrong
-enumeration name and fixes implementation of display delay controls
-for MFC firmware v6 and higher.
+This patch series deprecates the vino/saa7191 video driver (ancient SGI Indy
+computer), the parallel port webcams bw-qcam, c-qcam and w9966, the ISA
+video capture driver pms and the USB video capture tlg2300 driver.
 
-Note that there is no need in the display delay fix for trying to be
-backward compatible with what the comment was saying since the control
-properties was preventing it. There was basically no way other then
-setting a large delay value to get the frames in display order.
+Hardware for these devices is next to impossible to obtain, these drivers
+haven't seen any development in ages, they often use deprecated APIs and
+without hardware that's very difficult to port. And cheap alternative
+products are easily available today.
 
-Nicolas Dufresne (3):
-  s5p-mfc-v6+: Use display_delay_enable CID
-  s5p-mfc-dec: Don't use encoder stop command
-  media-doc: Fix MFC display delay control doc
+So move these drivers to staging for 3.19 and plan on removing them in 3.20.
 
- Documentation/DocBook/media/v4l/controls.xml    | 11 +++++------
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  6 +-----
- 3 files changed, 7 insertions(+), 12 deletions(-)
+Regards,
 
--- 
-2.1.0
+	Hans
 
