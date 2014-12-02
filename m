@@ -1,69 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33252 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:44600 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998AbaLNI3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Dec 2014 03:29:49 -0500
+	id S1751591AbaLBK7c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Dec 2014 05:59:32 -0500
+Message-ID: <547D9B92.8060900@iki.fi>
+Date: Tue, 02 Dec 2014 12:59:30 +0200
 From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 12/18] rtl2830: wrap DVBv5 signal strength to DVBv3
-Date: Sun, 14 Dec 2014 10:28:37 +0200
-Message-Id: <1418545723-9536-12-git-send-email-crope@iki.fi>
-In-Reply-To: <1418545723-9536-1-git-send-email-crope@iki.fi>
-References: <1418545723-9536-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+To: Benjamin Larsson <benjamin@southpole.se>,
+	Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Random memory corruption of fe[1]->dvb pointer
+References: <547BAC79.50702@southpole.se> <547CF9FC.5010101@southpole.se> <547D8AA0.4000403@gmail.com> <547D8E1A.5050307@iki.fi> <547D976D.2040205@southpole.se>
+In-Reply-To: <547D976D.2040205@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change legacy DVBv3 signal strength to return values calculated by
-DVBv5 statistics.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2830.c | 27 ++++-----------------------
- 1 file changed, 4 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index 147b3a6..a02ccdf 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -623,33 +623,14 @@ static int rtl2830_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- 
- static int rtl2830_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- {
--	struct i2c_client *client = fe->demodulator_priv;
--	struct rtl2830_dev *dev = i2c_get_clientdata(client);
--	int ret;
--	u8 buf[2];
--	u16 if_agc_raw, if_agc;
--
--	if (dev->sleeping)
--		return 0;
--
--	ret = rtl2830_rd_regs(client, 0x359, buf, 2);
--	if (ret)
--		goto err;
--
--	if_agc_raw = (buf[0] << 8 | buf[1]) & 0x3fff;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 
--	if (if_agc_raw & (1 << 9))
--		if_agc = -(~(if_agc_raw - 1) & 0x1ff);
-+	if (c->strength.stat[0].scale == FE_SCALE_RELATIVE)
-+		*strength = c->strength.stat[0].uvalue;
- 	else
--		if_agc = if_agc_raw;
--
--	*strength = (u8)(55 - if_agc / 182);
--	*strength |= *strength << 8;
-+		*strength = 0;
- 
- 	return 0;
--err:
--	dev_dbg(&client->dev, "failed=%d\n", ret);
--	return ret;
- }
- 
- static struct dvb_frontend_ops rtl2830_ops = {
+On 12/02/2014 12:41 PM, Benjamin Larsson wrote:
+> On 2014-12-02 11:02, Antti Palosaari wrote:
+>>
+>>
+>> On 12/02/2014 11:47 AM, Akihiro TSUKADA wrote:
+>>>> So at first it would be nice if someone could confirm my findings.
+>>>> Applying the same kind of code like my patch and unplug something that
+>>>> uses the affected frontend should be enough.
+>>>
+>>> I tried that for tc90522, and I could remove earth-pt3
+>>> (which uses tc90522), tc90522 and tuner modules without any problem,
+>>> although earth-pt3 is a pci driver and does not use dvb-usb-v2.
+>>>
+>>>> From your log(?) output,
+>>> I guess that rtl28xxu_exit() removed the attached demod module
+>>> (mn88472) and thus free'ed fe BEFORE calling dvb_usbv2_exit(),
+>>> from where dvb_unregister_frontend(fe) is called.
+>>> I think that the demod i2c device is removed automatically by
+>>> dvb_usbv2_i2c_exit() in dvb_usbv2_exit(), if you registered
+>>> the demod i2c device, and your adapter/bridge driver
+>>> should not try to remove it.
+>>
+>> Yes. You must unregister frontend before you remove driver. I have
+>> already added new callbacks detach tuner and frontend to avoid that,
+>> but there was yet again new issue as it removes rtl2832 demod driver
+>> first and mn88472 slave demod was put to i2c bus / adapter which is
+>> owned by rtl2832. So it will crash too. Solution is to convert rtl2832
+>> to I2C binding (or convert mn88472 legacy DVB binding (which I don't
+>> allow :)). When rtl2832 driver is converted to I2C model it is not
+>> unloaded automatically and you could remove those in a correct order.
+>>
+>> But hey, mn88472 is still on staging :D
+>>
+>> regards
+>> Antti
+>>
+>
+> So the solution is to change rtl2832.c to the I2C model? And does this
+> issue only affect the mn8847x drivers ?
+
+It likely affects some other dvb-usb-v2 drivers too. But not af9035 as I 
+fixed it initially there I think.
+
+> If this is the case would a patch that does not free the buffer but
+> leaks the memory be ok ? I can add a todo item and log it in syslog.
+> That would for sure be better then crashing the subsystem and the driver
+> is still in staging for a reason.
+
+Maybe yes, but it does not sound absolute any good. I think you will 
+need to set FE pointer NULL after driver is removed. Then unregister 
+frontend will not call members of that struct anymore, but leak memory?
+
+regards
+Antti
+
 -- 
 http://palosaari.fi/
-
