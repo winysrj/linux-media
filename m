@@ -1,81 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:53674 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751165AbaLSVCa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 16:02:30 -0500
-Date: Fri, 19 Dec 2014 22:02:28 +0100
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: nicolas.ferre@atmel.com, voice.shen@atmel.com,
-	plagnioj@jcrosoft.com, boris.brezillon@free-electrons.com,
-	devicetree@vger.kernel.org, robh+dt@kernel.org,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 4/7] ARM: at91: dts: sama5d3: move the isi mck pin to mb
-Message-ID: <20141219210228.GB4885@piout.net>
-References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
- <1418892667-27428-5-git-send-email-josh.wu@atmel.com>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:60986 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932845AbaLBHsH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Dec 2014 02:48:07 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1418892667-27428-5-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <547D69C2.20503@xs4all.nl>
+References: <1416791411-9731-1-git-send-email-prabhakar.csengg@gmail.com>
+ <547C3ED3.1060205@xs4all.nl> <CA+V-a8vDGvSeSU9-EYx+U6j++WJWY7_59b2t9drqCCkPqR93mg@mail.gmail.com>
+ <547D69C2.20503@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 2 Dec 2014 07:47:34 +0000
+Message-ID: <CA+V-a8s1nX3TktixTvqzgzGfAFxmmV=ZTOTV_8LfEMsKy6mDnA@mail.gmail.com>
+Subject: Re: [PATCH] media: platform: add VPFE capture driver support for AM437X
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	linux-api <linux-api@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18/12/2014 at 16:51:04 +0800, Josh Wu wrote :
-> From: Bo Shen <voice.shen@atmel.com>
-> 
-> The mck is decided by the board design, move it to mb related
-> dtsi file.
-> 
-> Signed-off-by: Bo Shen <voice.shen@atmel.com>
-> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Hi Hans,
 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
->  arch/arm/boot/dts/sama5d3.dtsi    | 5 -----
->  arch/arm/boot/dts/sama5d3xmb.dtsi | 5 +++++
->  2 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
-> index b3ac156..ed734e9 100644
-> --- a/arch/arm/boot/dts/sama5d3.dtsi
-> +++ b/arch/arm/boot/dts/sama5d3.dtsi
-> @@ -573,11 +573,6 @@
->  							<AT91_PIOC 27 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PC27 periph C ISI_PD10, conflicts with SPI1_NPCS2, TWCK1 */
->  							 AT91_PIOC 26 AT91_PERIPH_C AT91_PINCTRL_NONE>;	/* PC26 periph C ISI_PD11, conflicts with SPI1_NPCS1, TWD1 */
->  					};
-> -
-> -					pinctrl_isi_pck_as_mck: isi_pck_as_mck-0 {
-> -						atmel,pins =
-> -							<AT91_PIOD 31 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD31 periph B ISI_MCK */
-> -					};
->  				};
->  
->  				mmc0 {
-> diff --git a/arch/arm/boot/dts/sama5d3xmb.dtsi b/arch/arm/boot/dts/sama5d3xmb.dtsi
-> index 2530541..6af1cba 100644
-> --- a/arch/arm/boot/dts/sama5d3xmb.dtsi
-> +++ b/arch/arm/boot/dts/sama5d3xmb.dtsi
-> @@ -117,6 +117,11 @@
->  							<AT91_PIOD 30 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD30 periph B */
->  					};
->  
-> +					pinctrl_isi_pck_as_mck: isi_pck_as_mck-0 {
-> +						atmel,pins =
-> +							<AT91_PIOD 31 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD31 periph B ISI_MCK */
-> +					};
-> +
->  					pinctrl_isi_reset: isi_reset-0 {
->  						atmel,pins =
->  							<AT91_PIOE 24 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;   /* PE24 gpio */
-> -- 
-> 1.9.1
-> 
+On Tue, Dec 2, 2014 at 7:26 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 12/01/2014 11:17 PM, Prabhakar Lad wrote:
+>> Hi Hans,
+>>
+>> Thanks for the review.
+>>
+>> On Mon, Dec 1, 2014 at 10:11 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> Hi all,
+>>>
+>>> Thanks for the patch, review comments are below.
+>>>
+>>> For the next version I would appreciate if someone can test this driver with
+>>> the latest v4l2-compliance from the v4l-utils git repo. If possible test streaming
+>>> as well (v4l2-compliance -s), ideally with both a sensor and a STD receiver input.
+>>> But that depends on the available hardware of course.
+>>>
+>>> I'd like to see the v4l2-compliance output. It's always good to have that on
+>>> record.
+>>>
+>> Following is the compliance output, missed it post it along with patch:
+>>
+>> root@am437x-evm:~# ./v4l2-compliance -s -i 0 -v
+>> Driver Info:
+>>         Driver name   : vpfe
+>>         Card type     :[   70.363908] vpfe 48326000.vpfe:
+>> =================  START STATUS  =================
+>>  TI AM437x VPFE
+>>         Bus info      : platform:vpfe [   70.375576] vpfe
+>> 48326000.vpfe: ==================  END STATUS  ==================
+>> 48326000.vpfe
+>>         Driver version: 3.18.0
+>>         Capabil[   70.388485] vpfe 48326000.vpfe: invalid input index: 1
+>> ities  : 0x85200001
+>>                 Video Capture
+>>                 Read/Write
+>>                 Streaming
+>>                 Extended Pix Format
+>>                 Device Capabilities
+>>         Device Caps   : 0x05200001
+>>                 Video Capture
+>>                 Read/Write
+>>                 Streaming
+>>                 Extended Pix Format
+>>
+>> Compliance test for device /dev/video0 (not using libv4l2):
+>>
+>> Required ioctls:
+>>         test VIDIOC_QUERYCAP: OK
+>>
+>> Allow for multiple opens:
+>>         test second video open: OK
+>>         test VIDIOC_QUERYCAP: OK
+>>         test VIDIOC_G/S_PRIORITY: OK
+>>
+>> Debug ioctls:
+>>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>>         test VIDIOC_LOG_STATUS: OK
+>>
+>> Input ioctls:
+>>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>>         test VIDIOC_G/S/ENUMINPUT: OK
+>>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>>         Inputs: 1 Audio Inputs: 0 Tuners: 0
+>>
+>> Output ioctls:
+>>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+>>
+>> Input/Output configuration ioctls:
+>>         test VIDIOC_ENUM/G/S/QUERY_STD: OK
+>>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>>         test VIDIOC_G/S_EDID: OK (Not Supported)
+>>
+>> Test input 0:
+>>
+>>         Control ioctls:
+>>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+>>                 test VIDIOC_QUERYCTRL: OK (Not Supported)
+>>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+>>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+>>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+>>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>>                 Standard Controls: 0 Private Controls: 0
+>>
+>>         Format ioctls:
+>>                 info: found 7 framesizes for pixel format 56595559
+>>                 info: found 7 framesizes for pixel format 59565955
+>>                 info: found 7 framesizes for pixel format 52424752
+>>                 info: found 7 framesizes for pixel format 31384142
+>>                 info: found 4 formats for buftype 1
+>>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>>                 test VIDIOC_G/S_PARM: OK
+>>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>>                 test VIDIOC_G_FMT: OK
+>>                 test VIDIOC_TRY_FMT: OK
+>>                 info: Global format check succeeded for type 1
+>>                 test VIDIOC_S_FMT: OK
+>>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>>
+>>         Codec ioctls:
+>>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>>
+>>         Buffer ioctls:
+>>                 info: test buftype Video Capture
+>>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>                 test VIDIOC_EXPBUF: OK
+>>
+>> Streaming ioctls:
+>>         test read/write: OK
+>>             Video Capture:
+>>                 Buffer: 0 Sequence: 0 Field: None Timestamp: 74.956437s
+>>                 Buffer: 1 Sequence: 0 Field: None Timestamp: 74.979310s
+>>                 Buffer: 2 Sequence: 0 Field: None Timestamp: 75.002191s
+>>                 Buffer: 3 Sequence: 0 Field: None Timestamp: 75.208114s
+>>                 Buffer: 0 Sequence: 0 Field: None Timestamp: 75.230998s
+>
+> Hmm, sequence is always 0. Is the sequence field set? And why doesn't
+> v4l2-compliance fail on this?
+>
+>>                 Buffer: 1 Sequence: 0 Field: None Timestamp: 75.253877s
+>
+> <snip>
+>
+>>         test MMAP: OK
+>>         test USERPTR: OK (Not Supported)
+>>         test DMABUF: Cannot test, specify --expbuf-device
+>>
+>> Total: 42, Succeeded: 42, Failed: 0, Warnings: 0
+>>>
+>> [Snip]
+>
+>>>> +static int vpfe_enum_fmt(struct file *file, void  *priv,
+>>>> +                      struct v4l2_fmtdesc *f)
+>>>> +{
+>>>> +     struct vpfe_device *vpfe = video_drvdata(file);
+>>>> +     struct v4l2_subdev_mbus_code_enum mbus_code;
+>>>> +     struct vpfe_subdev_info *sdinfo;
+>>>> +     struct vpfe_fmt *fmt;
+>>>> +     int ret;
+>>>> +
+>>>> +     vpfe_dbg(2, vpfe, "vpfe_enum_format index:%d\n",
+>>>> +             f->index);
+>>>> +
+>>>> +     sdinfo = vpfe->current_subdev;
+>>>> +     if (!sdinfo->sd)
+>>>> +             return -EINVAL;
+>>>> +
+>>>> +     mbus_code.index = f->index;
+>>>> +     ret = v4l2_subdev_call(sdinfo->sd, pad, enum_mbus_code,
+>>>> +                            NULL, &mbus_code);
+>>>> +     if (ret)
+>>>> +             return -EINVAL;
+>>>> +
+>>>> +     /* convert mbus_format to v4l2_format */
+>>>> +     fmt = find_format_by_code(mbus_code.code);
+>>>> +     if (!fmt) {
+>>>> +             vpfe_err(vpfe, "mbus code 0x%08x not found\n",
+>>>> +                     mbus_code.code);
+>>>> +             return -EINVAL;
+>>>> +     }
+>>>
+>>> Hmm. If a subdev supports more media bus codes then are supported by this
+>>> driver, then the enumeration will stop as soon as such an unsupported code
+>>> is found.
+>>>
+>>> What you want to do here is enumerate over the pixelformats that are supported
+>>> by both this driver and the subdev. It is probably something you want to
+>>> determine at the time the subdev is loaded and just mark unsupported formats
+>>> at that time so that they can be skipped here.
+>>>
+>> So probably populate the supported pixelformats in s_input call ,
+>> by calling enm_mbus_code ?
+>
+> I would do this during driver initialization, it's a one time thing that can
+> be done there.
+>
+OK will do it when subdev is registered.
 
--- 
-Alexandre Belloni, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+Thanks,
+--Prabhakar Lad
