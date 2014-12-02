@@ -1,115 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35870 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752834AbaLUDn1 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40992 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754454AbaLBHpx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 22:43:27 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E5BAD2A0081
-	for <linux-media@vger.kernel.org>; Sun, 21 Dec 2014 04:43:06 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20141221034306.E5BAD2A0081@tschai.lan>
-Date: Sun, 21 Dec 2014 04:43:06 +0100 (CET)
+	Tue, 2 Dec 2014 02:45:53 -0500
+Message-ID: <547D6E20.7040406@xs4all.nl>
+Date: Tue, 02 Dec 2014 08:45:36 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API
+ for v4l2_subdev_get_try_*()
+References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com> <1680188.7K1XCBdsCk@avalon> <CA+V-a8uaw2X_a3rfx0=avbuGnUdbqveMvJaU25hewzv9eAA8+Q@mail.gmail.com> <1429705.acTXlHE2TG@avalon>
+In-Reply-To: <1429705.acTXlHE2TG@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 12/02/2014 12:26 AM, Laurent Pinchart wrote:
+> Hi Prabhakar,
+> 
+> On Sunday 30 November 2014 21:30:35 Prabhakar Lad wrote:
+>> On Sun, Nov 30, 2014 at 9:16 PM, Laurent Pinchart wrote:
+>>> On Sunday 30 November 2014 21:05:50 Prabhakar Lad wrote:
+>>>> On Sat, Nov 29, 2014 at 7:12 PM, Laurent Pinchart wrote:
+>>>>> Hi Prabhakar,
+>>>>
+>>>> [Snip]
+>>>>
+>>>>>>> Sure. That's a better choice than removing the config option
+>>>>>>> dependency of the fields struct v4l2_subdev.
+>>>>>
+>>>>> Decoupling CONFIG_VIDEO_V4L2_SUBDEV_API from the availability of the
+>>>>> in-kernel pad format and selection rectangles helpers is definitely a
+>>>>> good idea. I was thinking about decoupling the try format and
+>>>>> rectangles from v4l2_subdev_fh by creating a kind of configuration store
+>>>>> structure to store them, and embedding that structure in v4l2_subdev_fh.
+>>>>> The pad-level operations would then take a pointer to the configuration
+>>>>> store instead of the v4l2_subdev_fh. Bridge drivers that want to
+>>>>> implement TRY_FMT based on pad-level operations would create a
+>>>>> configuration store, use the pad-level operations, and destroy the
+>>>>> configuration store. The userspace subdev API would use the
+>>>>> configuration store from the file handle.
+>>>>
+>>>> are planning to work/post any time soon ? Or are you OK with suggestion
+>>>> from Hans ?
+>>>
+>>> I have no plan to work on that myself now, I was hoping you could
+>>> implement it ;-)
+>>
+>> OK will implement it.
+>>
+>> Can you please elaborate a more on this "The userspace subdev API would use
+>> the configuration store from the file handle."
+> 
+> Basically,
+> 
+> 1. Create a subdev pad configuration store structure to store the formats and 
+> selection rectangles for each pad.
 
-Results of the daily build of media_tree:
+I wouldn't call it a 'store'. Just call it fmt_config or pad_config something like
+that.
 
-date:		Sun Dec 21 04:00:16 CET 2014
-git branch:	test
-git hash:	427ae153c65ad7a08288d86baf99000569627d03
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+> 
+> 2. Embed an instance of that structure in v4l2_subdev_fh.
+> 
+> 3. Modify the subdev pad ops to take a configuration store pointer instead of 
+> a file handle pointer.
+> 
+> The userspace API implementation (v4l2-subdev.c) would then pass &fh->store to 
+> the pad operations instead of fh.
+> 
+> Bridge drivers that need to implement TRY_FMT on top of pad ops would create a 
+> temporary store (or temporary stores when multiple subsdevs are involved), 
+> call the pad ops with a pointer to the temporary store to propagate TRY 
+> formats, destroy the store(s) and return the resulting format.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+That will work. I think this is a good approach and it shouldn't be too difficult.
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
