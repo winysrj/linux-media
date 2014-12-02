@@ -1,61 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:52839 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751623AbaLXM4r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Dec 2014 07:56:47 -0500
-Message-ID: <549AB806.5030109@xs4all.nl>
-Date: Wed, 24 Dec 2014 13:56:38 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: sadegh abbasi <sadegh612000@yahoo.co.uk>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Looking for a suitable framework for my driver
-References: <262680468.1060510.1419425058997.JavaMail.yahoo@jws11159.mail.ir2.yahoo.com>
-In-Reply-To: <262680468.1060510.1419425058997.JavaMail.yahoo@jws11159.mail.ir2.yahoo.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:50942 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932203AbaLBOcF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Dec 2014 09:32:05 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Benjamin Larsson <benjamin@southpole.se>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/3] rtl28xxu: switch rtl2832 demod attach to I2C binding
+Date: Tue,  2 Dec 2014 16:31:22 +0200
+Message-Id: <1417530683-5063-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1417530683-5063-1-git-send-email-crope@iki.fi>
+References: <1417530683-5063-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+As rtl2832 driver support now I2C binding we will switch to that one.
 
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 29 ++++++++++++++++++++++++++---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  1 +
+ 2 files changed, 27 insertions(+), 3 deletions(-)
 
-On 12/24/2014 01:44 PM, sadegh abbasi wrote:
-> Hello everybody,
-> 
-> I need to write a driver for a video-in device and need
-> to choose the best framework for it. I think V4L2 can be used but would like to
-> know if any more suitable framework exists. Also if there is an existing similar
-> driver under linux that you are aware of please let me know. The idea is not to
-> waste people's time with the wrong approach or wrong subsystem.
-> Here is a brief description of the hardware capabilities:
-> 1. It captures digital video input and writes it to memory after optional colour space conversion (CSC) and scaling. 
-> 2. It supports DVI/HDMI inputs, providing 20/24/30/48-bit RGB/YCbCr, and running at up to 1600x1280x75Hz.
-> 3. It supports  frame sizes up to UHD 4096x2304, interlaced and progressive video, and range of RGB and YCbCr formats
-> for input and output.
-> 4. Both packed and planar formats are supported. The supported output  formats are as follows.
-> 
-> 444 YUV101010; 422 UYVY10101010; PL12Y10/422PL12UV10; PL12Y10/420PL12UV10; PL12Y8/422PL12UV8; PL12Y8/420PL12UV8; RGB121212.5. The CSC is applied to the RGB input performing a 3x3 Matrix multiply with
-> programmable coefficients and programmable input and output offsets.  It can also adjust brightness, contrast,
-> saturation and hue.
-> 6. It has its own MMU and DMA.
->  
-> Any suggestions is highly appreciated.
-> 
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 896a225..de8caf7 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -790,7 +790,10 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	int ret;
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct rtl28xxu_priv *priv = d_to_priv(d);
++	struct rtl2832_platform_data platform_data;
+ 	const struct rtl2832_config *rtl2832_config;
++	struct i2c_board_info board_info = {};
++	struct i2c_client *client;
+ 
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
+@@ -823,12 +826,26 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	}
+ 
+ 	/* attach demodulator */
+-	adap->fe[0] = dvb_attach(rtl2832_attach, rtl2832_config, &d->i2c_adap);
+-	if (!adap->fe[0]) {
++	platform_data.config = rtl2832_config;
++	platform_data.dvb_frontend = &adap->fe[0];
++	strlcpy(board_info.type, "rtl2832", I2C_NAME_SIZE);
++	board_info.addr = 0x10;
++	board_info.platform_data = &platform_data;
++	request_module("%s", board_info.type);
++	client = i2c_new_device(&d->i2c_adap, &board_info);
++	if (client == NULL || client->dev.driver == NULL) {
++		ret = -ENODEV;
++		goto err;
++	}
++
++	if (!try_module_get(client->dev.driver->owner)) {
++		i2c_unregister_device(client);
+ 		ret = -ENODEV;
+ 		goto err;
+ 	}
+ 
++	priv->i2c_client_demod = client;
++
+ 	/* RTL2832 I2C repeater */
+ 	priv->demod_i2c_adapter = rtl2832_get_i2c_adapter(adap->fe[0]);
+ 
+@@ -837,7 +854,6 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 
+ 	if (priv->slave_demod) {
+ 		struct i2c_board_info info = {};
+-		struct i2c_client *client;
+ 
+ 		/*
+ 		 * We continue on reduced mode, without DVB-T2/C, using master
+@@ -1189,6 +1205,13 @@ static void rtl28xxu_exit(struct dvb_usb_device *d)
+ 		i2c_unregister_device(client);
+ 	}
+ 
++	/* remove I2C demod */
++	client = priv->i2c_client_demod;
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++
+ 	return;
+ }
+ 
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+index 3e3ea9d..e52a2b7 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+@@ -57,6 +57,7 @@ struct rtl28xxu_priv {
+ 	u8 page; /* integrated demod active register page */
+ 	struct i2c_adapter *demod_i2c_adapter;
+ 	bool rc_active;
++	struct i2c_client *i2c_client_demod;
+ 	struct i2c_client *i2c_client_tuner;
+ 	struct i2c_client *i2c_client_slave_demod;
+ 	#define SLAVE_DEMOD_NONE           0
+-- 
+http://palosaari.fi/
 
-V4L2 is the right and only framework for this.
-
-The vivid driver emulates an HDMI input, so that's not a bad place to start.
-
-Another template to use is Documentation/video4linux/v4l2-pci-skeleton.c.
-
-You might have to make some additions to the framework to support deep color
-formats (nobody needed it until now), but that's trivial and we can help with
-that.
-
-There is also no support yet for programmable CSC coefficients, but work is in
-progress for that.
-
-Regards,
-
-	Hans
