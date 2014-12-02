@@ -1,114 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50820 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751932AbaLRLz6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 06:55:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	m.chehab@samsung.com, linux-arm-kernel@lists.infradead.org,
-	s.nawrocki@samsung.com, festevam@gmail.com,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 5/5] media: ov2640: dt: add the device tree binding document
-Date: Thu, 18 Dec 2014 13:56 +0200
-Message-ID: <2071990.alIc7byK3Q@avalon>
-In-Reply-To: <1418869646-17071-6-git-send-email-josh.wu@atmel.com>
-References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com> <1418869646-17071-6-git-send-email-josh.wu@atmel.com>
+Received: from tex.lwn.net ([70.33.254.29]:59974 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751424AbaLBOcy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Dec 2014 09:32:54 -0500
+Date: Tue, 2 Dec 2014 09:32:50 -0500
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Masanari Iida <standby24x7@gmail.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	Ricardo Ribalda <ricardo.ribalda@gmail.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kiran AVND <avnd.kiran@samsung.com>,
+	Amit Grover <amit.grover@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	James Hogan <james.hogan@imgtec.com>,
+	Antti =?UTF-8?B?U2VwcMOkbMOk?= <a.seppala@gmail.com>,
+	Antonio Ospite <ospite@studenti.unina.it>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Arun Kumar K <arun.kk@samsung.com>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH] [media] Documentation: cleanup whitespace at DocBook
+ files
+Message-ID: <20141202093250.5ce48514@lwn.net>
+In-Reply-To: <20141202121009.1f4f395b@recife.lan>
+References: <648a1c5b8d46891cc515f6b690c19a266f7a6fd8.1417526360.git.mchehab@osg.samsung.com>
+	<20141202085349.397c4091@lwn.net>
+	<20141202121009.1f4f395b@recife.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+On Tue, 2 Dec 2014 12:10:09 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
 
-Thank you for the patch.
+> It is probably better to send it via media, as it depends on another patch
+> that improves documentation for colorspaces.
 
-On Thursday 18 December 2014 10:27:26 Josh Wu wrote:
-> Add the document for ov2640 dt.
-> 
-> Cc: devicetree@vger.kernel.org
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+That's fine; feel free to put my ack on it if you want.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Thanks,
 
-> ---
-> v3 -> v4:
->   1. remove aggsigned-clocks as it's general.
->   2. refine the explation.
-> 
-> v2 -> v3:
->   1. fix incorrect description.
->   2. Add assigned-clocks & assigned-clock-rates.
->   3. resetb pin should be ACTIVE_LOW.
-> 
-> v1 -> v2:
->   1. change the compatible string to be consistent with verdor file.
->   2. change the clock and pins' name.
->   3. add missed pinctrl in example.
-> 
->  .../devicetree/bindings/media/i2c/ov2640.txt       | 46 +++++++++++++++++++
->  1 file changed, 46 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-> b/Documentation/devicetree/bindings/media/i2c/ov2640.txt new file mode
-> 100644
-> index 0000000..de11ebb
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-> @@ -0,0 +1,46 @@
-> +* Omnivision ov2640 CMOS sensor
-> +
-> +The Omnivision OV2640 sensor support multiple resolutions output, such as
-> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
-> +output format.
-> +
-> +Required Properties:
-> +- compatible: Must be "ovti,ov2640"
-> +- clocks: reference to the xvclk input clock.
-> +- clock-names: Must be "xvclk".
-> +
-> +Optional Properties:
-> +- resetb-gpios: reference to the GPIO connected to the resetb pin, if any.
-> +- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
-> +
-> +The device node must contain one 'port' child node for its digital output
-> +video port, in accordance with the video interface bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	i2c1: i2c@f0018000 {
-> +		ov2640: camera@0x30 {
-> +			compatible = "ovti,ov2640";
-> +			reg = <0x30>;
-> +
-> +			pinctrl-names = "default";
-> +			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn 
-&pinctrl_ov2640_resetb>;
-> +
-> +			resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
-> +			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
-> +
-> +			clocks = <&pck1>;
-> +			clock-names = "xvclk";
-> +
-> +			assigned-clocks = <&pck1>;
-> +			assigned-clock-rates = <25000000>;
-> +
-> +			port {
-> +				ov2640_0: endpoint {
-> +					remote-endpoint = <&isi_0>;
-> +					bus-width = <8>;
-> +				};
-> +			};
-> +		};
-> +	};
-
--- 
-Regards,
-
-Laurent Pinchart
-
+jon
