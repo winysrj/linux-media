@@ -1,36 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53707 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S967795AbaLLN24 (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56396 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754485AbaLBMJR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 08:28:56 -0500
-Date: Fri, 12 Dec 2014 15:28:24 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, prabhakar.csengg@gmail.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 3/8] v4l2-subdev: drop unused op enum_mbus_fmt
-Message-ID: <20141212132824.GZ15559@valkosipuli.retiisi.org.uk>
-References: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl>
- <1417686899-30149-4-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1417686899-30149-4-git-send-email-hverkuil@xs4all.nl>
+	Tue, 2 Dec 2014 07:09:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, dri-devel@lists.freedesktop.org,
+	thierry.reding@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 1/3] hdmi: add new HDMI 2.0 defines
+Date: Tue,  2 Dec 2014 13:08:44 +0100
+Message-Id: <1417522126-31771-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417522126-31771-1-git-send-email-hverkuil@xs4all.nl>
+References: <1417522126-31771-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 04, 2014 at 10:54:54AM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Weird, this op isn't used at all. Seems to be orphaned code.
-> Remove it.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Add new Video InfoFrame colorspace information introduced in HDMI 2.0
+and new Audio Coding Extension Types, also from HDMI 2.0.
 
+HDMI_CONTENT_TYPE_NONE was renamed to _GRAPHICS since that's what
+it is called in CEA-861-F.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Thierry Reding <treding@nvidia.com>
+---
+ include/linux/hdmi.h | 30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
+index 11c0182..a4aa0c2 100644
+--- a/include/linux/hdmi.h
++++ b/include/linux/hdmi.h
+@@ -37,12 +37,18 @@ enum hdmi_colorspace {
+ 	HDMI_COLORSPACE_RGB,
+ 	HDMI_COLORSPACE_YUV422,
+ 	HDMI_COLORSPACE_YUV444,
++	HDMI_COLORSPACE_YUV420,
++	HDMI_COLORSPACE_RESERVED4,
++	HDMI_COLORSPACE_RESERVED5,
++	HDMI_COLORSPACE_RESERVED6,
++	HDMI_COLORSPACE_IDO_DEFINED,
+ };
+ 
+ enum hdmi_scan_mode {
+ 	HDMI_SCAN_MODE_NONE,
+ 	HDMI_SCAN_MODE_OVERSCAN,
+ 	HDMI_SCAN_MODE_UNDERSCAN,
++	HDMI_SCAN_MODE_RESERVED,
+ };
+ 
+ enum hdmi_colorimetry {
+@@ -56,6 +62,7 @@ enum hdmi_picture_aspect {
+ 	HDMI_PICTURE_ASPECT_NONE,
+ 	HDMI_PICTURE_ASPECT_4_3,
+ 	HDMI_PICTURE_ASPECT_16_9,
++	HDMI_PICTURE_ASPECT_RESERVED,
+ };
+ 
+ enum hdmi_active_aspect {
+@@ -77,12 +84,18 @@ enum hdmi_extended_colorimetry {
+ 	HDMI_EXTENDED_COLORIMETRY_S_YCC_601,
+ 	HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601,
+ 	HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB,
++
++	/* The following EC values are only defined in CEA-861-F. */
++	HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM,
++	HDMI_EXTENDED_COLORIMETRY_BT2020,
++	HDMI_EXTENDED_COLORIMETRY_RESERVED,
+ };
+ 
+ enum hdmi_quantization_range {
+ 	HDMI_QUANTIZATION_RANGE_DEFAULT,
+ 	HDMI_QUANTIZATION_RANGE_LIMITED,
+ 	HDMI_QUANTIZATION_RANGE_FULL,
++	HDMI_QUANTIZATION_RANGE_RESERVED,
+ };
+ 
+ /* non-uniform picture scaling */
+@@ -99,7 +112,7 @@ enum hdmi_ycc_quantization_range {
+ };
+ 
+ enum hdmi_content_type {
+-	HDMI_CONTENT_TYPE_NONE,
++	HDMI_CONTENT_TYPE_GRAPHICS,
+ 	HDMI_CONTENT_TYPE_PHOTO,
+ 	HDMI_CONTENT_TYPE_CINEMA,
+ 	HDMI_CONTENT_TYPE_GAME,
+@@ -179,6 +192,7 @@ enum hdmi_audio_coding_type {
+ 	HDMI_AUDIO_CODING_TYPE_MLP,
+ 	HDMI_AUDIO_CODING_TYPE_DST,
+ 	HDMI_AUDIO_CODING_TYPE_WMA_PRO,
++	HDMI_AUDIO_CODING_TYPE_CXT,
+ };
+ 
+ enum hdmi_audio_sample_size {
+@@ -201,9 +215,23 @@ enum hdmi_audio_sample_frequency {
+ 
+ enum hdmi_audio_coding_type_ext {
+ 	HDMI_AUDIO_CODING_TYPE_EXT_STREAM,
++
++	/*
++	 * The next three CXT values are defined in CEA-861-E only.
++	 * They do not exist in older versions, and in CEA-861-F they are
++	 * defined as 'Not in use'.
++	 */
+ 	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC,
+ 	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC_V2,
+ 	HDMI_AUDIO_CODING_TYPE_EXT_MPEG_SURROUND,
++
++	/* The following CXT values are only defined in CEA-861-F. */
++	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC,
++	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_V2,
++	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC,
++	HDMI_AUDIO_CODING_TYPE_EXT_DRA,
++	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_SURROUND,
++	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC_SURROUND = 10,
+ };
+ 
+ struct hdmi_audio_infoframe {
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.3
+
