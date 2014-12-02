@@ -1,41 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:59459 "EHLO
-	mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751591AbaLBLXC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Dec 2014 06:23:02 -0500
-Received: by mail-oi0-f42.google.com with SMTP id v63so9012993oia.1
-        for <linux-media@vger.kernel.org>; Tue, 02 Dec 2014 03:23:01 -0800 (PST)
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50697 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750869AbaLBH1Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Dec 2014 02:27:16 -0500
+Message-ID: <547D69C2.20503@xs4all.nl>
+Date: Tue, 02 Dec 2014 08:26:58 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20141201105235.5cacf881@recife.lan>
-References: <CA+QJwyh2OupTtNJ89TWgyBZm0dhaHQ2Ax1XPDPjaFat-aTKsCA@mail.gmail.com>
-	<20141201072028.6466a2b3@recife.lan>
-	<CA+QJwyh-3YL1UCR7Q1d3jy8z49YM2yqNp_WmiD3zXLRzEuC-Uw@mail.gmail.com>
-	<20141201105235.5cacf881@recife.lan>
-Date: Tue, 2 Dec 2014 12:23:01 +0100
-Message-ID: <CA+QJwygCJgPkFhAWzKKRD0Y-MMazByGf4R1_HJ+S3gTWhjp+HQ@mail.gmail.com>
-Subject: Re: Kernel 3.17.0 broke xc4000-based DTV1800h
-From: =?UTF-8?B?SXN0dsOhbiwgVmFyZ2E=?= <istvan_v@mailbox.hu>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	linux-api <linux-api@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] media: platform: add VPFE capture driver support for
+ AM437X
+References: <1416791411-9731-1-git-send-email-prabhakar.csengg@gmail.com> <547C3ED3.1060205@xs4all.nl> <CA+V-a8vDGvSeSU9-EYx+U6j++WJWY7_59b2t9drqCCkPqR93mg@mail.gmail.com>
+In-Reply-To: <CA+V-a8vDGvSeSU9-EYx+U6j++WJWY7_59b2t9drqCCkPqR93mg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2014-12-01 13:52 GMT+01:00 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
-> Em Mon, 01 Dec 2014 13:24:50 +0100
-> "István, Varga" <istvan_v@mailbox.hu> escreveu:
->> I am not sure if those are responsible for the
->> I2C errors, or
->> simply the lack of the analog firmwares. Perhaps the latter if the errors do not
->> occur with the (currently DVB-only) PCTV 340e.
->
-> Maybe.
+On 12/01/2014 11:17 PM, Prabhakar Lad wrote:
+> Hi Hans,
+> 
+> Thanks for the review.
+> 
+> On Mon, Dec 1, 2014 at 10:11 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi all,
+>>
+>> Thanks for the patch, review comments are below.
+>>
+>> For the next version I would appreciate if someone can test this driver with
+>> the latest v4l2-compliance from the v4l-utils git repo. If possible test streaming
+>> as well (v4l2-compliance -s), ideally with both a sensor and a STD receiver input.
+>> But that depends on the available hardware of course.
+>>
+>> I'd like to see the v4l2-compliance output. It's always good to have that on
+>> record.
+>>
+> Following is the compliance output, missed it post it along with patch:
+> 
+> root@am437x-evm:~# ./v4l2-compliance -s -i 0 -v
+> Driver Info:
+>         Driver name   : vpfe
+>         Card type     :[   70.363908] vpfe 48326000.vpfe:
+> =================  START STATUS  =================
+>  TI AM437x VPFE
+>         Bus info      : platform:vpfe [   70.375576] vpfe
+> 48326000.vpfe: ==================  END STATUS  ==================
+> 48326000.vpfe
+>         Driver version: 3.18.0
+>         Capabil[   70.388485] vpfe 48326000.vpfe: invalid input index: 1
+> ities  : 0x85200001
+>                 Video Capture
+>                 Read/Write
+>                 Streaming
+>                 Extended Pix Format
+>                 Device Capabilities
+>         Device Caps   : 0x05200001
+>                 Video Capture
+>                 Read/Write
+>                 Streaming
+>                 Extended Pix Format
+> 
+> Compliance test for device /dev/video0 (not using libv4l2):
+> 
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+> 
+> Debug ioctls:
+>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>         test VIDIOC_LOG_STATUS: OK
+> 
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMINPUT: OK
+>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>         Inputs: 1 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: OK
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>         test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+> Test input 0:
+> 
+>         Control ioctls:
+>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+>                 test VIDIOC_QUERYCTRL: OK (Not Supported)
+>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>                 Standard Controls: 0 Private Controls: 0
+> 
+>         Format ioctls:
+>                 info: found 7 framesizes for pixel format 56595559
+>                 info: found 7 framesizes for pixel format 59565955
+>                 info: found 7 framesizes for pixel format 52424752
+>                 info: found 7 framesizes for pixel format 31384142
+>                 info: found 4 formats for buftype 1
+>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 test VIDIOC_G/S_PARM: OK
+>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>                 test VIDIOC_G_FMT: OK
+>                 test VIDIOC_TRY_FMT: OK
+>                 info: Global format check succeeded for type 1
+>                 test VIDIOC_S_FMT: OK
+>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+> 
+>         Codec ioctls:
+>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+>         Buffer ioctls:
+>                 info: test buftype Video Capture
+>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>                 test VIDIOC_EXPBUF: OK
+> 
+> Streaming ioctls:
+>         test read/write: OK
+>             Video Capture:
+>                 Buffer: 0 Sequence: 0 Field: None Timestamp: 74.956437s
+>                 Buffer: 1 Sequence: 0 Field: None Timestamp: 74.979310s
+>                 Buffer: 2 Sequence: 0 Field: None Timestamp: 75.002191s
+>                 Buffer: 3 Sequence: 0 Field: None Timestamp: 75.208114s
+>                 Buffer: 0 Sequence: 0 Field: None Timestamp: 75.230998s
 
-The driver searches for the firmware image that matches the selected analog TV
-standard the best, and if the firmware file does not include any, then
-it currently
-attempts to load whatever else is found (for example, the base firmware).
-This problem should perhaps be fixed, although the ideal solution is
-to provide a
-complete firmware file.
+Hmm, sequence is always 0. Is the sequence field set? And why doesn't
+v4l2-compliance fail on this?
+
+>                 Buffer: 1 Sequence: 0 Field: None Timestamp: 75.253877s
+
+<snip>
+
+>         test MMAP: OK
+>         test USERPTR: OK (Not Supported)
+>         test DMABUF: Cannot test, specify --expbuf-device
+> 
+> Total: 42, Succeeded: 42, Failed: 0, Warnings: 0
+>>
+> [Snip]
+
+>>> +static int vpfe_enum_fmt(struct file *file, void  *priv,
+>>> +                      struct v4l2_fmtdesc *f)
+>>> +{
+>>> +     struct vpfe_device *vpfe = video_drvdata(file);
+>>> +     struct v4l2_subdev_mbus_code_enum mbus_code;
+>>> +     struct vpfe_subdev_info *sdinfo;
+>>> +     struct vpfe_fmt *fmt;
+>>> +     int ret;
+>>> +
+>>> +     vpfe_dbg(2, vpfe, "vpfe_enum_format index:%d\n",
+>>> +             f->index);
+>>> +
+>>> +     sdinfo = vpfe->current_subdev;
+>>> +     if (!sdinfo->sd)
+>>> +             return -EINVAL;
+>>> +
+>>> +     mbus_code.index = f->index;
+>>> +     ret = v4l2_subdev_call(sdinfo->sd, pad, enum_mbus_code,
+>>> +                            NULL, &mbus_code);
+>>> +     if (ret)
+>>> +             return -EINVAL;
+>>> +
+>>> +     /* convert mbus_format to v4l2_format */
+>>> +     fmt = find_format_by_code(mbus_code.code);
+>>> +     if (!fmt) {
+>>> +             vpfe_err(vpfe, "mbus code 0x%08x not found\n",
+>>> +                     mbus_code.code);
+>>> +             return -EINVAL;
+>>> +     }
+>>
+>> Hmm. If a subdev supports more media bus codes then are supported by this
+>> driver, then the enumeration will stop as soon as such an unsupported code
+>> is found.
+>>
+>> What you want to do here is enumerate over the pixelformats that are supported
+>> by both this driver and the subdev. It is probably something you want to
+>> determine at the time the subdev is loaded and just mark unsupported formats
+>> at that time so that they can be skipped here.
+>>
+> So probably populate the supported pixelformats in s_input call ,
+> by calling enm_mbus_code ?
+
+I would do this during driver initialization, it's a one time thing that can
+be done there.
+
+Regards,
+
+	Hans
