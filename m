@@ -1,216 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:33768 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752974AbaLHL4g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 06:56:36 -0500
-Received: by mail-wi0-f169.google.com with SMTP id r20so6882575wiv.0
-        for <linux-media@vger.kernel.org>; Mon, 08 Dec 2014 03:56:35 -0800 (PST)
-Date: Mon, 8 Dec 2014 12:56:32 +0100
-From: Pavol Domin <pavol.domin@gmail.com>
-To: Olli Salonen <olli.salonen@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: TT-connect CT2-4650 CI: DVB-C: no signal, no QAM
-Message-ID: <20141208115632.GA6220@trt2>
-References: <20141207124107.GA7271@trt2>
- <CAAZRmGzEPh5VVhNdVZUAX22KSQpVLVjx6hB3ZftrEEa3RHG1Tw@mail.gmail.com>
+Received: from relay1.mentorg.com ([192.94.38.131]:41981 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754538AbaLBNMB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Dec 2014 08:12:01 -0500
+Message-ID: <547DBA99.1010703@mentor.com>
+Date: Tue, 2 Dec 2014 15:11:53 +0200
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+To: Andy Yan <andy.yan@rock-chips.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Wolfram Sang <wsa@the-dreams.de>
+CC: Shawn Guo <shawn.guo@linaro.org>, <devicetree@vger.kernel.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-i2c@vger.kernel.org>
+Subject: Re: [PATCH 1/3] staging: imx-drm: document internal HDMI I2C master
+ controller DT binding
+References: <1416073759-19939-1-git-send-email-vladimir_zapolskiy@mentor.com>		 <1416073759-19939-2-git-send-email-vladimir_zapolskiy@mentor.com>		 <547C8113.3050100@mentor.com> <1417446703.4624.18.camel@pengutronix.de>	 <547C8B9E.8050605@mentor.com> <1417450979.4624.23.camel@pengutronix.de> <547D5DE2.2040704@rock-chips.com>
+In-Reply-To: <547D5DE2.2040704@rock-chips.com>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAAZRmGzEPh5VVhNdVZUAX22KSQpVLVjx6hB3ZftrEEa3RHG1Tw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Olli,
+Hi Andy,
 
-Thanks for feedback.
-> Are you able to provide me a trace of the USB bus when using Windows? This
-> is what I have been doing.
+thank you for joining the discussion.
+
+On 02.12.2014 08:36, Andy Yan wrote:
+> Hi Vladimir:
 > 
-> 1) install USBlyzer
-> 2) start it and select the option Capture hot plugged in the menus
-> 3) start capture
-> 4) plug in the device
-> 5) start watching tv
-> 6) stop capture after 1 sec to avoid the capture file growing too much
-I've done that and shared at:
-https://drive.google.com/open?id=0B94Ll0t460PoSTdKR0xiZlU2S0E&authuser=0
+>   I am working on convert imx-hdmi to dw_hdmi now:
+>   https://lkml.org/lkml/2014/12/1/190
+>   I also have a plan to use  the internal HDMI I2C master under the I2c 
+> framework,
+> and I also have a patch to do this work. So glad to see your work.
+>   Please also Cc me<and.yan@rock-chips.com> and Zubair.Kakakhel@imgtec.com,
+> maybe Zubair also have interests on your future patch.
+> On 2014年12月02日 00:22, Philipp Zabel wrote:
+>> Hi Vladimir,
+>>
+>> [Added Andy Yan to Cc:, because imx-hdmi->dw-hdmi]
+>>
+>> Am Montag, den 01.12.2014, 17:39 +0200 schrieb Vladimir Zapolskiy:
+>>> On 01.12.2014 17:11, Philipp Zabel wrote:
+>>>> Am Montag, den 01.12.2014, 16:54 +0200 schrieb Vladimir Zapolskiy:
+>>>>> Hi Philipp and Shawn,
+>>>>>
+>>>>> On 15.11.2014 19:49, Vladimir Zapolskiy wrote:
+>>>>>> Provide information about how to bind internal iMX6Q/DL HDMI DDC I2C
+>>>>>> master controller. The property is set as optional one, because iMX6
+>>>>>> HDMI DDC bus may be represented by one of general purpose I2C busses
+>>>>>> found on SoC.
+>>>>>>
+>>>>>> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+>>>>>> Cc: Wolfram Sang <wsa@the-dreams.de>
+>>>>>> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+>>>>>> Cc: Shawn Guo <shawn.guo@linaro.org>
+>>>>>> Cc: devicetree@vger.kernel.org
+>>>>>> Cc: linux-media@vger.kernel.org
+>>>>>> Cc: linux-arm-kernel@lists.infradead.org
+>>>>>> Cc: linux-i2c@vger.kernel.org
+>>>>>> ---
+>>>>>>   Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt |   10 +++++++++-
+>>>>>>   1 file changed, 9 insertions(+), 1 deletion(-)
+>>>>>>
+>>>>>> diff --git a/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt b/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+>>>>>> index 1b756cf..43c8924 100644
+>>>>>> --- a/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+>>>>>> +++ b/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
+>>>>>> @@ -10,6 +10,8 @@ Required properties:
+>>>>>>    - #address-cells : should be <1>
+>>>>>>    - #size-cells : should be <0>
+>>>>>>    - compatible : should be "fsl,imx6q-hdmi" or "fsl,imx6dl-hdmi".
+>>>>>> +   If internal HDMI DDC I2C master controller is supposed to be used,
+>>>>>> +   then "simple-bus" should be added to compatible value.
+>>>>>>    - gpr : should be <&gpr>.
+>>>>>>      The phandle points to the iomuxc-gpr region containing the HDMI
+>>>>>>      multiplexer control register.
+>>>>>> @@ -22,6 +24,7 @@ Required properties:
+>>>>>>   
+>>>>>>   Optional properties:
+>>>>>>    - ddc-i2c-bus: phandle of an I2C controller used for DDC EDID probing
+>>>>>> + - ddc: internal HDMI DDC I2C master controller
+>>>>>>   
+>>>>>>   example:
+>>>>>>   
+>>>>>> @@ -32,7 +35,7 @@ example:
+>>>>>>           hdmi: hdmi@0120000 {
+>>>>>>                   #address-cells = <1>;
+>>>>>>                   #size-cells = <0>;
+>>>>>> -                compatible = "fsl,imx6q-hdmi";
+>>>>>> +                compatible = "fsl,imx6q-hdmi", "simple-bus";
+>>>>>>                   reg = <0x00120000 0x9000>;
+>>>>>>                   interrupts = <0 115 0x04>;
+>>>>>>                   gpr = <&gpr>;
+>>>>>> @@ -40,6 +43,11 @@ example:
+>>>>>>                   clock-names = "iahb", "isfr";
+>>>>>>                   ddc-i2c-bus = <&i2c2>;
+>>>>>>   
+>>>>>> +                hdmi_ddc: ddc {
+>>>>>> +                        compatible = "fsl,imx6q-hdmi-ddc";
+>>>>>> +                        status = "disabled";
+>>>>>> +                };
+>>>>>> +
+>>>>>>                   port@0 {
+>>>>>>                           reg = <0>;
+>>>>>>   
+>>>>>>
+>>>>> knowing in advance that I2C framework lacks a graceful support of non
+>>>>> fully compliant I2C devices, do you have any objections to the proposed
+>>>>> iMX HDMI DTS change?
+>>>> I'm not sure about this. Have you seen "drm: Decouple EDID parsing from
+>>>> I2C adapter"? I feel like in the absence of a ddc-i2c-bus property the
+>>>> imx-hdmi/dw-hdmi driver should try to use the internal HDMI DDC I2C
+>>>> master controller, bypassing the I2C framework altogether.
+>>>>
+>>> My idea is exactly not to bypass the I2C framework, briefly the
+>>> rationale is that
+>>> * it allows to reuse I2C UAPI/tools naturally applied to the internal
+>>> iMX HDMI DDC bus,
+>>> * it allows to use iMX HDMI DDC bus as an additional feature-limited I2C
+>>> bus on SoC (who knows, I absolutely won't be surprised, if anyone needs
+>>> it on practice),
+>>> * if an HDMI controller supports an external I2C bus, the integration
+>>> with HDMI DDC bus driver based on I2C framework is seamless.
+>>>
+>>> However I agree that the selected approach may look odd, the question is
+>>> if the oddness comes from the technical side or from the fact that
+>>> nobody has done it before this way.
+>>>
+>>> I'm open to any critique, if the proposal of creating an I2C bus from
+>>> HDMI DDC bus is lame, then I suppose the shared iMX HDMI DDC bus driver
+>>> should be converted to something formless and internally used by
+>>> imx-hdmi. The negative side-effects of such a change from my point of
+>>> view are
+>>> * more or less natural modularity is lost,
+>>> * a number of I2C framework API/functions should be copy-pasted to the
+>>> updated HDMI DDC bus driver to support a subset of I2C read/write
+>>> transactions.
+>> If Wolfram is happy to accomodate such feature limited, 'I2C master'
+>> devices in i2c/drivers/busses in principle, I won't disagree.
+>>
+>> But then it should be abstracted properly. The dw-hdmi-tx core on i.MX6
+>> has the DDC I2C master register space at 0x7e00 - 0x7e12. What are the
+>> offsets on the Rockchip version? If the "simple-bus" compatible is to be
+>> set on the hdmi driver, the ddc driver should do its own register
+>> access, and therefore needs a reg property. I suspect for the ddc-i2cm
+>> we should get away with a common compatible like "snps,dw-hdmi-i2c".
+>>
+>> 	hdmi: hdmi@120000 {
+>> 		/* ... */
+>> 		compatible = "fsl,imx6q-hdmi", "snps,dw-hdmi";
+>> 		ddc-i2c-bus = <&hdmi_ddc>;
+>>
+>> 		hdmi_ddc: i2c@127e00 {
+>> 			compatible = "snps,dw-hdmi-i2c";
+>> 			reg = <0x1207e00 0x13>
+>> 		};
+>>
+>> 		/* could add phy-i2cm, cec, ... here */
+>> 	};
+>>
+>> Also there's an i2c bus for communication with the phy at 0x3020 -
+>> 0x3032, should that be handled in a similar way, then?
+> 
+>     Rockchip RK3288 has the same DDC I2C master and phy i2c master
+>     register offset as imx hdmi.
 
-> Would be also good to know if gnutv -cammenu works with the open source
-Yes, it seems to work (except it coredumps after ctrl-c on fedora), e.g.
-$ gnutv -channels channels.xine.conf -cammenu "Eurosport HD"
-CAM Application type: 01
-CAM Application manufacturer: 0b00
-CAM Manufacturer code: 0001
-CAM Menu string: Conax Conditional Access
-CAM supports the following ca system ids:
-  0x0b00
-  ------------------------------
-  Conax Conditional Access
-  Main menu
-  0. Quit menu
-  1. Subscription status
-  2. Event status
-  3. Tokens status
-  4. Change CA PIN
-  5. Maturity Rating
-  6. Ordering online
-  7. About Conax CA
-  8. Messages
-  9. Language
-  10. Loader status
-  11. CI Plus Info
-  Press OK to select, or press RETURN
+Good to know, I was not aware of it. Definitely it should be supported
+as well.
 
-> driver. Are all your channels encrypted? Is there any difference between
-> them?
-No, some are unencrypted. I cannot tell there are some other
-differences, windows application 'tt-viewer' does not show details
-about scanned channels. Also, the multiplex frequencies listed by
-provider do not seem to match much with what the w_scan initially found.
-Also, w_scan only scanned at QAM256, tv provider page suggests there are
-some channels at QAM64 (I havent tried to scan those).
-But again, it worked (with the TechnoTrend driver) for a short while
-from linux, even the encryted channels I think.
+>      what my suggestion is: make the ddc-i2c-bus property optional, if 
+> the dw_hdmi driver
+>     can't found the ddc-i2c-bus node, then use the internal i2cm:
+>         ddc_node = of_parse_phandle(np, "ddc-i2c-bus", 0);
+>          if (ddc_node) {
+>                  hdmi->ddc = of_find_i2c_adapter_by_node(ddc_node);
+>                  of_node_put(ddc_node);
+>                  if (!hdmi->ddc) {
+>                          dev_dbg(hdmi->dev, "failed to read ddc node\n");
+>                          return -EPROBE_DEFER;
+>                  }
+> 
+>          } else {
+>                  hdmi->ddc = dw_hdmi_ddc_adapter_register(hdmi).
+>          }
+> 
+>          and we can have a file put with dw_hdmi.c in a same dir, which
+>         implement  standard i2c adapter interface .
+>        I found that other hdmi platform such as msm(/msm/hdmi/hdmi_i2c.c) ,
+>        radeon(radeon_i2c.c) also do like this
 
-Regards
+Thank you for references.
 
-Pavol
+I see that msm and a number of other DRM device drivers (radeon,
+nouveau, i915, gma500) quite resemble the situation, now I'm convinced
+that the same should be done for iMX6/RK3288 HDMI driver. In background
+I'll try to review all out of i2c/busses/* registered i2c adapters, may
+be there is something in common between all of them.
+
+I'll prepare the change of the HDMI DDC support for review (will be able
+to test it only on iMX6), Wolfram, please skip from your consideration
+the published version of the i2c bus driver.
+
+Wolfram, by the way is I2C_CLASS_DDC adapter class in operational use or
+deprecated?
 
 > 
-> Cheers,
-> -olli
-> On 7 Dec 2014 19:41, "Pavol Domin" <pavol.domin@gmail.com> wrote:
-> 
-> > Hello,
-> >
-> > I recently purchased "TechnoTrend TT-connect CT2-4650 CI" in order to
-> > watch DVB-C cable TV. I have obtained CAM and smart card from my cable
-> > TV provider.
-> >
-> > Initially, I tried the closed-source driver from the manufacturer; I have
-> > scanned (w_scan) over hundred of channels and I was able to watch few
-> > channels (vlc
-> > or xine) for several minutes. After couple of channels switches however,
-> > xine started to report 'DVB Signal Lost' for any channel. The w_scan
-> > founds nothing anymore - tried multiple kernels on different machines,
-> > during several days, nothing ;)
-> >
-> > Manufacturer is not providing linux support and directed me to
-> > linux_media instead.
-> >
-> > The situation with linux_media is not better however (tried recent
-> > media_build on ubuntu 3.16 and fedora 3.17 kernels)
-> >
-> > 1. the device is detected without any problems, no single error reported:
-> > [ 1957.068871] dvb-usb: found a 'TechnoTrend TT-connect CT2-4650 CI' in
-> > warm state.
-> > [ 1957.068999] dvb-usb: will pass the complete MPEG2 transport stream to
-> > the software demuxer.
-> > [ 1957.069182] DVB: registering new adapter (TechnoTrend TT-connect
-> > CT2-4650 CI)
-> > [ 1957.070518] dvb-usb: MAC address: bc:ea:2b:65:02:3b
-> > [ 1957.283195] i2c i2c-9: Added multiplexed i2c bus 10
-> > [ 1957.283205] si2168 9-0064: Silicon Labs Si2168 successfully attached
-> > [ 1957.287689] si2157 10-0060: Silicon Labs Si2147/2148/2157/2158
-> > successfully attached
-> > [ 1957.498312] sp2 9-0040: CIMaX SP2 successfully attached
-> > [ 1957.498348] usb 1-1.3: DVB: registering adapter 0 frontend 0 (Silicon
-> > Labs Si2168)...
-> > [ 1957.498835] Registered IR keymap rc-tt-1500
-> > [ 1957.499038] input: IR-receiver inside an USB DVB receiver as
-> > /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0/input23
-> > [ 1957.499408] rc0: IR-receiver inside an USB DVB receiver as
-> > /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0
-> > [ 1957.499413] dvb-usb: schedule remote query interval to 150 msecs.
-> > [ 1957.499419] dvb-usb: TechnoTrend TT-connect CT2-4650 CI successfully
-> > initialized and connected.
-> > [ 1963.755553] dvb_ca adapter 0: DVB CAM detected and initialised
-> > successfully
-> > [ 2016.342642] si2168 9-0064: found a 'Silicon Labs Si2168' in cold state
-> > [ 2016.342910] si2168 9-0064: downloading firmware from file
-> > 'dvb-demod-si2168-a20-01.fw'
-> > [ 2017.729882] si2168 9-0064: found a 'Silicon Labs Si2168' in warm state
-> > [ 2017.739725] si2157 10-0060: found a 'Silicon Labs
-> > Si2146/2147/2148/2157/2158' in cold state
-> > [ 2017.739805] si2157 10-0060: downloading firmware from file
-> > 'dvb-tuner-si2158-a20-01.fw'
-> >
-> > 2. yet, the full dvb-c w_scan founds zero channels (after 20+ minutes of
-> > scanning)
-> >
-> > 3. an attempt to tune a channel (czap) using the channel list scanned
-> > the first time returns:
-> > $ czap -r -c channels.xine.conf 'Eurosport HD'
-> > using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> > reading channels from file 'channels.xine.conf'
-> > 141 Eurosport
-> > HD:562000000:INVERSION_AUTO:6900000:FEC_NONE:QAM_256:3000:3201:14001
-> > 141 Eurosport HD: f 562000000, s 6900000, i 2, fec 0, qam 5, v 0xbb8, a
-> > 0xc81, s 0x36b1
-> > ERROR: frontend device is not a QAM (DVB-C) device
-> >
-> >
-> > Any advice, please, what can be done to make this working? The device
-> > works without any problems from windows.
-> >
-> > Two additional notes:
-> > 1. The md5sum 0276023ce027bab05c2e7053033e2182 for the firmware linked at
-> >
-> > http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-TVStick_CT2-4400#Firmware
-> > does not match:
-> >
-> > $ wget http://www.tt-downloads.de/bda-treiber_4.2.0.0.zip
-> > ...
-> > 2014-12-07 13:12:25 (1.06 MB/s) - ‘bda-treiber_4.2.0.0.zip’ saved
-> > [352188/352188]
-> > $ unzip bda-treiber_4.2.0.0.zip
-> > Archive:  bda-treiber_4.2.0.0.zip
-> >   inflating: ttTVStick4400.inf
-> >   inflating: ttTVStick4400.sys
-> >   inflating: ttTVStick4400_64.sys
-> >   inflating: tttvstick4400.cat
-> > $ md5sum ttTVStick4400_64.sys
-> > 7ac2029e1db41b8942691df270e0f84f  ttTVStick4400_64.sys
-> >
-> > I copied firmwares from OpenELEC
-> >
-> > 2. I am getting this, with w_scan, with the media_build driver:
-> > $ cat w_scan
-> > using DVB API 5.a
-> > frontend 'Silicon Labs Si2168' supports
-> > INVERSION_AUTO
-> > QAM_AUTO
-> > FEC_AUTO
-> > FREQ (110.00MHz ... 862.00MHz)
-> > This dvb driver is *buggy*: the symbol rate limits are undefined -
-> > please report to linuxtv.org
-> > ...
-> >
-> > 3. Manufacturer driver displays no w_scan "no QAM" errors, even czap seems
-> > fine:
-> > $ czap -r -c channels.xine.conf 'Eurosport HD'
-> > using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> > reading channels from file 'channels.xine.conf'
-> > 141 Eurosport
-> > HD:562000000:INVERSION_AUTO:6900000:FEC_NONE:QAM_256:3000:3201:14001
-> > 141 Eurosport HD: f 562000000, s 6900000, i 2, fec 0, qam 5, v 0xbb8, a
-> > 0xc81, s 0x36b1
-> > Version: 5.10       FE_CAN { DVB-C (A) }
-> > status 1f | signal 5453 | snr 0003 | ber 8e8dead8 | unc 000f00ed |
-> > FE_HAS_LOCK
-> > status 1f | signal 5453 | snr 0003 | ber 00000000 | unc 000f00ed |
-> > FE_HAS_LOCK
-> > ...
-> >
-> > Yet, the application reports no signal.
-> >
-> >
-> > Regards,
-> > Pavol
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
+>>
+>> Do we need to make the hdmi driver a proper interrupt controller? At
+>> least the two i2c masters have two interrupts each, "done" and "error".
+>>
+>> regards
+>> Philipp
+>>
+
+
+--
+With best wishes,
+Vladimir
