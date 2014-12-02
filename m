@@ -1,131 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:41997 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751728AbaL3NPj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Dec 2014 08:15:39 -0500
-Received: by mail-wi0-f180.google.com with SMTP id n3so23977465wiv.13
-        for <linux-media@vger.kernel.org>; Tue, 30 Dec 2014 05:15:38 -0800 (PST)
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:63239 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751020AbaLBNu5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Dec 2014 08:50:57 -0500
+Message-ID: <547DC3BE.2040104@cisco.com>
+Date: Tue, 02 Dec 2014 14:50:54 +0100
+From: "Mats Randgaard (matrandg)" <matrandg@cisco.com>
 MIME-Version: 1.0
-In-Reply-To: <54A26109.1040109@cogweb.net>
-References: <54A1B4FD.70006@cogweb.net>
-	<CAAZRmGxoOTf9f4gq05RgbcD44tmiySMXo-_ZHtBQX0pw6ZXPUA@mail.gmail.com>
-	<54A26109.1040109@cogweb.net>
-Date: Tue, 30 Dec 2014 15:15:38 +0200
-Message-ID: <CAAZRmGz1Xp9bL+R-sMsHpeuwAJ4aR=Dhu2Hwo-wAqbbFkr1B9w@mail.gmail.com>
-Subject: Re: dvbv5-scan needs which channel file?
-From: Olli Salonen <olli.salonen@iki.fi>
-To: David Liontooth <lionteeth@cogweb.net>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: v4l2_mbus_config flags for CSI-2
+References: <547DA733.8060804@cisco.com> <20141202124535.GA14746@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20141202124535.GA14746@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi David,
+Thanks for responding so quickly, Sakari!
 
-Well, the initial scan files need to be supplied for dvbv5-scan somehow.
+On 12/02/2014 01:45 PM, Sakari Ailus wrote:
+> Hi Mats,
+>
+> On Tue, Dec 02, 2014 at 12:49:07PM +0100, Mats Randgaard (matrandg) wrote:
+>> Hi,
+>> I am writing a driver for Toshiba TC358743 HDMI to CSI-2 bridge. The
+>> chip has four CSI lanes. Toshiba recommends to configure the CSI
+>> output speed for the highest resolution the CSI interface can handle
+>> and reduce the number of CSI lanes in use if the received video has
+>> lower resolution. The number of CSI lanes in use is also reduced
+>> when the bridge transmits YCbCr 4:2:2 encoded video instead of
+>> RGB888.
+>>
+>> The plan was to use g_mbus_config for this, but it is not clear to
+>> me what the different defines in include/media/v4l2-mediabus.h
+>> should be used for:
+>>
+>> /* How many lanes the client can use */
+>> #define V4L2_MBUS_CSI2_1_LANE                   (1 << 0)
+>> #define V4L2_MBUS_CSI2_2_LANE                   (1 << 1)
+>> #define V4L2_MBUS_CSI2_3_LANE                   (1 << 2)
+>> #define V4L2_MBUS_CSI2_4_LANE                   (1 << 3)
+>> /* On which channels it can send video data */
+>> #define V4L2_MBUS_CSI2_CHANNEL_0                (1 << 4)
+>> #define V4L2_MBUS_CSI2_CHANNEL_1                (1 << 5)
+>> #define V4L2_MBUS_CSI2_CHANNEL_2                (1 << 6)
+>> #define V4L2_MBUS_CSI2_CHANNEL_3                (1 << 7)
+>>
+>> Should I set V4L2_MBUS_CSI2_4_LANE since the device supports four
+>> lanes, and set V4L2_MBUS_CSI2_CHANNEL_X according to the number of
+>> lanes in use?
+> Channels in this case refer to CSI-2 channels, not how many lanes there are.
+>
+> Can you decide how many lanes you use or is that determined by other
+> configuration?
+>
+> This is only used in SoC camera right now. Elsewhere the number of lanes is
+> fixed in either platform data or device tree.
 
-The initial scan files that are maintained in the the git repo I
-posted earlier are updated by users who notice differencies. Basically
-I and some other users have created scripts that automatically
-generate the files for my country, so it's rather easy. I don't know
-how it works for other countries.
+When the application set video timings or change color encoding the 
+driver calculates the number of CSI lanes needed and disables the rest:
 
-Anyway, if you prefer to generate the data yourself you can use w_scan
-to generate it in DVBV3 format:
-w_scan -ft -c FI -x > ~/initial_v3.conf
+------------------------------------------------------------------------------------------
+static void tc358743_set_csi(struct v4l2_subdev *sd)
+{
+         unsigned lanes = tc358743_num_csi_lanes_needed(sd);
 
-Then use the dvb-format-convert tool that comes in the v4l-utils package:
-dvb-format-convert -I CHANNEL -O DVBV5 ~/initial_v3.conf ~/initial_data_v5.conf
+         if (lanes < 1)
+                 i2c_wr32(sd, CLW_CNTRL, MASK_CLW_LANEDISABLE);
+         if (lanes < 1)
+                 i2c_wr32(sd, D0W_CNTRL, MASK_D0W_LANEDISABLE);
+         if (lanes < 2)
+                 i2c_wr32(sd, D1W_CNTRL, MASK_D1W_LANEDISABLE);
+         if (lanes < 3)
+                 i2c_wr32(sd, D2W_CNTRL, MASK_D2W_LANEDISABLE);
+         if (lanes < 4)
+                 i2c_wr32(sd, D3W_CNTRL, MASK_D3W_LANEDISABLE);
 
-Then you can run dvbv5-scan with this file:
-dvbv5-scan ~/initial_data_v5.conf
+------------------------------------------------------------------------------------------
 
-Alternatively you can skip the whole conversion phase and run
-dvbv5-scan with the DVBV3 initial tuning data:
-dvbv5-scan -I CHANNEL ~/initial_v3.conf
-
-Cheers,
--olli
-
-On 30 December 2014 at 10:23, David Liontooth <lionteeth@cogweb.net> wrote:
->
-> Ah, thank you Olli -- much appreciated!
->
-> If dvbv5-scan expects the initial scan files in the new DVBV5 format, does
-> that mean that these still somewhat mysterious "initial scan files" have to
-> be supplied, as in the link to the dtv-scan-tables? How are these "initial
-> scan files" themselves generated?
->
-> Surely there must be thousands of different dvb signal locations -- is
-> linux-tv going to try to maintain these thousands of scan tables for
-> download? What do users do when their particular location is not represented
-> in the dtv-scan-tables.git?
->
-> Finally, I'm using gnutv to record television; I imagine it still only
-> accepts the old format? What's the new alternative?
->
-> Cheers,
-> David
->
-> On 12/29/14, 11:55 PM, Olli Salonen wrote:
->>
->> Hello David,
->>
->> Coincidentally I was just yesterday working with dvbv5-scan and the
->> initial scan files. dvbv5-scan expects the initial scan files in the
->> new DVBV5 format. w_scan is not producing results in this format.
->>
->> The scan tables at
->> http://git.linuxtv.org/cgit.cgi/dtv-scan-tables.git/ are in the new
->> format. Some of them are a bit outdated though (send in a patch if you
->> can update it for your area).
->>
->> The v4l-utils package also includes tools to convert between the old
->> and the new format.
->>
->> Cheers,
->> -olli
->>
->>
->> On 29 December 2014 at 22:09, David Liontooth <lionteeth@cogweb.net>
->> wrote:
->>>
->>> Greetings --
->>>
->>> How do you actually use dvbv5-scan? It seems to require some kind of
->>> input
->>> file but there is no man page and the --help screen doesn't say anything
->>> about it.
->>>
->>> Could we document this? I tried
->>>
->>> $ dvbv5-scan
->>> Usage: dvbv5-scan [OPTION...] <initial file>
->>> scan DVB services using the channel file
->>>
->>> What is "the channel file"? Maybe the channels.conf file? (I created mine
->>> using "w_scan -ft -A3 -X -cUS -o7 -a /dev/dvb/adapter0/")
->>>
->>> $ dvbv5-scan /etc/channels.conf
->>> ERROR key/value without a channel group while parsing line 1 of
->>> /etc/channels.conf
->>>
->>> So it knows what it wants -- but what is it? Or is this a matter of dvb
->>> versions, and my /etc/channels.conf is in the older format?
->>>
->>> Very mysterious.
->>>
->>> Cheers,
->>> David
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+Regards,
+Mats Randgaard
