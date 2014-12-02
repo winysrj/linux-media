@@ -1,133 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f180.google.com ([209.85.214.180]:54352 "EHLO
-	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932891AbaLKQI1 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60799 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932832AbaLBWOZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Dec 2014 11:08:27 -0500
-Received: by mail-ob0-f180.google.com with SMTP id wp4so3689002obc.11
-        for <linux-media@vger.kernel.org>; Thu, 11 Dec 2014 08:08:27 -0800 (PST)
+	Tue, 2 Dec 2014 17:14:25 -0500
+Date: Wed, 3 Dec 2014 00:06:51 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "Mats Randgaard (matrandg)" <matrandg@cisco.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: v4l2_mbus_config flags for CSI-2
+Message-ID: <20141202220651.GB14746@valkosipuli.retiisi.org.uk>
+References: <547DA733.8060804@cisco.com>
+ <20141202124535.GA14746@valkosipuli.retiisi.org.uk>
+ <547DC3BE.2040104@cisco.com>
 MIME-Version: 1.0
-In-Reply-To: <5465E337.6020808@xs4all.nl>
-References: <1415218274-28132-1-git-send-email-andrey.utkin@corp.bluecherry.net>
-	<5465E337.6020808@xs4all.nl>
-Date: Thu, 11 Dec 2014 18:08:26 +0200
-Message-ID: <CAM_ZknUu5xgp7gZoQJ_5XaX6CBRqYVxNJsZzsgBKGFcnUqKAJw@mail.gmail.com>
-Subject: Re: [PATCH] solo6x10: just pass frame motion flag from hardware, drop
- additional handling as complicated and unstable
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org,
-	Linux Media <linux-media@vger.kernel.org>,
-	m.chehab@samsung.com, "hans.verkuil" <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <547DC3BE.2040104@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 14, 2014 at 1:10 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Andrew,
->
-> FYI: I need to test this myself and understand it better, so it will take some
-> time before I get to this. It is in my TODO list, so it won't be forgotten.
->
-> Regards,
->
->         Hans
->
-> On 11/05/2014 09:11 PM, Andrey Utkin wrote:
->> Dropping code (introduced in 316d9e84a72069e04e483de0d5934c1d75f6a44c)
->> which intends to make raising of motion events more "smooth"(?).
->>
->> It made motion event never appear in my installation.
->> That code is complicated, so I couldn't figure out quickly how to fix
->> it, so dropping it seems better to me.
->>
->> Another justification is that anyway application would implement
->> "motion signal stabilization" if required, it is not necessarily kernel
->> driver's job.
->>
->> Signed-off-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
->> ---
->>  drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 30 +-------------------------
->>  drivers/media/pci/solo6x10/solo6x10.h          |  2 --
->>  2 files changed, 1 insertion(+), 31 deletions(-)
->>
->> diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
->> index 30e09d9..866f7b3 100644
->> --- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
->> +++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
->> @@ -239,8 +239,6 @@ static int solo_enc_on(struct solo_enc_dev *solo_enc)
->>       if (solo_enc->bw_weight > solo_dev->enc_bw_remain)
->>               return -EBUSY;
->>       solo_enc->sequence = 0;
->> -     solo_enc->motion_last_state = false;
->> -     solo_enc->frames_since_last_motion = 0;
->>       solo_dev->enc_bw_remain -= solo_enc->bw_weight;
->>
->>       if (solo_enc->type == SOLO_ENC_TYPE_EXT)
->> @@ -555,36 +553,12 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
->>       }
->>
->>       if (!ret) {
->> -             bool send_event = false;
->> -
->>               vb->v4l2_buf.sequence = solo_enc->sequence++;
->>               vb->v4l2_buf.timestamp.tv_sec = vop_sec(vh);
->>               vb->v4l2_buf.timestamp.tv_usec = vop_usec(vh);
->>
->>               /* Check for motion flags */
->> -             if (solo_is_motion_on(solo_enc)) {
->> -                     /* It takes a few frames for the hardware to detect
->> -                      * motion. Once it does it clears the motion detection
->> -                      * register and it takes again a few frames before
->> -                      * motion is seen. This means in practice that when the
->> -                      * motion field is 1, it will go back to 0 for the next
->> -                      * frame. This leads to motion detection event being
->> -                      * sent all the time, which is not what we want.
->> -                      * Instead wait a few frames before deciding that the
->> -                      * motion has halted. After some experimentation it
->> -                      * turns out that waiting for 5 frames works well.
->> -                      */
->> -                     if (enc_buf->motion == 0 &&
->> -                         solo_enc->motion_last_state &&
->> -                         solo_enc->frames_since_last_motion++ > 5)
->> -                             send_event = true;
->> -                     else if (enc_buf->motion) {
->> -                             solo_enc->frames_since_last_motion = 0;
->> -                             send_event = !solo_enc->motion_last_state;
->> -                     }
->> -             }
->> -
->> -             if (send_event) {
->> +             if (solo_is_motion_on(solo_enc) && enc_buf->motion) {
->>                       struct v4l2_event ev = {
->>                               .type = V4L2_EVENT_MOTION_DET,
->>                               .u.motion_det = {
->> @@ -594,8 +568,6 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
->>                               },
->>                       };
->>
->> -                     solo_enc->motion_last_state = enc_buf->motion;
->> -                     solo_enc->frames_since_last_motion = 0;
->>                       v4l2_event_queue(solo_enc->vfd, &ev);
->>               }
->>       }
->> diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
->> index 72017b7..dc503fd 100644
->> --- a/drivers/media/pci/solo6x10/solo6x10.h
->> +++ b/drivers/media/pci/solo6x10/solo6x10.h
->> @@ -159,8 +159,6 @@ struct solo_enc_dev {
->>       u16                     motion_thresh;
->>       bool                    motion_global;
->>       bool                    motion_enabled;
->> -     bool                    motion_last_state;
->> -     u8                      frames_since_last_motion;
->>       u16                     width;
->>       u16                     height;
->>
->>
->
+Hi Mats,
 
-Hi Hans, how is it proceeding with the subject of this patch?
+On Tue, Dec 02, 2014 at 02:50:54PM +0100, Mats Randgaard (matrandg) wrote:
+> Thanks for responding so quickly, Sakari!
+> 
+> On 12/02/2014 01:45 PM, Sakari Ailus wrote:
+> >Hi Mats,
+> >
+> >On Tue, Dec 02, 2014 at 12:49:07PM +0100, Mats Randgaard (matrandg) wrote:
+> >>Hi,
+> >>I am writing a driver for Toshiba TC358743 HDMI to CSI-2 bridge. The
+> >>chip has four CSI lanes. Toshiba recommends to configure the CSI
+> >>output speed for the highest resolution the CSI interface can handle
+> >>and reduce the number of CSI lanes in use if the received video has
+> >>lower resolution. The number of CSI lanes in use is also reduced
+> >>when the bridge transmits YCbCr 4:2:2 encoded video instead of
+> >>RGB888.
+> >>
+> >>The plan was to use g_mbus_config for this, but it is not clear to
+> >>me what the different defines in include/media/v4l2-mediabus.h
+> >>should be used for:
+> >>
+> >>/* How many lanes the client can use */
+> >>#define V4L2_MBUS_CSI2_1_LANE                   (1 << 0)
+> >>#define V4L2_MBUS_CSI2_2_LANE                   (1 << 1)
+> >>#define V4L2_MBUS_CSI2_3_LANE                   (1 << 2)
+> >>#define V4L2_MBUS_CSI2_4_LANE                   (1 << 3)
+> >>/* On which channels it can send video data */
+> >>#define V4L2_MBUS_CSI2_CHANNEL_0                (1 << 4)
+> >>#define V4L2_MBUS_CSI2_CHANNEL_1                (1 << 5)
+> >>#define V4L2_MBUS_CSI2_CHANNEL_2                (1 << 6)
+> >>#define V4L2_MBUS_CSI2_CHANNEL_3                (1 << 7)
+> >>
+> >>Should I set V4L2_MBUS_CSI2_4_LANE since the device supports four
+> >>lanes, and set V4L2_MBUS_CSI2_CHANNEL_X according to the number of
+> >>lanes in use?
+> >Channels in this case refer to CSI-2 channels, not how many lanes there are.
+> >
+> >Can you decide how many lanes you use or is that determined by other
+> >configuration?
+> >
+> >This is only used in SoC camera right now. Elsewhere the number of lanes is
+> >fixed in either platform data or device tree.
+> 
+> When the application set video timings or change color encoding the
+> driver calculates the number of CSI lanes needed and disables the
+> rest:
+> 
+> ------------------------------------------------------------------------------------------
+> static void tc358743_set_csi(struct v4l2_subdev *sd)
+> {
+>         unsigned lanes = tc358743_num_csi_lanes_needed(sd);
+> 
+>         if (lanes < 1)
+>                 i2c_wr32(sd, CLW_CNTRL, MASK_CLW_LANEDISABLE);
+>         if (lanes < 1)
+>                 i2c_wr32(sd, D0W_CNTRL, MASK_D0W_LANEDISABLE);
+>         if (lanes < 2)
+>                 i2c_wr32(sd, D1W_CNTRL, MASK_D1W_LANEDISABLE);
+>         if (lanes < 3)
+>                 i2c_wr32(sd, D2W_CNTRL, MASK_D2W_LANEDISABLE);
+>         if (lanes < 4)
+>                 i2c_wr32(sd, D3W_CNTRL, MASK_D3W_LANEDISABLE);
+> 
+> ------------------------------------------------------------------------------------------
+
+Do you use platform data or DT currently?
+
+Do you have a particular CSI-2 receiver there? In this case, its driver
+should ask the image source (i.e your HDMI -> CSI-2 bridge) about its mbus
+configuration before streaming. I don't think any driver does that at the
+moment.
+
+Just any of the V4L2_MBUS_CSI2_*_LANE flags should be enough for now.
+Configuring the CSI-2 bus properties (physical bus config, what's
+transmitted on the bus etc.) in general needs to be thought properly out
+some time in the future but this should get you going at least.
 
 -- 
-Bluecherry developer.
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
