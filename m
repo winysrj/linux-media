@@ -1,78 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44312 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964951AbaLMECL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 23:02:11 -0500
-Message-ID: <548BBA41.7000109@iki.fi>
-Date: Sat, 13 Dec 2014 06:02:09 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41876 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754571AbaLBMyJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Dec 2014 07:54:09 -0500
+Message-ID: <547DB631.3060309@xs4all.nl>
+Date: Tue, 02 Dec 2014 13:53:05 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/4] rtl28xxu: swap frontend order for devices with slave
- demodulators
-References: <1418429925-16342-1-git-send-email-benjamin@southpole.se> <1418429925-16342-2-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1418429925-16342-2-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API
+ for v4l2_subdev_get_try_*()
+References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com> <1680188.7K1XCBdsCk@avalon> <CA+V-a8uaw2X_a3rfx0=avbuGnUdbqveMvJaU25hewzv9eAA8+Q@mail.gmail.com> <1429705.acTXlHE2TG@avalon> <547D6E20.7040406@xs4all.nl>
+In-Reply-To: <547D6E20.7040406@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am not sure even idea of that. You didn't add even commit description, 
-like all the other patches too :( You should really start adding commit 
-messages explaining why and how commit is.
+On 12/02/14 08:45, Hans Verkuil wrote:
+> On 12/02/2014 12:26 AM, Laurent Pinchart wrote:
+>> Hi Prabhakar,
+>>
+>> On Sunday 30 November 2014 21:30:35 Prabhakar Lad wrote:
+>>> On Sun, Nov 30, 2014 at 9:16 PM, Laurent Pinchart wrote:
+>>>> On Sunday 30 November 2014 21:05:50 Prabhakar Lad wrote:
+>>>>> On Sat, Nov 29, 2014 at 7:12 PM, Laurent Pinchart wrote:
+>>>>>> Hi Prabhakar,
+>>>>>
+>>>>> [Snip]
+>>>>>
+>>>>>>>> Sure. That's a better choice than removing the config option
+>>>>>>>> dependency of the fields struct v4l2_subdev.
+>>>>>>
+>>>>>> Decoupling CONFIG_VIDEO_V4L2_SUBDEV_API from the availability of the
+>>>>>> in-kernel pad format and selection rectangles helpers is definitely a
+>>>>>> good idea. I was thinking about decoupling the try format and
+>>>>>> rectangles from v4l2_subdev_fh by creating a kind of configuration store
+>>>>>> structure to store them, and embedding that structure in v4l2_subdev_fh.
+>>>>>> The pad-level operations would then take a pointer to the configuration
+>>>>>> store instead of the v4l2_subdev_fh. Bridge drivers that want to
+>>>>>> implement TRY_FMT based on pad-level operations would create a
+>>>>>> configuration store, use the pad-level operations, and destroy the
+>>>>>> configuration store. The userspace subdev API would use the
+>>>>>> configuration store from the file handle.
+>>>>>
+>>>>> are planning to work/post any time soon ? Or are you OK with suggestion
+>>>>> from Hans ?
+>>>>
+>>>> I have no plan to work on that myself now, I was hoping you could
+>>>> implement it ;-)
+>>>
+>>> OK will implement it.
+>>>
+>>> Can you please elaborate a more on this "The userspace subdev API would use
+>>> the configuration store from the file handle."
+>>
+>> Basically,
+>>
+>> 1. Create a subdev pad configuration store structure to store the formats and 
+>> selection rectangles for each pad.
+> 
+> I wouldn't call it a 'store'. Just call it fmt_config or pad_config something like
+> that.
+> 
+>>
+>> 2. Embed an instance of that structure in v4l2_subdev_fh.
+>>
+>> 3. Modify the subdev pad ops to take a configuration store pointer instead of 
+>> a file handle pointer.
+>>
+>> The userspace API implementation (v4l2-subdev.c) would then pass &fh->store to 
+>> the pad operations instead of fh.
+>>
+>> Bridge drivers that need to implement TRY_FMT on top of pad ops would create a 
+>> temporary store (or temporary stores when multiple subsdevs are involved), 
+>> call the pad ops with a pointer to the temporary store to propagate TRY 
+>> formats, destroy the store(s) and return the resulting format.
+> 
+> That will work. I think this is a good approach and it shouldn't be too difficult.
 
-So the question is why that patch should be applied?
+Laurent, just so I understand this correctly: does this mean that all occurrences
+of 'struct v4l2_subdev_fh *fh' will be replaced by 'struct v4l2_subdev_pad_config *cfg'?
 
-On the other-hand, how there is
-if (fe->id == 1 && onoff) {
-... as I don't remember any patch changing it to 0. I look my tree FE ID 
-is 0. Do you have some unpublished hacks?
+Is there any reason why the 'fh' should still be passed on?
 
-Antti
+Personally I am in favor of this since the 'fh' always made it hard for bridge
+drivers to use these pad ops. So if we can replace it by something that can
+be used by bridge drivers as well, then that will make it easier to move all
+drivers over to the pad ops.
 
+Regards,
 
-On 12/13/2014 02:18 AM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
-> ---
->   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 9 ++++++++-
->   1 file changed, 8 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index ab48b5f..cdc342a 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -863,6 +863,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
->
->   		/* attach slave demodulator */
->   		if (priv->slave_demod == SLAVE_DEMOD_MN88472) {
-> +			struct dvb_frontend *tmp_fe;
->   			struct mn88472_config mn88472_config = {};
->
->   			mn88472_config.fe = &adap->fe[1];
-> @@ -887,6 +888,12 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
->   			}
->
->   			priv->i2c_client_slave_demod = client;
-> +
-> +			/* Swap frontend order */
-> +			tmp_fe = adap->fe[0];
-> +			adap->fe[0] = adap->fe[1];
-> +			adap->fe[1] = tmp_fe;
-> +
->   		} else {
->   			struct mn88473_config mn88473_config = {};
->
-> @@ -1373,7 +1380,7 @@ static int rtl2832u_frontend_ctrl(struct dvb_frontend *fe, int onoff)
->
->   	/* bypass slave demod TS through master demod */
->   	if (fe->id == 1 && onoff) {
-> -		ret = rtl2832_enable_external_ts_if(adap->fe[0]);
-> +		ret = rtl2832_enable_external_ts_if(adap->fe[1]);
->   		if (ret)
->   			goto err;
->   	}
->
-
--- 
-http://palosaari.fi/
+	Hans
