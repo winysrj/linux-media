@@ -1,117 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:34315 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750811AbaLQASx (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:42064 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932821AbaLBDnX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Dec 2014 19:18:53 -0500
-Message-ID: <5490CBE6.2030004@southpole.se>
-Date: Wed, 17 Dec 2014 01:18:46 +0100
-From: Benjamin Larsson <benjamin@southpole.se>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] mn88472: implement lock for all delivery systems
-References: <1418686808-2530-1-git-send-email-benjamin@southpole.se> <548FA852.50004@iki.fi>
-In-Reply-To: <548FA852.50004@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 1 Dec 2014 22:43:23 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B01CE2A008F
+	for <linux-media@vger.kernel.org>; Tue,  2 Dec 2014 04:43:06 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20141202034306.B01CE2A008F@tschai.lan>
+Date: Tue,  2 Dec 2014 04:43:06 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 12/16/2014 04:34 AM, Antti Palosaari wrote:
-> Moikka!
->
-> On 12/16/2014 01:40 AM, Benjamin Larsson wrote:
->> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
->> ---
->>   drivers/staging/media/mn88472/mn88472.c | 23 ++++++++++++++++++++---
->>   1 file changed, 20 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/staging/media/mn88472/mn88472.c 
->> b/drivers/staging/media/mn88472/mn88472.c
->> index 68f5036..426f0ed 100644
->> --- a/drivers/staging/media/mn88472/mn88472.c
->> +++ b/drivers/staging/media/mn88472/mn88472.c
->> @@ -238,6 +238,7 @@ static int mn88472_read_status(struct 
->> dvb_frontend *fe, fe_status_t *status)
->>       struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>       int ret;
->>       unsigned int utmp;
->> +    int lock = 0;
->>
->>       *status = 0;
->>
->> @@ -248,21 +249,37 @@ static int mn88472_read_status(struct 
->> dvb_frontend *fe, fe_status_t *status)
->>
->>       switch (c->delivery_system) {
->>       case SYS_DVBT:
->> +        ret = regmap_read(dev->regmap[0], 0x7F, &utmp);
->> +        if (ret)
->> +            goto err;
->> +        if ((utmp&0xF) > 8)
->
-> You didn't read Kernel coding style doc?
->
-> around line 206 Documentation/CodingStyle
-> ---------------------------
-> Use one space around (on each side of) most binary and ternary operators,
-> such as any of these:
->
->     =  +  -  <  >  *  /  %  |  &  ^  <=  >=  == !=  ?  :
-> ---------------------------
+Results of the daily build of media_tree:
 
-Fixed.
+date:		Tue Dec  2 04:00:14 CET 2014
+git branch:	test
+git hash:	504febc3f98c87a8bebd8f2f274f32c0724131e4
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
->
->> +            lock = 1;
->> +        break;
->>       case SYS_DVBT2:
->> -        /* FIXME: implement me */
->> -        utmp = 0x08; /* DVB-C lock value */
->> +        msleep(150);
->
-> This sleep does not look correct. Why it is here? In order to provide 
-> more time for lock waiting? In that case you must increase 
-> .get_tune_settings() timeout. On some other case you will need to add 
-> comment why such strange thing is needed.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Increased.
+Detailed results are available here:
 
->
->> +        ret = regmap_read(dev->regmap[2], 0x92, &utmp);
->> +        if (ret)
->> +            goto err;
->> +        if ((utmp&0xF) >= 0x07)
->> +            *status |= FE_HAS_SIGNAL;
->> +        if ((utmp&0xF) >= 0x0a)
->> +            *status |= FE_HAS_CARRIER;
->> +        if ((utmp&0xF) >= 0x0d)
->> +            *status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
->>           break;
->>       case SYS_DVBC_ANNEX_A:
->>           ret = regmap_read(dev->regmap[1], 0x84, &utmp);
->>           if (ret)
->>               goto err;
->> +        if ((utmp&0xF) > 7)
->> +            lock = 1;
->>           break;
->>       default:
->>           ret = -EINVAL;
->>           goto err;
->>       }
->>
->> -    if (utmp == 0x08)
->> +    if (lock)
->>           *status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
->>                   FE_HAS_SYNC | FE_HAS_LOCK;
->
-> Antti
->
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Sent v2 patch.
+Full logs are available here:
 
-MvH
-Benjamin Larsson
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
