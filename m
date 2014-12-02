@@ -1,68 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:39866 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751699AbaLJK7n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 05:59:43 -0500
-Message-id: <54882789.2010700@samsung.com>
-Date: Wed, 10 Dec 2014 11:59:21 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-leds@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH/RFC v9 06/19] DT: Add documentation for the mfd Maxim
- max77693
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
- <1417622814-10845-7-git-send-email-j.anaszewski@samsung.com>
- <20141204100706.GP14746@valkosipuli.retiisi.org.uk>
- <54804840.4030202@samsung.com> <54881A1F.2080607@samsung.com>
-In-reply-to: <54881A1F.2080607@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from mail-wi0-f196.google.com ([209.85.212.196]:54689 "EHLO
+	mail-wi0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752717AbaLBFay (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Dec 2014 00:30:54 -0500
+Received: by mail-wi0-f196.google.com with SMTP id ex7so6800404wid.7
+        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 21:30:53 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 2 Dec 2014 14:30:53 +0900
+Message-ID: <CAEwyzatXZQ57n=SbrX9iM1r-_kB_acKC5WGkyGtWexpRu1eoZA@mail.gmail.com>
+Subject: Changing exposure using v4l2
+From: Kansai Robot <adapt.robot.lab@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/12/14 11:02, Jacek Anaszewski wrote:
->>>> +Optional properties:
->>>> >>> +- maxim,fleds : Array of current outputs in order: fled1, fled2.
+Hello. This is my first message. Please forgive me if I am making a
+mistake since I don't use mailing lists that much.
 
-s/current outputs/LED current regulator outputs used/ ?
+I am currently writing a program using V4L2 that takes pictures from a
+UVC camera. It works fine. I also added some function to set several
+camera settings in particular exposure. (Of course I use VIDIOC_S_CTRL
+with ioctl for that)
 
->>>> >>> +    Note: both current outputs can be connected to a single led
+I can see that once I set exposure to manual I can set the exposure
+value. However when I take a pic after that the image does not reflect
+the settings. For example with a high exposure, the image must be
+overexposed but it is not.
 
-s/led/LED ? And there seem to be other similar occurrences that would
-need to be put in upper case.
+Originally I set the settings in the beginning and then I took a number of pics.
 
->>>> >>> +    Possible values:
->>>> >>> +        MAX77693_LED_FLED_UNUSED - the output is left disconnected,
->>>> >>> +        MAX77693_LED_FLED_USED - a diode is connected to the output.
+But since it was not working I now take one pic and change the setting
+and take another pic and set the settings and so on.
 
-As noted below, I would simply use 0/1 for these.
+Well now, the pics are reflecting the settings it seems correctly. The
+problem is that the settings (with VIDIOC_S_CTRL) take effect after 3
+additional picture captures.
 
->>> >>
->>> >> As you have a LED sub-nodes for each LED already, isn't this redundant?
->> >
->> > Well, it seems so :)
->
-> I agreed here recklessly. This property allows to describe the
-> situation when one LED is connected to both outputs. Single sub-node
-> can describe two type of designs: one LED connected to a single
-> output or one LED connected to both outputs. Therefore additional
-> property is needed to assess what is the actual case.
+What I mean is that if I set the exposure to say 4000, and I take an
+image the photo is not overexposed (as it should) so I have repeat the
+ioctl and take another photo and repeat this three times before I
+could get a photo with exposure 4000.
 
-How about renaming  "maxim,fleds" to "maxim,active-outputs" ?
-And simply using 0 and 1 to indicate if one is used or not, rather
-than defining macros for these true/false values ?
+Any idea what could be happening with V4L2 over here? Any help or any
+hint will be greatly appreciated.
 
---
-Regards,
-Sylwester
+Thanks a lot
