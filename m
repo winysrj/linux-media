@@ -1,86 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39519 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750744AbaLFBkg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Dec 2014 20:40:36 -0500
-Date: Fri, 5 Dec 2014 23:40:26 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Luis de Bethencourt <luis@debethencourt.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	devel@driverdev.osuosl.org,
-	=?UTF-8?B?R8O8bMWfYWggS8O2c2U=?= <gulsah.1004@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	jarod <jarod@wilsonet.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"tuomas.tynkkynen" <tuomas.tynkkynen@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3 2/2] staging: media: lirc: lirc_zilog.c: keep
- consistency in dev functions
-Message-ID: <20141205234026.682b3bfb@concha.lan>
-In-Reply-To: <CAPA4HGVhKuw6cQHMfRWrTLxd8u3P8a1noAPkzkgrFmsORgXUgw@mail.gmail.com>
-References: <20141204223524.GA17650@biggie>
-	<20141205122855.GD4912@mwanda>
-	<CAPA4HGVhKuw6cQHMfRWrTLxd8u3P8a1noAPkzkgrFmsORgXUgw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:45443 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752106AbaLCQH7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 11:07:59 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, robh+dt@kernel.org, pawel.moll@arm.com,
+	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
+	galak@codeaurora.org, Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: [PATCH/RFC v9 07/19] dt-binding: mfd: max77693: Add DT binding related
+ macros
+Date: Wed, 03 Dec 2014 17:06:42 +0100
+Message-id: <1417622814-10845-8-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 05 Dec 2014 12:35:25 +0000
-Luis de Bethencourt <luis@debethencourt.com> escreveu:
+Add macros for max77693 led part related binding.
 
-> On 5 December 2014 at 12:28, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> 
-> > On Thu, Dec 04, 2014 at 10:35:24PM +0000, Luis de Bethencourt wrote:
-> > > The previous patch switched some dev functions to move the string to a
-> > second
-> > > line. Doing this for all similar functions because it makes the driver
-> > easier
-> > > to read if all similar lines use the same criteria.
-> > >
-> > > Signed-off-by: Luis de Bethencourt <luis@debethencourt.com>
-> > > ---
-> > >  drivers/staging/media/lirc/lirc_zilog.c | 155
-> > +++++++++++++++++++++-----------
-> > >  1 file changed, 102 insertions(+), 53 deletions(-)
-> > >
-> > > diff --git a/drivers/staging/media/lirc/lirc_zilog.c
-> > b/drivers/staging/media/lirc/lirc_zilog.c
-> > > index 8814a7e..af46827 100644
-> > > --- a/drivers/staging/media/lirc/lirc_zilog.c
-> > > +++ b/drivers/staging/media/lirc/lirc_zilog.c
-> > > @@ -322,7 +322,8 @@ static int add_to_buf(struct IR *ir)
-> > >       struct IR_tx *tx;
-> > >
-> > >       if (lirc_buffer_full(rbuf)) {
-> > > -             dev_dbg(ir->l.dev, "buffer overflow\n");
-> > > +             dev_dbg(ir->l.dev,
-> > > +                     "buffer overflow\n");
-> >
-> > No.  Don't do this.  It's better if it is on one line.
-> >
-> > regards,
-> > dan carpenter
-> >
-> >
-> I was following Mauro's suggestions. As replied to the previous version of
-> the patch.
-> 
-> I agree that in short uses of dev_dbg it adds unnecessary lines and
-> vertical length to the file.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>
+---
+ include/dt-bindings/mfd/max77693.h |   38 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
+ create mode 100644 include/dt-bindings/mfd/max77693.h
 
-In the specific case that Dan pointed, the entire statement fits 
-on 80 cols. We only add vertical alignments when it doesn't fit on
-80 columns.
-
-> 
-> Thanks for looking at my patch :)
-> 
-> Luis
-
-
+diff --git a/include/dt-bindings/mfd/max77693.h b/include/dt-bindings/mfd/max77693.h
+new file mode 100644
+index 0000000..4011cb47
+--- /dev/null
++++ b/include/dt-bindings/mfd/max77693.h
+@@ -0,0 +1,38 @@
++/*
++ * This header provides macros for MAX77693 device binding
++ *
++ * Copyright (C) 2014, Samsung Electronics Co., Ltd.
++ *
++ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
++ */
++
++#ifndef __DT_BINDINGS_MAX77693_H__
++#define __DT_BINDINGS_MAX77693_H
++
++/* External control pins */
++#define MAX77693_LED_FLED_UNUSED	0
++#define MAX77693_LED_FLED_USED		1
++
++/* FLED pins */
++#define MAX77693_LED_FLED1		1
++#define MAX77693_LED_FLED2		2
++
++/* External trigger type */
++#define MAX77693_LED_TRIG_TYPE_EDGE	0
++#define MAX77693_LED_TRIG_TYPE_LEVEL	1
++
++/* Trigger flags */
++#define MAX77693_LED_TRIG_FLASHEN	(1 << 0)
++#define MAX77693_LED_TRIG_TORCHEN	(1 << 1)
++#define MAX77693_LED_TRIG_SOFTWARE	(1 << 2)
++
++#define MAX77693_LED_TRIG_ALL		(MAX77693_LED_TRIG_FLASHEN | \
++					 MAX77693_LED_TRIG_TORCHEN | \
++					 MAX77693_LED_TRIG_SOFTWARE)
++
++/* Boost modes */
++#define MAX77693_LED_BOOST_OFF		0
++#define MAX77693_LED_BOOST_ADAPTIVE	1
++#define MAX77693_LED_BOOST_FIXED	2
++
++#endif /* __DT_BINDINGS_MAX77693_H */
 -- 
+1.7.9.5
 
-Cheers,
-Mauro
