@@ -1,88 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34434 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752563AbaLFVfQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Dec 2014 16:35:16 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 22/22] si2157: change firmware variable name and type
-Date: Sat,  6 Dec 2014 23:34:56 +0200
-Message-Id: <1417901696-5517-22-git-send-email-crope@iki.fi>
-In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
-References: <1417901696-5517-1-git-send-email-crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60113 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751074AbaLCNxp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 08:53:45 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 2/3] Add YUV8_1X24 media bus format
+Date: Wed,  3 Dec 2014 14:53:30 +0100
+Message-Id: <1417614811-15634-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1417614811-15634-1-git-send-email-p.zabel@pengutronix.de>
+References: <1417614811-15634-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename firmware variable from fw_file to fw_name and change its
-type from u8 to const char as request_firmware() input is.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/tuners/si2157.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 37 ++++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h              |  3 +-
+ 2 files changed, 39 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 27b488b..fcf139d 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -82,7 +82,7 @@ static int si2157_init(struct dvb_frontend *fe)
- 	int ret, len, remaining;
- 	struct si2157_cmd cmd;
- 	const struct firmware *fw;
--	u8 *fw_file;
-+	const char *fw_name;
- 	unsigned int chip_id;
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index a8da9d3..3d88a25 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -2933,6 +2933,43 @@
+ 	      <entry>u<subscript>1</subscript></entry>
+ 	      <entry>u<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="MEDIA-BUS-FMT-YUV8-1X24">
++	      <entry>MEDIA_BUS_FMT_YUV8_1X24</entry>
++	      <entry>0x2024</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="MEDIA-BUS-FMT-YUV10-1X30">
+ 	      <entry>MEDIA_BUS_FMT_YUV10_1X30</entry>
+ 	      <entry>0x2016</entry>
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 10b40dd..35e0579 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -55,7 +55,7 @@
+ #define MEDIA_BUS_FMT_RGB888_LVDS_JEIDA		0x1012
+ #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
  
- 	dev_dbg(&client->dev, "\n");
-@@ -123,12 +123,12 @@ static int si2157_init(struct dvb_frontend *fe)
- 	switch (chip_id) {
- 	case SI2158_A20:
- 	case SI2148_A20:
--		fw_file = SI2158_A20_FIRMWARE;
-+		fw_name = SI2158_A20_FIRMWARE;
- 		break;
- 	case SI2157_A30:
- 	case SI2147_A30:
- 	case SI2146_A10:
--		fw_file = NULL;
-+		fw_name = NULL;
- 		break;
- 	default:
- 		dev_err(&client->dev, "unknown chip version Si21%d-%c%c%c\n",
-@@ -141,27 +141,27 @@ static int si2157_init(struct dvb_frontend *fe)
- 	dev_info(&client->dev, "found a 'Silicon Labs Si21%d-%c%c%c'\n",
- 			cmd.args[2], cmd.args[1], cmd.args[3], cmd.args[4]);
- 
--	if (fw_file == NULL)
-+	if (fw_name == NULL)
- 		goto skip_fw_download;
- 
- 	/* request the firmware, this will block and timeout */
--	ret = request_firmware(&fw, fw_file, &client->dev);
-+	ret = request_firmware(&fw, fw_name, &client->dev);
- 	if (ret) {
- 		dev_err(&client->dev, "firmware file '%s' not found\n",
--				fw_file);
-+				fw_name);
- 		goto err;
- 	}
- 
- 	/* firmware should be n chunks of 17 bytes */
- 	if (fw->size % 17 != 0) {
- 		dev_err(&client->dev, "firmware file '%s' is invalid\n",
--				fw_file);
-+				fw_name);
- 		ret = -EINVAL;
- 		goto err_release_firmware;
- 	}
- 
- 	dev_info(&client->dev, "downloading firmware from file '%s'\n",
--			fw_file);
-+			fw_name);
- 
- 	for (remaining = fw->size; remaining > 0; remaining -= 17) {
- 		len = fw->data[fw->size - remaining];
+-/* YUV (including grey) - next is	0x2024 */
++/* YUV (including grey) - next is	0x2025 */
+ #define MEDIA_BUS_FMT_Y8_1X8			0x2001
+ #define MEDIA_BUS_FMT_UV8_1X8			0x2015
+ #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
+@@ -81,6 +81,7 @@
+ #define MEDIA_BUS_FMT_VYUY10_1X20		0x201b
+ #define MEDIA_BUS_FMT_YUYV10_1X20		0x200d
+ #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
++#define MEDIA_BUS_FMT_YUV8_1X24			0x2024
+ #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
+ #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
+ #define MEDIA_BUS_FMT_UYVY12_2X12		0x201c
 -- 
-http://palosaari.fi/
+2.1.3
 
