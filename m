@@ -1,281 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpdg96.aruba.it ([62.149.158.96]:40395 "EHLO
-	smtpdg94.aruba.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757941AbaLJWBk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 17:01:40 -0500
-Message-ID: <5488C10F.1040508@phoenixsoftware.it>
-Date: Wed, 10 Dec 2014 22:54:23 +0100
-From: Pierluigi Passaro <pierluigi.passaro@phoenixsoftware.it>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: VPU on iMX51 babbage board
-Content-Type: multipart/mixed;
- boundary="------------040504040300020305040904"
+Received: from mailout1.samsung.com ([203.254.224.24]:26299 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753047AbaLCQIq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 11:08:46 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, robh+dt@kernel.org, pawel.moll@arm.com,
+	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
+	galak@codeaurora.org, Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH/RFC v9 13/19] v4l2-ctrls: Add V4L2_CID_FLASH_SYNC_STROBE control
+Date: Wed, 03 Dec 2014 17:06:48 +0100
+Message-id: <1417622814-10845-14-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040504040300020305040904
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Add V4L2_CID_FLASH_SYNC_STROBE control for determining
+whether a flash device strobe has to be synchronized
+with other flash leds controller by the same device.
 
-Hi all,
-I'm trying to use VPU code driver on iMX51 with kernel 3.18, following 
-these steps:
-- disabled DVI interface
-- enabled LCD interface
-- configured and enabled VPU
-- copied iMX51 vpu firmware without header and renamed 
-v4l-coda7541-imx53.bin in /lib/firmware
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   11 +++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         |    2 ++
+ include/uapi/linux/v4l2-controls.h           |    1 +
+ 3 files changed, 14 insertions(+)
 
-Attached you can find the patch and the defconfig I used.
-
-The boot process hangs after loading the firmware at the first attempt 
-of writing in VPU address space in the function coda_write of file 
-driver/media/platform/coda/coda-common.c
-
-Is there anything preventing the coda driver to work with iMX51?
-Could anyone provide any suggestion on how investigate the problem?
-
-Thanks
-Regards
-Pierluigi
-
---------------040504040300020305040904
-Content-Type: text/x-patch;
- name="imx51-babbage_vpu.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="imx51-babbage_vpu.patch"
-
-diff --git a/arch/arm/boot/dts/imx51-babbage.dts b/arch/arm/boot/dts/imx51-babbage.dts
-index 56569ce..e8b372b 100644
---- a/arch/arm/boot/dts/imx51-babbage.dts
-+++ b/arch/arm/boot/dts/imx51-babbage.dts
-@@ -44,6 +44,7 @@
- 		interface-pix-fmt = "rgb24";
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&pinctrl_ipu_disp1>;
-+		status = "disabled";
- 		display-timings {
- 			native-mode = <&timing0>;
- 			timing0: dvi {
-@@ -71,7 +72,6 @@
- 		interface-pix-fmt = "rgb565";
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&pinctrl_ipu_disp2>;
--		status = "disabled";
- 		display-timings {
- 			native-mode = <&timing1>;
- 			timing1: claawvga {
-@@ -338,6 +338,10 @@
- 	status = "okay";
- };
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index e013e4b..20179ab 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4563,6 +4563,17 @@ interface and may change in the future.</para>
+     	    after strobe during which another strobe will not be
+     	    possible. This is a read-only control.</entry>
+     	  </row>
++    	  <row>
++    	    <entry spanname="id"><constant>V4L2_CID_FLASH_SYNC_STROBE</constant></entry>
++    	    <entry>boolean</entry>
++    	  </row>
++    	  <row>
++    	    <entry spanname="descr">Synchronized strobe: whether the flash
++	    should be strobed synchronously with the other one controlled
++	    by the same device. Flash timeout setting is inherited from the
++	    LED being strobed explicitly and flash intensity setting of a LED
++	    being synchronized is used.</entry>
++    	  </row>
+     	  <row><entry></entry></row>
+     	</tbody>
+           </tgroup>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 45c5b47..a7cca8c 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -846,6 +846,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FLASH_FAULT:		return "Faults";
+ 	case V4L2_CID_FLASH_CHARGE:		return "Charge";
+ 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
++	case V4L2_CID_FLASH_SYNC_STROBE:	return "Synchronize Strobe";
  
-+&vpu {
-+	status = "okay";
-+};
-+
- &i2c1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_i2c1>;
-diff --git a/arch/arm/boot/dts/imx51.dtsi b/arch/arm/boot/dts/imx51.dtsi
-index 92660e1..ce82b1f 100644
---- a/arch/arm/boot/dts/imx51.dtsi
-+++ b/arch/arm/boot/dts/imx51.dtsi
-@@ -143,9 +143,17 @@
- 			};
+ 	/* JPEG encoder controls */
+ 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+@@ -949,6 +950,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_FLASH_STROBE_STATUS:
+ 	case V4L2_CID_FLASH_CHARGE:
+ 	case V4L2_CID_FLASH_READY:
++	case V4L2_CID_FLASH_SYNC_STROBE:
+ 	case V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER:
+ 	case V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE:
+ 	case V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 661f119..5bce13d 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -833,6 +833,7 @@ enum v4l2_flash_strobe_source {
  
- 			ipu_di1: port@3 {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
- 				reg = <3>;
+ #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+ #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
++#define V4L2_CID_FLASH_SYNC_STROBE		(V4L2_CID_FLASH_CLASS_BASE + 13)
  
--				ipu_di1_disp1: endpoint {
-+				ipu_di1_disp1: endpoint@0 {
-+					reg = <0>;
-+				};
-+
-+				ipu_di1_tve: endpoint@2 {
-+					reg = <2>;
-+					remote-endpoint = <&tve_in>;
- 				};
- 			};
- 		};
-@@ -578,6 +586,33 @@
- 				clock-names = "ipg", "ahb", "ptp";
- 				status = "disabled";
- 			};
-+
-+			tve: tve@83ff0000 {
-+				compatible = "fsl,imx53-tve";
-+				reg = <0x83ff0000 0x1000>;
-+				interrupts = <92>;
-+				clocks = <&clks IMX5_CLK_TVE_GATE>,
-+				         <&clks IMX5_CLK_IPU_DI1_SEL>;
-+				clock-names = "tve", "di1_sel";
-+				status = "disabled";
-+
-+				port {
-+					tve_in: endpoint {
-+						remote-endpoint = <&ipu_di1_tve>;
-+					};
-+				};
-+			};
-+
-+			vpu: vpu@83ff4000 {
-+				compatible = "fsl,imx53-vpu";
-+				reg = <0x83ff4000 0x1000>;
-+				interrupts = <9>;
-+				clocks = <&clks IMX5_CLK_VPU_REFERENCE_GATE>,
-+				         <&clks IMX5_CLK_VPU_GATE>;
-+				clock-names = "per", "ahb";
-+				resets = <&src 1>;
-+				iram = <&iram>;
-+			};
- 		};
- 	};
- };
+ 
+ /* JPEG-class control IDs */
+-- 
+1.7.9.5
 
---------------040504040300020305040904
-Content-Type: text/plain; charset=UTF-8;
- name="imx51-babbage_vpu_defconfig"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="imx51-babbage_vpu_defconfig"
-
-Q09ORklHX0tFUk5FTF9MWk89eQpDT05GSUdfU1lTVklQQz15CkNPTkZJR19GSEFORExFPXkK
-Q09ORklHX05PX0haPXkKQ09ORklHX0hJR0hfUkVTX1RJTUVSUz15CkNPTkZJR19MT0dfQlVG
-X1NISUZUPTE4CkNPTkZJR19DR1JPVVBTPXkKQ09ORklHX1JFTEFZPXkKQ09ORklHX0JMS19E
-RVZfSU5JVFJEPXkKQ09ORklHX0VYUEVSVD15CkNPTkZJR19QRVJGX0VWRU5UUz15CiMgQ09O
-RklHX1NMVUJfREVCVUcgaXMgbm90IHNldAojIENPTkZJR19DT01QQVRfQlJLIGlzIG5vdCBz
-ZXQKQ09ORklHX01PRFVMRVM9eQpDT05GSUdfTU9EVUxFX1VOTE9BRD15CkNPTkZJR19NT0RW
-RVJTSU9OUz15CkNPTkZJR19NT0RVTEVfU1JDVkVSU0lPTl9BTEw9eQojIENPTkZJR19CTEtf
-REVWX0JTRyBpcyBub3Qgc2V0CkNPTkZJR19BUkNIX01VTFRJX1Y2PXkKQ09ORklHX0FSQ0hf
-TVhDPXkKQ09ORklHX01BQ0hfTVgzMUxJTExZPXkKQ09ORklHX01BQ0hfTVgzMUxJVEU9eQpD
-T05GSUdfTUFDSF9QQ00wMzc9eQpDT05GSUdfTUFDSF9QQ00wMzdfRUVUPXkKQ09ORklHX01B
-Q0hfTVgzMV8zRFM9eQpDT05GSUdfTUFDSF9NWDMxTU9CT0FSRD15CkNPTkZJR19NQUNIX1FP
-Tkc9eQpDT05GSUdfTUFDSF9BUk1BRElMTE81WDA9eQpDT05GSUdfTUFDSF9LWk1fQVJNMTFf
-MDE9eQpDT05GSUdfTUFDSF9JTVgzMV9EVD15CkNPTkZJR19NQUNIX0lNWDM1X0RUPXkKQ09O
-RklHX01BQ0hfUENNMDQzPXkKQ09ORklHX01BQ0hfTVgzNV8zRFM9eQpDT05GSUdfTUFDSF9W
-UFIyMDA9eQpDT05GSUdfU09DX0lNWDUwPXkKQ09ORklHX1NPQ19JTVg1MT15CkNPTkZJR19T
-T0NfSU1YNTM9eQpDT05GSUdfU09DX0lNWDZRPXkKQ09ORklHX1NPQ19JTVg2U0w9eQpDT05G
-SUdfU09DX0lNWDZTWD15CkNPTkZJR19TT0NfVkY2MTA9eQpDT05GSUdfUENJPXkKQ09ORklH
-X1BDSV9JTVg2PXkKQ09ORklHX1NNUD15CkNPTkZJR19WTVNQTElUXzJHPXkKQ09ORklHX1BS
-RUVNUFRfVk9MVU5UQVJZPXkKQ09ORklHX0FFQUJJPXkKQ09ORklHX0hJR0hNRU09eQpDT05G
-SUdfQ01BPXkKQ09ORklHX0NNRExJTkU9Im5vaW5pdHJkIGNvbnNvbGU9dHR5bXhjMCwxMTUy
-MDAiCkNPTkZJR19DUFVfRlJFUT15CkNPTkZJR19DUFVfRlJFUV9ERUZBVUxUX0dPVl9PTkRF
-TUFORD15CkNPTkZJR19BUk1fSU1YNlFfQ1BVRlJFUT15CkNPTkZJR19WRlA9eQpDT05GSUdf
-TkVPTj15CkNPTkZJR19CSU5GTVRfTUlTQz1tCkNPTkZJR19QTV9SVU5USU1FPXkKQ09ORklH
-X1BNX0RFQlVHPXkKQ09ORklHX1BNX1RFU1RfU1VTUEVORD15CkNPTkZJR19ORVQ9eQpDT05G
-SUdfUEFDS0VUPXkKQ09ORklHX1VOSVg9eQpDT05GSUdfSU5FVD15CkNPTkZJR19JUF9QTlA9
-eQpDT05GSUdfSVBfUE5QX0RIQ1A9eQojIENPTkZJR19JTkVUX1hGUk1fTU9ERV9UUkFOU1BP
-UlQgaXMgbm90IHNldAojIENPTkZJR19JTkVUX1hGUk1fTU9ERV9UVU5ORUwgaXMgbm90IHNl
-dAojIENPTkZJR19JTkVUX1hGUk1fTU9ERV9CRUVUIGlzIG5vdCBzZXQKIyBDT05GSUdfSU5F
-VF9MUk8gaXMgbm90IHNldApDT05GSUdfSVBWNj15CkNPTkZJR19ORVRGSUxURVI9eQpDT05G
-SUdfQ0FOPXkKQ09ORklHX0NBTl9GTEVYQ0FOPXkKQ09ORklHX0NGRzgwMjExPXkKQ09ORklH
-X01BQzgwMjExPXkKQ09ORklHX1JGS0lMTD15CkNPTkZJR19SRktJTExfSU5QVVQ9eQpDT05G
-SUdfREVWVE1QRlM9eQpDT05GSUdfREVWVE1QRlNfTU9VTlQ9eQojIENPTkZJR19TVEFOREFM
-T05FIGlzIG5vdCBzZXQKQ09ORklHX0ZXX0xPQURFUl9VU0VSX0hFTFBFUl9GQUxMQkFDSz15
-CkNPTkZJR19ETUFfQ01BPXkKQ09ORklHX0lNWF9XRUlNPXkKQ09ORklHX0NPTk5FQ1RPUj15
-CkNPTkZJR19NVEQ9eQpDT05GSUdfTVREX0NNRExJTkVfUEFSVFM9eQpDT05GSUdfTVREX0JM
-T0NLPXkKQ09ORklHX01URF9DRkk9eQpDT05GSUdfTVREX0pFREVDUFJPQkU9eQpDT05GSUdf
-TVREX0NGSV9JTlRFTEVYVD15CkNPTkZJR19NVERfQ0ZJX0FNRFNURD15CkNPTkZJR19NVERf
-Q0ZJX1NUQUE9eQpDT05GSUdfTVREX1BIWVNNQVBfT0Y9eQpDT05GSUdfTVREX0RBVEFGTEFT
-SD15CkNPTkZJR19NVERfTTI1UDgwPXkKQ09ORklHX01URF9TU1QyNUw9eQpDT05GSUdfTVRE
-X05BTkQ9eQpDT05GSUdfTVREX05BTkRfR1BNSV9OQU5EPXkKQ09ORklHX01URF9OQU5EX01Y
-Qz15CkNPTkZJR19NVERfU1BJX05PUj15CkNPTkZJR19NVERfVUJJPXkKQ09ORklHX0JMS19E
-RVZfTE9PUD15CkNPTkZJR19CTEtfREVWX1JBTT15CkNPTkZJR19CTEtfREVWX1JBTV9TSVpF
-PTY1NTM2CkNPTkZJR19FRVBST01fQVQyND15CkNPTkZJR19FRVBST01fQVQyNT15CiMgQ09O
-RklHX1NDU0lfUFJPQ19GUyBpcyBub3Qgc2V0CkNPTkZJR19CTEtfREVWX1NEPXkKQ09ORklH
-X1NDU0lfQ09OU1RBTlRTPXkKQ09ORklHX1NDU0lfTE9HR0lORz15CkNPTkZJR19TQ1NJX1ND
-QU5fQVNZTkM9eQojIENPTkZJR19TQ1NJX0xPV0xFVkVMIGlzIG5vdCBzZXQKQ09ORklHX0FU
-QT15CkNPTkZJR19TQVRBX0FIQ0lfUExBVEZPUk09eQpDT05GSUdfQUhDSV9JTVg9eQpDT05G
-SUdfUEFUQV9JTVg9eQpDT05GSUdfTkVUREVWSUNFUz15CiMgQ09ORklHX05FVF9WRU5ET1Jf
-QlJPQURDT00gaXMgbm90IHNldApDT05GSUdfQ1M4OXgwPXkKQ09ORklHX0NTODl4MF9QTEFU
-Rk9STT15CiMgQ09ORklHX05FVF9WRU5ET1JfRkFSQURBWSBpcyBub3Qgc2V0CiMgQ09ORklH
-X05FVF9WRU5ET1JfSU5URUwgaXMgbm90IHNldAojIENPTkZJR19ORVRfVkVORE9SX01BUlZF
-TEwgaXMgbm90IHNldAojIENPTkZJR19ORVRfVkVORE9SX01JQ1JFTCBpcyBub3Qgc2V0CiMg
-Q09ORklHX05FVF9WRU5ET1JfTUlDUk9DSElQIGlzIG5vdCBzZXQKIyBDT05GSUdfTkVUX1ZF
-TkRPUl9OQVRTRU1JIGlzIG5vdCBzZXQKIyBDT05GSUdfTkVUX1ZFTkRPUl9TRUVRIGlzIG5v
-dCBzZXQKQ09ORklHX1NNQzkxWD15CkNPTkZJR19TTUM5MTFYPXkKQ09ORklHX1NNU0M5MTFY
-PXkKIyBDT05GSUdfTkVUX1ZFTkRPUl9TVE1JQ1JPIGlzIG5vdCBzZXQKQ09ORklHX0FUODAz
-WF9QSFk9eQpDT05GSUdfQlJDTUZNQUM9bQojIENPTkZJR19JTlBVVF9NT1VTRURFVl9QU0FV
-WCBpcyBub3Qgc2V0CkNPTkZJR19JTlBVVF9FVkRFVj15CkNPTkZJR19JTlBVVF9FVkJVRz1t
-CkNPTkZJR19LRVlCT0FSRF9HUElPPXkKQ09ORklHX0tFWUJPQVJEX0lNWD15CkNPTkZJR19N
-T1VTRV9QUzI9bQpDT05GSUdfTU9VU0VfUFMyX0VMQU5URUNIPXkKQ09ORklHX0lOUFVUX1RP
-VUNIU0NSRUVOPXkKQ09ORklHX1RPVUNIU0NSRUVOX0VHQUxBWD15CkNPTkZJR19UT1VDSFND
-UkVFTl9NQzEzNzgzPXkKQ09ORklHX1RPVUNIU0NSRUVOX1RTQzIwMDc9eQpDT05GSUdfVE9V
-Q0hTQ1JFRU5fU1RNUEU9eQpDT05GSUdfSU5QVVRfTUlTQz15CkNPTkZJR19JTlBVVF9NTUE4
-NDUwPXkKQ09ORklHX1NFUklPX1NFUlBPUlQ9bQojIENPTkZJR19MRUdBQ1lfUFRZUyBpcyBu
-b3Qgc2V0CiMgQ09ORklHX0RFVktNRU0gaXMgbm90IHNldApDT05GSUdfU0VSSUFMX0lNWD15
-CkNPTkZJR19TRVJJQUxfSU1YX0NPTlNPTEU9eQpDT05GSUdfU0VSSUFMX0ZTTF9MUFVBUlQ9
-eQpDT05GSUdfU0VSSUFMX0ZTTF9MUFVBUlRfQ09OU09MRT15CkNPTkZJR19IV19SQU5ET009
-eQojIENPTkZJR19JMkNfQ09NUEFUIGlzIG5vdCBzZXQKQ09ORklHX0kyQ19DSEFSREVWPXkK
-IyBDT05GSUdfSTJDX0hFTFBFUl9BVVRPIGlzIG5vdCBzZXQKQ09ORklHX0kyQ19BTEdPUENG
-PW0KQ09ORklHX0kyQ19BTEdPUENBPW0KQ09ORklHX0kyQ19JTVg9eQpDT05GSUdfU1BJPXkK
-Q09ORklHX1NQSV9JTVg9eQpDT05GSUdfR1BJT19TWVNGUz15CkNPTkZJR19HUElPX01DOVMw
-OERaNjA9eQpDT05GSUdfR1BJT19TVE1QRT15CiMgQ09ORklHX0hXTU9OIGlzIG5vdCBzZXQK
-Q09ORklHX1dBVENIRE9HPXkKQ09ORklHX0lNWDJfV0RUPXkKQ09ORklHX01GRF9EQTkwNTJf
-STJDPXkKQ09ORklHX01GRF9NQzEzWFhYX1NQST15CkNPTkZJR19NRkRfTUMxM1hYWF9JMkM9
-eQpDT05GSUdfTUZEX1NUTVBFPXkKQ09ORklHX1JFR1VMQVRPUj15CkNPTkZJR19SRUdVTEFU
-T1JfRklYRURfVk9MVEFHRT15CkNPTkZJR19SRUdVTEFUT1JfQU5BVE9QPXkKQ09ORklHX1JF
-R1VMQVRPUl9EQTkwNTI9eQpDT05GSUdfUkVHVUxBVE9SX0dQSU89eQpDT05GSUdfUkVHVUxB
-VE9SX01DMTM3ODM9eQpDT05GSUdfUkVHVUxBVE9SX01DMTM4OTI9eQpDT05GSUdfUkVHVUxB
-VE9SX1BGVVpFMTAwPXkKQ09ORklHX01FRElBX1NVUFBPUlQ9eQpDT05GSUdfTUVESUFfQ0FN
-RVJBX1NVUFBPUlQ9eQpDT05GSUdfTUVESUFfUkNfU1VQUE9SVD15CkNPTkZJR19SQ19ERVZJ
-Q0VTPXkKQ09ORklHX0lSX0dQSU9fQ0lSPXkKQ09ORklHX1Y0TF9QTEFURk9STV9EUklWRVJT
-PXkKQ09ORklHX1NPQ19DQU1FUkE9eQpDT05GSUdfVklERU9fTVgzPXkKQ09ORklHX1Y0TF9N
-RU0yTUVNX0RSSVZFUlM9eQpDT05GSUdfVklERU9fQ09EQT15CkNPTkZJR19TT0NfQ0FNRVJB
-X09WMjY0MD15CkNPTkZJR19JTVhfSVBVVjNfQ09SRT15CkNPTkZJR19EUk09eQpDT05GSUdf
-RFJNX1BBTkVMX1NJTVBMRT15CkNPTkZJR19MQ0RfQ0xBU1NfREVWSUNFPXkKQ09ORklHX0xD
-RF9MNEYwMDI0MlQwMz15CkNPTkZJR19MQ0RfUExBVEZPUk09eQpDT05GSUdfQkFDS0xJR0hU
-X1BXTT15CkNPTkZJR19CQUNLTElHSFRfR1BJTz15CkNPTkZJR19GUkFNRUJVRkZFUl9DT05T
-T0xFPXkKQ09ORklHX0xPR089eQpDT05GSUdfU09VTkQ9eQpDT05GSUdfU05EPXkKQ09ORklH
-X1NORF9TT0M9eQpDT05GSUdfU05EX0lNWF9TT0M9eQpDT05GSUdfU05EX1NPQ19QSFlDT1JF
-X0FDOTc9eQpDT05GSUdfU05EX1NPQ19FVUtSRUFfVExWMzIwPXkKQ09ORklHX1NORF9TT0Nf
-SU1YX1dNODk2Mj15CkNPTkZJR19TTkRfU09DX0lNWF9TR1RMNTAwMD15CkNPTkZJR19TTkRf
-U09DX0lNWF9TUERJRj15CkNPTkZJR19TTkRfU09DX0lNWF9NQzEzNzgzPXkKQ09ORklHX1VT
-Qj15CkNPTkZJR19VU0JfRUhDSV9IQ0Q9eQpDT05GSUdfVVNCX0VIQ0lfTVhDPXkKQ09ORklH
-X1VTQl9TVE9SQUdFPXkKQ09ORklHX1VTQl9DSElQSURFQT15CkNPTkZJR19VU0JfQ0hJUElE
-RUFfVURDPXkKQ09ORklHX1VTQl9DSElQSURFQV9IT1NUPXkKQ09ORklHX05PUF9VU0JfWENF
-SVY9eQpDT05GSUdfVVNCX01YU19QSFk9eQpDT05GSUdfVVNCX0dBREdFVD15CkNPTkZJR19V
-U0JfRVRIPW0KQ09ORklHX1VTQl9NQVNTX1NUT1JBR0U9bQpDT05GSUdfTU1DPXkKQ09ORklH
-X01NQ19TREhDST15CkNPTkZJR19NTUNfU0RIQ0lfUExURk09eQpDT05GSUdfTU1DX1NESENJ
-X0VTREhDX0lNWD15CkNPTkZJR19ORVdfTEVEUz15CkNPTkZJR19MRURTX0NMQVNTPXkKQ09O
-RklHX0xFRFNfR1BJTz15CkNPTkZJR19MRURTX1RSSUdHRVJTPXkKQ09ORklHX0xFRFNfVFJJ
-R0dFUl9USU1FUj15CkNPTkZJR19MRURTX1RSSUdHRVJfT05FU0hPVD15CkNPTkZJR19MRURT
-X1RSSUdHRVJfSEVBUlRCRUFUPXkKQ09ORklHX0xFRFNfVFJJR0dFUl9CQUNLTElHSFQ9eQpD
-T05GSUdfTEVEU19UUklHR0VSX0dQSU89eQpDT05GSUdfUlRDX0NMQVNTPXkKQ09ORklHX1JU
-Q19JTlRGX0RFVl9VSUVfRU1VTD15CkNPTkZJR19SVENfRFJWX1BDRjg1NjM9eQpDT05GSUdf
-UlRDX0RSVl9NQzEzWFhYPXkKQ09ORklHX1JUQ19EUlZfTVhDPXkKQ09ORklHX1JUQ19EUlZf
-U05WUz15CkNPTkZJR19ETUFERVZJQ0VTPXkKQ09ORklHX0lNWF9TRE1BPXkKQ09ORklHX01Y
-U19ETUE9eQpDT05GSUdfRlNMX0VETUE9eQpDT05GSUdfU1RBR0lORz15CkNPTkZJR19EUk1f
-SU1YPXkKQ09ORklHX0RSTV9JTVhfRkJfSEVMUEVSPXkKQ09ORklHX0RSTV9JTVhfUEFSQUxM
-RUxfRElTUExBWT15CkNPTkZJR19EUk1fSU1YX1RWRT15CkNPTkZJR19EUk1fSU1YX0xEQj15
-CkNPTkZJR19EUk1fSU1YX0lQVVYzPXkKQ09ORklHX0RSTV9JTVhfSERNST15CiMgQ09ORklH
-X0lPTU1VX1NVUFBPUlQgaXMgbm90IHNldApDT05GSUdfUFdNPXkKQ09ORklHX1BXTV9JTVg9
-eQpDT05GSUdfRVhUMl9GUz15CkNPTkZJR19FWFQyX0ZTX1hBVFRSPXkKQ09ORklHX0VYVDJf
-RlNfUE9TSVhfQUNMPXkKQ09ORklHX0VYVDJfRlNfU0VDVVJJVFk9eQpDT05GSUdfRVhUM19G
-Uz15CkNPTkZJR19FWFQzX0ZTX1BPU0lYX0FDTD15CkNPTkZJR19FWFQzX0ZTX1NFQ1VSSVRZ
-PXkKQ09ORklHX0VYVDRfRlM9eQpDT05GSUdfRVhUNF9GU19QT1NJWF9BQ0w9eQpDT05GSUdf
-RVhUNF9GU19TRUNVUklUWT15CkNPTkZJR19RVU9UQT15CkNPTkZJR19RVU9UQV9ORVRMSU5L
-X0lOVEVSRkFDRT15CiMgQ09ORklHX1BSSU5UX1FVT1RBX1dBUk5JTkcgaXMgbm90IHNldApD
-T05GSUdfQVVUT0ZTNF9GUz15CkNPTkZJR19GVVNFX0ZTPXkKQ09ORklHX0lTTzk2NjBfRlM9
-bQpDT05GSUdfSk9MSUVUPXkKQ09ORklHX1pJU09GUz15CkNPTkZJR19VREZfRlM9bQpDT05G
-SUdfTVNET1NfRlM9bQpDT05GSUdfVkZBVF9GUz15CkNPTkZJR19UTVBGUz15CkNPTkZJR19K
-RkZTMl9GUz15CkNPTkZJR19VQklGU19GUz15CkNPTkZJR19ORlNfRlM9eQpDT05GSUdfTkZT
-X1YzX0FDTD15CkNPTkZJR19ORlNfVjQ9eQpDT05GSUdfUk9PVF9ORlM9eQpDT05GSUdfTkxT
-X0RFRkFVTFQ9ImNwNDM3IgpDT05GSUdfTkxTX0NPREVQQUdFXzQzNz15CkNPTkZJR19OTFNf
-QVNDSUk9eQpDT05GSUdfTkxTX0lTTzg4NTlfMT15CkNPTkZJR19OTFNfSVNPODg1OV8xNT1t
-CkNPTkZJR19OTFNfVVRGOD15CkNPTkZJR19QUklOVEtfVElNRT15CkNPTkZJR19ERUJVR19G
-Uz15CkNPTkZJR19NQUdJQ19TWVNSUT15CiMgQ09ORklHX1NDSEVEX0RFQlVHIGlzIG5vdCBz
-ZXQKQ09ORklHX1BST1ZFX0xPQ0tJTkc9eQojIENPTkZJR19ERUJVR19CVUdWRVJCT1NFIGlz
-IG5vdCBzZXQKIyBDT05GSUdfRlRSQUNFIGlzIG5vdCBzZXQKIyBDT05GSUdfQVJNX1VOV0lO
-RCBpcyBub3Qgc2V0CkNPTkZJR19TRUNVUklUWUZTPXkKIyBDT05GSUdfQ1JZUFRPX0FOU0lf
-Q1BSTkcgaXMgbm90IHNldAojIENPTkZJR19DUllQVE9fSFcgaXMgbm90IHNldApDT05GSUdf
-Q1JDX0NDSVRUPW0KQ09ORklHX0NSQ19UMTBESUY9eQpDT05GSUdfQ1JDNz1tCkNPTkZJR19M
-SUJDUkMzMkM9bQpDT05GSUdfRk9OVFM9eQpDT05GSUdfRk9OVF84eDg9eQpDT05GSUdfRk9O
-VF84eDE2PXkK
---------------040504040300020305040904--
