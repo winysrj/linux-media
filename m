@@ -1,75 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44869 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:40363 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752533AbaLWVOk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 16:14:40 -0500
+	id S1752212AbaLCXUs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Dec 2014 18:20:48 -0500
+Received: from dyn3-82-128-190-178.psoas.suomi.net ([82.128.190.178] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1XwJDz-0002ds-5k
+	for linux-media@vger.kernel.org; Thu, 04 Dec 2014 01:20:47 +0200
+Message-ID: <547F9ACE.9070705@iki.fi>
+Date: Thu, 04 Dec 2014 01:20:46 +0200
 From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 57/66] rtl2832_sdr: refcount to rtl28xxu
-Date: Tue, 23 Dec 2014 22:49:50 +0200
-Message-Id: <1419367799-14263-57-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL 3.19] rtl2832_sdr fix
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We are consumer of DVB frontend provided by rtl28xxu module. Due to
-that we must use refcount to ensure none could remove rtl28xxu when
-we are alive (or when we are streaming, if more fine-grained
-refcounting is wanted).
+The following changes since commit 504febc3f98c87a8bebd8f2f274f32c0724131e4:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832_sdr.c | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+   Revert "[media] lmed04: add missing breaks" (2014-11-25 22:16:25 -0200)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
-index 62e85a3..3ff8806 100644
---- a/drivers/media/dvb-frontends/rtl2832_sdr.c
-+++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
-@@ -1310,10 +1310,21 @@ static int rtl2832_sdr_probe(struct platform_device *pdev)
- 		ret = -EINVAL;
- 		goto err;
- 	}
-+	if (!pdev->dev.parent->driver) {
-+		dev_dbg(&pdev->dev, "No parent device\n");
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+	/* try to refcount host drv since we are the consumer */
-+	if (!try_module_get(pdev->dev.parent->driver->owner)) {
-+		dev_err(&pdev->dev, "Refcount fail");
-+		ret = -EINVAL;
-+		goto err;
-+	}
- 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
- 	if (dev == NULL) {
- 		ret = -ENOMEM;
--		goto err;
-+		goto err_module_put;
- 	}
- 
- 	/* setup the state */
-@@ -1426,6 +1437,8 @@ err_v4l2_ctrl_handler_free:
- 	v4l2_ctrl_handler_free(&dev->hdl);
- err_kfree:
- 	kfree(dev);
-+err_module_put:
-+	module_put(pdev->dev.parent->driver->owner);
- err:
- 	return ret;
- }
-@@ -1444,8 +1457,8 @@ static int rtl2832_sdr_remove(struct platform_device *pdev)
- 	video_unregister_device(&dev->vdev);
- 	mutex_unlock(&dev->v4l2_lock);
- 	mutex_unlock(&dev->vb_queue_lock);
--
- 	v4l2_device_put(&dev->v4l2_dev);
-+	module_put(pdev->dev.parent->driver->owner);
- 
- 	return 0;
- }
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git rtl2832_sdr
+
+for you to fetch changes up to df12dc299d72779a1595b713909a706fe0785ece:
+
+   rtl2832_sdr: control ADC (2014-12-04 01:16:24 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (1):
+       rtl2832_sdr: control ADC
+
+  drivers/media/dvb-frontends/rtl2832_sdr.c | 8 ++++++++
+  1 file changed, 8 insertions(+)
+
 -- 
 http://palosaari.fi/
-
