@@ -1,152 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp04.udag.de ([62.146.106.30]:57276 "EHLO smtp04.udag.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932079AbaLVVNP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 16:13:15 -0500
-Message-ID: <54988806.7030800@cevel.net>
-Date: Mon, 22 Dec 2014 22:07:18 +0100
-From: Tolga Cakir <tolga@cevel.net>
-MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>
-CC: Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: Support for Elgato Game Capture HD / MStar MST3367CMK
-References: <536C3403.8010402@cevel.net> <CALzAhNVtyhmt8cCapu2oK5pGkJY2zNTaf6Ws26Sn9kZxgAddew@mail.gmail.com>
-In-Reply-To: <CALzAhNVtyhmt8cCapu2oK5pGkJY2zNTaf6Ws26Sn9kZxgAddew@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:26767 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752974AbaLCQIc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 11:08:32 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, robh+dt@kernel.org, pawel.moll@arm.com,
+	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
+	galak@codeaurora.org, Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH/RFC v9 12/19] v4l2-async: add V4L2_ASYNC_MATCH_CUSTOM_OF
+ matching type
+Date: Wed, 03 Dec 2014 17:06:47 +0100
+Message-id: <1417622814-10845-13-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 09.05.2014 um 14:38 schrieb Steven Toth:
-> On Thu, May 8, 2014 at 9:48 PM, Tolga Cakir <tolga@cevel.net> wrote:
->> Hello everyone!
-> Hi Tolga!
->
->> Over the past weeks, I've been busy capturing USB packets between the Elgato
->> Game Capture HD and my PC. It's using the MStar MST3367CMK chip, which seems
->> to have proprietary Linux support available only for hardware vendors in
->> form of an SDK. Problem is, that this SDK is strictly kept under an NDA,
->> making it kinda impossible for us to get our hands on.
-> Thanks for raising the subject.
->
-> While your comment is true, it would have been more appropriate to the
-> development community to say that it truly uses the Fujitsu USB
-> encoder, a fujitsu USB API along with a series of smaller subsystems
-> for HDMI receivers and transmitters. Your capture logs indicate
-> (largely) interaction with the Fujitsu USB bridge + integral encoder.
-> The distinction is important.
->
-> We outlined the architecture of the device (along with the brief tear
-> down) here: http://www.kernellabs.com/blog/?p=1959
->
->> So, I got my hands dirty and have found some very good stuff! First of all,
->> in contrast to many sources, the Elgato Game Capture HD outputs compressed
->> video and audio via USB! It's already encoded, so there is no need for
->> reencoding, this will save CPU power. For testing purposes, I've only tried
->> capturing 720p data for now, but this should be more than enough.
-> Have you posted any source code? I don't see any in the zips or on github.
->
-> Paging through a 600MB usb capture to find an occasional comment
-> (assuming you have inserted them) doesn't encourage me to contribute.
->
->> Basically, we need to read raw USB traffic, write an MPEG-TS file header,
->> put in the raw USB data and close the file. I'm not super experienced in C /
->> kernel development (especially V4L), but I'll give my best to get this
->> project forward. My next step is getting a prototype working with libusb in
->> userland; after that's done, I'll try porting it over to kernel / V4L
->>
->> Project page can be found here:
->> https://github.com/tolga9009/elgato-gchd
-> I must be missing something. your repo contains a LICENSE file and
-> README. Did you forget to checking a homebrew datasheet or working
-> sample source code?
->
->> USB logs and docs:
->> v1.0 as 7zip: https://docs.google.com/file/d/0B29z6-xPIPLEQVBMTWZHbUswYjg
->> v1.0 as rar: https://docs.google.com/file/d/0B29z6-xPIPLEcENMWnh1MklPdTQ
->> v1.0 as zip: https://docs.google.com/file/d/0B29z6-xPIPLEQWtibWk3T3AtVjA
-> Ahh, thank you for circulating the datasheets and images from our blog
-> post, you are most welcome! The internet is a wonderful thing, I'm
-> glad you found them useful.
->
->> Is anyone interested in getting involved / taking over? Overall, it seems
->> doable and not too complex. I'd be happy about any help! Also, if you need
->> more information, just ask me. I'll provide you everything I have about this
->> little device.
-> How about instead of some usb dumps, pictures and pdfs, a working
-> program and a description of the device protocol? This would help.
->
-> I spent a few days late 2012 with the usb analyzer and brought
-> together a primitive collection of personal notes on the API. Sadly
-> I'm struggling to locate them currently. From memory, the device has
-> an odd protocol which isn't exactly obvious. Its firmware like, not
-> i2c based. You don't appear to control the HDMI rx/tx silicon by hand,
-> the fijutsu firmware does this via firmware APIs. you would think,
-> YAY! firmware API, easy, surprisingly not. A lot of byte guess to be
-> done. If you have any significant homebrew documentation on the byte
-> sequences that control the device, this would help.
->
-> Part of the problem is that the device also streams (with the
-> windows/osx drivers I was using) permanently on, making it difficult
-> to see the wood from the noise. So, even when you are not 'using it',
-> its streaming payload via USB to the host. Urgh. I hope they've fixed
-> this.
->
-> The device outputs native ISO13818 TS packets which are easily
-> playable in VLC as is. I don't even think you need to add a header,
-> unless you are electing to create an updated PMT.
->
-> I have datasheets and/or source on everything except the fujitsu
-> encoder, sorry - I can't share.
->
-> Keep going with your project, this should be a fun to follow. libusb
-> is easy to work with, you should have the device running in no time.
->
-> If you can make the device run at both 720p and 1080i then you should
-> find enough variance in the protocol bytes, build that into your app,
-> to be useful for some people.
->
-> - Steve
+There are cases where a v4l2 sub-device is not related to the
+main Device Tree node of a device, but to its child node.
+Add v4l2_async_get_of_node_by_subdev function to facilitate
+associating a sub-device with different Device Tree node
+than the one from the related struct device. Added is also
+V4L2_ASYNC_MATCH_CUSTOM_OF matching type to declare this
+type of matching.
 
-Hi Steven!
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c |  106 ++++++++++++++++++++++++++++++----
+ include/media/v4l2-async.h           |    4 ++
+ 2 files changed, 98 insertions(+), 12 deletions(-)
 
-thank you for your hints so far! They really helped me moving forward. 6 
-months have passed and I was able to learn more about the device. I have 
-captured some more USB logs using the OpenVizsla USB 2.0 analyzer, 
-comparing Windows and Mac drivers side-by-side. There are some findings, 
-I want to share with you:
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 8140992..faa16484 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -22,6 +22,17 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
+ 
++static LIST_HEAD(subdev_list);
++static LIST_HEAD(notifier_list);
++static LIST_HEAD(custom_of_list);
++static DEFINE_MUTEX(list_lock);
++
++struct v4l2_subdev_to_of_node {
++	struct v4l2_subdev *sd;
++	struct device_node *node;
++	struct list_head list;
++};
++
+ static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+ #if IS_ENABLED(CONFIG_I2C)
+@@ -44,9 +55,17 @@ static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ 	return sd->dev->of_node == asd->match.of.node;
+ }
+ 
+-static LIST_HEAD(subdev_list);
+-static LIST_HEAD(notifier_list);
+-static DEFINE_MUTEX(list_lock);
++static bool match_custom_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
++{
++	struct v4l2_subdev_to_of_node *sd_to_of;
++
++	list_for_each_entry(sd_to_of, &custom_of_list, list)
++		if ((sd_to_of->sd == sd) &&
++		    (sd_to_of->node == asd->match.of.node))
++			return true;
++
++	return false;
++}
+ 
+ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+ 						    struct v4l2_subdev *sd)
+@@ -72,6 +91,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+ 		case V4L2_ASYNC_MATCH_OF:
+ 			match = match_of;
+ 			break;
++		case V4L2_ASYNC_MATCH_CUSTOM_OF:
++			match = match_custom_of;
++			break;
+ 		default:
+ 			/* Cannot happen, unless someone breaks us */
+ 			WARN_ON(true);
+@@ -120,9 +142,19 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+ 
+ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+ {
++	struct v4l2_subdev_to_of_node *sd_to_of, *tmp;
++
+ 	v4l2_device_unregister_subdev(sd);
+ 	/* Subdevice driver will reprobe and put the subdev back onto the list */
+ 	list_del_init(&sd->async_list);
++
++	list_for_each_entry_safe(sd_to_of, tmp, &custom_of_list, list) {
++		if (sd_to_of->sd == sd) {
++			list_del(&sd_to_of->list);
++			kfree (sd_to_of);
++		}
++	}
++
+ 	sd->asd = NULL;
+ 	sd->dev = NULL;
+ }
+@@ -149,6 +181,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
+ 		case V4L2_ASYNC_MATCH_OF:
++		case V4L2_ASYNC_MATCH_CUSTOM_OF:
+ 			break;
+ 		default:
+ 			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+@@ -262,32 +295,65 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+ 
+-int v4l2_async_register_subdev(struct v4l2_subdev *sd)
++static int __v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ {
+ 	struct v4l2_async_notifier *notifier;
+ 
+-	mutex_lock(&list_lock);
+-
+ 	INIT_LIST_HEAD(&sd->async_list);
+ 
+ 	list_for_each_entry(notifier, &notifier_list, list) {
+ 		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
+-		if (asd) {
+-			int ret = v4l2_async_test_notify(notifier, sd, asd);
+-			mutex_unlock(&list_lock);
+-			return ret;
+-		}
++		if (asd)
++			return v4l2_async_test_notify(notifier, sd, asd);
+ 	}
+ 
+ 	/* None matched, wait for hot-plugging */
+ 	list_add(&sd->async_list, &subdev_list);
+ 
++	return 0;
++}
++
++int v4l2_async_register_subdev(struct v4l2_subdev *sd)
++{
++	int ret;
++
++	mutex_lock(&list_lock);
++
++	ret = __v4l2_async_register_subdev(sd);
++
+ 	mutex_unlock(&list_lock);
+ 
+-	return 0;
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_async_register_subdev);
+ 
++int v4l2_async_register_subdev_with_of(struct v4l2_subdev *sd,
++				       struct device_node *of_node)
++{
++	int ret;
++	struct v4l2_subdev_to_of_node *sd_to_of;
++
++	sd_to_of = kmalloc(sizeof(*sd_to_of), GFP_KERNEL);
++	if (!sd_to_of)
++		return -ENOMEM;
++
++	INIT_LIST_HEAD(&sd_to_of->list);
++
++	sd_to_of->sd = sd;
++	sd_to_of->node = of_node;
++
++	mutex_lock(&list_lock);
++
++	list_add(&sd_to_of->list, &custom_of_list);
++
++	ret = __v4l2_async_register_subdev(sd);
++
++	mutex_unlock(&list_lock);
++
++	return ret;
++}
++EXPORT_SYMBOL(v4l2_async_register_subdev_with_of);
++
+ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ {
+ 	struct v4l2_async_notifier *notifier = sd->notifier;
+@@ -310,3 +376,19 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ 	mutex_unlock(&list_lock);
+ }
+ EXPORT_SYMBOL(v4l2_async_unregister_subdev);
++
++/* caller must ensure list_lock held */
++struct device_node *v4l2_async_get_of_node_by_subdev(struct v4l2_subdev *sd)
++{
++	struct v4l2_subdev_to_of_node *sd_to_of;
++
++	lockdep_assert_held(&list_lock);
++
++	list_for_each_entry(sd_to_of, &custom_of_list, list) {
++		if (sd_to_of->sd == sd)
++			return sd_to_of->node;
++	}
++
++	return NULL;
++}
++EXPORT_SYMBOL(v4l2_async_get_of_node_by_subdev);
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 1c0b586..10fce8e 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -28,6 +28,7 @@ enum v4l2_async_match_type {
+ 	V4L2_ASYNC_MATCH_DEVNAME,
+ 	V4L2_ASYNC_MATCH_I2C,
+ 	V4L2_ASYNC_MATCH_OF,
++	V4L2_ASYNC_MATCH_CUSTOM_OF,
+ };
+ 
+ /**
+@@ -93,5 +94,8 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 				 struct v4l2_async_notifier *notifier);
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
++int v4l2_async_register_subdev_with_of(struct v4l2_subdev *sd,
++				       struct device_node *of_node);
+ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
++struct device_node *v4l2_async_get_of_node_by_subdev(struct v4l2_subdev *sd);
+ #endif
+-- 
+1.7.9.5
 
-- The device has 5 endpoints, excluding EP0. EP1 and EP4 is used for 
-video / audio transmission and supports bulk transfers only; EP2 is used 
-for booting firmwares (which are not flashed onto the device, like FPGAs 
-- so, no brick chance!); EP5 is used for flashing a firmware onto the 
-device and shouldn't be touched by us. I have no idea about EP3, as I 
-haven't come across of it yet. You can find the output of "lsusb -v" 
-here: 
-https://github.com/tolga9009/elgato-gchd/blob/master/descriptors/lsusb_usb_descriptor
-
-- Setting up the device is done in several, non-trivial steps. There are 
-2 firmwares loaded onto the device (which we were able to transfer onto 
-the device!).
-
-- I have come across a bootup script, which was bundled with the Elgato 
-Mac drivers: 
-https://drive.google.com/file/d/0B29z6-xPIPLEZTZhSzJiQTVoR3c/view?usp=sharing. 
-This is a very interesting, documented script. You should definitely 
-take a look at it. The device seems to be using I2C for configuration. I 
-wasn't able to translate between I2C and the USB packets so far, but I'm 
-sure it can be done.
-
-I'm currently stuck after successfully loading the 2nd firmware onto the 
-device. That's a point, where things are getting really complicated. I 
-have studied and compared the (new) USB capture logs countless hours, 
-but wasn't able to find anything to move forward. Can you look into this 
-a second time? You can find everything in the GitHub repo: 
-https://github.com/tolga9009/elgato-gchd. By the way: Elgato has 
-improved alot. The new v2.0 Mac drivers stripped away tons of 
-unnecessary USB packets. That helps concentrating on the important stuff.
-
-Thank you!
-
-Cheers,
-Tolga
