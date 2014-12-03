@@ -1,159 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54085 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:51773 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752127AbaLWUub (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:31 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 24/66] rtl28xxu: use rtl2832 demod callbacks accessing its resources
-Date: Tue, 23 Dec 2014 22:49:17 +0200
-Message-Id: <1419367799-14263-24-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+	id S1751924AbaLCJt5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Dec 2014 04:49:57 -0500
+Message-ID: <547EDCA0.4040805@redhat.com>
+Date: Wed, 03 Dec 2014 10:49:20 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+CC: Chen-Yu Tsai <wens@csie.org>,
+	Boris Brezillon <boris@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Emilio Lopez <emilio@elopez.com.ar>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi <linux-sunxi@googlegroups.com>
+Subject: Re: [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
+References: <20141126211318.GN25249@lukather> <5476E3A5.4000708@redhat.com> <CAGb2v652m0bCdPWFF4LWwjcrCJZvnLibFPw8xXJ3Q-Ge+_-p7g@mail.gmail.com> <5476F8AB.2000601@redhat.com> <20141127190509.GR25249@lukather> <54787A8A.6040209@redhat.com> <20141202154524.GD30256@lukather>
+In-Reply-To: <20141202154524.GD30256@lukather>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch demod resource use from exported symbols to callbacks its
-provides.
+Hi,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 39 +++++++++++++++++----------------
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  5 ++++-
- 2 files changed, 24 insertions(+), 20 deletions(-)
+On 12/02/2014 04:45 PM, Maxime Ripard wrote:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index fa76ad2..3d619de 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -782,36 +782,35 @@ static int rtl2832u_frontend_callback(void *adapter_priv, int component,
- 
- static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- {
--	int ret;
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
--	struct rtl2832_platform_data platform_data;
--	const struct rtl2832_config *rtl2832_config;
--	struct i2c_board_info board_info = {};
-+	struct rtl2832_platform_data *pdata = &priv->rtl2832_platform_data;
-+	struct i2c_board_info board_info;
- 	struct i2c_client *client;
-+	int ret;
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
- 	switch (priv->tuner) {
- 	case TUNER_RTL2832_FC0012:
--		rtl2832_config = &rtl28xxu_rtl2832_fc0012_config;
-+		pdata->config = &rtl28xxu_rtl2832_fc0012_config;
- 		break;
- 	case TUNER_RTL2832_FC0013:
--		rtl2832_config = &rtl28xxu_rtl2832_fc0013_config;
-+		pdata->config = &rtl28xxu_rtl2832_fc0013_config;
- 		break;
- 	case TUNER_RTL2832_FC2580:
- 		/* FIXME: do not abuse fc0012 settings */
--		rtl2832_config = &rtl28xxu_rtl2832_fc0012_config;
-+		pdata->config = &rtl28xxu_rtl2832_fc0012_config;
- 		break;
- 	case TUNER_RTL2832_TUA9001:
--		rtl2832_config = &rtl28xxu_rtl2832_tua9001_config;
-+		pdata->config = &rtl28xxu_rtl2832_tua9001_config;
- 		break;
- 	case TUNER_RTL2832_E4000:
--		rtl2832_config = &rtl28xxu_rtl2832_e4000_config;
-+		pdata->config = &rtl28xxu_rtl2832_e4000_config;
- 		break;
- 	case TUNER_RTL2832_R820T:
- 	case TUNER_RTL2832_R828D:
--		rtl2832_config = &rtl28xxu_rtl2832_r820t_config;
-+		pdata->config = &rtl28xxu_rtl2832_r820t_config;
- 		break;
- 	default:
- 		dev_err(&d->udev->dev, "%s: unknown tuner=%s\n",
-@@ -821,11 +820,10 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 	}
- 
- 	/* attach demodulator */
--	platform_data.config = rtl2832_config;
--	platform_data.dvb_frontend = &adap->fe[0];
-+	memset(&board_info, 0, sizeof(board_info));
- 	strlcpy(board_info.type, "rtl2832", I2C_NAME_SIZE);
- 	board_info.addr = 0x10;
--	board_info.platform_data = &platform_data;
-+	board_info.platform_data = pdata;
- 	request_module("%s", board_info.type);
- 	client = i2c_new_device(&d->i2c_adap, &board_info);
- 	if (client == NULL || client->dev.driver == NULL) {
-@@ -839,10 +837,10 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 		goto err;
- 	}
- 
--	priv->i2c_client_demod = client;
-+	adap->fe[0] = pdata->get_dvb_frontend(client);
-+	priv->demod_i2c_adapter = pdata->get_i2c_adapter(client);
- 
--	/* RTL2832 I2C repeater */
--	priv->demod_i2c_adapter = rtl2832_get_i2c_adapter(adap->fe[0]);
-+	priv->i2c_client_demod = client;
- 
- 	/* set fe callback */
- 	adap->fe[0]->callback = rtl2832u_frontend_callback;
-@@ -1038,6 +1036,7 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 	int ret;
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
-+	struct rtl2832_platform_data *pdata = &priv->rtl2832_platform_data;
- 	struct dvb_frontend *fe = NULL;
- 	struct i2c_board_info info;
- 	struct i2c_client *client;
-@@ -1075,7 +1074,8 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 	case TUNER_RTL2832_E4000: {
- 			struct v4l2_subdev *sd;
- 			struct i2c_adapter *i2c_adap_internal =
--					rtl2832_get_private_i2c_adapter(adap->fe[0]);
-+					pdata->get_private_i2c_adapter(priv->i2c_client_demod);
-+
- 			struct e4000_config e4000_config = {
- 				.fe = adap->fe[0],
- 				.clock = 28800000,
-@@ -1346,7 +1346,8 @@ err:
- static int rtl2832u_frontend_ctrl(struct dvb_frontend *fe, int onoff)
- {
- 	struct dvb_usb_device *d = fe_to_d(fe);
--	struct dvb_usb_adapter *adap = fe_to_adap(fe);
-+	struct rtl28xxu_priv *priv = fe_to_priv(fe);
-+	struct rtl2832_platform_data *pdata = &priv->rtl2832_platform_data;
- 	int ret;
- 	u8 val;
- 
-@@ -1364,7 +1365,7 @@ static int rtl2832u_frontend_ctrl(struct dvb_frontend *fe, int onoff)
- 
- 	/* bypass slave demod TS through master demod */
- 	if (fe->id == 1 && onoff) {
--		ret = rtl2832_enable_external_ts_if(adap->fe[0]);
-+		ret = pdata->enable_slave_ts(priv->i2c_client_demod);
- 		if (ret)
- 			goto err;
- 	}
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-index 3f630c8..cb3fc65 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-@@ -80,7 +80,10 @@ struct rtl28xxu_priv {
- 	#define SLAVE_DEMOD_MN88472        1
- 	#define SLAVE_DEMOD_MN88473        2
- 	unsigned int slave_demod:2;
--	struct rtl2830_platform_data rtl2830_platform_data;
-+	union {
-+		struct rtl2830_platform_data rtl2830_platform_data;
-+		struct rtl2832_platform_data rtl2832_platform_data;
-+	};
- };
- 
- enum rtl28xxu_chip_id {
--- 
-http://palosaari.fi/
+ >> Ok, so thinking more about this, I'm still convinced that the MFD
+>> framework is only getting in the way here.
+>
+> You still haven't said of what exactly it's getting in the way of.
 
+Of using of_clk_define to bind to the mod0 clk in the prcm, because the
+ir_clk node does not have its own reg property when the mfd framework is
+used and of_clk_define requires the node to have its own reg property.
+
+>> But I can see having things represented in devicetree properly, with
+>> the clocks, etc. as child nodes of the prcm being something which we
+>> want.
+>
+> Clocks and reset are the only thing set so far, because we need
+> reference to them from the DT itself, nothing more.
+>
+> We could very much have more devices instatiated from the MFD itself.
+>
+>> So since all we are using the MFD for is to instantiate platform
+>> devices under the prcm nodes, and assign an io resource for the regs
+>> to them, why not simply make the prcm node itself a simple-bus.
+>
+> No, this is really not a bus. It shouldn't be described at all as
+> such. It is a device, that has multiple functionnalities in the system
+> => MFD. It really is that simple.
+
+Ok, I can live with that, but likewise the clocks node is not a bus either!
+
+So it should not have a simple-bus compatible either, and as such we cannot
+simply change the mod0 driver from of_clk_define to a platform driver because
+then we need to instantiate platform devs for the mod0 clock nodes, which
+means making the clock node a simple-bus.
+
+I can see your logic in wanting the ir_clk prcm sub-node to use the
+mod0 compatible string, so how about we make the mod0 driver both
+register through of_declare and as a platform driver. Note this means
+that it will try to bind twice to the ir_clk node, since of_clk_declare
+will cause it to try and bind there too AFAIK.
+
+The of_clk_declare bind will fail though because there is no regs
+property, so this double bind is not an issue as long as we do not
+log errors on the first bind failure.
+
+Note that the ir_clk node will still need an "ir-clk" compatible as
+well for the MFD to find it and assign the proper resources to it.
+
+But this way we will have the clk driver binding to the mod0 clk compatible,
+which is what you want, while having the MFD assign resources on the
+fact that it is the ir-clk node, so that things will still work if
+there are multiple mod0 clks in the prcm.
+
+>> This does everything the MFD prcm driver currently does, without
+>> actually needing a specific kernel driver, and as added bonus this
+>> will move the definition of the mfd function reg offsets out of the
+>> kernel and into the devicetree where they belong in the first place.
+>
+> Which was nacked in the first place because such offsets are not
+> supposed to be in the DT.
+>
+> Really, we have something that work here, there's no need to refactor
+> it.
+
+Ok, but that does bring us back to the original problem wrt the ir-clk,
+see above for how I think we should solve this then. If you agree I
+can implement the proposed fix.
+
+Regards,
+
+Hans
