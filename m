@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:60848 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934184AbaLKI7R (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37367 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750840AbaLCLGJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Dec 2014 03:59:17 -0500
-Message-ID: <54895C92.9000007@xs4all.nl>
-Date: Thu, 11 Dec 2014 09:57:54 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 3 Dec 2014 06:06:09 -0500
+Date: Wed, 3 Dec 2014 13:06:00 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: Re: [PATCH 1/2] v4l2 subdevs: replace get/set_crop by
+ get/set_selection
+Message-ID: <20141203110559.GE14746@valkosipuli.retiisi.org.uk>
+References: <1417522901-43604-1-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: marbugge@cisco.com, dri-devel@lists.freedesktop.org,
-	thierry.reding@gmail.com
-Subject: Re: [PATCHv2 0/3] hdmi: add unpack and logging functions
-References: <1417522126-31771-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417522126-31771-1-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1417522901-43604-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thierry,
+Hi Hans,
 
-On 12/02/14 13:08, Hans Verkuil wrote:
-> This patch series adds new HDMI 2.0/CEA-861-F defines to hdmi.h and
-> adds unpacking and logging functions to hdmi.c. It also uses those
-> in the V4L2 adv7842 driver (and they will be used in other HDMI drivers
-> once this functionality is merged).
+On Tue, Dec 02, 2014 at 01:21:40PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Patches 2 and 3 have been posted before by Martin Bugge. It stalled, but
-> I am taking over from Martin to try and get this is. I want to use this
-> in a bunch of v4l2 drivers, so I would really like to see this merged.
+> The crop and selection pad ops are duplicates. Replace all uses of get/set_crop
+> by get/set_selection. This will make it possible to drop get/set_crop
+> altogether.
 > 
-> Changes since v1:
-> 
-> - rename HDMI_CONTENT_TYPE_NONE to HDMI_CONTENT_TYPE_GRAPHICS to conform
->   to CEA-861-F.
-> - added missing HDMI_AUDIO_CODING_TYPE_CXT.
-> - Be explicit: out of range values are called "Invalid", reserved
->   values are called "Reserved".
-> - Incorporated most of Thierry's suggestions. Exception: I didn't
->   create ..._get_name(buffer, length, ...) functions. I think it makes
->   the API awkward and I am not convinced that it is that useful.
->   I also kept "No Data" since that's what CEA-861-F calls it. I also
->   think that "No Data" is a better description than "None" since it
->   really means that nobody bothered to fill this in.
-> 
-> Please let me know if there are more things that need to be addressed in
-> these patches before they can be merged.
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+> Cc: Philipp Zabel <p.zabel@pengutronix.de>
 
-Any comments about this v2? If not, is this something you or someone else
-from dri-devel will take, or can it be merged through the media git
-repository?
+For both: 
 
-Regards,
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-	Hans
+Another point I'd like to draw attention to are the reserved fields --- some
+drivers appear to zero them whereas some pay no attention. Shouldn't we
+check in the sub-device IOCTL handler that the user has zeroed them, or zero
+them for the user? I think this has probably been discussed before on V4L2.
+Both have their advantages, probably zeroing them in the framework would be
+the best option. What do you think?
+
+Definitely out of scope of this set.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
