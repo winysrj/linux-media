@@ -1,65 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:56269 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752875AbaLIJSl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 04:18:41 -0500
-Message-id: <5486BE6C.9010408@samsung.com>
-Date: Tue, 09 Dec 2014 10:18:36 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v9 03/19] mfd: max77693: Modify flash cell name
- identifiers
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
- <1417622814-10845-4-git-send-email-j.anaszewski@samsung.com>
- <20141209085216.GS3951@x1>
-In-reply-to: <20141209085216.GS3951@x1>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from eusmtp01.atmel.com ([212.144.249.242]:58563 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751855AbaLCJud (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 04:50:33 -0500
+Message-ID: <547EDCAE.50001@atmel.com>
+Date: Wed, 3 Dec 2014 17:49:34 +0800
+From: Josh Wu <josh.wu@atmel.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
+	<linux-arm-kernel@lists.infradead.org>, <g.liakhovetski@gmx.de>,
+	<devicetree@vger.kernel.org>
+Subject: Re: [PATCH 4/4] media: ov2640: dt: add the device tree binding document
+References: <1417170507-11172-1-git-send-email-josh.wu@atmel.com> <1417170507-11172-5-git-send-email-josh.wu@atmel.com> <3353234.ED9pHT6goB@avalon>
+In-Reply-To: <3353234.ED9pHT6goB@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/09/2014 09:52 AM, Lee Jones wrote:
-> On Wed, 03 Dec 2014, Jacek Anaszewski wrote:
->
->> Change flash cell identifiers from max77693-flash to max77693-led
->> to avoid confusion with NOR/NAND Flash.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Chanwoo Choi <cw00.choi@samsung.com>
->> Cc: Lee Jones <lee.jones@linaro.org>
->> ---
->>   drivers/mfd/max77693.c |    4 ++--
->>   1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
->> index a159593..cb14afa 100644
->> --- a/drivers/mfd/max77693.c
->> +++ b/drivers/mfd/max77693.c
->> @@ -53,8 +53,8 @@ static const struct mfd_cell max77693_devs[] = {
->>   		.of_compatible = "maxim,max77693-haptic",
->>   	},
->>   	{
->> -		.name = "max77693-flash",
->> -		.of_compatible = "maxim,max77693-flash",
->> +		.name = "max77693-led",
->> +		.of_compatible = "maxim,max77693-led",
->
-> This is fine by me, so long as you've been through the usual
-> deprecation procedures or this platform is still WiP.
+Hi, Laurent
 
-It was me who added of_compatible for max77693-flash, but the
-related led driver has not been yet merged and there are no
-other drivers depending on it.
+On 12/2/2014 6:14 AM, Laurent Pinchart wrote:
+> Hi Josh,
+>
+> Thank you for the patch.
+>
+> On Friday 28 November 2014 18:28:27 Josh Wu wrote:
+>> Add the document for ov2640 dt.
+>>
+>> Cc: devicetree@vger.kernel.org
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>>   .../devicetree/bindings/media/i2c/ov2640.txt       | 43 +++++++++++++++++++
+>>   1 file changed, 43 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>> b/Documentation/devicetree/bindings/media/i2c/ov2640.txt new file mode
+>> 100644
+>> index 0000000..adec147
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>> @@ -0,0 +1,43 @@
+>> +* Omnivision ov2640 CMOS sensor
+>> +
+>> +The Omnivision OV2640 sensor support multiple resolutions output, such as
+>> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+>> +output format.
+>> +
+>> +Required Properties :
+>> +- compatible      : Must be "omnivision,ov2640"
+> The usual practice is to use the company's stock ticker as a prefix. In this
+> case the compatible string would be "ovti,ov2640". You need to add the prefix
+> to Documentation/devicetree/bindings/vendor-prefixes.txt.
+>
+>> +- reset-gpio      : reset pin
+>> +- power-down-gpio : power down pin
+> That should be reset-gpios and power-down-gpios, even if there's a single
+> GPIO. Furthermore, given that the power down pin is named PWDN you might want
+> to name the property pwdn-gpios.
+>
+> The reset and pwdn signals won't be connected on all boards, so the two
+> properties should be optional.
+>
+>> +Optional Properties:
+>> +- clocks          : reference master clock, if using external fixed clock,
+>> you
+>> +                    no need to have such property.
+> The clock is required by the chip, so even when using an external fixed clock
+> the property should be present, and reference a fixed clock node. The clocks
+> and clock-names properties should thus be mandatory.
+>
+>> +- clock-names     : Must be "mck", it means the master clock for ov2640.
+> The clock input is named xvclk in the datasheet, you should use the same name
+> here.
+>
+>> +
+>> +For further reading of port node refer
+>> Documentation/devicetree/bindings/media/
+>> +video-interfaces.txt.
+> Even if you reference that document you should still mention what port node(s)
+> these bindings require. Something like the following text should be enough.
+>
+> "The device node must contain one 'port' child node for its digital output
+> video port, in accordance with the video interface bindings defined in
+> Documentation/devicetree/bindings/media/video-interfaces.txt."
+>
+>> +
+>> +Example:
+>> +
+>> +	i2c1: i2c@f0018000 {
+>> +		ov2640: camera@0x30 {
+>> +			compatible = "omnivision,ov2640";
+>> +			reg = <0x30>;
+>> +
+>> +			... ...
+> No need for an ellipsis, what are you trying to hide ? :-)
+
+I just emit the pinctrl property here. Will add it back.
+>
+>> +
+>> +			reset-gpio = <&pioE 24 GPIO_ACTIVE_HIGH>;
+>> +			power-down-gpio = <&pioE 29 GPIO_ACTIVE_HIGH>;
+>> +
+>> +			/* use pck1 for the master clock of ov2640 */
+> I think you can drop the comment.
+
+I will send a new version which will fix all above.
+Thanks for your time to review the patch. That help me a lot.
 
 Best Regards,
-Jacek Anaszewski
+Josh Wu
+
+>
+>> +			clocks = <&pck1>;
+>> +			clock-names = "mck";
+>> +
+>> +			port {
+>> +				ov2640_0: endpoint {
+>> +					remote-endpoint = <&isi_0>;
+>> +					bus-width = <8>;
+>> +				};
+>> +			};
+>> +		};
+>> +	};
 
