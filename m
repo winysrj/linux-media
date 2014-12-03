@@ -1,166 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45260 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756606AbaLWUua (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:30 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 21/66] rtl2830: implement own I2C locking
-Date: Tue, 23 Dec 2014 22:49:14 +0200
-Message-Id: <1419367799-14263-21-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52921 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751924AbaLCK23 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 05:28:29 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Emil Renner Berthing <kernel@esmil.dk>
+Subject: [PATCH 3/3] Add RGB666_1X24_CPADHI media bus format
+Date: Wed,  3 Dec 2014 11:28:20 +0100
+Message-Id: <1417602500-29152-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1417602500-29152-1-git-send-email-p.zabel@pengutronix.de>
+References: <1417602500-29152-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Own I2C locking is needed due to two special reasons:
-1) Chips uses multiple register pages/banks on single I2C slave.
-Page is changed via I2C register access.
-2) Chip offers muxed/gated I2C adapter for tuner. Gate/mux is
-controlled by I2C register access.
+Commit 9e74d2926a28 ("staging: imx-drm: add LVDS666 support for parallel
+display") describes a 24-bit bus format where three 6-bit components each
+take the lower part of 8 bits with the two high bits zero padded. Add a
+component-wise padded media bus format RGB666_1X24_CPADHI to support this
+connection.
 
-Due to these reasons, I2C locking did not fit very well.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Cc: Emil Renner Berthing <kernel@esmil.dk>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/dvb-frontends/rtl2830.c      | 45 +++++++++++++++++++++++++-----
- drivers/media/dvb-frontends/rtl2830_priv.h |  1 +
- 2 files changed, 39 insertions(+), 7 deletions(-)
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 30 ++++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h              |  1 +
+ 2 files changed, 31 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index 8abaca6..3a9e4e9 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -43,7 +43,7 @@ static int rtl2830_wr(struct i2c_client *client, u8 reg, const u8 *val, int len)
- 	buf[0] = reg;
- 	memcpy(&buf[1], val, len);
- 
--	ret = i2c_transfer(client->adapter, msg, 1);
-+	ret = __i2c_transfer(client->adapter, msg, 1);
- 	if (ret == 1) {
- 		ret = 0;
- 	} else {
-@@ -73,7 +73,7 @@ static int rtl2830_rd(struct i2c_client *client, u8 reg, u8 *val, int len)
- 		}
- 	};
- 
--	ret = i2c_transfer(client->adapter, msg, 2);
-+	ret = __i2c_transfer(client->adapter, msg, 2);
- 	if (ret == 2) {
- 		ret = 0;
- 	} else {
-@@ -93,16 +93,23 @@ static int rtl2830_wr_regs(struct i2c_client *client, u16 reg, const u8 *val, in
- 	u8 reg2 = (reg >> 0) & 0xff;
- 	u8 page = (reg >> 8) & 0xff;
- 
-+	mutex_lock(&dev->i2c_mutex);
-+
- 	/* switch bank if needed */
- 	if (page != dev->page) {
- 		ret = rtl2830_wr(client, 0x00, &page, 1);
- 		if (ret)
--			return ret;
-+			goto err_mutex_unlock;
- 
- 		dev->page = page;
- 	}
- 
--	return rtl2830_wr(client, reg2, val, len);
-+	ret = rtl2830_wr(client, reg2, val, len);
-+
-+err_mutex_unlock:
-+	mutex_unlock(&dev->i2c_mutex);
-+
-+	return ret;
- }
- 
- /* read multiple registers */
-@@ -113,16 +120,23 @@ static int rtl2830_rd_regs(struct i2c_client *client, u16 reg, u8 *val, int len)
- 	u8 reg2 = (reg >> 0) & 0xff;
- 	u8 page = (reg >> 8) & 0xff;
- 
-+	mutex_lock(&dev->i2c_mutex);
-+
- 	/* switch bank if needed */
- 	if (page != dev->page) {
- 		ret = rtl2830_wr(client, 0x00, &page, 1);
- 		if (ret)
--			return ret;
-+			goto err_mutex_unlock;
- 
- 		dev->page = page;
- 	}
- 
--	return rtl2830_rd(client, reg2, val, len);
-+	ret = rtl2830_rd(client, reg2, val, len);
-+
-+err_mutex_unlock:
-+	mutex_unlock(&dev->i2c_mutex);
-+
-+	return ret;
- }
- 
- /* read single register */
-@@ -815,6 +829,10 @@ static int rtl2830_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
- 	};
- 	int ret;
- 
-+	dev_dbg(&client->dev, "\n");
-+
-+	mutex_lock(&dev->i2c_mutex);
-+
- 	/* select register page */
- 	ret = __i2c_transfer(client->adapter, select_reg_page_msg, 1);
- 	if (ret != 1) {
-@@ -841,6 +859,18 @@ err:
- 	return ret;
- }
- 
-+static int rtl2830_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
-+{
-+	struct i2c_client *client = mux_priv;
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
-+
-+	dev_dbg(&client->dev, "\n");
-+
-+	mutex_unlock(&dev->i2c_mutex);
-+
-+	return 0;
-+}
-+
- static struct dvb_frontend *rtl2830_get_dvb_frontend(struct i2c_client *client)
- {
- 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
-@@ -886,6 +916,7 @@ static int rtl2830_probe(struct i2c_client *client,
- 	dev->client = client;
- 	dev->pdata = client->dev.platform_data;
- 	dev->sleeping = true;
-+	mutex_init(&dev->i2c_mutex);
- 	INIT_DELAYED_WORK(&dev->stat_work, rtl2830_stat_work);
- 
- 	/* check if the demod is there */
-@@ -895,7 +926,7 @@ static int rtl2830_probe(struct i2c_client *client,
- 
- 	/* create muxed i2c adapter for tuner */
- 	dev->adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
--			client, 0, 0, 0, rtl2830_select, NULL);
-+			client, 0, 0, 0, rtl2830_select, rtl2830_deselect);
- 	if (dev->adapter == NULL) {
- 		ret = -ENODEV;
- 		goto err_kfree;
-diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
-index 2931889..517758a 100644
---- a/drivers/media/dvb-frontends/rtl2830_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2830_priv.h
-@@ -30,6 +30,7 @@ struct rtl2830_dev {
- 	struct i2c_adapter *adapter;
- 	struct dvb_frontend fe;
- 	bool sleeping;
-+	struct mutex i2c_mutex;
- 	u8 page; /* active register page */
- 	unsigned long filters;
- 	struct delayed_work stat_work;
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 9afb846..c259b9e 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -469,6 +469,36 @@
+ 	      <entry>b<subscript>1</subscript></entry>
+ 	      <entry>b<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="MEDIA-BUS-FMT-RGB666-1X24_CPADHI">
++	      <entry>MEDIA_BUS_FMT_RGB666_1X24_CPADHI</entry>
++	      <entry>0x1015</entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>0</entry>
++	      <entry>0</entry>
++	      <entry>r<subscript>5</subscript></entry>
++	      <entry>r<subscript>4</subscript></entry>
++	      <entry>r<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	      <entry>0</entry>
++	      <entry>0</entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	      <entry>0</entry>
++	      <entry>0</entry>
++	      <entry>b<subscript>5</subscript></entry>
++	      <entry>b<subscript>4</subscript></entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>b<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="MEDIA-BUS-FMT-RGB888-1X24">
+ 	      <entry>MEDIA_BUS_FMT_RGB888_1X24</entry>
+ 	      <entry>0x100a</entry>
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 977316e..ec80fb8 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -45,6 +45,7 @@
+ #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
+ #define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
+ #define MEDIA_BUS_FMT_RGB666_1X18		0x1009
++#define MEDIA_BUS_FMT_RGB666_1X24_CPADHI	0x1015
+ #define MEDIA_BUS_FMT_RGB666_LVDS_SPWG		0x1010
+ #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
+ #define MEDIA_BUS_FMT_BGR888_1X24		0x1013
 -- 
-http://palosaari.fi/
+2.1.3
 
