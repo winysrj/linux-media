@@ -1,71 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49878 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752809AbaLANCe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 08:02:34 -0500
-Date: Mon, 1 Dec 2014 14:02:31 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	SangYoung Son <hello.son@smasung.com>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH/RFC v8 11/14] DT: Add documentation for the mfd Maxim
- max77693
-Message-ID: <20141201130231.GA24737@amd>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-12-git-send-email-j.anaszewski@samsung.com>
- <20141129192607.GB17355@amd>
- <547C65F7.4090801@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <547C65F7.4090801@samsung.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:56792 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752061AbaLCMMf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 07:12:35 -0500
+Message-ID: <1417608753.5124.10.camel@pengutronix.de>
+Subject: Re: [PATCH] media / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Kamil Debski <k.debski@samsung.com>,
+	Linux PM list <linux-pm@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Date: Wed, 03 Dec 2014 13:12:33 +0100
+In-Reply-To: <4139875.fkJ48z9AaU@vostro.rjw.lan>
+References: <4139875.fkJ48z9AaU@vostro.rjw.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
-
-> >Is this one needed? Just ommit child note if it is not there.
+Am Mittwoch, den 03.12.2014, 03:13 +0100 schrieb Rafael J. Wysocki:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> It is needed because you can have one led connected two both
-> outputs. This allows to describe such a design.
-
-Ok.
-
-> >>+- maxim,trigger-type : Array of trigger types in order: flash, torch
-> >>+	Possible trigger types:
-> >>+		0 - Rising edge of the signal triggers the flash/torch,
-> >>+		1 - Signal level controls duration of the flash/torch.
-> >>+- maxim,trigger : Array of flags indicating which trigger can activate given led
-> >>+	in order: fled1, fled2
-> >>+	Possible flag values (can be combined):
-> >>+		1 - FLASH pin of the chip,
-> >>+		2 - TORCH pin of the chip,
-> >>+		4 - software via I2C command.
-> >
-> >Is it good idea to have bitfields like this?
-> >
-> >Make these required properties of the subnode?
+> After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
+> depending on CONFIG_PM_RUNTIME may now be changed to depend on
+> CONFIG_PM.
 > 
-> This is related to a single property: trigger. I think that splitting
-> it to three properties would make unnecessary noise in the
-> binding.
+> The alternative of CONFIG_PM_SLEEP and CONFIG_PM_RUNTIME may be
+> replaced with CONFIG_PM too.
+> 
+> Make these changes everywhere under drivers/media/.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> Note: This depends on commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
+> PM_SLEEP is selected) which is only in linux-next at the moment (via the
+> linux-pm tree).
+> 
+> Please let me know if it is OK to take this one into linux-pm.
 
-Well, maybe it is not that much noise, and you'll have useful names
-(not a bitfield).
+For the coda part,
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Should these properties move to the LED subnode?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+regards
+Philipp
+
