@@ -1,68 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41287 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756611AbaLWUu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:29 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 14/66] rtl2830: implement DVBv5 signal strength statistics
-Date: Tue, 23 Dec 2014 22:49:07 +0200
-Message-Id: <1419367799-14263-14-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37508 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751086AbaLCLTi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Dec 2014 06:19:38 -0500
+Date: Wed, 3 Dec 2014 13:19:04 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: Re: [PATCH 1/2] v4l2 subdevs: replace get/set_crop by
+ get/set_selection
+Message-ID: <20141203111904.GF14746@valkosipuli.retiisi.org.uk>
+References: <1417522901-43604-1-git-send-email-hverkuil@xs4all.nl>
+ <547EF0A9.2070004@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <547EF0A9.2070004@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Estimate signal strength from IF AGC.
+On Wed, Dec 03, 2014 at 12:14:49PM +0100, Sylwester Nawrocki wrote:
+> Hi Hans,
+> 
+> On 02/12/14 13:21, Hans Verkuil wrote:
+> > -static int s5k6aa_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+> > -			   struct v4l2_subdev_crop *crop)
+> > +static int s5k6aa_set_selection(struct v4l2_subdev *sd,
+> > +				struct v4l2_subdev_fh *fh,
+> > +				struct v4l2_subdev_selection *sel)
+> >  {
+> >  	struct s5k6aa *s5k6aa = to_s5k6aa(sd);
+> >  	struct v4l2_mbus_framefmt *mf;
+> >  	unsigned int max_x, max_y;
+> >  	struct v4l2_rect *crop_r;
+> >  
+> > +	if (sel->pad || sel->target != V4L2_SEL_TGT_CROP)
+> > +		return -EINVAL;
+> > +
+> 
+> Isn't checking sel->pad redundant here ? There is already the pad index
+> validation in check_selection() in v4l2-subdev.c and this driver has only
+> one pad.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2830.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+Good point. check_crop() does that for the [sg]_crop as well.
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index c484634..641047b 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -246,6 +246,8 @@ static int rtl2830_init(struct dvb_frontend *fe)
- 		goto err;
- 
- 	/* init stats here in order signal app which stats are supported */
-+	c->strength.len = 1;
-+	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	c->cnr.len = 1;
- 	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	/* start statistics polling */
-@@ -693,6 +695,28 @@ static void rtl2830_stat_work(struct work_struct *work)
- 
- 	dev_dbg(&client->dev, "\n");
- 
-+	/* signal strength */
-+	if (dev->fe_status & FE_HAS_SIGNAL) {
-+		struct {signed int x:14; } s;
-+
-+		/* read IF AGC */
-+		ret = rtl2830_rd_regs(client, 0x359, buf, 2);
-+		if (ret)
-+			goto err;
-+
-+		u16tmp = buf[0] << 8 | buf[1] << 0;
-+		u16tmp &= 0x3fff; /* [13:0] */
-+		tmp = s.x = u16tmp; /* 14-bit bin to 2 complement */
-+		u16tmp = clamp_val(-4 * tmp + 32767, 0x0000, 0xffff);
-+
-+		dev_dbg(&client->dev, "IF AGC=%d\n", tmp);
-+
-+		c->strength.stat[0].scale = FE_SCALE_RELATIVE;
-+		c->strength.stat[0].uvalue = u16tmp;
-+	} else {
-+		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
-+
- 	/* CNR */
- 	if (dev->fe_status & FE_HAS_VITERBI) {
- 		unsigned hierarchy, constellation;
 -- 
-http://palosaari.fi/
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
