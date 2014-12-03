@@ -1,84 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43945 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752703AbaLGXXn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Dec 2014 18:23:43 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: aviv.d.greenberg@intel.com
-Subject: [REVIEW PATCH v2 1/3] DocBook: v4l: Fix raw bayer pixel format documentation wording
-Date: Mon,  8 Dec 2014 01:22:20 +0200
-Message-Id: <1417994542-25826-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1417994542-25826-1-git-send-email-sakari.ailus@iki.fi>
-References: <1417994542-25826-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:10731 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751076AbaLCPHa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 10:07:30 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NG000L0VI52SJ70@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Dec 2014 15:10:14 +0000 (GMT)
+Message-id: <547F2723.5070907@samsung.com>
+Date: Wed, 03 Dec 2014 16:07:15 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>
+Subject: Re: [PATCH v4 07/10] v4l: vb2: Fix race condition in _vb2_fop_release
+References: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1417464820-6718-8-git-send-email-laurent.pinchart@ideasonboard.com>
+In-reply-to: <1417464820-6718-8-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The documentation began with "The following four pixel formats"... but the
-format definitions preceded this sentence. Replace it with "These four pixel
-formats".
+On 01/12/14 21:13, Laurent Pinchart wrote:
+> The function releases the queue if the file being released is the queue
+> owner. The check reads the queue->owner field without taking the queue
+> lock, creating a race condition with functions that set the queue owner,
+> such as vb2_ioctl_reqbufs() for instance.
+> 
+> Fix this by moving the queue->owner check within the mutex protected
+> section.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/DocBook/media/v4l/pixfmt-srggb10.xml      |    2 +-
- Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml |    2 +-
- Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml |    2 +-
- Documentation/DocBook/media/v4l/pixfmt-srggb12.xml      |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-index c1c62a9..f34d03e 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-@@ -17,7 +17,7 @@
-       <refsect1>
- 	<title>Description</title>
- 
--	<para>The following four pixel formats are raw sRGB / Bayer formats with
-+	<para>These four pixel formats are raw sRGB / Bayer formats with
- 10 bits per colour. Each colour component is stored in a 16-bit word, with 6
- unused high bits filled with zeros. Each n-pixel row contains n/2 green samples
- and n/2 blue or red samples, with alternating red and blue rows. Bytes are
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-index 29acc20..d2e5845 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-@@ -25,7 +25,7 @@
- 	  </refnamediv>
- 	  <refsect1>
- 	    <title>Description</title>
--	    <para>The following four pixel formats are raw sRGB / Bayer
-+	    <para>These four pixel formats are raw sRGB / Bayer
- 	    formats with 10 bits per color compressed to 8 bits each,
- 	    using the A-LAW algorithm. Each color component consumes 8
- 	    bits of memory. In other respects this format is similar to
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-index 2d3f0b1a..bde8987 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-@@ -18,7 +18,7 @@
-       <refsect1>
- 	<title>Description</title>
- 
--	<para>The following four pixel formats are raw sRGB / Bayer formats
-+	<para>These four pixel formats are raw sRGB / Bayer formats
- 	with 10 bits per colour compressed to 8 bits each, using DPCM
- 	compression. DPCM, differential pulse-code modulation, is lossy.
- 	Each colour component consumes 8 bits of memory. In other respects
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb12.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb12.xml
-index 96947f1..0c8e4ad 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-srggb12.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb12.xml
-@@ -17,7 +17,7 @@
-       <refsect1>
- 	<title>Description</title>
- 
--	<para>The following four pixel formats are raw sRGB / Bayer formats with
-+	<para>These four pixel formats are raw sRGB / Bayer formats with
- 12 bits per colour. Each colour component is stored in a 16-bit word, with 4
- unused high bits filled with zeros. Each n-pixel row contains n/2 green samples
- and n/2 blue or red samples, with alternating red and blue rows. Bytes are
--- 
-1.7.10.4
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
