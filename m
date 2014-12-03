@@ -1,656 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41931 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752700AbaLGWZj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Dec 2014 17:25:39 -0500
-Message-ID: <5484D3E0.9070909@iki.fi>
-Date: Mon, 08 Dec 2014 00:25:36 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from v094114.home.net.pl ([79.96.170.134]:62570 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750730AbaLCBwc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Dec 2014 20:52:32 -0500
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: linux-media@vger.kernel.org
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Kamil Debski <k.debski@samsung.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Linux PM list <linux-pm@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [PATCH] media / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
+Date: Wed, 03 Dec 2014 03:13:55 +0100
+Message-ID: <4139875.fkJ48z9AaU@vostro.rjw.lan>
 MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] mn88472: load demodulator register defaults
-References: <1417990203-758-1-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1417990203-758-1-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
-I don't like that at *all*. It is totally bad idea to write 550 
-registers to "default" and even more bad it is done as single register 
-at once. It is huge amount of I/O traffic in a situation device has 
-problems with I/O. Did you even compared are those registers already 
-same than POR (power on reset)?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-550 registers means basically writing every single register of that 
-chip. It is hard to imagine chip designers has made that bad mistake and 
-set wrong default value for every register.
+After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
+depending on CONFIG_PM_RUNTIME may now be changed to depend on
+CONFIG_PM.
 
-There is regmap already used, you likely need to learn what are POR 
-default values and which registers need to be changed. Then teach all 
-that info to RegMap and it will do shadow registering (to reduce I/O).
+The alternative of CONFIG_PM_SLEEP and CONFIG_PM_RUNTIME may be
+replaced with CONFIG_PM too.
 
-regard
-Antti
+Make these changes everywhere under drivers/media/.
 
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
+Note: This depends on commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
+PM_SLEEP is selected) which is only in linux-next at the moment (via the
+linux-pm tree).
 
-On 12/08/2014 12:10 AM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
-> ---
->   drivers/staging/media/mn88472/mn88472.c      |  21 +
->   drivers/staging/media/mn88472/mn88472_priv.h | 558 +++++++++++++++++++++++++++
->   2 files changed, 579 insertions(+)
->
-> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-> index be8a6d5..ffee187 100644
-> --- a/drivers/staging/media/mn88472/mn88472.c
-> +++ b/drivers/staging/media/mn88472/mn88472.c
-> @@ -272,6 +272,20 @@ err:
->   	return ret;
->   }
->
-> +static int mn88472_load_defaults(struct mn88472_dev *dev)
-> +{
-> +	int i, ret = 0;
-> +
-> +	for (i = 0 ; i < sizeof(mn88472_init_tab)/sizeof(struct idx_num_val)
-> +		; i++) {
-> +		ret |= regmap_write(dev->regmap[mn88472_init_tab[i].reg_idx],
-> +						mn88472_init_tab[i].reg_num,
-> +						mn88472_init_tab[i].reg_val);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
->   static int mn88472_init(struct dvb_frontend *fe)
->   {
->   	struct i2c_client *client = fe->demodulator_priv;
-> @@ -294,6 +308,13 @@ static int mn88472_init(struct dvb_frontend *fe)
->   	if (ret)
->   		goto err;
->
-> +	/* load register defaults */
-> +	ret = mn88472_load_defaults(dev);
-> +	if (ret) {
-> +		dev_err(&client->dev, "register defaults failed\n");
-> +		goto err;
-> +	}
-> +
->   	/* request the firmware, this will block and timeout */
->   	ret = request_firmware(&fw, fw_file, &client->dev);
->   	if (ret) {
-> diff --git a/drivers/staging/media/mn88472/mn88472_priv.h b/drivers/staging/media/mn88472/mn88472_priv.h
-> index 9ba8c8b..b77ff1e 100644
-> --- a/drivers/staging/media/mn88472/mn88472_priv.h
-> +++ b/drivers/staging/media/mn88472/mn88472_priv.h
-> @@ -36,4 +36,562 @@ struct mn88472_dev {
->   	int ts_clock;
->   };
->
-> +struct idx_num_val {
-> +	unsigned char reg_idx;
-> +	unsigned char reg_num;
-> +	unsigned char reg_val;
-> +};
-> +
-> +struct idx_num_val mn88472_init_tab[] = {
-> +{ 2, 0x00, 0x66 },
-> +{ 2, 0x01, 0x00 },
-> +{ 2, 0x02, 0x01 },
-> +{ 2, 0x03, 0x03 },
-> +{ 2, 0x04, 0x00 },
-> +{ 2, 0x05, 0x00 },
-> +{ 2, 0x06, 0x00 },
-> +{ 2, 0x07, 0x00 },
-> +{ 2, 0x08, 0x00 },
-> +{ 2, 0x09, 0x00 },
-> +{ 2, 0x0a, 0x00 },
-> +{ 2, 0x0b, 0x00 },
-> +{ 2, 0x0c, 0x00 },
-> +{ 2, 0x0d, 0x00 },
-> +{ 2, 0x0e, 0x00 },
-> +{ 2, 0x0f, 0x00 },
-> +{ 2, 0x10, 0x3e },
-> +{ 2, 0x11, 0x70 },
-> +{ 2, 0x12, 0x64 },
-> +{ 2, 0x13, 0x8f },
-> +{ 2, 0x14, 0x80 },
-> +{ 2, 0x15, 0x00 },
-> +{ 2, 0x16, 0x08 },
-> +{ 2, 0x17, 0xee },
-> +{ 2, 0x18, 0x08 },
-> +{ 2, 0x19, 0xee },
-> +{ 2, 0x1a, 0x43 },
-> +{ 2, 0x1b, 0x00 },
-> +{ 2, 0x1c, 0x74 },
-> +{ 2, 0x1d, 0xe4 },
-> +{ 2, 0x1e, 0x26 },
-> +{ 2, 0x1f, 0x4f },
-> +{ 2, 0x20, 0x72 },
-> +{ 2, 0x21, 0x22 },
-> +{ 2, 0x22, 0x22 },
-> +{ 2, 0x23, 0x01 },
-> +{ 2, 0x24, 0x00 },
-> +{ 2, 0x25, 0x12 },
-> +{ 2, 0x26, 0x00 },
-> +{ 2, 0x27, 0x00 },
-> +{ 2, 0x28, 0x80 },
-> +{ 2, 0x29, 0x0c },
-> +{ 2, 0x2a, 0xf4 },
-> +{ 2, 0x2b, 0x13 },
-> +{ 2, 0x2c, 0x00 },
-> +{ 2, 0x2d, 0x20 },
-> +{ 2, 0x2e, 0x88 },
-> +{ 2, 0x2f, 0x00 },
-> +{ 2, 0x30, 0x80 },
-> +{ 2, 0x31, 0x80 },
-> +{ 2, 0x32, 0x00 },
-> +{ 2, 0x33, 0x00 },
-> +{ 2, 0x34, 0x00 },
-> +{ 2, 0x35, 0x00 },
-> +{ 2, 0x36, 0x00 },
-> +{ 2, 0x37, 0x00 },
-> +{ 2, 0x38, 0xca },
-> +{ 2, 0x39, 0x03 },
-> +{ 2, 0x3a, 0x02 },
-> +{ 2, 0x3b, 0x55 },
-> +{ 2, 0x3c, 0xd7 },
-> +{ 2, 0x3d, 0x00 },
-> +{ 2, 0x3e, 0x00 },
-> +{ 2, 0x3f, 0x22 },
-> +{ 2, 0x40, 0x00 },
-> +{ 2, 0x41, 0x38 },
-> +{ 2, 0x42, 0x22 },
-> +{ 2, 0x43, 0x00 },
-> +{ 2, 0x44, 0x38 },
-> +{ 2, 0x45, 0xd3 },
-> +{ 2, 0x46, 0x10 },
-> +{ 2, 0x47, 0xb5 },
-> +{ 2, 0x48, 0xa1 },
-> +{ 2, 0x49, 0x00 },
-> +{ 2, 0x4a, 0xd3 },
-> +{ 2, 0x4b, 0x07 },
-> +{ 2, 0x4c, 0x64 },
-> +{ 2, 0x4d, 0x0d },
-> +{ 2, 0x4e, 0x00 },
-> +{ 2, 0x4f, 0x05 },
-> +{ 2, 0x50, 0x00 },
-> +{ 2, 0x51, 0x55 },
-> +{ 2, 0x52, 0x20 },
-> +{ 2, 0x53, 0x00 },
-> +{ 2, 0x54, 0x24 },
-> +{ 2, 0x55, 0x64 },
-> +{ 2, 0x56, 0x44 },
-> +{ 2, 0x57, 0x33 },
-> +{ 2, 0x58, 0x1f },
-> +{ 2, 0x59, 0x00 },
-> +{ 2, 0x5a, 0x5a },
-> +{ 2, 0x5b, 0x03 },
-> +{ 2, 0x5c, 0xc0 },
-> +{ 2, 0x5d, 0x00 },
-> +{ 2, 0x5e, 0x00 },
-> +{ 2, 0x5f, 0x03 },
-> +{ 2, 0x60, 0x00 },
-> +{ 2, 0x61, 0x00 },
-> +{ 2, 0x62, 0x11 },
-> +{ 2, 0x63, 0x40 },
-> +{ 2, 0x64, 0x84 },
-> +{ 2, 0x65, 0x04 },
-> +{ 2, 0x66, 0x0c },
-> +{ 2, 0x67, 0x00 },
-> +{ 2, 0x68, 0x08 },
-> +{ 2, 0x69, 0x00 },
-> +{ 2, 0x6a, 0x00 },
-> +{ 2, 0x6b, 0x12 },
-> +{ 2, 0x6c, 0x21 },
-> +{ 2, 0x6d, 0x10 },
-> +{ 2, 0x6e, 0x01 },
-> +{ 2, 0x6f, 0x00 },
-> +{ 2, 0x70, 0x00 },
-> +{ 2, 0x71, 0x00 },
-> +{ 2, 0x72, 0xe8 },
-> +{ 2, 0x73, 0x48 },
-> +{ 2, 0x74, 0x40 },
-> +{ 2, 0x75, 0x00 },
-> +{ 2, 0x76, 0x1d },
-> +{ 2, 0x77, 0x19 },
-> +{ 2, 0x78, 0x1d },
-> +{ 2, 0x79, 0x19 },
-> +{ 2, 0x7a, 0x66 },
-> +{ 2, 0x7b, 0x8c },
-> +{ 2, 0x7c, 0x9f },
-> +{ 2, 0x7d, 0x08 },
-> +{ 2, 0x7e, 0x00 },
-> +{ 2, 0x7f, 0x00 },
-> +{ 2, 0x80, 0x00 },
-> +{ 2, 0x81, 0x00 },
-> +{ 2, 0x83, 0x00 },
-> +{ 2, 0x84, 0x00 },
-> +{ 2, 0x85, 0x00 },
-> +{ 2, 0x86, 0x00 },
-> +{ 2, 0x87, 0x00 },
-> +{ 2, 0x88, 0x00 },
-> +{ 2, 0x89, 0x00 },
-> +{ 2, 0x8a, 0x20 },
-> +{ 2, 0x8b, 0x49 },
-> +{ 2, 0x8c, 0x00 },
-> +{ 2, 0xc4, 0x00 },
-> +{ 2, 0xc5, 0x00 },
-> +{ 2, 0xc6, 0x00 },
-> +{ 2, 0xc7, 0x87 },
-> +{ 2, 0xc8, 0x40 },
-> +{ 2, 0xc9, 0x30 },
-> +{ 2, 0xca, 0x06 },
-> +{ 2, 0xcb, 0x02 },
-> +{ 2, 0xcc, 0x00 },
-> +{ 2, 0xcd, 0x3b },
-> +{ 2, 0xce, 0x00 },
-> +{ 2, 0xcf, 0x00 },
-> +{ 2, 0xd0, 0x00 },
-> +{ 2, 0xd1, 0x00 },
-> +{ 2, 0xd2, 0x00 },
-> +{ 2, 0xd3, 0x40 },
-> +{ 2, 0xd4, 0x00 },
-> +{ 2, 0xd5, 0xf0 },
-> +{ 2, 0xd6, 0x02 },
-> +{ 2, 0xd7, 0x02 },
-> +{ 2, 0xd8, 0x01 },
-> +{ 2, 0xd9, 0x00 },
-> +{ 2, 0xda, 0x00 },
-> +{ 2, 0xdb, 0x00 },
-> +{ 2, 0xdc, 0x00 },
-> +{ 2, 0xdd, 0x00 },
-> +{ 2, 0xde, 0x00 },
-> +{ 2, 0xdf, 0x00 },
-> +{ 2, 0xe0, 0x00 },
-> +{ 2, 0xe1, 0x00 },
-> +{ 2, 0xe2, 0x00 },
-> +{ 2, 0xe3, 0x00 },
-> +{ 2, 0xe4, 0x00 },
-> +{ 2, 0xe5, 0x00 },
-> +{ 2, 0xe6, 0x00 },
-> +{ 2, 0xe7, 0x00 },
-> +{ 2, 0xe9, 0x00 },
-> +{ 2, 0xea, 0x00 },
-> +{ 2, 0xeb, 0x00 },
-> +{ 2, 0xec, 0xd3 },
-> +{ 2, 0xed, 0x31 },
-> +{ 2, 0xee, 0x00 },
-> +{ 2, 0xef, 0x00 },
-> +{ 2, 0xf0, 0x00 },
-> +{ 2, 0xf1, 0x00 },
-> +{ 2, 0xf2, 0x00 },
-> +{ 2, 0xf3, 0x00 },
-> +{ 2, 0xf4, 0x00 },
-> +{ 2, 0xf5, 0x00 },
-> +{ 2, 0xf6, 0x00 },
-> +{ 2, 0xf8, 0x9f },
-> +{ 2, 0xf9, 0xd4 },
-> +{ 2, 0xfa, 0x00 },
-> +{ 2, 0xfb, 0x03 },
-> +{ 2, 0xfc, 0x00 },
-> +{ 2, 0xfd, 0x00 },
-> +{ 2, 0xfe, 0x00 },
-> +{ 2, 0xff, 0x02 },
-> +{ 0, 0x00, 0xba },
-> +{ 0, 0x01, 0x13 },
-> +{ 0, 0x02, 0x80 },
-> +{ 0, 0x03, 0xba },
-> +{ 0, 0x04, 0x91 },
-> +{ 0, 0x05, 0x40 },
-> +{ 0, 0x06, 0xe7 },
-> +{ 0, 0x07, 0x26 },
-> +{ 0, 0x08, 0xff },
-> +{ 0, 0x09, 0x1b },
-> +{ 0, 0x0a, 0x09 },
-> +{ 0, 0x0b, 0x08 },
-> +{ 0, 0x0c, 0x04 },
-> +{ 0, 0x0d, 0x2d },
-> +{ 0, 0x0e, 0x09 },
-> +{ 0, 0x0f, 0x00 },
-> +{ 0, 0x10, 0x10 },
-> +{ 0, 0x11, 0x1f },
-> +{ 0, 0x12, 0x08 },
-> +{ 0, 0x13, 0x00 },
-> +{ 0, 0x14, 0x00 },
-> +{ 0, 0x15, 0x03 },
-> +{ 0, 0x16, 0x00 },
-> +{ 0, 0x17, 0x00 },
-> +{ 0, 0x18, 0x00 },
-> +{ 0, 0x19, 0xb0 },
-> +{ 0, 0x1a, 0x00 },
-> +{ 0, 0x1b, 0x00 },
-> +{ 0, 0x1c, 0x00 },
-> +{ 0, 0x1d, 0xe0 },
-> +{ 0, 0x1e, 0x6c },
-> +{ 0, 0x1f, 0x33 },
-> +{ 0, 0x20, 0x4a },
-> +{ 0, 0x21, 0x03 },
-> +{ 0, 0x22, 0x00 },
-> +{ 0, 0x23, 0x01 },
-> +{ 0, 0x24, 0x05 },
-> +{ 0, 0x25, 0x96 },
-> +{ 0, 0x26, 0x43 },
-> +{ 0, 0x27, 0x00 },
-> +{ 0, 0x28, 0x01 },
-> +{ 0, 0x29, 0x15 },
-> +{ 0, 0x2a, 0xa2 },
-> +{ 0, 0x2b, 0xc3 },
-> +{ 0, 0x2c, 0xf5 },
-> +{ 0, 0x2d, 0x22 },
-> +{ 0, 0x2e, 0x87 },
-> +{ 0, 0x2f, 0xd3 },
-> +{ 0, 0x30, 0x00 },
-> +{ 0, 0x31, 0x55 },
-> +{ 0, 0x32, 0x33 },
-> +{ 0, 0x33, 0x61 },
-> +{ 0, 0x34, 0x22 },
-> +{ 0, 0x35, 0x01 },
-> +{ 0, 0x36, 0x02 },
-> +{ 0, 0x37, 0x40 },
-> +{ 0, 0x38, 0x40 },
-> +{ 0, 0x39, 0x46 },
-> +{ 0, 0x3a, 0x25 },
-> +{ 0, 0x3b, 0x04 },
-> +{ 0, 0x3c, 0x00 },
-> +{ 0, 0x3d, 0x04 },
-> +{ 0, 0x3e, 0x00 },
-> +{ 0, 0x3f, 0x00 },
-> +{ 0, 0x40, 0x3b },
-> +{ 0, 0x41, 0x20 },
-> +{ 0, 0x42, 0x00 },
-> +{ 0, 0x43, 0x3f },
-> +{ 0, 0x44, 0x1f },
-> +{ 0, 0x45, 0x05 },
-> +{ 0, 0x46, 0x00 },
-> +{ 0, 0x47, 0x00 },
-> +{ 0, 0x48, 0x05 },
-> +{ 0, 0x49, 0xf0 },
-> +{ 0, 0x4a, 0x00 },
-> +{ 0, 0x4b, 0x00 },
-> +{ 0, 0x4c, 0x1f },
-> +{ 0, 0x4d, 0x0f },
-> +{ 0, 0x4e, 0x39 },
-> +{ 0, 0x4f, 0x03 },
-> +{ 0, 0x50, 0xf8 },
-> +{ 0, 0x51, 0xf4 },
-> +{ 0, 0x52, 0x08 },
-> +{ 0, 0x53, 0xf8 },
-> +{ 0, 0x54, 0xea },
-> +{ 0, 0x55, 0xf0 },
-> +{ 0, 0x56, 0x04 },
-> +{ 0, 0x57, 0x20 },
-> +{ 0, 0x58, 0x12 },
-> +{ 0, 0x59, 0x12 },
-> +{ 0, 0x5a, 0x02 },
-> +{ 0, 0x5b, 0x20 },
-> +{ 0, 0x5c, 0x1a },
-> +{ 0, 0x5d, 0x08 },
-> +{ 0, 0x5e, 0xad },
-> +{ 0, 0x5f, 0x33 },
-> +{ 0, 0x60, 0x95 },
-> +{ 0, 0x61, 0x8f },
-> +{ 0, 0x62, 0x80 },
-> +{ 0, 0x63, 0x00 },
-> +{ 0, 0x64, 0x76 },
-> +{ 0, 0x65, 0x54 },
-> +{ 0, 0x66, 0x87 },
-> +{ 0, 0x67, 0x65 },
-> +{ 0, 0x68, 0x66 },
-> +{ 0, 0x69, 0x54 },
-> +{ 0, 0x6a, 0x4a },
-> +{ 0, 0x6b, 0x86 },
-> +{ 0, 0x6c, 0x13 },
-> +{ 0, 0x6d, 0x31 },
-> +{ 0, 0x6e, 0x2d },
-> +{ 0, 0x6f, 0x07 },
-> +{ 0, 0x70, 0x00 },
-> +{ 0, 0x71, 0x40 },
-> +{ 0, 0x72, 0x00 },
-> +{ 0, 0x73, 0x00 },
-> +{ 0, 0x74, 0x00 },
-> +{ 0, 0x75, 0x10 },
-> +{ 0, 0x76, 0x0c },
-> +{ 0, 0x77, 0x0c },
-> +{ 0, 0x78, 0x59 },
-> +{ 0, 0x79, 0x00 },
-> +{ 0, 0x7a, 0x00 },
-> +{ 0, 0x7b, 0x00 },
-> +{ 0, 0x7c, 0x00 },
-> +{ 0, 0x7d, 0x05 },
-> +{ 0, 0x88, 0x1e },
-> +{ 0, 0x89, 0x49 },
-> +{ 0, 0x8a, 0x31 },
-> +{ 0, 0x8b, 0x1a },
-> +{ 0, 0x8c, 0x2c },
-> +{ 0, 0x8d, 0x3f },
-> +{ 0, 0x8e, 0x7f },
-> +{ 0, 0x8f, 0x07 },
-> +{ 0, 0xa5, 0x00 },
-> +{ 0, 0xa6, 0x00 },
-> +{ 0, 0xa9, 0x00 },
-> +{ 0, 0xaa, 0x00 },
-> +{ 0, 0xab, 0x00 },
-> +{ 0, 0xae, 0x00 },
-> +{ 0, 0xaf, 0x00 },
-> +{ 0, 0xb0, 0x0a },
-> +{ 0, 0xb1, 0x7a },
-> +{ 0, 0xb2, 0x40 },
-> +{ 0, 0xb3, 0x5c },
-> +{ 0, 0xb4, 0xf6 },
-> +{ 0, 0xb5, 0x31 },
-> +{ 0, 0xb6, 0xc0 },
-> +{ 0, 0xb7, 0xff },
-> +{ 0, 0xb8, 0x88 },
-> +{ 0, 0xb9, 0xff },
-> +{ 0, 0xba, 0xaa },
-> +{ 0, 0xbb, 0x00 },
-> +{ 0, 0xbc, 0x08 },
-> +{ 0, 0xbd, 0x03 },
-> +{ 0, 0xbe, 0x00 },
-> +{ 0, 0xbf, 0x00 },
-> +{ 0, 0xc0, 0xbf },
-> +{ 0, 0xc1, 0x00 },
-> +{ 0, 0xc2, 0x00 },
-> +{ 0, 0xc3, 0xff },
-> +{ 0, 0xc4, 0x20 },
-> +{ 0, 0xc5, 0x80 },
-> +{ 0, 0xc6, 0xff },
-> +{ 0, 0xc7, 0xff },
-> +{ 0, 0xc8, 0xff },
-> +{ 0, 0xc9, 0xe0 },
-> +{ 0, 0xca, 0x80 },
-> +{ 0, 0xcb, 0x00 },
-> +{ 0, 0xcc, 0x00 },
-> +{ 0, 0xcd, 0x01 },
-> +{ 0, 0xce, 0x00 },
-> +{ 0, 0xcf, 0x54 },
-> +{ 0, 0xd0, 0x23 },
-> +{ 0, 0xd1, 0x47 },
-> +{ 0, 0xd2, 0x01 },
-> +{ 0, 0xd3, 0x00 },
-> +{ 0, 0xd4, 0x09 },
-> +{ 0, 0xd5, 0x47 },
-> +{ 0, 0xd6, 0x46 },
-> +{ 0, 0xd7, 0x00 },
-> +{ 0, 0xd8, 0x00 },
-> +{ 0, 0xd9, 0xe1 },
-> +{ 0, 0xda, 0x03 },
-> +{ 0, 0xdb, 0x08 },
-> +{ 0, 0xdc, 0xb8 },
-> +{ 0, 0xdd, 0x08 },
-> +{ 0, 0xde, 0x0c },
-> +{ 0, 0xdf, 0x90 },
-> +{ 0, 0xe6, 0x00 },
-> +{ 0, 0xe7, 0x00 },
-> +{ 0, 0xe8, 0x00 },
-> +{ 0, 0xec, 0x00 },
-> +{ 0, 0xed, 0x00 },
-> +{ 0, 0xee, 0x00 },
-> +{ 2, 0xfb, 0x03 },
-> +{ 0, 0xf0, 0x00 },
-> +{ 0, 0xf1, 0x00 },
-> +{ 0, 0xf2, 0x00 },
-> +{ 0, 0xf3, 0x00 },
-> +{ 0, 0xf4, 0x00 },
-> +{ 0, 0xf5, 0x01 },
-> +{ 0, 0xf7, 0x00 },
-> +{ 0, 0xf8, 0x00 },
-> +{ 0, 0xf9, 0x07 },
-> +{ 0, 0xfa, 0xff },
-> +{ 0, 0xfb, 0x00 },
-> +{ 0, 0xfc, 0x00 },
-> +{ 0, 0xfd, 0x30 },
-> +{ 0, 0xfe, 0x00 },
-> +{ 0, 0xff, 0x02 },
-> +{ 1, 0x00, 0xb0 },
-> +{ 1, 0x01, 0x00 },
-> +{ 1, 0x02, 0x11 },
-> +{ 1, 0x03, 0x18 },
-> +{ 1, 0x04, 0x04 },
-> +{ 1, 0x05, 0xe0 },
-> +{ 1, 0x06, 0x5f },
-> +{ 1, 0x07, 0x27 },
-> +{ 1, 0x08, 0x30 },
-> +{ 1, 0x09, 0xff },
-> +{ 1, 0x0a, 0xc0 },
-> +{ 1, 0x0b, 0xaa },
-> +{ 1, 0x0c, 0xbb },
-> +{ 1, 0x0d, 0xee },
-> +{ 1, 0x0e, 0xaa },
-> +{ 1, 0x0f, 0xaa },
-> +{ 1, 0x10, 0x0d },
-> +{ 1, 0x11, 0xab },
-> +{ 1, 0x12, 0x0b },
-> +{ 1, 0x13, 0x3c },
-> +{ 1, 0x14, 0x18 },
-> +{ 1, 0x15, 0xd9 },
-> +{ 1, 0x16, 0x51 },
-> +{ 1, 0x17, 0xec },
-> +{ 1, 0x18, 0x00 },
-> +{ 1, 0x19, 0xbe },
-> +{ 1, 0x1a, 0xd6 },
-> +{ 1, 0x1b, 0x1c },
-> +{ 1, 0x1c, 0x0b },
-> +{ 1, 0x1d, 0x3c },
-> +{ 1, 0x1e, 0x29 },
-> +{ 1, 0x1f, 0x00 },
-> +{ 1, 0x20, 0x00 },
-> +{ 1, 0x21, 0x00 },
-> +{ 1, 0x22, 0xa0 },
-> +{ 1, 0x23, 0x94 },
-> +{ 1, 0x24, 0xaf },
-> +{ 1, 0x25, 0x01 },
-> +{ 1, 0x26, 0x00 },
-> +{ 1, 0x27, 0x00 },
-> +{ 1, 0x28, 0x00 },
-> +{ 1, 0x29, 0x00 },
-> +{ 1, 0x2a, 0x00 },
-> +{ 1, 0x2b, 0x00 },
-> +{ 1, 0x2c, 0x00 },
-> +{ 1, 0x2d, 0x00 },
-> +{ 1, 0x2e, 0x00 },
-> +{ 1, 0x2f, 0x0c },
-> +{ 1, 0x30, 0x3b },
-> +{ 1, 0x31, 0x41 },
-> +{ 1, 0x32, 0x0c },
-> +{ 1, 0x33, 0x02 },
-> +{ 1, 0x34, 0xb1 },
-> +{ 1, 0x35, 0xed },
-> +{ 1, 0x36, 0x60 },
-> +{ 1, 0x37, 0xcc },
-> +{ 1, 0x38, 0x6c },
-> +{ 1, 0x39, 0x7d },
-> +{ 1, 0x3a, 0xb1 },
-> +{ 1, 0x3b, 0xed },
-> +{ 1, 0x3c, 0x69 },
-> +{ 1, 0x3d, 0xb3 },
-> +{ 1, 0x3e, 0xed },
-> +{ 1, 0x3f, 0x40 },
-> +{ 1, 0x40, 0xdb },
-> +{ 1, 0x41, 0xda },
-> +{ 1, 0x42, 0x79 },
-> +{ 1, 0x43, 0x87 },
-> +{ 1, 0x44, 0xbc },
-> +{ 1, 0x45, 0x3f },
-> +{ 1, 0x46, 0xb7 },
-> +{ 1, 0x47, 0x5e },
-> +{ 1, 0x48, 0x1c },
-> +{ 1, 0x49, 0xb7 },
-> +{ 1, 0x4a, 0x56 },
-> +{ 1, 0x4b, 0xb7 },
-> +{ 1, 0x4c, 0x56 },
-> +{ 1, 0x4d, 0xb7 },
-> +{ 1, 0x4e, 0x56 },
-> +{ 1, 0x4f, 0x63 },
-> +{ 1, 0x50, 0xd5 },
-> +{ 1, 0x51, 0x74 },
-> +{ 1, 0x52, 0x95 },
-> +{ 1, 0x53, 0x5f },
-> +{ 1, 0x54, 0xc0 },
-> +{ 1, 0x55, 0x73 },
-> +{ 1, 0x56, 0x28 },
-> +{ 1, 0x57, 0xc4 },
-> +{ 1, 0x58, 0x69 },
-> +{ 1, 0x59, 0x55 },
-> +{ 1, 0x5a, 0x55 },
-> +{ 1, 0x5b, 0x40 },
-> +{ 1, 0x5c, 0x60 },
-> +{ 1, 0x5d, 0xfd },
-> +{ 1, 0x5e, 0x00 },
-> +{ 1, 0x5f, 0x00 },
-> +{ 1, 0x60, 0x30 },
-> +{ 1, 0x61, 0x29 },
-> +{ 1, 0x62, 0x13 },
-> +{ 1, 0x63, 0xf0 },
-> +{ 1, 0x64, 0x00 },
-> +{ 1, 0x65, 0x96 },
-> +{ 1, 0x66, 0x72 },
-> +{ 1, 0x67, 0x1b },
-> +{ 1, 0x68, 0x2d },
-> +{ 1, 0x69, 0x97 },
-> +{ 1, 0x6a, 0x4b },
-> +{ 1, 0x6b, 0xde },
-> +{ 1, 0x6c, 0x88 },
-> +{ 1, 0x6d, 0x00 },
-> +{ 1, 0x6e, 0x00 },
-> +{ 1, 0x6f, 0x00 },
-> +{ 1, 0x70, 0xab },
-> +{ 1, 0x71, 0x2b },
-> +{ 1, 0x72, 0x10 },
-> +{ 1, 0x73, 0xf4 },
-> +{ 1, 0x74, 0x47 },
-> +{ 1, 0x75, 0x57 },
-> +{ 1, 0x76, 0x40 },
-> +{ 1, 0x77, 0xaa },
-> +{ 1, 0x78, 0xaa },
-> +{ 1, 0x79, 0x01 },
-> +{ 1, 0x7a, 0x00 },
-> +{ 1, 0x7b, 0x07 },
-> +{ 1, 0x7c, 0x50 },
-> +{ 1, 0x80, 0x00 },
-> +{ 1, 0x81, 0x88 },
-> +{ 1, 0x82, 0x00 },
-> +{ 1, 0xf0, 0x00 },
-> +{ 1, 0xf1, 0x5e },
-> +{ 1, 0xf2, 0xec },
-> +{ 1, 0xf3, 0x00 },
-> +{ 1, 0xf4, 0x5e },
-> +{ 1, 0xf5, 0xec },
-> +{ 1, 0xf6, 0x05 },
-> +{ 2, 0xfb, 0x03 },
-> +{ 1, 0xfc, 0x00 },
-> +{ 1, 0xfd, 0x00 },
-> +{ 1, 0xfe, 0x00 },
-> +{ 1, 0xff, 0x02 },
-> +};
-> +
->   #endif
->
+Please let me know if it is OK to take this one into linux-pm.
 
--- 
-http://palosaari.fi/
+---
+ drivers/media/platform/coda/coda-common.c       |    4 ++--
+ drivers/media/platform/exynos4-is/fimc-core.c   |    6 +++---
+ drivers/media/platform/exynos4-is/fimc-is-i2c.c |    2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c   |    2 +-
+ drivers/media/platform/exynos4-is/mipi-csis.c   |    2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c     |    4 ++--
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c     |   10 ++++------
+ 8 files changed, 15 insertions(+), 17 deletions(-)
+
+Index: linux-pm/drivers/media/platform/s5p-jpeg/jpeg-core.c
+===================================================================
+--- linux-pm.orig/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ linux-pm/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2632,7 +2632,7 @@ static int s5p_jpeg_remove(struct platfo
+ 	return 0;
+ }
+ 
+-#if defined(CONFIG_PM_RUNTIME) || defined(CONFIG_PM_SLEEP)
++#ifdef CONFIG_PM
+ static int s5p_jpeg_runtime_suspend(struct device *dev)
+ {
+ 	struct s5p_jpeg *jpeg = dev_get_drvdata(dev);
+@@ -2682,7 +2682,7 @@ static int s5p_jpeg_runtime_resume(struc
+ 
+ 	return 0;
+ }
+-#endif /* CONFIG_PM_RUNTIME || CONFIG_PM_SLEEP */
++#endif /* CONFIG_PM */
+ 
+ #ifdef CONFIG_PM_SLEEP
+ static int s5p_jpeg_suspend(struct device *dev)
+Index: linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc.c
+===================================================================
+--- linux-pm.orig/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1302,7 +1302,7 @@ static int s5p_mfc_resume(struct device
+ }
+ #endif
+ 
+-#ifdef CONFIG_PM_RUNTIME
++#ifdef CONFIG_PM
+ static int s5p_mfc_runtime_suspend(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+Index: linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+===================================================================
+--- linux-pm.orig/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
++++ linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+@@ -13,9 +13,7 @@
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/platform_device.h>
+-#ifdef CONFIG_PM_RUNTIME
+ #include <linux/pm_runtime.h>
+-#endif
+ #include "s5p_mfc_common.h"
+ #include "s5p_mfc_debug.h"
+ #include "s5p_mfc_pm.h"
+@@ -67,7 +65,7 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *
+ 	}
+ 
+ 	atomic_set(&pm->power, 0);
+-#ifdef CONFIG_PM_RUNTIME
++#ifdef CONFIG_PM
+ 	pm->device = &dev->plat_dev->dev;
+ 	pm_runtime_enable(pm->device);
+ #endif
+@@ -93,7 +91,7 @@ void s5p_mfc_final_pm(struct s5p_mfc_dev
+ 	}
+ 	clk_unprepare(pm->clock_gate);
+ 	clk_put(pm->clock_gate);
+-#ifdef CONFIG_PM_RUNTIME
++#ifdef CONFIG_PM
+ 	pm_runtime_disable(pm->device);
+ #endif
+ }
+@@ -120,7 +118,7 @@ void s5p_mfc_clock_off(void)
+ 
+ int s5p_mfc_power_on(void)
+ {
+-#ifdef CONFIG_PM_RUNTIME
++#ifdef CONFIG_PM
+ 	return pm_runtime_get_sync(pm->device);
+ #else
+ 	atomic_set(&pm->power, 1);
+@@ -130,7 +128,7 @@ int s5p_mfc_power_on(void)
+ 
+ int s5p_mfc_power_off(void)
+ {
+-#ifdef CONFIG_PM_RUNTIME
++#ifdef CONFIG_PM
+ 	return pm_runtime_put_sync(pm->device);
+ #else
+ 	atomic_set(&pm->power, 0);
+Index: linux-pm/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+===================================================================
+--- linux-pm.orig/drivers/media/platform/exynos4-is/fimc-is-i2c.c
++++ linux-pm/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+@@ -81,7 +81,7 @@ static int fimc_is_i2c_remove(struct pla
+ 	return 0;
+ }
+ 
+-#if defined(CONFIG_PM_RUNTIME) || defined(CONFIG_PM_SLEEP)
++#ifdef CONFIG_PM
+ static int fimc_is_i2c_runtime_suspend(struct device *dev)
+ {
+ 	struct fimc_is_i2c *isp_i2c = dev_get_drvdata(dev);
+Index: linux-pm/drivers/media/platform/exynos4-is/fimc-lite.c
+===================================================================
+--- linux-pm.orig/drivers/media/platform/exynos4-is/fimc-lite.c
++++ linux-pm/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -1588,7 +1588,7 @@ err_clk_put:
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_PM_RUNTIME
++#ifdef CONFIG_PM
+ static int fimc_lite_runtime_resume(struct device *dev)
+ {
+ 	struct fimc_lite *fimc = dev_get_drvdata(dev);
+Index: linux-pm/drivers/media/platform/exynos4-is/mipi-csis.c
+===================================================================
+--- linux-pm.orig/drivers/media/platform/exynos4-is/mipi-csis.c
++++ linux-pm/drivers/media/platform/exynos4-is/mipi-csis.c
+@@ -978,7 +978,7 @@ static int s5pcsis_resume(struct device
+ }
+ #endif
+ 
+-#ifdef CONFIG_PM_RUNTIME
++#ifdef CONFIG_PM
+ static int s5pcsis_runtime_suspend(struct device *dev)
+ {
+ 	return s5pcsis_pm_suspend(dev, true);
+Index: linux-pm/drivers/media/platform/exynos4-is/fimc-core.c
+===================================================================
+--- linux-pm.orig/drivers/media/platform/exynos4-is/fimc-core.c
++++ linux-pm/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -832,7 +832,7 @@ err:
+ 	return -ENXIO;
+ }
+ 
+-#if defined(CONFIG_PM_RUNTIME) || defined(CONFIG_PM_SLEEP)
++#ifdef CONFIG_PM
+ static int fimc_m2m_suspend(struct fimc_dev *fimc)
+ {
+ 	unsigned long flags;
+@@ -871,7 +871,7 @@ static int fimc_m2m_resume(struct fimc_d
+ 
+ 	return 0;
+ }
+-#endif /* CONFIG_PM_RUNTIME || CONFIG_PM_SLEEP */
++#endif /* CONFIG_PM */
+ 
+ static const struct of_device_id fimc_of_match[];
+ 
+@@ -1039,7 +1039,7 @@ err_sclk:
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_PM_RUNTIME
++#ifdef CONFIG_PM
+ static int fimc_runtime_resume(struct device *dev)
+ {
+ 	struct fimc_dev *fimc =	dev_get_drvdata(dev);
+Index: linux-pm/drivers/media/platform/coda/coda-common.c
+===================================================================
+--- linux-pm.orig/drivers/media/platform/coda/coda-common.c
++++ linux-pm/drivers/media/platform/coda/coda-common.c
+@@ -1980,7 +1980,7 @@ static int coda_probe(struct platform_de
+ 
+ 	/*
+ 	 * Start activated so we can directly call coda_hw_init in
+-	 * coda_fw_callback regardless of whether CONFIG_PM_RUNTIME is
++	 * coda_fw_callback regardless of whether CONFIG_PM is
+ 	 * enabled or whether the device is associated with a PM domain.
+ 	 */
+ 	pm_runtime_get_noresume(&pdev->dev);
+@@ -2013,7 +2013,7 @@ static int coda_remove(struct platform_d
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PM_RUNTIME
++#ifdef CONFIG_PM
+ static int coda_runtime_resume(struct device *dev)
+ {
+ 	struct coda_dev *cdev = dev_get_drvdata(dev);
+
