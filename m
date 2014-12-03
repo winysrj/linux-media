@@ -1,84 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38734 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756573AbaLWVUf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 16:20:35 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 62/66] rtl28xxu: add heuristic to detect chip type
-Date: Tue, 23 Dec 2014 22:49:55 +0200
-Message-Id: <1419367799-14263-62-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Received: from mailout1.samsung.com ([203.254.224.24]:26299 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753035AbaLCQIn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 11:08:43 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, robh+dt@kernel.org, pawel.moll@arm.com,
+	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
+	galak@codeaurora.org, Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>
+Subject: [PATCH/RFC v9 04/19] mfd: max77693: adjust max77693_led_platform_data
+Date: Wed, 03 Dec 2014 17:06:39 +0100
+Message-id: <1417622814-10845-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Detect automatically whether chip is old RTL2831U or newer
-RTL2832U/RTL2832P. Detection is based I2C command that is found only
-from newer RTL2832U models.
+Add "label" array for Device Tree strings with the name of a LED device
+and make flash_timeout a two element array, for caching the sub-led
+related flash timeout. Added is also an array for caching pointers to the
+sub-nodes representing sub-leds.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ include/linux/mfd/max77693.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index b0d2467..5bc7774 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -523,6 +523,35 @@ err:
- 	return ret;
- }
+diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
+index f0b6585..c80ee99 100644
+--- a/include/linux/mfd/max77693.h
++++ b/include/linux/mfd/max77693.h
+@@ -88,16 +88,18 @@ enum max77693_led_boost_mode {
+ };
  
-+static int rtl28xxu_identify_state(struct dvb_usb_device *d, const char **name)
-+{
-+	struct rtl28xxu_dev *dev = d_to_priv(d);
-+	int ret;
-+	struct rtl28xxu_req req_demod_i2c = {0x0020, CMD_I2C_DA_RD, 0, NULL};
-+
-+	dev_dbg(&d->intf->dev, "\n");
-+
-+	/*
-+	 * Detect chip type using I2C command that is not supported
-+	 * by old RTL2831U.
-+	 */
-+	ret = rtl28xxu_ctrl_msg(d, &req_demod_i2c);
-+	if (ret == -EPIPE) {
-+		dev->chip_id = CHIP_ID_RTL2831U;
-+	} else if (ret == 0) {
-+		dev->chip_id = CHIP_ID_RTL2832U;
-+	} else {
-+		dev_err(&d->intf->dev, "chip type detection failed %d\n", ret);
-+		goto err;
-+	}
-+	dev_dbg(&d->intf->dev, "chip_id=%u\n", dev->chip_id);
-+
-+	return WARM;
-+err:
-+	dev_dbg(&d->intf->dev, "failed=%d\n", ret);
-+	return ret;
-+}
-+
- static const struct rtl2830_platform_data rtl2830_mt2060_platform_data = {
- 	.clk = 28800000,
- 	.spec_inv = 1,
-@@ -1590,6 +1619,7 @@ static const struct dvb_usb_device_properties rtl2831u_props = {
- 	.adapter_nr = adapter_nr,
- 	.size_of_priv = sizeof(struct rtl28xxu_dev),
+ struct max77693_led_platform_data {
++	const char *label[2];
+ 	u32 fleds[2];
+ 	u32 iout_torch[2];
+ 	u32 iout_flash[2];
+ 	u32 trigger[2];
+ 	u32 trigger_type[2];
++	u32 flash_timeout[2];
+ 	u32 num_leds;
+ 	u32 boost_mode;
+-	u32 flash_timeout;
+ 	u32 boost_vout;
+ 	u32 low_vsys;
++	struct device_node *sub_nodes[2];
+ };
  
-+	.identify_state = rtl28xxu_identify_state,
- 	.power_ctrl = rtl2831u_power_ctrl,
- 	.i2c_algo = &rtl28xxu_i2c_algo,
- 	.read_config = rtl2831u_read_config,
-@@ -1620,6 +1650,7 @@ static const struct dvb_usb_device_properties rtl2832u_props = {
- 	.adapter_nr = adapter_nr,
- 	.size_of_priv = sizeof(struct rtl28xxu_dev),
- 
-+	.identify_state = rtl28xxu_identify_state,
- 	.power_ctrl = rtl2832u_power_ctrl,
- 	.frontend_ctrl = rtl2832u_frontend_ctrl,
- 	.i2c_algo = &rtl28xxu_i2c_algo,
+ /* MAX77693 */
 -- 
-http://palosaari.fi/
+1.7.9.5
 
