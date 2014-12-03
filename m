@@ -1,53 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:42284 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752803AbaLTOv3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 09:51:29 -0500
-Date: Sat, 20 Dec 2014 14:51:20 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Frank =?iso-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"linux-media@vger.kernel.org >> Linux Media Mailing List"
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/8] [media] em28xx: fix em28xx-input removal
-Message-ID: <20141220145119.GH11285@n2100.arm.linux.org.uk>
-References: <20141220124448.GG11285@n2100.arm.linux.org.uk>
- <E1Y2JPH-0006UN-SW@rmk-PC.arm.linux.org.uk>
- <549583AA.9040204@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <549583AA.9040204@googlemail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60104 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751074AbaLCNxi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 08:53:38 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Emil Renner Berthing <kernel@esmil.dk>
+Subject: [PATCH 3/3] Add RGB666_1X24_CPADHI media bus format
+Date: Wed,  3 Dec 2014 14:53:31 +0100
+Message-Id: <1417614811-15634-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1417614811-15634-1-git-send-email-p.zabel@pengutronix.de>
+References: <1417614811-15634-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Dec 20, 2014 at 03:11:54PM +0100, Frank Schäfer wrote:
-> Hi Russel,
+Commit 9e74d2926a28 ("staging: imx-drm: add LVDS666 support for parallel
+display") describes a 24-bit bus format where three 6-bit components each
+take the lower part of 8 bits with the two high bits zero padded. Add a
+component-wise padded media bus format RGB666_1X24_CPADHI to support this
+connection.
 
-I guess you won't mind if I mis-spell your name too...
+Cc: Emil Renner Berthing <kernel@esmil.dk>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v1:
+ - Added missing /* RGB - next is ... */ comment update
+---
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 30 ++++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h              |  3 ++-
+ 2 files changed, 32 insertions(+), 1 deletion(-)
 
-> I'd prefer to keep the button initialization related stuff together in
-> em28xx_init_buttons() and do the cancel_delayed_work_sync() only if we
-> have buttons (dev->num_button_polling_addresses).
-> That's how we already do it with the IR work struct (see
-> em28xx_ir_suspend()).
-
-Provided all places that touch buttons_query_work are properly updated
-that's fine, but to me that is fragile and asking for trouble.  It's far
-better to ensure that everything is properly initialised so you don't
-have to remember to conditionalise every single reference to a work
-struct.
-
-In any case, delayed work struct initialisation is cheap - it doesn't
-involve any additional memory, it only initialises the various members
-of the struct (and the lockdep information for the static key) so there
-really is no argument against always initialising delayed works or normal
-works, timers, etc to avoid these kinds of bugs.
-
-Anything to keep the code simple is a good thing.
-
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 3d88a25..e60a01f 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -469,6 +469,36 @@
+ 	      <entry>b<subscript>1</subscript></entry>
+ 	      <entry>b<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="MEDIA-BUS-FMT-RGB666-1X24_CPADHI">
++	      <entry>MEDIA_BUS_FMT_RGB666_1X24_CPADHI</entry>
++	      <entry>0x1015</entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>0</entry>
++	      <entry>0</entry>
++	      <entry>r<subscript>5</subscript></entry>
++	      <entry>r<subscript>4</subscript></entry>
++	      <entry>r<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	      <entry>0</entry>
++	      <entry>0</entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	      <entry>0</entry>
++	      <entry>0</entry>
++	      <entry>b<subscript>5</subscript></entry>
++	      <entry>b<subscript>4</subscript></entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>b<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="MEDIA-BUS-FMT-BGR888-1X24">
+ 	      <entry>MEDIA_BUS_FMT_BGR888_1X24</entry>
+ 	      <entry>0x1013</entry>
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 35e0579..95826e5 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -33,7 +33,7 @@
+ 
+ #define MEDIA_BUS_FMT_FIXED			0x0001
+ 
+-/* RGB - next is	0x1015 */
++/* RGB - next is	0x1016 */
+ #define MEDIA_BUS_FMT_RGB444_1X12		0x100e
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+@@ -45,6 +45,7 @@
+ #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
+ #define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
+ #define MEDIA_BUS_FMT_RGB666_1X18		0x1009
++#define MEDIA_BUS_FMT_RGB666_1X24_CPADHI	0x1015
+ #define MEDIA_BUS_FMT_RGB666_LVDS_SPWG		0x1010
+ #define MEDIA_BUS_FMT_BGR888_1X24		0x1013
+ #define MEDIA_BUS_FMT_GBR888_1X24		0x1014
 -- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+2.1.3
+
