@@ -1,98 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:52247 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899AbaLROuU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 09:50:20 -0500
-Message-ID: <1418914215.22813.18.camel@xylophone.i.decadent.org.uk>
-Subject: [RFC PATCH 5/5] media: rcar_vin: move buffer management to
- .stop_streaming handler
-From: Ben Hutchings <ben.hutchings@codethink.co.uk>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33904 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211AbaLCPSm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 10:18:42 -0500
+Received: from avalon.localnet (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 438C0200E1
+	for <linux-media@vger.kernel.org>; Wed,  3 Dec 2014 16:15:44 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-kernel@codethink.co.uk,
-	William Towle <william.towle@codethink.co.uk>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Thu, 18 Dec 2014 14:50:15 +0000
-In-Reply-To: <1418914070.22813.13.camel@xylophone.i.decadent.org.uk>
-References: <1418914070.22813.13.camel@xylophone.i.decadent.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: [GIT PULL FOR v3.19] videobuf2 race condition fixes
+Date: Wed, 03 Dec 2014 17:19:18 +0200
+Message-ID: <1466206.MyET2Q2jVX@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: William Towle <william.towle@codethink.co.uk>
+Hi Mauro,
 
-Move the buffer state test in the .buf_cleanup handler into
-.stop_streaming so that a) the vb2_queue API is not subverted, and
-b) tracking of active-state buffers via priv->queue_buf[] is handled
-as early as is possible
+Would it still be possible to get those two race condition fixes in v3.19 ?
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c |   36 ++++++++++----------------
- 1 file changed, 14 insertions(+), 22 deletions(-)
+The following changes since commit e8bd888a148cb55a5ba27070fdfeb62386c89577:
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 20dbedf..bf60074 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -486,28 +486,8 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct rcar_vin_priv *priv = ici->priv;
--	unsigned int i;
--	int buf_in_use = 0;
--	spin_lock_irq(&priv->lock);
--
--	/* Is the buffer in use by the VIN hardware? */
--	for (i = 0; i < MAX_BUFFER_NUM; i++) {
--		if (priv->queue_buf[i] == vb) {
--			buf_in_use = 1;
--			break;
--		}
--	}
- 
--	if (buf_in_use) {
--		rcar_vin_wait_stop_streaming(priv);
--
--		/*
--		 * Capturing has now stopped. The buffer we have been asked
--		 * to release could be any of the current buffers in use, so
--		 * release all buffers that are in use by HW
--		 */
--		priv->queue_buf[i] = NULL;
--	}
-+	spin_lock_irq(&priv->lock);
- 
- 	list_del_init(to_buf_list(vb));
- 
-@@ -533,8 +513,20 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
- 	rcar_vin_wait_stop_streaming(priv);
- 
- 	for (i = 0; i < vq->num_buffers; ++i)
--		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
-+		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE) {
-+			int j;
-+
-+			/*  Is this a buffer we have told the
-+			 *  hardware about? Update the associated
-+			 *  list, if so
-+			 */
-+			for (j = 0; j < MAX_BUFFER_NUM; j++) {
-+				if (priv->queue_buf[j] == vq->bufs[i]) {
-+					priv->queue_buf[j] = NULL;
-+				}
-+			}
- 			vb2_buffer_done(vq->bufs[i], VB2_BUF_STATE_ERROR);
-+		}
- 
- 	list_for_each_safe(buf_head, tmp, &priv->capture)
- 		list_del_init(buf_head);
+  [media] omap_vout: fix compile warnings (2014-12-02 11:35:05 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git v4l2/core
+
+for you to fetch changes up to b8e73cc952d29020370c8f005d242c178463f4ec:
+
+  v4l: vb2: Fix race condition in _vb2_fop_release (2014-12-03 17:15:55 +0200)
+
+----------------------------------------------------------------
+Laurent Pinchart (2):
+      v4l: vb2: Fix race condition in vb2_fop_poll
+      v4l: vb2: Fix race condition in _vb2_fop_release
+
+ drivers/media/v4l2-core/videobuf2-core.c | 35 +++++++++++--------------------
+ 1 file changed, 12 insertions(+), 23 deletions(-)
+
 -- 
-1.7.10.4
+Regards,
 
-
+Laurent Pinchart
 
