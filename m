@@ -1,116 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42072 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932085AbaLWNJ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 08:09:27 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linux-arm-kernel@lists.infradead.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mathieu Poirier <mathieu.poirier@linaro.org>,
-	David Airlie <airlied@linux.ie>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v7 3/3] of: Add of_graph_get_port_by_id function
-Date: Tue, 23 Dec 2014 14:09:18 +0100
-Message-Id: <1419340158-20567-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1419340158-20567-1-git-send-email-p.zabel@pengutronix.de>
-References: <1419340158-20567-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mailout1.samsung.com ([203.254.224.24]:26299 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753038AbaLCQIp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 11:08:45 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, robh+dt@kernel.org, pawel.moll@arm.com,
+	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
+	galak@codeaurora.org, Jacek Anaszewski <j.anaszewski@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: [PATCH/RFC v9 09/19] of: Add Skyworks Solutions, Inc. vendor prefix
+Date: Wed, 03 Dec 2014 17:06:44 +0100
+Message-id: <1417622814-10845-10-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a function to get a port device tree node by port id,
-or reg property value.
+Use "skyworks" as the vendor prefix for the Skyworks Solutions, Inc.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+Cc: <devicetree@vger.kernel.org>
 ---
-Changes since v6:
- - Fixed of_graph_get_port_by_id to handle the optional 'ports' node
-   and synchronize documentation and parameter names in the process,
-   spotted by Andrzej Hajda.
----
- drivers/of/base.c        | 32 ++++++++++++++++++++++++++++++++
- include/linux/of_graph.h |  7 +++++++
- 2 files changed, 39 insertions(+)
+ .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index aac66df..8389215 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2080,6 +2080,38 @@ int of_graph_parse_endpoint(const struct device_node *node,
- EXPORT_SYMBOL(of_graph_parse_endpoint);
- 
- /**
-+ * of_graph_get_port_by_id() - get the port matching a given id
-+ * @parent: pointer to the parent device node
-+ * @id: id of the port
-+ *
-+ * Return: A 'port' node pointer with refcount incremented. The caller
-+ * has to use of_node_put() on it when done.
-+ */
-+struct device_node *of_graph_get_port_by_id(struct device_node *parent, u32 id)
-+{
-+	struct device_node *node, *port;
-+
-+	node = of_get_child_by_name(parent, "ports");
-+	if (node)
-+		parent = node;
-+
-+	for_each_child_of_node(parent, port) {
-+		u32 port_id = 0;
-+
-+		if (of_node_cmp(port->name, "port") != 0)
-+			continue;
-+		of_property_read_u32(port, "reg", &port_id);
-+		if (id == port_id)
-+			break;
-+	}
-+
-+	of_node_put(node);
-+
-+	return port;
-+}
-+EXPORT_SYMBOL(of_graph_get_port_by_id);
-+
-+/**
-  * of_graph_get_next_endpoint() - get next endpoint node
-  * @parent: pointer to the parent device node
-  * @prev: previous endpoint node, or NULL to get first
-diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-index e43442e..3c1c95a 100644
---- a/include/linux/of_graph.h
-+++ b/include/linux/of_graph.h
-@@ -40,6 +40,7 @@ struct of_endpoint {
- #ifdef CONFIG_OF
- int of_graph_parse_endpoint(const struct device_node *node,
- 				struct of_endpoint *endpoint);
-+struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id);
- struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 					struct device_node *previous);
- struct device_node *of_graph_get_remote_port_parent(
-@@ -53,6 +54,12 @@ static inline int of_graph_parse_endpoint(const struct device_node *node,
- 	return -ENOSYS;
- }
- 
-+static inline struct device_node *of_graph_get_port_by_id(
-+					struct device_node *node, u32 id)
-+{
-+	return NULL;
-+}
-+
- static inline struct device_node *of_graph_get_next_endpoint(
- 					const struct device_node *parent,
- 					struct device_node *previous)
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index c177cd7..3006825 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -137,6 +137,7 @@ ricoh	Ricoh Co. Ltd.
+ rockchip	Fuzhou Rockchip Electronics Co., Ltd
+ samsung	Samsung Semiconductor
+ sandisk	Sandisk Corporation
++skyworks	Skyworks Solutions, Inc.
+ sbs	Smart Battery System
+ schindler	Schindler
+ seagate	Seagate Technology PLC
 -- 
-2.1.4
+1.7.9.5
 
