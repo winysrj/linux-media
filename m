@@ -1,261 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51009 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756611AbaLWUuc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:32 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37440 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751992AbaLCLOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Dec 2014 06:14:52 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 28/66] rtl2832: move all configuration to platform data struct
-Date: Tue, 23 Dec 2014 22:49:21 +0200
-Message-Id: <1419367799-14263-28-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Cc: aviv.d.greenberg@intel.com
+Subject: [REVIEW PATCH 1/2] v4l: Add data_offset to struct v4l2_buffer
+Date: Wed,  3 Dec 2014 13:14:08 +0200
+Message-Id: <1417605249-5322-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1417605249-5322-1-git-send-email-sakari.ailus@iki.fi>
+References: <1417605249-5322-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move all needed configuration values to platform data structure
-and remove old configuration code where possible.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The data_offset field tells the start of the image data from the beginning
+of the buffer. The bsize field in struct v4l2_buffer includes this, but the
+sizeimage field in struct v4l2_pix_format does not.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/dvb-frontends/rtl2832.c      | 48 +++++++++++++++---------------
- drivers/media/dvb-frontends/rtl2832.h      | 20 +++++++++++++
- drivers/media/dvb-frontends/rtl2832_priv.h |  4 +--
- 3 files changed, 45 insertions(+), 27 deletions(-)
+ Documentation/DocBook/media/v4l/compat.xml      | 11 +++++++++++
+ Documentation/DocBook/media/v4l/io.xml          | 18 +++++++++++++++---
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml |  3 +--
+ drivers/media/usb/cpia2/cpia2_v4l.c             |  2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  4 ++--
+ drivers/media/v4l2-core/videobuf2-core.c        | 17 ++++++++++++-----
+ include/uapi/linux/videodev2.h                  |  4 +++-
+ 7 files changed, 45 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 943446d..907d8e8 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -164,7 +164,7 @@ static int rtl2832_wr(struct rtl2832_dev *dev, u8 reg, u8 *val, int len)
- 	u8 buf[MAX_XFER_SIZE];
- 	struct i2c_msg msg[1] = {
- 		{
--			.addr = dev->cfg.i2c_addr,
-+			.addr = client->addr,
- 			.flags = 0,
- 			.len = 1 + len,
- 			.buf = buf,
-@@ -198,12 +198,12 @@ static int rtl2832_rd(struct rtl2832_dev *dev, u8 reg, u8 *val, int len)
- 	int ret;
- 	struct i2c_msg msg[2] = {
- 		{
--			.addr = dev->cfg.i2c_addr,
-+			.addr = client->addr,
- 			.flags = 0,
- 			.len = 1,
- 			.buf = &reg,
- 		}, {
--			.addr = dev->cfg.i2c_addr,
-+			.addr = client->addr,
- 			.flags = I2C_M_RD,
- 			.len = len,
- 			.buf = val,
-@@ -399,9 +399,9 @@ static int rtl2832_set_if(struct dvb_frontend *fe, u32 if_freq)
- 	*		/ CrystalFreqHz)
- 	*/
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 0a2debf..ad54e72 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2579,6 +2579,17 @@ fields changed from _s32 to _u32.
+       </orderedlist>
+     </section>
  
--	pset_iffreq = if_freq % dev->cfg.xtal;
-+	pset_iffreq = if_freq % dev->pdata->clk;
- 	pset_iffreq *= 0x400000;
--	pset_iffreq = div_u64(pset_iffreq, dev->cfg.xtal);
-+	pset_iffreq = div_u64(pset_iffreq, dev->pdata->clk);
- 	pset_iffreq = -pset_iffreq;
- 	pset_iffreq = pset_iffreq & 0x3fffff;
- 	dev_dbg(&client->dev, "if_frequency=%d pset_iffreq=%08x\n",
-@@ -478,8 +478,9 @@ static int rtl2832_init(struct dvb_frontend *fe)
++    <section>
++      <title>V4L2 in Linux 3.20</title>
++      <orderedlist>
++	<listitem>
++	  <para>Replaced <structfield>reserved2</structfield> by
++	  <strucfield>data_offset<structfield> in struct
++	  <structname>v4l2_buffer</structname>.</para>
++	</listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 1c17f80..13baeac 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -839,10 +839,22 @@ is the file descriptor associated with a DMABUF buffer.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved2</structfield></entry>
++	    <entry><structfield>data_offset</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>A place holder for future extensions. Applications
+-should set this to 0.</entry>
++	    <entry>
++	      Start of the image data from the beginning of the buffer in
++	      bytes. Applications must set this for both
++	      <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> buffers
++	      whereas driver must set this for
++	      <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant> buffers
++	      before &VIDIOC-PREPARE-BUF; and &VIDIOC-QBUF; IOCTLs. Note
++	      that data_offset is included in
++	      <structfield>bytesused</structfield>. So the size of the image
++	      in the plane is <structfield>bytesused</structfield>-
++	      <structfield>data_offset</structfield> at offset
++	      <structfield>data_offset</structfield> from the start of the
++	      plane.
++	    </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+index 3504a7f..f529e4d 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+@@ -72,8 +72,7 @@ initialize the <structfield>bytesused</structfield>,
+ <structfield>timestamp</structfield> fields, see <xref
+ linkend="buffer" /> for details.
+ Applications must also set <structfield>flags</structfield> to 0.
+-The <structfield>reserved2</structfield> and
+-<structfield>reserved</structfield> fields must be set to 0. When using
++The <structfield>reserved</structfield> field must be set to 0. When using
+ the <link linkend="planar-apis">multi-planar API</link>, the
+ <structfield>m.planes</structfield> field must contain a userspace pointer
+ to a filled-in array of &v4l2-plane; and the <structfield>length</structfield>
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index 9caea83..a94e83a 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -952,7 +952,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	buf->sequence = cam->buffers[buf->index].seq;
+ 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+ 	buf->length = cam->frame_size;
+-	buf->reserved2 = 0;
++	buf->data_offset = 0;
+ 	buf->reserved = 0;
+ 	memset(&buf->timecode, 0, sizeof(buf->timecode));
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index af63543..e238066 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -326,7 +326,7 @@ struct v4l2_buffer32 {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__u32			data_offset;
+ 	__u32			reserved;
+ };
+ 
+@@ -491,7 +491,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+ 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+ 		put_user(kp->sequence, &up->sequence) ||
+-		put_user(kp->reserved2, &up->reserved2) ||
++		put_user(kp->data_offset, &up->data_offset) ||
+ 		put_user(kp->reserved, &up->reserved))
+ 			return -EFAULT;
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7aed8f2..3162de8 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -607,6 +607,9 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 
+ 		if (b->bytesused > length)
+ 			return -EINVAL;
++
++		if (b->data_offset > 0 && b->data_offset >= bytesused)
++			return -EINVAL;
  	}
  
- 	/* load tuner specific settings */
--	dev_dbg(&client->dev, "load settings for tuner=%02x\n", dev->cfg.tuner);
--	switch (dev->cfg.tuner) {
-+	dev_dbg(&client->dev, "load settings for tuner=%02x\n",
-+		dev->pdata->tuner);
-+	switch (dev->pdata->tuner) {
- 	case RTL2832_TUNER_FC0012:
- 	case RTL2832_TUNER_FC0013:
- 		len = ARRAY_SIZE(rtl2832_tuner_init_fc0012);
-@@ -647,7 +648,7 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
- 	* RSAMP_RATIO = floor(CrystalFreqHz * 7 * pow(2, 22)
- 	*	/ ConstWithBandwidthMode)
- 	*/
--	num = dev->cfg.xtal * 7;
-+	num = dev->pdata->clk * 7;
- 	num *= 0x400000;
- 	num = div_u64(num, bw_mode);
- 	resamp_ratio =  num & 0x3ffffff;
-@@ -660,7 +661,7 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
- 	*	/ (CrystalFreqHz * 7))
- 	*/
- 	num = bw_mode << 20;
--	num2 = dev->cfg.xtal * 7;
-+	num2 = dev->pdata->clk * 7;
- 	num = div_u64(num, num2);
- 	num = -num;
- 	cfreq_off_ratio = num & 0xfffff;
-@@ -907,12 +908,11 @@ static void rtl2832_i2c_gate_work(struct work_struct *work)
- 	struct rtl2832_dev *dev = container_of(work,
- 			struct rtl2832_dev, i2c_gate_work.work);
- 	struct i2c_client *client = dev->client;
--	struct i2c_adapter *adap = dev->i2c;
- 	int ret;
- 	u8 buf[2];
- 	struct i2c_msg msg[1] = {
- 		{
--			.addr = dev->cfg.i2c_addr,
-+			.addr = client->addr,
- 			.flags = 0,
- 			.len = sizeof(buf),
- 			.buf = buf,
-@@ -924,7 +924,7 @@ static void rtl2832_i2c_gate_work(struct work_struct *work)
- 	/* select reg bank 1 */
- 	buf[0] = 0x00;
- 	buf[1] = 0x01;
--	ret = __i2c_transfer(adap, msg, 1);
-+	ret = __i2c_transfer(client->adapter, msg, 1);
- 	if (ret != 1)
- 		goto err;
+ 	return 0;
+@@ -657,7 +660,6 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
  
-@@ -933,7 +933,7 @@ static void rtl2832_i2c_gate_work(struct work_struct *work)
- 	/* close I2C repeater gate */
- 	buf[0] = 0x01;
- 	buf[1] = 0x10;
--	ret = __i2c_transfer(adap, msg, 1);
-+	ret = __i2c_transfer(client->adapter, msg, 1);
- 	if (ret != 1)
- 		goto err;
+ 	/* Copy back data such as timestamp, flags, etc. */
+ 	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
+-	b->reserved2 = vb->v4l2_buf.reserved2;
+ 	b->reserved = vb->v4l2_buf.reserved;
  
-@@ -953,7 +953,7 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
- 	u8 buf[2], val;
- 	struct i2c_msg msg[1] = {
- 		{
--			.addr = dev->cfg.i2c_addr,
-+			.addr = client->addr,
- 			.flags = 0,
- 			.len = sizeof(buf),
- 			.buf = buf,
-@@ -961,12 +961,12 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
- 	};
- 	struct i2c_msg msg_rd[2] = {
- 		{
--			.addr = dev->cfg.i2c_addr,
-+			.addr = client->addr,
- 			.flags = 0,
- 			.len = 1,
- 			.buf = "\x01",
- 		}, {
--			.addr = dev->cfg.i2c_addr,
-+			.addr = client->addr,
- 			.flags = I2C_M_RD,
- 			.len = 1,
- 			.buf = &val,
-@@ -982,14 +982,14 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
- 	/* select reg bank 1 */
- 	buf[0] = 0x00;
- 	buf[1] = 0x01;
--	ret = __i2c_transfer(adap, msg, 1);
-+	ret = __i2c_transfer(client->adapter, msg, 1);
- 	if (ret != 1)
- 		goto err;
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
+@@ -666,14 +668,17 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 		 * for it. The caller has already verified memory and size.
+ 		 */
+ 		b->length = vb->num_planes;
++		b->data_offset = vb->v4l2_buf.data_offset;
+ 		memcpy(b->m.planes, vb->v4l2_planes,
+ 			b->length * sizeof(struct v4l2_plane));
+ 	} else {
+ 		/*
+-		 * We use length and offset in v4l2_planes array even for
+-		 * single-planar buffers, but userspace does not.
++		 * We use length, data_offset and bytesused in
++		 * v4l2_planes array even for single-planar buffers,
++		 * but userspace does not.
+ 		 */
+ 		b->length = vb->v4l2_planes[0].length;
++		b->data_offset = vb->v4l2_planes[0].data_offset;
+ 		b->bytesused = vb->v4l2_planes[0].bytesused;
+ 		if (q->memory == V4L2_MEMORY_MMAP)
+ 			b->m.offset = vb->v4l2_planes[0].m.mem_offset;
+@@ -1306,11 +1311,13 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 			v4l2_planes[0].length = b->length;
+ 		}
  
- 	dev->page = 1;
+-		if (V4L2_TYPE_IS_OUTPUT(b->type))
++		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+ 			v4l2_planes[0].bytesused = b->bytesused ?
+ 				b->bytesused : v4l2_planes[0].length;
+-		else
++			v4l2_planes[0].data_offset = b->data_offset;
++		} else {
+ 			v4l2_planes[0].bytesused = 0;
++		}
  
- 	/* we must read that register, otherwise there will be errors */
--	ret = __i2c_transfer(adap, msg_rd, 2);
-+	ret = __i2c_transfer(client->adapter, msg_rd, 2);
- 	if (ret != 2)
- 		goto err;
+ 	}
  
-@@ -1000,7 +1000,7 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
- 	else
- 		buf[1] = 0x10; /* close */
- 
--	ret = __i2c_transfer(adap, msg, 1);
-+	ret = __i2c_transfer(client->adapter, msg, 1);
- 	if (ret != 1)
- 		goto err;
- 
-@@ -1138,7 +1138,6 @@ static int rtl2832_probe(struct i2c_client *client,
- 		const struct i2c_device_id *id)
- {
- 	struct rtl2832_platform_data *pdata = client->dev.platform_data;
--	const struct rtl2832_config *config = pdata->config;
- 	struct i2c_adapter *i2c = client->adapter;
- 	struct rtl2832_dev *dev;
- 	int ret;
-@@ -1160,12 +1159,13 @@ static int rtl2832_probe(struct i2c_client *client,
- 
- 	/* setup the state */
- 	dev->client = client;
--	dev->i2c = i2c;
--	dev->tuner = config->tuner;
-+	dev->pdata = client->dev.platform_data;
-+	if (pdata->config) {
-+		dev->pdata->clk = pdata->config->xtal;
-+		dev->pdata->tuner = pdata->config->tuner;
-+	}
- 	dev->sleeping = true;
--	memcpy(&dev->cfg, config, sizeof(struct rtl2832_config));
- 	INIT_DELAYED_WORK(&dev->i2c_gate_work, rtl2832_i2c_gate_work);
--
- 	/* create muxed i2c adapter for demod itself */
- 	dev->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, dev, 0, 0, 0,
- 			rtl2832_select, NULL);
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index 983d5a1..35e86e6 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -53,6 +53,26 @@ struct rtl2832_platform_data {
- 	const struct rtl2832_config *config;
- 
- 	/*
-+	 * Clock frequency.
-+	 * Hz
-+	 * 4000000, 16000000, 25000000, 28800000
-+	 */
-+	u32 clk;
-+
-+	/*
-+	 * Tuner.
-+	 * XXX: This must be keep sync with dvb_usb_rtl28xxu USB IF driver.
-+	 */
-+#define RTL2832_TUNER_TUA9001   0x24
-+#define RTL2832_TUNER_FC0012    0x26
-+#define RTL2832_TUNER_E4000     0x27
-+#define RTL2832_TUNER_FC0013    0x29
-+#define RTL2832_TUNER_R820T     0x2a
-+#define RTL2832_TUNER_R828D     0x2b
-+	u8 tuner;
-+
-+	/*
-+	 * Callbacks.
- 	 */
- 	struct dvb_frontend* (*get_dvb_frontend)(struct i2c_client *);
- 	struct i2c_adapter* (*get_i2c_adapter)(struct i2c_client *);
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index 58feb27..8995332 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -26,17 +26,15 @@
- #include <linux/i2c-mux.h>
- 
- struct rtl2832_dev {
-+	struct rtl2832_platform_data *pdata;
- 	struct i2c_client *client;
--	struct i2c_adapter *i2c;
- 	struct i2c_adapter *i2c_adapter;
- 	struct i2c_adapter *i2c_adapter_tuner;
- 	struct dvb_frontend fe;
--	struct rtl2832_config cfg;
- 
- 	bool i2c_gate_state;
- 	bool sleeping;
- 
--	u8 tuner;
- 	u8 page; /* active register page */
- 	struct delayed_work i2c_gate_work;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 1c2f84f..e9806c6 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -675,6 +675,8 @@ struct v4l2_plane {
+  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+  *		buffers (when type != *_MPLANE); number of elements in the
+  *		planes array for multi-plane buffers
++ * @data_offset: Offset of the start of data from the beginning of the
++ *		buffer. Typically zero.
+  *
+  * Contains data exchanged by application and driver using one of the Streaming
+  * I/O methods.
+@@ -698,7 +700,7 @@ struct v4l2_buffer {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__u32			data_offset;
+ 	__u32			reserved;
  };
+ 
 -- 
-http://palosaari.fi/
+1.9.1
 
