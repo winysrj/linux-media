@@ -1,46 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0079.hostedemail.com ([216.40.44.79]:48991 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758159AbaLJXj0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 18:39:26 -0500
-Message-ID: <1418254749.18092.24.camel@perches.com>
-Subject: Re: [PATCH v4 1/2] staging: media: lirc: lirc_zilog.c: fix quoted
- strings split across lines
-From: Joe Perches <joe@perches.com>
-To: Luis de Bethencourt <luis@debethencourt.com>
-Cc: m.chehab@samsung.com, jarod@wilsonet.com,
-	gregkh@linuxfoundation.org, mahfouz.saif.elyazal@gmail.com,
-	gulsah.1004@gmail.com, tuomas.tynkkynen@iki.fi,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Date: Wed, 10 Dec 2014 15:39:09 -0800
-In-Reply-To: <20141210223339.GA9397@biggie>
-References: <20141210223339.GA9397@biggie>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52931 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751261AbaLCK2h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 05:28:37 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 2/3] Add YUV8_1X24 media bus format
+Date: Wed,  3 Dec 2014 11:28:19 +0100
+Message-Id: <1417602500-29152-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1417602500-29152-1-git-send-email-p.zabel@pengutronix.de>
+References: <1417602500-29152-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2014-12-10 at 22:33 +0000, Luis de Bethencourt wrote:
-> checkpatch makes an exception to the 80-colum rule for quotes strings, and
-> Documentation/CodingStyle recommends not splitting quotes strings across lines
-> because it breaks the ability to grep for the string. Fixing these.
-[]
-> diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-[]
-> @@ -794,9 +796,9 @@ static int fw_load(struct IR_tx *tx)
->  	if (!read_uint8(&data, tx_data->endp, &version))
->  		goto corrupt;
->  	if (version != 1) {
-> -		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected"
-> -			    "1) -- please upgrade to a newer driver",
-> -			    version);
-> +		dev_err(tx->ir->l.dev,
-> +			"unsupported code set file version (%u, expected 1) -- please upgrade to a newer driver",
-> +			version);
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 37 ++++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h              |  3 +-
+ 2 files changed, 39 insertions(+), 1 deletion(-)
 
-Unrelated but this one should have a '\n' termination
-at the end of the format.
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index f163767..9afb846 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -2933,6 +2933,43 @@
+ 	      <entry>u<subscript>1</subscript></entry>
+ 	      <entry>u<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="MEDIA-BUS-FMT-YUV8-1X24">
++	      <entry>MEDIA_BUS_FMT_YUV8_1X24</entry>
++	      <entry>0x2024</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="MEDIA-BUS-FMT-YUV10-1X30">
+ 	      <entry>MEDIA_BUS_FMT_YUV10_1X30</entry>
+ 	      <entry>0x2016</entry>
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 6d7f0c7..977316e 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -55,7 +55,7 @@
+ #define MEDIA_BUS_FMT_RGB888_LVDS_JEIDA		0x1012
+ #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
+ 
+-/* YUV (including grey) - next is	0x2024 */
++/* YUV (including grey) - next is	0x2025 */
+ #define MEDIA_BUS_FMT_Y8_1X8			0x2001
+ #define MEDIA_BUS_FMT_UV8_1X8			0x2015
+ #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
+@@ -81,6 +81,7 @@
+ #define MEDIA_BUS_FMT_VYUY10_1X20		0x201b
+ #define MEDIA_BUS_FMT_YUYV10_1X20		0x200d
+ #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
++#define MEDIA_BUS_FMT_YUV8_1X24			0x2024
+ #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
+ #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
+ #define MEDIA_BUS_FMT_UYVY12_2X12		0x201c
+-- 
+2.1.3
 
