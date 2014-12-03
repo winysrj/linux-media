@@ -1,53 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:45286 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758196AbaLJX6R (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38603 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752319AbaLCMc3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 18:58:17 -0500
-Date: Wed, 10 Dec 2014 23:57:41 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: Joe Perches <joe@perches.com>
-Cc: m.chehab@samsung.com, jarod@wilsonet.com,
-	gregkh@linuxfoundation.org, mahfouz.saif.elyazal@gmail.com,
-	gulsah.1004@gmail.com, tuomas.tynkkynen@iki.fi,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 1/2] staging: media: lirc: lirc_zilog.c: fix quoted
- strings split across lines
-Message-ID: <20141210235741.GA10195@biggie>
-References: <20141210223339.GA9397@biggie>
- <1418254749.18092.24.camel@perches.com>
+	Wed, 3 Dec 2014 07:32:29 -0500
+Date: Wed, 3 Dec 2014 14:31:57 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/4] Media cleanups
+Message-ID: <20141203123157.GH14746@valkosipuli.retiisi.org.uk>
+References: <1417439445-34862-1-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1418254749.18092.24.camel@perches.com>
+In-Reply-To: <1417439445-34862-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 10, 2014 at 03:39:09PM -0800, Joe Perches wrote:
-> On Wed, 2014-12-10 at 22:33 +0000, Luis de Bethencourt wrote:
-> > checkpatch makes an exception to the 80-colum rule for quotes strings, and
-> > Documentation/CodingStyle recommends not splitting quotes strings across lines
-> > because it breaks the ability to grep for the string. Fixing these.
-> []
-> > diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-> []
-> > @@ -794,9 +796,9 @@ static int fw_load(struct IR_tx *tx)
-> >  	if (!read_uint8(&data, tx_data->endp, &version))
-> >  		goto corrupt;
-> >  	if (version != 1) {
-> > -		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected"
-> > -			    "1) -- please upgrade to a newer driver",
-> > -			    version);
-> > +		dev_err(tx->ir->l.dev,
-> > +			"unsupported code set file version (%u, expected 1) -- please upgrade to a newer driver",
-> > +			version);
+On Mon, Dec 01, 2014 at 02:10:41PM +0100, Hans Verkuil wrote:
+> This patch series:
 > 
-> Unrelated but this one should have a '\n' termination
-> at the end of the format.
-> 
+> - Removes all the emacs editor variables in sources.
+> - Stops drivers from using the debug field in struct video_device.
+>   This field is internal to the v4l2 core and drivers shouldn't
+>   set it.
+> - Improve debug flag handling.
+> - Document the debug attribute.
 
-I can add that change, no problem. As part of this patch or a third one?
+Nice set!
 
-Thanks for reviewing,
-Luis
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
