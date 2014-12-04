@@ -1,74 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:51954 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932251AbaLDRiY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 12:38:24 -0500
-Date: Thu, 04 Dec 2014 15:38:14 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: James Hogan <james.hogan@imgtec.com>
-Cc: Sifan Naeem <sifan.naeem@imgtec.com>, stable@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 1/2] img-ir/hw: Avoid clearing filter for no-op
- protocol change
-Message-id: <20141204153814.00a1a5ec.m.chehab@samsung.com>
-In-reply-to: <1417438510-18977-2-git-send-email-james.hogan@imgtec.com>
-References: <1417438510-18977-1-git-send-email-james.hogan@imgtec.com>
- <1417438510-18977-2-git-send-email-james.hogan@imgtec.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mailapp01.imgtec.com ([195.59.15.196]:21091 "EHLO
+	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754397AbaLDPjQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 10:39:16 -0500
+From: Sifan Naeem <sifan.naeem@imgtec.com>
+To: <james.hogan@imgtec.com>, <mchehab@osg.samsung.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<james.hartley@imgtec.com>, <ezequiel.garcia@imgtec.com>,
+	Sifan Naeem <sifan.naeem@imgtec.com>
+Subject: [PATCH 5/5] rc: img-ir: add philips rc6 decoder module
+Date: Thu, 4 Dec 2014 15:38:42 +0000
+Message-ID: <1417707523-7730-6-git-send-email-sifan.naeem@imgtec.com>
+In-Reply-To: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com>
+References: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 1 Dec 2014 12:55:09 +0000
-James Hogan <james.hogan@imgtec.com> escreveu:
+Add img-ir module for decoding Philips rc6 protocol.
 
-> When the img-ir driver is asked to change protocol, if the chosen
-> decoder is already loaded then don't call img_ir_set_decoder(), so as
-> not to clear the current filter.
-> 
-> This is important because store_protocol() does not refresh the scancode
-> filter with the new protocol if the set of enabled protocols hasn't
-> actually changed, but it will still call the change_protocol() callback,
-> resulting in the filter being disabled in the hardware.
-> 
-> The problem can be reproduced by setting a filter, and then setting the
-> protocol to the same protocol that is already set:
-> $ echo nec > protocols
-> $ echo 0xffff > filter_mask
-> $ echo nec > protocols
-> 
-> After this, messages which don't match the filter still get received.
+Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
+---
+ drivers/media/rc/img-ir/Kconfig      |    8 +++
+ drivers/media/rc/img-ir/Makefile     |    1 +
+ drivers/media/rc/img-ir/img-ir-hw.c  |    3 +
+ drivers/media/rc/img-ir/img-ir-hw.h  |    1 +
+ drivers/media/rc/img-ir/img-ir-rc6.c |  117 ++++++++++++++++++++++++++++++++++
+ 5 files changed, 130 insertions(+)
+ create mode 100644 drivers/media/rc/img-ir/img-ir-rc6.c
 
-This should be fixed at the RC core, as this is not driver-specific.
+diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
+index b5b114f..4d3fca9 100644
+--- a/drivers/media/rc/img-ir/Kconfig
++++ b/drivers/media/rc/img-ir/Kconfig
+@@ -66,3 +66,11 @@ config IR_IMG_RC5
+ 	help
+ 	   Say Y here to enable support for the RC5 protocol in the ImgTec
+ 	   infrared decoder block.
++
++config IR_IMG_RC6
++	bool "Phillips RC6 protocol support"
++	depends on IR_IMG_HW
++	help
++	   Say Y here to enable support for the RC6 protocol in the ImgTec
++	   infrared decoder block.
++	   Note: This version only supports mode 0.
+diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
+index 898b1b8..8e6d458 100644
+--- a/drivers/media/rc/img-ir/Makefile
++++ b/drivers/media/rc/img-ir/Makefile
+@@ -7,6 +7,7 @@ img-ir-$(CONFIG_IR_IMG_SONY)	+= img-ir-sony.o
+ img-ir-$(CONFIG_IR_IMG_SHARP)	+= img-ir-sharp.o
+ img-ir-$(CONFIG_IR_IMG_SANYO)	+= img-ir-sanyo.o
+ img-ir-$(CONFIG_IR_IMG_RC5)	+= img-ir-rc5.o
++img-ir-$(CONFIG_IR_IMG_RC6)	+= img-ir-rc6.o
+ img-ir-objs			:= $(img-ir-y)
+ 
+ obj-$(CONFIG_IR_IMG)		+= img-ir.o
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index 322cdf8..3b70dc2 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -45,6 +45,9 @@ static struct img_ir_decoder *img_ir_decoders[] = {
+ #ifdef CONFIG_IR_IMG_RC5
+ 	&img_ir_rc5,
+ #endif
++#ifdef CONFIG_IR_IMG_RC6
++	&img_ir_rc6,
++#endif
+ 	NULL
+ };
+ 
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
+index f124ec5..c7b6e1a 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.h
++++ b/drivers/media/rc/img-ir/img-ir-hw.h
+@@ -188,6 +188,7 @@ extern struct img_ir_decoder img_ir_sony;
+ extern struct img_ir_decoder img_ir_sharp;
+ extern struct img_ir_decoder img_ir_sanyo;
+ extern struct img_ir_decoder img_ir_rc5;
++extern struct img_ir_decoder img_ir_rc6;
+ 
+ /**
+  * struct img_ir_reg_timings - Reg values for decoder timings at clock rate.
+diff --git a/drivers/media/rc/img-ir/img-ir-rc6.c b/drivers/media/rc/img-ir/img-ir-rc6.c
+new file mode 100644
+index 0000000..bcd0822
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir-rc6.c
+@@ -0,0 +1,117 @@
++/*
++ * ImgTec IR Decoder setup for Phillips RC-6 protocol.
++ *
++ * Copyright 2012-2014 Imagination Technologies Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ */
++
++#include "img-ir-hw.h"
++
++/* Convert RC6 data to a scancode */
++static int img_ir_rc6_scancode(int len, u64 raw, u64 enabled_protocols,
++				struct img_ir_scancode_req *request)
++{
++	unsigned int addr, cmd, mode, trl1, trl2;
++
++	/*
++	 * Due to a side effect of the decoder handling the double length
++	 * Trailer bit, the header information is a bit scrambled, and the
++	 * raw data is shifted incorrectly.
++	 * This workaround effectively recovers the header bits.
++	 *
++	 * The Header field should look like this:
++	 *
++	 * StartBit ModeBit2 ModeBit1 ModeBit0 TrailerBit
++	 *
++	 * But what we get is:
++	 *
++	 * ModeBit2 ModeBit1 ModeBit0 TrailerBit1 TrailerBit2
++	 *
++	 * The start bit is not important to recover the scancode.
++	 */
++
++	raw	>>= 27;
++
++	trl1	= (raw >>  17)	& 0x01;
++	trl2	= (raw >>  16)	& 0x01;
++
++	mode	= (raw >>  18)	& 0x07;
++	addr	= (raw >>   8)	& 0xff;
++	cmd	=  raw		& 0xff;
++
++	/*
++	 * Due to the above explained irregularity the trailer bits cannot
++	 * have the same value.
++	 */
++	if (trl1 == trl2)
++		return -EINVAL;
++
++	/* Only mode 0 supported for now */
++	if (mode)
++		return -EINVAL;
++
++	request->protocol = RC_TYPE_RC6_0;
++	request->scancode = addr << 8 | cmd;
++	request->toggle	  = trl2;
++	return IMG_IR_SCANCODE;
++}
++
++/* Convert RC6 scancode to RC6 data filter */
++static int img_ir_rc6_filter(const struct rc_scancode_filter *in,
++				 struct img_ir_filter *out, u64 protocols)
++{
++	/* Not supported by the hw. */
++	return -EINVAL;
++}
++
++/*
++ * RC-6 decoder
++ * see http://www.sbprojects.com/knowledge/ir/rc6.php
++ */
++struct img_ir_decoder img_ir_rc6 = {
++	.type		= RC_BIT_RC6_0,
++	.control	= {
++		.bitorien	= 1,
++		.code_type	= IMG_IR_CODETYPE_BIPHASE,
++		.decoden	= 1,
++		.decodinpol	= 1,
++	},
++	/* main timings */
++	.tolerance	= 20,
++	/*
++	 * Due to a quirk in the img-ir decoder, default header values do
++	 * not work, the values described below were extracted from
++	 * successful RTL test cases.
++	 */
++	.timings	= {
++		/* leader symbol */
++		.ldr = {
++			.pulse	= { 650 },
++			.space	= { 660 },
++		},
++		/* 0 symbol */
++		.s00 = {
++			.pulse	= { 370 },
++			.space	= { 370 },
++		},
++		/* 01 symbol */
++		.s01 = {
++			.pulse	= { 370 },
++			.space	= { 370 },
++		},
++		/* free time */
++		.ft  = {
++			.minlen = 21,
++			.maxlen = 21,
++			.ft_min = 2666,	/* 2.666 ms */
++		},
++	},
++
++	/* scancode logic */
++	.scancode	= img_ir_rc6_scancode,
++	.filter		= img_ir_rc6_filter,
++};
+-- 
+1.7.9.5
 
-Regards,
-Mauro
-
-> 
-> Reported-by: Sifan Naeem <sifan.naeem@imgtec.com>
-> Signed-off-by: James Hogan <james.hogan@imgtec.com>
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: <stable@vger.kernel.org> # v3.15+
-> Cc: linux-media@vger.kernel.org
-> ---
->  drivers/media/rc/img-ir/img-ir-hw.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-> index 9db065344b41..1566337c1059 100644
-> --- a/drivers/media/rc/img-ir/img-ir-hw.c
-> +++ b/drivers/media/rc/img-ir/img-ir-hw.c
-> @@ -643,6 +643,12 @@ static int img_ir_change_protocol(struct rc_dev *dev, u64 *ir_type)
->  			continue;
->  		if (*ir_type & dec->type) {
->  			*ir_type &= dec->type;
-> +			/*
-> +			 * We don't want to clear the filter if nothing is
-> +			 * changing as it won't get set again.
-> +			 */
-> +			if (dec == hw->decoder)
-> +				return 0;
->  			img_ir_set_decoder(priv, dec, *ir_type);
->  			goto success;
->  		}
