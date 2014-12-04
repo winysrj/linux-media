@@ -1,26 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33736 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751018AbaLEOTa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Dec 2014 09:19:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH for v3.19 0/4] v4l2-mediabus.h & documentation updates
-Date: Fri,  5 Dec 2014 15:19:20 +0100
-Message-Id: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mout.web.de ([212.227.15.3]:57200 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753361AbaLDRie (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Dec 2014 12:38:34 -0500
+Message-ID: <54809C0D.3030703@users.sourceforge.net>
+Date: Thu, 04 Dec 2014 18:38:21 +0100
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [git:media_tree/master] [media] tuners: remove unneeded checks
+ before release_firmware()
+References: <E1XwaEk-0007jP-5V@www.linuxtv.org>
+In-Reply-To: <E1XwaEk-0007jP-5V@www.linuxtv.org>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches change the type of the two new fields in struct v4l2_mbus_framefmt
-from __u32 to __u16, as per Sakari's suggestion. We don't need 4 bytes per field
-for this, and this way we save one __u32.
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/media_tree.git tree:
+> 
+> Subject: [media] tuners: remove uneeded checks before release_firmware()
 
-It also updates docbook with the new fields (I somehow missed that) and
-documents the new vivid controls in vivid.txt.
+Would you like to amend a typo in the commit title?
 
 Regards,
-
-	Hans
-
+Markus
