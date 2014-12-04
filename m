@@ -1,126 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41294 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752573AbaLSMOi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 07:14:38 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, marbugge@cisco.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 1/4] hdmi: add new HDMI 2.0 defines
-Date: Fri, 19 Dec 2014 13:14:20 +0100
-Message-Id: <1418991263-17934-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1418991263-17934-1-git-send-email-hverkuil@xs4all.nl>
-References: <1418991263-17934-1-git-send-email-hverkuil@xs4all.nl>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:45664 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753442AbaLDQMG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 11:12:06 -0500
+Date: Thu, 4 Dec 2014 17:12:02 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH/RFC v9 06/19] DT: Add documentation for the mfd Maxim
+ max77693
+Message-ID: <20141204161201.GB29080@amd>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-7-git-send-email-j.anaszewski@samsung.com>
+ <20141204100706.GP14746@valkosipuli.retiisi.org.uk>
+ <54804840.4030202@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <54804840.4030202@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi!
 
-Add new Video InfoFrame colorspace information introduced in HDMI 2.0
-and new Audio Coding Extension Types, also from HDMI 2.0.
+> >>+- maxim,boost-mode :
+> >>+	In boost mode the device can produce up to 1.2A of total current
+> >>+	on both outputs. The maximum current on each output is reduced
+> >>+	to 625mA then. If there are two child led nodes defined then boost
+> >>+	is enabled by default.
+> >>+	Possible values:
+> >>+		MAX77693_LED_BOOST_OFF - no boost,
+> >>+		MAX77693_LED_BOOST_ADAPTIVE - adaptive mode,
+> >>+		MAX77693_LED_BOOST_FIXED - fixed mode.
+> >>+- maxim,boost-vout : Output voltage of the boost module in millivolts.
+> >>+- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
+> >>+	if chip estimates that system voltage could drop below this level due
+> >>+	to flash power consumption.
+> >>+
+> >>+Required properties of the LED child node:
+> >>+- label : see Documentation/devicetree/bindings/leds/common.txt
+> >>+- maxim,fled_id : Identifier of the fled output the led is connected to;
+> >
+> >I'm pretty sure this will be needed for about every chip that can drive
+> >multiple LEDs. Shouldn't it be documented in the generic documentation?
+> 
+> OK.
 
-HDMI_CONTENT_TYPE_NONE was renamed to _GRAPHICS since that's what
-it is called in CEA-861-F.
+Well... "fled_id" is not exactly suitable name. On other busses, it
+would be "reg = <1>"?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Thierry Reding <treding@nvidia.com>
----
- include/linux/hdmi.h | 30 +++++++++++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
-
-diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
-index 11c0182..a4aa0c2 100644
---- a/include/linux/hdmi.h
-+++ b/include/linux/hdmi.h
-@@ -37,12 +37,18 @@ enum hdmi_colorspace {
- 	HDMI_COLORSPACE_RGB,
- 	HDMI_COLORSPACE_YUV422,
- 	HDMI_COLORSPACE_YUV444,
-+	HDMI_COLORSPACE_YUV420,
-+	HDMI_COLORSPACE_RESERVED4,
-+	HDMI_COLORSPACE_RESERVED5,
-+	HDMI_COLORSPACE_RESERVED6,
-+	HDMI_COLORSPACE_IDO_DEFINED,
- };
- 
- enum hdmi_scan_mode {
- 	HDMI_SCAN_MODE_NONE,
- 	HDMI_SCAN_MODE_OVERSCAN,
- 	HDMI_SCAN_MODE_UNDERSCAN,
-+	HDMI_SCAN_MODE_RESERVED,
- };
- 
- enum hdmi_colorimetry {
-@@ -56,6 +62,7 @@ enum hdmi_picture_aspect {
- 	HDMI_PICTURE_ASPECT_NONE,
- 	HDMI_PICTURE_ASPECT_4_3,
- 	HDMI_PICTURE_ASPECT_16_9,
-+	HDMI_PICTURE_ASPECT_RESERVED,
- };
- 
- enum hdmi_active_aspect {
-@@ -77,12 +84,18 @@ enum hdmi_extended_colorimetry {
- 	HDMI_EXTENDED_COLORIMETRY_S_YCC_601,
- 	HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601,
- 	HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB,
-+
-+	/* The following EC values are only defined in CEA-861-F. */
-+	HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM,
-+	HDMI_EXTENDED_COLORIMETRY_BT2020,
-+	HDMI_EXTENDED_COLORIMETRY_RESERVED,
- };
- 
- enum hdmi_quantization_range {
- 	HDMI_QUANTIZATION_RANGE_DEFAULT,
- 	HDMI_QUANTIZATION_RANGE_LIMITED,
- 	HDMI_QUANTIZATION_RANGE_FULL,
-+	HDMI_QUANTIZATION_RANGE_RESERVED,
- };
- 
- /* non-uniform picture scaling */
-@@ -99,7 +112,7 @@ enum hdmi_ycc_quantization_range {
- };
- 
- enum hdmi_content_type {
--	HDMI_CONTENT_TYPE_NONE,
-+	HDMI_CONTENT_TYPE_GRAPHICS,
- 	HDMI_CONTENT_TYPE_PHOTO,
- 	HDMI_CONTENT_TYPE_CINEMA,
- 	HDMI_CONTENT_TYPE_GAME,
-@@ -179,6 +192,7 @@ enum hdmi_audio_coding_type {
- 	HDMI_AUDIO_CODING_TYPE_MLP,
- 	HDMI_AUDIO_CODING_TYPE_DST,
- 	HDMI_AUDIO_CODING_TYPE_WMA_PRO,
-+	HDMI_AUDIO_CODING_TYPE_CXT,
- };
- 
- enum hdmi_audio_sample_size {
-@@ -201,9 +215,23 @@ enum hdmi_audio_sample_frequency {
- 
- enum hdmi_audio_coding_type_ext {
- 	HDMI_AUDIO_CODING_TYPE_EXT_STREAM,
-+
-+	/*
-+	 * The next three CXT values are defined in CEA-861-E only.
-+	 * They do not exist in older versions, and in CEA-861-F they are
-+	 * defined as 'Not in use'.
-+	 */
- 	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC,
- 	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC_V2,
- 	HDMI_AUDIO_CODING_TYPE_EXT_MPEG_SURROUND,
-+
-+	/* The following CXT values are only defined in CEA-861-F. */
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_V2,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC,
-+	HDMI_AUDIO_CODING_TYPE_EXT_DRA,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_SURROUND,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC_SURROUND = 10,
- };
- 
- struct hdmi_audio_infoframe {
+								Pavel
 -- 
-2.1.3
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
