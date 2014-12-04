@@ -1,67 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37532 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751242AbaLNL3G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Dec 2014 06:29:06 -0500
-Message-ID: <548D747E.6060404@iki.fi>
-Date: Sun, 14 Dec 2014 13:29:02 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jurgen Kramer <gtmkramer@xs4all.nl>, linux-media@vger.kernel.org
-CC: Olli Salonen <olli.salonen@iki.fi>
-Subject: Re: [PATCH] Si2168: increase timeout to fix firmware loading
-References: <1418027444-4718-1-git-send-email-gtmkramer@xs4all.nl> <5485E572.9010801@iki.fi>
-In-Reply-To: <5485E572.9010801@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39579 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753682AbaLDJzi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Dec 2014 04:55:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	prabhakar.csengg@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 2/8] v4l2-subdev: drop get/set_crop pad ops
+Date: Thu,  4 Dec 2014 10:54:53 +0100
+Message-Id: <1417686899-30149-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl>
+References: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/08/2014 07:52 PM, Antti Palosaari wrote:
-> On 12/08/2014 10:30 AM, Jurgen Kramer wrote:
->> Increase si2168 cmd execute timeout to prevent firmware load failures.
->> Tests
->> shows it takes up to 52ms to load the 'dvb-demod-si2168-a30-01.fw'
->> firmware.
->> Increase timeout to a safe value of 70ms.
->>
->> Signed-off-by: Jurgen Kramer <gtmkramer@xs4all.nl>
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
-> Cc: <stable@vger.kernel.org> # v3.17+
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Cc: <stable@vger.kernel.org> # v3.16+
+Drop the duplicate get/set_crop pad ops and only use get/set_selection.
+It makes no sense to have two duplicate ops in the internal subdev API.
 
-Changed from stable 3.17+ to 3.16+ as I found that PCTV 292e timeouts 
-too when tuning DVB-T2, not always, but from time to time...
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 8 --------
+ include/media/v4l2-subdev.h           | 4 ----
+ 2 files changed, 12 deletions(-)
 
-Antti
-
->
-> That must go stable 3.17.
->
-> Antti
->
->> ---
->>   drivers/media/dvb-frontends/si2168.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/dvb-frontends/si2168.c
->> b/drivers/media/dvb-frontends/si2168.c
->> index ce9ab44..d2f1a3e 100644
->> --- a/drivers/media/dvb-frontends/si2168.c
->> +++ b/drivers/media/dvb-frontends/si2168.c
->> @@ -39,7 +39,7 @@ static int si2168_cmd_execute(struct si2168 *s,
->> struct si2168_cmd *cmd)
->>
->>       if (cmd->rlen) {
->>           /* wait cmd execution terminate */
->> -        #define TIMEOUT 50
->> +        #define TIMEOUT 70
->>           timeout = jiffies + msecs_to_jiffies(TIMEOUT);
->>           while (!time_after(jiffies, timeout)) {
->>               ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
->>
->
-
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 543631c..19a034e 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -283,10 +283,6 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (rval)
+ 			return rval;
+ 
+-		rval = v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
+-		if (rval != -ENOIOCTLCMD)
+-			return rval;
+-
+ 		memset(&sel, 0, sizeof(sel));
+ 		sel.which = crop->which;
+ 		sel.pad = crop->pad;
+@@ -308,10 +304,6 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (rval)
+ 			return rval;
+ 
+-		rval = v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
+-		if (rval != -ENOIOCTLCMD)
+-			return rval;
+-
+ 		memset(&sel, 0, sizeof(sel));
+ 		sel.which = crop->which;
+ 		sel.pad = crop->pad;
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 5860292..b052184 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -503,10 +503,6 @@ struct v4l2_subdev_pad_ops {
+ 		       struct v4l2_subdev_format *format);
+ 	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 		       struct v4l2_subdev_format *format);
+-	int (*set_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+-		       struct v4l2_subdev_crop *crop);
+-	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+-		       struct v4l2_subdev_crop *crop);
+ 	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 			     struct v4l2_subdev_selection *sel);
+ 	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
 -- 
-http://palosaari.fi/
+2.1.3
+
