@@ -1,189 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:45773 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751425AbaL3DGC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Dec 2014 22:06:02 -0500
-Received: by mail-pd0-f171.google.com with SMTP id y13so18412620pdi.16
-        for <linux-media@vger.kernel.org>; Mon, 29 Dec 2014 19:06:01 -0800 (PST)
-From: Jaedon Shin <jaedon.shin@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Changbing Xiong <cb.xiong@samsung.com>,
-	linux-media@vger.kernel.org, Jaedon Shin <jaedon.shin@gmail.com>
-Subject: [PATCH] [media] dmxdev: fix possible race conditions in dvb_dmxdev_buffer_read
-Date: Tue, 30 Dec 2014 12:05:34 +0900
-Message-Id: <1419908734-57798-1-git-send-email-jaedon.shin@gmail.com>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:40275 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753989AbaLDWfC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 17:35:02 -0500
+Date: Thu, 4 Dec 2014 22:34:34 +0000
+From: Luis de Bethencourt <luis@debethencourt.com>
+To: m.chehab@samsung.com
+Cc: jarod@wilsonet.com, gregkh@linuxfoundation.org,
+	mahfouz.saif.elyazal@gmail.com, gulsah.1004@gmail.com,
+	tuomas.tynkkynen@iki.fi, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 1/2] staging: media: lirc: lirc_zilog.c: fix quoted
+ strings split across lines
+Message-ID: <20141204223434.GA17555@biggie>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch splits the dvb_dmxdev_buffer_read into dvb_dvr_read and
-dvb_demux_read that fixes to unlock mutex before sleeping.
+checkpatch makes an exception to the 80-column rule for quotes strings, and
+Documentation/CodingStyle recommends not splitting quotes strings across lines
+because it breaks the ability to grep for the string. Fixing these.
 
-There are race conditions executing the DMX_ADD_PID and the DMX_REMOVE_PID
-in the dvb_demux_do_ioctl when dvb_demux_read is waiting for data.
+WARNING: quoted string split across lines
 
-Signed-off-by: Jaedon Shin <jaedon.shin@gmail.com>
+Signed-off-by: Luis de Bethencourt <luis@debethencourt.com>
 ---
- drivers/media/dvb-core/dmxdev.c | 94 ++++++++++++++++++++++++++++++++---------
- 1 file changed, 75 insertions(+), 19 deletions(-)
+ drivers/staging/media/lirc/lirc_zilog.c | 61 ++++++++++++++++++---------------
+ 1 file changed, 34 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index abff803..c2564b0 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -57,10 +57,11 @@ static int dvb_dmxdev_buffer_write(struct dvb_ringbuffer *buf,
- 	return dvb_ringbuffer_write(buf, src, len);
- }
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index dca806a..8814a7e 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -372,14 +372,14 @@ static int add_to_buf(struct IR *ir)
+ 					   ret);
+ 			if (failures >= 3) {
+ 				mutex_unlock(&ir->ir_lock);
+-				dev_err(ir->l.dev, "unable to read from the IR chip "
+-					    "after 3 resets, giving up\n");
++				dev_err(ir->l.dev,
++					"unable to read from the IR chip after 3 resets, giving up\n");
+ 				break;
+ 			}
  
--static ssize_t dvb_dmxdev_buffer_read(struct dvb_ringbuffer *src,
-+static ssize_t dvb_dmxdev_buffer_read(struct dmxdev_filter *dmxdevfilter,
- 				      int non_blocking, char __user *buf,
- 				      size_t count, loff_t *ppos)
- {
-+	struct dvb_ringbuffer *src = &dmxdevfilter->buffer;
- 	size_t todo;
- 	ssize_t avail;
- 	ssize_t ret = 0;
-@@ -75,16 +76,21 @@ static ssize_t dvb_dmxdev_buffer_read(struct dvb_ringbuffer *src,
+ 			/* Looks like the chip crashed, reset it */
+-			dev_err(ir->l.dev, "polling the IR receiver chip failed, "
+-				    "trying reset\n");
++			dev_err(ir->l.dev,
++				"polling the IR receiver chip failed, trying reset\n");
+ 
+ 			set_current_state(TASK_UNINTERRUPTIBLE);
+ 			if (kthread_should_stop()) {
+@@ -405,8 +405,9 @@ static int add_to_buf(struct IR *ir)
+ 		ret = i2c_master_recv(rx->c, keybuf, sizeof(keybuf));
+ 		mutex_unlock(&ir->ir_lock);
+ 		if (ret != sizeof(keybuf)) {
+-			dev_err(ir->l.dev, "i2c_master_recv failed with %d -- "
+-				    "keeping last read buffer\n", ret);
++			dev_err(ir->l.dev,
++				"i2c_master_recv failed with %d -- keeping last read buffer\n",
++				ret);
+ 		} else {
+ 			rx->b[0] = keybuf[3];
+ 			rx->b[1] = keybuf[4];
+@@ -713,8 +714,9 @@ static int send_boot_data(struct IR_tx *tx)
+ 				       buf[0]);
+ 		return 0;
  	}
- 
- 	for (todo = count; todo > 0; todo -= ret) {
--		if (non_blocking && dvb_ringbuffer_empty(src)) {
--			ret = -EWOULDBLOCK;
--			break;
--		}
-+		if (dvb_ringbuffer_empty(src)) {
-+			mutex_unlock(&dmxdevfilter->mutex);
- 
--		ret = wait_event_interruptible(src->queue,
--					       !dvb_ringbuffer_empty(src) ||
--					       (src->error != 0));
--		if (ret < 0)
--			break;
-+			if (non_blocking)
-+				return -EWOULDBLOCK;
-+
-+			ret = wait_event_interruptible(src->queue,
-+					!dvb_ringbuffer_empty(src) ||
-+					(src->error != 0));
-+			if (ret < 0)
-+				return ret;
-+
-+			if (mutex_lock_interruptible(&dmxdevfilter->mutex))
-+				return -ERESTARTSYS;
-+		}
- 
- 		if (src->error) {
- 			ret = src->error;
-@@ -242,13 +248,63 @@ static ssize_t dvb_dvr_read(struct file *file, char __user *buf, size_t count,
- {
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dmxdev *dmxdev = dvbdev->priv;
-+	struct dvb_ringbuffer *src = &dmxdev->dvr_buffer;
-+	size_t todo;
-+	ssize_t avail;
-+	ssize_t ret = 0;
- 
--	if (dmxdev->exit)
-+	if (mutex_lock_interruptible(&dmxdev->mutex))
-+		return -ERESTARTSYS;
-+
-+	if (dmxdev->exit) {
-+		mutex_unlock(&dmxdev->mutex);
- 		return -ENODEV;
-+	}
-+
-+	if (src->error) {
-+		ret = src->error;
-+		dvb_ringbuffer_flush(src);
-+		mutex_unlock(&dmxdev->mutex);
-+		return ret;
-+	}
-+
-+	for (todo = count; todo > 0; todo -= ret) {
-+		if (dvb_ringbuffer_empty(src)) {
-+			mutex_unlock(&dmxdev->mutex);
- 
--	return dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
--				      file->f_flags & O_NONBLOCK,
--				      buf, count, ppos);
-+			if (file->f_flags & O_NONBLOCK)
-+				return -EWOULDBLOCK;
-+
-+			ret = wait_event_interruptible(src->queue,
-+					!dvb_ringbuffer_empty(src) ||
-+					(src->error != 0));
-+			if (ret < 0)
-+				return ret;
-+
-+			if (mutex_lock_interruptible(&dmxdev->mutex))
-+				return -ERESTARTSYS;
-+		}
-+
-+		if (src->error) {
-+			ret = src->error;
-+			dvb_ringbuffer_flush(src);
-+			break;
-+		}
-+
-+		avail = dvb_ringbuffer_avail(src);
-+		if (avail > todo)
-+			avail = todo;
-+
-+		ret = dvb_ringbuffer_read_user(src, buf, avail);
-+		if (ret < 0)
-+			break;
-+
-+		buf += ret;
-+	}
-+
-+	mutex_unlock(&dmxdev->mutex);
-+
-+	return (count - todo) ? (count - todo) : ret;
- }
- 
- static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
-@@ -283,7 +339,6 @@ static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
+-	dev_notice(tx->ir->l.dev, "Zilog/Hauppauge IR blaster firmware version "
+-		     "%d.%d.%d loaded\n", buf[1], buf[2], buf[3]);
++	dev_notice(tx->ir->l.dev,
++		   "Zilog/Hauppauge IR blaster firmware version %d.%d.%d loaded\n",
++		   buf[1], buf[2], buf[3]);
  
  	return 0;
  }
--
- static inline void dvb_dmxdev_filter_state_set(struct dmxdev_filter
- 					       *dmxdevfilter, int state)
- {
-@@ -904,7 +959,7 @@ static ssize_t dvb_dmxdev_read_sec(struct dmxdev_filter *dfil,
- 		hcount = 3 + dfil->todo;
- 		if (hcount > count)
- 			hcount = count;
--		result = dvb_dmxdev_buffer_read(&dfil->buffer,
-+		result = dvb_dmxdev_buffer_read(dfil,
- 						file->f_flags & O_NONBLOCK,
- 						buf, hcount, ppos);
- 		if (result < 0) {
-@@ -925,7 +980,7 @@ static ssize_t dvb_dmxdev_read_sec(struct dmxdev_filter *dfil,
+@@ -794,9 +796,9 @@ static int fw_load(struct IR_tx *tx)
+ 	if (!read_uint8(&data, tx_data->endp, &version))
+ 		goto corrupt;
+ 	if (version != 1) {
+-		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected"
+-			    "1) -- please upgrade to a newer driver",
+-			    version);
++		dev_err(tx->ir->l.dev,
++			"unsupported code set file version (%u, expected 1) -- please upgrade to a newer driver",
++			version);
+ 		fw_unload_locked();
+ 		ret = -EFAULT;
+ 		goto out;
+@@ -983,8 +985,9 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	ret = get_key_data(data_block, code, key);
+ 
+ 	if (ret == -EPROTO) {
+-		dev_err(tx->ir->l.dev, "failed to get data for code %u, key %u -- check "
+-			    "lircd.conf entries\n", code, key);
++		dev_err(tx->ir->l.dev,
++			"failed to get data for code %u, key %u -- check lircd.conf entries\n",
++			code, key);
+ 		return ret;
+ 	} else if (ret != 0)
+ 		return ret;
+@@ -1059,12 +1062,14 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 		ret = i2c_master_send(tx->c, buf, 1);
+ 		if (ret == 1)
+ 			break;
+-		dev_dbg(tx->ir->l.dev, "NAK expected: i2c_master_send "
+-			"failed with %d (try %d)\n", ret, i+1);
++		dev_dbg(tx->ir->l.dev,
++			"NAK expected: i2c_master_send failed with %d (try %d)\n",
++			ret, i+1);
  	}
- 	if (count > dfil->todo)
- 		count = dfil->todo;
--	result = dvb_dmxdev_buffer_read(&dfil->buffer,
-+	result = dvb_dmxdev_buffer_read(dfil,
- 					file->f_flags & O_NONBLOCK,
- 					buf, count, ppos);
- 	if (result < 0)
-@@ -947,11 +1002,12 @@ dvb_demux_read(struct file *file, char __user *buf, size_t count,
- 	if (dmxdevfilter->type == DMXDEV_TYPE_SEC)
- 		ret = dvb_dmxdev_read_sec(dmxdevfilter, file, buf, count, ppos);
- 	else
--		ret = dvb_dmxdev_buffer_read(&dmxdevfilter->buffer,
-+		ret = dvb_dmxdev_buffer_read(dmxdevfilter,
- 					     file->f_flags & O_NONBLOCK,
- 					     buf, count, ppos);
+ 	if (ret != 1) {
+-		dev_err(tx->ir->l.dev, "IR TX chip never got ready: last i2c_master_send "
+-			    "failed with %d\n", ret);
++		dev_err(tx->ir->l.dev,
++			"IR TX chip never got ready: last i2c_master_send failed with %d\n",
++			ret);
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
  
--	mutex_unlock(&dmxdevfilter->mutex);
-+	if (mutex_is_locked(&dmxdevfilter->mutex))
-+		mutex_unlock(&dmxdevfilter->mutex);
- 	return ret;
- }
+@@ -1167,12 +1172,12 @@ static ssize_t write(struct file *filep, const char __user *buf, size_t n,
+ 		 */
+ 		if (ret != 0) {
+ 			/* Looks like the chip crashed, reset it */
+-			dev_err(tx->ir->l.dev, "sending to the IR transmitter chip "
+-				    "failed, trying reset\n");
++			dev_err(tx->ir->l.dev,
++				"sending to the IR transmitter chip failed, trying reset\n");
  
+ 			if (failures >= 3) {
+-				dev_err(tx->ir->l.dev, "unable to send to the IR chip "
+-					    "after 3 resets, giving up\n");
++				dev_err(tx->ir->l.dev,
++					"unable to send to the IR chip after 3 resets, giving up\n");
+ 				mutex_unlock(&ir->ir_lock);
+ 				mutex_unlock(&tx->client_lock);
+ 				put_ir_tx(tx, false);
+@@ -1542,8 +1547,9 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 
+ 		/* Proceed only if the Rx client is also ready or not needed */
+ 		if (rx == NULL && !tx_only) {
+-			dev_info(tx->ir->l.dev, "probe of IR Tx on %s (i2c-%d) done. Waiting"
+-				   " on IR Rx.\n", adap->name, adap->nr);
++			dev_info(tx->ir->l.dev,
++				 "probe of IR Tx on %s (i2c-%d) done. Waiting on IR Rx.\n",
++				 adap->name, adap->nr);
+ 			goto out_ok;
+ 		}
+ 	} else {
+@@ -1581,8 +1587,9 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 				       "zilog-rx-i2c-%d", adap->nr);
+ 		if (IS_ERR(rx->task)) {
+ 			ret = PTR_ERR(rx->task);
+-			dev_err(tx->ir->l.dev, "%s: could not start IR Rx polling thread"
+-				    "\n", __func__);
++			dev_err(tx->ir->l.dev,
++				"%s: could not start IR Rx polling thread\n",
++				__func__);
+ 			/* Failed kthread, so put back the ir ref */
+ 			put_ir_device(ir, true);
+ 			/* Failure exit, so put back rx ref from i2c_client */
+@@ -1594,8 +1601,8 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 
+ 		/* Proceed only if the Tx client is also ready */
+ 		if (tx == NULL) {
+-			pr_info("probe of IR Rx on %s (i2c-%d) done. Waiting"
+-				   " on IR Tx.\n", adap->name, adap->nr);
++			pr_info("probe of IR Rx on %s (i2c-%d) done. Waiting on IR Tx.\n",
++				   adap->name, adap->nr);
+ 			goto out_ok;
+ 		}
+ 	}
 -- 
-2.2.1
+2.1.3
 
