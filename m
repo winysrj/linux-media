@@ -1,80 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58873 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752572AbaLTWfa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 17:35:30 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Mark Brown <broonie@kernel.org>
-Subject: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
-Date: Sun, 21 Dec 2014 00:34:51 +0200
-Message-Id: <1419114892-4550-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47729 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753545AbaLDKHL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Dec 2014 05:07:11 -0500
+Date: Thu, 4 Dec 2014 12:07:07 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH/RFC v9 06/19] DT: Add documentation for the mfd Maxim
+ max77693
+Message-ID: <20141204100706.GP14746@valkosipuli.retiisi.org.uk>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-7-git-send-email-j.anaszewski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1417622814-10845-7-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lockdep validator complains recursive locking and deadlock when two
-different regmap instances are called in a nested order, as regmap
-groups locks by default. That happens easily for example when both
-I2C client and I2C adapter are using regmap. As a solution, add
-configuration option to pass custom lock class key for lockdep
-validator.
+Hi Jacek,
 
-Here is example schema, where nested regmap calls are issued, when
-more than 1 block uses regmap.
- __________         ___________         ___________
-|  USB IF  |       |   demod   |       |   tuner   |
-|----------|       |-----------|       |-----------|
-|          |--I2C--|-----/ ----|--I2C--|           |
-|I2C master|       |  I2C mux  |       | I2C slave |
-|__________|       |___________|       |___________|
+On Wed, Dec 03, 2014 at 05:06:41PM +0100, Jacek Anaszewski wrote:
+> This patch adds device tree binding documentation for
+> the flash cell of the Maxim max77693 multifunctional device.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Pawel Moll <pawel.moll@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+> Cc: Kumar Gala <galak@codeaurora.org>
+> Cc: <devicetree@vger.kernel.org>
+> ---
+>  Documentation/devicetree/bindings/mfd/max77693.txt |   89 ++++++++++++++++++++
+>  1 file changed, 89 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+> index 01e9f30..25a6e78 100644
+> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
+> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+> @@ -41,7 +41,66 @@ Optional properties:
+>  	 To get more informations, please refer to documentaion.
+>  	[*] refer Documentation/devicetree/bindings/pwm/pwm.txt
+>  
+> +- led : the LED submodule device node
+> +
+> +There are two led outputs available - fled1 and fled2. Each of them can
+> +control a separate led or they can be connected together to double
+> +the maximum current for a single connected led. One led is represented
+> +by one child node.
+> +
+> +Required properties:
+> +- compatible : Must be "maxim,max77693-led".
+> +
+> +Optional properties:
+> +- maxim,fleds : Array of current outputs in order: fled1, fled2.
+> +	Note: both current outputs can be connected to a single led
+> +	Possible values:
+> +		MAX77693_LED_FLED_UNUSED - the output is left disconnected,
+> +		MAX77693_LED_FLED_USED - a diode is connected to the output.
 
-Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Mark Brown <broonie@kernel.org>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/base/regmap/regmap.c | 3 +++
- include/linux/regmap.h       | 5 +++++
- 2 files changed, 8 insertions(+)
+As you have a LED sub-nodes for each LED already, isn't this redundant?
 
-diff --git a/drivers/base/regmap/regmap.c b/drivers/base/regmap/regmap.c
-index d2f8a81..56064d3 100644
---- a/drivers/base/regmap/regmap.c
-+++ b/drivers/base/regmap/regmap.c
-@@ -559,6 +559,9 @@ struct regmap *regmap_init(struct device *dev,
- 			mutex_init(&map->mutex);
- 			map->lock = regmap_lock_mutex;
- 			map->unlock = regmap_unlock_mutex;
-+			if (config->lockdep_lock_class_key)
-+				lockdep_set_class(&map->mutex,
-+						  config->lockdep_lock_class_key);
- 		}
- 		map->lock_arg = map;
- 	}
-diff --git a/include/linux/regmap.h b/include/linux/regmap.h
-index c5ed83f..f930370 100644
---- a/include/linux/regmap.h
-+++ b/include/linux/regmap.h
-@@ -134,6 +134,10 @@ typedef void (*regmap_unlock)(void *);
-  * @lock_arg:	  this field is passed as the only argument of lock/unlock
-  *		  functions (ignored in case regular lock/unlock functions
-  *		  are not overridden).
-+ * @lock_class_key: Custom lock class key for lockdep validator. Use that when
-+ *                regmap in question is used for bus master IO in order to avoid
-+ *                false lockdep nested locking warning. Valid only when regmap
-+ *                default mutex locking is used.
-  * @reg_read:	  Optional callback that if filled will be used to perform
-  *           	  all the reads from the registers. Should only be provided for
-  *		  devices whose read operation cannot be represented as a simple
-@@ -197,6 +201,7 @@ struct regmap_config {
- 	regmap_lock lock;
- 	regmap_unlock unlock;
- 	void *lock_arg;
-+	struct lock_class_key *lockdep_lock_class_key;
- 
- 	int (*reg_read)(void *context, unsigned int reg, unsigned int *val);
- 	int (*reg_write)(void *context, unsigned int reg, unsigned int val);
+> +- maxim,trigger-type : Array of trigger types in order: flash, torch.
+> +	Possible trigger types:
+> +		MAX77693_LED_TRIG_TYPE_EDGE - Rising edge of the signal triggers
+> +			the flash/torch,
+> +		MAX77693_LED_TRIG_TYPE_LEVEL - Signal level controls duration of
+
+How about: "Strobe pulse length ..."?
+
+How long does the torch stay on if you use edge trigger for it? I've always
+thought the torch enable pin was a practical joke. :-)
+
+If you need it this for torch as well, I'd use separate properties for the
+purpose, i.e. trigger-type-flash and trigger-type-torch.
+
+> +			the flash/torch.
+> +- maxim,trigger : Array of flags indicating which trigger can activate given led
+> +	in order: fled1, fled2.
+> +	Possible flag values (can be combined):
+> +		MAX77693_LED_TRIG_FLASHEN - FLASHEN pin of the chip,
+> +		MAX77693_LED_TRIG_TORCHEN - TORCHEN pin of the chip,
+> +		MAX77693_LED_TRIG_SOFTWARE - software via I2C command.
+
+Is there a need to prevent strobing using a certain method? Just wondering.
+
+> +- maxim,boost-mode :
+> +	In boost mode the device can produce up to 1.2A of total current
+> +	on both outputs. The maximum current on each output is reduced
+> +	to 625mA then. If there are two child led nodes defined then boost
+> +	is enabled by default.
+> +	Possible values:
+> +		MAX77693_LED_BOOST_OFF - no boost,
+> +		MAX77693_LED_BOOST_ADAPTIVE - adaptive mode,
+> +		MAX77693_LED_BOOST_FIXED - fixed mode.
+> +- maxim,boost-vout : Output voltage of the boost module in millivolts.
+> +- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
+> +	if chip estimates that system voltage could drop below this level due
+> +	to flash power consumption.
+> +
+> +Required properties of the LED child node:
+> +- label : see Documentation/devicetree/bindings/leds/common.txt
+> +- maxim,fled_id : Identifier of the fled output the led is connected to;
+
+I'm pretty sure this will be needed for about every chip that can drive
+multiple LEDs. Shouldn't it be documented in the generic documentation?
+
+> +		MAX77693_LED_FLED1 - FLED1 output of the device - it has to be
+> +			used also if a single LED is connected to both outputs,
+> +		MAX77693_LED_FLED2 - FLED2 output of the device.
+> +
+> +Optional properties of the LED child node:
+> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 15625 - 250000
+> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 15625 - 1000000
+> +- flash-timeout-microsec : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 62500 - 1000000
+> +
+>  Example:
+> +#include <dt-bindings/mfd/max77693.h>
+> +
+>  	max77693@66 {
+>  		compatible = "maxim,max77693";
+>  		reg = <0x66>;
+> @@ -73,4 +132,34 @@ Example:
+>  			pwms = <&pwm 0 40000 0>;
+>  			pwm-names = "haptic";
+>  		};
+> +
+> +		led {
+> +			compatible = "maxim,max77693-led";
+> +			maxim,fleds = <MAX77693_LED_FLED_USED
+> +				       MAX77693_LED_FLED_USED>;
+> +			maxim,trigger = <MAX77693_LED_TRIG_ALL
+> +					 (MAX77693_LED_TRIG_TORCHEN |
+> +					 MAX77693_LED_TRIG_SOFTWARE)>;
+> +			maxim,trigger-type = <MAX77693_LED_TRIG_TYPE_EDGE
+> +					      MAX77693_LED_TRIG_TYPE_LEVEL>;
+> +			maxim,boost-mode = <MAX77693_LED_BOOST_ADAPTIVE>;
+> +			maxim,boost-vout = <5000>;
+> +			maxim,vsys-min = <2400>;
+> +
+> +			camera1_flash: led1 {
+> +				maxim,fled_id = <MAX77693_LED_FLED1>;
+> +				label = "max77693-flash1";
+> +				max-microamp = <250000>;
+> +				flash-max-microamp = <625000>;
+> +				flash-timeout-microsec = <1000000>;
+> +			};
+> +
+> +			camera2_flash: led2 {
+> +				maxim,fled_id = <MAX77693_LED_FLED2>;
+> +				label = "max77693-flash2";
+> +				max-microamp = <250000>;
+> +				flash-max-microamp = <500000>;
+> +				flash-timeout-microsec = <1000000>;
+> +			};
+> +		};
+
+I like how this looks like in general.
+
+>  	};
+
 -- 
-http://palosaari.fi/
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
