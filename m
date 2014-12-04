@@ -1,70 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44568 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752586AbaLHU7g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Dec 2014 15:59:36 -0500
-Message-ID: <54861136.8050002@iki.fi>
-Date: Mon, 08 Dec 2014 22:59:34 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] mn88472: implement firmware parity check
-References: <1418070667-13349-1-git-send-email-benjamin@southpole.se> <1418070667-13349-2-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1418070667-13349-2-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:41400 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751299AbaLDQwJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 11:52:09 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH] stv090x: add an extra protetion against buffer overflow
+Date: Thu,  4 Dec 2014 14:52:02 -0200
+Message-Id: <b09b7612af46a26444a79f7b10cc45eb48c12104.1417711918.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+As pointed by smatch:
+	drivers/media/dvb-frontends/stv090x.c:2787 stv090x_optimize_carloop() error: buffer overflow 'car_loop_apsk_low' 11 <= 13
+	drivers/media/dvb-frontends/stv090x.c:2789 stv090x_optimize_carloop() error: buffer overflow 'car_loop_apsk_low' 11 <= 13
+	drivers/media/dvb-frontends/stv090x.c:2791 stv090x_optimize_carloop() error: buffer overflow 'car_loop_apsk_low' 11 <= 13
+	drivers/media/dvb-frontends/stv090x.c:2793 stv090x_optimize_carloop() error: buffer overflow 'car_loop_apsk_low' 11 <= 13
+	drivers/media/dvb-frontends/stv090x.c:2795 stv090x_optimize_carloop() error: buffer overflow 'car_loop_apsk_low' 11 <= 13
 
-PS. something to say about logging levels... but as it is staging 
-driver, criteria for patches is not so high yet.
+The situation of a buffer overflow won't happen, in practice,
+with the current values of car_loop table. Yet, the entire logic
+that checks for those registration values is too complex. So,
+better to add an explicit check, just in case someone changes
+the car_loop tables causing a buffer overflow by mistake.
 
-regards
-Antti
+This also helps to remove several smatch warnings, with is good.
 
-On 12/08/2014 10:31 PM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
-> ---
->   drivers/staging/media/mn88472/mn88472.c | 15 +++++++++++++++
->   1 file changed, 15 insertions(+)
->
-> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-> index df7dbe9..1df85a7 100644
-> --- a/drivers/staging/media/mn88472/mn88472.c
-> +++ b/drivers/staging/media/mn88472/mn88472.c
-> @@ -294,6 +294,7 @@ static int mn88472_init(struct dvb_frontend *fe)
->   	int ret, len, remaining;
->   	const struct firmware *fw = NULL;
->   	u8 *fw_file = MN88472_FIRMWARE;
-> +	unsigned int csum;
->
->   	dev_dbg(&client->dev, "\n");
->
-> @@ -346,6 +347,20 @@ static int mn88472_init(struct dvb_frontend *fe)
->   		}
->   	}
->
-> +	/* parity check of firmware */
-> +	ret = regmap_read(dev->regmap[0], 0xf8, &csum);
-> +	if (ret) {
-> +		dev_err(&client->dev,
-> +				"parity reg read failed=%d\n", ret);
-> +		goto err;
-> +	}
-> +	if (csum & 0x10) {
-> +		dev_err(&client->dev,
-> +				"firmware parity check failed=0x%x\n", csum);
-> +		goto err;
-> +	}
-> +	dev_err(&client->dev, "firmware parity check succeeded=0x%x\n", csum);
-> +
->   	ret = regmap_write(dev->regmap[0], 0xf5, 0x00);
->   	if (ret)
->   		goto err;
->
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
+diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
+index bce9cc1072aa..0b2a934f53e5 100644
+--- a/drivers/media/dvb-frontends/stv090x.c
++++ b/drivers/media/dvb-frontends/stv090x.c
+@@ -2783,6 +2783,12 @@ static u8 stv090x_optimize_carloop(struct stv090x_state *state, enum stv090x_mod
+ 				aclc = car_loop[i].crl_pilots_off_30;
+ 		}
+ 	} else { /* 16APSK and 32APSK */
++		/*
++		 * This should never happen in practice, except if
++		 * something is really wrong at the car_loop table.
++		 */
++		if (i >= 11)
++			i = 10;
+ 		if (state->srate <= 3000000)
+ 			aclc = car_loop_apsk_low[i].crl_pilots_on_2;
+ 		else if (state->srate <= 7000000)
 -- 
-http://palosaari.fi/
+1.9.3
+
