@@ -1,115 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:58581 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752057AbaLDDni (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Dec 2014 22:43:38 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C3B942A0099
-	for <linux-media@vger.kernel.org>; Thu,  4 Dec 2014 04:43:18 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141204034318.C3B942A0099@tschai.lan>
-Date: Thu,  4 Dec 2014 04:43:18 +0100 (CET)
+Received: from mailapp01.imgtec.com ([195.59.15.196]:3404 "EHLO
+	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753332AbaLDPjN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 10:39:13 -0500
+From: Sifan Naeem <sifan.naeem@imgtec.com>
+To: <james.hogan@imgtec.com>, <mchehab@osg.samsung.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<james.hartley@imgtec.com>, <ezequiel.garcia@imgtec.com>,
+	Sifan Naeem <sifan.naeem@imgtec.com>
+Subject: [PATCH 2/5] rc: img-ir: pass toggle bit to the rc driver
+Date: Thu, 4 Dec 2014 15:38:39 +0000
+Message-ID: <1417707523-7730-3-git-send-email-sifan.naeem@imgtec.com>
+In-Reply-To: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com>
+References: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add toggle bit to struct img_ir_scancode_req so that protocols can
+provide it to img_ir_handle_data(), and pass that toggle bit up to
+rc_keydown instead of 0.
 
-Results of the daily build of media_tree:
+This is nedded for the upcoming rc-5 and rc-6 patches.
 
-date:		Thu Dec  4 04:00:16 CET 2014
-git branch:	test
-git hash:	e8bd888a148cb55a5ba27070fdfeb62386c89577
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
+---
+ drivers/media/rc/img-ir/img-ir-hw.c |    8 +++++---
+ drivers/media/rc/img-ir/img-ir-hw.h |    2 ++
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index 61850a6..4a1407b 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -792,6 +792,7 @@ static void img_ir_handle_data(struct img_ir_priv *priv, u32 len, u64 raw)
+ 	struct img_ir_scancode_req request;
+ 
+ 	request.protocol = RC_TYPE_UNKNOWN;
++	request.toggle   = 0;
+ 
+ 	if (dec->scancode)
+ 		ret = dec->scancode(len, raw, hw->enabled_protocols, &request);
+@@ -802,9 +803,10 @@ static void img_ir_handle_data(struct img_ir_priv *priv, u32 len, u64 raw)
+ 	dev_dbg(priv->dev, "data (%u bits) = %#llx\n",
+ 		len, (unsigned long long)raw);
+ 	if (ret == IMG_IR_SCANCODE) {
+-		dev_dbg(priv->dev, "decoded scan code %#x\n",
+-			request.scancode);
+-		rc_keydown(hw->rdev, request.protocol, request.scancode, 0);
++		dev_dbg(priv->dev, "decoded scan code %#x, toggle %u\n",
++			request.scancode, request.toggle);
++		rc_keydown(hw->rdev, request.protocol, request.scancode,
++			   request.toggle);
+ 		img_ir_end_repeat(priv);
+ 	} else if (ret == IMG_IR_REPEATCODE) {
+ 		if (hw->mode == IMG_IR_M_REPEATING) {
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
+index 1fc9583..5e59e8e 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.h
++++ b/drivers/media/rc/img-ir/img-ir-hw.h
+@@ -138,10 +138,12 @@ struct img_ir_timing_regvals {
+  *		RC_TYPE_UNKNOWN).
+  * @scancode:	Scan code of received message (must be written by
+  *		handler if IMG_IR_SCANCODE is returned).
++ * @toggle:	Toggle bit (defaults to 0).
+  */
+ struct img_ir_scancode_req {
+ 	enum rc_type protocol;
+ 	u32 scancode;
++	u8 toggle;
+ };
+ 
+ /**
+-- 
+1.7.9.5
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
