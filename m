@@ -1,105 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60799 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932832AbaLBWOZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 17:14:25 -0500
-Date: Wed, 3 Dec 2014 00:06:51 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "Mats Randgaard (matrandg)" <matrandg@cisco.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: v4l2_mbus_config flags for CSI-2
-Message-ID: <20141202220651.GB14746@valkosipuli.retiisi.org.uk>
-References: <547DA733.8060804@cisco.com>
- <20141202124535.GA14746@valkosipuli.retiisi.org.uk>
- <547DC3BE.2040104@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <547DC3BE.2040104@cisco.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:57077 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932335AbaLDQS1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 11:18:27 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] [media] stv090x: Some whitespace cleanups
+Date: Thu,  4 Dec 2014 14:18:14 -0200
+Message-Id: <284cbf4a87a6a4981b8e7089aa753103d747351c.1417709889.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mats,
+While writing changeset fdf1bc9fa2cf, I noticed some checkpatch
+complains about the CodingStyle for function parameters. So,
+clean them.
 
-On Tue, Dec 02, 2014 at 02:50:54PM +0100, Mats Randgaard (matrandg) wrote:
-> Thanks for responding so quickly, Sakari!
-> 
-> On 12/02/2014 01:45 PM, Sakari Ailus wrote:
-> >Hi Mats,
-> >
-> >On Tue, Dec 02, 2014 at 12:49:07PM +0100, Mats Randgaard (matrandg) wrote:
-> >>Hi,
-> >>I am writing a driver for Toshiba TC358743 HDMI to CSI-2 bridge. The
-> >>chip has four CSI lanes. Toshiba recommends to configure the CSI
-> >>output speed for the highest resolution the CSI interface can handle
-> >>and reduce the number of CSI lanes in use if the received video has
-> >>lower resolution. The number of CSI lanes in use is also reduced
-> >>when the bridge transmits YCbCr 4:2:2 encoded video instead of
-> >>RGB888.
-> >>
-> >>The plan was to use g_mbus_config for this, but it is not clear to
-> >>me what the different defines in include/media/v4l2-mediabus.h
-> >>should be used for:
-> >>
-> >>/* How many lanes the client can use */
-> >>#define V4L2_MBUS_CSI2_1_LANE                   (1 << 0)
-> >>#define V4L2_MBUS_CSI2_2_LANE                   (1 << 1)
-> >>#define V4L2_MBUS_CSI2_3_LANE                   (1 << 2)
-> >>#define V4L2_MBUS_CSI2_4_LANE                   (1 << 3)
-> >>/* On which channels it can send video data */
-> >>#define V4L2_MBUS_CSI2_CHANNEL_0                (1 << 4)
-> >>#define V4L2_MBUS_CSI2_CHANNEL_1                (1 << 5)
-> >>#define V4L2_MBUS_CSI2_CHANNEL_2                (1 << 6)
-> >>#define V4L2_MBUS_CSI2_CHANNEL_3                (1 << 7)
-> >>
-> >>Should I set V4L2_MBUS_CSI2_4_LANE since the device supports four
-> >>lanes, and set V4L2_MBUS_CSI2_CHANNEL_X according to the number of
-> >>lanes in use?
-> >Channels in this case refer to CSI-2 channels, not how many lanes there are.
-> >
-> >Can you decide how many lanes you use or is that determined by other
-> >configuration?
-> >
-> >This is only used in SoC camera right now. Elsewhere the number of lanes is
-> >fixed in either platform data or device tree.
-> 
-> When the application set video timings or change color encoding the
-> driver calculates the number of CSI lanes needed and disables the
-> rest:
-> 
-> ------------------------------------------------------------------------------------------
-> static void tc358743_set_csi(struct v4l2_subdev *sd)
-> {
->         unsigned lanes = tc358743_num_csi_lanes_needed(sd);
-> 
->         if (lanes < 1)
->                 i2c_wr32(sd, CLW_CNTRL, MASK_CLW_LANEDISABLE);
->         if (lanes < 1)
->                 i2c_wr32(sd, D0W_CNTRL, MASK_D0W_LANEDISABLE);
->         if (lanes < 2)
->                 i2c_wr32(sd, D1W_CNTRL, MASK_D1W_LANEDISABLE);
->         if (lanes < 3)
->                 i2c_wr32(sd, D2W_CNTRL, MASK_D2W_LANEDISABLE);
->         if (lanes < 4)
->                 i2c_wr32(sd, D3W_CNTRL, MASK_D3W_LANEDISABLE);
-> 
-> ------------------------------------------------------------------------------------------
+While here, also removes uneeded "extern" from function prototype.
 
-Do you use platform data or DT currently?
+No functional changes.
 
-Do you have a particular CSI-2 receiver there? In this case, its driver
-should ask the image source (i.e your HDMI -> CSI-2 bridge) about its mbus
-configuration before streaming. I don't think any driver does that at the
-moment.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Just any of the V4L2_MBUS_CSI2_*_LANE flags should be enough for now.
-Configuring the CSI-2 bus properties (physical bus config, what's
-transmitted on the bus etc.) in general needs to be thought properly out
-some time in the future but this should get you going at least.
-
+diff --git a/drivers/media/dvb-frontends/stv090x.h b/drivers/media/dvb-frontends/stv090x.h
+index f7f452f435f2..742eeda99000 100644
+--- a/drivers/media/dvb-frontends/stv090x.h
++++ b/drivers/media/dvb-frontends/stv090x.h
+@@ -89,29 +89,29 @@ struct stv090x_config {
+ 
+ 	bool diseqc_envelope_mode;
+ 
+-	int (*tuner_init) (struct dvb_frontend *fe);
+-	int (*tuner_sleep) (struct dvb_frontend *fe);
+-	int (*tuner_set_mode) (struct dvb_frontend *fe, enum tuner_mode mode);
+-	int (*tuner_set_frequency) (struct dvb_frontend *fe, u32 frequency);
+-	int (*tuner_get_frequency) (struct dvb_frontend *fe, u32 *frequency);
+-	int (*tuner_set_bandwidth) (struct dvb_frontend *fe, u32 bandwidth);
+-	int (*tuner_get_bandwidth) (struct dvb_frontend *fe, u32 *bandwidth);
+-	int (*tuner_set_bbgain) (struct dvb_frontend *fe, u32 gain);
+-	int (*tuner_get_bbgain) (struct dvb_frontend *fe, u32 *gain);
+-	int (*tuner_set_refclk)  (struct dvb_frontend *fe, u32 refclk);
+-	int (*tuner_get_status) (struct dvb_frontend *fe, u32 *status);
+-	void (*tuner_i2c_lock) (struct dvb_frontend *fe, int lock);
++	int (*tuner_init)(struct dvb_frontend *fe);
++	int (*tuner_sleep)(struct dvb_frontend *fe);
++	int (*tuner_set_mode)(struct dvb_frontend *fe, enum tuner_mode mode);
++	int (*tuner_set_frequency)(struct dvb_frontend *fe, u32 frequency);
++	int (*tuner_get_frequency)(struct dvb_frontend *fe, u32 *frequency);
++	int (*tuner_set_bandwidth)(struct dvb_frontend *fe, u32 bandwidth);
++	int (*tuner_get_bandwidth)(struct dvb_frontend *fe, u32 *bandwidth);
++	int (*tuner_set_bbgain)(struct dvb_frontend *fe, u32 gain);
++	int (*tuner_get_bbgain)(struct dvb_frontend *fe, u32 *gain);
++	int (*tuner_set_refclk)(struct dvb_frontend *fe, u32 refclk);
++	int (*tuner_get_status)(struct dvb_frontend *fe, u32 *status);
++	void (*tuner_i2c_lock)(struct dvb_frontend *fe, int lock);
+ 
+ 	/* dir = 0 -> output, dir = 1 -> input/open-drain */
+ 	int (*set_gpio)(struct dvb_frontend *fe, u8 gpio, u8 dir, u8 value,
+-			 u8 xor_value);
++			u8 xor_value);
+ };
+ 
+ #if IS_ENABLED(CONFIG_DVB_STV090x)
+ 
+-extern struct dvb_frontend *stv090x_attach(struct stv090x_config *config,
+-					   struct i2c_adapter *i2c,
+-					   enum stv090x_demodulator demod);
++struct dvb_frontend *stv090x_attach(struct stv090x_config *config,
++				    struct i2c_adapter *i2c,
++				    enum stv090x_demodulator demod);
+ 
+ #else
+ 
 -- 
-Regards,
+1.9.3
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
