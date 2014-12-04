@@ -1,45 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:48536 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752849AbaLTKsQ (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45023 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753729AbaLDJ4G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 05:48:16 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 03/15] media: blackfin: bfin_capture: set min_buffers_needed
-Date: Sat, 20 Dec 2014 16:17:30 +0530
-Message-Id: <1419072462-3168-4-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 4 Dec 2014 04:56:06 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	prabhakar.csengg@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 5/8] media/i2c/Kconfig: drop superfluous MEDIA_CONTROLLER
+Date: Thu,  4 Dec 2014 10:54:56 +0100
+Message-Id: <1417686899-30149-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl>
+References: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch sets the min_buffers_needed field of the vb2 queue
-so that the vb2 core will make sure start_streaming() callback
-is called only when we have minimum buffers queued.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+These drivers depend on VIDEO_V4L2_SUBDEV_API, which in turn
+depends on MEDIA_CONTROLLER. So it is sufficient to just depend
+on VIDEO_V4L2_SUBDEV_API.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/blackfin/bfin_capture.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/i2c/Kconfig | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 80463fa..a997eac 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -986,6 +986,7 @@ static int bcap_probe(struct platform_device *pdev)
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->lock = &bcap_dev->mutex;
-+	q->min_buffers_needed = 1;
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index f40b4cf..29276fd 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -196,7 +196,7 @@ config VIDEO_ADV7183
  
- 	ret = vb2_queue_init(q);
- 	if (ret)
+ config VIDEO_ADV7604
+ 	tristate "Analog Devices ADV7604 decoder"
+-	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
++	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	---help---
+ 	  Support for the Analog Devices ADV7604 video decoder.
+ 
+@@ -208,7 +208,7 @@ config VIDEO_ADV7604
+ 
+ config VIDEO_ADV7842
+ 	tristate "Analog Devices ADV7842 decoder"
+-	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
++	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	---help---
+ 	  Support for the Analog Devices ADV7842 video decoder.
+ 
+@@ -431,7 +431,7 @@ config VIDEO_ADV7393
+ 
+ config VIDEO_ADV7511
+ 	tristate "Analog Devices ADV7511 encoder"
+-	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
++	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	---help---
+ 	  Support for the Analog Devices ADV7511 video encoder.
+ 
 -- 
-1.9.1
+2.1.3
 
