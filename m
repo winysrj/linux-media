@@ -1,62 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38888 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753660AbaLBOKS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 09:10:18 -0500
-Date: Tue, 2 Dec 2014 12:10:09 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Masanari Iida <standby24x7@gmail.com>,
-	Vincent Palatin <vpalatin@chromium.org>,
-	Ricardo Ribalda <ricardo.ribalda@gmail.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kiran AVND <avnd.kiran@samsung.com>,
-	Amit Grover <amit.grover@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	James Hogan <james.hogan@imgtec.com>,
-	Antti =?UTF-8?B?U2VwcMOkbMOk?= <a.seppala@gmail.com>,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Arun Kumar K <arun.kk@samsung.com>, linux-doc@vger.kernel.org
-Subject: Re: [PATCH] [media] Documentation: cleanup whitespace at DocBook
- files
-Message-ID: <20141202121009.1f4f395b@recife.lan>
-In-Reply-To: <20141202085349.397c4091@lwn.net>
-References: <648a1c5b8d46891cc515f6b690c19a266f7a6fd8.1417526360.git.mchehab@osg.samsung.com>
-	<20141202085349.397c4091@lwn.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:29642 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753287AbaLDLkx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 06:40:53 -0500
+Message-id: <54804840.4030202@samsung.com>
+Date: Thu, 04 Dec 2014 12:40:48 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH/RFC v9 06/19] DT: Add documentation for the mfd Maxim
+ max77693
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-7-git-send-email-j.anaszewski@samsung.com>
+ <20141204100706.GP14746@valkosipuli.retiisi.org.uk>
+In-reply-to: <20141204100706.GP14746@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 02 Dec 2014 08:53:49 -0500
-Jonathan Corbet <corbet@lwn.net> escreveu:
+Hi Sakari,
 
-> On Tue,  2 Dec 2014 11:20:26 -0200
-> Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-> 
-> > While reviewing the colorspace changeset 1afed88381bb, I noticed
-> > that several bad whitespaces were introduced. A deeper look showed
-> > that several other changes at DocBook files added lots of
-> > whitespacing issues.
-> > 
-> > So, clean them.
-> 
-> Looks good to me, I'll toss it into my docs tree unless you want to send
-> it via media.
+Thanks for the review.
 
-Hi Jon,
+On 12/04/2014 11:07 AM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Wed, Dec 03, 2014 at 05:06:41PM +0100, Jacek Anaszewski wrote:
+>> This patch adds device tree binding documentation for
+>> the flash cell of the Maxim max77693 multifunctional device.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Lee Jones <lee.jones@linaro.org>
+>> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+>> Cc: Bryan Wu <cooloney@gmail.com>
+>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>> Cc: Rob Herring <robh+dt@kernel.org>
+>> Cc: Pawel Moll <pawel.moll@arm.com>
+>> Cc: Mark Rutland <mark.rutland@arm.com>
+>> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+>> Cc: Kumar Gala <galak@codeaurora.org>
+>> Cc: <devicetree@vger.kernel.org>
+>> ---
+>>   Documentation/devicetree/bindings/mfd/max77693.txt |   89 ++++++++++++++++++++
+>>   1 file changed, 89 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+>> index 01e9f30..25a6e78 100644
+>> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
+>> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+>> @@ -41,7 +41,66 @@ Optional properties:
+>>   	 To get more informations, please refer to documentaion.
+>>   	[*] refer Documentation/devicetree/bindings/pwm/pwm.txt
+>>
+>> +- led : the LED submodule device node
+>> +
+>> +There are two led outputs available - fled1 and fled2. Each of them can
+>> +control a separate led or they can be connected together to double
+>> +the maximum current for a single connected led. One led is represented
+>> +by one child node.
+>> +
+>> +Required properties:
+>> +- compatible : Must be "maxim,max77693-led".
+>> +
+>> +Optional properties:
+>> +- maxim,fleds : Array of current outputs in order: fled1, fled2.
+>> +	Note: both current outputs can be connected to a single led
+>> +	Possible values:
+>> +		MAX77693_LED_FLED_UNUSED - the output is left disconnected,
+>> +		MAX77693_LED_FLED_USED - a diode is connected to the output.
+>
+> As you have a LED sub-nodes for each LED already, isn't this redundant?
 
-It is probably better to send it via media, as it depends on another patch
-that improves documentation for colorspaces.
+Well, it seems so :)
 
-Regards,
-Mauro
+>> +- maxim,trigger-type : Array of trigger types in order: flash, torch.
+>> +	Possible trigger types:
+>> +		MAX77693_LED_TRIG_TYPE_EDGE - Rising edge of the signal triggers
+>> +			the flash/torch,
+>> +		MAX77693_LED_TRIG_TYPE_LEVEL - Signal level controls duration of
+>
+> How about: "Strobe pulse length ..."?
+
+OK, it will be more clear.
+
+> How long does the torch stay on if you use edge trigger for it? I've always
+> thought the torch enable pin was a practical joke. :-)
+
+There is a torch timer available but I don't expose it to the user.
+
+> If you need it this for torch as well, I'd use separate properties for the
+> purpose, i.e. trigger-type-flash and trigger-type-torch.
+
+OK.
+
+>> +			the flash/torch.
+>> +- maxim,trigger : Array of flags indicating which trigger can activate given led
+>> +	in order: fled1, fled2.
+>> +	Possible flag values (can be combined):
+>> +		MAX77693_LED_TRIG_FLASHEN - FLASHEN pin of the chip,
+>> +		MAX77693_LED_TRIG_TORCHEN - TORCHEN pin of the chip,
+>> +		MAX77693_LED_TRIG_SOFTWARE - software via I2C command.
+>
+> Is there a need to prevent strobing using a certain method? Just wondering.
+
+In some cases it could be convenient to prevent some options through
+device tree.
+
+>> +- maxim,boost-mode :
+>> +	In boost mode the device can produce up to 1.2A of total current
+>> +	on both outputs. The maximum current on each output is reduced
+>> +	to 625mA then. If there are two child led nodes defined then boost
+>> +	is enabled by default.
+>> +	Possible values:
+>> +		MAX77693_LED_BOOST_OFF - no boost,
+>> +		MAX77693_LED_BOOST_ADAPTIVE - adaptive mode,
+>> +		MAX77693_LED_BOOST_FIXED - fixed mode.
+>> +- maxim,boost-vout : Output voltage of the boost module in millivolts.
+>> +- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
+>> +	if chip estimates that system voltage could drop below this level due
+>> +	to flash power consumption.
+>> +
+>> +Required properties of the LED child node:
+>> +- label : see Documentation/devicetree/bindings/leds/common.txt
+>> +- maxim,fled_id : Identifier of the fled output the led is connected to;
+>
+> I'm pretty sure this will be needed for about every chip that can drive
+> multiple LEDs. Shouldn't it be documented in the generic documentation?
+
+OK.
+
+>> +		MAX77693_LED_FLED1 - FLED1 output of the device - it has to be
+>> +			used also if a single LED is connected to both outputs,
+>> +		MAX77693_LED_FLED2 - FLED2 output of the device.
+>> +
+>> +Optional properties of the LED child node:
+>> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+>> +		Range: 15625 - 250000
+>> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+>> +		Range: 15625 - 1000000
+>> +- flash-timeout-microsec : see Documentation/devicetree/bindings/leds/common.txt
+>> +		Range: 62500 - 1000000
+>> +
+>>   Example:
+>> +#include <dt-bindings/mfd/max77693.h>
+>> +
+>>   	max77693@66 {
+>>   		compatible = "maxim,max77693";
+>>   		reg = <0x66>;
+>> @@ -73,4 +132,34 @@ Example:
+>>   			pwms = <&pwm 0 40000 0>;
+>>   			pwm-names = "haptic";
+>>   		};
+>> +
+>> +		led {
+>> +			compatible = "maxim,max77693-led";
+>> +			maxim,fleds = <MAX77693_LED_FLED_USED
+>> +				       MAX77693_LED_FLED_USED>;
+>> +			maxim,trigger = <MAX77693_LED_TRIG_ALL
+>> +					 (MAX77693_LED_TRIG_TORCHEN |
+>> +					 MAX77693_LED_TRIG_SOFTWARE)>;
+>> +			maxim,trigger-type = <MAX77693_LED_TRIG_TYPE_EDGE
+>> +					      MAX77693_LED_TRIG_TYPE_LEVEL>;
+>> +			maxim,boost-mode = <MAX77693_LED_BOOST_ADAPTIVE>;
+>> +			maxim,boost-vout = <5000>;
+>> +			maxim,vsys-min = <2400>;
+>> +
+>> +			camera1_flash: led1 {
+>> +				maxim,fled_id = <MAX77693_LED_FLED1>;
+>> +				label = "max77693-flash1";
+>> +				max-microamp = <250000>;
+>> +				flash-max-microamp = <625000>;
+>> +				flash-timeout-microsec = <1000000>;
+>> +			};
+>> +
+>> +			camera2_flash: led2 {
+>> +				maxim,fled_id = <MAX77693_LED_FLED2>;
+>> +				label = "max77693-flash2";
+>> +				max-microamp = <250000>;
+>> +				flash-max-microamp = <500000>;
+>> +				flash-timeout-microsec = <1000000>;
+>> +			};
+>> +		};
+>
+> I like how this looks like in general.
+
+Nice :)
+
+>>   	};
+>
+
+Best Regards,
+Jacek Anaszewski
