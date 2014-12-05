@@ -1,66 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:43885 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754300AbaLVNcK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 08:32:10 -0500
-Date: Mon, 22 Dec 2014 13:31:42 +0000
-From: Mark Brown <broonie@kernel.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <20141222133142.GM17800@sirena.org.uk>
-References: <1419114892-4550-1-git-send-email-crope@iki.fi>
- <20141222124411.GK17800@sirena.org.uk>
- <549814BB.3040808@iki.fi>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aiCxlS1GuupXjEh3"
-Content-Disposition: inline
-In-Reply-To: <549814BB.3040808@iki.fi>
-Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
+Received: from mout.gmx.net ([212.227.17.22]:65229 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750975AbaLEUR3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Dec 2014 15:17:29 -0500
+Received: from linux.local ([94.216.58.185]) by mail.gmx.com (mrgmx103) with
+ ESMTPSA (Nemesis) id 0LZiQy-1Xa4de1bsC-00lWy1 for
+ <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 21:17:26 +0100
+From: Peter Seiderer <ps.report@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 1/3] configure.ac: add qt5 detection support
+Date: Fri,  5 Dec 2014 21:17:23 +0100
+Message-Id: <1417810645-21753-1-git-send-email-ps.report@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Disable QTGL for qt5 because of qv4l2 crash on startup.
 
---aiCxlS1GuupXjEh3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+---
+Changes v1 -> v2:
+  - fix configure log output for qt5
+  - fix qt4 detection
+---
+ configure.ac | 42 ++++++++++++++++++++++++++++--------------
+ 1 file changed, 28 insertions(+), 14 deletions(-)
 
-On Mon, Dec 22, 2014 at 02:55:23PM +0200, Antti Palosaari wrote:
-> On 12/22/2014 02:44 PM, Mark Brown wrote:
-> >On Sun, Dec 21, 2014 at 12:34:51AM +0200, Antti Palosaari wrote:
+diff --git a/configure.ac b/configure.ac
+index 7bf9bf6..588dd9e 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -131,29 +131,43 @@ AS_IF([test "x$with_jpeg" != xno],
+ 
+ AM_CONDITIONAL([HAVE_JPEG], [$have_jpeg])
+ 
+-PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4], [qt_pkgconfig=true], [qt_pkgconfig=false])
++PKG_CHECK_MODULES(QT5, [Qt5Core >= 5.0 Qt5Gui >= 5.0 Qt5Widgets >= 5.0], [qt_pkgconfig=true], [qt_pkgconfig=false])
+ if test "x$qt_pkgconfig" = "xtrue"; then
++   QT_CFLAGS="$QT5_CFLAGS -fPIC"
++   QT_LIBS="$QT5_LIBS"
+    AC_SUBST(QT_CFLAGS)
+    AC_SUBST(QT_LIBS)
+-   MOC=`$PKG_CONFIG --variable=moc_location QtCore`
+-   UIC=`$PKG_CONFIG --variable=uic_location QtCore`
+-   RCC=`$PKG_CONFIG --variable=rcc_location QtCore`
+-   if test -z "$RCC"; then
+-      RCC="rcc"
+-   fi
++   AC_CHECK_PROGS(MOC, [moc-qt5 moc])
++   AC_CHECK_PROGS(UIC, [uic-qt5 uic])
++   AC_CHECK_PROGS(RCC, [rcc-qt5 rcc])
+    AC_SUBST(MOC)
+    AC_SUBST(UIC)
+    AC_SUBST(RCC)
++# disable QTGL for qt5 because qv4l2 crash
++   qt_pkgconfig_gl=false
+ else
+-   AC_MSG_WARN(Qt4 or higher is not available)
++   PKG_CHECK_MODULES(QT, [QtCore >= 4.0 QtGui >= 4.0], [qt_pkgconfig=true], [qt_pkgconfig=false])
++   if test "x$qt_pkgconfig" = "xtrue"; then
++      MOC=`$PKG_CONFIG --variable=moc_location QtCore`
++      UIC=`$PKG_CONFIG --variable=uic_location QtCore`
++      RCC=`$PKG_CONFIG --variable=rcc_location QtCore`
++      if test -z "$RCC"; then
++         RCC="rcc"
++      fi
++      AC_SUBST(MOC)
++      AC_SUBST(UIC)
++      AC_SUBST(RCC)
++      PKG_CHECK_MODULES(QTGL, [QtOpenGL >= 4.8 gl], [qt_pkgconfig_gl=true], [qt_pkgconfig_gl=false])
++      if test "x$qt_pkgconfig_gl" = "xtrue"; then
++         AC_DEFINE([HAVE_QTGL], [1], [qt has opengl support])
++      else
++         AC_MSG_WARN(Qt4 OpenGL is not available)
++      fi
++   else
++      AC_MSG_WARN(Qt4 or higher is not available)
++   fi
+ fi
+ 
+-PKG_CHECK_MODULES(QTGL, [QtOpenGL >= 4.8 gl], [qt_pkgconfig_gl=true], [qt_pkgconfig_gl=false])
+-if test "x$qt_pkgconfig_gl" = "xtrue"; then
+-   AC_DEFINE([HAVE_QTGL], [1], [qt has opengl support])
+-else
+-   AC_MSG_WARN(Qt4 OpenGL or higher is not available)
+-fi
+ 
+ PKG_CHECK_MODULES(ALSA, [alsa], [alsa_pkgconfig=true], [alsa_pkgconfig=false])
+ if test "x$alsa_pkgconfig" = "xtrue"; then
+-- 
+2.1.2
 
-> >>I2C client and I2C adapter are using regmap. As a solution, add
-> >>configuration option to pass custom lock class key for lockdep
-> >>validator.
-
-> >Why is this configurable, how would a device know if the system it is in
-> >needs a custom locking class and can safely use one?
-
-> If RegMap instance is bus master, eg. I2C adapter, then you should define
-> own custom key. If you don't define own key and there will be slave on that
-> bus which uses RegMap too, there will be recursive locking from a lockdep
-> point of view.
-
-That doesn't really explain to me why this is configurable, why should
-drivers have to worry about this?
-
-Please also write technical terms like regmap normally.
-
---aiCxlS1GuupXjEh3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUmB09AAoJECTWi3JdVIfQxJEH/3tq0Ihg7ca+hzD5RUFYeEfS
-08NrbGt1uGEctpQ7W0Y30LSn8Ty0l2cC9L1xT+iqPuM/Js/bvNG2coN4F2UPKF69
-ofZUinBLYXQIb1ClcVzO5t/pNLQFlye9HG5qlXOdcPTKvYfTL5vtBvb9q4KH/pwd
-kOL23oJ6yRFRKUHG2u3rA1YXOu5vYKv6FDWeobm03R5V3UEHTrn9nWjMVAmY7Cx9
-i+NUq9FwrbNEnktm6mjTtbBDGKFXaFX7jOroOOxg+4mMag+LPYK2yLh+ap7QYc+d
-u8xafXphV5j9/fsFdLwmgjHLFpvms+KSWVxc4xlnsiT/UBTNWP7hDTjapjpBwQM=
-=7BB1
------END PGP SIGNATURE-----
-
---aiCxlS1GuupXjEh3--
