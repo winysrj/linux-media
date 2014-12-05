@@ -1,128 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43908 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751057AbaLQRTC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Dec 2014 12:19:02 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linus Walleij <linus.walleij@linaro.org>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Samuel Ortiz <sameo@linux.intel.com>
-Cc: Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 04/13] rc: sunxi-cir: Add support for an optional reset controller
-Date: Wed, 17 Dec 2014 18:18:15 +0100
-Message-Id: <1418836704-15689-5-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
-References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-ig0-f182.google.com ([209.85.213.182]:41297 "EHLO
+	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750779AbaLETqR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 14:46:17 -0500
+MIME-Version: 1.0
+In-Reply-To: <547C7420.4080801@samsung.com>
+References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
+ <1417166286-27685-3-git-send-email-j.anaszewski@samsung.com>
+ <20141129125832.GA315@amd> <547C539A.4010500@samsung.com> <20141201130437.GB24737@amd>
+ <547C7420.4080801@samsung.com>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Fri, 5 Dec 2014 11:45:57 -0800
+Message-ID: <CAK5ve-KMNszyz6br_Q_dOhvk=_8ev6Uz-ZhPnYBn-ZvuohQpVA@mail.gmail.com>
+Subject: Re: [PATCH/RFC v8 02/14] Documentation: leds: Add description of LED
+ Flash class extension
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Pavel Machek <pavel@ucw.cz>,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	lkml <linux-kernel@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	b.zolnierkie@samsung.com, "rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On sun6i the cir block is attached to the reset controller, add support
-for de-asserting the reset if a reset controller is specified in dt.
+On Mon, Dec 1, 2014 at 5:58 AM, Jacek Anaszewski
+<j.anaszewski@samsung.com> wrote:
+> Hi Pavel,
+>
+> On 12/01/2014 02:04 PM, Pavel Machek wrote:
+>>
+>> Hi!
+>>
+>>>> How are faults cleared? Should it be list of strings, instead of
+>>>> bitmask? We may want to add new fault modes in future...
+>>>
+>>>
+>>> Faults are cleared by reading the attribute. I will add this note.
+>>> There can be more than one fault at a time. I think that the bitmask
+>>> is a flexible solution. I don't see any troubles related to adding
+>>> new fault modes in the future, do you?
+>>
+>>
+>> I do not think that "read attribute to clear" is good idea. Normally,
+>> you'd want the error attribute world-readable, but you don't want
+>> non-root users to clear the errors.
+>
+>
+> This is also V4L2_CID_FLASH_FAULT control semantics.
+> Moreover many devices clear the errors upon reading register.
+> I don't see anything wrong in the fact that an user can clear
+> an error. If the user has a permission to use a device then
+> it also should be allowed to clear the errors.
+>
+>> I am not sure if bitmask is good solution. I'd return space-separated
+>> strings like "overtemp". That way, there's good chance that other LED
+>> drivers would be able to use similar interface...
+>
+>
+> The format of a sysfs attribute should be concise.
+> The error codes are generic and map directly to the V4L2 Flash
+> error codes.
+>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
----
- .../devicetree/bindings/media/sunxi-ir.txt         |  2 ++
- drivers/media/rc/sunxi-cir.c                       | 25 ++++++++++++++++++++--
- 2 files changed, 25 insertions(+), 2 deletions(-)
+Actually I'd like to see those flash fault code defined in LED
+subsystem. And V4L2 will just include LED flash header file to use it.
+Because flash fault code is not for V4L2 specific but it's a feature
+of LED flash devices.
 
-diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-index 23dd5ad..6b70b9b 100644
---- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
-+++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-@@ -10,6 +10,7 @@ Required properties:
- 
- Optional properties:
- - linux,rc-map-name : Remote control map name.
-+- resets : phandle + reset specifier pair
- 
- Example:
- 
-@@ -17,6 +18,7 @@ ir0: ir@01c21800 {
- 	compatible = "allwinner,sun4i-a10-ir";
- 	clocks = <&apb0_gates 6>, <&ir0_clk>;
- 	clock-names = "apb", "ir";
-+	resets = <&apb0_rst 1>;
- 	interrupts = <0 5 1>;
- 	reg = <0x01C21800 0x40>;
- 	linux,rc-map-name = "rc-rc6-mce";
-diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
-index 340f7f5..06170e0 100644
---- a/drivers/media/rc/sunxi-cir.c
-+++ b/drivers/media/rc/sunxi-cir.c
-@@ -23,6 +23,7 @@
- #include <linux/interrupt.h>
- #include <linux/module.h>
- #include <linux/of_platform.h>
-+#include <linux/reset.h>
- #include <media/rc-core.h>
- 
- #define SUNXI_IR_DEV "sunxi-ir"
-@@ -95,6 +96,7 @@ struct sunxi_ir {
- 	int             irq;
- 	struct clk      *clk;
- 	struct clk      *apb_clk;
-+	struct reset_control *rst;
- 	const char      *map_name;
- };
- 
-@@ -166,15 +168,29 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 		return PTR_ERR(ir->clk);
- 	}
- 
-+	/* Reset (optional) */
-+	ir->rst = devm_reset_control_get_optional(dev, NULL);
-+	if (IS_ERR(ir->rst)) {
-+		ret = PTR_ERR(ir->rst);
-+		if (ret == -EPROBE_DEFER)
-+			return ret;
-+		ir->rst = NULL;
-+	} else {
-+		ret = reset_control_deassert(ir->rst);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	ret = clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
- 	if (ret) {
- 		dev_err(dev, "set ir base clock failed!\n");
--		return ret;
-+		goto exit_reset_assert;
- 	}
- 
- 	if (clk_prepare_enable(ir->apb_clk)) {
- 		dev_err(dev, "try to enable apb_ir_clk failed\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto exit_reset_assert;
- 	}
- 
- 	if (clk_prepare_enable(ir->clk)) {
-@@ -271,6 +287,9 @@ exit_clkdisable_clk:
- 	clk_disable_unprepare(ir->clk);
- exit_clkdisable_apb_clk:
- 	clk_disable_unprepare(ir->apb_clk);
-+exit_reset_assert:
-+	if (ir->rst)
-+		reset_control_assert(ir->rst);
- 
- 	return ret;
- }
-@@ -282,6 +301,8 @@ static int sunxi_ir_remove(struct platform_device *pdev)
- 
- 	clk_disable_unprepare(ir->clk);
- 	clk_disable_unprepare(ir->apb_clk);
-+	if (ir->rst)
-+		reset_control_assert(ir->rst);
- 
- 	spin_lock_irqsave(&ir->ir_lock, flags);
- 	/* disable IR IRQ */
--- 
-2.1.0
+For clearing error code of flash devices, I think it depends on the
+hardware. If most of our LED flash is using reading to clear error
+code, we probably can make it simple as this now. But what if some
+other LED flash devices are using writing to clear error code? we
+should provide a API to that?
 
+-Bryan
