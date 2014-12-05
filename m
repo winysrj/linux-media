@@ -1,139 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59765 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932112AbaLAUNO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 15:13:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH v4 02/10] v4l: Add RBG and RGB 8:8:8 media bus formats on 24 and 32 bit busses
-Date: Mon,  1 Dec 2014 22:13:32 +0200
-Message-Id: <1417464820-6718-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from www.linutronix.de ([62.245.132.108]:37650 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752553AbaLEXNS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 18:13:18 -0500
+Date: Sat, 6 Dec 2014 00:13:13 +0100
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Felipe Balbi <balbi@ti.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] usb: hcd: get/put device and hcd for hcd_buffers()
+Message-ID: <20141205231313.GA4854@linutronix.de>
+References: <20141205200357.GA1586@linutronix.de>
+ <20141205211932.GA24249@kroah.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20141205211932.GA24249@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 67 ++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h              |  4 +-
- 2 files changed, 70 insertions(+), 1 deletion(-)
+* Greg Kroah-Hartman | 2014-12-05 13:19:32 [-0800]:
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 18730b9..0cc3ca5 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -424,6 +424,36 @@
- 	      <entry>b<subscript>1</subscript></entry>
- 	      <entry>b<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-RBG888-1X24">
-+	      <entry>MEDIA_BUS_FMT_RBG888_1X24</entry>
-+	      <entry>0x100e</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="MEDIA-BUS-FMT-RGB888-1X24">
- 	      <entry>MEDIA_BUS_FMT_RGB888_1X24</entry>
- 	      <entry>0x100a</entry>
-@@ -563,6 +593,43 @@
- 	      <entry>b<subscript>1</subscript></entry>
- 	      <entry>b<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-RGB888-1X32-PADHI">
-+	      <entry>MEDIA_BUS_FMT_RGB888_1X32_PADHI</entry>
-+	      <entry>0x100f</entry>
-+	      <entry></entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	    </row>
- 	  </tbody>
- 	</tgroup>
-       </table>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 23b4090..b585bb3 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -33,7 +33,7 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x100e */
-+/* RGB - next is	0x1010 */
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
- #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
-@@ -43,10 +43,12 @@
- #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
- #define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
- #define MEDIA_BUS_FMT_RGB666_1X18		0x1009
-+#define MEDIA_BUS_FMT_RBG888_1X24		0x100e
- #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
- #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
- #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
-+#define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
- 
- /* YUV (including grey) - next is	0x2024 */
- #define MEDIA_BUS_FMT_Y8_1X8			0x2001
--- 
-2.0.4
+>On Fri, Dec 05, 2014 at 09:03:57PM +0100, Sebastian Andrzej Siewior wrote:
+>> Consider the following scenario:
+>> - plugin a webcam
+>> - play the stream via gst-launch-0.10 v4l2src device=/dev/video0…
+>> - remove the USB-HCD during playback via "rmmod $HCD"
+>> 
+>> and now wait for the crash
+>
+>Which you deserve, why did you ever remove a kernel module?  That's racy
+its been found by the testing team and looks legitimate.
 
+>and _never_ recommended, which is why it never happens automatically and
+>only root can do it.
+I beg your pardon. So it is okay to remove the UVC-driver / plug the
+cable and expect that things continue to work but removing the HCD is a
+no no? I always assumed that kernel should BUG() no matter what the user
+does unless he really begs for it. If there is a race then it is a bug
+that deserves to be fixed, right?
+
+>> diff --git a/drivers/usb/core/buffer.c b/drivers/usb/core/buffer.c
+>> index 506b969ea7fd..01e080a61519 100644
+>> --- a/drivers/usb/core/buffer.c
+>> +++ b/drivers/usb/core/buffer.c
+>> @@ -107,7 +107,7 @@ void hcd_buffer_destroy(struct usb_hcd *hcd)
+>>   * better sharing and to leverage mm/slab.c intelligence.
+>>   */
+>>  
+>> -void *hcd_buffer_alloc(
+>> +static void *_hcd_buffer_alloc(
+>
+>Looks like this isn't really needed here, right?
+
+either this or I would have the tree callers if the allocation succeded
+or not in order not to take a reference if the allocation failed.
+
+>>  	struct usb_bus		*bus,
+>>  	size_t			size,
+>>  	gfp_t			mem_flags,
+>> @@ -131,7 +131,19 @@ void *hcd_buffer_alloc(
+>>  	return dma_alloc_coherent(hcd->self.controller, size, dma, mem_flags);
+>>  }
+>>  
+>> -void hcd_buffer_free(
+>> +void *hcd_buffer_alloc(struct usb_bus *bus, size_t size, gfp_t mem_flags,
+>> +		       dma_addr_t *dma)
+>> +{
+>> +	struct usb_hcd *hcd = bus_to_hcd(bus);
+>> +	void *ret;
+>> +
+>> +	ret = _hcd_buffer_alloc(bus, size, mem_flags, dma);
+>> +	if (ret)
+>> +		usb_get_hcd(hcd);
+>
+>I'm all for some good reference counting, but this is going to cause a
+>_lot_ of churn on this reference count, what is the performance issue
+>with doing this for every buffer?
+The UVC allocates the buffers once and reuses them. If a driver does
+any kind of high-performance transfers and allocates new buffers on each
+transfer then I would expect this kref_get() is in the noise area. But
+if you want real numbers I would have to go ahead and test it.
+A single get() on first allocation and its counter part on cleanup would
+be enough if you are too concerned about it on every allocation (it
+would be transparent to the user).
+
+>thanks,
+>
+>greg k-h
+
+Sebastian
