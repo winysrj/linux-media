@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43796 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750796AbaLPDn1 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:43223 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933459AbaLEDnt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 22:43:27 -0500
+	Thu, 4 Dec 2014 22:43:49 -0500
 Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id EBB962A008F
-	for <linux-media@vger.kernel.org>; Tue, 16 Dec 2014 04:43:12 +0100 (CET)
+	by tschai.lan (Postfix) with ESMTPSA id BC5E32A009D
+	for <linux-media@vger.kernel.org>; Fri,  5 Dec 2014 04:43:26 +0100 (CET)
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20141216034312.EBB962A008F@tschai.lan>
-Date: Tue, 16 Dec 2014 04:43:12 +0100 (CET)
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141205034326.BC5E32A009D@tschai.lan>
+Date: Fri,  5 Dec 2014 04:43:26 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -20,11 +20,11 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Tue Dec 16 04:00:25 CET 2014
+date:		Fri Dec  5 04:00:29 CET 2014
 git branch:	test
-git hash:	e272d95f8c0544cff55c485a10828b063c8e417c
+git hash:	71947828caef0c83d4245f7d1eaddc799b4ff1d1
 gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
+sparse version:	v0.5.0-35-gc1c3f96
 smatch version:	0.4.1-3153-g7d56ab3
 host hardware:	x86_64
 host os:	3.17-3.slh.2-amd64
@@ -69,7 +69,7 @@ linux-3.14.9-i686: OK
 linux-3.15.2-i686: OK
 linux-3.16-i686: OK
 linux-3.17-i686: OK
-linux-3.18-i686: OK
+linux-3.18-rc1-i686: OK
 linux-2.6.32.27-x86_64: OK
 linux-2.6.33.7-x86_64: OK
 linux-2.6.34.7-x86_64: OK
@@ -96,19 +96,19 @@ linux-3.14.9-x86_64: OK
 linux-3.15.2-x86_64: OK
 linux-3.16-x86_64: OK
 linux-3.17-x86_64: OK
-linux-3.18-x86_64: OK
-apps: ERRORS
+linux-3.18-rc1-x86_64: OK
+apps: OK
 spec-git: OK
-sparse: ERRORS
+sparse: WARNINGS
 smatch: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
