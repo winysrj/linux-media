@@ -1,41 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:36615 "EHLO gofer.mess.org"
+Received: from mout.gmx.net ([212.227.17.22]:60536 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751650AbaL3Ncw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Dec 2014 08:32:52 -0500
-Date: Tue, 30 Dec 2014 13:32:49 +0000
-From: Sean Young <sean@mess.org>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	m.szyprowski@samsung.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [RFC 1/6] cec: add new driver for cec support.
-Message-ID: <20141230133249.GA1566@gofer.mess.org>
-References: <1419345142-3364-1-git-send-email-k.debski@samsung.com>
- <1419345142-3364-2-git-send-email-k.debski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1419345142-3364-2-git-send-email-k.debski@samsung.com>
+	id S1751338AbaLEUR3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Dec 2014 15:17:29 -0500
+Received: from linux.local ([94.216.58.185]) by mail.gmx.com (mrgmx103) with
+ ESMTPSA (Nemesis) id 0MZU7V-1YIFC72L8P-00LEiu for
+ <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 21:17:26 +0100
+From: Peter Seiderer <ps.report@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 2/3] qv4l2: fix qt5 compile
+Date: Fri,  5 Dec 2014 21:17:24 +0100
+Message-Id: <1417810645-21753-2-git-send-email-ps.report@gmx.net>
+In-Reply-To: <1417810645-21753-1-git-send-email-ps.report@gmx.net>
+References: <1417810645-21753-1-git-send-email-ps.report@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 23, 2014 at 03:32:17PM +0100, Kamil Debski wrote:
-> +There are still a few todo's, the main one being the remote control support
-> +feature of CEC. I need to research if that should be implemented via the
-> +standard kernel remote control support.
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+---
+ utils/qv4l2/capture-win-qt.cpp |  4 ++++
+ utils/qv4l2/qv4l2.cpp          | 21 +++++++++++++++++++++
+ 2 files changed, 25 insertions(+)
 
-I guess a new rc driver type RC_DRIVER_CEC should be introduced (existing
-types are RC_DRIVER_IR_RAW and RC_DRIVER_SCANCODE). rc_register_device()
-should not register the sysfs attributes specific for IR, but register
-sysfs attributes for cec like a link to the device.
+diff --git a/utils/qv4l2/capture-win-qt.cpp b/utils/qv4l2/capture-win-qt.cpp
+index db85cd2..9c849a0 100644
+--- a/utils/qv4l2/capture-win-qt.cpp
++++ b/utils/qv4l2/capture-win-qt.cpp
+@@ -117,7 +117,11 @@ void CaptureWinQt::paintFrame()
+ void CaptureWinQt::stop()
+ {
+ 	if (m_data != NULL)
++#if QT_VERSION >= 0x050000
++		memcpy(m_image->bits(), m_data, m_image->byteCount());
++#else
+ 		memcpy(m_image->bits(), m_data, m_image->numBytes());
++#endif
+ 	m_data = NULL;
+ }
+ 
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index 0784a15..8329cbd 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -1084,8 +1084,13 @@ void ApplicationWindow::startAudio()
+ 	QString audOut = m_genTab->getAudioOutDevice();
+ 
+ 	if (audIn != NULL && audOut != NULL && audIn.compare("None") && audIn.compare(audOut) != 0) {
++#if QT_VERSION >= 0x050000
++		alsa_thread_startup(audOut.toLatin1().data(), audIn.toLatin1().data(),
++				    m_genTab->getAudioDeviceBufferSize(), NULL, 0);
++#else
+ 		alsa_thread_startup(audOut.toAscii().data(), audIn.toAscii().data(),
+ 				    m_genTab->getAudioDeviceBufferSize(), NULL, 0);
++#endif
+ 
+ 		if (m_genTab->isRadio())
+ 			statusBar()->showMessage("Capturing audio");
+@@ -1582,7 +1587,11 @@ void ApplicationWindow::error(const QString &error)
+ {
+ 	statusBar()->showMessage(error, 20000);
+ 	if (!error.isEmpty())
++#if QT_VERSION >= 0x050000
++		fprintf(stderr, "%s\n", error.toLatin1().data());
++#else
+ 		fprintf(stderr, "%s\n", error.toAscii().data());
++#endif
+ }
+ 
+ void ApplicationWindow::error(int err)
+@@ -1657,7 +1666,11 @@ static bool processShortOption(const QStringList &args, int &i, QString &dev)
+ 		return false;
+ 	if (args[i].length() == 2) {
+ 		if (i + 1 >= args.size()) {
++#if QT_VERSION >= 0x050000
++			usageError(args[i].toLatin1());
++#else
+ 			usageError(args[i].toAscii());
++#endif
+ 			return false;
+ 		}
+ 		dev = args[++i];
+@@ -1680,7 +1693,11 @@ static bool processLongOption(const QStringList &args, int &i, QString &dev)
+ 		return true;
+ 	}
+ 	if (i + 1 >= args.size()) {
++#if QT_VERSION >= 0x050000
++		usageError(args[i].toLatin1());
++#else
+ 		usageError(args[i].toAscii());
++#endif
+ 		return false;
+ 	}
+ 	dev = args[++i];
+@@ -1734,7 +1751,11 @@ int main(int argc, char **argv)
+ 		} else if (args[i] == "-R" || args[i] == "--raw") {
+ 			raw = true;
+ 		} else {
++#if QT_VERSION >= 0x050000
++			printf("Invalid argument %s\n", args[i].toLatin1().data());
++#else
+ 			printf("Invalid argument %s\n", args[i].toAscii().data());
++#endif
+ 			return 0;
+ 		}
+ 	}
+-- 
+2.1.2
 
-In addition there should be a new rc_type protocol RC_TYPE_CEC; now 
-rc_keydown_notimeout() can be called for each key press.
-
-I guess a new keymap should exist too.
-
-HTH
-
-Sean
