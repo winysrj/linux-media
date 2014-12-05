@@ -1,73 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:55884 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755015AbaLVPYY (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41954 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751065AbaLEOTj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 10:24:24 -0500
-Received: by mail-wi0-f172.google.com with SMTP id n3so8327917wiv.11
-        for <linux-media@vger.kernel.org>; Mon, 22 Dec 2014 07:24:23 -0800 (PST)
-Message-ID: <549837A4.2060605@vodalys.com>
-Date: Mon, 22 Dec 2014 16:24:20 +0100
-From: =?UTF-8?B?RnLDqWTDqXJpYyBTdXJlYXU=?= <frederic.sureau@vodalys.com>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	Fabio Estevam <festevam@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: Re: coda: Unable to use encoder video_bitrate
-References: <54930468.6010007@vodalys.com> <1418921549.4212.57.camel@pengutronix.de>
-In-Reply-To: <1418921549.4212.57.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Fri, 5 Dec 2014 09:19:39 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH for v3.19 1/4] v4l2-mediabus.h: use two __u16 instead of two __u32
+Date: Fri,  5 Dec 2014 15:19:21 +0100
+Message-Id: <1417789164-28468-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
+References: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Le 18/12/2014 17:52, Philipp Zabel a écrit :
-> Hi Frédéric,
->
-> Am Donnerstag, den 18.12.2014, 17:44 +0100 schrieb Frédéric Sureau:
->> Hi
->>
->> I am trying to use the coda encoder through Gstreamer on an iMX6-based
->> board.
->>
->> I use the (rebased and slightly modified) gstv4l2h264enc plugin from:
->> https://github.com/hizukiayaka/gst-plugins-good
->>
->> This pipeline works fine:
->> gst-launch-1.0 -vvv v4l2src device=/dev/video4 !
->> "video/x-raw,width=1280,height=720" ! videoconvert ! v4l2video0h264enc !
->> h264parse ! mp4mux ! filesink location=test.mp4
->>
->> When encoder has no bitrate param set (default=0), video encoding works
->> well, but bitrate reaches ~2.5Mbps
->>
->> When I try to set the bitrate with whatever value like 100,000 or
->> 1,000,000, the encoder produces video with bitrate around 480kbps and a
->> very poor quality.
->>
->> Here is the gstreamer pipeline I use with bitrate set:
->> gst-launch-1.0 -vvv v4l2src device=/dev/video4 !
->> "video/x-raw,width=1280,height=720" ! videoconvert ! v4l2video0h264enc
->> extra-controls="controls,video_bitrate=1000000;" ! h264parse ! mp4mux !
->> filesink location=test.mp4
->>
->> The video_bitrate control seems to be correctly passed to the driver by
->> GStreamer since I can see the VIDIOC_S_CTRL call.
->>
->> Any idea ?
-> There is a bug in the register definitions that causes the driver to
-> apply a wrong mask before writing the bitrate to the register.
-> I've got a fix for this in the pipeline, sending it right now.
->
-> regards
-> Philipp
->
-Thanks for the patch!
-It works fine now after forcing framerate to 30fps (which seems to be 
-hardcoded in the driver)
+The ycbcr_enc and quantization fields do not need a __u32. Switch to
+two __u16 types, thus preserving alignment and avoiding holes in the
+struct. This makes one more __u32 available for future expansion.
 
-Fred
+Suggested by Sakari Ailus.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/v4l2-mediabus.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index 5a86d8e..26db206 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -31,9 +31,9 @@ struct v4l2_mbus_framefmt {
+ 	__u32			code;
+ 	__u32			field;
+ 	__u32			colorspace;
+-	__u32			ycbcr_enc;
+-	__u32			quantization;
+-	__u32			reserved[5];
++	__u16			ycbcr_enc;
++	__u16			quantization;
++	__u32			reserved[6];
+ };
+ 
+ #ifndef __KERNEL__
+-- 
+2.1.3
+
