@@ -1,129 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50870 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030632AbaLLP2p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 10:28:45 -0500
-Message-ID: <548B09A5.80506@xs4all.nl>
-Date: Fri, 12 Dec 2014 16:28:37 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.15]:59573 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750891AbaLEHHR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Dec 2014 02:07:17 -0500
+Date: Fri, 5 Dec 2014 08:07:07 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] soc-camera: 1st set for 3.19
+In-Reply-To: <20141201150340.23e6013e@recife.lan>
+Message-ID: <Pine.LNX.4.64.1412050805460.12083@axis700.grange>
+References: <Pine.LNX.4.64.1411282307180.15467@axis700.grange>
+ <20141201150340.23e6013e@recife.lan>
 MIME-Version: 1.0
-To: Shuah Khan <shuahkh@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [REVIEW] au0828-video.c
-References: <548AC061.3050700@xs4all.nl> <20141212104942.0ea3c1d7@recife.lan> <548AE5B2.1070306@xs4all.nl> <20141212111424.0595125b@recife.lan> <548B092F.2090803@osg.samsung.com>
-In-Reply-To: <548B092F.2090803@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/12/2014 04:26 PM, Shuah Khan wrote:
-> On 12/12/2014 06:14 AM, Mauro Carvalho Chehab wrote:
->> Em Fri, 12 Dec 2014 13:55:14 +0100
->> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>
->>> On 12/12/2014 01:49 PM, Mauro Carvalho Chehab wrote:
->>>> Em Fri, 12 Dec 2014 11:16:01 +0100
->>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>>
->>>>> Hi Shuah,
->>>>>
->>>>> This is the video.c review with your patch applied.
->>>>>
->>>>>> /*
->>>>>>  * Auvitek AU0828 USB Bridge (Analog video support)
->>>>>>  *
->>>>>>  * Copyright (C) 2009 Devin Heitmueller <dheitmueller@linuxtv.org>
->>>>>>  * Copyright (C) 2005-2008 Auvitek International, Ltd.
->>>>>>  *
->>>>>>  * This program is free software; you can redistribute it and/or
->>>>>>  * modify it under the terms of the GNU General Public License
->>>>>>  * As published by the Free Software Foundation; either version 2
->>>>>>  * of the License, or (at your option) any later version.
->>>>>>  *
->>>>>>  * This program is distributed in the hope that it will be useful,
->>>>>>  * but WITHOUT ANY WARRANTY; without even the implied warranty of
->>>>>>  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>>>>>  * GNU General Public License for more details.
->>>>>>  *
->>>>>>  * You should have received a copy of the GNU General Public License
->>>>>>  * along with this program; if not, write to the Free Software
->>>>>>  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
->>>>>>  * 02110-1301, USA.
->>>>>>  */
->>>>>>
->>>>>> /* Developer Notes:
->>>>>>  *
->>>>>>  * VBI support is not yet working
->>>>>
->>>>> I'll see if I can get this to work quickly. If not, then we should
->>>>> probably just strip the VBI support from this driver. It's pointless to
->>>>> have non-functioning VBI support.
->>>>
->>>> This is a left-over. VBI support works on this driver. I tested.
->>>
->>> Oh wait, now I get it. You are only capturing line 21, not the whole vbi area.
->>> That's why vbi_height = 1. Never mind then. Although that comment should indeed
->>> be removed.
+Hi Mauro,
+
+On Mon, 1 Dec 2014, Mauro Carvalho Chehab wrote:
+
+> Em Fri, 28 Nov 2014 23:15:32 +0100 (CET)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
 > 
-> Want me to remove the comment with this work or as a separate patch??
+> > Hi Mauro,
+> > 
+> > IIUC, this coming Sunday might be the last -rc, so, postponing pull 
+> > requests to subsystem maintainers even further isn't a good idea, so, here 
+> > goes an soc-camera request. I know it isn't complete, there are a few more 
+> > patches waiting to be pushed upstream, but I won't have time this coming 
+> > weekend and next two weeks I'm traveling, which won't simplify things 
+> > either. Some more patches are being reworked, if they arrive soon and we 
+> > do get another -rc, I might try to push them too, but I don't want to 
+> > postpone these ones, while waiting. One of these patches has also been 
+> > modified by me and hasn't been tested yet. But changes weren't too 
+> > complex. If however I did break something, we'll have to fix it in an 
+> > incremental patch.
+> > 
+> > The following changes since commit d298a59791fad3a707c1dadbef0935ee2664a10e:
+> > 
+> >   Merge branch 'patchwork' into to_next (2014-11-21 17:01:46 -0200)
+> > 
+> > are available in the git repository at:
+> > 
+> > 
+> >   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.19-1
+> > 
+> > for you to fetch changes up to d8f5c144e57d99d2a7325bf8877812bf560e22dd:
+> > 
+> >   rcar_vin: Fix interrupt enable in progressive (2014-11-23 12:08:19 +0100)
+> > 
+> > ----------------------------------------------------------------
+> > Koji Matsuoka (4):
+> >       rcar_vin: Add YUYV capture format support
+> >       rcar_vin: Add scaling support
+> 
+> Hmm...
+> 
+> WARNING: DT compatible string "renesas,vin-r8a7794" appears un-documented -- check ./Documentation/devicetree/bindings/
+> #38: FILE: drivers/media/platform/soc_camera/rcar_vin.c:1406:
+> +	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
+> 
+> WARNING: DT compatible string "renesas,vin-r8a7793" appears un-documented -- check ./Documentation/devicetree/bindings/
+> #39: FILE: drivers/media/platform/soc_camera/rcar_vin.c:1407:
+> +	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+> 
+> Where are the DT binding documentation for this?
+> 
+> You should be adding a patch to:
+> 	Documentation/devicetree/bindings/media/rcar_vin.txt
+> before this one.
 
-Separate, I think.
+Sure, documentation is in the same patch
+
+http://git.linuxtv.org/cgit.cgi/gliakhovetski/v4l-dvb.git/commit/?h=for-3.19-1&id=aa1f7651acbe222948f43e239eda15362c9e274c
+
+Is it because you cannot push it via your tree or what's happened, why 
+this warning?
+
+Thanks
+Guennadi
 
 > 
->>>
->>>>
->>>> Probably, the patches that added VBI support forgot to remove the
->>>> above notice.
->>>>
->>>>>> /* This function ensures that video frames continue to be delivered even if
->>>>>>    the ITU-656 input isn't receiving any data (thereby preventing applications
->>>>>>    such as tvtime from hanging) */
->>>>>
->>>>> Why would tvtime be hanging? Make a separate patch that just removes all this
->>>>> timeout nonsense. If there are no frames, then tvtime (and any other app) should
->>>>> just wait for frames to arrive. And ctrl-C should always be able to break the app
->>>>> (or they can timeout themselves).
->>>>>
->>>>> It's not the driver's responsibility to do this and it only makes the code overly
->>>>> complex.
->>>>
->>>> Well, we should not cause regressions on userspace. If removing this
->>>> check will cause tvtime to hang, we should keep it.
->>>
->>> Obviously if it hangs (i.e. tvtime can't be killed anymore) it is a bug in the driver.
->>> But the driver shouldn't start generating bogus frames just because no new frames are
->>> arriving, that's just nuts.
->>
->> If I remember the bug well, what used to happen is that tvtime would wait
->> for a certain amount of time for a frame. If nothing arrives, it stops
->> capturing.
->>
->> The net effect is that tvtime shows no picture. This used to be so bad
->> that tvtime didn't work with vivi at all.
->>
->> The bug used also to manifest there if lots of frames got dropped
->> when, for example, changing from one channel to another.
->>
->> Btw, on a quick look, I'm not seeing any patch at tvtime since we took
->> it over that would be fixing it. So, it was either a VB bug or the
->> bug is still there.
->>
->>>
->>>> Btw, the same kind of test used to be at vivi and other drivers.
->>>> I think we removed it there some time ago, so maybe either it was a
->>>> VB1 bug or this got fixed at tvtime.
->>>
 > 
-> I take it that we decided to keep the timeout handling for now.
-
-No, tvtime no longer hangs if no frames arrive, so there is no need for
-this timeout handling. I'd strip it out, which can be done in a separate
-patch.
-
-Regards,
-
-	Hans
-
+> 
+> >       rcar_vin: Enable VSYNC field toggle mode
+> >       rcar_vin: Fix interrupt enable in progressive
+> > 
+> > Yoshihiro Kaneko (1):
+> >       rcar_vin: Add DT support for r8a7793 and r8a7794 SoCs
+> > 
+> >  .../devicetree/bindings/media/rcar_vin.txt         |   2 +
+> >  drivers/media/platform/soc_camera/rcar_vin.c       | 466 ++++++++++++++++++++-
+> >  2 files changed, 457 insertions(+), 11 deletions(-)
+> > 
+> > Thanks
+> > Guennadi
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
