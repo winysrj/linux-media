@@ -1,59 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:19926 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753852AbaLAN7A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 08:59:00 -0500
-Message-id: <547C7420.4080801@samsung.com>
-Date: Mon, 01 Dec 2014 14:58:56 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com
-Subject: Re: [PATCH/RFC v8 02/14] Documentation: leds: Add description of LED
- Flash class extension
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-3-git-send-email-j.anaszewski@samsung.com>
- <20141129125832.GA315@amd> <547C539A.4010500@samsung.com>
- <20141201130437.GB24737@amd>
-In-reply-to: <20141201130437.GB24737@amd>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:47176 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750840AbaLEO2Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Dec 2014 09:28:25 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 8868F2A002F
+	for <linux-media@vger.kernel.org>; Fri,  5 Dec 2014 15:28:20 +0100 (CET)
+Message-ID: <5481C104.6030806@xs4all.nl>
+Date: Fri, 05 Dec 2014 15:28:20 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.19] v4l2-mediabus.h & documentation updates
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+These fixes are needed for 3.19 and are a follow up to the colorspace
+patch series.
 
-On 12/01/2014 02:04 PM, Pavel Machek wrote:
-> Hi!
->
->>> How are faults cleared? Should it be list of strings, instead of
->>> bitmask? We may want to add new fault modes in future...
->>
->> Faults are cleared by reading the attribute. I will add this note.
->> There can be more than one fault at a time. I think that the bitmask
->> is a flexible solution. I don't see any troubles related to adding
->> new fault modes in the future, do you?
->
-> I do not think that "read attribute to clear" is good idea. Normally,
-> you'd want the error attribute world-readable, but you don't want
-> non-root users to clear the errors.
+They keep one extra __u32 free for future use in v4l2-mediabus.h as per Sakari's
+suggestion. This suggestion came in after the colorspace patches were merged,
+but it is a good idea.
 
-This is also V4L2_CID_FLASH_FAULT control semantics.
-Moreover many devices clear the errors upon reading register.
-I don't see anything wrong in the fact that an user can clear
-an error. If the user has a permission to use a device then
-it also should be allowed to clear the errors.
+And the documentation is updated (I missed a few things there).
 
-> I am not sure if bitmask is good solution. I'd return space-separated
-> strings like "overtemp". That way, there's good chance that other LED
-> drivers would be able to use similar interface...
+Regards,
 
-The format of a sysfs attribute should be concise.
-The error codes are generic and map directly to the V4L2 Flash
-error codes.
+	Hans
 
-Best Regards,
-Jacek Anaszewski
+The following changes since commit 71947828caef0c83d4245f7d1eaddc799b4ff1d1:
+
+  [media] mn88473: One function call less in mn88473_init() after error (2014-12-04 16:00:47 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.19m
+
+for you to fetch changes up to 4761f227d0256f5e35b55b1a98f2352b54fa900f:
+
+  DocBook media: update version number and document changes. (2014-12-05 15:23:55 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (4):
+      v4l2-mediabus.h: use two __u16 instead of two __u32
+      DocBook media: add missing ycbcr_enc and quantization fields
+      vivid.txt: document new controls
+      DocBook media: update version number and document changes.
+
+ Documentation/DocBook/media/v4l/compat.xml         | 12 ++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         | 36 ++++++++++++++++++++++++++++++++++--
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 18 +++++++++++++++++-
+ Documentation/DocBook/media/v4l/v4l2.xml           | 11 ++++++++++-
+ Documentation/video4linux/vivid.txt                | 15 +++++++++++++++
+ include/uapi/linux/v4l2-mediabus.h                 |  6 +++---
+ 6 files changed, 91 insertions(+), 7 deletions(-)
