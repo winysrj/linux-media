@@ -1,72 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:53956 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752087AbaLSV70 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 16:59:26 -0500
-Date: Fri, 19 Dec 2014 19:25:58 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>,
-	Lee Jones <lee.jones@linaro.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 09/13] ARM: dts: sun6i: Add ir node
-Message-ID: <20141219182558.GW4820@lukather>
-References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
- <1418836704-15689-10-git-send-email-hdegoede@redhat.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36029 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751138AbaLELpp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 06:45:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
+Date: Fri, 05 Dec 2014 13:46:21 +0200
+Message-ID: <10129477.C7LMJl3dKC@avalon>
+In-Reply-To: <CANOLnOMrdk9Gq+9Cv_e5cboXtbtxHoKVQdNgBvb_NcJfFT7bHQ@mail.gmail.com>
+References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com> <7185728.KDKlKP9htJ@avalon> <CANOLnOMrdk9Gq+9Cv_e5cboXtbtxHoKVQdNgBvb_NcJfFT7bHQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5UQzRzi9WojKXOfC"
-Content-Disposition: inline
-In-Reply-To: <1418836704-15689-10-git-send-email-hdegoede@redhat.com>
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Grazvydas,
 
---5UQzRzi9WojKXOfC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thursday 06 November 2014 00:29:53 Grazvydas Ignotas wrote:
+> On Wed, Nov 5, 2014 at 4:05 PM, Laurent Pinchart wrote:
+> > On Tuesday 04 November 2014 22:41:44 Rémi Denis-Courmont wrote:
+> >> Le mardi 04 novembre 2014, 15:42:37 Rémi Denis-Courmont a écrit :
+> >> > Le 2014-11-04 14:58, Sakari Ailus a écrit :
+> >> > >> > Have you tried with a different application to see if the problem
+> >> > >> > persists?
+> >> > >> 
+> >> > >> Tried mplayer and cheese now, and it seems they are not affected, so
+> >> > >> it's an issue with vlc. I wonder why it doesn't like newer flags..
+> >> > >> 
+> >> > >> Ohwell, sorry for the noise.
+> >> > > 
+> >> > > I guess the newer VLC could indeed pay attention to the monotonic
+> >> > > timestamp flag. Remi, any idea?
+> >> > 
+> >> > VLC takes the kernel timestamp, if monotonic, since version 2.1.
+> >> > Otherwise, it generates its own inaccurate timestamp. So either that
+> >> > code is wrong, or the kernel timestamps are.
+> >> 
+> >> From a quick check with C920, the timestamps from the kernel are quite
+> >> jittery, and but seem to follow a pattern. When requesting a 10 Hz frame
+> >> rate, I actually get a frame interval of about 8/9 (i.e. 89ms) jumping to
+> >> 1/3 every approximately 2 seconds.
+> >> 
+> >> From my user-space point of view, this is a kernel issue. The problem
+> >> probably just manifests when both VLC and Linux versions support
+> >> monotonic timestamps.
+> >> 
+> >> Whether the root cause is in the kernel, the device driver or the
+> >> firmware,
+> >> I can´t say.
+> > 
+> > Would you be able to capture images from the C920 using yavta, with the
+> > uvcvideo trace parameter set to 4096, and send me both the yavta log and
+> > the kernel log ? Let's start with a capture sequence of 50 to 100 images.
+>
+> I've done 2 captures, if that helps:
+> http://notaz.gp2x.de/tmp/c920_yavta/
+> 
+> The second one was done using low exposure setting, which allows
+> camera to achieve higher frame rate.
 
-On Wed, Dec 17, 2014 at 06:18:20PM +0100, Hans de Goede wrote:
-> Add a node for the ir receiver found on the A31.
->=20
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Thank you for the log, they were very helpful. They revealed that the USB SOF 
+(Start Of Frame) counter values on the device and host side are not in sync. 
+The counters get incremented are very different rates. What USB controller are 
+you using ?
 
-Applied, thanks!
+-- 
+Regards,
 
-Maxime
+Laurent Pinchart
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---5UQzRzi9WojKXOfC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUlG22AAoJEBx+YmzsjxAggPEQAMB/Wwm2MmKKeiUVj327Go5Z
-UScM/CWrdby5hYX+OFeXbPJmfnQA53Wz4T9iAaFc6K6pUgPpfSfQRU/7QipV7nf0
-BdclN5s5VEe4JTEiIg5cM9yN0VHTv3yNBzkw3KtmvM+/rrpfREE1MXrffxQR9EXW
-a85NaZhzMuTU/bDgBQBvoAdtibtfk0Zzee3PURYs5Ay+Qg2V8PnIxR0nbrtCcYKV
-r+FNW8fZpSdwMW7nTV9/RVWstIAZLsTO255kwoU/rAM1ereMd8j41qcha9ognM5Q
-/3VxRwef2AdrD1euC9cPO30XGfANZKkEJhkH/n6yuiVpE9wqNGRCR2cLgwQDgUeF
-0mcChA8NQJO4QpOoGkRIIRUVRcDOtLnPoEv/FfCaYuM7TFS5IbVpEPtB2xzwnzO+
-e7mt//yqpYBM/MLmv236c7tmoZweaulxF7Rd30/lF14wwJW0pbYaLyqH0PjpXFcg
-o5F6qKDaVJh8aL2d3yfbPw1GRW1RwKV00HVmy9PEnLUtJWHbM5MSugIlW3N3PaQ7
-ATf8Lc3zTgycEhOox8TeIFy59SQzNaEnVNL0ymgU8yCol/nIzy6PDuMMPoDBvx9Z
-nyr//+QUcbHjBXIkugQwQSj7w1oJfpgjdBXQUziwoagdiOsBQr5cqSKugUC+3m39
-u9BxDySC9TloX6C6KVBM
-=7FWe
------END PGP SIGNATURE-----
-
---5UQzRzi9WojKXOfC--
