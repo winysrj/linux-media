@@ -1,95 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:42099 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753066AbaLTMpY (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41954 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751065AbaLEOTz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 07:45:24 -0500
-In-Reply-To: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-References: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/8] [media] em28xx: ensure "closing" messages terminate with
- a newline
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1Y2JPM-0006UR-W1@rmk-PC.arm.linux.org.uk>
-Date: Sat, 20 Dec 2014 12:45:20 +0000
+	Fri, 5 Dec 2014 09:19:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH for v3.19 3/4] DocBook media: update version number and document changes.
+Date: Fri,  5 Dec 2014 15:19:23 +0100
+Message-Id: <1417789164-28468-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
+References: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lockdep splat addressed in a previous commit revealed that at
-least one message in em28xx-input.c was missing a new line:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-em28178 #0: Closing input extensionINFO: trying to register non-static key.
-
-Further inspection shows several other messages also miss a new line.
-These will be fixed in a subsequent patch.
-
-Cc: <stable@vger.kernel.org>
-Fixes: aa929ad783c0 ("[media] em28xx: print a message at disconnect")
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-audio.c | 2 +-
- drivers/media/usb/em28xx/em28xx-dvb.c   | 2 +-
- drivers/media/usb/em28xx/em28xx-input.c | 2 +-
- drivers/media/usb/em28xx/em28xx-video.c | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ Documentation/DocBook/media/v4l/compat.xml |  6 ++++++
+ Documentation/DocBook/media/v4l/v4l2.xml   | 11 ++++++++++-
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index 44ae1e0661e6..52dc9d70da72 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -981,7 +981,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
- 		return 0;
- 	}
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 0a2debf..518bc56 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2576,6 +2576,12 @@ fields changed from _s32 to _u32.
+ 	  <para>Added <constant>V4L2_CID_PAN_SPEED</constant> and
+  <constant>V4L2_CID_TILT_SPEED</constant> camera controls.</para>
+ 	</listitem>
++	<listitem>
++	  <para>Rewrote Colorspace chapter, added new &v4l2-ycbcr-encoding;
++and &v4l2-quantization; fields to &v4l2-pix-format;, &v4l2-pix-format-mplane;
++and &v4l2-mbus-framefmt;.
++	  </para>
++	</listitem>
+       </orderedlist>
+     </section>
  
--	em28xx_info("Closing audio extension");
-+	em28xx_info("Closing audio extension\n");
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 7cfe618..e6cfd7e 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -152,6 +152,15 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
  
- 	if (dev->adev.sndcard) {
- 		snd_card_disconnect(dev->adev.sndcard);
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 9877b699c6bc..80c384c390e2 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1724,7 +1724,7 @@ static int em28xx_dvb_fini(struct em28xx *dev)
- 	if (!dev->dvb)
- 		return 0;
+       <revision>
++	<revnumber>3.18</revnumber>
++	<date>2014-12-05</date>
++	<authorinitials>hv</authorinitials>
++	<revremark>Rewrote Colorspace chapter, added new &v4l2-ycbcr-encoding; and &v4l2-quantization; fields
++to &v4l2-pix-format;, &v4l2-pix-format-mplane; and &v4l2-mbus-framefmt;.
++	</revremark>
++      </revision>
++
++      <revision>
+ 	<revnumber>3.17</revnumber>
+ 	<date>2014-08-04</date>
+ 	<authorinitials>lp, hv</authorinitials>
+@@ -539,7 +548,7 @@ and discussions on the V4L mailing list.</revremark>
+ </partinfo>
  
--	em28xx_info("Closing DVB extension");
-+	em28xx_info("Closing DVB extension\n");
+ <title>Video for Linux Two API Specification</title>
+- <subtitle>Revision 3.17</subtitle>
++ <subtitle>Revision 3.18</subtitle>
  
- 	dvb = dev->dvb;
- 	client = dvb->i2c_client_tuner;
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index ef36c49ef166..aea22deadc0a 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -832,7 +832,7 @@ static int em28xx_ir_fini(struct em28xx *dev)
- 		return 0;
- 	}
- 
--	em28xx_info("Closing input extension");
-+	em28xx_info("Closing input extension\n");
- 
- 	em28xx_shutdown_buttons(dev);
- 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index cf7f58b76292..3b8c464bf25a 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1958,7 +1958,7 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
- 	if (v4l2 == NULL)
- 		return 0;
- 
--	em28xx_info("Closing video extension");
-+	em28xx_info("Closing video extension\n");
- 
- 	mutex_lock(&dev->lock);
- 
+   <chapter id="common">
+     &sub-common;
 -- 
-1.8.3.1
+2.1.3
 
