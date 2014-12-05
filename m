@@ -1,51 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:52077 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466AbaLROsF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 09:48:05 -0500
-Message-ID: <1418914070.22813.13.camel@xylophone.i.decadent.org.uk>
-Subject: [RFC PATCH 0/5] media: rcar_vin: Fixes for buffer management
-From: Ben Hutchings <ben.hutchings@codethink.co.uk>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-kernel@codethink.co.uk,
-	William Towle <william.towle@codethink.co.uk>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Thu, 18 Dec 2014 14:47:50 +0000
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from lists.s-osg.org ([54.187.51.154]:39351 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752778AbaLEImn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Dec 2014 03:42:43 -0500
+Date: Fri, 5 Dec 2014 06:42:37 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] soc-camera: 1st set for 3.19
+Message-ID: <20141205064237.0f27b0b3@concha.lan>
+In-Reply-To: <Pine.LNX.4.64.1412050805460.12083@axis700.grange>
+References: <Pine.LNX.4.64.1411282307180.15467@axis700.grange>
+	<20141201150340.23e6013e@recife.lan>
+	<Pine.LNX.4.64.1412050805460.12083@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a re-submission of patches previously sent and archived at
-<http://thread.gmane.org/gmane.linux.ports.sh.devel/37184/>.  Will has
-rebased onto 3.18 and added a further patch to address Hans' review
-comments.
+Em Fri, 05 Dec 2014 08:07:07 +0100
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
 
-The driver continues to works for single frame capture, and no longer
-provokes a WARNing.  However, video capture has regressed (a gstreamer
-capture pipeline yields a zero-length file).
+> Hi Mauro,
+> 
+> On Mon, 1 Dec 2014, Mauro Carvalho Chehab wrote:
+> 
+> > Em Fri, 28 Nov 2014 23:15:32 +0100 (CET)
+> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+> > 
+> > > Hi Mauro,
+> > > 
+> > > IIUC, this coming Sunday might be the last -rc, so, postponing pull 
+> > > requests to subsystem maintainers even further isn't a good idea, so, here 
+> > > goes an soc-camera request. I know it isn't complete, there are a few more 
+> > > patches waiting to be pushed upstream, but I won't have time this coming 
+> > > weekend and next two weeks I'm traveling, which won't simplify things 
+> > > either. Some more patches are being reworked, if they arrive soon and we 
+> > > do get another -rc, I might try to push them too, but I don't want to 
+> > > postpone these ones, while waiting. One of these patches has also been 
+> > > modified by me and hasn't been tested yet. But changes weren't too 
+> > > complex. If however I did break something, we'll have to fix it in an 
+> > > incremental patch.
+> > > 
+> > > The following changes since commit d298a59791fad3a707c1dadbef0935ee2664a10e:
+> > > 
+> > >   Merge branch 'patchwork' into to_next (2014-11-21 17:01:46 -0200)
+> > > 
+> > > are available in the git repository at:
+> > > 
+> > > 
+> > >   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.19-1
+> > > 
+> > > for you to fetch changes up to d8f5c144e57d99d2a7325bf8877812bf560e22dd:
+> > > 
+> > >   rcar_vin: Fix interrupt enable in progressive (2014-11-23 12:08:19 +0100)
+> > > 
+> > > ----------------------------------------------------------------
+> > > Koji Matsuoka (4):
+> > >       rcar_vin: Add YUYV capture format support
+> > >       rcar_vin: Add scaling support
+> > 
+> > Hmm...
+> > 
+> > WARNING: DT compatible string "renesas,vin-r8a7794" appears un-documented -- check ./Documentation/devicetree/bindings/
+> > #38: FILE: drivers/media/platform/soc_camera/rcar_vin.c:1406:
+> > +	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
+> > 
+> > WARNING: DT compatible string "renesas,vin-r8a7793" appears un-documented -- check ./Documentation/devicetree/bindings/
+> > #39: FILE: drivers/media/platform/soc_camera/rcar_vin.c:1407:
+> > +	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+> > 
+> > Where are the DT binding documentation for this?
+> > 
+> > You should be adding a patch to:
+> > 	Documentation/devicetree/bindings/media/rcar_vin.txt
+> > before this one.
+> 
+> Sure, documentation is in the same patch
+> 
+> http://git.linuxtv.org/cgit.cgi/gliakhovetski/v4l-dvb.git/commit/?h=for-3.19-1&id=aa1f7651acbe222948f43e239eda15362c9e274c
+> 
+> Is it because you cannot push it via your tree or what's happened, why 
+> this warning?
 
-Ben.
+I see. It seems that you've added the documentation changes after the
+patch using it. As I run checkpatch patch by patch, at the same order
+as they're found at the tree, checkpatch complained.
 
-Ian Molton (4):
-  media: rcar_vin: Dont aggressively retire buffers
-  media: rcar_vin: Ensure all in-flight buffers are returned to error
-    state before stopping.
-  media: rcar_vin: Fix race condition terminating stream
-  media: rcar_vin: Clean up rcar_vin_irq
+Unofortunately, you answered too late. I closed the final set of patches
+to 3.19 yesterday. I won't be able to handle it today, and I'll be traveling
+all weekend, without access to my build server. 
 
-William Towle (1):
-  media: rcar_vin: move buffer management to .stop_streaming handler
-
- drivers/media/platform/soc_camera/rcar_vin.c |  109 ++++++++++++++------------
- 1 file changed, 59 insertions(+), 50 deletions(-)
-
--- 
-1.7.10.4
-
-
-
+Cheers,
+Mauro
