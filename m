@@ -1,51 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:37701 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753345AbaLEXXb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 18:23:31 -0500
-Date: Sat, 6 Dec 2014 00:23:27 +0100
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Felipe Balbi <balbi@ti.com>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH] usb: hcd: get/put device and hcd for hcd_buffers()
-Message-ID: <20141205232327.GB4854@linutronix.de>
-References: <20141205200357.GA1586@linutronix.de>
- <Pine.LNX.4.44L0.1412051543510.1032-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1412051543510.1032-100000@iolanthe.rowland.org>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:50330 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751065AbaLEOTr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Dec 2014 09:19:47 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH for v3.19 2/4] DocBook media: add missing ycbcr_enc and quantization fields
+Date: Fri,  5 Dec 2014 15:19:22 +0100
+Message-Id: <1417789164-28468-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
+References: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Alan Stern | 2014-12-05 16:21:02 [-0500]:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
->On Fri, 5 Dec 2014, Sebastian Andrzej Siewior wrote:
->> So instead, I hold the device struct in the HCD and the HCD struct on
->> every USB-buf-alloc. That means after a disconnect we still have a
->> refcount on usb_hcd and device and it will be cleaned "later" once the
->> last USB-buffer is released.
->
->This is not a valid solution.  Notice that your _hcd_buffer_free still 
->dereferences hcd->driver; that will not point to anything useful if you 
->rmmod the HCD.
-Hmm. You're right, that one is gone.
+I forgot to add these fields to the relevant structs.
 
->Also, you neglected to move the calls to hcd_buffer_destroy from 
->usb_remove_hcd to hcd_release.
-I add them, I didn't move them.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/pixfmt.xml         | 36 ++++++++++++++++++++--
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 18 ++++++++++-
+ 2 files changed, 51 insertions(+), 3 deletions(-)
 
->On the whole, it would be easier if the UVC driver could release its 
->coherent DMA buffers during the disconnect callback.  If that's not 
->feasible we'll have to find some other solution.
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index ccf6053..d5eca4b 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -138,9 +138,25 @@ applicable values.</para></entry>
+ 	<row>
+ 	  <entry>__u32</entry>
+ 	  <entry><structfield>flags</structfield></entry>
+-	    <entry>Flags set by the application or driver, see <xref
++	  <entry>Flags set by the application or driver, see <xref
+ linkend="format-flags" />.</entry>
+ 	</row>
++	<row>
++	  <entry>&v4l2-ycbcr-encoding;</entry>
++	  <entry><structfield>ycbcr_enc</structfield></entry>
++	  <entry>This information supplements the
++<structfield>colorspace</structfield> and must be set by the driver for
++capture streams and by the application for output streams,
++see <xref linkend="colorspaces" />.</entry>
++	</row>
++	<row>
++	  <entry>&v4l2-quantization;</entry>
++	  <entry><structfield>quantization</structfield></entry>
++	  <entry>This information supplements the
++<structfield>colorspace</structfield> and must be set by the driver for
++capture streams and by the application for output streams,
++see <xref linkend="colorspaces" />.</entry>
++	</row>
+       </tbody>
+     </tgroup>
+   </table>
+@@ -232,9 +248,25 @@ codes can be used.</entry>
+ 	  <entry>Flags set by the application or driver, see <xref
+ linkend="format-flags" />.</entry>
+ 	</row>
++	<row>
++	  <entry>&v4l2-ycbcr-encoding;</entry>
++	  <entry><structfield>ycbcr_enc</structfield></entry>
++	  <entry>This information supplements the
++<structfield>colorspace</structfield> and must be set by the driver for
++capture streams and by the application for output streams,
++see <xref linkend="colorspaces" />.</entry>
++	</row>
++	<row>
++	  <entry>&v4l2-quantization;</entry>
++	  <entry><structfield>quantization</structfield></entry>
++	  <entry>This information supplements the
++<structfield>colorspace</structfield> and must be set by the driver for
++capture streams and by the application for output streams,
++see <xref linkend="colorspaces" />.</entry>
++	</row>
+         <row>
+           <entry>__u8</entry>
+-          <entry><structfield>reserved[10]</structfield></entry>
++          <entry><structfield>reserved[8]</structfield></entry>
+           <entry>Reserved for future extensions. Should be zeroed by the
+            application.</entry>
+         </row>
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 18730b9..c5ea868 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -34,8 +34,24 @@
+ 	  <xref linkend="colorspaces" /> for details.</entry>
+ 	</row>
+ 	<row>
++	  <entry>&v4l2-ycbcr-encoding;</entry>
++	  <entry><structfield>ycbcr_enc</structfield></entry>
++	  <entry>This information supplements the
++<structfield>colorspace</structfield> and must be set by the driver for
++capture streams and by the application for output streams,
++see <xref linkend="colorspaces" />.</entry>
++	</row>
++	<row>
++	  <entry>&v4l2-quantization;</entry>
++	  <entry><structfield>quantization</structfield></entry>
++	  <entry>This information supplements the
++<structfield>colorspace</structfield> and must be set by the driver for
++capture streams and by the application for output streams,
++see <xref linkend="colorspaces" />.</entry>
++	</row>
++	<row>
+ 	  <entry>__u32</entry>
+-	  <entry><structfield>reserved</structfield>[7]</entry>
++	  <entry><structfield>reserved</structfield>[6]</entry>
+ 	  <entry>Reserved for future extensions. Applications and drivers must
+ 	  set the array to zero.</entry>
+ 	</row>
+-- 
+2.1.3
 
-I had one patch doing that. Let me grab it out on Monday.
-
->Alan Stern
->
-Sebastian
