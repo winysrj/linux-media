@@ -1,55 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52855 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751230AbaLSK6l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 05:58:41 -0500
-Message-ID: <549404DE.3060905@iki.fi>
-Date: Fri, 19 Dec 2014 12:58:38 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:56483 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750924AbaLEOZf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Dec 2014 09:25:35 -0500
+Message-ID: <5481C05A.5040406@xs4all.nl>
+Date: Fri, 05 Dec 2014 15:25:30 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Lars-Peter Clausen <lars@metafoo.de>
-CC: linux-media@vger.kernel.org, Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/2] regmap: pass map name to lockdep
-References: <1418936717-2806-1-git-send-email-crope@iki.fi> <5493485E.7020803@metafoo.de>
-In-Reply-To: <5493485E.7020803@metafoo.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: linux-media@vger.kernel.org
+CC: sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 for v3.19 3/4] DocBook media: update version number and
+ document changes.
+References: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl> <1417789164-28468-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1417789164-28468-4-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/18/2014 11:34 PM, Lars-Peter Clausen wrote:
-> On 12/18/2014 10:05 PM, Antti Palosaari wrote:
->> lockdep complains recursive locking and deadlock when two different
->> regmap instances are called in a nested order. That happen easily
->> for example when both I2C client and muxed/repeater I2C adapter are
->> using regmap. As a solution, pass regmap name for lockdep in order
->> to force lockdep validate regmap mutex per driver - not as all regmap
->> instances grouped together.
->
-> That's not how it works. Locks are grouped by lock class, the name is
-> just for pretty printing. The only reason you do not get a warning
-> anymore is because you have now different lock classes one for configs
-> with a name and one for configs without a name.
->
-> You really need a way to specify a custom lock class per regmap instance
-> in order to solve this problem.
+Update the version to 3.19.
 
-I looked example for that solution from v4l controls. So it is also wrong?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/compat.xml | 12 ++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml   | 11 ++++++++++-
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-https://patchwork.linuxtv.org/patch/17262/
-
-
-Do you think I should change to mutex_lock_nested() as documented in
-Documentation/locking/lockdep-design.txt ?
-
-Should these macros used at all:
-include/linux/lockdep.h
-
-There is not much documentation, especially how these recursive lock 
-warnings should be silenced.
-
-
-regards
-Antti
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 0a2debf..350dfb3 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2579,6 +2579,18 @@ fields changed from _s32 to _u32.
+       </orderedlist>
+     </section>
+ 
++    <section>
++      <title>V4L2 in Linux 3.19</title>
++      <orderedlist>
++	<listitem>
++	  <para>Rewrote Colorspace chapter, added new &v4l2-ycbcr-encoding;
++and &v4l2-quantization; fields to &v4l2-pix-format;, &v4l2-pix-format-mplane;
++and &v4l2-mbus-framefmt;.
++	  </para>
++	</listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 7cfe618..ac0f8d9 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -152,6 +152,15 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>3.19</revnumber>
++	<date>2014-12-05</date>
++	<authorinitials>hv</authorinitials>
++	<revremark>Rewrote Colorspace chapter, added new &v4l2-ycbcr-encoding; and &v4l2-quantization; fields
++to &v4l2-pix-format;, &v4l2-pix-format-mplane; and &v4l2-mbus-framefmt;.
++	</revremark>
++      </revision>
++
++      <revision>
+ 	<revnumber>3.17</revnumber>
+ 	<date>2014-08-04</date>
+ 	<authorinitials>lp, hv</authorinitials>
+@@ -539,7 +548,7 @@ and discussions on the V4L mailing list.</revremark>
+ </partinfo>
+ 
+ <title>Video for Linux Two API Specification</title>
+- <subtitle>Revision 3.17</subtitle>
++ <subtitle>Revision 3.19</subtitle>
+ 
+   <chapter id="common">
+     &sub-common;
 -- 
-http://palosaari.fi/
+2.1.3
+
+
