@@ -1,115 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:43223 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933459AbaLEDnt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Dec 2014 22:43:49 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id BC5E32A009D
-	for <linux-media@vger.kernel.org>; Fri,  5 Dec 2014 04:43:26 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141205034326.BC5E32A009D@tschai.lan>
-Date: Fri,  5 Dec 2014 04:43:26 +0100 (CET)
+Received: from v094114.home.net.pl ([79.96.170.134]:51114 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S933009AbaLEB6V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 20:58:21 -0500
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Kamil Debski <k.debski@samsung.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Linux PM list <linux-pm@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
+Date: Fri, 05 Dec 2014 03:19:48 +0100
+Message-ID: <4616754.qb41AxUOEJ@vostro.rjw.lan>
+In-Reply-To: <20141204160840.7d021bf1@recife.lan>
+References: <4139875.fkJ48z9AaU@vostro.rjw.lan> <20141204160840.7d021bf1@recife.lan>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thursday, December 04, 2014 04:08:40 PM Mauro Carvalho Chehab wrote:
+> Em Wed, 03 Dec 2014 03:13:55 +0100
+> "Rafael J. Wysocki" <rjw@rjwysocki.net> escreveu:
+> 
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> > selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
+> > depending on CONFIG_PM_RUNTIME may now be changed to depend on
+> > CONFIG_PM.
+> > 
+> > The alternative of CONFIG_PM_SLEEP and CONFIG_PM_RUNTIME may be
+> > replaced with CONFIG_PM too.
+> > 
+> > Make these changes everywhere under drivers/media/.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> Feel free to apply it via your tree.
 
-Results of the daily build of media_tree:
+Thanks!
 
-date:		Fri Dec  5 04:00:29 CET 2014
-git branch:	test
-git hash:	71947828caef0c83d4245f7d1eaddc799b4ff1d1
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+> PS.: I won't doubt that you would find some extra checks for
+> PM_RUNTIME on other places at media, as I remember I merged some
+> things like that recently - I think they are there for 3.19, but
+> it needs to be double-checked.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+That's fine.  There is at least one case when I need to wait for
+other trees to get merged due to files being moved around, so I'll
+do a second round during the merge window anyway.
 
-Detailed results are available here:
+Kind regards,
+Rafael
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
