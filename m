@@ -1,71 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:43297 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751495AbaL3H4B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Dec 2014 02:56:01 -0500
-Received: by mail-wi0-f180.google.com with SMTP id n3so23566710wiv.7
-        for <linux-media@vger.kernel.org>; Mon, 29 Dec 2014 23:56:00 -0800 (PST)
+Received: from www.linutronix.de ([62.245.132.108]:37701 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753345AbaLEXXb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 18:23:31 -0500
+Date: Sat, 6 Dec 2014 00:23:27 +0100
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Felipe Balbi <balbi@ti.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] usb: hcd: get/put device and hcd for hcd_buffers()
+Message-ID: <20141205232327.GB4854@linutronix.de>
+References: <20141205200357.GA1586@linutronix.de>
+ <Pine.LNX.4.44L0.1412051543510.1032-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-In-Reply-To: <54A1B4FD.70006@cogweb.net>
-References: <54A1B4FD.70006@cogweb.net>
-Date: Tue, 30 Dec 2014 09:55:59 +0200
-Message-ID: <CAAZRmGxoOTf9f4gq05RgbcD44tmiySMXo-_ZHtBQX0pw6ZXPUA@mail.gmail.com>
-Subject: Re: dvbv5-scan needs which channel file?
-From: Olli Salonen <olli.salonen@iki.fi>
-To: David Liontooth <lionteeth@cogweb.net>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1412051543510.1032-100000@iolanthe.rowland.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello David,
+* Alan Stern | 2014-12-05 16:21:02 [-0500]:
 
-Coincidentally I was just yesterday working with dvbv5-scan and the
-initial scan files. dvbv5-scan expects the initial scan files in the
-new DVBV5 format. w_scan is not producing results in this format.
+>On Fri, 5 Dec 2014, Sebastian Andrzej Siewior wrote:
+>> So instead, I hold the device struct in the HCD and the HCD struct on
+>> every USB-buf-alloc. That means after a disconnect we still have a
+>> refcount on usb_hcd and device and it will be cleaned "later" once the
+>> last USB-buffer is released.
+>
+>This is not a valid solution.  Notice that your _hcd_buffer_free still 
+>dereferences hcd->driver; that will not point to anything useful if you 
+>rmmod the HCD.
+Hmm. You're right, that one is gone.
 
-The scan tables at
-http://git.linuxtv.org/cgit.cgi/dtv-scan-tables.git/ are in the new
-format. Some of them are a bit outdated though (send in a patch if you
-can update it for your area).
+>Also, you neglected to move the calls to hcd_buffer_destroy from 
+>usb_remove_hcd to hcd_release.
+I add them, I didn't move them.
 
-The v4l-utils package also includes tools to convert between the old
-and the new format.
+>On the whole, it would be easier if the UVC driver could release its 
+>coherent DMA buffers during the disconnect callback.  If that's not 
+>feasible we'll have to find some other solution.
 
-Cheers,
--olli
+I had one patch doing that. Let me grab it out on Monday.
 
-
-On 29 December 2014 at 22:09, David Liontooth <lionteeth@cogweb.net> wrote:
+>Alan Stern
 >
-> Greetings --
->
-> How do you actually use dvbv5-scan? It seems to require some kind of input
-> file but there is no man page and the --help screen doesn't say anything
-> about it.
->
-> Could we document this? I tried
->
-> $ dvbv5-scan
-> Usage: dvbv5-scan [OPTION...] <initial file>
-> scan DVB services using the channel file
->
-> What is "the channel file"? Maybe the channels.conf file? (I created mine
-> using "w_scan -ft -A3 -X -cUS -o7 -a /dev/dvb/adapter0/")
->
-> $ dvbv5-scan /etc/channels.conf
-> ERROR key/value without a channel group while parsing line 1 of
-> /etc/channels.conf
->
-> So it knows what it wants -- but what is it? Or is this a matter of dvb
-> versions, and my /etc/channels.conf is in the older format?
->
-> Very mysterious.
->
-> Cheers,
-> David
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sebastian
