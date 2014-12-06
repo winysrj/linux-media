@@ -1,80 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49660 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755150AbaLVQAQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 11:00:16 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	=?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Sureau?=
-	<frederic.sureau@vodalys.com>,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC PATCH] [media] coda: Use S_PARM to set nominal framerate for h.264 encoder
-Date: Mon, 22 Dec 2014 17:00:00 +0100
-Message-Id: <1419264000-11761-1-git-send-email-p.zabel@pengutronix.de>
+Received: from lists.s-osg.org ([54.187.51.154]:39519 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750744AbaLFBkg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Dec 2014 20:40:36 -0500
+Date: Fri, 5 Dec 2014 23:40:26 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Luis de Bethencourt <luis@debethencourt.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	devel@driverdev.osuosl.org,
+	=?UTF-8?B?R8O8bMWfYWggS8O2c2U=?= <gulsah.1004@gmail.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	jarod <jarod@wilsonet.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"tuomas.tynkkynen" <tuomas.tynkkynen@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3 2/2] staging: media: lirc: lirc_zilog.c: keep
+ consistency in dev functions
+Message-ID: <20141205234026.682b3bfb@concha.lan>
+In-Reply-To: <CAPA4HGVhKuw6cQHMfRWrTLxd8u3P8a1noAPkzkgrFmsORgXUgw@mail.gmail.com>
+References: <20141204223524.GA17650@biggie>
+	<20141205122855.GD4912@mwanda>
+	<CAPA4HGVhKuw6cQHMfRWrTLxd8u3P8a1noAPkzkgrFmsORgXUgw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The encoder needs to know the nominal framerate for the constant bitrate
-control mechanism to work. Currently the only way to set the framerate is
-by using VIDIOC_S_PARM on the output queue.
+Em Fri, 05 Dec 2014 12:35:25 +0000
+Luis de Bethencourt <luis@debethencourt.com> escreveu:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+> On 5 December 2014 at 12:28, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> 
+> > On Thu, Dec 04, 2014 at 10:35:24PM +0000, Luis de Bethencourt wrote:
+> > > The previous patch switched some dev functions to move the string to a
+> > second
+> > > line. Doing this for all similar functions because it makes the driver
+> > easier
+> > > to read if all similar lines use the same criteria.
+> > >
+> > > Signed-off-by: Luis de Bethencourt <luis@debethencourt.com>
+> > > ---
+> > >  drivers/staging/media/lirc/lirc_zilog.c | 155
+> > +++++++++++++++++++++-----------
+> > >  1 file changed, 102 insertions(+), 53 deletions(-)
+> > >
+> > > diff --git a/drivers/staging/media/lirc/lirc_zilog.c
+> > b/drivers/staging/media/lirc/lirc_zilog.c
+> > > index 8814a7e..af46827 100644
+> > > --- a/drivers/staging/media/lirc/lirc_zilog.c
+> > > +++ b/drivers/staging/media/lirc/lirc_zilog.c
+> > > @@ -322,7 +322,8 @@ static int add_to_buf(struct IR *ir)
+> > >       struct IR_tx *tx;
+> > >
+> > >       if (lirc_buffer_full(rbuf)) {
+> > > -             dev_dbg(ir->l.dev, "buffer overflow\n");
+> > > +             dev_dbg(ir->l.dev,
+> > > +                     "buffer overflow\n");
+> >
+> > No.  Don't do this.  It's better if it is on one line.
+> >
+> > regards,
+> > dan carpenter
+> >
+> >
+> I was following Mauro's suggestions. As replied to the previous version of
+> the patch.
+> 
+> I agree that in short uses of dev_dbg it adds unnecessary lines and
+> vertical length to the file.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 39330a7..63eb510 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -803,6 +803,32 @@ static int coda_decoder_cmd(struct file *file, void *fh,
- 	return 0;
- }
- 
-+static int coda_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
-+{
-+	struct coda_ctx *ctx = fh_to_ctx(fh);
-+
-+	a->parm.output.timeperframe.denominator = 1;
-+	a->parm.output.timeperframe.numerator = ctx->params.framerate;
-+
-+	return 0;
-+}
-+
-+static int coda_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
-+{
-+	struct coda_ctx *ctx = fh_to_ctx(fh);
-+
-+	if (a->type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
-+	    a->parm.output.timeperframe.numerator != 0) {
-+		ctx->params.framerate = a->parm.output.timeperframe.denominator
-+				      / a->parm.output.timeperframe.numerator;
-+	}
-+
-+	a->parm.output.timeperframe.denominator = 1;
-+	a->parm.output.timeperframe.numerator = ctx->params.framerate;
-+
-+	return 0;
-+}
-+
- static int coda_subscribe_event(struct v4l2_fh *fh,
- 				const struct v4l2_event_subscription *sub)
- {
-@@ -843,6 +869,9 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
- 	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
- 	.vidioc_decoder_cmd	= coda_decoder_cmd,
- 
-+	.vidioc_g_parm		= coda_g_parm,
-+	.vidioc_s_parm		= coda_s_parm,
-+
- 	.vidioc_subscribe_event = coda_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
+In the specific case that Dan pointed, the entire statement fits 
+on 80 cols. We only add vertical alignments when it doesn't fit on
+80 columns.
+
+> 
+> Thanks for looking at my patch :)
+> 
+> Luis
+
+
 -- 
-2.1.4
 
+Cheers,
+Mauro
