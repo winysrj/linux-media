@@ -1,27 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:56871 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755494AbaLHO3k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 09:29:40 -0500
-Message-ID: <5485B5CC.6040101@collabora.com>
-Date: Mon, 08 Dec 2014 09:29:32 -0500
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-MIME-Version: 1.0
-To: Bin Chen <bin.chen@linaro.org>, linux-media@vger.kernel.org
-Subject: Re: V4l2 state transition
-References: <CANC6fRFHYsTrUmAMYBWy9u=7ahCqYqOZLGUqrUDCwQm=FnmUbQ@mail.gmail.com>
-In-Reply-To: <CANC6fRFHYsTrUmAMYBWy9u=7ahCqYqOZLGUqrUDCwQm=FnmUbQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail.kapsi.fi ([217.30.184.167]:37726 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752523AbaLFVfQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Dec 2014 16:35:16 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 21/22] si2157: print chip version
+Date: Sat,  6 Dec 2014 23:34:55 +0200
+Message-Id: <1417901696-5517-21-git-send-email-crope@iki.fi>
+In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
+References: <1417901696-5517-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Print chip version once using log level into when init() is called.
+Remove cold/warm state printing as those are not very useful.
 
-Le 2014-12-08 00:19, Bin Chen a écrit :
-> Can anyone comment is following state transition diagram for V4l2 user
-> space program make sense? Do you see any issues if we were to enforce
-> this constraint?
-I think you should request some buffers before streamon. If in capture, 
-you should also queue the minimum amount of buffers.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/si2157.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-Nicolas
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 6ae7620..27b488b 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -128,7 +128,8 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	case SI2157_A30:
+ 	case SI2147_A30:
+ 	case SI2146_A10:
+-		goto skip_fw_download;
++		fw_file = NULL;
++		break;
+ 	default:
+ 		dev_err(&client->dev, "unknown chip version Si21%d-%c%c%c\n",
+ 				cmd.args[2], cmd.args[1],
+@@ -137,9 +138,11 @@ static int si2157_init(struct dvb_frontend *fe)
+ 		goto err;
+ 	}
+ 
+-	/* cold state - try to download firmware */
+-	dev_info(&client->dev, "found a '%s' in cold state\n",
+-			si2157_ops.info.name);
++	dev_info(&client->dev, "found a 'Silicon Labs Si21%d-%c%c%c'\n",
++			cmd.args[2], cmd.args[1], cmd.args[3], cmd.args[4]);
++
++	if (fw_file == NULL)
++		goto skip_fw_download;
+ 
+ 	/* request the firmware, this will block and timeout */
+ 	ret = request_firmware(&fw, fw_file, &client->dev);
+-- 
+http://palosaari.fi/
+
