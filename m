@@ -1,49 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59517 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751998AbaLSOvn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 09:51:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	prabhakar.csengg@gmail.com
-Subject: [RFCv2 PATCH 00/11] v4l2 subdev: Removing duplicate video/pad ops
-Date: Fri, 19 Dec 2014 15:51:25 +0100
-Message-Id: <1419000696-25202-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp.bredband2.com ([83.219.192.166]:38561 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752227AbaLFAZn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 19:25:43 -0500
+Received: from localhost.localdomain (92-244-23-216.customers.ownit.se [92.244.23.216])
+	(Authenticated sender: ed8153)
+	by smtp.bredband2.com (Postfix) with ESMTPA id 0B16C61BB1
+	for <linux-media@vger.kernel.org>; Sat,  6 Dec 2014 01:25:33 +0100 (CET)
+From: Benjamin Larsson <benjamin@southpole.se>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/3] mn88472: make sure the private data struct is nulled after free
+Date: Sat,  6 Dec 2014 01:25:32 +0100
+Message-Id: <1417825533-13081-2-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1417825533-13081-1-git-send-email-benjamin@southpole.se>
+References: <1417825533-13081-1-git-send-email-benjamin@southpole.se>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series attempts to remove some of the duplicate video/pad ops.
-The first four patches are here for completeness as a pull request has
-been posted for them.
+Using this driver with the attach dvb model might trigger a use
+after free when unloading the driver. With this change the driver
+will always fail on unload instead of randomly crash depending
+on if the memory has been reused or not.
 
-The fifth patch has been updated with Laurent's review comments.
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+---
+ drivers/staging/media/mn88472/mn88472.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-The main change with RFCv1 is that instead of creating a
-v4l2_subdev_create_pad_configs function I am adding a which field to the
-enum pad ops. Bridge drivers that don't need to support pad_configs can
-just pass NULL for the pad_configs and V4L2_SUBDEV_FORMAT_ACTIVE as the
-'which' field value.
-
-Patches 6-9 implement this.
-
-Patches 10 and 11 are effectively identical to RFCv1, except for some
-small changes in patch 10 to set the which field.
-
-Missing in this patch series are:
-
-- proper commit log messages for patches 6-11
-- documentation updates for the new 'which' field.
-
-Note that I have not tested these changes with soc-camera. I'm having
-major problems getting the video input and output to work on my
-Renesas board. I wonder if the current kernel board code is broken
-for the SH7724 board.
-
-Feedback for this approach is welcome.
-
-Regards,
-
-	Hans
+diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+index 36ef39b..a9d5f0a 100644
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -489,6 +489,7 @@ static int mn88472_remove(struct i2c_client *client)
+ 
+ 	regmap_exit(dev->regmap[0]);
+ 
++	memset(dev, 0, sizeof(*dev));
+ 	kfree(dev);
+ 
+ 	return 0;
+-- 
+1.9.1
 
