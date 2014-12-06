@@ -1,42 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f173.google.com ([209.85.160.173]:37191 "EHLO
-	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165AbaLXLhc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Dec 2014 06:37:32 -0500
-Received: by mail-yk0-f173.google.com with SMTP id 19so3850221ykq.18
-        for <linux-media@vger.kernel.org>; Wed, 24 Dec 2014 03:37:32 -0800 (PST)
-From: Ismael Luceno <ismael@iodev.co.uk>
+Received: from mail.kapsi.fi ([217.30.184.167]:40285 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752243AbaLFVfP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Dec 2014 16:35:15 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-	Ismael Luceno <ismael@iodev.co.uk>
-Subject: [PATCH 3/3] solo6x10: Fix solo_eeprom_read retval type
-Date: Wed, 24 Dec 2014 08:36:01 -0300
-Message-Id: <1419420961-7819-3-git-send-email-ismael@iodev.co.uk>
-In-Reply-To: <1419420961-7819-1-git-send-email-ismael@iodev.co.uk>
-References: <1419420961-7819-1-git-send-email-ismael@iodev.co.uk>
+Cc: Antti Palosaari <crope@iki.fi>, Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 17/22] si2157: change firmware download error handling
+Date: Sat,  6 Dec 2014 23:34:51 +0200
+Message-Id: <1417901696-5517-17-git-send-email-crope@iki.fi>
+In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
+References: <1417901696-5517-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
----
- drivers/media/pci/solo6x10/solo6x10-eeprom.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Rename firmare download error path goto label. Remove firmware NULL
+set as NULL value is not needed anymore, due to recent change which
+started using goto labels for firmware error handling.
 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-eeprom.c b/drivers/media/pci/solo6x10/solo6x10-eeprom.c
-index da25ce4..8e81186 100644
---- a/drivers/media/pci/solo6x10/solo6x10-eeprom.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-eeprom.c
-@@ -103,7 +103,7 @@ unsigned int solo_eeprom_ewen(struct solo_dev *solo_dev, int w_en)
- __be16 solo_eeprom_read(struct solo_dev *solo_dev, int loc)
- {
- 	int read_cmd = loc | (EE_READ_CMD << ADDR_LEN);
--	unsigned short retval = 0;
-+	u16 retval = 0;
- 	int i;
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/si2157.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 88afb2a..6174c8e 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -81,7 +81,7 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	struct si2157_dev *dev = i2c_get_clientdata(client);
+ 	int ret, len, remaining;
+ 	struct si2157_cmd cmd;
+-	const struct firmware *fw = NULL;
++	const struct firmware *fw;
+ 	u8 *fw_file;
+ 	unsigned int chip_id;
  
- 	solo_eeprom_cmd(solo_dev, read_cmd);
+@@ -154,7 +154,7 @@ static int si2157_init(struct dvb_frontend *fe)
+ 		dev_err(&client->dev, "firmware file '%s' is invalid\n",
+ 				fw_file);
+ 		ret = -EINVAL;
+-		goto fw_release_exit;
++		goto err_release_firmware;
+ 	}
+ 
+ 	dev_info(&client->dev, "downloading firmware from file '%s'\n",
+@@ -169,12 +169,11 @@ static int si2157_init(struct dvb_frontend *fe)
+ 		if (ret) {
+ 			dev_err(&client->dev, "firmware download failed %d\n",
+ 					ret);
+-			goto fw_release_exit;
++			goto err_release_firmware;
+ 		}
+ 	}
+ 
+ 	release_firmware(fw);
+-	fw = NULL;
+ 
+ skip_fw_download:
+ 	/* reboot the tuner with new firmware? */
+@@ -191,7 +190,7 @@ warm:
+ 	dev->active = true;
+ 	return 0;
+ 
+-fw_release_exit:
++err_release_firmware:
+ 	release_firmware(fw);
+ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
 -- 
-2.2.0
+http://palosaari.fi/
 
