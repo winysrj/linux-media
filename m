@@ -1,87 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:44921 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434AbaLPOxK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Dec 2014 09:53:10 -0500
-Received: by mail-wi0-f179.google.com with SMTP id ex7so12787926wid.6
-        for <linux-media@vger.kernel.org>; Tue, 16 Dec 2014 06:53:09 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1417686899-30149-3-git-send-email-hverkuil@xs4all.nl>
-References: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl> <1417686899-30149-3-git-send-email-hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 16 Dec 2014 20:22:39 +0530
-Message-ID: <CA+V-a8vqJLeEojgWsZWdcQUo1OT0xaJF+4Gye4-5wi9P94OBDA@mail.gmail.com>
-Subject: Re: [RFC PATCH 2/8] v4l2-subdev: drop get/set_crop pad ops
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	laurent pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.kapsi.fi ([217.30.184.167]:35282 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752378AbaLFVfO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Dec 2014 16:35:14 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 11/22] si2168: remove unneeded fw variable initialization
+Date: Sat,  6 Dec 2014 23:34:45 +0200
+Message-Id: <1417901696-5517-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
+References: <1417901696-5517-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 4, 2014 at 3:24 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Drop the duplicate get/set_crop pad ops and only use get/set_selection.
-> It makes no sense to have two duplicate ops in the internal subdev API.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+commit 034e1ec0ce299b9e90056793dcb3187e7add6b62
+si2168: One function call less in si2168_init() after error detection
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+That commit added goto label for error path to release firmware,
+but forgets to remove variable NULL set. Remove those now.
 
-Regards,
---Prabhakar Lad
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/si2168.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-> ---
->  drivers/media/v4l2-core/v4l2-subdev.c | 8 --------
->  include/media/v4l2-subdev.h           | 4 ----
->  2 files changed, 12 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 543631c..19a034e 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -283,10 +283,6 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->                 if (rval)
->                         return rval;
->
-> -               rval = v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-> -               if (rval != -ENOIOCTLCMD)
-> -                       return rval;
-> -
->                 memset(&sel, 0, sizeof(sel));
->                 sel.which = crop->which;
->                 sel.pad = crop->pad;
-> @@ -308,10 +304,6 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->                 if (rval)
->                         return rval;
->
-> -               rval = v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-> -               if (rval != -ENOIOCTLCMD)
-> -                       return rval;
-> -
->                 memset(&sel, 0, sizeof(sel));
->                 sel.which = crop->which;
->                 sel.pad = crop->pad;
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 5860292..b052184 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -503,10 +503,6 @@ struct v4l2_subdev_pad_ops {
->                        struct v4l2_subdev_format *format);
->         int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->                        struct v4l2_subdev_format *format);
-> -       int (*set_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> -                      struct v4l2_subdev_crop *crop);
-> -       int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> -                      struct v4l2_subdev_crop *crop);
->         int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->                              struct v4l2_subdev_selection *sel);
->         int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> --
-> 2.1.3
->
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index e8e715f..7f20fd0 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -346,7 +346,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	struct i2c_client *client = fe->demodulator_priv;
+ 	struct si2168_dev *dev = i2c_get_clientdata(client);
+ 	int ret, len, remaining;
+-	const struct firmware *fw = NULL;
++	const struct firmware *fw;
+ 	u8 *fw_file;
+ 	struct si2168_cmd cmd;
+ 	unsigned int chip_id;
+@@ -483,7 +483,6 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	}
+ 
+ 	release_firmware(fw);
+-	fw = NULL;
+ 
+ 	memcpy(cmd.args, "\x01\x01", 2);
+ 	cmd.wlen = 2;
+-- 
+http://palosaari.fi/
+
