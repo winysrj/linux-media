@@ -1,86 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60634 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751211AbaLBMdA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Dec 2014 07:33:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/2] v4l2-subdev: drop get/set_crop pad ops
-Date: Tue, 02 Dec 2014 14:33:32 +0200
-Message-ID: <1497494.cKnlhkNNR9@avalon>
-In-Reply-To: <1417522901-43604-2-git-send-email-hverkuil@xs4all.nl>
-References: <1417522901-43604-1-git-send-email-hverkuil@xs4all.nl> <1417522901-43604-2-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:34845 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751051AbaLFAZZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 19:25:25 -0500
+Received: by mail-ob0-f174.google.com with SMTP id nt9so1478793obb.33
+        for <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 16:25:25 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <10129477.C7LMJl3dKC@avalon>
+References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com>
+	<7185728.KDKlKP9htJ@avalon>
+	<CANOLnOMrdk9Gq+9Cv_e5cboXtbtxHoKVQdNgBvb_NcJfFT7bHQ@mail.gmail.com>
+	<10129477.C7LMJl3dKC@avalon>
+Date: Sat, 6 Dec 2014 02:25:25 +0200
+Message-ID: <CANOLnOMvBFiR2n0BMBO+DQ+b21Veb3r1dsw7C72OSyskxorY0w@mail.gmail.com>
+Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
+From: Grazvydas Ignotas <notasas@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: =?UTF-8?Q?R=C3=A9mi_Denis=2DCourmont?= <remi@remlab.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi,
 
-On Tuesday 02 December 2014 13:21:41 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Drop the duplicate get/set_crop pad ops and only use get/set_selection.
-> It makes no sense to have two duplicate ops in the internal subdev API.
+On Fri, Dec 5, 2014 at 1:46 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Grazvydas,
+>
+> On Thursday 06 November 2014 00:29:53 Grazvydas Ignotas wrote:
+>> On Wed, Nov 5, 2014 at 4:05 PM, Laurent Pinchart wrote:
+>> > Would you be able to capture images from the C920 using yavta, with the
+>> > uvcvideo trace parameter set to 4096, and send me both the yavta log and
+>> > the kernel log ? Let's start with a capture sequence of 50 to 100 images.
+>>
+>> I've done 2 captures, if that helps:
+>> http://notaz.gp2x.de/tmp/c920_yavta/
+>>
+>> The second one was done using low exposure setting, which allows
+>> camera to achieve higher frame rate.
+>
+> Thank you for the log, they were very helpful. They revealed that the USB SOF
+> (Start Of Frame) counter values on the device and host side are not in sync.
+> The counters get incremented are very different rates. What USB controller are
+> you using ?
 
-Totally agreed, thank you for working on this.
+00:1d.7 USB controller: Intel Corporation NM10/ICH7 Family USB2 EHCI
+Controller (rev 01) (prog-if 20 [EHCI])
+        Subsystem: Micro-Star International Co., Ltd. [MSI] Device 7592
+        Flags: bus master, medium devsel, latency 0, IRQ 23
+        Memory at fe9fbc00 (32-bit, non-prefetchable) [size=1K]
+        Capabilities: [50] Power Management version 2
+        Capabilities: [58] Debug port: BAR=1 offset=00a0
+        Kernel driver in use: ehci-pci
 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+If it helps, I could try on an ARM board, currently don't have any
+other x86 hardware around.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/v4l2-core/v4l2-subdev.c | 8 --------
->  include/media/v4l2-subdev.h           | 4 ----
->  2 files changed, 12 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
-> b/drivers/media/v4l2-core/v4l2-subdev.c index 543631c..19a034e 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -283,10 +283,6 @@ static long subdev_do_ioctl(struct file *file, unsigned
-> int cmd, void *arg) if (rval)
->  			return rval;
-> 
-> -		rval = v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-> -		if (rval != -ENOIOCTLCMD)
-> -			return rval;
-> -
->  		memset(&sel, 0, sizeof(sel));
->  		sel.which = crop->which;
->  		sel.pad = crop->pad;
-> @@ -308,10 +304,6 @@ static long subdev_do_ioctl(struct file *file, unsigned
-> int cmd, void *arg) if (rval)
->  			return rval;
-> 
-> -		rval = v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-> -		if (rval != -ENOIOCTLCMD)
-> -			return rval;
-> -
->  		memset(&sel, 0, sizeof(sel));
->  		sel.which = crop->which;
->  		sel.pad = crop->pad;
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 5860292..b052184 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -503,10 +503,6 @@ struct v4l2_subdev_pad_ops {
->  		       struct v4l2_subdev_format *format);
->  	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->  		       struct v4l2_subdev_format *format);
-> -	int (*set_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> -		       struct v4l2_subdev_crop *crop);
-> -	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> -		       struct v4l2_subdev_crop *crop);
->  	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->  			     struct v4l2_subdev_selection *sel);
->  	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-
--- 
-Regards,
-
-Laurent Pinchart
-
+--
+Gražvydas
