@@ -1,410 +1,673 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:37815 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750924AbaLEKuD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 05:50:03 -0500
-Received: by mail-pa0-f53.google.com with SMTP id kq14so483274pab.12
-        for <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 02:50:03 -0800 (PST)
-From: tskd08@gmail.com
+Received: from mail.kapsi.fi ([217.30.184.167]:47341 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751244AbaLFVfN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Dec 2014 16:35:13 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [RFC/PATCH] dvb-core: add template code for i2c binding model
-Date: Fri,  5 Dec 2014 19:49:33 +0900
-Message-Id: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 02/22] si2168: rename device state variable from 's' to 'dev'
+Date: Sat,  6 Dec 2014 23:34:36 +0200
+Message-Id: <1417901696-5517-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
+References: <1417901696-5517-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+'dev' is most common name in kernel for structure containing device
+state instance, so rename it.
 
-Define a standard interface for demod/tuner i2c driver modules.
-A module client calls dvb_i2c_attach_{fe,tuner}(),
-and a module driver defines struct dvb_i2c_module_param and
-calls DEFINE_DVB_I2C_MODULE() macro.
-
-This template provides implicit module requests and ref-counting,
-alloc/free's private data structures,
-fixes the usage of clientdata of i2c devices,
-and defines the platformdata structures for passing around
-device specific config/output parameters between drivers and clients.
-These kinds of code are common to (almost) all dvb i2c drivers/client,
-but they were scattered over adapter modules and demod/tuner modules.
-
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-core/Makefile       |   4 +
- drivers/media/dvb-core/dvb_frontend.h |   1 +
- drivers/media/dvb-core/dvb_i2c.c      | 219 ++++++++++++++++++++++++++++++++++
- drivers/media/dvb-core/dvb_i2c.h      | 110 +++++++++++++++++
- 4 files changed, 334 insertions(+)
- create mode 100644 drivers/media/dvb-core/dvb_i2c.c
- create mode 100644 drivers/media/dvb-core/dvb_i2c.h
+ drivers/media/dvb-frontends/si2168.c      | 202 +++++++++++++++---------------
+ drivers/media/dvb-frontends/si2168_priv.h |   2 +-
+ 2 files changed, 102 insertions(+), 102 deletions(-)
 
-diff --git a/drivers/media/dvb-core/Makefile b/drivers/media/dvb-core/Makefile
-index 8f22bcd..271648d 100644
---- a/drivers/media/dvb-core/Makefile
-+++ b/drivers/media/dvb-core/Makefile
-@@ -8,4 +8,8 @@ dvb-core-objs := dvbdev.o dmxdev.o dvb_demux.o dvb_filter.o 	\
- 		 dvb_ca_en50221.o dvb_frontend.o 		\
- 		 $(dvb-net-y) dvb_ringbuffer.o dvb_math.o
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index acf0fc3..e989bd4 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -19,16 +19,16 @@
+ static const struct dvb_frontend_ops si2168_ops;
  
-+ifneq ($(CONFIG_I2C)$(CONFIG_I2C_MODULE),)
-+dvb-core-objs += dvb_i2c.o
-+endif
-+
- obj-$(CONFIG_DVB_CORE) += dvb-core.o
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 816269e..41aae1b 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -415,6 +415,7 @@ struct dtv_frontend_properties {
- struct dvb_frontend {
- 	struct dvb_frontend_ops ops;
- 	struct dvb_adapter *dvb;
-+	struct i2c_client *fe_cl;
- 	void *demodulator_priv;
- 	void *tuner_priv;
- 	void *frontend_priv;
-diff --git a/drivers/media/dvb-core/dvb_i2c.c b/drivers/media/dvb-core/dvb_i2c.c
-new file mode 100644
-index 0000000..4ea4e5e
---- /dev/null
-+++ b/drivers/media/dvb-core/dvb_i2c.c
-@@ -0,0 +1,219 @@
-+/*
-+ * dvb_i2c.c
-+ *
-+ * Copyright 2014 Akihiro Tsukada <tskd08 AT gmail DOT com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
-+ *
-+ */
-+
-+#include "dvb_i2c.h"
-+
-+static struct i2c_client *
-+dvb_i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info *info,
-+		   const unsigned short *probe_addrs)
-+{
-+	struct i2c_client *cl;
-+
-+	request_module(I2C_MODULE_PREFIX "%s", info->type);
-+	/* Create the i2c client */
-+	if (info->addr == 0 && probe_addrs)
-+		cl = i2c_new_probed_device(adap, info, probe_addrs, NULL);
-+	else
-+		cl = i2c_new_device(adap, info);
-+	if (!cl || !cl->dev.driver)
-+		return NULL;
-+	return cl;
-+}
-+
-+struct dvb_frontend *
-+dvb_i2c_attach_fe(struct i2c_adapter *adap, const struct i2c_board_info *info,
-+		  const void *cfg, void **out)
-+{
-+	struct i2c_client *cl;
-+	struct i2c_board_info bi;
-+	struct dvb_i2c_dev_config dcfg;
-+
-+	dcfg.priv_cfg = cfg;
-+	dcfg.out = out;
-+	bi = *info;
-+	bi.platform_data = &dcfg;
-+
-+	cl = dvb_i2c_new_device(adap, &bi, NULL);
-+	if (!cl)
-+		return NULL;
-+	return i2c_get_clientdata(cl);
-+}
-+EXPORT_SYMBOL(dvb_i2c_attach_fe);
-+
-+struct i2c_client *
-+dvb_i2c_attach_tuner(struct i2c_adapter *adap,
-+		     const struct i2c_board_info *info,
-+		     struct dvb_frontend *fe,
-+		     const void *cfg, void **out)
-+{
-+	struct i2c_board_info bi;
-+	struct dvb_i2c_tuner_config tcfg;
-+
-+	tcfg.fe = fe;
-+	tcfg.devcfg.priv_cfg = cfg;
-+	tcfg.devcfg.out = out;
-+	bi = *info;
-+	bi.platform_data = &tcfg;
-+
-+	return dvb_i2c_new_device(adap, &bi, NULL);
-+}
-+EXPORT_SYMBOL(dvb_i2c_attach_tuner);
-+
-+
-+static int
-+probe_tuner(struct i2c_client *client, const struct i2c_device_id *id,
-+	    const struct dvb_i2c_module_param *param,
-+	    struct module *this_module)
-+{
-+	struct dvb_frontend *fe;
-+	struct dvb_i2c_tuner_config *tcfg;
-+	int ret;
-+
-+	if (!try_module_get(this_module))
-+		return -ENODEV;
-+
-+	tcfg = client->dev.platform_data;
-+	fe = tcfg->fe;
-+	i2c_set_clientdata(client, fe);
-+
-+	if (param->priv_size > 0) {
-+		fe->tuner_priv = kzalloc(param->priv_size, GFP_KERNEL);
-+		if (!fe->tuner_priv) {
-+			ret = -ENOMEM;
-+			goto err_mem;
-+		}
-+	}
-+
-+	if (param->ops.tuner_ops)
-+		memcpy(&fe->ops.tuner_ops, param->ops.tuner_ops,
-+			sizeof(fe->ops.tuner_ops));
-+
-+	ret = 0;
-+	if (param->priv_probe)
-+		ret = param->priv_probe(client, id);
-+	if (ret != 0) {
-+		dev_info(&client->dev, "driver private probe failed.\n");
-+		goto err_priv;
-+	}
-+	return 0;
-+
-+err_priv:
-+	kfree(fe->tuner_priv);
-+err_mem:
-+	fe->tuner_priv = NULL;
-+	module_put(this_module);
-+	return ret;
-+}
-+
-+static int remove_tuner(struct i2c_client *client,
-+			const struct dvb_i2c_module_param *param,
-+			struct module *this_module)
-+{
-+	struct dvb_frontend *fe;
-+
-+	if (param->priv_remove)
-+		param->priv_remove(client);
-+	fe = i2c_get_clientdata(client);
-+	kfree(fe->tuner_priv);
-+	fe->tuner_priv = NULL;
-+	module_put(this_module);
-+	return 0;
-+}
-+
-+
-+static int probe_fe(struct i2c_client *client, const struct i2c_device_id *id,
-+		    const struct dvb_i2c_module_param *param,
-+		    struct module *this_module)
-+{
-+	struct dvb_frontend *fe;
-+	int ret;
-+
-+	if (!try_module_get(this_module))
-+		return -ENODEV;
-+
-+	fe = kzalloc(sizeof(*fe), GFP_KERNEL);
-+	if (!fe) {
-+		ret = -ENOMEM;
-+		goto err_fe_kfree;
-+	}
-+	i2c_set_clientdata(client, fe);
-+	fe->fe_cl = client;
-+
-+	if (param->priv_size > 0) {
-+		fe->demodulator_priv = kzalloc(param->priv_size, GFP_KERNEL);
-+		if (!fe->demodulator_priv) {
-+			ret = -ENOMEM;
-+			goto err_fe_kfree;
-+		}
-+	}
-+
-+	if (param->ops.fe_ops)
-+		memcpy(&fe->ops, param->ops.fe_ops, sizeof(fe->ops));
-+
-+	ret = 0;
-+	if (param->priv_probe)
-+		ret = param->priv_probe(client, id);
-+	if (ret != 0) {
-+		dev_info(&client->dev, "driver private probe failed.\n");
-+		goto err_priv_kfree;
-+	}
-+	return 0;
-+
-+err_priv_kfree:
-+	kfree(fe->demodulator_priv);
-+err_fe_kfree:
-+	kfree(fe);
-+	module_put(this_module);
-+	return ret;
-+}
-+
-+static int remove_fe(struct i2c_client *client,
-+		     const struct dvb_i2c_module_param *param,
-+		     struct module *this_module)
-+{
-+	struct dvb_frontend *fe;
-+
-+	if (param->priv_remove)
-+		param->priv_remove(client);
-+	fe = i2c_get_clientdata(client);
-+	kfree(fe->demodulator_priv);
-+	kfree(fe);
-+	module_put(this_module);
-+	return 0;
-+}
-+
-+
-+int dvb_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id,
-+		  const struct dvb_i2c_module_param *param,
-+		  struct module *this_module)
-+{
-+	return param->is_tuner ? probe_tuner(client, id, param, this_module) :
-+				 probe_fe(client, id, param, this_module);
-+}
-+EXPORT_SYMBOL(dvb_i2c_probe);
-+
-+int dvb_i2c_remove(struct i2c_client *client,
-+		   const struct dvb_i2c_module_param *param,
-+		   struct module *this_module)
-+{
-+	return param->is_tuner ? remove_tuner(client, param, this_module) :
-+				 remove_fe(client, param, this_module);
-+}
-+EXPORT_SYMBOL(dvb_i2c_remove);
-diff --git a/drivers/media/dvb-core/dvb_i2c.h b/drivers/media/dvb-core/dvb_i2c.h
-new file mode 100644
-index 0000000..2bf409d
---- /dev/null
-+++ b/drivers/media/dvb-core/dvb_i2c.h
-@@ -0,0 +1,110 @@
-+/*
-+ * dvb_i2c.h
-+ *
-+ * Copyright 2014 Akihiro Tsukada <tskd08 AT gmail DOT com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
-+ *
-+ */
-+
-+/* template code for i2c driver modules */
-+
-+#ifndef _DVB_I2C_H_
-+#define _DVB_I2C_H_
-+
-+#include <linux/i2c.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+
-+#include "dvb_frontend.h"
-+
-+/* interface for module clients */
-+
-+struct dvb_frontend *dvb_i2c_attach_fe(struct i2c_adapter *adap,
-+				       const struct i2c_board_info *info,
-+				       const void *cfg, void **out);
-+
-+struct i2c_client *dvb_i2c_attach_tuner(struct i2c_adapter *adap,
-+					const struct i2c_board_info *info,
-+					struct dvb_frontend *fe,
-+					const void *cfg, void **out);
-+
-+/* interface for module drivers */
-+
-+/* data structures that are set to i2c_client.dev.platform_data */
-+
-+struct dvb_i2c_dev_config {
-+	const void *priv_cfg;
-+	/* @out [OUT] pointer to per-device data returned from driver */
-+	void **out;
-+};
-+
-+struct dvb_i2c_tuner_config {
-+	struct dvb_frontend *fe;
-+	struct dvb_i2c_dev_config devcfg;
-+};
-+
-+typedef int (*dvb_i2c_probe_func)(struct i2c_client *client,
-+				  const struct i2c_device_id *id);
-+typedef int (*dvb_i2c_remove_func)(struct i2c_client *client);
-+
-+struct dvb_i2c_module_param {
-+	union {
-+		const struct dvb_frontend_ops *fe_ops;
-+		const struct dvb_tuner_ops *tuner_ops;
-+	} ops;
-+	/* driver private probe/remove functions */
-+	dvb_i2c_probe_func  priv_probe;
-+	dvb_i2c_remove_func priv_remove;
-+
-+	u32 priv_size; /* sizeof(device private data) */
-+	bool is_tuner;
-+};
-+
-+
-+int dvb_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id,
-+		  const struct dvb_i2c_module_param *param,
-+		  struct module *this_module);
-+
-+int dvb_i2c_remove(struct i2c_client *client,
-+		   const struct dvb_i2c_module_param *param,
-+		   struct module *this_module);
-+
-+
-+#define DEFINE_DVB_I2C_MODULE(dname, idtab, param) \
-+static int _##dname##_probe(struct i2c_client *client,\
-+				const struct i2c_device_id *id)\
-+{\
-+	return dvb_i2c_probe(client, id, &(param), THIS_MODULE);\
-+} \
-+\
-+static int _##dname##_remove(struct i2c_client *client)\
-+{\
-+	return dvb_i2c_remove(client, &(param), THIS_MODULE);\
-+} \
-+\
-+MODULE_DEVICE_TABLE(i2c, idtab);\
-+\
-+static struct i2c_driver dname##_driver = {\
-+	.driver = {\
-+		.name = #dname,\
-+	},\
-+	.probe    = _##dname##_probe,\
-+	.remove   = _##dname##_remove,\
-+	.id_table = idtab,\
-+};\
-+\
-+module_i2c_driver(dname##_driver)
-+
-+#endif /* _DVB_I2C_H */
+ /* execute firmware command */
+-static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
++static int si2168_cmd_execute(struct si2168_dev *dev, struct si2168_cmd *cmd)
+ {
+ 	int ret;
+ 	unsigned long timeout;
+ 
+-	mutex_lock(&s->i2c_mutex);
++	mutex_lock(&dev->i2c_mutex);
+ 
+ 	if (cmd->wlen) {
+ 		/* write cmd and args for firmware */
+-		ret = i2c_master_send(s->client, cmd->args, cmd->wlen);
++		ret = i2c_master_send(dev->client, cmd->args, cmd->wlen);
+ 		if (ret < 0) {
+ 			goto err_mutex_unlock;
+ 		} else if (ret != cmd->wlen) {
+@@ -42,7 +42,7 @@ static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
+ 		#define TIMEOUT 50
+ 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
+ 		while (!time_after(jiffies, timeout)) {
+-			ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
++			ret = i2c_master_recv(dev->client, cmd->args, cmd->rlen);
+ 			if (ret < 0) {
+ 				goto err_mutex_unlock;
+ 			} else if (ret != cmd->rlen) {
+@@ -55,7 +55,7 @@ static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
+ 				break;
+ 		}
+ 
+-		dev_dbg(&s->client->dev, "cmd execution took %d ms\n",
++		dev_dbg(&dev->client->dev, "cmd execution took %d ms\n",
+ 				jiffies_to_msecs(jiffies) -
+ 				(jiffies_to_msecs(timeout) - TIMEOUT));
+ 
+@@ -68,26 +68,26 @@ static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
+ 	ret = 0;
+ 
+ err_mutex_unlock:
+-	mutex_unlock(&s->i2c_mutex);
++	mutex_unlock(&dev->i2c_mutex);
+ 	if (ret)
+ 		goto err;
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&s->client->dev, "failed=%d\n", ret);
++	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ {
+-	struct si2168 *s = fe->demodulator_priv;
++	struct si2168_dev *dev = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 	struct si2168_cmd cmd;
+ 
+ 	*status = 0;
+ 
+-	if (!s->active) {
++	if (!dev->active) {
+ 		ret = -EAGAIN;
+ 		goto err;
+ 	}
+@@ -113,7 +113,7 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 		goto err;
+ 	}
+ 
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -138,7 +138,7 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 		break;
+ 	}
+ 
+-	s->fe_status = *status;
++	dev->fe_status = *status;
+ 
+ 	if (*status & FE_HAS_LOCK) {
+ 		c->cnr.len = 1;
+@@ -149,30 +149,30 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	}
+ 
+-	dev_dbg(&s->client->dev, "status=%02x args=%*ph\n",
++	dev_dbg(&dev->client->dev, "status=%02x args=%*ph\n",
+ 			*status, cmd.rlen, cmd.args);
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&s->client->dev, "failed=%d\n", ret);
++	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+ static int si2168_set_frontend(struct dvb_frontend *fe)
+ {
+-	struct si2168 *s = fe->demodulator_priv;
++	struct si2168_dev *dev = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 	struct si2168_cmd cmd;
+ 	u8 bandwidth, delivery_system;
+ 
+-	dev_dbg(&s->client->dev,
++	dev_dbg(&dev->client->dev,
+ 			"delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u, stream_id=%d\n",
+ 			c->delivery_system, c->modulation,
+ 			c->frequency, c->bandwidth_hz, c->symbol_rate,
+ 			c->inversion, c->stream_id);
+ 
+-	if (!s->active) {
++	if (!dev->active) {
+ 		ret = -EAGAIN;
+ 		goto err;
+ 	}
+@@ -217,7 +217,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 	memcpy(cmd.args, "\x88\x02\x02\x02\x02", 5);
+ 	cmd.wlen = 5;
+ 	cmd.rlen = 5;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -230,7 +230,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 		memcpy(cmd.args, "\x89\x21\x06\x11\x89\x20", 6);
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 3;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -241,7 +241,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 		cmd.args[2] = c->stream_id == NO_STREAM_ID_FILTER ? 0 : 1;
+ 		cmd.wlen = 3;
+ 		cmd.rlen = 1;
+-		ret = si2168_cmd_execute(s, &cmd);
++		ret = si2168_cmd_execute(dev, &cmd);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -249,35 +249,35 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 	memcpy(cmd.args, "\x51\x03", 2);
+ 	cmd.wlen = 2;
+ 	cmd.rlen = 12;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+ 	memcpy(cmd.args, "\x12\x08\x04", 3);
+ 	cmd.wlen = 3;
+ 	cmd.rlen = 3;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+ 	memcpy(cmd.args, "\x14\x00\x0c\x10\x12\x00", 6);
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+ 	memcpy(cmd.args, "\x14\x00\x06\x10\x24\x00", 6);
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+ 	memcpy(cmd.args, "\x14\x00\x07\x10\x00\x24", 6);
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -285,7 +285,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 	cmd.args[4] = delivery_system | bandwidth;
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -296,7 +296,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 		cmd.args[5] = ((c->symbol_rate / 1000) >> 8) & 0xff;
+ 		cmd.wlen = 6;
+ 		cmd.rlen = 4;
+-		ret = si2168_cmd_execute(s, &cmd);
++		ret = si2168_cmd_execute(dev, &cmd);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -304,58 +304,58 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 	memcpy(cmd.args, "\x14\x00\x0f\x10\x10\x00", 6);
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+ 	memcpy(cmd.args, "\x14\x00\x09\x10\xe3\x08", 6);
+-	cmd.args[5] |= s->ts_clock_inv ? 0x00 : 0x10;
++	cmd.args[5] |= dev->ts_clock_inv ? 0x00 : 0x10;
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+ 	memcpy(cmd.args, "\x14\x00\x08\x10\xd7\x05", 6);
+-	cmd.args[5] |= s->ts_clock_inv ? 0x00 : 0x10;
++	cmd.args[5] |= dev->ts_clock_inv ? 0x00 : 0x10;
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+ 	memcpy(cmd.args, "\x14\x00\x01\x12\x00\x00", 6);
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+ 	memcpy(cmd.args, "\x14\x00\x01\x03\x0c\x00", 6);
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+ 	memcpy(cmd.args, "\x85", 1);
+ 	cmd.wlen = 1;
+ 	cmd.rlen = 1;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+-	s->delivery_system = c->delivery_system;
++	dev->delivery_system = c->delivery_system;
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&s->client->dev, "failed=%d\n", ret);
++	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+ static int si2168_init(struct dvb_frontend *fe)
+ {
+-	struct si2168 *s = fe->demodulator_priv;
++	struct si2168_dev *dev = fe->demodulator_priv;
+ 	int ret, len, remaining;
+ 	const struct firmware *fw = NULL;
+ 	u8 *fw_file;
+@@ -363,29 +363,29 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	struct si2168_cmd cmd;
+ 	unsigned int chip_id;
+ 
+-	dev_dbg(&s->client->dev, "\n");
++	dev_dbg(&dev->client->dev, "\n");
+ 
+ 	/* initialize */
+ 	memcpy(cmd.args, "\xc0\x12\x00\x0c\x00\x0d\x16\x00\x00\x00\x00\x00\x00", 13);
+ 	cmd.wlen = 13;
+ 	cmd.rlen = 0;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+-	if (s->fw_loaded) {
++	if (dev->fw_loaded) {
+ 		/* resume */
+ 		memcpy(cmd.args, "\xc0\x06\x08\x0f\x00\x20\x21\x01", 8);
+ 		cmd.wlen = 8;
+ 		cmd.rlen = 1;
+-		ret = si2168_cmd_execute(s, &cmd);
++		ret = si2168_cmd_execute(dev, &cmd);
+ 		if (ret)
+ 			goto err;
+ 
+ 		memcpy(cmd.args, "\x85", 1);
+ 		cmd.wlen = 1;
+ 		cmd.rlen = 1;
+-		ret = si2168_cmd_execute(s, &cmd);
++		ret = si2168_cmd_execute(dev, &cmd);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -396,7 +396,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	memcpy(cmd.args, "\xc0\x06\x01\x0f\x00\x20\x20\x01", 8);
+ 	cmd.wlen = 8;
+ 	cmd.rlen = 1;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -404,7 +404,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	memcpy(cmd.args, "\x02", 1);
+ 	cmd.wlen = 1;
+ 	cmd.rlen = 13;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -426,7 +426,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 		fw_file = SI2168_B40_FIRMWARE;
+ 		break;
+ 	default:
+-		dev_err(&s->client->dev,
++		dev_err(&dev->client->dev,
+ 				"unknown chip version Si21%d-%c%c%c\n",
+ 				cmd.args[2], cmd.args[1],
+ 				cmd.args[3], cmd.args[4]);
+@@ -435,31 +435,31 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	}
+ 
+ 	/* cold state - try to download firmware */
+-	dev_info(&s->client->dev, "found a '%s' in cold state\n",
++	dev_info(&dev->client->dev, "found a '%s' in cold state\n",
+ 			si2168_ops.info.name);
+ 
+ 	/* request the firmware, this will block and timeout */
+-	ret = request_firmware(&fw, fw_file, &s->client->dev);
++	ret = request_firmware(&fw, fw_file, &dev->client->dev);
+ 	if (ret) {
+ 		/* fallback mechanism to handle old name for Si2168 B40 fw */
+ 		if (chip_id == SI2168_B40) {
+ 			fw_file = SI2168_B40_FIRMWARE_FALLBACK;
+-			ret = request_firmware(&fw, fw_file, &s->client->dev);
++			ret = request_firmware(&fw, fw_file, &dev->client->dev);
+ 		}
+ 
+ 		if (ret == 0) {
+-			dev_notice(&s->client->dev,
++			dev_notice(&dev->client->dev,
+ 					"please install firmware file '%s'\n",
+ 					SI2168_B40_FIRMWARE);
+ 		} else {
+-			dev_err(&s->client->dev,
++			dev_err(&dev->client->dev,
+ 					"firmware file '%s' not found\n",
+ 					fw_file);
+ 			goto error_fw_release;
+ 		}
+ 	}
+ 
+-	dev_info(&s->client->dev, "downloading firmware from file '%s'\n",
++	dev_info(&dev->client->dev, "downloading firmware from file '%s'\n",
+ 			fw_file);
+ 
+ 	if ((fw->size % 17 == 0) && (fw->data[0] > 5)) {
+@@ -469,9 +469,9 @@ static int si2168_init(struct dvb_frontend *fe)
+ 			memcpy(cmd.args, &fw->data[(fw->size - remaining) + 1], len);
+ 			cmd.wlen = len;
+ 			cmd.rlen = 1;
+-			ret = si2168_cmd_execute(s, &cmd);
++			ret = si2168_cmd_execute(dev, &cmd);
+ 			if (ret) {
+-				dev_err(&s->client->dev,
++				dev_err(&dev->client->dev,
+ 						"firmware download failed=%d\n",
+ 						ret);
+ 				goto error_fw_release;
+@@ -487,9 +487,9 @@ static int si2168_init(struct dvb_frontend *fe)
+ 			memcpy(cmd.args, &fw->data[fw->size - remaining], len);
+ 			cmd.wlen = len;
+ 			cmd.rlen = 1;
+-			ret = si2168_cmd_execute(s, &cmd);
++			ret = si2168_cmd_execute(dev, &cmd);
+ 			if (ret) {
+-				dev_err(&s->client->dev,
++				dev_err(&dev->client->dev,
+ 						"firmware download failed=%d\n",
+ 						ret);
+ 				goto error_fw_release;
+@@ -503,7 +503,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	memcpy(cmd.args, "\x01\x01", 2);
+ 	cmd.wlen = 2;
+ 	cmd.rlen = 1;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -511,58 +511,58 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	memcpy(cmd.args, "\x11", 1);
+ 	cmd.wlen = 1;
+ 	cmd.rlen = 10;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+-	dev_dbg(&s->client->dev, "firmware version: %c.%c.%d\n",
++	dev_dbg(&dev->client->dev, "firmware version: %c.%c.%d\n",
+ 			cmd.args[6], cmd.args[7], cmd.args[8]);
+ 
+ 	/* set ts mode */
+ 	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
+-	cmd.args[4] |= s->ts_mode;
++	cmd.args[4] |= dev->ts_mode;
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+-	s->fw_loaded = true;
++	dev->fw_loaded = true;
+ 
+-	dev_info(&s->client->dev, "found a '%s' in warm state\n",
++	dev_info(&dev->client->dev, "found a '%s' in warm state\n",
+ 			si2168_ops.info.name);
+ warm:
+-	s->active = true;
++	dev->active = true;
+ 
+ 	return 0;
+ 
+ error_fw_release:
+ 	release_firmware(fw);
+ err:
+-	dev_dbg(&s->client->dev, "failed=%d\n", ret);
++	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+ static int si2168_sleep(struct dvb_frontend *fe)
+ {
+-	struct si2168 *s = fe->demodulator_priv;
++	struct si2168_dev *dev = fe->demodulator_priv;
+ 	int ret;
+ 	struct si2168_cmd cmd;
+ 
+-	dev_dbg(&s->client->dev, "\n");
++	dev_dbg(&dev->client->dev, "\n");
+ 
+-	s->active = false;
++	dev->active = false;
+ 
+ 	memcpy(cmd.args, "\x13", 1);
+ 	cmd.wlen = 1;
+ 	cmd.rlen = 0;
+-	ret = si2168_cmd_execute(s, &cmd);
++	ret = si2168_cmd_execute(dev, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&s->client->dev, "failed=%d\n", ret);
++	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -581,21 +581,21 @@ static int si2168_get_tune_settings(struct dvb_frontend *fe,
+  */
+ static int si2168_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
+ {
+-	struct si2168 *s = mux_priv;
++	struct si2168_dev *dev = mux_priv;
+ 	int ret;
+ 	struct i2c_msg gate_open_msg = {
+-		.addr = s->client->addr,
++		.addr = dev->client->addr,
+ 		.flags = 0,
+ 		.len = 3,
+ 		.buf = "\xc0\x0d\x01",
+ 	};
+ 
+-	mutex_lock(&s->i2c_mutex);
++	mutex_lock(&dev->i2c_mutex);
+ 
+ 	/* open tuner I2C gate */
+-	ret = __i2c_transfer(s->client->adapter, &gate_open_msg, 1);
++	ret = __i2c_transfer(dev->client->adapter, &gate_open_msg, 1);
+ 	if (ret != 1) {
+-		dev_warn(&s->client->dev, "i2c write failed=%d\n", ret);
++		dev_warn(&dev->client->dev, "i2c write failed=%d\n", ret);
+ 		if (ret >= 0)
+ 			ret = -EREMOTEIO;
+ 	} else {
+@@ -607,26 +607,26 @@ static int si2168_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
+ 
+ static int si2168_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
+ {
+-	struct si2168 *s = mux_priv;
++	struct si2168_dev *dev = mux_priv;
+ 	int ret;
+ 	struct i2c_msg gate_close_msg = {
+-		.addr = s->client->addr,
++		.addr = dev->client->addr,
+ 		.flags = 0,
+ 		.len = 3,
+ 		.buf = "\xc0\x0d\x00",
+ 	};
+ 
+ 	/* close tuner I2C gate */
+-	ret = __i2c_transfer(s->client->adapter, &gate_close_msg, 1);
++	ret = __i2c_transfer(dev->client->adapter, &gate_close_msg, 1);
+ 	if (ret != 1) {
+-		dev_warn(&s->client->dev, "i2c write failed=%d\n", ret);
++		dev_warn(&dev->client->dev, "i2c write failed=%d\n", ret);
+ 		if (ret >= 0)
+ 			ret = -EREMOTEIO;
+ 	} else {
+ 		ret = 0;
+ 	}
+ 
+-	mutex_unlock(&s->i2c_mutex);
++	mutex_unlock(&dev->i2c_mutex);
+ 
+ 	return ret;
+ }
+@@ -672,62 +672,62 @@ static int si2168_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *id)
+ {
+ 	struct si2168_config *config = client->dev.platform_data;
+-	struct si2168 *s;
++	struct si2168_dev *dev;
+ 	int ret;
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+-	s = kzalloc(sizeof(struct si2168), GFP_KERNEL);
+-	if (!s) {
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev) {
+ 		ret = -ENOMEM;
+ 		dev_err(&client->dev, "kzalloc() failed\n");
+ 		goto err;
+ 	}
+ 
+-	s->client = client;
+-	mutex_init(&s->i2c_mutex);
++	dev->client = client;
++	mutex_init(&dev->i2c_mutex);
+ 
+ 	/* create mux i2c adapter for tuner */
+-	s->adapter = i2c_add_mux_adapter(client->adapter, &client->dev, s,
++	dev->adapter = i2c_add_mux_adapter(client->adapter, &client->dev, dev,
+ 			0, 0, 0, si2168_select, si2168_deselect);
+-	if (s->adapter == NULL) {
++	if (dev->adapter == NULL) {
+ 		ret = -ENODEV;
+ 		goto err;
+ 	}
+ 
+ 	/* create dvb_frontend */
+-	memcpy(&s->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
+-	s->fe.demodulator_priv = s;
++	memcpy(&dev->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
++	dev->fe.demodulator_priv = dev;
+ 
+-	*config->i2c_adapter = s->adapter;
+-	*config->fe = &s->fe;
+-	s->ts_mode = config->ts_mode;
+-	s->ts_clock_inv = config->ts_clock_inv;
+-	s->fw_loaded = false;
++	*config->i2c_adapter = dev->adapter;
++	*config->fe = &dev->fe;
++	dev->ts_mode = config->ts_mode;
++	dev->ts_clock_inv = config->ts_clock_inv;
++	dev->fw_loaded = false;
+ 
+-	i2c_set_clientdata(client, s);
++	i2c_set_clientdata(client, dev);
+ 
+-	dev_info(&s->client->dev,
++	dev_info(&dev->client->dev,
+ 			"Silicon Labs Si2168 successfully attached\n");
+ 	return 0;
+ err:
+-	kfree(s);
++	kfree(dev);
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+ static int si2168_remove(struct i2c_client *client)
+ {
+-	struct si2168 *s = i2c_get_clientdata(client);
++	struct si2168_dev *dev = i2c_get_clientdata(client);
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+-	i2c_del_mux_adapter(s->adapter);
++	i2c_del_mux_adapter(dev->adapter);
+ 
+-	s->fe.ops.release = NULL;
+-	s->fe.demodulator_priv = NULL;
++	dev->fe.ops.release = NULL;
++	dev->fe.demodulator_priv = NULL;
+ 
+-	kfree(s);
++	kfree(dev);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+index 60bc334..cb8827a 100644
+--- a/drivers/media/dvb-frontends/si2168_priv.h
++++ b/drivers/media/dvb-frontends/si2168_priv.h
+@@ -28,7 +28,7 @@
+ #define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
+ 
+ /* state struct */
+-struct si2168 {
++struct si2168_dev {
+ 	struct i2c_client *client;
+ 	struct i2c_adapter *adapter;
+ 	struct mutex i2c_mutex;
 -- 
-2.1.3
+http://palosaari.fi/
 
