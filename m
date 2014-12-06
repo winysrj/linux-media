@@ -1,41 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:10917 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755226AbaLHLE4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 06:04:56 -0500
-Message-id: <548585C5.3000209@samsung.com>
-Date: Mon, 08 Dec 2014 12:04:37 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v2 01/11] media: s3c-camif: use vb2_ops_wait_prepare/finish
- helper
-References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
- <1417041754-8714-2-git-send-email-prabhakar.csengg@gmail.com>
-In-reply-to: <1417041754-8714-2-git-send-email-prabhakar.csengg@gmail.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:43452 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752454AbaLFVfP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Dec 2014 16:35:15 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 18/22] si2157: trivial ID table changes
+Date: Sat,  6 Dec 2014 23:34:52 +0200
+Message-Id: <1417901696-5517-18-git-send-email-crope@iki.fi>
+In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
+References: <1417901696-5517-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/11/14 23:42, Lad, Prabhakar wrote:
-> This patch drops driver specific wait_prepare() and
-> wait_finish() callbacks from vb2_ops and instead uses
-> the the helpers vb2_ops_wait_prepare/finish() provided
-> by the vb2 core, the lock member of the queue needs
-> to be initalized to a mutex so that vb2 helpers
-> vb2_ops_wait_prepare/finish() can make use of it.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+- Rename ID table.
+- Remove magic numbers from ID table driver data field.
 
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/si2157.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 6174c8e..211d500 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -383,12 +383,12 @@ static int si2157_remove(struct i2c_client *client)
+ 	return 0;
+ }
+ 
+-static const struct i2c_device_id si2157_id[] = {
+-	{"si2157", 0},
+-	{"si2146", 1},
++static const struct i2c_device_id si2157_id_table[] = {
++	{"si2157", SI2157_CHIPTYPE_SI2157},
++	{"si2146", SI2157_CHIPTYPE_SI2146},
+ 	{}
+ };
+-MODULE_DEVICE_TABLE(i2c, si2157_id);
++MODULE_DEVICE_TABLE(i2c, si2157_id_table);
+ 
+ static struct i2c_driver si2157_driver = {
+ 	.driver = {
+@@ -397,7 +397,7 @@ static struct i2c_driver si2157_driver = {
+ 	},
+ 	.probe		= si2157_probe,
+ 	.remove		= si2157_remove,
+-	.id_table	= si2157_id,
++	.id_table	= si2157_id_table,
+ };
+ 
+ module_i2c_driver(si2157_driver);
 -- 
-Thanks,
-Sylwester
+http://palosaari.fi/
+
