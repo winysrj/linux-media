@@ -1,1418 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:33355 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933184AbaLKBTx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 20:19:53 -0500
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-	by mailout.nyi.internal (Postfix) with ESMTP id C558F208DD
-	for <linux-media@vger.kernel.org>; Wed, 10 Dec 2014 20:19:52 -0500 (EST)
-Message-ID: <5488F136.6050907@williammanley.net>
-Date: Thu, 11 Dec 2014 01:19:50 +0000
-From: William Manley <will@williammanley.net>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:39788 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751421AbaLFPkz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Dec 2014 10:40:55 -0500
+Received: by mail-wi0-f176.google.com with SMTP id ex7so1263685wid.3
+        for <linux-media@vger.kernel.org>; Sat, 06 Dec 2014 07:40:54 -0800 (PST)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, m.chehab@samsung.com
-Subject: Re: [PATCH] [media] uvcvideo: Add GUID for BGR 8:8:8
-References: <1418065078-27791-1-git-send-email-will@williammanley.net> <1514839.CAtLhmhmvy@avalon>
-In-Reply-To: <1514839.CAtLhmhmvy@avalon>
-Content-Type: multipart/mixed;
- boundary="------------020500040300090904070207"
+In-Reply-To: <CAKdnbx7EOMfFHmhwXVHP+V7-c+Lh+es+oN4e45q04M4BCccz5A@mail.gmail.com>
+References: <72f12ec0f50db8495447b3104923aa61@mail.vanmierlo.nu>
+	<52F01925.4060701@iki.fi>
+	<CAKdnbx4869X8nfX3u--3nW4nVPc+FU0F5RiX6KSGQRmC1gDZjQ@mail.gmail.com>
+	<5481CB18.5020603@iki.fi>
+	<CAKdnbx7EOMfFHmhwXVHP+V7-c+Lh+es+oN4e45q04M4BCccz5A@mail.gmail.com>
+Date: Sat, 6 Dec 2014 22:40:53 +0700
+Message-ID: <CAAZRmGw4duu3XnCuNjvW034nVtPGJ7U2EWt7oYg3N6DxvenxEA@mail.gmail.com>
+Subject: Re: Terratec H7 with yet another usb ID
+From: Olli Salonen <olli.salonen@iki.fi>
+To: Eddi De Pieri <eddi@depieri.net>
+Cc: Antti Palosaari <crope@iki.fi>, Rik van Mierlo <rik@vanmierlo.nu>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020500040300090904070207
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Hi Eddi,
 
-On 10/12/14 23:54, Laurent Pinchart wrote:
-> Hi William,
-> 
-> Thank you for the patch.
-> 
-> On Monday 08 December 2014 18:57:58 William Manley wrote:
->> The Magewell XI100DUSB-HDMI[1] video capture device reports the pixel
->> format "e436eb7d-524f-11ce-9f53-0020af0ba770".  This is its GUID for
->> BGR 8:8:8.
+As far as I know, the new version of Terratec H7 is another version of
+DVBSky T680CI or TechnoTrend CT2-4650 CI. Just try to change the USB
+IDs in the dvbsky.c driver and compile the driver and test. I'd do
+this for you, but am travelling at the moment and have very limited
+time.
+
+Cheers,
+-olli
+
+On 5 December 2014 at 23:27, Eddi De Pieri <eddi@depieri.net> wrote:
+> Hi Rik,
+>
+>
+> I've download Terratec H7 rev 4 should be a
+> TechnoTrend_TT-TVStick_CT2-44xx clone so you could try to patch
+> dvbsky.c driver.
+>
+> Strings inside the windows driver:
+> T E R R A T E C   S 7   D i g i t a l   T u n e r   ( D V B - S / S 2 )
+> T T - c o n n e c t   C T 2 _ 4 6 5 0   D V B - T / T 2   T u n e r
+> T E R R A T E C   H 7   D i g i t a l   T u n e r   ( D V B - T / T 2 )
+> T T - c o n n e c t   C T 2 _ 4 6 5 0   D V B - C   T u n e r
+> T E R R A T E C   H 7   D i g i t a l   T u n e r   ( D V B - C )
+>
+> Regards...
+> Eddi
+>
+> On Fri, Dec 5, 2014 at 4:11 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> Moikka
+>> Take USB sniffs and generate driver C-code from that sniff. Then copy&paste
+>> that code to driver until is starts working. After that, you could remove
+>> all the code until you find minimum set of needed changes (error and trial).
 >>
->> The UVC 1.5 spec[2] only defines GUIDs for YUY2, NV12, M420 and I420.
->> This seems to be an extension documented in the Microsoft Windows Media
->> Format SDK[3] - or at least the Media Format SDK was the only hit that
->> Google gave when searching for the GUID.  This Media Format SDK defines
->> this GUID as corresponding to `MEDIASUBTYPE_RGB24`.  Note though, the
->> XI100DUSB outputs BGR e.g. byte-reversed.  I don't know if its the
->> capture device in error or Microsoft mean BGR when they say RGB.
-> 
-> I believe Microsoft defines RGB as BGR. They do at least in BMP 
-> (https://en.wikipedia.org/wiki/BMP_file_format), probably because they 
-> consider the RGB pixel to be stored in little-endian format.
-
-Thanks, that's helpful.
-
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> I'll apply the patch to my tree and submit it for v3.20.
-
-Great
-
-> Could you please send me the output of 'lsusb -v' for your device, if possible 
-> running as root ?
-
-lsusb output attached.
-
-Thanks
-
-Will
-
---------------020500040300090904070207
-Content-Type: text/plain; charset=UTF-8;
- name="lsusb-Magewell-XI100DUSB-HDMI.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="lsusb-Magewell-XI100DUSB-HDMI.txt"
-
-Bus 003 Device 002: ID 2935:0001  
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               3.00
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0         9
-  idVendor           0x2935 
-  idProduct          0x0001 
-  bcdDevice            0.00
-  iManufacturer           1 Magewell
-  iProduct                2 XI100DUSB-HDMI
-  iSerial                 0 
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength         2474
-    bNumInterfaces          5
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              200mA
-    Interface Association:
-      bLength                 8
-      bDescriptorType        11
-      bFirstInterface         0
-      bInterfaceCount         2
-      bFunctionClass         14 Video
-      bFunctionSubClass       3 Video Interface Collection
-      bFunctionProtocol       0 
-      iFunction               3 XI100DUSB-HDMI Video
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      1 Video Control
-      bInterfaceProtocol      0 
-      iInterface              3 XI100DUSB-HDMI Video
-      VideoControl Interface Descriptor:
-        bLength                13
-        bDescriptorType        36
-        bDescriptorSubtype      1 (HEADER)
-        bcdUVC               1.00
-        wTotalLength           52
-        dwClockFrequency       48.000000MHz
-        bInCollection           1
-        baInterfaceNr( 0)       1
-      VideoControl Interface Descriptor:
-        bLength                18
-        bDescriptorType        36
-        bDescriptorSubtype      2 (INPUT_TERMINAL)
-        bTerminalID             1
-        wTerminalType      0x0201 Camera Sensor
-        bAssocTerminal          0
-        iTerminal               0 
-        wObjectiveFocalLengthMin      0
-        wObjectiveFocalLengthMax      0
-        wOcularFocalLength            0
-        bControlSize                  3
-        bmControls           0x00000000
-      VideoControl Interface Descriptor:
-        bLength                12
-        bDescriptorType        36
-        bDescriptorSubtype      5 (PROCESSING_UNIT)
-      Warning: Descriptor too short
-        bUnitID                 2
-        bSourceID               1
-        wMaxMultiplier      16384
-        bControlSize            3
-        bmControls     0x0000000f
-          Brightness
-          Contrast
-          Hue
-          Saturation
-        iProcessing             0 
-        bmVideoStandards     0x 9
-          None
-          SECAM - 625/50
-      VideoControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
-        bTerminalID             3
-        wTerminalType      0x0101 USB Streaming
-        bAssocTerminal          0
-        bSourceID               2
-        iTerminal               0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               1
-        bMaxBurst               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              3 XI100DUSB-HDMI Video
-      VideoStreaming Interface Descriptor:
-        bLength                            15
-        bDescriptorType                    36
-        bDescriptorSubtype                  1 (INPUT_HEADER)
-        bNumFormats                         2
-        wTotalLength                     2235
-        bEndPointAddress                  131
-        bmInfo                              0
-        bTerminalLink                       3
-        bStillCaptureMethod                 1
-        bTriggerSupport                     0
-        bTriggerUsage                       0
-        bControlSize                        1
-        bmaControls( 0)                    27
-        bmaControls( 1)                    27
-      VideoStreaming Interface Descriptor:
-        bLength                            27
-        bDescriptorType                    36
-        bDescriptorSubtype                  4 (FORMAT_UNCOMPRESSED)
-        bFormatIndex                        1
-        bNumFrameDescriptors               20
-        guidFormat                            {59555932-0000-1000-8000-00aa00389b71}
-        bBitsPerPixel                      16
-        bDefaultFrameIndex                 19
-        bAspectRatioX                      16
-        bAspectRatioY                       9
-        bmInterlaceFlags                 0x00
-          Interlaced stream or variable: No
-          Fields per frame: 2 fields
-          Field 1 first: No
-          Field pattern: Field 1 only
-          bCopyProtect                      0
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         1
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            640
-        wHeight                           360
-        dwMinBitRate                 55296000
-        dwMaxBitRate                221184000
-        dwMaxVideoFrameBufferSize      460800
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         2
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            640
-        wHeight                           480
-        dwMinBitRate                 73728000
-        dwMaxBitRate                294912000
-        dwMaxVideoFrameBufferSize      614400
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         3
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            720
-        wHeight                           480
-        dwMinBitRate                 82944000
-        dwMaxBitRate                331776000
-        dwMaxVideoFrameBufferSize      691200
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         4
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            720
-        wHeight                           576
-        dwMinBitRate                 99532800
-        dwMaxBitRate                398131200
-        dwMaxVideoFrameBufferSize      829440
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         5
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            768
-        wHeight                           576
-        dwMinBitRate                106168320
-        dwMaxBitRate                424673280
-        dwMaxVideoFrameBufferSize      884736
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         6
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            800
-        wHeight                           600
-        dwMinBitRate                115200000
-        dwMaxBitRate                460800000
-        dwMaxVideoFrameBufferSize      960000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         7
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            856
-        wHeight                           480
-        dwMinBitRate                 98611200
-        dwMaxBitRate                394444800
-        dwMaxVideoFrameBufferSize      821760
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         8
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            960
-        wHeight                           540
-        dwMinBitRate                124416000
-        dwMaxBitRate                497664000
-        dwMaxVideoFrameBufferSize     1036800
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         9
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1024
-        wHeight                           576
-        dwMinBitRate                141557760
-        dwMaxBitRate                566231040
-        dwMaxVideoFrameBufferSize     1179648
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        10
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1024
-        wHeight                           768
-        dwMinBitRate                188743680
-        dwMaxBitRate                754974720
-        dwMaxVideoFrameBufferSize     1572864
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        11
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1280
-        wHeight                           720
-        dwMinBitRate                221184000
-        dwMaxBitRate                884736000
-        dwMaxVideoFrameBufferSize     1843200
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        12
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1280
-        wHeight                           800
-        dwMinBitRate                245760000
-        dwMaxBitRate                983040000
-        dwMaxVideoFrameBufferSize     2048000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        13
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1280
-        wHeight                           960
-        dwMinBitRate                294912000
-        dwMaxBitRate                1179648000
-        dwMaxVideoFrameBufferSize     2457600
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        14
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1280
-        wHeight                          1024
-        dwMinBitRate                314572800
-        dwMaxBitRate                1258291200
-        dwMaxVideoFrameBufferSize     2621440
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        15
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1368
-        wHeight                           768
-        dwMinBitRate                252149760
-        dwMaxBitRate                1008599040
-        dwMaxVideoFrameBufferSize     2101248
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        16
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1440
-        wHeight                           900
-        dwMinBitRate                311040000
-        dwMaxBitRate                1244160000
-        dwMaxVideoFrameBufferSize     2592000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        17
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1600
-        wHeight                          1200
-        dwMinBitRate                460800000
-        dwMaxBitRate                1843200000
-        dwMaxVideoFrameBufferSize     3840000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        18
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1680
-        wHeight                          1050
-        dwMinBitRate                423360000
-        dwMaxBitRate                1693440000
-        dwMaxVideoFrameBufferSize     3528000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        19
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1920
-        wHeight                          1080
-        dwMinBitRate                497664000
-        dwMaxBitRate                1990656000
-        dwMaxVideoFrameBufferSize     4147200
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        20
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1920
-        wHeight                          1200
-        dwMinBitRate                552960000
-        dwMaxBitRate                2211840000
-        dwMaxVideoFrameBufferSize     4608000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                             6
-        bDescriptorType                    36
-        bDescriptorSubtype                 13 (COLORFORMAT)
-        bColorPrimaries                     1 (BT.709,sRGB)
-        bTransferCharacteristics            1 (BT.709)
-        bMatrixCoefficients                 1 (BT.709)
-      VideoStreaming Interface Descriptor:
-        bLength                            27
-        bDescriptorType                    36
-        bDescriptorSubtype                  4 (FORMAT_UNCOMPRESSED)
-        bFormatIndex                        2
-        bNumFrameDescriptors               20
-        guidFormat                            {7deb36e4-4f52-ce11-9f53-0020af0ba770}
-        bBitsPerPixel                      24
-        bDefaultFrameIndex                 19
-        bAspectRatioX                      16
-        bAspectRatioY                       9
-        bmInterlaceFlags                 0x00
-          Interlaced stream or variable: No
-          Fields per frame: 2 fields
-          Field 1 first: No
-          Field pattern: Field 1 only
-          bCopyProtect                      0
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         1
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            640
-        wHeight                           360
-        dwMinBitRate                 82944000
-        dwMaxBitRate                331776000
-        dwMaxVideoFrameBufferSize      691200
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         2
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            640
-        wHeight                           480
-        dwMinBitRate                110592000
-        dwMaxBitRate                442368000
-        dwMaxVideoFrameBufferSize      921600
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         3
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            720
-        wHeight                           480
-        dwMinBitRate                124416000
-        dwMaxBitRate                497664000
-        dwMaxVideoFrameBufferSize     1036800
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         4
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            720
-        wHeight                           576
-        dwMinBitRate                149299200
-        dwMaxBitRate                597196800
-        dwMaxVideoFrameBufferSize     1244160
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         5
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            768
-        wHeight                           576
-        dwMinBitRate                159252480
-        dwMaxBitRate                637009920
-        dwMaxVideoFrameBufferSize     1327104
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         6
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            800
-        wHeight                           600
-        dwMinBitRate                172800000
-        dwMaxBitRate                691200000
-        dwMaxVideoFrameBufferSize     1440000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         7
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            856
-        wHeight                           480
-        dwMinBitRate                147916800
-        dwMaxBitRate                591667200
-        dwMaxVideoFrameBufferSize     1232640
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         8
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                            960
-        wHeight                           540
-        dwMinBitRate                186624000
-        dwMaxBitRate                746496000
-        dwMaxVideoFrameBufferSize     1555200
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         9
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1024
-        wHeight                           576
-        dwMinBitRate                212336640
-        dwMaxBitRate                849346560
-        dwMaxVideoFrameBufferSize     1769472
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        10
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1024
-        wHeight                           768
-        dwMinBitRate                283115520
-        dwMaxBitRate                1132462080
-        dwMaxVideoFrameBufferSize     2359296
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        11
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1280
-        wHeight                           720
-        dwMinBitRate                331776000
-        dwMaxBitRate                1327104000
-        dwMaxVideoFrameBufferSize     2764800
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        12
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1280
-        wHeight                           800
-        dwMinBitRate                368640000
-        dwMaxBitRate                1474560000
-        dwMaxVideoFrameBufferSize     3072000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        13
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1280
-        wHeight                           960
-        dwMinBitRate                442368000
-        dwMaxBitRate                1769472000
-        dwMaxVideoFrameBufferSize     3686400
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        14
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1280
-        wHeight                          1024
-        dwMinBitRate                471859200
-        dwMaxBitRate                1887436800
-        dwMaxVideoFrameBufferSize     3932160
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        15
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1368
-        wHeight                           768
-        dwMinBitRate                378224640
-        dwMaxBitRate                1512898560
-        dwMaxVideoFrameBufferSize     3151872
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        16
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1440
-        wHeight                           900
-        dwMinBitRate                466560000
-        dwMaxBitRate                1866240000
-        dwMaxVideoFrameBufferSize     3888000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        17
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1600
-        wHeight                          1200
-        dwMinBitRate                691200000
-        dwMaxBitRate                2764800000
-        dwMaxVideoFrameBufferSize     5760000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        18
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1680
-        wHeight                          1050
-        dwMinBitRate                635040000
-        dwMaxBitRate                2540160000
-        dwMaxVideoFrameBufferSize     5292000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        19
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1920
-        wHeight                          1080
-        dwMinBitRate                746496000
-        dwMaxBitRate                2985984000
-        dwMaxVideoFrameBufferSize     6220800
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      VideoStreaming Interface Descriptor:
-        bLength                            54
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                        20
-        bmCapabilities                   0x03
-          Still image supported
-          Fixed frame-rate
-        wWidth                           1920
-        wHeight                          1200
-        dwMinBitRate                829440000
-        dwMaxBitRate                3317760000
-        dwMaxVideoFrameBufferSize     6912000
-        dwDefaultFrameInterval         166667
-        bFrameIntervalType                  7
-        dwFrameInterval( 0)            166667
-        dwFrameInterval( 1)            166834
-        dwFrameInterval( 2)            200000
-        dwFrameInterval( 3)            333333
-        dwFrameInterval( 4)            333667
-        dwFrameInterval( 5)            400000
-        dwFrameInterval( 6)            666667
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0400  1x 1024 bytes
-        bInterval               0
-        bMaxBurst              15
-    Interface Association:
-      bLength                 8
-      bDescriptorType        11
-      bFirstInterface         2
-      bInterfaceCount         2
-      bFunctionClass          1 Audio
-      bFunctionSubClass       1 Control Device
-      bFunctionProtocol       0 
-      iFunction               4 XI100DUSB-HDMI Audio
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      1 Control Device
-      bInterfaceProtocol      0 
-      iInterface              4 XI100DUSB-HDMI Audio
-      AudioControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      1 (HEADER)
-        bcdADC               1.00
-        wTotalLength           30
-        bInCollection           1
-        baInterfaceNr( 0)       3
-      AudioControl Interface Descriptor:
-        bLength                12
-        bDescriptorType        36
-        bDescriptorSubtype      2 (INPUT_TERMINAL)
-        bTerminalID             1
-        wTerminalType      0x0602 Digital Audio Interface
-        bAssocTerminal          0
-        bNrChannels             2
-        wChannelConfig     0x0003
-          Left Front (L)
-          Right Front (R)
-        iChannelNames           0 
-        iTerminal               0 
-      AudioControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
-        bTerminalID             2
-        wTerminalType      0x0101 USB Streaming
-        bAssocTerminal          0
-        bSourceID               1
-        iTerminal               0 
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        3
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0 
-      iInterface              4 XI100DUSB-HDMI Audio
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        3
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0 
-      iInterface              4 XI100DUSB-HDMI Audio
-      AudioStreaming Interface Descriptor:
-        bLength                 7
-        bDescriptorType        36
-        bDescriptorSubtype      1 (AS_GENERAL)
-        bTerminalLink           2
-        bDelay                  1 frames
-        wFormatTag              1 PCM
-      AudioStreaming Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      2 (FORMAT_TYPE)
-        bFormatType             1 (FORMAT_TYPE_I)
-        bNrChannels             2
-        bSubframeSize           2
-        bBitResolution         16
-        bSamFreqType            1 Discrete
-        tSamFreq[ 0]        48000
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x00c0  1x 192 bytes
-        bInterval               4
-        bMaxBurst               0
-        AudioControl Endpoint Descriptor:
-          bLength                 7
-          bDescriptorType        37
-          bDescriptorSubtype      1 (EP_GENERAL)
-          bmAttributes         0x00
-          bLockDelayUnits         0 Undefined
-          wLockDelay              0 Undefined
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        4
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass         3 Human Interface Device
-      bInterfaceSubClass      0 No Subclass
-      bInterfaceProtocol      0 None
-      iInterface              0 
-        HID Device Descriptor:
-          bLength                 9
-          bDescriptorType        33
-          bcdHID               1.11
-          bCountryCode            0 Not supported
-          bNumDescriptors         1
-          bDescriptorType        34 Report
-          wDescriptorLength     153
-          Report Descriptor: (length is 153)
-            Item(Global): Usage Page, data= [ 0x00 0xff ] 65280
-                            (null)
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Main  ): Collection, data= [ 0x01 ] 1
-                            Application
-            Item(Global): Report Size, data= [ 0x08 ] 8
-            Item(Global): Logical Minimum, data= [ 0x00 ] 0
-            Item(Global): Logical Maximum, data= [ 0xff 0x00 ] 255
-            Item(Global): Report ID, data= [ 0x10 ] 16
-            Item(Global): Report Count, data= [ 0x04 ] 4
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Main  ): Input, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x01 ] 1
-            Item(Global): Report Count, data= [ 0x01 ] 1
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Main  ): Input, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x02 ] 2
-            Item(Global): Report Count, data= [ 0x04 ] 4
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Main  ): Output, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x03 ] 3
-            Item(Global): Report Count, data= [ 0x01 ] 1
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Main  ): Input, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x04 ] 4
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x04 ] 4
-            Item(Main  ): Input, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x04 ] 4
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x04 ] 4
-            Item(Main  ): Output, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x05 ] 5
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x00 0x01 ] 256
-            Item(Main  ): Input, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x05 ] 5
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x00 0x01 ] 256
-            Item(Main  ): Output, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x20 ] 32
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x08 ] 8
-            Item(Main  ): Input, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x21 ] 33
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x09 ] 9
-            Item(Main  ): Output, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x22 ] 34
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x02 ] 2
-            Item(Main  ): Input, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x22 ] 34
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x02 ] 2
-            Item(Main  ): Output, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x23 ] 35
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x08 ] 8
-            Item(Main  ): Input, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x23 ] 35
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x08 ] 8
-            Item(Main  ): Output, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x30 ] 48
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x06 ] 6
-            Item(Main  ): Input, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x30 ] 48
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x06 ] 6
-            Item(Main  ): Output, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Global): Report ID, data= [ 0x40 ] 64
-            Item(Local ): Usage, data= [ 0x01 ] 1
-                            (null)
-            Item(Global): Report Count, data= [ 0x11 ] 17
-            Item(Main  ): Input, data= [ 0x02 ] 2
-                            Data Variable Absolute No_Wrap Linear
-                            Preferred_State No_Null_Position Non_Volatile Bitfield
-            Item(Main  ): End Collection, data=none
-Binary Object Store Descriptor:
-  bLength                 5
-  bDescriptorType        15
-  wTotalLength           22
-  bNumDeviceCaps          2
-  USB 2.0 Extension Device Capability:
-    bLength                 7
-    bDescriptorType        16
-    bDevCapabilityType      2
-    bmAttributes   0x00000002
-      Link Power Management (LPM) Supported
-  SuperSpeed USB Device Capability:
-    bLength                10
-    bDescriptorType        16
-    bDevCapabilityType      3
-    bmAttributes         0x00
-    wSpeedsSupported   0x000e
-      Device can operate at Full Speed (12Mbps)
-      Device can operate at High Speed (480Mbps)
-      Device can operate at SuperSpeed (5Gbps)
-    bFunctionalitySupport   3
-      Lowest fully-functional device speed is SuperSpeed (5Gbps)
-    bU1DevExitLat          10 micro seconds
-    bU2DevExitLat        2047 micro seconds
-Device Status:     0x000c
-  (Bus Powered)
-  U1 Enabled
-  U2 Enabled
-
---------------020500040300090904070207--
+>> regards
+>> Antti
+>>
+>>
+>> On 12/05/2014 04:51 PM, Eddi De Pieri wrote:
+>>>
+>>> Hi,
+>>>
+>>> I got a sample usb tuner with similar issue with following
+>>> vendor/product 13d3:0ccd.
+>>>
+>>> Onboard it have: CY7C68013A-56PVXC and a SI2168-40. The tuner isn't
+>>> visible since is covered by a shield.
+>>>
+>>> I've tried to patch the az6007 to make it working.
+>>>
+>>> si2168 4-0064: Silicon Labs Si2168 successfully attached
+>>> si2157 5-0060: unknown chip version Si2147-A30
+>>>
+>>> after applying latest patch from patchwork:
+>>>
+>>> si2157 5-0060: Silicon Labs Si2157/Si2158 successfully attached
+>>>
+>>> Now tuner seems to be connected but a w_scan don't detect any channel...
+>>>
+>>> Can you give me some some hint on troubleshooting this issue?
+>>>
+>>> Actually I'm brutally changed the initialization with copy and paste
+>>> of silab attach from cxusb.c and em28xx-dvb.c by removing the drxk
+>>> init..
+>>>
+>>> Since the chinese producer recicled old vid/pid.but what is the
+>>> correct way to probe for multiple frontend and choose the right one?
+>>>
+>>> Eddi
+>>>
+>>>
+>>> On Mon, Feb 3, 2014 at 11:33 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>>
+>>>> Hei Rik
+>>>>
+>>>>
+>>>> On 03.02.2014 22:21, Rik van Mierlo wrote:
+>>>>>
+>>>>>
+>>>>> Hi,
+>>>>>
+>>>>> I've recently purchased a Terratec H7, based on the fact that is was
+>>>>> supported for a while now. Unfortunately, it turns out that my device
+>>>>> uses a different product id, and maybe is not quite the same device
+>>>>> inside either.
+>>>>>
+>>>>> ProductID for the Terratec H7 revisions in the module is either 10b4 or
+>>>>> 10a3, the one I purchased is 10a5. Following this patch:
+>>>>>
+>>>>> https://patchwork.linuxtv.org/patch/9691
+>>>>>
+>>>>> I modified drivers/media/usb/dvb-usb-v2/az6007.c to include an
+>>>>> additional device:
+>>>>>
+>>>>> static struct usb_device_id az6007_usb_table[] = {
+>>>>>           {DVB_USB_DEVICE(USB_VID_AZUREWAVE, USB_PID_AZUREWAVE_6007,
+>>>>>                   &az6007_props, "Azurewave 6007", RC_MAP_EMPTY)},
+>>>>>           {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7,
+>>>>>                   &az6007_props, "Terratec H7",
+>>>>> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
+>>>>>           {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7_2,
+>>>>>                   &az6007_props, "Terratec H7",
+>>>>> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
+>>>>>           {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7_3,
+>>>>>                   &az6007_props, "Terratec H7",
+>>>>> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
+>>>>>           {DVB_USB_DEVICE(USB_VID_TECHNISAT,
+>>>>> USB_PID_TECHNISAT_USB2_CABLESTAR_HDCI,
+>>>>>                   &az6007_cablestar_hdci_props, "Technisat CableStar
+>>>>> Combo HD CI", RC_MAP_EMPTY)},
+>>>>>           {0},
+>>>>> };
+>>>>>
+>>>>> and added the following to drivers/media/dvb-core/dvb-usb-ids.h
+>>>>>
+>>>>> #define USB_PID_TERRATEC_H7_3                           0x10a5
+>>>>>
+>>>>> and recompiled/installed the kernel and modules. The module seems to
+>>>>> have changed somewhat in 3.12.6 from the version that the patch was
+>>>>> meant for, so I hope I this was all I had to change.
+>>>>>
+>>>>> Rebooting and plugging in the device now at least leads to a recognized
+>>>>> device, but scanning for channels with w_scan does not work, and from
+>>>>> the dmesg output below, it seems something is not working after loading
+>>>>> the drxk firmware. Does anybody know what I could try next to get this
+>>>>> device working? Could it be that the drxk firmware is not suitable for
+>>>>> this revision of the device?
+>>>>>
+>>>>> [  700.112072] usb 4-2: new high-speed USB device number 2 using
+>>>>> ehci-pci
+>>>>> [  700.245092] usb 4-2: New USB device found, idVendor=0ccd,
+>>>>> idProduct=10a5
+>>>>> [  700.245105] usb 4-2: New USB device strings: Mfr=1, Product=2,
+>>>>> SerialNumber=3
+>>>>> [  700.245114] usb 4-2: Product: TERRATEC T2/T/C CI USB
+>>>>> [  700.245123] usb 4-2: Manufacturer: TERRATEC
+>>>>> [  700.245131] usb 4-2: SerialNumber: 20130903
+>>>>> [  700.494693] usb read operation failed. (-32)
+>>>>> [  700.495039] usb write operation failed. (-32)
+>>>>> [  700.495413] usb write operation failed. (-32)
+>>>>> [  700.495787] usb write operation failed. (-32)
+>>>>
+>>>>
+>>>>
+>>>> These low level errors does not promise any good. Are these coming from
+>>>> USB
+>>>> stack as there is no even bus ID (4-2)...
+>>>>
+>>>>> [  700.495800] usb 4-2: dvb_usb_v2: found a 'Terratec H7' in cold state
+>>>>> [  700.507381] usb 4-2: firmware: direct-loading firmware
+>>>>> dvb-usb-terratec-h7-az6007.fw
+>>>>> [  700.507397] usb 4-2: dvb_usb_v2: downloading firmware from file
+>>>>> 'dvb-usb-terratec-h7-az6007.fw'
+>>>>> [  700.524301] usb 4-2: dvb_usb_v2: found a 'Terratec H7' in warm state
+>>>>> [  701.760878] usb 4-2: dvb_usb_v2: will pass the complete MPEG2
+>>>>> transport stream to the software demuxer
+>>>>> [  701.760947] DVB: registering new adapter (Terratec H7)
+>>>>> [  701.763853] usb 4-2: dvb_usb_v2: MAC address: c2:cd:0c:a5:10:00
+>>>>> [  701.846469] drxk: frontend initialized.
+>>>>> [  701.849123] usb 4-2: firmware: direct-loading firmware
+>>>>> dvb-usb-terratec-h7-drxk.fw
+>>>>> [  701.849215] usb 4-2: DVB: registering adapter 0 frontend 0 (DRXK)...
+>>>>> [  701.881072] drxk: status = 0x00c04125
+>>>>> [  701.881082] drxk: DeviceID 0x04 not supported
+>>>>> [  701.881090] drxk: Error -22 on init_drxk
+>>>>
+>>>>
+>>>>
+>>>> I suspect there is no DRX-K.
+>>>>
+>>>>> [  701.908184] mt2063_attach: Attaching MT2063
+>>>>> [  701.940248] Registered IR keymap rc-nec-terratec-cinergy-xs
+>>>>> [  701.940547] input: Terratec H7 as
+>>>>> /devices/pci0000:00/0000:00:1d.7/usb4/4-2/rc/rc0/input16
+>>>>> [  701.942559] rc0: Terratec H7 as
+>>>>> /devices/pci0000:00/0000:00:1d.7/usb4/4-2/rc/rc0
+>>>>> [  701.942575] usb 4-2: dvb_usb_v2: schedule remote query interval to
+>>>>> 400 msecs
+>>>>> [  701.942587] usb 4-2: dvb_usb_v2: 'Terratec H7' successfully
+>>>>> initialized and connected
+>>>>> [  701.942643] usbcore: registered new interface driver dvb_usb_az6007
+>>>>
+>>>>
+>>>>
+>>>> hmm, a little bit surprising that driver accepts hardware even those
+>>>> fatal
+>>>> errors.
+>>>>
+>>>> My guess is that there is no DRX-K but some other demod or likely more
+>>>> changed chips than demod. DRX-K is rather old demod and there is not very
+>>>> many newer alternatives on the market. Silicon Labs chipset ? Open the
+>>>> device in look what chips it has eaten.
+>>>>
+>>>> regards
+>>>> Antti
+>>>>
+>>>> --
+>>>> http://palosaari.fi/
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>> --
+>> http://palosaari.fi/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
