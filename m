@@ -1,257 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39268 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932678AbaLDSIr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Dec 2014 13:08:47 -0500
-Date: Thu, 4 Dec 2014 16:08:40 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Kamil Debski <k.debski@samsung.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Linux PM list <linux-pm@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
-Message-ID: <20141204160840.7d021bf1@recife.lan>
-In-Reply-To: <4139875.fkJ48z9AaU@vostro.rjw.lan>
-References: <4139875.fkJ48z9AaU@vostro.rjw.lan>
+Received: from mail-qa0-f44.google.com ([209.85.216.44]:48174 "EHLO
+	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751255AbaLFTHo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Dec 2014 14:07:44 -0500
+Received: by mail-qa0-f44.google.com with SMTP id i13so1874933qae.3
+        for <linux-media@vger.kernel.org>; Sat, 06 Dec 2014 11:07:43 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Kyle Sanderson <kyle.leet@gmail.com>
+Date: Sat, 6 Dec 2014 11:07:23 -0800
+Message-ID: <CACsaVZ+=GXgjGHRxF_itKrmdWh-D9EkusChoFZ4VHWquBzYt5A@mail.gmail.com>
+Subject: Re: [BUG] Hauppage HVR-2250 - No Free Sequences
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 03 Dec 2014 03:13:55 +0100
-"Rafael J. Wysocki" <rjw@rjwysocki.net> escreveu:
+[1627538.860627] s5h1411_readreg: readreg error (ret == -5)
+[1627538.860633] saa7164_cmd_send() No free sequences
+[1627538.860636] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627538.860639] s5h1411_readreg: readreg error (ret == -5)
+[1627538.860647] saa7164_cmd_send() No free sequences
+[1627538.860649] saa7164_api_i2c_write() error, ret(1) = 0xc
+[1627538.860652] s5h1411_writereg: writereg error 0x19 0xf7 0x0000, ret == -5)
+[1627538.860656] saa7164_cmd_send() No free sequences
+[1627538.860658] saa7164_api_i2c_write() error, ret(1) = 0xc
+[1627538.860661] s5h1411_writereg: writereg error 0x19 0xf7 0x0001, ret == -5)
+[1627538.860665] saa7164_cmd_send() No free sequences
+[1627538.860666] saa7164_api_i2c_write() error, ret(1) = 0xc
+[1627538.860669] s5h1411_writereg: writereg error 0x19 0xf5 0x0001, ret == -5)
+[1627538.860675] saa7164_cmd_send() No free sequences
+[1627538.860676] saa7164_api_i2c_write() error, ret(1) = 0xc
+[1627538.860681] __tda18271_write_regs: [2-0060|M] ERROR: idx = 0x5,
+len = 1, i2
+                                                 c_transfer returned:
+-5
+[1627538.860685] tda18271_init: [2-0060|M] error -5 on line 832
+[1627538.860688] tda18271_tune: [2-0060|M] error -5 on line 910
+[1627538.860691] tda18271_set_params: [2-0060|M] error -5 on line 985
+[1627538.860695] saa7164_cmd_send() No free sequences
+[1627538.860696] saa7164_api_i2c_write() error, ret(1) = 0xc
+[1627538.860699] s5h1411_writereg: writereg error 0x19 0xf5 0x0000, ret == -5)
+[1627538.860703] saa7164_cmd_send() No free sequences
+[1627538.860704] saa7164_api_i2c_write() error, ret(1) = 0xc
+[1627538.860707] s5h1411_writereg: writereg error 0x19 0xf7 0x0000, ret == -5)
+[1627538.860710] saa7164_cmd_send() No free sequences
+[1627538.860712] saa7164_api_i2c_write() error, ret(1) = 0xc
+[1627538.860714] s5h1411_writereg: writereg error 0x19 0xf7 0x0001, ret == -5)
+[1627538.878939] saa7164_cmd_send() No free sequences
+[1627538.878942] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627538.878944] s5h1411_readreg: readreg error (ret == -5)
+[1627538.878947] saa7164_cmd_send() No free sequences
+[1627538.878949] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627538.878951] s5h1411_readreg: readreg error (ret == -5)
+[1627538.929029] saa7164_cmd_send() No free sequences
+[1627538.929031] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627538.929033] s5h1411_readreg: readreg error (ret == -5)
+[1627538.929037] saa7164_cmd_send() No free sequences
+[1627538.929038] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627538.929040] s5h1411_readreg: readreg error (ret == -5)
+[1627538.979118] saa7164_cmd_send() No free sequences
+[1627538.979120] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627538.979123] s5h1411_readreg: readreg error (ret == -5)
+[1627538.979126] saa7164_cmd_send() No free sequences
+[1627538.979128] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627538.979129] s5h1411_readreg: readreg error (ret == -5)
+[1627539.029207] saa7164_cmd_send() No free sequences
+[1627539.029210] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627539.029212] s5h1411_readreg: readreg error (ret == -5)
+[1627539.029215] saa7164_cmd_send() No free sequences
+[1627539.029217] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627539.029219] s5h1411_readreg: readreg error (ret == -5)
+[1627539.079296] saa7164_cmd_send() No free sequences
+[1627539.079298] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627539.079300] s5h1411_readreg: readreg error (ret == -5)
+[1627539.079304] saa7164_cmd_send() No free sequences
+[1627539.079306] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627539.079307] s5h1411_readreg: readreg error (ret == -5)
+[1627539.129385] saa7164_cmd_send() No free sequences
+[1627539.129387] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627539.129389] s5h1411_readreg: readreg error (ret == -5)
+[1627539.129392] saa7164_cmd_send() No free sequences
+[1627539.129394] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627539.129396] s5h1411_readreg: readreg error (ret == -5)
+[1627539.179501] saa7164_cmd_send() No free sequences
+[1627539.179505] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627539.179508] s5h1411_readreg: readreg error (ret == -5)
+[1627539.179512] saa7164_cmd_send() No free sequences
+[1627539.179514] saa7164_api_i2c_read() error, ret(1) = 0xc
+[1627539.179515] s5h1411_readreg: readreg error (ret == -5)
 
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
-> selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
-> depending on CONFIG_PM_RUNTIME may now be changed to depend on
-> CONFIG_PM.
-> 
-> The alternative of CONFIG_PM_SLEEP and CONFIG_PM_RUNTIME may be
-> replaced with CONFIG_PM too.
-> 
-> Make these changes everywhere under drivers/media/.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-Feel free to apply it via your tree.
-
-PS.: I won't doubt that you would find some extra checks for
-PM_RUNTIME on other places at media, as I remember I merged some
-things like that recently - I think they are there for 3.19, but
-it needs to be double-checked.
-
-Regards,
-Mauro
-
-> ---
-> 
-> Note: This depends on commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
-> PM_SLEEP is selected) which is only in linux-next at the moment (via the
-> linux-pm tree).
-> 
-> Please let me know if it is OK to take this one into linux-pm.
-> 
-> ---
->  drivers/media/platform/coda/coda-common.c       |    4 ++--
->  drivers/media/platform/exynos4-is/fimc-core.c   |    6 +++---
->  drivers/media/platform/exynos4-is/fimc-is-i2c.c |    2 +-
->  drivers/media/platform/exynos4-is/fimc-lite.c   |    2 +-
->  drivers/media/platform/exynos4-is/mipi-csis.c   |    2 +-
->  drivers/media/platform/s5p-jpeg/jpeg-core.c     |    4 ++--
->  drivers/media/platform/s5p-mfc/s5p_mfc.c        |    2 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_pm.c     |   10 ++++------
->  8 files changed, 15 insertions(+), 17 deletions(-)
-> 
-> Index: linux-pm/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> ===================================================================
-> --- linux-pm.orig/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ linux-pm/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -2632,7 +2632,7 @@ static int s5p_jpeg_remove(struct platfo
->  	return 0;
->  }
->  
-> -#if defined(CONFIG_PM_RUNTIME) || defined(CONFIG_PM_SLEEP)
-> +#ifdef CONFIG_PM
->  static int s5p_jpeg_runtime_suspend(struct device *dev)
->  {
->  	struct s5p_jpeg *jpeg = dev_get_drvdata(dev);
-> @@ -2682,7 +2682,7 @@ static int s5p_jpeg_runtime_resume(struc
->  
->  	return 0;
->  }
-> -#endif /* CONFIG_PM_RUNTIME || CONFIG_PM_SLEEP */
-> +#endif /* CONFIG_PM */
->  
->  #ifdef CONFIG_PM_SLEEP
->  static int s5p_jpeg_suspend(struct device *dev)
-> Index: linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> ===================================================================
-> --- linux-pm.orig/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -1302,7 +1302,7 @@ static int s5p_mfc_resume(struct device
->  }
->  #endif
->  
-> -#ifdef CONFIG_PM_RUNTIME
-> +#ifdef CONFIG_PM
->  static int s5p_mfc_runtime_suspend(struct device *dev)
->  {
->  	struct platform_device *pdev = to_platform_device(dev);
-> Index: linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-> ===================================================================
-> --- linux-pm.orig/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-> +++ linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-> @@ -13,9 +13,7 @@
->  #include <linux/clk.h>
->  #include <linux/err.h>
->  #include <linux/platform_device.h>
-> -#ifdef CONFIG_PM_RUNTIME
->  #include <linux/pm_runtime.h>
-> -#endif
->  #include "s5p_mfc_common.h"
->  #include "s5p_mfc_debug.h"
->  #include "s5p_mfc_pm.h"
-> @@ -67,7 +65,7 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *
->  	}
->  
->  	atomic_set(&pm->power, 0);
-> -#ifdef CONFIG_PM_RUNTIME
-> +#ifdef CONFIG_PM
->  	pm->device = &dev->plat_dev->dev;
->  	pm_runtime_enable(pm->device);
->  #endif
-> @@ -93,7 +91,7 @@ void s5p_mfc_final_pm(struct s5p_mfc_dev
->  	}
->  	clk_unprepare(pm->clock_gate);
->  	clk_put(pm->clock_gate);
-> -#ifdef CONFIG_PM_RUNTIME
-> +#ifdef CONFIG_PM
->  	pm_runtime_disable(pm->device);
->  #endif
->  }
-> @@ -120,7 +118,7 @@ void s5p_mfc_clock_off(void)
->  
->  int s5p_mfc_power_on(void)
->  {
-> -#ifdef CONFIG_PM_RUNTIME
-> +#ifdef CONFIG_PM
->  	return pm_runtime_get_sync(pm->device);
->  #else
->  	atomic_set(&pm->power, 1);
-> @@ -130,7 +128,7 @@ int s5p_mfc_power_on(void)
->  
->  int s5p_mfc_power_off(void)
->  {
-> -#ifdef CONFIG_PM_RUNTIME
-> +#ifdef CONFIG_PM
->  	return pm_runtime_put_sync(pm->device);
->  #else
->  	atomic_set(&pm->power, 0);
-> Index: linux-pm/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-> ===================================================================
-> --- linux-pm.orig/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-> +++ linux-pm/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-> @@ -81,7 +81,7 @@ static int fimc_is_i2c_remove(struct pla
->  	return 0;
->  }
->  
-> -#if defined(CONFIG_PM_RUNTIME) || defined(CONFIG_PM_SLEEP)
-> +#ifdef CONFIG_PM
->  static int fimc_is_i2c_runtime_suspend(struct device *dev)
->  {
->  	struct fimc_is_i2c *isp_i2c = dev_get_drvdata(dev);
-> Index: linux-pm/drivers/media/platform/exynos4-is/fimc-lite.c
-> ===================================================================
-> --- linux-pm.orig/drivers/media/platform/exynos4-is/fimc-lite.c
-> +++ linux-pm/drivers/media/platform/exynos4-is/fimc-lite.c
-> @@ -1588,7 +1588,7 @@ err_clk_put:
->  	return ret;
->  }
->  
-> -#ifdef CONFIG_PM_RUNTIME
-> +#ifdef CONFIG_PM
->  static int fimc_lite_runtime_resume(struct device *dev)
->  {
->  	struct fimc_lite *fimc = dev_get_drvdata(dev);
-> Index: linux-pm/drivers/media/platform/exynos4-is/mipi-csis.c
-> ===================================================================
-> --- linux-pm.orig/drivers/media/platform/exynos4-is/mipi-csis.c
-> +++ linux-pm/drivers/media/platform/exynos4-is/mipi-csis.c
-> @@ -978,7 +978,7 @@ static int s5pcsis_resume(struct device
->  }
->  #endif
->  
-> -#ifdef CONFIG_PM_RUNTIME
-> +#ifdef CONFIG_PM
->  static int s5pcsis_runtime_suspend(struct device *dev)
->  {
->  	return s5pcsis_pm_suspend(dev, true);
-> Index: linux-pm/drivers/media/platform/exynos4-is/fimc-core.c
-> ===================================================================
-> --- linux-pm.orig/drivers/media/platform/exynos4-is/fimc-core.c
-> +++ linux-pm/drivers/media/platform/exynos4-is/fimc-core.c
-> @@ -832,7 +832,7 @@ err:
->  	return -ENXIO;
->  }
->  
-> -#if defined(CONFIG_PM_RUNTIME) || defined(CONFIG_PM_SLEEP)
-> +#ifdef CONFIG_PM
->  static int fimc_m2m_suspend(struct fimc_dev *fimc)
->  {
->  	unsigned long flags;
-> @@ -871,7 +871,7 @@ static int fimc_m2m_resume(struct fimc_d
->  
->  	return 0;
->  }
-> -#endif /* CONFIG_PM_RUNTIME || CONFIG_PM_SLEEP */
-> +#endif /* CONFIG_PM */
->  
->  static const struct of_device_id fimc_of_match[];
->  
-> @@ -1039,7 +1039,7 @@ err_sclk:
->  	return ret;
->  }
->  
-> -#ifdef CONFIG_PM_RUNTIME
-> +#ifdef CONFIG_PM
->  static int fimc_runtime_resume(struct device *dev)
->  {
->  	struct fimc_dev *fimc =	dev_get_drvdata(dev);
-> Index: linux-pm/drivers/media/platform/coda/coda-common.c
-> ===================================================================
-> --- linux-pm.orig/drivers/media/platform/coda/coda-common.c
-> +++ linux-pm/drivers/media/platform/coda/coda-common.c
-> @@ -1980,7 +1980,7 @@ static int coda_probe(struct platform_de
->  
->  	/*
->  	 * Start activated so we can directly call coda_hw_init in
-> -	 * coda_fw_callback regardless of whether CONFIG_PM_RUNTIME is
-> +	 * coda_fw_callback regardless of whether CONFIG_PM is
->  	 * enabled or whether the device is associated with a PM domain.
->  	 */
->  	pm_runtime_get_noresume(&pdev->dev);
-> @@ -2013,7 +2013,7 @@ static int coda_remove(struct platform_d
->  	return 0;
->  }
->  
-> -#ifdef CONFIG_PM_RUNTIME
-> +#ifdef CONFIG_PM
->  static int coda_runtime_resume(struct device *dev)
->  {
->  	struct coda_dev *cdev = dev_get_drvdata(dev);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Sun, Nov 2, 2014 at 1:45 AM, Kyle Sanderson <kyle.leet@gmail.com> wrote:
+> [    9.327707] saa7164 driver loaded
+> [    9.328739] ACPI: PCI Interrupt Link [LN4A] enabled at IRQ 19
+> [    9.329585] CORE saa7164[0]: subsystem: 0070:8851, board: Hauppauge
+> WinTV-HVR2250 [card=7,autodetected]
+> [    9.329592] saa7164[0]/0: found at 0000:05:00.0, rev: 129, irq: 19,
+> latency: 0, mmio: 0xfe800000
+> [    9.460023] saa7164_downloadfirmware() no first image
+> [    9.460034] saa7164_downloadfirmware() Waiting for firmware upload
+> (NXP7164-2010-03-10.1.fw)
+> [    9.684071] saa7164_downloadfirmware() firmware read 4019072 bytes.
+> [    9.684076] saa7164_downloadfirmware() firmware loaded.
+> [    9.684077] Firmware file header part 1:
+> [    9.684080]  .FirmwareSize = 0x0
+> [    9.684081]  .BSLSize = 0x0
+> [    9.684083]  .Reserved = 0x3d538
+> [    9.684084]  .Version = 0x3
+> [    9.684086] saa7164_downloadfirmware() SecBootLoader.FileSize = 4019072
+> [    9.684092] saa7164_downloadfirmware() FirmwareSize = 0x1fd6
+> [    9.684094] saa7164_downloadfirmware() BSLSize = 0x0
+> [    9.684096] saa7164_downloadfirmware() Reserved = 0x0
+> [    9.684098] saa7164_downloadfirmware() Version = 0x1661c00
+> [   16.496685] saa7164_downloadimage() Image downloaded, booting...
+> [   16.600015] saa7164_downloadimage() Image booted successfully.
+> [   16.600040] starting firmware download(2)
+> [   19.166683] saa7164_downloadimage() Image downloaded, booting...
+> [   21.130015] saa7164_downloadimage() Image booted successfully.
+> [   21.130040] firmware download complete.
+> [   21.177186] tveeprom 1-0000: Hauppauge model 88061, rev C4F2, serial#
+> [   21.177193] tveeprom 1-0000: MAC address is 00:0d:fe:xx:xx:xx
+> [   21.177196] tveeprom 1-0000: tuner model is NXP 18271C2_716x (idx
+> 152, type 4)
+> [   21.177200] tveeprom 1-0000: TV standards NTSC(M) ATSC/DVB Digital
+> (eeprom 0x88)
+> [   21.177203] tveeprom 1-0000: audio processor is SAA7164 (idx 43)
+> [   21.177205] tveeprom 1-0000: decoder processor is SAA7164 (idx 40)
+> [   21.177208] tveeprom 1-0000: has radio, has IR receiver, has no IR
+> transmitter
+> [   21.177210] saa7164[0]: Hauppauge eeprom: model=88061
+> [   21.544594] tda18271 2-0060: creating new instance
+> [   21.549445] TDA18271HD/C2 detected @ 2-0060
+> [   21.781995] DVB: registering new adapter (saa7164)
+> [   21.782011] saa7164 0000:05:00.0: DVB: registering adapter 0
+> frontend 0 (Samsung S5H1411 QAM/8VSB Frontend)...
+> [   22.071439] tda18271 3-0060: creating new instance
+> [   22.075732] TDA18271HD/C2 detected @ 3-0060
+> [   22.298139] tda18271: performing RF tracking filter calibration
+> [   24.573984] tda18271: RF tracking filter calibration complete
+> [   24.578058] DVB: registering new adapter (saa7164)
+> [   24.578074] saa7164 0000:05:00.0: DVB: registering adapter 1
+> frontend 0 (Samsung S5H1411 QAM/8VSB Frontend)...
+> [   24.579110] saa7164[0]: registered device video0 [mpeg]
+> [   24.809340] saa7164[0]: registered device video1 [mpeg]
+> [   25.020165] saa7164[0]: registered device vbi0 [vbi]
+> [   25.020333] saa7164[0]: registered device vbi1 [vbi]
+>
+> Kernel: 3.12.21-gentoo-r1
+>
+> On Fri, Oct 31, 2014 at 8:55 AM, Kyle Sanderson <kyle.leet@gmail.com> wrote:
+>> Hi All,
+>>
+>> So I've been using my tuner for a couple years now with tvheadend,
+>> works great :-). However, eventually I encounter something like this
+>> in my dmesg
+>>
+>> [585870.001641] saa7164_cmd_send() No free sequences
+>> [585870.001645] saa7164_api_i2c_write() error, ret(1) = 0xc
+>> [585870.001650] tda10048_writereg: writereg error (ret == -5)
+>> [585870.024809] saa7164_cmd_send() No free sequences
+>> [585870.024820] saa7164_api_i2c_read() error, ret(1) = 0xc
+>> [585870.024826] tda10048_readreg: readreg error (ret == -5)
+>> [585870.024838] saa7164_cmd_send() No free sequences
+>> [585870.024843] saa7164_api_i2c_read() error, ret(1) = 0xc
+>> [585870.024848] tda10048_readreg: readreg error (ret == -5)
+>> [585870.024856] saa7164_cmd_send() No free sequences
+>> [585870.024861] saa7164_api_i2c_write() error, ret(1) = 0xc
+>> [585870.024866] tda10048_writereg: writereg error (ret == -5)
+>> [585870.024878] saa7164_cmd_send() No free sequences
+>> [585870.024883] saa7164_api_i2c_write() error, ret(1) = 0xc
+>>
+>> The result is the card stops accepting commands; won't tune to other
+>> frequencies. Rebooting the box seems to resolve it. The time before
+>> that starts occurring though varies wildly, usually when it's stormy
+>> and the ATSC antenna starts cutting in and out (reflection off of the
+>> tree).
+>>
+>> Is there another way I can get around doing that? would rmmod/insmod work?
+>>
+>> Looking on the Hauppage site it looks like they're still developing
+>> drivers for it ( ftp://ftp.hauppauge.com/Support/HVR2250/ ). From
+>> google-ing around, it looks like people are still using the firmware
+>> that Steven Toth ripped in 2011.
+>>
+>> Any tips? I've tried a couple horrible kernel patches but didn't get anywhere.
+>> Kyle.
