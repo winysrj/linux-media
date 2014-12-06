@@ -1,38 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:12082 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750704AbaLOK5Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 05:57:24 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NGM00HRHEMEF650@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Dec 2014 11:01:26 +0000 (GMT)
-Message-id: <548EBE7B.7000109@samsung.com>
-Date: Mon, 15 Dec 2014 11:56:59 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 08/10] s5k4ecgx: fix sparse warnings
-References: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
- <1418471580-26510-9-git-send-email-hverkuil@xs4all.nl>
-In-reply-to: <1418471580-26510-9-git-send-email-hverkuil@xs4all.nl>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:46531 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752467AbaLFVfO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Dec 2014 16:35:14 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 13/22] si2168: change firmware variable name and type
+Date: Sat,  6 Dec 2014 23:34:47 +0200
+Message-Id: <1417901696-5517-13-git-send-email-crope@iki.fi>
+In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
+References: <1417901696-5517-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13/12/14 12:52, Hans Verkuil wrote:
-> The get_unaligned_le*() functions return the value using cpu endianness,
-> so calling le*_to_cpu is wrong.
-> 
-> It hasn't been not noticed because this code has only been run on little
-> endian systems, so le*_to_cpu doesn't do anything.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Rename firmware variable from fw_file to fw_name and change its type
+from u8 to const char as request_firmware() input defines.
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/si2168.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 46a919b..7f966f3 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -347,7 +347,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	struct si2168_dev *dev = i2c_get_clientdata(client);
+ 	int ret, len, remaining;
+ 	const struct firmware *fw;
+-	u8 *fw_file;
++	const char *fw_name;
+ 	struct si2168_cmd cmd;
+ 	unsigned int chip_id;
+ 
+@@ -405,13 +405,13 @@ static int si2168_init(struct dvb_frontend *fe)
+ 
+ 	switch (chip_id) {
+ 	case SI2168_A20:
+-		fw_file = SI2168_A20_FIRMWARE;
++		fw_name = SI2168_A20_FIRMWARE;
+ 		break;
+ 	case SI2168_A30:
+-		fw_file = SI2168_A30_FIRMWARE;
++		fw_name = SI2168_A30_FIRMWARE;
+ 		break;
+ 	case SI2168_B40:
+-		fw_file = SI2168_B40_FIRMWARE;
++		fw_name = SI2168_B40_FIRMWARE;
+ 		break;
+ 	default:
+ 		dev_err(&client->dev, "unknown chip version Si21%d-%c%c%c\n",
+@@ -425,12 +425,12 @@ static int si2168_init(struct dvb_frontend *fe)
+ 			cmd.args[2], cmd.args[1], cmd.args[3], cmd.args[4]);
+ 
+ 	/* request the firmware, this will block and timeout */
+-	ret = request_firmware(&fw, fw_file, &client->dev);
++	ret = request_firmware(&fw, fw_name, &client->dev);
+ 	if (ret) {
+ 		/* fallback mechanism to handle old name for Si2168 B40 fw */
+ 		if (chip_id == SI2168_B40) {
+-			fw_file = SI2168_B40_FIRMWARE_FALLBACK;
+-			ret = request_firmware(&fw, fw_file, &client->dev);
++			fw_name = SI2168_B40_FIRMWARE_FALLBACK;
++			ret = request_firmware(&fw, fw_name, &client->dev);
+ 		}
+ 
+ 		if (ret == 0) {
+@@ -440,13 +440,13 @@ static int si2168_init(struct dvb_frontend *fe)
+ 		} else {
+ 			dev_err(&client->dev,
+ 					"firmware file '%s' not found\n",
+-					fw_file);
++					fw_name);
+ 			goto err_release_firmware;
+ 		}
+ 	}
+ 
+ 	dev_info(&client->dev, "downloading firmware from file '%s'\n",
+-			fw_file);
++			fw_name);
+ 
+ 	if ((fw->size % 17 == 0) && (fw->data[0] > 5)) {
+ 		/* firmware is in the new format */
+-- 
+http://palosaari.fi/
 
