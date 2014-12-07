@@ -1,235 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62570 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750730AbaLCBwc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Dec 2014 20:52:32 -0500
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To: linux-media@vger.kernel.org
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Kamil Debski <k.debski@samsung.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Linux PM list <linux-pm@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [PATCH] media / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
-Date: Wed, 03 Dec 2014 03:13:55 +0100
-Message-ID: <4139875.fkJ48z9AaU@vostro.rjw.lan>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40078 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752502AbaLGAJx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Dec 2014 19:09:53 -0500
+Date: Sun, 7 Dec 2014 02:03:25 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, aviv.d.greenberg@intel.com
+Subject: Re: [REVIEW PATCH 1/2] v4l: Add data_offset to struct v4l2_buffer
+Message-ID: <20141207000324.GD15559@valkosipuli.retiisi.org.uk>
+References: <1417605249-5322-1-git-send-email-sakari.ailus@iki.fi>
+ <1417605249-5322-2-git-send-email-sakari.ailus@iki.fi>
+ <5481CACD.5060008@xs4all.nl>
+ <20141206114849.GB15559@valkosipuli.retiisi.org.uk>
+ <5482F0FC.4070104@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5482F0FC.4070104@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Hans,
 
-After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
-selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
-depending on CONFIG_PM_RUNTIME may now be changed to depend on
-CONFIG_PM.
+On Sat, Dec 06, 2014 at 01:05:16PM +0100, Hans Verkuil wrote:
+> On 12/06/2014 12:48 PM, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Fri, Dec 05, 2014 at 04:10:05PM +0100, Hans Verkuil wrote:
+> >> On 12/03/2014 12:14 PM, Sakari Ailus wrote:
+> >>> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> <snip>
+> 
+> >> I think we need to add new helper functions that give back the real plane size
+> >> (i.e. bytesused - data_offset) and the actual plane start position (plane start
+> >> + data_offset). It will be a bit tricky though to check existing drivers.
+> > 
+> > I think this mostly applies to OUTPUT buffers.
+> > 
+> > I find the definition for multi-plane buffers a little bit odd --- why not
+> > allow setting this for CAPTURE buffers as well, on hardware that supports
+> > it? This makes sense, in order to use the buffers on other interfaces
+> > without memory copies this may be even mandatory.
+> 
+> It's meant for drivers that have a header before the actual image (e.g. sensor
+> metadata passed on before the image). Userspace has no control over that, so
+> that's why it is set by the driver at capture time.
 
-The alternative of CONFIG_PM_SLEEP and CONFIG_PM_RUNTIME may be
-replaced with CONFIG_PM too.
+This depends on hardware actually. Some devices can choose the offset the
+data is written to in a buffer, meaning the beginning of the buffer would
+not be written to by the hardware.
 
-Make these changes everywhere under drivers/media/.
+The "header" is very probably metadata that should be passed to the user
+space, but this is out of scope of this discussion.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+> > 
+> > I wonder if we should change the spec regarding this, even if no driver
+> > support was added yet.
+> 
+> I don't think so. There is a good and clear reason for this.
+> 
+> > 
+> >> AFAICT vivid is one driver that uses vb2_plane_size() to check if enough space
+> >> is available for the image, but that doesn't take the data_offset into account.
+> >>
+> >> I suspect that similar problems occur for output drivers. And what isn't properly
+> >> defined at the moment is what should happen if an output driver doesn't support
+> >> a particular data_offset value.
+> >>
+> >> I think the only thing you can do in that case is to return an error when QBUF
+> >> is called.
+> > 
+> > I'd think so. Same for PREPARE_BUF.
+> > 
+> > I suppose very few drivers support this at the moment, and the ones that
+> > don't would return -EINVAL on QBUF. This could reveal broken user space
+> > applications. An alternative would be to silently assign a valid value to
+> > the field, but I'm not sure if that's any better.
+> 
+> I wouldn't do that. In my opinion it is a clear error.
 
-Note: This depends on commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
-PM_SLEEP is selected) which is only in linux-next at the moment (via the
-linux-pm tree).
+I agree. Anyway some people are quite pedantic about it, however broken this
+user space application would be.
 
-Please let me know if it is OK to take this one into linux-pm.
+-- 
+Kind regards,
 
----
- drivers/media/platform/coda/coda-common.c       |    4 ++--
- drivers/media/platform/exynos4-is/fimc-core.c   |    6 +++---
- drivers/media/platform/exynos4-is/fimc-is-i2c.c |    2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c   |    2 +-
- drivers/media/platform/exynos4-is/mipi-csis.c   |    2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c     |    4 ++--
- drivers/media/platform/s5p-mfc/s5p_mfc.c        |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c     |   10 ++++------
- 8 files changed, 15 insertions(+), 17 deletions(-)
-
-Index: linux-pm/drivers/media/platform/s5p-jpeg/jpeg-core.c
-===================================================================
---- linux-pm.orig/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ linux-pm/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -2632,7 +2632,7 @@ static int s5p_jpeg_remove(struct platfo
- 	return 0;
- }
- 
--#if defined(CONFIG_PM_RUNTIME) || defined(CONFIG_PM_SLEEP)
-+#ifdef CONFIG_PM
- static int s5p_jpeg_runtime_suspend(struct device *dev)
- {
- 	struct s5p_jpeg *jpeg = dev_get_drvdata(dev);
-@@ -2682,7 +2682,7 @@ static int s5p_jpeg_runtime_resume(struc
- 
- 	return 0;
- }
--#endif /* CONFIG_PM_RUNTIME || CONFIG_PM_SLEEP */
-+#endif /* CONFIG_PM */
- 
- #ifdef CONFIG_PM_SLEEP
- static int s5p_jpeg_suspend(struct device *dev)
-Index: linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc.c
-===================================================================
---- linux-pm.orig/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1302,7 +1302,7 @@ static int s5p_mfc_resume(struct device
- }
- #endif
- 
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- static int s5p_mfc_runtime_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
-Index: linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-===================================================================
---- linux-pm.orig/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-+++ linux-pm/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-@@ -13,9 +13,7 @@
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/platform_device.h>
--#ifdef CONFIG_PM_RUNTIME
- #include <linux/pm_runtime.h>
--#endif
- #include "s5p_mfc_common.h"
- #include "s5p_mfc_debug.h"
- #include "s5p_mfc_pm.h"
-@@ -67,7 +65,7 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *
- 	}
- 
- 	atomic_set(&pm->power, 0);
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- 	pm->device = &dev->plat_dev->dev;
- 	pm_runtime_enable(pm->device);
- #endif
-@@ -93,7 +91,7 @@ void s5p_mfc_final_pm(struct s5p_mfc_dev
- 	}
- 	clk_unprepare(pm->clock_gate);
- 	clk_put(pm->clock_gate);
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- 	pm_runtime_disable(pm->device);
- #endif
- }
-@@ -120,7 +118,7 @@ void s5p_mfc_clock_off(void)
- 
- int s5p_mfc_power_on(void)
- {
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- 	return pm_runtime_get_sync(pm->device);
- #else
- 	atomic_set(&pm->power, 1);
-@@ -130,7 +128,7 @@ int s5p_mfc_power_on(void)
- 
- int s5p_mfc_power_off(void)
- {
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- 	return pm_runtime_put_sync(pm->device);
- #else
- 	atomic_set(&pm->power, 0);
-Index: linux-pm/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-===================================================================
---- linux-pm.orig/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-+++ linux-pm/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-@@ -81,7 +81,7 @@ static int fimc_is_i2c_remove(struct pla
- 	return 0;
- }
- 
--#if defined(CONFIG_PM_RUNTIME) || defined(CONFIG_PM_SLEEP)
-+#ifdef CONFIG_PM
- static int fimc_is_i2c_runtime_suspend(struct device *dev)
- {
- 	struct fimc_is_i2c *isp_i2c = dev_get_drvdata(dev);
-Index: linux-pm/drivers/media/platform/exynos4-is/fimc-lite.c
-===================================================================
---- linux-pm.orig/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ linux-pm/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -1588,7 +1588,7 @@ err_clk_put:
- 	return ret;
- }
- 
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- static int fimc_lite_runtime_resume(struct device *dev)
- {
- 	struct fimc_lite *fimc = dev_get_drvdata(dev);
-Index: linux-pm/drivers/media/platform/exynos4-is/mipi-csis.c
-===================================================================
---- linux-pm.orig/drivers/media/platform/exynos4-is/mipi-csis.c
-+++ linux-pm/drivers/media/platform/exynos4-is/mipi-csis.c
-@@ -978,7 +978,7 @@ static int s5pcsis_resume(struct device
- }
- #endif
- 
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- static int s5pcsis_runtime_suspend(struct device *dev)
- {
- 	return s5pcsis_pm_suspend(dev, true);
-Index: linux-pm/drivers/media/platform/exynos4-is/fimc-core.c
-===================================================================
---- linux-pm.orig/drivers/media/platform/exynos4-is/fimc-core.c
-+++ linux-pm/drivers/media/platform/exynos4-is/fimc-core.c
-@@ -832,7 +832,7 @@ err:
- 	return -ENXIO;
- }
- 
--#if defined(CONFIG_PM_RUNTIME) || defined(CONFIG_PM_SLEEP)
-+#ifdef CONFIG_PM
- static int fimc_m2m_suspend(struct fimc_dev *fimc)
- {
- 	unsigned long flags;
-@@ -871,7 +871,7 @@ static int fimc_m2m_resume(struct fimc_d
- 
- 	return 0;
- }
--#endif /* CONFIG_PM_RUNTIME || CONFIG_PM_SLEEP */
-+#endif /* CONFIG_PM */
- 
- static const struct of_device_id fimc_of_match[];
- 
-@@ -1039,7 +1039,7 @@ err_sclk:
- 	return ret;
- }
- 
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- static int fimc_runtime_resume(struct device *dev)
- {
- 	struct fimc_dev *fimc =	dev_get_drvdata(dev);
-Index: linux-pm/drivers/media/platform/coda/coda-common.c
-===================================================================
---- linux-pm.orig/drivers/media/platform/coda/coda-common.c
-+++ linux-pm/drivers/media/platform/coda/coda-common.c
-@@ -1980,7 +1980,7 @@ static int coda_probe(struct platform_de
- 
- 	/*
- 	 * Start activated so we can directly call coda_hw_init in
--	 * coda_fw_callback regardless of whether CONFIG_PM_RUNTIME is
-+	 * coda_fw_callback regardless of whether CONFIG_PM is
- 	 * enabled or whether the device is associated with a PM domain.
- 	 */
- 	pm_runtime_get_noresume(&pdev->dev);
-@@ -2013,7 +2013,7 @@ static int coda_remove(struct platform_d
- 	return 0;
- }
- 
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- static int coda_runtime_resume(struct device *dev)
- {
- 	struct coda_dev *cdev = dev_get_drvdata(dev);
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
