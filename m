@@ -1,109 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpcmd02102.aruba.it ([62.149.158.102]:43855 "EHLO
-	smtpcmd02102.aruba.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933200AbaLLJPN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 04:15:13 -0500
-Message-ID: <548AB21B.8050402@phoenixsoftware.it>
-Date: Fri, 12 Dec 2014 10:15:07 +0100
-From: Pierluigi Passaro <pierluigi.passaro@phoenixsoftware.it>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:49171 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752648AbaLGMlL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Dec 2014 07:41:11 -0500
+Received: by mail-wi0-f182.google.com with SMTP id h11so2506861wiw.3
+        for <linux-media@vger.kernel.org>; Sun, 07 Dec 2014 04:41:10 -0800 (PST)
+Received: from trt2 (chello089173176125.chello.sk. [89.173.176.125])
+        by mx.google.com with ESMTPSA id cp4sm52436154wjb.16.2014.12.07.04.41.09
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 07 Dec 2014 04:41:09 -0800 (PST)
+Date: Sun, 7 Dec 2014 13:41:07 +0100
+From: Pavol Domin <pavol.domin@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: TT-connect CT2-4650 CI: DVB-C: no signal, no QAM
+Message-ID: <20141207124107.GA7271@trt2>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: VPU on iMX51 babbage board
-References: <5488C10F.1040508@phoenixsoftware.it>	 <CAOMZO5Deesoe61g_MzUKiUpXfjyJjVTBbogSd6bT9WA1GJ9P2Q@mail.gmail.com> <1418306587.3188.13.camel@pengutronix.de>
-In-Reply-To: <1418306587.3188.13.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/12/2014 15:03, Philipp Zabel wrote:
-> Am Mittwoch, den 10.12.2014, 22:04 -0200 schrieb Fabio Estevam:
->> On Wed, Dec 10, 2014 at 7:54 PM, Pierluigi Passaro
->> <pierluigi.passaro@phoenixsoftware.it> wrote:
->>> Hi all,
->>> I'm trying to use VPU code driver on iMX51 with kernel 3.18, following these
->>> steps:
->>> - disabled DVI interface
->>> - enabled LCD interface
->>> - configured and enabled VPU
->>> - copied iMX51 vpu firmware without header and renamed
->>> v4l-coda7541-imx53.bin in /lib/firmware
->>>
->>> Attached you can find the patch and the defconfig I used.
->>>
->>> The boot process hangs after loading the firmware at the first attempt of
->>> writing in VPU address space in the function coda_write of file
->>> driver/media/platform/coda/coda-common.c
->>>
->>> Is there anything preventing the coda driver to work with iMX51?
->>> Could anyone provide any suggestion on how investigate the problem?
->> I have only tested the coda driver on mx6, but looking at the
->> mx51.dtsi you would need this:
->>
->> --- a/arch/arm/boot/dts/imx51.dtsi
->> +++ b/arch/arm/boot/dts/imx51.dtsi
->> @@ -121,6 +121,7 @@
->>           iram: iram@1ffe0000 {
->>               compatible = "mmio-sram";
->>               reg = <0x1ffe0000 0x20000>;
->> +            clocks = <&clks IMX5_CLK_OCRAM>;
->>           };
->>
->>           ipu: ipu@40000000 {
->> @@ -584,6 +585,18 @@
->>                   clock-names = "ipg", "ahb", "ptp";
->>                   status = "disabled";
->>               };
->> +
->> +            vpu: vpu@83ff4000 {
->> +                compatible = "fsl,imx53-vpu";
-> This should be "fsl,imx51-vpu", and add a "cnm,codahx14".
->
-> According to the old imx-vpu-lib code and the vpu_fw_imx51.bin firmware
-> file, the i.MX51 has a CodaHx14 (0xF00A) as opposed to the i.MX53's
-> Coda7541 (0xF012).
->
-Thanks for the hint, I'm now going through the old imx-vpu-lib to 
-understand the CodaHX14 behaviour.
-In old imx-vpu-lib, file vpu_util.c, there is a comment that make me 
-doubtful: "i.MX51 has no secondary AXI memory, but use on chip RAM".
-As far as I understood, the portion of coda driver affected from this 
-comment should be around the function coda_setup_iram in coda-bit.c.
-How am I supposed to manage this information?
-Have I to avoid to use iram for iMX51 (and return on !dev->iram.vaddr) 
-or go through the function without managing any CodaHX14 specific behaviour?
->> +                reg = <0x83ff4000 0x1000>;
->> +                interrupts = <9>;
->> +                clocks = <&clks IMX5_CLK_VPU_REFERENCE_GATE>,
->> +                         <&clks IMX5_CLK_VPU_GATE>;
->> +                clock-names = "per", "ahb";
->> +                resets = <&src 1>;
->> +                iram = <&iram>;
->> +            };
->>           };
->> +
->>       };
->>   };
->>
->> Also, not  sure if all the required coda patches are available in
->> 3.18, so I tried it on linux-next 20141210 on a imx51-babbage (I had
->> to disable USB, otherwise linux-next will hang on this board):
->>
->> [    1.368454] coda 83ff4000.vpu: Initialized CODA7541.
->> [    1.373572] coda 83ff4000.vpu: Firmware version: 1.4.50
->> [    1.396695] coda 83ff4000.vpu: codec registered as /dev/video[0-3]
->>
->> Also, no sure if we need to distinguish mx51 versus mx53 in the coda driver.
->>
->> Adding Philipp in case he can comment.
-> Yes, the i.MX51 and i.MX53 firmware files are different. So at least an
-> entry for i.MX51 with the correct firmware file name has to be added.
->
-> regards
-> Philipp
-Thanks
-Regards
-Pierluigi
+Hello,
+
+I recently purchased "TechnoTrend TT-connect CT2-4650 CI" in order to
+watch DVB-C cable TV. I have obtained CAM and smart card from my cable
+TV provider.
+
+Initially, I tried the closed-source driver from the manufacturer; I have
+scanned (w_scan) over hundred of channels and I was able to watch few channels (vlc
+or xine) for several minutes. After couple of channels switches however,
+xine started to report 'DVB Signal Lost' for any channel. The w_scan
+founds nothing anymore - tried multiple kernels on different machines,
+during several days, nothing ;)
+
+Manufacturer is not providing linux support and directed me to
+linux_media instead.
+
+The situation with linux_media is not better however (tried recent
+media_build on ubuntu 3.16 and fedora 3.17 kernels)
+
+1. the device is detected without any problems, no single error reported:
+[ 1957.068871] dvb-usb: found a 'TechnoTrend TT-connect CT2-4650 CI' in warm state.
+[ 1957.068999] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+[ 1957.069182] DVB: registering new adapter (TechnoTrend TT-connect CT2-4650 CI)
+[ 1957.070518] dvb-usb: MAC address: bc:ea:2b:65:02:3b
+[ 1957.283195] i2c i2c-9: Added multiplexed i2c bus 10
+[ 1957.283205] si2168 9-0064: Silicon Labs Si2168 successfully attached
+[ 1957.287689] si2157 10-0060: Silicon Labs Si2147/2148/2157/2158 successfully attached
+[ 1957.498312] sp2 9-0040: CIMaX SP2 successfully attached
+[ 1957.498348] usb 1-1.3: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
+[ 1957.498835] Registered IR keymap rc-tt-1500
+[ 1957.499038] input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0/input23
+[ 1957.499408] rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0
+[ 1957.499413] dvb-usb: schedule remote query interval to 150 msecs.
+[ 1957.499419] dvb-usb: TechnoTrend TT-connect CT2-4650 CI successfully initialized and connected.
+[ 1963.755553] dvb_ca adapter 0: DVB CAM detected and initialised successfully
+[ 2016.342642] si2168 9-0064: found a 'Silicon Labs Si2168' in cold state
+[ 2016.342910] si2168 9-0064: downloading firmware from file 'dvb-demod-si2168-a20-01.fw'
+[ 2017.729882] si2168 9-0064: found a 'Silicon Labs Si2168' in warm state
+[ 2017.739725] si2157 10-0060: found a 'Silicon Labs Si2146/2147/2148/2157/2158' in cold state
+[ 2017.739805] si2157 10-0060: downloading firmware from file 'dvb-tuner-si2158-a20-01.fw'
+
+2. yet, the full dvb-c w_scan founds zero channels (after 20+ minutes of
+scanning)
+
+3. an attempt to tune a channel (czap) using the channel list scanned
+the first time returns:
+$ czap -r -c channels.xine.conf 'Eurosport HD'
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+reading channels from file 'channels.xine.conf'
+141 Eurosport
+HD:562000000:INVERSION_AUTO:6900000:FEC_NONE:QAM_256:3000:3201:14001
+141 Eurosport HD: f 562000000, s 6900000, i 2, fec 0, qam 5, v 0xbb8, a 0xc81, s 0x36b1 
+ERROR: frontend device is not a QAM (DVB-C) device
+
+
+Any advice, please, what can be done to make this working? The device
+works without any problems from windows.
+
+Two additional notes:
+1. The md5sum 0276023ce027bab05c2e7053033e2182 for the firmware linked at
+http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-TVStick_CT2-4400#Firmware 
+does not match: 
+
+$ wget http://www.tt-downloads.de/bda-treiber_4.2.0.0.zip
+...
+2014-12-07 13:12:25 (1.06 MB/s) - ‘bda-treiber_4.2.0.0.zip’ saved
+[352188/352188]
+$ unzip bda-treiber_4.2.0.0.zip 
+Archive:  bda-treiber_4.2.0.0.zip
+  inflating: ttTVStick4400.inf       
+  inflating: ttTVStick4400.sys       
+  inflating: ttTVStick4400_64.sys    
+  inflating: tttvstick4400.cat       
+$ md5sum ttTVStick4400_64.sys
+7ac2029e1db41b8942691df270e0f84f  ttTVStick4400_64.sys
+
+I copied firmwares from OpenELEC
+
+2. I am getting this, with w_scan, with the media_build driver:
+$ cat w_scan
+using DVB API 5.a
+frontend 'Silicon Labs Si2168' supports
+INVERSION_AUTO
+QAM_AUTO
+FEC_AUTO
+FREQ (110.00MHz ... 862.00MHz)
+This dvb driver is *buggy*: the symbol rate limits are undefined -
+please report to linuxtv.org
+...
+
+3. Manufacturer driver displays no w_scan "no QAM" errors, even czap seems
+fine:
+$ czap -r -c channels.xine.conf 'Eurosport HD'
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+reading channels from file 'channels.xine.conf'
+141 Eurosport
+HD:562000000:INVERSION_AUTO:6900000:FEC_NONE:QAM_256:3000:3201:14001
+141 Eurosport HD: f 562000000, s 6900000, i 2, fec 0, qam 5, v 0xbb8, a 0xc81, s 0x36b1
+Version: 5.10       FE_CAN { DVB-C (A) }
+status 1f | signal 5453 | snr 0003 | ber 8e8dead8 | unc 000f00ed | FE_HAS_LOCK
+status 1f | signal 5453 | snr 0003 | ber 00000000 | unc 000f00ed | FE_HAS_LOCK
+...
+
+Yet, the application reports no signal.
+
+
+Regards,
+Pavol
+
