@@ -1,69 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f174.google.com ([209.85.213.174]:65324 "EHLO
-	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750779AbaLETuW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 14:50:22 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:40477 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751374AbaLGWgZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Dec 2014 17:36:25 -0500
+Message-ID: <5484D666.6060605@iki.fi>
+Date: Mon, 08 Dec 2014 00:36:22 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1417166286-27685-4-git-send-email-j.anaszewski@samsung.com>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com> <1417166286-27685-4-git-send-email-j.anaszewski@samsung.com>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Fri, 5 Dec 2014 11:50:01 -0800
-Message-ID: <CAK5ve-J5QOJvdRs20CaDUT_-gj35QJMPR2fdzb+0=jQV-fKBxQ@mail.gmail.com>
-Subject: Re: [PATCH/RFC v8 03/14] Documentation: leds: Add description of
- v4l2-flash sub-device
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	lkml <linux-kernel@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	b.zolnierkie@samsung.com, Pavel Machek <pavel@ucw.cz>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+To: Benjamin Larsson <benjamin@southpole.se>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] mn88472: fix firmware loading
+References: <1417990203-758-1-git-send-email-benjamin@southpole.se> <1417990203-758-2-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1417990203-758-2-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 28, 2014 at 1:17 AM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> This patch extends LED Flash class documention by
-> the description of interactions with v4l2-flash sub-device.
->
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
+On 12/08/2014 12:10 AM, Benjamin Larsson wrote:
+> The firmware must be loaded one byte at a time via the 0xf6 register.
+
+I don't think so. Currently it downloads firmware in 22 byte chunks and 
+it seems to work, at least for me, both mn88472 and mn88473.
+
+> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 > ---
-
-This patch looks good to me. I will take it with other patches!
-
-Thanks,
--Bryan
-
->  Documentation/leds/leds-class-flash.txt |   13 +++++++++++++
->  1 file changed, 13 insertions(+)
+>   drivers/staging/media/mn88472/mn88472.c | 21 +++++++--------------
+>   1 file changed, 7 insertions(+), 14 deletions(-)
 >
-> diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-> index d68565c..1a611ec 100644
-> --- a/Documentation/leds/leds-class-flash.txt
-> +++ b/Documentation/leds/leds-class-flash.txt
-> @@ -46,3 +46,16 @@ Following sysfs attributes are exposed for controlling flash led devices:
->                          until this flag is no longer set
->                 * 0x100 - the temperature of the LED has exceeded its allowed
->                           upper limit
-> +
-> +A LED subsystem driver can be controlled also from the level of VideoForLinux2
-> +subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
-> +be defined in the kernel config. The driver must call the v4l2_flash_init
-> +function to get registered in the V4L2 subsystem. On remove the
-> +v4l2_flash_release function has to be called (see <media/v4l2-flash.h>).
-> +
-> +After proper initialization a V4L2 Flash sub-device is created. The sub-device
-> +exposes a number of V4L2 controls, which allow for controlling a LED Flash class
-> +device with use of its internal kernel API.
-> +Opening the V4L2 Flash sub-device makes the LED subsystem sysfs interface
-> +unavailable. The interface is re-enabled after the V4L2 Flash sub-device
-> +is closed.
-> --
-> 1.7.9.5
+> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+> index ffee187..ba1bc8d 100644
+> --- a/drivers/staging/media/mn88472/mn88472.c
+> +++ b/drivers/staging/media/mn88472/mn88472.c
+> @@ -290,7 +290,7 @@ static int mn88472_init(struct dvb_frontend *fe)
+>   {
+>   	struct i2c_client *client = fe->demodulator_priv;
+>   	struct mn88472_dev *dev = i2c_get_clientdata(client);
+> -	int ret, len, remaining;
+> +	int ret, i;
+>   	const struct firmware *fw = NULL;
+>   	u8 *fw_file = MN88472_FIRMWARE;
 >
+> @@ -330,19 +330,12 @@ static int mn88472_init(struct dvb_frontend *fe)
+>   	if (ret)
+>   		goto err;
+>
+> -	for (remaining = fw->size; remaining > 0;
+> -			remaining -= (dev->i2c_wr_max - 1)) {
+> -		len = remaining;
+> -		if (len > (dev->i2c_wr_max - 1))
+> -			len = (dev->i2c_wr_max - 1);
+> -
+> -		ret = regmap_bulk_write(dev->regmap[0], 0xf6,
+> -				&fw->data[fw->size - remaining], len);
+> -		if (ret) {
+> -			dev_err(&client->dev,
+> -					"firmware download failed=%d\n", ret);
+> -			goto err;
+> -		}
+> +	for (i = 0 ; i < fw->size ; i++)
+> +		ret |= regmap_write(dev->regmap[0], 0xf6, fw->data[i]);
+> +	if (ret) {
+> +		dev_err(&client->dev,
+> +				"firmware download failed=%d\n", ret);
+> +		goto err;
+>   	}
+
+Not nice.
+
+1) You mask status and you could not know if error code is valid after 
+mask few thousand error codes.
+
+2) Even worse, it is loop that runs thousand of times. Guess how much 
+I/O errors there could happen. There is many times situation when first 
+error occur then all the rest commands are failing too. And many cases 
+failing I2C command could be failed USB message, which could take few 
+seconds. Very typical USB timeout is 2 secs, this means 2k firmware, 
+2*2000=4000 sec => it blocks that routine over *one* hour.
+
+>
+>   	ret = regmap_write(dev->regmap[0], 0xf5, 0x00);
+>
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
