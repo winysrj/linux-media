@@ -1,237 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:39788 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751421AbaLFPkz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Dec 2014 10:40:55 -0500
-Received: by mail-wi0-f176.google.com with SMTP id ex7so1263685wid.3
-        for <linux-media@vger.kernel.org>; Sat, 06 Dec 2014 07:40:54 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAKdnbx7EOMfFHmhwXVHP+V7-c+Lh+es+oN4e45q04M4BCccz5A@mail.gmail.com>
-References: <72f12ec0f50db8495447b3104923aa61@mail.vanmierlo.nu>
-	<52F01925.4060701@iki.fi>
-	<CAKdnbx4869X8nfX3u--3nW4nVPc+FU0F5RiX6KSGQRmC1gDZjQ@mail.gmail.com>
-	<5481CB18.5020603@iki.fi>
-	<CAKdnbx7EOMfFHmhwXVHP+V7-c+Lh+es+oN4e45q04M4BCccz5A@mail.gmail.com>
-Date: Sat, 6 Dec 2014 22:40:53 +0700
-Message-ID: <CAAZRmGw4duu3XnCuNjvW034nVtPGJ7U2EWt7oYg3N6DxvenxEA@mail.gmail.com>
-Subject: Re: Terratec H7 with yet another usb ID
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Eddi De Pieri <eddi@depieri.net>
-Cc: Antti Palosaari <crope@iki.fi>, Rik van Mierlo <rik@vanmierlo.nu>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43948 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752674AbaLGXXn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Dec 2014 18:23:43 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: aviv.d.greenberg@intel.com
+Subject: [REVIEW PATCH v2 3/3] v4l: Add packed Bayer raw10 pixel formats
+Date: Mon,  8 Dec 2014 01:22:22 +0200
+Message-Id: <1417994542-25826-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1417994542-25826-1-git-send-email-sakari.ailus@iki.fi>
+References: <1417994542-25826-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Eddi,
+From: Aviv Greenberg <aviv.d.greenberg@intel.com>
 
-As far as I know, the new version of Terratec H7 is another version of
-DVBSky T680CI or TechnoTrend CT2-4650 CI. Just try to change the USB
-IDs in the dvbsky.c driver and compile the driver and test. I'd do
-this for you, but am travelling at the moment and have very limited
-time.
+These formats are just like 10-bit raw bayer formats that exist already, but
+the pixels are not padded to byte boundaries. Instead, the eight high order
+bits of four consecutive pixels are stored in four bytes, followed by a byte
+of two low order bits of each of the four pixels.
 
-Cheers,
--olli
+Signed-off-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/pixfmt-srggb10p.xml          |   99 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
+ include/uapi/linux/videodev2.h                     |    5 +
+ 3 files changed, 105 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
 
-On 5 December 2014 at 23:27, Eddi De Pieri <eddi@depieri.net> wrote:
-> Hi Rik,
->
->
-> I've download Terratec H7 rev 4 should be a
-> TechnoTrend_TT-TVStick_CT2-44xx clone so you could try to patch
-> dvbsky.c driver.
->
-> Strings inside the windows driver:
-> T E R R A T E C   S 7   D i g i t a l   T u n e r   ( D V B - S / S 2 )
-> T T - c o n n e c t   C T 2 _ 4 6 5 0   D V B - T / T 2   T u n e r
-> T E R R A T E C   H 7   D i g i t a l   T u n e r   ( D V B - T / T 2 )
-> T T - c o n n e c t   C T 2 _ 4 6 5 0   D V B - C   T u n e r
-> T E R R A T E C   H 7   D i g i t a l   T u n e r   ( D V B - C )
->
-> Regards...
-> Eddi
->
-> On Fri, Dec 5, 2014 at 4:11 PM, Antti Palosaari <crope@iki.fi> wrote:
->> Moikka
->> Take USB sniffs and generate driver C-code from that sniff. Then copy&paste
->> that code to driver until is starts working. After that, you could remove
->> all the code until you find minimum set of needed changes (error and trial).
->>
->> regards
->> Antti
->>
->>
->> On 12/05/2014 04:51 PM, Eddi De Pieri wrote:
->>>
->>> Hi,
->>>
->>> I got a sample usb tuner with similar issue with following
->>> vendor/product 13d3:0ccd.
->>>
->>> Onboard it have: CY7C68013A-56PVXC and a SI2168-40. The tuner isn't
->>> visible since is covered by a shield.
->>>
->>> I've tried to patch the az6007 to make it working.
->>>
->>> si2168 4-0064: Silicon Labs Si2168 successfully attached
->>> si2157 5-0060: unknown chip version Si2147-A30
->>>
->>> after applying latest patch from patchwork:
->>>
->>> si2157 5-0060: Silicon Labs Si2157/Si2158 successfully attached
->>>
->>> Now tuner seems to be connected but a w_scan don't detect any channel...
->>>
->>> Can you give me some some hint on troubleshooting this issue?
->>>
->>> Actually I'm brutally changed the initialization with copy and paste
->>> of silab attach from cxusb.c and em28xx-dvb.c by removing the drxk
->>> init..
->>>
->>> Since the chinese producer recicled old vid/pid.but what is the
->>> correct way to probe for multiple frontend and choose the right one?
->>>
->>> Eddi
->>>
->>>
->>> On Mon, Feb 3, 2014 at 11:33 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>>
->>>> Hei Rik
->>>>
->>>>
->>>> On 03.02.2014 22:21, Rik van Mierlo wrote:
->>>>>
->>>>>
->>>>> Hi,
->>>>>
->>>>> I've recently purchased a Terratec H7, based on the fact that is was
->>>>> supported for a while now. Unfortunately, it turns out that my device
->>>>> uses a different product id, and maybe is not quite the same device
->>>>> inside either.
->>>>>
->>>>> ProductID for the Terratec H7 revisions in the module is either 10b4 or
->>>>> 10a3, the one I purchased is 10a5. Following this patch:
->>>>>
->>>>> https://patchwork.linuxtv.org/patch/9691
->>>>>
->>>>> I modified drivers/media/usb/dvb-usb-v2/az6007.c to include an
->>>>> additional device:
->>>>>
->>>>> static struct usb_device_id az6007_usb_table[] = {
->>>>>           {DVB_USB_DEVICE(USB_VID_AZUREWAVE, USB_PID_AZUREWAVE_6007,
->>>>>                   &az6007_props, "Azurewave 6007", RC_MAP_EMPTY)},
->>>>>           {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7,
->>>>>                   &az6007_props, "Terratec H7",
->>>>> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
->>>>>           {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7_2,
->>>>>                   &az6007_props, "Terratec H7",
->>>>> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
->>>>>           {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7_3,
->>>>>                   &az6007_props, "Terratec H7",
->>>>> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
->>>>>           {DVB_USB_DEVICE(USB_VID_TECHNISAT,
->>>>> USB_PID_TECHNISAT_USB2_CABLESTAR_HDCI,
->>>>>                   &az6007_cablestar_hdci_props, "Technisat CableStar
->>>>> Combo HD CI", RC_MAP_EMPTY)},
->>>>>           {0},
->>>>> };
->>>>>
->>>>> and added the following to drivers/media/dvb-core/dvb-usb-ids.h
->>>>>
->>>>> #define USB_PID_TERRATEC_H7_3                           0x10a5
->>>>>
->>>>> and recompiled/installed the kernel and modules. The module seems to
->>>>> have changed somewhat in 3.12.6 from the version that the patch was
->>>>> meant for, so I hope I this was all I had to change.
->>>>>
->>>>> Rebooting and plugging in the device now at least leads to a recognized
->>>>> device, but scanning for channels with w_scan does not work, and from
->>>>> the dmesg output below, it seems something is not working after loading
->>>>> the drxk firmware. Does anybody know what I could try next to get this
->>>>> device working? Could it be that the drxk firmware is not suitable for
->>>>> this revision of the device?
->>>>>
->>>>> [  700.112072] usb 4-2: new high-speed USB device number 2 using
->>>>> ehci-pci
->>>>> [  700.245092] usb 4-2: New USB device found, idVendor=0ccd,
->>>>> idProduct=10a5
->>>>> [  700.245105] usb 4-2: New USB device strings: Mfr=1, Product=2,
->>>>> SerialNumber=3
->>>>> [  700.245114] usb 4-2: Product: TERRATEC T2/T/C CI USB
->>>>> [  700.245123] usb 4-2: Manufacturer: TERRATEC
->>>>> [  700.245131] usb 4-2: SerialNumber: 20130903
->>>>> [  700.494693] usb read operation failed. (-32)
->>>>> [  700.495039] usb write operation failed. (-32)
->>>>> [  700.495413] usb write operation failed. (-32)
->>>>> [  700.495787] usb write operation failed. (-32)
->>>>
->>>>
->>>>
->>>> These low level errors does not promise any good. Are these coming from
->>>> USB
->>>> stack as there is no even bus ID (4-2)...
->>>>
->>>>> [  700.495800] usb 4-2: dvb_usb_v2: found a 'Terratec H7' in cold state
->>>>> [  700.507381] usb 4-2: firmware: direct-loading firmware
->>>>> dvb-usb-terratec-h7-az6007.fw
->>>>> [  700.507397] usb 4-2: dvb_usb_v2: downloading firmware from file
->>>>> 'dvb-usb-terratec-h7-az6007.fw'
->>>>> [  700.524301] usb 4-2: dvb_usb_v2: found a 'Terratec H7' in warm state
->>>>> [  701.760878] usb 4-2: dvb_usb_v2: will pass the complete MPEG2
->>>>> transport stream to the software demuxer
->>>>> [  701.760947] DVB: registering new adapter (Terratec H7)
->>>>> [  701.763853] usb 4-2: dvb_usb_v2: MAC address: c2:cd:0c:a5:10:00
->>>>> [  701.846469] drxk: frontend initialized.
->>>>> [  701.849123] usb 4-2: firmware: direct-loading firmware
->>>>> dvb-usb-terratec-h7-drxk.fw
->>>>> [  701.849215] usb 4-2: DVB: registering adapter 0 frontend 0 (DRXK)...
->>>>> [  701.881072] drxk: status = 0x00c04125
->>>>> [  701.881082] drxk: DeviceID 0x04 not supported
->>>>> [  701.881090] drxk: Error -22 on init_drxk
->>>>
->>>>
->>>>
->>>> I suspect there is no DRX-K.
->>>>
->>>>> [  701.908184] mt2063_attach: Attaching MT2063
->>>>> [  701.940248] Registered IR keymap rc-nec-terratec-cinergy-xs
->>>>> [  701.940547] input: Terratec H7 as
->>>>> /devices/pci0000:00/0000:00:1d.7/usb4/4-2/rc/rc0/input16
->>>>> [  701.942559] rc0: Terratec H7 as
->>>>> /devices/pci0000:00/0000:00:1d.7/usb4/4-2/rc/rc0
->>>>> [  701.942575] usb 4-2: dvb_usb_v2: schedule remote query interval to
->>>>> 400 msecs
->>>>> [  701.942587] usb 4-2: dvb_usb_v2: 'Terratec H7' successfully
->>>>> initialized and connected
->>>>> [  701.942643] usbcore: registered new interface driver dvb_usb_az6007
->>>>
->>>>
->>>>
->>>> hmm, a little bit surprising that driver accepts hardware even those
->>>> fatal
->>>> errors.
->>>>
->>>> My guess is that there is no DRX-K but some other demod or likely more
->>>> changed chips than demod. DRX-K is rather old demod and there is not very
->>>> many newer alternatives on the market. Silicon Labs chipset ? Open the
->>>> device in look what chips it has eaten.
->>>>
->>>> regards
->>>> Antti
->>>>
->>>> --
->>>> http://palosaari.fi/
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->> --
->> http://palosaari.fi/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
+new file mode 100644
+index 0000000..30aa635
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
+@@ -0,0 +1,99 @@
++    <refentry id="pixfmt-srggb10p">
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_SRGGB10P ('pRAA'),
++	 V4L2_PIX_FMT_SGRBG10P ('pgAA'),
++	 V4L2_PIX_FMT_SGBRG10P ('pGAA'),
++	 V4L2_PIX_FMT_SBGGR10P ('pBAA'),
++	 </refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-SRGGB10P"><constant>V4L2_PIX_FMT_SRGGB10P</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGRBG10P"><constant>V4L2_PIX_FMT_SGRBG10P</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGBRG10P"><constant>V4L2_PIX_FMT_SGBRG10P</constant></refname>
++	<refname id="V4L2-PIX-FMT-SBGGR10P"><constant>V4L2_PIX_FMT_SBGGR10P</constant></refname>
++	<refpurpose>10-bit packed Bayer formats</refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++	<para>These four pixel formats are packed raw sRGB /
++	Bayer formats with 10 bits per colour. Every four consecutive
++	colour components are packed into 5 bytes. Each of the first 4
++	bytes contain the 8 high order bits of the pixels, and the
++	fifth byte contains the two least significants bits of each
++	pixel, in the same order.</para>
++
++	<para>Each n-pixel row contains n/2 green samples and n/2 blue
++	or red samples, with alternating green-red and green-blue
++	rows. They are conventionally described as GRGR... BGBG...,
++	RGRG... GBGB..., etc. Below is an example of one of these
++	formats:</para>
++
++    <example>
++      <title><constant>V4L2_PIX_FMT_SBGGR10P</constant> 4 &times; 4
++      pixel image</title>
++
++      <formalpara>
++	<title>Byte Order.</title>
++	<para>Each cell is one byte.
++	  <informaltable frame="topbot" colsep="1" rowsep="1">
++	    <tgroup cols="5" align="center" border="1">
++	      <colspec align="left" colwidth="2*" />
++	      <tbody valign="top">
++		<row>
++		  <entry>start&nbsp;+&nbsp;0:</entry>
++		  <entry>B<subscript>00high</subscript></entry>
++		  <entry>G<subscript>01high</subscript></entry>
++		  <entry>B<subscript>02high</subscript></entry>
++		  <entry>G<subscript>03high</subscript></entry>
++		  <entry>B<subscript>00low</subscript>(bits 7--6)
++			 G<subscript>01low</subscript>(bits 5--4)
++			 B<subscript>02low</subscript>(bits 3--2)
++			 G<subscript>03low</subscript>(bits 1--0)
++		  </entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;5:</entry>
++		  <entry>G<subscript>10high</subscript></entry>
++		  <entry>R<subscript>11high</subscript></entry>
++		  <entry>G<subscript>12high</subscript></entry>
++		  <entry>R<subscript>13high</subscript></entry>
++		  <entry>G<subscript>10low</subscript>(bits 7--6)
++			 R<subscript>11low</subscript>(bits 5--4)
++			 G<subscript>12low</subscript>(bits 3--2)
++			 R<subscript>13low</subscript>(bits 1--0)
++		  </entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;10:</entry>
++		  <entry>B<subscript>20high</subscript></entry>
++		  <entry>G<subscript>21high</subscript></entry>
++		  <entry>B<subscript>22high</subscript></entry>
++		  <entry>G<subscript>23high</subscript></entry>
++		  <entry>B<subscript>20low</subscript>(bits 7--6)
++			 G<subscript>21low</subscript>(bits 5--4)
++			 B<subscript>22low</subscript>(bits 3--2)
++			 G<subscript>23low</subscript>(bits 1--0)
++		  </entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;15:</entry>
++		  <entry>G<subscript>30high</subscript></entry>
++		  <entry>R<subscript>31high</subscript></entry>
++		  <entry>G<subscript>32high</subscript></entry>
++		  <entry>R<subscript>33high</subscript></entry>
++		  <entry>G<subscript>30low</subscript>(bits 7--6)
++			 R<subscript>31low</subscript>(bits 5--4)
++			 G<subscript>32low</subscript>(bits 3--2)
++			 R<subscript>33low</subscript>(bits 1--0)
++		  </entry>
++		</row>
++	      </tbody>
++	    </tgroup>
++	  </informaltable>
++	</para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index ccf6053..2c83ef9 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1373,6 +1373,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb8;
+     &sub-sbggr16;
+     &sub-srggb10;
++    &sub-srggb10p;
+     &sub-srggb10alaw8;
+     &sub-srggb10dpcm8;
+     &sub-srggb12;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index f0b94b8..fbdc360 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -463,6 +463,11 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0') /* 10  GBGB.. RGRG.. */
+ #define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0') /* 10  RGRG.. GBGB.. */
++	/* 10bit raw bayer packed, 5 bytes for every 4 pixels */
++#define V4L2_PIX_FMT_SBGGR10P v4l2_fourcc('p', 'B', 'A', 'A')
++#define V4L2_PIX_FMT_SGBRG10P v4l2_fourcc('p', 'G', 'A', 'A')
++#define V4L2_PIX_FMT_SGRBG10P v4l2_fourcc('p', 'g', 'A', 'A')
++#define V4L2_PIX_FMT_SRGGB10P v4l2_fourcc('p', 'R', 'A', 'A')
+ 	/* 10bit raw bayer a-law compressed to 8 bits */
+ #define V4L2_PIX_FMT_SBGGR10ALAW8 v4l2_fourcc('a', 'B', 'A', '8')
+ #define V4L2_PIX_FMT_SGBRG10ALAW8 v4l2_fourcc('a', 'G', 'A', '8')
+-- 
+1.7.10.4
+
