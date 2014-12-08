@@ -1,105 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:22328 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751391AbaLDJm7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 04:42:59 -0500
-Message-id: <54802C9F.8030101@samsung.com>
-Date: Thu, 04 Dec 2014 10:42:55 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:26291 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049AbaLHONl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 09:13:41 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NG9003R4P1IVZ10@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Dec 2014 14:17:42 +0000 (GMT)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0NG900DSMOUQB730@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Dec 2014 14:13:38 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL] mem2mem patches
+Date: Mon, 08 Dec 2014 15:13:37 +0100
+Message-id: <034201d012f1$298eff40$7cacfdc0$%debski@samsung.com>
 MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org
-Subject: Re: [PATCH/RFC v9 02/19] Documentation: leds: Add description of LED
- Flash class extension
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
- <1417622814-10845-3-git-send-email-j.anaszewski@samsung.com>
- <20141203170818.GN14746@valkosipuli.retiisi.org.uk>
-In-reply-to: <20141203170818.GN14746@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-type: text/plain; charset=us-ascii
 Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+The following changes since commit 71947828caef0c83d4245f7d1eaddc799b4ff1d1:
 
-Thanks for the review.
+  [media] mn88473: One function call less in mn88473_init() after error
+(2014-12-04 16:00:47 -0200)
 
-On 12/03/2014 06:08 PM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> On Wed, Dec 03, 2014 at 05:06:37PM +0100, Jacek Anaszewski wrote:
->> The documentation being added contains overall description of the
->> LED Flash Class and the related sysfs attributes.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Bryan Wu <cooloney@gmail.com>
->> Cc: Richard Purdie <rpurdie@rpsys.net>
->> ---
->>   Documentation/leds/leds-class-flash.txt |   50 +++++++++++++++++++++++++++++++
->>   1 file changed, 50 insertions(+)
->>   create mode 100644 Documentation/leds/leds-class-flash.txt
->>
->> diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
->> new file mode 100644
->> index 0000000..82e58b1
->> --- /dev/null
->> +++ b/Documentation/leds/leds-class-flash.txt
->> @@ -0,0 +1,50 @@
->> +
->> +Flash LED handling under Linux
->> +==============================
->> +
->> +Some LED devices support two modes - torch and flash. The modes are
->> +supported by the LED class (see Documentation/leds/leds-class.txt)
->> +and LED Flash class respectively.
->> +
->> +In order to enable support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
->> +must be defined in the kernel config. A flash LED driver must register
->> +in the LED subsystem with led_classdev_flash_register to gain flash
->> +capabilities.
->> +
->> +Following sysfs attributes are exposed for controlling flash led devices:
->> +
->> +	- flash_brightness - flash LED brightness in microamperes (RW)
->> +	- max_flash_brightness - maximum available flash LED brightness (RO)
->> +	- flash_timeout - flash strobe duration in microseconds (RW)
->> +	- max_flash_timeout - maximum available flash strobe duration (RO)
->> +	- flash_strobe - flash strobe state (RW)
->> +	- flash_sync_strobe - one flash device can control more than one
->> +			      sub-led; when this atrribute is set to 1
->
-> s/atrribute/attribute/
->
->> +			      the flash led will be strobed synchronously
->> +			      with the other one controlled by the same
->> +			      device; flash timeout setting is inherited
->> +			      from the led being strobed explicitly and
->> +			      flash brightness setting of a sub-led's
->> +			      being synchronized is used (RW)
->
-> The flash brightness shouldn't be determined by the strobed LED. If this is
-> a property of the hardware, then be it, but in general no, it it shouldn't
-> be an interface requirement. I think this should just say that the strobe is
-> synchronised.
+are available in the git repository at:
 
-I intended this to sound exactly as you laid it out above, but maybe it
-is obscure English. "and flash brightness setting of a sub-led >>>being
-synchronized<<< is used" - from my point of view the led being
-synchronized is the one that isn't strobed explicitly. But I'm ok with
-confining ourselves only to saying that strobe is synchronized.
+  git://linuxtv.org/kdebski/media_tree_2.git for-3.20
 
-> How does the user btw. figure out which flash LEDs may be strobed
-> synchronously using the LED flash interface?
+for you to fetch changes up to 7760045d005bf16e89488416960223bde86c7a0e:
 
-The flash_sync_strobe argument is absent if synchronized strobe
-is not available for a LED. The driver defines this by setting
-newly added LED_DEV_CAP_COMPOUND flag.
+  media: s5p-mfc: use vb2_ops_wait_prepare/finish helper (2014-12-08
+13:05:29 +0100)
 
-Best Regards,
-Jacek Anaszewski
+----------------------------------------------------------------
+Prabhakar Lad (6):
+      media: s3c-camif: use vb2_ops_wait_prepare/finish helper
+      media: ti-vpe: use vb2_ops_wait_prepare/finish helper
+      media: exynos-gsc: use vb2_ops_wait_prepare/finish helper
+      media: sh_veu: use vb2_ops_wait_prepare/finish helper
+      media: s5p-tv: use vb2_ops_wait_prepare/finish helper
+      media: s5p-mfc: use vb2_ops_wait_prepare/finish helper
+
+ drivers/media/platform/exynos-gsc/gsc-core.h     |   12 --------
+ drivers/media/platform/exynos-gsc/gsc-m2m.c      |    6 ++--
+ drivers/media/platform/s3c-camif/camif-capture.c |   17 ++---------
+ drivers/media/platform/s5p-mfc/s5p_mfc.c         |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c     |   20 ++-----------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c     |   20 ++-----------
+ drivers/media/platform/s5p-tv/mixer_video.c      |   21 ++-----------
+ drivers/media/platform/sh_veu.c                  |   35
++++++-----------------
+ drivers/media/platform/ti-vpe/vpe.c              |   19 ++++--------
+ 9 files changed, 27 insertions(+), 124 deletions(-)
+
