@@ -1,69 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34010 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751549AbaLNI3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Dec 2014 03:29:49 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:35326 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753901AbaLHIat (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Dec 2014 03:30:49 -0500
+From: Jurgen Kramer <gtmkramer@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 13/18] rtl2830: wrap DVBv5 BER to DVBv3
-Date: Sun, 14 Dec 2014 10:28:38 +0200
-Message-Id: <1418545723-9536-13-git-send-email-crope@iki.fi>
-In-Reply-To: <1418545723-9536-1-git-send-email-crope@iki.fi>
-References: <1418545723-9536-1-git-send-email-crope@iki.fi>
+Cc: Jurgen Kramer <gtmkramer@xs4all.nl>
+Subject: [PATCH] Si2168: increase timeout to fix firmware loading
+Date: Mon,  8 Dec 2014 09:30:44 +0100
+Message-Id: <1418027444-4718-1-git-send-email-gtmkramer@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change legacy DVBv3 read BER to return values calculated by DVBv5
-statistics.
+Increase si2168 cmd execute timeout to prevent firmware load failures. Tests
+shows it takes up to 52ms to load the 'dvb-demod-si2168-a30-01.fw' firmware.
+Increase timeout to a safe value of 70ms.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Jurgen Kramer <gtmkramer@xs4all.nl>
 ---
- drivers/media/dvb-frontends/rtl2830.c      | 15 ++-------------
- drivers/media/dvb-frontends/rtl2830_priv.h |  1 +
- 2 files changed, 3 insertions(+), 13 deletions(-)
+ drivers/media/dvb-frontends/si2168.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index a02ccdf..0112b3f 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -596,22 +596,11 @@ static int rtl2830_read_ber(struct dvb_frontend *fe, u32 *ber)
- {
- 	struct i2c_client *client = fe->demodulator_priv;
- 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
--	int ret;
--	u8 buf[2];
--
--	if (dev->sleeping)
--		return 0;
--
--	ret = rtl2830_rd_regs(client, 0x34e, buf, 2);
--	if (ret)
--		goto err;
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index ce9ab44..d2f1a3e 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -39,7 +39,7 @@ static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
  
--	*ber = buf[0] << 8 | buf[1];
-+	*ber = (dev->post_bit_error - dev->post_bit_error_prev);
-+	dev->post_bit_error_prev = dev->post_bit_error;
- 
- 	return 0;
--err:
--	dev_dbg(&client->dev, "failed=%d\n", ret);
--	return ret;
- }
- 
- static int rtl2830_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
-diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
-index cdcaacf..6636834 100644
---- a/drivers/media/dvb-frontends/rtl2830_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2830_priv.h
-@@ -32,6 +32,7 @@ struct rtl2830_dev {
- 	u8 page; /* active register page */
- 	struct delayed_work stat_work;
- 	fe_status_t fe_status;
-+	u64 post_bit_error_prev; /* for old DVBv3 read_ber() calculation */
- 	u64 post_bit_error;
- 	u64 post_bit_count;
- };
+ 	if (cmd->rlen) {
+ 		/* wait cmd execution terminate */
+-		#define TIMEOUT 50
++		#define TIMEOUT 70
+ 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
+ 		while (!time_after(jiffies, timeout)) {
+ 			ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
 -- 
-http://palosaari.fi/
+1.9.3
 
