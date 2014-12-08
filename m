@@ -1,47 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:60707 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750978AbaLRIwh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 03:52:37 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <nicolas.ferre@atmel.com>
-CC: <voice.shen@atmel.com>, <plagnioj@jcrosoft.com>,
-	<boris.brezillon@free-electrons.com>,
-	<alexandre.belloni@free-electrons.com>,
-	<devicetree@vger.kernel.org>, <robh+dt@kernel.org>,
-	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
-	<laurent.pinchart@ideasonboard.com>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH 1/7] ARM: at91: dts: sama5d3: add isi clock
-Date: Thu, 18 Dec 2014 16:51:01 +0800
-Message-ID: <1418892667-27428-2-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
-References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
+Received: from smtp.bredband2.com ([83.219.192.166]:59932 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752144AbaLHLMs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 06:12:48 -0500
+Message-ID: <548587AA.80200@southpole.se>
+Date: Mon, 08 Dec 2014 12:12:42 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] mn88472: fix firmware loading
+References: <1417990203-758-1-git-send-email-benjamin@southpole.se> <1417990203-758-2-git-send-email-benjamin@southpole.se> <5484D666.6060605@iki.fi>
+In-Reply-To: <5484D666.6060605@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add ISI peripheral clock in sama5d3.dtsi.
+On 12/07/2014 11:36 PM, Antti Palosaari wrote:
+> On 12/08/2014 12:10 AM, Benjamin Larsson wrote:
+>> The firmware must be loaded one byte at a time via the 0xf6 register.
+>
+> I don't think so. Currently it downloads firmware in 22 byte chunks 
+> and it seems to work, at least for me, both mn88472 and mn88473.
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
- arch/arm/boot/dts/sama5d3.dtsi | 2 ++
- 1 file changed, 2 insertions(+)
+With both these changes I get much better sensitivity. So something is 
+better then before. I will track down the needed changes and respin the 
+patches.
 
-diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
-index 5f4144d..61746ef 100644
---- a/arch/arm/boot/dts/sama5d3.dtsi
-+++ b/arch/arm/boot/dts/sama5d3.dtsi
-@@ -214,6 +214,8 @@
- 				compatible = "atmel,at91sam9g45-isi";
- 				reg = <0xf0034000 0x4000>;
- 				interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
-+				clocks = <&isi_clk>;
-+				clock-names = "isi_clk";
- 				status = "disabled";
- 			};
- 
--- 
-1.9.1
-
+MvH
+Benjamin Larsson
