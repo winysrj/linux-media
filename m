@@ -1,213 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50697 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750869AbaLBH1Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 02:27:16 -0500
-Message-ID: <547D69C2.20503@xs4all.nl>
-Date: Tue, 02 Dec 2014 08:26:58 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:19723 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755223AbaLHLaK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 06:30:10 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<g.liakhovetski@gmx.de>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 0/5] media: ov2640: add device tree support
+Date: Mon, 8 Dec 2014 19:29:02 +0800
+Message-ID: <1418038147-13221-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	linux-api <linux-api@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH] media: platform: add VPFE capture driver support for
- AM437X
-References: <1416791411-9731-1-git-send-email-prabhakar.csengg@gmail.com> <547C3ED3.1060205@xs4all.nl> <CA+V-a8vDGvSeSU9-EYx+U6j++WJWY7_59b2t9drqCCkPqR93mg@mail.gmail.com>
-In-Reply-To: <CA+V-a8vDGvSeSU9-EYx+U6j++WJWY7_59b2t9drqCCkPqR93mg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/01/2014 11:17 PM, Prabhakar Lad wrote:
-> Hi Hans,
-> 
-> Thanks for the review.
-> 
-> On Mon, Dec 1, 2014 at 10:11 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi all,
->>
->> Thanks for the patch, review comments are below.
->>
->> For the next version I would appreciate if someone can test this driver with
->> the latest v4l2-compliance from the v4l-utils git repo. If possible test streaming
->> as well (v4l2-compliance -s), ideally with both a sensor and a STD receiver input.
->> But that depends on the available hardware of course.
->>
->> I'd like to see the v4l2-compliance output. It's always good to have that on
->> record.
->>
-> Following is the compliance output, missed it post it along with patch:
-> 
-> root@am437x-evm:~# ./v4l2-compliance -s -i 0 -v
-> Driver Info:
->         Driver name   : vpfe
->         Card type     :[   70.363908] vpfe 48326000.vpfe:
-> =================  START STATUS  =================
->  TI AM437x VPFE
->         Bus info      : platform:vpfe [   70.375576] vpfe
-> 48326000.vpfe: ==================  END STATUS  ==================
-> 48326000.vpfe
->         Driver version: 3.18.0
->         Capabil[   70.388485] vpfe 48326000.vpfe: invalid input index: 1
-> ities  : 0x85200001
->                 Video Capture
->                 Read/Write
->                 Streaming
->                 Extended Pix Format
->                 Device Capabilities
->         Device Caps   : 0x05200001
->                 Video Capture
->                 Read/Write
->                 Streaming
->                 Extended Pix Format
-> 
-> Compliance test for device /dev/video0 (not using libv4l2):
-> 
-> Required ioctls:
->         test VIDIOC_QUERYCAP: OK
-> 
-> Allow for multiple opens:
->         test second video open: OK
->         test VIDIOC_QUERYCAP: OK
->         test VIDIOC_G/S_PRIORITY: OK
-> 
-> Debug ioctls:
->         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->         test VIDIOC_LOG_STATUS: OK
-> 
-> Input ioctls:
->         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->         test VIDIOC_ENUMAUDIO: OK (Not Supported)
->         test VIDIOC_G/S/ENUMINPUT: OK
->         test VIDIOC_G/S_AUDIO: OK (Not Supported)
->         Inputs: 1 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
->         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->         Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Input/Output configuration ioctls:
->         test VIDIOC_ENUM/G/S/QUERY_STD: OK
->         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->         test VIDIOC_G/S_EDID: OK (Not Supported)
-> 
-> Test input 0:
-> 
->         Control ioctls:
->                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
->                 test VIDIOC_QUERYCTRL: OK (Not Supported)
->                 test VIDIOC_G/S_CTRL: OK (Not Supported)
->                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
->                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
->                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->                 Standard Controls: 0 Private Controls: 0
-> 
->         Format ioctls:
->                 info: found 7 framesizes for pixel format 56595559
->                 info: found 7 framesizes for pixel format 59565955
->                 info: found 7 framesizes for pixel format 52424752
->                 info: found 7 framesizes for pixel format 31384142
->                 info: found 4 formats for buftype 1
->                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->                 test VIDIOC_G/S_PARM: OK
->                 test VIDIOC_G_FBUF: OK (Not Supported)
->                 test VIDIOC_G_FMT: OK
->                 test VIDIOC_TRY_FMT: OK
->                 info: Global format check succeeded for type 1
->                 test VIDIOC_S_FMT: OK
->                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-> 
->         Codec ioctls:
->                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
->         Buffer ioctls:
->                 info: test buftype Video Capture
->                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->                 test VIDIOC_EXPBUF: OK
-> 
-> Streaming ioctls:
->         test read/write: OK
->             Video Capture:
->                 Buffer: 0 Sequence: 0 Field: None Timestamp: 74.956437s
->                 Buffer: 1 Sequence: 0 Field: None Timestamp: 74.979310s
->                 Buffer: 2 Sequence: 0 Field: None Timestamp: 75.002191s
->                 Buffer: 3 Sequence: 0 Field: None Timestamp: 75.208114s
->                 Buffer: 0 Sequence: 0 Field: None Timestamp: 75.230998s
+This patch series add device tree support for ov2640. And also add
+the document for the devicetree properties.
 
-Hmm, sequence is always 0. Is the sequence field set? And why doesn't
-v4l2-compliance fail on this?
+v1 -> v2:
+  1.  modified the dt bindings according to Laurent's suggestion.
+  2. add a fix patch for soc_camera. Otherwise the .reset() function won't work.
 
->                 Buffer: 1 Sequence: 0 Field: None Timestamp: 75.253877s
+Josh Wu (5):
+  media: soc-camera: use icd->control instead of icd->pdev for reset()
+  media: ov2640: add async probe function
+  media: ov2640: add primary dt support
+  media: ov2640: add a master clock for sensor
+  media: ov2640: dt: add the device tree binding document
 
-<snip>
+ .../devicetree/bindings/media/i2c/ov2640.txt       |  44 +++++++
+ drivers/media/i2c/soc_camera/ov2640.c              | 140 ++++++++++++++++++---
+ drivers/media/platform/soc_camera/soc_camera.c     |  10 +-
+ 3 files changed, 173 insertions(+), 21 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
 
->         test MMAP: OK
->         test USERPTR: OK (Not Supported)
->         test DMABUF: Cannot test, specify --expbuf-device
-> 
-> Total: 42, Succeeded: 42, Failed: 0, Warnings: 0
->>
-> [Snip]
+-- 
+1.9.1
 
->>> +static int vpfe_enum_fmt(struct file *file, void  *priv,
->>> +                      struct v4l2_fmtdesc *f)
->>> +{
->>> +     struct vpfe_device *vpfe = video_drvdata(file);
->>> +     struct v4l2_subdev_mbus_code_enum mbus_code;
->>> +     struct vpfe_subdev_info *sdinfo;
->>> +     struct vpfe_fmt *fmt;
->>> +     int ret;
->>> +
->>> +     vpfe_dbg(2, vpfe, "vpfe_enum_format index:%d\n",
->>> +             f->index);
->>> +
->>> +     sdinfo = vpfe->current_subdev;
->>> +     if (!sdinfo->sd)
->>> +             return -EINVAL;
->>> +
->>> +     mbus_code.index = f->index;
->>> +     ret = v4l2_subdev_call(sdinfo->sd, pad, enum_mbus_code,
->>> +                            NULL, &mbus_code);
->>> +     if (ret)
->>> +             return -EINVAL;
->>> +
->>> +     /* convert mbus_format to v4l2_format */
->>> +     fmt = find_format_by_code(mbus_code.code);
->>> +     if (!fmt) {
->>> +             vpfe_err(vpfe, "mbus code 0x%08x not found\n",
->>> +                     mbus_code.code);
->>> +             return -EINVAL;
->>> +     }
->>
->> Hmm. If a subdev supports more media bus codes then are supported by this
->> driver, then the enumeration will stop as soon as such an unsupported code
->> is found.
->>
->> What you want to do here is enumerate over the pixelformats that are supported
->> by both this driver and the subdev. It is probably something you want to
->> determine at the time the subdev is loaded and just mark unsupported formats
->> at that time so that they can be skipped here.
->>
-> So probably populate the supported pixelformats in s_input call ,
-> by calling enm_mbus_code ?
-
-I would do this during driver initialization, it's a one time thing that can
-be done there.
-
-Regards,
-
-	Hans
