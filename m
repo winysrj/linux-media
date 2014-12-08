@@ -1,70 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44690 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751086AbaLCMij (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Dec 2014 07:38:39 -0500
-Message-ID: <547F040D.10109@xs4all.nl>
-Date: Wed, 03 Dec 2014 13:37:33 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:54863 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751072AbaLHEzT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Dec 2014 23:55:19 -0500
+Received: by mail-ie0-f169.google.com with SMTP id y20so3927506ier.14
+        for <linux-media@vger.kernel.org>; Sun, 07 Dec 2014 20:55:18 -0800 (PST)
 MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hansverk@cisco.com>
-CC: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: [PATCH 1/2] v4l2 subdevs: replace get/set_crop by get/set_selection
-References: <1417522901-43604-1-git-send-email-hverkuil@xs4all.nl> <547EF0A9.2070004@samsung.com> <547EF165.9030409@cisco.com> <547EF8E7.8040106@samsung.com>
-In-Reply-To: <547EF8E7.8040106@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Date: Sun, 7 Dec 2014 21:55:18 -0700
+Message-ID: <CAA9z4LYu2GXyZePMdDppRmru1KZJ5wj3ReffQqRAOzAKFFt5Eg@mail.gmail.com>
+Subject: Re: vb2_dma_sg_alloc regression
+From: Chris Lee <updatelee@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/03/14 12:49, Sylwester Nawrocki wrote:
-> On 03/12/14 12:17, Hans Verkuil wrote:
->> Hi Sylwester,
->>
->> On 12/03/14 12:14, Sylwester Nawrocki wrote:
->>>> Hi Hans,
->>>>
->>>> On 02/12/14 13:21, Hans Verkuil wrote:
->>>>>> -static int s5k6aa_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->>>>>> -			   struct v4l2_subdev_crop *crop)
->>>>>> +static int s5k6aa_set_selection(struct v4l2_subdev *sd,
->>>>>> +				struct v4l2_subdev_fh *fh,
->>>>>> +				struct v4l2_subdev_selection *sel)
->>>>>>  {
->>>>>>  	struct s5k6aa *s5k6aa = to_s5k6aa(sd);
->>>>>>  	struct v4l2_mbus_framefmt *mf;
->>>>>>  	unsigned int max_x, max_y;
->>>>>>  	struct v4l2_rect *crop_r;
->>>>>>  
->>>>>> +	if (sel->pad || sel->target != V4L2_SEL_TGT_CROP)
->>>>>> +		return -EINVAL;
->>>>>> +
->>>>
->>>> Isn't checking sel->pad redundant here ? There is already the pad index
->>>> validation in check_selection() in v4l2-subdev.c and this driver has only
->>>> one pad.
->>
->> If it is called from a bridge driver, then it hasn't gone through
->> check_selection().
->>
->> That said, if it is called from a bridge driver, then one might expect
->> correct usage of pad.
-> 
-> Indeed, there is still a possibility to have wrong pad index passed
-> to those functions.  I won't object to this patch being merged as is,
-> even though functional changes could be minimized by not adding a
-> check which wasn't originally there. :)
-> 
-> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> 
+sorry, if you look at
 
-I've dropped the sel->pad check.
+http://git.linuxtv.org/cgit.cgi/media_tree.git/patch/drivers/media/v4l2-core?id=0c3a14c177aa85afb991e7c2be3921aa9a52a893
 
-Regards,
+you'll see the entire patch
 
-	Hans
+Chris Lee
