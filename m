@@ -1,83 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41174 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756612AbaLWUu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:29 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 15/66] rtl2830: implement DVBv5 BER statistic
-Date: Tue, 23 Dec 2014 22:49:08 +0200
-Message-Id: <1419367799-14263-15-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:19677 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755059AbaLHL3n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 06:29:43 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<g.liakhovetski@gmx.de>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 2/5] media: ov2640: add async probe function
+Date: Mon, 8 Dec 2014 19:29:04 +0800
+Message-ID: <1418038147-13221-3-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418038147-13221-1-git-send-email-josh.wu@atmel.com>
+References: <1418038147-13221-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DVBv5 BER.
+To support async probe for ov2640, we need remove the code to get 'mclk'
+in ov2640_probe() function. oterwise, if soc_camera host is not probed
+in the moment, then we will fail to get 'mclk' and quit the ov2640_probe()
+function.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+So in this patch, we move such 'mclk' getting code to ov2640_s_power()
+function. That make ov2640 survive, as we can pass a NULL (priv-clk) to
+soc_camera_set_power() function.
+
+And if soc_camera host is probed, the when ov2640_s_power() is called,
+then we can get the 'mclk' and that make us enable/disable soc_camera
+host's clock as well.
+
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- drivers/media/dvb-frontends/rtl2830.c      | 25 +++++++++++++++++++++++++
- drivers/media/dvb-frontends/rtl2830_priv.h |  2 ++
- 2 files changed, 27 insertions(+)
+v1 -> v2:
+  no changes.
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index 641047b..147b3a6 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -250,6 +250,10 @@ static int rtl2830_init(struct dvb_frontend *fe)
- 	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	c->cnr.len = 1;
- 	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->post_bit_error.len = 1;
-+	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->post_bit_count.len = 1;
-+	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	/* start statistics polling */
- 	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
+ drivers/media/i2c/soc_camera/ov2640.c | 31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+index 1fdce2f..9ee910d 100644
+--- a/drivers/media/i2c/soc_camera/ov2640.c
++++ b/drivers/media/i2c/soc_camera/ov2640.c
+@@ -739,6 +739,15 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct ov2640_priv *priv = to_ov2640(client);
++	struct v4l2_clk *clk;
++
++	if (!priv->clk) {
++		clk = v4l2_clk_get(&client->dev, "mclk");
++		if (IS_ERR(clk))
++			dev_warn(&client->dev, "Cannot get the mclk. maybe soc-camera host is not probed yet.\n");
++		else
++			priv->clk = clk;
++	}
  
-@@ -759,6 +763,27 @@ static void rtl2830_stat_work(struct work_struct *work)
- 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
+ }
+@@ -1078,21 +1087,21 @@ static int ov2640_probe(struct i2c_client *client,
+ 	if (priv->hdl.error)
+ 		return priv->hdl.error;
+ 
+-	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+-	if (IS_ERR(priv->clk)) {
+-		ret = PTR_ERR(priv->clk);
+-		goto eclkget;
+-	}
+-
+ 	ret = ov2640_video_probe(client);
+ 	if (ret) {
+-		v4l2_clk_put(priv->clk);
+-eclkget:
+-		v4l2_ctrl_handler_free(&priv->hdl);
++		goto evideoprobe;
+ 	} else {
+ 		dev_info(&adapter->dev, "OV2640 Probed\n");
  	}
  
-+	/* BER */
-+	if (dev->fe_status & FE_HAS_LOCK) {
-+		ret = rtl2830_rd_regs(client, 0x34e, buf, 2);
-+		if (ret)
-+			goto err;
++	ret = v4l2_async_register_subdev(&priv->subdev);
++	if (ret < 0)
++		goto evideoprobe;
 +
-+		u16tmp = buf[0] << 8 | buf[1] << 0;
-+		dev->post_bit_error += u16tmp;
-+		dev->post_bit_count += 1000000;
++	return 0;
 +
-+		dev_dbg(&client->dev, "BER errors=%u total=1000000\n", u16tmp);
-+
-+		c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
-+		c->post_bit_error.stat[0].uvalue = dev->post_bit_error;
-+		c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
-+		c->post_bit_count.stat[0].uvalue = dev->post_bit_count;
-+	} else {
-+		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
-+
- err_schedule_delayed_work:
- 	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
- 	return;
-diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
-index 7cf316d..cdcaacf 100644
---- a/drivers/media/dvb-frontends/rtl2830_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2830_priv.h
-@@ -32,6 +32,8 @@ struct rtl2830_dev {
- 	u8 page; /* active register page */
- 	struct delayed_work stat_work;
- 	fe_status_t fe_status;
-+	u64 post_bit_error;
-+	u64 post_bit_count;
- };
++evideoprobe:
++	v4l2_ctrl_handler_free(&priv->hdl);
+ 	return ret;
+ }
  
- struct rtl2830_reg_val_mask {
+@@ -1100,7 +1109,9 @@ static int ov2640_remove(struct i2c_client *client)
+ {
+ 	struct ov2640_priv       *priv = to_ov2640(client);
+ 
+-	v4l2_clk_put(priv->clk);
++	v4l2_async_unregister_subdev(&priv->subdev);
++	if (priv->clk)
++		v4l2_clk_put(priv->clk);
+ 	v4l2_device_unregister_subdev(&priv->subdev);
+ 	v4l2_ctrl_handler_free(&priv->hdl);
+ 	return 0;
 -- 
-http://palosaari.fi/
+1.9.1
 
