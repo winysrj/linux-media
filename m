@@ -1,126 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39994 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759949AbaLLP0k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 10:26:40 -0500
-Message-ID: <548B092F.2090803@osg.samsung.com>
-Date: Fri, 12 Dec 2014 08:26:39 -0700
-From: Shuah Khan <shuahkh@osg.samsung.com>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:19872 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752111AbaLHLbr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 06:31:47 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<g.liakhovetski@gmx.de>, Josh Wu <josh.wu@atmel.com>,
+	<devicetree@vger.kernel.org>
+Subject: [PATCH 5/5] media: ov2640: dt: add the device tree binding document
+Date: Mon, 8 Dec 2014 19:29:07 +0800
+Message-ID: <1418038147-13221-6-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418038147-13221-1-git-send-email-josh.wu@atmel.com>
+References: <1418038147-13221-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [REVIEW] au0828-video.c
-References: <548AC061.3050700@xs4all.nl> <20141212104942.0ea3c1d7@recife.lan> <548AE5B2.1070306@xs4all.nl> <20141212111424.0595125b@recife.lan>
-In-Reply-To: <20141212111424.0595125b@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/12/2014 06:14 AM, Mauro Carvalho Chehab wrote:
-> Em Fri, 12 Dec 2014 13:55:14 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 12/12/2014 01:49 PM, Mauro Carvalho Chehab wrote:
->>> Em Fri, 12 Dec 2014 11:16:01 +0100
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>
->>>> Hi Shuah,
->>>>
->>>> This is the video.c review with your patch applied.
->>>>
->>>>> /*
->>>>>  * Auvitek AU0828 USB Bridge (Analog video support)
->>>>>  *
->>>>>  * Copyright (C) 2009 Devin Heitmueller <dheitmueller@linuxtv.org>
->>>>>  * Copyright (C) 2005-2008 Auvitek International, Ltd.
->>>>>  *
->>>>>  * This program is free software; you can redistribute it and/or
->>>>>  * modify it under the terms of the GNU General Public License
->>>>>  * As published by the Free Software Foundation; either version 2
->>>>>  * of the License, or (at your option) any later version.
->>>>>  *
->>>>>  * This program is distributed in the hope that it will be useful,
->>>>>  * but WITHOUT ANY WARRANTY; without even the implied warranty of
->>>>>  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>>>>  * GNU General Public License for more details.
->>>>>  *
->>>>>  * You should have received a copy of the GNU General Public License
->>>>>  * along with this program; if not, write to the Free Software
->>>>>  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
->>>>>  * 02110-1301, USA.
->>>>>  */
->>>>>
->>>>> /* Developer Notes:
->>>>>  *
->>>>>  * VBI support is not yet working
->>>>
->>>> I'll see if I can get this to work quickly. If not, then we should
->>>> probably just strip the VBI support from this driver. It's pointless to
->>>> have non-functioning VBI support.
->>>
->>> This is a left-over. VBI support works on this driver. I tested.
->>
->> Oh wait, now I get it. You are only capturing line 21, not the whole vbi area.
->> That's why vbi_height = 1. Never mind then. Although that comment should indeed
->> be removed.
+Add the document for ov2640 dt.
 
-Want me to remove the comment with this work or as a separate patch??
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+v1 -> v2:
+  1. change the compatible string to be consistent with verdor file.
+  2. change the clock and pins' name.
+  3. add missed pinctrl in example.
 
->>
->>>
->>> Probably, the patches that added VBI support forgot to remove the
->>> above notice.
->>>
->>>>> /* This function ensures that video frames continue to be delivered even if
->>>>>    the ITU-656 input isn't receiving any data (thereby preventing applications
->>>>>    such as tvtime from hanging) */
->>>>
->>>> Why would tvtime be hanging? Make a separate patch that just removes all this
->>>> timeout nonsense. If there are no frames, then tvtime (and any other app) should
->>>> just wait for frames to arrive. And ctrl-C should always be able to break the app
->>>> (or they can timeout themselves).
->>>>
->>>> It's not the driver's responsibility to do this and it only makes the code overly
->>>> complex.
->>>
->>> Well, we should not cause regressions on userspace. If removing this
->>> check will cause tvtime to hang, we should keep it.
->>
->> Obviously if it hangs (i.e. tvtime can't be killed anymore) it is a bug in the driver.
->> But the driver shouldn't start generating bogus frames just because no new frames are
->> arriving, that's just nuts.
-> 
-> If I remember the bug well, what used to happen is that tvtime would wait
-> for a certain amount of time for a frame. If nothing arrives, it stops
-> capturing.
-> 
-> The net effect is that tvtime shows no picture. This used to be so bad
-> that tvtime didn't work with vivi at all.
-> 
-> The bug used also to manifest there if lots of frames got dropped
-> when, for example, changing from one channel to another.
-> 
-> Btw, on a quick look, I'm not seeing any patch at tvtime since we took
-> it over that would be fixing it. So, it was either a VB bug or the
-> bug is still there.
-> 
->>
->>> Btw, the same kind of test used to be at vivi and other drivers.
->>> I think we removed it there some time ago, so maybe either it was a
->>> VB1 bug or this got fixed at tvtime.
->>
+ .../devicetree/bindings/media/i2c/ov2640.txt       | 44 ++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
 
-I take it that we decided to keep the timeout handling for now.
-
-thanks,
--- Shuah
-
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+new file mode 100644
+index 0000000..15be3cb
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+@@ -0,0 +1,44 @@
++* Omnivision ov2640 CMOS sensor
++
++The Omnivision OV2640 sensor support multiple resolutions output, such as
++CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
++output format.
++
++Required Properties :
++- compatible: Must be "ovti,ov2640"
++- clocks: reference master clock, if using external fixed clock, you
++          no need to have such property.
++- clock-names: Must be "xvclk", it means the master clock for ov2640.
++
++Optional Properties:
++- resetb-gpios: reset pin
++- pwdn-gpios: power down pin
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	i2c1: i2c@f0018000 {
++		ov2640: camera@0x30 {
++			compatible = "ovti,ov2640";
++			reg = <0x30>;
++
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn &pinctrl_ov2640_reset>;
++
++			resetb-gpios = <&pioE 24 GPIO_ACTIVE_HIGH>;
++			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
++
++			clocks = <&pck1>;
++			clock-names = "xvclk";
++
++			port {
++				ov2640_0: endpoint {
++					remote-endpoint = <&isi_0>;
++					bus-width = <8>;
++				};
++			};
++		};
++	};
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Open Source Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+1.9.1
+
