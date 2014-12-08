@@ -1,232 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53108 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753901AbaLHI2Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Dec 2014 03:28:24 -0500
-Message-ID: <5485611D.2000005@xs4all.nl>
-Date: Mon, 08 Dec 2014 09:28:13 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mailapp01.imgtec.com ([195.59.15.196]:42558 "EHLO
+	imgpgp01.kl.imgtec.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751119AbaLHRlU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 12:41:20 -0500
+Message-ID: <5485E2BC.4050001@imgtec.com>
+Date: Mon, 8 Dec 2014 17:41:16 +0000
+From: James Hogan <james.hogan@imgtec.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Chris Lee <updatelee@gmail.com>
-Subject: [PATCH for 3.19] cx88: add missing alloc_ctx support
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: Sifan Naeem <sifan.naeem@imgtec.com>, <mchehab@osg.samsung.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<james.hartley@imgtec.com>, <ezequiel.garcia@imgtec.com>
+Subject: Re: [PATCH 4/5] rc: img-ir: add philips rc5 decoder module
+References: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com> <1417707523-7730-5-git-send-email-sifan.naeem@imgtec.com>
+In-Reply-To: <1417707523-7730-5-git-send-email-sifan.naeem@imgtec.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="jXDl2IuiX3Q2AA1JwsbrlJ08ax0wmAK89"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cx88 vb2 conversion and the vb2 dma_sg improvements were developed separately and
-were merged separately. Unfortunately, the patch updating drivers to the dma_sg
-improvements didn't take the updated cx88 driver into account. Basically two ships
-passing in the night, unaware of one another even though both ships have the same
-owner, i.e. me :-)
+--jXDl2IuiX3Q2AA1JwsbrlJ08ax0wmAK89
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Chris Lee <updatelee@gmail.com>
+On 04/12/14 15:38, Sifan Naeem wrote:
+> Add img-ir module for decoding Philips rc5 protocol.
+>=20
+> Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
+> ---
+>  drivers/media/rc/img-ir/Kconfig      |    7 +++
+>  drivers/media/rc/img-ir/Makefile     |    1 +
+>  drivers/media/rc/img-ir/img-ir-hw.c  |    3 ++
+>  drivers/media/rc/img-ir/img-ir-hw.h  |    1 +
+>  drivers/media/rc/img-ir/img-ir-rc5.c |   88 ++++++++++++++++++++++++++=
+++++++++
+>  5 files changed, 100 insertions(+)
+>  create mode 100644 drivers/media/rc/img-ir/img-ir-rc5.c
+>=20
+> diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/=
+Kconfig
+> index 03ba9fc..b5b114f 100644
+> --- a/drivers/media/rc/img-ir/Kconfig
+> +++ b/drivers/media/rc/img-ir/Kconfig
+> @@ -59,3 +59,10 @@ config IR_IMG_SANYO
+>  	help
+>  	   Say Y here to enable support for the Sanyo protocol (used by Sanyo=
+,
+>  	   Aiwa, Chinon remotes) in the ImgTec infrared decoder block.
+> +
+> +config IR_IMG_RC5
+> +	bool "Phillips RC5 protocol support"
 
---
-diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
-index 4160ca4..d3c79d9 100644
---- a/drivers/media/pci/cx88/cx88-blackbird.c
-+++ b/drivers/media/pci/cx88/cx88-blackbird.c
-@@ -647,6 +647,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 	dev->ts_packet_size  = 188 * 4;
- 	dev->ts_packet_count  = 32;
- 	sizes[0] = dev->ts_packet_size * dev->ts_packet_count;
-+	alloc_ctxs[0] = dev->alloc_ctx;
- 	return 0;
- }
- 
-@@ -662,14 +663,11 @@ static void buffer_finish(struct vb2_buffer *vb)
- {
- 	struct cx8802_dev *dev = vb->vb2_queue->drv_priv;
- 	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
--	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
- 	struct cx88_riscmem *risc = &buf->risc;
- 
- 	if (risc->cpu)
- 		pci_free_consistent(dev->pci, risc->size, risc->cpu, risc->dma);
- 	memset(risc, 0, sizeof(*risc));
--
--	dma_unmap_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
- }
- 
- static void buffer_queue(struct vb2_buffer *vb)
-diff --git a/drivers/media/pci/cx88/cx88-dvb.c b/drivers/media/pci/cx88/cx88-dvb.c
-index c344bfd..5780e2f 100644
---- a/drivers/media/pci/cx88/cx88-dvb.c
-+++ b/drivers/media/pci/cx88/cx88-dvb.c
-@@ -92,6 +92,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 	dev->ts_packet_size  = 188 * 4;
- 	dev->ts_packet_count = dvb_buf_tscnt;
- 	sizes[0] = dev->ts_packet_size * dev->ts_packet_count;
-+	alloc_ctxs[0] = dev->alloc_ctx;
- 	*num_buffers = dvb_buf_tscnt;
- 	return 0;
- }
-@@ -108,14 +109,11 @@ static void buffer_finish(struct vb2_buffer *vb)
- {
- 	struct cx8802_dev *dev = vb->vb2_queue->drv_priv;
- 	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
--	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
- 	struct cx88_riscmem *risc = &buf->risc;
- 
- 	if (risc->cpu)
- 		pci_free_consistent(dev->pci, risc->size, risc->cpu, risc->dma);
- 	memset(risc, 0, sizeof(*risc));
--
--	dma_unmap_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
- }
- 
- static void buffer_queue(struct vb2_buffer *vb)
-diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
-index f181a3a..1c1f69e 100644
---- a/drivers/media/pci/cx88/cx88-mpeg.c
-+++ b/drivers/media/pci/cx88/cx88-mpeg.c
-@@ -235,10 +235,6 @@ int cx8802_buf_prepare(struct vb2_queue *q, struct cx8802_dev *dev,
- 		return -EINVAL;
- 	vb2_set_plane_payload(&buf->vb, 0, size);
- 
--	rc = dma_map_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
--	if (!rc)
--		return -EIO;
--
- 	rc = cx88_risc_databuffer(dev->pci, risc, sgt->sgl,
- 			     dev->ts_packet_size, dev->ts_packet_count, 0);
- 	if (rc) {
-@@ -733,6 +729,11 @@ static int cx8802_probe(struct pci_dev *pci_dev,
- 	if (NULL == dev)
- 		goto fail_core;
- 	dev->pci = pci_dev;
-+	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
-+	if (IS_ERR(dev->alloc_ctx)) {
-+		err = PTR_ERR(dev->alloc_ctx);
-+		goto fail_core;
-+	}
- 	dev->core = core;
- 
- 	/* Maintain a reference so cx88-video can query the 8802 device. */
-@@ -752,6 +753,7 @@ static int cx8802_probe(struct pci_dev *pci_dev,
- 	return 0;
- 
-  fail_free:
-+	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
- 	kfree(dev);
-  fail_core:
- 	core->dvbdev = NULL;
-@@ -798,6 +800,7 @@ static void cx8802_remove(struct pci_dev *pci_dev)
- 	/* common */
- 	cx8802_fini_common(dev);
- 	cx88_core_put(dev->core,dev->pci);
-+	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
- 	kfree(dev);
- }
- 
-diff --git a/drivers/media/pci/cx88/cx88-vbi.c b/drivers/media/pci/cx88/cx88-vbi.c
-index 6ab6e27..32eb7fd 100644
---- a/drivers/media/pci/cx88/cx88-vbi.c
-+++ b/drivers/media/pci/cx88/cx88-vbi.c
-@@ -120,6 +120,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 		sizes[0] = VBI_LINE_NTSC_COUNT * VBI_LINE_LENGTH * 2;
- 	else
- 		sizes[0] = VBI_LINE_PAL_COUNT * VBI_LINE_LENGTH * 2;
-+	alloc_ctxs[0] = dev->alloc_ctx;
- 	return 0;
- }
- 
-@@ -131,7 +132,6 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
- 	unsigned int lines;
- 	unsigned int size;
--	int rc;
- 
- 	if (dev->core->tvnorm & V4L2_STD_525_60)
- 		lines = VBI_LINE_NTSC_COUNT;
-@@ -142,10 +142,6 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 		return -EINVAL;
- 	vb2_set_plane_payload(vb, 0, size);
- 
--	rc = dma_map_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
--	if (!rc)
--		return -EIO;
--
- 	cx88_risc_buffer(dev->pci, &buf->risc, sgt->sgl,
- 			 0, VBI_LINE_LENGTH * lines,
- 			 VBI_LINE_LENGTH, 0,
-@@ -157,14 +153,11 @@ static void buffer_finish(struct vb2_buffer *vb)
- {
- 	struct cx8800_dev *dev = vb->vb2_queue->drv_priv;
- 	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
--	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
- 	struct cx88_riscmem *risc = &buf->risc;
- 
- 	if (risc->cpu)
- 		pci_free_consistent(dev->pci, risc->size, risc->cpu, risc->dma);
- 	memset(risc, 0, sizeof(*risc));
--
--	dma_unmap_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
- }
- 
- static void buffer_queue(struct vb2_buffer *vb)
-diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-index a64ae31..f616e0d 100644
---- a/drivers/media/pci/cx88/cx88-video.c
-+++ b/drivers/media/pci/cx88/cx88-video.c
-@@ -440,6 +440,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 
- 	*num_planes = 1;
- 	sizes[0] = (dev->fmt->depth * core->width * core->height) >> 3;
-+	alloc_ctxs[0] = dev->alloc_ctx;
- 	return 0;
- }
- 
-@@ -1345,6 +1346,12 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 		err = -EIO;
- 		goto fail_core;
- 	}
-+	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
-+	if (IS_ERR(dev->alloc_ctx)) {
-+		err = PTR_ERR(dev->alloc_ctx);
-+		goto fail_core;
-+	}
-+
- 
- 	/* initialize driver struct */
- 	spin_lock_init(&dev->slock);
-@@ -1549,6 +1556,7 @@ fail_unreg:
- 	free_irq(pci_dev->irq, dev);
- 	mutex_unlock(&core->lock);
- fail_core:
-+	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
- 	core->v4ldev = NULL;
- 	cx88_core_put(core,dev->pci);
- fail_free:
-@@ -1582,6 +1590,7 @@ static void cx8800_finidev(struct pci_dev *pci_dev)
- 
- 	/* free memory */
- 	cx88_core_put(core,dev->pci);
-+	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
- 	kfree(dev);
- }
- 
-diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
-index 3b0ae75..7748ca9 100644
---- a/drivers/media/pci/cx88/cx88.h
-+++ b/drivers/media/pci/cx88/cx88.h
-@@ -485,6 +485,7 @@ struct cx8800_dev {
- 	/* pci i/o */
- 	struct pci_dev             *pci;
- 	unsigned char              pci_rev,pci_lat;
-+	void			   *alloc_ctx;
- 
- 	const struct cx8800_fmt    *fmt;
- 
-@@ -548,6 +549,7 @@ struct cx8802_dev {
- 	/* pci i/o */
- 	struct pci_dev             *pci;
- 	unsigned char              pci_rev,pci_lat;
-+	void			   *alloc_ctx;
- 
- 	/* dma queues */
- 	struct cx88_dmaqueue       mpegq;
+I think that should be "Philips" (if wikipedia is anything to go by).
+
+Same elsewhere in this patch and patch 5.
+
+Other than that,
+Acked-by: James Hogan <james.hogan@imgtec.com>
+
+(Note, I don't have RC-5/RC-6 capable hardware yet so can't test this
+support)
+
+Thanks
+James
+
+> +	depends on IR_IMG_HW
+> +	help
+> +	   Say Y here to enable support for the RC5 protocol in the ImgTec
+> +	   infrared decoder block.
+> diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir=
+/Makefile
+> index 92a459d..898b1b8 100644
+> --- a/drivers/media/rc/img-ir/Makefile
+> +++ b/drivers/media/rc/img-ir/Makefile
+> @@ -6,6 +6,7 @@ img-ir-$(CONFIG_IR_IMG_JVC)	+=3D img-ir-jvc.o
+>  img-ir-$(CONFIG_IR_IMG_SONY)	+=3D img-ir-sony.o
+>  img-ir-$(CONFIG_IR_IMG_SHARP)	+=3D img-ir-sharp.o
+>  img-ir-$(CONFIG_IR_IMG_SANYO)	+=3D img-ir-sanyo.o
+> +img-ir-$(CONFIG_IR_IMG_RC5)	+=3D img-ir-rc5.o
+>  img-ir-objs			:=3D $(img-ir-y)
+> =20
+>  obj-$(CONFIG_IR_IMG)		+=3D img-ir.o
+> diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img=
+-ir/img-ir-hw.c
+> index a977467..322cdf8 100644
+> --- a/drivers/media/rc/img-ir/img-ir-hw.c
+> +++ b/drivers/media/rc/img-ir/img-ir-hw.c
+> @@ -42,6 +42,9 @@ static struct img_ir_decoder *img_ir_decoders[] =3D {=
+
+>  #ifdef CONFIG_IR_IMG_SANYO
+>  	&img_ir_sanyo,
+>  #endif
+> +#ifdef CONFIG_IR_IMG_RC5
+> +	&img_ir_rc5,
+> +#endif
+>  	NULL
+>  };
+> =20
+> diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img=
+-ir/img-ir-hw.h
+> index 8578aa7..f124ec5 100644
+> --- a/drivers/media/rc/img-ir/img-ir-hw.h
+> +++ b/drivers/media/rc/img-ir/img-ir-hw.h
+> @@ -187,6 +187,7 @@ extern struct img_ir_decoder img_ir_jvc;
+>  extern struct img_ir_decoder img_ir_sony;
+>  extern struct img_ir_decoder img_ir_sharp;
+>  extern struct img_ir_decoder img_ir_sanyo;
+> +extern struct img_ir_decoder img_ir_rc5;
+> =20
+>  /**
+>   * struct img_ir_reg_timings - Reg values for decoder timings at clock=
+ rate.
+> diff --git a/drivers/media/rc/img-ir/img-ir-rc5.c b/drivers/media/rc/im=
+g-ir/img-ir-rc5.c
+> new file mode 100644
+> index 0000000..e1a0829
+> --- /dev/null
+> +++ b/drivers/media/rc/img-ir/img-ir-rc5.c
+> @@ -0,0 +1,88 @@
+> +/*
+> + * ImgTec IR Decoder setup for Phillips RC-5 protocol.
+> + *
+> + * Copyright 2012-2014 Imagination Technologies Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modif=
+y
+> + * it under the terms of the GNU General Public License as published b=
+y the
+> + * Free Software Foundation; either version 2 of the License, or (at y=
+our
+> + * option) any later version.
+> + */
+> +
+> +#include "img-ir-hw.h"
+> +
+> +/* Convert RC5 data to a scancode */
+> +static int img_ir_rc5_scancode(int len, u64 raw, u64 enabled_protocols=
+,
+> +				struct img_ir_scancode_req *request)
+> +{
+> +	unsigned int addr, cmd, tgl, start;
+> +
+> +	/* Quirk in the decoder shifts everything by 2 to the left. */
+> +	raw   >>=3D 2;
+> +
+> +	start	=3D  (raw >> 13)	& 0x01;
+> +	tgl	=3D  (raw >> 11)	& 0x01;
+> +	addr	=3D  (raw >>  6)	& 0x1f;
+> +	cmd	=3D   raw		& 0x3f;
+> +	/*
+> +	 * 12th bit is used to extend the command in extended RC5 and has
+> +	 * no effect on standard RC5.
+> +	 */
+> +	cmd	+=3D ((raw >> 12) & 0x01) ? 0 : 0x40;
+> +
+> +	if (!start)
+> +		return -EINVAL;
+> +
+> +	request->protocol =3D RC_TYPE_RC5;
+> +	request->scancode =3D addr << 8 | cmd;
+> +	request->toggle   =3D tgl;
+> +	return IMG_IR_SCANCODE;
+> +}
+> +
+> +/* Convert RC5 scancode to RC5 data filter */
+> +static int img_ir_rc5_filter(const struct rc_scancode_filter *in,
+> +				 struct img_ir_filter *out, u64 protocols)
+> +{
+> +	/* Not supported by the hw. */
+> +	return -EINVAL;
+> +}
+> +
+> +/*
+> + * RC-5 decoder
+> + * see http://www.sbprojects.com/knowledge/ir/rc5.php
+> + */
+> +struct img_ir_decoder img_ir_rc5 =3D {
+> +	.type      =3D RC_BIT_RC5,
+> +	.control   =3D {
+> +		.bitoriend2	=3D 1,
+> +		.code_type	=3D IMG_IR_CODETYPE_BIPHASE,
+> +		.decodend2	=3D 1,
+> +	},
+> +	/* main timings */
+> +	.tolerance	=3D 16,
+> +	.unit		=3D 888888, /* 1/36k*32=3D888.888microseconds */
+> +	.timings	=3D {
+> +		/* 10 symbol */
+> +		.s10 =3D {
+> +			.pulse	=3D { 1 },
+> +			.space	=3D { 1 },
+> +		},
+> +
+> +		/* 11 symbol */
+> +		.s11 =3D {
+> +			.pulse	=3D { 1 },
+> +			.space	=3D { 1 },
+> +		},
+> +
+> +		/* free time */
+> +		.ft  =3D {
+> +			.minlen =3D 14,
+> +			.maxlen =3D 14,
+> +			.ft_min =3D 5,
+> +		},
+> +	},
+> +
+> +	/* scancode logic */
+> +	.scancode	=3D img_ir_rc5_scancode,
+> +	.filter		=3D img_ir_rc5_filter,
+> +};
+>=20
+
+
+--jXDl2IuiX3Q2AA1JwsbrlJ08ax0wmAK89
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUheK8AAoJEGwLaZPeOHZ6yUYQAKwrD5cWcPaANx/XRVcq8ctU
+FRHndU7EJhyU4ZH04Db8SUhV7ya20UzjYgn1HS5LWvxRllAUHD7vB+4YhwV41OPR
+uKngGT6tKOuEWBR1B9p7q8ETg22FIA0exkmeW6dkzbk+HLnHQw4kGqx5E8tHkGpE
+DP6NfcoPIZkAPDkPBvfVMlLgFEwdqjUIIGfW0WqaogMd/w8/bF7TR6McfzEZ2ix+
+SeGySJv+CtThYYPb2AsR+QvmbfIORSw19ReuI961CeOzOWqOzOes1tOXs89ZctFb
+dBVNGdDmb3poTkr3ZXacA2vSyXq0aik3MNVIMaTtyeT6WyL5l890naxG21CFE5GD
+h3PXIFx4Z8+CdJDshEQO0EJyrKD2mMrzzzj/ZyXPbFvZoQst5naF+6buTQbKVcTR
+67KMPMIhdc796N1qqDGNLHTGMyh1In6rcPphRCofmDEj8KGLGa06WmiYblJPwnCL
+jztFoaH/jsFHRHMvVXE8pBDj6wmifuzysnisrO4tdoypd9j590E+g7wpljjtwbsm
+yCFobwZizQgXxptFGIzQYlASQhkFDOFyaWgmJaQgnqVFvfXOuANJyMvQkVB/NcQ/
+U8NCOeiotvaLH1rgTKEQX56AiiTquu/97kVacHICW3uqwZH2o+Q/fjufWg/DDjqv
+Yp4OfESUl0KO4jSGetuW
+=f060
+-----END PGP SIGNATURE-----
+
+--jXDl2IuiX3Q2AA1JwsbrlJ08ax0wmAK89--
