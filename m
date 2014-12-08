@@ -1,74 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40285 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752243AbaLFVfP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Dec 2014 16:35:15 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 17/22] si2157: change firmware download error handling
-Date: Sat,  6 Dec 2014 23:34:51 +0200
-Message-Id: <1417901696-5517-17-git-send-email-crope@iki.fi>
-In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
-References: <1417901696-5517-1-git-send-email-crope@iki.fi>
+Received: from www.linutronix.de ([62.245.132.108]:41669 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751487AbaLHInH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 03:43:07 -0500
+Date: Mon, 8 Dec 2014 09:43:01 +0100
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Felipe Balbi <balbi@ti.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] usb: hcd: get/put device and hcd for hcd_buffers()
+Message-ID: <20141208084301.GA10390@linutronix.de>
+References: <20141205200357.GA1586@linutronix.de>
+ <Pine.LNX.4.44L0.1412051543510.1032-100000@iolanthe.rowland.org>
+ <20141205232327.GB4854@linutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20141205232327.GB4854@linutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename firmare download error path goto label. Remove firmware NULL
-set as NULL value is not needed anymore, due to recent change which
-started using goto labels for firmware error handling.
+* Sebastian Andrzej Siewior | 2014-12-06 00:23:27 [+0100]:
 
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/si2157.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+>I had one patch doing that. Let me grab it out on Monday.
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 88afb2a..6174c8e 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -81,7 +81,7 @@ static int si2157_init(struct dvb_frontend *fe)
- 	struct si2157_dev *dev = i2c_get_clientdata(client);
- 	int ret, len, remaining;
- 	struct si2157_cmd cmd;
--	const struct firmware *fw = NULL;
-+	const struct firmware *fw;
- 	u8 *fw_file;
- 	unsigned int chip_id;
+okay, this is it. Laurent, any idea why this could not fly? I haven't
+seen anything odd so far.
+
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 7c8322d4fc63..d656c7de25ef 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1703,6 +1703,7 @@ static void uvc_unregister_video(struct uvc_device *dev)
+ 		stream->vdev = NULL;
  
-@@ -154,7 +154,7 @@ static int si2157_init(struct dvb_frontend *fe)
- 		dev_err(&client->dev, "firmware file '%s' is invalid\n",
- 				fw_file);
- 		ret = -EINVAL;
--		goto fw_release_exit;
-+		goto err_release_firmware;
+ 		uvc_debugfs_cleanup_stream(stream);
++		uvc_video_enable(stream, 0);
  	}
  
- 	dev_info(&client->dev, "downloading firmware from file '%s'\n",
-@@ -169,12 +169,11 @@ static int si2157_init(struct dvb_frontend *fe)
- 		if (ret) {
- 			dev_err(&client->dev, "firmware download failed %d\n",
- 					ret);
--			goto fw_release_exit;
-+			goto err_release_firmware;
- 		}
- 	}
+ 	/* Decrement the stream count and call uvc_delete explicitly if there
+@@ -1950,10 +1951,6 @@ static void uvc_disconnect(struct usb_interface *intf)
+ 	 */
+ 	usb_set_intfdata(intf, NULL);
  
- 	release_firmware(fw);
--	fw = NULL;
+-	if (intf->cur_altsetting->desc.bInterfaceSubClass ==
+-	    UVC_SC_VIDEOSTREAMING)
+-		return;
+-
+ 	dev->state |= UVC_DEV_DISCONNECTED;
  
- skip_fw_download:
- 	/* reboot the tuner with new firmware? */
-@@ -191,7 +190,7 @@ warm:
- 	dev->active = true;
- 	return 0;
- 
--fw_release_exit:
-+err_release_firmware:
- 	release_firmware(fw);
- err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	uvc_unregister_video(dev);
 -- 
-http://palosaari.fi/
+2.1.3
 
