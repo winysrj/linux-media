@@ -1,57 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:52966 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753883AbaLMASz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44320 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751072AbaLHB17 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 19:18:55 -0500
-From: Benjamin Larsson <benjamin@southpole.se>
-To: crope@iki.fi
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/4] mn88472: implement dvb-t signal lock
-Date: Sat, 13 Dec 2014 01:18:42 +0100
-Message-Id: <1418429925-16342-1-git-send-email-benjamin@southpole.se>
+	Sun, 7 Dec 2014 20:27:59 -0500
+Date: Mon, 8 Dec 2014 03:27:53 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: Re: [PATCH 1/2] v4l2 subdevs: replace get/set_crop by
+ get/set_selection
+Message-ID: <20141208012752.GG15559@valkosipuli.retiisi.org.uk>
+References: <1417522901-43604-1-git-send-email-hverkuil@xs4all.nl>
+ <20141203110559.GE14746@valkosipuli.retiisi.org.uk>
+ <1777193.G4Ej6mIZTU@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1777193.G4Ej6mIZTU@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/staging/media/mn88472/mn88472.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+Hi Laurent,
 
-diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-index 107552a..4d80046 100644
---- a/drivers/staging/media/mn88472/mn88472.c
-+++ b/drivers/staging/media/mn88472/mn88472.c
-@@ -238,6 +238,7 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
- 	unsigned int utmp;
-+	int lock = 0;
- 
- 	*status = 0;
- 
-@@ -248,6 +249,12 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 
- 	switch (c->delivery_system) {
- 	case SYS_DVBT:
-+		ret = regmap_read(dev->regmap[0], 0x7F, &utmp);
-+		if (ret)
-+			goto err;
-+		if ((utmp&0xF) > 8)
-+			lock = 1;
-+		break;
- 	case SYS_DVBT2:
- 		/* FIXME: implement me */
- 		utmp = 0x08; /* DVB-C lock value */
-@@ -262,7 +269,7 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 		goto err;
- 	}
- 
--	if (utmp == 0x08)
-+	if (lock)
- 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
- 				FE_HAS_SYNC | FE_HAS_LOCK;
- 
+On Mon, Dec 08, 2014 at 02:17:11AM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Wednesday 03 December 2014 13:06:00 Sakari Ailus wrote:
+> > On Tue, Dec 02, 2014 at 01:21:40PM +0100, Hans Verkuil wrote:
+> > > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > > 
+> > > The crop and selection pad ops are duplicates. Replace all uses of
+> > > get/set_crop by get/set_selection. This will make it possible to drop
+> > > get/set_crop altogether.
+> > > 
+> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+> > > Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> > 
+> > For both:
+> > 
+> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > 
+> > Another point I'd like to draw attention to are the reserved fields --- some
+> > drivers appear to zero them whereas some pay no attention. Shouldn't we
+> > check in the sub-device IOCTL handler that the user has zeroed them, or
+> > zero them for the user? I think this has probably been discussed before on
+> > V4L2. Both have their advantages, probably zeroing them in the framework
+> > would be the best option. What do you think?
+> 
+> I think we should at least be consistent across drivers. Duplicating checks 
+> across drivers being more error-prone it would likely be better to implement 
+> them in core code. The question that remains to be answered is whether we can 
+> consider that bridge drivers will correctly zero reserved fields when using 
+> the API internally. If not, we'll need wrapper functions around subdev 
+> operations to zero reserved fields, or possibly just to output a WARN_ON (as a 
+> bridge driver bug should be fixed instead of silently ignored).
+
+I'd simply check these fields in v4l2-subdev.c ioctl wrappers.
+
+There are over 300 instances of v4l2_subdev_call(). It's at least possible
+to audit them. I'd favour that over adding a wrapper to each op, and then
+paying attention to the topic in reviews. It's not only a matter of that
+interface.
+
 -- 
-1.9.1
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
