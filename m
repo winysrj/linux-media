@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:50660 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754752AbaLKSd2 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40390 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755414AbaLHQYM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Dec 2014 13:33:28 -0500
-Message-ID: <58d5518bed6f1511e08f1a66796fa2a9.squirrel@www.codeaurora.org>
-In-Reply-To: <0dabfbb34c548337f7d1098b46e2d197.squirrel@www.codeaurora.org>
-References: <0dabfbb34c548337f7d1098b46e2d197.squirrel@www.codeaurora.org>
-Date: Thu, 11 Dec 2014 18:33:27 -0000
-Subject: Re: V4L2_MEMORY_DMABUF for video decoders
-From: vkalia@codeaurora.org
-To: hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, vrajesh@codeaurora.org,
-	sachins@codeaurora.org, apurupa@codeaurora.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Mon, 8 Dec 2014 11:24:12 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 for v3.19 2/2] cx88: remove leftover start_video_dma() call
+Date: Mon,  8 Dec 2014 17:23:50 +0100
+Message-Id: <1418055830-12687-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1418055830-12687-1-git-send-email-hverkuil@xs4all.nl>
+References: <1418055830-12687-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans/Community
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Can you please help us with this query.
+The start_streaming op is responsible for starting the video dma,
+so it shouldn't be called anymore from the buf_queue op.
 
-Thanks
-Vinay
+Unfortunately, this call to start_video_dma() was added to the
+start_streaming op, but was forgotten to be removed from the
+buf_queue op, which is where it used to be before the vb2 conversion.
 
-> Hi
->
-> I am facing an issue while using videobuf2-dma-contig.c mem_ops. Following
-> is brief description of the driver architecture and the limitation. Any
-> pointers/hints are appreciated.
->
-> Driver architecture:
-> It is a video codec driver for video decoding. It exposes two ports -
-> CAPTURE and OUTPUT. Raw bitstream buffers are queued/dequeued via OUTPUT
-> capability and YUV via CAPTURE. This driver uses vb2_qops as well as
-> vb2_mem_ops from videobuf2-dma-contig.c. Video hardware has MMU.
->
-> V4L2 framework limitation:
-> The empty buffers are allocated by userspace and file descriptor is queued
-> to the V4L2 driver via VIDIOC_QBUF call. I am using vb2_mem_ops so the
-> buffers are mapped into video device's MMU by map_dmabuf op. Then video
-> driver sends this buffer down to hardware and hardware does the decoding
-> and writes YUV data in this buffer. This buffer is ready to be shared with
-> userspace so hardware returns this buffer back to driver. Userspace calls
-> VIDIOC_DQBUF to get the buffer but as a result the buffer is also unmapped
-> from video device's MMU. This is because DQBUF calls unmap_dmabuf op. This
-> causes problem because video device will still need this buffer so future
-> frames referencing to it can be decoded properly. Has anyone else faced
-> this problem? Is there a patch for reference counting the MMU
-> mappings/unmappings so that driver has more control over it?
->
-> Thanks
-> Vinay
->
+Calling this function twice causes very hard to find errors: sometimes
+it works, sometimes it doesn't. It took me a whole friggin' day
+to track this down, and in the end it was just luck that my eye suddenly
+triggered on that line.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx88/cx88-video.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index 25a4b7f31..860c98fc 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -523,7 +523,6 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 
+ 	if (list_empty(&q->active)) {
+ 		list_add_tail(&buf->list, &q->active);
+-		start_video_dma(dev, q, buf);
+ 		buf->count    = q->count++;
+ 		dprintk(2,"[%p/%d] buffer_queue - first active\n",
+ 			buf, buf->vb.v4l2_buf.index);
+-- 
+2.1.0
 
