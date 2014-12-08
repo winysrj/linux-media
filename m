@@ -1,44 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-ch2-05v.sys.comcast.net ([69.252.207.37]:46031 "EHLO
-	resqmta-ch2-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751178AbaLRQUR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 11:20:17 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: m.chehab@samsung.com, hans.verkuil@cisco.com,
-	dheitmueller@kernellabs.com, prabhakar.csengg@gmail.com,
-	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	ttmesterr@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 0/3] au0828 vb2 conversion
-Date: Thu, 18 Dec 2014 09:20:09 -0700
-Message-Id: <cover.1418918401.git.shuahkh@osg.samsung.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:9019 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752111AbaLHK3Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 05:29:24 -0500
+Message-id: <54857D7B.8050304@samsung.com>
+Date: Mon, 08 Dec 2014 11:29:15 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH/RFC v9 06/19] DT: Add documentation for the mfd Maxim
+ max77693
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-7-git-send-email-j.anaszewski@samsung.com>
+ <20141204100706.GP14746@valkosipuli.retiisi.org.uk>
+ <54804840.4030202@samsung.com> <20141204161201.GB29080@amd>
+In-reply-to: <20141204161201.GB29080@amd>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series includes patch v2 of the au0828 vb2 conversion,
-removing video and vbi buffer timeout handling, and a patch to
-not set fmt.pix.priv.
+Hi Pavel,
 
-The following work is in progress and will be as separate patches:
-- removing users and using v4l2_fh_is_singular_file() instead.
-- Changing dynamic allocation of video device structs to static
-  which will reduce the overhead to allocate at register time and
-  deallocating at unregister.
- 
-Shuah Khan (3):
-  media: au0828 - convert to use videobuf2
-  media: au0828 change to not zero out fmt.pix.priv
-  media: au0828 remove video and vbi buffer timeout work-around
+On 12/04/2014 05:12 PM, Pavel Machek wrote:
+> Hi!
+>
+>>>> +- maxim,boost-mode :
+>>>> +	In boost mode the device can produce up to 1.2A of total current
+>>>> +	on both outputs. The maximum current on each output is reduced
+>>>> +	to 625mA then. If there are two child led nodes defined then boost
+>>>> +	is enabled by default.
+>>>> +	Possible values:
+>>>> +		MAX77693_LED_BOOST_OFF - no boost,
+>>>> +		MAX77693_LED_BOOST_ADAPTIVE - adaptive mode,
+>>>> +		MAX77693_LED_BOOST_FIXED - fixed mode.
+>>>> +- maxim,boost-vout : Output voltage of the boost module in millivolts.
+>>>> +- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
+>>>> +	if chip estimates that system voltage could drop below this level due
+>>>> +	to flash power consumption.
+>>>> +
+>>>> +Required properties of the LED child node:
+>>>> +- label : see Documentation/devicetree/bindings/leds/common.txt
+>>>> +- maxim,fled_id : Identifier of the fled output the led is connected to;
+>>>
+>>> I'm pretty sure this will be needed for about every chip that can drive
+>>> multiple LEDs. Shouldn't it be documented in the generic documentation?
+>>
+>> OK.
+>
+> Well... "fled_id" is not exactly suitable name. On other busses, it
+> would be "reg = <1>"?
 
- drivers/media/usb/au0828/Kconfig        |   2 +-
- drivers/media/usb/au0828/au0828-cards.c |   2 +-
- drivers/media/usb/au0828/au0828-vbi.c   | 122 ++--
- drivers/media/usb/au0828/au0828-video.c | 994 +++++++++++---------------------
- drivers/media/usb/au0828/au0828.h       |  64 +-
- 5 files changed, 414 insertions(+), 770 deletions(-)
+I'm ok with "reg". This scheme is used for pca963x.txt and is described
+as "number of LED line". We could define it similarly in the common.txt.
+A device would have to specify the range of allowed values though.
+I would add such a note to the generic binding.
 
--- 
-2.1.0
-
+Regards,
+Jacek
