@@ -1,49 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f181.google.com ([209.85.160.181]:39763 "EHLO
-	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754400AbaLVM7a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 07:59:30 -0500
-Received: by mail-yk0-f181.google.com with SMTP id 142so2198582ykq.12
-        for <linux-media@vger.kernel.org>; Mon, 22 Dec 2014 04:59:29 -0800 (PST)
+Received: from mailapp01.imgtec.com ([195.59.15.196]:14504 "EHLO
+	imgpgp01.kl.imgtec.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752470AbaLHQtK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 11:49:10 -0500
+Message-ID: <5485D683.2010100@imgtec.com>
+Date: Mon, 8 Dec 2014 16:49:07 +0000
+From: James Hogan <james.hogan@imgtec.com>
 MIME-Version: 1.0
-In-Reply-To: <1419191964-29833-1-git-send-email-zzam@gentoo.org>
-References: <1419191964-29833-1-git-send-email-zzam@gentoo.org>
-Date: Mon, 22 Dec 2014 07:59:29 -0500
-Message-ID: <CALzAhNVkW3spVHVi0h--1XDp+1ekR1Z+v-FBYX61wf5Bj1H7wg@mail.gmail.com>
-Subject: Re: [PATCH] cx23885: Split Hauppauge WinTV Starburst from HVR4400
- card entry
-From: Steven Toth <stoth@kernellabs.com>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Sifan Naeem <sifan.naeem@imgtec.com>, <mchehab@osg.samsung.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<james.hartley@imgtec.com>, <ezequiel.garcia@imgtec.com>
+Subject: Re: [PATCH 2/5] rc: img-ir: pass toggle bit to the rc driver
+References: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com> <1417707523-7730-3-git-send-email-sifan.naeem@imgtec.com>
+In-Reply-To: <1417707523-7730-3-git-send-email-sifan.naeem@imgtec.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="hfgAoa7RL0daX2dNSqdEBvnC7B6Vm5S6k"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 21, 2014 at 2:59 PM, Matthias Schwarzott <zzam@gentoo.org> wrote:
-> Unconditionally attaching Si2161/Si2165 demod driver
-> breaks Hauppauge WinTV Starburst.
-> So create own card entry for this.
->
-> Add card name comments to the subsystem ids.
->
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+--hfgAoa7RL0daX2dNSqdEBvnC7B6Vm5S6k
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Matthias,
+On 04/12/14 15:38, Sifan Naeem wrote:
+> Add toggle bit to struct img_ir_scancode_req so that protocols can
+> provide it to img_ir_handle_data(), and pass that toggle bit up to
+> rc_keydown instead of 0.
+>=20
+> This is nedded for the upcoming rc-5 and rc-6 patches.
 
-Thank you for your work. However, nobody knows or cares what
-'STARBURST' is. When I created the original driver I was careful to
-name the card identified to match the actual hardware names that were
-sold in retail, this eases future maintenance for people with no
-knowledge of the hardware and makes Linux support for the HVR550 much
-more obvious in google.
+Typo (nedded).
 
-Please change CX23885_BOARD_HAUPPAUGE_STARBURST to
-CX23885_BOARD_HAUPPAUGE_HVR5500.
+Otherwise:
+Acked-by: James Hogan <james.hogan@imgtec.com>
 
-Thanks,
+Cheers
+James
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+>=20
+> Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
+> ---
+>  drivers/media/rc/img-ir/img-ir-hw.c |    8 +++++---
+>  drivers/media/rc/img-ir/img-ir-hw.h |    2 ++
+>  2 files changed, 7 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img=
+-ir/img-ir-hw.c
+> index 61850a6..4a1407b 100644
+> --- a/drivers/media/rc/img-ir/img-ir-hw.c
+> +++ b/drivers/media/rc/img-ir/img-ir-hw.c
+> @@ -792,6 +792,7 @@ static void img_ir_handle_data(struct img_ir_priv *=
+priv, u32 len, u64 raw)
+>  	struct img_ir_scancode_req request;
+> =20
+>  	request.protocol =3D RC_TYPE_UNKNOWN;
+> +	request.toggle   =3D 0;
+> =20
+>  	if (dec->scancode)
+>  		ret =3D dec->scancode(len, raw, hw->enabled_protocols, &request);
+> @@ -802,9 +803,10 @@ static void img_ir_handle_data(struct img_ir_priv =
+*priv, u32 len, u64 raw)
+>  	dev_dbg(priv->dev, "data (%u bits) =3D %#llx\n",
+>  		len, (unsigned long long)raw);
+>  	if (ret =3D=3D IMG_IR_SCANCODE) {
+> -		dev_dbg(priv->dev, "decoded scan code %#x\n",
+> -			request.scancode);
+> -		rc_keydown(hw->rdev, request.protocol, request.scancode, 0);
+> +		dev_dbg(priv->dev, "decoded scan code %#x, toggle %u\n",
+> +			request.scancode, request.toggle);
+> +		rc_keydown(hw->rdev, request.protocol, request.scancode,
+> +			   request.toggle);
+>  		img_ir_end_repeat(priv);
+>  	} else if (ret =3D=3D IMG_IR_REPEATCODE) {
+>  		if (hw->mode =3D=3D IMG_IR_M_REPEATING) {
+> diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img=
+-ir/img-ir-hw.h
+> index 1fc9583..5e59e8e 100644
+> --- a/drivers/media/rc/img-ir/img-ir-hw.h
+> +++ b/drivers/media/rc/img-ir/img-ir-hw.h
+> @@ -138,10 +138,12 @@ struct img_ir_timing_regvals {
+>   *		RC_TYPE_UNKNOWN).
+>   * @scancode:	Scan code of received message (must be written by
+>   *		handler if IMG_IR_SCANCODE is returned).
+> + * @toggle:	Toggle bit (defaults to 0).
+>   */
+>  struct img_ir_scancode_req {
+>  	enum rc_type protocol;
+>  	u32 scancode;
+> +	u8 toggle;
+>  };
+> =20
+>  /**
+>=20
+
+
+--hfgAoa7RL0daX2dNSqdEBvnC7B6Vm5S6k
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUhdaEAAoJEGwLaZPeOHZ6mioP/1HjC71Fq8+i4U55tM7bJHbg
+7mOl29aoEfUKb+zLL7m1TmzR2lNMDWItPU+0d1yn/wnv65GEHwabSaNWUBDN7ILz
+ngCOIXHVZEHLm8avR3MP/9CSx8pAGc7MaY5O5TQ/9IsRyvp+VaQ93B3ELkRLh3PW
+FEhYSlqjDtxmpWMeYzvZtlySK2ZP0tyIVKAn3ecvZbIO0acW9hXpqBdVzvU0HWQz
+TI7guwAtmTUxr9gjz5ys98WQ8wOn9fU86/8ZaXuTIOLKOBQKsBt4pb5l/zXVgnha
+nOcaRxrJSolLrX/SnIovAmoT+FV+G2CgOu7bUNB531Nf4FdxNSNofih+oWU6305Q
+NmXLmYmggSozEtDtf91ywLJ3jAmmHsuh4+4TjTgY4rzT0B9+uRhHidfB78iDJyuz
+Nfd7+6/OWcEAzJrdUEkJHwQyK/oWUlxDFXmPF8rxRc0WCpp3RA7fttFZ0Jxo1E99
++Pk7r4BYgqyklRw5HWPTxCs/JGCfQPXc7qO/w1DyHWr/2CLV+5vSqy64YOPLehyz
+di81DFZMwPTbtedfd6QIlFXBvJvjXAQloTJ/ucF4kpB5amDgGYvQ8ODuoRU694lL
+w/HeBQVw9z9P6whMi7yI7WhuonZw+ZUEoAMFqQgceB9+0+hZENu5Sw+B2knq0/jP
+W7xFwtawQuaKLtmpw9Ca
+=C4Mn
+-----END PGP SIGNATURE-----
+
+--hfgAoa7RL0daX2dNSqdEBvnC7B6Vm5S6k--
