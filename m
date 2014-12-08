@@ -1,50 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41954 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751065AbaLEOTj (ORCPT
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:60014 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756431AbaLHS6j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Dec 2014 09:19:39 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH for v3.19 1/4] v4l2-mediabus.h: use two __u16 instead of two __u32
-Date: Fri,  5 Dec 2014 15:19:21 +0100
-Message-Id: <1417789164-28468-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 8 Dec 2014 13:58:39 -0500
+Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
+	by mailout.nyi.internal (Postfix) with ESMTP id 3412720BBD
+	for <linux-media@vger.kernel.org>; Mon,  8 Dec 2014 13:58:39 -0500 (EST)
+From: William Manley <will@williammanley.net>
+To: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	m.chehab@samsung.com
+Cc: William Manley <will@williammanley.net>
+Subject: [PATCH] [media] uvcvideo: Add GUID for BGR 8:8:8
+Date: Mon,  8 Dec 2014 18:57:58 +0000
+Message-Id: <1418065078-27791-1-git-send-email-will@williammanley.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The Magewell XI100DUSB-HDMI[1] video capture device reports the pixel
+format "e436eb7d-524f-11ce-9f53-0020af0ba770".  This is its GUID for
+BGR 8:8:8.
 
-The ycbcr_enc and quantization fields do not need a __u32. Switch to
-two __u16 types, thus preserving alignment and avoiding holes in the
-struct. This makes one more __u32 available for future expansion.
+The UVC 1.5 spec[2] only defines GUIDs for YUY2, NV12, M420 and I420.
+This seems to be an extension documented in the Microsoft Windows Media
+Format SDK[3] - or at least the Media Format SDK was the only hit that
+Google gave when searching for the GUID.  This Media Format SDK defines
+this GUID as corresponding to `MEDIASUBTYPE_RGB24`.  Note though, the
+XI100DUSB outputs BGR e.g. byte-reversed.  I don't know if its the
+capture device in error or Microsoft mean BGR when they say RGB.
 
-Suggested by Sakari Ailus.
+[1]: http://www.magewell.com/hardware/dongles/xi100dusb-hdmi/xi100dusb-hdmi_features.html?lang=en
+[2]: http://www.usb.org/developers/docs/devclass_docs/USB_Video_Class_1_5.zip
+[3]: http://msdn.microsoft.com/en-gb/library/windows/desktop/dd757532(v=vs.85).aspx
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: William Manley <will@williammanley.net>
 ---
- include/uapi/linux/v4l2-mediabus.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/usb/uvc/uvc_driver.c | 5 +++++
+ drivers/media/usb/uvc/uvcvideo.h   | 3 +++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index 5a86d8e..26db206 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -31,9 +31,9 @@ struct v4l2_mbus_framefmt {
- 	__u32			code;
- 	__u32			field;
- 	__u32			colorspace;
--	__u32			ycbcr_enc;
--	__u32			quantization;
--	__u32			reserved[5];
-+	__u16			ycbcr_enc;
-+	__u16			quantization;
-+	__u32			reserved[6];
- };
- 
- #ifndef __KERNEL__
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 7c8322d..dc7cff1 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -138,6 +138,11 @@ static struct uvc_format_desc uvc_fmts[] = {
+ 		.fcc		= V4L2_PIX_FMT_RGB565,
+ 	},
+ 	{
++		.name		= "BGR 8:8:8 (BGR3)",
++		.guid		= UVC_GUID_FORMAT_BGR3,
++		.fcc		= V4L2_PIX_FMT_BGR24,
++	},
++	{
+ 		.name		= "H.264",
+ 		.guid		= UVC_GUID_FORMAT_H264,
+ 		.fcc		= V4L2_PIX_FMT_H264,
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 864ada7..ed0210d 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -109,6 +109,9 @@
+ #define UVC_GUID_FORMAT_RGBP \
+ 	{ 'R',  'G',  'B',  'P', 0x00, 0x00, 0x10, 0x00, \
+ 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_BGR3 \
++	{ 0x7d, 0xeb, 0x36, 0xe4, 0x4f, 0x52, 0xce, 0x11, \
++	 0x9f, 0x53, 0x00, 0x20, 0xaf, 0x0b, 0xa7, 0x70}
+ #define UVC_GUID_FORMAT_M420 \
+ 	{ 'M',  '4',  '2',  '0', 0x00, 0x00, 0x10, 0x00, \
+ 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
 -- 
 2.1.3
 
