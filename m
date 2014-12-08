@@ -1,231 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:52091 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751138AbaLRSQ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 13:16:27 -0500
-From: "Stefan Lippers-Hollmann" <s.L-H@gmx.de>
-To: jarod@wilsonet.com
-Subject: mceusb: sysfs: cannot create duplicate filename '/class/rc/rc0' (race condition between multiple RC_CORE devices)
-Date: Thu, 18 Dec 2014 19:16:13 +0100
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	m.chehab@samsung.com
+Received: from mailapp01.imgtec.com ([195.59.15.196]:31913 "EHLO
+	imgpgp01.kl.imgtec.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751119AbaLHRRz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 12:17:55 -0500
+Message-ID: <5485DD40.60500@imgtec.com>
+Date: Mon, 8 Dec 2014 17:17:52 +0000
+From: James Hogan <james.hogan@imgtec.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <201412181916.18051.s.L-H@gmx.de>
+To: Sifan Naeem <sifan.naeem@imgtec.com>, <mchehab@osg.samsung.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<james.hartley@imgtec.com>, <ezequiel.garcia@imgtec.com>
+Subject: Re: [PATCH 3/5] rc: img-ir: biphase enabled with workaround
+References: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com> <1417707523-7730-4-git-send-email-sifan.naeem@imgtec.com>
+In-Reply-To: <1417707523-7730-4-git-send-email-sifan.naeem@imgtec.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="qt68giqhPrGgtOXp3UwhHfQTHkKsS4i9M"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+--qt68giqhPrGgtOXp3UwhHfQTHkKsS4i9M
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Occassionally, but not readily reproducably, I hit a race condition 
-between mceusb and other connected RC_CORE devices when mceusb tries 
-to create /class/rc/rc0, which is -by then- already taken by another 
-RC_CORE device. The other involved IR devices (physically only one)
-are part of a PCIe TeVii s480 s2.1 twin-tuner DVB-S2 card and aren't 
-actually supposed to receive IR signals (IR receiver not connected):
+On 04/12/14 15:38, Sifan Naeem wrote:
+> Biphase decoding in the current img-ir has got a quirk, where multiple
+> Interrupts are generated when an incomplete IR code is received by the
+> decoder.
+>=20
+> Patch adds a work around for the quirk and enables biphase decoding.
+>=20
+> Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
+> ---
+>  drivers/media/rc/img-ir/img-ir-hw.c |   56 +++++++++++++++++++++++++++=
+++++++--
+>  drivers/media/rc/img-ir/img-ir-hw.h |    2 ++
+>  2 files changed, 55 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img=
+-ir/img-ir-hw.c
+> index 4a1407b..a977467 100644
+> --- a/drivers/media/rc/img-ir/img-ir-hw.c
+> +++ b/drivers/media/rc/img-ir/img-ir-hw.c
+> @@ -52,6 +52,11 @@ static struct img_ir_decoder *img_ir_decoders[] =3D =
+{
+> =20
+>  #define IMG_IR_QUIRK_CODE_BROKEN	0x1	/* Decode is broken */
+>  #define IMG_IR_QUIRK_CODE_LEN_INCR	0x2	/* Bit length needs increment *=
+/
+> +/*
+> + * The decoder generates rapid interrupts without actually having
+> + * received any new data after an incomplete IR code is decoded.
+> + */
+> +#define IMG_IR_QUIRK_CODE_IRQ		0x4
+> =20
+>  /* functions for preprocessing timings, ensuring max is set */
+> =20
+> @@ -547,6 +552,7 @@ static void img_ir_set_decoder(struct img_ir_priv *=
+priv,
+> =20
+>  	/* stop the end timer and switch back to normal mode */
+>  	del_timer_sync(&hw->end_timer);
+> +	del_timer_sync(&hw->suspend_timer);
 
-mceusb device transceiver:
-Bus 002 Device 004: ID 0609:0334 SMK Manufacturing, Inc. eHome Infrared Receiver
+FYI, this'll need rebasing due to conflicting with "img-ir/hw: Fix
+potential deadlock stopping timer". The new del_timer_sync will need to
+be when spin lock isn't held, i.e. still next to the other one, and
+don't forget to ensure that suspend_timer doesn't get started if
+hw->stopping.
 
-DVB-T receiver (no RC_CORE device)
-Bus 001 Device 004: ID 0ccd:0069 TerraTec Electronic GmbH Cinergy T XE (Version 2, AF9015)
+>  	hw->mode =3D IMG_IR_M_NORMAL;
+> =20
+>  	/* clear the wakeup scancode filter */
+> @@ -843,6 +849,26 @@ static void img_ir_end_timer(unsigned long arg)
+>  	spin_unlock_irq(&priv->lock);
+>  }
+> =20
+> +/*
+> + * Timer function to re-enable the current protocol after it had been
+> + * cleared when invalid interrupts were generated due to a quirk in th=
+e
+> + * img-ir decoder.
+> + */
+> +static void img_ir_suspend_timer(unsigned long arg)
+> +{
+> +	struct img_ir_priv *priv =3D (struct img_ir_priv *)arg;
+> +
 
-twin-tuner DVB-S2 PCIe device, TeVii s480 v2.1 (physically one IR 
-receiver (NEC protocol), logically recognized as two RC_CORE devices):
-04:00.0 USB controller: MosChip Semiconductor Technology Ltd. MCS9990 PCIe to 4‐Port USB 2.0 Host Controller                                                                                                                                                                                                                                                                                
-04:00.1 USB controller: MosChip Semiconductor Technology Ltd. MCS9990 PCIe to 4‐Port USB 2.0 Host Controller                                                                                                                                                                                                                                                                                
-04:00.2 USB controller: MosChip Semiconductor Technology Ltd. MCS9990 PCIe to 4‐Port USB 2.0 Host Controller                                                                                                                                                                                                                                                                                
-04:00.3 USB controller: MosChip Semiconductor Technology Ltd. MCS9990 PCIe to 4‐Port USB 2.0 Host Controller                                                                                                                                                                                                                                                                                
-04:00.4 USB controller: MosChip Semiconductor Technology Ltd. MCS9990 PCIe to 4‐Port USB 2.0 Host Controller                                                                                                                                                                                                                                                                                
-04:00.5 USB controller: MosChip Semiconductor Technology Ltd. MCS9990 PCIe to 4‐Port USB 2.0 Host Controller                                                                                                                                                                                                                                                                                
-04:00.6 USB controller: MosChip Semiconductor Technology Ltd. MCS9990 PCIe to 4‐Port USB 2.0 Host Controller                                                                                                                                                                                                                                                                                
-04:00.7 USB controller: MosChip Semiconductor Technology Ltd. MCS9990 PCIe to 4‐Port USB 2.0 Host Controller
-	Bus 006 Device 003: ID 9022:d660 TeVii Technology Ltd. DVB-S2 S660
-	Bus 003 Device 003: ID 9022:d660 TeVii Technology Ltd. DVB-S2 S660
+You should take the spin lock for most of this function now that
+"img-ir/hw: Fix potential deadlock stopping timer" is applied and it is
+safe to do so.
 
-dmesg excerpt from kernel 3.18.1-rc1, but this already happened 
-randomly with older kernels:
+> +	img_ir_write(priv, IMG_IR_IRQ_CLEAR,
+> +			IMG_IR_IRQ_ALL & ~IMG_IR_IRQ_EDGE);
+> +
+> +	/* Don't set IRQ if it has changed in a different context. */
 
-[...]
-dvb_usb_dw2102: unknown parameter 'keymap' ignored
-dvb-usb: found a 'TeVii S480.1 USB' in cold state, will try to load a firmware
-dvb-usb: downloading firmware from file 'dvb-usb-s660.fw'
-dw2102: start downloading DW210X firmware
-[...]
-usb 1-1.5: dvb_usb_v2: found a 'TerraTec Cinergy T USB XE' in cold state
-[...]
-usb 1-1.5: dvb_usb_v2: downloading firmware from file 'dvb-usb-af9015.fw'
-usb 2-1.6: New USB device found, idVendor=0609, idProduct=0334
-usb 2-1.6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 2-1.6: Product: MCE TRANCEIVR Emulator Device 2006
-usb 2-1.6: Manufacturer: SMK CORPORATION
-usb 2-1.6: SerialNumber: PA070620045513C
-[...]
-usb 3-1: USB disconnect, device number 2
-usb 1-1.5: dvb_usb_v2: found a 'TerraTec Cinergy T USB XE' in warm state
-[...]
-dvb-usb: found a 'TeVii S480.1 USB' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-DVB: registering new adapter (TeVii S480.1 USB)
-dvb-usb: MAC address: 40:40:40:40:40:40
-Invalid probe, probably not a DS3000
-dvb-usb: no frontend was attached by 'TeVii S480.1 USB'
-[...]
-Registered IR keymap rc-tevii-nec
-input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1c.5/0000:04:00.1/usb3/3-1/rc/rc0/input18
-rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1c.5/0000:04:00.1/usb3/3-1/rc/rc0
-dvb-usb: schedule remote query interval to 150 msecs.
-dvb-usb: TeVii S480.1 USB successfully initialized and connected.
-dvb-usb: found a 'TeVii S480.2 USB' in cold state, will try to load a firmware
-dvb-usb: downloading firmware from file 'dvb-usb-s660.fw'
-dw2102: start downloading DW210X firmware
-[...]
-Registered IR keymap rc-rc6-mce
-------------[ cut here ]------------
-WARNING: CPU: 3 PID: 308 at /tmp/buildd/linux-aptosid-3.18/fs/sysfs/dir.c:31 sysfs_warn_dup+0x55/0x70()
-sysfs: cannot create duplicate filename '/class/rc/rc0'
-Modules linked in: rt2800usb(+) rt2x00usb rt2800lib rt2x00lib mac80211 cfg80211 crc_ccitt rc_rc6_mce mceusb(+) rc_tevii_nec ds3000 nls_utf8 nls_cp437 vfat fat intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp iTCO_wdt eeepc_wmi iTCO_vendor_support asus_wmi sparse_keymap kvm_intel rfkill evdev kvm crct10dif_pclmul crc32_pclmul snd_hda_codec_hdmi snd_hda_codec_realtek dvb_usb_af9015(+) ghash_clmulni_intel snd_hda_codec_generic dvb_usb_v2 aesni_intel dvb_usb_dw2102(+) aes_x86_64 dvb_usb lrw gf128mul psmouse glue_helper dvb_core ablk_helper serio_raw cryptd rc_core pcspkr snd_hda_intel i2c_i801 snd_hda_controller snd_hda_codec snd_hwdep snd_pcm snd_timer snd soundcore lpc_ich mfd_core battery tpm_infineon wmi i915 button video i2c_algo_bit drm_kms_helper drm i2c_core mei_me intel_gtt
- mei ie31200_edac edac_core processor nct6775 hwmon_vid fuse parport_pc ppdev lp parport autofs4 ext4 crc16 jbd2 mbcache dm_mod sg sd_mod ohci_pci crc32c_intel ahci libahci libata scsi_mod xhci_pci xhci_hcd ohci_hcd ehci_pci ehci_hcd r8169 mii usbcore usb_common thermal fan
-CPU: 3 PID: 308 Comm: systemd-udevd Not tainted 3.18.0-0.slh.2-aptosid-amd64 #1 aptosid 3.18-4
-Hardware name: System manufacturer System Product Name/P8H77-M PRO, BIOS 1503 03/17/2014
- 0000000000000009 00000000acb81fbf 0000000000000009 ffffffff814ddd08
- ffff8807f048b8a0 ffffffff8105f3fd ffff8807f0e45000 ffff8807f0114438
- ffff8807f3550bb8 ffff8807f3550bb8 ffffffffffffffef ffffffff8105f478
-Call Trace:
- [<ffffffff814ddd08>] ? dump_stack+0x49/0x6a
- [<ffffffff8105f3fd>] ? warn_slowpath_common+0x6d/0x90
- [<ffffffff8105f478>] ? warn_slowpath_fmt+0x58/0x80
- [<ffffffff811e8042>] ? kernfs_path+0x42/0x50
- [<ffffffff811eb3d5>] ? sysfs_warn_dup+0x55/0x70
- [<ffffffff811eb72e>] ? sysfs_do_create_link_sd.isra.2+0xbe/0xd0
- [<ffffffff81362f24>] ? device_add+0x3b4/0x660
- [<ffffffffa01238ec>] ? rc_register_device+0x1bc/0x600 [rc_core]
- [<ffffffffa0d47f55>] ? mceusb_dev_probe+0x405/0xadd [mceusb]
- [<ffffffff8126eaf8>] ? ida_get_new_above+0x1f8/0x220
- [<ffffffffa003669b>] ? usb_probe_interface+0x1ab/0x2d0 [usbcore]
- [<ffffffff81365c87>] ? driver_probe_device+0x87/0x260
- [<ffffffff81365f2b>] ? __driver_attach+0x7b/0x80
- [<ffffffff81365eb0>] ? __device_attach+0x50/0x50
- [<ffffffff81363d4b>] ? bus_for_each_dev+0x6b/0xc0
- [<ffffffff81365428>] ? bus_add_driver+0x178/0x230
- [<ffffffff8136655e>] ? driver_register+0x5e/0xf0
- [<ffffffffa003504b>] ? usb_register_driver+0x7b/0x160 [usbcore]
- [<ffffffffa0d4b000>] ? 0xffffffffa0d4b000
- [<ffffffffa0d4b000>] ? 0xffffffffa0d4b000
- [<ffffffff81002108>] ? do_one_initcall+0x98/0x200
- [<ffffffff810cf144>] ? load_module+0x1ce4/0x22b0
- [<ffffffff810cc330>] ? __symbol_put+0xa0/0xa0
- [<ffffffff811804de>] ? kernel_read+0x4e/0x80
- [<ffffffff810cf87d>] ? SyS_finit_module+0x8d/0xa0
- [<ffffffff814e3d29>] ? system_call_fastpath+0x12/0x17
----[ end trace a644812bec4f2609 ]---
-mceusb 2-1.6:1.0: remote dev registration failed
-mceusb 2-1.6:1.0: mceusb_dev_probe: device setup failed!
-mceusb: probe of 2-1.6:1.0 failed with error -12
-usbcore: registered new interface driver mceusb
-dvb-usb: TeVii S480.1 USB successfully deinitialized and disconnected.
-usb 6-1: USB disconnect, device number 2
-usb 2-1.5: reset high-speed USB device number 3 using ehci-pci
-dvb-usb: found a 'TeVii S480.2 USB' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-DVB: registering new adapter (TeVii S480.2 USB)
-dvb-usb: MAC address: 90:90:90:90:90:90
-Invalid probe, probably not a DS3000
-dvb-usb: no frontend was attached by 'TeVii S480.2 USB'
-Registered IR keymap rc-tevii-nec
-input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1c.5/0000:04:00.3/usb6/6-1/rc/rc0/input20
-rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1c.5/0000:04:00.3/usb6/6-1/rc/rc0
-dvb-usb: schedule remote query interval to 150 msecs.
-dvb-usb: TeVii S480.2 USB successfully initialized and connected.
-usbcore: registered new interface driver dw2102
-dvb-usb: TeVii S480.2 USB successfully deinitialized and disconnected.
-[...]
-usb 1-1.5: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
-DVB: registering new adapter (TerraTec Cinergy T USB XE)
-i2c i2c-9: af9013: firmware version 5.1.0.0
-usb 1-1.5: DVB: registering adapter 0 frontend 0 (Afatech AF9013)...
-mc44s803: successfully identified (ID = 14)
-usb 1-1.5: dvb_usb_v2: 'TerraTec Cinergy T USB XE' successfully initialized and connected
-usbcore: registered new interface driver dvb_usb_af9015
-[...]
-usb 3-1: new high-speed USB device number 3 using ehci-pci
-usb 3-1: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has invalid maxpacket 2
-usb 3-1: New USB device found, idVendor=9022, idProduct=d660
-usb 3-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 3-1: Product: DVBS2BOX
-usb 3-1: Manufacturer: TBS-Tech
-dvb-usb: found a 'TeVii S660 USB' in cold state, will try to load a firmware
-dvb-usb: downloading firmware from file 'dvb-usb-s660.fw'
-dw2102: start downloading DW210X firmware
-usb 6-1: new high-speed USB device number 3 using ehci-pci
-dvb-usb: found a 'TeVii S660 USB' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-DVB: registering new adapter (TeVii S660 USB)
-usb 6-1: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has invalid maxpacket 2
-[...]
-usb 6-1: New USB device found, idVendor=9022, idProduct=d660
-usb 6-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 6-1: Product: DVBS2BOX
-usb 6-1: Manufacturer: TBS-Tech
-dvb-usb: found a 'TeVii S660 USB' in cold state, will try to load a firmware
-dvb-usb: downloading firmware from file 'dvb-usb-s660.fw'
-dw2102: start downloading DW210X firmware
-dvb-usb: found a 'TeVii S660 USB' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-DVB: registering new adapter (TeVii S660 USB)
-dvb-usb: MAC address: 00:18:bd:5a:be:8b
-DS3000 chip version: 0.192 attached.
-ts2020_attach: Find tuner TS2020!
-dw2102: Attached ds3000+ts2020!
-usb 3-1: DVB: registering adapter 1 frontend 0 (Montage Technology DS3000)...
-Registered IR keymap rc-tevii-nec
-input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1c.5/0000:04:00.1/usb3/3-1/rc/rc0/input25
-rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1c.5/0000:04:00.1/usb3/3-1/rc/rc0
-dvb-usb: schedule remote query interval to 150 msecs.
-dvb-usb: TeVii S660 USB successfully initialized and connected.
-dvb-usb: MAC address: 00:18:bd:5a:be:8c
-DS3000 chip version: 0.192 attached.
-ts2020_attach: Find tuner TS2020!
-dw2102: Attached ds3000+ts2020!
-usb 6-1: DVB: registering adapter 2 frontend 0 (Montage Technology DS3000)...
-Registered IR keymap rc-tevii-nec
-input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1c.5/0000:04:00.3/usb6/6-1/rc/rc1/input26
-rc1: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1c.5/0000:04:00.3/usb6/6-1/rc/rc1
-dvb-usb: schedule remote query interval to 150 msecs.
-dvb-usb: TeVii S660 USB successfully initialized and connected.
-[...]
-ds3000_firmware_ondemand: Waiting for firmware upload (dvb-fe-ds3000.fw)...
-ds3000_firmware_ondemand: Waiting for firmware upload(2)...
-ds3000_firmware_ondemand: Waiting for firmware upload (dvb-fe-ds3000.fw)...
-ds3000_firmware_ondemand: Waiting for firmware upload(2)...
-[...]
+Wouldn't hurt to clarify this while you're at it (it confused me for a
+moment thinking it was concerned about the enabled raw event IRQs
+(IMG_IR_IRQ_EDGE) changing).
 
-This can be recovered by reloading mceusb
-# modprobe -r mceusb
-# modprobe mceusb
+Maybe "Don't overwrite enabled valid/match IRQs if they have already
+been changed by e.g. a filter change".
 
-usbcore: deregistering interface driver mceusb
-Registered IR keymap rc-rc6-mce
-input: Media Center Ed. eHome Infrared Remote Transceiver (0609:0334) as /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.6/2-1.6:1.0/rc/rc2/input27
-rc2: Media Center Ed. eHome Infrared Remote Transceiver (0609:0334) as /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.6/2-1.6:1.0/rc/rc2
-IR RC5(x/sz) protocol handler initialized
-IR NEC protocol handler initialized
-IR RC6 protocol handler initialized
-IR Sony protocol handler initialized
-IR JVC protocol handler initialized
-IR SANYO protocol handler initialized
-IR Sharp protocol handler initialized
-input: MCE IR Keyboard/Mouse (mceusb) as /devices/virtual/input/input28
-lirc_dev: IR Remote Control driver registered, major 249 
-IR MCE Keyboard/mouse protocol handler initialized
-IR XMP protocol handler initialized
-rc rc2: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-IR LIRC bridge handler initialized
-mceusb 2-1.6:1.0: Registered SMK CORPORATION MCE TRANCEIVR Emulator Device 2006 with mce emulator interface version 1
-mceusb 2-1.6:1.0: 2 tx ports (0x0 cabled) and 2 rx sensors (0x1 active)
-usbcore: registered new interface driver mceusb
+Should you even be clearing IRQs in that case? Maybe safer to just treat
+that case as a "return immediately without touching anything" sort of
+situation.
 
-Regards
-	Stefan Lippers-Hollmann
+> +	if ((priv->hw.suspend_irqen & IMG_IR_IRQ_EDGE) =3D=3D
+> +				img_ir_read(priv, IMG_IR_IRQ_ENABLE))
+> +		img_ir_write(priv, IMG_IR_IRQ_ENABLE, priv->hw.suspend_irqen);
+> +	/* enable */
+> +	img_ir_write(priv, IMG_IR_CONTROL, priv->hw.reg_timings.ctrl);
+> +}
+> +
+>  #ifdef CONFIG_COMMON_CLK
+>  static void img_ir_change_frequency(struct img_ir_priv *priv,
+>  				    struct clk_notifier_data *change)
+> @@ -908,15 +934,37 @@ void img_ir_isr_hw(struct img_ir_priv *priv, u32 =
+irq_status)
+>  	if (!hw->decoder)
+>  		return;
+> =20
+> +	ct =3D hw->decoder->control.code_type;
+> +
+>  	ir_status =3D img_ir_read(priv, IMG_IR_STATUS);
+> -	if (!(ir_status & (IMG_IR_RXDVAL | IMG_IR_RXDVALD2)))
+> +	if (!(ir_status & (IMG_IR_RXDVAL | IMG_IR_RXDVALD2))) {
+> +		if (!(priv->hw.ct_quirks[ct] & IMG_IR_QUIRK_CODE_IRQ))
+
+(I suggest adding "|| hw->stopping" to this case)
+
+> +			return;
+> +		/*
+> +		 * The below functionality is added as a work around to stop
+> +		 * multiple Interrupts generated when an incomplete IR code is
+> +		 * received by the decoder.
+> +		 * The decoder generates rapid interrupts without actually
+> +		 * having received any new data. After a single interrupt it's
+> +		 * expected to clear up, but instead multiple interrupts are
+> +		 * rapidly generated. only way to get out of this loop is to
+> +		 * reset the control register after a short delay.
+> +		 */
+> +		img_ir_write(priv, IMG_IR_CONTROL, 0);
+> +		hw->suspend_irqen =3D img_ir_read(priv, IMG_IR_IRQ_ENABLE);
+
+You're reusing hw->suspend_irqen. What if you get this workaround being
+activated between img_ir_enable_wake() and img_ir_disable_wake()? I
+suggest just using a new img_ir_priv_hw member.
+
+The rest looks reasonable to me, even if unfortunate that it is
+necessary in the first place.
+
+Thanks for the hard work!
+
+Cheers
+James
+
+> +		img_ir_write(priv, IMG_IR_IRQ_ENABLE,
+> +			     hw->suspend_irqen & IMG_IR_IRQ_EDGE);
+> +
+> +		/* Timer activated to re-enable the protocol. */
+> +		mod_timer(&hw->suspend_timer,
+> +			  jiffies + msecs_to_jiffies(5));
+>  		return;
+> +	}
+>  	ir_status &=3D ~(IMG_IR_RXDVAL | IMG_IR_RXDVALD2);
+>  	img_ir_write(priv, IMG_IR_STATUS, ir_status);
+> =20
+>  	len =3D (ir_status & IMG_IR_RXDLEN) >> IMG_IR_RXDLEN_SHIFT;
+>  	/* some versions report wrong length for certain code types */
+> -	ct =3D hw->decoder->control.code_type;
+>  	if (hw->ct_quirks[ct] & IMG_IR_QUIRK_CODE_LEN_INCR)
+>  		++len;
+> =20
+> @@ -958,7 +1006,7 @@ static void img_ir_probe_hw_caps(struct img_ir_pri=
+v *priv)
+>  	hw->ct_quirks[IMG_IR_CODETYPE_PULSELEN]
+>  		|=3D IMG_IR_QUIRK_CODE_LEN_INCR;
+>  	hw->ct_quirks[IMG_IR_CODETYPE_BIPHASE]
+> -		|=3D IMG_IR_QUIRK_CODE_BROKEN;
+> +		|=3D IMG_IR_QUIRK_CODE_IRQ;
+>  	hw->ct_quirks[IMG_IR_CODETYPE_2BITPULSEPOS]
+>  		|=3D IMG_IR_QUIRK_CODE_BROKEN;
+>  }
+> @@ -977,6 +1025,8 @@ int img_ir_probe_hw(struct img_ir_priv *priv)
+> =20
+>  	/* Set up the end timer */
+>  	setup_timer(&hw->end_timer, img_ir_end_timer, (unsigned long)priv);
+> +	setup_timer(&hw->suspend_timer, img_ir_suspend_timer,
+> +				(unsigned long)priv);
+> =20
+>  	/* Register a clock notifier */
+>  	if (!IS_ERR(priv->clk)) {
+> diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img=
+-ir/img-ir-hw.h
+> index 5e59e8e..8578aa7 100644
+> --- a/drivers/media/rc/img-ir/img-ir-hw.h
+> +++ b/drivers/media/rc/img-ir/img-ir-hw.h
+> @@ -221,6 +221,7 @@ enum img_ir_mode {
+>   * @rdev:		Remote control device
+>   * @clk_nb:		Notifier block for clock notify events.
+>   * @end_timer:		Timer until repeat timeout.
+> + * @suspend_timer:	Timer to re-enable protocol.
+>   * @decoder:		Current decoder settings.
+>   * @enabled_protocols:	Currently enabled protocols.
+>   * @clk_hz:		Current core clock rate in Hz.
+> @@ -235,6 +236,7 @@ struct img_ir_priv_hw {
+>  	struct rc_dev			*rdev;
+>  	struct notifier_block		clk_nb;
+>  	struct timer_list		end_timer;
+> +	struct timer_list		suspend_timer;
+>  	const struct img_ir_decoder	*decoder;
+>  	u64				enabled_protocols;
+>  	unsigned long			clk_hz;
+>=20
+
+
+--qt68giqhPrGgtOXp3UwhHfQTHkKsS4i9M
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUhd1AAAoJEGwLaZPeOHZ6n64P/1qAsNcx+UIh3MPTQtToxdt9
+jzxDBVTAXzauBC5jPxoMe26ji5dZHZ6D6uRD/AkzdTgPM71OGUXqM/f+OBcNfiqX
+00rFtod0s3BHK9MnId+PxiudeF71puD+2mDYFEKVTJXQnmbE5k4jbM11lRlwHsIx
+po5x0P6PE9CeEICXZR+JzbiFFxnGP1tTVIZZrs+xN5CuqphNCOQl/MH24rtOYNee
+dhT/IbXwN0n7VvLNaQkaXzDip92IDl0IXzu2L67NafJni+XQ/qTfBfCnKYArbdto
+xe7+KiQvMBlwOR8Ba6/k2sj4fos7LecnVa81MRtsozPN914kK7ZaYaGgKfKUxI7+
+gizuG9XJC/ISVNcDy5JMV7UOYxl2P/GG3S2eHK7dtwJcvIK/OJ+s29nNCBwxkcI4
+j7i1U7XZQTFxoCmIYOQUpbTbZvatJBAoyd+jwa8hW0s+ly6d+ZUpindAy1//Ikku
+nXbELr99dnwbJd6ta9L0E1ZsCuCntqpbgPSDRqScT4tPUn8Be9rbK0MQeUdV5h73
+/hRPy3Ol4B8KTtaIMr6ZKogVcTj6mT302n4S+KAo/zreYX2jAecKog6n5Jk9aBPQ
+hQMOVvac4up+APR/7OrmufNbG8S4Zqx64yBH4dvn3nhNGMUsdGOyTzaRGl0VKURo
+k9AXpDW8O4C2ylP7CqYf
+=/DVQ
+-----END PGP SIGNATURE-----
+
+--qt68giqhPrGgtOXp3UwhHfQTHkKsS4i9M--
