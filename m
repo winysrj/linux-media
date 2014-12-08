@@ -1,126 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:64437 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753659AbaLAPjN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 10:39:13 -0500
-Message-ID: <547C8B9E.8050605@mentor.com>
-Date: Mon, 1 Dec 2014 17:39:10 +0200
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Received: from smtp.bredband2.com ([83.219.192.166]:59695 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756168AbaLHSyO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 13:54:14 -0500
+Message-ID: <5485F3D3.50403@southpole.se>
+Date: Mon, 08 Dec 2014 19:54:11 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Shawn Guo <shawn.guo@linaro.org>, Wolfram Sang <wsa@the-dreams.de>,
-	<devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-i2c@vger.kernel.org>
-Subject: Re: [PATCH 1/3] staging: imx-drm: document internal HDMI I2C master
- controller DT binding
-References: <1416073759-19939-1-git-send-email-vladimir_zapolskiy@mentor.com>	 <1416073759-19939-2-git-send-email-vladimir_zapolskiy@mentor.com>	 <547C8113.3050100@mentor.com> <1417446703.4624.18.camel@pengutronix.de>
-In-Reply-To: <1417446703.4624.18.camel@pengutronix.de>
-Content-Type: text/plain; charset="utf-8"
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] mn88472: fix firmware loading
+References: <1417990203-758-1-git-send-email-benjamin@southpole.se> <1417990203-758-2-git-send-email-benjamin@southpole.se> <5484D666.6060605@iki.fi> <5485CC0E.2090201@southpole.se> <5485E3E4.80005@iki.fi>
+In-Reply-To: <5485E3E4.80005@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01.12.2014 17:11, Philipp Zabel wrote:
-> Am Montag, den 01.12.2014, 16:54 +0200 schrieb Vladimir Zapolskiy:
->> Hi Philipp and Shawn,
+On 12/08/2014 06:46 PM, Antti Palosaari wrote:
+> Hello!
+> [...]
+>> regmap_bulk_write(): Write multiple registers to the device
 >>
->> On 15.11.2014 19:49, Vladimir Zapolskiy wrote:
->>> Provide information about how to bind internal iMX6Q/DL HDMI DDC I2C
->>> master controller. The property is set as optional one, because iMX6
->>> HDMI DDC bus may be represented by one of general purpose I2C busses
->>> found on SoC.
->>>
->>> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
->>> Cc: Wolfram Sang <wsa@the-dreams.de>
->>> Cc: Philipp Zabel <p.zabel@pengutronix.de>
->>> Cc: Shawn Guo <shawn.guo@linaro.org>
->>> Cc: devicetree@vger.kernel.org
->>> Cc: linux-media@vger.kernel.org
->>> Cc: linux-arm-kernel@lists.infradead.org
->>> Cc: linux-i2c@vger.kernel.org
->>> ---
->>>  Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt |   10 +++++++++-
->>>  1 file changed, 9 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt b/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
->>> index 1b756cf..43c8924 100644
->>> --- a/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
->>> +++ b/Documentation/devicetree/bindings/staging/imx-drm/hdmi.txt
->>> @@ -10,6 +10,8 @@ Required properties:
->>>   - #address-cells : should be <1>
->>>   - #size-cells : should be <0>
->>>   - compatible : should be "fsl,imx6q-hdmi" or "fsl,imx6dl-hdmi".
->>> +   If internal HDMI DDC I2C master controller is supposed to be used,
->>> +   then "simple-bus" should be added to compatible value.
->>>   - gpr : should be <&gpr>.
->>>     The phandle points to the iomuxc-gpr region containing the HDMI
->>>     multiplexer control register.
->>> @@ -22,6 +24,7 @@ Required properties:
->>>  
->>>  Optional properties:
->>>   - ddc-i2c-bus: phandle of an I2C controller used for DDC EDID probing
->>> + - ddc: internal HDMI DDC I2C master controller
->>>  
->>>  example:
->>>  
->>> @@ -32,7 +35,7 @@ example:
->>>          hdmi: hdmi@0120000 {
->>>                  #address-cells = <1>;
->>>                  #size-cells = <0>;
->>> -                compatible = "fsl,imx6q-hdmi";
->>> +                compatible = "fsl,imx6q-hdmi", "simple-bus";
->>>                  reg = <0x00120000 0x9000>;
->>>                  interrupts = <0 115 0x04>;
->>>                  gpr = <&gpr>;
->>> @@ -40,6 +43,11 @@ example:
->>>                  clock-names = "iahb", "isfr";
->>>                  ddc-i2c-bus = <&i2c2>;
->>>  
->>> +                hdmi_ddc: ddc {
->>> +                        compatible = "fsl,imx6q-hdmi-ddc";
->>> +                        status = "disabled";
->>> +                };
->>> +
->>>                  port@0 {
->>>                          reg = <0>;
->>>  
->>>
->>
->> knowing in advance that I2C framework lacks a graceful support of non
->> fully compliant I2C devices, do you have any objections to the proposed
->> iMX HDMI DTS change?
-> 
-> I'm not sure about this. Have you seen "drm: Decouple EDID parsing from
-> I2C adapter"? I feel like in the absence of a ddc-i2c-bus property the
-> imx-hdmi/dw-hdmi driver should try to use the internal HDMI DDC I2C
-> master controller, bypassing the I2C framework altogether.
-> 
+>> In this case we want to write multiple bytes to the same register. So I
+>> think that my patch is correct in principle.
+>
+> You haven't make any test whether it is possible to write that 
+> firmware in a large chunks *or* writing one byte (smallest possible 
+> ~chuck) at the time? I think it does not matter. I suspect you could 
+> even download whole firmware as one go - but rtl2832p I2C adapter does 
+> support only 22 bytes on one xfer.
+>
+> Even those are written to one register, chip knows how many bytes one 
+> message has and could increase its internal address counter. That is 
+> usually called register address auto-increment.
+>
+> A) writing:
+> f6 00
+> f6 01
+> f6 02
+> f6 03
+> f6 04
+> f6 05
+> f6 06
+> f6 07
+> f6 08
+> f6 09
+>
+> B) writing:
+> f6 00 01 02 03 04
+> f6 05 06 07 08 09
+>
+> will likely end up same. B is better as only 2 xfers are done - much 
+> less IO.
+>
+> regards
+> Antti
+>
+Hello Antti.
 
-My idea is exactly not to bypass the I2C framework, briefly the
-rationale is that
-* it allows to reuse I2C UAPI/tools naturally applied to the internal
-iMX HDMI DDC bus,
-* it allows to use iMX HDMI DDC bus as an additional feature-limited I2C
-bus on SoC (who knows, I absolutely won't be surprised, if anyone needs
-it on practice),
-* if an HDMI controller supports an external I2C bus, the integration
-with HDMI DDC bus driver based on I2C framework is seamless.
+I have now tried the following patch on top of my load defaults patch.
 
-However I agree that the selected approach may look odd, the question is
-if the oddness comes from the technical side or from the fact that
-nobody has done it before this way.
+index a7d35bb..fd9796d
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -467,7 +467,7 @@ static int mn88472_probe(struct i2c_client *client,
+                 goto err;
+         }
 
-I'm open to any critique, if the proposal of creating an I2C bus from
-HDMI DDC bus is lame, then I suppose the shared iMX HDMI DDC bus driver
-should be converted to something formless and internally used by
-imx-hdmi. The negative side-effects of such a change from my point of
-view are
-* more or less natural modularity is lost,
-* a number of I2C framework API/functions should be copy-pasted to the
-updated HDMI DDC bus driver to support a subset of I2C read/write
-transactions.
+-       dev->i2c_wr_max = config->i2c_wr_max;
++       dev->i2c_wr_max = 2;
+         dev->xtal = config->xtal;
+         dev->ts_mode = config->ts_mode;
+         dev->ts_clock = config->ts_clock;
 
---
-With best wishes,
-Vladimir
+With this patch I get data, without it I don't. Based on that info I 
+started testing different i2c wr max values.
 
+When I got to 18 it stopped working. So it seams like both you and me 
+where right. We can write several
+values at once but only a maximum of 16.
+
+I have a patch that adds parity check of the firmware and all the times 
+the check succeeded but the demodulator
+didn't deliver data. So I guess that the parity checker is before the 16 
+byte buffer and if you write more the data is
+just ignored.
+
+I will send an updated patch based on this.
+
+MvH
+Benjamin Larsson
