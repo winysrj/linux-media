@@ -1,71 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:56810 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752AbaLNGtw (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:46419 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755700AbaLHONs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Dec 2014 01:49:52 -0500
-Received: by mail-wg0-f47.google.com with SMTP id n12so12216034wgh.20
-        for <linux-media@vger.kernel.org>; Sat, 13 Dec 2014 22:49:51 -0800 (PST)
-Date: Sun, 14 Dec 2014 08:49:47 +0200
-From: Asaf Vertz <asaf.vertz@tandemg.com>
-To: m.chehab@samsung.com
-Cc: asaf.vertz@tandemg.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: stb0899_drv: use time_after()
-Message-ID: <20141214064947.GA26820@ubuntu>
+	Mon, 8 Dec 2014 09:13:48 -0500
+Message-ID: <5485B214.3090805@xs4all.nl>
+Date: Mon, 08 Dec 2014 15:13:40 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devicetree@vger.kernel.org,
+	linux-api <linux-api@vger.kernel.org>
+CC: LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v4] media: platform: add VPFE capture driver support for
+ AM437X
+References: <1417871242-23797-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1417871242-23797-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To be future-proof and for better readability the time comparisons are
-modified to use time_after() instead of plain, error-prone math.
+On 12/06/2014 02:07 PM, Lad, Prabhakar wrote:
+> From: Benoit Parrot <bparrot@ti.com>
+> 
+> This patch adds Video Processing Front End (VPFE) driver for
+> AM437X family of devices
+> Driver supports the following:
+> - V4L2 API using MMAP buffer access based on videobuf2 api
+> - Asynchronous sensor/decoder sub device registration
+> - DT support
+> 
+> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> Signed-off-by: Darren Etheridge <detheridge@ti.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  Changes for v4:
+>  1: Fixed review comments pointed by Hans to check
+>     ycbcr_enc and quantization while comparing formats,
+>     fixed the release function and dropped compose cases
+>     for vpfe_g_selection as compose isn't supported.
+> 
+>  .../devicetree/bindings/media/ti-am437x-vpfe.txt   |   61 +
+>  MAINTAINERS                                        |    9 +
+>  drivers/media/platform/Kconfig                     |    1 +
+>  drivers/media/platform/Makefile                    |    2 +
+>  drivers/media/platform/am437x/Kconfig              |   11 +
+>  drivers/media/platform/am437x/Makefile             |    3 +
+>  drivers/media/platform/am437x/am437x-vpfe.c        | 2778 ++++++++++++++++++++
+>  drivers/media/platform/am437x/am437x-vpfe.h        |  283 ++
+>  drivers/media/platform/am437x/am437x-vpfe_regs.h   |  140 +
+>  include/uapi/linux/Kbuild                          |    1 +
+>  include/uapi/linux/am437x-vpfe.h                   |  122 +
+>  11 files changed, 3411 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/ti-am437x-vpfe.txt
+>  create mode 100644 drivers/media/platform/am437x/Kconfig
+>  create mode 100644 drivers/media/platform/am437x/Makefile
+>  create mode 100644 drivers/media/platform/am437x/am437x-vpfe.c
+>  create mode 100644 drivers/media/platform/am437x/am437x-vpfe.h
+>  create mode 100644 drivers/media/platform/am437x/am437x-vpfe_regs.h
+>  create mode 100644 include/uapi/linux/am437x-vpfe.h
+> 
 
-Signed-off-by: Asaf Vertz <asaf.vertz@tandemg.com>
----
- drivers/media/dvb-frontends/stb0899_drv.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+<snip>
 
-diff --git a/drivers/media/dvb-frontends/stb0899_drv.c b/drivers/media/dvb-frontends/stb0899_drv.c
-index 07cd5ea..cb024af 100644
---- a/drivers/media/dvb-frontends/stb0899_drv.c
-+++ b/drivers/media/dvb-frontends/stb0899_drv.c
-@@ -20,6 +20,7 @@
- */
- 
- #include <linux/init.h>
-+#include <linux/jiffies.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -691,7 +692,7 @@ static int stb0899_wait_diseqc_fifo_empty(struct stb0899_state *state, int timeo
- 		reg = stb0899_read_reg(state, STB0899_DISSTATUS);
- 		if (!STB0899_GETFIELD(FIFOFULL, reg))
- 			break;
--		if ((jiffies - start) > timeout) {
-+		if (time_after(jiffies, start + timeout)) {
- 			dprintk(state->verbose, FE_ERROR, 1, "timed out !!");
- 			return -ETIMEDOUT;
- 		}
-@@ -733,7 +734,7 @@ static int stb0899_wait_diseqc_rxidle(struct stb0899_state *state, int timeout)
- 
- 	while (!STB0899_GETFIELD(RXEND, reg)) {
- 		reg = stb0899_read_reg(state, STB0899_DISRX_ST0);
--		if (jiffies - start > timeout) {
-+		if (time_after(jiffies, start + timeout)) {
- 			dprintk(state->verbose, FE_ERROR, 1, "timed out!!");
- 			return -ETIMEDOUT;
- 		}
-@@ -782,7 +783,7 @@ static int stb0899_wait_diseqc_txidle(struct stb0899_state *state, int timeout)
- 
- 	while (!STB0899_GETFIELD(TXIDLE, reg)) {
- 		reg = stb0899_read_reg(state, STB0899_DISSTATUS);
--		if (jiffies - start > timeout) {
-+		if (time_after(jiffies, start + timeout)) {
- 			dprintk(state->verbose, FE_ERROR, 1, "timed out!!");
- 			return -ETIMEDOUT;
- 		}
--- 
-1.7.0.4
+> +/*
+> + * vpfe_release : This function is based on the vb2_fop_release
+> + * helper function.
+> + * It has been augmented to handle module power management,
+> + * by disabling/enabling h/w module fcntl clock when necessary.
+> + */
+> +static int vpfe_release(struct file *file)
+> +{
+> +	struct vpfe_device *vpfe = video_drvdata(file);
+> +	int ret;
+> +
+> +	vpfe_dbg(2, vpfe, "vpfe_release\n");
+> +
+> +	if (!v4l2_fh_is_singular_file(file))
+> +		return vb2_fop_release(file);
+> +
+> +	mutex_lock(&vpfe->lock);
 
+This should be moved up to before the if. Otherwise there will be a
+race between open and release w.r.t. to v4l2_fh_is_singular_file().
+
+> +	ret = _vb2_fop_release(file, NULL);
+> +	vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
+> +	mutex_unlock(&vpfe->lock);
+> +
+> +	return ret;
+> +}
+> +
+> +/*
+> + * vpfe_open : This function is based on the v4l2_fh_open helper function.
+> + * It has been augmented to handle module power management,
+> + * by disabling/enabling h/w module fcntl clock when necessary.
+> + */
+> +static int vpfe_open(struct file *file)
+> +{
+> +	struct vpfe_device *vpfe = video_drvdata(file);
+> +	int ret;
+> +
+> +	ret = v4l2_fh_open(file);
+> +	if (ret) {
+> +		vpfe_err(vpfe, "v4l2_fh_open failed\n");
+> +		return ret;
+> +	}
+> +
+> +	if (!v4l2_fh_is_singular_file(file))
+> +		return 0;
+> +
+> +	mutex_lock(&vpfe->lock);
+
+Same here: the lock should move to before the v4l2_fh_open call.
+
+> +	if (vpfe_initialize_device(vpfe)) {
+> +		mutex_unlock(&vpfe->lock);
+> +		v4l2_fh_release(file);
+> +		return -ENODEV;
+> +	}
+> +	mutex_unlock(&vpfe->lock);
+> +
+> +	return 0;
+> +}
+
+Regards,
+
+	Hans
