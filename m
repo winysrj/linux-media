@@ -1,115 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42920 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965190AbaLLDnK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Dec 2014 22:43:10 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id BC98A2A0088
-	for <linux-media@vger.kernel.org>; Fri, 12 Dec 2014 04:43:00 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141212034300.BC98A2A0088@tschai.lan>
-Date: Fri, 12 Dec 2014 04:43:00 +0100 (CET)
+Received: from eusmtp01.atmel.com ([212.144.249.242]:19800 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755059AbaLHLbA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 06:31:00 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<g.liakhovetski@gmx.de>, Josh Wu <josh.wu@atmel.com>,
+	<devicetree@vger.kernel.org>
+Subject: [PATCH 4/5] media: ov2640: add a master clock for sensor
+Date: Mon, 8 Dec 2014 19:29:06 +0800
+Message-ID: <1418038147-13221-5-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418038147-13221-1-git-send-email-josh.wu@atmel.com>
+References: <1418038147-13221-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The master clock (xvclk) is mandatory. It's a common clock framework clock.
+It can make sensor output a pixel clock to the camera interface.
 
-Results of the daily build of media_tree:
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+v1 -> v2:
+  1. change the clock's name.
+  2. Make the clock is mandatory.
 
-date:		Fri Dec 12 04:00:31 CET 2014
-git branch:	test
-git hash:	71947828caef0c83d4245f7d1eaddc799b4ff1d1
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+ drivers/media/i2c/soc_camera/ov2640.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+index 2a57979..7cb61e2 100644
+--- a/drivers/media/i2c/soc_camera/ov2640.c
++++ b/drivers/media/i2c/soc_camera/ov2640.c
+@@ -13,6 +13,7 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#include <linux/clk.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+@@ -31,6 +32,7 @@
+ 
+ #define VAL_SET(x, mask, rshift, lshift)  \
+ 		((((x) >> rshift) & mask) << lshift)
++
+ /*
+  * DSP registers
+  * register offset for BANK_SEL == BANK_SEL_DSP
+@@ -284,6 +286,7 @@ struct ov2640_priv {
+ 	struct v4l2_ctrl_handler	hdl;
+ 	u32	cfmt_code;
+ 	struct v4l2_clk			*clk;
++	struct clk			*master_clk;
+ 	const struct ov2640_win_size	*win;
+ 
+ 	struct soc_camera_subdev_desc	ssdd_dt;
+@@ -746,6 +749,7 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
+ 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct ov2640_priv *priv = to_ov2640(client);
+ 	struct v4l2_clk *clk;
++	int ret;
+ 
+ 	if (!priv->clk) {
+ 		clk = v4l2_clk_get(&client->dev, "mclk");
+@@ -755,7 +759,20 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
+ 			priv->clk = clk;
+ 	}
+ 
+-	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
++	if (on) {
++		ret = clk_prepare_enable(priv->master_clk);
++		if (ret)
++			return ret;
++	} else {
++		clk_disable_unprepare(priv->master_clk);
++	}
++
++	ret = soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
++
++	if (ret && on)
++		clk_disable_unprepare(priv->master_clk);
++
++	return ret;
+ }
+ 
+ /* Select the nearest higher resolution for capture */
+@@ -1144,6 +1161,10 @@ static int ov2640_probe(struct i2c_client *client,
+ 		}
+ 	}
+ 
++	priv->master_clk = devm_clk_get(&client->dev, "xvclk");
++	if (IS_ERR(priv->master_clk))
++		return -EINVAL;
++
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+ 	v4l2_ctrl_handler_init(&priv->hdl, 2);
+ 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+-- 
+1.9.1
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
