@@ -1,126 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56396 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754485AbaLBMJR (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36888 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751168AbaLIUtu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 07:09:17 -0500
+	Tue, 9 Dec 2014 15:49:50 -0500
+Message-ID: <54876067.2070608@xs4all.nl>
+Date: Tue, 09 Dec 2014 21:49:43 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, dri-devel@lists.freedesktop.org,
-	thierry.reding@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 1/3] hdmi: add new HDMI 2.0 defines
-Date: Tue,  2 Dec 2014 13:08:44 +0100
-Message-Id: <1417522126-31771-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417522126-31771-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417522126-31771-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devicetree@vger.kernel.org,
+	linux-api <linux-api@vger.kernel.org>
+CC: LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v6] media: platform: add VPFE capture driver support for
+ AM437X
+References: <1418154224-6045-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1418154224-6045-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 12/09/2014 08:43 PM, Lad, Prabhakar wrote:
+> From: Benoit Parrot <bparrot@ti.com>
+> 
+> This patch adds Video Processing Front End (VPFE) driver for
+> AM437X family of devices
+> Driver supports the following:
+> - V4L2 API using MMAP buffer access based on videobuf2 api
+> - Asynchronous sensor/decoder sub device registration
+> - DT support
+> 
+> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> Signed-off-by: Darren Etheridge <detheridge@ti.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  Changes for v6:
+>  1: Fixed review comments pointed Hans, fixing race condition.
+>  
+>  v5: https://patchwork.kernel.org/patch/5459311/
+>  v4: https://patchwork.kernel.org/patch/5449211/
+>  v3: https://patchwork.kernel.org/patch/5434291/
+>  v2: https://patchwork.kernel.org/patch/5425631/
+>  v1: https://patchwork.kernel.org/patch/5362661/
+>  
+>  .../devicetree/bindings/media/ti-am437x-vpfe.txt   |   61 +
+>  MAINTAINERS                                        |    9 +
+>  drivers/media/platform/Kconfig                     |    1 +
+>  drivers/media/platform/Makefile                    |    2 +
+>  drivers/media/platform/am437x/Kconfig              |   11 +
+>  drivers/media/platform/am437x/Makefile             |    3 +
+>  drivers/media/platform/am437x/am437x-vpfe.c        | 2777 ++++++++++++++++++++
+>  drivers/media/platform/am437x/am437x-vpfe.h        |  283 ++
+>  drivers/media/platform/am437x/am437x-vpfe_regs.h   |  140 +
+>  include/uapi/linux/Kbuild                          |    1 +
+>  include/uapi/linux/am437x-vpfe.h                   |  122 +
+>  11 files changed, 3410 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/ti-am437x-vpfe.txt
+>  create mode 100644 drivers/media/platform/am437x/Kconfig
+>  create mode 100644 drivers/media/platform/am437x/Makefile
+>  create mode 100644 drivers/media/platform/am437x/am437x-vpfe.c
+>  create mode 100644 drivers/media/platform/am437x/am437x-vpfe.h
+>  create mode 100644 drivers/media/platform/am437x/am437x-vpfe_regs.h
+>  create mode 100644 include/uapi/linux/am437x-vpfe.h
+> 
 
-Add new Video InfoFrame colorspace information introduced in HDMI 2.0
-and new Audio Coding Extension Types, also from HDMI 2.0.
+<snip>
 
-HDMI_CONTENT_TYPE_NONE was renamed to _GRAPHICS since that's what
-it is called in CEA-861-F.
+> +/*
+> + * vpfe_release : This function is based on the vb2_fop_release
+> + * helper function.
+> + * It has been augmented to handle module power management,
+> + * by disabling/enabling h/w module fcntl clock when necessary.
+> + */
+> +static int vpfe_release(struct file *file)
+> +{
+> +	struct vpfe_device *vpfe = video_drvdata(file);
+> +	int ret;
+> +
+> +	mutex_lock(&vpfe->lock);
+> +
+> +	ret = _vb2_fop_release(file, NULL);
+> +	if (v4l2_fh_is_singular_file(file))
+> +		vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Thierry Reding <treding@nvidia.com>
----
- include/linux/hdmi.h | 30 +++++++++++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+This function seems cursed since your _vb2_fop_release call should
+go *after* the v4l2_fh_is_singular_file() check.
 
-diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
-index 11c0182..a4aa0c2 100644
---- a/include/linux/hdmi.h
-+++ b/include/linux/hdmi.h
-@@ -37,12 +37,18 @@ enum hdmi_colorspace {
- 	HDMI_COLORSPACE_RGB,
- 	HDMI_COLORSPACE_YUV422,
- 	HDMI_COLORSPACE_YUV444,
-+	HDMI_COLORSPACE_YUV420,
-+	HDMI_COLORSPACE_RESERVED4,
-+	HDMI_COLORSPACE_RESERVED5,
-+	HDMI_COLORSPACE_RESERVED6,
-+	HDMI_COLORSPACE_IDO_DEFINED,
- };
- 
- enum hdmi_scan_mode {
- 	HDMI_SCAN_MODE_NONE,
- 	HDMI_SCAN_MODE_OVERSCAN,
- 	HDMI_SCAN_MODE_UNDERSCAN,
-+	HDMI_SCAN_MODE_RESERVED,
- };
- 
- enum hdmi_colorimetry {
-@@ -56,6 +62,7 @@ enum hdmi_picture_aspect {
- 	HDMI_PICTURE_ASPECT_NONE,
- 	HDMI_PICTURE_ASPECT_4_3,
- 	HDMI_PICTURE_ASPECT_16_9,
-+	HDMI_PICTURE_ASPECT_RESERVED,
- };
- 
- enum hdmi_active_aspect {
-@@ -77,12 +84,18 @@ enum hdmi_extended_colorimetry {
- 	HDMI_EXTENDED_COLORIMETRY_S_YCC_601,
- 	HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601,
- 	HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB,
-+
-+	/* The following EC values are only defined in CEA-861-F. */
-+	HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM,
-+	HDMI_EXTENDED_COLORIMETRY_BT2020,
-+	HDMI_EXTENDED_COLORIMETRY_RESERVED,
- };
- 
- enum hdmi_quantization_range {
- 	HDMI_QUANTIZATION_RANGE_DEFAULT,
- 	HDMI_QUANTIZATION_RANGE_LIMITED,
- 	HDMI_QUANTIZATION_RANGE_FULL,
-+	HDMI_QUANTIZATION_RANGE_RESERVED,
- };
- 
- /* non-uniform picture scaling */
-@@ -99,7 +112,7 @@ enum hdmi_ycc_quantization_range {
- };
- 
- enum hdmi_content_type {
--	HDMI_CONTENT_TYPE_NONE,
-+	HDMI_CONTENT_TYPE_GRAPHICS,
- 	HDMI_CONTENT_TYPE_PHOTO,
- 	HDMI_CONTENT_TYPE_CINEMA,
- 	HDMI_CONTENT_TYPE_GAME,
-@@ -179,6 +192,7 @@ enum hdmi_audio_coding_type {
- 	HDMI_AUDIO_CODING_TYPE_MLP,
- 	HDMI_AUDIO_CODING_TYPE_DST,
- 	HDMI_AUDIO_CODING_TYPE_WMA_PRO,
-+	HDMI_AUDIO_CODING_TYPE_CXT,
- };
- 
- enum hdmi_audio_sample_size {
-@@ -201,9 +215,23 @@ enum hdmi_audio_sample_frequency {
- 
- enum hdmi_audio_coding_type_ext {
- 	HDMI_AUDIO_CODING_TYPE_EXT_STREAM,
-+
-+	/*
-+	 * The next three CXT values are defined in CEA-861-E only.
-+	 * They do not exist in older versions, and in CEA-861-F they are
-+	 * defined as 'Not in use'.
-+	 */
- 	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC,
- 	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC_V2,
- 	HDMI_AUDIO_CODING_TYPE_EXT_MPEG_SURROUND,
-+
-+	/* The following CXT values are only defined in CEA-861-F. */
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_V2,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC,
-+	HDMI_AUDIO_CODING_TYPE_EXT_DRA,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_SURROUND,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC_SURROUND = 10,
- };
- 
- struct hdmi_audio_infoframe {
--- 
-2.1.3
+I've fixed that in the patch in my pull request, so there is no need
+for a v7. I know you've tested that since that was the order in your v5
+version of this patch.
+
+Regards,
+
+	Hans
+
+> +
+> +	mutex_unlock(&vpfe->lock);
+> +
+> +	return ret;
+> +}
+> +
+> +/*
+> + * vpfe_open : This function is based on the v4l2_fh_open helper function.
+> + * It has been augmented to handle module power management,
+> + * by disabling/enabling h/w module fcntl clock when necessary.
+> + */
+> +static int vpfe_open(struct file *file)
+> +{
+> +	struct vpfe_device *vpfe = video_drvdata(file);
+> +	int ret;
+> +
+> +	mutex_lock(&vpfe->lock);
+> +
+> +	ret = v4l2_fh_open(file);
+> +	if (ret) {
+> +		vpfe_err(vpfe, "v4l2_fh_open failed\n");
+> +		goto unlock;
+> +	}
+> +
+> +	if (!v4l2_fh_is_singular_file(file))
+> +		goto unlock;
+> +
+> +	if (vpfe_initialize_device(vpfe)) {
+> +		v4l2_fh_release(file);
+> +		ret = -ENODEV;
+> +	}
+> +
+> +unlock:
+> +	mutex_unlock(&vpfe->lock);
+> +	return ret;
+> +}
 
