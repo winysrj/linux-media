@@ -1,65 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.southpole.se ([37.247.8.11]:33266 "EHLO mail.southpole.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752089AbaLBKmJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 05:42:09 -0500
-Message-ID: <547D976D.2040205@southpole.se>
-Date: Tue, 02 Dec 2014 11:41:49 +0100
-From: Benjamin Larsson <benjamin@southpole.se>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40012 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751153AbaLIUp2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Dec 2014 15:45:28 -0500
+Message-ID: <54875F61.7010500@xs4all.nl>
+Date: Tue, 09 Dec 2014 21:45:21 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, Akihiro TSUKADA <tskd08@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Random memory corruption of fe[1]->dvb pointer
-References: <547BAC79.50702@southpole.se> <547CF9FC.5010101@southpole.se> <547D8AA0.4000403@gmail.com> <547D8E1A.5050307@iki.fi>
-In-Reply-To: <547D8E1A.5050307@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [GIT PULL FOR v3.20] Add am437x driver
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-12-02 11:02, Antti Palosaari wrote:
->
->
-> On 12/02/2014 11:47 AM, Akihiro TSUKADA wrote:
->>> So at first it would be nice if someone could confirm my findings.
->>> Applying the same kind of code like my patch and unplug something that
->>> uses the affected frontend should be enough.
->>
->> I tried that for tc90522, and I could remove earth-pt3
->> (which uses tc90522), tc90522 and tuner modules without any problem,
->> although earth-pt3 is a pci driver and does not use dvb-usb-v2.
->>
->>> From your log(?) output,
->> I guess that rtl28xxu_exit() removed the attached demod module
->> (mn88472) and thus free'ed fe BEFORE calling dvb_usbv2_exit(),
->> from where dvb_unregister_frontend(fe) is called.
->> I think that the demod i2c device is removed automatically by
->> dvb_usbv2_i2c_exit() in dvb_usbv2_exit(), if you registered
->> the demod i2c device, and your adapter/bridge driver
->> should not try to remove it.
->
-> Yes. You must unregister frontend before you remove driver. I have 
-> already added new callbacks detach tuner and frontend to avoid that, 
-> but there was yet again new issue as it removes rtl2832 demod driver 
-> first and mn88472 slave demod was put to i2c bus / adapter which is 
-> owned by rtl2832. So it will crash too. Solution is to convert rtl2832 
-> to I2C binding (or convert mn88472 legacy DVB binding (which I don't 
-> allow :)). When rtl2832 driver is converted to I2C model it is not 
-> unloaded automatically and you could remove those in a correct order.
->
-> But hey, mn88472 is still on staging :D
->
-> regards
-> Antti
->
+Adds the new am437x TI driver.
 
-So the solution is to change rtl2832.c to the I2C model? And does this 
-issue only affect the mn8847x drivers ?
+Regards,
 
-If this is the case would a patch that does not free the buffer but 
-leaks the memory be ok ? I can add a todo item and log it in syslog. 
-That would for sure be better then crashing the subsystem and the driver 
-is still in staging for a reason.
+	Hans
 
-MvH
-Benjamin Larsson
+The following changes since commit 71947828caef0c83d4245f7d1eaddc799b4ff1d1:
+
+  [media] mn88473: One function call less in mn88473_init() after error (2014-12-04 16:00:47 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git am437x
+
+for you to fetch changes up to 035e534ddf8e9f2bc14520c3c09e627e42b3186c:
+
+  media: platform: add VPFE capture driver support for AM437X (2014-12-09 21:43:04 +0100)
+
+----------------------------------------------------------------
+Benoit Parrot (1):
+      media: platform: add VPFE capture driver support for AM437X
+
+ Documentation/devicetree/bindings/media/ti-am437x-vpfe.txt |   61 ++
+ MAINTAINERS                                                |    9 +
+ drivers/media/platform/Kconfig                             |    1 +
+ drivers/media/platform/Makefile                            |    2 +
+ drivers/media/platform/am437x/Kconfig                      |   11 +
+ drivers/media/platform/am437x/Makefile                     |    3 +
+ drivers/media/platform/am437x/am437x-vpfe.c                | 2778 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/am437x/am437x-vpfe.h                |  283 +++++++
+ drivers/media/platform/am437x/am437x-vpfe_regs.h           |  140 ++++
+ include/uapi/linux/Kbuild                                  |    1 +
+ include/uapi/linux/am437x-vpfe.h                           |  122 +++
+ 11 files changed, 3411 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/ti-am437x-vpfe.txt
+ create mode 100644 drivers/media/platform/am437x/Kconfig
+ create mode 100644 drivers/media/platform/am437x/Makefile
+ create mode 100644 drivers/media/platform/am437x/am437x-vpfe.c
+ create mode 100644 drivers/media/platform/am437x/am437x-vpfe.h
+ create mode 100644 drivers/media/platform/am437x/am437x-vpfe_regs.h
+ create mode 100644 include/uapi/linux/am437x-vpfe.h
