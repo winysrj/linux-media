@@ -1,403 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:61278 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751028AbaLQOPu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Dec 2014 09:15:50 -0500
-Message-id: <54919010.8020507@samsung.com>
-Date: Wed, 17 Dec 2014 15:15:44 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Tony K Nadackal <tony.kn@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	mchehab@osg.samsung.com, kgene@kernel.org, k.debski@samsung.com,
-	s.nawrocki@samsung.com, robh+dt@kernel.org, mark.rutland@arm.com,
-	bhushan.r@samsung.com
-Subject: Re: [PATCH] [media] s5p-jpeg: Adding Exynos7 Jpeg variant support
-References: <1418801229-7532-1-git-send-email-tony.kn@samsung.com>
-In-reply-to: <1418801229-7532-1-git-send-email-tony.kn@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from eusmtp01.atmel.com ([212.144.249.243]:37050 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103AbaLIDKy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 22:10:54 -0500
+Message-ID: <54866809.7020402@atmel.com>
+Date: Tue, 9 Dec 2014 11:10:01 +0800
+From: Josh Wu <josh.wu@atmel.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
+	<linux-arm-kernel@lists.infradead.org>, <g.liakhovetski@gmx.de>,
+	<devicetree@vger.kernel.org>
+Subject: Re: [PATCH 3/5] media: ov2640: add primary dt support
+References: <1418038147-13221-1-git-send-email-josh.wu@atmel.com> <1418038147-13221-4-git-send-email-josh.wu@atmel.com> <13013762.Jqm1jQRnFM@avalon>
+In-Reply-To: <13013762.Jqm1jQRnFM@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tony,
+Hi, Laurent
 
-Thanks for the patches.
+On 12/9/2014 2:39 AM, Laurent Pinchart wrote:
+> Hi Josh,
+>
+> Thank you for the patch.
+>
+> On Monday 08 December 2014 19:29:05 Josh Wu wrote:
+>> Add device tree support for ov2640.
+>>
+>> Cc: devicetree@vger.kernel.org
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>> v1 -> v2:
+>>    1. use gpiod APIs.
+>>    2. change the gpio pin's name according to datasheet.
+>>    3. reduce the delay for .reset() function.
+>>
+>>   drivers/media/i2c/soc_camera/ov2640.c | 86 +++++++++++++++++++++++++++++---
+>>   1 file changed, 80 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/soc_camera/ov2640.c
+>> b/drivers/media/i2c/soc_camera/ov2640.c index 9ee910d..2a57979 100644
+>> --- a/drivers/media/i2c/soc_camera/ov2640.c
+>> +++ b/drivers/media/i2c/soc_camera/ov2640.c
+>> @@ -18,6 +18,8 @@
+>>   #include <linux/i2c.h>
+>>   #include <linux/slab.h>
+>>   #include <linux/delay.h>
+>> +#include <linux/gpio.h>
+>> +#include <linux/of_gpio.h>
+>>   #include <linux/v4l2-mediabus.h>
+>>   #include <linux/videodev2.h>
+>>
+>> @@ -283,6 +285,10 @@ struct ov2640_priv {
+>>   	u32	cfmt_code;
+>>   	struct v4l2_clk			*clk;
+>>   	const struct ov2640_win_size	*win;
+>> +
+>> +	struct soc_camera_subdev_desc	ssdd_dt;
+>> +	struct gpio_desc *resetb_gpio;
+>> +	struct gpio_desc *pwdn_gpio;
+>>   };
+>>
+>>   /*
+>> @@ -1047,6 +1053,61 @@ static struct v4l2_subdev_ops ov2640_subdev_ops = {
+>>   	.video	= &ov2640_subdev_video_ops,
+>>   };
+>>
+>> +/* OF probe functions */
+>> +static int ov2640_hw_power(struct device *dev, int on)
+>> +{
+>> +	struct i2c_client *client = to_i2c_client(dev);
+>> +	struct ov2640_priv *priv = to_ov2640(client);
+>> +
+>> +	dev_dbg(&client->dev, "%s: %s the camera\n",
+>> +			__func__, on ? "ENABLE" : "DISABLE");
+>> +
+>> +	if (priv->pwdn_gpio && !IS_ERR(priv->pwdn_gpio))
+> No need to test for IS_ERR, as the probe function would have failed in that
+> case.
+right. I'll change it.
 
-Please process them with scripts/checkpatch.pl as you will be submitting
-the next version - they contain many coding style related issues.
+>
+>> +		gpiod_direction_output(priv->pwdn_gpio, !on);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int ov2640_hw_reset(struct device *dev)
+>> +{
+>> +	struct i2c_client *client = to_i2c_client(dev);
+>> +	struct ov2640_priv *priv = to_ov2640(client);
+>> +
+>> +	/* If enabled, give a reset impulse */
+>> +	if (priv->resetb_gpio && !IS_ERR(priv->resetb_gpio)) {
+> Same here.
+ditto.
 
-My remaining comments below.
+>
+>> +		gpiod_direction_output(priv->resetb_gpio, 0);
+> Given that your DT should specify the active low GPIO flag, and that the gpiod
+> API inverts the value in that case, you should set the value to 1 here.
 
-On 12/17/2014 08:27 AM, Tony K Nadackal wrote:
-> Fimp_jpeg used in Exynos7 is a revised version. Some register
-> configurations are slightly different from Jpeg in Exynos4.
-> Added one more variant SJPEG_EXYNOS7 to handle these differences.
+Thanks for the information. I'll fix it.
 >
-> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-> ---
-> This patch is created and tested on top of linux-next-20141210.
-> It can be cleanly applied on media-next and kgene/for-next.
->
->   .../bindings/media/exynos-jpeg-codec.txt           |  2 +-
->   drivers/media/platform/s5p-jpeg/jpeg-core.c        | 69 +++++++++++++++++++---
->   drivers/media/platform/s5p-jpeg/jpeg-core.h        |  1 +
->   drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c  | 33 ++++++-----
->   drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h  |  8 ++-
->   drivers/media/platform/s5p-jpeg/jpeg-regs.h        | 17 ++++--
->   6 files changed, 98 insertions(+), 32 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> index bf52ed4..cd19417 100644
-> --- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> +++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> @@ -4,7 +4,7 @@ Required properties:
->
->   - compatible	: should be one of:
->   		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
-> -		  "samsung,exynos3250-jpeg";
-> +		  "samsung,exynos3250-jpeg", "samsung,exynos7-jpeg";
->   - reg		: address and length of the JPEG codec IP register set;
->   - interrupts	: specifies the JPEG codec IP interrupt;
->   - clock-names   : should contain:
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> index 54fa5d9..ad42a4e 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -1225,8 +1225,9 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
->   		return -EINVAL;
->   	}
->
-> -	if ((ctx->jpeg->variant->version != SJPEG_EXYNOS4) ||
-> -	    (ctx->mode != S5P_JPEG_DECODE))
-> +	if (((ctx->jpeg->variant->version != SJPEG_EXYNOS4) &&
-> +		(ctx->jpeg->variant->version != SJPEG_EXYNOS7)) ||
-> +		(ctx->mode != S5P_JPEG_DECODE))
->   		goto exit;
->
->   	/*
-> @@ -1349,7 +1350,8 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
->   		 * the JPEG_IMAGE_SIZE register. In order to avoid sysmmu
->   		 * page fault calculate proper buffer size in such a case.
->   		 */
-> -		if (ct->jpeg->variant->version == SJPEG_EXYNOS4 &&
-> +		if (((ct->jpeg->variant->version == SJPEG_EXYNOS4) ||
-> +			(ct->jpeg->variant->version == SJPEG_EXYNOS7)) &&
->   		    f_type == FMT_TYPE_OUTPUT && ct->mode == S5P_JPEG_ENCODE)
->   			q_data->size = exynos4_jpeg_get_output_buffer_size(ct,
->   							f,
-> @@ -1901,7 +1903,6 @@ static void exynos4_jpeg_device_run(void *priv)
->
->   	if (ctx->mode == S5P_JPEG_ENCODE) {
->   		exynos4_jpeg_sw_reset(jpeg->regs);
-> -		exynos4_jpeg_set_interrupt(jpeg->regs);
->   		exynos4_jpeg_set_huf_table_enable(jpeg->regs, 1);
->
->   		exynos4_jpeg_set_huff_tbl(jpeg->regs);
-> @@ -1918,20 +1919,60 @@ static void exynos4_jpeg_device_run(void *priv)
->   		exynos4_jpeg_set_stream_size(jpeg->regs, ctx->cap_q.w,
->   							ctx->cap_q.h);
->
-> -		exynos4_jpeg_set_enc_out_fmt(jpeg->regs, ctx->subsampling);
-> -		exynos4_jpeg_set_img_fmt(jpeg->regs, ctx->out_q.fmt->fourcc);
-> +		if (ctx->jpeg->variant->version == SJPEG_EXYNOS7) {
-> +			exynos4_jpeg_set_interrupt(jpeg->regs, SJPEG_EXYNOS7);
-> +			exynos4_jpeg_set_enc_out_fmt(jpeg->regs,
-> +					ctx->subsampling, EXYNOS7_ENC_FMT_MASK);
-> +			exynos4_jpeg_set_img_fmt(jpeg->regs,
-> +					ctx->out_q.fmt->fourcc,
-> +					EXYNOS7_SWAP_CHROMA_SHIFT);
-> +		} else {
-> +			exynos4_jpeg_set_interrupt(jpeg->regs, SJPEG_EXYNOS4);
-> +			exynos4_jpeg_set_enc_out_fmt(jpeg->regs,
-> +					ctx->subsampling, EXYNOS4_ENC_FMT_MASK);
-> +			exynos4_jpeg_set_img_fmt(jpeg->regs,
-> +					ctx->out_q.fmt->fourcc,
-> +					EXYNOS4_SWAP_CHROMA_SHIFT);
-> +		}
-> +
+>> +		usleep_range(3000, 5000);
+>> +		gpiod_direction_output(priv->resetb_gpio, 1);
+> And to 0 here.
+yes.
 
-I'd implement it this way:
+>
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int ov2640_probe_dt(struct i2c_client *client,
+>> +		struct ov2640_priv *priv)
+>> +{
+>> +	priv->resetb_gpio = devm_gpiod_get_optional(&client->dev, "resetb",
+>> +			GPIOD_OUT_HIGH);
+>> +	if (!priv->resetb_gpio)
+>> +		dev_warn(&client->dev, "resetb gpio not found!\n");
+> No need to warn here, it's perfectly fine if the reset signal isn't connected
+> to a GPIO.
+I want to print some information if no GPIO is assigned. So I'd like use 
+dev_dbg() here.
+What do you feel?
 
-exynos4_jpeg_set_interrupt(jpeg->regs, ctx->jpeg->variant->version);
-exynos4_jpeg_set_enc_out_fmt(jpeg->regs, ctx->subsampling, 	
-			(ctx->jpeg->variant->version == SJPEG_EXYNOS4) ?
-				EXYNOS4_ENC_FMT_MASK :
-				EXYNOS7_ENC_FMT_MASK);
-exynos4_jpeg_set_img_fmt(jpeg->regs, ctx->out_q.fmt->fourcc,
-			(ctx->jpeg->variant->version == SJPEG_EXYNOS4) ?
-				EXYNOS4_SWAP_CHROMA_SHIFT :
-				EXYNOS7_SWAP_CHROMA_SHIFT);
+>
+>> +	else if (IS_ERR(priv->resetb_gpio))
+>> +		return -EINVAL;
+>> +
+>> +	priv->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "pwdn",
+>> +			GPIOD_OUT_HIGH);
+>> +	if (!priv->pwdn_gpio)
+>> +		dev_warn(&client->dev, "pwdn gpio not found!\n");
+> Same here.
+ditto.
+>
+>> +	else if (IS_ERR(priv->pwdn_gpio))
+>> +		return -EINVAL;
+>> +
+>> +	/* Initialize the soc_camera_subdev_desc */
+>> +	priv->ssdd_dt.power = ov2640_hw_power;
+>> +	priv->ssdd_dt.reset = ov2640_hw_reset;
+>> +	client->dev.platform_data = &priv->ssdd_dt;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>>   /*
+>>    * i2c_driver functions
+>>    */
+>> @@ -1058,12 +1119,6 @@ static int ov2640_probe(struct i2c_client *client,
+>>   	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
+>>   	int			ret;
+>>
+>> -	if (!ssdd) {
+>> -		dev_err(&adapter->dev,
+>> -			"OV2640: Missing platform_data for driver\n");
+>> -		return -EINVAL;
+>> -	}
+>> -
+>>   	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+>>   		dev_err(&adapter->dev,
+>>   			"OV2640: I2C-Adapter doesn't support SMBUS\n");
+>> @@ -1077,6 +1132,18 @@ static int ov2640_probe(struct i2c_client *client,
+>>   		return -ENOMEM;
+>>   	}
+>>
+>> +	if (!ssdd) {
+>> +		if (client->dev.of_node) {
+>> +			ret = ov2640_probe_dt(client, priv);
+>> +			if (ret)
+>> +				return ret;
+>> +		} else {
+>> +			dev_err(&client->dev,
+>> +				"Missing platform_data for driver\n");
+>> +			return  -EINVAL;
+>> +		}
+> I would test for !client->dev.of_node and return the error, you could then get
+> rid of the else and lower the indentation level for the call to
+> ov2640_probe_dt().
+Okay. I'll change it in next version.
 
->   		exynos4_jpeg_set_img_addr(ctx);
->   		exynos4_jpeg_set_jpeg_addr(ctx);
->   		exynos4_jpeg_set_encode_hoff_cnt(jpeg->regs,
->   							ctx->out_q.fmt->fourcc);
->   	} else {
->   		exynos4_jpeg_sw_reset(jpeg->regs);
-> -		exynos4_jpeg_set_interrupt(jpeg->regs);
->   		exynos4_jpeg_set_img_addr(ctx);
->   		exynos4_jpeg_set_jpeg_addr(ctx);
-> -		exynos4_jpeg_set_img_fmt(jpeg->regs, ctx->cap_q.fmt->fourcc);
->
-> -		bitstream_size = DIV_ROUND_UP(ctx->out_q.size, 32);
-> +		if (ctx->jpeg->variant->version == SJPEG_EXYNOS7) {
-> +			exynos4_jpeg_set_interrupt(jpeg->regs, SJPEG_EXYNOS7);
-> +			exynos4_jpeg_set_huff_tbl(jpeg->regs);
-> +			exynos4_jpeg_set_huf_table_enable(jpeg->regs, 1);
-> +
-> +			/*
-> +			 * JPEG IP allows storing 4 quantization tables
-> +			 * We fill table 0 for luma and table 1 for chroma
-> +			 */
-> +			exynos4_jpeg_set_qtbl_lum(jpeg->regs,
-> +							ctx->compr_quality);
-> +			exynos4_jpeg_set_qtbl_chr(jpeg->regs,
-> +							ctx->compr_quality);
-
-Is it really required to setup quantization tables for encoding?
-
-> +			exynos4_jpeg_set_stream_size(jpeg->regs, ctx->cap_q.w,
-> +					ctx->cap_q.h);
-
-For exynos4 this function writes the number of samples per line and
-number lines of the resulting JPEG image and is used only during
-encoding. Is the semantics of the related register different in case of
-Exynos7?
-
-> +			exynos4_jpeg_set_enc_out_fmt(jpeg->regs,
-> +					ctx->subsampling, EXYNOS7_ENC_FMT_MASK);
-> +			exynos4_jpeg_set_img_fmt(jpeg->regs,
-> +					ctx->cap_q.fmt->fourcc,
-> +					EXYNOS7_SWAP_CHROMA_SHIFT);
-> +			bitstream_size = DIV_ROUND_UP(ctx->out_q.size, 16);
-> +		} else {
-> +			exynos4_jpeg_set_interrupt(jpeg->regs, SJPEG_EXYNOS4);
-> +			exynos4_jpeg_set_img_fmt(jpeg->regs,
-> +					ctx->cap_q.fmt->fourcc,
-> +					EXYNOS4_SWAP_CHROMA_SHIFT);
-> +			bitstream_size = DIV_ROUND_UP(ctx->out_q.size, 32);
-> +		}
->
->   		exynos4_jpeg_set_dec_bitstream_size(jpeg->regs, bitstream_size);
->   	}
-> @@ -2729,6 +2770,13 @@ static struct s5p_jpeg_variant exynos4_jpeg_drvdata = {
->   	.fmt_ver_flag	= SJPEG_FMT_FLAG_EXYNOS4,
->   };
->
-> +static struct s5p_jpeg_variant exynos7_jpeg_drvdata = {
-> +	.version	= SJPEG_EXYNOS7,
-> +	.jpeg_irq	= exynos4_jpeg_irq,
-> +	.m2m_ops	= &exynos4_jpeg_m2m_ops,
-> +	.fmt_ver_flag	= SJPEG_FMT_FLAG_EXYNOS4,
-> +};
-> +
->   static const struct of_device_id samsung_jpeg_match[] = {
->   	{
->   		.compatible = "samsung,s5pv210-jpeg",
-> @@ -2742,6 +2790,9 @@ static const struct of_device_id samsung_jpeg_match[] = {
->   	}, {
->   		.compatible = "samsung,exynos4212-jpeg",
->   		.data = &exynos4_jpeg_drvdata,
-> +	}, {
-> +		.compatible = "samsung,exynos7-jpeg",
-> +		.data = &exynos7_jpeg_drvdata,
->   	},
->   	{},
->   };
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> index 764b32d..734710a 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> @@ -71,6 +71,7 @@
->   #define SJPEG_S5P		1
->   #define SJPEG_EXYNOS3250	2
->   #define SJPEG_EXYNOS4		3
-> +#define SJPEG_EXYNOS7		4
-
-As you adding a new variant I propose to turn these macros into enum.
-
->   enum exynos4_jpeg_result {
->   	OK_ENC_OR_DEC,
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> index e53f13a..2611259 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> @@ -49,7 +49,8 @@ void exynos4_jpeg_set_enc_dec_mode(void __iomem *base, unsigned int mode)
->   	}
->   }
->
-> -void exynos4_jpeg_set_img_fmt(void __iomem *base, unsigned int img_fmt)
-> +void exynos4_jpeg_set_img_fmt(void __iomem *base, unsigned int img_fmt,
-> +					unsigned int shift)
->   {
->   	unsigned int reg;
->
-> @@ -71,48 +72,48 @@ void exynos4_jpeg_set_img_fmt(void __iomem *base, unsigned int img_fmt)
->   	case V4L2_PIX_FMT_NV24:
->   		reg = reg | EXYNOS4_ENC_YUV_444_IMG |
->   				EXYNOS4_YUV_444_IP_YUV_444_2P_IMG |
-> -				EXYNOS4_SWAP_CHROMA_CBCR;
-> +				EXYNOS_SWAP_CHROMA_CBCR(shift);
->   		break;
->   	case V4L2_PIX_FMT_NV42:
->   		reg = reg | EXYNOS4_ENC_YUV_444_IMG |
->   				EXYNOS4_YUV_444_IP_YUV_444_2P_IMG |
-> -				EXYNOS4_SWAP_CHROMA_CRCB;
-> +				EXYNOS_SWAP_CHROMA_CRCB(shift);
->   		break;
->   	case V4L2_PIX_FMT_YUYV:
->   		reg = reg | EXYNOS4_DEC_YUV_422_IMG |
->   				EXYNOS4_YUV_422_IP_YUV_422_1P_IMG |
-> -				EXYNOS4_SWAP_CHROMA_CBCR;
-> +				EXYNOS_SWAP_CHROMA_CBCR(shift);
->   		break;
->
->   	case V4L2_PIX_FMT_YVYU:
->   		reg = reg | EXYNOS4_DEC_YUV_422_IMG |
->   				EXYNOS4_YUV_422_IP_YUV_422_1P_IMG |
-> -				EXYNOS4_SWAP_CHROMA_CRCB;
-> +				EXYNOS_SWAP_CHROMA_CRCB(shift);
->   		break;
->   	case V4L2_PIX_FMT_NV16:
->   		reg = reg | EXYNOS4_DEC_YUV_422_IMG |
->   				EXYNOS4_YUV_422_IP_YUV_422_2P_IMG |
-> -				EXYNOS4_SWAP_CHROMA_CBCR;
-> +				EXYNOS_SWAP_CHROMA_CBCR(shift);
->   		break;
->   	case V4L2_PIX_FMT_NV61:
->   		reg = reg | EXYNOS4_DEC_YUV_422_IMG |
->   				EXYNOS4_YUV_422_IP_YUV_422_2P_IMG |
-> -				EXYNOS4_SWAP_CHROMA_CRCB;
-> +				EXYNOS_SWAP_CHROMA_CRCB(shift);
->   		break;
->   	case V4L2_PIX_FMT_NV12:
->   		reg = reg | EXYNOS4_DEC_YUV_420_IMG |
->   				EXYNOS4_YUV_420_IP_YUV_420_2P_IMG |
-> -				EXYNOS4_SWAP_CHROMA_CBCR;
-> +				EXYNOS_SWAP_CHROMA_CBCR(shift);
->   		break;
->   	case V4L2_PIX_FMT_NV21:
->   		reg = reg | EXYNOS4_DEC_YUV_420_IMG |
->   				EXYNOS4_YUV_420_IP_YUV_420_2P_IMG |
-> -				EXYNOS4_SWAP_CHROMA_CRCB;
-> +				EXYNOS_SWAP_CHROMA_CRCB(shift);
->   		break;
->   	case V4L2_PIX_FMT_YUV420:
->   		reg = reg | EXYNOS4_DEC_YUV_420_IMG |
->   				EXYNOS4_YUV_420_IP_YUV_420_3P_IMG |
-> -				EXYNOS4_SWAP_CHROMA_CBCR;
-> +				EXYNOS_SWAP_CHROMA_CBCR(shift);
->   		break;
->   	default:
->   		break;
-> @@ -122,12 +123,13 @@ void exynos4_jpeg_set_img_fmt(void __iomem *base, unsigned int img_fmt)
->   	writel(reg, base + EXYNOS4_IMG_FMT_REG);
->   }
->
-> -void exynos4_jpeg_set_enc_out_fmt(void __iomem *base, unsigned int out_fmt)
-> +void exynos4_jpeg_set_enc_out_fmt(void __iomem *base, unsigned int out_fmt,
-> +					unsigned int mask)
->   {
->   	unsigned int reg;
->
->   	reg = readl(base + EXYNOS4_IMG_FMT_REG) &
-> -			~EXYNOS4_ENC_FMT_MASK; /* clear enc format */
-> +			~EXYNOS_ENC_FMT_MASK(mask); /* clear enc format */
->
->   	switch (out_fmt) {
->   	case V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY:
-> @@ -153,9 +155,12 @@ void exynos4_jpeg_set_enc_out_fmt(void __iomem *base, unsigned int out_fmt)
->   	writel(reg, base + EXYNOS4_IMG_FMT_REG);
->   }
->
-> -void exynos4_jpeg_set_interrupt(void __iomem *base)
-> +void exynos4_jpeg_set_interrupt(void __iomem *base, unsigned int version)
->   {
-> -	writel(EXYNOS4_INT_EN_ALL, base + EXYNOS4_INT_EN_REG);
-> +	unsigned int reg;
-> +
-> +	reg = readl(base + EXYNOS4_INT_EN_REG) & ~EXYNOS4_INT_EN_MASK(version);
-> +	writel(EXYNOS4_INT_EN_ALL(version), base + EXYNOS4_INT_EN_REG);
->   }
-
-I believe that adding readl is a fix. I'd enclose it into separate
-patch and explain its merit.
-
->   unsigned int exynos4_jpeg_get_int_status(void __iomem *base)
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h
-> index c228d28..b425199 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h
-> @@ -15,10 +15,12 @@
->
->   void exynos4_jpeg_sw_reset(void __iomem *base);
->   void exynos4_jpeg_set_enc_dec_mode(void __iomem *base, unsigned int mode);
-> -void exynos4_jpeg_set_img_fmt(void __iomem *base, unsigned int img_fmt);
-> -void exynos4_jpeg_set_enc_out_fmt(void __iomem *base, unsigned int out_fmt);
-> +void exynos4_jpeg_set_img_fmt(void __iomem *base, unsigned int img_fmt,
-> +					unsigned int shift);
-> +void exynos4_jpeg_set_enc_out_fmt(void __iomem *base, unsigned int out_fmt,
-> +							unsigned int mask);
->   void exynos4_jpeg_set_enc_tbl(void __iomem *base);
-> -void exynos4_jpeg_set_interrupt(void __iomem *base);
-> +void exynos4_jpeg_set_interrupt(void __iomem *base, unsigned int variant);
->   unsigned int exynos4_jpeg_get_int_status(void __iomem *base);
->   void exynos4_jpeg_set_huf_table_enable(void __iomem *base, int value);
->   void exynos4_jpeg_set_sys_int_enable(void __iomem *base, int value);
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-regs.h b/drivers/media/platform/s5p-jpeg/jpeg-regs.h
-> index 050fc44..08bef4e 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-regs.h
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-regs.h
-> @@ -230,13 +230,15 @@
->   #define EXYNOS4_SOFT_RESET_HI		(1 << 29)
->
->   /* JPEG INT Register bit */
-> -#define EXYNOS4_INT_EN_MASK		(0x1f << 0)
-> +#define EXYNOS4_INT_EN_MASK(version)	(((version) == SJPEG_EXYNOS7) \
-> +						? (0x1ff << 0) : (0x1f << 0))
->   #define EXYNOS4_PROT_ERR_INT_EN		(1 << 0)
->   #define EXYNOS4_IMG_COMPLETION_INT_EN	(1 << 1)
->   #define EXYNOS4_DEC_INVALID_FORMAT_EN	(1 << 2)
->   #define EXYNOS4_MULTI_SCAN_ERROR_EN	(1 << 3)
->   #define EXYNOS4_FRAME_ERR_EN		(1 << 4)
-> -#define EXYNOS4_INT_EN_ALL		(0x1f << 0)
-> +#define EXYNOS4_INT_EN_ALL(version)    (((version) == SJPEG_EXYNOS7) \
-> +						? (0x1b6 << 0) : (0x1f << 0))
->
->   #define EXYNOS4_MOD_REG_PROC_ENC	(0 << 3)
->   #define EXYNOS4_MOD_REG_PROC_DEC	(1 << 3)
-> @@ -294,8 +296,11 @@
->   #define EXYNOS4_YUV_420_IP_YUV_420_2P_IMG	(4 << EXYNOS4_YUV_420_IP_SHIFT)
->   #define EXYNOS4_YUV_420_IP_YUV_420_3P_IMG	(5 << EXYNOS4_YUV_420_IP_SHIFT)
->
-> +#define EXYNOS4_ENC_FMT_MASK			3
-> +#define EXYNOS7_ENC_FMT_MASK			7
->   #define EXYNOS4_ENC_FMT_SHIFT			24
-> -#define EXYNOS4_ENC_FMT_MASK			(3 << EXYNOS4_ENC_FMT_SHIFT)
-> +#define EXYNOS_ENC_FMT_MASK(mask)		((mask) \
-> +						<< EXYNOS4_ENC_FMT_SHIFT)
->   #define EXYNOS4_ENC_FMT_GRAY			(0 << EXYNOS4_ENC_FMT_SHIFT)
->   #define EXYNOS4_ENC_FMT_YUV_444			(1 << EXYNOS4_ENC_FMT_SHIFT)
->   #define EXYNOS4_ENC_FMT_YUV_422			(2 << EXYNOS4_ENC_FMT_SHIFT)
-> @@ -303,8 +308,10 @@
->
->   #define EXYNOS4_JPEG_DECODED_IMG_FMT_MASK	0x03
->
-> -#define EXYNOS4_SWAP_CHROMA_CRCB		(1 << 26)
-> -#define EXYNOS4_SWAP_CHROMA_CBCR		(0 << 26)
-> +#define EXYNOS7_SWAP_CHROMA_SHIFT		27
-> +#define EXYNOS4_SWAP_CHROMA_SHIFT		26
-> +#define EXYNOS_SWAP_CHROMA_CRCB(shift)		(1 << (shift))
-> +#define EXYNOS_SWAP_CHROMA_CBCR(shift)		(0 << (shift))
->
->   /* JPEG HUFF count Register bit */
->   #define EXYNOS4_HUFF_COUNT_MASK			0xffff
->
-
-
--- 
 Best Regards,
-Jacek Anaszewski
+Josh Wu
+
+>
+>> +	}
+>> +
+>>   	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+>>   	v4l2_ctrl_handler_init(&priv->hdl, 2);
+>>   	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+>> @@ -1123,9 +1190,16 @@ static const struct i2c_device_id ov2640_id[] = {
+>>   };
+>>   MODULE_DEVICE_TABLE(i2c, ov2640_id);
+>>
+>> +static const struct of_device_id ov2640_of_match[] = {
+>> +	{.compatible = "ovti,ov2640", },
+>> +	{},
+>> +};
+>> +MODULE_DEVICE_TABLE(of, ov2640_of_match);
+>> +
+>>   static struct i2c_driver ov2640_i2c_driver = {
+>>   	.driver = {
+>>   		.name = "ov2640",
+>> +		.of_match_table = of_match_ptr(ov2640_of_match),
+>>   	},
+>>   	.probe    = ov2640_probe,
+>>   	.remove   = ov2640_remove,
+
