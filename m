@@ -1,61 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57502 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750799AbaLQJhY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Dec 2014 04:37:24 -0500
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 4E83A60093
-	for <linux-media@vger.kernel.org>; Wed, 17 Dec 2014 11:37:22 +0200 (EET)
-Date: Wed, 17 Dec 2014 11:37:22 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.20] Smiapp driver improvements and cleanups
-Message-ID: <20141217093721.GG17565@valkosipuli.retiisi.org.uk>
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:40803 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754650AbaLIIwZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 03:52:25 -0500
+Received: by mail-ie0-f179.google.com with SMTP id rp18so102791iec.10
+        for <linux-media@vger.kernel.org>; Tue, 09 Dec 2014 00:52:24 -0800 (PST)
+Date: Tue, 9 Dec 2014 08:52:16 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v9 03/19] mfd: max77693: Modify flash cell name
+ identifiers
+Message-ID: <20141209085216.GS3951@x1>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-4-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1417622814-10845-4-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wed, 03 Dec 2014, Jacek Anaszewski wrote:
 
-This pull request contains smiapp driver cleanups and improvements in form
-of more generic quirk functionality and corrected error handling. It depends
-on my earlier pull request "[GIT PULL FOR v3.20] Smiapp OF support".
+> Change flash cell identifiers from max77693-flash to max77693-led
+> to avoid confusion with NOR/NAND Flash.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> ---
+>  drivers/mfd/max77693.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
+> index a159593..cb14afa 100644
+> --- a/drivers/mfd/max77693.c
+> +++ b/drivers/mfd/max77693.c
+> @@ -53,8 +53,8 @@ static const struct mfd_cell max77693_devs[] = {
+>  		.of_compatible = "maxim,max77693-haptic",
+>  	},
+>  	{
+> -		.name = "max77693-flash",
+> -		.of_compatible = "maxim,max77693-flash",
+> +		.name = "max77693-led",
+> +		.of_compatible = "maxim,max77693-led",
 
-Please pull.
+This is fine by me, so long as you've been through the usual
+deprecation procedures or this platform is still WiP.
 
-The following changes since commit 7f6de94da4bd82c80b7346a0e651fb99f3269361:
-
-  smiapp: Fully probe the device in probe (2014-12-17 11:28:52 +0200)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git smiapp-next
-
-for you to fetch changes up to 0769c7611e6920bb8a45277148bf0edc3b31e21e:
-
-  smiapp: Add parentheses to macro arguments used in macros (2014-12-17 11:34:07 +0200)
-
-----------------------------------------------------------------
-Sakari Ailus (7):
-      smiapp: Access flash capabilities through limits
-      smiapp: Free control handlers in sub-device cleanup
-      smiapp: Clean up smiapp_init_controls()
-      smiapp: Separate late controls from the rest
-      smiapp: Move enumerating available media bus codes later
-      smiapp: Replace pll_flags quirk with more generic init quirk
-      smiapp: Add parentheses to macro arguments used in macros
-
- drivers/media/i2c/smiapp/smiapp-core.c  |  103 ++++++++++++++++---------------
- drivers/media/i2c/smiapp/smiapp-quirk.c |    8 ++-
- drivers/media/i2c/smiapp/smiapp-quirk.h |   18 +++---
- drivers/media/i2c/smiapp/smiapp.h       |    1 -
- 4 files changed, 69 insertions(+), 61 deletions(-)
+>  	},
+>  };
+>  
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
