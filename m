@@ -1,74 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41954 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751065AbaLEOTz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Dec 2014 09:19:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH for v3.19 3/4] DocBook media: update version number and document changes.
-Date: Fri,  5 Dec 2014 15:19:23 +0100
-Message-Id: <1417789164-28468-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
+Received: from nasmtp01.atmel.com ([192.199.1.245]:58188 "EHLO
+	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756508AbaLIDTt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 22:19:49 -0500
+Message-ID: <54866A44.2020600@atmel.com>
+Date: Tue, 9 Dec 2014 11:19:32 +0800
+From: Josh Wu <josh.wu@atmel.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
+	<linux-arm-kernel@lists.infradead.org>, <g.liakhovetski@gmx.de>,
+	<devicetree@vger.kernel.org>
+Subject: Re: [PATCH 5/5] media: ov2640: dt: add the device tree binding document
+References: <1418038147-13221-1-git-send-email-josh.wu@atmel.com> <1418038147-13221-6-git-send-email-josh.wu@atmel.com> <7239028.nL31Mosllm@avalon>
+In-Reply-To: <7239028.nL31Mosllm@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi, Laurent
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/compat.xml |  6 ++++++
- Documentation/DocBook/media/v4l/v4l2.xml   | 11 ++++++++++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
+On 12/9/2014 2:59 AM, Laurent Pinchart wrote:
+> Hi Josh,
+>
+> Thank you for the patch.
+>
+> On Monday 08 December 2014 19:29:07 Josh Wu wrote:
+>> Add the document for ov2640 dt.
+>>
+>> Cc: devicetree@vger.kernel.org
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>> v1 -> v2:
+>>    1. change the compatible string to be consistent with verdor file.
+> That's nice, but you still need to send a patch to add the ovti vendor prefix
+> to Documentation/devicetree/bindings/vendor-prefixes.txt. It's not there yet.
+As Fabio already send a patch to fix the vendor file.
+See URL: http://patchwork.ozlabs.org/patch/416685/
+I think it will go to mainline soon.
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 0a2debf..518bc56 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2576,6 +2576,12 @@ fields changed from _s32 to _u32.
- 	  <para>Added <constant>V4L2_CID_PAN_SPEED</constant> and
-  <constant>V4L2_CID_TILT_SPEED</constant> camera controls.</para>
- 	</listitem>
-+	<listitem>
-+	  <para>Rewrote Colorspace chapter, added new &v4l2-ycbcr-encoding;
-+and &v4l2-quantization; fields to &v4l2-pix-format;, &v4l2-pix-format-mplane;
-+and &v4l2-mbus-framefmt;.
-+	  </para>
-+	</listitem>
-       </orderedlist>
-     </section>
- 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 7cfe618..e6cfd7e 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -152,6 +152,15 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
- 
-       <revision>
-+	<revnumber>3.18</revnumber>
-+	<date>2014-12-05</date>
-+	<authorinitials>hv</authorinitials>
-+	<revremark>Rewrote Colorspace chapter, added new &v4l2-ycbcr-encoding; and &v4l2-quantization; fields
-+to &v4l2-pix-format;, &v4l2-pix-format-mplane; and &v4l2-mbus-framefmt;.
-+	</revremark>
-+      </revision>
-+
-+      <revision>
- 	<revnumber>3.17</revnumber>
- 	<date>2014-08-04</date>
- 	<authorinitials>lp, hv</authorinitials>
-@@ -539,7 +548,7 @@ and discussions on the V4L mailing list.</revremark>
- </partinfo>
- 
- <title>Video for Linux Two API Specification</title>
-- <subtitle>Revision 3.17</subtitle>
-+ <subtitle>Revision 3.18</subtitle>
- 
-   <chapter id="common">
-     &sub-common;
--- 
-2.1.3
+>
+>>    2. change the clock and pins' name.
+>>    3. add missed pinctrl in example.
+>>
+>>   .../devicetree/bindings/media/i2c/ov2640.txt       | 44 +++++++++++++++++++
+>>   1 file changed, 44 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>> b/Documentation/devicetree/bindings/media/i2c/ov2640.txt new file mode
+>> 100644
+>> index 0000000..15be3cb
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>> @@ -0,0 +1,44 @@
+>> +* Omnivision ov2640 CMOS sensor
+>> +
+>> +The Omnivision OV2640 sensor support multiple resolutions output, such as
+>> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+>> +output format.
+>> +
+>> +Required Properties :
+>> +- compatible: Must be "ovti,ov2640"
+>> +- clocks: reference master clock, if using external fixed clock, you
+>> +          no need to have such property.
+> That's not true anymore, the clocks property is mandatory in all cases. Just
+> describe it as
+>
+> - clocks: reference to the xvclk input clock.
+>
+>> +- clock-names: Must be "xvclk", it means the master clock for ov2640.
+> I would drop "it means the master clock for ov2640".
+>
+>> +Optional Properties:
+>> +- resetb-gpios: reset pin
+> - resetb-gpios: reference to the GPIO connected to the resetb pin, if any.
+>
+>> +- pwdn-gpios: power down pin
+> - pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
+
+I'll fix all above that you mentioned in next version.
+Thank a lot for the review.
+
+Best Regards,
+Josh Wu
+>
+>> +
+>> +The device node must contain one 'port' child node for its digital output
+>> +video port, in accordance with the video interface bindings defined in
+>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>> +
+>> +Example:
+>> +
+>> +	i2c1: i2c@f0018000 {
+>> +		ov2640: camera@0x30 {
+>> +			compatible = "ovti,ov2640";
+>> +			reg = <0x30>;
+>> +
+>> +			pinctrl-names = "default";
+>> +			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn
+> &pinctrl_ov2640_reset>;
+>> +
+>> +			resetb-gpios = <&pioE 24 GPIO_ACTIVE_HIGH>;
+>> +			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
+>> +
+>> +			clocks = <&pck1>;
+>> +			clock-names = "xvclk";
+>> +
+>> +			port {
+>> +				ov2640_0: endpoint {
+>> +					remote-endpoint = <&isi_0>;
+>> +					bus-width = <8>;
+>> +				};
+>> +			};
+>> +		};
+>> +	};
 
