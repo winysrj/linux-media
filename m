@@ -1,74 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:57279 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268AbaLRC26 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53106 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755206AbaLIAEv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Dec 2014 21:28:58 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<laurent.pinchart@ideasonboard.com>, <s.nawrocki@samsung.com>,
-	<festevam@gmail.com>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v4 1/5] media: soc-camera: use icd->control instead of icd->pdev for reset()
-Date: Thu, 18 Dec 2014 10:27:22 +0800
-Message-ID: <1418869646-17071-2-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
-References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Mon, 8 Dec 2014 19:04:51 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, mark.rutland@arm.com
+Subject: [REVIEW PATCH v3 09/12] of: smiapp: Add documentation
+Date: Tue,  9 Dec 2014 02:04:17 +0200
+Message-Id: <1418083460-28556-10-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1418083460-28556-1-git-send-email-sakari.ailus@iki.fi>
+References: <1418083460-28556-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-icd->control is the sub device dev, i.e. i2c device.
-icd->pdev is the soc camera device's device.
+Document the smiapp device tree properties.
 
-To be consitent with power() function, we will call reset() with
-icd->control as well.
-
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
-v3->v4:
-  none
+ .../devicetree/bindings/media/i2c/nokia,smia.txt   |   63 ++++++++++++++++++++
+ MAINTAINERS                                        |    1 +
+ 2 files changed, 64 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
 
-v2->v3:
-  1. check whether icd->control is NULL or not.
-
- drivers/media/platform/soc_camera/soc_camera.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index f4be2a1..7e6b914 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -688,7 +688,8 @@ static int soc_camera_open(struct file *file)
+diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+new file mode 100644
+index 0000000..855e1fa
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+@@ -0,0 +1,63 @@
++SMIA/SMIA++ sensor
++
++SMIA (Standard Mobile Imaging Architecture) is an image sensor standard
++defined jointly by Nokia and ST. SMIA++, defined by Nokia, is an extension
++of that. These definitions are valid for both types of sensors.
++
++More detailed documentation can be found in
++Documentation/devicetree/bindings/media/video-interfaces.txt .
++
++
++Mandatory properties
++--------------------
++
++- compatible: "nokia,smia"
++- reg: I2C address (0x10, or an alternative address)
++- vana-supply: Analogue voltage supply (VANA), typically 2,8 volts (sensor
++  dependent).
++- clocks: External clock to the sensor
++- clock-frequency: Frequency of the external clock to the sensor
++- link-frequencies: List of allowed data link frequencies. An array of
++  64-bit elements.
++
++
++Optional properties
++-------------------
++
++- nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
++  the NVM contents will not be read.
++- reset-gpios: XSHUTDOWN GPIO
++
++
++Endpoint node mandatory properties
++----------------------------------
++
++- clock-lanes: <0>
++- data-lanes: <1..n>
++- remote-endpoint: A phandle to the bus receiver's endpoint node.
++
++
++Example
++-------
++
++&i2c2 {
++	clock-frequency = <400000>;
++
++	smiapp_1: camera@10 {
++		compatible = "nokia,smia";
++		reg = <0x10>;
++		reset-gpios = <&gpio3 20 0>;
++		vana-supply = <&vaux3>;
++		clocks = <&omap3_isp 0>;
++		clock-frequency = <9600000>;
++		nokia,nvm-size = <512>; /* 8 * 64 */
++		link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
++		port {
++			smiapp_1_1: endpoint {
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++				remote-endpoint = <&csi2a_ep>;
++			};
++		};
++	};
++};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index f2d9159..437981a 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8625,6 +8625,7 @@ F:	include/media/smiapp.h
+ F:	drivers/media/i2c/smiapp-pll.c
+ F:	drivers/media/i2c/smiapp-pll.h
+ F:	include/uapi/linux/smiapp.h
++F:	Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
  
- 		/* The camera could have been already on, try to reset */
- 		if (sdesc->subdev_desc.reset)
--			sdesc->subdev_desc.reset(icd->pdev);
-+			if (icd->control)
-+				sdesc->subdev_desc.reset(icd->control);
- 
- 		ret = soc_camera_add_device(icd);
- 		if (ret < 0) {
-@@ -1175,7 +1176,8 @@ static void scan_add_host(struct soc_camera_host *ici)
- 
- 			/* The camera could have been already on, try to reset */
- 			if (ssdd->reset)
--				ssdd->reset(icd->pdev);
-+				if (icd->control)
-+					ssdd->reset(icd->control);
- 
- 			icd->parent = ici->v4l2_dev.dev;
- 
-@@ -1461,7 +1463,7 @@ static int soc_camera_async_bound(struct v4l2_async_notifier *notifier,
- 				memcpy(&sdesc->subdev_desc, ssdd,
- 				       sizeof(sdesc->subdev_desc));
- 				if (ssdd->reset)
--					ssdd->reset(icd->pdev);
-+					ssdd->reset(&client->dev);
- 			}
- 
- 			icd->control = &client->dev;
+ SMM665 HARDWARE MONITOR DRIVER
+ M:	Guenter Roeck <linux@roeck-us.net>
 -- 
-1.9.1
+1.7.10.4
 
