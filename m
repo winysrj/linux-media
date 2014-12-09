@@ -1,68 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-1.cisco.com ([72.163.197.25]:4160 "EHLO
-	bgl-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752903AbaLAJN2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 04:13:28 -0500
-From: Prashant Laddha <prladdha@cisco.com>
-To: <hverkuil@xs4all.nl>
-Cc: Prashant Laddha <prladdha@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/5] Vivid sine gen: Refactor get_sin_val ()
-Date: Mon,  1 Dec 2014 14:33:22 +0530
-Message-Id: <1417424604-17340-3-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1417424604-17340-1-git-send-email-prladdha@cisco.com>
-References: <1417424604-17340-1-git-send-email-prladdha@cisco.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53101 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754932AbaLIAEu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Dec 2014 19:04:50 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, mark.rutland@arm.com
+Subject: [REVIEW PATCH v3 06/12] smiapp: Register async subdev
+Date: Tue,  9 Dec 2014 02:04:14 +0200
+Message-Id: <1418083460-28556-7-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1418083460-28556-1-git-send-email-sakari.ailus@iki.fi>
+References: <1418083460-28556-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removed recursion. Also reduced few if() checks.
+Register and unregister async sub-device for DT.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/platform/vivid/vivid-sin.c | 28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ drivers/media/i2c/smiapp/smiapp-core.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-sin.c b/drivers/media/platform/vivid/vivid-sin.c
-index 0774bdd..f2158a3 100644
---- a/drivers/media/platform/vivid/vivid-sin.c
-+++ b/drivers/media/platform/vivid/vivid-sin.c
-@@ -35,21 +35,19 @@ static s32 sin[65] = {
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 92a7840..9852c5f 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2942,8 +2942,21 @@ static int smiapp_probe(struct i2c_client *client,
+ 	sensor->src->sensor = sensor;
  
- static s32 get_sin_val(u32 index)
- {
--	if(index <= 64)
--		return sin[index];
--	else if (index > 64 && index <= 128) {
--		u32 tab_index = 64 - (index - 64);
--		return sin[tab_index];
--	} else if (index > 128 && index <= 192) {
--		u32 tab_index = index - 128;
--		return (-1) * sin[tab_index];
--	} else if (index > 192 && index <= 255) {
--		u32 tab_index = 64 - (index - 192);
--		return (-1) * sin[tab_index];
--	} else {
--		u32 new_index = index % 256;
--		return get_sin_val(new_index);
--	}
-+	s32 sign = 1;
-+	u32 tab_index;
-+	u32 new_index = index & 0x7F; /* new_index = index % 128*/
+ 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+-	return media_entity_init(&sensor->src->sd.entity, 2,
++	rval = media_entity_init(&sensor->src->sd.entity, 2,
+ 				 sensor->src->pads, 0);
++	if (rval < 0)
++		return rval;
 +
-+	if (index > 128)
-+		sign = -1;
++	rval = v4l2_async_register_subdev(&sensor->src->sd);
++	if (rval < 0)
++		goto out_media_entity_cleanup;
 +
-+	if(new_index <= 64)
-+		tab_index = new_index;
-+	else
-+		tab_index = 64 - (new_index - 64);
++	return 0;
 +
-+	return sign * sin[tab_index];
++out_media_entity_cleanup:
++	media_entity_cleanup(&sensor->src->sd.entity);
++
++	return rval;
  }
  
- /*
+ static int smiapp_remove(struct i2c_client *client)
+@@ -2952,6 +2965,8 @@ static int smiapp_remove(struct i2c_client *client)
+ 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
+ 	unsigned int i;
+ 
++	v4l2_async_unregister_subdev(subdev);
++
+ 	if (sensor->power_count) {
+ 		if (gpio_is_valid(sensor->platform_data->xshutdown))
+ 			gpio_set_value(sensor->platform_data->xshutdown, 0);
 -- 
-1.9.1
+1.7.10.4
 
