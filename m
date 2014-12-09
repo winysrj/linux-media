@@ -1,42 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:10731 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076AbaLCPHa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 10:07:30 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NG000L0VI52SJ70@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 03 Dec 2014 15:10:14 +0000 (GMT)
-Message-id: <547F2723.5070907@samsung.com>
-Date: Wed, 03 Dec 2014 16:07:15 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: Re: [PATCH v4 07/10] v4l: vb2: Fix race condition in _vb2_fop_release
-References: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1417464820-6718-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-reply-to: <1417464820-6718-8-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53102 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754990AbaLIAEu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Dec 2014 19:04:50 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, mark.rutland@arm.com
+Subject: [REVIEW PATCH v3 05/12] smiapp: Don't give the source sub-device a temporary name
+Date: Tue,  9 Dec 2014 02:04:13 +0200
+Message-Id: <1418083460-28556-6-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1418083460-28556-1-git-send-email-sakari.ailus@iki.fi>
+References: <1418083460-28556-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/12/14 21:13, Laurent Pinchart wrote:
-> The function releases the queue if the file being released is the queue
-> owner. The check reads the queue->owner field without taking the queue
-> lock, creating a race condition with functions that set the queue owner,
-> such as vb2_ioctl_reqbufs() for instance.
-> 
-> Fix this by moving the queue->owner check within the mutex protected
-> section.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+The source sub-device's name will be overwritten shortly. Don't give it a
+name in the meantime.
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |    2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index ab917a6..92a7840 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2458,8 +2458,6 @@ static int smiapp_identify_module(struct v4l2_subdev *subdev)
+ 		minfo->name, minfo->manufacturer_id, minfo->model_id,
+ 		minfo->revision_number_major);
+ 
+-	strlcpy(subdev->name, sensor->minfo.name, sizeof(subdev->name));
+-
+ 	return 0;
+ }
+ 
+-- 
+1.7.10.4
 
