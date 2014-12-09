@@ -1,125 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40807 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933329AbaLJVQi (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:36251 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751520AbaLIDnz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 16:16:38 -0500
-Received: from lanttu.localdomain (lanttu.localdomain [192.168.5.64])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 103A76009F
-	for <linux-media@vger.kernel.org>; Wed, 10 Dec 2014 23:16:35 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Mon, 8 Dec 2014 22:43:55 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2CE212A0004
+	for <linux-media@vger.kernel.org>; Tue,  9 Dec 2014 04:43:50 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [REVIEW PATCH 4/7] smiapp: Separate late controls from the rest
-Date: Wed, 10 Dec 2014 23:16:17 +0200
-Message-Id: <1418246180-667-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1418246180-667-1-git-send-email-sakari.ailus@iki.fi>
-References: <1418246180-667-1-git-send-email-sakari.ailus@iki.fi>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141209034350.2CE212A0004@tschai.lan>
+Date: Tue,  9 Dec 2014 04:43:50 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The default values and limits for certain controls need the knowledge of
-available media bus codes or link frequencies. Create such controls later
-on, so that most of the initialisation of the sensor has already been done
-when the init quirk is called.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c |   54 +++++++++++++++++++++-----------
- 1 file changed, 35 insertions(+), 19 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 66d94c3..e8e88bd 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -519,9 +519,6 @@ static const struct v4l2_ctrl_ops smiapp_ctrl_ops = {
- static int smiapp_init_controls(struct smiapp_sensor *sensor)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
--	unsigned long *valid_link_freqs = &sensor->valid_link_freqs[
--		sensor->csi_format->compressed - SMIAPP_COMPRESSED_BASE];
--	unsigned int max, i;
- 	int rval;
- 
- 	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 12);
-@@ -573,15 +570,6 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
- 				     ARRAY_SIZE(smiapp_test_patterns) - 1,
- 				     0, 0, smiapp_test_patterns);
- 
--	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++) {
--		int max_value = (1 << sensor->csi_format->width) - 1;
--		sensor->test_data[i] =
--			v4l2_ctrl_new_std(
--				&sensor->pixel_array->ctrl_handler,
--				&smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN_RED + i,
--				0, max_value, 1, max_value);
--	}
--
- 	if (sensor->pixel_array->ctrl_handler.error) {
- 		dev_err(&client->dev,
- 			"pixel array controls initialization failed (%d)\n",
-@@ -600,13 +588,6 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
- 
- 	sensor->src->ctrl_handler.lock = &sensor->mutex;
- 
--	for (max = 0; sensor->platform_data->op_sys_clock[max + 1]; max++);
--
--	sensor->link_freq = v4l2_ctrl_new_int_menu(
--		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
--		V4L2_CID_LINK_FREQ, __fls(*valid_link_freqs),
--		__ffs(*valid_link_freqs), sensor->platform_data->op_sys_clock);
--
- 	sensor->pixel_rate_csi = v4l2_ctrl_new_std(
- 		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
- 		V4L2_CID_PIXEL_RATE, 1, INT_MAX, 1, 1);
-@@ -623,6 +604,35 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
- 	return 0;
- }
- 
-+/*
-+ * For controls that require information on available media bus codes
-+ * and linke frequencies.
-+ */
-+static int smiapp_init_late_controls(struct smiapp_sensor *sensor)
-+{
-+	unsigned long *valid_link_freqs = &sensor->valid_link_freqs[
-+		sensor->csi_format->compressed - SMIAPP_COMPRESSED_BASE];
-+	unsigned int max, i;
-+
-+	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++) {
-+		int max_value = (1 << sensor->csi_format->width) - 1;
-+		sensor->test_data[i] =
-+			v4l2_ctrl_new_std(
-+				&sensor->pixel_array->ctrl_handler,
-+				&smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN_RED + i,
-+				0, max_value, 1, max_value);
-+	}
-+
-+	for (max = 0; sensor->platform_data->op_sys_clock[max + 1]; max++);
-+
-+	sensor->link_freq = v4l2_ctrl_new_int_menu(
-+		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
-+		V4L2_CID_LINK_FREQ, __fls(*valid_link_freqs),
-+		__ffs(*valid_link_freqs), sensor->platform_data->op_sys_clock);
-+
-+	return sensor->src->ctrl_handler.error;
-+}
-+
- static void smiapp_free_controls(struct smiapp_sensor *sensor)
- {
- 	unsigned int i;
-@@ -2768,6 +2778,12 @@ static int smiapp_init(struct smiapp_sensor *sensor)
- 	if (rval < 0)
- 		goto out_cleanup;
- 
-+	rval = smiapp_init_late_controls(sensor);
-+	if (rval) {
-+		rval = -ENODEV;
-+		goto out_cleanup;
-+	}
-+
- 	mutex_lock(&sensor->mutex);
- 	rval = smiapp_update_mode(sensor);
- 	mutex_unlock(&sensor->mutex);
--- 
-1.7.10.4
+date:		Tue Dec  9 04:00:19 CET 2014
+git branch:	test
+git hash:	71947828caef0c83d4245f7d1eaddc799b4ff1d1
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
