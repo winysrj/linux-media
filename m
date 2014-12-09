@@ -1,59 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42595 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753837AbaLIJx1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Dec 2014 04:53:27 -0500
-Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
-	by tschai.lan (Postfix) with ESMTPSA id A19192A0085
-	for <linux-media@vger.kernel.org>; Tue,  9 Dec 2014 10:53:18 +0100 (CET)
-Message-ID: <5486C649.8060700@xs4all.nl>
-Date: Tue, 09 Dec 2014 10:52:09 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.19] More 3.19 fixes
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:8857 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757157AbaLINOM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 08:14:12 -0500
+Message-id: <5486F5A0.9060700@samsung.com>
+Date: Tue, 09 Dec 2014 14:14:08 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org
+Subject: Re: [PATCH/RFC v9 02/19] Documentation: leds: Add description of LED
+ Flash class extension
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-3-git-send-email-j.anaszewski@samsung.com>
+ <20141203170818.GN14746@valkosipuli.retiisi.org.uk>
+ <54802C9F.8030101@samsung.com>
+ <20141209123819.GJ15559@valkosipuli.retiisi.org.uk>
+In-reply-to: <20141209123819.GJ15559@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One vivid typo, two patches that fix the cx88 driver and one patch that
-warns if a driver forgets to set device_caps in VIDIOC_QUERYCAP. All
-drivers are now supposed to do that, but it is too easy to forget.
+Hi Sakari,
 
-I found at least one case where that didn't happen, so expect to see at
-least one more pull request for 3.19 fixing this.
+On 12/09/2014 01:38 PM, Sakari Ailus wrote:
 
-Regards,
+[...]
 
-	Hans
+>>> How does the user btw. figure out which flash LEDs may be strobed
+>>> synchronously using the LED flash interface?
+>>
+>> The flash_sync_strobe argument is absent if synchronized strobe
+>> is not available for a LED. The driver defines this by setting
+>> newly added LED_DEV_CAP_COMPOUND flag.
+>
+> I meant that how does the user figure out which LEDs may be strobed
+> synchronously, together. Say, if you have two of these chips and four LEDs,
+> then how does it work? :-)
+>
 
-The following changes since commit 71947828caef0c83d4245f7d1eaddc799b4ff1d1:
+User can figure it out by checking the existence of the
+flash_sync_strobe attribute. Sub-leds can by synchronized only
+when are driven by common chip. It is assumed that sub-leds of
+one chip will have common segment in their name, defined in
+DT 'label' property. Maybe we should enforce it by adding another
+property to the leds/common.txt DT binding, e.g. 'device-prefix'?
 
-  [media] mn88473: One function call less in mn88473_init() after error (2014-12-04 16:00:47 -0200)
+Best Regards,
+Jacek Anaszewski
 
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.19n
-
-for you to fetch changes up to d61e832500336d6c1a0267c9b1ed6613156d9fde:
-
-  cx88: remove leftover start_video_dma() call (2014-12-09 10:48:34 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (4):
-      vivid: fix CROP_BOUNDS typo for video output
-      v4l2-ioctl: WARN_ON if querycap didn't fill device_caps
-      cx88: add missing alloc_ctx support
-      cx88: remove leftover start_video_dma() call
-
- drivers/media/pci/cx88/cx88-blackbird.c      |  4 +---
- drivers/media/pci/cx88/cx88-dvb.c            |  4 +---
- drivers/media/pci/cx88/cx88-mpeg.c           | 11 +++++++----
- drivers/media/pci/cx88/cx88-vbi.c            |  9 +--------
- drivers/media/pci/cx88/cx88-video.c          | 18 +++++++++---------
- drivers/media/pci/cx88/cx88.h                |  2 ++
- drivers/media/platform/vivid/vivid-vid-out.c |  2 +-
- drivers/media/v4l2-core/v4l2-ioctl.c         |  6 ++++++
- 8 files changed, 28 insertions(+), 28 deletions(-)
