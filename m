@@ -1,112 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41000 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751416AbaLQRTI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Dec 2014 12:19:08 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linus Walleij <linus.walleij@linaro.org>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Samuel Ortiz <sameo@linux.intel.com>
-Cc: Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 06/13] clk: sunxi: Make the mod0 clk driver also a platform driver
-Date: Wed, 17 Dec 2014 18:18:17 +0100
-Message-Id: <1418836704-15689-7-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
-References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57621 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751703AbaLIOM7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Dec 2014 09:12:59 -0500
+Date: Tue, 9 Dec 2014 16:12:25 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org
+Subject: Re: [PATCH/RFC v9 01/19] leds: Add LED Flash class extension to the
+ LED subsystem
+Message-ID: <20141209141225.GM15559@valkosipuli.retiisi.org.uk>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-2-git-send-email-j.anaszewski@samsung.com>
+ <20141203165013.GM14746@valkosipuli.retiisi.org.uk>
+ <54802966.8060405@samsung.com>
+ <20141209123607.GI15559@valkosipuli.retiisi.org.uk>
+ <5486F18F.1000202@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5486F18F.1000202@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the prcm in sun6i (and some later SoCs) some mod0 clocks are instantiated
-through the mfd framework, and as such do not work with of_clk_declare, since
-they do not have registers assigned to them yet at of_clk_declare init time.
+Hi Jacek,
 
-Silence the error on not finding registers in the of_clk_declare mod0 clk
-setup method, and also register mod0-clk support as a platform driver to work
-properly with mfd instantiated mod0 clocks.
+On Tue, Dec 09, 2014 at 01:56:47PM +0100, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> On 12/09/2014 01:36 PM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >On Thu, Dec 04, 2014 at 10:29:10AM +0100, Jacek Anaszewski wrote:
+> >...
+> >>>>+static struct attribute *led_flash_strobe_attrs[] = {
+> >>>>+	&dev_attr_flash_strobe.attr,
+> >>>>+	NULL,
+> >>>>+};
+> >>>>+
+> >>>>+static struct attribute *led_flash_timeout_attrs[] = {
+> >>>>+	&dev_attr_flash_timeout.attr,
+> >>>>+	&dev_attr_max_flash_timeout.attr,
+> >>>>+	NULL,
+> >>>>+};
+> >>>>+
+> >>>>+static struct attribute *led_flash_brightness_attrs[] = {
+> >>>>+	&dev_attr_flash_brightness.attr,
+> >>>>+	&dev_attr_max_flash_brightness.attr,
+> >>>>+	NULL,
+> >>>>+};
+> >>>>+
+> >>>>+static struct attribute *led_flash_fault_attrs[] = {
+> >>>>+	&dev_attr_flash_fault.attr,
+> >>>>+	NULL,
+> >>>>+};
+> >>>>+
+> >>>>+static struct attribute *led_flash_sync_strobe_attrs[] = {
+> >>>>+	&dev_attr_flash_sync_strobe.attr,
+> >>>>+	NULL,
+> >>>>+};
+> >>>>+
+> >>>>+static const struct attribute_group led_flash_strobe_group = {
+> >>>>+	.attrs = led_flash_strobe_attrs,
+> >>>>+};
+> >>>>+
+> >>>>+static const struct attribute_group led_flash_timeout_group = {
+> >>>>+	.attrs = led_flash_timeout_attrs,
+> >>>>+};
+> >>>>+
+> >>>>+static const struct attribute_group led_flash_brightness_group = {
+> >>>>+	.attrs = led_flash_brightness_attrs,
+> >>>>+};
+> >>>>+
+> >>>>+static const struct attribute_group led_flash_fault_group = {
+> >>>>+	.attrs = led_flash_fault_attrs,
+> >>>>+};
+> >>>>+
+> >>>>+static const struct attribute_group led_flash_sync_strobe_group = {
+> >>>>+	.attrs = led_flash_sync_strobe_attrs,
+> >>>>+};
+> >>>>+
+> >>>>+static const struct attribute_group *flash_groups[] = {
+> >>>>+	&led_flash_strobe_group,
+> >>>>+	NULL,
+> >>>>+	NULL,
+> >>>>+	NULL,
+> >>>>+	NULL,
+> >>>>+	NULL,
+> >>>>+	NULL
+> >>>>+};
+> >>>>+
+> >>>>+static void led_flash_resume(struct led_classdev *led_cdev)
+> >>>>+{
+> >>>>+	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
+> >>>>+
+> >>>>+	call_flash_op(flash, flash_brightness_set, flash->brightness.val);
+> >>>>+	call_flash_op(flash, timeout_set, flash->timeout.val);
+> >>>>+}
+> >>>>+
+> >>>>+static void led_flash_init_sysfs_groups(struct led_classdev_flash *flash)
+> >>>>+{
+> >>>>+	struct led_classdev *led_cdev = &flash->led_cdev;
+> >>>>+	const struct led_flash_ops *ops = flash->ops;
+> >>>>+	int num_sysfs_groups = 1;
+> >>>>+
+> >>>>+	if (ops->flash_brightness_set)
+> >>>>+		flash_groups[num_sysfs_groups++] = &led_flash_brightness_group;
+> >>>>+
+> >>>>+	if (ops->timeout_set)
+> >>>>+		flash_groups[num_sysfs_groups++] = &led_flash_timeout_group;
+> >>>>+
+> >>>>+	if (ops->fault_get)
+> >>>>+		flash_groups[num_sysfs_groups++] = &led_flash_fault_group;
+> >>>>+
+> >>>>+	if (led_cdev->flags & LED_DEV_CAP_COMPOUND)
+> >>>>+		flash_groups[num_sysfs_groups++] = &led_flash_sync_strobe_group;
+> >>>>+
+> >>>>+	led_cdev->groups = flash_groups;
+> >>>
+> >>>Shouldn't you have groups local to the device instead? If you register
+> >>>another flash device bad things will happen if the ops the device supports
+> >>>are different.
+> >>
+> >>The groups are local to the device. A LED class device is registered
+> >>with device_create_with_groups called from led_classdev_register
+> >>function. It is passed led_cdev->groups in the fifth argument.
+> >
+> >The groups pointer will be stored in struct device. If you have another
+> >driver using different groups, it will affect the groups for all flash
+> >devices that use the same groups pointer. I'm not sure what exactly would
+> >follow from that but I'd rather not change them once the device is created.
+> 
+> I had to take another look at this to understand the problem.
+> I think that the best option will be making flash_groups array
+> a member of struct led_classdev_flash.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/clk/sunxi/clk-mod0.c | 41 ++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 36 insertions(+), 5 deletions(-)
+Sounds good to me.
 
-diff --git a/drivers/clk/sunxi/clk-mod0.c b/drivers/clk/sunxi/clk-mod0.c
-index 658d74f..7ddab6f 100644
---- a/drivers/clk/sunxi/clk-mod0.c
-+++ b/drivers/clk/sunxi/clk-mod0.c
-@@ -17,6 +17,7 @@
- #include <linux/clk-provider.h>
- #include <linux/clkdev.h>
- #include <linux/of_address.h>
-+#include <linux/platform_device.h>
- 
- #include "clk-factors.h"
- 
-@@ -67,7 +68,7 @@ static struct clk_factors_config sun4i_a10_mod0_config = {
- 	.pwidth = 2,
- };
- 
--static const struct factors_data sun4i_a10_mod0_data __initconst = {
-+static const struct factors_data sun4i_a10_mod0_data = {
- 	.enable = 31,
- 	.mux = 24,
- 	.muxmask = BIT(1) | BIT(0),
-@@ -82,17 +83,47 @@ static void __init sun4i_a10_mod0_setup(struct device_node *node)
- 	void __iomem *reg;
- 
- 	reg = of_iomap(node, 0);
--	if (!reg) {
--		pr_err("Could not get registers for mod0-clk: %s\n",
--		       node->name);
-+	if (!reg)
- 		return;
--	}
- 
- 	sunxi_factors_register(node, &sun4i_a10_mod0_data,
- 			       &sun4i_a10_mod0_lock, reg);
- }
- CLK_OF_DECLARE(sun4i_a10_mod0, "allwinner,sun4i-a10-mod0-clk", sun4i_a10_mod0_setup);
- 
-+static int sun4i_a10_mod0_clk_probe(struct platform_device *pdev)
-+{
-+	struct device_node *np = pdev->dev.of_node;
-+	struct resource *r;
-+	void __iomem *reg;
-+
-+	if (!np)
-+		return -ENODEV;
-+
-+	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	reg = devm_ioremap_resource(&pdev->dev, r);
-+	if (IS_ERR(reg))
-+		return PTR_ERR(reg);
-+
-+	sunxi_factors_register(np, &sun4i_a10_mod0_data,
-+			       &sun4i_a10_mod0_lock, reg);
-+	return 0;
-+}
-+
-+static const struct of_device_id sun4i_a10_mod0_clk_dt_ids[] = {
-+	{ .compatible = "allwinner,sun4i-a10-mod0-clk" },
-+	{ /* sentinel */ }
-+};
-+
-+static struct platform_driver sun4i_a10_mod0_clk_driver = {
-+	.driver = {
-+		.name = "sun4i-a10-mod0-clk",
-+		.of_match_table = sun4i_a10_mod0_clk_dt_ids,
-+	},
-+	.probe = sun4i_a10_mod0_clk_probe,
-+};
-+module_platform_driver(sun4i_a10_mod0_clk_driver);
-+
- static DEFINE_SPINLOCK(sun5i_a13_mbus_lock);
- 
- static void __init sun5i_a13_mbus_setup(struct device_node *node)
+> >>>>+}
+> >>>>+
+> >>>>+int led_classdev_flash_register(struct device *parent,
+> >>>>+				struct led_classdev_flash *flash)
+> >>>>+{
+> >>>>+	struct led_classdev *led_cdev;
+> >>>>+	const struct led_flash_ops *ops;
+> >>>>+	int ret;
+> >>>>+
+> >>>>+	if (!flash)
+> >>>
+> >>>Do you have a use case for this?
+> >>
+> >>This is just a guard against NULL pointer dereference. Maybe it is
+> >>indeed redundant, as the driver developer can easily check its
+> >>origin during implementation.
+> >
+> >Fine for me.
+> 
+> Fine regarding my explanation or you agree that it is redundant?
+
+:-) With the explanation. I might have removed it but I'm having it there as
+well.
+
 -- 
-2.1.0
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
