@@ -1,337 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41547 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753897AbaLANtF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 08:49:05 -0500
-Message-ID: <547C71BF.4040907@xs4all.nl>
-Date: Mon, 01 Dec 2014 14:48:47 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from down.free-electrons.com ([37.187.137.238]:36458 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752331AbaLIIzF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 03:55:05 -0500
+Date: Tue, 9 Dec 2014 09:51:37 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Chen-Yu Tsai <wens@csie.org>,
+	Boris Brezillon <boris@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Emilio Lopez <emilio@elopez.com.ar>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi <linux-sunxi@googlegroups.com>
+Subject: Re: [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
+Message-ID: <20141209085137.GQ8739@lukather>
+References: <20141126211318.GN25249@lukather>
+ <5476E3A5.4000708@redhat.com>
+ <CAGb2v652m0bCdPWFF4LWwjcrCJZvnLibFPw8xXJ3Q-Ge+_-p7g@mail.gmail.com>
+ <5476F8AB.2000601@redhat.com>
+ <20141127190509.GR25249@lukather>
+ <54787A8A.6040209@redhat.com>
+ <20141202154524.GD30256@lukather>
+ <547EDCA0.4040805@redhat.com>
+ <20141207180808.GO12434@lukather>
+ <54855EF6.1000900@redhat.com>
 MIME-Version: 1.0
-To: Thierry Reding <thierry.reding@gmail.com>
-CC: linux-media@vger.kernel.org, marbugge@cisco.com,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH 2/3] hdmi: added unpack and logging functions for InfoFrames
-References: <1417186251-6542-1-git-send-email-hverkuil@xs4all.nl> <1417186251-6542-3-git-send-email-hverkuil@xs4all.nl> <20141201131507.GB11763@ulmo.nvidia.com>
-In-Reply-To: <20141201131507.GB11763@ulmo.nvidia.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6tPipYVl+OcoAvSh"
+Content-Disposition: inline
+In-Reply-To: <54855EF6.1000900@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thierry,
 
-Thanks for the review, see my comments below.
+--6tPipYVl+OcoAvSh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 12/01/2014 02:15 PM, Thierry Reding wrote:
-> On Fri, Nov 28, 2014 at 03:50:50PM +0100, Hans Verkuil wrote:
->> From: Martin Bugge <marbugge@cisco.com>
->>
->> When receiving video it is very useful to be able to unpack the InfoFrames.
->> Logging is useful as well, both for transmitters and receivers.
->>
->> Especially when implementing the VIDIOC_LOG_STATUS ioctl (supported by many
->> V4L2 drivers) for a receiver it is important to be able to easily log what
->> the InfoFrame contains. This greatly simplifies debugging.
->>
->> Signed-off-by: Martin Bugge <marbugge@cisco.com>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/video/hdmi.c | 622 ++++++++++++++++++++++++++++++++++++++++++++++++++-
->>  include/linux/hdmi.h |   3 +
->>  2 files changed, 618 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
->> index 9e758a8..9f0f554 100644
->> --- a/drivers/video/hdmi.c
->> +++ b/drivers/video/hdmi.c
->> @@ -27,10 +27,10 @@
->>  #include <linux/export.h>
->>  #include <linux/hdmi.h>
->>  #include <linux/string.h>
->> +#include <linux/device.h>
->>  
->> -static void hdmi_infoframe_checksum(void *buffer, size_t size)
->> +static u8 hdmi_infoframe_calc_checksum(u8 *ptr, size_t size)
-> 
-> I'd personally keep the name here.
+On Mon, Dec 08, 2014 at 09:19:02AM +0100, Hans de Goede wrote:
+> Hi,
+>=20
+> On 07-12-14 19:08, Maxime Ripard wrote:
+> >On Wed, Dec 03, 2014 at 10:49:20AM +0100, Hans de Goede wrote:
+>=20
+> <snip>
+>=20
+> >>So it should not have a simple-bus compatible either, and as such we ca=
+nnot
+> >>simply change the mod0 driver from of_clk_define to a platform driver b=
+ecause
+> >>then we need to instantiate platform devs for the mod0 clock nodes, whi=
+ch
+> >>means making the clock node a simple-bus.
+> >
+> >I guess we can do that as a temporary measure until we get things
+> >right on that front. I'm totally open to doing that work, so I'm not
+> >asking you to do it.
+> >
+> >>I can see your logic in wanting the ir_clk prcm sub-node to use the
+> >>mod0 compatible string, so how about we make the mod0 driver both
+> >>register through of_declare and as a platform driver. Note this means
+> >>that it will try to bind twice to the ir_clk node, since of_clk_declare
+> >>will cause it to try and bind there too AFAIK.
+> >
+> >Hmmm, I could live with that for a while too. That shouldn't even
+> >require too much work, since the first thing we check in the mod0 code
+> >is that we actually have something in reg, which will not be the case
+> >in the OF_CLK_DECLARE case.
+> >
+> >>The of_clk_declare bind will fail though because there is no regs
+> >>property, so this double bind is not an issue as long as we do not
+> >>log errors on the first bind failure.
+> >
+> >Yep, exactly.
+> >
+> >>Note that the ir_clk node will still need an "ir-clk" compatible as
+> >>well for the MFD to find it and assign the proper resources to it.
+> >
+> >No, it really doesn't. At least for now, we have a single mod0 clock
+> >under the PRCM MFD. If (and only if) one day, we find ourselves in a
+> >position where we have two mod0 clocks under the PRCM, then we'll fix
+> >the MFD code to deal with that, because it really should deal with it.
+>=20
+> Ok, using only the mod0 compat string works for me. I'll respin my
+> patch-set (minus the one patch you've already merged) to make the modo
+> clk driver use both of_clk_declare and make it a platfrom driver, and
+> use the mod0 compat string for the ir-clk node.
+>=20
+> Not sure when I'll get this done exactly though, but we still have
+> a while before 3.20 :)
 
-I'll do that.
+Indeed :)
 
-> 
->> @@ -434,3 +441,604 @@ hdmi_infoframe_pack(union hdmi_infoframe *frame, void *buffer, size_t size)
->>  	return length;
->>  }
->>  EXPORT_SYMBOL(hdmi_infoframe_pack);
->> +
->> +static const char *hdmi_infoframe_type_txt(enum hdmi_infoframe_type type)
-> 
-> Perhaps: hdmi_infoframe_type_get_name()?
+Thanks!
+Maxime
 
-I think that's better as well, I'll change it.
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
 
-> 
->> +{
->> +	switch (type) {
->> +	case HDMI_INFOFRAME_TYPE_VENDOR: return "Vendor";
->> +	case HDMI_INFOFRAME_TYPE_AVI: return "Auxiliary Video Information (AVI)";
->> +	case HDMI_INFOFRAME_TYPE_SPD: return "Source Product Description (SPD)";
->> +	case HDMI_INFOFRAME_TYPE_AUDIO: return "Audio";
-> 
-> I'd prefer "case ...:" and "return ...;" on separate lines for
-> readability.
+--6tPipYVl+OcoAvSh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-I actually think that makes it *less* readable. If you really want that, then I'll
-change it, but I would suggest that you try it yourself first to see if it is
-really more readable for you. It isn't for me, so I'll keep this for the next
-version.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> 
->> +	}
->> +	return "Invalid/Unknown";
->> +}
-> 
-> Maybe include the numerical value here? Of course that either means that
-> callers must pass in a buffer or we sacrifice thread-safety. The buffer
-> could be optional, somewhat like this:
-> 
-> 	const char *hdmi_infoframe_get_name(char *buffer, size_t length,
-> 					    enum hdmi_infoframe_type type)
-> 	{
-> 		const char *name = NULL;
-> 
-> 		switch (type) {
-> 		case HDMI_INFOFRAME_TYPE_VENDOR:
-> 			name = "Vendor";
-> 			break;
-> 		...
-> 		}
-> 
-> 		if (buffer) {
-> 			if (!name)
-> 				snprintf(buffer, length, "unknown (%d)", type);
-> 			else
-> 				snprintf(buffer, length, name);
-> 
-> 			name = buffer;
-> 		}
-> 
-> 		return name;
-> 	}
-> 
-> That way the function would be generally useful and could even be made
-> publicly available.
+iQIcBAEBAgAGBQJUhrgZAAoJEBx+YmzsjxAgfxgP/Ai+4MRv3LfYb51Or8KwhtP8
+D7y4sgMAIT+NoAq1iphaegBQ8F+A51nqcJL1KV86FTTHCNFv3AJVz71nrz4U0lOK
+Eth+MiBfP626r7yhlzAAkMire9glwbBJCD4/S1OnDMo6Y1tN0u62Szl74GczFGUn
+Vwvgs1bqpbB/M+4Ilb2itNofB2khH0VpkTKF5yI+CytWGkXwRTQldmGOaI3JaQqY
+7waOMdZ/5gNuV2ZBvBZZ7dMcm27x7pa9uMtrmKWmR6AFsOb/oTruNKOZ+9wlNkQl
+oXyY7c9olebjx1Xyb9q2v/Ny4fiUdK0weJvmJkOdNa+oeSqAG2DdCtCu/VAHWLXs
+IYZ4p0yGw4KRmO/9BPT8jmMtubLgI22jciw0ZoeWHwQcJLAYEw/7EflSBQvv0uSV
+RaKRyNZ4didaXHBc/W4e2ixS3PdgNXT6SXxfNPc5+er+wFNGlTNF+A9nNLmgHi1f
+JVVkH7dFhnJ4CZqrSoBA07569FsY6KosygkO8pxDV3oHQ/VsO+SmyyYXkILV35Kt
+5E04QwdB48BtWFFJLIck5aMiTQJ2iFPt5FiJNDC0eYLPn9i0zcj3L3EYPZtpNQfn
+PL69YwSYgMCKqeD/u+nu9+/snL7E/jLFYdgOBJLVV5YH04ZuSfg7PEGhheKRiv00
+QGfHDltIEd6J2wKF2ufv
+=NJgj
+-----END PGP SIGNATURE-----
 
-I would do this only where it makes sense. Some of these fields have only one or
-two reserved bits left, and in that case is it easier to just say something
-like "Reserved (3)" and do that for each reserved value.
-
-> 
->> +static void hdmi_infoframe_log_header(struct device *dev, void *f)
->> +{
->> +	struct hdmi_any_infoframe *frame = f;
->> +	dev_info(dev, "HDMI infoframe: %s, version %d, length %d\n",
->> +		hdmi_infoframe_type_txt(frame->type), frame->version, frame->length);
->> +}
->> +
->> +static const char *hdmi_colorspace_txt(enum hdmi_colorspace colorspace)
->> +{
->> +	switch (colorspace) {
->> +	case HDMI_COLORSPACE_RGB: return "RGB";
->> +	case HDMI_COLORSPACE_YUV422: return "YCbCr 4:2:2";
->> +	case HDMI_COLORSPACE_YUV444: return "YCbCr 4:4:4";
->> +	case HDMI_COLORSPACE_YUV420: return "YCbCr 4:2:0";
->> +	case HDMI_COLORSPACE_IDO_DEFINED: return "IDO Defined";
->> +	}
->> +	return "Future";
->> +}
-> 
-> Similar comments as for the above.
-> 
->> +static const char *hdmi_scan_mode_txt(enum hdmi_scan_mode scan_mode)
->> +{
->> +	switch(scan_mode) {
->> +	case HDMI_SCAN_MODE_NONE: return "No Data";
->> +	case HDMI_SCAN_MODE_OVERSCAN: return "Composed for overscanned display";
->> +	case HDMI_SCAN_MODE_UNDERSCAN: return "Composed for underscanned display";
->> +	}
->> +	return "Future";
->> +}
-> 
-> This isn't really a name any more, I think it should either stick to
-> names like "None", "Overscan", "Underscan"
-
-I agree with that, I'll change it.
-
-> or it should return a
-> description, in which case hdmi_scan_mode_get_description() might be
-> more accurate for a name.
-> 
->> +static const char *hdmi_colorimetry_txt(enum hdmi_colorimetry colorimetry)
->> +{
->> +	switch(colorimetry) {
->> +	case HDMI_COLORIMETRY_NONE: return "No Data";
->> +	case HDMI_COLORIMETRY_ITU_601: return "ITU601";
->> +	case HDMI_COLORIMETRY_ITU_709: return "ITU709";
->> +	case HDMI_COLORIMETRY_EXTENDED: return "Extended";
->> +	}
->> +	return "Invalid/Unknown";
->> +}
-> 
-> These are names again, so same comments as for the infoframe type. And
-> perhaps "No Data" -> "None" in that case.
-
-Yep.
-
-> 
->> +
->> +static const char *hdmi_picture_aspect_txt(enum hdmi_picture_aspect picture_aspect)
->> +{
->> +	switch (picture_aspect) {
->> +	case HDMI_PICTURE_ASPECT_NONE: return "No Data";
->> +	case HDMI_PICTURE_ASPECT_4_3: return "4:3";
->> +	case HDMI_PICTURE_ASPECT_16_9: return "16:9";
->> +	}
->> +	return "Future";
->> +}
-> 
-> Same here.
-> 
->> +static const char *hdmi_quantization_range_txt(enum hdmi_quantization_range quantization_range)
->> +{
->> +	switch (quantization_range) {
->> +	case HDMI_QUANTIZATION_RANGE_DEFAULT: return "Default (depends on video format)";
-> 
-> I think "Default" would do here ("depends on video format" can be
-> derived from the reading of the specification). Generally I think these
-> should focus on providing a human-readable version of the infoframes,
-> not be a replacement for reading the specification.
-
-Indeed.
-
-> 
->> +/**
->> + * hdmi_avi_infoframe_log() - log info of HDMI AVI infoframe
->> + * @dev: device
->> + * @frame: HDMI AVI infoframe
->> + */
->> +static void hdmi_avi_infoframe_log(struct device *dev, struct hdmi_avi_infoframe *frame)
-> 
-> Perhaps allow this to take a log level? I can imagine drivers wanting to
-> use this with dev_dbg() instead.
-
-Makes sense.
-
-> 
->> +/**
->> + * hdmi_vendor_infoframe_log() - log info of HDMI VENDOR infoframe
->> + * @dev: device
->> + * @frame: HDMI VENDOR infoframe
->> + */
->> +static void hdmi_vendor_any_infoframe_log(struct device *dev, union hdmi_vendor_any_infoframe *frame)
->> +{
->> +	struct hdmi_vendor_infoframe *hvf = &frame->hdmi;
->> +
->> +	hdmi_infoframe_log_header(dev, frame);
->> +
->> +	if (frame->any.oui != HDMI_IEEE_OUI) {
->> +		dev_info(dev, "    not a HDMI vendor infoframe\n");
->> +		return;
->> +	}
->> +	if (hvf->vic == 0 && hvf->s3d_struct == HDMI_3D_STRUCTURE_INVALID) {
->> +		dev_info(dev, "    empty frame\n");
->> +		return;
->> +	}
->> +
->> +	if (hvf->vic) {
->> +		dev_info(dev, "    Hdmi Vic: %d\n", hvf->vic);
-> 
-> "HDMI VIC"?
-
-Will change.
-
-> 
->> +	}
-> 
-> No need for these braces.
-
-Will change.
-
-> 
->> +/**
->> + * hdmi_infoframe_log() - log info of HDMI infoframe
->> + * @dev: device
->> + * @frame: HDMI infoframe
->> + */
->> +void hdmi_infoframe_log(struct device *dev, union hdmi_infoframe *frame)
->> +{
->> +	switch (frame->any.type) {
->> +	case HDMI_INFOFRAME_TYPE_AVI:
->> +		hdmi_avi_infoframe_log(dev, &frame->avi);
->> +		break;
->> +	case HDMI_INFOFRAME_TYPE_SPD:
->> +		hdmi_spd_infoframe_log(dev, &frame->spd);
->> +		break;
->> +	case HDMI_INFOFRAME_TYPE_AUDIO:
->> +		hdmi_audio_infoframe_log(dev, &frame->audio);
->> +		break;
->> +	case HDMI_INFOFRAME_TYPE_VENDOR:
->> +		hdmi_vendor_any_infoframe_log(dev, &frame->vendor);
->> +		break;
->> +	default:
->> +		WARN(1, "Bad infoframe type %d\n", frame->any.type);
-> 
-> Does it make sense for this to be WARN? It's perfectly legal for future
-> devices to expose new types of infoframes. Perhaps even expected. But if
-> we want to keep this here to help get bug reports so that we don't
-> forget to update this code, then maybe we should do the same wherever we
-> query the name of enum values above.
-
-I'll drop the WARN from the log function. I think it should also be dropped
-from the unpack. The only place it makes sense is for pack() since there the
-data comes from the driver, not from an external source.
-
-> 
->> +/**
->> + * hdmi_avi_infoframe_unpack() - unpack binary buffer to a HDMI AVI infoframe
->> + * @buffer: source buffer
->> + * @frame: HDMI AVI infoframe
->> + *
->> + * Unpacks the information contained in binary @buffer into a structured
->> + * @frame of the HDMI Auxiliary Video (AVI) information frame.
->> + * Also verifies the checksum as required by section 5.3.5 of the HDMI 1.4 specification.
->> + *
->> + * Returns 0 on success or a negative error code on failure.
->> + */
->> +static int hdmi_avi_infoframe_unpack(void *buffer, struct hdmi_avi_infoframe *frame)
-> 
-> I'm on the fence about ordering of arguments here. I think I'd slightly
-> prefer the infoframe to be the first, to make the API more object-
-> oriented.
-
-I'll swap this. It's more consistent with pack() anyway.
-
-> 
->> +{
->> +	u8 *ptr = buffer;
->> +	int ret;
->> +
->> +	if (ptr[0] != HDMI_INFOFRAME_TYPE_AVI ||
->> +	    ptr[1] != 2 ||
->> +	    ptr[2] != HDMI_AVI_INFOFRAME_SIZE) {
->> +		return -EINVAL;
->> +	}
-> 
-> No need for the braces.
-
-Will change.
-
-> 
-> Thierry
-> 
-
-Regards,
-
-	Hans
+--6tPipYVl+OcoAvSh--
