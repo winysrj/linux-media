@@ -1,59 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40012 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751153AbaLIUp2 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56881 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756257AbaLIMjQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Dec 2014 15:45:28 -0500
-Message-ID: <54875F61.7010500@xs4all.nl>
-Date: Tue, 09 Dec 2014 21:45:21 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 9 Dec 2014 07:39:16 -0500
+Date: Tue, 9 Dec 2014 14:38:19 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org
+Subject: Re: [PATCH/RFC v9 02/19] Documentation: leds: Add description of LED
+ Flash class extension
+Message-ID: <20141209123819.GJ15559@valkosipuli.retiisi.org.uk>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-3-git-send-email-j.anaszewski@samsung.com>
+ <20141203170818.GN14746@valkosipuli.retiisi.org.uk>
+ <54802C9F.8030101@samsung.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: [GIT PULL FOR v3.20] Add am437x driver
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <54802C9F.8030101@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds the new am437x TI driver.
+Hi Jacek,
 
-Regards,
+On Thu, Dec 04, 2014 at 10:42:55AM +0100, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> Thanks for the review.
+> 
+> On 12/03/2014 06:08 PM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >On Wed, Dec 03, 2014 at 05:06:37PM +0100, Jacek Anaszewski wrote:
+> >>The documentation being added contains overall description of the
+> >>LED Flash Class and the related sysfs attributes.
+> >>
+> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>Cc: Bryan Wu <cooloney@gmail.com>
+> >>Cc: Richard Purdie <rpurdie@rpsys.net>
+> >>---
+> >>  Documentation/leds/leds-class-flash.txt |   50 +++++++++++++++++++++++++++++++
+> >>  1 file changed, 50 insertions(+)
+> >>  create mode 100644 Documentation/leds/leds-class-flash.txt
+> >>
+> >>diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+> >>new file mode 100644
+> >>index 0000000..82e58b1
+> >>--- /dev/null
+> >>+++ b/Documentation/leds/leds-class-flash.txt
+> >>@@ -0,0 +1,50 @@
+> >>+
+> >>+Flash LED handling under Linux
+> >>+==============================
+> >>+
+> >>+Some LED devices support two modes - torch and flash. The modes are
+> >>+supported by the LED class (see Documentation/leds/leds-class.txt)
+> >>+and LED Flash class respectively.
+> >>+
+> >>+In order to enable support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
+> >>+must be defined in the kernel config. A flash LED driver must register
+> >>+in the LED subsystem with led_classdev_flash_register to gain flash
+> >>+capabilities.
+> >>+
+> >>+Following sysfs attributes are exposed for controlling flash led devices:
+> >>+
+> >>+	- flash_brightness - flash LED brightness in microamperes (RW)
+> >>+	- max_flash_brightness - maximum available flash LED brightness (RO)
+> >>+	- flash_timeout - flash strobe duration in microseconds (RW)
+> >>+	- max_flash_timeout - maximum available flash strobe duration (RO)
+> >>+	- flash_strobe - flash strobe state (RW)
+> >>+	- flash_sync_strobe - one flash device can control more than one
+> >>+			      sub-led; when this atrribute is set to 1
+> >
+> >s/atrribute/attribute/
+> >
+> >>+			      the flash led will be strobed synchronously
+> >>+			      with the other one controlled by the same
+> >>+			      device; flash timeout setting is inherited
+> >>+			      from the led being strobed explicitly and
+> >>+			      flash brightness setting of a sub-led's
+> >>+			      being synchronized is used (RW)
+> >
+> >The flash brightness shouldn't be determined by the strobed LED. If this is
+> >a property of the hardware, then be it, but in general no, it it shouldn't
+> >be an interface requirement. I think this should just say that the strobe is
+> >synchronised.
+> 
+> I intended this to sound exactly as you laid it out above, but maybe it
+> is obscure English. "and flash brightness setting of a sub-led >>>being
+> synchronized<<< is used" - from my point of view the led being
+> synchronized is the one that isn't strobed explicitly. But I'm ok with
+> confining ourselves only to saying that strobe is synchronized.
 
-	Hans
+Agreed.
 
-The following changes since commit 71947828caef0c83d4245f7d1eaddc799b4ff1d1:
+> >How does the user btw. figure out which flash LEDs may be strobed
+> >synchronously using the LED flash interface?
+> 
+> The flash_sync_strobe argument is absent if synchronized strobe
+> is not available for a LED. The driver defines this by setting
+> newly added LED_DEV_CAP_COMPOUND flag.
 
-  [media] mn88473: One function call less in mn88473_init() after error (2014-12-04 16:00:47 -0200)
+I meant that how does the user figure out which LEDs may be strobed
+synchronously, together. Say, if you have two of these chips and four LEDs,
+then how does it work? :-)
 
-are available in the git repository at:
+-- 
+Kind regards,
 
-  git://linuxtv.org/hverkuil/media_tree.git am437x
-
-for you to fetch changes up to 035e534ddf8e9f2bc14520c3c09e627e42b3186c:
-
-  media: platform: add VPFE capture driver support for AM437X (2014-12-09 21:43:04 +0100)
-
-----------------------------------------------------------------
-Benoit Parrot (1):
-      media: platform: add VPFE capture driver support for AM437X
-
- Documentation/devicetree/bindings/media/ti-am437x-vpfe.txt |   61 ++
- MAINTAINERS                                                |    9 +
- drivers/media/platform/Kconfig                             |    1 +
- drivers/media/platform/Makefile                            |    2 +
- drivers/media/platform/am437x/Kconfig                      |   11 +
- drivers/media/platform/am437x/Makefile                     |    3 +
- drivers/media/platform/am437x/am437x-vpfe.c                | 2778 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/am437x/am437x-vpfe.h                |  283 +++++++
- drivers/media/platform/am437x/am437x-vpfe_regs.h           |  140 ++++
- include/uapi/linux/Kbuild                                  |    1 +
- include/uapi/linux/am437x-vpfe.h                           |  122 +++
- 11 files changed, 3411 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/ti-am437x-vpfe.txt
- create mode 100644 drivers/media/platform/am437x/Kconfig
- create mode 100644 drivers/media/platform/am437x/Makefile
- create mode 100644 drivers/media/platform/am437x/am437x-vpfe.c
- create mode 100644 drivers/media/platform/am437x/am437x-vpfe.h
- create mode 100644 drivers/media/platform/am437x/am437x-vpfe_regs.h
- create mode 100644 include/uapi/linux/am437x-vpfe.h
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
