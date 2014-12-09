@@ -1,133 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37087 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753051AbaLAMFX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 07:05:23 -0500
-From: "Devshatwar, Nikhil" <nikhil.nd@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v3 1/4] media: ti-vpe: Use data offset for getting
- dma_addr for a plane
-Date: Mon, 1 Dec 2014 12:05:17 +0000
-Message-ID: <E60A9E1B4132A24DB80BD56ABC92684735027F84@DBDE04.ent.ti.com>
-References: <1417256860-20233-1-git-send-email-nikhil.nd@ti.com>
- <1417256860-20233-2-git-send-email-nikhil.nd@ti.com>
- <547C4765.1040807@xs4all.nl>
- <E60A9E1B4132A24DB80BD56ABC92684735027F16@DBDE04.ent.ti.com>
- <547C4B38.5050209@xs4all.nl>
-In-Reply-To: <547C4B38.5050209@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ig0-f180.google.com ([209.85.213.180]:63850 "EHLO
+	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754760AbaLIKEU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 05:04:20 -0500
+Received: by mail-ig0-f180.google.com with SMTP id h15so645205igd.1
+        for <linux-media@vger.kernel.org>; Tue, 09 Dec 2014 02:04:20 -0800 (PST)
+Date: Tue, 9 Dec 2014 10:04:13 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v9 04/19] mfd: max77693: adjust
+ max77693_led_platform_data
+Message-ID: <20141209100413.GW3951@x1>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-5-git-send-email-j.anaszewski@samsung.com>
+ <20141209085047.GR3951@x1>
+ <5486BC44.7010602@samsung.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <5486BC44.7010602@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Monday, December 01, 2014 4:34 PM
-> To: Devshatwar, Nikhil; linux-media@vger.kernel.org
-> Subject: Re: [PATCH v3 1/4] media: ti-vpe: Use data offset for getting
-> dma_addr for a plane
-> 
-> On 12/01/2014 12:00 PM, Devshatwar, Nikhil wrote:
-> >> -----Original Message-----
-> >> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> >> Sent: Monday, December 01, 2014 4:18 PM
-> >> To: Devshatwar, Nikhil; linux-media@vger.kernel.org
-> >> Subject: Re: [PATCH v3 1/4] media: ti-vpe: Use data offset for
-> >> getting dma_addr for a plane
-> >>
-> >> On 11/29/2014 11:27 AM, Nikhil Devshatwar wrote:
-> >>> The data_offset in v4l2_planes structure will help us point to the
-> >>> start of data content for that particular plane. This may be useful
-> >>> when a single buffer contains the data for different planes e.g. Y
-> >>> planes of two fields in the same buffer. With this, user space can
-> >>> pass queue top field and bottom field with same dmafd and different
-> >> data_offsets.
-> >>>
-> >>> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-> >>> ---
-> >>> Changes from v2:
-> >>>  * Use data_offset only for OUTPUT stream buffers
-> >>>
-> >>>  drivers/media/platform/ti-vpe/vpe.c |   10 +++++++++-
-> >>>  1 file changed, 9 insertions(+), 1 deletion(-)
-> >>>
-> >>> diff --git a/drivers/media/platform/ti-vpe/vpe.c
-> >>> b/drivers/media/platform/ti-vpe/vpe.c
-> >>> index 9a081c2..ba26b83 100644
-> >>> --- a/drivers/media/platform/ti-vpe/vpe.c
-> >>> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> >>> @@ -496,6 +496,14 @@ struct vpe_mmr_adb {
-> >>>
-> >>>  #define VPE_SET_MMR_ADB_HDR(ctx, hdr, regs, offset_a)	\
-> >>>  	VPDMA_SET_MMR_ADB_HDR(ctx->mmr_adb, vpe_mmr_adb, hdr, regs,
-> >>> offset_a)
-> >>> +
-> >>> +static inline dma_addr_t vb2_dma_addr_plus_data_offset(struct
-> >> vb2_buffer *vb,
-> >>> +	unsigned int plane_no)
-> >>> +{
-> >>> +	return vb2_dma_contig_plane_dma_addr(vb, plane_no) +
-> >>> +		vb->v4l2_planes[plane_no].data_offset;
-> >>> +}
-> >>> +
-> >>>  /*
-> >>>   * Set the headers for all of the address/data block structures.
-> >>>   */
-> >>> @@ -1043,7 +1051,7 @@ static void add_in_dtd(struct vpe_ctx *ctx,
-> >>> int
-> >>> port)
-> >>>
-> >>>  		vpdma_fmt = fmt->vpdma_fmt[plane];
-> >>>
-> >>> -		dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
-> >>> +		dma_addr = vb2_dma_addr_plus_data_offset(vb, plane);
-> >>>  		if (!dma_addr) {
-> >>>  			vpe_err(ctx->dev,
-> >>>  				"acquiring input buffer(%d) dma_addr failed\n",
-> >>>
-> >>
-> >> Should there be a check somewhere that verifies that
-> >> vb2_get_plane_payload() -
-> >> vb->v4l2_planes[plane_no].data_offset is still large enough for the
-> >> vb->image you
-> >> want to copy?
-> >
-> > Yes, it is done as part of the vb2_qbuf -> __buf_prepare ->
-> > __verify_length function If the data_offset is high enough that it
-> > goes out of the length of that plane, The qbuf ioctl should have
-> > failed, So we can safely assume the validity of data_offset here
-> 
-> data_offset, yes. But the plane payload as well? Remember that the
-> actual payload if data_offset > 0 is bytesused - data_offset.
-> 
-> We probably need helper functions for that in videobuf2-core.h. They
-> aren't there yet because data_offset is used so rarely.
-> 
+On Tue, 09 Dec 2014, Jacek Anaszewski wrote:
 
-Ohh OK, Now I got what you mean
-For this, I think http://lxr.free-electrons.com/source/drivers/media/platform/ti-vpe/vpe.c#L1872
-Should be the correct place.
-I need to have vb2_plane_offset function
-So that we can check if size < plane_offset + the image size (which is qdata_sizeimage)
-Also, when calling set_plae_payload, it should be plane_offset + image size
-Am I correct?
-
-> Regards,
-> 
-> 	Hans
-> 
+> On 12/09/2014 09:50 AM, Lee Jones wrote:
+> >On Wed, 03 Dec 2014, Jacek Anaszewski wrote:
 > >
+> >>Add "label" array for Device Tree strings with the name of a LED device
+> >>and make flash_timeout a two element array, for caching the sub-led
+> >>related flash timeout. Added is also an array for caching pointers to the
+> >>sub-nodes representing sub-leds.
 > >>
-> >> Regards,
+> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> >>Cc: Lee Jones <lee.jones@linaro.org>
+> >>---
+> >>  include/linux/mfd/max77693.h |    4 +++-
+> >>  1 file changed, 3 insertions(+), 1 deletion(-)
 > >>
-> >> 	Hans
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> media"
-> > in the body of a message to majordomo@vger.kernel.org More majordomo
-> > info at  http://vger.kernel.org/majordomo-info.html
+> >>diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
+> >>index f0b6585..c80ee99 100644
+> >>--- a/include/linux/mfd/max77693.h
+> >>+++ b/include/linux/mfd/max77693.h
+> >>@@ -88,16 +88,18 @@ enum max77693_led_boost_mode {
+> >>  };
+> >>
+> >>  struct max77693_led_platform_data {
+> >>+	const char *label[2];
+> >>  	u32 fleds[2];
+> >>  	u32 iout_torch[2];for_each_available_child_of_node
+> >>  	u32 iout_flash[2];
+> >>  	u32 trigger[2];
+> >>  	u32 trigger_type[2];
+> >>+	u32 flash_timeout[2];
+> >>  	u32 num_leds;
+> >>  	u32 boost_mode;
+> >>-	u32 flash_timeout;
+> >>  	u32 boost_vout;
+> >>  	u32 low_vsys;
+> >>+	struct device_node *sub_nodes[2];
 > >
+> >I haven't seen anyone do this before.  Why can't you use the provided
+> >OF functions to traverse through your tree?
+> 
+> I use for_each_available_child_of_node when parsing DT node, but I
+> need to cache the pointer to sub-node to be able to use it later
+> when it needs to be passed to V4L2 sub-device which is then
+> asynchronously matched by the phandle to sub-node.
+> 
+> If it is not well seen to cache it in the platform data then
+> I will find different way to accomplish this.
 
+I haven't seen the end-driver for this, but why can't you use that
+device's of_node pointer?
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
