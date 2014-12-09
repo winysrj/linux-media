@@ -1,110 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:45465 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834AbaLCQIZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 11:08:25 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, robh+dt@kernel.org, pawel.moll@arm.com,
-	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
-	galak@codeaurora.org, Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH/RFC v9 11/19] v4l2-async: change custom.match callback argument
- type
-Date: Wed, 03 Dec 2014 17:06:46 +0100
-Message-id: <1417622814-10845-12-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42595 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753837AbaLIJx1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Dec 2014 04:53:27 -0500
+Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id A19192A0085
+	for <linux-media@vger.kernel.org>; Tue,  9 Dec 2014 10:53:18 +0100 (CET)
+Message-ID: <5486C649.8060700@xs4all.nl>
+Date: Tue, 09 Dec 2014 10:52:09 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.19] More 3.19 fixes
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is useful to have an access to the async sub-device
-being matched, not only to the related struct device.
-Change match callback argument from struct device
-to struct v4l2_subdev.
+One vivid typo, two patches that fix the cx88 driver and one patch that
+warns if a driver forgets to set device_caps in VIDIOC_QUERYCAP. All
+drivers are now supposed to do that, but it is too easy to forget.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-async.c |   16 ++++++++--------
- include/media/v4l2-async.h           |    2 +-
- 2 files changed, 9 insertions(+), 9 deletions(-)
+I found at least one case where that didn't happen, so expect to see at
+least one more pull request for 3.19 fixing this.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 85a6a34..8140992 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -22,10 +22,10 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- 
--static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
--	struct i2c_client *client = i2c_verify_client(dev);
-+	struct i2c_client *client = i2c_verify_client(sd->dev);
- 	return client &&
- 		asd->match.i2c.adapter_id == client->adapter->nr &&
- 		asd->match.i2c.address == client->addr;
-@@ -34,14 +34,14 @@ static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
- #endif
- }
- 
--static bool match_devname(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_devname(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
--	return !strcmp(asd->match.device_name.name, dev_name(dev));
-+	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
- }
- 
--static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
--	return dev->of_node == asd->match.of.node;
-+	return sd->dev->of_node == asd->match.of.node;
- }
- 
- static LIST_HEAD(subdev_list);
-@@ -52,7 +52,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 						    struct v4l2_subdev *sd)
- {
- 	struct v4l2_async_subdev *asd;
--	bool (*match)(struct device *, struct v4l2_async_subdev *);
-+	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
- 
- 	list_for_each_entry(asd, &notifier->waiting, list) {
- 		/* bus_type has been verified valid before */
-@@ -79,7 +79,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 		}
- 
- 		/* match cannot be NULL here */
--		if (match(sd->dev, asd))
-+		if (match(sd, asd))
- 			return asd;
- 	}
- 
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 7683569..1c0b586 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -51,7 +51,7 @@ struct v4l2_async_subdev {
- 			unsigned short address;
- 		} i2c;
- 		struct {
--			bool (*match)(struct device *,
-+			bool (*match)(struct v4l2_subdev *,
- 				      struct v4l2_async_subdev *);
- 			void *priv;
- 		} custom;
--- 
-1.7.9.5
+Regards,
 
+	Hans
+
+The following changes since commit 71947828caef0c83d4245f7d1eaddc799b4ff1d1:
+
+  [media] mn88473: One function call less in mn88473_init() after error (2014-12-04 16:00:47 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.19n
+
+for you to fetch changes up to d61e832500336d6c1a0267c9b1ed6613156d9fde:
+
+  cx88: remove leftover start_video_dma() call (2014-12-09 10:48:34 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (4):
+      vivid: fix CROP_BOUNDS typo for video output
+      v4l2-ioctl: WARN_ON if querycap didn't fill device_caps
+      cx88: add missing alloc_ctx support
+      cx88: remove leftover start_video_dma() call
+
+ drivers/media/pci/cx88/cx88-blackbird.c      |  4 +---
+ drivers/media/pci/cx88/cx88-dvb.c            |  4 +---
+ drivers/media/pci/cx88/cx88-mpeg.c           | 11 +++++++----
+ drivers/media/pci/cx88/cx88-vbi.c            |  9 +--------
+ drivers/media/pci/cx88/cx88-video.c          | 18 +++++++++---------
+ drivers/media/pci/cx88/cx88.h                |  2 ++
+ drivers/media/platform/vivid/vivid-vid-out.c |  2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c         |  6 ++++++
+ 8 files changed, 28 insertions(+), 28 deletions(-)
