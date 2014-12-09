@@ -1,117 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39982 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967578AbaLLNO3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 08:14:29 -0500
-Date: Fri, 12 Dec 2014 11:14:24 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: [REVIEW] au0828-video.c
-Message-ID: <20141212111424.0595125b@recife.lan>
-In-Reply-To: <548AE5B2.1070306@xs4all.nl>
-References: <548AC061.3050700@xs4all.nl>
-	<20141212104942.0ea3c1d7@recife.lan>
-	<548AE5B2.1070306@xs4all.nl>
+Received: from mail-qc0-f170.google.com ([209.85.216.170]:59000 "EHLO
+	mail-qc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752515AbaLINu0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 08:50:26 -0500
+Received: by mail-qc0-f170.google.com with SMTP id x3so418391qcv.1
+        for <linux-media@vger.kernel.org>; Tue, 09 Dec 2014 05:50:25 -0800 (PST)
+Date: Tue, 9 Dec 2014 13:50:17 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v9 04/19] mfd: max77693: adjust
+ max77693_led_platform_data
+Message-ID: <20141209135017.GY3951@x1>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-5-git-send-email-j.anaszewski@samsung.com>
+ <20141209085047.GR3951@x1>
+ <5486BC44.7010602@samsung.com>
+ <20141209100413.GW3951@x1>
+ <5486CE1F.9010102@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <5486CE1F.9010102@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 12 Dec 2014 13:55:14 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Tue, 09 Dec 2014, Jacek Anaszewski wrote:
 
-> On 12/12/2014 01:49 PM, Mauro Carvalho Chehab wrote:
-> > Em Fri, 12 Dec 2014 11:16:01 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> Hi Shuah,
-> >>
-> >> This is the video.c review with your patch applied.
-> >>
-> >>> /*
-> >>>  * Auvitek AU0828 USB Bridge (Analog video support)
-> >>>  *
-> >>>  * Copyright (C) 2009 Devin Heitmueller <dheitmueller@linuxtv.org>
-> >>>  * Copyright (C) 2005-2008 Auvitek International, Ltd.
-> >>>  *
-> >>>  * This program is free software; you can redistribute it and/or
-> >>>  * modify it under the terms of the GNU General Public License
-> >>>  * As published by the Free Software Foundation; either version 2
-> >>>  * of the License, or (at your option) any later version.
-> >>>  *
-> >>>  * This program is distributed in the hope that it will be useful,
-> >>>  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> >>>  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> >>>  * GNU General Public License for more details.
-> >>>  *
-> >>>  * You should have received a copy of the GNU General Public License
-> >>>  * along with this program; if not, write to the Free Software
-> >>>  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-> >>>  * 02110-1301, USA.
-> >>>  */
+> On 12/09/2014 11:04 AM, Lee Jones wrote:
+> >On Tue, 09 Dec 2014, Jacek Anaszewski wrote:
+> >
+> >>On 12/09/2014 09:50 AM, Lee Jones wrote:
+> >>>On Wed, 03 Dec 2014, Jacek Anaszewski wrote:
 > >>>
-> >>> /* Developer Notes:
-> >>>  *
-> >>>  * VBI support is not yet working
+> >>>>Add "label" array for Device Tree strings with the name of a LED device
+> >>>>and make flash_timeout a two element array, for caching the sub-led
+> >>>>related flash timeout. Added is also an array for caching pointers to the
+> >>>>sub-nodes representing sub-leds.
+> >>>>
+> >>>>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>>>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>>>Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> >>>>Cc: Lee Jones <lee.jones@linaro.org>
+> >>>>---
+> >>>>  include/linux/mfd/max77693.h |    4 +++-
+> >>>>  1 file changed, 3 insertions(+), 1 deletion(-)
+> >>>>
+> >>>>diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
+> >>>>index f0b6585..c80ee99 100644
+> >>>>--- a/include/linux/mfd/max77693.h
+> >>>>+++ b/include/linux/mfd/max77693.h
+> >>>>@@ -88,16 +88,18 @@ enum max77693_led_boost_mode {
+> >>>>  };
+> >>>>
+> >>>>  struct max77693_led_platform_data {
+> >>>>+	const char *label[2];
+> >>>>  	u32 fleds[2];
+> >>>>  	u32 iout_torch[2];for_each_available_child_of_node
+> >>>>  	u32 iout_flash[2];
+> >>>>  	u32 trigger[2];
+> >>>>  	u32 trigger_type[2];
+> >>>>+	u32 flash_timeout[2];
+> >>>>  	u32 num_leds;
+> >>>>  	u32 boost_mode;
+> >>>>-	u32 flash_timeout;
+> >>>>  	u32 boost_vout;
+> >>>>  	u32 low_vsys;
+> >>>>+	struct device_node *sub_nodes[2];
+> >>>
+> >>>I haven't seen anyone do this before.  Why can't you use the provided
+> >>>OF functions to traverse through your tree?
 > >>
-> >> I'll see if I can get this to work quickly. If not, then we should
-> >> probably just strip the VBI support from this driver. It's pointless to
-> >> have non-functioning VBI support.
-> > 
-> > This is a left-over. VBI support works on this driver. I tested.
-> 
-> Oh wait, now I get it. You are only capturing line 21, not the whole vbi area.
-> That's why vbi_height = 1. Never mind then. Although that comment should indeed
-> be removed.
-> 
-> > 
-> > Probably, the patches that added VBI support forgot to remove the
-> > above notice.
-> > 
-> >>> /* This function ensures that video frames continue to be delivered even if
-> >>>    the ITU-656 input isn't receiving any data (thereby preventing applications
-> >>>    such as tvtime from hanging) */
+> >>I use for_each_available_child_of_node when parsing DT node, but I
+> >>need to cache the pointer to sub-node to be able to use it later
+> >>when it needs to be passed to V4L2 sub-device which is then
+> >>asynchronously matched by the phandle to sub-node.
 > >>
-> >> Why would tvtime be hanging? Make a separate patch that just removes all this
-> >> timeout nonsense. If there are no frames, then tvtime (and any other app) should
-> >> just wait for frames to arrive. And ctrl-C should always be able to break the app
-> >> (or they can timeout themselves).
-> >>
-> >> It's not the driver's responsibility to do this and it only makes the code overly
-> >> complex.
-> > 
-> > Well, we should not cause regressions on userspace. If removing this
-> > check will cause tvtime to hang, we should keep it.
+> >>If it is not well seen to cache it in the platform data then
+> >>I will find different way to accomplish this.
+> >
+> >I haven't seen the end-driver for this, but why can't you use that
+> >device's of_node pointer?
 > 
-> Obviously if it hangs (i.e. tvtime can't be killed anymore) it is a bug in the driver.
-> But the driver shouldn't start generating bogus frames just because no new frames are
-> arriving, that's just nuts.
+> Maybe it is indeed a good idea. I could pass the of_node pointer
+> and the sub-led identifier to the V4L2 sub-device and there look
+> for the sub-node containing relevant identifier. The downside
+> would be only that for_each_available_child_of_node would
+> have to be called twice - in the led driver and in the V4L2 sub-device.
+> I think that we can live with it.
 
-If I remember the bug well, what used to happen is that tvtime would wait
-for a certain amount of time for a frame. If nothing arrives, it stops
-capturing.
+Are the LED and V4L2 drivers children of this MFD?  If so, you can use
+the of_compatible attribute in struct mfd_cell to populate the each
+child's of_node dynamically i.e. the MFD core will do that for you.
 
-The net effect is that tvtime shows no picture. This used to be so bad
-that tvtime didn't work with vivi at all.
-
-The bug used also to manifest there if lots of frames got dropped
-when, for example, changing from one channel to another.
-
-Btw, on a quick look, I'm not seeing any patch at tvtime since we took
-it over that would be fixing it. So, it was either a VB bug or the
-bug is still there.
-
-> 
-> > Btw, the same kind of test used to be at vivi and other drivers.
-> > I think we removed it there some time ago, so maybe either it was a
-> > VB1 bug or this got fixed at tvtime.
-> 
-> Most likely.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
