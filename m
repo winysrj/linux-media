@@ -1,77 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:53777 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753507AbaLALeh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 06:34:37 -0500
-Received: by mail-ig0-f178.google.com with SMTP id hl2so8625529igb.17
-        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 03:34:37 -0800 (PST)
-Date: Mon, 1 Dec 2014 11:34:30 +0000
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:50248 "EHLO
+	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754394AbaLIKCb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 05:02:31 -0500
+Received: by mail-ie0-f175.google.com with SMTP id x19so182472ier.6
+        for <linux-media@vger.kernel.org>; Tue, 09 Dec 2014 02:02:31 -0800 (PST)
+Date: Tue, 9 Dec 2014 10:02:24 +0000
 From: Lee Jones <lee.jones@linaro.org>
 To: Jacek Anaszewski <j.anaszewski@samsung.com>
 Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
 	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
 	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
 	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	SangYoung Son <hello.son@smasung.com>,
-	Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH/RFC v8 09/14] mfd: max77693: adjust
- max77693_led_platform_data
-Message-ID: <20141201113430.GC15845@x1>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-10-git-send-email-j.anaszewski@samsung.com>
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v9 03/19] mfd: max77693: Modify flash cell name
+ identifiers
+Message-ID: <20141209100224.GV3951@x1>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-4-git-send-email-j.anaszewski@samsung.com>
+ <20141209085216.GS3951@x1>
+ <5486BE6C.9010408@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <1417166286-27685-10-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <5486BE6C.9010408@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 28 Nov 2014, Jacek Anaszewski wrote:
+On Tue, 09 Dec 2014, Jacek Anaszewski wrote:
 
-> Add "label" array for Device Tree strings with
-> the name of a LED device and make flash_timeout
-> a two element array, for caching the sub-led
-> related flash timeout.
-
-<------------------------------------------------------------------------->
-
-Please use all of the 75 char buffer.
-
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: SangYoung Son <hello.son@smasung.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> ---
->  include/linux/mfd/max77693.h |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+> On 12/09/2014 09:52 AM, Lee Jones wrote:
+> >On Wed, 03 Dec 2014, Jacek Anaszewski wrote:
+> >
+> >>Change flash cell identifiers from max77693-flash to max77693-led
+> >>to avoid confusion with NOR/NAND Flash.
+> >>
+> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> >>Cc: Lee Jones <lee.jones@linaro.org>
+> >>---
+> >>  drivers/mfd/max77693.c |    4 ++--
+> >>  1 file changed, 2 insertions(+), 2 deletions(-)
+> >>
+> >>diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
+> >>index a159593..cb14afa 100644
+> >>--- a/drivers/mfd/max77693.c
+> >>+++ b/drivers/mfd/max77693.c
+> >>@@ -53,8 +53,8 @@ static const struct mfd_cell max77693_devs[] = {
+> >>  		.of_compatible = "maxim,max77693-haptic",
+> >>  	},
+> >>  	{
+> >>-		.name = "max77693-flash",
+> >>-		.of_compatible = "maxim,max77693-flash",
+> >>+		.name = "max77693-led",
+> >>+		.of_compatible = "maxim,max77693-led",
+> >
+> >This is fine by me, so long as you've been through the usual
+> >deprecation procedures or this platform is still WiP.
 > 
-> diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
-> index f0b6585..30fa19ea 100644
-> --- a/include/linux/mfd/max77693.h
-> +++ b/include/linux/mfd/max77693.h
-> @@ -88,14 +88,15 @@ enum max77693_led_boost_mode {
->  };
->  
->  struct max77693_led_platform_data {
-> +	const char *label[2];
->  	u32 fleds[2];
->  	u32 iout_torch[2];
->  	u32 iout_flash[2];
->  	u32 trigger[2];
->  	u32 trigger_type[2];
-> +	u32 flash_timeout[2];
->  	u32 num_leds;
->  	u32 boost_mode;
-> -	u32 flash_timeout;
->  	u32 boost_vout;
->  	u32 low_vsys;
->  };
+> It was me who added of_compatible for max77693-flash, but the
+> related led driver has not been yet merged and there are no
+> other drivers depending on it.
 
-I'm guessing this will effect the other patches in the set?
+Very well.
+
+For my own reference:
+
+Acked-by: Lee Jones <lee.jones@linaro.org>
 
 -- 
 Lee Jones
