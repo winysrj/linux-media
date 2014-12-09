@@ -1,218 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f46.google.com ([209.85.218.46]:41161 "EHLO
-	mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750920AbaLEQ17 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 11:27:59 -0500
-Received: by mail-oi0-f46.google.com with SMTP id h136so668422oig.19
-        for <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 08:27:58 -0800 (PST)
+Received: from www.linutronix.de ([62.245.132.108]:49307 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753971AbaLIQBp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 11:01:45 -0500
+Message-ID: <54871CDF.2020909@linutronix.de>
+Date: Tue, 09 Dec 2014 17:01:35 +0100
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <5481CB18.5020603@iki.fi>
-References: <72f12ec0f50db8495447b3104923aa61@mail.vanmierlo.nu>
- <52F01925.4060701@iki.fi> <CAKdnbx4869X8nfX3u--3nW4nVPc+FU0F5RiX6KSGQRmC1gDZjQ@mail.gmail.com>
- <5481CB18.5020603@iki.fi>
-From: Eddi De Pieri <eddi@depieri.net>
-Date: Fri, 5 Dec 2014 17:27:38 +0100
-Message-ID: <CAKdnbx7EOMfFHmhwXVHP+V7-c+Lh+es+oN4e45q04M4BCccz5A@mail.gmail.com>
-Subject: Re: Terratec H7 with yet another usb ID
-To: Antti Palosaari <crope@iki.fi>
-Cc: Rik van Mierlo <rik@vanmierlo.nu>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: 'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>,
+	David Laight <David.Laight@ACULAB.COM>
+CC: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Felipe Balbi <balbi@ti.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] usb: hcd: get/put device and hcd for hcd_buffers()
+References: <20141205200357.GA1586@linutronix.de> <20141205211932.GA24249@kroah.com> <063D6719AE5E284EB5DD2968C1650D6D1CA04A1D@AcuExch.aculab.com> <20141209152404.GA29423@kroah.com>
+In-Reply-To: <20141209152404.GA29423@kroah.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rik,
+On 12/09/2014 04:24 PM, 'Greg Kroah-Hartman' wrote:
+> On Mon, Dec 08, 2014 at 09:44:05AM +0000, David Laight wrote:
+>> From: Greg Kroah-Hartman
+>>> On Fri, Dec 05, 2014 at 09:03:57PM +0100, Sebastian Andrzej Siewior wrote:
+>>>> Consider the following scenario:
+>>>> - plugin a webcam
+>>>> - play the stream via gst-launch-0.10 v4l2src device=/dev/video0
+>>>> - remove the USB-HCD during playback via "rmmod $HCD"
+>>>>
+>>>> and now wait for the crash
+>>>
+>>> Which you deserve, why did you ever remove a kernel module?  That's racy
+>>> and _never_ recommended, which is why it never happens automatically and
+>>> only root can do it.
+>>
+>> Really drivers and subsystems should have the required locking (etc) to
+>> ensure that kernel modules can either be unloaded, or that the unload
+>> request itself fails if the device is busy.
+>>
+>> It shouldn't be considered a 'shoot self in foot' operation.
+>> OTOH there are likely to be bugs.
+> 
+> This is not always the case, sorry, removing a kernel module is a known
+> racy condition, and sometimes adding all of the locking required to try
+> to make it "safe" just isn't worth it overall, as this is something that
+> _only_ a developer does.
 
+I wasn't are of that. rmmod does not mention this. Kconfig does not
+mention this and suggest y as default (for MODULE_UNLOAD) . rmmod -f
+likely causes problems but this is not the case here. If you want to
+avoid rmmod why not mark a driver that it is not safe to remove it? And
+why not make it work?
 
-I've download Terratec H7 rev 4 should be a
-TechnoTrend_TT-TVStick_CT2-44xx clone so you could try to patch
-dvbsky.c driver.
+You can unbind the HCD driver from the PCI-device via sysfs and this is
+not something not only a developer does. This "unbind" calls the remove
+function of the driver and the only difference between unbind and rmmod
+is that the module remains inserted (but this is no news for you).
 
-Strings inside the windows driver:
-T E R R A T E C   S 7   D i g i t a l   T u n e r   ( D V B - S / S 2 )
-T T - c o n n e c t   C T 2 _ 4 6 5 0   D V B - T / T 2   T u n e r
-T E R R A T E C   H 7   D i g i t a l   T u n e r   ( D V B - T / T 2 )
-T T - c o n n e c t   C T 2 _ 4 6 5 0   D V B - C   T u n e r
-T E R R A T E C   H 7   D i g i t a l   T u n e r   ( D V B - C )
+Now, this unbind happens if you choose to pass a PCI-device to a qemu
+guest. This is a fairly common use-case for a non-developer since it is
+quite easy to setup in virt-manager for instance. All you need is a
+hardware with IOMMU support. I used this to get the usb.org testsuite
+running in my Windows guest which needs access to EHCI registers). I
+could also mention hacking on XHCI and not crashing the physical
+machine if something goes south but then I would rise the developer
+card again.
 
-Regards...
-Eddi
+I even rmmod & modprobe my mmc controller on my notebook because for
+some reason it does not work otherwise after a suspend + resume cycle
+(and my motivation to look after this is quite low since I barely use
+my notebook at all).
 
-On Fri, Dec 5, 2014 at 4:11 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Moikka
-> Take USB sniffs and generate driver C-code from that sniff. Then copy&paste
-> that code to driver until is starts working. After that, you could remove
-> all the code until you find minimum set of needed changes (error and trial).
->
-> regards
-> Antti
->
->
-> On 12/05/2014 04:51 PM, Eddi De Pieri wrote:
->>
->> Hi,
->>
->> I got a sample usb tuner with similar issue with following
->> vendor/product 13d3:0ccd.
->>
->> Onboard it have: CY7C68013A-56PVXC and a SI2168-40. The tuner isn't
->> visible since is covered by a shield.
->>
->> I've tried to patch the az6007 to make it working.
->>
->> si2168 4-0064: Silicon Labs Si2168 successfully attached
->> si2157 5-0060: unknown chip version Si2147-A30
->>
->> after applying latest patch from patchwork:
->>
->> si2157 5-0060: Silicon Labs Si2157/Si2158 successfully attached
->>
->> Now tuner seems to be connected but a w_scan don't detect any channel...
->>
->> Can you give me some some hint on troubleshooting this issue?
->>
->> Actually I'm brutally changed the initialization with copy and paste
->> of silab attach from cxusb.c and em28xx-dvb.c by removing the drxk
->> init..
->>
->> Since the chinese producer recicled old vid/pid.but what is the
->> correct way to probe for multiple frontend and choose the right one?
->>
->> Eddi
->>
->>
->> On Mon, Feb 3, 2014 at 11:33 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>
->>> Hei Rik
->>>
->>>
->>> On 03.02.2014 22:21, Rik van Mierlo wrote:
->>>>
->>>>
->>>> Hi,
->>>>
->>>> I've recently purchased a Terratec H7, based on the fact that is was
->>>> supported for a while now. Unfortunately, it turns out that my device
->>>> uses a different product id, and maybe is not quite the same device
->>>> inside either.
->>>>
->>>> ProductID for the Terratec H7 revisions in the module is either 10b4 or
->>>> 10a3, the one I purchased is 10a5. Following this patch:
->>>>
->>>> https://patchwork.linuxtv.org/patch/9691
->>>>
->>>> I modified drivers/media/usb/dvb-usb-v2/az6007.c to include an
->>>> additional device:
->>>>
->>>> static struct usb_device_id az6007_usb_table[] = {
->>>>           {DVB_USB_DEVICE(USB_VID_AZUREWAVE, USB_PID_AZUREWAVE_6007,
->>>>                   &az6007_props, "Azurewave 6007", RC_MAP_EMPTY)},
->>>>           {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7,
->>>>                   &az6007_props, "Terratec H7",
->>>> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
->>>>           {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7_2,
->>>>                   &az6007_props, "Terratec H7",
->>>> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
->>>>           {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7_3,
->>>>                   &az6007_props, "Terratec H7",
->>>> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
->>>>           {DVB_USB_DEVICE(USB_VID_TECHNISAT,
->>>> USB_PID_TECHNISAT_USB2_CABLESTAR_HDCI,
->>>>                   &az6007_cablestar_hdci_props, "Technisat CableStar
->>>> Combo HD CI", RC_MAP_EMPTY)},
->>>>           {0},
->>>> };
->>>>
->>>> and added the following to drivers/media/dvb-core/dvb-usb-ids.h
->>>>
->>>> #define USB_PID_TERRATEC_H7_3                           0x10a5
->>>>
->>>> and recompiled/installed the kernel and modules. The module seems to
->>>> have changed somewhat in 3.12.6 from the version that the patch was
->>>> meant for, so I hope I this was all I had to change.
->>>>
->>>> Rebooting and plugging in the device now at least leads to a recognized
->>>> device, but scanning for channels with w_scan does not work, and from
->>>> the dmesg output below, it seems something is not working after loading
->>>> the drxk firmware. Does anybody know what I could try next to get this
->>>> device working? Could it be that the drxk firmware is not suitable for
->>>> this revision of the device?
->>>>
->>>> [  700.112072] usb 4-2: new high-speed USB device number 2 using
->>>> ehci-pci
->>>> [  700.245092] usb 4-2: New USB device found, idVendor=0ccd,
->>>> idProduct=10a5
->>>> [  700.245105] usb 4-2: New USB device strings: Mfr=1, Product=2,
->>>> SerialNumber=3
->>>> [  700.245114] usb 4-2: Product: TERRATEC T2/T/C CI USB
->>>> [  700.245123] usb 4-2: Manufacturer: TERRATEC
->>>> [  700.245131] usb 4-2: SerialNumber: 20130903
->>>> [  700.494693] usb read operation failed. (-32)
->>>> [  700.495039] usb write operation failed. (-32)
->>>> [  700.495413] usb write operation failed. (-32)
->>>> [  700.495787] usb write operation failed. (-32)
->>>
->>>
->>>
->>> These low level errors does not promise any good. Are these coming from
->>> USB
->>> stack as there is no even bus ID (4-2)...
->>>
->>>> [  700.495800] usb 4-2: dvb_usb_v2: found a 'Terratec H7' in cold state
->>>> [  700.507381] usb 4-2: firmware: direct-loading firmware
->>>> dvb-usb-terratec-h7-az6007.fw
->>>> [  700.507397] usb 4-2: dvb_usb_v2: downloading firmware from file
->>>> 'dvb-usb-terratec-h7-az6007.fw'
->>>> [  700.524301] usb 4-2: dvb_usb_v2: found a 'Terratec H7' in warm state
->>>> [  701.760878] usb 4-2: dvb_usb_v2: will pass the complete MPEG2
->>>> transport stream to the software demuxer
->>>> [  701.760947] DVB: registering new adapter (Terratec H7)
->>>> [  701.763853] usb 4-2: dvb_usb_v2: MAC address: c2:cd:0c:a5:10:00
->>>> [  701.846469] drxk: frontend initialized.
->>>> [  701.849123] usb 4-2: firmware: direct-loading firmware
->>>> dvb-usb-terratec-h7-drxk.fw
->>>> [  701.849215] usb 4-2: DVB: registering adapter 0 frontend 0 (DRXK)...
->>>> [  701.881072] drxk: status = 0x00c04125
->>>> [  701.881082] drxk: DeviceID 0x04 not supported
->>>> [  701.881090] drxk: Error -22 on init_drxk
->>>
->>>
->>>
->>> I suspect there is no DRX-K.
->>>
->>>> [  701.908184] mt2063_attach: Attaching MT2063
->>>> [  701.940248] Registered IR keymap rc-nec-terratec-cinergy-xs
->>>> [  701.940547] input: Terratec H7 as
->>>> /devices/pci0000:00/0000:00:1d.7/usb4/4-2/rc/rc0/input16
->>>> [  701.942559] rc0: Terratec H7 as
->>>> /devices/pci0000:00/0000:00:1d.7/usb4/4-2/rc/rc0
->>>> [  701.942575] usb 4-2: dvb_usb_v2: schedule remote query interval to
->>>> 400 msecs
->>>> [  701.942587] usb 4-2: dvb_usb_v2: 'Terratec H7' successfully
->>>> initialized and connected
->>>> [  701.942643] usbcore: registered new interface driver dvb_usb_az6007
->>>
->>>
->>>
->>> hmm, a little bit surprising that driver accepts hardware even those
->>> fatal
->>> errors.
->>>
->>> My guess is that there is no DRX-K but some other demod or likely more
->>> changed chips than demod. DRX-K is rather old demod and there is not very
->>> many newer alternatives on the market. Silicon Labs chipset ? Open the
->>> device in look what chips it has eaten.
->>>
->>> regards
->>> Antti
->>>
->>> --
->>> http://palosaari.fi/
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-> --
-> http://palosaari.fi/
+I am really surprised that you as a core developer and maintainer of
+the drivers infrastructure say that one should not remove a driver.
+
+> greg k-h
+
+Sebastian
