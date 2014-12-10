@@ -1,300 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46441 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752714AbaLAJF1 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41485 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758284AbaLJXUd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 04:05:27 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 8/9] vivid: add support for YCbCr encoding and quantization
-Date: Mon,  1 Dec 2014 10:03:52 +0100
-Message-Id: <1417424633-15781-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 10 Dec 2014 18:20:33 -0500
+Date: Thu, 11 Dec 2014 01:14:32 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	lkml <linux-kernel@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	b.zolnierkie@samsung.com, "rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC v8 02/14] Documentation: leds: Add description of LED
+ Flash class extension
+Message-ID: <20141210231431.GP15559@valkosipuli.retiisi.org.uk>
+References: <20141129125832.GA315@amd>
+ <547C539A.4010500@samsung.com>
+ <20141201130437.GB24737@amd>
+ <547C7420.4080801@samsung.com>
+ <CAK5ve-KMNszyz6br_Q_dOhvk=_8ev6Uz-ZhPnYBn-ZvuohQpVA@mail.gmail.com>
+ <20141206124310.GB3411@amd>
+ <5485D7F8.10807@samsung.com>
+ <20141208201855.GA16648@amd>
+ <5486B8AE.5000408@samsung.com>
+ <20141209155033.GB21422@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20141209155033.GB21422@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Pavel and Jacek,
 
-Implement controls to set the YCbCr encoding and the quantization
-range for the colorspace.
+On Tue, Dec 09, 2014 at 04:50:33PM +0100, Pavel Machek wrote:
+> On Tue 2014-12-09 09:54:06, Jacek Anaszewski wrote:
+> > Hi Pavel,
+> > 
+> > On 12/08/2014 09:18 PM, Pavel Machek wrote:
+> > >On Mon 2014-12-08 17:55:20, Jacek Anaszewski wrote:
+> > >>On 12/06/2014 01:43 PM, Pavel Machek wrote:
+> > >>>
+> > >>>>>The format of a sysfs attribute should be concise.
+> > >>>>>The error codes are generic and map directly to the V4L2 Flash
+> > >>>>>error codes.
+> > >>>>>
+> > >>>>
+> > >>>>Actually I'd like to see those flash fault code defined in LED
+> > >>>>subsystem. And V4L2 will just include LED flash header file to use it.
+> > >>>>Because flash fault code is not for V4L2 specific but it's a feature
+> > >>>>of LED flash devices.
+> > >>>>
+> > >>>>For clearing error code of flash devices, I think it depends on the
+> > >>>>hardware. If most of our LED flash is using reading to clear error
+> > >>>>code, we probably can make it simple as this now. But what if some
+> > >>>>other LED flash devices are using writing to clear error code? we
+> > >>>>should provide a API to that?
+> > >>>
+> > >>>Actually, we should provide API that makes sense, and that is easy to
+> > >>>use by userspace.
+> > >>>
+> > >>>I believe "read" is called read because it does not change anything,
+> > >>>and it should stay that way in /sysfs. You may want to talk to sysfs
+> > >>>maintainers if you plan on doing another semantics.
+> > >>
+> > >>How would you proceed in case of devices which clear their fault
+> > >>register upon I2C readout (e.g. AS3645)? In this case read does have
+> > >>a side effect. For such devices attribute semantics would have to be
+> > >>different than for the devices which don't clear faults on readout.
+> > >
+> > >No, semantics should be same for all devices.
+> > >
+> > >If device clears fault register during I2C readout, kernel will simply
+> > >gather faults in an variable, and clear them upon write to sysfs file.
+> > 
+> > This approach would require implementing additional mechanisms on
+> > both sides: LED Flash class core and a LED Flash class driver.
+> > In the former the sysfs attribute write permissions would have
+> > to be decided in the runtime and in the latter caching mechanism
+> 
+> Write attributes at runtime? Why? We can emulate sane and consistent
+> behaviour for all the controllers: read gives you list of faults,
+> write clears it. We can do it for all the controllers.
+> 
+> Only cost is few lines of code in the drivers where hardware clears
+> faults at read.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-core.h       |  2 +
- drivers/media/platform/vivid/vivid-ctrls.c      | 86 +++++++++++++++++++++----
- drivers/media/platform/vivid/vivid-vid-cap.c    | 18 ++++++
- drivers/media/platform/vivid/vivid-vid-common.c |  4 ++
- drivers/media/platform/vivid/vivid-vid-out.c    | 25 +++++--
- 5 files changed, 116 insertions(+), 19 deletions(-)
+Please take the time to read this, and consider it.
 
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index 9e41cbe..4b497df 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -329,6 +329,8 @@ struct vivid_dev {
- 	v4l2_std_id			std_out;
- 	struct v4l2_dv_timings		dv_timings_out;
- 	u32				colorspace_out;
-+	u32				ycbcr_enc_out;
-+	u32				quantization_out;
- 	u32				service_set_out;
- 	u32				bytesperline_out[2];
- 	unsigned			tv_field_out;
-diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
-index dcb912d..857e786 100644
---- a/drivers/media/platform/vivid/vivid-ctrls.c
-+++ b/drivers/media/platform/vivid/vivid-ctrls.c
-@@ -62,19 +62,21 @@
- #define VIVID_CID_DV_TIMINGS_ASPECT_RATIO	(VIVID_CID_VIVID_BASE + 23)
- #define VIVID_CID_TSTAMP_SRC		(VIVID_CID_VIVID_BASE + 24)
- #define VIVID_CID_COLORSPACE		(VIVID_CID_VIVID_BASE + 25)
--#define VIVID_CID_LIMITED_RGB_RANGE	(VIVID_CID_VIVID_BASE + 26)
--#define VIVID_CID_ALPHA_MODE		(VIVID_CID_VIVID_BASE + 27)
--#define VIVID_CID_HAS_CROP_CAP		(VIVID_CID_VIVID_BASE + 28)
--#define VIVID_CID_HAS_COMPOSE_CAP	(VIVID_CID_VIVID_BASE + 29)
--#define VIVID_CID_HAS_SCALER_CAP	(VIVID_CID_VIVID_BASE + 30)
--#define VIVID_CID_HAS_CROP_OUT		(VIVID_CID_VIVID_BASE + 31)
--#define VIVID_CID_HAS_COMPOSE_OUT	(VIVID_CID_VIVID_BASE + 32)
--#define VIVID_CID_HAS_SCALER_OUT	(VIVID_CID_VIVID_BASE + 33)
--#define VIVID_CID_LOOP_VIDEO		(VIVID_CID_VIVID_BASE + 34)
--#define VIVID_CID_SEQ_WRAP		(VIVID_CID_VIVID_BASE + 35)
--#define VIVID_CID_TIME_WRAP		(VIVID_CID_VIVID_BASE + 36)
--#define VIVID_CID_MAX_EDID_BLOCKS	(VIVID_CID_VIVID_BASE + 37)
--#define VIVID_CID_PERCENTAGE_FILL	(VIVID_CID_VIVID_BASE + 38)
-+#define VIVID_CID_YCBCR_ENC		(VIVID_CID_VIVID_BASE + 26)
-+#define VIVID_CID_QUANTIZATION		(VIVID_CID_VIVID_BASE + 27)
-+#define VIVID_CID_LIMITED_RGB_RANGE	(VIVID_CID_VIVID_BASE + 28)
-+#define VIVID_CID_ALPHA_MODE		(VIVID_CID_VIVID_BASE + 29)
-+#define VIVID_CID_HAS_CROP_CAP		(VIVID_CID_VIVID_BASE + 30)
-+#define VIVID_CID_HAS_COMPOSE_CAP	(VIVID_CID_VIVID_BASE + 31)
-+#define VIVID_CID_HAS_SCALER_CAP	(VIVID_CID_VIVID_BASE + 32)
-+#define VIVID_CID_HAS_CROP_OUT		(VIVID_CID_VIVID_BASE + 33)
-+#define VIVID_CID_HAS_COMPOSE_OUT	(VIVID_CID_VIVID_BASE + 34)
-+#define VIVID_CID_HAS_SCALER_OUT	(VIVID_CID_VIVID_BASE + 35)
-+#define VIVID_CID_LOOP_VIDEO		(VIVID_CID_VIVID_BASE + 36)
-+#define VIVID_CID_SEQ_WRAP		(VIVID_CID_VIVID_BASE + 37)
-+#define VIVID_CID_TIME_WRAP		(VIVID_CID_VIVID_BASE + 38)
-+#define VIVID_CID_MAX_EDID_BLOCKS	(VIVID_CID_VIVID_BASE + 39)
-+#define VIVID_CID_PERCENTAGE_FILL	(VIVID_CID_VIVID_BASE + 40)
- 
- #define VIVID_CID_STD_SIGNAL_MODE	(VIVID_CID_VIVID_BASE + 60)
- #define VIVID_CID_STANDARD		(VIVID_CID_VIVID_BASE + 61)
-@@ -358,6 +360,20 @@ static int vivid_vid_cap_s_ctrl(struct v4l2_ctrl *ctrl)
- 		vivid_send_source_change(dev, HDMI);
- 		vivid_send_source_change(dev, WEBCAM);
- 		break;
-+	case VIVID_CID_YCBCR_ENC:
-+		tpg_s_ycbcr_enc(&dev->tpg, ctrl->val);
-+		vivid_send_source_change(dev, TV);
-+		vivid_send_source_change(dev, SVID);
-+		vivid_send_source_change(dev, HDMI);
-+		vivid_send_source_change(dev, WEBCAM);
-+		break;
-+	case VIVID_CID_QUANTIZATION:
-+		tpg_s_quantization(&dev->tpg, ctrl->val);
-+		vivid_send_source_change(dev, TV);
-+		vivid_send_source_change(dev, SVID);
-+		vivid_send_source_change(dev, HDMI);
-+		vivid_send_source_change(dev, WEBCAM);
-+		break;
- 	case V4L2_CID_DV_RX_RGB_RANGE:
- 		if (!vivid_is_hdmi_cap(dev))
- 			break;
-@@ -693,6 +709,44 @@ static const struct v4l2_ctrl_config vivid_ctrl_colorspace = {
- 	.qmenu = vivid_ctrl_colorspace_strings,
- };
- 
-+static const char * const vivid_ctrl_ycbcr_enc_strings[] = {
-+	"Default",
-+	"ITU-R 601",
-+	"Rec. 709",
-+	"xvYCC 601",
-+	"xvYCC 709",
-+	"sYCC",
-+	"BT.2020 Non-Constant Luminance",
-+	"BT.2020 Constant Luminance",
-+	"SMPTE 240M",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_ycbcr_enc = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_YCBCR_ENC,
-+	.name = "Y'CbCr Encoding",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = 8,
-+	.qmenu = vivid_ctrl_ycbcr_enc_strings,
-+};
-+
-+static const char * const vivid_ctrl_quantization_strings[] = {
-+	"Default",
-+	"Full Range",
-+	"Limited Range",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_quantization = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_QUANTIZATION,
-+	.name = "Quantization",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = 2,
-+	.qmenu = vivid_ctrl_quantization_strings,
-+};
-+
- static const struct v4l2_ctrl_config vivid_ctrl_alpha_mode = {
- 	.ops = &vivid_vid_cap_ctrl_ops,
- 	.id = VIVID_CID_ALPHA_MODE,
-@@ -769,8 +823,12 @@ static int vivid_vid_out_s_ctrl(struct v4l2_ctrl *ctrl)
- 				dev->colorspace_out = V4L2_COLORSPACE_SMPTE170M;
- 			else
- 				dev->colorspace_out = V4L2_COLORSPACE_REC709;
-+			dev->quantization_out = V4L2_QUANTIZATION_DEFAULT;
- 		} else {
- 			dev->colorspace_out = V4L2_COLORSPACE_SRGB;
-+			dev->quantization_out = dev->dvi_d_out ?
-+					V4L2_QUANTIZATION_LIM_RANGE :
-+					V4L2_QUANTIZATION_DEFAULT;
- 		}
- 		if (dev->loop_video)
- 			vivid_send_source_change(dev, HDMI);
-@@ -1307,6 +1365,8 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
- 		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_tstamp_src, NULL);
- 		dev->colorspace = v4l2_ctrl_new_custom(hdl_vid_cap,
- 			&vivid_ctrl_colorspace, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_ycbcr_enc, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_quantization, NULL);
- 		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_alpha_mode, NULL);
- 	}
- 
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 923a4f8..867a29a 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -498,6 +498,20 @@ static unsigned vivid_colorspace_cap(struct vivid_dev *dev)
- 	return dev->colorspace_out;
- }
- 
-+static unsigned vivid_ycbcr_enc_cap(struct vivid_dev *dev)
-+{
-+	if (!dev->loop_video || vivid_is_webcam(dev) || vivid_is_tv_cap(dev))
-+		return tpg_g_ycbcr_enc(&dev->tpg);
-+	return dev->ycbcr_enc_out;
-+}
-+
-+static unsigned vivid_quantization_cap(struct vivid_dev *dev)
-+{
-+	if (!dev->loop_video || vivid_is_webcam(dev) || vivid_is_tv_cap(dev))
-+		return tpg_g_quantization(&dev->tpg);
-+	return dev->quantization_out;
-+}
-+
- int vivid_g_fmt_vid_cap(struct file *file, void *priv,
- 					struct v4l2_format *f)
- {
-@@ -510,6 +524,8 @@ int vivid_g_fmt_vid_cap(struct file *file, void *priv,
- 	mp->field        = dev->field_cap;
- 	mp->pixelformat  = dev->fmt_cap->fourcc;
- 	mp->colorspace   = vivid_colorspace_cap(dev);
-+	mp->ycbcr_enc    = vivid_ycbcr_enc_cap(dev);
-+	mp->quantization = vivid_quantization_cap(dev);
- 	mp->num_planes = dev->fmt_cap->planes;
- 	for (p = 0; p < mp->num_planes; p++) {
- 		mp->plane_fmt[p].bytesperline = tpg_g_bytesperline(&dev->tpg, p);
-@@ -595,6 +611,8 @@ int vivid_try_fmt_vid_cap(struct file *file, void *priv,
- 		memset(pfmt[p].reserved, 0, sizeof(pfmt[p].reserved));
- 	}
- 	mp->colorspace = vivid_colorspace_cap(dev);
-+	mp->ycbcr_enc = vivid_ycbcr_enc_cap(dev);
-+	mp->quantization = vivid_quantization_cap(dev);
- 	memset(mp->reserved, 0, sizeof(mp->reserved));
- 	return 0;
- }
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
-index 16cd6d2..6bef1e6 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.c
-+++ b/drivers/media/platform/vivid/vivid-vid-common.c
-@@ -259,6 +259,8 @@ void fmt_sp2mp(const struct v4l2_format *sp_fmt, struct v4l2_format *mp_fmt)
- 	mp->pixelformat = pix->pixelformat;
- 	mp->field = pix->field;
- 	mp->colorspace = pix->colorspace;
-+	mp->ycbcr_enc = pix->ycbcr_enc;
-+	mp->quantization = pix->quantization;
- 	mp->num_planes = 1;
- 	mp->flags = pix->flags;
- 	ppix->sizeimage = pix->sizeimage;
-@@ -285,6 +287,8 @@ int fmt_sp2mp_func(struct file *file, void *priv,
- 	pix->pixelformat = mp->pixelformat;
- 	pix->field = mp->field;
- 	pix->colorspace = mp->colorspace;
-+	pix->ycbcr_enc = mp->ycbcr_enc;
-+	pix->quantization = mp->quantization;
- 	pix->sizeimage = ppix->sizeimage;
- 	pix->bytesperline = ppix->bytesperline;
- 	pix->flags = mp->flags;
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index 078bc35..ee5c399 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -259,6 +259,8 @@ void vivid_update_format_out(struct vivid_dev *dev)
- 		}
- 		break;
- 	}
-+	dev->ycbcr_enc_out = V4L2_YCBCR_ENC_DEFAULT;
-+	dev->quantization_out = V4L2_QUANTIZATION_DEFAULT;
- 	dev->compose_out = dev->sink_rect;
- 	dev->compose_bounds_out = dev->sink_rect;
- 	dev->crop_out = dev->compose_out;
-@@ -318,6 +320,8 @@ int vivid_g_fmt_vid_out(struct file *file, void *priv,
- 	mp->field        = dev->field_out;
- 	mp->pixelformat  = dev->fmt_out->fourcc;
- 	mp->colorspace   = dev->colorspace_out;
-+	mp->ycbcr_enc    = dev->ycbcr_enc_out;
-+	mp->quantization = dev->quantization_out;
- 	mp->num_planes = dev->fmt_out->planes;
- 	for (p = 0; p < mp->num_planes; p++) {
- 		mp->plane_fmt[p].bytesperline = dev->bytesperline_out[p];
-@@ -394,16 +398,23 @@ int vivid_try_fmt_vid_out(struct file *file, void *priv,
- 		pfmt[p].sizeimage = pfmt[p].bytesperline * mp->height;
- 		memset(pfmt[p].reserved, 0, sizeof(pfmt[p].reserved));
- 	}
--	if (vivid_is_svid_out(dev))
-+	mp->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-+	mp->quantization = V4L2_QUANTIZATION_DEFAULT;
-+	if (vivid_is_svid_out(dev)) {
- 		mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
--	else if (dev->dvi_d_out || !(bt->standards & V4L2_DV_BT_STD_CEA861))
-+	} else if (dev->dvi_d_out || !(bt->standards & V4L2_DV_BT_STD_CEA861)) {
- 		mp->colorspace = V4L2_COLORSPACE_SRGB;
--	else if (bt->width == 720 && bt->height <= 576)
-+		if (dev->dvi_d_out)
-+			mp->quantization = V4L2_QUANTIZATION_LIM_RANGE;
-+	} else if (bt->width == 720 && bt->height <= 576) {
- 		mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
--	else if (mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
--		 mp->colorspace != V4L2_COLORSPACE_REC709 &&
--		 mp->colorspace != V4L2_COLORSPACE_SRGB)
-+	} else if (mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
-+		   mp->colorspace != V4L2_COLORSPACE_REC709 &&
-+		   mp->colorspace != V4L2_COLORSPACE_ADOBERGB &&
-+		   mp->colorspace != V4L2_COLORSPACE_BT2020 &&
-+		   mp->colorspace != V4L2_COLORSPACE_SRGB) {
- 		mp->colorspace = V4L2_COLORSPACE_REC709;
-+	}
- 	memset(mp->reserved, 0, sizeof(mp->reserved));
- 	return 0;
- }
-@@ -522,6 +533,8 @@ int vivid_s_fmt_vid_out(struct file *file, void *priv,
- 
- set_colorspace:
- 	dev->colorspace_out = mp->colorspace;
-+	dev->ycbcr_enc_out = mp->ycbcr_enc;
-+	dev->quantization_out = mp->quantization;
- 	if (dev->loop_video) {
- 		vivid_send_source_change(dev, SVID);
- 		vivid_send_source_change(dev, HDMI);
+I'd say the cost is I2C register access, not so much a few lines added to
+the drivers. The functionality and behaviour between the flash controllers
+varies. They have different faults, presence of (some) faults may prevent
+strobing, some support reading the flash status and some don't.
+
+Some of the flash faults are mostly relevant in production testing, some can
+be used to find hardware issues during use (rare) and some are produced in
+common use (timeout, for instance).
+
+The V4L2 flash API defines that reading the faults clears them, but does not
+state whether presence of faults would prevent further use of the flash.
+This is flash controller chip specific.
+
+I think you *could* force a policy on the level of kernel API, for instance
+require that the user clears the faults before strobing again rather than
+relying on the chip requiring this instead.
+
+Most of the time there are no faults. When there are, they may appear at
+some point of time after the strobing, but how long? Probably roughly after
+the timeout period the flash should have faults available if there were any
+--- except if the strobe is external such as a sensor timed strobe. In that
+case the software running on the CPU has no knowledge when the flash is
+strobed nor when the faults should be read. So the requirement of checking
+the faults would probably have to be limited to software strobe only. The
+user would still have to be able to check the faults for externally strobed
+pulses. Would it be acceptable that the interface was different there?
+
+So, after the user has strobed, when the user should check the flash faults?
+After the timeout period has passed? Right before strobing again? If this
+was a requirement, it adds an additional I2C access to potentially the place
+which should absolutely have no extra delay --- the flash strobe time. This
+would be highly unwanted.
+
+The faults seldom happened in regular use, but more recent flash controllers
+have LED overtemperature or undervoltage faults, the latter of which isn't
+really a fault, but status information telling that the flash current will
+be limited. Reading the faults in this case is more important than it has
+used to be.
+
+Finally, should the LED flash class enforce such a policy, would the V4L2
+flash API which is provided to the same devices be changed as well? I'm not
+against that if we have
+
+	1) can come up with a good policy that is understood to be
+	   meaningful for all thinkable flash controller implementations and
+
+	2) agreement the behaviour can be changed.
+
+
+Btw. I think I'm slightly leaning towards liking flash faults in form of
+strings better; that's what much of the sysfs interface already uses. V4L2
+is quite a bit different from that; we have a bitmask control for faults
+with well defined meanings for the bits in the spec. The LED class API is
+much more usable from the command line, and using strings for flash faults
+is in line with that. I have no strict stance towards that however;
+hexadecimal numbers have advantages as well such as being slightly more
+practicable to check in a C program. The importance of good documentatation
+increases in that case though, and probably a header file with the bit
+definitions is needed as well.
+
 -- 
-2.1.3
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
