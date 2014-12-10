@@ -1,91 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33477 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933456AbaLCAQl (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48466 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753437AbaLJDoI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 19:16:41 -0500
-Date: Wed, 3 Dec 2014 02:16:37 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv3 2/9] v4l2-mediabus: improve colorspace support
-Message-ID: <20141203001637.GC14746@valkosipuli.retiisi.org.uk>
-References: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
- <1417424633-15781-3-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1417424633-15781-3-git-send-email-hverkuil@xs4all.nl>
+	Tue, 9 Dec 2014 22:44:08 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1CEC12A0085
+	for <linux-media@vger.kernel.org>; Wed, 10 Dec 2014 04:44:01 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141210034401.1CEC12A0085@tschai.lan>
+Date: Wed, 10 Dec 2014 04:44:01 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Mon, Dec 01, 2014 at 10:03:46AM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add and copy the new ycbcr_enc and quantization fields.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/media/v4l2-mediabus.h      | 4 ++++
->  include/uapi/linux/v4l2-mediabus.h | 6 +++++-
->  2 files changed, 9 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 59d7397..38d960d 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -94,6 +94,8 @@ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
->  	pix_fmt->height = mbus_fmt->height;
->  	pix_fmt->field = mbus_fmt->field;
->  	pix_fmt->colorspace = mbus_fmt->colorspace;
-> +	pix_fmt->ycbcr_enc = mbus_fmt->ycbcr_enc;
-> +	pix_fmt->quantization = mbus_fmt->quantization;
->  }
->  
->  static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
-> @@ -104,6 +106,8 @@ static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
->  	mbus_fmt->height = pix_fmt->height;
->  	mbus_fmt->field = pix_fmt->field;
->  	mbus_fmt->colorspace = pix_fmt->colorspace;
-> +	mbus_fmt->ycbcr_enc = pix_fmt->ycbcr_enc;
-> +	mbus_fmt->quantization = pix_fmt->quantization;
->  	mbus_fmt->code = code;
->  }
->  
-> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-> index b1934a3..5a86d8e 100644
-> --- a/include/uapi/linux/v4l2-mediabus.h
-> +++ b/include/uapi/linux/v4l2-mediabus.h
-> @@ -22,6 +22,8 @@
->   * @code:	data format code (from enum v4l2_mbus_pixelcode)
->   * @field:	used interlacing type (from enum v4l2_field)
->   * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-> + * @ycbcr_enc:	YCbCr encoding of the data (from enum v4l2_ycbcr_encoding)
-> + * @quantization: quantization of the data (from enum v4l2_quantization)
->   */
->  struct v4l2_mbus_framefmt {
->  	__u32			width;
-> @@ -29,7 +31,9 @@ struct v4l2_mbus_framefmt {
->  	__u32			code;
->  	__u32			field;
->  	__u32			colorspace;
-> -	__u32			reserved[7];
-> +	__u32			ycbcr_enc;
-> +	__u32			quantization;
-> +	__u32			reserved[5];
+Results of the daily build of media_tree:
 
-If you feel these can fit to 8 bits in planes, I would consider to use 8
-bits here as well. Adding frame descriptor support later on might eat some
-fields from here as well.
+date:		Wed Dec 10 04:00:27 CET 2014
+git branch:	test
+git hash:	71947828caef0c83d4245f7d1eaddc799b4ff1d1
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
->  };
->  
->  #ifndef __KERNEL__
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
--- 
-Kind regards,
+Detailed results are available here:
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
