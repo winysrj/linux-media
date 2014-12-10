@@ -1,198 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:51183 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754705AbaLDWkm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 17:40:42 -0500
-Date: Thu, 4 Dec 2014 22:40:14 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-kernel@vger.kernel.org, jarod@wilsonet.com,
-	gregkh@linuxfoundation.org, mahfouz.saif.elyazal@gmail.com,
-	dan.carpenter@oracle.com, tuomas.tynkkynen@iki.fi,
-	gulsah.1004@gmail.com, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH v2] staging: media: lirc: lirc_zilog.c: fix quoted
- strings split across lines
-Message-ID: <20141204224014.GA17684@biggie>
-References: <20141125203629.GA12059@biggie>
- <20141204131611.69d00ba1.m.chehab@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141204131611.69d00ba1.m.chehab@samsung.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:47007 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753089AbaLJMi7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Dec 2014 07:38:59 -0500
+Message-id: <54883EDF.2040304@samsung.com>
+Date: Wed, 10 Dec 2014 13:38:55 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v9 04/19] mfd: max77693: adjust
+ max77693_led_platform_data
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-5-git-send-email-j.anaszewski@samsung.com>
+ <20141209085047.GR3951@x1> <5486BC44.7010602@samsung.com>
+ <20141209100413.GW3951@x1> <5486CE1F.9010102@samsung.com>
+ <20141209135017.GY3951@x1> <548700DE.2050208@samsung.com>
+ <20141209144100.GA3951@x1>
+In-reply-to: <20141209144100.GA3951@x1>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 04, 2014 at 01:16:11PM -0200, Mauro Carvalho Chehab wrote:
-> Hi Luis,
-> 
-> Em Tue, 25 Nov 2014 20:36:29 +0000
-> Luis de Bethencourt <luis@debethencourt.com> escreveu:
-> 
-> > checkpatch makes an exception to the 80-colum rule for quotes strings, and
-> > Documentation/CodingStyle recommends not splitting quotes strings across lines
-> > because it breaks the ability to grep for the string. Fixing these.
-> > 
-> > WARNING: quoted string split across lines
-> > 
-> > Signed-off-by: Luis de Bethencourt <luis@debethencourt.com>
-> > ---
-> > Changes in v2:
-> > 	- As pointed out by Joe Perches I missed a space when joining a set of strings
-> > 
-> > Thanks for the review Joe
-> >  drivers/staging/media/lirc/lirc_zilog.c | 39 ++++++++++++++-------------------
-> >  1 file changed, 17 insertions(+), 22 deletions(-)
-> > 
-> > diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-> > index dca806a..a35d6f2 100644
-> > --- a/drivers/staging/media/lirc/lirc_zilog.c
-> > +++ b/drivers/staging/media/lirc/lirc_zilog.c
-> > @@ -372,14 +372,12 @@ static int add_to_buf(struct IR *ir)
-> >  					   ret);
-> >  			if (failures >= 3) {
-> >  				mutex_unlock(&ir->ir_lock);
-> > -				dev_err(ir->l.dev, "unable to read from the IR chip "
-> > -					    "after 3 resets, giving up\n");
-> > +				dev_err(ir->l.dev, "unable to read from the IR chip after 3 resets, giving up\n");
-> 
-> This patch didn't apply on my tree, as what I have there is a driver
-> custom macro. Probably I'm missing some patch (or it got merged via some
-> other tree):
+On 12/09/2014 03:41 PM, Lee Jones wrote:
+> On Tue, 09 Dec 2014, Jacek Anaszewski wrote:
+>
+>> On 12/09/2014 02:50 PM, Lee Jones wrote:
+>>> On Tue, 09 Dec 2014, Jacek Anaszewski wrote:
+>>>
+>>>> On 12/09/2014 11:04 AM, Lee Jones wrote:
+>>>>> On Tue, 09 Dec 2014, Jacek Anaszewski wrote:
+>>>>>
+>>>>>> On 12/09/2014 09:50 AM, Lee Jones wrote:
+>>>>>>> On Wed, 03 Dec 2014, Jacek Anaszewski wrote:
+>>>>>>>
+>>>>>>>> Add "label" array for Device Tree strings with the name of a LED device
+>>>>>>>> and make flash_timeout a two element array, for caching the sub-led
+>>>>>>>> related flash timeout. Added is also an array for caching pointers to the
+>>>>>>>> sub-nodes representing sub-leds.
+>>>>>>>>
+>>>>>>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>>>>>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>>>>>>> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+>>>>>>>> Cc: Lee Jones <lee.jones@linaro.org>
+>>>>>>>> ---
+>>>>>>>>   include/linux/mfd/max77693.h |    4 +++-
+>>>>>>>>   1 file changed, 3 insertions(+), 1 deletion(-)
+>>>>>>>>
+>>>>>>>> diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
+>>>>>>>> index f0b6585..c80ee99 100644
+>>>>>>>> --- a/include/linux/mfd/max77693.h
+>>>>>>>> +++ b/include/linux/mfd/max77693.h
+>>>>>>>> @@ -88,16 +88,18 @@ enum max77693_led_boost_mode {
+>>>>>>>>   };
+>>>>>>>>
+>>>>>>>>   struct max77693_led_platform_data {
+>>>>>>>> +	const char *label[2];
+>>>>>>>>   	u32 fleds[2];
+>>>>>>>>   	u32 iout_torch[2];for_each_available_child_of_node
+>>>>>>>>   	u32 iout_flash[2];
+>>>>>>>>   	u32 trigger[2];
+>>>>>>>>   	u32 trigger_type[2];
+>>>>>>>> +	u32 flash_timeout[2];
+>>>>>>>>   	u32 num_leds;
+>>>>>>>>   	u32 boost_mode;
+>>>>>>>> -	u32 flash_timeout;
+>>>>>>>>   	u32 boost_vout;
+>>>>>>>>   	u32 low_vsys;
+>>>>>>>> +	struct device_node *sub_nodes[2];
+>>>>>>>
+>>>>>>> I haven't seen anyone do this before.  Why can't you use the provided
+>>>>>>> OF functions to traverse through your tree?
+>>>>>>
+>>>>>> I use for_each_available_child_of_node when parsing DT node, but I
+>>>>>> need to cache the pointer to sub-node to be able to use it later
+>>>>>> when it needs to be passed to V4L2 sub-device which is then
+>>>>>> asynchronously matched by the phandle to sub-node.
+>>>>>>
+>>>>>> If it is not well seen to cache it in the platform data then
+>>>>>> I will find different way to accomplish this.
+>>>>>
+>>>>> I haven't seen the end-driver for this, but why can't you use that
+>>>>> device's of_node pointer?
+>>>>
+>>>> Maybe it is indeed a good idea. I could pass the of_node pointer
+>>>> and the sub-led identifier to the V4L2 sub-device and there look
+>>>> for the sub-node containing relevant identifier. The downside
+>>>> would be only that for_each_available_child_of_node would
+>>>> have to be called twice - in the led driver and in the V4L2 sub-device.
+>>>> I think that we can live with it.
+>>>
+>>> Are the LED and V4L2 drivers children of this MFD?  If so, you can use
+>>> the of_compatible attribute in struct mfd_cell to populate the each
+>>> child's of_node dynamically i.e. the MFD core will do that for you.
+>>>
+>>
+>> V4L2 driver wraps LED driver. This way the LED device can be
+>> controlled with use of two interfaces - LED subsystem sysfs
+>> and V4L2 Flash. This is the aim of the whole patch set.
+>>
+>> I've thought it over again and it seems that I will need to cache
+>> somewhere these sub_nodes pointers. They have to be easily accessible
+>> for the V4L2 sub-device as it can be asynchronously registered
+>> or unregistered within V4L2 media device. Sub-devices are matched
+>> basing on the sub-node phandle.
+>
+> Not quite getting this.  Can you explain this in another way please?
+>
 
-Hi Mauro,
+It turned out that it is possible to store the sub-node pointer in the
+struct device returned by device_create_with_groups, while creating LED
+class device. Its of_node property is uninitialized.
+Regardless of it - there will be next version of this patch.
 
-The patch is against Greg's staging-testing branch. If you want it against any
-of your branches let me know and I will fix it.
-
-> 
-> +<<<<<<<
->                                 zilog_error("unable to read from the IR chip "
->                                             "after 3 resets, giving up\n");
-> +=======
-> +                               dev_err(ir->l.dev, "unable to read from the IR chip after 3 resets, giving up\n");
-> +>>>>>>>
-> 
-> One general note about this patch: those strings are already big, so
-> the best is to put them at the beginning of the second line, aligned with
-> the parenthesis, e. g:
-> 				dev_err(ir->l.dev,
-> 					"unable to read from the IR chip after 3 resets, giving up\n");
-> 
-> Ok, on some, the second line will still violate the 80-cols max, but
-> on others it may actually fit. So, better to do the same thing along
-> the entire driver, as it makes easier to read it if all similar lines
-> use the same criteria.
-
-I just sent two patches. The first one changes the original patch to follow the
-format you suggest here. The second one changes the rest of the driver to be
-consisent with this.
-
-Thanks a lot for the review :)
-Luis
-
-> 
-> Regards,
-> Mauro.
-> 
-> >  				break;
-> >  			}
-> >  
-> >  			/* Looks like the chip crashed, reset it */
-> > -			dev_err(ir->l.dev, "polling the IR receiver chip failed, "
-> > -				    "trying reset\n");
-> > +			dev_err(ir->l.dev, "polling the IR receiver chip failed, trying reset\n");
-> >  
-> >  			set_current_state(TASK_UNINTERRUPTIBLE);
-> >  			if (kthread_should_stop()) {
-> > @@ -405,8 +403,8 @@ static int add_to_buf(struct IR *ir)
-> >  		ret = i2c_master_recv(rx->c, keybuf, sizeof(keybuf));
-> >  		mutex_unlock(&ir->ir_lock);
-> >  		if (ret != sizeof(keybuf)) {
-> > -			dev_err(ir->l.dev, "i2c_master_recv failed with %d -- "
-> > -				    "keeping last read buffer\n", ret);
-> > +			dev_err(ir->l.dev, "i2c_master_recv failed with %d -- keeping last read buffer\n",
-> > +				    ret);
-> >  		} else {
-> >  			rx->b[0] = keybuf[3];
-> >  			rx->b[1] = keybuf[4];
-> > @@ -713,8 +711,8 @@ static int send_boot_data(struct IR_tx *tx)
-> >  				       buf[0]);
-> >  		return 0;
-> >  	}
-> > -	dev_notice(tx->ir->l.dev, "Zilog/Hauppauge IR blaster firmware version "
-> > -		     "%d.%d.%d loaded\n", buf[1], buf[2], buf[3]);
-> > +	dev_notice(tx->ir->l.dev, "Zilog/Hauppauge IR blaster firmware version %d.%d.%d loaded\n",
-> > +		     buf[1], buf[2], buf[3]);
-> >  
-> >  	return 0;
-> >  }
-> > @@ -794,8 +792,7 @@ static int fw_load(struct IR_tx *tx)
-> >  	if (!read_uint8(&data, tx_data->endp, &version))
-> >  		goto corrupt;
-> >  	if (version != 1) {
-> > -		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected"
-> > -			    "1) -- please upgrade to a newer driver",
-> > +		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected 1) -- please upgrade to a newer driver",
-> >  			    version);
-> >  		fw_unload_locked();
-> >  		ret = -EFAULT;
-> > @@ -983,8 +980,8 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
-> >  	ret = get_key_data(data_block, code, key);
-> >  
-> >  	if (ret == -EPROTO) {
-> > -		dev_err(tx->ir->l.dev, "failed to get data for code %u, key %u -- check "
-> > -			    "lircd.conf entries\n", code, key);
-> > +		dev_err(tx->ir->l.dev, "failed to get data for code %u, key %u -- check lircd.conf entries\n",
-> > +			    code, key);
-> >  		return ret;
-> >  	} else if (ret != 0)
-> >  		return ret;
-> > @@ -1059,8 +1056,8 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
-> >  		ret = i2c_master_send(tx->c, buf, 1);
-> >  		if (ret == 1)
-> >  			break;
-> > -		dev_dbg(tx->ir->l.dev, "NAK expected: i2c_master_send "
-> > -			"failed with %d (try %d)\n", ret, i+1);
-> > +		dev_dbg(tx->ir->l.dev, "NAK expected: i2c_master_send failed with %d (try %d)\n",
-> > +			ret, i+1);
-> >  	}
-> >  	if (ret != 1) {
-> >  		dev_err(tx->ir->l.dev, "IR TX chip never got ready: last i2c_master_send "
-> > @@ -1167,12 +1164,10 @@ static ssize_t write(struct file *filep, const char __user *buf, size_t n,
-> >  		 */
-> >  		if (ret != 0) {
-> >  			/* Looks like the chip crashed, reset it */
-> > -			dev_err(tx->ir->l.dev, "sending to the IR transmitter chip "
-> > -				    "failed, trying reset\n");
-> > +			dev_err(tx->ir->l.dev, "sending to the IR transmitter chip failed, trying reset\n");
-> >  
-> >  			if (failures >= 3) {
-> > -				dev_err(tx->ir->l.dev, "unable to send to the IR chip "
-> > -					    "after 3 resets, giving up\n");
-> > +				dev_err(tx->ir->l.dev, "unable to send to the IR chip after 3 resets, giving up\n");
-> >  				mutex_unlock(&ir->ir_lock);
-> >  				mutex_unlock(&tx->client_lock);
-> >  				put_ir_tx(tx, false);
-> > @@ -1581,8 +1576,8 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
-> >  				       "zilog-rx-i2c-%d", adap->nr);
-> >  		if (IS_ERR(rx->task)) {
-> >  			ret = PTR_ERR(rx->task);
-> > -			dev_err(tx->ir->l.dev, "%s: could not start IR Rx polling thread"
-> > -				    "\n", __func__);
-> > +			dev_err(tx->ir->l.dev, "%s: could not start IR Rx polling thread\n",
-> > +				    __func__);
-> >  			/* Failed kthread, so put back the ir ref */
-> >  			put_ir_device(ir, true);
-> >  			/* Failure exit, so put back rx ref from i2c_client */
-> > @@ -1594,8 +1589,8 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
-> >  
-> >  		/* Proceed only if the Tx client is also ready */
-> >  		if (tx == NULL) {
-> > -			pr_info("probe of IR Rx on %s (i2c-%d) done. Waiting"
-> > -				   " on IR Tx.\n", adap->name, adap->nr);
-> > +			pr_info("probe of IR Rx on %s (i2c-%d) done. Waiting on IR Tx.\n",
-> > +				   adap->name, adap->nr);
-> >  			goto out_ok;
-> >  		}
-> >  	}
+Best Regards,
+Jacek Anaszewski
