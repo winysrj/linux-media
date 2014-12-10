@@ -1,76 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49784 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751119AbaLHUS7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 15:18:59 -0500
-Date: Mon, 8 Dec 2014 21:18:55 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	lkml <linux-kernel@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	b.zolnierkie@samsung.com, "rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC v8 02/14] Documentation: leds: Add description of LED
- Flash class extension
-Message-ID: <20141208201855.GA16648@amd>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-3-git-send-email-j.anaszewski@samsung.com>
- <20141129125832.GA315@amd>
- <547C539A.4010500@samsung.com>
- <20141201130437.GB24737@amd>
- <547C7420.4080801@samsung.com>
- <CAK5ve-KMNszyz6br_Q_dOhvk=_8ev6Uz-ZhPnYBn-ZvuohQpVA@mail.gmail.com>
- <20141206124310.GB3411@amd>
- <5485D7F8.10807@samsung.com>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:54315 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932724AbaLJWfa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Dec 2014 17:35:30 -0500
+Date: Wed, 10 Dec 2014 22:34:55 +0000
+From: Luis de Bethencourt <luis@debethencourt.com>
+To: m.chehab@samsung.com
+Cc: jarod@wilsonet.com, gregkh@linuxfoundation.org,
+	mahfouz.saif.elyazal@gmail.com, gulsah.1004@gmail.com,
+	tuomas.tynkkynen@iki.fi, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v4 2/2] staging: media: lirc: lirc_zilog.c: keep consistency
+ in dev functions
+Message-ID: <20141210223454.GA9518@biggie>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <5485D7F8.10807@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 2014-12-08 17:55:20, Jacek Anaszewski wrote:
-> On 12/06/2014 01:43 PM, Pavel Machek wrote:
-> >
-> >>>The format of a sysfs attribute should be concise.
-> >>>The error codes are generic and map directly to the V4L2 Flash
-> >>>error codes.
-> >>>
-> >>
-> >>Actually I'd like to see those flash fault code defined in LED
-> >>subsystem. And V4L2 will just include LED flash header file to use it.
-> >>Because flash fault code is not for V4L2 specific but it's a feature
-> >>of LED flash devices.
-> >>
-> >>For clearing error code of flash devices, I think it depends on the
-> >>hardware. If most of our LED flash is using reading to clear error
-> >>code, we probably can make it simple as this now. But what if some
-> >>other LED flash devices are using writing to clear error code? we
-> >>should provide a API to that?
-> >
-> >Actually, we should provide API that makes sense, and that is easy to
-> >use by userspace.
-> >
-> >I believe "read" is called read because it does not change anything,
-> >and it should stay that way in /sysfs. You may want to talk to sysfs
-> >maintainers if you plan on doing another semantics.
-> 
-> How would you proceed in case of devices which clear their fault
-> register upon I2C readout (e.g. AS3645)? In this case read does have
-> a side effect. For such devices attribute semantics would have to be
-> different than for the devices which don't clear faults on readout.
+The previous patch switched some dev functions to move the string to a second
+line. Doing this for all similar functions because it makes the driver easier
+to read if all similar lines use the same criteria.
 
-No, semantics should be same for all devices.
+Signed-off-by: Luis de Bethencourt <luis@debethencourt.com>
+---
+ drivers/staging/media/lirc/lirc_zilog.c | 57 ++++++++++++++++++---------------
+ 1 file changed, 32 insertions(+), 25 deletions(-)
 
-If device clears fault register during I2C readout, kernel will simply
-gather faults in an variable, and clear them upon write to sysfs file.
-
-Best regards,
-								Pavel
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index 8814a7e..27464da 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -369,7 +369,7 @@ static int add_to_buf(struct IR *ir)
+ 		ret = i2c_master_send(rx->c, sendbuf, 1);
+ 		if (ret != 1) {
+ 			dev_err(ir->l.dev, "i2c_master_send failed with %d\n",
+-					   ret);
++				ret);
+ 			if (failures >= 3) {
+ 				mutex_unlock(&ir->ir_lock);
+ 				dev_err(ir->l.dev,
+@@ -412,8 +412,9 @@ static int add_to_buf(struct IR *ir)
+ 			rx->b[0] = keybuf[3];
+ 			rx->b[1] = keybuf[4];
+ 			rx->b[2] = keybuf[5];
+-			dev_dbg(ir->l.dev, "key (0x%02x/0x%02x)\n",
+-					   rx->b[0], rx->b[1]);
++			dev_dbg(ir->l.dev,
++				"key (0x%02x/0x%02x)\n",
++				rx->b[0], rx->b[1]);
+ 		}
+ 
+ 		/* key pressed ? */
+@@ -657,8 +658,8 @@ static int send_data_block(struct IR_tx *tx, unsigned char *data_block)
+ 		dev_dbg(tx->ir->l.dev, "%*ph", 5, buf);
+ 		ret = i2c_master_send(tx->c, buf, tosend + 1);
+ 		if (ret != tosend + 1) {
+-			dev_err(tx->ir->l.dev, "i2c_master_send failed with %d\n",
+-					       ret);
++			dev_err(tx->ir->l.dev,
++				"i2c_master_send failed with %d\n", ret);
+ 			return ret < 0 ? ret : -EFAULT;
+ 		}
+ 		i += tosend;
+@@ -711,7 +712,7 @@ static int send_boot_data(struct IR_tx *tx)
+ 	}
+ 	if ((buf[0] != 0x80) && (buf[0] != 0xa0)) {
+ 		dev_err(tx->ir->l.dev, "unexpected IR TX init response: %02x\n",
+-				       buf[0]);
++			buf[0]);
+ 		return 0;
+ 	}
+ 	dev_notice(tx->ir->l.dev,
+@@ -763,8 +764,9 @@ static int fw_load(struct IR_tx *tx)
+ 	/* Request codeset data file */
+ 	ret = request_firmware(&fw_entry, "haup-ir-blaster.bin", tx->ir->l.dev);
+ 	if (ret != 0) {
+-		dev_err(tx->ir->l.dev, "firmware haup-ir-blaster.bin not available (%d)\n",
+-			    ret);
++		dev_err(tx->ir->l.dev,
++			"firmware haup-ir-blaster.bin not available (%d)\n",
++			ret);
+ 		ret = ret < 0 ? ret : -EFAULT;
+ 		goto out;
+ 	}
+@@ -814,7 +816,7 @@ static int fw_load(struct IR_tx *tx)
+ 		goto corrupt;
+ 
+ 	dev_dbg(tx->ir->l.dev, "%u IR blaster codesets loaded\n",
+-			       tx_data->num_code_sets);
++		tx_data->num_code_sets);
+ 
+ 	tx_data->code_sets = vmalloc(
+ 		tx_data->num_code_sets * sizeof(char *));
+@@ -944,8 +946,9 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
+ 			unsigned char buf[MAX_XFER_SIZE];
+ 
+ 			if (rbuf->chunk_size > sizeof(buf)) {
+-				dev_err(ir->l.dev, "chunk_size is too big (%d)!\n",
+-					    rbuf->chunk_size);
++				dev_err(ir->l.dev,
++					"chunk_size is too big (%d)!\n",
++					rbuf->chunk_size);
+ 				ret = -EINVAL;
+ 				break;
+ 			}
+@@ -968,8 +971,8 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
+ 	put_ir_rx(rx, false);
+ 	set_current_state(TASK_RUNNING);
+ 
+-	dev_dbg(ir->l.dev, "read result = %d (%s)\n",
+-			   ret, ret ? "Error" : "OK");
++	dev_dbg(ir->l.dev, "read result = %d (%s)\n", ret,
++		ret ? "Error" : "OK");
+ 
+ 	return ret ? ret : written;
+ }
+@@ -1081,7 +1084,7 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
+ 	}
+ 	if (buf[0] != 0x80) {
+ 		dev_err(tx->ir->l.dev, "unexpected IR TX response #2: %02x\n",
+-				       buf[0]);
++			buf[0]);
+ 		return -EFAULT;
+ 	}
+ 
+@@ -1233,7 +1236,7 @@ static unsigned int poll(struct file *filep, poll_table *wait)
+ 	ret = lirc_buffer_empty(rbuf) ? 0 : (POLLIN|POLLRDNORM);
+ 
+ 	dev_dbg(ir->l.dev, "poll result = %s\n",
+-			   ret ? "POLLIN|POLLRDNORM" : "none");
++		ret ? "POLLIN|POLLRDNORM" : "none");
+ 	return ret;
+ }
+ 
+@@ -1340,7 +1343,8 @@ static int close(struct inode *node, struct file *filep)
+ 	struct IR *ir = filep->private_data;
+ 
+ 	if (ir == NULL) {
+-		dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
++		dev_err(ir->l.dev,
++			"close: no private_data attached to the file!\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -1611,13 +1615,15 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	ir->l.minor = minor; /* module option: user requested minor number */
+ 	ir->l.minor = lirc_register_driver(&ir->l);
+ 	if (ir->l.minor < 0 || ir->l.minor >= MAX_IRCTL_DEVICES) {
+-		dev_err(tx->ir->l.dev, "%s: \"minor\" must be between 0 and %d (%d)!\n",
+-			    __func__, MAX_IRCTL_DEVICES-1, ir->l.minor);
++		dev_err(tx->ir->l.dev,
++			"%s: \"minor\" must be between 0 and %d (%d)!\n",
++			__func__, MAX_IRCTL_DEVICES-1, ir->l.minor);
+ 		ret = -EBADRQC;
+ 		goto out_put_xx;
+ 	}
+-	dev_info(ir->l.dev, "IR unit on %s (i2c-%d) registered as lirc%d and ready\n",
+-		   adap->name, adap->nr, ir->l.minor);
++	dev_info(ir->l.dev,
++		 "IR unit on %s (i2c-%d) registered as lirc%d and ready\n",
++		 adap->name, adap->nr, ir->l.minor);
+ 
+ out_ok:
+ 	if (rx != NULL)
+@@ -1625,8 +1631,9 @@ out_ok:
+ 	if (tx != NULL)
+ 		put_ir_tx(tx, true);
+ 	put_ir_device(ir, true);
+-	dev_info(ir->l.dev, "probe of IR %s on %s (i2c-%d) done\n",
+-		   tx_probe ? "Tx" : "Rx", adap->name, adap->nr);
++	dev_info(ir->l.dev,
++		 "probe of IR %s on %s (i2c-%d) done\n",
++		 tx_probe ? "Tx" : "Rx", adap->name, adap->nr);
+ 	mutex_unlock(&ir_devices_lock);
+ 	return 0;
+ 
+@@ -1638,9 +1645,9 @@ out_put_xx:
+ out_put_ir:
+ 	put_ir_device(ir, true);
+ out_no_ir:
+-	dev_err(&client->dev, "%s: probing IR %s on %s (i2c-%d) failed with %d\n",
+-		    __func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr,
+-		   ret);
++	dev_err(&client->dev,
++		"%s: probing IR %s on %s (i2c-%d) failed with %d\n",
++		__func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr, ret);
+ 	mutex_unlock(&ir_devices_lock);
+ 	return ret;
+ }
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.1.3
+
