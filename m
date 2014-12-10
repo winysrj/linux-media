@@ -1,94 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:53609 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751414AbaLSU6q (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:33444 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757726AbaLJOYb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 15:58:46 -0500
-Date: Fri, 19 Dec 2014 21:58:43 +0100
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: nicolas.ferre@atmel.com, voice.shen@atmel.com,
-	plagnioj@jcrosoft.com, boris.brezillon@free-electrons.com,
-	devicetree@vger.kernel.org, robh+dt@kernel.org,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 5/7] ARM: at91: dts: sama5d3: change name of
- pinctrl_isi_{power,reset}
-Message-ID: <20141219205843.GX4885@piout.net>
-References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
- <1418892667-27428-6-git-send-email-josh.wu@atmel.com>
+	Wed, 10 Dec 2014 09:24:31 -0500
+Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id 311532A1A5B
+	for <linux-media@vger.kernel.org>; Wed, 10 Dec 2014 15:24:25 +0100 (CET)
+Message-ID: <54885751.4010704@xs4all.nl>
+Date: Wed, 10 Dec 2014 15:23:13 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1418892667-27428-6-git-send-email-josh.wu@atmel.com>
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.20] Media cleanups
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+Hi Mauro,
 
-On 18/12/2014 at 16:51:05 +0800, Josh Wu wrote :
-> For sama5d3xmb board, the pins: pinctrl_isi_{power,reset} is used to
-> power-down or reset camera sensor.
-> 
-> So we should let camera sensor instead of ISI to configure the pins.
-> This patch will change pinctrl name from pinctrl_isi_{power,reset} to
-> pinctrl_sensor_{power,reset}.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
->  arch/arm/boot/dts/sama5d3.dtsi    | 2 ++
->  arch/arm/boot/dts/sama5d3xmb.dtsi | 6 ++----
->  2 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
-> index ed734e9..ff0fa3a 100644
-> --- a/arch/arm/boot/dts/sama5d3.dtsi
-> +++ b/arch/arm/boot/dts/sama5d3.dtsi
-> @@ -214,6 +214,8 @@
->  				compatible = "atmel,at91sam9g45-isi";
->  				reg = <0xf0034000 0x4000>;
->  				interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
-> +				pinctrl-names = "default";
-> +				pinctrl-0 = <&pinctrl_isi_data_0_7>;
+This patch series contains a bunch of cleanups:
 
-This should probably not be is that patch.
+- Remove emacs editor comments throughout drivers/media
+- Switch last users of the deprecated get/set_crop pad ops to
+  get/set_selection.
+- Drop obsolete get/set_crop and the unused enum_mbus_fmt ops.
+- Small Kconfig improvement.
 
->  				clocks = <&isi_clk>;
->  				clock-names = "isi_clk";
->  				status = "disabled";
-> diff --git a/arch/arm/boot/dts/sama5d3xmb.dtsi b/arch/arm/boot/dts/sama5d3xmb.dtsi
-> index 6af1cba..0aaebc6 100644
-> --- a/arch/arm/boot/dts/sama5d3xmb.dtsi
-> +++ b/arch/arm/boot/dts/sama5d3xmb.dtsi
-> @@ -60,8 +60,6 @@
->  			};
->  
->  			isi: isi@f0034000 {
-> -				pinctrl-names = "default";
-> -				pinctrl-0 = <&pinctrl_isi_data_0_7 &pinctrl_isi_pck_as_mck &pinctrl_isi_power &pinctrl_isi_reset>;
->  			};
->  
->  			mmc1: mmc@f8000000 {
-> @@ -122,12 +120,12 @@
->  							<AT91_PIOD 31 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD31 periph B ISI_MCK */
->  					};
->  
-> -					pinctrl_isi_reset: isi_reset-0 {
-> +					pinctrl_sensor_reset: sensor_reset-0 {
->  						atmel,pins =
->  							<AT91_PIOE 24 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;   /* PE24 gpio */
->  					};
->  
-> -					pinctrl_isi_power: isi_power-0 {
-> +					pinctrl_sensor_power: sensor_power-0 {
->  						atmel,pins =
->  							<AT91_PIOE 29 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>; /* PE29 gpio */
->  					};
-> -- 
-> 1.9.1
-> 
+This used to be part of a 3.19 pull request, but that missed the
+cut, so here it is again for 3.20.
 
--- 
-Alexandre Belloni, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+Regards,
+
+	Hans
+
+The following changes since commit 71947828caef0c83d4245f7d1eaddc799b4ff1d1:
+
+  [media] mn88473: One function call less in mn88473_init() after error (2014-12-04 16:00:47 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.20b
+
+for you to fetch changes up to 5579ceff0a6e2a8a6793302409c10f5968070d6a:
+
+  media/i2c/Kconfig: drop superfluous MEDIA_CONTROLLER (2014-12-10 15:19:17 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (5):
+      media: remove emacs editor variables
+      v4l2 subdevs: replace get/set_crop by get/set_selection
+      v4l2-subdev: drop get/set_crop pad ops
+      v4l2-subdev: drop unused op enum_mbus_fmt
+      media/i2c/Kconfig: drop superfluous MEDIA_CONTROLLER
+
+ Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml  |  8 -------
+ Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml |  8 -------
+ drivers/media/common/btcx-risc.c                           |  6 -----
+ drivers/media/common/btcx-risc.h                           |  6 -----
+ drivers/media/dvb-frontends/au8522.h                       |  5 -----
+ drivers/media/dvb-frontends/lg2160.c                       |  6 -----
+ drivers/media/dvb-frontends/lgdt3305.c                     |  6 -----
+ drivers/media/dvb-frontends/lgdt330x.c                     |  6 -----
+ drivers/media/dvb-frontends/lgdt330x.h                     |  6 -----
+ drivers/media/dvb-frontends/lgdt330x_priv.h                |  6 -----
+ drivers/media/dvb-frontends/nxt200x.h                      |  6 -----
+ drivers/media/dvb-frontends/or51132.c                      |  6 -----
+ drivers/media/dvb-frontends/or51132.h                      |  6 -----
+ drivers/media/dvb-frontends/s5h1409.c                      |  6 -----
+ drivers/media/dvb-frontends/s5h1409.h                      |  5 -----
+ drivers/media/dvb-frontends/s5h1411.c                      |  5 -----
+ drivers/media/dvb-frontends/s5h1411.h                      |  5 -----
+ drivers/media/i2c/Kconfig                                  |  6 ++---
+ drivers/media/i2c/msp3400-driver.c                         |  8 -------
+ drivers/media/i2c/mt9m032.c                                | 42 ++++++++++++++++++++---------------
+ drivers/media/i2c/mt9p031.c                                | 41 +++++++++++++++++++---------------
+ drivers/media/i2c/mt9t001.c                                | 41 +++++++++++++++++++---------------
+ drivers/media/i2c/mt9v032.c                                | 43 +++++++++++++++++++----------------
+ drivers/media/i2c/s5k6aa.c                                 | 44 +++++++++++++++++++++---------------
+ drivers/media/pci/bt8xx/bt878.c                            |  6 -----
+ drivers/media/pci/bt8xx/bttv-cards.c                       |  7 ------
+ drivers/media/pci/bt8xx/bttv-driver.c                      |  6 -----
+ drivers/media/pci/bt8xx/bttv-gpio.c                        |  6 -----
+ drivers/media/pci/bt8xx/bttv-if.c                          |  6 -----
+ drivers/media/pci/bt8xx/bttv-risc.c                        |  6 -----
+ drivers/media/pci/bt8xx/bttv-vbi.c                         |  7 ------
+ drivers/media/pci/bt8xx/bttv.h                             |  5 -----
+ drivers/media/pci/bt8xx/bttvp.h                            |  6 -----
+ drivers/media/pci/cx88/cx88-core.c                         |  7 ------
+ drivers/media/pci/cx88/cx88-mpeg.c                         |  7 ------
+ drivers/media/pci/cx88/cx88-tvaudio.c                      |  7 ------
+ drivers/media/tuners/mt20xx.c                              |  8 -------
+ drivers/media/tuners/mt2131.c                              |  5 -----
+ drivers/media/tuners/mt2131.h                              |  5 -----
+ drivers/media/tuners/mt2131_priv.h                         |  5 -----
+ drivers/media/tuners/mxl5007t.c                            |  8 -------
+ drivers/media/tuners/mxl5007t.h                            |  9 --------
+ drivers/media/tuners/tda18271-fe.c                         |  8 -------
+ drivers/media/tuners/tda18271-maps.c                       |  8 -------
+ drivers/media/tuners/tda18271-priv.h                       |  8 -------
+ drivers/media/tuners/tda827x.c                             |  8 -------
+ drivers/media/tuners/tda8290.c                             |  8 -------
+ drivers/media/tuners/tda9887.c                             |  8 -------
+ drivers/media/tuners/tuner-simple.c                        |  8 -------
+ drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c              |  6 -----
+ drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h              |  6 -----
+ drivers/media/usb/dvb-usb-v2/mxl111sf-gpio.c               |  6 -----
+ drivers/media/usb/dvb-usb-v2/mxl111sf-gpio.h               |  6 -----
+ drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c                |  6 -----
+ drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.h                |  6 -----
+ drivers/media/usb/dvb-usb-v2/mxl111sf-phy.c                |  6 -----
+ drivers/media/usb/dvb-usb-v2/mxl111sf-phy.h                |  6 -----
+ drivers/media/usb/dvb-usb-v2/mxl111sf-reg.h                |  6 -----
+ drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c              |  8 -------
+ drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h              |  9 --------
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c                    |  6 -----
+ drivers/media/usb/dvb-usb-v2/mxl111sf.h                    |  6 -----
+ drivers/media/usb/dvb-usb/m920x.c                          |  5 -----
+ drivers/media/usb/pvrusb2/pvrusb2-audio.c                  | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-audio.h                  | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-context.c                | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-context.h                |  9 --------
+ drivers/media/usb/pvrusb2/pvrusb2-cs53l32a.c               | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-cs53l32a.h               | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-ctrl.c                   | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-ctrl.h                   | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c            | 12 ----------
+ drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.h            | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-debug.h                  | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-debugifc.c               | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-debugifc.h               | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-devattr.c                | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-devattr.h                | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-eeprom.c                 | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-eeprom.h                 | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-encoder.c                | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-encoder.h                | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-fx2-cmd.h                | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-hdw-internal.h           | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.h                    | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c               | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-i2c-core.h               | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-io.c                     | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-io.h                     | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-ioread.c                 | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-ioread.h                 | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-main.c                   | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-std.c                    | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-std.h                    | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-sysfs.c                  | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-sysfs.h                  | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-util.h                   | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c                   | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.h                   | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-video-v4l.c              | 11 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-video-v4l.h              | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2-wm8775.c                 | 12 ----------
+ drivers/media/usb/pvrusb2/pvrusb2-wm8775.h                 | 10 ---------
+ drivers/media/usb/pvrusb2/pvrusb2.h                        | 10 ---------
+ drivers/media/usb/usbvision/usbvision-core.c               |  8 -------
+ drivers/media/usb/usbvision/usbvision-i2c.c                |  8 -------
+ drivers/media/usb/usbvision/usbvision-video.c              |  8 -------
+ drivers/media/usb/usbvision/usbvision.h                    |  8 -------
+ drivers/media/v4l2-core/v4l2-dev.c                         |  7 ------
+ drivers/media/v4l2-core/v4l2-subdev.c                      |  8 -------
+ drivers/staging/media/davinci_vpfe/dm365_isif.c            | 69 ++++++++++++++++++++++++++++++---------------------------
+ include/media/v4l2-subdev.h                                |  6 -----
+ include/media/videobuf-dvb.h                               |  6 -----
+ 113 files changed, 159 insertions(+), 981 deletions(-)
