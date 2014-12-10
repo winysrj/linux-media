@@ -1,75 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36216 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750965AbaLEO6M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 09:58:12 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Paulo Assis <pj.assis@gmail.com>,
-	=?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
-	Grazvydas Ignotas <notasas@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
-Date: Fri, 05 Dec 2014 16:58:50 +0200
-Message-ID: <4697151.yGpSQ7NaTv@avalon>
-In-Reply-To: <20141105161147.GW3136@valkosipuli.retiisi.org.uk>
-References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com> <CAPueXH5kQG7zm3W-ghcVoq-rrqyE3rcYnfmGO+bPR=S91L3qpw@mail.gmail.com> <20141105161147.GW3136@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:45926 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750814AbaLJMUW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Dec 2014 07:20:22 -0500
+Message-id: <54883A70.7070903@samsung.com>
+Date: Wed, 10 Dec 2014 13:20:00 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Pavel Machek <pavel@ucw.cz>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH/RFC v9 06/19] DT: Add documentation for the mfd Maxim
+ max77693
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-7-git-send-email-j.anaszewski@samsung.com>
+ <20141204100706.GP14746@valkosipuli.retiisi.org.uk>
+ <54804840.4030202@samsung.com> <20141204161201.GB29080@amd>
+In-reply-to: <20141204161201.GB29080@amd>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi,
 
-On Wednesday 05 November 2014 18:11:47 Sakari Ailus wrote:
-> On Wed, Nov 05, 2014 at 10:13:45AM +0000, Paulo Assis wrote:
-> > 2014-11-04 23:32 GMT+00:00 Sakari Ailus <sakari.ailus@iki.fi>:
-> >> Sakari Ailus wrote:
-> >>> yavta does, for example, print both the monotonic timestamp from the
-> >>> buffer and the time when the buffer has been dequeued:
-> >>> 
-> >>> <URL:http://git.ideasonboard.org/yavta.git>
-> >>> 
-> >>>       $ yavta -c /dev/video0
-> >>> 
-> >>> should do it. The first timestamp is the buffer timestamp, and the
-> >>> latter is the one is taken when the buffer is dequeued (by yavta).
-> > 
-> > I've done exaclty this with guvcview, and uvcvideo timestamps are
-> > completly unreliable, in some devices they may have just a bit of
-> > jitter, but in others, values go back and forth in time, making them
-> > totally unusable.
-> > Honestly I wouldn't trust device firmware to provide correct
-> > timestamps, or at least I would have the driver perform a couple of
-> > tests to make sure these are at least reasonable: within an expected
-> > interval (maybe comparing it to a reference monotonic clock) or at the
-> > very least making sure the current frame timestamp is not lower than
-> > the previous one.
-> 
-> Using the hardware timestamps provides much better accuracy than the
-> software ones --- the real time capabilities of the USB aren't exactly the
-> same as on some other busses.
-> 
-> Freel free to try the follow-up patches; I've only compile tested them so
-> far.
-> 
-> It might be possible to add some heuristics to detect bad implementations
-> but perhaps we could simply flag them for now. If heuristics would be used,
-> then one would likely have a few bad timestamps every time the device is
-> accessed the first time anyway. Besides, the timestamp type changes as a
-> result.
-> 
-> I wonder what Laurent thinks. :-)
+On 04/12/14 17:12, Pavel Machek wrote:
+>>>> +- maxim,boost-mode :
+>>>> > >>+	In boost mode the device can produce up to 1.2A of total current
+>>>> > >>+	on both outputs. The maximum current on each output is reduced
+>>>> > >>+	to 625mA then. If there are two child led nodes defined then boost
+>>>> > >>+	is enabled by default.
+>>>> > >>+	Possible values:
+>>>> > >>+		MAX77693_LED_BOOST_OFF - no boost,
+>>>> > >>+		MAX77693_LED_BOOST_ADAPTIVE - adaptive mode,
+>>>> > >>+		MAX77693_LED_BOOST_FIXED - fixed mode.
+>>>> > >>+- maxim,boost-vout : Output voltage of the boost module in millivolts.
+>>>> > >>+- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
+>>>> > >>+	if chip estimates that system voltage could drop below this level due
+>>>> > >>+	to flash power consumption.
+>>>> > >>+
+>>>> > >>+Required properties of the LED child node:
+>>>> > >>+- label : see Documentation/devicetree/bindings/leds/common.txt
+>>>> > >>+- maxim,fled_id : Identifier of the fled output the led is connected to;
+>>> > >
+>>> > >I'm pretty sure this will be needed for about every chip that can drive
+>>> > >multiple LEDs. Shouldn't it be documented in the generic documentation?
+>> > 
+>> > OK.
+>
+> Well... "fled_id" is not exactly suitable name. On other busses, it
+> would be "reg = <1>"?
 
-I've been toying with the idea of a heuristic, but decided to delay the 
-implementation until needed. I'd like to find the root cause of the issue 
-first before deciding how to fix it.
+I think we need to clarify what the LED device node subnodes really mean.
+I thought initially they describe a physical current output of the LED
+controller, but it turns out the subnode corresponds to a LED attached
+to the LED controller.  Since a LED can be connected to multiple outputs
+of the LED controller I think 'reg' property doesn't make sense here.
 
--- 
+Then presumably we should use a property in each subnode, telling which
+LED controller outputs a LED is connected to?
+
+For instance, if we assign numbers 0, 1 to FLED1, FLED2 outputs of
+MAX77693 and there is just one LED connected to those outputs we would
+have something like:
+
+max77693: led {
+	compatible = "maxim,max77693-led";	
+	...
+	led1 {
+		maxim,fled-sources = <0 1>;
+		...
+	};
+};
+
+Feel free to propose better name for the property, I guess we need to
+avoid "maxim,current-sources" due to ambiguity of the word "current".
+
+--
 Regards,
-
-Laurent Pinchart
-
+Sylwester
