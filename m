@@ -1,95 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51497 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756629AbaLWUuc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:32 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 29/66] rtl28xxu: use platform data config for rtl2832 demod
-Date: Tue, 23 Dec 2014 22:49:22 +0200
-Message-Id: <1419367799-14263-29-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:34726 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751967AbaLJJZ1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Dec 2014 04:25:27 -0500
+Message-ID: <54881139.5030303@xs4all.nl>
+Date: Wed, 10 Dec 2014 10:24:09 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Ondrej Zary <linux@rainbow-software.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/3] Deprecate drivers
+References: <1417534833-46844-1-git-send-email-hverkuil@xs4all.nl> <201412022342.19472.linux@rainbow-software.org>
+In-Reply-To: <201412022342.19472.linux@rainbow-software.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use platform data configuration for rtl2832 demod driver. Old
-configuration are still left as it is used for rtl2832_sdr driver.
+On 12/02/14 23:42, Ondrej Zary wrote:
+> On Tuesday 02 December 2014 16:40:30 Hans Verkuil wrote:
+>> This patch series deprecates the vino/saa7191 video driver (ancient SGI
+>> Indy computer), the parallel port webcams bw-qcam, c-qcam and w9966, the
+>> ISA video capture driver pms and the USB video capture tlg2300 driver.
+>>
+>> Hardware for these devices is next to impossible to obtain, these drivers
+>> haven't seen any development in ages, they often use deprecated APIs and
+>> without hardware that's very difficult to port. And cheap alternative
+>> products are easily available today.
+> 
+> Just bought a QuickCam Pro parallel and some unknown parallel port webcam.
+> Will you accept patches? :)
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 38 +++++++++++++++++++++++++++------
- 1 file changed, 32 insertions(+), 6 deletions(-)
+OK, so there is some confusion here. You aren't offering to work on any of
+the deprecated drivers, are you?
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 3d619de..25c885f 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -637,6 +637,32 @@ err:
- 	return ret;
- }
- 
-+static const struct rtl2832_platform_data rtl2832_fc0012_platform_data = {
-+	.clk = 28800000,
-+	.tuner = TUNER_RTL2832_FC0012
-+};
-+
-+static const struct rtl2832_platform_data rtl2832_fc0013_platform_data = {
-+	.clk = 28800000,
-+	.tuner = TUNER_RTL2832_FC0013
-+};
-+
-+static const struct rtl2832_platform_data rtl2832_tua9001_platform_data = {
-+	.clk = 28800000,
-+	.tuner = TUNER_RTL2832_TUA9001,
-+};
-+
-+static const struct rtl2832_platform_data rtl2832_e4000_platform_data = {
-+	.clk = 28800000,
-+	.tuner = TUNER_RTL2832_E4000,
-+};
-+
-+static const struct rtl2832_platform_data rtl2832_r820t_platform_data = {
-+	.clk = 28800000,
-+	.tuner = TUNER_RTL2832_R820T,
-+};
-+
-+/* TODO: these are redundant information for rtl2832_sdr driver */
- static const struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
-@@ -793,24 +819,24 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	switch (priv->tuner) {
- 	case TUNER_RTL2832_FC0012:
--		pdata->config = &rtl28xxu_rtl2832_fc0012_config;
-+		*pdata = rtl2832_fc0012_platform_data;
- 		break;
- 	case TUNER_RTL2832_FC0013:
--		pdata->config = &rtl28xxu_rtl2832_fc0013_config;
-+		*pdata = rtl2832_fc0013_platform_data;
- 		break;
- 	case TUNER_RTL2832_FC2580:
- 		/* FIXME: do not abuse fc0012 settings */
--		pdata->config = &rtl28xxu_rtl2832_fc0012_config;
-+		*pdata = rtl2832_fc0012_platform_data;
- 		break;
- 	case TUNER_RTL2832_TUA9001:
--		pdata->config = &rtl28xxu_rtl2832_tua9001_config;
-+		*pdata = rtl2832_tua9001_platform_data;
- 		break;
- 	case TUNER_RTL2832_E4000:
--		pdata->config = &rtl28xxu_rtl2832_e4000_config;
-+		*pdata = rtl2832_e4000_platform_data;
- 		break;
- 	case TUNER_RTL2832_R820T:
- 	case TUNER_RTL2832_R828D:
--		pdata->config = &rtl28xxu_rtl2832_r820t_config;
-+		*pdata = rtl2832_r820t_platform_data;
- 		break;
- 	default:
- 		dev_err(&d->udev->dev, "%s: unknown tuner=%s\n",
--- 
-http://palosaari.fi/
+I'm sure you meant this email as a joke, but before the drivers are deprecated
+it is good to get that confirmed.
+
+Regards,
+
+	Hans
+
+> 
+>> So move these drivers to staging for 3.19 and plan on removing them in
+>> 3.20.
+>>
+>> Regards,
+>>
+>> 	Hans
+> 
 
