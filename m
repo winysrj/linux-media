@@ -1,178 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44975 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752711AbaLAJEW (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37582 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753017AbaLJNsW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 04:04:22 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 1/9] videodev2.h: improve colorspace support
-Date: Mon,  1 Dec 2014 10:03:45 +0100
-Message-Id: <1417424633-15781-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417424633-15781-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 10 Dec 2014 08:48:22 -0500
+Date: Wed, 10 Dec 2014 15:48:16 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH/RFC v9 19/19] leds: aat1290: add support for V4L2 Flash
+ sub-device
+Message-ID: <20141210134816.GO15559@valkosipuli.retiisi.org.uk>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-20-git-send-email-j.anaszewski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1417622814-10845-20-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Jacek,
 
-Add support for the new AdobeRGB and BT.2020 colorspaces as needed for
-HDMI 2.0.
+On Wed, Dec 03, 2014 at 05:06:54PM +0100, Jacek Anaszewski wrote:
+> Add support for V4L2 Flash sub-device to the aat1290 LED Flash class
+> driver. The support allows for V4L2 Flash sub-device to take the control
+> of the LED Flash class device.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/leds/leds-aat1290.c |   61 +++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 61 insertions(+)
+> 
+> diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
+> index 15d969b..81a8f48 100644
+> --- a/drivers/leds/leds-aat1290.c
+> +++ b/drivers/leds/leds-aat1290.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/gpio.h>
+>  #include <linux/of_gpio.h>
+>  #include <linux/of.h>
+> +#include <media/v4l2-flash.h>
+>  #include <linux/workqueue.h>
+>  
+>  #define AAT1290_MOVIE_MODE_CURRENT_ADDR	17
+> @@ -63,6 +64,7 @@ struct aat1290_led {
+>  	struct mutex lock;
+>  
+>  	struct led_classdev_flash ldev;
+> +	struct v4l2_flash *v4l2_flash;
+>  
+>  	int flen_gpio;
+>  	int en_set_gpio;
+> @@ -280,11 +282,51 @@ static void aat1290_init_flash_settings(struct aat1290_led *led,
+>  	setting->val = setting->max;
+>  }
+>  
+> +#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
+> +static void aat1290_init_v4l2_ctrl_config(struct aat1290_led_settings *s,
+> +					struct v4l2_flash_ctrl_config *config)
+> +{
+> +	struct led_flash_setting *setting;
+> +	struct v4l2_ctrl_config *c;
+> +
+> +	c = &config->intensity;
+> +	setting = &s->torch_brightness;
+> +	c->min = setting->min;
+> +	c->max = setting->max;
+> +	c->step = setting->step;
 
-Add support to specify the Y'CbCr encoding and quantization range explicitly.
+Hmm. How does the intensity get configured over the V4L2 controls? Based on
+an earlier patch, the intensity control looks very much non-linear.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/videodev2.h | 99 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 89 insertions(+), 10 deletions(-)
+> +	c->def = setting->val;
+> +
+> +	c = &config->flash_timeout;
+> +	setting = &s->flash_timeout;
+> +	c->min = setting->min;
+> +	c->max = setting->max;
+> +	c->step = setting->step;
+> +	c->def = setting->val;
+> +
+> +	config->has_external_strobe = false;
+> +}
+> +#else
+> +#define aat1290_init_v4l2_ctrl_config(s, config)
+> +#endif
+> +
+>  static const struct led_flash_ops flash_ops = {
+>  	.strobe_set = aat1290_led_flash_strobe_set,
+>  	.timeout_set = aat1290_led_flash_timeout_set,
+>  };
+>  
+> +#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
+> +static const struct v4l2_flash_ops v4l2_flash_ops = {
+> +	.external_strobe_set = NULL,
+> +};
+> +
+> +static const struct v4l2_flash_ops *get_v4l2_flash_ops(void)
+> +{
+> +	return &v4l2_flash_ops;
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 1c2f84f..ced659e 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -178,30 +178,103 @@ enum v4l2_memory {
- 
- /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
- enum v4l2_colorspace {
--	/* ITU-R 601 -- broadcast NTSC/PAL */
-+	/* SMPTE 170M: used for broadcast NTSC/PAL SDTV */
- 	V4L2_COLORSPACE_SMPTE170M     = 1,
- 
--	/* 1125-Line (US) HDTV */
-+	/* Obsolete pre-1998 SMPTE 240M HDTV standard, superseded by Rec 709 */
- 	V4L2_COLORSPACE_SMPTE240M     = 2,
- 
--	/* HD and modern captures. */
-+	/* Rec.709: used for HDTV */
- 	V4L2_COLORSPACE_REC709        = 3,
- 
--	/* broken BT878 extents (601, luma range 16-253 instead of 16-235) */
-+	/*
-+	 * Deprecated, do not use. No driver will ever return this. This was
-+	 * based on a misunderstanding of the bt878 datasheet.
-+	 */
- 	V4L2_COLORSPACE_BT878         = 4,
- 
--	/* These should be useful.  Assume 601 extents. */
-+	/*
-+	 * NTSC 1953 colorspace. This only makes sense when dealing with
-+	 * really, really old NTSC recordings. Superseded by SMPTE 170M.
-+	 */
- 	V4L2_COLORSPACE_470_SYSTEM_M  = 5,
-+
-+	/*
-+	 * EBU Tech 3213 PAL/SECAM colorspace. This only makes sense when
-+	 * dealing with really old PAL/SECAM recordings. Superseded by
-+	 * SMPTE 170M.
-+	 */
- 	V4L2_COLORSPACE_470_SYSTEM_BG = 6,
- 
--	/* I know there will be cameras that send this.  So, this is
--	 * unspecified chromaticities and full 0-255 on each of the
--	 * Y'CbCr components
-+	/*
-+	 * Effectively shorthand for V4L2_COLORSPACE_SRGB, V4L2_YCBCR_ENC_601
-+	 * and V4L2_QUANTIZATION_FULL_RANGE. To be used for (Motion-)JPEG.
- 	 */
- 	V4L2_COLORSPACE_JPEG          = 7,
- 
--	/* For RGB colourspaces, this is probably a good start. */
-+	/* For RGB colorspaces such as produces by most webcams. */
- 	V4L2_COLORSPACE_SRGB          = 8,
-+
-+	/* AdobeRGB colorspace */
-+	V4L2_COLORSPACE_ADOBERGB      = 9,
-+
-+	/* BT.2020 colorspace, used for UHDTV. */
-+	V4L2_COLORSPACE_BT2020        = 10,
-+};
-+
-+enum v4l2_ycbcr_encoding {
-+	/*
-+	 * Mapping of V4L2_YCBCR_ENC_DEFAULT to actual encodings for the
-+	 * various colorspaces:
-+	 *
-+	 * V4L2_COLORSPACE_SMPTE170M, V4L2_COLORSPACE_470_SYSTEM_M,
-+	 * V4L2_COLORSPACE_470_SYSTEM_BG, V4L2_COLORSPACE_ADOBERGB and
-+	 * V4L2_COLORSPACE_JPEG: V4L2_YCBCR_ENC_601
-+	 *
-+	 * V4L2_COLORSPACE_REC709: V4L2_YCBCR_ENC_709
-+	 *
-+	 * V4L2_COLORSPACE_SRGB: V4L2_YCBCR_ENC_SYCC
-+	 *
-+	 * V4L2_COLORSPACE_BT2020: V4L2_YCBCR_ENC_BT2020
-+	 *
-+	 * V4L2_COLORSPACE_SMPTE240M: V4L2_YCBCR_ENC_SMPTE240M
-+	 */
-+	V4L2_YCBCR_ENC_DEFAULT        = 0,
-+
-+	/* ITU-R 601 -- SDTV */
-+	V4L2_YCBCR_ENC_601            = 1,
-+
-+	/* Rec. 709 -- HDTV */
-+	V4L2_YCBCR_ENC_709            = 2,
-+
-+	/* ITU-R 601/EN 61966-2-4 Extended Gamut -- SDTV */
-+	V4L2_YCBCR_ENC_XV601          = 3,
-+
-+	/* Rec. 709/EN 61966-2-4 Extended Gamut -- HDTV */
-+	V4L2_YCBCR_ENC_XV709          = 4,
-+
-+	/* sYCC (Y'CbCr encoding of sRGB) */
-+	V4L2_YCBCR_ENC_SYCC           = 5,
-+
-+	/* BT.2020 Non-constant Luminance Y'CbCr */
-+	V4L2_YCBCR_ENC_BT2020         = 6,
-+
-+	/* BT.2020 Constant Luminance Y'CbcCrc */
-+	V4L2_YCBCR_ENC_BT2020_CONST_LUM = 7,
-+
-+	/* SMPTE 240M -- Obsolete HDTV */
-+	V4L2_YCBCR_ENC_SMPTE240M      = 8,
-+};
-+
-+enum v4l2_quantization {
-+	/*
-+	 * The default for R'G'B' quantization is always full range. For
-+	 * Y'CbCr the quantization is always limited range, except for
-+	 * SYCC, XV601, XV709 or JPEG: those are full range.
-+	 */
-+	V4L2_QUANTIZATION_DEFAULT     = 0,
-+	V4L2_QUANTIZATION_FULL_RANGE  = 1,
-+	V4L2_QUANTIZATION_LIM_RANGE   = 2,
- };
- 
- enum v4l2_priority {
-@@ -294,6 +367,8 @@ struct v4l2_pix_format {
- 	__u32			colorspace;	/* enum v4l2_colorspace */
- 	__u32			priv;		/* private data, depends on pixelformat */
- 	__u32			flags;		/* format flags (V4L2_PIX_FMT_FLAG_*) */
-+	__u32			ycbcr_enc;	/* enum v4l2_ycbcr_encoding */
-+	__u32			quantization;	/* enum v4l2_quantization */
- };
- 
- /*      Pixel format         FOURCC                          depth  Description  */
-@@ -1777,6 +1852,8 @@ struct v4l2_plane_pix_format {
-  * @plane_fmt:		per-plane information
-  * @num_planes:		number of planes for this format
-  * @flags:		format flags (V4L2_PIX_FMT_FLAG_*)
-+ * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
-+ * @quantization:	enum v4l2_quantization, colorspace quantization
-  */
- struct v4l2_pix_format_mplane {
- 	__u32				width;
-@@ -1788,7 +1865,9 @@ struct v4l2_pix_format_mplane {
- 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
- 	__u8				num_planes;
- 	__u8				flags;
--	__u8				reserved[10];
-+	__u8				ycbcr_enc;
-+	__u8				quantization;
-+	__u8				reserved[8];
- } __attribute__ ((packed));
- 
- /**
+You can use v4l2_flash_ops directly, no need for a function to return them.
+
+> +}
+> +#else
+> +#define get_v4l2_flash_ops() (NULL)
+> +#endif
+> +
+>  static int aat1290_led_probe(struct platform_device *pdev)
+>  {
+>  	struct device *dev = &pdev->dev;
+> @@ -292,6 +334,9 @@ static int aat1290_led_probe(struct platform_device *pdev)
+>  	struct aat1290_led *led;
+>  	struct led_classdev *led_cdev;
+>  	struct led_classdev_flash *flash;
+> +#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
+> +	struct v4l2_flash_ctrl_config v4l2_flash_config;
+> +#endif
+>  	struct aat1290_led_settings settings;
+>  	int flen_gpio, enset_gpio, ret;
+>  
+> @@ -344,6 +389,9 @@ static int aat1290_led_probe(struct platform_device *pdev)
+>  
+>  	flash->timeout = settings.flash_timeout;
+>  
+> +	/* Init V4L2 Flash controls basing on initialized settings */
+> +	aat1290_init_v4l2_ctrl_config(&settings, &v4l2_flash_config);
+> +
+>  	/* Init led class */
+>  	led_cdev = &flash->led_cdev;
+>  	led_cdev->name = led->label;
+> @@ -361,8 +409,20 @@ static int aat1290_led_probe(struct platform_device *pdev)
+>  	if (ret < 0)
+>  		goto error_gpio_en_set;
+>  
+> +	/* Create V4L2 Flash subdev. */
+> +	led->v4l2_flash = v4l2_flash_init(flash,
+> +					  get_v4l2_flash_ops(),
+> +					  dev_node,
+> +					  &v4l2_flash_config);
+
+Less newlines needed; up to you.
+
+> +	if (IS_ERR(led->v4l2_flash)) {
+> +		ret = PTR_ERR(led->v4l2_flash);
+> +		goto error_v4l2_flash_init;
+> +	}
+> +
+>  	return 0;
+>  
+> +error_v4l2_flash_init:
+> +	led_classdev_flash_unregister(flash);
+>  error_gpio_en_set:
+>  	if (gpio_is_valid(enset_gpio))
+>  		gpio_free(enset_gpio);
+> @@ -378,6 +438,7 @@ static int aat1290_led_remove(struct platform_device *pdev)
+>  {
+>  	struct aat1290_led *led = platform_get_drvdata(pdev);
+>  
+> +	v4l2_flash_release(led->v4l2_flash);
+>  	led_classdev_flash_unregister(&led->ldev);
+>  	cancel_work_sync(&led->work_brightness_set);
+>  
+
 -- 
-2.1.3
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
