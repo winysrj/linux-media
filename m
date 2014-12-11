@@ -1,115 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:60128 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754390AbaLHIM6 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46011 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757878AbaLKO4k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Dec 2014 03:12:58 -0500
-Message-ID: <1418026376.2867.3.camel@xs4all.nl>
-Subject: Re: DVBSky T980C: Si2168 fw load failed
-From: Jurgen Kramer <gtmkramer@xs4all.nl>
-To: Antti Palosaari <crope@iki.fi>
+	Thu, 11 Dec 2014 09:56:40 -0500
+Date: Thu, 11 Dec 2014 16:56:07 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Nikhil Devshatwar <nikhil.nd@ti.com>
 Cc: linux-media@vger.kernel.org
-Date: Mon, 08 Dec 2014 09:12:56 +0100
-In-Reply-To: <54855833.1050805@iki.fi>
-References: <2eea6b3b11e395b7fb238f350a804dc9.squirrel@webmail.xs4all.nl>
-			 <54834B0D.6070502@iki.fi> <1417940144.2720.1.camel@xs4all.nl>
-		 <5484692D.2020009@iki.fi> <1418024368.2867.1.camel@xs4all.nl>
-	 <54855833.1050805@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH] [media] videobuf-dma-contig: NULL check for
+ vb2_plane_cookie
+Message-ID: <20141211145606.GS15559@valkosipuli.retiisi.org.uk>
+References: <1418303242-8513-1-git-send-email-nikhil.nd@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1418303242-8513-1-git-send-email-nikhil.nd@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2014-12-08 at 09:50 +0200, Antti Palosaari wrote:
-> 
-> On 12/08/2014 09:39 AM, Jurgen Kramer wrote:
-> > On Sun, 2014-12-07 at 16:50 +0200, Antti Palosaari wrote:
-> >>
-> >> On 12/07/2014 10:15 AM, Jurgen Kramer wrote:
-> >>> On Sat, 2014-12-06 at 20:29 +0200, Antti Palosaari wrote:
-> >>>> On 12/06/2014 06:48 PM, Jurgen Kramer wrote:
-> >>>>> On my new DVBSky T980C the tuner firmware failes to load:
-> >>>>> [   51.326525] si2168 2-0064: found a 'Silicon Labs Si2168' in cold state
-> >>>>> [   51.356233] si2168 2-0064: downloading firmware from file
-> >>>>> 'dvb-demod-si2168-a30-01.fw'
-> >>>>> [   51.408166] si2168 2-0064: firmware download failed=-110
-> >>>>> [   51.415457] si2157 4-0060: found a 'Silicon Labs Si2146/2147/2148/2157/2158'
-> >>>>> in cold state
-> >>>>> [   51.521714] si2157 4-0060: downloading firmware from file
-> >>>>> 'dvb-tuner-si2158-a20-01.fw'
-> >>>>> [   52.330605] si2168 2-0064: found a 'Silicon Labs Si2168' in cold state
-> >>>>> [   52.330784] si2168 2-0064: downloading firmware from file
-> >>>>> 'dvb-demod-si2168-a30-01.fw'
-> >>>>> [   52.382145] si2168 2-0064: firmware download failed=-110
-> >>>>>
-> >>>>> 110 seems to mean connection timeout. Any pointers how to debug this further?
-> >>>>>
-> >>>>> This is with the latest media_build from linuxtv.org on 3.17.4.
-> >>>>
-> >>>> Looks like si2168 firmware failed to download, but si2157 succeeded.
-> >>>> Could you add some more time for driver timeout? Current timeout is
-> >>>> selected by trial and error, lets say it takes always max 43ms for my
-> >>>> device I coded it 50ms.
-> >>>>
-> >>>>
-> >>>> drivers/media/dvb-frontends/si2168.c
-> >>>> /* wait cmd execution terminate */
-> >>>> #define TIMEOUT 50
-> >>>>
-> >>>> change it to
-> >>>> #define TIMEOUT 500
-> >>>
-> >>> Thanks, with the larger timeout the fw load works:
-> >>>
-> >>> [   56.960982] si2168 4-0064: found a 'Silicon Labs Si2168' in cold
-> >>> state
-> >>> [   56.972650] si2168 4-0064: downloading firmware from file
-> >>> 'dvb-demod-si2168-a30-01.fw'
-> >>> [   60.103509] si2168 4-0064: found a 'Silicon Labs Si2168' in warm
-> >>> state
-> >>> [   60.110739] si2157 6-0060: found a 'Silicon Labs
-> >>> Si2146/2147/2148/2157/2158' in cold state
-> >>> [   60.123720] si2157 6-0060: downloading firmware from file
-> >>> 'dvb-tuner-si2158-a20-01.fw'
-> >>
-> >> Have to find out some suitable value. For that I need know how long it
-> >> took maximum in your case. There is already dubug printing to print
-> >> execution time of each command, but it is behind dynamic debug. Maybe
-> >> the most easiest way is change that debug line to info:
-> >> drivers/media/dvb-frontends/si2168.c
-> >> -               dev_dbg(&s->client->dev, "cmd execution took %d ms\n",
-> >> +               dev_info(&s->client->dev, "cmd execution took %d ms\n",
-> >>
-> >> and then compile and install and issue command:
-> >
-> > This gives the following results:
-> > [   50.152281] si2168 4-0064: cmd execution took 0 ms
-> > [   50.154007] si2168 4-0064: cmd execution took 1 ms
-> > [   50.154010] si2168 4-0064: found a 'Silicon Labs Si2168' in cold
-> > state
-> > [   50.181157] si2168 4-0064: downloading firmware from file
-> > 'dvb-demod-si2168-a30-01.fw'
-> > [   50.233374] si2168 4-0064: cmd execution took 52 ms
-> >
-> > [   53.300879] si2168 4-0064: cmd execution took 0 ms
-> > [   53.300880] si2168 4-0064: found a 'Silicon Labs Si2168' in warm
-> > state
-> > [   53.308282] si2157 6-0060: found a 'Silicon Labs
-> > Si2146/2147/2148/2157/2158' in cold state
-> > [   53.321085] si2157 6-0060: downloading firmware from file
-> > 'dvb-tuner-si2158-a20-01.fw'
-> > [   54.152370] si2168 4-0064: cmd execution took 1 ms
-> >
-> > So the initial timeout of 50ms is just missed. New value 60ms? or 75 to
-> > be really safe.
-> 
-> 70ms sounds nice for my me. Wanna make a patch? Or if it sounds too hard 
-> I could make it.
-No problem creating a patch (against
-git://linuxtv.org/media_tree.git ?).
-> 
-Regards,
-Jurgen
+Hi Nikhil,
 
+On Thu, Dec 11, 2014 at 06:37:22PM +0530, Nikhil Devshatwar wrote:
+> vb2_plane_cookie can return NULL if the plane no is greater than
+> total no of planes or when mem_ops are absent.
+> 
+> Add NULL check to avoid NULL pointer crash in the kernel.
+> 
+> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+> ---
+>  include/media/videobuf2-dma-contig.h |    5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
+> index 8197f87..5efc56e 100644
+> --- a/include/media/videobuf2-dma-contig.h
+> +++ b/include/media/videobuf2-dma-contig.h
+> @@ -21,7 +21,10 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
+>  {
+>  	dma_addr_t *addr = vb2_plane_cookie(vb, plane_no);
+>  
+> -	return *addr;
+> +	if (addr == NULL)
+> +		return addr;
+> +	else
+> +		return *addr;
+>  }
+>  
+>  void *vb2_dma_contig_init_ctx(struct device *dev);
 
+Should this happen? Wouldn't it be a bug somewhere, quite possibly the driver?
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
