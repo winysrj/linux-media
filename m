@@ -1,87 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:19872 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752111AbaLHLbr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 06:31:47 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<g.liakhovetski@gmx.de>, Josh Wu <josh.wu@atmel.com>,
-	<devicetree@vger.kernel.org>
-Subject: [PATCH 5/5] media: ov2640: dt: add the device tree binding document
-Date: Mon, 8 Dec 2014 19:29:07 +0800
-Message-ID: <1418038147-13221-6-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1418038147-13221-1-git-send-email-josh.wu@atmel.com>
-References: <1418038147-13221-1-git-send-email-josh.wu@atmel.com>
+Received: from smtp.codeaurora.org ([198.145.11.231]:50660 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754752AbaLKSd2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Dec 2014 13:33:28 -0500
+Message-ID: <58d5518bed6f1511e08f1a66796fa2a9.squirrel@www.codeaurora.org>
+In-Reply-To: <0dabfbb34c548337f7d1098b46e2d197.squirrel@www.codeaurora.org>
+References: <0dabfbb34c548337f7d1098b46e2d197.squirrel@www.codeaurora.org>
+Date: Thu, 11 Dec 2014 18:33:27 -0000
+Subject: Re: V4L2_MEMORY_DMABUF for video decoders
+From: vkalia@codeaurora.org
+To: hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, vrajesh@codeaurora.org,
+	sachins@codeaurora.org, apurupa@codeaurora.org
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the document for ov2640 dt.
+Hi Hans/Community
 
-Cc: devicetree@vger.kernel.org
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
-v1 -> v2:
-  1. change the compatible string to be consistent with verdor file.
-  2. change the clock and pins' name.
-  3. add missed pinctrl in example.
+Can you please help us with this query.
 
- .../devicetree/bindings/media/i2c/ov2640.txt       | 44 ++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+Thanks
+Vinay
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-new file mode 100644
-index 0000000..15be3cb
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-@@ -0,0 +1,44 @@
-+* Omnivision ov2640 CMOS sensor
-+
-+The Omnivision OV2640 sensor support multiple resolutions output, such as
-+CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
-+output format.
-+
-+Required Properties :
-+- compatible: Must be "ovti,ov2640"
-+- clocks: reference master clock, if using external fixed clock, you
-+          no need to have such property.
-+- clock-names: Must be "xvclk", it means the master clock for ov2640.
-+
-+Optional Properties:
-+- resetb-gpios: reset pin
-+- pwdn-gpios: power down pin
-+
-+The device node must contain one 'port' child node for its digital output
-+video port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+	i2c1: i2c@f0018000 {
-+		ov2640: camera@0x30 {
-+			compatible = "ovti,ov2640";
-+			reg = <0x30>;
-+
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn &pinctrl_ov2640_reset>;
-+
-+			resetb-gpios = <&pioE 24 GPIO_ACTIVE_HIGH>;
-+			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
-+
-+			clocks = <&pck1>;
-+			clock-names = "xvclk";
-+
-+			port {
-+				ov2640_0: endpoint {
-+					remote-endpoint = <&isi_0>;
-+					bus-width = <8>;
-+				};
-+			};
-+		};
-+	};
--- 
-1.9.1
+> Hi
+>
+> I am facing an issue while using videobuf2-dma-contig.c mem_ops. Following
+> is brief description of the driver architecture and the limitation. Any
+> pointers/hints are appreciated.
+>
+> Driver architecture:
+> It is a video codec driver for video decoding. It exposes two ports -
+> CAPTURE and OUTPUT. Raw bitstream buffers are queued/dequeued via OUTPUT
+> capability and YUV via CAPTURE. This driver uses vb2_qops as well as
+> vb2_mem_ops from videobuf2-dma-contig.c. Video hardware has MMU.
+>
+> V4L2 framework limitation:
+> The empty buffers are allocated by userspace and file descriptor is queued
+> to the V4L2 driver via VIDIOC_QBUF call. I am using vb2_mem_ops so the
+> buffers are mapped into video device's MMU by map_dmabuf op. Then video
+> driver sends this buffer down to hardware and hardware does the decoding
+> and writes YUV data in this buffer. This buffer is ready to be shared with
+> userspace so hardware returns this buffer back to driver. Userspace calls
+> VIDIOC_DQBUF to get the buffer but as a result the buffer is also unmapped
+> from video device's MMU. This is because DQBUF calls unmap_dmabuf op. This
+> causes problem because video device will still need this buffer so future
+> frames referencing to it can be decoded properly. Has anyone else faced
+> this problem? Is there a patch for reference counting the MMU
+> mappings/unmappings so that driver has more control over it?
+>
+> Thanks
+> Vinay
+>
+
 
