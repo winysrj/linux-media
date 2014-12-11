@@ -1,42 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38587 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750855AbaLCMau (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56443 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933557AbaLKDnV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Dec 2014 07:30:50 -0500
-Date: Wed, 3 Dec 2014 14:30:16 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v4 05/10] v4l: of: Add v4l2_of_parse_link() function
-Message-ID: <20141203123015.GG14746@valkosipuli.retiisi.org.uk>
-References: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1417464820-6718-6-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1417464820-6718-6-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 10 Dec 2014 22:43:21 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B79802A1A5B
+	for <linux-media@vger.kernel.org>; Thu, 11 Dec 2014 04:43:15 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141211034315.B79802A1A5B@tschai.lan>
+Date: Thu, 11 Dec 2014 04:43:15 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 01, 2014 at 10:13:35PM +0200, Laurent Pinchart wrote:
-> The function fills a link data structure with the device node and port
-> number at both the local and remote ends of a link defined by one of its
-> endpoint nodes.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-of.c | 61 +++++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-of.h           | 27 +++++++++++++++++
->  2 files changed, 88 insertions(+)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Results of the daily build of media_tree:
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+date:		Thu Dec 11 04:00:30 CET 2014
+git branch:	test
+git hash:	71947828caef0c83d4245f7d1eaddc799b4ff1d1
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
