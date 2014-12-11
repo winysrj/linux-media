@@ -1,111 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40894 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751542AbaLWUtI (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45429 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932802AbaLKODK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:49:08 -0500
-Date: Tue, 23 Dec 2014 21:49:04 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	bcousson@baylibre.com, sakari.ailus@iki.fi,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	j.anaszewski@samsung.com, apw@canonical.com, joe@perches.com
-Subject: Re: [PATCH] media: i2c/adp1653: devicetree support for adp1653
-Message-ID: <20141223204903.GA1780@amd>
-References: <20141203214641.GA1390@amd>
- <20141223152325.75e8cb4a@concha.lan.sisa.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141223152325.75e8cb4a@concha.lan.sisa.samsung.com>
+	Thu, 11 Dec 2014 09:03:10 -0500
+Message-ID: <1418306587.3188.13.camel@pengutronix.de>
+Subject: Re: VPU on iMX51 babbage board
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Pierluigi Passaro <pierluigi.passaro@phoenixsoftware.it>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Thu, 11 Dec 2014 15:03:07 +0100
+In-Reply-To: <CAOMZO5Deesoe61g_MzUKiUpXfjyJjVTBbogSd6bT9WA1GJ9P2Q@mail.gmail.com>
+References: <5488C10F.1040508@phoenixsoftware.it>
+	 <CAOMZO5Deesoe61g_MzUKiUpXfjyJjVTBbogSd6bT9WA1GJ9P2Q@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 2014-12-23 15:23:25, Mauro Carvalho Chehab wrote:
-> Em Wed, 3 Dec 2014 22:46:41 +0100
-> Pavel Machek <pavel@ucw.cz> escreveu:
+Am Mittwoch, den 10.12.2014, 22:04 -0200 schrieb Fabio Estevam:
+> On Wed, Dec 10, 2014 at 7:54 PM, Pierluigi Passaro
+> <pierluigi.passaro@phoenixsoftware.it> wrote:
+> > Hi all,
+> > I'm trying to use VPU code driver on iMX51 with kernel 3.18, following these
+> > steps:
+> > - disabled DVI interface
+> > - enabled LCD interface
+> > - configured and enabled VPU
+> > - copied iMX51 vpu firmware without header and renamed
+> > v4l-coda7541-imx53.bin in /lib/firmware
+> >
+> > Attached you can find the patch and the defconfig I used.
+> >
+> > The boot process hangs after loading the firmware at the first attempt of
+> > writing in VPU address space in the function coda_write of file
+> > driver/media/platform/coda/coda-common.c
+> >
+> > Is there anything preventing the coda driver to work with iMX51?
+> > Could anyone provide any suggestion on how investigate the problem?
 > 
-> > 
-> > We are moving to device tree support on OMAP3, but that currently
-> > breaks ADP1653 driver. This adds device tree support, plus required
-> > documentation.
-> > 
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> I have only tested the coda driver on mx6, but looking at the
+> mx51.dtsi you would need this:
 > 
-> Please be sure to check your patch with checkpatch. There are several
-> issues on it:
+> --- a/arch/arm/boot/dts/imx51.dtsi
+> +++ b/arch/arm/boot/dts/imx51.dtsi
+> @@ -121,6 +121,7 @@
+>          iram: iram@1ffe0000 {
+>              compatible = "mmio-sram";
+>              reg = <0x1ffe0000 0x20000>;
+> +            clocks = <&clks IMX5_CLK_OCRAM>;
+>          };
+> 
+>          ipu: ipu@40000000 {
+> @@ -584,6 +585,18 @@
+>                  clock-names = "ipg", "ahb", "ptp";
+>                  status = "disabled";
+>              };
+> +
+> +            vpu: vpu@83ff4000 {
+> +                compatible = "fsl,imx53-vpu";
 
-> WARNING: DT compatible string "adi,adp1653" appears un-documented -- check ./Documentation/devicetree/bindings/
-> #78: FILE: arch/arm/boot/dts/omap3-n900.dts:572:
-> +		compatible = "adi,adp1653";
+This should be "fsl,imx51-vpu", and add a "cnm,codahx14".
 
-Hmm. Take a look at part quoted below. Someone needs to fix
-checkpatch. Ccing authors.
+According to the old imx-vpu-lib code and the vpu_fw_imx51.bin firmware
+file, the i.MX51 has a CodaHx14 (0xF00A) as opposed to the i.MX53's
+Coda7541 (0xF012).
 
-> ERROR: trailing whitespace
-> WARNING: line over 80 characters
+> +                reg = <0x83ff4000 0x1000>;
+> +                interrupts = <9>;
+> +                clocks = <&clks IMX5_CLK_VPU_REFERENCE_GATE>,
+> +                         <&clks IMX5_CLK_VPU_GATE>;
+> +                clock-names = "per", "ahb";
+> +                resets = <&src 1>;
+> +                iram = <&iram>;
+> +            };
+>          };
+> +
+>      };
+>  };
+> 
+> Also, not  sure if all the required coda patches are available in
+> 3.18, so I tried it on linux-next 20141210 on a imx51-babbage (I had
+> to disable USB, otherwise linux-next will hang on this board):
+> 
+> [    1.368454] coda 83ff4000.vpu: Initialized CODA7541.
+> [    1.373572] coda 83ff4000.vpu: Firmware version: 1.4.50
+> [    1.396695] coda 83ff4000.vpu: codec registered as /dev/video[0-3]
+> 
+> Also, no sure if we need to distinguish mx51 versus mx53 in the coda driver.
+> 
+> Adding Philipp in case he can comment.
 
-Will fix.
+Yes, the i.MX51 and i.MX53 firmware files are different. So at least an
+entry for i.MX51 with the correct firmware file name has to be added.
 
-> ERROR: trailing statements should be on next line
-> #177: FILE: drivers/media/i2c/adp1653.c:454:
-> +	if (!child) return -EINVAL;
+regards
+Philipp
 
-I actually did these on purporse... the function is trivial, and by
-keeping returns on one line it fits into screen. I see you want it
-fixed below, so I'll do that for next version.
-
-								Pavel
-
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
-> > @@ -0,0 +1,38 @@
-> > +* Analog Devices ADP1653 flash LED driver
-> > +
-> > +Required Properties:
-> > +
-> > +  - compatible: Must contain one of the following
-> > +    - "adi,adp1653"
-> > +
-> > +  - reg: I2C slave address
-> > +
-> > +  - gpios: References to the GPIO that controls the power for the chip.
-> > +
-> > +There are two led outputs available - flash and indicator. One led is
-> > +represented by one child node, nodes need to be named "flash" and "indicator".
-> > +
-> > +Required properties of the LED child node:
-> > +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> > +
-> > +Required properties of the flash LED child node:
-> > +
-> > +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> > +- flash-timeout-microsec : see Documentation/devicetree/bindings/leds/common.txt
-> > +
-> > +Example:
-> > +
-> > +        adp1653: led-controller@30 {
-> > +                compatible = "adi,adp1653";
-> > +		reg = <0x30>;
-> > +                gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
-> > +
-> > +		flash {
-> > +                        flash-timeout-microsec = <500000>;
-> > +                        flash-max-microamp = <320000>;
-> > +                        max-microamp = <50000>;
-> > +		};
-> > +                indicator {
-> > +                        max-microamp = <17500>;
-> > +		};
-> > +        };
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
