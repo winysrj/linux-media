@@ -1,103 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:53685 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751156AbaLSVFM (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:44075 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932171AbaLKHil (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 16:05:12 -0500
-Date: Fri, 19 Dec 2014 22:05:09 +0100
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: nicolas.ferre@atmel.com, voice.shen@atmel.com,
-	plagnioj@jcrosoft.com, boris.brezillon@free-electrons.com,
-	devicetree@vger.kernel.org, robh+dt@kernel.org,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 6/7] ARM: at91: dts: sama5d3: add ov2640 camera sensor
- support
-Message-ID: <20141219210509.GC4885@piout.net>
-References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
- <1418892667-27428-7-git-send-email-josh.wu@atmel.com>
+	Thu, 11 Dec 2014 02:38:41 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <s.nawrocki@samsung.com>,
+	<festevam@gmail.com>, Josh Wu <josh.wu@atmel.com>
+Subject: [v3][PATCH 2/5] media: ov2640: add async probe function
+Date: Thu, 11 Dec 2014 15:35:36 +0800
+Message-ID: <1418283339-16281-3-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418283339-16281-1-git-send-email-josh.wu@atmel.com>
+References: <1418283339-16281-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1418892667-27428-7-git-send-email-josh.wu@atmel.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18/12/2014 at 16:51:06 +0800, Josh Wu wrote :
-> According to v4l2 dt document, we add:
->   a camera host: ISI port.
->   a i2c camera sensor: ov2640 port.
-> to sama5d3xmb.dtsi.
-> 
-> In the ov2640 node, it defines the pinctrls, clocks and isi port.
-> In the ISI node, it also reference to a ov2640 port.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
->  arch/arm/boot/dts/sama5d3xmb.dtsi | 32 ++++++++++++++++++++++++++++++++
->  1 file changed, 32 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/sama5d3xmb.dtsi b/arch/arm/boot/dts/sama5d3xmb.dtsi
-> index 0aaebc6..958a528 100644
-> --- a/arch/arm/boot/dts/sama5d3xmb.dtsi
-> +++ b/arch/arm/boot/dts/sama5d3xmb.dtsi
-> @@ -52,6 +52,29 @@
->  				};
->  			};
->  
-> +			i2c1: i2c@f0018000 {
-> +				ov2640: camera@0x30 {
-> +					compatible = "ovti,ov2640";
-> +					reg = <0x30>;
-> +					pinctrl-names = "default";
-> +					pinctrl-0 = <&pinctrl_isi_pck_as_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
+To support async probe for ov2640, we need remove the code to get 'mclk'
+in ov2640_probe() function. oterwise, if soc_camera host is not probed
+in the moment, then we will fail to get 'mclk' and quit the ov2640_probe()
+function.
 
-I've acked your previous patch but maybe it should be named
-pinctrl_isi_pck1_as_mck to be clearer (you used the handle to pck1
-below).
+So in this patch, we move such 'mclk' getting code to ov2640_s_power()
+function. That make ov2640 survive, as we can pass a NULL (priv-clk) to
+soc_camera_set_power() function.
 
-> +					resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
-> +					pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
-> +					/* use pck1 for the master clock of ov2640 */
-> +					clocks = <&pck1>;
-> +					clock-names = "xvclk";
-> +					assigned-clocks = <&pck1>;
-> +					assigned-clock-rates = <25000000>;
-> +
-> +					port {
-> +						ov2640_0: endpoint {
-> +							remote-endpoint = <&isi_0>;
-> +							bus-width = <8>;
-> +						};
-> +					};
-> +				};
-> +			};
-> +
->  			usart1: serial@f0020000 {
->  				dmas = <0>, <0>;	/*  Do not use DMA for usart1 */
->  				pinctrl-names = "default";
-> @@ -60,6 +83,15 @@
->  			};
->  
->  			isi: isi@f0034000 {
-> +				port {
-> +					#address-cells = <1>;
-> +					#size-cells = <0>;
-> +
-> +					isi_0: endpoint {
-> +						remote-endpoint = <&ov2640_0>;
-> +						bus-width = <8>;
-> +					};
-> +				};
->  			};
->  
->  			mmc1: mmc@f8000000 {
-> -- 
-> 1.9.1
-> 
+And if soc_camera host is probed, the when ov2640_s_power() is called,
+then we can get the 'mclk' and that make us enable/disable soc_camera
+host's clock as well.
 
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+v2 -> v3:
+v1 -> v2:
+  no changes.
+
+ drivers/media/i2c/soc_camera/ov2640.c | 31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+index 1fdce2f..9ee910d 100644
+--- a/drivers/media/i2c/soc_camera/ov2640.c
++++ b/drivers/media/i2c/soc_camera/ov2640.c
+@@ -739,6 +739,15 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct ov2640_priv *priv = to_ov2640(client);
++	struct v4l2_clk *clk;
++
++	if (!priv->clk) {
++		clk = v4l2_clk_get(&client->dev, "mclk");
++		if (IS_ERR(clk))
++			dev_warn(&client->dev, "Cannot get the mclk. maybe soc-camera host is not probed yet.\n");
++		else
++			priv->clk = clk;
++	}
+ 
+ 	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
+ }
+@@ -1078,21 +1087,21 @@ static int ov2640_probe(struct i2c_client *client,
+ 	if (priv->hdl.error)
+ 		return priv->hdl.error;
+ 
+-	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+-	if (IS_ERR(priv->clk)) {
+-		ret = PTR_ERR(priv->clk);
+-		goto eclkget;
+-	}
+-
+ 	ret = ov2640_video_probe(client);
+ 	if (ret) {
+-		v4l2_clk_put(priv->clk);
+-eclkget:
+-		v4l2_ctrl_handler_free(&priv->hdl);
++		goto evideoprobe;
+ 	} else {
+ 		dev_info(&adapter->dev, "OV2640 Probed\n");
+ 	}
+ 
++	ret = v4l2_async_register_subdev(&priv->subdev);
++	if (ret < 0)
++		goto evideoprobe;
++
++	return 0;
++
++evideoprobe:
++	v4l2_ctrl_handler_free(&priv->hdl);
+ 	return ret;
+ }
+ 
+@@ -1100,7 +1109,9 @@ static int ov2640_remove(struct i2c_client *client)
+ {
+ 	struct ov2640_priv       *priv = to_ov2640(client);
+ 
+-	v4l2_clk_put(priv->clk);
++	v4l2_async_unregister_subdev(&priv->subdev);
++	if (priv->clk)
++		v4l2_clk_put(priv->clk);
+ 	v4l2_device_unregister_subdev(&priv->subdev);
+ 	v4l2_ctrl_handler_free(&priv->hdl);
+ 	return 0;
 -- 
-Alexandre Belloni, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+1.9.1
+
