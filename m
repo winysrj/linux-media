@@ -1,68 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46204 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751562AbaLNI3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Dec 2014 03:29:49 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 10/18] rtl2830: implement DVBv5 signal strength statistics
-Date: Sun, 14 Dec 2014 10:28:35 +0200
-Message-Id: <1418545723-9536-10-git-send-email-crope@iki.fi>
-In-Reply-To: <1418545723-9536-1-git-send-email-crope@iki.fi>
-References: <1418545723-9536-1-git-send-email-crope@iki.fi>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:44556 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964878AbaLKHl2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Dec 2014 02:41:28 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <s.nawrocki@samsung.com>,
+	<festevam@gmail.com>, Josh Wu <josh.wu@atmel.com>,
+	<devicetree@vger.kernel.org>
+Subject: [v3][PATCH 5/5] media: ov2640: dt: add the device tree binding document
+Date: Thu, 11 Dec 2014 15:35:39 +0800
+Message-ID: <1418283339-16281-6-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418283339-16281-1-git-send-email-josh.wu@atmel.com>
+References: <1418283339-16281-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Estimate signal strength from IF AGC.
+Add the document for ov2640 dt.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- drivers/media/dvb-frontends/rtl2830.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+v2 -> v3:
+  1. fix incorrect description.
+  2. Add assigned-clocks & assigned-clock-rates.
+  3. resetb pin should be ACTIVE_LOW.
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index c484634..641047b 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -246,6 +246,8 @@ static int rtl2830_init(struct dvb_frontend *fe)
- 		goto err;
- 
- 	/* init stats here in order signal app which stats are supported */
-+	c->strength.len = 1;
-+	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	c->cnr.len = 1;
- 	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	/* start statistics polling */
-@@ -693,6 +695,28 @@ static void rtl2830_stat_work(struct work_struct *work)
- 
- 	dev_dbg(&client->dev, "\n");
- 
-+	/* signal strength */
-+	if (dev->fe_status & FE_HAS_SIGNAL) {
-+		struct {signed int x:14; } s;
+v1 -> v2:
+  1. change the compatible string to be consistent with verdor file.
+  2. change the clock and pins' name.
+  3. add missed pinctrl in example.
+
+ .../devicetree/bindings/media/i2c/ov2640.txt       | 53 ++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+new file mode 100644
+index 0000000..958e120
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+@@ -0,0 +1,53 @@
++* Omnivision ov2640 CMOS sensor
 +
-+		/* read IF AGC */
-+		ret = rtl2830_rd_regs(client, 0x359, buf, 2);
-+		if (ret)
-+			goto err;
++The Omnivision OV2640 sensor support multiple resolutions output, such as
++CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
++output format.
 +
-+		u16tmp = buf[0] << 8 | buf[1] << 0;
-+		u16tmp &= 0x3fff; /* [13:0] */
-+		tmp = s.x = u16tmp; /* 14-bit bin to 2 complement */
-+		u16tmp = clamp_val(-4 * tmp + 32767, 0x0000, 0xffff);
++Required Properties:
++- compatible: Must be "ovti,ov2640"
++- clocks: reference to the xvclk input clock. It can be an external fixed
++          clock or a programmable clock from SoC.
++- clock-names: Must be "xvclk".
++- assigned-clocks: reference to the above 'clocks' property.
++- assigned-clock-rates: reference to the clock frequency of xvclk. Typical
++                        value is 25Mhz (25000000).
++                        This clock should only have single user. Specifying
++                        Conflicting rate configuration in multiple consumer
++                        nodes for a shared clock is forbidden.
 +
-+		dev_dbg(&client->dev, "IF AGC=%d\n", tmp);
++Optional Properties:
++- resetb-gpios: reference to the GPIO connected to the resetb pin, if any.
++- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
 +
-+		c->strength.stat[0].scale = FE_SCALE_RELATIVE;
-+		c->strength.stat[0].uvalue = u16tmp;
-+	} else {
-+		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
 +
- 	/* CNR */
- 	if (dev->fe_status & FE_HAS_VITERBI) {
- 		unsigned hierarchy, constellation;
++Example:
++
++	i2c1: i2c@f0018000 {
++		ov2640: camera@0x30 {
++			compatible = "ovti,ov2640";
++			reg = <0x30>;
++
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn &pinctrl_ov2640_resetb>;
++
++			resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
++			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
++
++			clocks = <&pck1>;
++			clock-names = "xvclk";
++
++			assigned-clocks = <&pck1>;
++			assigned-clock-rates = <25000000>;
++
++			port {
++				ov2640_0: endpoint {
++					remote-endpoint = <&isi_0>;
++					bus-width = <8>;
++				};
++			};
++		};
++	};
 -- 
-http://palosaari.fi/
+1.9.1
 
