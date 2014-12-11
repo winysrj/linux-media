@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.59.15.196]:23884 "EHLO
+Received: from mailapp01.imgtec.com ([195.59.15.196]:16426 "EHLO
 	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758819AbaLKUF6 (ORCPT
+	with ESMTP id S1758764AbaLKUF4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Dec 2014 15:05:58 -0500
+	Thu, 11 Dec 2014 15:05:56 -0500
 From: Sifan Naeem <sifan.naeem@imgtec.com>
 To: <james.hogan@imgtec.com>, <mchehab@osg.samsung.com>
 CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
 	<james.hartley@imgtec.com>, <ezequiel.garcia@imgtec.com>,
 	Sifan Naeem <sifan.naeem@imgtec.com>
-Subject: [PATCH v2 4/5] rc: img-ir: add philips rc5 decoder module
-Date: Thu, 11 Dec 2014 20:06:25 +0000
-Message-ID: <1418328386-9802-5-git-send-email-sifan.naeem@imgtec.com>
+Subject: [PATCH v2 1/5] rc: img-ir: add scancode requests to a struct
+Date: Thu, 11 Dec 2014 20:06:22 +0000
+Message-ID: <1418328386-9802-2-git-send-email-sifan.naeem@imgtec.com>
 In-Reply-To: <1418328386-9802-1-git-send-email-sifan.naeem@imgtec.com>
 References: <1418328386-9802-1-git-send-email-sifan.naeem@imgtec.com>
 MIME-Version: 1.0
@@ -19,168 +19,266 @@ Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add img-ir module for decoding Philips rc5 protocol.
-
-Changes from v1:
- * Phillips renamed to Philips
+The information being requested of hardware decode callbacks through
+the img-ir-hw scancode API is mounting up, so combine it into a struct
+which can be passed in with a single pointer rather than multiple
+pointer arguments. This allows it to be extended more easily without
+touching all the hardware decode callbacks.
 
 Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
 ---
- drivers/media/rc/img-ir/Kconfig      |    7 +++
- drivers/media/rc/img-ir/Makefile     |    1 +
- drivers/media/rc/img-ir/img-ir-hw.c  |    3 ++
- drivers/media/rc/img-ir/img-ir-hw.h  |    1 +
- drivers/media/rc/img-ir/img-ir-rc5.c |   88 ++++++++++++++++++++++++++++++++++
- 5 files changed, 100 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-rc5.c
+ drivers/media/rc/img-ir/img-ir-hw.c    |   16 +++++++++-------
+ drivers/media/rc/img-ir/img-ir-hw.h    |   16 ++++++++++++++--
+ drivers/media/rc/img-ir/img-ir-jvc.c   |    8 ++++----
+ drivers/media/rc/img-ir/img-ir-nec.c   |   24 ++++++++++++------------
+ drivers/media/rc/img-ir/img-ir-sanyo.c |    8 ++++----
+ drivers/media/rc/img-ir/img-ir-sharp.c |    8 ++++----
+ drivers/media/rc/img-ir/img-ir-sony.c  |   12 ++++++------
+ 7 files changed, 53 insertions(+), 39 deletions(-)
 
-diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
-index 580715c..b20b3e9 100644
---- a/drivers/media/rc/img-ir/Kconfig
-+++ b/drivers/media/rc/img-ir/Kconfig
-@@ -60,3 +60,10 @@ config IR_IMG_SANYO
- 	help
- 	   Say Y here to enable support for the Sanyo protocol (used by Sanyo,
- 	   Aiwa, Chinon remotes) in the ImgTec infrared decoder block.
-+
-+config IR_IMG_RC5
-+	bool "Philips RC5 protocol support"
-+	depends on IR_IMG_HW
-+	help
-+	   Say Y here to enable support for the RC5 protocol in the ImgTec
-+	   infrared decoder block.
-diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
-index 92a459d..898b1b8 100644
---- a/drivers/media/rc/img-ir/Makefile
-+++ b/drivers/media/rc/img-ir/Makefile
-@@ -6,6 +6,7 @@ img-ir-$(CONFIG_IR_IMG_JVC)	+= img-ir-jvc.o
- img-ir-$(CONFIG_IR_IMG_SONY)	+= img-ir-sony.o
- img-ir-$(CONFIG_IR_IMG_SHARP)	+= img-ir-sharp.o
- img-ir-$(CONFIG_IR_IMG_SANYO)	+= img-ir-sanyo.o
-+img-ir-$(CONFIG_IR_IMG_RC5)	+= img-ir-rc5.o
- img-ir-objs			:= $(img-ir-y)
- 
- obj-$(CONFIG_IR_IMG)		+= img-ir.o
 diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-index 5c32f05..13f0b1e 100644
+index 2fd47c9..88fada5 100644
 --- a/drivers/media/rc/img-ir/img-ir-hw.c
 +++ b/drivers/media/rc/img-ir/img-ir-hw.c
-@@ -42,6 +42,9 @@ static struct img_ir_decoder *img_ir_decoders[] = {
- #ifdef CONFIG_IR_IMG_SANYO
- 	&img_ir_sanyo,
- #endif
-+#ifdef CONFIG_IR_IMG_RC5
-+	&img_ir_rc5,
-+#endif
- 	NULL
- };
+@@ -806,20 +806,22 @@ static void img_ir_handle_data(struct img_ir_priv *priv, u32 len, u64 raw)
+ 	struct img_ir_priv_hw *hw = &priv->hw;
+ 	const struct img_ir_decoder *dec = hw->decoder;
+ 	int ret = IMG_IR_SCANCODE;
+-	u32 scancode;
+-	enum rc_type protocol = RC_TYPE_UNKNOWN;
++	struct img_ir_scancode_req request;
++
++	request.protocol = RC_TYPE_UNKNOWN;
  
+ 	if (dec->scancode)
+-		ret = dec->scancode(len, raw, &protocol, &scancode, hw->enabled_protocols);
++		ret = dec->scancode(len, raw, hw->enabled_protocols, &request);
+ 	else if (len >= 32)
+-		scancode = (u32)raw;
++		request.scancode = (u32)raw;
+ 	else if (len < 32)
+-		scancode = (u32)raw & ((1 << len)-1);
++		request.scancode = (u32)raw & ((1 << len)-1);
+ 	dev_dbg(priv->dev, "data (%u bits) = %#llx\n",
+ 		len, (unsigned long long)raw);
+ 	if (ret == IMG_IR_SCANCODE) {
+-		dev_dbg(priv->dev, "decoded scan code %#x\n", scancode);
+-		rc_keydown(hw->rdev, protocol, scancode, 0);
++		dev_dbg(priv->dev, "decoded scan code %#x\n",
++			request.scancode);
++		rc_keydown(hw->rdev, request.protocol, request.scancode, 0);
+ 		img_ir_end_repeat(priv);
+ 	} else if (ret == IMG_IR_REPEATCODE) {
+ 		if (hw->mode == IMG_IR_M_REPEATING) {
 diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
-index b31ffc9..b9e799d5 100644
+index 5c2b216..aeef3d1 100644
 --- a/drivers/media/rc/img-ir/img-ir-hw.h
 +++ b/drivers/media/rc/img-ir/img-ir-hw.h
-@@ -187,6 +187,7 @@ extern struct img_ir_decoder img_ir_jvc;
- extern struct img_ir_decoder img_ir_sony;
- extern struct img_ir_decoder img_ir_sharp;
- extern struct img_ir_decoder img_ir_sanyo;
-+extern struct img_ir_decoder img_ir_rc5;
+@@ -133,6 +133,18 @@ struct img_ir_timing_regvals {
+ #define IMG_IR_REPEATCODE	1	/* repeat the previous code */
  
  /**
-  * struct img_ir_reg_timings - Reg values for decoder timings at clock rate.
-diff --git a/drivers/media/rc/img-ir/img-ir-rc5.c b/drivers/media/rc/img-ir/img-ir-rc5.c
-new file mode 100644
-index 0000000..a8a28a3
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-rc5.c
-@@ -0,0 +1,88 @@
-+/*
-+ * ImgTec IR Decoder setup for Philips RC-5 protocol.
-+ *
-+ * Copyright 2012-2014 Imagination Technologies Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
++ * struct img_ir_scancode_req - Scancode request data.
++ * @protocol:	Protocol code of received message (defaults to
++ *		RC_TYPE_UNKNOWN).
++ * @scancode:	Scan code of received message (must be written by
++ *		handler if IMG_IR_SCANCODE is returned).
 + */
-+
-+#include "img-ir-hw.h"
-+
-+/* Convert RC5 data to a scancode */
-+static int img_ir_rc5_scancode(int len, u64 raw, u64 enabled_protocols,
-+				struct img_ir_scancode_req *request)
-+{
-+	unsigned int addr, cmd, tgl, start;
-+
-+	/* Quirk in the decoder shifts everything by 2 to the left. */
-+	raw   >>= 2;
-+
-+	start	=  (raw >> 13)	& 0x01;
-+	tgl	=  (raw >> 11)	& 0x01;
-+	addr	=  (raw >>  6)	& 0x1f;
-+	cmd	=   raw		& 0x3f;
-+	/*
-+	 * 12th bit is used to extend the command in extended RC5 and has
-+	 * no effect on standard RC5.
-+	 */
-+	cmd	+= ((raw >> 12) & 0x01) ? 0 : 0x40;
-+
-+	if (!start)
-+		return -EINVAL;
-+
-+	request->protocol = RC_TYPE_RC5;
-+	request->scancode = addr << 8 | cmd;
-+	request->toggle   = tgl;
-+	return IMG_IR_SCANCODE;
-+}
-+
-+/* Convert RC5 scancode to RC5 data filter */
-+static int img_ir_rc5_filter(const struct rc_scancode_filter *in,
-+				 struct img_ir_filter *out, u64 protocols)
-+{
-+	/* Not supported by the hw. */
-+	return -EINVAL;
-+}
-+
-+/*
-+ * RC-5 decoder
-+ * see http://www.sbprojects.com/knowledge/ir/rc5.php
-+ */
-+struct img_ir_decoder img_ir_rc5 = {
-+	.type      = RC_BIT_RC5,
-+	.control   = {
-+		.bitoriend2	= 1,
-+		.code_type	= IMG_IR_CODETYPE_BIPHASE,
-+		.decodend2	= 1,
-+	},
-+	/* main timings */
-+	.tolerance	= 16,
-+	.unit		= 888888, /* 1/36k*32=888.888microseconds */
-+	.timings	= {
-+		/* 10 symbol */
-+		.s10 = {
-+			.pulse	= { 1 },
-+			.space	= { 1 },
-+		},
-+
-+		/* 11 symbol */
-+		.s11 = {
-+			.pulse	= { 1 },
-+			.space	= { 1 },
-+		},
-+
-+		/* free time */
-+		.ft  = {
-+			.minlen = 14,
-+			.maxlen = 14,
-+			.ft_min = 5,
-+		},
-+	},
-+
-+	/* scancode logic */
-+	.scancode	= img_ir_rc5_scancode,
-+	.filter		= img_ir_rc5_filter,
++struct img_ir_scancode_req {
++	enum rc_type protocol;
++	u32 scancode;
 +};
++
++/**
+  * struct img_ir_decoder - Decoder settings for an IR protocol.
+  * @type:	Protocol types bitmap.
+  * @tolerance:	Timing tolerance as a percentage (default 10%).
+@@ -162,8 +174,8 @@ struct img_ir_decoder {
+ 	struct img_ir_control		control;
+ 
+ 	/* scancode logic */
+-	int (*scancode)(int len, u64 raw, enum rc_type *protocol,
+-			u32 *scancode, u64 enabled_protocols);
++	int (*scancode)(int len, u64 raw, u64 enabled_protocols,
++			struct img_ir_scancode_req *request);
+ 	int (*filter)(const struct rc_scancode_filter *in,
+ 		      struct img_ir_filter *out, u64 protocols);
+ };
+diff --git a/drivers/media/rc/img-ir/img-ir-jvc.c b/drivers/media/rc/img-ir/img-ir-jvc.c
+index a60dda8..d3e2fc0 100644
+--- a/drivers/media/rc/img-ir/img-ir-jvc.c
++++ b/drivers/media/rc/img-ir/img-ir-jvc.c
+@@ -12,8 +12,8 @@
+ #include "img-ir-hw.h"
+ 
+ /* Convert JVC data to a scancode */
+-static int img_ir_jvc_scancode(int len, u64 raw, enum rc_type *protocol,
+-			       u32 *scancode, u64 enabled_protocols)
++static int img_ir_jvc_scancode(int len, u64 raw, u64 enabled_protocols,
++			       struct img_ir_scancode_req *request)
+ {
+ 	unsigned int cust, data;
+ 
+@@ -23,8 +23,8 @@ static int img_ir_jvc_scancode(int len, u64 raw, enum rc_type *protocol,
+ 	cust = (raw >> 0) & 0xff;
+ 	data = (raw >> 8) & 0xff;
+ 
+-	*protocol = RC_TYPE_JVC;
+-	*scancode = cust << 8 | data;
++	request->protocol = RC_TYPE_JVC;
++	request->scancode = cust << 8 | data;
+ 	return IMG_IR_SCANCODE;
+ }
+ 
+diff --git a/drivers/media/rc/img-ir/img-ir-nec.c b/drivers/media/rc/img-ir/img-ir-nec.c
+index 7398975..27a7ea8 100644
+--- a/drivers/media/rc/img-ir/img-ir-nec.c
++++ b/drivers/media/rc/img-ir/img-ir-nec.c
+@@ -13,8 +13,8 @@
+ #include <linux/bitrev.h>
+ 
+ /* Convert NEC data to a scancode */
+-static int img_ir_nec_scancode(int len, u64 raw, enum rc_type *protocol,
+-			       u32 *scancode, u64 enabled_protocols)
++static int img_ir_nec_scancode(int len, u64 raw, u64 enabled_protocols,
++			       struct img_ir_scancode_req *request)
+ {
+ 	unsigned int addr, addr_inv, data, data_inv;
+ 	/* a repeat code has no data */
+@@ -30,23 +30,23 @@ static int img_ir_nec_scancode(int len, u64 raw, enum rc_type *protocol,
+ 	if ((data_inv ^ data) != 0xff) {
+ 		/* 32-bit NEC (used by Apple and TiVo remotes) */
+ 		/* scan encoding: as transmitted, MSBit = first received bit */
+-		*scancode = bitrev8(addr)     << 24 |
+-			    bitrev8(addr_inv) << 16 |
+-			    bitrev8(data)     <<  8 |
+-			    bitrev8(data_inv);
++		request->scancode = bitrev8(addr)     << 24 |
++				bitrev8(addr_inv) << 16 |
++				bitrev8(data)     <<  8 |
++				bitrev8(data_inv);
+ 	} else if ((addr_inv ^ addr) != 0xff) {
+ 		/* Extended NEC */
+ 		/* scan encoding: AAaaDD */
+-		*scancode = addr     << 16 |
+-			    addr_inv <<  8 |
+-			    data;
++		request->scancode = addr     << 16 |
++				addr_inv <<  8 |
++				data;
+ 	} else {
+ 		/* Normal NEC */
+ 		/* scan encoding: AADD */
+-		*scancode = addr << 8 |
+-			    data;
++		request->scancode = addr << 8 |
++				data;
+ 	}
+-	*protocol = RC_TYPE_NEC;
++	request->protocol = RC_TYPE_NEC;
+ 	return IMG_IR_SCANCODE;
+ }
+ 
+diff --git a/drivers/media/rc/img-ir/img-ir-sanyo.c b/drivers/media/rc/img-ir/img-ir-sanyo.c
+index 6b0653e..f394994 100644
+--- a/drivers/media/rc/img-ir/img-ir-sanyo.c
++++ b/drivers/media/rc/img-ir/img-ir-sanyo.c
+@@ -23,8 +23,8 @@
+ #include "img-ir-hw.h"
+ 
+ /* Convert Sanyo data to a scancode */
+-static int img_ir_sanyo_scancode(int len, u64 raw, enum rc_type *protocol,
+-				 u32 *scancode, u64 enabled_protocols)
++static int img_ir_sanyo_scancode(int len, u64 raw, u64 enabled_protocols,
++				 struct img_ir_scancode_req *request)
+ {
+ 	unsigned int addr, addr_inv, data, data_inv;
+ 	/* a repeat code has no data */
+@@ -44,8 +44,8 @@ static int img_ir_sanyo_scancode(int len, u64 raw, enum rc_type *protocol,
+ 		return -EINVAL;
+ 
+ 	/* Normal Sanyo */
+-	*protocol = RC_TYPE_SANYO;
+-	*scancode = addr << 8 | data;
++	request->protocol = RC_TYPE_SANYO;
++	request->scancode = addr << 8 | data;
+ 	return IMG_IR_SCANCODE;
+ }
+ 
+diff --git a/drivers/media/rc/img-ir/img-ir-sharp.c b/drivers/media/rc/img-ir/img-ir-sharp.c
+index 3300a38..fe5acc4 100644
+--- a/drivers/media/rc/img-ir/img-ir-sharp.c
++++ b/drivers/media/rc/img-ir/img-ir-sharp.c
+@@ -12,8 +12,8 @@
+ #include "img-ir-hw.h"
+ 
+ /* Convert Sharp data to a scancode */
+-static int img_ir_sharp_scancode(int len, u64 raw, enum rc_type *protocol,
+-				 u32 *scancode, u64 enabled_protocols)
++static int img_ir_sharp_scancode(int len, u64 raw, u64 enabled_protocols,
++				 struct img_ir_scancode_req *request)
+ {
+ 	unsigned int addr, cmd, exp, chk;
+ 
+@@ -32,8 +32,8 @@ static int img_ir_sharp_scancode(int len, u64 raw, enum rc_type *protocol,
+ 		/* probably the second half of the message */
+ 		return -EINVAL;
+ 
+-	*protocol = RC_TYPE_SHARP;
+-	*scancode = addr << 8 | cmd;
++	request->protocol = RC_TYPE_SHARP;
++	request->scancode = addr << 8 | cmd;
+ 	return IMG_IR_SCANCODE;
+ }
+ 
+diff --git a/drivers/media/rc/img-ir/img-ir-sony.c b/drivers/media/rc/img-ir/img-ir-sony.c
+index 3a0f17b..7f7375f 100644
+--- a/drivers/media/rc/img-ir/img-ir-sony.c
++++ b/drivers/media/rc/img-ir/img-ir-sony.c
+@@ -12,8 +12,8 @@
+ #include "img-ir-hw.h"
+ 
+ /* Convert Sony data to a scancode */
+-static int img_ir_sony_scancode(int len, u64 raw, enum rc_type *protocol,
+-				u32 *scancode, u64 enabled_protocols)
++static int img_ir_sony_scancode(int len, u64 raw, u64 enabled_protocols,
++				struct img_ir_scancode_req *request)
+ {
+ 	unsigned int dev, subdev, func;
+ 
+@@ -25,7 +25,7 @@ static int img_ir_sony_scancode(int len, u64 raw, enum rc_type *protocol,
+ 		raw    >>= 7;
+ 		dev    = raw & 0x1f;	/* next 5 bits */
+ 		subdev = 0;
+-		*protocol = RC_TYPE_SONY12;
++		request->protocol = RC_TYPE_SONY12;
+ 		break;
+ 	case 15:
+ 		if (!(enabled_protocols & RC_BIT_SONY15))
+@@ -34,7 +34,7 @@ static int img_ir_sony_scancode(int len, u64 raw, enum rc_type *protocol,
+ 		raw    >>= 7;
+ 		dev    = raw & 0xff;	/* next 8 bits */
+ 		subdev = 0;
+-		*protocol = RC_TYPE_SONY15;
++		request->protocol = RC_TYPE_SONY15;
+ 		break;
+ 	case 20:
+ 		if (!(enabled_protocols & RC_BIT_SONY20))
+@@ -44,12 +44,12 @@ static int img_ir_sony_scancode(int len, u64 raw, enum rc_type *protocol,
+ 		dev    = raw & 0x1f;	/* next 5 bits */
+ 		raw    >>= 5;
+ 		subdev = raw & 0xff;	/* next 8 bits */
+-		*protocol = RC_TYPE_SONY20;
++		request->protocol = RC_TYPE_SONY20;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	*scancode = dev << 16 | subdev << 8 | func;
++	request->scancode = dev << 16 | subdev << 8 | func;
+ 	return IMG_IR_SCANCODE;
+ }
+ 
 -- 
 1.7.9.5
 
