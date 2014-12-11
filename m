@@ -1,69 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33297 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753526AbaLWUu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:29 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 17/66] rtl2830: wrap DVBv5 BER to DVBv3
-Date: Tue, 23 Dec 2014 22:49:10 +0200
-Message-Id: <1419367799-14263-17-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:36118 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933125AbaLKAYS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Dec 2014 19:24:18 -0500
+Date: Thu, 11 Dec 2014 00:23:42 +0000
+From: Luis de Bethencourt <luis@debethencourt.com>
+To: m.chehab@samsung.com
+Cc: jarod@wilsonet.com, gregkh@linuxfoundation.org,
+	mahfouz.saif.elyazal@gmail.com, gulsah.1004@gmail.com,
+	tuomas.tynkkynen@iki.fi, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v5 3/3] staging: media: lirc: lirc_zilog.c: missing newline
+ in dev_err()
+Message-ID: <20141211002342.GA11173@biggie>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change legacy DVBv3 read BER to return values calculated by DVBv5
-statistics.
+Missing newline character at the end of string passed to dev_err()
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Luis de Bethencourt <luis@debethencourt.com>
 ---
- drivers/media/dvb-frontends/rtl2830.c      | 15 ++-------------
- drivers/media/dvb-frontends/rtl2830_priv.h |  1 +
- 2 files changed, 3 insertions(+), 13 deletions(-)
+ drivers/staging/media/lirc/lirc_zilog.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index a02ccdf..0112b3f 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -596,22 +596,11 @@ static int rtl2830_read_ber(struct dvb_frontend *fe, u32 *ber)
- {
- 	struct i2c_client *client = fe->demodulator_priv;
- 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
--	int ret;
--	u8 buf[2];
--
--	if (dev->sleeping)
--		return 0;
--
--	ret = rtl2830_rd_regs(client, 0x34e, buf, 2);
--	if (ret)
--		goto err;
- 
--	*ber = buf[0] << 8 | buf[1];
-+	*ber = (dev->post_bit_error - dev->post_bit_error_prev);
-+	dev->post_bit_error_prev = dev->post_bit_error;
- 
- 	return 0;
--err:
--	dev_dbg(&client->dev, "failed=%d\n", ret);
--	return ret;
- }
- 
- static int rtl2830_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
-diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
-index cdcaacf..6636834 100644
---- a/drivers/media/dvb-frontends/rtl2830_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2830_priv.h
-@@ -32,6 +32,7 @@ struct rtl2830_dev {
- 	u8 page; /* active register page */
- 	struct delayed_work stat_work;
- 	fe_status_t fe_status;
-+	u64 post_bit_error_prev; /* for old DVBv3 read_ber() calculation */
- 	u64 post_bit_error;
- 	u64 post_bit_count;
- };
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index 27464da..7def690 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -799,7 +799,7 @@ static int fw_load(struct IR_tx *tx)
+ 		goto corrupt;
+ 	if (version != 1) {
+ 		dev_err(tx->ir->l.dev,
+-			"unsupported code set file version (%u, expected 1) -- please upgrade to a newer driver",
++			"unsupported code set file version (%u, expected 1) -- please upgrade to a newer driver\n",
+ 			version);
+ 		fw_unload_locked();
+ 		ret = -EFAULT;
 -- 
-http://palosaari.fi/
+2.1.3
 
