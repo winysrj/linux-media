@@ -1,37 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42353 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752127AbaLSK5A (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:43689 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932171AbaLKHgg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 05:57:00 -0500
-Message-ID: <1418986616.3165.60.camel@pengutronix.de>
-Subject: Re: [PATCH] coda: use VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	hverkuil@xs4all.nl, nicolas.dufresne@collabora.com
-Date: Fri, 19 Dec 2014 11:56:56 +0100
-In-Reply-To: <1418985387-16580-1-git-send-email-k.debski@samsung.com>
-References: <1418985387-16580-1-git-send-email-k.debski@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 11 Dec 2014 02:36:36 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <s.nawrocki@samsung.com>,
+	<festevam@gmail.com>, Josh Wu <josh.wu@atmel.com>
+Subject: [v3][PATCH 0/5] media: ov2640: add device tree support
+Date: Thu, 11 Dec 2014 15:35:34 +0800
+Message-ID: <1418283339-16281-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+This patch series add device tree support for ov2640. And also add
+the document for the devicetree properties.
 
-Am Freitag, den 19.12.2014, 11:36 +0100 schrieb Kamil Debski:
-> The coda driver interprets a buffer with bytesused equal to 0 as a special
-> case indicating end-of-stream. After vb2: fix bytesused == 0 handling
-> (8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
-> The VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag was added to videobuf2 to keep
-> backward compatibility.
-> 
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+v2->v3:
+  1. fix the gpiod_xxx api usage as we use reset pin as ACTIVE_LOW.
+  2. update the devicetree binding document.
 
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+v1 -> v2:
+  1.  modified the dt bindings according to Laurent's suggestion.
+  2. add a fix patch for soc_camera. Otherwise the .reset() function won't work.
 
-thanks
-Philipp
+Josh Wu (5):
+  media: soc-camera: use icd->control instead of icd->pdev for reset()
+  media: ov2640: add async probe function
+  media: ov2640: add primary dt support
+  media: ov2640: add a master clock for sensor
+  media: ov2640: dt: add the device tree binding document
+
+ .../devicetree/bindings/media/i2c/ov2640.txt       |  53 ++++++++
+ drivers/media/i2c/soc_camera/ov2640.c              | 141 ++++++++++++++++++---
+ drivers/media/platform/soc_camera/soc_camera.c     |   8 +-
+ 3 files changed, 182 insertions(+), 20 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+
+-- 
+1.9.1
 
