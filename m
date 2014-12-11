@@ -1,72 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43621 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751683AbaL3NOo (ORCPT
+Received: from mailapp01.imgtec.com ([195.59.15.196]:4800 "EHLO
+	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758696AbaLKUF4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Dec 2014 08:14:44 -0500
-Date: Tue, 30 Dec 2014 15:14:40 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ben Hutchings <ben.hutchings@codethink.co.uk>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-kernel@codethink.co.uk,
-	William Towle <william.towle@codethink.co.uk>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 2/5] media: rcar_vin: Ensure all in-flight buffers
- are returned to error state before stopping.
-Message-ID: <20141230131440.GM17565@valkosipuli.retiisi.org.uk>
-References: <1418914070.22813.13.camel@xylophone.i.decadent.org.uk>
- <1418914173.22813.15.camel@xylophone.i.decadent.org.uk>
+	Thu, 11 Dec 2014 15:05:56 -0500
+From: Sifan Naeem <sifan.naeem@imgtec.com>
+To: <james.hogan@imgtec.com>, <mchehab@osg.samsung.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<james.hartley@imgtec.com>, <ezequiel.garcia@imgtec.com>,
+	Sifan Naeem <sifan.naeem@imgtec.com>
+Subject: [PATCH v2 2/5] rc: img-ir: pass toggle bit to the rc driver
+Date: Thu, 11 Dec 2014 20:06:23 +0000
+Message-ID: <1418328386-9802-3-git-send-email-sifan.naeem@imgtec.com>
+In-Reply-To: <1418328386-9802-1-git-send-email-sifan.naeem@imgtec.com>
+References: <1418328386-9802-1-git-send-email-sifan.naeem@imgtec.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1418914173.22813.15.camel@xylophone.i.decadent.org.uk>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ben,
+Add toggle bit to struct img_ir_scancode_req so that protocols can
+provide it to img_ir_handle_data(), and pass that toggle bit up to
+rc_keydown instead of 0.
 
-On Thu, Dec 18, 2014 at 02:49:33PM +0000, Ben Hutchings wrote:
-> From: Ian Molton <ian.molton@codethink.co.uk>
-> 
-> Videobuf2 complains about buffers that are still marked ACTIVE (in use by the driver) following a call to stop_streaming().
-> 
-> This patch returns all active buffers to state ERROR prior to stopping.
-> 
-> Note: this introduces a (non fatal) race condition as the stream is not guaranteed to be stopped at this point.
-> 
-> Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c |    6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index 773de53..7069176 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -516,8 +516,14 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
->  	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
->  	struct rcar_vin_priv *priv = ici->priv;
->  	struct list_head *buf_head, *tmp;
-> +	int i;
->  
->  	spin_lock_irq(&priv->lock);
-> +
-> +	for (i = 0; i < vq->num_buffers; ++i)
-> +		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
-> +			vb2_buffer_done(vq->bufs[i], VB2_BUF_STATE_ERROR);
-> +
->  	list_for_each_safe(buf_head, tmp, &priv->capture)
->  		list_del_init(buf_head);
->  	spin_unlock_irq(&priv->lock);
+This is needed for the upcoming rc-5 and rc-6 patches.
 
-I'd use the driver's own queued buffer list to access the queued buffers,
-you alread loop over that just below your own change.
+Change from v1:
+ * Typo Corrected in the commit message.
 
+Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
+---
+ drivers/media/rc/img-ir/img-ir-hw.c |    8 +++++---
+ drivers/media/rc/img-ir/img-ir-hw.h |    2 ++
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index 88fada5..9cecda7 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -809,6 +809,7 @@ static void img_ir_handle_data(struct img_ir_priv *priv, u32 len, u64 raw)
+ 	struct img_ir_scancode_req request;
+ 
+ 	request.protocol = RC_TYPE_UNKNOWN;
++	request.toggle   = 0;
+ 
+ 	if (dec->scancode)
+ 		ret = dec->scancode(len, raw, hw->enabled_protocols, &request);
+@@ -819,9 +820,10 @@ static void img_ir_handle_data(struct img_ir_priv *priv, u32 len, u64 raw)
+ 	dev_dbg(priv->dev, "data (%u bits) = %#llx\n",
+ 		len, (unsigned long long)raw);
+ 	if (ret == IMG_IR_SCANCODE) {
+-		dev_dbg(priv->dev, "decoded scan code %#x\n",
+-			request.scancode);
+-		rc_keydown(hw->rdev, request.protocol, request.scancode, 0);
++		dev_dbg(priv->dev, "decoded scan code %#x, toggle %u\n",
++			request.scancode, request.toggle);
++		rc_keydown(hw->rdev, request.protocol, request.scancode,
++			   request.toggle);
+ 		img_ir_end_repeat(priv);
+ 	} else if (ret == IMG_IR_REPEATCODE) {
+ 		if (hw->mode == IMG_IR_M_REPEATING) {
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
+index aeef3d1..beac3a6 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.h
++++ b/drivers/media/rc/img-ir/img-ir-hw.h
+@@ -138,10 +138,12 @@ struct img_ir_timing_regvals {
+  *		RC_TYPE_UNKNOWN).
+  * @scancode:	Scan code of received message (must be written by
+  *		handler if IMG_IR_SCANCODE is returned).
++ * @toggle:	Toggle bit (defaults to 0).
+  */
+ struct img_ir_scancode_req {
+ 	enum rc_type protocol;
+ 	u32 scancode;
++	u8 toggle;
+ };
+ 
+ /**
 -- 
-Regards,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
