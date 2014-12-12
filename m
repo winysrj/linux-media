@@ -1,60 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gproxy7-pub.mail.unifiedlayer.com ([70.40.196.235]:35699 "HELO
-	gproxy7-pub.mail.unifiedlayer.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S934117AbaLKPxi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Dec 2014 10:53:38 -0500
-Date: Thu, 11 Dec 2014 07:53:27 -0800
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-To: xorg@lists.freedesktop.org
-Cc: libv@skynet.be, mesa-dev@lists.freedesktop.org,
-	xorg-devel@lists.x.org, wayland-devel@lists.freedesktop.org,
-	mir-devel@lists.ubuntu.com, directfb-dev@directfb.org,
-	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	xorg@lists.x.org, xorg-announce@lists.freedesktop.org,
-	dri-devel@lists.freedesktop.org
-Subject: Re: FOSDEM15: Graphics DevRoom: call for speakers.
-Message-ID: <20141211075327.453bfcbf@jbarnes-hsw>
-In-Reply-To: <20141209143926.GB17341@skynet.be>
-References: <20141002174457.GA11725@skynet.be>
-	<20141209143926.GB17341@skynet.be>
+Received: from lists.s-osg.org ([54.187.51.154]:39994 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759949AbaLLP0k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Dec 2014 10:26:40 -0500
+Message-ID: <548B092F.2090803@osg.samsung.com>
+Date: Fri, 12 Dec 2014 08:26:39 -0700
+From: Shuah Khan <shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [REVIEW] au0828-video.c
+References: <548AC061.3050700@xs4all.nl> <20141212104942.0ea3c1d7@recife.lan> <548AE5B2.1070306@xs4all.nl> <20141212111424.0595125b@recife.lan>
+In-Reply-To: <20141212111424.0595125b@recife.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 9 Dec 2014 15:39:26 +0100
-Luc Verhaegen <libv@skynet.be> wrote:
+On 12/12/2014 06:14 AM, Mauro Carvalho Chehab wrote:
+> Em Fri, 12 Dec 2014 13:55:14 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 12/12/2014 01:49 PM, Mauro Carvalho Chehab wrote:
+>>> Em Fri, 12 Dec 2014 11:16:01 +0100
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>
+>>>> Hi Shuah,
+>>>>
+>>>> This is the video.c review with your patch applied.
+>>>>
+>>>>> /*
+>>>>>  * Auvitek AU0828 USB Bridge (Analog video support)
+>>>>>  *
+>>>>>  * Copyright (C) 2009 Devin Heitmueller <dheitmueller@linuxtv.org>
+>>>>>  * Copyright (C) 2005-2008 Auvitek International, Ltd.
+>>>>>  *
+>>>>>  * This program is free software; you can redistribute it and/or
+>>>>>  * modify it under the terms of the GNU General Public License
+>>>>>  * As published by the Free Software Foundation; either version 2
+>>>>>  * of the License, or (at your option) any later version.
+>>>>>  *
+>>>>>  * This program is distributed in the hope that it will be useful,
+>>>>>  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>>>>  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>>>>  * GNU General Public License for more details.
+>>>>>  *
+>>>>>  * You should have received a copy of the GNU General Public License
+>>>>>  * along with this program; if not, write to the Free Software
+>>>>>  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+>>>>>  * 02110-1301, USA.
+>>>>>  */
+>>>>>
+>>>>> /* Developer Notes:
+>>>>>  *
+>>>>>  * VBI support is not yet working
+>>>>
+>>>> I'll see if I can get this to work quickly. If not, then we should
+>>>> probably just strip the VBI support from this driver. It's pointless to
+>>>> have non-functioning VBI support.
+>>>
+>>> This is a left-over. VBI support works on this driver. I tested.
+>>
+>> Oh wait, now I get it. You are only capturing line 21, not the whole vbi area.
+>> That's why vbi_height = 1. Never mind then. Although that comment should indeed
+>> be removed.
 
-> On Thu, Oct 02, 2014 at 07:44:57PM +0200, Luc Verhaegen wrote:
-> > Hi,
-> > 
-> > At FOSDEM on the 31st of january and the 1st of February 2015, there 
-> > will be another graphics DevRoom. URL: https://fosdem.org/2015/
-> 
-> > Slots will be handed out on a first come, first serve basis. The best 
-> > slots will go to those who apply the earliest. The amount of slots is 
-> > currently not known yet, but i expect there to be around 16 available (8 
-> > on each day), so act quickly.
-> 
-> > As for deadlines, i hope to have a pretty much complete schedule between 
-> > christmas and the new year. The rockhard printed schedule deadline is 
-> > probably January 9th, after that you will not be featured in the booklet 
-> > and you will have a lot less visitors. I will hopefully be able to lock 
-> > down entries and descriptions after that date.
-> 
-> It's been more than 2 months since the original email, it's less than 
-> two months away from the event, and one month away from what usually is 
-> the deadline for the booklet. File your talk now, while there are still 
-> some useful slots available.
-> 
-> Also, for those who have filed already but who have left their abstracts 
-> open, please get those filed in ASAP. Your talk will be only be ordered 
-> in when at least the basics are provided.
+Want me to remove the comment with this work or as a separate patch??
 
-Hey Luc, thanks for the reminder.  I just submitted a talk myself;
-hopefully there's still room on the schedule! :)
+>>
+>>>
+>>> Probably, the patches that added VBI support forgot to remove the
+>>> above notice.
+>>>
+>>>>> /* This function ensures that video frames continue to be delivered even if
+>>>>>    the ITU-656 input isn't receiving any data (thereby preventing applications
+>>>>>    such as tvtime from hanging) */
+>>>>
+>>>> Why would tvtime be hanging? Make a separate patch that just removes all this
+>>>> timeout nonsense. If there are no frames, then tvtime (and any other app) should
+>>>> just wait for frames to arrive. And ctrl-C should always be able to break the app
+>>>> (or they can timeout themselves).
+>>>>
+>>>> It's not the driver's responsibility to do this and it only makes the code overly
+>>>> complex.
+>>>
+>>> Well, we should not cause regressions on userspace. If removing this
+>>> check will cause tvtime to hang, we should keep it.
+>>
+>> Obviously if it hangs (i.e. tvtime can't be killed anymore) it is a bug in the driver.
+>> But the driver shouldn't start generating bogus frames just because no new frames are
+>> arriving, that's just nuts.
+> 
+> If I remember the bug well, what used to happen is that tvtime would wait
+> for a certain amount of time for a frame. If nothing arrives, it stops
+> capturing.
+> 
+> The net effect is that tvtime shows no picture. This used to be so bad
+> that tvtime didn't work with vivi at all.
+> 
+> The bug used also to manifest there if lots of frames got dropped
+> when, for example, changing from one channel to another.
+> 
+> Btw, on a quick look, I'm not seeing any patch at tvtime since we took
+> it over that would be fixing it. So, it was either a VB bug or the
+> bug is still there.
+> 
+>>
+>>> Btw, the same kind of test used to be at vivi and other drivers.
+>>> I think we removed it there some time ago, so maybe either it was a
+>>> VB1 bug or this got fixed at tvtime.
+>>
+
+I take it that we decided to keep the timeout handling for now.
+
+thanks,
+-- Shuah
+
 
 -- 
-Jesse Barnes, Intel Open Source Technology Center
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Open Source Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
