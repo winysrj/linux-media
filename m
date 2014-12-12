@@ -1,68 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.neotion.com ([5.39.84.84]:54011 "EHLO mx1.neotion.com"
+Received: from mx1.redhat.com ([209.132.183.28]:42831 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751168AbaLOJW6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 04:22:58 -0500
-Received: from mail.neotion.com (21.55.7.109.rev.sfr.net [109.7.55.21])
-	by mx1.neotion.com (Postfix) with ESMTPS id 73321732D4
-	for <linux-media@vger.kernel.org>; Mon, 15 Dec 2014 10:43:52 +0100 (CET)
-Received: from smtp.neotion.int (unknown [10.140.2.203])
-	by mail.neotion.com (Postfix) with ESMTP id 0EC3024D
-	for <linux-media@vger.kernel.org>; Mon, 15 Dec 2014 10:13:35 +0100 (CET)
-Message-ID: <548EA630.3020801@neotion.com>
-Date: Mon, 15 Dec 2014 10:13:20 +0100
-From: Neil Armstrong <narmstrong@neotion.com>
-Reply-To: narmstrong@neotion.com
+	id S965849AbaLLLH4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Dec 2014 06:07:56 -0500
+Message-ID: <548ACC7E.5070507@redhat.com>
+Date: Fri, 12 Dec 2014 12:07:42 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: libucsi: dvb_id_selector_byte_000b not needed for dvb_ip_mac_notification_info
- iteration
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="wCBNlUxmWLHhw4FD1EbC65Va8OQ18nM2j"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Bastien Nocera <hadess@hadess.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Baytrail camera csi / isp support status ?
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---wCBNlUxmWLHhw4FD1EbC65Va8OQ18nM2j
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Hi All,
 
-For the dvb_ip_mac_notification_info iteration, the field dvb_id_selector=
-_byte_000b
-is only needed in the first iteration.
+A college of mine has a baytrail bases tablet:
 
-Signed-off-by: Neil Armstrong <narmstrong@neotion.com>
----
- lib/libucsi/dvb/data_broadcast_id_descriptor.h |  1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+http://www.onda-tablet.com/onda-v975w-quad-core-win-8-tablet-9-7-inch-retina-screen-ram-2gb-wifi-32gb.html
 
-diff --git a/lib/libucsi/dvb/data_broadcast_id_descriptor.h b/lib/libucsi=
-/dvb/data_broadcast_id_descriptor.h
---- a/lib/libucsi/dvb/data_broadcast_id_descriptor.h
-+++ b/lib/libucsi/dvb/data_broadcast_id_descriptor.h
-@@ -201,7 +201,6 @@
- {
-     uint8_t *end =3D (uint8_t *) d + d->platform_id_data_length;
-     uint8_t *next =3D    (uint8_t *) pos +
--            sizeof(struct dvb_id_selector_byte_000b) +
-             sizeof(struct dvb_ip_mac_notification_info);
-=20
-     if (next >=3D end)
+And he is trying to get Linux to run on it, he has things mostly
+working, but he would also like to get the cameras to work.
 
+I've found this:
 
+http://sourceforge.net/projects/e3845mipi/files/
 
---wCBNlUxmWLHhw4FD1EbC65Va8OQ18nM2j
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Which is some not so pretty code, with the usual problems of using
+custom ioctls to pass info from the statistics block of the isp
+to userspace and then let some userspace thingie (blob?) handle it.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+So I was wondering if anyone is working on proper support
+(targeting upstream) for this ? It would be nice if we could at least
+get the csi bits going, using the sensors or software auto-whitebal, etc.
+for now.
 
-iEYEARECAAYFAlSOpjAACgkQb5rmahFm9IUimACeOjVGat+2KTvYfhkU5DF3m6Gy
-9kAAoNFtSX23A0AW45YOe/lwpZl//sOr
-=SeG8
------END PGP SIGNATURE-----
+Regards,
 
---wCBNlUxmWLHhw4FD1EbC65Va8OQ18nM2j--
+Hans
