@@ -1,24 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:57042 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750862AbaLOQ3r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 11:29:47 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [yavta PATCH v2 0/3] Support data_offset and 10-bit packed raw bayer formats
-Date: Mon, 15 Dec 2014 18:26:46 +0200
-Message-Id: <1418660809-30548-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailapp01.imgtec.com ([195.59.15.196]:7633 "EHLO
+	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966556AbaLLMfi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Dec 2014 07:35:38 -0500
+From: Sifan Naeem <Sifan.Naeem@imgtec.com>
+To: James Hogan <James.Hogan@imgtec.com>,
+	"mchehab@osg.samsung.com" <mchehab@osg.samsung.com>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	James Hartley <James.Hartley@imgtec.com>,
+	Ezequiel Garcia <Ezequiel.Garcia@imgtec.com>
+Subject: RE: [PATCH 3/5] rc: img-ir: biphase enabled with workaround
+Date: Fri, 12 Dec 2014 12:35:35 +0000
+Message-ID: <A0E307549471DA4DBAF2DE2DE6CBFB7E4956495A@hhmail02.hh.imgtec.org>
+References: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com>
+ <1417707523-7730-4-git-send-email-sifan.naeem@imgtec.com>
+ <5485DD40.60500@imgtec.com>
+ <A0E307549471DA4DBAF2DE2DE6CBFB7E49564260@hhmail02.hh.imgtec.org>
+ <548AC9A4.5020802@imgtec.com>
+In-Reply-To: <548AC9A4.5020802@imgtec.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-Compared to v1, a field remaining from the single plane data_offset support
-patch has been removed. Also the kernel headers have been updated with the
-10-bit packed raw bayer pixel format definitions.
 
--- 
-Kind regards,
-Sakari
+> -----Original Message-----
+> From: James Hogan
+> Sent: 12 December 2014 10:56
+> To: Sifan Naeem; mchehab@osg.samsung.com
+> Cc: linux-kernel@vger.kernel.org; linux-media@vger.kernel.org; James
+> Hartley; Ezequiel Garcia
+> Subject: Re: [PATCH 3/5] rc: img-ir: biphase enabled with workaround
+> 
+> Hi Sifan,
+> 
+> On 11/12/14 18:54, Sifan Naeem wrote:
+> >>> +/*
+> >>> + * Timer function to re-enable the current protocol after it had
+> >>> +been
+> >>> + * cleared when invalid interrupts were generated due to a quirk in
+> >>> +the
+> >>> + * img-ir decoder.
+> >>> + */
+> >>> +static void img_ir_suspend_timer(unsigned long arg) {
+> >>> +	struct img_ir_priv *priv = (struct img_ir_priv *)arg;
+> >>> +
+> >>> +	img_ir_write(priv, IMG_IR_IRQ_CLEAR,
+> >>> +			IMG_IR_IRQ_ALL & ~IMG_IR_IRQ_EDGE);
+> >>> +
+> >>> +	/* Don't set IRQ if it has changed in a different context. */
+> >>
+> >> Should you even be clearing IRQs in that case? Maybe safer to just
+> >> treat that case as a "return immediately without touching anything" sort
+> of situation.
+> >>
+> > don't have to clear it for this work around to work, so will remove.
+> >
+> >>> +	if ((priv->hw.suspend_irqen & IMG_IR_IRQ_EDGE) ==
+> >>> +				img_ir_read(priv, IMG_IR_IRQ_ENABLE))
+> >>> +		img_ir_write(priv, IMG_IR_IRQ_ENABLE, priv-
+> >>> hw.suspend_irqen);
+> >>> +	/* enable */
+> >>> +	img_ir_write(priv, IMG_IR_CONTROL, priv->hw.reg_timings.ctrl); }
+> 
+> To clarify, I was only referring to the case where the irq mask has changed
+> unexpectedly. If it hasn't changed then it would seem to make sense to clear
+> pending interrupts (i.e. the ones we've been intentionally ignoring) before
+> re-enabling them.
+> 
+> When you say it works without, do you mean there never are pending
+> interrupts (if you don't press any other buttons on the remote)?
+> 
+Nope, with the change I submitted in v2 (removed the clearing IRQ) there are no pending interrupts at the end.
+But as before it goes through the workaround couple of times for each interrupt before settling down.
+
+Thanks,
+Sifan
+
+> Cheers
+> James
 
