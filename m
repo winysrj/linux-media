@@ -1,165 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37573 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752890AbaLUB7X (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50870 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030632AbaLLP2p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 20:59:23 -0500
-In-Reply-To: <CAFo99gYCGS7C358BgLBG+3m-tfRx9F_d=uVFS++rNBqRkhQYNA@mail.gmail.com>
-References: <1419114917-12029-1-git-send-email-rickard_strandqvist@spectrumdigital.se> <104C68D6-95CC-4268-B08D-2C48474EC09C@md.metrocast.net> <CAFo99gYCGS7C358BgLBG+3m-tfRx9F_d=uVFS++rNBqRkhQYNA@mail.gmail.com>
+	Fri, 12 Dec 2014 10:28:45 -0500
+Message-ID: <548B09A5.80506@xs4all.nl>
+Date: Fri, 12 Dec 2014 16:28:37 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain;
- charset=UTF-8
-Subject: Re: [PATCH] media: pci: cx18: cx18-alsa-mixer.c: Remove some unused functions
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sat, 20 Dec 2014 20:58:06 -0500
-To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Message-ID: <CA84B402-23C7-4D88-8AB6-DCD5DC3E5529@md.metrocast.net>
+To: Shuah Khan <shuahkh@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [REVIEW] au0828-video.c
+References: <548AC061.3050700@xs4all.nl> <20141212104942.0ea3c1d7@recife.lan> <548AE5B2.1070306@xs4all.nl> <20141212111424.0595125b@recife.lan> <548B092F.2090803@osg.samsung.com>
+In-Reply-To: <548B092F.2090803@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On December 20, 2014 8:17:05 PM EST, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se> wrote:
->2014-12-21 1:06 GMT+01:00 Andy Walls <awalls@md.metrocast.net>:
->> On December 20, 2014 5:35:17 PM EST, Rickard Strandqvist
-><rickard_strandqvist@spectrumdigital.se> wrote:
->>>Removes some functions that are not used anywhere:
->>>snd_cx18_mixer_tv_vol_get() snd_cx18_mixer_tv_vol_info()
->>>snd_cx18_mixer_tv_vol_put()
+On 12/12/2014 04:26 PM, Shuah Khan wrote:
+> On 12/12/2014 06:14 AM, Mauro Carvalho Chehab wrote:
+>> Em Fri, 12 Dec 2014 13:55:14 +0100
+>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>
+>>> On 12/12/2014 01:49 PM, Mauro Carvalho Chehab wrote:
+>>>> Em Fri, 12 Dec 2014 11:16:01 +0100
+>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>>
+>>>>> Hi Shuah,
+>>>>>
+>>>>> This is the video.c review with your patch applied.
+>>>>>
+>>>>>> /*
+>>>>>>  * Auvitek AU0828 USB Bridge (Analog video support)
+>>>>>>  *
+>>>>>>  * Copyright (C) 2009 Devin Heitmueller <dheitmueller@linuxtv.org>
+>>>>>>  * Copyright (C) 2005-2008 Auvitek International, Ltd.
+>>>>>>  *
+>>>>>>  * This program is free software; you can redistribute it and/or
+>>>>>>  * modify it under the terms of the GNU General Public License
+>>>>>>  * As published by the Free Software Foundation; either version 2
+>>>>>>  * of the License, or (at your option) any later version.
+>>>>>>  *
+>>>>>>  * This program is distributed in the hope that it will be useful,
+>>>>>>  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>>>>>  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>>>>>  * GNU General Public License for more details.
+>>>>>>  *
+>>>>>>  * You should have received a copy of the GNU General Public License
+>>>>>>  * along with this program; if not, write to the Free Software
+>>>>>>  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+>>>>>>  * 02110-1301, USA.
+>>>>>>  */
+>>>>>>
+>>>>>> /* Developer Notes:
+>>>>>>  *
+>>>>>>  * VBI support is not yet working
+>>>>>
+>>>>> I'll see if I can get this to work quickly. If not, then we should
+>>>>> probably just strip the VBI support from this driver. It's pointless to
+>>>>> have non-functioning VBI support.
+>>>>
+>>>> This is a left-over. VBI support works on this driver. I tested.
 >>>
->>>This was partially found by using a static code analysis program
->called
->>>cppcheck.
->>>
->>>Signed-off-by: Rickard Strandqvist
->>><rickard_strandqvist@spectrumdigital.se>
->>>---
->>>drivers/media/pci/cx18/cx18-alsa-mixer.c |   62
->>>------------------------------
->>> 1 file changed, 62 deletions(-)
->>>
->>>diff --git a/drivers/media/pci/cx18/cx18-alsa-mixer.c
->>>b/drivers/media/pci/cx18/cx18-alsa-mixer.c
->>>index 341bddc..e7b0a1f 100644
->>>--- a/drivers/media/pci/cx18/cx18-alsa-mixer.c
->>>+++ b/drivers/media/pci/cx18/cx18-alsa-mixer.c
->>>@@ -69,68 +69,6 @@ static inline int cx18_av_vol_to_dB(int v)
->>>       return (v >> 9) - 119;
->>> }
->>>
->>>-static int snd_cx18_mixer_tv_vol_info(struct snd_kcontrol *kcontrol,
->>>-                                    struct snd_ctl_elem_info *uinfo)
->>>-{
->>>-      uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
->>>-      uinfo->count = 1;
->>>-      /* We're already translating values, just keep this control in
->dB */
->>>-      uinfo->value.integer.min  = -96;
->>>-      uinfo->value.integer.max  =   8;
->>>-      uinfo->value.integer.step =   1;
->>>-      return 0;
->>>-}
->>>-
->>>-static int snd_cx18_mixer_tv_vol_get(struct snd_kcontrol *kctl,
->>>-                                   struct snd_ctl_elem_value *uctl)
->>>-{
->>>-      struct snd_cx18_card *cxsc = snd_kcontrol_chip(kctl);
->>>-      struct cx18 *cx = to_cx18(cxsc->v4l2_dev);
->>>-      struct v4l2_control vctrl;
->>>-      int ret;
->>>-
->>>-      vctrl.id = V4L2_CID_AUDIO_VOLUME;
->>>-      vctrl.value = dB_to_cx18_av_vol(uctl->value.integer.value[0]);
->>>-
->>>-      snd_cx18_lock(cxsc);
->>>-      ret = v4l2_subdev_call(cx->sd_av, core, g_ctrl, &vctrl);
->>>-      snd_cx18_unlock(cxsc);
->>>-
->>>-      if (!ret)
->>>-              uctl->value.integer.value[0] =
->cx18_av_vol_to_dB(vctrl.value);
->>>-      return ret;
->>>-}
->>>-
->>>-static int snd_cx18_mixer_tv_vol_put(struct snd_kcontrol *kctl,
->>>-                                   struct snd_ctl_elem_value *uctl)
->>>-{
->>>-      struct snd_cx18_card *cxsc = snd_kcontrol_chip(kctl);
->>>-      struct cx18 *cx = to_cx18(cxsc->v4l2_dev);
->>>-      struct v4l2_control vctrl;
->>>-      int ret;
->>>-
->>>-      vctrl.id = V4L2_CID_AUDIO_VOLUME;
->>>-      vctrl.value = dB_to_cx18_av_vol(uctl->value.integer.value[0]);
->>>-
->>>-      snd_cx18_lock(cxsc);
->>>-
->>>-      /* Fetch current state */
->>>-      ret = v4l2_subdev_call(cx->sd_av, core, g_ctrl, &vctrl);
->>>-
->>>-      if (ret ||
->>>-          (cx18_av_vol_to_dB(vctrl.value) !=
->uctl->value.integer.value[0]))
->>>{
->>>-
->>>-              /* Set, if needed */
->>>-              vctrl.value =
->dB_to_cx18_av_vol(uctl->value.integer.value[0]);
->>>-              ret = v4l2_subdev_call(cx->sd_av, core, s_ctrl,
->&vctrl);
->>>-              if (!ret)
->>>-                      ret = 1; /* Indicate control was changed w/o
->error */
->>>-      }
->>>-      snd_cx18_unlock(cxsc);
->>>-
->>>-      return ret;
->>>-}
->>>-
->>>
->>>/* This is a bit of overkill, the slider is already in dB internally
->*/
->>>static DECLARE_TLV_DB_SCALE(snd_cx18_mixer_tv_vol_db_scale, -9600,
->100,
->>>0);
->>
->> Really?  Did you try to compile the file after this patch?
->>
->>
->http://git.linuxtv.org/cgit.cgi/media_tree.git/tree/drivers/media/pci/cx18/cx18-alsa-mixer.c#n143
->>
->> They are referenced later in the same file.
->>
->> This is only half a fix.
->>
->>  You can either remove the cx18-alsa-mixer.* files and from the build
->system, or even better,you can hook-up and initialize these callbacks
->with alsa so alsa mixer controls show up for cx18.  :)
->>
->
->
->
->Hi
->
->Ok sorry :-(
->
->Sure, I compile everything as allyesconfig, allmodconfig and
->allnoconfig.
->
->So snd_cx18_mixer_tv_volume_info is the same as
->snd_cx18_mixer_tv_vol_info then.
->
->Would gladly done something a little more concrete.
->But first I want to see if as I can go through all of the
->approximately 2000 functions that are not in use.
->
->
->Kind regards
->Rickard Strandqvist
+>>> Oh wait, now I get it. You are only capturing line 21, not the whole vbi area.
+>>> That's why vbi_height = 1. Never mind then. Although that comment should indeed
+>>> be removed.
+> 
+> Want me to remove the comment with this work or as a separate patch??
 
-Yes they are supposed to be the same.  It is dead code with typographical errors. So it is probably not even in the Makefile.
+Separate, I think.
+
+> 
+>>>
+>>>>
+>>>> Probably, the patches that added VBI support forgot to remove the
+>>>> above notice.
+>>>>
+>>>>>> /* This function ensures that video frames continue to be delivered even if
+>>>>>>    the ITU-656 input isn't receiving any data (thereby preventing applications
+>>>>>>    such as tvtime from hanging) */
+>>>>>
+>>>>> Why would tvtime be hanging? Make a separate patch that just removes all this
+>>>>> timeout nonsense. If there are no frames, then tvtime (and any other app) should
+>>>>> just wait for frames to arrive. And ctrl-C should always be able to break the app
+>>>>> (or they can timeout themselves).
+>>>>>
+>>>>> It's not the driver's responsibility to do this and it only makes the code overly
+>>>>> complex.
+>>>>
+>>>> Well, we should not cause regressions on userspace. If removing this
+>>>> check will cause tvtime to hang, we should keep it.
+>>>
+>>> Obviously if it hangs (i.e. tvtime can't be killed anymore) it is a bug in the driver.
+>>> But the driver shouldn't start generating bogus frames just because no new frames are
+>>> arriving, that's just nuts.
+>>
+>> If I remember the bug well, what used to happen is that tvtime would wait
+>> for a certain amount of time for a frame. If nothing arrives, it stops
+>> capturing.
+>>
+>> The net effect is that tvtime shows no picture. This used to be so bad
+>> that tvtime didn't work with vivi at all.
+>>
+>> The bug used also to manifest there if lots of frames got dropped
+>> when, for example, changing from one channel to another.
+>>
+>> Btw, on a quick look, I'm not seeing any patch at tvtime since we took
+>> it over that would be fixing it. So, it was either a VB bug or the
+>> bug is still there.
+>>
+>>>
+>>>> Btw, the same kind of test used to be at vivi and other drivers.
+>>>> I think we removed it there some time ago, so maybe either it was a
+>>>> VB1 bug or this got fixed at tvtime.
+>>>
+> 
+> I take it that we decided to keep the timeout handling for now.
+
+No, tvtime no longer hangs if no frames arrive, so there is no need for
+this timeout handling. I'd strip it out, which can be done in a separate
+patch.
 
 Regards,
-Andy
+
+	Hans
+
