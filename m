@@ -1,125 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33856 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753380AbaLWMqd (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54312 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S967608AbaLLMzY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 07:46:33 -0500
-Received: from [192.168.1.106] (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id C82A22A0085
-	for <linux-media@vger.kernel.org>; Tue, 23 Dec 2014 13:46:11 +0100 (CET)
-Message-ID: <54996423.5000303@xs4all.nl>
-Date: Tue, 23 Dec 2014 13:46:27 +0100
+	Fri, 12 Dec 2014 07:55:24 -0500
+Message-ID: <548AE5B2.1070306@xs4all.nl>
+Date: Fri, 12 Dec 2014 13:55:14 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH] videobuf: make unused exported functions static
-Content-Type: text/plain; charset=utf-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [REVIEW] au0828-video.c
+References: <548AC061.3050700@xs4all.nl> <20141212104942.0ea3c1d7@recife.lan>
+In-Reply-To: <20141212104942.0ea3c1d7@recife.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The videobuf_dma_init* and videobuf_dma_map() functions are no longer
-used except in videobuf-dma-sg.c itself. Make them static.
+On 12/12/2014 01:49 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 12 Dec 2014 11:16:01 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> Hi Shuah,
+>>
+>> This is the video.c review with your patch applied.
+>>
+>>> /*
+>>>  * Auvitek AU0828 USB Bridge (Analog video support)
+>>>  *
+>>>  * Copyright (C) 2009 Devin Heitmueller <dheitmueller@linuxtv.org>
+>>>  * Copyright (C) 2005-2008 Auvitek International, Ltd.
+>>>  *
+>>>  * This program is free software; you can redistribute it and/or
+>>>  * modify it under the terms of the GNU General Public License
+>>>  * As published by the Free Software Foundation; either version 2
+>>>  * of the License, or (at your option) any later version.
+>>>  *
+>>>  * This program is distributed in the hope that it will be useful,
+>>>  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>>  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>>  * GNU General Public License for more details.
+>>>  *
+>>>  * You should have received a copy of the GNU General Public License
+>>>  * along with this program; if not, write to the Free Software
+>>>  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+>>>  * 02110-1301, USA.
+>>>  */
+>>>
+>>> /* Developer Notes:
+>>>  *
+>>>  * VBI support is not yet working
+>>
+>> I'll see if I can get this to work quickly. If not, then we should
+>> probably just strip the VBI support from this driver. It's pointless to
+>> have non-functioning VBI support.
+> 
+> This is a left-over. VBI support works on this driver. I tested.
 
-These functions were abused in various drivers. All those drivers
-have now been fixed, so by no longer exporting these functions
-future abuse is now prevented.
+Oh wait, now I get it. You are only capturing line 21, not the whole vbi area.
+That's why vbi_height = 1. Never mind then. Although that comment should indeed
+be removed.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf-dma-sg.c | 15 +++++----------
- include/media/videobuf-dma-sg.h           |  8 --------
- 2 files changed, 5 insertions(+), 18 deletions(-)
+> 
+> Probably, the patches that added VBI support forgot to remove the
+> above notice.
+> 
+>>> /* This function ensures that video frames continue to be delivered even if
+>>>    the ITU-656 input isn't receiving any data (thereby preventing applications
+>>>    such as tvtime from hanging) */
+>>
+>> Why would tvtime be hanging? Make a separate patch that just removes all this
+>> timeout nonsense. If there are no frames, then tvtime (and any other app) should
+>> just wait for frames to arrive. And ctrl-C should always be able to break the app
+>> (or they can timeout themselves).
+>>
+>> It's not the driver's responsibility to do this and it only makes the code overly
+>> complex.
+> 
+> Well, we should not cause regressions on userspace. If removing this
+> check will cause tvtime to hang, we should keep it.
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index 3ff15f1..f669ced 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -145,12 +145,11 @@ struct videobuf_dmabuf *videobuf_to_dma(struct videobuf_buffer *buf)
- }
- EXPORT_SYMBOL_GPL(videobuf_to_dma);
- 
--void videobuf_dma_init(struct videobuf_dmabuf *dma)
-+static void videobuf_dma_init(struct videobuf_dmabuf *dma)
- {
- 	memset(dma, 0, sizeof(*dma));
- 	dma->magic = MAGIC_DMABUF;
- }
--EXPORT_SYMBOL_GPL(videobuf_dma_init);
- 
- static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 			int direction, unsigned long data, unsigned long size)
-@@ -195,7 +194,7 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 	return 0;
- }
- 
--int videobuf_dma_init_user(struct videobuf_dmabuf *dma, int direction,
-+static int videobuf_dma_init_user(struct videobuf_dmabuf *dma, int direction,
- 			   unsigned long data, unsigned long size)
- {
- 	int ret;
-@@ -206,9 +205,8 @@ int videobuf_dma_init_user(struct videobuf_dmabuf *dma, int direction,
- 
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(videobuf_dma_init_user);
- 
--int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
-+static int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
- 			     int nr_pages)
- {
- 	int i;
-@@ -267,9 +265,8 @@ out_free_pages:
- 	return -ENOMEM;
- 
- }
--EXPORT_SYMBOL_GPL(videobuf_dma_init_kernel);
- 
--int videobuf_dma_init_overlay(struct videobuf_dmabuf *dma, int direction,
-+static int videobuf_dma_init_overlay(struct videobuf_dmabuf *dma, int direction,
- 			      dma_addr_t addr, int nr_pages)
- {
- 	dprintk(1, "init overlay [%d pages @ bus 0x%lx]\n",
-@@ -284,9 +281,8 @@ int videobuf_dma_init_overlay(struct videobuf_dmabuf *dma, int direction,
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(videobuf_dma_init_overlay);
- 
--int videobuf_dma_map(struct device *dev, struct videobuf_dmabuf *dma)
-+static int videobuf_dma_map(struct device *dev, struct videobuf_dmabuf *dma)
- {
- 	MAGIC_CHECK(dma->magic, MAGIC_DMABUF);
- 	BUG_ON(0 == dma->nr_pages);
-@@ -328,7 +324,6 @@ int videobuf_dma_map(struct device *dev, struct videobuf_dmabuf *dma)
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(videobuf_dma_map);
- 
- int videobuf_dma_unmap(struct device *dev, struct videobuf_dmabuf *dma)
- {
-diff --git a/include/media/videobuf-dma-sg.h b/include/media/videobuf-dma-sg.h
-index fb6fd4d8..d8b27854 100644
---- a/include/media/videobuf-dma-sg.h
-+++ b/include/media/videobuf-dma-sg.h
-@@ -84,16 +84,8 @@ struct videobuf_dma_sg_memory {
-  * Despite the name, this is totally unrelated to videobuf, except that
-  * videobuf-dma-sg uses the same API internally.
-  */
--void videobuf_dma_init(struct videobuf_dmabuf *dma);
--int videobuf_dma_init_user(struct videobuf_dmabuf *dma, int direction,
--			   unsigned long data, unsigned long size);
--int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
--			     int nr_pages);
--int videobuf_dma_init_overlay(struct videobuf_dmabuf *dma, int direction,
--			      dma_addr_t addr, int nr_pages);
- int videobuf_dma_free(struct videobuf_dmabuf *dma);
- 
--int videobuf_dma_map(struct device *dev, struct videobuf_dmabuf *dma);
- int videobuf_dma_unmap(struct device *dev, struct videobuf_dmabuf *dma);
- struct videobuf_dmabuf *videobuf_to_dma(struct videobuf_buffer *buf);
- 
--- 
-2.1.3
+Obviously if it hangs (i.e. tvtime can't be killed anymore) it is a bug in the driver.
+But the driver shouldn't start generating bogus frames just because no new frames are
+arriving, that's just nuts.
+
+> Btw, the same kind of test used to be at vivi and other drivers.
+> I think we removed it there some time ago, so maybe either it was a
+> VB1 bug or this got fixed at tvtime.
+
+Most likely.
+
+Regards,
+
+	Hans
 
