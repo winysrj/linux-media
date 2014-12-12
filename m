@@ -1,85 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43929 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751416AbaLQRTE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Dec 2014 12:19:04 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linus Walleij <linus.walleij@linaro.org>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Samuel Ortiz <sameo@linux.intel.com>
-Cc: Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 03/13] ARM: sunxi: Add "allwinner,sun6i-a31s" to mach-sunxi
-Date: Wed, 17 Dec 2014 18:18:14 +0100
-Message-Id: <1418836704-15689-4-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
-References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-qg0-f54.google.com ([209.85.192.54]:64876 "EHLO
+	mail-qg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934848AbaLLPwe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Dec 2014 10:52:34 -0500
+Received: by mail-qg0-f54.google.com with SMTP id l89so5685928qgf.27
+        for <linux-media@vger.kernel.org>; Fri, 12 Dec 2014 07:52:33 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <548B09A5.80506@xs4all.nl>
+References: <548AC061.3050700@xs4all.nl>
+	<20141212104942.0ea3c1d7@recife.lan>
+	<548AE5B2.1070306@xs4all.nl>
+	<20141212111424.0595125b@recife.lan>
+	<548B092F.2090803@osg.samsung.com>
+	<548B09A5.80506@xs4all.nl>
+Date: Fri, 12 Dec 2014 10:52:33 -0500
+Message-ID: <CAGoCfiw1pdJGGfG5Gs-3Jf2e48buzwEA1O3+j-E+2Pjj657eEQ@mail.gmail.com>
+Subject: Re: [REVIEW] au0828-video.c
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So far the A31s is 100% compatible with the A31, still lets do the same
-as what we've done for the A13 / A10s and give it its own compatible string,
-in case we need to differentiate later.
+> No, tvtime no longer hangs if no frames arrive, so there is no need for
+> this timeout handling. I'd strip it out, which can be done in a separate
+> patch.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- Documentation/arm/sunxi/README | 1 -
- arch/arm/mach-sunxi/platsmp.c  | 3 ++-
- arch/arm/mach-sunxi/sunxi.c    | 1 +
- drivers/clk/sunxi/clk-sunxi.c  | 1 +
- 4 files changed, 4 insertions(+), 2 deletions(-)
+Did you actually try it? Do you have some patches to tvtime which
+aren't upstream?
 
-diff --git a/Documentation/arm/sunxi/README b/Documentation/arm/sunxi/README
-index e68d163..1fe2d7f 100644
---- a/Documentation/arm/sunxi/README
-+++ b/Documentation/arm/sunxi/README
-@@ -50,7 +50,6 @@ SunXi family
-           http://dl.linux-sunxi.org/A31/A3x_release_document/A31/IC/A31%20user%20manual%20V1.1%2020130630.pdf
- 
-       - Allwinner A31s (sun6i)
--        + Not Supported
-         + Datasheet
-           http://dl.linux-sunxi.org/A31/A3x_release_document/A31s/IC/A31s%20datasheet%20V1.3%2020131106.pdf
-         + User Manual
-diff --git a/arch/arm/mach-sunxi/platsmp.c b/arch/arm/mach-sunxi/platsmp.c
-index e44d028..b1b5b7c 100644
---- a/arch/arm/mach-sunxi/platsmp.c
-+++ b/arch/arm/mach-sunxi/platsmp.c
-@@ -120,4 +120,5 @@ static struct smp_operations sun6i_smp_ops __initdata = {
- 	.smp_prepare_cpus	= sun6i_smp_prepare_cpus,
- 	.smp_boot_secondary	= sun6i_smp_boot_secondary,
- };
--CPU_METHOD_OF_DECLARE(sun6i_smp, "allwinner,sun6i-a31", &sun6i_smp_ops);
-+CPU_METHOD_OF_DECLARE(sun6i_a31_smp, "allwinner,sun6i-a31", &sun6i_smp_ops);
-+CPU_METHOD_OF_DECLARE(sun6i_a31s_smp, "allwinner,sun6i-a31s", &sun6i_smp_ops);
-diff --git a/arch/arm/mach-sunxi/sunxi.c b/arch/arm/mach-sunxi/sunxi.c
-index 1f98675..d4bb239 100644
---- a/arch/arm/mach-sunxi/sunxi.c
-+++ b/arch/arm/mach-sunxi/sunxi.c
-@@ -29,6 +29,7 @@ MACHINE_END
- 
- static const char * const sun6i_board_dt_compat[] = {
- 	"allwinner,sun6i-a31",
-+	"allwinner,sun6i-a31s",
- 	NULL,
- };
- 
-diff --git a/drivers/clk/sunxi/clk-sunxi.c b/drivers/clk/sunxi/clk-sunxi.c
-index a9d10b9..ee9d7f2 100644
---- a/drivers/clk/sunxi/clk-sunxi.c
-+++ b/drivers/clk/sunxi/clk-sunxi.c
-@@ -1235,6 +1235,7 @@ static void __init sun6i_init_clocks(struct device_node *node)
- 			  ARRAY_SIZE(sun6i_critical_clocks));
- }
- CLK_OF_DECLARE(sun6i_a31_clk_init, "allwinner,sun6i-a31", sun6i_init_clocks);
-+CLK_OF_DECLARE(sun6i_a31s_clk_init, "allwinner,sun6i-a31s", sun6i_init_clocks);
- CLK_OF_DECLARE(sun8i_a23_clk_init, "allwinner,sun8i-a23", sun6i_init_clocks);
- 
- static void __init sun9i_init_clocks(struct device_node *node)
+I wrote the comment in question (and added the associated code).  The
+issue is that tvtime does *everything* in a single thread (except the
+recent ALSA audio work), that includes servicing the video/vbi devices
+as well as the user interface.  That thread blocks on a DQBUF ioctl
+until data arrives, and thus if frames are not being delivered it will
+hang the entire tvtime user interface.
+
+Now you can certainly argue that is a bad design decision, but it's
+been that way for 15+ years, so we can't break it now.  Hence why I
+generate dummy frames on a timeout if the decoder isn't delivering
+video.  Unfortunately the au8522 doesn't have a free running mode
+(i.e. blue screen if no video), which is why most of the other devices
+work fine (decoders by Conexant, NXP, Trident, etc all have such
+functionality).
+
+Don't get me wrong - I *hate* that I had to put that timer crap in the
+driver, but it was necessary to be compatible with one of the most
+popular applications out there.
+
+In short, that code cannot be removed.
+
+Devin
+
 -- 
-2.1.0
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
