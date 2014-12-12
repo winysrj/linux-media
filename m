@@ -1,76 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:38173 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751248AbaLOXkV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 18:40:21 -0500
-From: Benjamin Larsson <benjamin@southpole.se>
-To: crope@iki.fi
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] mn88472: implement lock for all delivery systems
-Date: Tue, 16 Dec 2014 00:40:08 +0100
-Message-Id: <1418686808-2530-1-git-send-email-benjamin@southpole.se>
+Received: from lists.s-osg.org ([54.187.51.154]:39982 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967578AbaLLNO3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Dec 2014 08:14:29 -0500
+Date: Fri, 12 Dec 2014 11:14:24 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [REVIEW] au0828-video.c
+Message-ID: <20141212111424.0595125b@recife.lan>
+In-Reply-To: <548AE5B2.1070306@xs4all.nl>
+References: <548AC061.3050700@xs4all.nl>
+	<20141212104942.0ea3c1d7@recife.lan>
+	<548AE5B2.1070306@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/staging/media/mn88472/mn88472.c | 23 ++++++++++++++++++++---
- 1 file changed, 20 insertions(+), 3 deletions(-)
+Em Fri, 12 Dec 2014 13:55:14 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-index 68f5036..426f0ed 100644
---- a/drivers/staging/media/mn88472/mn88472.c
-+++ b/drivers/staging/media/mn88472/mn88472.c
-@@ -238,6 +238,7 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
- 	unsigned int utmp;
-+	int lock = 0;
- 
- 	*status = 0;
- 
-@@ -248,21 +249,37 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 
- 	switch (c->delivery_system) {
- 	case SYS_DVBT:
-+		ret = regmap_read(dev->regmap[0], 0x7F, &utmp);
-+		if (ret)
-+			goto err;
-+		if ((utmp&0xF) > 8)
-+			lock = 1;
-+		break;
- 	case SYS_DVBT2:
--		/* FIXME: implement me */
--		utmp = 0x08; /* DVB-C lock value */
-+		msleep(150);
-+		ret = regmap_read(dev->regmap[2], 0x92, &utmp);
-+		if (ret)
-+			goto err;
-+		if ((utmp&0xF) >= 0x07)
-+			*status |= FE_HAS_SIGNAL;
-+		if ((utmp&0xF) >= 0x0a)
-+			*status |= FE_HAS_CARRIER;
-+		if ((utmp&0xF) >= 0x0d)
-+			*status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
- 		break;
- 	case SYS_DVBC_ANNEX_A:
- 		ret = regmap_read(dev->regmap[1], 0x84, &utmp);
- 		if (ret)
- 			goto err;
-+		if ((utmp&0xF) > 7)
-+			lock = 1;
- 		break;
- 	default:
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	if (utmp == 0x08)
-+	if (lock)
- 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
- 				FE_HAS_SYNC | FE_HAS_LOCK;
- 
--- 
-1.9.1
+> On 12/12/2014 01:49 PM, Mauro Carvalho Chehab wrote:
+> > Em Fri, 12 Dec 2014 11:16:01 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> Hi Shuah,
+> >>
+> >> This is the video.c review with your patch applied.
+> >>
+> >>> /*
+> >>>  * Auvitek AU0828 USB Bridge (Analog video support)
+> >>>  *
+> >>>  * Copyright (C) 2009 Devin Heitmueller <dheitmueller@linuxtv.org>
+> >>>  * Copyright (C) 2005-2008 Auvitek International, Ltd.
+> >>>  *
+> >>>  * This program is free software; you can redistribute it and/or
+> >>>  * modify it under the terms of the GNU General Public License
+> >>>  * As published by the Free Software Foundation; either version 2
+> >>>  * of the License, or (at your option) any later version.
+> >>>  *
+> >>>  * This program is distributed in the hope that it will be useful,
+> >>>  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >>>  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> >>>  * GNU General Public License for more details.
+> >>>  *
+> >>>  * You should have received a copy of the GNU General Public License
+> >>>  * along with this program; if not, write to the Free Software
+> >>>  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+> >>>  * 02110-1301, USA.
+> >>>  */
+> >>>
+> >>> /* Developer Notes:
+> >>>  *
+> >>>  * VBI support is not yet working
+> >>
+> >> I'll see if I can get this to work quickly. If not, then we should
+> >> probably just strip the VBI support from this driver. It's pointless to
+> >> have non-functioning VBI support.
+> > 
+> > This is a left-over. VBI support works on this driver. I tested.
+> 
+> Oh wait, now I get it. You are only capturing line 21, not the whole vbi area.
+> That's why vbi_height = 1. Never mind then. Although that comment should indeed
+> be removed.
+> 
+> > 
+> > Probably, the patches that added VBI support forgot to remove the
+> > above notice.
+> > 
+> >>> /* This function ensures that video frames continue to be delivered even if
+> >>>    the ITU-656 input isn't receiving any data (thereby preventing applications
+> >>>    such as tvtime from hanging) */
+> >>
+> >> Why would tvtime be hanging? Make a separate patch that just removes all this
+> >> timeout nonsense. If there are no frames, then tvtime (and any other app) should
+> >> just wait for frames to arrive. And ctrl-C should always be able to break the app
+> >> (or they can timeout themselves).
+> >>
+> >> It's not the driver's responsibility to do this and it only makes the code overly
+> >> complex.
+> > 
+> > Well, we should not cause regressions on userspace. If removing this
+> > check will cause tvtime to hang, we should keep it.
+> 
+> Obviously if it hangs (i.e. tvtime can't be killed anymore) it is a bug in the driver.
+> But the driver shouldn't start generating bogus frames just because no new frames are
+> arriving, that's just nuts.
 
+If I remember the bug well, what used to happen is that tvtime would wait
+for a certain amount of time for a frame. If nothing arrives, it stops
+capturing.
+
+The net effect is that tvtime shows no picture. This used to be so bad
+that tvtime didn't work with vivi at all.
+
+The bug used also to manifest there if lots of frames got dropped
+when, for example, changing from one channel to another.
+
+Btw, on a quick look, I'm not seeing any patch at tvtime since we took
+it over that would be fixing it. So, it was either a VB bug or the
+bug is still there.
+
+> 
+> > Btw, the same kind of test used to be at vivi and other drivers.
+> > I think we removed it there some time ago, so maybe either it was a
+> > VB1 bug or this got fixed at tvtime.
+> 
+> Most likely.
+> 
+> Regards,
+> 
+> 	Hans
+> 
