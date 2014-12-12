@@ -1,76 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52098 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751364AbaLSLhU (ORCPT
+Received: from smtpcmd02102.aruba.it ([62.149.158.102]:43855 "EHLO
+	smtpcmd02102.aruba.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933200AbaLLJPN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 06:37:20 -0500
-Message-ID: <54940DE9.1020709@xs4all.nl>
-Date: Fri, 19 Dec 2014 12:37:13 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 12 Dec 2014 04:15:13 -0500
+Message-ID: <548AB21B.8050402@phoenixsoftware.it>
+Date: Fri, 12 Dec 2014 10:15:07 +0100
+From: Pierluigi Passaro <pierluigi.passaro@phoenixsoftware.it>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	prabhakar.csengg@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 3/8] v4l2-subdev: drop unused op enum_mbus_fmt
-References: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl> <1417686899-30149-4-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1412182307100.11953@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1412182307100.11953@axis700.grange>
-Content-Type: text/plain; charset=windows-1252
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: VPU on iMX51 babbage board
+References: <5488C10F.1040508@phoenixsoftware.it>	 <CAOMZO5Deesoe61g_MzUKiUpXfjyJjVTBbogSd6bT9WA1GJ9P2Q@mail.gmail.com> <1418306587.3188.13.camel@pengutronix.de>
+In-Reply-To: <1418306587.3188.13.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 12/18/2014 11:08 PM, Guennadi Liakhovetski wrote:
-> Hi Hans,
-> 
-> On Thu, 4 Dec 2014, Hans Verkuil wrote:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 11/12/2014 15:03, Philipp Zabel wrote:
+> Am Mittwoch, den 10.12.2014, 22:04 -0200 schrieb Fabio Estevam:
+>> On Wed, Dec 10, 2014 at 7:54 PM, Pierluigi Passaro
+>> <pierluigi.passaro@phoenixsoftware.it> wrote:
+>>> Hi all,
+>>> I'm trying to use VPU code driver on iMX51 with kernel 3.18, following these
+>>> steps:
+>>> - disabled DVI interface
+>>> - enabled LCD interface
+>>> - configured and enabled VPU
+>>> - copied iMX51 vpu firmware without header and renamed
+>>> v4l-coda7541-imx53.bin in /lib/firmware
+>>>
+>>> Attached you can find the patch and the defconfig I used.
+>>>
+>>> The boot process hangs after loading the firmware at the first attempt of
+>>> writing in VPU address space in the function coda_write of file
+>>> driver/media/platform/coda/coda-common.c
+>>>
+>>> Is there anything preventing the coda driver to work with iMX51?
+>>> Could anyone provide any suggestion on how investigate the problem?
+>> I have only tested the coda driver on mx6, but looking at the
+>> mx51.dtsi you would need this:
 >>
->> Weird, this op isn't used at all. Seems to be orphaned code.
->> Remove it.
+>> --- a/arch/arm/boot/dts/imx51.dtsi
+>> +++ b/arch/arm/boot/dts/imx51.dtsi
+>> @@ -121,6 +121,7 @@
+>>           iram: iram@1ffe0000 {
+>>               compatible = "mmio-sram";
+>>               reg = <0x1ffe0000 0x20000>;
+>> +            clocks = <&clks IMX5_CLK_OCRAM>;
+>>           };
 >>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  include/media/v4l2-subdev.h | 2 --
->>  1 file changed, 2 deletions(-)
+>>           ipu: ipu@40000000 {
+>> @@ -584,6 +585,18 @@
+>>                   clock-names = "ipg", "ahb", "ptp";
+>>                   status = "disabled";
+>>               };
+>> +
+>> +            vpu: vpu@83ff4000 {
+>> +                compatible = "fsl,imx53-vpu";
+> This should be "fsl,imx51-vpu", and add a "cnm,codahx14".
+>
+> According to the old imx-vpu-lib code and the vpu_fw_imx51.bin firmware
+> file, the i.MX51 has a CodaHx14 (0xF00A) as opposed to the i.MX53's
+> Coda7541 (0xF012).
+>
+Thanks for the hint, I'm now going through the old imx-vpu-lib to 
+understand the CodaHX14 behaviour.
+In old imx-vpu-lib, file vpu_util.c, there is a comment that make me 
+doubtful: "i.MX51 has no secondary AXI memory, but use on chip RAM".
+As far as I understood, the portion of coda driver affected from this 
+comment should be around the function coda_setup_iram in coda-bit.c.
+How am I supposed to manage this information?
+Have I to avoid to use iram for iMX51 (and return on !dev->iram.vaddr) 
+or go through the function without managing any CodaHX14 specific behaviour?
+>> +                reg = <0x83ff4000 0x1000>;
+>> +                interrupts = <9>;
+>> +                clocks = <&clks IMX5_CLK_VPU_REFERENCE_GATE>,
+>> +                         <&clks IMX5_CLK_VPU_GATE>;
+>> +                clock-names = "per", "ahb";
+>> +                resets = <&src 1>;
+>> +                iram = <&iram>;
+>> +            };
+>>           };
+>> +
+>>       };
+>>   };
 >>
->> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
->> index b052184..5beeb87 100644
->> --- a/include/media/v4l2-subdev.h
->> +++ b/include/media/v4l2-subdev.h
->> @@ -342,8 +342,6 @@ struct v4l2_subdev_video_ops {
->>  			struct v4l2_dv_timings *timings);
->>  	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
->>  			     u32 *code);
->> -	int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
->> -			     struct v4l2_frmsizeenum *fsize);
-> 
-> After so many cheerful acks I feel a bit bluffed, but... Your subject says 
-> "drop enum_mbus_fmt" and your patch drops enum_mbus_fsizes... What am I 
-> missing??
-
-Oops. Obviously the function name in the subject is wrong.
-
-Interesting that everyone (except you!) just read over that :-)
-
-Regards,
-
-	Hans
-
-> 
-> Thanks
-> Guennadi
-> 
->>  	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
->>  			  struct v4l2_mbus_framefmt *fmt);
->>  	int (*try_mbus_fmt)(struct v4l2_subdev *sd,
->> -- 
->> 2.1.3
+>> Also, not  sure if all the required coda patches are available in
+>> 3.18, so I tried it on linux-next 20141210 on a imx51-babbage (I had
+>> to disable USB, otherwise linux-next will hang on this board):
 >>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>> [    1.368454] coda 83ff4000.vpu: Initialized CODA7541.
+>> [    1.373572] coda 83ff4000.vpu: Firmware version: 1.4.50
+>> [    1.396695] coda 83ff4000.vpu: codec registered as /dev/video[0-3]
+>>
+>> Also, no sure if we need to distinguish mx51 versus mx53 in the coda driver.
+>>
+>> Adding Philipp in case he can comment.
+> Yes, the i.MX51 and i.MX53 firmware files are different. So at least an
+> entry for i.MX51 with the correct firmware file name has to be added.
+>
+> regards
+> Philipp
+Thanks
+Regards
+Pierluigi
