@@ -1,345 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54165 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:39998 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751514AbaLNI3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Dec 2014 03:29:49 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 08/18] rtl2830: style related changes
-Date: Sun, 14 Dec 2014 10:28:33 +0200
-Message-Id: <1418545723-9536-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1418545723-9536-1-git-send-email-crope@iki.fi>
-References: <1418545723-9536-1-git-send-email-crope@iki.fi>
+	id S934906AbaLLPar (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Dec 2014 10:30:47 -0500
+Message-ID: <548B0A25.3060608@osg.samsung.com>
+Date: Fri, 12 Dec 2014 08:30:45 -0700
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [REVIEW] au0828-video.c
+References: <548AC061.3050700@xs4all.nl> <20141212104942.0ea3c1d7@recife.lan> <548AE5B2.1070306@xs4all.nl> <20141212111424.0595125b@recife.lan> <548B092F.2090803@osg.samsung.com> <548B09A5.80506@xs4all.nl>
+In-Reply-To: <548B09A5.80506@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Trivial changes proposed by checkpatch.pl and some more.
+On 12/12/2014 08:28 AM, Hans Verkuil wrote:
+> On 12/12/2014 04:26 PM, Shuah Khan wrote:
+>> On 12/12/2014 06:14 AM, Mauro Carvalho Chehab wrote:
+>>> Em Fri, 12 Dec 2014 13:55:14 +0100
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>
+>>>> On 12/12/2014 01:49 PM, Mauro Carvalho Chehab wrote:
+>>>>> Em Fri, 12 Dec 2014 11:16:01 +0100
+>>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>>>
+>>>>>> Hi Shuah,
+>>>>>>
+>>>>>> This is the video.c review with your patch applied.
+>>>>>>
+>>>>>>> /*
+>>>>>>>  * Auvitek AU0828 USB Bridge (Analog video support)
+>>>>>>>  *
+>>>>>>>  * Copyright (C) 2009 Devin Heitmueller <dheitmueller@linuxtv.org>
+>>>>>>>  * Copyright (C) 2005-2008 Auvitek International, Ltd.
+>>>>>>>  *
+>>>>>>>  * This program is free software; you can redistribute it and/or
+>>>>>>>  * modify it under the terms of the GNU General Public License
+>>>>>>>  * As published by the Free Software Foundation; either version 2
+>>>>>>>  * of the License, or (at your option) any later version.
+>>>>>>>  *
+>>>>>>>  * This program is distributed in the hope that it will be useful,
+>>>>>>>  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>>>>>>  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>>>>>>  * GNU General Public License for more details.
+>>>>>>>  *
+>>>>>>>  * You should have received a copy of the GNU General Public License
+>>>>>>>  * along with this program; if not, write to the Free Software
+>>>>>>>  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+>>>>>>>  * 02110-1301, USA.
+>>>>>>>  */
+>>>>>>>
+>>>>>>> /* Developer Notes:
+>>>>>>>  *
+>>>>>>>  * VBI support is not yet working
+>>>>>>
+>>>>>> I'll see if I can get this to work quickly. If not, then we should
+>>>>>> probably just strip the VBI support from this driver. It's pointless to
+>>>>>> have non-functioning VBI support.
+>>>>>
+>>>>> This is a left-over. VBI support works on this driver. I tested.
+>>>>
+>>>> Oh wait, now I get it. You are only capturing line 21, not the whole vbi area.
+>>>> That's why vbi_height = 1. Never mind then. Although that comment should indeed
+>>>> be removed.
+>>
+>> Want me to remove the comment with this work or as a separate patch??
+> 
+> Separate, I think.
+> 
+>>
+>>>>
+>>>>>
+>>>>> Probably, the patches that added VBI support forgot to remove the
+>>>>> above notice.
+>>>>>
+>>>>>>> /* This function ensures that video frames continue to be delivered even if
+>>>>>>>    the ITU-656 input isn't receiving any data (thereby preventing applications
+>>>>>>>    such as tvtime from hanging) */
+>>>>>>
+>>>>>> Why would tvtime be hanging? Make a separate patch that just removes all this
+>>>>>> timeout nonsense. If there are no frames, then tvtime (and any other app) should
+>>>>>> just wait for frames to arrive. And ctrl-C should always be able to break the app
+>>>>>> (or they can timeout themselves).
+>>>>>>
+>>>>>> It's not the driver's responsibility to do this and it only makes the code overly
+>>>>>> complex.
+>>>>>
+>>>>> Well, we should not cause regressions on userspace. If removing this
+>>>>> check will cause tvtime to hang, we should keep it.
+>>>>
+>>>> Obviously if it hangs (i.e. tvtime can't be killed anymore) it is a bug in the driver.
+>>>> But the driver shouldn't start generating bogus frames just because no new frames are
+>>>> arriving, that's just nuts.
+>>>
+>>> If I remember the bug well, what used to happen is that tvtime would wait
+>>> for a certain amount of time for a frame. If nothing arrives, it stops
+>>> capturing.
+>>>
+>>> The net effect is that tvtime shows no picture. This used to be so bad
+>>> that tvtime didn't work with vivi at all.
+>>>
+>>> The bug used also to manifest there if lots of frames got dropped
+>>> when, for example, changing from one channel to another.
+>>>
+>>> Btw, on a quick look, I'm not seeing any patch at tvtime since we took
+>>> it over that would be fixing it. So, it was either a VB bug or the
+>>> bug is still there.
+>>>
+>>>>
+>>>>> Btw, the same kind of test used to be at vivi and other drivers.
+>>>>> I think we removed it there some time ago, so maybe either it was a
+>>>>> VB1 bug or this got fixed at tvtime.
+>>>>
+>>
+>> I take it that we decided to keep the timeout handling for now.
+> 
+> No, tvtime no longer hangs if no frames arrive, so there is no need for
+> this timeout handling. I'd strip it out, which can be done in a separate
+> patch.
+> 
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2830.c      | 125 ++++++++++++++---------------
- drivers/media/dvb-frontends/rtl2830.h      |   4 -
- drivers/media/dvb-frontends/rtl2830_priv.h |   3 -
- 3 files changed, 60 insertions(+), 72 deletions(-)
+Will do. This will reduce the complexity other drives don't have.
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index ea68c7e..8025b19 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -13,16 +13,6 @@
-  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  *    GNU General Public License for more details.
-  *
-- *    You should have received a copy of the GNU General Public License along
-- *    with this program; if not, write to the Free Software Foundation, Inc.,
-- *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-- */
--
--
--/*
-- * Driver implements own I2C-adapter for tuner I2C access. That's since chip
-- * have unusual I2C-gate control which closes gate automatically after each
-- * I2C transfer. Using own I2C adapter we can workaround that.
-  */
- 
- #include "rtl2830_priv.h"
-@@ -46,7 +36,7 @@ static int rtl2830_wr(struct i2c_client *client, u8 reg, const u8 *val, int len)
- 
- 	if (1 + len > sizeof(buf)) {
- 		dev_warn(&client->dev, "i2c wr reg=%04x: len=%d is too big!\n",
--				reg, len);
-+			 reg, len);
- 		return -EINVAL;
- 	}
- 
-@@ -58,9 +48,10 @@ static int rtl2830_wr(struct i2c_client *client, u8 reg, const u8 *val, int len)
- 		ret = 0;
- 	} else {
- 		dev_warn(&client->dev, "i2c wr failed=%d reg=%02x len=%d\n",
--				ret, reg, len);
-+			 ret, reg, len);
- 		ret = -EREMOTEIO;
- 	}
-+
- 	return ret;
- }
- 
-@@ -87,9 +78,10 @@ static int rtl2830_rd(struct i2c_client *client, u8 reg, u8 *val, int len)
- 		ret = 0;
- 	} else {
- 		dev_warn(&client->dev, "i2c rd failed=%d reg=%02x len=%d\n",
--				ret, reg, len);
-+			 ret, reg, len);
- 		ret = -EREMOTEIO;
- 	}
-+
- 	return ret;
- }
- 
-@@ -187,47 +179,47 @@ static int rtl2830_init(struct dvb_frontend *fe)
- 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret, i;
- 	struct rtl2830_reg_val_mask tab[] = {
--		{ 0x00d, 0x01, 0x03 },
--		{ 0x00d, 0x10, 0x10 },
--		{ 0x104, 0x00, 0x1e },
--		{ 0x105, 0x80, 0x80 },
--		{ 0x110, 0x02, 0x03 },
--		{ 0x110, 0x08, 0x0c },
--		{ 0x17b, 0x00, 0x40 },
--		{ 0x17d, 0x05, 0x0f },
--		{ 0x17d, 0x50, 0xf0 },
--		{ 0x18c, 0x08, 0x0f },
--		{ 0x18d, 0x00, 0xc0 },
--		{ 0x188, 0x05, 0x0f },
--		{ 0x189, 0x00, 0xfc },
--		{ 0x2d5, 0x02, 0x02 },
--		{ 0x2f1, 0x02, 0x06 },
--		{ 0x2f1, 0x20, 0xf8 },
--		{ 0x16d, 0x00, 0x01 },
--		{ 0x1a6, 0x00, 0x80 },
--		{ 0x106, dev->pdata->vtop, 0x3f },
--		{ 0x107, dev->pdata->krf, 0x3f },
--		{ 0x112, 0x28, 0xff },
--		{ 0x103, dev->pdata->agc_targ_val, 0xff },
--		{ 0x00a, 0x02, 0x07 },
--		{ 0x140, 0x0c, 0x3c },
--		{ 0x140, 0x40, 0xc0 },
--		{ 0x15b, 0x05, 0x07 },
--		{ 0x15b, 0x28, 0x38 },
--		{ 0x15c, 0x05, 0x07 },
--		{ 0x15c, 0x28, 0x38 },
--		{ 0x115, dev->pdata->spec_inv, 0x01 },
--		{ 0x16f, 0x01, 0x07 },
--		{ 0x170, 0x18, 0x38 },
--		{ 0x172, 0x0f, 0x0f },
--		{ 0x173, 0x08, 0x38 },
--		{ 0x175, 0x01, 0x07 },
--		{ 0x176, 0x00, 0xc0 },
-+		{0x00d, 0x01, 0x03},
-+		{0x00d, 0x10, 0x10},
-+		{0x104, 0x00, 0x1e},
-+		{0x105, 0x80, 0x80},
-+		{0x110, 0x02, 0x03},
-+		{0x110, 0x08, 0x0c},
-+		{0x17b, 0x00, 0x40},
-+		{0x17d, 0x05, 0x0f},
-+		{0x17d, 0x50, 0xf0},
-+		{0x18c, 0x08, 0x0f},
-+		{0x18d, 0x00, 0xc0},
-+		{0x188, 0x05, 0x0f},
-+		{0x189, 0x00, 0xfc},
-+		{0x2d5, 0x02, 0x02},
-+		{0x2f1, 0x02, 0x06},
-+		{0x2f1, 0x20, 0xf8},
-+		{0x16d, 0x00, 0x01},
-+		{0x1a6, 0x00, 0x80},
-+		{0x106, dev->pdata->vtop, 0x3f},
-+		{0x107, dev->pdata->krf, 0x3f},
-+		{0x112, 0x28, 0xff},
-+		{0x103, dev->pdata->agc_targ_val, 0xff},
-+		{0x00a, 0x02, 0x07},
-+		{0x140, 0x0c, 0x3c},
-+		{0x140, 0x40, 0xc0},
-+		{0x15b, 0x05, 0x07},
-+		{0x15b, 0x28, 0x38},
-+		{0x15c, 0x05, 0x07},
-+		{0x15c, 0x28, 0x38},
-+		{0x115, dev->pdata->spec_inv, 0x01},
-+		{0x16f, 0x01, 0x07},
-+		{0x170, 0x18, 0x38},
-+		{0x172, 0x0f, 0x0f},
-+		{0x173, 0x08, 0x38},
-+		{0x175, 0x01, 0x07},
-+		{0x176, 0x00, 0xc0},
- 	};
- 
- 	for (i = 0; i < ARRAY_SIZE(tab); i++) {
- 		ret = rtl2830_wr_reg_mask(client, tab[i].reg, tab[i].val,
--			tab[i].mask);
-+					  tab[i].mask);
- 		if (ret)
- 			goto err;
- 	}
-@@ -237,7 +229,7 @@ static int rtl2830_init(struct dvb_frontend *fe)
- 		goto err;
- 
- 	ret = rtl2830_wr_regs(client, 0x195,
--		"\x04\x06\x0a\x12\x0a\x12\x1e\x28", 8);
-+			      "\x04\x06\x0a\x12\x0a\x12\x1e\x28", 8);
- 	if (ret)
- 		goto err;
- 
-@@ -264,12 +256,14 @@ static int rtl2830_sleep(struct dvb_frontend *fe)
- {
- 	struct i2c_client *client = fe->demodulator_priv;
- 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
-+
- 	dev->sleeping = true;
-+
- 	return 0;
- }
- 
- static int rtl2830_get_tune_settings(struct dvb_frontend *fe,
--	struct dvb_frontend_tune_settings *s)
-+				     struct dvb_frontend_tune_settings *s)
- {
- 	s->min_delay_ms = 500;
- 	s->step_size = fe->ops.info.frequency_stepsize * 2;
-@@ -312,7 +306,7 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
- 	};
- 
- 	dev_dbg(&client->dev, "frequency=%u bandwidth_hz=%u inversion=%u\n",
--			c->frequency, c->bandwidth_hz, c->inversion);
-+		c->frequency, c->bandwidth_hz, c->inversion);
- 
- 	/* program tuner */
- 	if (fe->ops.tuner_ops.set_params)
-@@ -330,7 +324,7 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
- 		break;
- 	default:
- 		dev_err(&client->dev, "invalid bandwidth_hz %u\n",
--				c->bandwidth_hz);
-+			c->bandwidth_hz);
- 		return -EINVAL;
- 	}
- 
-@@ -343,8 +337,7 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
- 		ret = fe->ops.tuner_ops.get_if_frequency(fe, &if_frequency);
- 	else
- 		ret = -EINVAL;
--
--	if (ret < 0)
-+	if (ret)
- 		goto err;
- 
- 	num = if_frequency % dev->pdata->clk;
-@@ -353,7 +346,7 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
- 	num = -num;
- 	if_ctl = num & 0x3fffff;
- 	dev_dbg(&client->dev, "if_frequency=%d if_ctl=%08x\n",
--			if_frequency, if_ctl);
-+		if_frequency, if_ctl);
- 
- 	ret = rtl2830_rd_reg_mask(client, 0x119, &tmp, 0xc0); /* b[7:6] */
- 	if (ret)
-@@ -507,6 +500,7 @@ static int rtl2830_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret;
- 	u8 tmp;
-+
- 	*status = 0;
- 
- 	if (dev->sleeping)
-@@ -540,9 +534,9 @@ static int rtl2830_read_snr(struct dvb_frontend *fe, u16 *snr)
- #define CONSTELLATION_NUM 3
- #define HIERARCHY_NUM 4
- 	static const u32 snr_constant[CONSTELLATION_NUM][HIERARCHY_NUM] = {
--		{ 70705899, 70705899, 70705899, 70705899 },
--		{ 82433173, 82433173, 87483115, 94445660 },
--		{ 92888734, 92888734, 95487525, 99770748 },
-+		{70705899, 70705899, 70705899, 70705899},
-+		{82433173, 82433173, 87483115, 94445660},
-+		{92888734, 92888734, 95487525, 99770748},
- 	};
- 
- 	if (dev->sleeping)
-@@ -605,6 +599,7 @@ err:
- static int rtl2830_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- {
- 	*ucblocks = 0;
-+
- 	return 0;
- }
- 
-@@ -630,7 +625,7 @@ static int rtl2830_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- 	else
- 		if_agc = if_agc_raw;
- 
--	*strength = (u8) (55 - if_agc / 182);
-+	*strength = (u8)(55 - if_agc / 182);
- 	*strength |= *strength << 8;
- 
- 	return 0;
-@@ -640,7 +635,7 @@ err:
- }
- 
- static struct dvb_frontend_ops rtl2830_ops = {
--	.delsys = { SYS_DVBT },
-+	.delsys = {SYS_DVBT},
- 	.info = {
- 		.name = "Realtek RTL2830 (DVB-T)",
- 		.caps = FE_CAN_FEC_1_2 |
-@@ -723,7 +718,6 @@ static int rtl2830_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
- 	}
- 
- 	return 0;
--
- err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
-@@ -748,7 +742,7 @@ static struct i2c_adapter *rtl2830_get_i2c_adapter(struct i2c_client *client)
- }
- 
- static int rtl2830_probe(struct i2c_client *client,
--		const struct i2c_device_id *id)
-+			 const struct i2c_device_id *id)
- {
- 	struct rtl2830_platform_data *pdata = client->dev.platform_data;
- 	struct rtl2830_dev *dev;
-@@ -796,8 +790,8 @@ static int rtl2830_probe(struct i2c_client *client,
- 	pdata->get_i2c_adapter = rtl2830_get_i2c_adapter;
- 
- 	dev_info(&client->dev, "Realtek RTL2830 successfully attached\n");
--	return 0;
- 
-+	return 0;
- err_kfree:
- 	kfree(dev);
- err:
-@@ -813,6 +807,7 @@ static int rtl2830_remove(struct i2c_client *client)
- 
- 	i2c_del_mux_adapter(dev->adapter);
- 	kfree(dev);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/dvb-frontends/rtl2830.h b/drivers/media/dvb-frontends/rtl2830.h
-index 1d7784d..61f784c 100644
---- a/drivers/media/dvb-frontends/rtl2830.h
-+++ b/drivers/media/dvb-frontends/rtl2830.h
-@@ -13,15 +13,11 @@
-  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  *    GNU General Public License for more details.
-  *
-- *    You should have received a copy of the GNU General Public License along
-- *    with this program; if not, write to the Free Software Foundation, Inc.,
-- *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-  */
- 
- #ifndef RTL2830_H
- #define RTL2830_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct rtl2830_platform_data {
-diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
-index 5276fb2..5f9973a 100644
---- a/drivers/media/dvb-frontends/rtl2830_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2830_priv.h
-@@ -13,9 +13,6 @@
-  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  *    GNU General Public License for more details.
-  *
-- *    You should have received a copy of the GNU General Public License along
-- *    with this program; if not, write to the Free Software Foundation, Inc.,
-- *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-  */
- 
- #ifndef RTL2830_PRIV_H
+-- Shuah
+
+
 -- 
-http://palosaari.fi/
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Open Source Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
