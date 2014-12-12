@@ -1,60 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:60206 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754281AbaLVNhH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 08:37:07 -0500
-Message-ID: <54981E79.5090601@gentoo.org>
-Date: Mon, 22 Dec 2014 14:36:57 +0100
-From: Matthias Schwarzott <zzam@gentoo.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: crope@iki.fi, linux-media@vger.kernel.org
-Subject: Re: [PATCH] cx23885: Split Hauppauge WinTV Starburst from HVR4400
- card entry
-References: <1419191964-29833-1-git-send-email-zzam@gentoo.org>	<54972866.3030101@gentoo.org> <20141222112550.5f5e80c7@concha.lan.sisa.samsung.com>
-In-Reply-To: <20141222112550.5f5e80c7@concha.lan.sisa.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36610 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S967664AbaLLN2a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Dec 2014 08:28:30 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/7] cx231xx: remove btcx_riscmem reference
+Date: Fri, 12 Dec 2014 14:27:55 +0100
+Message-Id: <1418390880-39009-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1418390880-39009-1-git-send-email-hverkuil@xs4all.nl>
+References: <1418390880-39009-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22.12.2014 14:25, Mauro Carvalho Chehab wrote:
-> Em Sun, 21 Dec 2014 21:07:02 +0100
-> Matthias Schwarzott <zzam@gentoo.org> escreveu:
-> 
->> Hi!
->>
->> Should the commit message directly point to the breaking commit
->> 36efec48e2e6016e05364906720a0ec350a5d768?
-> 
-> Yes, if this fixes an issue that happened on a previous commit, then
-> you should add the original commit there.
-> 
-> That likely means that this is a regression fix, right? So, you should
-> c/c the patch to stable, adding a comment msg telling to what Kernel
-> version it applies (assuming that the patch was merged on 3.18).
-> Also, please add "PATCH FIX" to the subject, as this patch should be
-> sent to 3.19 as well.
-> 
->>
->> This commit hopefully reverts the problematic attach for the Starburst
->> card. I kept the GPIO-part in common, but I can split this also if
->> necessary.
-> 
-> Keep the GPIO part in common is better, if the GPIOs are the same.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hi!
+Remove this comment block, it's unused. This removes the btcx_riscmem
+reference as well, since that will no longer be available to other
+drivers except bttv.
 
-The GPIO-Pins that are used are the same on both cards. And I assume the
-ones that control Si2165 on HVR-5500 are just unused on Starburst, so
-setting them does not hurt (and Antti confirmed that the patch works).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/cx231xx/cx231xx.h | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-The cards have more in common, but I could not find a clean way to share
-attaching and TS-config of the DVB-S2 frontend.
-
-So I will change the commit message, prefix subject with PATCH fix, and
-resend the patch here and c/c to stable.
-
-Regards
-Matthias
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index f9e262eb..6d6f3ee 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -532,15 +532,7 @@ struct cx231xx_video_mode {
+ 	unsigned int *alt_max_pkt_size;	/* array of wMaxPacketSize */
+ 	u16 end_point_addr;
+ };
+-/*
+-struct cx23885_dmaqueue {
+-	struct list_head       active;
+-	struct list_head       queued;
+-	struct timer_list      timeout;
+-	struct btcx_riscmem    stopper;
+-	u32                    count;
+-};
+-*/
++
+ struct cx231xx_tsport {
+ 	struct cx231xx *dev;
+ 
+-- 
+2.1.3
 
