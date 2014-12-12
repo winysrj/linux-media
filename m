@@ -1,128 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60101 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750707AbaLCNxh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 08:53:37 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 1/3] Add BGR888_1X24 and GBR888_1X24 media bus formats
-Date: Wed,  3 Dec 2014 14:53:29 +0100
-Message-Id: <1417614811-15634-1-git-send-email-p.zabel@pengutronix.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43466 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758549AbaLLCNH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Dec 2014 21:13:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	m.chehab@samsung.com, linux-arm-kernel@lists.infradead.org,
+	s.nawrocki@samsung.com, festevam@gmail.com,
+	devicetree@vger.kernel.org
+Subject: Re: [v3][PATCH 4/5] media: ov2640: add a master clock for sensor
+Date: Fri, 12 Dec 2014 04:13:54 +0200
+Message-ID: <2368220.9kzqcjNO4y@avalon>
+In-Reply-To: <1418283339-16281-5-git-send-email-josh.wu@atmel.com>
+References: <1418283339-16281-1-git-send-email-josh.wu@atmel.com> <1418283339-16281-5-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds two more 24-bit RGB formats. BGR888 is more or less common,
-GBR888 is used on the internal connection between the IPU display interface
-and the TVE (VGA DAC) on i.MX53 SoCs.
+Hi Josh,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Thank you for the patch.
+
+On Thursday 11 December 2014 15:35:38 Josh Wu wrote:
+> The master clock (xvclk) is mandatory. It's a common clock framework clock.
+> It can make sensor output a pixel clock to the camera interface.
+> 
+> Cc: devicetree@vger.kernel.org
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
-Changes since v1:
- - Reordered 24-bit RGB formats alphabetically
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 60 ++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h              |  4 +-
- 2 files changed, 63 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 52d7f04..a8da9d3 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -469,6 +469,66 @@
- 	      <entry>b<subscript>1</subscript></entry>
- 	      <entry>b<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-BGR888-1X24">
-+	      <entry>MEDIA_BUS_FMT_BGR888_1X24</entry>
-+	      <entry>0x1013</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="MEDIA-BUS-FMT-GBR888-1X24">
-+	      <entry>MEDIA_BUS_FMT_GBR888_1X24</entry>
-+	      <entry>0x1014</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="MEDIA-BUS-FMT-RGB888-1X24">
- 	      <entry>MEDIA_BUS_FMT_RGB888_1X24</entry>
- 	      <entry>0x100a</entry>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 7f8b1e2..10b40dd 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -33,7 +33,7 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x1013 */
-+/* RGB - next is	0x1015 */
- #define MEDIA_BUS_FMT_RGB444_1X12		0x100e
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-@@ -46,6 +46,8 @@
- #define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
- #define MEDIA_BUS_FMT_RGB666_1X18		0x1009
- #define MEDIA_BUS_FMT_RGB666_LVDS_SPWG		0x1010
-+#define MEDIA_BUS_FMT_BGR888_1X24		0x1013
-+#define MEDIA_BUS_FMT_GBR888_1X24		0x1014
- #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
- #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
- #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
+> ---
+> v2 -> v3:
+>   1. should return PTR_ERR().
+> 
+> v1 -> v2:
+>   1. change the clock's name.
+>   2. Make the clock is mandatory.
+> 
+>  drivers/media/i2c/soc_camera/ov2640.c | 23 ++++++++++++++++++++++-
+>  1 file changed, 22 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/soc_camera/ov2640.c
+> b/drivers/media/i2c/soc_camera/ov2640.c index e0bcf5b..055702c 100644
+> --- a/drivers/media/i2c/soc_camera/ov2640.c
+> +++ b/drivers/media/i2c/soc_camera/ov2640.c
+> @@ -13,6 +13,7 @@
+>   * published by the Free Software Foundation.
+>   */
+> 
+> +#include <linux/clk.h>
+>  #include <linux/init.h>
+>  #include <linux/module.h>
+>  #include <linux/i2c.h>
+> @@ -31,6 +32,7 @@
+> 
+>  #define VAL_SET(x, mask, rshift, lshift)  \
+>  		((((x) >> rshift) & mask) << lshift)
+> +
+>  /*
+>   * DSP registers
+>   * register offset for BANK_SEL == BANK_SEL_DSP
+> @@ -284,6 +286,7 @@ struct ov2640_priv {
+>  	struct v4l2_ctrl_handler	hdl;
+>  	u32	cfmt_code;
+>  	struct v4l2_clk			*clk;
+> +	struct clk			*master_clk;
+>  	const struct ov2640_win_size	*win;
+> 
+>  	struct soc_camera_subdev_desc	ssdd_dt;
+> @@ -746,6 +749,7 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int
+> on) struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+> struct ov2640_priv *priv = to_ov2640(client);
+>  	struct v4l2_clk *clk;
+> +	int ret;
+> 
+>  	if (!priv->clk) {
+>  		clk = v4l2_clk_get(&client->dev, "mclk");
+> @@ -755,7 +759,20 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int
+> on) priv->clk = clk;
+>  	}
+> 
+> -	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
+> +	if (on) {
+> +		ret = clk_prepare_enable(priv->master_clk);
+> +		if (ret)
+> +			return ret;
+> +	} else {
+> +		clk_disable_unprepare(priv->master_clk);
+> +	}
+> +
+> +	ret = soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
+> +
+> +	if (ret && on)
+> +		clk_disable_unprepare(priv->master_clk);
+> +
+> +	return ret;
+>  }
+> 
+>  /* Select the nearest higher resolution for capture */
+> @@ -1145,6 +1162,10 @@ static int ov2640_probe(struct i2c_client *client,
+>  			return ret;
+>  	}
+> 
+> +	priv->master_clk = devm_clk_get(&client->dev, "xvclk");
+> +	if (IS_ERR(priv->master_clk))
+> +		return PTR_ERR(priv->master_clk);
+> +
+>  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+>  	v4l2_ctrl_handler_init(&priv->hdl, 2);
+>  	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+
 -- 
-2.1.3
+Regards,
+
+Laurent Pinchart
 
