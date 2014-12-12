@@ -1,318 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:38690 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752646AbaLAKwc (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42920 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965190AbaLLDnK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 05:52:32 -0500
-Message-ID: <547C485D.6090108@xs4all.nl>
-Date: Mon, 01 Dec 2014 11:52:13 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Nikhil Devshatwar <nikhil.nd@ti.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 4/4] media: ti-vpe: Add support for SEQ_TB buffers
-References: <1417256860-20233-1-git-send-email-nikhil.nd@ti.com> <1417256860-20233-5-git-send-email-nikhil.nd@ti.com>
-In-Reply-To: <1417256860-20233-5-git-send-email-nikhil.nd@ti.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 11 Dec 2014 22:43:10 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id BC98A2A0088
+	for <linux-media@vger.kernel.org>; Fri, 12 Dec 2014 04:43:00 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141212034300.BC98A2A0088@tschai.lan>
+Date: Fri, 12 Dec 2014 04:43:00 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/29/2014 11:27 AM, Nikhil Devshatwar wrote:
-> The video source can generate the data in the SEQ_TB buffer format.
-> In the case of TI SoC, the IVA_HD can generate the interlaced content in
-> the SEQ_TB buffer format. This is the format where the top and bottom field
-> data can be contained in a single buffer. For example, for NV12, interlaced
-> format, the data in Y buffer will be arranged as Y-top followed by Y-bottom.
-> And likewise for UV plane.
-> 
-> Also, queueing one buffer of SEQ_TB is euivalent to queueing two different
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-queueing -> queuing 
-euivalent -> equivalent
+Results of the daily build of media_tree:
 
-> buffers for top and bottom fields. Driver needs to take care of this when
-> handling source buffer lists.
-> 
-> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+date:		Fri Dec 12 04:00:31 CET 2014
+git branch:	test
+git hash:	71947828caef0c83d4245f7d1eaddc799b4ff1d1
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-Currently you are supporting SEQ_TB. Should SEQ_BT also be supported? I don't
-know if you are aware but NTSC transmits the bottom field before the top field,
-while PAL/SECAM transmit top before bottom.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-So for NTSC support having SEQ_BT might be useful. Up to you, though.
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-	Hans
+Full logs are available here:
 
-> ---
-> Changes from v1:
->  * Add check for valid field in qbuf ioctl
->  * Fix issue with swapped fields
-> 
->  drivers/media/platform/ti-vpe/vpe.c |  124 ++++++++++++++++++++++++++++-------
->  1 file changed, 102 insertions(+), 22 deletions(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 6a96bbf..b53aea5 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -319,9 +319,13 @@ struct vpe_q_data {
->  };
->  
->  /* vpe_q_data flag bits */
-> -#define	Q_DATA_FRAME_1D		(1 << 0)
-> -#define	Q_DATA_MODE_TILED	(1 << 1)
-> -#define	Q_DATA_INTERLACED	(1 << 2)
-> +#define	Q_DATA_FRAME_1D			(1 << 0)
-> +#define	Q_DATA_MODE_TILED		(1 << 1)
-> +#define	Q_DATA_INTERLACED_ALTERNATE	(1 << 2)
-> +#define	Q_DATA_INTERLACED_SEQ_TB	(1 << 3)
-> +
-> +#define Q_IS_INTERLACED		(Q_DATA_INTERLACED_ALTERNATE | \
-> +				Q_DATA_INTERLACED_SEQ_TB)
->  
->  enum {
->  	Q_DATA_SRC = 0,
-> @@ -647,7 +651,7 @@ static void set_us_coefficients(struct vpe_ctx *ctx)
->  
->  	cp = &us_coeffs[0].anchor_fid0_c0;
->  
-> -	if (s_q_data->flags & Q_DATA_INTERLACED)	/* interlaced */
-> +	if (s_q_data->flags & Q_IS_INTERLACED)		/* interlaced */
->  		cp += sizeof(us_coeffs[0]) / sizeof(*cp);
->  
->  	end_cp = cp + sizeof(us_coeffs[0]) / sizeof(*cp);
-> @@ -774,8 +778,7 @@ static void set_dei_regs(struct vpe_ctx *ctx)
->  	 * for both progressive and interlace content in interlace bypass mode.
->  	 * It has been recommended not to use progressive bypass mode.
->  	 */
-> -	if ((!ctx->deinterlacing && (s_q_data->flags & Q_DATA_INTERLACED)) ||
-> -			!(s_q_data->flags & Q_DATA_INTERLACED)) {
-> +	if (!(s_q_data->flags & Q_IS_INTERLACED) || !ctx->deinterlacing) {
->  		deinterlace = false;
->  		val = VPE_DEI_INTERLACE_BYPASS;
->  	}
-> @@ -843,8 +846,8 @@ static int set_srcdst_params(struct vpe_ctx *ctx)
->  	ctx->sequence = 0;
->  	ctx->field = V4L2_FIELD_TOP;
->  
-> -	if ((s_q_data->flags & Q_DATA_INTERLACED) &&
-> -			!(d_q_data->flags & Q_DATA_INTERLACED)) {
-> +	if ((s_q_data->flags & Q_IS_INTERLACED) &&
-> +			!(d_q_data->flags & Q_IS_INTERLACED)) {
->  		int bytes_per_line;
->  		const struct vpdma_data_format *mv =
->  			&vpdma_misc_fmts[VPDMA_DATA_FMT_MV];
-> @@ -1068,6 +1071,27 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
->  		vpdma_fmt = fmt->vpdma_fmt[plane];
->  
->  		dma_addr = vb2_dma_addr_plus_data_offset(vb, plane);
-> +
-> +		if (q_data->flags & Q_DATA_INTERLACED_SEQ_TB) {
-> +			/*
-> +			 * Use top or bottom field from same vb alternately
-> +			 * f,f-1,f-2 = TBT when seq is even
-> +			 * f,f-1,f-2 = BTB when seq is odd
-> +			 */
-> +			field = (p_data->vb_index + (ctx->sequence % 2)) % 2;
-> +
-> +			if (field) {
-> +				/* bottom field of a SEQ_TB buffer
-> +				 * Skip the top field data by */
-> +				int height = q_data->height / 2;
-> +				int bpp = fmt->fourcc == V4L2_PIX_FMT_NV12 ?
-> +						1 : (vpdma_fmt->depth >> 3);
-> +				if (plane)
-> +					height /= 2;
-> +				dma_addr += q_data->width * height * bpp;
-> +			}
-> +		}
-> +
->  		if (!dma_addr) {
->  			vpe_err(ctx->dev,
->  				"acquiring input buffer(%d) dma_addr failed\n",
-> @@ -1122,9 +1146,22 @@ static void device_run(void *priv)
->  	struct vpe_ctx *ctx = priv;
->  	struct sc_data *sc = ctx->dev->sc;
->  	struct vpe_q_data *d_q_data = &ctx->q_data[Q_DATA_DST];
-> +	struct vpe_q_data *s_q_data = &ctx->q_data[Q_DATA_SRC];
-> +
-> +	if (ctx->deinterlacing && s_q_data->flags & Q_DATA_INTERLACED_SEQ_TB &&
-> +		ctx->sequence % 2 == 0) {
-> +		/* When using SEQ_TB buffers, When using it first time,
-> +		 * No need to remove the buffer as the next field is present
-> +		 * in the same buffer. (so that job_ready won't fail)
-> +		 * It will be removed when using bottom field
-> +		 */
-> +		ctx->src_vbs[0] = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
-> +		WARN_ON(ctx->src_vbs[0] == NULL);
-> +	} else {
-> +		ctx->src_vbs[0] = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
-> +		WARN_ON(ctx->src_vbs[0] == NULL);
-> +	}
->  
-> -	ctx->src_vbs[0] = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
-> -	WARN_ON(ctx->src_vbs[0] == NULL);
->  	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
->  	WARN_ON(ctx->dst_vb == NULL);
->  
-> @@ -1256,6 +1293,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
->  	struct vpe_dev *dev = (struct vpe_dev *)data;
->  	struct vpe_ctx *ctx;
->  	struct vpe_q_data *d_q_data;
-> +	struct vpe_q_data *s_q_data;
->  	struct vb2_buffer *s_vb, *d_vb;
->  	struct v4l2_buffer *s_buf, *d_buf;
->  	unsigned long flags;
-> @@ -1332,7 +1370,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
->  	d_buf->sequence = ctx->sequence;
->  
->  	d_q_data = &ctx->q_data[Q_DATA_DST];
-> -	if (d_q_data->flags & Q_DATA_INTERLACED) {
-> +	if (d_q_data->flags & Q_IS_INTERLACED) {
->  		d_buf->field = ctx->field;
->  		if (ctx->field == V4L2_FIELD_BOTTOM) {
->  			ctx->sequence++;
-> @@ -1346,12 +1384,28 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
->  		ctx->sequence++;
->  	}
->  
-> -	if (ctx->deinterlacing)
-> -		s_vb = ctx->src_vbs[2];
-> +	s_q_data = &ctx->q_data[Q_DATA_SRC];
-> +
-> +	if (ctx->deinterlacing) {
-> +		/* Allow source buffer to be dequeued only if it won't be used
-> +		 * in the next iteration. All vbs are initialized to first
-> +		 * buffer and we are shifting buffers every iteration, for the
-> +		 * first two iterations, no buffer will be dequeued.
-> +		 * This ensures that driver will keep (n-2)th (n-1)th and (n)th
-> +		 * field when deinterlacing is enabled */
-> +		if (ctx->src_vbs[2] != ctx->src_vbs[1])
-> +			s_vb = ctx->src_vbs[2];
-> +		else
-> +			s_vb = NULL;
-> +	}
->  
->  	spin_lock_irqsave(&dev->lock, flags);
-> -	v4l2_m2m_buf_done(s_vb, VB2_BUF_STATE_DONE);
-> +
-> +	if (s_vb)
-> +		v4l2_m2m_buf_done(s_vb, VB2_BUF_STATE_DONE);
-> +
->  	v4l2_m2m_buf_done(d_vb, VB2_BUF_STATE_DONE);
-> +
->  	spin_unlock_irqrestore(&dev->lock, flags);
->  
->  	if (ctx->deinterlacing) {
-> @@ -1467,7 +1521,7 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
->  	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
->  	struct v4l2_plane_pix_format *plane_fmt;
->  	unsigned int w_align;
-> -	int i, depth, depth_bytes;
-> +	int i, depth, depth_bytes, height;
->  
->  	if (!fmt || !(fmt->types & type)) {
->  		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
-> @@ -1475,7 +1529,8 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
->  		return -EINVAL;
->  	}
->  
-> -	if (pix->field != V4L2_FIELD_NONE && pix->field != V4L2_FIELD_ALTERNATE)
-> +	if (pix->field != V4L2_FIELD_NONE && pix->field != V4L2_FIELD_ALTERNATE
-> +			&& pix->field != V4L2_FIELD_SEQ_TB)
->  		pix->field = V4L2_FIELD_NONE;
->  
->  	depth = fmt->vpdma_fmt[VPE_LUMA]->depth;
-> @@ -1509,6 +1564,14 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
->  	pix->num_planes = fmt->coplanar ? 2 : 1;
->  	pix->pixelformat = fmt->fourcc;
->  
-> +	/* for the actual image parameters, we need to consider the field height
-> +	 * of the image for SEQ_TB buffers.
-> +	 */
-> +	if (pix->field == V4L2_FIELD_SEQ_TB)
-> +		height = pix->height / 2;
-> +	else
-> +		height = pix->height;
-> +
->  	if (!pix->colorspace) {
->  		if (fmt->fourcc == V4L2_PIX_FMT_RGB24 ||
->  				fmt->fourcc == V4L2_PIX_FMT_BGR24 ||
-> @@ -1516,7 +1579,7 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
->  				fmt->fourcc == V4L2_PIX_FMT_BGR32) {
->  			pix->colorspace = V4L2_COLORSPACE_SRGB;
->  		} else {
-> -			if (pix->height > 1280)	/* HD */
-> +			if (height > 1280)	/* HD */
->  				pix->colorspace = V4L2_COLORSPACE_REC709;
->  			else			/* SD */
->  				pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> @@ -1593,9 +1656,15 @@ static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
->  	q_data->c_rect.height	= q_data->height;
->  
->  	if (q_data->field == V4L2_FIELD_ALTERNATE)
-> -		q_data->flags |= Q_DATA_INTERLACED;
-> +		q_data->flags |= Q_DATA_INTERLACED_ALTERNATE;
-> +	else if (q_data->field == V4L2_FIELD_SEQ_TB)
-> +		q_data->flags |= Q_DATA_INTERLACED_SEQ_TB;
->  	else
-> -		q_data->flags &= ~Q_DATA_INTERLACED;
-> +		q_data->flags &= ~Q_IS_INTERLACED;
-> +
-> +	/* the crop height is halved for the case of SEQ_TB buffers */
-> +	if (q_data->flags & Q_DATA_INTERLACED_SEQ_TB)
-> +		q_data->c_rect.height /= 2;
->  
->  	vpe_dbg(ctx->dev, "Setting format for type %d, wxh: %dx%d, fmt: %d bpl_y %d",
->  		f->type, q_data->width, q_data->height, q_data->fmt->fourcc,
-> @@ -1631,6 +1700,7 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
->  {
->  	struct vpe_q_data *q_data;
-> +	int height;
->  
->  	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
->  	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
-> @@ -1665,13 +1735,22 @@ static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
->  		return -EINVAL;
->  	}
->  
-> +	/*
-> +	* For SEQ_TB buffers, crop height should be less than the height of
-> +	* the field height, not the buffer height
-> +	*/
-> +	if (q_data->flags & Q_DATA_INTERLACED_SEQ_TB)
-> +		height = q_data->height / 2;
-> +	else
-> +		height = q_data->height;
-> +
->  	if (s->r.top < 0 || s->r.left < 0) {
->  		vpe_err(ctx->dev, "negative values for top and left\n");
->  		s->r.top = s->r.left = 0;
->  	}
->  
->  	v4l_bound_align_image(&s->r.width, MIN_W, q_data->width, 1,
-> -		&s->r.height, MIN_H, q_data->height, H_ALIGN, S_ALIGN);
-> +		&s->r.height, MIN_H, height, H_ALIGN, S_ALIGN);
->  
->  	/* adjust left/top if cropping rectangle is out of bounds */
->  	if (s->r.left + s->r.width > q_data->width)
-> @@ -1919,11 +1998,12 @@ static int vpe_buf_prepare(struct vb2_buffer *vb)
->  	num_planes = q_data->fmt->coplanar ? 2 : 1;
->  
->  	if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-> -		if (!(q_data->flags & Q_DATA_INTERLACED)) {
-> +		if (!(q_data->flags & Q_IS_INTERLACED)) {
->  			vb->v4l2_buf.field = V4L2_FIELD_NONE;
->  		} else {
->  			if (vb->v4l2_buf.field != V4L2_FIELD_TOP &&
-> -					vb->v4l2_buf.field != V4L2_FIELD_BOTTOM)
-> +			vb->v4l2_buf.field != V4L2_FIELD_BOTTOM &&
-> +			vb->v4l2_buf.field != V4L2_FIELD_SEQ_TB)
->  				return -EINVAL;
->  		}
->  	}
-> 
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
