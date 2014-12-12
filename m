@@ -1,88 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38755 "EHLO lists.s-osg.org"
+Received: from mout.gmx.net ([212.227.17.22]:59317 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753807AbaLARDp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 12:03:45 -0500
-Date: Mon, 1 Dec 2014 15:03:40 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL] soc-camera: 1st set for 3.19
-Message-ID: <20141201150340.23e6013e@recife.lan>
-In-Reply-To: <Pine.LNX.4.64.1411282307180.15467@axis700.grange>
-References: <Pine.LNX.4.64.1411282307180.15467@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1759274AbaLLS1H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Dec 2014 13:27:07 -0500
+Received: from linux.local ([94.216.58.185]) by mail.gmx.com (mrgmx101) with
+ ESMTPSA (Nemesis) id 0M3eDF-1XhpUG29Zp-00rHUw for
+ <linux-media@vger.kernel.org>; Fri, 12 Dec 2014 19:27:05 +0100
+From: Peter Seiderer <ps.report@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] qv4l2: fix qmake project file
+Date: Fri, 12 Dec 2014 19:27:04 +0100
+Message-Id: <1418408824-4621-1-git-send-email-ps.report@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 28 Nov 2014 23:15:32 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+- do not use private paths (as done by mistake)
+- fix v4l-utils in place library paths
 
-> Hi Mauro,
-> 
-> IIUC, this coming Sunday might be the last -rc, so, postponing pull 
-> requests to subsystem maintainers even further isn't a good idea, so, here 
-> goes an soc-camera request. I know it isn't complete, there are a few more 
-> patches waiting to be pushed upstream, but I won't have time this coming 
-> weekend and next two weeks I'm traveling, which won't simplify things 
-> either. Some more patches are being reworked, if they arrive soon and we 
-> do get another -rc, I might try to push them too, but I don't want to 
-> postpone these ones, while waiting. One of these patches has also been 
-> modified by me and hasn't been tested yet. But changes weren't too 
-> complex. If however I did break something, we'll have to fix it in an 
-> incremental patch.
-> 
-> The following changes since commit d298a59791fad3a707c1dadbef0935ee2664a10e:
-> 
->   Merge branch 'patchwork' into to_next (2014-11-21 17:01:46 -0200)
-> 
-> are available in the git repository at:
-> 
-> 
->   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.19-1
-> 
-> for you to fetch changes up to d8f5c144e57d99d2a7325bf8877812bf560e22dd:
-> 
->   rcar_vin: Fix interrupt enable in progressive (2014-11-23 12:08:19 +0100)
-> 
-> ----------------------------------------------------------------
-> Koji Matsuoka (4):
->       rcar_vin: Add YUYV capture format support
->       rcar_vin: Add scaling support
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+---
+ utils/qv4l2/qv4l2.pro | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Hmm...
+diff --git a/utils/qv4l2/qv4l2.pro b/utils/qv4l2/qv4l2.pro
+index 19a046a..82500af 100644
+--- a/utils/qv4l2/qv4l2.pro
++++ b/utils/qv4l2/qv4l2.pro
+@@ -15,9 +15,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+ # line and the line '#define HAVE_QTGL 1' from ../../config.h
+ lessThan(QT_MAJOR_VERSION, 5): QT += opengl
+ 
+-INCLUDEPATH += /home/seiderer/Work/v4l_utils/v4l-utils
+-INCLUDEPATH += /home/seiderer/Work/v4l_utils/v4l-utils/utils/v4l2-ctl/
+-INCLUDEPATH += /home/seiderer/Work/v4l_utils/v4l-utils/utils/v4l2-compliance
++INCLUDEPATH += $$PWD/../..
++INCLUDEPATH += $$PWD/../v4l2-ctl/
++INCLUDEPATH += $$PWD/../v4l2-compliance
+ 
+ # Input
+ HEADERS += alsa_stream.h
+@@ -44,9 +44,9 @@ SOURCES += vbi-tab.cpp
+ SOURCES += ../v4l2-ctl/vivid-tpg.c
+ SOURCES += ../v4l2-ctl/vivid-tpg-colors.c
+ 
+-LIBS += -L$$PWD/../../lib/libv4l2 -lv4l2
+-LIBS += -L$$PWD/../../lib/libv4lconvert -lv4lconvert
+-LIBS += -L$$PWD/../libv4l2util -lv4l2util 
++LIBS += -L$$PWD/../../lib/libv4l2/.libs -lv4l2
++LIBS += -L$$PWD/../../lib/libv4lconvert/.libs -lv4lconvert
++LIBS += -L$$PWD/../libv4l2util/.libs -lv4l2util 
+ LIBS += -lrt -ldl -ljpeg
+ 
+ RESOURCES += qv4l2.qrc
+-- 
+2.1.2
 
-WARNING: DT compatible string "renesas,vin-r8a7794" appears un-documented -- check ./Documentation/devicetree/bindings/
-#38: FILE: drivers/media/platform/soc_camera/rcar_vin.c:1406:
-+	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
-
-WARNING: DT compatible string "renesas,vin-r8a7793" appears un-documented -- check ./Documentation/devicetree/bindings/
-#39: FILE: drivers/media/platform/soc_camera/rcar_vin.c:1407:
-+	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
-
-Where are the DT binding documentation for this?
-
-You should be adding a patch to:
-	Documentation/devicetree/bindings/media/rcar_vin.txt
-before this one.
-
-
-
->       rcar_vin: Enable VSYNC field toggle mode
->       rcar_vin: Fix interrupt enable in progressive
-> 
-> Yoshihiro Kaneko (1):
->       rcar_vin: Add DT support for r8a7793 and r8a7794 SoCs
-> 
->  .../devicetree/bindings/media/rcar_vin.txt         |   2 +
->  drivers/media/platform/soc_camera/rcar_vin.c       | 466 ++++++++++++++++++++-
->  2 files changed, 457 insertions(+), 11 deletions(-)
-> 
-> Thanks
-> Guennadi
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
