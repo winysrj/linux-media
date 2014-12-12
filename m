@@ -1,71 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:39647 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753524AbaLUMyE (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60658 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S967795AbaLLN3N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Dec 2014 07:54:04 -0500
-Received: by mail-wi0-f181.google.com with SMTP id r20so5732289wiv.8
-        for <linux-media@vger.kernel.org>; Sun, 21 Dec 2014 04:54:02 -0800 (PST)
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: radio: wl128x: fmdrv_rx.c:  Remove unused function
-Date: Sun, 21 Dec 2014 13:56:49 +0100
-Message-Id: <1419166609-2320-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+	Fri, 12 Dec 2014 08:29:13 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 7/7] cx25821: remove video output support
+Date: Fri, 12 Dec 2014 14:28:00 +0100
+Message-Id: <1418390880-39009-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1418390880-39009-1-git-send-email-hverkuil@xs4all.nl>
+References: <1418390880-39009-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the function fm_rx_get_rds_system() that is not used anywhere.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This was partially found by using a static code analysis program called cppcheck.
+The video output functionality never worked for this driver. Now remove the
+creation of the output video nodes as well to prevent users from thinking
+that video output is available, when it isn't.
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+To correctly implement this the video output should use vb2 as well, and
+that requires rewriting the output DMA setup. But without hardware to test
+I am not able to do that.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/radio/wl128x/fmdrv_rx.c |   16 ----------------
- drivers/media/radio/wl128x/fmdrv_rx.h |    1 -
- 2 files changed, 17 deletions(-)
+ drivers/media/pci/cx25821/Makefile        | 2 +-
+ drivers/media/pci/cx25821/cx25821-core.c  | 6 +++++-
+ drivers/media/pci/cx25821/cx25821-video.c | 2 +-
+ drivers/media/pci/cx25821/cx25821.h       | 7 +++++++
+ 4 files changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/radio/wl128x/fmdrv_rx.c b/drivers/media/radio/wl128x/fmdrv_rx.c
-index 09632cb..cfaeb24 100644
---- a/drivers/media/radio/wl128x/fmdrv_rx.c
-+++ b/drivers/media/radio/wl128x/fmdrv_rx.c
-@@ -785,22 +785,6 @@ int fm_rx_set_rds_system(struct fmdev *fmdev, u8 rds_mode)
- 	return 0;
- }
+diff --git a/drivers/media/pci/cx25821/Makefile b/drivers/media/pci/cx25821/Makefile
+index 5872feb..c8f8598 100644
+--- a/drivers/media/pci/cx25821/Makefile
++++ b/drivers/media/pci/cx25821/Makefile
+@@ -1,6 +1,6 @@
+ cx25821-y   := cx25821-core.o cx25821-cards.o cx25821-i2c.o \
+ 		       cx25821-gpio.o cx25821-medusa-video.o \
+-		       cx25821-video.o cx25821-video-upstream.o
++		       cx25821-video.o
  
--/* Returns current RDS operation mode */
--int fm_rx_get_rds_system(struct fmdev *fmdev, u8 *rds_mode)
--{
--	if (fmdev->curr_fmmode != FM_MODE_RX)
--		return -EPERM;
--
--	if (rds_mode == NULL) {
--		fmerr("Invalid memory\n");
--		return -ENOMEM;
--	}
--
--	*rds_mode = fmdev->rx.rds_mode;
--
--	return 0;
--}
--
- /* Configures Alternate Frequency switch mode */
- int fm_rx_set_af_switch(struct fmdev *fmdev, u8 af_mode)
- {
-diff --git a/drivers/media/radio/wl128x/fmdrv_rx.h b/drivers/media/radio/wl128x/fmdrv_rx.h
-index 32add81..2392218 100644
---- a/drivers/media/radio/wl128x/fmdrv_rx.h
-+++ b/drivers/media/radio/wl128x/fmdrv_rx.h
-@@ -40,7 +40,6 @@ void fm_rx_reset_station_info(struct fmdev *);
- int fm_rx_seek(struct fmdev *, u32, u32, u32);
+ obj-$(CONFIG_VIDEO_CX25821) += cx25821.o
+ obj-$(CONFIG_VIDEO_CX25821_ALSA) += cx25821-alsa.o
+diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
+index c1ea24e..559f829 100644
+--- a/drivers/media/pci/cx25821/cx25821-core.c
++++ b/drivers/media/pci/cx25821/cx25821-core.c
+@@ -965,11 +965,15 @@ void cx25821_dev_unregister(struct cx25821_dev *dev)
  
- int fm_rx_get_rds_mode(struct fmdev *, u8 *);
--int fm_rx_get_rds_system(struct fmdev *, u8 *);
- int fm_rx_get_mute_mode(struct fmdev *, u8 *);
- int fm_rx_get_volume(struct fmdev *, u16 *);
- int fm_rx_get_band_freq_range(struct fmdev *,
+ 	release_mem_region(dev->base_io_addr, pci_resource_len(dev->pci, 0));
+ 
+-	for (i = 0; i < MAX_VID_CHANNEL_NUM - 1; i++) {
++	for (i = 0; i < MAX_VID_CAP_CHANNEL_NUM - 1; i++) {
+ 		if (i == SRAM_CH08) /* audio channel */
+ 			continue;
++		/*
++		 * TODO: enable when video output is properly
++		 * supported.
+ 		if (i == SRAM_CH09 || i == SRAM_CH10)
+ 			cx25821_free_mem_upstream(&dev->channels[i]);
++		 */
+ 		cx25821_video_unregister(dev, i);
+ 	}
+ 
+diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
+index 827c3c0..7bc495e 100644
+--- a/drivers/media/pci/cx25821/cx25821-video.c
++++ b/drivers/media/pci/cx25821/cx25821-video.c
+@@ -692,7 +692,7 @@ int cx25821_video_register(struct cx25821_dev *dev)
+ 
+ 	spin_lock_init(&dev->slock);
+ 
+-	for (i = 0; i < MAX_VID_CHANNEL_NUM - 1; ++i) {
++	for (i = 0; i < MAX_VID_CAP_CHANNEL_NUM - 1; ++i) {
+ 		struct cx25821_channel *chan = &dev->channels[i];
+ 		struct video_device *vdev = &chan->vdev;
+ 		struct v4l2_ctrl_handler *hdl = &chan->hdl;
+diff --git a/drivers/media/pci/cx25821/cx25821.h b/drivers/media/pci/cx25821/cx25821.h
+index 34c5ff1..d81a08a 100644
+--- a/drivers/media/pci/cx25821/cx25821.h
++++ b/drivers/media/pci/cx25821/cx25821.h
+@@ -88,6 +88,13 @@
+ 
+ #define CX25821_BOARD_CONEXANT_ATHENA10 1
+ #define MAX_VID_CHANNEL_NUM     12
++
++/*
++ * Maximum capture-only channels. This can go away once video/audio output
++ * is fully supported in this driver.
++ */
++#define MAX_VID_CAP_CHANNEL_NUM     10
++
+ #define VID_CHANNEL_NUM 8
+ 
+ struct cx25821_fmt {
 -- 
-1.7.10.4
+2.1.3
 
