@@ -1,56 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:42103 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753081AbaLTMpe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 07:45:34 -0500
-In-Reply-To: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-References: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 4/8] [media] em28xx-core: fix missing newlines
+Received: from lists.s-osg.org ([54.187.51.154]:39975 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966556AbaLLMds (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Dec 2014 07:33:48 -0500
+Date: Fri, 12 Dec 2014 10:33:43 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] soc-camera: 1st set for 3.19
+Message-ID: <20141212103343.76c9b9aa@recife.lan>
+In-Reply-To: <Pine.LNX.4.64.1412051549550.15420@axis700.grange>
+References: <Pine.LNX.4.64.1411282307180.15467@axis700.grange>
+	<20141201150340.23e6013e@recife.lan>
+	<Pine.LNX.4.64.1412050805460.12083@axis700.grange>
+	<20141205064237.0f27b0b3@concha.lan>
+	<Pine.LNX.4.64.1412051549550.15420@axis700.grange>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1Y2JPX-0006Ua-6C@rmk-PC.arm.linux.org.uk>
-Date: Sat, 20 Dec 2014 12:45:31 +0000
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Inspection shows that newlines are missing from several kernel messages
-in em28xx-core.  Fix these.
+Em Fri, 05 Dec 2014 15:53:11 +0100
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
 
-Cc: <stable@vger.kernel.org>
-Fixes: 9c669b731470 ("[media] em28xx: add suspend/resume to em28xx_ops")
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/media/usb/em28xx/em28xx-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> Hi Mauro,
+> 
+> On Fri, 5 Dec 2014, Mauro Carvalho Chehab wrote:
+> 
+> > Em Fri, 05 Dec 2014 08:07:07 +0100
+> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+> > 
+> > > Hi Mauro,
+> > > 
+> > > On Mon, 1 Dec 2014, Mauro Carvalho Chehab wrote:
+> > > 
+> > > > Em Fri, 28 Nov 2014 23:15:32 +0100 (CET)
+> > > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+> > > > 
+> > > > > Hi Mauro,
+> > > > > 
+> > > > > IIUC, this coming Sunday might be the last -rc, so, postponing pull 
+> > > > > requests to subsystem maintainers even further isn't a good idea, so, here 
+> > > > > goes an soc-camera request. I know it isn't complete, there are a few more 
+> > > > > patches waiting to be pushed upstream, but I won't have time this coming 
+> > > > > weekend and next two weeks I'm traveling, which won't simplify things 
+> > > > > either. Some more patches are being reworked, if they arrive soon and we 
+> > > > > do get another -rc, I might try to push them too, but I don't want to 
+> > > > > postpone these ones, while waiting. One of these patches has also been 
+> > > > > modified by me and hasn't been tested yet. But changes weren't too 
+> > > > > complex. If however I did break something, we'll have to fix it in an 
+> > > > > incremental patch.
+> > > > > 
+> > > > > The following changes since commit d298a59791fad3a707c1dadbef0935ee2664a10e:
+> > > > > 
+> > > > >   Merge branch 'patchwork' into to_next (2014-11-21 17:01:46 -0200)
+> > > > > 
+> > > > > are available in the git repository at:
+> > > > > 
+> > > > > 
+> > > > >   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.19-1
+> > > > > 
+> > > > > for you to fetch changes up to d8f5c144e57d99d2a7325bf8877812bf560e22dd:
+> > > > > 
+> > > > >   rcar_vin: Fix interrupt enable in progressive (2014-11-23 12:08:19 +0100)
+> > > > > 
+> > > > > ----------------------------------------------------------------
+> > > > > Koji Matsuoka (4):
+> > > > >       rcar_vin: Add YUYV capture format support
+> > > > >       rcar_vin: Add scaling support
+> > > > 
+> > > > Hmm...
+> > > > 
+> > > > WARNING: DT compatible string "renesas,vin-r8a7794" appears un-documented -- check ./Documentation/devicetree/bindings/
+> > > > #38: FILE: drivers/media/platform/soc_camera/rcar_vin.c:1406:
+> > > > +	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
+> > > > 
+> > > > WARNING: DT compatible string "renesas,vin-r8a7793" appears un-documented -- check ./Documentation/devicetree/bindings/
+> > > > #39: FILE: drivers/media/platform/soc_camera/rcar_vin.c:1407:
+> > > > +	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+> > > > 
+> > > > Where are the DT binding documentation for this?
+> > > > 
+> > > > You should be adding a patch to:
+> > > > 	Documentation/devicetree/bindings/media/rcar_vin.txt
+> > > > before this one.
+> > > 
+> > > Sure, documentation is in the same patch
+> > > 
+> > > http://git.linuxtv.org/cgit.cgi/gliakhovetski/v4l-dvb.git/commit/?h=for-3.19-1&id=aa1f7651acbe222948f43e239eda15362c9e274c
+> > > 
+> > > Is it because you cannot push it via your tree or what's happened, why 
+> > > this warning?
+> > 
+> > I see. It seems that you've added the documentation changes after the
+> > patch using it. As I run checkpatch patch by patch, at the same order
+> > as they're found at the tree, checkpatch complained.
+> 
+> It's not after, it is added in that very same patch.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 86461a708abe..37456079f490 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -1125,7 +1125,7 @@ int em28xx_suspend_extension(struct em28xx *dev)
- {
- 	const struct em28xx_ops *ops = NULL;
- 
--	em28xx_info("Suspending extensions");
-+	em28xx_info("Suspending extensions\n");
- 	mutex_lock(&em28xx_devlist_mutex);
- 	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
- 		if (ops->suspend)
-@@ -1139,7 +1139,7 @@ int em28xx_resume_extension(struct em28xx *dev)
- {
- 	const struct em28xx_ops *ops = NULL;
- 
--	em28xx_info("Resuming extensions");
-+	em28xx_info("Resuming extensions\n");
- 	mutex_lock(&em28xx_devlist_mutex);
- 	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
- 		if (ops->resume)
--- 
-1.8.3.1
+Yeah, right. It seems to be a checkpatch bug. You should be reporting it
+to checkpatch maintainers.
 
+> And I do remember a 
+> discussion, where I was told, that it's up to specific maintainers, 
+> whether to accept patches, adding DT properties and documentation together 
+> or only separately. Now once again checkpatch has singlehandedly decided 
+> this for us... It's really becoming kernel's blind police.
+
+It is not a kernel's blind police, but a bug at the tool. As I told
+you, if you replied earlier, I would be able to send this together
+with the pull request.
+
+Anyway, I'm planning to send a late pull request moving some really old
+drivers to staging. If I end by doing that, I'll add your patches at
+the late pull request.
+
+I reviewed the series already, and it looks good.
+
+> 
+> > Unofortunately, you answered too late. I closed the final set of patches
+> > to 3.19 yesterday. I won't be able to handle it today, and I'll be traveling
+> > all weekend, without access to my build server. 
+> 
+> IC, it's a pity, yes.
+> 
+> Thanks
+> Guennadi
+
+Regards,
+Mauro
