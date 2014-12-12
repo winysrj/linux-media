@@ -1,44 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:54574 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059AbaLRQuM (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:55422 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030233AbaLLQcN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 11:50:12 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Sureau?=
-	<frederic.sureau@vodalys.com>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 1/2] [media] coda: fix encoder rate control parameter masks
-Date: Thu, 18 Dec 2014 17:49:59 +0100
-Message-Id: <1418921400-724-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 12 Dec 2014 11:32:13 -0500
+Message-ID: <548B1884.6090005@xs4all.nl>
+Date: Fri, 12 Dec 2014 17:32:04 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Shuah Khan <shuahkh@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [REVIEW] au0828-video.c
+References: <548AC061.3050700@xs4all.nl>	<20141212104942.0ea3c1d7@recife.lan>	<548AE5B2.1070306@xs4all.nl>	<20141212111424.0595125b@recife.lan>	<548B092F.2090803@osg.samsung.com>	<548B09A5.80506@xs4all.nl> <CAGoCfiw1pdJGGfG5Gs-3Jf2e48buzwEA1O3+j-E+2Pjj657eEQ@mail.gmail.com>
+In-Reply-To: <CAGoCfiw1pdJGGfG5Gs-3Jf2e48buzwEA1O3+j-E+2Pjj657eEQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes the ENC_SEQ_RC_PARA initial delay and bitrate masks.
-These bit fields are 15 bit wide, not 7 bit.
+On 12/12/2014 04:52 PM, Devin Heitmueller wrote:
+>> No, tvtime no longer hangs if no frames arrive, so there is no need for
+>> this timeout handling. I'd strip it out, which can be done in a separate
+>> patch.
+> 
+> Did you actually try it?
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda_regs.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Mauro tried it, not me. I'm not sure if he looked at whether the user
+interface is blocked when waiting for a frame.
 
-diff --git a/drivers/media/platform/coda/coda_regs.h b/drivers/media/platform/coda/coda_regs.h
-index 8e015b8..7d02624 100644
---- a/drivers/media/platform/coda/coda_regs.h
-+++ b/drivers/media/platform/coda/coda_regs.h
-@@ -304,9 +304,9 @@
- #define		CODA_RATECONTROL_AUTOSKIP_OFFSET		31
- #define		CODA_RATECONTROL_AUTOSKIP_MASK			0x01
- #define		CODA_RATECONTROL_INITIALDELAY_OFFSET		16
--#define		CODA_RATECONTROL_INITIALDELAY_MASK		0x7f
-+#define		CODA_RATECONTROL_INITIALDELAY_MASK		0x7fff
- #define		CODA_RATECONTROL_BITRATE_OFFSET		1
--#define		CODA_RATECONTROL_BITRATE_MASK			0x7f
-+#define		CODA_RATECONTROL_BITRATE_MASK			0x7fff
- #define		CODA_RATECONTROL_ENABLE_OFFSET			0
- #define		CODA_RATECONTROL_ENABLE_MASK			0x01
- #define CODA_CMD_ENC_SEQ_RC_BUF_SIZE				0x1b0
--- 
-2.1.3
+> Do you have some patches to tvtime which
+> aren't upstream?
+> 
+> I wrote the comment in question (and added the associated code).  The
+> issue is that tvtime does *everything* in a single thread (except the
+> recent ALSA audio work), that includes servicing the video/vbi devices
+> as well as the user interface.  That thread blocks on a DQBUF ioctl
+> until data arrives, and thus if frames are not being delivered it will
+> hang the entire tvtime user interface.
+> 
+> Now you can certainly argue that is a bad design decision, but it's
+> been that way for 15+ years, so we can't break it now.  Hence why I
+> generate dummy frames on a timeout if the decoder isn't delivering
+> video.  Unfortunately the au8522 doesn't have a free running mode
+> (i.e. blue screen if no video), which is why most of the other devices
+> work fine (decoders by Conexant, NXP, Trident, etc all have such
+> functionality).
+> 
+> Don't get me wrong - I *hate* that I had to put that timer crap in the
+> driver, but it was necessary to be compatible with one of the most
+> popular applications out there.
+> 
+> In short, that code cannot be removed.
 
+Sure it can. I just tried tvtime and you are right, it blocks the GUI.
+But the fix is very easy as well. So now I've updated tvtime so that
+it timeouts and gives the GUI time to update itself.
+
+No more need for such an ugly hack in au0828. The au0828 isn't the only
+driver that can block, others do as well. Admittedly, they aren't very
+common, but they do exist. So it is much better to fix the application
+than adding application workarounds in the kernel.
+
+Regards,
+
+	Hans
