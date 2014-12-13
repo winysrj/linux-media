@@ -1,90 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:52750 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753212AbaLALqS (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:50469 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030568AbaLMLyH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 06:46:18 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DBD622A008F
-	for <linux-media@vger.kernel.org>; Mon,  1 Dec 2014 12:46:02 +0100 (CET)
-Message-ID: <547C54FA.10509@xs4all.nl>
-Date: Mon, 01 Dec 2014 12:46:02 +0100
+	Sat, 13 Dec 2014 06:54:07 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2] omap_vout: fix compile warnings
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 07/10] m5mols: fix sparse warnings
+Date: Sat, 13 Dec 2014 12:52:57 +0100
+Message-Id: <1418471580-26510-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
+References: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When compiling under COMPILE_TEST on a x86_64 the following warnings
-appear:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-drivers/media/platform/omap/omap_vout.c: In function 'omap_vout_uservirt_to_phys':
-drivers/media/platform/omap/omap_vout.c:209:23: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-   return virt_to_phys((void *) virtp);
-                       ^
-drivers/media/platform/omap/omap_vout.c: In function 'omapvid_setup_overlay':
-drivers/media/platform/omap/omap_vout.c:420:2: warning: format '%x' expects argument of type 'unsigned int', but argument 5 has type 'dma_addr_t' [-Wformat=]
-  v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
-  ^
-drivers/media/platform/omap/omap_vout.c: In function 'omap_vout_buffer_prepare':
-drivers/media/platform/omap/omap_vout.c:794:34: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-   vout->queued_buf_addr[vb->i] = (u8 *)
-                                  ^
-In file included from arch/x86/include/asm/dma-mapping.h:44:0,
-                 from include/linux/dma-mapping.h:82,
-                 from drivers/media/platform/omap/omap_vout.c:40:
-drivers/media/platform/omap/omap_vout.c:803:58: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-   dma_addr = dma_map_single(vout->vid_dev->v4l2_dev.dev, (void *) addr,
-                                                          ^
-include/asm-generic/dma-mapping-common.h:174:60: note: in definition of macro 'dma_map_single'
- #define dma_map_single(d, a, s, r) dma_map_single_attrs(d, a, s, r, NULL)
-                                                            ^
+drivers/media/i2c/m5mols/m5mols_core.c:128:24: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:128:24: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:128:24: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:128:24: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:130:24: warning: cast to restricted __be32
+drivers/media/i2c/m5mols/m5mols_core.c:130:24: warning: cast to restricted __be32
+drivers/media/i2c/m5mols/m5mols_core.c:130:24: warning: cast to restricted __be32
+drivers/media/i2c/m5mols/m5mols_core.c:130:24: warning: cast to restricted __be32
+drivers/media/i2c/m5mols/m5mols_core.c:130:24: warning: cast to restricted __be32
+drivers/media/i2c/m5mols/m5mols_core.c:130:24: warning: cast to restricted __be32
+drivers/media/i2c/m5mols/m5mols_core.c:457:19: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:457:19: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:457:19: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:457:19: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:458:19: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:458:19: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:458:19: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:458:19: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:459:22: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:459:22: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:459:22: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:459:22: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:460:20: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:460:20: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:460:20: warning: cast to restricted __be16
+drivers/media/i2c/m5mols/m5mols_core.c:460:20: warning: cast to restricted __be16
 
-These are fixed by this patch.
+The be16_to_cpu conversions in m5mols_get_version() are not needed since the
+data is already using cpu endianness. This was never noticed since these
+version fields are never used.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/platform/omap/omap_vout.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/i2c/m5mols/m5mols_core.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index d39e2b4..ba2d8f9 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -198,7 +198,7 @@ static int omap_vout_try_format(struct v4l2_pix_format *pix)
-  * omap_vout_uservirt_to_phys: This inline function is used to convert user
-  * space virtual address to physical address.
-  */
--static u32 omap_vout_uservirt_to_phys(u32 virtp)
-+static unsigned long omap_vout_uservirt_to_phys(unsigned long virtp)
- {
- 	unsigned long physp = 0;
- 	struct vm_area_struct *vma;
-@@ -418,10 +418,10 @@ static int omapvid_setup_overlay(struct omap_vout_device *vout,
+diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
+index 2820f7c..6ed16e5 100644
+--- a/drivers/media/i2c/m5mols/m5mols_core.c
++++ b/drivers/media/i2c/m5mols/m5mols_core.c
+@@ -125,9 +125,9 @@ static u32 m5mols_swap_byte(u8 *data, u8 length)
+ 	if (length == 1)
+ 		return *data;
+ 	else if (length == 2)
+-		return be16_to_cpu(*((u16 *)data));
++		return be16_to_cpu(*((__be16 *)data));
+ 	else
+-		return be32_to_cpu(*((u32 *)data));
++		return be32_to_cpu(*((__be32 *)data));
+ }
+ 
+ /**
+@@ -454,11 +454,6 @@ static int m5mols_get_version(struct v4l2_subdev *sd)
+ 			return ret;
  	}
  
- 	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
--		"%s enable=%d addr=%x width=%d\n height=%d color_mode=%d\n"
-+		"%s enable=%d addr=%pad width=%d\n height=%d color_mode=%d\n"
- 		"rotation=%d mirror=%d posx=%d posy=%d out_width = %d \n"
- 		"out_height=%d rotation_type=%d screen_width=%d\n",
--		__func__, ovl->is_enabled(ovl), info.paddr, info.width, info.height,
-+		__func__, ovl->is_enabled(ovl), &info.paddr, info.width, info.height,
- 		info.color_mode, info.rotation, info.mirror, info.pos_x,
- 		info.pos_y, info.out_width, info.out_height, info.rotation_type,
- 		info.screen_width);
-@@ -794,7 +794,7 @@ static int omap_vout_buffer_prepare(struct videobuf_queue *q,
- 		vout->queued_buf_addr[vb->i] = (u8 *)
- 			omap_vout_uservirt_to_phys(vb->baddr);
- 	} else {
--		u32 addr, dma_addr;
-+		unsigned long addr, dma_addr;
- 		unsigned long size;
- 
- 		addr = (unsigned long) vout->buf_virt_addr[vb->i];
+-	ver->fw = be16_to_cpu(ver->fw);
+-	ver->hw = be16_to_cpu(ver->hw);
+-	ver->param = be16_to_cpu(ver->param);
+-	ver->awb = be16_to_cpu(ver->awb);
+-
+ 	v4l2_info(sd, "Manufacturer\t[%s]\n",
+ 			is_manufacturer(info, REG_SAMSUNG_ELECTRO) ?
+ 			"Samsung Electro-Machanics" :
 -- 
 2.1.3
 
