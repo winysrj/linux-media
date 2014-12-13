@@ -1,38 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53674 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S967664AbaLLN2V (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:52968 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753879AbaLMASz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 08:28:21 -0500
-Date: Fri, 12 Dec 2014 15:27:48 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, prabhakar.csengg@gmail.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 2/8] v4l2-subdev: drop get/set_crop pad ops
-Message-ID: <20141212132748.GY15559@valkosipuli.retiisi.org.uk>
-References: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl>
- <1417686899-30149-3-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1417686899-30149-3-git-send-email-hverkuil@xs4all.nl>
+	Fri, 12 Dec 2014 19:18:55 -0500
+From: Benjamin Larsson <benjamin@southpole.se>
+To: crope@iki.fi
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 3/4] mn88472: elaborate debug printout
+Date: Sat, 13 Dec 2014 01:18:44 +0100
+Message-Id: <1418429925-16342-3-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1418429925-16342-1-git-send-email-benjamin@southpole.se>
+References: <1418429925-16342-1-git-send-email-benjamin@southpole.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 04, 2014 at 10:54:53AM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Drop the duplicate get/set_crop pad ops and only use get/set_selection.
-> It makes no sense to have two duplicate ops in the internal subdev API.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+---
+ drivers/staging/media/mn88472/mn88472.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+index 4d80046..746cc94 100644
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -33,6 +33,7 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
+ 	u64 tmp;
+ 	u8 delivery_system_val, if_val[3], bw_val[7], bw_val2;
+ 
++	dev_dbg(&client->dev, "%s:\n", __func__);
+ 	dev_dbg(&client->dev,
+ 			"delivery_system=%d modulation=%d frequency=%d symbol_rate=%d inversion=%d\n",
+ 			c->delivery_system, c->modulation,
+@@ -288,7 +289,7 @@ static int mn88472_init(struct dvb_frontend *fe)
+ 	u8 *fw_file = MN88472_FIRMWARE;
+ 	unsigned int csum;
+ 
+-	dev_dbg(&client->dev, "\n");
++	dev_dbg(&client->dev, "%s:\n", __func__);
+ 
+ 	/* set cold state by default */
+ 	dev->warm = false;
+@@ -371,7 +372,7 @@ static int mn88472_sleep(struct dvb_frontend *fe)
+ 	struct mn88472_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+ 
+-	dev_dbg(&client->dev, "\n");
++	dev_dbg(&client->dev, "%s:\n", __func__);
+ 
+ 	/* power off */
+ 	ret = regmap_write(dev->regmap[2], 0x0b, 0x30);
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.9.1
+
