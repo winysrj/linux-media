@@ -1,53 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41455 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751542AbaLXWfT (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:50469 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030568AbaLMLyA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Dec 2014 17:35:19 -0500
-Date: Wed, 24 Dec 2014 23:35:16 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	bcousson@baylibre.com, sakari.ailus@iki.fi,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	j.anaszewski@samsung.com, apw@canonical.com, joe@perches.com
-Subject: Re: [PATCH] media: i2c/adp1653: devicetree support for adp1653
-Message-ID: <20141224223516.GB20669@amd>
-References: <20141203214641.GA1390@amd>
- <20141223152325.75e8cb4a@concha.lan.sisa.samsung.com>
- <20141223204903.GA1780@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141223204903.GA1780@amd>
+	Sat, 13 Dec 2014 06:54:00 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 06/10] hd29l2: fix sparse error and warnings
+Date: Sat, 13 Dec 2014 12:52:56 +0100
+Message-Id: <1418471580-26510-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
+References: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 2014-12-23 21:49:04, Pavel Machek wrote:
-> On Tue 2014-12-23 15:23:25, Mauro Carvalho Chehab wrote:
-> > Em Wed, 3 Dec 2014 22:46:41 +0100
-> > Pavel Machek <pavel@ucw.cz> escreveu:
-> > 
-> > > 
-> > > We are moving to device tree support on OMAP3, but that currently
-> > > breaks ADP1653 driver. This adds device tree support, plus required
-> > > documentation.
-> > > 
-> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> > 
-> > Please be sure to check your patch with checkpatch. There are several
-> > issues on it:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ok, you should have fixed version in your inbox.
+drivers/media/dvb-frontends/hd29l2.c:29:18: warning: Variable length array is used.
+drivers/media/dvb-frontends/hd29l2.c:34:32: error: cannot size expression
+drivers/media/dvb-frontends/hd29l2.c:125:5: warning: symbol 'hd29l2_rd_reg_mask' was not declared. Should it be static?
 
-Happy holidays!
-									Pavel
+Variable length arrays are frowned upon, so replace with a fixed length and check
+that there won't be a buffer overrun.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/hd29l2.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/hd29l2.c b/drivers/media/dvb-frontends/hd29l2.c
+index d7b9d54..67c8e6d 100644
+--- a/drivers/media/dvb-frontends/hd29l2.c
++++ b/drivers/media/dvb-frontends/hd29l2.c
+@@ -22,20 +22,24 @@
+ 
+ #include "hd29l2_priv.h"
+ 
++#define HD29L2_MAX_LEN (3)
++
+ /* write multiple registers */
+ static int hd29l2_wr_regs(struct hd29l2_priv *priv, u8 reg, u8 *val, int len)
+ {
+ 	int ret;
+-	u8 buf[2 + len];
++	u8 buf[2 + HD29L2_MAX_LEN];
+ 	struct i2c_msg msg[1] = {
+ 		{
+ 			.addr = priv->cfg.i2c_addr,
+ 			.flags = 0,
+-			.len = sizeof(buf),
++			.len = 2 + len,
+ 			.buf = buf,
+ 		}
+ 	};
+ 
++	if (len > HD29L2_MAX_LEN)
++		return -EINVAL;
+ 	buf[0] = 0x00;
+ 	buf[1] = reg;
+ 	memcpy(&buf[2], val, len);
+@@ -118,7 +122,7 @@ static int hd29l2_wr_reg_mask(struct hd29l2_priv *priv, u8 reg, u8 val, u8 mask)
+ }
+ 
+ /* read single register with mask */
+-int hd29l2_rd_reg_mask(struct hd29l2_priv *priv, u8 reg, u8 *val, u8 mask)
++static int hd29l2_rd_reg_mask(struct hd29l2_priv *priv, u8 reg, u8 *val, u8 mask)
+ {
+ 	int ret, i;
+ 	u8 tmp;
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.1.3
+
