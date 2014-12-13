@@ -1,57 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:43848 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754590AbaLVMo2 (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:50469 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030568AbaLMLxn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 07:44:28 -0500
-Date: Mon, 22 Dec 2014 12:44:11 +0000
-From: Mark Brown <broonie@kernel.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <20141222124411.GK17800@sirena.org.uk>
-References: <1419114892-4550-1-git-send-email-crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/0P/MvzTfyTu5j9Q"
-Content-Disposition: inline
-In-Reply-To: <1419114892-4550-1-git-send-email-crope@iki.fi>
-Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
+	Sat, 13 Dec 2014 06:53:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 04/10] videobuf2-vmalloc: fix sparse warning
+Date: Sat, 13 Dec 2014 12:52:54 +0100
+Message-Id: <1418471580-26510-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
+References: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---/0P/MvzTfyTu5j9Q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Fix this warning:
 
-On Sun, Dec 21, 2014 at 12:34:51AM +0200, Antti Palosaari wrote:
-> Lockdep validator complains recursive locking and deadlock when two
-> different regmap instances are called in a nested order, as regmap
-> groups locks by default. That happens easily for example when both
+drivers/media/v4l2-core/videobuf2-vmalloc.c:98:28: warning: incorrect type in assignment (different address spaces)
+drivers/media/v4l2-core/videobuf2-vmalloc.c:158:28: warning: incorrect type in argument 1 (different address spaces)
 
-I don't know what "regmap groups locks by default" means.
+The warning is correct, but we have no other choice here to forcibly cast.
+At least it is now explicit that such a cast is needed.
 
-> I2C client and I2C adapter are using regmap. As a solution, add
-> configuration option to pass custom lock class key for lockdep
-> validator.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-vmalloc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Why is this configurable, how would a device know if the system it is in
-needs a custom locking class and can safely use one?
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index fba944e..7f6d41b 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -95,7 +95,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
+ 			goto fail_pages_array_alloc;
+ 		buf->vma = vma;
+-		buf->vaddr = ioremap_nocache(physp, size);
++		buf->vaddr = (__force void *)ioremap_nocache(physp, size);
+ 		if (!buf->vaddr)
+ 			goto fail_pages_array_alloc;
+ 	} else {
+@@ -155,7 +155,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 		kfree(buf->pages);
+ 	} else {
+ 		vb2_put_vma(buf->vma);
+-		iounmap(buf->vaddr);
++		iounmap((__force void __iomem *)buf->vaddr);
+ 	}
+ 	kfree(buf);
+ }
+-- 
+2.1.3
 
---/0P/MvzTfyTu5j9Q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUmBIbAAoJECTWi3JdVIfQlgEH/2gAPhy2lxOwQuk+8T8KVqgF
-45hSaBX6xoHcSqg9vzQlbUXpDUGJAB1/CWni4NZ0jR32GRcntzP4QtdkolLS6SuU
-iQhqnSgPz3DTZfjOBvqKwg0UvZxrTJ843t8w6yFfXBxYDaWcMzofXwaHRDPU1mml
-XUmFPsSmXv0hFbSc4kgkT6IrrMKw8ZD2gs9h2av0PjeMpw65LAhEaUMpkmPRWiT0
-82u8YQ2sBGdUXd3DRPws092Hp6r2PQQeA4ZonL65blebwRE5e9uoUFdblcN87K3g
-bWaTUs/lOj6SqFShwW4LDKYsKrLhXjfmnAtPodaeuJWDadPQGqFUTSpZXvamJZM=
-=Z9y7
------END PGP SIGNATURE-----
-
---/0P/MvzTfyTu5j9Q--
