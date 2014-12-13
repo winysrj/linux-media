@@ -1,59 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:47570 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752768AbaLTKsI (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:49861 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966450AbaLMLNp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 05:48:08 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 01/15] media: blackfin: bfin_capture: drop buf_init() callback
-Date: Sat, 20 Dec 2014 16:17:28 +0530
-Message-Id: <1419072462-3168-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
+	Sat, 13 Dec 2014 06:13:45 -0500
+Message-ID: <548C1F68.7010703@southpole.se>
+Date: Sat, 13 Dec 2014 12:13:44 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/4] mn88472: implement dvb-t signal lock
+References: <1418429925-16342-1-git-send-email-benjamin@southpole.se> <548BB7EA.1050502@iki.fi>
+In-Reply-To: <548BB7EA.1050502@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch drops the buf_init() callback as init
-of buf list is not required.
+On 12/13/2014 04:52 AM, Antti Palosaari wrote:
+> That breaks DVB-C lock check as old "utmp = 0x08" was set according to 
+> DVB-C lock check, right?
+>
+> Antti
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 9 ---------
- 1 file changed, 9 deletions(-)
+I have a dvb-c setup now. I will respin this patch with dvb-c support 
+tested properly.
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 3112844..d4eeae9 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -302,14 +302,6 @@ static int bcap_queue_setup(struct vb2_queue *vq,
- 	return 0;
- }
- 
--static int bcap_buffer_init(struct vb2_buffer *vb)
--{
--	struct bcap_buffer *buf = to_bcap_vb(vb);
--
--	INIT_LIST_HEAD(&buf->list);
--	return 0;
--}
--
- static int bcap_buffer_prepare(struct vb2_buffer *vb)
- {
- 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
-@@ -441,7 +433,6 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
- 
- static struct vb2_ops bcap_video_qops = {
- 	.queue_setup            = bcap_queue_setup,
--	.buf_init               = bcap_buffer_init,
- 	.buf_prepare            = bcap_buffer_prepare,
- 	.buf_cleanup            = bcap_buffer_cleanup,
- 	.buf_queue              = bcap_buffer_queue,
--- 
-1.9.1
-
+MvH
+Benjamin Larsson
