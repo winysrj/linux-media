@@ -1,65 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42068 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755829AbaLWNJ0 (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:52966 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753883AbaLMASz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 08:09:26 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linux-arm-kernel@lists.infradead.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mathieu Poirier <mathieu.poirier@linaro.org>,
-	David Airlie <airlied@linux.ie>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v7 2/3] of: Add for_each_endpoint_of_node helper macro
-Date: Tue, 23 Dec 2014 14:09:17 +0100
-Message-Id: <1419340158-20567-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1419340158-20567-1-git-send-email-p.zabel@pengutronix.de>
-References: <1419340158-20567-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 12 Dec 2014 19:18:55 -0500
+From: Benjamin Larsson <benjamin@southpole.se>
+To: crope@iki.fi
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/4] mn88472: implement dvb-t signal lock
+Date: Sat, 13 Dec 2014 01:18:42 +0100
+Message-Id: <1418429925-16342-1-git-send-email-benjamin@southpole.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Note that while of_graph_get_next_endpoint decrements the reference count
-of the child node passed to it, of_node_put(child) still has to be called
-manually when breaking out of the loop.
-
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 ---
- include/linux/of_graph.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/staging/media/mn88472/mn88472.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-index befef42..e43442e 100644
---- a/include/linux/of_graph.h
-+++ b/include/linux/of_graph.h
-@@ -26,6 +26,17 @@ struct of_endpoint {
- 	const struct device_node *local_node;
- };
+diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+index 107552a..4d80046 100644
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -238,6 +238,7 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 	unsigned int utmp;
++	int lock = 0;
  
-+/**
-+ * for_each_endpoint_of_node - iterate over every endpoint in a device node
-+ * @parent: parent device node containing ports and endpoints
-+ * @child: loop variable pointing to the current endpoint node
-+ *
-+ * When breaking out of the loop, of_node_put(child) has to be called manually.
-+ */
-+#define for_each_endpoint_of_node(parent, child) \
-+	for (child = of_graph_get_next_endpoint(parent, NULL); child != NULL; \
-+	     child = of_graph_get_next_endpoint(parent, child))
-+
- #ifdef CONFIG_OF
- int of_graph_parse_endpoint(const struct device_node *node,
- 				struct of_endpoint *endpoint);
+ 	*status = 0;
+ 
+@@ -248,6 +249,12 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBT:
++		ret = regmap_read(dev->regmap[0], 0x7F, &utmp);
++		if (ret)
++			goto err;
++		if ((utmp&0xF) > 8)
++			lock = 1;
++		break;
+ 	case SYS_DVBT2:
+ 		/* FIXME: implement me */
+ 		utmp = 0x08; /* DVB-C lock value */
+@@ -262,7 +269,7 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 		goto err;
+ 	}
+ 
+-	if (utmp == 0x08)
++	if (lock)
+ 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
+ 				FE_HAS_SYNC | FE_HAS_LOCK;
+ 
 -- 
-2.1.4
+1.9.1
 
