@@ -1,58 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1bon0134.outbound.protection.outlook.com ([157.56.111.134]:14710
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750873AbaLPREY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Dec 2014 12:04:24 -0500
-From: Fabio Estevam <fabio.estevam@freescale.com>
-To: <mchehab@osg.samsung.com>
-CC: <hans.verkuil@cisco.com>, <linux-media@vger.kernel.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH 1/2] [media] adv7180: Simplify PM hooks
-Date: Tue, 16 Dec 2014 14:49:06 -0200
-Message-ID: <1418748547-12308-1-git-send-email-fabio.estevam@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50108 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964963AbaLMLx1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Dec 2014 06:53:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 02/10] budget-core: fix sparse warnings
+Date: Sat, 13 Dec 2014 12:52:52 +0100
+Message-Id: <1418471580-26510-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
+References: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The macro SIMPLE_DEV_PM_OPS already takes care of the CONFIG_PM_SLEEP=n case, so
-move it out of the CONFIG_PM_SLEEP 'if' block and remove the unneeded 
-ADV7180_PM_OPS definition to make the code simpler.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Fixes these sparse warnings.
+
+drivers/media/pci/ttpci/budget-core.c:250:17: warning: context imbalance in 'ttpci_budget_debiread' - different lock contexts for basic block
+drivers/media/pci/ttpci/budget-core.c:289:17: warning: context imbalance in 'ttpci_budget_debiwrite' - different lock contexts for basic block
+
+To be honest, the new code does look better than the old.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7180.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/media/pci/ttpci/budget-core.c | 89 +++++++++++++++++++----------------
+ 1 file changed, 49 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index bffe6eb..0c1268a 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -700,13 +700,8 @@ static int adv7180_resume(struct device *dev)
- 		return ret;
- 	return 0;
+diff --git a/drivers/media/pci/ttpci/budget-core.c b/drivers/media/pci/ttpci/budget-core.c
+index 37d02fe..23e0549 100644
+--- a/drivers/media/pci/ttpci/budget-core.c
++++ b/drivers/media/pci/ttpci/budget-core.c
+@@ -231,63 +231,59 @@ static void vpeirq(unsigned long data)
  }
--
--static SIMPLE_DEV_PM_OPS(adv7180_pm_ops, adv7180_suspend, adv7180_resume);
--#define ADV7180_PM_OPS (&adv7180_pm_ops)
--
--#else
--#define ADV7180_PM_OPS NULL
- #endif
-+static SIMPLE_DEV_PM_OPS(adv7180_pm_ops, adv7180_suspend, adv7180_resume);
  
- MODULE_DEVICE_TABLE(i2c, adv7180_id);
  
-@@ -714,7 +709,7 @@ static struct i2c_driver adv7180_driver = {
- 	.driver = {
- 		   .owner = THIS_MODULE,
- 		   .name = KBUILD_MODNAME,
--		   .pm = ADV7180_PM_OPS,
-+		   .pm = &adv7180_pm_ops,
- 		   },
- 	.probe = adv7180_probe,
- 	.remove = adv7180_remove,
+-int ttpci_budget_debiread(struct budget *budget, u32 config, int addr, int count,
+-			  int uselocks, int nobusyloop)
++static int ttpci_budget_debiread_nolock(struct budget *budget, u32 config,
++		int addr, int count, int nobusyloop)
+ {
+ 	struct saa7146_dev *saa = budget->dev;
+-	int result = 0;
+-	unsigned long flags = 0;
+-
+-	if (count > 4 || count <= 0)
+-		return 0;
+-
+-	if (uselocks)
+-		spin_lock_irqsave(&budget->debilock, flags);
++	int result;
+ 
+-	if ((result = saa7146_wait_for_debi_done(saa, nobusyloop)) < 0) {
+-		if (uselocks)
+-			spin_unlock_irqrestore(&budget->debilock, flags);
++	result = saa7146_wait_for_debi_done(saa, nobusyloop);
++	if (result < 0)
+ 		return result;
+-	}
+ 
+ 	saa7146_write(saa, DEBI_COMMAND, (count << 17) | 0x10000 | (addr & 0xffff));
+ 	saa7146_write(saa, DEBI_CONFIG, config);
+ 	saa7146_write(saa, DEBI_PAGE, 0);
+ 	saa7146_write(saa, MC2, (2 << 16) | 2);
+ 
+-	if ((result = saa7146_wait_for_debi_done(saa, nobusyloop)) < 0) {
+-		if (uselocks)
+-			spin_unlock_irqrestore(&budget->debilock, flags);
++	result = saa7146_wait_for_debi_done(saa, nobusyloop);
++	if (result < 0)
+ 		return result;
+-	}
+ 
+ 	result = saa7146_read(saa, DEBI_AD);
+ 	result &= (0xffffffffUL >> ((4 - count) * 8));
+-
+-	if (uselocks)
+-		spin_unlock_irqrestore(&budget->debilock, flags);
+-
+ 	return result;
+ }
+ 
+-int ttpci_budget_debiwrite(struct budget *budget, u32 config, int addr,
+-			   int count, u32 value, int uselocks, int nobusyloop)
++int ttpci_budget_debiread(struct budget *budget, u32 config, int addr, int count,
++			  int uselocks, int nobusyloop)
+ {
+-	struct saa7146_dev *saa = budget->dev;
+-	unsigned long flags = 0;
+-	int result;
+-
+ 	if (count > 4 || count <= 0)
+ 		return 0;
+ 
+-	if (uselocks)
+-		spin_lock_irqsave(&budget->debilock, flags);
++	if (uselocks) {
++		unsigned long flags;
++		int result;
+ 
+-	if ((result = saa7146_wait_for_debi_done(saa, nobusyloop)) < 0) {
+-		if (uselocks)
+-			spin_unlock_irqrestore(&budget->debilock, flags);
++		spin_lock_irqsave(&budget->debilock, flags);
++		result = ttpci_budget_debiread_nolock(budget, config, addr,
++						      count, nobusyloop);
++		spin_unlock_irqrestore(&budget->debilock, flags);
+ 		return result;
+ 	}
++	return ttpci_budget_debiread_nolock(budget, config, addr,
++					    count, nobusyloop);
++}
++
++static int ttpci_budget_debiwrite_nolock(struct budget *budget, u32 config,
++		int addr, int count, u32 value, int nobusyloop)
++{
++	struct saa7146_dev *saa = budget->dev;
++	int result;
++
++	result = saa7146_wait_for_debi_done(saa, nobusyloop);
++	if (result < 0)
++		return result;
+ 
+ 	saa7146_write(saa, DEBI_COMMAND, (count << 17) | 0x00000 | (addr & 0xffff));
+ 	saa7146_write(saa, DEBI_CONFIG, config);
+@@ -295,15 +291,28 @@ int ttpci_budget_debiwrite(struct budget *budget, u32 config, int addr,
+ 	saa7146_write(saa, DEBI_AD, value);
+ 	saa7146_write(saa, MC2, (2 << 16) | 2);
+ 
+-	if ((result = saa7146_wait_for_debi_done(saa, nobusyloop)) < 0) {
+-		if (uselocks)
+-			spin_unlock_irqrestore(&budget->debilock, flags);
+-		return result;
+-	}
++	result = saa7146_wait_for_debi_done(saa, nobusyloop);
++	return result < 0 ? result : 0;
++}
+ 
+-	if (uselocks)
++int ttpci_budget_debiwrite(struct budget *budget, u32 config, int addr,
++			   int count, u32 value, int uselocks, int nobusyloop)
++{
++	if (count > 4 || count <= 0)
++		return 0;
++
++	if (uselocks) {
++		unsigned long flags;
++		int result;
++
++		spin_lock_irqsave(&budget->debilock, flags);
++		result = ttpci_budget_debiwrite_nolock(budget, config, addr,
++						count, value, nobusyloop);
+ 		spin_unlock_irqrestore(&budget->debilock, flags);
+-	return 0;
++		return result;
++	}
++	return ttpci_budget_debiwrite_nolock(budget, config, addr,
++					     count, value, nobusyloop);
+ }
+ 
+ 
 -- 
-1.9.1
+2.1.3
 
