@@ -1,63 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f47.google.com ([209.85.213.47]:54217 "EHLO
-	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197AbaLZHNy (ORCPT
+Received: from vps119.daxa.net ([111.221.40.119]:5926 "EHLO
+	mail.tauniversity.ac.id" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1751023AbaLNW3E convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Dec 2014 02:13:54 -0500
+	Sun, 14 Dec 2014 17:29:04 -0500
+Content-Type: text/plain; charset=US-ASCII
 MIME-Version: 1.0
-In-Reply-To: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
-Date: Fri, 26 Dec 2014 15:13:53 +0800
-Message-ID: <CAHG8p1DxTmd6QDpmjHSG0+40GaeGV0ox0aZpX_VVxTJUnxhB1A@mail.gmail.com>
-Subject: Re: [PATCH 00/15] media: blackfin: bfin_capture enhancements
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: kindly Send Your CV
+To: Recipients <5423@live.com>
+From: 5423@live.com
+Date: Mon, 15 Dec 2014 03:41:58 +0530
+Reply-To: marriothotel@qq.com
+Message-Id: <20141214222859.6423314D9351@mail.tauniversity.ac.id>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lad,
-
-I'm on holiday these days. I will test these patches later.
-
-Thanks,
-Scott
-
-2014-12-20 18:47 GMT+08:00 Lad, Prabhakar <prabhakar.csengg@gmail.com>:
-> Hi Scott,
->
-> Although I was on holiday but couldn't resist myself from working,
-> since I was away from my hardware I had to choose a different one,
-> blackfin driver was lucky one. Since I don't have the blackfin
-> board I haven't tested them on the actual board, but just compile
-> tested, Can you please test it & ACK.
->
-> Lad, Prabhakar (15):
->   media: blackfin: bfin_capture: drop buf_init() callback
->   media: blackfin: bfin_capture: release buffers in case
->     start_streaming() call back fails
->   media: blackfin: bfin_capture: set min_buffers_needed
->   media: blackfin: bfin_capture: improve buf_prepare() callback
->   media: blackfin: bfin_capture: improve queue_setup() callback
->   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
->   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
->   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
->   media: blackfin: bfin_capture: make sure all buffers are returned on
->     stop_streaming() callback
->   media: blackfin: bfin_capture: return -ENODATA for *std calls
->   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
->   media: blackfin: bfin_capture: add support for vidioc_create_bufs
->   media: blackfin: bfin_capture: add support for VB2_DMABUF
->   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
->   media: blackfin: bfin_capture: set v4l2 buffer sequence
->
->  drivers/media/platform/blackfin/bfin_capture.c | 310 ++++++++-----------------
->  1 file changed, 98 insertions(+), 212 deletions(-)
->
-> --
-> 1.9.1
->
+MARRIOTT HOTEL SINGAPORE HAS EMPLOYMENT OPPORTUNITIES FOR AN EXOTIC
+CANDIDATES IN DIFFERENT SKILLS,SEND YOUR CURRENT CV/RESUME AND
+APPLICATION LETTER IN MICRO SOFT TO THIS E-MAIL ID:
+marriothotel@qq.com
