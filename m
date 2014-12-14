@@ -1,37 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34275 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:45786 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933281AbaLMNZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Dec 2014 08:25:08 -0500
-Message-ID: <548C3E31.2040103@iki.fi>
-Date: Sat, 13 Dec 2014 15:25:05 +0200
+	id S1750713AbaLNT1N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Dec 2014 14:27:13 -0500
+Message-ID: <548DE489.9030004@iki.fi>
+Date: Sun, 14 Dec 2014 21:27:05 +0200
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 06/10] hd29l2: fix sparse error and warnings
-References: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl> <1418471580-26510-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1418471580-26510-7-git-send-email-hverkuil@xs4all.nl>
+To: Benjamin Larsson <benjamin@southpole.se>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 16/18] rtl28xxu: add support for RTL2831U/RTL2830 PID
+ filter
+References: <1418545723-9536-1-git-send-email-crope@iki.fi> <1418545723-9536-16-git-send-email-crope@iki.fi> <548DE411.5020202@southpole.se>
+In-Reply-To: <548DE411.5020202@southpole.se>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/13/2014 01:52 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 12/14/2014 09:25 PM, Benjamin Larsson wrote:
+> On 12/14/2014 09:28 AM, Antti Palosaari wrote:
+>> RTL2830 demod integrated to RTL2831U has PID filter. PID filtering
+>> is provided by rtl2830 demod driver. Add support for it.
+>>
 >
-> drivers/media/dvb-frontends/hd29l2.c:29:18: warning: Variable length array is used.
-> drivers/media/dvb-frontends/hd29l2.c:34:32: error: cannot size expression
-> drivers/media/dvb-frontends/hd29l2.c:125:5: warning: symbol 'hd29l2_rd_reg_mask' was not declared. Should it be static?
->
-> Variable length arrays are frowned upon, so replace with a fixed length and check
-> that there won't be a buffer overrun.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Antti Palosaari <crope@iki.fi>
+> Do you plan on adding this for the RTL2832 demod also ?
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+I already did, but it is on my HD. I just published those rtl2830 codes 
+for example as you asked.
+I have implemented all those same for rtl2832 too + some more, like 
+register caching.
 
+regards
 Antti
 
 -- 
