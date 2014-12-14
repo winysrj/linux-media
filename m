@@ -1,69 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40922 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:44269 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756614AbaLWUu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:29 -0500
+	id S1751670AbaLNI3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Dec 2014 03:29:49 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 16/66] rtl2830: wrap DVBv5 signal strength to DVBv3
-Date: Tue, 23 Dec 2014 22:49:09 +0200
-Message-Id: <1419367799-14263-16-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Subject: [PATCH 11/18] rtl2830: implement DVBv5 BER statistic
+Date: Sun, 14 Dec 2014 10:28:36 +0200
+Message-Id: <1418545723-9536-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1418545723-9536-1-git-send-email-crope@iki.fi>
+References: <1418545723-9536-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change legacy DVBv3 signal strength to return values calculated by
-DVBv5 statistics.
+DVBv5 BER.
 
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-frontends/rtl2830.c | 27 ++++-----------------------
- 1 file changed, 4 insertions(+), 23 deletions(-)
+ drivers/media/dvb-frontends/rtl2830.c      | 25 +++++++++++++++++++++++++
+ drivers/media/dvb-frontends/rtl2830_priv.h |  2 ++
+ 2 files changed, 27 insertions(+)
 
 diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index 147b3a6..a02ccdf 100644
+index 641047b..147b3a6 100644
 --- a/drivers/media/dvb-frontends/rtl2830.c
 +++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -623,33 +623,14 @@ static int rtl2830_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+@@ -250,6 +250,10 @@ static int rtl2830_init(struct dvb_frontend *fe)
+ 	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	c->cnr.len = 1;
+ 	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_error.len = 1;
++	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_count.len = 1;
++	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	/* start statistics polling */
+ 	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
  
- static int rtl2830_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- {
--	struct i2c_client *client = fe->demodulator_priv;
--	struct rtl2830_dev *dev = i2c_get_clientdata(client);
--	int ret;
--	u8 buf[2];
--	u16 if_agc_raw, if_agc;
--
--	if (dev->sleeping)
--		return 0;
--
--	ret = rtl2830_rd_regs(client, 0x359, buf, 2);
--	if (ret)
--		goto err;
--
--	if_agc_raw = (buf[0] << 8 | buf[1]) & 0x3fff;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+@@ -759,6 +763,27 @@ static void rtl2830_stat_work(struct work_struct *work)
+ 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	}
  
--	if (if_agc_raw & (1 << 9))
--		if_agc = -(~(if_agc_raw - 1) & 0x1ff);
-+	if (c->strength.stat[0].scale == FE_SCALE_RELATIVE)
-+		*strength = c->strength.stat[0].uvalue;
- 	else
--		if_agc = if_agc_raw;
--
--	*strength = (u8)(55 - if_agc / 182);
--	*strength |= *strength << 8;
-+		*strength = 0;
++	/* BER */
++	if (dev->fe_status & FE_HAS_LOCK) {
++		ret = rtl2830_rd_regs(client, 0x34e, buf, 2);
++		if (ret)
++			goto err;
++
++		u16tmp = buf[0] << 8 | buf[1] << 0;
++		dev->post_bit_error += u16tmp;
++		dev->post_bit_count += 1000000;
++
++		dev_dbg(&client->dev, "BER errors=%u total=1000000\n", u16tmp);
++
++		c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
++		c->post_bit_error.stat[0].uvalue = dev->post_bit_error;
++		c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
++		c->post_bit_count.stat[0].uvalue = dev->post_bit_count;
++	} else {
++		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
+ err_schedule_delayed_work:
+ 	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
+ 	return;
+diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
+index 7cf316d..cdcaacf 100644
+--- a/drivers/media/dvb-frontends/rtl2830_priv.h
++++ b/drivers/media/dvb-frontends/rtl2830_priv.h
+@@ -32,6 +32,8 @@ struct rtl2830_dev {
+ 	u8 page; /* active register page */
+ 	struct delayed_work stat_work;
+ 	fe_status_t fe_status;
++	u64 post_bit_error;
++	u64 post_bit_count;
+ };
  
- 	return 0;
--err:
--	dev_dbg(&client->dev, "failed=%d\n", ret);
--	return ret;
- }
- 
- static struct dvb_frontend_ops rtl2830_ops = {
+ struct rtl2830_reg_val_mask {
 -- 
 http://palosaari.fi/
 
