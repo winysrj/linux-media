@@ -1,260 +1,719 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60592 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:55958 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756653AbaLWUuf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:35 -0500
+	id S1752263AbaLNI3v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Dec 2014 03:29:51 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 47/66] rtl28xxu: switch SDR module to platform driver
-Date: Tue, 23 Dec 2014 22:49:40 +0200
-Message-Id: <1419367799-14263-47-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Subject: [PATCH 18/18] rtl2830: convert to RegMap API
+Date: Sun, 14 Dec 2014 10:28:43 +0200
+Message-Id: <1418545723-9536-18-git-send-email-crope@iki.fi>
+In-Reply-To: <1418545723-9536-1-git-send-email-crope@iki.fi>
+References: <1418545723-9536-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RTL2832 SDR module implements kernel platform driver. Change old
-binding to that one.
+Use RegMap to cover register access routines.
 
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 126 ++++++++++++--------------------
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h |   3 +
- 2 files changed, 50 insertions(+), 79 deletions(-)
+ drivers/media/dvb-frontends/Kconfig        |   1 +
+ drivers/media/dvb-frontends/rtl2830.c      | 414 +++++++++++++----------------
+ drivers/media/dvb-frontends/rtl2830_priv.h |   3 +-
+ 3 files changed, 182 insertions(+), 236 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index c64b5ed..c2d377f 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -22,25 +22,6 @@
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index e8827fc..0e12634 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -444,6 +444,7 @@ config DVB_CXD2820R
+ config DVB_RTL2830
+ 	tristate "Realtek RTL2830 DVB-T"
+ 	depends on DVB_CORE && I2C && I2C_MUX
++	select REGMAP
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Say Y when you want to support this frontend.
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index 3a9e4e9..9d69b61 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -17,176 +17,43 @@
  
- #include "rtl28xxu.h"
+ #include "rtl2830_priv.h"
  
--#ifdef CONFIG_MEDIA_ATTACH
--#define dvb_attach_sdr(FUNCTION, ARGS...) ({ \
--	void *__r = NULL; \
--	typeof(&FUNCTION) __a = symbol_request(FUNCTION); \
--	if (__a) { \
--		__r = (void *) __a(ARGS); \
--		if (__r == NULL) \
--			symbol_put(FUNCTION); \
--	} \
--	__r; \
--})
+-/* Max transfer size done by I2C transfer functions */
+-#define MAX_XFER_SIZE  64
 -
--#else
--#define dvb_attach_sdr(FUNCTION, ARGS...) ({ \
--	FUNCTION(ARGS); \
--})
--
--#endif
--
- static int rtl28xxu_disable_rc;
- module_param_named(disable_rc, rtl28xxu_disable_rc, int, 0644);
- MODULE_PARM_DESC(disable_rc, "disable RTL2832U remote controller");
-@@ -662,37 +643,6 @@ static const struct rtl2832_platform_data rtl2832_r820t_platform_data = {
- 	.tuner = TUNER_RTL2832_R820T,
- };
- 
--/* TODO: these are redundant information for rtl2832_sdr driver */
--static const struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
--	.i2c_addr = 0x10, /* 0x20 */
--	.xtal = 28800000,
--	.tuner = TUNER_RTL2832_FC0012
--};
--
--static const struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
--	.i2c_addr = 0x10, /* 0x20 */
--	.xtal = 28800000,
--	.tuner = TUNER_RTL2832_FC0013
--};
--
--static const struct rtl2832_config rtl28xxu_rtl2832_tua9001_config = {
--	.i2c_addr = 0x10, /* 0x20 */
--	.xtal = 28800000,
--	.tuner = TUNER_RTL2832_TUA9001,
--};
--
--static const struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
--	.i2c_addr = 0x10, /* 0x20 */
--	.xtal = 28800000,
--	.tuner = TUNER_RTL2832_E4000,
--};
--
--static const struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
--	.i2c_addr = 0x10,
--	.xtal = 28800000,
--	.tuner = TUNER_RTL2832_R820T,
--};
--
- static int rtl2832u_fc0012_tuner_callback(struct dvb_usb_device *d,
- 		int cmd, int arg)
+-/* write multiple hardware registers */
+-static int rtl2830_wr(struct i2c_client *client, u8 reg, const u8 *val, int len)
++/* Our RegMap is bypassing I2C adapter lock, thus we do it! */
++int rtl2830_bulk_write(struct i2c_client *client, unsigned int reg,
++		       const void *val, size_t val_count)
  {
-@@ -1062,10 +1012,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
  	int ret;
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
--	struct rtl2832_platform_data *pdata = &priv->rtl2832_platform_data;
- 	struct dvb_frontend *fe = NULL;
- 	struct i2c_board_info info;
- 	struct i2c_client *client;
-+	struct v4l2_subdev *subdev = NULL;
+-	u8 buf[MAX_XFER_SIZE];
+-	struct i2c_msg msg[1] = {
+-		{
+-			.addr = client->addr,
+-			.flags = 0,
+-			.len = 1 + len,
+-			.buf = buf,
+-		}
+-	};
+-
+-	if (1 + len > sizeof(buf)) {
+-		dev_warn(&client->dev, "i2c wr reg=%04x: len=%d is too big!\n",
+-			 reg, len);
+-		return -EINVAL;
+-	}
+-
+-	buf[0] = reg;
+-	memcpy(&buf[1], val, len);
+-
+-	ret = __i2c_transfer(client->adapter, msg, 1);
+-	if (ret == 1) {
+-		ret = 0;
+-	} else {
+-		dev_warn(&client->dev, "i2c wr failed=%d reg=%02x len=%d\n",
+-			 ret, reg, len);
+-		ret = -EREMOTEIO;
+-	}
  
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
++	i2c_lock_adapter(client->adapter);
++	ret = regmap_bulk_write(dev->regmap, reg, val, val_count);
++	i2c_unlock_adapter(client->adapter);
+ 	return ret;
+ }
  
-@@ -1080,10 +1030,6 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 		 * that to the tuner driver */
- 		adap->fe[0]->ops.read_signal_strength =
- 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
+-/* read multiple hardware registers */
+-static int rtl2830_rd(struct i2c_client *client, u8 reg, u8 *val, int len)
+-{
+-	int ret;
+-	struct i2c_msg msg[2] = {
+-		{
+-			.addr = client->addr,
+-			.flags = 0,
+-			.len = 1,
+-			.buf = &reg,
+-		}, {
+-			.addr = client->addr,
+-			.flags = I2C_M_RD,
+-			.len = len,
+-			.buf = val,
+-		}
+-	};
 -
--		/* attach SDR */
--		dvb_attach_sdr(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
--				&rtl28xxu_rtl2832_fc0012_config, NULL);
- 		break;
- 	case TUNER_RTL2832_FC0013:
- 		fe = dvb_attach(fc0013_attach, adap->fe[0],
-@@ -1092,16 +1038,8 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 		/* fc0013 also supports signal strength reading */
- 		adap->fe[0]->ops.read_signal_strength =
- 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
+-	ret = __i2c_transfer(client->adapter, msg, 2);
+-	if (ret == 2) {
+-		ret = 0;
+-	} else {
+-		dev_warn(&client->dev, "i2c rd failed=%d reg=%02x len=%d\n",
+-			 ret, reg, len);
+-		ret = -EREMOTEIO;
+-	}
 -
--		/* attach SDR */
--		dvb_attach_sdr(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
--				&rtl28xxu_rtl2832_fc0013_config, NULL);
- 		break;
- 	case TUNER_RTL2832_E4000: {
--			struct v4l2_subdev *sd;
--			struct i2c_adapter *i2c_adap_internal =
--					pdata->get_private_i2c_adapter(priv->i2c_client_demod);
+-	return ret;
+-}
 -
- 			struct e4000_config e4000_config = {
- 				.fe = adap->fe[0],
- 				.clock = 28800000,
-@@ -1122,13 +1060,7 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 			}
+-/* write multiple registers */
+-static int rtl2830_wr_regs(struct i2c_client *client, u16 reg, const u8 *val, int len)
++int rtl2830_update_bits(struct i2c_client *client, unsigned int reg,
++			unsigned int mask, unsigned int val)
+ {
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+-	u8 reg2 = (reg >> 0) & 0xff;
+-	u8 page = (reg >> 8) & 0xff;
+-
+-	mutex_lock(&dev->i2c_mutex);
+-
+-	/* switch bank if needed */
+-	if (page != dev->page) {
+-		ret = rtl2830_wr(client, 0x00, &page, 1);
+-		if (ret)
+-			goto err_mutex_unlock;
+-
+-		dev->page = page;
+-	}
+-
+-	ret = rtl2830_wr(client, reg2, val, len);
+-
+-err_mutex_unlock:
+-	mutex_unlock(&dev->i2c_mutex);
  
- 			priv->i2c_client_tuner = client;
--			sd = i2c_get_clientdata(client);
--			i2c_set_adapdata(i2c_adap_internal, d);
++	i2c_lock_adapter(client->adapter);
++	ret = regmap_update_bits(dev->regmap, reg, mask, val);
++	i2c_unlock_adapter(client->adapter);
+ 	return ret;
+ }
+ 
+-/* read multiple registers */
+-static int rtl2830_rd_regs(struct i2c_client *client, u16 reg, u8 *val, int len)
++int rtl2830_bulk_read(struct i2c_client *client, unsigned int reg, void *val,
++		      size_t val_count)
+ {
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+-	u8 reg2 = (reg >> 0) & 0xff;
+-	u8 page = (reg >> 8) & 0xff;
 -
--			/* attach SDR */
--			dvb_attach_sdr(rtl2832_sdr_attach, adap->fe[0],
--					i2c_adap_internal,
--					&rtl28xxu_rtl2832_e4000_config, sd);
-+			subdev = i2c_get_clientdata(client);
- 		}
- 		break;
- 	case TUNER_RTL2832_FC2580:
-@@ -1158,10 +1090,6 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 		/* Use tuner to get the signal strength */
- 		adap->fe[0]->ops.read_signal_strength =
- 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
+-	mutex_lock(&dev->i2c_mutex);
 -
--		/* attach SDR */
--		dvb_attach_sdr(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
--				&rtl28xxu_rtl2832_r820t_config, NULL);
- 		break;
- 	case TUNER_RTL2832_R828D:
- 		fe = dvb_attach(r820t_attach, adap->fe[0],
-@@ -1177,21 +1105,53 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 			adap->fe[1]->ops.read_signal_strength =
- 					adap->fe[1]->ops.tuner_ops.get_rf_strength;
- 		}
+-	/* switch bank if needed */
+-	if (page != dev->page) {
+-		ret = rtl2830_wr(client, 0x00, &page, 1);
+-		if (ret)
+-			goto err_mutex_unlock;
 -
--		/* attach SDR */
--		dvb_attach_sdr(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
--				&rtl28xxu_rtl2832_r820t_config, NULL);
- 		break;
- 	default:
- 		dev_err(&d->udev->dev, "%s: unknown tuner=%d\n", KBUILD_MODNAME,
- 				priv->tuner);
+-		dev->page = page;
+-	}
+-
+-	ret = rtl2830_rd(client, reg2, val, len);
+-
+-err_mutex_unlock:
+-	mutex_unlock(&dev->i2c_mutex);
+ 
++	i2c_lock_adapter(client->adapter);
++	ret = regmap_bulk_read(dev->regmap, reg, val, val_count);
++	i2c_unlock_adapter(client->adapter);
+ 	return ret;
+ }
+ 
+-/* read single register */
+-static int rtl2830_rd_reg(struct i2c_client *client, u16 reg, u8 *val)
+-{
+-	return rtl2830_rd_regs(client, reg, val, 1);
+-}
+-
+-/* write single register with mask */
+-static int rtl2830_wr_reg_mask(struct i2c_client *client, u16 reg, u8 val, u8 mask)
+-{
+-	int ret;
+-	u8 tmp;
+-
+-	/* no need for read if whole reg is written */
+-	if (mask != 0xff) {
+-		ret = rtl2830_rd_regs(client, reg, &tmp, 1);
+-		if (ret)
+-			return ret;
+-
+-		val &= mask;
+-		tmp &= ~mask;
+-		val |= tmp;
+-	}
+-
+-	return rtl2830_wr_regs(client, reg, &val, 1);
+-}
+-
+-/* read single register with mask */
+-static int rtl2830_rd_reg_mask(struct i2c_client *client, u16 reg, u8 *val, u8 mask)
+-{
+-	int ret, i;
+-	u8 tmp;
+-
+-	ret = rtl2830_rd_regs(client, reg, &tmp, 1);
+-	if (ret)
+-		return ret;
+-
+-	tmp &= mask;
+-
+-	/* find position of the first bit */
+-	for (i = 0; i < 8; i++) {
+-		if ((mask >> i) & 0x01)
+-			break;
+-	}
+-	*val = tmp >> i;
+-
+-	return 0;
+-}
+-
+ static int rtl2830_init(struct dvb_frontend *fe)
+ {
+ 	struct i2c_client *client = fe->demodulator_priv;
+@@ -233,29 +100,29 @@ static int rtl2830_init(struct dvb_frontend *fe)
+ 	};
+ 
+ 	for (i = 0; i < ARRAY_SIZE(tab); i++) {
+-		ret = rtl2830_wr_reg_mask(client, tab[i].reg, tab[i].val,
+-					  tab[i].mask);
++		ret = rtl2830_update_bits(client, tab[i].reg, tab[i].mask,
++					  tab[i].val);
+ 		if (ret)
+ 			goto err;
  	}
--
- 	if (fe == NULL && priv->i2c_client_tuner == NULL) {
- 		ret = -ENODEV;
+ 
+-	ret = rtl2830_wr_regs(client, 0x18f, "\x28\x00", 2);
++	ret = rtl2830_bulk_write(client, 0x18f, "\x28\x00", 2);
+ 	if (ret)
  		goto err;
+ 
+-	ret = rtl2830_wr_regs(client, 0x195,
+-			      "\x04\x06\x0a\x12\x0a\x12\x1e\x28", 8);
++	ret = rtl2830_bulk_write(client, 0x195,
++				 "\x04\x06\x0a\x12\x0a\x12\x1e\x28", 8);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* TODO: spec init */
+ 
+ 	/* soft reset */
+-	ret = rtl2830_wr_reg_mask(client, 0x101, 0x04, 0x04);
++	ret = rtl2830_update_bits(client, 0x101, 0x04, 0x04);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2830_wr_reg_mask(client, 0x101, 0x00, 0x04);
++	ret = rtl2830_update_bits(client, 0x101, 0x04, 0x00);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -309,7 +176,7 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i;
+ 	u64 num;
+-	u8 buf[3], tmp;
++	u8 buf[3], u8tmp;
+ 	u32 if_ctl, if_frequency;
+ 	static const u8 bw_params1[3][34] = {
+ 		{
+@@ -358,7 +225,7 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
+ 		return -EINVAL;
  	}
  
-+	/* register SDR */
-+	switch (priv->tuner) {
-+		struct platform_device *pdev;
-+		struct rtl2832_sdr_platform_data pdata = {};
+-	ret = rtl2830_wr_reg_mask(client, 0x008, i << 1, 0x06);
++	ret = rtl2830_update_bits(client, 0x008, 0x06, i << 1);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -378,30 +245,31 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
+ 	dev_dbg(&client->dev, "if_frequency=%d if_ctl=%08x\n",
+ 		if_frequency, if_ctl);
+ 
+-	ret = rtl2830_rd_reg_mask(client, 0x119, &tmp, 0xc0); /* b[7:6] */
++	buf[0] = (if_ctl >> 16) & 0x3f;
++	buf[1] = (if_ctl >>  8) & 0xff;
++	buf[2] = (if_ctl >>  0) & 0xff;
 +
-+	case TUNER_RTL2832_FC0012:
-+	case TUNER_RTL2832_FC0013:
-+	case TUNER_RTL2832_E4000:
-+	case TUNER_RTL2832_R820T:
-+	case TUNER_RTL2832_R828D:
-+		pdata.clk = priv->rtl2832_platform_data.clk;
-+		pdata.tuner = priv->tuner;
-+		pdata.i2c_client = priv->i2c_client_demod;
-+		pdata.bulk_read = priv->rtl2832_platform_data.bulk_read;
-+		pdata.bulk_write = priv->rtl2832_platform_data.bulk_write;
-+		pdata.update_bits = priv->rtl2832_platform_data.update_bits;
-+		pdata.dvb_frontend = adap->fe[0];
-+		pdata.dvb_usb_device = d;
-+		pdata.v4l2_subdev = subdev;
-+
-+		request_module("%s", "rtl2832_sdr");
-+		pdev = platform_device_register_data(&priv->i2c_client_demod->dev,
-+						     "rtl2832_sdr",
-+						     PLATFORM_DEVID_AUTO,
-+						     &pdata, sizeof(pdata));
-+		if (pdev == NULL || pdev->dev.driver == NULL)
-+			break;
-+		if (!try_module_get(pdev->dev.driver->owner)) {
-+			platform_device_unregister(pdev);
-+			break;
-+		}
-+		priv->platform_device_sdr = pdev;
-+		break;
-+	default:
-+		dev_dbg(&d->udev->dev, "no SDR for tuner=%d\n", priv->tuner);
-+	}
-+
++	ret = rtl2830_bulk_read(client, 0x119, &u8tmp, 1);
+ 	if (ret)
+ 		goto err;
+ 
+-	buf[0] = tmp << 6;
+-	buf[0] |= (if_ctl >> 16) & 0x3f;
+-	buf[1] = (if_ctl >>  8) & 0xff;
+-	buf[2] = (if_ctl >>  0) & 0xff;
++	buf[0] |= u8tmp & 0xc0;  /* [7:6] */
+ 
+-	ret = rtl2830_wr_regs(client, 0x119, buf, 3);
++	ret = rtl2830_bulk_write(client, 0x119, buf, 3);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* 1/2 split I2C write */
+-	ret = rtl2830_wr_regs(client, 0x11c, &bw_params1[i][0], 17);
++	ret = rtl2830_bulk_write(client, 0x11c, &bw_params1[i][0], 17);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* 2/2 split I2C write */
+-	ret = rtl2830_wr_regs(client, 0x12d, &bw_params1[i][17], 17);
++	ret = rtl2830_bulk_write(client, 0x12d, &bw_params1[i][17], 17);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2830_wr_regs(client, 0x19d, bw_params2[i], 6);
++	ret = rtl2830_bulk_write(client, 0x19d, bw_params2[i], 6);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -422,11 +290,11 @@ static int rtl2830_get_frontend(struct dvb_frontend *fe)
+ 	if (dev->sleeping)
+ 		return 0;
+ 
+-	ret = rtl2830_rd_regs(client, 0x33c, buf, 2);
++	ret = rtl2830_bulk_read(client, 0x33c, buf, 2);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2830_rd_reg(client, 0x351, &buf[2]);
++	ret = rtl2830_bulk_read(client, 0x351, &buf[2], 1);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -529,21 +397,22 @@ static int rtl2830_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	struct i2c_client *client = fe->demodulator_priv;
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+-	u8 tmp;
++	u8 u8tmp;
+ 
+ 	*status = 0;
+ 
+ 	if (dev->sleeping)
+ 		return 0;
+ 
+-	ret = rtl2830_rd_reg_mask(client, 0x351, &tmp, 0x78); /* [6:3] */
++	ret = rtl2830_bulk_read(client, 0x351, &u8tmp, 1);
+ 	if (ret)
+ 		goto err;
+ 
+-	if (tmp == 11) {
++	u8tmp = (u8tmp >> 3) & 0x0f; /* [6:3] */
++	if (u8tmp == 11) {
+ 		*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
+ 			FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+-	} else if (tmp == 10) {
++	} else if (u8tmp == 10) {
+ 		*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
+ 			FE_HAS_VITERBI;
+ 	}
+@@ -650,7 +519,7 @@ static void rtl2830_stat_work(struct work_struct *work)
+ 		struct {signed int x:14; } s;
+ 
+ 		/* read IF AGC */
+-		ret = rtl2830_rd_regs(client, 0x359, buf, 2);
++		ret = rtl2830_bulk_read(client, 0x359, buf, 2);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -678,7 +547,7 @@ static void rtl2830_stat_work(struct work_struct *work)
+ 			{92888734, 92888734, 95487525, 99770748},
+ 		};
+ 
+-		ret = rtl2830_rd_reg(client, 0x33c, &u8tmp);
++		ret = rtl2830_bulk_read(client, 0x33c, &u8tmp, 1);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -690,7 +559,7 @@ static void rtl2830_stat_work(struct work_struct *work)
+ 		if (hierarchy > HIERARCHY_NUM - 1)
+ 			goto err_schedule_delayed_work;
+ 
+-		ret = rtl2830_rd_regs(client, 0x40c, buf, 2);
++		ret = rtl2830_bulk_read(client, 0x40c, buf, 2);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -711,7 +580,7 @@ static void rtl2830_stat_work(struct work_struct *work)
+ 
+ 	/* BER */
+ 	if (dev->fe_status & FE_HAS_LOCK) {
+-		ret = rtl2830_rd_regs(client, 0x34e, buf, 2);
++		ret = rtl2830_bulk_read(client, 0x34e, buf, 2);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -751,7 +620,7 @@ static int rtl2830_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
+ 	else
+ 		u8tmp = 0x00;
+ 
+-	ret = rtl2830_wr_reg_mask(client, 0x061, u8tmp, 0x80);
++	ret = rtl2830_update_bits(client, 0x061, 0x80, u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -785,14 +654,14 @@ static int rtl2830_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid, int on
+ 	buf[1] = (dev->filters >>  8) & 0xff;
+ 	buf[2] = (dev->filters >> 16) & 0xff;
+ 	buf[3] = (dev->filters >> 24) & 0xff;
+-	ret = rtl2830_wr_regs(client, 0x062, buf, 4);
++	ret = rtl2830_bulk_write(client, 0x062, buf, 4);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* add PID */
+ 	buf[0] = (pid >> 8) & 0xff;
+ 	buf[1] = (pid >> 0) & 0xff;
+-	ret = rtl2830_wr_regs(client, 0x066 + 2 * index, buf, 2);
++	ret = rtl2830_bulk_write(client, 0x066 + 2 * index, buf, 2);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -803,55 +672,24 @@ err:
+ }
+ 
+ /*
+- * I2C gate/repeater logic
+- * We must use unlocked i2c_transfer() here because I2C lock is already taken
+- * by tuner driver. Gate is closed automatically after single I2C xfer.
++ * I2C gate/mux/repeater logic
++ * We must use unlocked __i2c_transfer() here (through RegMap) because of I2C
++ * adapter lock is already taken by tuner driver.
++ * Gate is closed automatically after single I2C transfer.
+  */
+ static int rtl2830_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ {
+ 	struct i2c_client *client = mux_priv;
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+-	struct i2c_msg select_reg_page_msg[1] = {
+-		{
+-			.addr = client->addr,
+-			.flags = 0,
+-			.len = 2,
+-			.buf = "\x00\x01",
+-		}
+-	};
+-	struct i2c_msg gate_open_msg[1] = {
+-		{
+-			.addr = client->addr,
+-			.flags = 0,
+-			.len = 2,
+-			.buf = "\x01\x08",
+-		}
+-	};
+ 	int ret;
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+-	mutex_lock(&dev->i2c_mutex);
+-
+-	/* select register page */
+-	ret = __i2c_transfer(client->adapter, select_reg_page_msg, 1);
+-	if (ret != 1) {
+-		dev_warn(&client->dev, "i2c write failed %d\n", ret);
+-		if (ret >= 0)
+-			ret = -EREMOTEIO;
++	/* open I2C repeater for 1 transfer, closes automatically */
++	/* XXX: regmap_update_bits() does not lock I2C adapter */
++	ret = regmap_update_bits(dev->regmap, 0x101, 0x08, 0x08);
++	if (ret)
+ 		goto err;
+-	}
+-
+-	dev->page = 1;
+-
+-	/* open tuner I2C repeater for 1 xfer, closes automatically */
+-	ret = __i2c_transfer(client->adapter, gate_open_msg, 1);
+-	if (ret != 1) {
+-		dev_warn(&client->dev, "i2c write failed %d\n", ret);
+-		if (ret >= 0)
+-			ret = -EREMOTEIO;
+-		goto err;
+-	}
+ 
  	return 0;
  err:
- 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-@@ -1203,9 +1163,17 @@ static int rtl2832u_tuner_detach(struct dvb_usb_adapter *adap)
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
- 	struct i2c_client *client;
-+	struct platform_device *pdev;
+@@ -859,34 +697,107 @@ err:
+ 	return ret;
+ }
  
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+-static int rtl2830_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
++static struct dvb_frontend *rtl2830_get_dvb_frontend(struct i2c_client *client)
+ {
+-	struct i2c_client *client = mux_priv;
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
  
-+	/* remove platform SDR */
-+	pdev = priv->platform_device_sdr;
-+	if (pdev) {
-+		module_put(pdev->dev.driver->owner);
-+		platform_device_unregister(pdev);
+ 	dev_dbg(&client->dev, "\n");
+ 
+-	mutex_unlock(&dev->i2c_mutex);
+-
+-	return 0;
++	return &dev->fe;
+ }
+ 
+-static struct dvb_frontend *rtl2830_get_dvb_frontend(struct i2c_client *client)
++static struct i2c_adapter *rtl2830_get_i2c_adapter(struct i2c_client *client)
+ {
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+-	return &dev->fe;
++	return dev->adapter;
+ }
+ 
+-static struct i2c_adapter *rtl2830_get_i2c_adapter(struct i2c_client *client)
++/*
++ * We implement own I2C access routines for RegMap in order to get manual access
++ * to I2C adapter lock, which is needed for I2C mux adapter.
++ */
++static int rtl2830_regmap_read(void *context, const void *reg_buf,
++			       size_t reg_size, void *val_buf, size_t val_size)
+ {
+-	struct rtl2830_dev *dev = i2c_get_clientdata(client);
++	struct i2c_client *client = context;
++	int ret;
++	struct i2c_msg msg[2] = {
++		{
++			.addr = client->addr,
++			.flags = 0,
++			.len = reg_size,
++			.buf = (u8 *)reg_buf,
++		}, {
++			.addr = client->addr,
++			.flags = I2C_M_RD,
++			.len = val_size,
++			.buf = val_buf,
++		}
++	};
+ 
+-	dev_dbg(&client->dev, "\n");
++	ret = __i2c_transfer(client->adapter, msg, 2);
++	if (ret != 2) {
++		dev_warn(&client->dev, "i2c reg read failed %d\n", ret);
++		if (ret >= 0)
++			ret = -EREMOTEIO;
++		return ret;
 +	}
-+
- 	/* remove I2C tuner */
- 	client = priv->i2c_client_tuner;
- 	if (client) {
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-index cb3fc65..62d3249 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-@@ -22,6 +22,8 @@
- #ifndef RTL28XXU_H
- #define RTL28XXU_H
++	return 0;
++}
  
-+#include <linux/platform_device.h>
+-	return dev->adapter;
++static int rtl2830_regmap_write(void *context, const void *data, size_t count)
++{
++	struct i2c_client *client = context;
++	int ret;
++	struct i2c_msg msg[1] = {
++		{
++			.addr = client->addr,
++			.flags = 0,
++			.len = count,
++			.buf = (u8 *)data,
++		}
++	};
 +
- #include "dvb_usb.h"
++	ret = __i2c_transfer(client->adapter, msg, 1);
++	if (ret != 1) {
++		dev_warn(&client->dev, "i2c reg write failed %d\n", ret);
++		if (ret >= 0)
++			ret = -EREMOTEIO;
++		return ret;
++	}
++	return 0;
++}
++
++static int rtl2830_regmap_gather_write(void *context, const void *reg,
++				       size_t reg_len, const void *val,
++				       size_t val_len)
++{
++	struct i2c_client *client = context;
++	int ret;
++	u8 buf[256];
++	struct i2c_msg msg[1] = {
++		{
++			.addr = client->addr,
++			.flags = 0,
++			.len = 1 + val_len,
++			.buf = buf,
++		}
++	};
++
++	buf[0] = *(u8 const *)reg;
++	memcpy(&buf[1], val, val_len);
++
++	ret = __i2c_transfer(client->adapter, msg, 1);
++	if (ret != 1) {
++		dev_warn(&client->dev, "i2c reg write failed %d\n", ret);
++		if (ret >= 0)
++			ret = -EREMOTEIO;
++		return ret;
++	}
++	return 0;
+ }
  
+ static int rtl2830_probe(struct i2c_client *client,
+@@ -896,6 +807,30 @@ static int rtl2830_probe(struct i2c_client *client,
+ 	struct rtl2830_dev *dev;
+ 	int ret;
+ 	u8 u8tmp;
++	static const struct regmap_bus rtl2830_regmap_bus = {
++		.read = rtl2830_regmap_read,
++		.write = rtl2830_regmap_write,
++		.gather_write = rtl2830_regmap_gather_write,
++		.val_format_endian_default = REGMAP_ENDIAN_NATIVE,
++	};
++	static const struct regmap_range_cfg rtl2830_regmap_range_cfg[] = {
++		{
++			.selector_reg     = 0x00,
++			.selector_mask    = 0xff,
++			.selector_shift   = 0,
++			.window_start     = 0,
++			.window_len       = 0x100,
++			.range_min        = 0 * 0x100,
++			.range_max        = 5 * 0x100,
++		},
++	};
++	static const struct regmap_config regmap_config = {
++		.reg_bits    =  8,
++		.val_bits    =  8,
++		.max_register = 5 * 0x100,
++		.ranges = rtl2830_regmap_range_cfg,
++		.num_ranges = ARRAY_SIZE(rtl2830_regmap_range_cfg),
++	};
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+@@ -918,18 +853,24 @@ static int rtl2830_probe(struct i2c_client *client,
+ 	dev->sleeping = true;
+ 	mutex_init(&dev->i2c_mutex);
+ 	INIT_DELAYED_WORK(&dev->stat_work, rtl2830_stat_work);
++	dev->regmap = regmap_init(&client->dev, &rtl2830_regmap_bus, client,
++				  &regmap_config);
++	if (IS_ERR(dev->regmap)) {
++		ret = PTR_ERR(dev->regmap);
++		goto err_kfree;
++	}
+ 
+ 	/* check if the demod is there */
+-	ret = rtl2830_rd_reg(client, 0x000, &u8tmp);
++	ret = rtl2830_bulk_read(client, 0x000, &u8tmp, 1);
+ 	if (ret)
+-		goto err_kfree;
++		goto err_regmap_exit;
+ 
+ 	/* create muxed i2c adapter for tuner */
+ 	dev->adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
+-			client, 0, 0, 0, rtl2830_select, rtl2830_deselect);
++			client, 0, 0, 0, rtl2830_select, NULL);
+ 	if (dev->adapter == NULL) {
+ 		ret = -ENODEV;
+-		goto err_kfree;
++		goto err_regmap_exit;
+ 	}
+ 
+ 	/* create dvb frontend */
+@@ -945,6 +886,8 @@ static int rtl2830_probe(struct i2c_client *client,
+ 	dev_info(&client->dev, "Realtek RTL2830 successfully attached\n");
+ 
+ 	return 0;
++err_regmap_exit:
++	regmap_exit(dev->regmap);
+ err_kfree:
+ 	kfree(dev);
+ err:
+@@ -959,6 +902,7 @@ static int rtl2830_remove(struct i2c_client *client)
+ 	dev_dbg(&client->dev, "\n");
+ 
+ 	i2c_del_mux_adapter(dev->adapter);
++	regmap_exit(dev->regmap);
+ 	kfree(dev);
+ 
+ 	return 0;
+diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
+index 517758a..42c2b1f 100644
+--- a/drivers/media/dvb-frontends/rtl2830_priv.h
++++ b/drivers/media/dvb-frontends/rtl2830_priv.h
+@@ -23,15 +23,16 @@
  #include "rtl2830.h"
-@@ -76,6 +78,7 @@ struct rtl28xxu_priv {
- 	struct i2c_client *i2c_client_demod;
- 	struct i2c_client *i2c_client_tuner;
- 	struct i2c_client *i2c_client_slave_demod;
-+	struct platform_device *platform_device_sdr;
- 	#define SLAVE_DEMOD_NONE           0
- 	#define SLAVE_DEMOD_MN88472        1
- 	#define SLAVE_DEMOD_MN88473        2
+ #include <linux/i2c-mux.h>
+ #include <linux/math64.h>
++#include <linux/regmap.h>
+ 
+ struct rtl2830_dev {
+ 	struct rtl2830_platform_data *pdata;
+ 	struct i2c_client *client;
++	struct regmap *regmap;
+ 	struct i2c_adapter *adapter;
+ 	struct dvb_frontend fe;
+ 	bool sleeping;
+ 	struct mutex i2c_mutex;
+-	u8 page; /* active register page */
+ 	unsigned long filters;
+ 	struct delayed_work stat_work;
+ 	fe_status_t fe_status;
 -- 
 http://palosaari.fi/
 
