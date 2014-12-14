@@ -1,80 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:40261 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752154AbaLAJq1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 04:46:27 -0500
-Message-id: <547C38EF.7030303@samsung.com>
-Date: Mon, 01 Dec 2014 10:46:23 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 1/1] [media] V4L2: Deletion of an unnecessary check before
- the function call "vb2_put_vma"
-References: <5307CAA2.8060406@users.sourceforge.net>
- <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
- <530A086E.8010901@users.sourceforge.net>
- <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
- <530A72AA.3000601@users.sourceforge.net>
- <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
- <530B5FB6.6010207@users.sourceforge.net>
- <alpine.DEB.2.10.1402241710370.2074@hadrien>
- <530C5E18.1020800@users.sourceforge.net>
- <alpine.DEB.2.10.1402251014170.2080@hadrien>
- <530CD2C4.4050903@users.sourceforge.net>
- <alpine.DEB.2.10.1402251840450.7035@hadrien>
- <530CF8FF.8080600@users.sourceforge.net>
- <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
- <530DD06F.4090703@users.sourceforge.net>
- <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
- <5317A59D.4@users.sourceforge.net> <547B98D5.8000909@users.sourceforge.net>
-In-reply-to: <547B98D5.8000909@users.sourceforge.net>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:56164 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751442AbaLNI3s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Dec 2014 03:29:48 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 06/18] rtl2830: fix logging
+Date: Sun, 14 Dec 2014 10:28:31 +0200
+Message-Id: <1418545723-9536-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1418545723-9536-1-git-send-email-crope@iki.fi>
+References: <1418545723-9536-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Pass correct device for dev_foo() logging in order to print logs
+correctly.
 
-On 2014-11-30 23:23, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sun, 30 Nov 2014 23:10:51 +0100
->
-> The vb2_put_vma() function tests whether its argument is NULL and then
-> returns immediately. Thus the test around the call is not needed.
->
-> This issue was detected by using the Coccinelle software.
->
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2830.c | 43 +++++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 22 deletions(-)
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-> ---
->   drivers/media/v4l2-core/videobuf2-vmalloc.c | 3 +--
->   1 file changed, 1 insertion(+), 2 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> index 3966b12..fba944e 100644
-> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> @@ -154,8 +154,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
->   		}
->   		kfree(buf->pages);
->   	} else {
-> -		if (buf->vma)
-> -			vb2_put_vma(buf->vma);
-> +		vb2_put_vma(buf->vma);
->   		iounmap(buf->vaddr);
->   	}
->   	kfree(buf);
-
-Best regards
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index e7ba665..fa73575 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -46,9 +46,8 @@ static int rtl2830_wr(struct i2c_client *client, u8 reg, const u8 *val, int len)
+ 	};
+ 
+ 	if (1 + len > sizeof(buf)) {
+-		dev_warn(&dev->i2c->dev,
+-			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+-			 KBUILD_MODNAME, reg, len);
++		dev_warn(&client->dev, "i2c wr reg=%04x: len=%d is too big!\n",
++				reg, len);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -59,8 +58,8 @@ static int rtl2830_wr(struct i2c_client *client, u8 reg, const u8 *val, int len)
+ 	if (ret == 1) {
+ 		ret = 0;
+ 	} else {
+-		dev_warn(&dev->i2c->dev, "%s: i2c wr failed=%d reg=%02x " \
+-				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
++		dev_warn(&client->dev, "i2c wr failed=%d reg=%02x len=%d\n",
++				ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
+ 	return ret;
+@@ -89,8 +88,8 @@ static int rtl2830_rd(struct i2c_client *client, u8 reg, u8 *val, int len)
+ 	if (ret == 2) {
+ 		ret = 0;
+ 	} else {
+-		dev_warn(&dev->i2c->dev, "%s: i2c rd failed=%d reg=%02x " \
+-				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
++		dev_warn(&client->dev, "i2c rd failed=%d reg=%02x len=%d\n",
++				ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
+ 	return ret;
+@@ -259,7 +258,7 @@ static int rtl2830_init(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&dev->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -314,9 +313,8 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
+ 		{0xae, 0xba, 0xf3, 0x26, 0x66, 0x64}, /* 8 MHz */
+ 	};
+ 
+-	dev_dbg(&dev->i2c->dev,
+-			"%s: frequency=%d bandwidth_hz=%d inversion=%d\n",
+-			__func__, c->frequency, c->bandwidth_hz, c->inversion);
++	dev_dbg(&client->dev, "frequency=%u bandwidth_hz=%u inversion=%u\n",
++			c->frequency, c->bandwidth_hz, c->inversion);
+ 
+ 	/* program tuner */
+ 	if (fe->ops.tuner_ops.set_params)
+@@ -333,7 +331,8 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
+ 		i = 2;
+ 		break;
+ 	default:
+-		dev_dbg(&dev->i2c->dev, "%s: invalid bandwidth\n", __func__);
++		dev_err(&client->dev, "invalid bandwidth_hz %u\n",
++				c->bandwidth_hz);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -355,8 +354,8 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
+ 	num = div_u64(num, dev->cfg.xtal);
+ 	num = -num;
+ 	if_ctl = num & 0x3fffff;
+-	dev_dbg(&dev->i2c->dev, "%s: if_frequency=%d if_ctl=%08x\n",
+-			__func__, if_frequency, if_ctl);
++	dev_dbg(&client->dev, "if_frequency=%d if_ctl=%08x\n",
++			if_frequency, if_ctl);
+ 
+ 	ret = rtl2830_rd_reg_mask(client, 0x119, &tmp, 0xc0); /* b[7:6] */
+ 	if (ret)
+@@ -387,7 +386,7 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&dev->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -410,7 +409,7 @@ static int rtl2830_get_frontend(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	dev_dbg(&dev->i2c->dev, "%s: TPS=%*ph\n", __func__, 3, buf);
++	dev_dbg(&client->dev, "TPS=%*ph\n", 3, buf);
+ 
+ 	switch ((buf[0] >> 2) & 3) {
+ 	case 0:
+@@ -500,7 +499,7 @@ static int rtl2830_get_frontend(struct dvb_frontend *fe)
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&dev->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -529,7 +528,7 @@ static int rtl2830_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 
+ 	return ret;
+ err:
+-	dev_dbg(&dev->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -579,7 +578,7 @@ static int rtl2830_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&dev->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -601,7 +600,7 @@ static int rtl2830_read_ber(struct dvb_frontend *fe, u32 *ber)
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&dev->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -638,7 +637,7 @@ static int rtl2830_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&dev->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -728,7 +727,7 @@ static int rtl2830_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+http://palosaari.fi/
 
