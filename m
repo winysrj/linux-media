@@ -1,52 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:65336 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752623AbaLCQHm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 11:07:42 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, robh+dt@kernel.org, pawel.moll@arm.com,
-	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
-	galak@codeaurora.org, Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>
-Subject: [PATCH/RFC v9 03/19] mfd: max77693: Modify flash cell name identifiers
-Date: Wed, 03 Dec 2014 17:06:38 +0100
-Message-id: <1417622814-10845-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:50191 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751837AbaLNI3u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Dec 2014 03:29:50 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 16/18] rtl28xxu: add support for RTL2831U/RTL2830 PID filter
+Date: Sun, 14 Dec 2014 10:28:41 +0200
+Message-Id: <1418545723-9536-16-git-send-email-crope@iki.fi>
+In-Reply-To: <1418545723-9536-1-git-send-email-crope@iki.fi>
+References: <1418545723-9536-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change flash cell identifiers from max77693-flash to max77693-led
-to avoid confusion with NOR/NAND Flash.
+RTL2830 demod integrated to RTL2831U has PID filter. PID filtering
+is provided by rtl2830 demod driver. Add support for it.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/mfd/max77693.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
-index a159593..cb14afa 100644
---- a/drivers/mfd/max77693.c
-+++ b/drivers/mfd/max77693.c
-@@ -53,8 +53,8 @@ static const struct mfd_cell max77693_devs[] = {
- 		.of_compatible = "maxim,max77693-haptic",
- 	},
- 	{
--		.name = "max77693-flash",
--		.of_compatible = "maxim,max77693-flash",
-+		.name = "max77693-led",
-+		.of_compatible = "maxim,max77693-led",
- 	},
- };
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 4f94e0e..747a56d 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1568,6 +1568,24 @@ static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
+ #define rtl2832u_get_rc_config NULL
+ #endif
  
++static int rtl28xxu_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
++{
++	struct dvb_usb_device *d = adap_to_d(adap);
++	struct rtl28xxu_priv *priv = d_to_priv(d);
++	struct rtl2830_platform_data *pdata = &priv->rtl2830_platform_data;
++
++	return pdata->pid_filter_ctrl(adap->fe[0], onoff);
++}
++
++static int rtl28xxu_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid, int onoff)
++{
++	struct dvb_usb_device *d = adap_to_d(adap);
++	struct rtl28xxu_priv *priv = d_to_priv(d);
++	struct rtl2830_platform_data *pdata = &priv->rtl2830_platform_data;
++
++	return pdata->pid_filter(adap->fe[0], index, pid, onoff);
++}
++
+ static const struct dvb_usb_device_properties rtl2831u_props = {
+ 	.driver_name = KBUILD_MODNAME,
+ 	.owner = THIS_MODULE,
+@@ -1586,6 +1604,13 @@ static const struct dvb_usb_device_properties rtl2831u_props = {
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
++			.caps = DVB_USB_ADAP_HAS_PID_FILTER |
++				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
++
++			.pid_filter_count = 32,
++			.pid_filter_ctrl = rtl28xxu_pid_filter_ctrl,
++			.pid_filter = rtl28xxu_pid_filter,
++
+ 			.stream = DVB_USB_STREAM_BULK(0x81, 6, 8 * 512),
+ 		},
+ 	},
 -- 
-1.7.9.5
+http://palosaari.fi/
 
