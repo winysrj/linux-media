@@ -1,50 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:60767 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752022AbaLSHpY (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47282 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751004AbaLOR5n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 02:45:24 -0500
-From: Tony K Nadackal <tony.kn@samsung.com>
-To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org
-Cc: mchehab@osg.samsung.com, j.anaszewski@samsung.com,
-	kgene@kernel.org, k.debski@samsung.com, s.nawrocki@samsung.com,
-	robh+dt@kernel.org, mark.rutland@arm.com, bhushan.r@samsung.com,
-	Tony K Nadackal <tony.kn@samsung.com>
-Subject: [PATCH v2 0/2] Adding support for Exynos7 Jpeg variant
-Date: Fri, 19 Dec 2014 13:07:58 +0530
-Message-id: <1418974680-5837-1-git-send-email-tony.kn@samsung.com>
+	Mon, 15 Dec 2014 12:57:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [yavta PATCH v2 3/3] yavta: Add support for 10-bit packed raw bayer formats
+Date: Mon, 15 Dec 2014 19:57:44 +0200
+Message-ID: <7095536.9mhnFqSS07@avalon>
+In-Reply-To: <1418660809-30548-4-git-send-email-sakari.ailus@linux.intel.com>
+References: <1418660809-30548-1-git-send-email-sakari.ailus@linux.intel.com> <1418660809-30548-4-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds support for Exynos7 JPEG variant, which is mostly
-same as Exynos4 JPEG variants with few register configuration differences.
-At the same time it modifies #define based JPEG variant macros into enum.
-Patch 1/2 fixes possible bug in setting INT EN register,
-where EXYNOS4_INT_EN_REG was getting modified without reading before.
+Hi Sakari,
 
-Patch set v1 and related discussion can be found here [1].
+Thank you for the patch.
 
-[1]: http://www.spinics.net/lists/linux-samsung-soc/msg40308.html
+On Monday 15 December 2014 18:26:49 Sakari Ailus wrote:
+> Add support for these pixel formats:
+> 
+> V4L2_PIX_FMT_SBGGR10P
+> V4L2_PIX_FMT_SGBRG10P
+> V4L2_PIX_FMT_SGRBG10P
+> V4L2_PIX_FMT_SRGGB10P
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Changes since v1:
- - Added new patch 1/2 which fixes issues in writing EXYNOS4_INT_EN_REG.
- - Converted JPEG variant macros into enum as suggested by Jacek Anaszewski.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-
-Tony K Nadackal (2):
-  [media] s5p-jpeg: Fix modification sequence of interrupt enable
-    register
-  [media] s5p-jpeg: Adding Exynos7 Jpeg variant
-
- .../bindings/media/exynos-jpeg-codec.txt           |  2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c        | 61 ++++++++++++++++++----
- drivers/media/platform/s5p-jpeg/jpeg-core.h        | 10 ++--
- drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c  | 33 +++++++-----
- drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h  |  8 +--
- drivers/media/platform/s5p-jpeg/jpeg-regs.h        | 17 ++++--
- 6 files changed, 95 insertions(+), 36 deletions(-)
+> ---
+>  yavta.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/yavta.c b/yavta.c
+> index 003d6ba..f40562a 100644
+> --- a/yavta.c
+> +++ b/yavta.c
+> @@ -202,6 +202,10 @@ static struct v4l2_format_info {
+>  	{ "SGBRG10", V4L2_PIX_FMT_SGBRG10, 1 },
+>  	{ "SGRBG10", V4L2_PIX_FMT_SGRBG10, 1 },
+>  	{ "SRGGB10", V4L2_PIX_FMT_SRGGB10, 1 },
+> +	{ "SBGGR10P", V4L2_PIX_FMT_SBGGR10P, 1 },
+> +	{ "SGBRG10P", V4L2_PIX_FMT_SGBRG10P, 1 },
+> +	{ "SGRBG10P", V4L2_PIX_FMT_SGRBG10P, 1 },
+> +	{ "SRGGB10P", V4L2_PIX_FMT_SRGGB10P, 1 },
+>  	{ "SBGGR12", V4L2_PIX_FMT_SBGGR12, 1 },
+>  	{ "SGBRG12", V4L2_PIX_FMT_SGBRG12, 1 },
+>  	{ "SGRBG12", V4L2_PIX_FMT_SGRBG12, 1 },
 
 -- 
-2.2.0
+Regards,
+
+Laurent Pinchart
 
