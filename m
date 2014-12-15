@@ -1,47 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:42107 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752877AbaLTMpk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 07:45:40 -0500
-In-Reply-To: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-References: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 5/8] [media] em28xx-audio: fix missing newlines
+Received: from mail.kapsi.fi ([217.30.184.167]:57555 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750865AbaLONaJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 08:30:09 -0500
+Message-ID: <548EE25C.4060808@iki.fi>
+Date: Mon, 15 Dec 2014 15:30:04 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1Y2JPc-0006Ue-9h@rmk-PC.arm.linux.org.uk>
-Date: Sat, 20 Dec 2014 12:45:36 +0000
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Prashant Laddha <prladdha@cisco.com>
+CC: hverkuil@xs4all.nl,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/6] Use LUT based implementation for (co)sine functions
+References: <1418635162-8814-1-git-send-email-prladdha@cisco.com>	<1418635162-8814-2-git-send-email-prladdha@cisco.com> <20141215111321.7602a7b9@recife.lan>
+In-Reply-To: <20141215111321.7602a7b9@recife.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Inspection shows that newlines are missing from several kernel messages
-in em28xx-audio.  Fix these.
+On 12/15/2014 03:13 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 15 Dec 2014 14:49:17 +0530
+> Prashant Laddha <prladdha@cisco.com> escreveu:
+>
+>> Replaced Taylor series calculation for (co)sine with a
+>> look up table (LUT) for sine values.
+>
+> Kernel has already a LUT for sin/cos at:
+> 	include/linux/fixp-arith.h
+>
+> The best would be to either use it or improve its precision, if the one there
+> is not good enough.
 
-Cc: <stable@vger.kernel.org>
-Fixes: 1b3fd2d34266 ("[media] em28xx-audio: don't hardcode audio URB calculus")
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/media/usb/em28xx/em28xx-audio.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I looked that one when made generator. It has poor precision and it uses 
+degrees not radians. But surely it is correct practice improve existing 
+than introduce new.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index 52dc9d70da72..82d58eb3d32a 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -820,7 +820,7 @@ static int em28xx_audio_urb_init(struct em28xx *dev)
- 	if (urb_size > ep_size * npackets)
- 		npackets = DIV_ROUND_UP(urb_size, ep_size);
- 
--	em28xx_info("Number of URBs: %d, with %d packets and %d size",
-+	em28xx_info("Number of URBs: %d, with %d packets and %d size\n",
- 		    num_urb, npackets, urb_size);
- 
- 	/* Estimate the bytes per period */
+regards
+Antti
+
+
 -- 
-1.8.3.1
-
+http://palosaari.fi/
