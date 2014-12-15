@@ -1,59 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:47176 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750840AbaLEO2Z (ORCPT
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:38202 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750871AbaLOVLR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Dec 2014 09:28:25 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 8868F2A002F
-	for <linux-media@vger.kernel.org>; Fri,  5 Dec 2014 15:28:20 +0100 (CET)
-Message-ID: <5481C104.6030806@xs4all.nl>
-Date: Fri, 05 Dec 2014 15:28:20 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.19] v4l2-mediabus.h & documentation updates
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Mon, 15 Dec 2014 16:11:17 -0500
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Arun Kumar K <arun.kk@samsung.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: [PATCH 0/3] Various fixes for s5p-mfc driver
+Date: Mon, 15 Dec 2014 16:10:56 -0500
+Message-Id: <1418677859-31440-1-git-send-email-nicolas.dufresne@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These fixes are needed for 3.19 and are a follow up to the colorspace
-patch series.
+This patchset fixes ability to drain the decoder due to use of wrong
+enumeration name and fixes implementation of display delay controls
+for MFC firmware v6 and higher.
 
-They keep one extra __u32 free for future use in v4l2-mediabus.h as per Sakari's
-suggestion. This suggestion came in after the colorspace patches were merged,
-but it is a good idea.
+Note that there is no need in the display delay fix for trying to be
+backward compatible with what the comment was saying since the control
+properties was preventing it. There was basically no way other then
+setting a large delay value to get the frames in display order.
 
-And the documentation is updated (I missed a few things there).
+Nicolas Dufresne (3):
+  s5p-mfc-v6+: Use display_delay_enable CID
+  s5p-mfc-dec: Don't use encoder stop command
+  media-doc: Fix MFC display delay control doc
 
-Regards,
+ Documentation/DocBook/media/v4l/controls.xml    | 11 +++++------
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  6 +-----
+ 3 files changed, 7 insertions(+), 12 deletions(-)
 
-	Hans
+-- 
+2.1.0
 
-The following changes since commit 71947828caef0c83d4245f7d1eaddc799b4ff1d1:
-
-  [media] mn88473: One function call less in mn88473_init() after error (2014-12-04 16:00:47 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.19m
-
-for you to fetch changes up to 4761f227d0256f5e35b55b1a98f2352b54fa900f:
-
-  DocBook media: update version number and document changes. (2014-12-05 15:23:55 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (4):
-      v4l2-mediabus.h: use two __u16 instead of two __u32
-      DocBook media: add missing ycbcr_enc and quantization fields
-      vivid.txt: document new controls
-      DocBook media: update version number and document changes.
-
- Documentation/DocBook/media/v4l/compat.xml         | 12 ++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         | 36 ++++++++++++++++++++++++++++++++++--
- Documentation/DocBook/media/v4l/subdev-formats.xml | 18 +++++++++++++++++-
- Documentation/DocBook/media/v4l/v4l2.xml           | 11 ++++++++++-
- Documentation/video4linux/vivid.txt                | 15 +++++++++++++++
- include/uapi/linux/v4l2-mediabus.h                 |  6 +++---
- 6 files changed, 91 insertions(+), 7 deletions(-)
