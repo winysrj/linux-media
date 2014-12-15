@@ -1,176 +1,319 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50098 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752243AbaLFVfN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Dec 2014 16:35:13 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/22] si2168: rename few things
-Date: Sat,  6 Dec 2014 23:34:40 +0200
-Message-Id: <1417901696-5517-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
-References: <1417901696-5517-1-git-send-email-crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47425 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750712AbaLOUGd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 15:06:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [yavta PATCH v3 2/3] yavta: Update headers from upstream kernel
+Date: Mon, 15 Dec 2014 22:06:35 +0200
+Message-ID: <33780157.1YZLBPRbZj@avalon>
+In-Reply-To: <1418673520-31439-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1418673520-31439-1-git-send-email-sakari.ailus@linux.intel.com> <1418673520-31439-3-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename some goto labels and more. No functionality changes.
+Hi Sakari,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c | 38 ++++++++++++------------------------
- drivers/media/dvb-frontends/si2168.h |  6 ++----
- 2 files changed, 14 insertions(+), 30 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 2df3a27..a9486ef 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -115,17 +115,6 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	if (ret)
- 		goto err;
- 
--	/*
--	 * Possible values seen, in order from strong signal to weak:
--	 * 16 0001 0110 full lock
--	 * 1e 0001 1110 partial lock
--	 * 1a 0001 1010 partial lock
--	 * 18 0001 1000 no lock
--	 *
--	 * [b3:b1] lock bits
--	 * [b4] statistics ready? Set in a few secs after lock is gained.
--	 */
--
- 	switch ((cmd.args[2] >> 1) & 0x03) {
- 	case 0x01:
- 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
-@@ -291,7 +280,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	/* set DVB-C symbol rate */
- 	if (c->delivery_system == SYS_DVBC_ANNEX_A) {
- 		memcpy(cmd.args, "\x14\x00\x02\x11", 4);
--		cmd.args[4] = (c->symbol_rate / 1000) & 0xff;
-+		cmd.args[4] = ((c->symbol_rate / 1000) >> 0) & 0xff;
- 		cmd.args[5] = ((c->symbol_rate / 1000) >> 8) & 0xff;
- 		cmd.wlen = 6;
- 		cmd.rlen = 4;
-@@ -455,7 +444,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 			dev_err(&client->dev,
- 					"firmware file '%s' not found\n",
- 					fw_file);
--			goto error_fw_release;
-+			goto err_release_firmware;
- 		}
- 	}
- 
-@@ -474,7 +463,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 				dev_err(&client->dev,
- 						"firmware download failed=%d\n",
- 						ret);
--				goto error_fw_release;
-+				goto err_release_firmware;
- 			}
- 		}
- 	} else {
-@@ -492,7 +481,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 				dev_err(&client->dev,
- 						"firmware download failed=%d\n",
- 						ret);
--				goto error_fw_release;
-+				goto err_release_firmware;
- 			}
- 		}
- 	}
-@@ -535,8 +524,7 @@ warm:
- 	dev->active = true;
- 
- 	return 0;
--
--error_fw_release:
-+err_release_firmware:
- 	release_firmware(fw);
- err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
-@@ -684,7 +672,7 @@ static int si2168_probe(struct i2c_client *client,
- 	if (!dev) {
- 		ret = -ENOMEM;
- 		dev_err(&client->dev, "kzalloc() failed\n");
--		goto err;
-+		goto err_kfree;
- 	}
- 
- 	mutex_init(&dev->i2c_mutex);
-@@ -694,13 +682,12 @@ static int si2168_probe(struct i2c_client *client,
- 			client, 0, 0, 0, si2168_select, si2168_deselect);
- 	if (dev->adapter == NULL) {
- 		ret = -ENODEV;
--		goto err;
-+		goto err_kfree;
- 	}
- 
- 	/* create dvb_frontend */
- 	memcpy(&dev->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
- 	dev->fe.demodulator_priv = client;
--
- 	*config->i2c_adapter = dev->adapter;
- 	*config->fe = &dev->fe;
- 	dev->ts_mode = config->ts_mode;
-@@ -709,10 +696,9 @@ static int si2168_probe(struct i2c_client *client,
- 
- 	i2c_set_clientdata(client, dev);
- 
--	dev_info(&client->dev,
--			"Silicon Labs Si2168 successfully attached\n");
-+	dev_info(&client->dev, "Silicon Labs Si2168 successfully attached\n");
- 	return 0;
--err:
-+err_kfree:
- 	kfree(dev);
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
-@@ -734,11 +720,11 @@ static int si2168_remove(struct i2c_client *client)
- 	return 0;
- }
- 
--static const struct i2c_device_id si2168_id[] = {
-+static const struct i2c_device_id si2168_id_table[] = {
- 	{"si2168", 0},
- 	{}
- };
--MODULE_DEVICE_TABLE(i2c, si2168_id);
-+MODULE_DEVICE_TABLE(i2c, si2168_id_table);
- 
- static struct i2c_driver si2168_driver = {
- 	.driver = {
-@@ -747,7 +733,7 @@ static struct i2c_driver si2168_driver = {
- 	},
- 	.probe		= si2168_probe,
- 	.remove		= si2168_remove,
--	.id_table	= si2168_id,
-+	.id_table	= si2168_id_table,
- };
- 
- module_i2c_driver(si2168_driver);
-diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-index 87bc121..70d702a 100644
---- a/drivers/media/dvb-frontends/si2168.h
-+++ b/drivers/media/dvb-frontends/si2168.h
-@@ -36,14 +36,12 @@ struct si2168_config {
- 	struct i2c_adapter **i2c_adapter;
- 
- 	/* TS mode */
-+#define SI2168_TS_PARALLEL	0x06
-+#define SI2168_TS_SERIAL	0x03
- 	u8 ts_mode;
- 
- 	/* TS clock inverted */
- 	bool ts_clock_inv;
--
- };
- 
--#define SI2168_TS_PARALLEL	0x06
--#define SI2168_TS_SERIAL	0x03
--
- #endif
+On Monday 15 December 2014 21:58:39 Sakari Ailus wrote:
+> Include packed raw 10-bit definitions as well.
+> 
+> This includes patches up to and including
+> "[media] mn88473: One function call less in mn88473_init() after error"
+> and the following patches (v2 sent to linux-media):
+> 
+> "DocBook: v4l: Fix raw bayer pixel format documentation wording",
+> "DocBook: v4l: Rearrange raw bayer format definitions, remove bad comment"
+> and "v4l: Add packed Bayer raw10 pixel formats".
+
+Could you please resubmit this with the upstream commit ID when Mauro will 
+have pulled those two patches ?
+
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  include/linux/v4l2-common.h   |   2 +
+>  include/linux/v4l2-controls.h |   6 +++
+>  include/linux/videodev2.h     | 121 ++++++++++++++++++++++++++++++++-------
+>  3 files changed, 111 insertions(+), 18 deletions(-)
+> 
+> diff --git a/include/linux/v4l2-common.h b/include/linux/v4l2-common.h
+> index 2f6f8ca..1527398 100644
+> --- a/include/linux/v4l2-common.h
+> +++ b/include/linux/v4l2-common.h
+> @@ -43,6 +43,8 @@
+>  #define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
+>  /* Cropping bounds */
+>  #define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
+> +/* Native frame size */
+> +#define V4L2_SEL_TGT_NATIVE_SIZE	0x0003
+>  /* Current composing area */
+>  #define V4L2_SEL_TGT_COMPOSE		0x0100
+>  /* Default composing area */
+> diff --git a/include/linux/v4l2-controls.h b/include/linux/v4l2-controls.h
+> index e946e43..661f119 100644
+> --- a/include/linux/v4l2-controls.h
+> +++ b/include/linux/v4l2-controls.h
+> @@ -746,6 +746,8 @@ enum v4l2_auto_focus_range {
+>  	V4L2_AUTO_FOCUS_RANGE_INFINITY		= 3,
+>  };
+> 
+> +#define V4L2_CID_PAN_SPEED			(V4L2_CID_CAMERA_CLASS_BASE+32)
+> +#define V4L2_CID_TILT_SPEED			(V4L2_CID_CAMERA_CLASS_BASE+33)
+> 
+>  /* FM Modulator class control IDs */
+> 
+> @@ -865,6 +867,10 @@ enum v4l2_jpeg_chroma_subsampling {
+>  #define V4L2_CID_VBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 1)
+>  #define V4L2_CID_HBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
+>  #define V4L2_CID_ANALOGUE_GAIN			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE 
++ 3)
+> +#define V4L2_CID_TEST_PATTERN_RED		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 
+4)
+> +#define V4L2_CID_TEST_PATTERN_GREENR		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE 
++
+> 5) +#define V4L2_CID_TEST_PATTERN_BLUE		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE 
++
+> 6) +#define V4L2_CID_TEST_PATTERN_GREENB		
+(V4L2_CID_IMAGE_SOURCE_CLASS_BASE
+> + 7)
+> 
+> 
+>  /* Image processing controls */
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 87b83c3..14e2129 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -77,6 +77,7 @@
+>  /*  Four-character-code (FOURCC) */
+>  #define v4l2_fourcc(a, b, c, d)\
+>  	((__u32)(a) | ((__u32)(b) << 8) | ((__u32)(c) << 16) | ((__u32)(d) << 
+24))
+> +#define v4l2_fourcc_be(a, b, c, d)	(v4l2_fourcc(a, b, c, d) | (1 << 31))
+> 
+>  /*
+>   *	E N U M S
+> @@ -175,30 +176,103 @@ enum v4l2_memory {
+> 
+>  /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
+>  enum v4l2_colorspace {
+> -	/* ITU-R 601 -- broadcast NTSC/PAL */
+> +	/* SMPTE 170M: used for broadcast NTSC/PAL SDTV */
+>  	V4L2_COLORSPACE_SMPTE170M     = 1,
+> 
+> -	/* 1125-Line (US) HDTV */
+> +	/* Obsolete pre-1998 SMPTE 240M HDTV standard, superseded by Rec 709 */
+>  	V4L2_COLORSPACE_SMPTE240M     = 2,
+> 
+> -	/* HD and modern captures. */
+> +	/* Rec.709: used for HDTV */
+>  	V4L2_COLORSPACE_REC709        = 3,
+> 
+> -	/* broken BT878 extents (601, luma range 16-253 instead of 16-235) */
+> +	/*
+> +	 * Deprecated, do not use. No driver will ever return this. This was
+> +	 * based on a misunderstanding of the bt878 datasheet.
+> +	 */
+>  	V4L2_COLORSPACE_BT878         = 4,
+> 
+> -	/* These should be useful.  Assume 601 extents. */
+> +	/*
+> +	 * NTSC 1953 colorspace. This only makes sense when dealing with
+> +	 * really, really old NTSC recordings. Superseded by SMPTE 170M.
+> +	 */
+>  	V4L2_COLORSPACE_470_SYSTEM_M  = 5,
+> +
+> +	/*
+> +	 * EBU Tech 3213 PAL/SECAM colorspace. This only makes sense when
+> +	 * dealing with really old PAL/SECAM recordings. Superseded by
+> +	 * SMPTE 170M.
+> +	 */
+>  	V4L2_COLORSPACE_470_SYSTEM_BG = 6,
+> 
+> -	/* I know there will be cameras that send this.  So, this is
+> -	 * unspecified chromaticities and full 0-255 on each of the
+> -	 * Y'CbCr components
+> +	/*
+> +	 * Effectively shorthand for V4L2_COLORSPACE_SRGB, V4L2_YCBCR_ENC_601
+> +	 * and V4L2_QUANTIZATION_FULL_RANGE. To be used for (Motion-)JPEG.
+>  	 */
+>  	V4L2_COLORSPACE_JPEG          = 7,
+> 
+> -	/* For RGB colourspaces, this is probably a good start. */
+> +	/* For RGB colorspaces such as produces by most webcams. */
+>  	V4L2_COLORSPACE_SRGB          = 8,
+> +
+> +	/* AdobeRGB colorspace */
+> +	V4L2_COLORSPACE_ADOBERGB      = 9,
+> +
+> +	/* BT.2020 colorspace, used for UHDTV. */
+> +	V4L2_COLORSPACE_BT2020        = 10,
+> +};
+> +
+> +enum v4l2_ycbcr_encoding {
+> +	/*
+> +	 * Mapping of V4L2_YCBCR_ENC_DEFAULT to actual encodings for the
+> +	 * various colorspaces:
+> +	 *
+> +	 * V4L2_COLORSPACE_SMPTE170M, V4L2_COLORSPACE_470_SYSTEM_M,
+> +	 * V4L2_COLORSPACE_470_SYSTEM_BG, V4L2_COLORSPACE_ADOBERGB and
+> +	 * V4L2_COLORSPACE_JPEG: V4L2_YCBCR_ENC_601
+> +	 *
+> +	 * V4L2_COLORSPACE_REC709: V4L2_YCBCR_ENC_709
+> +	 *
+> +	 * V4L2_COLORSPACE_SRGB: V4L2_YCBCR_ENC_SYCC
+> +	 *
+> +	 * V4L2_COLORSPACE_BT2020: V4L2_YCBCR_ENC_BT2020
+> +	 *
+> +	 * V4L2_COLORSPACE_SMPTE240M: V4L2_YCBCR_ENC_SMPTE240M
+> +	 */
+> +	V4L2_YCBCR_ENC_DEFAULT        = 0,
+> +
+> +	/* ITU-R 601 -- SDTV */
+> +	V4L2_YCBCR_ENC_601            = 1,
+> +
+> +	/* Rec. 709 -- HDTV */
+> +	V4L2_YCBCR_ENC_709            = 2,
+> +
+> +	/* ITU-R 601/EN 61966-2-4 Extended Gamut -- SDTV */
+> +	V4L2_YCBCR_ENC_XV601          = 3,
+> +
+> +	/* Rec. 709/EN 61966-2-4 Extended Gamut -- HDTV */
+> +	V4L2_YCBCR_ENC_XV709          = 4,
+> +
+> +	/* sYCC (Y'CbCr encoding of sRGB) */
+> +	V4L2_YCBCR_ENC_SYCC           = 5,
+> +
+> +	/* BT.2020 Non-constant Luminance Y'CbCr */
+> +	V4L2_YCBCR_ENC_BT2020         = 6,
+> +
+> +	/* BT.2020 Constant Luminance Y'CbcCrc */
+> +	V4L2_YCBCR_ENC_BT2020_CONST_LUM = 7,
+> +
+> +	/* SMPTE 240M -- Obsolete HDTV */
+> +	V4L2_YCBCR_ENC_SMPTE240M      = 8,
+> +};
+> +
+> +enum v4l2_quantization {
+> +	/*
+> +	 * The default for R'G'B' quantization is always full range. For
+> +	 * Y'CbCr the quantization is always limited range, except for
+> +	 * SYCC, XV601, XV709 or JPEG: those are full range.
+> +	 */
+> +	V4L2_QUANTIZATION_DEFAULT     = 0,
+> +	V4L2_QUANTIZATION_FULL_RANGE  = 1,
+> +	V4L2_QUANTIZATION_LIM_RANGE   = 2,
+>  };
+> 
+>  enum v4l2_priority {
+> @@ -291,6 +365,8 @@ struct v4l2_pix_format {
+>  	__u32			colorspace;	/* enum v4l2_colorspace */
+>  	__u32			priv;		/* private data, depends on pixelformat */
+>  	__u32			flags;		/* format flags (V4L2_PIX_FMT_FLAG_*) */
+> +	__u32			ycbcr_enc;	/* enum v4l2_ycbcr_encoding */
+> +	__u32			quantization;	/* enum v4l2_quantization */
+>  };
+> 
+>  /*      Pixel format         FOURCC                          depth 
+> Description  */ @@ -305,6 +381,8 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_XRGB555 v4l2_fourcc('X', 'R', '1', '5') /* 16 
+> XRGB-1-5-5-5  */ #define V4L2_PIX_FMT_RGB565  v4l2_fourcc('R', 'G', 'B',
+> 'P') /* 16  RGB-5-6-5     */ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R',
+> 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */ +#define V4L2_PIX_FMT_ARGB555X
+> v4l2_fourcc_be('A', 'R', '1', '5') /* 16  ARGB-5-5-5 BE */ +#define
+> V4L2_PIX_FMT_XRGB555X v4l2_fourcc_be('X', 'R', '1', '5') /* 16  XRGB-5-5-5
+> BE */ #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16 
+> RGB-5-6-5 BE  */ #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R',
+> 'H') /* 18  BGR-6-6-6	  */ #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B',
+> 'G', 'R', '3') /* 24  BGR-8-8-8     */ @@ -383,10 +461,11 @@ struct
+> v4l2_pix_format {
+>  #define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0') /* 10  GBGB..
+> RGRG.. */ #define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /*
+> 10  GRGR.. BGBG.. */ #define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G',
+> '1', '0') /* 10  RGRG.. GBGB.. */ -#define V4L2_PIX_FMT_SBGGR12
+> v4l2_fourcc('B', 'G', '1', '2') /* 12  BGBG.. GRGR.. */ -#define
+> V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG..
+> */ -#define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12 
+> GRGR.. BGBG.. */ -#define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1',
+> '2') /* 12  RGRG.. GBGB.. */ +	/* 10bit raw bayer packed, 5 bytes for 
+every
+> 4 pixels */
+> +#define V4L2_PIX_FMT_SBGGR10P v4l2_fourcc('p', 'B', 'A', 'A')
+> +#define V4L2_PIX_FMT_SGBRG10P v4l2_fourcc('p', 'G', 'A', 'A')
+> +#define V4L2_PIX_FMT_SGRBG10P v4l2_fourcc('p', 'g', 'A', 'A')
+> +#define V4L2_PIX_FMT_SRGGB10P v4l2_fourcc('p', 'R', 'A', 'A')
+>  	/* 10bit raw bayer a-law compressed to 8 bits */
+>  #define V4L2_PIX_FMT_SBGGR10ALAW8 v4l2_fourcc('a', 'B', 'A', '8')
+>  #define V4L2_PIX_FMT_SGBRG10ALAW8 v4l2_fourcc('a', 'G', 'A', '8')
+> @@ -397,10 +476,10 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+>  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+>  #define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
+> -	/*
+> -	 * 10bit raw bayer, expanded to 16 bits
+> -	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+> -	 */
+> +#define V4L2_PIX_FMT_SBGGR12 v4l2_fourcc('B', 'G', '1', '2') /* 12  BGBG..
+> GRGR.. */ +#define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /*
+> 12  GBGB.. RGRG.. */ +#define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A',
+> '1', '2') /* 12  GRGR.. BGBG.. */ +#define V4L2_PIX_FMT_SRGGB12
+> v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */ #define
+> V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR..
+> */
+> 
+>  /* compressed formats */
+> @@ -1244,6 +1323,7 @@ struct v4l2_input {
+>  #define V4L2_IN_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
+>  #define V4L2_IN_CAP_CUSTOM_TIMINGS	V4L2_IN_CAP_DV_TIMINGS /* For
+> compatibility */ #define V4L2_IN_CAP_STD			0x00000004 /* Supports 
+S_STD */
+> +#define V4L2_IN_CAP_NATIVE_SIZE		0x00000008 /* Supports setting native 
+size
+> */
+> 
+>  /*
+>   *	V I D E O   O U T P U T S
+> @@ -1267,6 +1347,7 @@ struct v4l2_output {
+>  #define V4L2_OUT_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS 
+*/
+>  #define V4L2_OUT_CAP_CUSTOM_TIMINGS	V4L2_OUT_CAP_DV_TIMINGS /* For
+> compatibility */ #define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD 
+*/
+> +#define V4L2_OUT_CAP_NATIVE_SIZE	0x00000008 /* Supports setting native 
+size
+> */
+> 
+>  /*
+>   *	C O N T R O L S
+> @@ -1772,6 +1853,8 @@ struct v4l2_plane_pix_format {
+>   * @plane_fmt:		per-plane information
+>   * @num_planes:		number of planes for this format
+>   * @flags:		format flags (V4L2_PIX_FMT_FLAG_*)
+> + * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
+> + * @quantization:	enum v4l2_quantization, colorspace quantization
+>   */
+>  struct v4l2_pix_format_mplane {
+>  	__u32				width;
+> @@ -1783,7 +1866,9 @@ struct v4l2_pix_format_mplane {
+>  	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
+>  	__u8				num_planes;
+>  	__u8				flags;
+> -	__u8				reserved[10];
+> +	__u8				ycbcr_enc;
+> +	__u8				quantization;
+> +	__u8				reserved[8];
+>  } __attribute__ ((packed));
+> 
+>  /**
+
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
 
