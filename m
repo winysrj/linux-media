@@ -1,47 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-06v.sys.comcast.net ([96.114.154.165]:46276 "EHLO
-	resqmta-po-06v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751316AbaLSXvP (ORCPT
+Received: from laurent.telenet-ops.be ([195.130.137.89]:58391 "EHLO
+	laurent.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750716AbaLONzh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 18:51:15 -0500
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: fix au0828_analog_register() to not free au0828_dev
-Date: Fri, 19 Dec 2014 16:42:59 -0700
-Message-Id: <1419032579-7720-1-git-send-email-shuah.kh@samsung.com>
+	Mon, 15 Dec 2014 08:55:37 -0500
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH/RESEND] [media] VIDEO_CAFE_CCIC should select VIDEOBUF2_DMA_SG
+Date: Mon, 15 Dec 2014 14:55:37 +0100
+Message-Id: <1418651737-10016-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shuah Khan <shuahkh@osg.samsung.com>
+If VIDEO_CAFE_CCIC=y, but VIDEOBUF2_DMA_SG=m:
 
-au0828_analog_register() frees au0828_dev when it fails to
-locate isoc endpoint. au0828_usb_probe() continues with dvb
-and rc probe and registration assuming dev is still valid.
-When au0828_analog_register() fails to locate isoc endpoint,
-it should return without free'ing au0828_dev. Otherwise, the
-probe will fail as dev is null when au0828_dvb_register() is
-called.
+drivers/built-in.o: In function `mcam_v4l_open':
+mcam-core.c:(.text+0x1c2e81): undefined reference to `vb2_dma_sg_memops'
+mcam-core.c:(.text+0x1c2eb0): undefined reference to `vb2_dma_sg_init_ctx'
+drivers/built-in.o: In function `mcam_v4l_release':
+mcam-core.c:(.text+0x1c34bf): undefined reference to `vb2_dma_sg_cleanup_ctx'
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 ---
- drivers/media/usb/au0828/au0828-video.c | 1 -
- 1 file changed, 1 deletion(-)
+This is a resend of a patch from 2013-09-30. It's still valid.
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 3bdf132..94b65b8 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1713,7 +1713,6 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	}
- 	if (!(dev->isoc_in_endpointaddr)) {
- 		pr_info("Could not locate isoc endpoint\n");
--		kfree(dev);
- 		return -ENODEV;
- 	}
- 
+ drivers/media/platform/marvell-ccic/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/platform/marvell-ccic/Kconfig b/drivers/media/platform/marvell-ccic/Kconfig
+index 6265d36adcebcb89..3d166568bd6955bd 100644
+--- a/drivers/media/platform/marvell-ccic/Kconfig
++++ b/drivers/media/platform/marvell-ccic/Kconfig
+@@ -5,6 +5,7 @@ config VIDEO_CAFE_CCIC
+ 	select VIDEO_OV7670
+ 	select VIDEOBUF2_VMALLOC
+ 	select VIDEOBUF2_DMA_CONTIG
++	select VIDEOBUF2_DMA_SG
+ 	---help---
+ 	  This is a video4linux2 driver for the Marvell 88ALP01 integrated
+ 	  CMOS camera controller.  This is the controller found on first-
 -- 
-2.1.0
+1.9.1
 
