@@ -1,87 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:36514 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752605AbaLSLOH (ORCPT
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:38205 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751047AbaLOVLe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 06:14:07 -0500
-Received: from [10.61.169.145] (173-38-208-170.cisco.com [173.38.208.170])
-	by tschai.lan (Postfix) with ESMTPSA id B17CE2A002F
-	for <linux-media@vger.kernel.org>; Fri, 19 Dec 2014 12:13:50 +0100 (CET)
-Message-ID: <54940879.7030108@xs4all.nl>
-Date: Fri, 19 Dec 2014 12:14:01 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.20] Various fixes/improvements
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Mon, 15 Dec 2014 16:11:34 -0500
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Arun Kumar K <arun.kk@samsung.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: [PATCH 1/3] s5p-mfc-v6+: Use display_delay_enable CID
+Date: Mon, 15 Dec 2014 16:10:57 -0500
+Message-Id: <1418677859-31440-2-git-send-email-nicolas.dufresne@collabora.com>
+In-Reply-To: <1418677859-31440-1-git-send-email-nicolas.dufresne@collabora.com>
+References: <1418677859-31440-1-git-send-email-nicolas.dufresne@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 427ae153c65ad7a08288d86baf99000569627d03:
+The MFC driver has two controls, DISPLAY_DELAY and DISPLAY_DELAY_ENABLE
+that allow forcing the decoder to return a decoded frame sooner
+regardless of the order. The added support for firmware version 6 and
+higher was not taking into account the DISPLAY_DELAY_ENABLE boolean.
+Instead it had a comment stating that DISPLAY_DELAY should be set to a
+negative value to disable it. This is not possible since the control
+range is from 0 to 65535. This feature was also supposed to be disabled
+by default in order to produce frames in display order.
 
-  [media] bq/c-qcam, w9966, pms: move to staging in preparation for removal (2014-12-16 23:21:44 -0200)
+Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-are available in the git repository at:
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 92032a0..0675515 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -1340,11 +1340,7 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
+ 	/* FMO_ASO_CTRL - 0: Enable, 1: Disable */
+ 	reg |= (fmo_aso_ctrl << S5P_FIMV_D_OPT_FMO_ASO_CTRL_MASK_V6);
+ 
+-	/* When user sets desplay_delay to 0,
+-	 * It works as "display_delay enable" and delay set to 0.
+-	 * If user wants display_delay disable, It should be
+-	 * set to negative value. */
+-	if (ctx->display_delay >= 0) {
++	if (ctx->display_delay_enable) {
+ 		reg |= (0x1 << S5P_FIMV_D_OPT_DDELAY_EN_SHIFT_V6);
+ 		writel(ctx->display_delay, mfc_regs->d_display_delay);
+ 	}
+-- 
+2.1.0
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.20c
-
-for you to fetch changes up to db15c959f68f77b743a214a63a3c3d235feb5bd7:
-
-  VIDEO_CAFE_CCIC should select VIDEOBUF2_DMA_SG (2014-12-19 12:09:26 +0100)
-
-----------------------------------------------------------------
-Andrey Utkin (1):
-      solo6x10: just pass frame motion flag from hardware, drop additional handling as complicated and unstable
-
-Geert Uytterhoeven (1):
-      VIDEO_CAFE_CCIC should select VIDEOBUF2_DMA_SG
-
-Hans Verkuil (12):
-      media: drivers shouldn't touch debug field in video_device
-      v4l2 core: improve debug flag handling
-      v4l2-framework.txt: document debug attribute
-      av7110: fix sparse warning
-      budget-core: fix sparse warnings
-      ivtv: fix sparse warning
-      videobuf2-vmalloc: fix sparse warning
-      hd29l2: fix sparse error and warnings
-      m5mols: fix sparse warnings
-      s5k4ecgx: fix sparse warnings
-      s5k6aa: fix sparse warnings
-      s5k5baf: fix sparse warnings
-
-Shuah Khan (1):
-      media: au0828 VBI support comment cleanup
-
- Documentation/video4linux/v4l2-framework.txt    | 25 ++++++++++++++++--
- drivers/media/dvb-frontends/hd29l2.c            | 10 ++++---
- drivers/media/i2c/m5mols/m5mols_core.c          |  9 ++-----
- drivers/media/i2c/s5k4ecgx.c                    | 11 ++++----
- drivers/media/i2c/s5k5baf.c                     | 13 ++++-----
- drivers/media/i2c/s5k6aa.c                      |  2 +-
- drivers/media/pci/bt8xx/bttv-driver.c           |  1 -
- drivers/media/pci/cx88/cx88-blackbird.c         |  3 ---
- drivers/media/pci/ivtv/ivtv-irq.c               | 22 +++++++++-------
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c  | 30 +--------------------
- drivers/media/pci/solo6x10/solo6x10.h           |  2 --
- drivers/media/pci/ttpci/av7110.c                |  5 +++-
- drivers/media/pci/ttpci/budget-core.c           | 89 ++++++++++++++++++++++++++++++++++----------------------------
- drivers/media/platform/marvell-ccic/Kconfig     |  1 +
- drivers/media/platform/marvell-ccic/mcam-core.c |  1 -
- drivers/media/usb/au0828/au0828-video.c         |  1 -
- drivers/media/usb/cx231xx/cx231xx-video.c       |  1 -
- drivers/media/usb/em28xx/em28xx-video.c         |  1 -
- drivers/media/usb/stk1160/stk1160-v4l.c         |  5 ----
- drivers/media/usb/stkwebcam/stk-webcam.c        |  1 -
- drivers/media/usb/tm6000/tm6000-video.c         |  3 +--
- drivers/media/usb/zr364xx/zr364xx.c             |  2 --
- drivers/media/v4l2-core/v4l2-dev.c              | 28 +++++++++++---------
- drivers/media/v4l2-core/v4l2-ioctl.c            | 10 ++++---
- drivers/media/v4l2-core/videobuf2-vmalloc.c     |  4 +--
- drivers/staging/media/tlg2300/pd-common.h       |  1 -
- drivers/staging/media/tlg2300/pd-radio.c        |  3 ---
- drivers/staging/media/tlg2300/pd-video.c        | 10 -------
- include/media/v4l2-dev.h                        |  3 ++-
- include/media/v4l2-ioctl.h                      | 15 ++++++++---
- 30 files changed, 152 insertions(+), 160 deletions(-)
