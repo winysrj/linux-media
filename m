@@ -1,245 +1,292 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:43020 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751756AbaL3KCi (ORCPT
+Received: from bgl-iport-2.cisco.com ([72.163.197.26]:9372 "EHLO
+	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751750AbaLOJTl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Dec 2014 05:02:38 -0500
-Message-ID: <54A2782F.7040907@atmel.com>
-Date: Tue, 30 Dec 2014 18:02:23 +0800
-From: Josh Wu <josh.wu@atmel.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	<linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
-	<linux-arm-kernel@lists.infradead.org>, <s.nawrocki@samsung.com>,
-	<festevam@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v4 2/5] media: ov2640: add async probe function
-References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com> <1492726.KPKGvtrvz4@avalon> <54A11092.7090905@atmel.com> <18685044.d1UcSWNIMH@avalon>
-In-Reply-To: <18685044.d1UcSWNIMH@avalon>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 15 Dec 2014 04:19:41 -0500
+From: Prashant Laddha <prladdha@cisco.com>
+To: <hverkuil@xs4all.nl>
+Cc: Prashant Laddha <prladdha@cisco.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 5/6] Vivid: Increased precision for (co)sine computation
+Date: Mon, 15 Dec 2014 14:49:21 +0530
+Message-Id: <1418635162-8814-6-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1418635162-8814-1-git-send-email-prladdha@cisco.com>
+References: <1418635162-8814-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Laurent
+1.sin LUT is recomputed with precision of 16 bits to represent
+fractional part. (lowest fraction that can be represented now
+is 1/2^16, that is 0.000015).
 
-On 12/30/2014 8:15 AM, Laurent Pinchart wrote:
-> Hi Josh,
->
-> On Monday 29 December 2014 16:28:02 Josh Wu wrote:
->> On 12/26/2014 6:06 PM, Laurent Pinchart wrote:
->>> On Friday 26 December 2014 10:14:26 Guennadi Liakhovetski wrote:
->>>> On Fri, 26 Dec 2014, Laurent Pinchart wrote:
->>>>> On Friday 26 December 2014 14:37:14 Josh Wu wrote:
->>>>>> On 12/25/2014 6:39 AM, Guennadi Liakhovetski wrote:
->>>>>>> On Mon, 22 Dec 2014, Josh Wu wrote:
->>>>>>>> On 12/20/2014 6:16 AM, Guennadi Liakhovetski wrote:
->>>>>>>>> On Fri, 19 Dec 2014, Josh Wu wrote:
->>>>>>>>>> On 12/19/2014 5:59 AM, Guennadi Liakhovetski wrote:
->>>>>>>>>>> On Thu, 18 Dec 2014, Josh Wu wrote:
->>>>>>>>>>>> To support async probe for ov2640, we need remove the code to get
->>>>>>>>>>>> 'mclk' in ov2640_probe() function. oterwise, if soc_camera host
->>>>>>>>>>>> is not probed in the moment, then we will fail to get 'mclk' and
->>>>>>>>>>>> quit the ov2640_probe() function.
->>>>>>>>>>>>
->>>>>>>>>>>> So in this patch, we move such 'mclk' getting code to
->>>>>>>>>>>> ov2640_s_power() function. That make ov2640 survive, as we can
->>>>>>>>>>>> pass a NULL (priv-clk) to soc_camera_set_power() function.
->>>>>>>>>>>>
->>>>>>>>>>>> And if soc_camera host is probed, the when ov2640_s_power() is
->>>>>>>>>>>> called, then we can get the 'mclk' and that make us
->>>>>>>>>>>> enable/disable soc_camera host's clock as well.
->>>>>>>>>>>>
->>>>>>>>>>>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->>>>>>>>>>>> ---
->>>>>>>>>>>> v3 -> v4:
->>>>>>>>>>>> v2 -> v3:
->>>>>>>>>>>> v1 -> v2:
->>>>>>>>>>>>        no changes.
->>>>>>>>>>>>    
->>>>>>>>>>>> drivers/media/i2c/soc_camera/ov2640.c | 31  ++++++++++++++-------
->>>>>>>>>>>> 1 file changed, 21 insertions(+), 10 deletions(-)
->>>>>>>>>>>>
->>>>>>>>>>>> diff --git a/drivers/media/i2c/soc_camera/ov2640.c
->>>>>>>>>>>> b/drivers/media/i2c/soc_camera/ov2640.c
->>>>>>>>>>>> index 1fdce2f..9ee910d 100644
->>>>>>>>>>>> --- a/drivers/media/i2c/soc_camera/ov2640.c
->>>>>>>>>>>> +++ b/drivers/media/i2c/soc_camera/ov2640.c
->>>>>>>>>>>> @@ -739,6 +739,15 @@ static int ov2640_s_power(struct v4l2_subdev
->>>>>>>>>>>> *sd, int on)
->>>>>>>>>>>>       	struct i2c_client *client = v4l2_get_subdevdata(sd);
->>>>>>>>>>>>       	struct soc_camera_subdev_desc *ssdd =
->>>>>>>>>>>> soc_camera_i2c_to_desc(client);
->>>>>>>>>>>>       	struct ov2640_priv *priv = to_ov2640(client);
->>>>>>>>>>>> +	struct v4l2_clk *clk;
->>>>>>>>>>>> +
->>>>>>>>>>>> +	if (!priv->clk) {
->>>>>>>>>>>> +		clk = v4l2_clk_get(&client->dev, "mclk");
->>>>>>>>>>>> +		if (IS_ERR(clk))
->>>>>>>>>>>> +			dev_warn(&client->dev, "Cannot get the mclk.
->>>>>>>>>>>> maybe soc-camera host is not probed yet.\n");
->>>>>>>>>>>> +		else
->>>>>>>>>>>> +			priv->clk = clk;
->>>>>>>>>>>> +	}
->>>>>>>>>>>>
->>>>>>>>>>>>         	return soc_camera_set_power(&client->dev, ssdd, priv
->>>>>>>>>>>> ->clk, on);
->>>>>>>>>>>>       }
->>>>>>>> Just let me explained a little more details at first:
->>>>>>>>
->>>>>>>> As my understanding, current the priv->clk is a v4l2_clk: mclk, which
->>>>>>>> is a wrapper clock in soc_camera.c. it can make soc_camera to call
->>>>>>>> camera host's clock_start() clock_stop(). As in ov2640, the real mck
->>>>>>>> (pck1) is in ov2640 dt node (xvclk). So the camera host's
->>>>>>>> clock_start()/stop() only need to enable/disable his peripheral
->>>>>>>> clock.
->>>>>>> I'm looking at the ov2640 datasheet. In the block diagram I only see
->>>>>>> one input clock - the xvclk. Yes, it can be supplied by the camera
->>>>>>> host controller, in which case it is natural for the camera host
->>>>>>> driver to own and control it, or it can be a separate clock device -
->>>>>>> either static or configurable. This is just a note to myself to
->>>>>>> clarify, that it's one and the same clock pin we're talking about.
->>>>>>>
->>>>>>> Now, from the hardware / DT PoV, I think, the DT should look like:
->>>>>>>
->>>>>>> a) in the ov2640 I2C DT node we should have a clock consumer entry,
->>>>>>> linking to a board-specific source.
->>>>>> That's what this patch series do right now.
->>>>>> In my patch 5/5 DT document said, ov2640 need a clock consumer which
->>>>>> refer to the xvclk input clock.
->>>>>> And it is a required property.
->>>>>>
->>>>>>> b) if the ov2640 clock is supplied by a camera host, its DT entry
->>>>>>> should have a clock source subnode, to which ov2640 clock consumer
->>>>>>> entry should link. The respective camera host driver should then parse
->>>>>>> that clock subnode and register the respective clock with the V4L2
->>>>>>> framework, by calling v4l2_clk_register().
->>>>>> Ok, So in this case, I need to wait for the "mclk" in probe of ov2640
->>>>>> driver. So that I can be compatible for the camera host which provide
->>>>>> the clock source.
->>>>> Talking about mclk and xvclk is quite confusing. There's no mclk from an
->>>>> ov2640 point of view. The ov2640 driver should call
->>>>> v4l2_clk_get("xvclk").
->>>> Yes, I also was thinking about this, and yes, requesting a "xvclk" clock
->>>> would be more logical. But then, as you write below, if we let the
->>>> v4l2_clk wrapper first check for a CCF "xvclk" clock, say, none is found.
->>>> How do we then find the exported "mclk" V4L2 clock? Maybe v4l2_clk_get()
->>>> should use two names?..
->>> Given that v4l2_clk_get() is only used by soc-camera drivers and that they
->>> all call it with the clock name set to "mclk", I wonder whether we
->>> couldn't just get rid of struct v4l2_clk.id and ignore the id argument to
->>> v4l2_clk_get() when CCF isn't available. Maybe we've overdesigned
->>> v4l2_clk :-)
->> Sorry, I'm not clear about how to implement what you discussed here.
->>
->> Do you mean, In the ov2640 driver:
->> 1. need to remove the patch 4/5, "add a master clock for sensor"
-> No, the sensor has a clock input named "xvclk", the ov2640 driver should thus
-> manage that clock. Patch 4/5 does the right thing.
->
-> However, I've just realized that it will cause regressions on the i.MX27,
-> i.MX31 and i.MX37 3DS development boards that use the sensor without
-> registering a clock named xvclk. You should fix that as part of the patch
-> series.
+2.Instead of using PI = 22/7 in intermediate calculation, use
+precomputed value for 2PI
 
-Thanks for the information.
-So I think to be compatible with i.MX series board, I have two ways:
-  1. Make the xvclk clock be optional in ov2640 driver. After the i.MX 
-series board switch to CCF, and we can change it to mandatory.
-  2. switch the i.MX host driver to DT, and add the xvclk to their dts.
+3 To avoid overflows, use 64 bit variables for intermediate
+calculations
 
-As I am not similar with i.MX board and cannot test for them. I prefer 
-to the #1, which is simple and work well. We can change the property 
-when CCF & DT is introduced to i.MX boards.
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-core.h    |  4 +-
+ drivers/media/platform/vivid/vivid-sdr-cap.c | 33 +++++-----
+ drivers/media/platform/vivid/vivid-sin.c     | 94 ++++++++++++++++------------
+ drivers/media/platform/vivid/vivid-sin.h     |  9 +--
+ 4 files changed, 78 insertions(+), 62 deletions(-)
 
-Best Regards,
-Josh Wu
-
->
->> 2. need to register a "xvclk" v4l2 clock which is a CCF clock. Or this
->> part can put in soc_camera.c
->> 3. So in ov2640_probe(), need to call v4l2_clk_get("xvclk"), which will do
->>        a. Get CCF clock "xvclk" by call devm_clk_get("xvclk"), and if
->> failed then return the error code.
->>        b. Get the v4l2 clock "mclk", if failed then return the error code.
-> v4l2_clk_get() was introduced as a temporary workaround for platforms that
-> don't support CCF yet. It might be possible to use clk_get() directly here as
-> the i.MX platforms support CCF (as far as I'm concerned you don't need to care
-> about out-of-tree non-DT platforms). Otherwise we'll need to stick to
-> v4l2_clk_get(), in which case the v4l2_clk_get() implementation will need to
-> be modified to call clk_get() first and fall back to the V4L2 private clock
-> list.
->
->> 4. In ov2640_s_power(), we'll call soc_camera_set_power(..., priv->clk,
->> ...) to enable "xvclk" and "mclk" clock.
-> And looking at the implementation of soc_camera_power_on() and
-> soc_camera_power_off(), I realize that soc-camera expects to manage a v4l2_clk
-> itself...
->
-> Guennadi, could you please detail the steps that Josh should follow, keeping
-> in mind that the goal is to get rid of v4l2_clk_get() in the not too distant
-> future ? The fact that soc-camera host drivers start their own hardware in
-> their .clock_start() operation, called through the mclk pseudo-clock, makes
-> all this pretty messy.
->
-> Do you think you'll have time to properly migrate soc-camera to DT in the not
-> too distant future ?
->
->> Please correct me if I misunderstand your meaning?
->>
->> Best Regards,
->> Josh Wu
->>
->>>>>>> c) if the ov2640 clock is supplied by a different clock source, the
->>>>>>> respective driver should parse it and also eventually call
->>>>>>> v4l2_clk_register().
->>>>>>>
->>>>>>> Implementing case (b) above is so far up to each individual
->>>>>>> (soc-camera) camera host driver. In soc-camera host drivers don't
->>>>>>> register V4L2 clocks themselves, as you correctly noticed, they just
->>>>>>> provide a .clock_start() and a .clock_stop() callbacks. The
->>>>>>> registration is done by the soc-camera core.
->>>>>>>
->>>>>>> If I understand correctly you have case (c). Unfortunately, this case
->>>>>>> isn't supported atm. I think, a suitable way to do this would be:
->>>>>>>
->>>>>>> (1) modify soc-camera to not register a V4L2 clock if the host doesn't
->>>>>>> provide the required callbacks.
->>>>>>>
->>>>>>> (2) hosts should recognise configurations, in which they don't supply
->>>>>>> the master clock to clients and not provide the callbacks then.
->>>>>>>
->>>>>>> (3) a separate driver should register a suitable V4L2 clock.
->>>>>>>
->>>>>>> Whereas I don't think we need to modify camera drivers. Their
->>>>>>> requesting of a V4L2 clock is correct as is.
->>>>>>>
->>>>>>> Some more fine-print: if the clock is supplied by a generic device, it
->>>>>>> would be wrong for it to register a V4L2 clock. It should register a
->>>>>>> normal CCF clock, and a separate V4L2 driver should create a V4L2
->>>>>>> clock from it. This isn't implemented either and we've been talking
->>>>>>> about it for a while now...
->>>>> v4l2_clk_get() should try to get the clock from CCF with a call to
->>>>> clk_get() first, and then look at the list of v4l2-specific clocks.
->>>> Yes, how will it find the "mclk" when "xvclk" (or any other name) is
->>>> requested? We did discuss this in the beginning and agreed to use a fixed
->>>> clock name for the time being...
->>> Please see above.
->>>
->>>>> That's at least how I had envisioned it when v4l2_clk_get() was
->>>>> introduced. Let's remember that v4l2_clk was designed as a temporary
->>>>> workaround for platforms not implementing CCF yet. Is that still needed,
->>>>> or could be instead just get rid of it now ?
->>>> I didn't check, but I don't think all platforms, handled by soc-camera,
->>>> support CCF yet.
->>> After a quick check it looks like only OMAP1 and SH Mobile are missing.
->>> Atmel, MX2, MX3 and R-Car all support CCF. PXA27x has CCF support but
->>> doesn't enable it yet for an unknown (to me) reason.
->>>
->>> The CEU driver is used on both arch/sh and arch/arm/mach-shmobile. The
->>> former will most likely never receive CCF support, and the latter is
->>> getting fixed. As arch/sh isn't maintained anymore I would be fine with
->>> dropping CEU support for it.
->>>
->>> OMAP1 is thus the only long-term show-stopper. What should we do with it ?
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 6f4445a..ea5c5c8 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -434,8 +434,8 @@ struct vivid_dev {
+ 	struct list_head		sdr_cap_active;
+ 	unsigned			sdr_adc_freq;
+ 	unsigned			sdr_fm_freq;
+-	int				sdr_fixp_src_phase;
+-	int				sdr_fixp_mod_phase;
++	s64				sdr_fixp_src_phase;
++	s64				sdr_fixp_mod_phase;
+ 
+ 	bool				tstamp_src_is_soe;
+ 	bool				has_crop_cap;
+diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
+index 1f8b328..1e5abd7 100644
+--- a/drivers/media/platform/vivid/vivid-sdr-cap.c
++++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
+@@ -429,12 +429,16 @@ void vivid_sdr_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
+ 	u8 *vbuf = vb2_plane_vaddr(&buf->vb, 0);
+ 	unsigned long i;
+ 	unsigned long plane_size = vb2_plane_size(&buf->vb, 0);
+-	int fixp_i, fixp_q;
++	s64 fixp_i;
++	s64 fixp_q;
+ 
+ 	u32 adc_freq;
+ 	u32 sig_freq;
+-	s32 src_phase_inc;
+-	s32 mod_phase_inc;
++	s64 src_phase_inc;
++	s64 mod_phase_inc;
++	s64 signal_offset = 1275; /* 127.5 would be added modulated signal*/
++
++	signal_offset <<= FIX_PT_PREC;
+ 
+ 	/*
+ 	 * TODO: Generated beep tone goes very crackly when sample rate is
+@@ -454,30 +458,27 @@ void vivid_sdr_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
+ 		mod_phase_inc = calc_cos(dev->sdr_fixp_src_phase);
+ 		dev->sdr_fixp_src_phase += src_phase_inc;
+ 
+-		while (dev->sdr_fixp_src_phase >= ((44 << FIX_PT_PREC)/7))
+-			dev->sdr_fixp_src_phase -= ((44 << FIX_PT_PREC)/7);
+-
+-		mod_phase_inc <<= FIX_PT_PREC;
+-		mod_phase_inc /= 1275;
++		while (dev->sdr_fixp_src_phase >= FIX_PT_2PI)
++			dev->sdr_fixp_src_phase -= FIX_PT_2PI;
+ 
+ 		dev->sdr_fixp_mod_phase += mod_phase_inc;
+ 
+ 		while (dev->sdr_fixp_mod_phase < 0)
+-			dev->sdr_fixp_mod_phase += ((44 << FIX_PT_PREC) / 7);
++			dev->sdr_fixp_mod_phase += FIX_PT_2PI;
+ 
+-		while (dev->sdr_fixp_mod_phase >= ((44 << FIX_PT_PREC) / 7))
+-			dev->sdr_fixp_mod_phase -= ((44 << FIX_PT_PREC) / 7);
++		while (dev->sdr_fixp_mod_phase >= FIX_PT_2PI)
++			dev->sdr_fixp_mod_phase -= FIX_PT_2PI;
+ 
+ 		fixp_i = calc_sin(dev->sdr_fixp_mod_phase);
+ 		fixp_q = calc_cos(dev->sdr_fixp_mod_phase);
+ 
+ 		/* convert 'fixp float' to u8 */
+-		/* u8 = X * 127.5f + 127.5f; where X is float [-1.0 / +1.0]
+-		The values stored in sin look table are pre-multipied with 1275.
+-		So, only do addition */
++		/* u8 = X * 127.5f + 127.5f; where X is float [-1.0 / +1.0] */
+ 
+-		fixp_i += 1275;
+-		fixp_q += 1275;
++		fixp_i = fixp_i * 1275 + signal_offset;
++		fixp_q = fixp_q * 1275 + signal_offset;
++		fixp_i >>= FIX_PT_PREC;
++		fixp_q >>= FIX_PT_PREC;
+ 		*vbuf++ = DIV_ROUND_CLOSEST(fixp_i, 10);
+ 		*vbuf++ = DIV_ROUND_CLOSEST(fixp_q, 10);
+ 	}
+diff --git a/drivers/media/platform/vivid/vivid-sin.c b/drivers/media/platform/vivid/vivid-sin.c
+index 1ba6df9..24680ea 100644
+--- a/drivers/media/platform/vivid/vivid-sin.c
++++ b/drivers/media/platform/vivid/vivid-sin.c
+@@ -26,19 +26,23 @@
+ #define SIN_LUT_SIZE 256
+ 
+ static s32 sin[65] = {
+-	   0,   31,   63,   94,  125,  156,  187,  218,  249,  279,  310,  340,
+-	 370,  400,  430,  459,  488,  517,  545,  573,  601,  628,  655,  682,
+-	 708,  734,  760,  784,  809,  833,  856,  879,  902,  923,  945,  965,
+-	 986, 1005, 1024, 1042, 1060, 1077, 1094, 1109, 1124, 1139, 1153, 1166,
+-	1178, 1190, 1200, 1211, 1220, 1229, 1237, 1244, 1251, 1256, 1261, 1265,
+-	1269, 1272, 1273, 1275, 1275
++	    0,   1608,  3216,  4821,  6424,  8022,  9616, 11204,
++	12785,  14359, 15924, 17479, 19024, 20557, 22078, 23586,
++	25080,  26558, 28020, 29466, 30893, 32303, 33692, 35062,
++	36410,  37736, 39040, 40320, 41576, 42806, 44011, 45190,
++	46341,	47464, 48559, 49624, 50660, 51665, 52639, 53581,
++	54491,	55368, 56212, 57022, 57798, 58538, 59244, 59914,
++	60547,	61145, 61705, 62228, 62714, 63162, 63572, 63944,
++	64277,	64571, 64827, 65043, 65220, 65358, 65457, 65516,
++	65536
+ 	};
+ 
+-static s32 get_sin_val(u32 index)
++static s64 get_sin_val(u32 index)
+ {
+ 	s32 sign = 1;
+ 	u32 tab_index;
+ 	u32 new_index;
++	s64 result;
+ 
+ 	new_index = index & 0xFF; /* new_index = index % 256*/
+ 
+@@ -52,7 +56,12 @@ static s32 get_sin_val(u32 index)
+ 	else
+ 		tab_index = 64 - (new_index - 64);
+ 
+-	return sign * sin[tab_index];
++	/* If fixed point precision is more than the precision used to compute
++	 * sin table (16 bit currently), then multiply sine values */
++
++	result = sin[tab_index] << (FIX_PT_PREC - 16);
++
++	return sign * result;
+ }
+ 
+ /*
+@@ -111,62 +120,67 @@ static s32 get_sin_val(u32 index)
+  * 4. To improve the precision of fixed point implementations, divisions
+  *    in different calculations are delayed till last operations. Say,
+  *    d0 = phi - n*(2*pi / N)
+- *    d0 = phi - n * (2 * (22 / 7) / N) , substitute pi = 22 / 7
+- *    d0 = phi - (n * 44 * N) / 7
+  */
+-s32 calc_sin(u32 phase)
++s64 calc_sin(u64 phase)
+ {
+-	u32 index;
+-	u32 d0;
+-	u32 d1;
+-	s32 result;
++	u64 index;
++	u64 d0;
++	u64 d1;
++	s64 result;
+ 	u64 temp0;
+ 	u64 temp1;
+ 
+ 	temp0 = phase * SIN_LUT_SIZE;
+-	index = (temp0 * 7) / (44 << FIX_PT_PREC);
++	index = temp0 / (u64)(FIX_PT_2PI);
+ 
+-	temp0 = (temp0 * 7) / 44;
+-	temp1 = index << FIX_PT_PREC;
++	temp1 = index * (u64)(FIX_PT_2PI);
++	temp1 /= SIN_LUT_SIZE;
+ 
+-	d1 =  temp0 - temp1;
+-	d0 = (1 << FIX_PT_PREC) - d1;
++	d1 =  phase - temp1;
++	d0 = (1ULL << FIX_PT_PREC) - d1;
+ 
+ 	result = d0 * get_sin_val(index) + d1 * get_sin_val(index+1);
+ 	return result >> FIX_PT_PREC;
+ }
+ 
+-s32 calc_cos(u32 phase)
++s64 calc_cos(u64 phase)
+ {
+-	u32 index;
+-	u32 d0;
+-	u32 d1;
+-	s32 result;
++	u64 index;
++	u64 d0;
++	u64 d1;
++	s64 result;
+ 	u64 temp0;
+ 	u64 temp1;
+ 
+ 	temp0 = phase * SIN_LUT_SIZE;
+-	index = (temp0 * 7) / (44 << FIX_PT_PREC);
++	index = temp0 / (u64)(FIX_PT_2PI);
+ 
+-	temp0 = (temp0 * 7) / 44;
+-	temp1 = index << FIX_PT_PREC;
++	temp1 = index * (u64)(FIX_PT_2PI);
++	temp1 /= SIN_LUT_SIZE;
+ 
+-	d1 =  temp0 - temp1;
+-	d0 = (1 << FIX_PT_PREC) - d1;
++	d1 =  phase - temp1;
++	d0 = (1ULL << FIX_PT_PREC) - d1;
++
++	index += (SIN_LUT_SIZE / 4); /* offset for cosine values */
+ 
+-	index += 64;
+ 	result = d0 * get_sin_val(index) + d1 * get_sin_val(index+1);
++
+ 	return result >> FIX_PT_PREC;
+ }
+ 
+-u32 phase_per_sample(u32 signal_freq, u32 sampling_freq)
++/* phase increment or decrement per sample is calculated as
++ *
++ *		phase covered in 1 cycle = 2.pi
++ *		phase_per_sample = 2.pi / num_samples_per_cycle
++ *
++ *		num_samples_per_cycle = samples_per_sec
++ *		phase_per_sample = (2.pi x cycles_per_sec) / samples_per_sec
++ * */
++
++u64 phase_per_sample(u32 signal_freq, u32 sampling_freq)
+ {
+-	/* phase increment or decrement with each sample is given by
+-	 *  (2 x Pi x signal frequency)/sampling frequency
+-	 * To get a better accuracy with fixed point implementation we use
+-	 *  Pi = 22/7
+-	 * */
+-	u64 temp = 44 * ((u64)signal_freq << FIX_PT_PREC);
+-
+-	return temp / (7*sampling_freq);
++	u64 cycles_per_sec = signal_freq;
++	u64 samples_per_sec = sampling_freq;
++
++	return (FIX_PT_2PI * cycles_per_sec) / samples_per_sec;
+ }
+diff --git a/drivers/media/platform/vivid/vivid-sin.h b/drivers/media/platform/vivid/vivid-sin.h
+index 6c8bab2..b27a94e 100644
+--- a/drivers/media/platform/vivid/vivid-sin.h
++++ b/drivers/media/platform/vivid/vivid-sin.h
+@@ -22,10 +22,11 @@
+ #ifndef _VIVID_SIN_H_
+ #define _VIVID_SIN_H_
+ 
+-#define FIX_PT_PREC 16
++#define FIX_PT_PREC (24)
++#define FIX_PT_2PI (0x6487ED5)
+ 
+-s32 calc_sin(u32 phase);
+-s32 calc_cos(u32 phase);
+-u32 phase_per_sample(u32 signal_freq, u32 sampling_freq);
++s64 calc_sin(u64 phase);
++s64 calc_cos(u64 phase);
++u64 phase_per_sample(u32 signal_freq, u32 sampling_freq);
+ 
+ #endif
+-- 
+1.9.1
 
