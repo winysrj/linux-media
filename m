@@ -1,68 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:55090 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932414AbaLJSZa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 13:25:30 -0500
-Date: Wed, 10 Dec 2014 19:25:24 +0100
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: 'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>
-Cc: David Laight <David.Laight@ACULAB.COM>,
-	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Felipe Balbi <balbi@ti.com>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH] usb: hcd: get/put device and hcd for hcd_buffers()
-Message-ID: <20141210182524.GA26371@linutronix.de>
-References: <20141205200357.GA1586@linutronix.de>
- <20141205211932.GA24249@kroah.com>
- <063D6719AE5E284EB5DD2968C1650D6D1CA04A1D@AcuExch.aculab.com>
- <20141209152404.GA29423@kroah.com>
- <54871CDF.2020909@linutronix.de>
- <20141209165415.GB10260@kroah.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20141209165415.GB10260@kroah.com>
+Received: from mga01.intel.com ([192.55.52.88]:16208 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751053AbaLOQdo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 11:33:44 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [yavta PATCH v2 3/3] yavta: Add support for 10-bit packed raw bayer formats
+Date: Mon, 15 Dec 2014 18:26:49 +0200
+Message-Id: <1418660809-30548-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1418660809-30548-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1418660809-30548-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* 'Greg Kroah-Hartman' | 2014-12-09 11:54:15 [-0500]:
+Add support for these pixel formats:
 
->> You can unbind the HCD driver from the PCI-device via sysfs and this is
->> not something not only a developer does. This "unbind" calls the remove
->> function of the driver and the only difference between unbind and rmmod
->> is that the module remains inserted (but this is no news for you).
->
->If unbind causes a problem, it's the same problem that could happen if
->the hardware is hot-unplugged (like on a PCI card.)  Stuff like that
->_does_ need to be fixed, and if your test shows this is a problem, I am
->all for fixing that.
+V4L2_PIX_FMT_SBGGR10P
+V4L2_PIX_FMT_SGBRG10P
+V4L2_PIX_FMT_SGRBG10P
+V4L2_PIX_FMT_SRGGB10P
 
-so I tried this with unbind and it didn't explode as assumed. On musb,
-for some reason the hcd struct never gets cleaned up. The driver free(s)
-URB memory after the hcd_pools are gone but since its size is 32KiB it
-uses dma_free_coherent() and this seems to work fine (sice the device is
-still there).
-So tried the same thing with EHCI. EHCI-hcd cleans up its HCD-struct as
-expected so I would have to poke at musb and figure out why it does not
-happen.
-Also, there is another difference: with EHCI I see first removal of
-buffers followed by removal of the pools. So it happens after disconnect
-but before the HCD pools are gone. I'm not sure why this happens with
-EHCI but not with MUSB. It seems that for some reason unbind triggers an
-error on /dev/video0 which makes gst-launch close that file. Once all users
-are gone, that hcd struct is cleaned up. Again, it works as I would
-expect it with EHCI but not with MUSB. 
-So maybe, once I learned how MUSB dafeated the userspace notification
-about a gone device I might gain the same behavior that EHCI has. Also
-not freed hcd struct of musb looks also important :)
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ yavta.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
->thanks,
->
->greg k-h
+diff --git a/yavta.c b/yavta.c
+index 003d6ba..f40562a 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -202,6 +202,10 @@ static struct v4l2_format_info {
+ 	{ "SGBRG10", V4L2_PIX_FMT_SGBRG10, 1 },
+ 	{ "SGRBG10", V4L2_PIX_FMT_SGRBG10, 1 },
+ 	{ "SRGGB10", V4L2_PIX_FMT_SRGGB10, 1 },
++	{ "SBGGR10P", V4L2_PIX_FMT_SBGGR10P, 1 },
++	{ "SGBRG10P", V4L2_PIX_FMT_SGBRG10P, 1 },
++	{ "SGRBG10P", V4L2_PIX_FMT_SGRBG10P, 1 },
++	{ "SRGGB10P", V4L2_PIX_FMT_SRGGB10P, 1 },
+ 	{ "SBGGR12", V4L2_PIX_FMT_SBGGR12, 1 },
+ 	{ "SGBRG12", V4L2_PIX_FMT_SGBRG12, 1 },
+ 	{ "SGRBG12", V4L2_PIX_FMT_SGRBG12, 1 },
+-- 
+2.1.0.231.g7484e3b
 
-Sebastian
