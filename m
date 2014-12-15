@@ -1,140 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51362 "EHLO mail.kapsi.fi"
+Received: from mail.neotion.com ([5.39.84.84]:54011 "EHLO mx1.neotion.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932104AbaLBOcF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 09:32:05 -0500
-From: Antti Palosaari <crope@iki.fi>
+	id S1751168AbaLOJW6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 04:22:58 -0500
+Received: from mail.neotion.com (21.55.7.109.rev.sfr.net [109.7.55.21])
+	by mx1.neotion.com (Postfix) with ESMTPS id 73321732D4
+	for <linux-media@vger.kernel.org>; Mon, 15 Dec 2014 10:43:52 +0100 (CET)
+Received: from smtp.neotion.int (unknown [10.140.2.203])
+	by mail.neotion.com (Postfix) with ESMTP id 0EC3024D
+	for <linux-media@vger.kernel.org>; Mon, 15 Dec 2014 10:13:35 +0100 (CET)
+Message-ID: <548EA630.3020801@neotion.com>
+Date: Mon, 15 Dec 2014 10:13:20 +0100
+From: Neil Armstrong <narmstrong@neotion.com>
+Reply-To: narmstrong@neotion.com
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Benjamin Larsson <benjamin@southpole.se>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/3] rtl28xxu: change module unregister order
-Date: Tue,  2 Dec 2014 16:31:23 +0200
-Message-Id: <1417530683-5063-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1417530683-5063-1-git-send-email-crope@iki.fi>
-References: <1417530683-5063-1-git-send-email-crope@iki.fi>
+Subject: libucsi: dvb_id_selector_byte_000b not needed for dvb_ip_mac_notification_info
+ iteration
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="wCBNlUxmWLHhw4FD1EbC65Va8OQ18nM2j"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We must unregister frontend first and after that driver itself. That
-order went wrong after demod drivers were switched to kernel I2C
-drivers, causing crashes.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--wCBNlUxmWLHhw4FD1EbC65Va8OQ18nM2j
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+For the dvb_ip_mac_notification_info iteration, the field dvb_id_selector=
+_byte_000b
+is only needed in the first iteration.
+
+Signed-off-by: Neil Armstrong <narmstrong@neotion.com>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 77 +++++++++++++++++++--------------
- 1 file changed, 45 insertions(+), 32 deletions(-)
+ lib/libucsi/dvb/data_broadcast_id_descriptor.h |  1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index de8caf7..93bb7c9 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -916,6 +916,31 @@ err:
- 	return ret;
- }
- 
-+static int rtl2832u_frontend_detach(struct dvb_usb_adapter *adap)
-+{
-+	struct dvb_usb_device *d = adap_to_d(adap);
-+	struct rtl28xxu_priv *priv = d_to_priv(d);
-+	struct i2c_client *client;
-+
-+	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-+
-+	/* remove I2C slave demod */
-+	client = priv->i2c_client_slave_demod;
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
-+	}
-+
-+	/* remove I2C demod */
-+	client = priv->i2c_client_demod;
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
-+	}
-+
-+	return 0;
-+}
-+
- static struct qt1010_config rtl28xxu_qt1010_config = {
- 	.i2c_address = 0x62, /* 0xc4 */
- };
-@@ -1150,6 +1175,24 @@ err:
- 	return ret;
- }
- 
-+static int rtl2832u_tuner_detach(struct dvb_usb_adapter *adap)
-+{
-+	struct dvb_usb_device *d = adap_to_d(adap);
-+	struct rtl28xxu_priv *priv = d_to_priv(d);
-+	struct i2c_client *client;
-+
-+	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-+
-+	/* remove I2C tuner */
-+	client = priv->i2c_client_tuner;
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
-+	}
-+
-+	return 0;
-+}
-+
- static int rtl28xxu_init(struct dvb_usb_device *d)
+diff --git a/lib/libucsi/dvb/data_broadcast_id_descriptor.h b/lib/libucsi=
+/dvb/data_broadcast_id_descriptor.h
+--- a/lib/libucsi/dvb/data_broadcast_id_descriptor.h
++++ b/lib/libucsi/dvb/data_broadcast_id_descriptor.h
+@@ -201,7 +201,6 @@
  {
- 	int ret;
-@@ -1184,37 +1227,6 @@ err:
- 	return ret;
- }
- 
--static void rtl28xxu_exit(struct dvb_usb_device *d)
--{
--	struct rtl28xxu_priv *priv = d->priv;
--	struct i2c_client *client;
--
--	dev_dbg(&d->udev->dev, "%s:\n", __func__);
--
--	/* remove I2C tuner */
--	client = priv->i2c_client_tuner;
--	if (client) {
--		module_put(client->dev.driver->owner);
--		i2c_unregister_device(client);
--	}
--
--	/* remove I2C slave demod */
--	client = priv->i2c_client_slave_demod;
--	if (client) {
--		module_put(client->dev.driver->owner);
--		i2c_unregister_device(client);
--	}
--
--	/* remove I2C demod */
--	client = priv->i2c_client_demod;
--	if (client) {
--		module_put(client->dev.driver->owner);
--		i2c_unregister_device(client);
--	}
--
--	return;
--}
--
- static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
- {
- 	int ret;
-@@ -1596,9 +1608,10 @@ static const struct dvb_usb_device_properties rtl2832u_props = {
- 	.i2c_algo = &rtl28xxu_i2c_algo,
- 	.read_config = rtl2832u_read_config,
- 	.frontend_attach = rtl2832u_frontend_attach,
-+	.frontend_detach = rtl2832u_frontend_detach,
- 	.tuner_attach = rtl2832u_tuner_attach,
-+	.tuner_detach = rtl2832u_tuner_detach,
- 	.init = rtl28xxu_init,
--	.exit = rtl28xxu_exit,
- 	.get_rc_config = rtl2832u_get_rc_config,
- 
- 	.num_adapters = 1,
--- 
-http://palosaari.fi/
+     uint8_t *end =3D (uint8_t *) d + d->platform_id_data_length;
+     uint8_t *next =3D    (uint8_t *) pos +
+-            sizeof(struct dvb_id_selector_byte_000b) +
+             sizeof(struct dvb_ip_mac_notification_info);
+=20
+     if (next >=3D end)
 
+
+
+--wCBNlUxmWLHhw4FD1EbC65Va8OQ18nM2j
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlSOpjAACgkQb5rmahFm9IUimACeOjVGat+2KTvYfhkU5DF3m6Gy
+9kAAoNFtSX23A0AW45YOe/lwpZl//sOr
+=SeG8
+-----END PGP SIGNATURE-----
+
+--wCBNlUxmWLHhw4FD1EbC65Va8OQ18nM2j--
