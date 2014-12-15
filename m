@@ -1,65 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38405 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752005AbaLHAQ3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Dec 2014 19:16:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: [PATCH 1/2] v4l2 subdevs: replace get/set_crop by get/set_selection
-Date: Mon, 08 Dec 2014 02:17:11 +0200
-Message-ID: <1777193.G4Ej6mIZTU@avalon>
-In-Reply-To: <20141203110559.GE14746@valkosipuli.retiisi.org.uk>
-References: <1417522901-43604-1-git-send-email-hverkuil@xs4all.nl> <20141203110559.GE14746@valkosipuli.retiisi.org.uk>
+Received: from butterbrot.org ([176.9.106.16]:44730 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750745AbaLOWPN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 17:15:13 -0500
+Message-ID: <548F5D6E.4070907@butterbrot.org>
+Date: Mon, 15 Dec 2014 23:15:10 +0100
+From: Florian Echtler <floe@butterbrot.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [RFC] video support for Samsung SUR40
+References: <548F029C.20907@butterbrot.org> <548F05EF.8080700@xs4all.nl>
+In-Reply-To: <548F05EF.8080700@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="27PTGm7BcMisbkw7DNEC1nXBq0aARLTT5"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--27PTGm7BcMisbkw7DNEC1nXBq0aARLTT5
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Wednesday 03 December 2014 13:06:00 Sakari Ailus wrote:
-> On Tue, Dec 02, 2014 at 01:21:40PM +0100, Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > The crop and selection pad ops are duplicates. Replace all uses of
-> > get/set_crop by get/set_selection. This will make it possible to drop
-> > get/set_crop altogether.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
-> > Cc: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> For both:
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Another point I'd like to draw attention to are the reserved fields --- some
-> drivers appear to zero them whereas some pay no attention. Shouldn't we
-> check in the sub-device IOCTL handler that the user has zeroed them, or
-> zero them for the user? I think this has probably been discussed before on
-> V4L2. Both have their advantages, probably zeroing them in the framework
-> would be the best option. What do you think?
+Hello Hans,
 
-I think we should at least be consistent across drivers. Duplicating checks 
-across drivers being more error-prone it would likely be better to implement 
-them in core code. The question that remains to be answered is whether we can 
-consider that bridge drivers will correctly zero reserved fields when using 
-the API internally. If not, we'll need wrapper functions around subdev 
-operations to zero reserved fields, or possibly just to output a WARN_ON (as a 
-bridge driver bug should be fixed instead of silently ignored).
+On 15.12.2014 17:01, Hans Verkuil wrote:
+> On 12/15/2014 04:47 PM, Florian Echtler wrote:
+>> However, I'm running into an issue I have a hard time understanding. I=
+n
+>> particular, as soon as I load the kernel module, I'm getting a kernel
+>> oops (NULL pointer dereference) in line 354 or 355 of the attached
+>> source code. The reason is probably that the previous check (in line
+>> 350) doesn't abort - even though I didn't actually provide a buffer, s=
+o
+>> the list_head should be empty. As no user space program has actually
+>> opened the video device yet, there shouldn't be any buffers queued,
+>> right? (AFAICT the list is initialized properly in line 490).
+>> I'd be quite grateful if somebody with more experience can look over t=
+he
+>> code and tell me what mistakes I made :-)
+First of all, thanks for the quick feedback.
 
-> Definitely out of scope of this set.
+> Why on earth is sur40_poll doing anything with video buffers? That's
+> all handled by vb2. As far as I can tell you can just delete everything=
 
--- 
-Regards,
+> from '// deal with video data here' until the end of the poll function.=
 
-Laurent Pinchart
+Right now, the code doesn't do anything, but I'm planning to add the
+actual data retrieval at this point later. I'd like to use the
+input_polldev thread for this, as a) the video data should be fetched
+synchronously with the input device data and b) the thread will be
+running continuously anyway.
 
+> The probably cause of the crash here is that the input device node is
+> created before the 'INIT_LIST_HEAD(&sur40->buf_list);' call, and since
+> udevd (I think) opens new devices immediately after they are created
+> it is likely that sur40_poll is called before buf_list is initialized.
+OK, that sounds plausible, will test that tomorrow.
+
+> But, as I said, that code doesn't belong there at all, so just remove i=
+t.
+See above - that was actually intentional. It's kind of a hackish
+solution, but for the moment, I'd just like to get a video stream with
+minimal overhead, so I'm reusing the polldev thread.
+
+Best regards, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
+
+
+--27PTGm7BcMisbkw7DNEC1nXBq0aARLTT5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlSPXW4ACgkQ7CzyshGvatgn8ACg2i8R3aMn07mVm4spS+aQwKz/
+W2gAmwX9yYxyqGD+aRu1qvFHQ1UHmK6I
+=OJ2F
+-----END PGP SIGNATURE-----
+
+--27PTGm7BcMisbkw7DNEC1nXBq0aARLTT5--
