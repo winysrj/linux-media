@@ -1,155 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56843 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756257AbaLIMg7 (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:33043 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750768AbaLOKfY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Dec 2014 07:36:59 -0500
-Date: Tue, 9 Dec 2014 14:36:08 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org
-Subject: Re: [PATCH/RFC v9 01/19] leds: Add LED Flash class extension to the
- LED subsystem
-Message-ID: <20141209123607.GI15559@valkosipuli.retiisi.org.uk>
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
- <1417622814-10845-2-git-send-email-j.anaszewski@samsung.com>
- <20141203165013.GM14746@valkosipuli.retiisi.org.uk>
- <54802966.8060405@samsung.com>
+	Mon, 15 Dec 2014 05:35:24 -0500
+Message-ID: <548EB91E.2090900@atmel.com>
+Date: Mon, 15 Dec 2014 18:34:06 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54802966.8060405@samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	<m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<s.nawrocki@samsung.com>, <festevam@gmail.com>,
+	<devicetree@vger.kernel.org>
+Subject: Re: [v3][PATCH 5/5] media: ov2640: dt: add the device tree binding
+ document
+References: <1418283339-16281-1-git-send-email-josh.wu@atmel.com> <1418283339-16281-6-git-send-email-josh.wu@atmel.com> <1644165.4XbSUOMUsK@avalon>
+In-Reply-To: <1644165.4XbSUOMUsK@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hi, Laurent
 
-On Thu, Dec 04, 2014 at 10:29:10AM +0100, Jacek Anaszewski wrote:
-...
-> >>+static struct attribute *led_flash_strobe_attrs[] = {
-> >>+	&dev_attr_flash_strobe.attr,
-> >>+	NULL,
-> >>+};
-> >>+
-> >>+static struct attribute *led_flash_timeout_attrs[] = {
-> >>+	&dev_attr_flash_timeout.attr,
-> >>+	&dev_attr_max_flash_timeout.attr,
-> >>+	NULL,
-> >>+};
-> >>+
-> >>+static struct attribute *led_flash_brightness_attrs[] = {
-> >>+	&dev_attr_flash_brightness.attr,
-> >>+	&dev_attr_max_flash_brightness.attr,
-> >>+	NULL,
-> >>+};
-> >>+
-> >>+static struct attribute *led_flash_fault_attrs[] = {
-> >>+	&dev_attr_flash_fault.attr,
-> >>+	NULL,
-> >>+};
-> >>+
-> >>+static struct attribute *led_flash_sync_strobe_attrs[] = {
-> >>+	&dev_attr_flash_sync_strobe.attr,
-> >>+	NULL,
-> >>+};
-> >>+
-> >>+static const struct attribute_group led_flash_strobe_group = {
-> >>+	.attrs = led_flash_strobe_attrs,
-> >>+};
-> >>+
-> >>+static const struct attribute_group led_flash_timeout_group = {
-> >>+	.attrs = led_flash_timeout_attrs,
-> >>+};
-> >>+
-> >>+static const struct attribute_group led_flash_brightness_group = {
-> >>+	.attrs = led_flash_brightness_attrs,
-> >>+};
-> >>+
-> >>+static const struct attribute_group led_flash_fault_group = {
-> >>+	.attrs = led_flash_fault_attrs,
-> >>+};
-> >>+
-> >>+static const struct attribute_group led_flash_sync_strobe_group = {
-> >>+	.attrs = led_flash_sync_strobe_attrs,
-> >>+};
-> >>+
-> >>+static const struct attribute_group *flash_groups[] = {
-> >>+	&led_flash_strobe_group,
-> >>+	NULL,
-> >>+	NULL,
-> >>+	NULL,
-> >>+	NULL,
-> >>+	NULL,
-> >>+	NULL
-> >>+};
-> >>+
-> >>+static void led_flash_resume(struct led_classdev *led_cdev)
-> >>+{
-> >>+	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
-> >>+
-> >>+	call_flash_op(flash, flash_brightness_set, flash->brightness.val);
-> >>+	call_flash_op(flash, timeout_set, flash->timeout.val);
-> >>+}
-> >>+
-> >>+static void led_flash_init_sysfs_groups(struct led_classdev_flash *flash)
-> >>+{
-> >>+	struct led_classdev *led_cdev = &flash->led_cdev;
-> >>+	const struct led_flash_ops *ops = flash->ops;
-> >>+	int num_sysfs_groups = 1;
-> >>+
-> >>+	if (ops->flash_brightness_set)
-> >>+		flash_groups[num_sysfs_groups++] = &led_flash_brightness_group;
-> >>+
-> >>+	if (ops->timeout_set)
-> >>+		flash_groups[num_sysfs_groups++] = &led_flash_timeout_group;
-> >>+
-> >>+	if (ops->fault_get)
-> >>+		flash_groups[num_sysfs_groups++] = &led_flash_fault_group;
-> >>+
-> >>+	if (led_cdev->flags & LED_DEV_CAP_COMPOUND)
-> >>+		flash_groups[num_sysfs_groups++] = &led_flash_sync_strobe_group;
-> >>+
-> >>+	led_cdev->groups = flash_groups;
-> >
-> >Shouldn't you have groups local to the device instead? If you register
-> >another flash device bad things will happen if the ops the device supports
-> >are different.
-> 
-> The groups are local to the device. A LED class device is registered
-> with device_create_with_groups called from led_classdev_register
-> function. It is passed led_cdev->groups in the fifth argument.
+On 12/12/2014 10:17 AM, Laurent Pinchart wrote:
+> Hi Josh,
+>
+> Thank you for the patch.
+>
+> On Thursday 11 December 2014 15:35:39 Josh Wu wrote:
+>> Add the document for ov2640 dt.
+>>
+>> Cc: devicetree@vger.kernel.org
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>> v2 -> v3:
+>>    1. fix incorrect description.
+>>    2. Add assigned-clocks & assigned-clock-rates.
+>>    3. resetb pin should be ACTIVE_LOW.
+>>
+>> v1 -> v2:
+>>    1. change the compatible string to be consistent with verdor file.
+>>    2. change the clock and pins' name.
+>>    3. add missed pinctrl in example.
+>>
+>>   .../devicetree/bindings/media/i2c/ov2640.txt       | 53 +++++++++++++++++++
+>>   1 file changed, 53 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>> b/Documentation/devicetree/bindings/media/i2c/ov2640.txt new file mode
+>> 100644
+>> index 0000000..958e120
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>> @@ -0,0 +1,53 @@
+>> +* Omnivision ov2640 CMOS sensor
+>> +
+>> +The Omnivision OV2640 sensor support multiple resolutions output, such as
+>> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+>> +output format.
+>> +
+>> +Required Properties:
+>> +- compatible: Must be "ovti,ov2640"
+>> +- clocks: reference to the xvclk input clock. It can be an external fixed
+>> +          clock or a programmable clock from SoC.
+> It could also be a variable clock provided by something else. I would just
+> drop the second sentence.
 
-The groups pointer will be stored in struct device. If you have another
-driver using different groups, it will affect the groups for all flash
-devices that use the same groups pointer. I'm not sure what exactly would
-follow from that but I'd rather not change them once the device is created.
+I mention this since these are the cases in at91 platform.
+Sure. I'll drop it.
+>
+>> +- clock-names: Must be "xvclk".
+>> +- assigned-clocks: reference to the above 'clocks' property.
+>> +- assigned-clock-rates: reference to the clock frequency of xvclk. Typical
+>> +                        value is 25Mhz (25000000).
+>> +                        This clock should only have single user. Specifying
+>> +                        Conflicting rate configuration in multiple
+>> consumer
+>> +                        nodes for a shared clock is forbidden.
+> Those two properties are optional. I'm not sure they should even be mentioned
+> in the ov2640 bindings. For one thing they're not needed if the clock doesn't
+> need to be forced to a specific frequency, and the clock rate could also be
+> configured through other means depending on the platform.
 
-> >>+}
-> >>+
-> >>+int led_classdev_flash_register(struct device *parent,
-> >>+				struct led_classdev_flash *flash)
-> >>+{
-> >>+	struct led_classdev *led_cdev;
-> >>+	const struct led_flash_ops *ops;
-> >>+	int ret;
-> >>+
-> >>+	if (!flash)
-> >
-> >Do you have a use case for this?
-> 
-> This is just a guard against NULL pointer dereference. Maybe it is
-> indeed redundant, as the driver developer can easily check its
-> origin during implementation.
+hmm, if the clock is fixed then this 'assigned-clock-rates' is not needed.
+And I only find one binding document mentioned the assigned-clocks. It 
+looks like a general property for all clocks. We don't need mention it 
+repeatedly.
+So I'd like to drop this two properties in next version.
 
-Fine for me.
+Thanks and Best Regards,
+Josh Wu
+>
+>> +
+>> +Optional Properties:
+>> +- resetb-gpios: reference to the GPIO connected to the resetb pin, if any.
+>> +- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
+>> +
+>> +The device node must contain one 'port' child node for its digital output
+>> +video port, in accordance with the video interface bindings defined in
+>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>> +
+>> +Example:
+>> +
+>> +	i2c1: i2c@f0018000 {
+>> +		ov2640: camera@0x30 {
+>> +			compatible = "ovti,ov2640";
+>> +			reg = <0x30>;
+>> +
+>> +			pinctrl-names = "default";
+>> +			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn
+> &pinctrl_ov2640_resetb>;
+>> +
+>> +			resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
+>> +			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
+>> +
+>> +			clocks = <&pck1>;
+>> +			clock-names = "xvclk";
+>> +
+>> +			assigned-clocks = <&pck1>;
+>> +			assigned-clock-rates = <25000000>;
+>> +
+>> +			port {
+>> +				ov2640_0: endpoint {
+>> +					remote-endpoint = <&isi_0>;
+>> +					bus-width = <8>;
+>> +				};
+>> +			};
+>> +		};
+>> +	};
 
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
