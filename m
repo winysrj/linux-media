@@ -1,135 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:60713 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132AbaLEK4M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 05:56:12 -0500
-Received: by mail-pd0-f179.google.com with SMTP id fp1so178148pdb.10
-        for <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 02:56:12 -0800 (PST)
-From: tskd08@gmail.com
+Received: from mga09.intel.com ([134.134.136.24]:41335 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751100AbaLOQ2d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 11:28:33 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH 2/5] dvb: mxl301rf: use dvb-core i2c binding model template
-Date: Fri,  5 Dec 2014 19:55:37 +0900
-Message-Id: <1417776940-16381-3-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1417776940-16381-1-git-send-email-tskd08@gmail.com>
-References: <1417776940-16381-1-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
-References: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [yavta PATCH v2 1/3] yavta: Implement data_offset support for multi plane buffers
+Date: Mon, 15 Dec 2014 18:26:47 +0200
+Message-Id: <1418660809-30548-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1418660809-30548-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1418660809-30548-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Support data_offset for multi plane buffers. Also add an option to write the
+data in the buffer before data offset (--buffer-prefix).
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/tuners/mxl301rf.c | 50 +++++++++++------------------------------
- drivers/media/tuners/mxl301rf.h |  2 +-
- 2 files changed, 14 insertions(+), 38 deletions(-)
+ yavta.c | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/tuners/mxl301rf.c b/drivers/media/tuners/mxl301rf.c
-index 1575a5d..d428132 100644
---- a/drivers/media/tuners/mxl301rf.c
-+++ b/drivers/media/tuners/mxl301rf.c
-@@ -29,6 +29,8 @@
-  */
+diff --git a/yavta.c b/yavta.c
+index 77e5a41..003d6ba 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -80,6 +80,8 @@ struct device
  
- #include <linux/kernel.h>
-+#include "dvb_i2c.h"
+ 	void *pattern[VIDEO_MAX_PLANES];
+ 	unsigned int patternsize[VIDEO_MAX_PLANES];
 +
- #include "mxl301rf.h"
- 
- struct mxl301rf_state {
-@@ -36,11 +38,6 @@ struct mxl301rf_state {
- 	struct i2c_client *i2c;
++	bool write_buffer_prefix;
  };
  
--static struct mxl301rf_state *cfg_to_state(struct mxl301rf_config *c)
--{
--	return container_of(c, struct mxl301rf_state, cfg);
--}
--
- static int raw_write(struct mxl301rf_state *state, const u8 *buf, int len)
- {
- 	int ret;
-@@ -295,54 +292,33 @@ static const struct dvb_tuner_ops mxl301rf_ops = {
- static int mxl301rf_probe(struct i2c_client *client,
- 			  const struct i2c_device_id *id)
- {
-+	struct dvb_i2c_tuner_config *tcfg;
- 	struct mxl301rf_state *state;
--	struct mxl301rf_config *cfg;
--	struct dvb_frontend *fe;
--
--	state = kzalloc(sizeof(*state), GFP_KERNEL);
--	if (!state)
--		return -ENOMEM;
+ static bool video_is_mplane(struct device *dev)
+@@ -1546,13 +1548,22 @@ static void video_save_image(struct device *dev, struct v4l2_buffer *buf,
  
-+	tcfg = client->dev.platform_data;
-+	state = tcfg->fe->tuner_priv;
- 	state->i2c = client;
--	cfg = client->dev.platform_data;
+ 	for (i = 0; i < dev->num_planes; i++) {
+ 		unsigned int length;
++		unsigned int data_offset = 0;
  
--	memcpy(&state->cfg, cfg, sizeof(state->cfg));
--	fe = cfg->fe;
--	fe->tuner_priv = state;
--	memcpy(&fe->ops.tuner_ops, &mxl301rf_ops, sizeof(mxl301rf_ops));
-+	memcpy(&state->cfg, tcfg->devcfg.priv_cfg, sizeof(state->cfg));
- 
--	i2c_set_clientdata(client, &state->cfg);
- 	dev_info(&client->dev, "MaxLinear MxL301RF attached.\n");
- 	return 0;
- }
- 
--static int mxl301rf_remove(struct i2c_client *client)
--{
--	struct mxl301rf_state *state;
--
--	state = cfg_to_state(i2c_get_clientdata(client));
--	state->cfg.fe->tuner_priv = NULL;
--	kfree(state);
--	return 0;
--}
--
--
- static const struct i2c_device_id mxl301rf_id[] = {
- 	{"mxl301rf", 0},
- 	{}
- };
--MODULE_DEVICE_TABLE(i2c, mxl301rf_id);
- 
--static struct i2c_driver mxl301rf_driver = {
--	.driver = {
--		.name	= "mxl301rf",
--	},
--	.probe		= mxl301rf_probe,
--	.remove		= mxl301rf_remove,
--	.id_table	= mxl301rf_id,
-+static const struct dvb_i2c_module_param mxl301rf_param = {
-+	.ops.tuner_ops = &mxl301rf_ops,
-+	.priv_probe = mxl301rf_probe,
+-		if (video_is_mplane(dev))
++		if (video_is_mplane(dev)) {
+ 			length = buf->m.planes[i].bytesused;
+-		else
++			data_offset = buf->m.planes[i].data_offset;
++		} else {
+ 			length = buf->bytesused;
++		}
 +
-+	.priv_size = sizeof(struct mxl301rf_state),
-+	.is_tuner = true,
- };
++		if (!dev->write_buffer_prefix)
++			length -= data_offset;
++		else
++			data_offset = 0;
  
--module_i2c_driver(mxl301rf_driver);
-+DEFINE_DVB_I2C_MODULE(mxl301rf, mxl301rf_id, mxl301rf_param);
+-		ret = write(fd, dev->buffers[buf->index].mem[i], length);
++		ret = write(fd, dev->buffers[buf->index].mem[i] + data_offset,
++			    length);
+ 		if (ret < 0) {
+ 			printf("write error: %s (%d)\n", strerror(errno), errno);
+ 			break;
+@@ -1717,6 +1728,7 @@ static void usage(const char *argv0)
+ 	printf("-t, --time-per-frame num/denom	Set the time per frame (eg. 1/25 = 25 fps)\n");
+ 	printf("-u, --userptr			Use the user pointers streaming method\n");
+ 	printf("-w, --set-control 'ctrl value'	Set control 'ctrl' to 'value'\n");
++	printf("    --buffer-prefix		Write portions of buffer before data_offset\n");
+ 	printf("    --buffer-size		Buffer size in bytes\n");
+ 	printf("    --enum-formats		Enumerate formats\n");
+ 	printf("    --enum-inputs		Enumerate inputs\n");
+@@ -1749,10 +1761,12 @@ static void usage(const char *argv0)
+ #define OPT_BUFFER_SIZE		268
+ #define OPT_PREMULTIPLIED	269
+ #define OPT_QUEUE_LATE		270
++#define OPT_BUFFER_PREFIX	271
  
- MODULE_DESCRIPTION("MaxLinear MXL301RF tuner");
- MODULE_AUTHOR("Akihiro TSUKADA");
-diff --git a/drivers/media/tuners/mxl301rf.h b/drivers/media/tuners/mxl301rf.h
-index 19e6840..069a6a0 100644
---- a/drivers/media/tuners/mxl301rf.h
-+++ b/drivers/media/tuners/mxl301rf.h
-@@ -20,7 +20,7 @@
- #include "dvb_frontend.h"
- 
- struct mxl301rf_config {
--	struct dvb_frontend *fe;
-+	/* none now */
- };
- 
- #endif /* MXL301RF_H */
+ static struct option opts[] = {
+ 	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
+ 	{"buffer-type", 1, 0, 'B'},
++	{"buffer-prefix", 1, 0, OPT_BUFFER_PREFIX},
+ 	{"capture", 2, 0, 'c'},
+ 	{"check-overrun", 0, 0, 'C'},
+ 	{"delay", 1, 0, 'd'},
+@@ -2016,6 +2030,8 @@ int main(int argc, char *argv[])
+ 		case OPT_USERPTR_OFFSET:
+ 			userptr_offset = atoi(optarg);
+ 			break;
++		case OPT_BUFFER_PREFIX:
++			dev.write_buffer_prefix = true;
+ 		default:
+ 			printf("Invalid option -%c\n", c);
+ 			printf("Run %s -h for help.\n", argv[0]);
 -- 
-2.1.3
+2.1.0.231.g7484e3b
 
