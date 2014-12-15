@@ -1,92 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:65229 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750975AbaLEUR3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Dec 2014 15:17:29 -0500
-Received: from linux.local ([94.216.58.185]) by mail.gmx.com (mrgmx103) with
- ESMTPSA (Nemesis) id 0LZiQy-1Xa4de1bsC-00lWy1 for
- <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 21:17:26 +0100
-From: Peter Seiderer <ps.report@gmx.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 1/3] configure.ac: add qt5 detection support
-Date: Fri,  5 Dec 2014 21:17:23 +0100
-Message-Id: <1417810645-21753-1-git-send-email-ps.report@gmx.net>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41240 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751165AbaLOWe6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 17:34:58 -0500
+Message-ID: <548F6205.6000305@xs4all.nl>
+Date: Mon, 15 Dec 2014 23:34:45 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
+Subject: Re: [RFC] video support for Samsung SUR40
+References: <548F029C.20907@butterbrot.org> <548F05EF.8080700@xs4all.nl> <548F5D6E.4070907@butterbrot.org>
+In-Reply-To: <548F5D6E.4070907@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Disable QTGL for qt5 because of qv4l2 crash on startup.
+On 12/15/2014 11:15 PM, Florian Echtler wrote:
+> Hello Hans,
+> 
+> On 15.12.2014 17:01, Hans Verkuil wrote:
+>> On 12/15/2014 04:47 PM, Florian Echtler wrote:
+>>> However, I'm running into an issue I have a hard time understanding. In
+>>> particular, as soon as I load the kernel module, I'm getting a kernel
+>>> oops (NULL pointer dereference) in line 354 or 355 of the attached
+>>> source code. The reason is probably that the previous check (in line
+>>> 350) doesn't abort - even though I didn't actually provide a buffer, so
+>>> the list_head should be empty. As no user space program has actually
+>>> opened the video device yet, there shouldn't be any buffers queued,
+>>> right? (AFAICT the list is initialized properly in line 490).
+>>> I'd be quite grateful if somebody with more experience can look over the
+>>> code and tell me what mistakes I made :-)
+> First of all, thanks for the quick feedback.
+> 
+>> Why on earth is sur40_poll doing anything with video buffers? That's
+>> all handled by vb2. As far as I can tell you can just delete everything
+>> from '// deal with video data here' until the end of the poll function.
+> Right now, the code doesn't do anything, but I'm planning to add the
+> actual data retrieval at this point later. I'd like to use the
+> input_polldev thread for this, as a) the video data should be fetched
+> synchronously with the input device data and b) the thread will be
+> running continuously anyway.
 
-Signed-off-by: Peter Seiderer <ps.report@gmx.net>
----
-Changes v1 -> v2:
-  - fix configure log output for qt5
-  - fix qt4 detection
----
- configure.ac | 42 ++++++++++++++++++++++++++++--------------
- 1 file changed, 28 insertions(+), 14 deletions(-)
+Ah, now I see it.
 
-diff --git a/configure.ac b/configure.ac
-index 7bf9bf6..588dd9e 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -131,29 +131,43 @@ AS_IF([test "x$with_jpeg" != xno],
- 
- AM_CONDITIONAL([HAVE_JPEG], [$have_jpeg])
- 
--PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4], [qt_pkgconfig=true], [qt_pkgconfig=false])
-+PKG_CHECK_MODULES(QT5, [Qt5Core >= 5.0 Qt5Gui >= 5.0 Qt5Widgets >= 5.0], [qt_pkgconfig=true], [qt_pkgconfig=false])
- if test "x$qt_pkgconfig" = "xtrue"; then
-+   QT_CFLAGS="$QT5_CFLAGS -fPIC"
-+   QT_LIBS="$QT5_LIBS"
-    AC_SUBST(QT_CFLAGS)
-    AC_SUBST(QT_LIBS)
--   MOC=`$PKG_CONFIG --variable=moc_location QtCore`
--   UIC=`$PKG_CONFIG --variable=uic_location QtCore`
--   RCC=`$PKG_CONFIG --variable=rcc_location QtCore`
--   if test -z "$RCC"; then
--      RCC="rcc"
--   fi
-+   AC_CHECK_PROGS(MOC, [moc-qt5 moc])
-+   AC_CHECK_PROGS(UIC, [uic-qt5 uic])
-+   AC_CHECK_PROGS(RCC, [rcc-qt5 rcc])
-    AC_SUBST(MOC)
-    AC_SUBST(UIC)
-    AC_SUBST(RCC)
-+# disable QTGL for qt5 because qv4l2 crash
-+   qt_pkgconfig_gl=false
- else
--   AC_MSG_WARN(Qt4 or higher is not available)
-+   PKG_CHECK_MODULES(QT, [QtCore >= 4.0 QtGui >= 4.0], [qt_pkgconfig=true], [qt_pkgconfig=false])
-+   if test "x$qt_pkgconfig" = "xtrue"; then
-+      MOC=`$PKG_CONFIG --variable=moc_location QtCore`
-+      UIC=`$PKG_CONFIG --variable=uic_location QtCore`
-+      RCC=`$PKG_CONFIG --variable=rcc_location QtCore`
-+      if test -z "$RCC"; then
-+         RCC="rcc"
-+      fi
-+      AC_SUBST(MOC)
-+      AC_SUBST(UIC)
-+      AC_SUBST(RCC)
-+      PKG_CHECK_MODULES(QTGL, [QtOpenGL >= 4.8 gl], [qt_pkgconfig_gl=true], [qt_pkgconfig_gl=false])
-+      if test "x$qt_pkgconfig_gl" = "xtrue"; then
-+         AC_DEFINE([HAVE_QTGL], [1], [qt has opengl support])
-+      else
-+         AC_MSG_WARN(Qt4 OpenGL is not available)
-+      fi
-+   else
-+      AC_MSG_WARN(Qt4 or higher is not available)
-+   fi
- fi
- 
--PKG_CHECK_MODULES(QTGL, [QtOpenGL >= 4.8 gl], [qt_pkgconfig_gl=true], [qt_pkgconfig_gl=false])
--if test "x$qt_pkgconfig_gl" = "xtrue"; then
--   AC_DEFINE([HAVE_QTGL], [1], [qt has opengl support])
--else
--   AC_MSG_WARN(Qt4 OpenGL or higher is not available)
--fi
- 
- PKG_CHECK_MODULES(ALSA, [alsa], [alsa_pkgconfig=true], [alsa_pkgconfig=false])
- if test "x$alsa_pkgconfig" = "xtrue"; then
--- 
-2.1.2
+> 
+>> The probably cause of the crash here is that the input device node is
+>> created before the 'INIT_LIST_HEAD(&sur40->buf_list);' call, and since
+>> udevd (I think) opens new devices immediately after they are created
+>> it is likely that sur40_poll is called before buf_list is initialized.
+> OK, that sounds plausible, will test that tomorrow.
+> 
+>> But, as I said, that code doesn't belong there at all, so just remove it.
+> See above - that was actually intentional. It's kind of a hackish
+> solution, but for the moment, I'd just like to get a video stream with
+> minimal overhead, so I'm reusing the polldev thread.
+
+OK. If you are planning to upstream this driver, then this probably needs
+another look.
+
+Regards,
+
+	Hans
 
