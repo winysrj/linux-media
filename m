@@ -1,63 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:53642 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751384AbaLSU7x (ORCPT
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:37929 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750796AbaLOQf2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 15:59:53 -0500
-Date: Fri, 19 Dec 2014 21:59:51 +0100
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: nicolas.ferre@atmel.com, voice.shen@atmel.com,
-	plagnioj@jcrosoft.com, boris.brezillon@free-electrons.com,
-	devicetree@vger.kernel.org, robh+dt@kernel.org,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 3/7] ARM: at91: dts: sama5d3: add missing pins of isi
-Message-ID: <20141219205951.GA4885@piout.net>
-References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
- <1418892667-27428-4-git-send-email-josh.wu@atmel.com>
+	Mon, 15 Dec 2014 11:35:28 -0500
+Message-ID: <548F0DC8.2090005@collabora.com>
+Date: Mon, 15 Dec 2014 11:35:20 -0500
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1418892667-27428-4-git-send-email-josh.wu@atmel.com>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: LibV4L2 and CREATE_BUFS issues
+References: <5488748B.7060703@collabora.com> <548C17C9.2060809@redhat.com> <548C6607.10700@collabora.com> <548D5D26.5080504@redhat.com> <548D9D93.1080301@collabora.com> <548F051E.805@redhat.com>
+In-Reply-To: <548F051E.805@redhat.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18/12/2014 at 16:51:03 +0800, Josh Wu wrote :
-> From: Bo Shen <voice.shen@atmel.com>
-> 
-> The ISI has 12 data lines, add the missing two data lines.
-> 
-> Signed-off-by: Bo Shen <voice.shen@atmel.com>
-> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 
-> ---
->  arch/arm/boot/dts/sama5d3.dtsi | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
-> index 595609f..b3ac156 100644
-> --- a/arch/arm/boot/dts/sama5d3.dtsi
-> +++ b/arch/arm/boot/dts/sama5d3.dtsi
-> @@ -568,6 +568,12 @@
->  							 AT91_PIOC 28 AT91_PERIPH_C AT91_PINCTRL_NONE>;	/* PC28 periph C ISI_PD9, conflicts with SPI1_NPCS3, PWMFI0 */
->  					};
->  
-> +					pinctrl_isi_data_10_11: isi-0-data-10-11 {
-> +						atmel,pins =
-> +							<AT91_PIOC 27 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PC27 periph C ISI_PD10, conflicts with SPI1_NPCS2, TWCK1 */
-> +							 AT91_PIOC 26 AT91_PERIPH_C AT91_PINCTRL_NONE>;	/* PC26 periph C ISI_PD11, conflicts with SPI1_NPCS1, TWD1 */
-> +					};
-> +
->  					pinctrl_isi_pck_as_mck: isi_pck_as_mck-0 {
->  						atmel,pins =
->  							<AT91_PIOD 31 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD31 periph B ISI_MCK */
-> -- 
-> 1.9.1
-> 
+Le 2014-12-15 10:58, Hans de Goede a écrit :
+> Hi,
+>
+> Hmm, is that jpeg overflow still there with my recent (aprok 2-3 weeks 
+> ago) fix
+> for this?
+I'll need to check, might have been my fault too, since I was trying to 
+reallocate the frames segment to implement support for CREATE_BUFS, 
+without proper knowledge of the code. If we could have 1 allocation per 
+frame, it would be trivial to implement. Could be made as a rework 
+first. I wouldn't not worry too much for now, I apology for the noise.
 
--- 
-Alexandre Belloni, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+>> This is getting a bit annoying. Specially that we are pushing forward 
+>> having m2m decoders to only be usable through libv4l2 (HW specific 
+>> parsers). Is there a long term plan or are we simply pushing the dust 
+>> toward libv4l2 ?
+>
+> I think that trying to bold support for all of this into libv4l2 is 
+> not necessarily
+> a good idea. Then again if we're going to use libv4l2 plugins to do 
+> things like
+> media-controller pipeline setups for apps which are not 
+> media-controller aware,
+> maybe it is ...
+>
+> libv4l2 was mostly created to get the then current generation of v4l2 
+> apps to work
+> with webcams which have funky formats without pushing fmt conversion 
+> into the kernel
+> as several out of tree drivers were doing.
+>
+> It may be better to come up with a better API for libv4lconvert, and 
+> let apps which
+> want to do advanced stuff deal with conversion themselves, while 
+> keeping all the
+> conversion code in a central place, but that does leave the 
+> media-controller issue.
+>
+> Note that I've aprox. 0 time to work on libv4l now a days ...
+>
+> What we really need is an active libv4l maintainer. Do not get me 
+> wrong, Gregor
+> has been doing a great job at maintaining it, but if we want to do 
+> some architectural
+> rework (or just a complete rewrite) I think we need someone who knows 
+> the v4l2 API,
+> media-controller, etc. a lot better.
+>
+Thanks for this information, and thanks for the effort so far. I didn't 
+want to make this comment discouraging. I do cheer anyone taking care 
+right now, and anyone that would come up next. As you mention, there has 
+been plan (and currently active work) toward depending on libv4l to 
+support cameras that need media-controller, decoders that need parsers, 
+etc. I think these ideas are fine, but when bringing these ideas we 
+should care more of how we are doing to add and test these in libv4l2, 
+in a way that it's all very usable.
+
+cheers,
+Nicolas
