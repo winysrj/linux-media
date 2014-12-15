@@ -1,58 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51463 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47323 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751364AbaLRVXY (ORCPT
+	with ESMTP id S1751054AbaLOSdQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 16:23:24 -0500
+	Mon, 15 Dec 2014 13:33:16 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: William Manley <will@williammanley.net>
-Cc: linux-media@vger.kernel.org, m.chehab@samsung.com
-Subject: Re: [PATCH] [media] uvcvideo: Add GUID for BGR 8:8:8
-Date: Thu, 18 Dec 2014 23:23:26 +0200
-Message-ID: <2873589.uTjIvfEhRn@avalon>
-In-Reply-To: <5488F136.6050907@williammanley.net>
-References: <1418065078-27791-1-git-send-email-will@williammanley.net> <1514839.CAtLhmhmvy@avalon> <5488F136.6050907@williammanley.net>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [yavta PATCH v2 1/3] yavta: Implement data_offset support for multi plane buffers
+Date: Mon, 15 Dec 2014 20:33:16 +0200
+Message-ID: <2122785.URYoa83k5P@avalon>
+In-Reply-To: <1418660809-30548-2-git-send-email-sakari.ailus@linux.intel.com>
+References: <1418660809-30548-1-git-send-email-sakari.ailus@linux.intel.com> <1418660809-30548-2-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi William,
+Hi Sakari,
 
-On Thursday 11 December 2014 01:19:50 William Manley wrote:
-> On 10/12/14 23:54, Laurent Pinchart wrote:
-> > On Monday 08 December 2014 18:57:58 William Manley wrote:
-> >> The Magewell XI100DUSB-HDMI[1] video capture device reports the pixel
-> >> format "e436eb7d-524f-11ce-9f53-0020af0ba770".  This is its GUID for
-> >> BGR 8:8:8.
-> >> 
-> >> The UVC 1.5 spec[2] only defines GUIDs for YUY2, NV12, M420 and I420.
-> >> This seems to be an extension documented in the Microsoft Windows Media
-> >> Format SDK[3] - or at least the Media Format SDK was the only hit that
-> >> Google gave when searching for the GUID.  This Media Format SDK defines
-> >> this GUID as corresponding to `MEDIASUBTYPE_RGB24`.  Note though, the
-> >> XI100DUSB outputs BGR e.g. byte-reversed.  I don't know if its the
-> >> capture device in error or Microsoft mean BGR when they say RGB.
-> > 
-> > I believe Microsoft defines RGB as BGR. They do at least in BMP
-> > (https://en.wikipedia.org/wiki/BMP_file_format), probably because they
-> > consider the RGB pixel to be stored in little-endian format.
-> 
-> Thanks, that's helpful.
-> 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > I'll apply the patch to my tree and submit it for v3.20.
-> 
-> Great
-> 
-> > Could you please send me the output of 'lsusb -v' for your device, if
-> > possible running as root ?
-> 
-> lsusb output attached.
+Thank you for the patch.
 
-Thank you. I've updated the supported devices list.
+On Monday 15 December 2014 18:26:47 Sakari Ailus wrote:
+> Support data_offset for multi plane buffers. Also add an option to write the
+> data in the buffer before data offset (--buffer-prefix).
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  yavta.c | 22 +++++++++++++++++++---
+>  1 file changed, 19 insertions(+), 3 deletions(-)
+> 
+> diff --git a/yavta.c b/yavta.c
+> index 77e5a41..003d6ba 100644
+> --- a/yavta.c
+> +++ b/yavta.c
+> @@ -80,6 +80,8 @@ struct device
+> 
+>  	void *pattern[VIDEO_MAX_PLANES];
+>  	unsigned int patternsize[VIDEO_MAX_PLANES];
+> +
+> +	bool write_buffer_prefix;
+>  };
+> 
+>  static bool video_is_mplane(struct device *dev)
+> @@ -1546,13 +1548,22 @@ static void video_save_image(struct device *dev,
+> struct v4l2_buffer *buf,
+> 
+>  	for (i = 0; i < dev->num_planes; i++) {
+>  		unsigned int length;
+> +		unsigned int data_offset = 0;
+> 
+> -		if (video_is_mplane(dev))
+> +		if (video_is_mplane(dev)) {
+>  			length = buf->m.planes[i].bytesused;
+> -		else
+> +			data_offset = buf->m.planes[i].data_offset;
+> +		} else {
+>  			length = buf->bytesused;
+> +		}
+> +
+> +		if (!dev->write_buffer_prefix)
+> +			length -= data_offset;
+> +		else
+> +			data_offset = 0;
+
+Nitpicking here, I find it a bit hard to read that you're adjusting the length 
+here but still keep the offset to add it to the buffer address below. How 
+about something like
+
+                void *data = dev->buffers[buf->index].mem[i];
+                unsigned int length;
+
+                if (video_is_mplane(dev)) {
+                        length = buf->m.planes[i].bytesused;
+
+                        if (!dev->write_buffer_prefix) {
+                                data += buf->m.planes[i].data_offset;
+                                length -= buf->m.planes[i].data_offset;
+                        }
+
+                } else {
+                        length = buf->bytesused;
+                }
+
+                ret = write(fd, data, length);
+
+> -		ret = write(fd, dev->buffers[buf->index].mem[i], length);
+> +		ret = write(fd, dev->buffers[buf->index].mem[i] + data_offset,
+> +			    length);
+>  		if (ret < 0) {
+>  			printf("write error: %s (%d)\n", strerror(errno), errno);
+>  			break;
+> @@ -1717,6 +1728,7 @@ static void usage(const char *argv0)
+>  	printf("-t, --time-per-frame num/denom	Set the time per frame (eg. 1/25 
+=
+> 25 fps)\n"); printf("-u, --userptr			Use the user pointers streaming
+> method\n"); printf("-w, --set-control 'ctrl value'	Set control 'ctrl' to
+> 'value'\n"); +	printf("    --buffer-prefix		Write portions of buffer 
+before
+> data_offset\n"); printf("    --buffer-size		Buffer size in bytes\n");
+>  	printf("    --enum-formats		Enumerate formats\n");
+>  	printf("    --enum-inputs		Enumerate inputs\n");
+> @@ -1749,10 +1761,12 @@ static void usage(const char *argv0)
+>  #define OPT_BUFFER_SIZE		268
+>  #define OPT_PREMULTIPLIED	269
+>  #define OPT_QUEUE_LATE		270
+> +#define OPT_BUFFER_PREFIX	271
+> 
+>  static struct option opts[] = {
+>  	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
+>  	{"buffer-type", 1, 0, 'B'},
+> +	{"buffer-prefix", 1, 0, OPT_BUFFER_PREFIX},
+>  	{"capture", 2, 0, 'c'},
+>  	{"check-overrun", 0, 0, 'C'},
+>  	{"delay", 1, 0, 'd'},
+> @@ -2016,6 +2030,8 @@ int main(int argc, char *argv[])
+>  		case OPT_USERPTR_OFFSET:
+>  			userptr_offset = atoi(optarg);
+>  			break;
+> +		case OPT_BUFFER_PREFIX:
+> +			dev.write_buffer_prefix = true;
+>  		default:
+>  			printf("Invalid option -%c\n", c);
+>  			printf("Run %s -h for help.\n", argv[0]);
 
 -- 
 Regards,
