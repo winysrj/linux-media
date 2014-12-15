@@ -1,40 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:19723 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755223AbaLHLaK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 06:30:10 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<g.liakhovetski@gmx.de>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH 0/5] media: ov2640: add device tree support
-Date: Mon, 8 Dec 2014 19:29:02 +0800
-Message-ID: <1418038147-13221-1-git-send-email-josh.wu@atmel.com>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:61171 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750878AbaLOXNg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 18:13:36 -0500
+Received: by mail-wi0-f177.google.com with SMTP id l15so10713481wiw.16
+        for <linux-media@vger.kernel.org>; Mon, 15 Dec 2014 15:13:35 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CAEzPJ9M=uOY_ujbp7XtrRq3N4jq6L3r_84qggfbQ4xEpX12u-w@mail.gmail.com>
+References: <CAEzPJ9M=uOY_ujbp7XtrRq3N4jq6L3r_84qggfbQ4xEpX12u-w@mail.gmail.com>
+Date: Tue, 16 Dec 2014 00:13:34 +0100
+Message-ID: <CAEzPJ9NqYNo2BV0j2jujVO+p3w73qxZOoM3K8J+yebFMVwwhWQ@mail.gmail.com>
+Subject: Fwd: Instalation issue on S960
+From: Carlos Diogo <cdiogo@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series add device tree support for ov2640. And also add
-the document for the devicetree properties.
+Dear support team ,
+i have spent 4 days trying to get my S960 setup in my raspberrry Pi
 
-v1 -> v2:
-  1.  modified the dt bindings according to Laurent's suggestion.
-  2. add a fix patch for soc_camera. Otherwise the .reset() function won't work.
+I have tried multiple options and using the linuxtv.org drivers the
+power light switches on but then i get the below message
 
-Josh Wu (5):
-  media: soc-camera: use icd->control instead of icd->pdev for reset()
-  media: ov2640: add async probe function
-  media: ov2640: add primary dt support
-  media: ov2640: add a master clock for sensor
-  media: ov2640: dt: add the device tree binding document
 
- .../devicetree/bindings/media/i2c/ov2640.txt       |  44 +++++++
- drivers/media/i2c/soc_camera/ov2640.c              | 140 ++++++++++++++++++---
- drivers/media/platform/soc_camera/soc_camera.c     |  10 +-
- 3 files changed, 173 insertions(+), 21 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+
+[    8.561909] usb 1-1.5: dvb_usb_v2: found a 'DVBSky S960/S860' in warm state
+[    8.576865] usb 1-1.5: dvb_usb_v2: will pass the complete MPEG2
+transport stream to the software demuxer
+[    8.591803] DVB: registering new adapter (DVBSky S960/S860)
+[    8.603974] usb 1-1.5: dvb_usb_v2: MAC address: 00:18:42:54:96:0c
+[    8.650257] DVB: Unable to find symbol m88ds3103_attach()
+[    8.661452] usb 1-1.5: dvbsky_s960_attach fail.
+[    8.683560] usbcore: registered new interface driver dvb_usb_dvbsky
+
+I have tried googling it but i have found nothing about this
+
+i'm using raspbian , with kernel 3.12.34
+
+Any help here?
+
+Thanks in advance
+Carlos
+
 
 -- 
-1.9.1
-
+Os meus cumprimentos / Best regards /  Mit freundlichen Grüße
+Carlos Diogo
