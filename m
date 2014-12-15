@@ -1,134 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:65336 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291AbaLCQHi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 11:07:38 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, robh+dt@kernel.org, pawel.moll@arm.com,
-	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
-	galak@codeaurora.org, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v9 00/19] LED / flash API integration
-Date: Wed, 03 Dec 2014 17:06:35 +0100
-Message-id: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:40272 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750765AbaLOTJy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 14:09:54 -0500
+Date: Mon, 15 Dec 2014 17:09:48 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: grigore calugar <zradu1100@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [tvtime] Broke support for cards with multiple numbers of the
+ input
+Message-ID: <20141215170948.1066aea9@recife.lan>
+In-Reply-To: <CA+S3egD3p9p2MVNZqWAZ3zvcuJ3KQn9KDZp_Hm1im0NhiPfP3g@mail.gmail.com>
+References: <CA+S3egD3p9p2MVNZqWAZ3zvcuJ3KQn9KDZp_Hm1im0NhiPfP3g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set is a follow-up of the LED / flash API integration
-series [1].
+Em Mon, 15 Dec 2014 11:56:16 +0000
+grigore calugar <zradu1100@gmail.com> escreveu:
 
-========================
-Changes since version 8:
-========================
+> After commit:http://git.linuxtv.org/cgit.cgi/tvtime.git/commit/?id=c49ebc47c51e0bcf9e8c4403efdf0f31bf1b4479
+> support for support for cards with multiple numbers of the input is
+> broken. My tuner has 4 inputs and after this commit I can not select
+> any from OSD menu.
 
-- added a new way of registering async sub-device
-- switched to matching flash leds by DT phandles
-- improved Device Tree bindings documentation
-- split the drivers patches to LED Flash class
-  and V4L2 Flash part
-- fixed indicator leds handling in v4l2-flash
-- applied various fixes an cleanups
+Sorry, I inverted a test there. The enclosed patch should fix it.
+I'm merging upstream.
 
-========================
-Changes since version 7:
-========================
+Regards,
+Mauro
 
-- removed explicit support for indicator leds from
-  LED Flash class - indicator leds will be registered
-  as a separate LED Flash class devices
-- added flash_sync_strobe sysfs attribute and related
-  V4L2_CID_FLASH_SYNC_STROBE control
-- changed the way of matching V4L2 Flash sub-devices
-  in a media device, which entailed modification in
-  v4l2-async driver
-- modified max77693 DT bindings documentation
-- applied various fixes an cleanups
+[PATCH] Fix input select condition
 
-========================
-Changes since version 6:
-========================
+Changeset c49ebc47c51e added an inverted condition with caused a
+regression.
 
-- removed addition of public LED subsystem API for setting
-  torch brightness in favour of internal API for
-  synchronous and asynchronous led brightness level setting
-- fixed possible race condition upon creating LED Flash class
-  related sysfs attributes
+Reported-by: Grigore Calugar <zradu1100@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-========================
-Changes since version 5:
-========================
+diff --git a/src/videoinput.c b/src/videoinput.c
+index 084cc3f4c7ed..50c2b84b70de 100644
+--- a/src/videoinput.c
++++ b/src/videoinput.c
+@@ -849,8 +849,8 @@ void videoinput_set_input_num( videoinput_t *vidin, int inputnum )
+ 
+     videoinput_stop_capture_v4l2( vidin );
+ 
+-    if( !vidin->numinputs ) {
+-        if( ioctl( vidin->grab_fd, VIDIOC_S_INPUT, &index ) < 0 ) {
++    if( vidin->numinputs ) {
++	if( ioctl( vidin->grab_fd, VIDIOC_S_INPUT, &index ) < 0 ) {
+ 	    fprintf( stderr, "videoinput: Card refuses to set its input.\n"
+ 		     "Please post a bug report to " PACKAGE_BUGREPORT "\n"
+ 		     "indicating your card, driver, and this error message: %s.\n",
 
-- removed flash manager framework - its implementation needs
-  further thorough discussion.
-- removed external strobe facilities from the LED Flash Class
-  and provided external_strobe_set op in v4l2-flash. LED subsystem
-  should be strobe provider agnostic.
 
-Thanks,
-Jacek Anaszewski
-
-Jacek Anaszewski (19):
-  leds: Add LED Flash class extension to the LED subsystem
-  Documentation: leds: Add description of LED Flash class extension
-  mfd: max77693: Modify flash cell name identifiers
-  mfd: max77693: adjust max77693_led_platform_data
-  leds: Add support for max77693 mfd flash cell
-  DT: Add documentation for the mfd Maxim max77693
-  dt-binding: mfd: max77693: Add DT binding related macros
-  leds: Add driver for AAT1290 current regulator
-  of: Add Skyworks Solutions, Inc. vendor prefix
-  DT: Add documentation for the Skyworks AAT1290
-  v4l2-async: change custom.match callback argument type
-  v4l2-async: add V4L2_ASYNC_MATCH_CUSTOM_OF matching type
-  v4l2-ctrls: Add V4L2_CID_FLASH_SYNC_STROBE control
-  media: Add registration helpers for V4L2 flash sub-devices
-  Documentation: leds: Add description of v4l2-flash sub-device
-  exynos4-is: Add support for v4l2-flash subdevs
-  DT: Add documentation for exynos4-is 'flashes' property
-  leds: max77693: add support for V4L2 Flash sub-device
-  leds: aat1290: add support for V4L2 Flash sub-device
-
- Documentation/DocBook/media/v4l/controls.xml       |   11 +
- .../devicetree/bindings/leds/leds-aat1290.txt      |   17 +
- .../devicetree/bindings/media/samsung-fimc.txt     |    7 +
- Documentation/devicetree/bindings/mfd/max77693.txt |   89 ++
- .../devicetree/bindings/vendor-prefixes.txt        |    1 +
- Documentation/leds/leds-class-flash.txt            |   63 ++
- drivers/leds/Kconfig                               |   27 +
- drivers/leds/Makefile                              |    3 +
- drivers/leds/led-class-flash.c                     |  446 ++++++++
- drivers/leds/led-class.c                           |    4 +
- drivers/leds/leds-aat1290.c                        |  474 ++++++++
- drivers/leds/leds-max77693.c                       | 1154 ++++++++++++++++++++
- drivers/media/platform/exynos4-is/media-dev.c      |   42 +-
- drivers/media/platform/exynos4-is/media-dev.h      |   13 +-
- drivers/media/v4l2-core/Kconfig                    |   11 +
- drivers/media/v4l2-core/Makefile                   |    2 +
- drivers/media/v4l2-core/v4l2-async.c               |  122 ++-
- drivers/media/v4l2-core/v4l2-ctrls.c               |    2 +
- drivers/media/v4l2-core/v4l2-flash.c               |  546 +++++++++
- drivers/mfd/max77693.c                             |    4 +-
- include/dt-bindings/mfd/max77693.h                 |   38 +
- include/linux/led-class-flash.h                    |  186 ++++
- include/linux/leds.h                               |    3 +
- include/linux/mfd/max77693.h                       |    4 +-
- include/media/v4l2-async.h                         |    6 +-
- include/media/v4l2-flash.h                         |  139 +++
- include/uapi/linux/v4l2-controls.h                 |    1 +
- 27 files changed, 3388 insertions(+), 27 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
- create mode 100644 Documentation/leds/leds-class-flash.txt
- create mode 100644 drivers/leds/led-class-flash.c
- create mode 100644 drivers/leds/leds-aat1290.c
- create mode 100644 drivers/leds/leds-max77693.c
- create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
- create mode 100644 include/dt-bindings/mfd/max77693.h
- create mode 100644 include/linux/led-class-flash.h
- create mode 100644 include/media/v4l2-flash.h
-
--- 
-1.7.9.5
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
