@@ -1,155 +1,334 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:43724 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753050AbaLAKmN (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39011 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750865AbaLOJ0P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 05:42:13 -0500
-Date: Mon, 1 Dec 2014 10:42:01 +0000
-From: Mark Rutland <mark.rutland@arm.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [REVIEW PATCH v2.1 08/11] of: smiapp: Add documentation
-Message-ID: <20141201104200.GC17070@leverpostej>
-References: <1416289426-804-9-git-send-email-sakari.ailus@iki.fi>
- <1417364809-4693-1-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1417364809-4693-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 15 Dec 2014 04:26:15 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3] Add LVDS RGB media bus formats
+Date: Mon, 15 Dec 2014 10:26:04 +0100
+Message-Id: <1418635564-25464-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 30, 2014 at 04:26:48PM +0000, Sakari Ailus wrote:
-> Document the smiapp device tree properties.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
-> since v2:
-> - Cleanups
-> - Removed clock-names property documentation
-> - Port node documentation was really endpoint node documentation
-> - Added remote-endpoint as mandatory endpoint node properties
-> 
->  .../devicetree/bindings/media/i2c/nokia,smia.txt   |   64 ++++++++++++++++++++
->  MAINTAINERS                                        |    1 +
->  2 files changed, 65 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> new file mode 100644
-> index 0000000..2114a4d
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> @@ -0,0 +1,64 @@
-> +SMIA/SMIA++ sensor
-> +
-> +SMIA (Standard Mobile Imaging Architecture) is an image sensor standard
-> +defined jointly by Nokia and ST. SMIA++, defined by Nokia, is an extension
-> +of that. These definitions are valid for both types of sensors.
-> +
-> +More detailed documentation can be found in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt .
-> +
-> +
-> +Mandatory properties
-> +--------------------
-> +
-> +- compatible: "nokia,smia"
-> +- reg: I2C address (0x10, or an alternative address)
-> +- vana-supply: Analogue voltage supply (VANA), typically 2,8 volts (sensor
-> +  dependent).
-> +- clocks: External clock phandle
+This patch adds three new RGB media bus formats that describe
+18-bit or 24-bit samples transferred over an LVDS bus with three
+or four differential data pairs, serialized into 7 time slots,
+using standard SPWG/PSWG/VESA or JEIDA data ordering.
 
-Not just a phandle, there's a clock-specifier too.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v1:
+ - Clarified LVDS paragraph, added an example
+ - Changed 'LVDS' to '1X7X3' / '1X7X4' to denote serialized formats
+ - Reordered LVDS table (lanes in columns, time slots in rows)
+Changes since v2:
+ - Moved LVDS paragraph below v4l2-mbus-pixelcode-rgb table so it
+   appears right before the v4l2-mbus-pixelcode-rgb-lvds table
+---
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 255 +++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h              |   5 +-
+ 2 files changed, 259 insertions(+), 1 deletion(-)
 
-Just describe what the clock logically is, don't bother with describing
-the format of the property (whcih is standardised elsewhere).
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 0d6f731..57892cb 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -606,6 +606,261 @@
+ 	  </tbody>
+ 	</tgroup>
+       </table>
++
++      <para>On LVDS buses, usually each sample is transferred serialized in
++      seven time slots per pixel clock, on three (18-bit) or four (24-bit)
++      differential data pairs at the same time. The remaining bits are used for
++      control signals as defined by SPWG/PSWG/VESA or JEIDA standards.
++      The 24-bit RGB format serialized in seven time slots on four lanes using
++      JEIDA defined bit mapping will be named
++      <constant>MEDIA_BUS_FMT_RGB888_1X7X3_JEIDA</constant>, for example.
++      </para>
++
++      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-rgb-lvds">
++	<title>LVDS RGB formats</title>
++	<tgroup cols="8">
++	  <colspec colname="id" align="left" />
++	  <colspec colname="code" align="center" />
++	  <colspec colname="slot" align="center" />
++	  <colspec colname="lane" />
++	  <colspec colnum="5" colname="l03" align="center" />
++	  <colspec colnum="6" colname="l02" align="center" />
++	  <colspec colnum="7" colname="l01" align="center" />
++	  <colspec colnum="8" colname="l00" align="center" />
++	  <spanspec namest="l03" nameend="l00" spanname="l0" />
++	  <thead>
++	    <row>
++	      <entry>Identifier</entry>
++	      <entry>Code</entry>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry spanname="l0">Data organization</entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>Timeslot</entry>
++	      <entry>Lane</entry>
++	      <entry>3</entry>
++	      <entry>2</entry>
++	      <entry>1</entry>
++	      <entry>0</entry>
++	    </row>
++	  </thead>
++	  <tbody valign="top">
++	    <row id="MEDIA-BUS-FMT-RGB666-1X7X3-SPWG">
++	      <entry>MEDIA_BUS_FMT_RGB666_1X7X3_SPWG</entry>
++	      <entry>0x1010</entry>
++	      <entry>0</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>d</entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>1</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>d</entry>
++	      <entry>b<subscript>0</subscript></entry>
++	      <entry>r<subscript>5</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>2</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>d</entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>r<subscript>4</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>3</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>b<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>r<subscript>3</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>4</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>b<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>5</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>6</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	    </row>
++	    <row id="MEDIA-BUS-FMT-RGB888-1X7X4-SPWG">
++	      <entry>MEDIA_BUS_FMT_RGB888_1X7X4_SPWG</entry>
++	      <entry>0x1011</entry>
++	      <entry>0</entry>
++	      <entry></entry>
++	      <entry>d</entry>
++	      <entry>d</entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>1</entry>
++	      <entry></entry>
++	      <entry>b<subscript>7</subscript></entry>
++	      <entry>d</entry>
++	      <entry>b<subscript>0</subscript></entry>
++	      <entry>r<subscript>5</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>2</entry>
++	      <entry></entry>
++	      <entry>b<subscript>6</subscript></entry>
++	      <entry>d</entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>r<subscript>4</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>3</entry>
++	      <entry></entry>
++	      <entry>g<subscript>7</subscript></entry>
++	      <entry>b<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>r<subscript>3</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>4</entry>
++	      <entry></entry>
++	      <entry>g<subscript>6</subscript></entry>
++	      <entry>b<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>5</entry>
++	      <entry></entry>
++	      <entry>r<subscript>7</subscript></entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>6</entry>
++	      <entry></entry>
++	      <entry>r<subscript>6</subscript></entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	    </row>
++	    <row id="MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA">
++	      <entry>MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA</entry>
++	      <entry>0x1012</entry>
++	      <entry>0</entry>
++	      <entry></entry>
++	      <entry>d</entry>
++	      <entry>d</entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>1</entry>
++	      <entry></entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>d</entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>r<subscript>7</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>2</entry>
++	      <entry></entry>
++	      <entry>b<subscript>0</subscript></entry>
++	      <entry>d</entry>
++	      <entry>g<subscript>7</subscript></entry>
++	      <entry>r<subscript>6</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>3</entry>
++	      <entry></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>b<subscript>7</subscript></entry>
++	      <entry>g<subscript>6</subscript></entry>
++	      <entry>r<subscript>5</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>4</entry>
++	      <entry></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	      <entry>b<subscript>6</subscript></entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>r<subscript>4</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>5</entry>
++	      <entry></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	      <entry>b<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>r<subscript>3</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>6</entry>
++	      <entry></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	      <entry>b<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	    </row>
++	  </tbody>
++	</tgroup>
++      </table>
+     </section>
+ 
+     <section>
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 37091c6..3fb9cbb 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -33,7 +33,7 @@
+ 
+ #define MEDIA_BUS_FMT_FIXED			0x0001
+ 
+-/* RGB - next is	0x1010 */
++/* RGB - next is	0x1013 */
+ #define MEDIA_BUS_FMT_RGB444_1X12		0x100e
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+@@ -45,9 +45,12 @@
+ #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
+ #define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
+ #define MEDIA_BUS_FMT_RGB666_1X18		0x1009
++#define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG		0x1010
+ #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
+ #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
+ #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
++#define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG		0x1011
++#define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
+ #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
+ 
+ /* YUV (including grey) - next is	0x2024 */
+-- 
+2.1.3
 
-> +- clock-frequency: Frequency of the external clock to the sensor
-
-Is this the preferred frequency to operate the device at? Is there not a
-standard frequency to use? We can query the rate from the clock
-otherwise.
-
-> +- link-frequency: List of allowed data link frequencies. An array of 64-bit
-> +  elements.
-
-Something like 'allowed-link-frequencies' might be better, unlesss this
-is derived from another binding?
-
-> +
-> +
-> +Optional properties
-> +-------------------
-> +
-> +- nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
-> +  the NVM contents will not be read.
-
-Where 'NVM' standas for what?
-
-What is this used for?
-
-> +- reset-gpios: XSHUTDOWN GPIO
-> +
-> +
-> +Endpoint node mandatory properties
-> +----------------------------------
-> +
-> +- clock-lanes: <0>
-> +- data-lanes: <1..n>
-> +- remote-endpoint: A phandle to the bus receiver's endpoint node.
-> +
-> +
-> +Example
-> +-------
-> +
-> +&i2c2 {
-> +	clock-frequency = <400000>;
-> +
-> +	smiapp_1: camera@10 {
-> +		compatible = "nokia,smia";
-> +		reg = <0x10>;
-> +		reset-gpios = <&gpio3 20 0>;
-> +		vana-supply = <&vaux3>;
-> +		clocks = <&omap3_isp 0>;
-> +		clock-names = "ext_clk";
-
-This wasn't described above. Either mandate it in the binding (and
-define clock in terms of clock-names) or drop it.
-
-Thanks,
-Mark.
-
-> +		clock-frequency = <9600000>;
-> +		nokia,nvm-size = <512>; /* 8 * 64 */
-> +		link-frequency = /bits/ 64 <199200000 210000000 499200000>;
-> +		port {
-> +			smiapp_1_1: endpoint {
-> +				clock-lanes = <0>;
-> +				data-lanes = <1 2>;
-> +				remote-endpoint = <&csi2a_ep>;
-> +			};
-> +		};
-> +	};
-> +};
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 2378a5f..285c1ba 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8619,6 +8619,7 @@ F:	include/media/smiapp.h
->  F:	drivers/media/i2c/smiapp-pll.c
->  F:	drivers/media/i2c/smiapp-pll.h
->  F:	include/uapi/linux/smiapp.h
-> +F:	Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
->  
->  SMM665 HARDWARE MONITOR DRIVER
->  M:	Guenter Roeck <linux@roeck-us.net>
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
