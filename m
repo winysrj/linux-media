@@ -1,49 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57082 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752356AbaLFVfO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Dec 2014 16:35:14 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 15/22] si2157: simplify si2157_cmd_execute() error path
-Date: Sat,  6 Dec 2014 23:34:49 +0200
-Message-Id: <1417901696-5517-15-git-send-email-crope@iki.fi>
-In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
-References: <1417901696-5517-1-git-send-email-crope@iki.fi>
+Received: from smtp.bredband2.com ([83.219.192.166]:38173 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248AbaLOXkV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 18:40:21 -0500
+From: Benjamin Larsson <benjamin@southpole.se>
+To: crope@iki.fi
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] mn88472: implement lock for all delivery systems
+Date: Tue, 16 Dec 2014 00:40:08 +0100
+Message-Id: <1418686808-2530-1-git-send-email-benjamin@southpole.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove if () from firmware command error path as there should not be
-any error prone conditional logic there. Use goto labels instead.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 ---
- drivers/media/tuners/si2157.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/staging/media/mn88472/mn88472.c | 23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 14d2f73..f7c3867 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -65,15 +65,11 @@ static int si2157_cmd_execute(struct si2157_dev *dev, struct si2157_cmd *cmd)
- 		}
+diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+index 68f5036..426f0ed 100644
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -238,6 +238,7 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 	unsigned int utmp;
++	int lock = 0;
+ 
+ 	*status = 0;
+ 
+@@ -248,21 +249,37 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBT:
++		ret = regmap_read(dev->regmap[0], 0x7F, &utmp);
++		if (ret)
++			goto err;
++		if ((utmp&0xF) > 8)
++			lock = 1;
++		break;
+ 	case SYS_DVBT2:
+-		/* FIXME: implement me */
+-		utmp = 0x08; /* DVB-C lock value */
++		msleep(150);
++		ret = regmap_read(dev->regmap[2], 0x92, &utmp);
++		if (ret)
++			goto err;
++		if ((utmp&0xF) >= 0x07)
++			*status |= FE_HAS_SIGNAL;
++		if ((utmp&0xF) >= 0x0a)
++			*status |= FE_HAS_CARRIER;
++		if ((utmp&0xF) >= 0x0d)
++			*status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+ 		break;
+ 	case SYS_DVBC_ANNEX_A:
+ 		ret = regmap_read(dev->regmap[1], 0x84, &utmp);
+ 		if (ret)
+ 			goto err;
++		if ((utmp&0xF) > 7)
++			lock = 1;
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+ 		goto err;
  	}
  
--	ret = 0;
-+	mutex_unlock(&dev->i2c_mutex);
-+	return 0;
+-	if (utmp == 0x08)
++	if (lock)
+ 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
+ 				FE_HAS_SYNC | FE_HAS_LOCK;
  
- err_mutex_unlock:
- 	mutex_unlock(&dev->i2c_mutex);
--	if (ret)
--		goto err;
--
--	return 0;
--err:
- 	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
 -- 
-http://palosaari.fi/
+1.9.1
 
