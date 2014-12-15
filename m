@@ -1,44 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55545 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751872AbaLXLDd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Dec 2014 06:03:33 -0500
-Message-ID: <549A9D83.8050106@iki.fi>
-Date: Wed, 24 Dec 2014 13:03:31 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40974 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750818AbaLOLgL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 06:36:11 -0500
+Date: Mon, 15 Dec 2014 13:35:35 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH v3] Add LVDS RGB media bus formats
+Message-ID: <20141215113535.GC17565@valkosipuli.retiisi.org.uk>
+References: <1418635564-25464-1-git-send-email-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 48/66] rtl28xxu: use master I2C adapter for slave demods
-References: <1419367799-14263-1-git-send-email-crope@iki.fi> <1419367799-14263-48-git-send-email-crope@iki.fi> <549A0CA9.6050401@southpole.se>
-In-Reply-To: <549A0CA9.6050401@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1418635564-25464-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/24/2014 02:45 AM, Benjamin Larsson wrote:
-> On 12/23/2014 09:49 PM, Antti Palosaari wrote:
->> Both mn88472 and mn88473 slave demods are connected to master I2C
->> bus, not the bus behind master demod I2C gate like tuners. Use
->> correct bus.
->>
->
-> Hello Antti, in my work tree I am still getting i2c errors even with the
-> ir poll workaround (it takes really long time to get them). If I reload
-> the rtl28xxu driver 2 times it starts working again. Could this change
-> be related to such errors ?
+Hi Philipp,
 
-Moikka
-It could be related. I didn't take many tests, just tested both of my 
-sticks continues working so it is obvious slave demod is not connected 
-to master demod adapter.
+On Mon, Dec 15, 2014 at 10:26:04AM +0100, Philipp Zabel wrote:
+> This patch adds three new RGB media bus formats that describe
+> 18-bit or 24-bit samples transferred over an LVDS bus with three
+> or four differential data pairs, serialized into 7 time slots,
+> using standard SPWG/PSWG/VESA or JEIDA data ordering.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Tree is here if you wish to test.
-http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=rtl28xx
-
-regards
-Antti
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 -- 
-http://palosaari.fi/
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
