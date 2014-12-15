@@ -1,115 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:36251 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751520AbaLIDnz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Dec 2014 22:43:55 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2CE212A0004
-	for <linux-media@vger.kernel.org>; Tue,  9 Dec 2014 04:43:50 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mga01.intel.com ([192.55.52.88]:9172 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751319AbaLOT7U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 14:59:20 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141209034350.2CE212A0004@tschai.lan>
-Date: Tue,  9 Dec 2014 04:43:50 +0100 (CET)
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [yavta PATCH v3 1/3] yavta: Implement data_offset support for multi plane buffers
+Date: Mon, 15 Dec 2014 21:58:38 +0200
+Message-Id: <1418673520-31439-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1418673520-31439-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1418673520-31439-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Support data_offset for multi plane buffers. Also add an option to write the
+data in the buffer before data offset (--buffer-prefix).
 
-Results of the daily build of media_tree:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ yavta.c | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-date:		Tue Dec  9 04:00:19 CET 2014
-git branch:	test
-git hash:	71947828caef0c83d4245f7d1eaddc799b4ff1d1
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+diff --git a/yavta.c b/yavta.c
+index 77e5a41..cf8239b 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -80,6 +80,8 @@ struct device
+ 
+ 	void *pattern[VIDEO_MAX_PLANES];
+ 	unsigned int patternsize[VIDEO_MAX_PLANES];
++
++	bool write_buffer_prefix;
+ };
+ 
+ static bool video_is_mplane(struct device *dev)
+@@ -1545,14 +1547,21 @@ static void video_save_image(struct device *dev, struct v4l2_buffer *buf,
+ 		return;
+ 
+ 	for (i = 0; i < dev->num_planes; i++) {
++		void *data = dev->buffers[buf->index].mem[i];
+ 		unsigned int length;
+ 
+-		if (video_is_mplane(dev))
++		if (video_is_mplane(dev)) {
+ 			length = buf->m.planes[i].bytesused;
+-		else
++
++			if (!dev->write_buffer_prefix) {
++				data += buf->m.planes[i].data_offset;
++				length -= buf->m.planes[i].data_offset;
++			}
++		} else {
+ 			length = buf->bytesused;
++		}
+ 
+-		ret = write(fd, dev->buffers[buf->index].mem[i], length);
++		ret = write(fd, data, length);
+ 		if (ret < 0) {
+ 			printf("write error: %s (%d)\n", strerror(errno), errno);
+ 			break;
+@@ -1717,6 +1726,7 @@ static void usage(const char *argv0)
+ 	printf("-t, --time-per-frame num/denom	Set the time per frame (eg. 1/25 = 25 fps)\n");
+ 	printf("-u, --userptr			Use the user pointers streaming method\n");
+ 	printf("-w, --set-control 'ctrl value'	Set control 'ctrl' to 'value'\n");
++	printf("    --buffer-prefix		Write portions of buffer before data_offset\n");
+ 	printf("    --buffer-size		Buffer size in bytes\n");
+ 	printf("    --enum-formats		Enumerate formats\n");
+ 	printf("    --enum-inputs		Enumerate inputs\n");
+@@ -1749,10 +1759,12 @@ static void usage(const char *argv0)
+ #define OPT_BUFFER_SIZE		268
+ #define OPT_PREMULTIPLIED	269
+ #define OPT_QUEUE_LATE		270
++#define OPT_BUFFER_PREFIX	271
+ 
+ static struct option opts[] = {
+ 	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
+ 	{"buffer-type", 1, 0, 'B'},
++	{"buffer-prefix", 1, 0, OPT_BUFFER_PREFIX},
+ 	{"capture", 2, 0, 'c'},
+ 	{"check-overrun", 0, 0, 'C'},
+ 	{"delay", 1, 0, 'd'},
+@@ -2016,6 +2028,8 @@ int main(int argc, char *argv[])
+ 		case OPT_USERPTR_OFFSET:
+ 			userptr_offset = atoi(optarg);
+ 			break;
++		case OPT_BUFFER_PREFIX:
++			dev.write_buffer_prefix = true;
+ 		default:
+ 			printf("Invalid option -%c\n", c);
+ 			printf("Run %s -h for help.\n", argv[0]);
+-- 
+2.1.0.231.g7484e3b
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
