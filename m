@@ -1,48 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:39410 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752479AbaLAIsU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 03:48:20 -0500
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, Steven Guitton <keltiek@gmail.com>
-Subject: [PATCH] [media] redrat3: ensure dma is setup properly
-Date: Mon,  1 Dec 2014 08:48:16 +0000
-Message-Id: <1417423696-665-1-git-send-email-sean@mess.org>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:56078 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751002AbaLPLAs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Dec 2014 06:00:48 -0500
+Message-id: <549010DC.2090206@samsung.com>
+Date: Tue, 16 Dec 2014 12:00:44 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] vb2-vmalloc: Protect DMA-specific code by #ifdef
+ CONFIG_HAS_DMA
+References: <1418650828-28562-1-git-send-email-geert@linux-m68k.org>
+In-reply-to: <1418650828-28562-1-git-send-email-geert@linux-m68k.org>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes the driver on arm.
+Hello,
 
-Reported-by: Steven Guitton <keltiek@gmail.com>
-Tested-by: Steven Guitton <keltiek@gmail.com>
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/redrat3.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+On 2014-12-15 14:40, Geert Uytterhoeven wrote:
+> If NO_DMA=y:
+>
+> drivers/built-in.o: In function `vb2_vmalloc_dmabuf_ops_detach':
+> videobuf2-vmalloc.c:(.text+0x6f11b0): undefined reference to `dma_unmap_sg'
+> drivers/built-in.o: In function `vb2_vmalloc_dmabuf_ops_map':
+> videobuf2-vmalloc.c:(.text+0x6f1266): undefined reference to `dma_unmap_sg'
+> videobuf2-vmalloc.c:(.text+0x6f1282): undefined reference to `dma_map_sg'
+>
+> As we don't want to make the core VIDEOBUF2_VMALLOC depend on HAS_DMA
+> (it's v4l2 core code, and selected by a lot of drivers), stub out the
+> DMA support if HAS_DMA is not set.
+>
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 795b394..c4def66 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -966,7 +966,7 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 
- 	rr3->ep_in = ep_in;
- 	rr3->bulk_in_buf = usb_alloc_coherent(udev,
--		le16_to_cpu(ep_in->wMaxPacketSize), GFP_ATOMIC, &rr3->dma_in);
-+		le16_to_cpu(ep_in->wMaxPacketSize), GFP_KERNEL, &rr3->dma_in);
- 	if (!rr3->bulk_in_buf) {
- 		dev_err(dev, "Read buffer allocation failure\n");
- 		goto error;
-@@ -975,6 +975,8 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 	pipe = usb_rcvbulkpipe(udev, ep_in->bEndpointAddress);
- 	usb_fill_bulk_urb(rr3->read_urb, udev, pipe, rr3->bulk_in_buf,
- 		le16_to_cpu(ep_in->wMaxPacketSize), redrat3_handle_async, rr3);
-+	rr3->read_urb->transfer_dma = rr3->dma_in;
-+	rr3->read_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
- 
- 	rr3->ep_out = ep_out;
- 	rr3->udev = udev;
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+> ---
+>   drivers/media/v4l2-core/videobuf2-vmalloc.c | 5 +++++
+>   1 file changed, 5 insertions(+)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index fba944e502271069..d4fe55c85e0c5e71 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -211,6 +211,7 @@ static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
+>   	return 0;
+>   }
+>   
+> +#ifdef CONFIG_HAS_DMA
+>   /*********************************************/
+>   /*         DMABUF ops for exporters          */
+>   /*********************************************/
+> @@ -380,6 +381,8 @@ static struct dma_buf *vb2_vmalloc_get_dmabuf(void *buf_priv, unsigned long flag
+>   
+>   	return dbuf;
+>   }
+> +#endif /* CONFIG_HAS_DMA */
+> +
+>   
+>   /*********************************************/
+>   /*       callbacks for DMABUF buffers        */
+> @@ -437,7 +440,9 @@ const struct vb2_mem_ops vb2_vmalloc_memops = {
+>   	.put		= vb2_vmalloc_put,
+>   	.get_userptr	= vb2_vmalloc_get_userptr,
+>   	.put_userptr	= vb2_vmalloc_put_userptr,
+> +#ifdef CONFIG_HAS_DMA
+>   	.get_dmabuf	= vb2_vmalloc_get_dmabuf,
+> +#endif
+>   	.map_dmabuf	= vb2_vmalloc_map_dmabuf,
+>   	.unmap_dmabuf	= vb2_vmalloc_unmap_dmabuf,
+>   	.attach_dmabuf	= vb2_vmalloc_attach_dmabuf,
+
+Best regards
 -- 
-1.9.3
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
