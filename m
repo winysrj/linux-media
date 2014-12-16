@@ -1,54 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37508 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751086AbaLCLTi (ORCPT
+Received: from alln-iport-5.cisco.com ([173.37.142.92]:43615 "EHLO
+	alln-iport-5.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750911AbaLPGuq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Dec 2014 06:19:38 -0500
-Date: Wed, 3 Dec 2014 13:19:04 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: [PATCH 1/2] v4l2 subdevs: replace get/set_crop by
- get/set_selection
-Message-ID: <20141203111904.GF14746@valkosipuli.retiisi.org.uk>
-References: <1417522901-43604-1-git-send-email-hverkuil@xs4all.nl>
- <547EF0A9.2070004@samsung.com>
+	Tue, 16 Dec 2014 01:50:46 -0500
+From: "Prashant Laddha (prladdha)" <prladdha@cisco.com>
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/6] Use LUT based implementation for (co)sine functions
+Date: Tue, 16 Dec 2014 06:41:18 +0000
+Message-ID: <D0B5CB0E.2605C%prladdha@cisco.com>
+In-Reply-To: <548EE25C.4060808@iki.fi>
+Content-Language: en-US
+Content-Type: text/plain; charset="euc-kr"
+Content-ID: <FBB987CE87133541BD568314AF2A82FC@emea.cisco.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <547EF0A9.2070004@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 03, 2014 at 12:14:49PM +0100, Sylwester Nawrocki wrote:
-> Hi Hans,
-> 
-> On 02/12/14 13:21, Hans Verkuil wrote:
-> > -static int s5k6aa_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> > -			   struct v4l2_subdev_crop *crop)
-> > +static int s5k6aa_set_selection(struct v4l2_subdev *sd,
-> > +				struct v4l2_subdev_fh *fh,
-> > +				struct v4l2_subdev_selection *sel)
-> >  {
-> >  	struct s5k6aa *s5k6aa = to_s5k6aa(sd);
-> >  	struct v4l2_mbus_framefmt *mf;
-> >  	unsigned int max_x, max_y;
-> >  	struct v4l2_rect *crop_r;
-> >  
-> > +	if (sel->pad || sel->target != V4L2_SEL_TGT_CROP)
-> > +		return -EINVAL;
-> > +
-> 
-> Isn't checking sel->pad redundant here ? There is already the pad index
-> validation in check_selection() in v4l2-subdev.c and this driver has only
-> one pad.
-
-Good point. check_crop() does that for the [sg]_crop as well.
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+QW50dGksIE1hdXJvLA0KDQpUaGFua3MgZm9yIHlvdXIgY29tbWVudHMuDQoNCk9uIDE1LzEyLzE0
+IDc6MDAgcG0sICJBbnR0aSBQYWxvc2FhcmkiIDxjcm9wZUBpa2kuZmk+IHdyb3RlOg0KDQoNCj5P
+biAxMi8xNS8yMDE0IDAzOjEzIFBNLCBNYXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6DQo+PiBF
+bSBNb24sIDE1IERlYyAyMDE0IDE0OjQ5OjE3ICswNTMwDQo+PiBQcmFzaGFudCBMYWRkaGEgPHBy
+bGFkZGhhQGNpc2NvLmNvbT4gZXNjcmV2ZXU6DQo+Pg0KPj4+IFJlcGxhY2VkIFRheWxvciBzZXJp
+ZXMgY2FsY3VsYXRpb24gZm9yIChjbylzaW5lIHdpdGggYQ0KPj4+IGxvb2sgdXAgdGFibGUgKExV
+VCkgZm9yIHNpbmUgdmFsdWVzLg0KPj4NCj4+IEtlcm5lbCBoYXMgYWxyZWFkeSBhIExVVCBmb3Ig
+c2luL2NvcyBhdDoNCj4+IAlpbmNsdWRlL2xpbnV4L2ZpeHAtYXJpdGguaA0KPj4NCj4+IFRoZSBi
+ZXN0IHdvdWxkIGJlIHRvIGVpdGhlciB1c2UgaXQgb3IgaW1wcm92ZSBpdHMgcHJlY2lzaW9uLCBp
+ZiB0aGUgb25lDQo+PnRoZXJlDQo+PiBpcyBub3QgZ29vZCBlbm91Z2guDQoNClRoYW5rcy4gSSBo
+YWQgbm90IGxvb2tlZCBhdCB0aGlzIGZpbGUgZWFybGllci4gQnV0IG5vdyB3aGVuIEkgbG9va2Vk
+IGF0DQp0aGlzIGZpbGUgSSBhZ3JlZSB3aXRoIEFudHRpqfZzIGNvbW1lbnRzIGJlbG93Lg0KDQoN
+Cj4NCj5JIGxvb2tlZCB0aGF0IG9uZSB3aGVuIG1hZGUgZ2VuZXJhdG9yLiBJdCBoYXMgcG9vciBw
+cmVjaXNpb24gYW5kIGl0IHVzZXMNCj5kZWdyZWVzIG5vdCByYWRpYW5zLg0KDQo+IA0KQWxzbywg
+aXQgZG9lcyBub3Qgc3VwcG9ydCBjYWxjdWxhdGlvbiBmb3IgcGhhc2UgdmFsdWVzIGZhbGxpbmcg
+aW4gbWlkZGxlDQpvZiB0d28gZW50cmllcyBvZiBMVVQuDQoNCg0KPkJ1dCBzdXJlbHkgaXQgaXMg
+Y29ycmVjdCBwcmFjdGljZSBpbXByb3ZlIGV4aXN0aW5nDQo+dGhhbiBpbnRyb2R1Y2UgbmV3Lg0K
+DQpJIGFncmVlLiBQcm9iYWJseSB3ZSBjYW4gc3RhcnQgbG9va2luZyBpbnRvIGhvdyB0byBpbXBy
+b3ZlIGV4aXN0aW5nLiBJDQpsb29rZWQgYXQgZGVwZW5kYW5jaWVzLiBBcyBvZiBub3cgZnVuY3Rp
+b25zIGluIGZpeHAtYXJpdGggaXMgdXNlZCBieSB0d28NCm90aGVyIGZpbGVzLiBSZXBsYWNpbmcg
+Y3VycmVudCBpbXBsZW1lbnRhdGlvbiBpbiBmaXhwLWFyaXRoLmggd2l0aCBoaWdoDQpwcmVjaXNp
+b24gd2lsbCBub3Qgd29yayBhcyBpdCBpcywgYmVjYXVzZSBjYWxsZXIgZnVuY3Rpb25zIGFyZSB1
+c2luZw0KbGVzc2VyIHByZWNpc2lvbi4gV2UgcHJvYmFibHkgbmVlZCB0byBkaXNjdXNzIG1vcmUg
+b24gaG93IHRvIGltcHJvdmUNCmV4aXN0aW5nIGltcGxlbWVudGF0aW9uLg0KDQpTb21lIHRob3Vn
+aHRzIC0NCjEuIEdvaW5nIGJ5IHRoZSBuYW1lIGZpeHAtYXJpdGguaCwgSSBmZWVsLCBpdCBzaG91
+bGQgaGF2ZSBsYXJnZXIgc2NvcGUNCnRoYW4ganVzdCAoY28pc2luZSBpbXBsZW1lbnRhdGlvbi4g
+SXQgY2FuIGluY2x1ZGUgZGl2aWRlIGFzIHdlbGwuIE9uZQ0KY291bGQgYWxzbyBjb25zaWRlciBv
+cHRpb24gdG8ga2VlcCBhbGwgdHJpZ25vbWV0cmljIGZ1bmN0aW9ucyBpbiBhbm90aGVyDQpmaWxl
+DQoyLiBPbmUgY291bGQgc3VwcG9ydCBBUElzIHRvIHByb3ZpZGUgb3V0cHV0IHdpdGggZGlmZmVy
+ZW50IHByZWNpc2lvbnMsIHNheQ0KMTYsIDMyLCA2NCBiaXRzIGV0Yy4gTm90IHN1cmUgaG93IGZp
+bmFsIGltcGxlbWVudGF0aW9uIHdvdWxkIGJlIGJ1dCBvbmUNCm9wdGlvbiB3b3VsZCBiZSB0byBk
+byBpbnRlcm5hbCBjb21wdXRhdGlvbiB3aXRoIGhpZ2hlc3QNCnByZWNpc2lvbiBwb3NzaWJsZSBh
+bmQgdGhlbiB0cnVuY2F0ZSB0aGUgcmVzdWx0IHRvIGhhdmUgZGVzaXJlZCBwcmVjaXNpb24NCmJh
+c2VkIG9uIHRoZSBBUEkgY2FsbGVkLg0KDQoNClJlZ2FyZHMsDQpQcmFzaGFudA0KDQo=
