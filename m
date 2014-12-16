@@ -1,56 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:60240 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751178AbaLRQo2 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43796 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750796AbaLPDn1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 11:44:28 -0500
-Received: by mail-wg0-f48.google.com with SMTP id y19so2149663wgg.7
-        for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 08:44:27 -0800 (PST)
-Message-ID: <54930468.6010007@vodalys.com>
-Date: Thu, 18 Dec 2014 17:44:24 +0100
-From: =?UTF-8?B?RnLDqWTDqXJpYyBTdXJlYXU=?= <frederic.sureau@vodalys.com>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	Fabio Estevam <festevam@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: coda: Unable to use encoder video_bitrate
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 15 Dec 2014 22:43:27 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id EBB962A008F
+	for <linux-media@vger.kernel.org>; Tue, 16 Dec 2014 04:43:12 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141216034312.EBB962A008F@tschai.lan>
+Date: Tue, 16 Dec 2014 04:43:12 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I am trying to use the coda encoder through Gstreamer on an iMX6-based 
-board.
+Results of the daily build of media_tree:
 
-I use the (rebased and slightly modified) gstv4l2h264enc plugin from:
-https://github.com/hizukiayaka/gst-plugins-good
+date:		Tue Dec 16 04:00:25 CET 2014
+git branch:	test
+git hash:	e272d95f8c0544cff55c485a10828b063c8e417c
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-This pipeline works fine:
-gst-launch-1.0 -vvv v4l2src device=/dev/video4 ! 
-"video/x-raw,width=1280,height=720" ! videoconvert ! v4l2video0h264enc ! 
-h264parse ! mp4mux ! filesink location=test.mp4
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-x86_64: OK
+apps: ERRORS
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
-When encoder has no bitrate param set (default=0), video encoding works 
-well, but bitrate reaches ~2.5Mbps
+Detailed results are available here:
 
-When I try to set the bitrate with whatever value like 100,000 or 
-1,000,000, the encoder produces video with bitrate around 480kbps and a 
-very poor quality.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Here is the gstreamer pipeline I use with bitrate set:
-gst-launch-1.0 -vvv v4l2src device=/dev/video4 ! 
-"video/x-raw,width=1280,height=720" ! videoconvert ! v4l2video0h264enc 
-extra-controls="controls,video_bitrate=1000000;" ! h264parse ! mp4mux ! 
-filesink location=test.mp4
+Full logs are available here:
 
-The video_bitrate control seems to be correctly passed to the driver by 
-GStreamer since I can see the VIDIOC_S_CTRL call.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-Any idea ?
+The Media Infrastructure API from this daily build is here:
 
-Thanks
-Fred
+http://www.xs4all.nl/~hverkuil/spec/media.html
