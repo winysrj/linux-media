@@ -1,106 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50942 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932203AbaLBOcF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 09:32:05 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Benjamin Larsson <benjamin@southpole.se>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/3] rtl28xxu: switch rtl2832 demod attach to I2C binding
-Date: Tue,  2 Dec 2014 16:31:22 +0200
-Message-Id: <1417530683-5063-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1417530683-5063-1-git-send-email-crope@iki.fi>
-References: <1417530683-5063-1-git-send-email-crope@iki.fi>
+Received: from smtp-out-196.synserver.de ([212.40.185.196]:1059 "EHLO
+	smtp-out-179.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750983AbaLPVUy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Dec 2014 16:20:54 -0500
+Message-ID: <5490A226.1000204@metafoo.de>
+Date: Tue, 16 Dec 2014 22:20:38 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
+MIME-Version: 1.0
+To: Fabio Estevam <fabio.estevam@freescale.com>,
+	mchehab@osg.samsung.com
+CC: hans.verkuil@cisco.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] [media] adv7180: Simplify PM hooks
+References: <1418748547-12308-1-git-send-email-fabio.estevam@freescale.com>
+In-Reply-To: <1418748547-12308-1-git-send-email-fabio.estevam@freescale.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As rtl2832 driver support now I2C binding we will switch to that one.
+On 12/16/2014 05:49 PM, Fabio Estevam wrote:
+> The macro SIMPLE_DEV_PM_OPS already takes care of the CONFIG_PM_SLEEP=n case.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 29 ++++++++++++++++++++++++++---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  1 +
- 2 files changed, 27 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 896a225..de8caf7 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -790,7 +790,10 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 	int ret;
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
-+	struct rtl2832_platform_data platform_data;
- 	const struct rtl2832_config *rtl2832_config;
-+	struct i2c_board_info board_info = {};
-+	struct i2c_client *client;
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
-@@ -823,12 +826,26 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 	}
- 
- 	/* attach demodulator */
--	adap->fe[0] = dvb_attach(rtl2832_attach, rtl2832_config, &d->i2c_adap);
--	if (!adap->fe[0]) {
-+	platform_data.config = rtl2832_config;
-+	platform_data.dvb_frontend = &adap->fe[0];
-+	strlcpy(board_info.type, "rtl2832", I2C_NAME_SIZE);
-+	board_info.addr = 0x10;
-+	board_info.platform_data = &platform_data;
-+	request_module("%s", board_info.type);
-+	client = i2c_new_device(&d->i2c_adap, &board_info);
-+	if (client == NULL || client->dev.driver == NULL) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+
-+	if (!try_module_get(client->dev.driver->owner)) {
-+		i2c_unregister_device(client);
- 		ret = -ENODEV;
- 		goto err;
- 	}
- 
-+	priv->i2c_client_demod = client;
-+
- 	/* RTL2832 I2C repeater */
- 	priv->demod_i2c_adapter = rtl2832_get_i2c_adapter(adap->fe[0]);
- 
-@@ -837,7 +854,6 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	if (priv->slave_demod) {
- 		struct i2c_board_info info = {};
--		struct i2c_client *client;
- 
- 		/*
- 		 * We continue on reduced mode, without DVB-T2/C, using master
-@@ -1189,6 +1205,13 @@ static void rtl28xxu_exit(struct dvb_usb_device *d)
- 		i2c_unregister_device(client);
- 	}
- 
-+	/* remove I2C demod */
-+	client = priv->i2c_client_demod;
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
-+	}
-+
- 	return;
- }
- 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-index 3e3ea9d..e52a2b7 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-@@ -57,6 +57,7 @@ struct rtl28xxu_priv {
- 	u8 page; /* integrated demod active register page */
- 	struct i2c_adapter *demod_i2c_adapter;
- 	bool rc_active;
-+	struct i2c_client *i2c_client_demod;
- 	struct i2c_client *i2c_client_tuner;
- 	struct i2c_client *i2c_client_slave_demod;
- 	#define SLAVE_DEMOD_NONE           0
--- 
-http://palosaari.fi/
-
+I guess that's kind of debatable. The purpose of ifdef-ing stuff out is to 
+decrease the driver size if PM support is disabled. With this change you are 
+adding a rather large struct which is all NULL to the driver even if PM is 
+disabled. Previously this was not the case.
