@@ -1,58 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from alln-iport-5.cisco.com ([173.37.142.92]:43615 "EHLO
-	alln-iport-5.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750911AbaLPGuq (ORCPT
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:64571 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906AbaLPOyy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Dec 2014 01:50:46 -0500
-From: "Prashant Laddha (prladdha)" <prladdha@cisco.com>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/6] Use LUT based implementation for (co)sine functions
-Date: Tue, 16 Dec 2014 06:41:18 +0000
-Message-ID: <D0B5CB0E.2605C%prladdha@cisco.com>
-In-Reply-To: <548EE25C.4060808@iki.fi>
-Content-Language: en-US
-Content-Type: text/plain; charset="euc-kr"
-Content-ID: <FBB987CE87133541BD568314AF2A82FC@emea.cisco.com>
-Content-Transfer-Encoding: base64
+	Tue, 16 Dec 2014 09:54:54 -0500
+Received: by mail-wg0-f49.google.com with SMTP id n12so17619837wgh.36
+        for <linux-media@vger.kernel.org>; Tue, 16 Dec 2014 06:54:53 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <1417686899-30149-4-git-send-email-hverkuil@xs4all.nl>
+References: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl> <1417686899-30149-4-git-send-email-hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 16 Dec 2014 20:24:22 +0530
+Message-ID: <CA+V-a8tiK9abYuy_SRM0HDbg223XRRvkeUd1_ds1DS5wqipJJA@mail.gmail.com>
+Subject: Re: [RFC PATCH 3/8] v4l2-subdev: drop unused op enum_mbus_fmt
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	laurent pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-QW50dGksIE1hdXJvLA0KDQpUaGFua3MgZm9yIHlvdXIgY29tbWVudHMuDQoNCk9uIDE1LzEyLzE0
-IDc6MDAgcG0sICJBbnR0aSBQYWxvc2FhcmkiIDxjcm9wZUBpa2kuZmk+IHdyb3RlOg0KDQoNCj5P
-biAxMi8xNS8yMDE0IDAzOjEzIFBNLCBNYXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6DQo+PiBF
-bSBNb24sIDE1IERlYyAyMDE0IDE0OjQ5OjE3ICswNTMwDQo+PiBQcmFzaGFudCBMYWRkaGEgPHBy
-bGFkZGhhQGNpc2NvLmNvbT4gZXNjcmV2ZXU6DQo+Pg0KPj4+IFJlcGxhY2VkIFRheWxvciBzZXJp
-ZXMgY2FsY3VsYXRpb24gZm9yIChjbylzaW5lIHdpdGggYQ0KPj4+IGxvb2sgdXAgdGFibGUgKExV
-VCkgZm9yIHNpbmUgdmFsdWVzLg0KPj4NCj4+IEtlcm5lbCBoYXMgYWxyZWFkeSBhIExVVCBmb3Ig
-c2luL2NvcyBhdDoNCj4+IAlpbmNsdWRlL2xpbnV4L2ZpeHAtYXJpdGguaA0KPj4NCj4+IFRoZSBi
-ZXN0IHdvdWxkIGJlIHRvIGVpdGhlciB1c2UgaXQgb3IgaW1wcm92ZSBpdHMgcHJlY2lzaW9uLCBp
-ZiB0aGUgb25lDQo+PnRoZXJlDQo+PiBpcyBub3QgZ29vZCBlbm91Z2guDQoNClRoYW5rcy4gSSBo
-YWQgbm90IGxvb2tlZCBhdCB0aGlzIGZpbGUgZWFybGllci4gQnV0IG5vdyB3aGVuIEkgbG9va2Vk
-IGF0DQp0aGlzIGZpbGUgSSBhZ3JlZSB3aXRoIEFudHRpqfZzIGNvbW1lbnRzIGJlbG93Lg0KDQoN
-Cj4NCj5JIGxvb2tlZCB0aGF0IG9uZSB3aGVuIG1hZGUgZ2VuZXJhdG9yLiBJdCBoYXMgcG9vciBw
-cmVjaXNpb24gYW5kIGl0IHVzZXMNCj5kZWdyZWVzIG5vdCByYWRpYW5zLg0KDQo+IA0KQWxzbywg
-aXQgZG9lcyBub3Qgc3VwcG9ydCBjYWxjdWxhdGlvbiBmb3IgcGhhc2UgdmFsdWVzIGZhbGxpbmcg
-aW4gbWlkZGxlDQpvZiB0d28gZW50cmllcyBvZiBMVVQuDQoNCg0KPkJ1dCBzdXJlbHkgaXQgaXMg
-Y29ycmVjdCBwcmFjdGljZSBpbXByb3ZlIGV4aXN0aW5nDQo+dGhhbiBpbnRyb2R1Y2UgbmV3Lg0K
-DQpJIGFncmVlLiBQcm9iYWJseSB3ZSBjYW4gc3RhcnQgbG9va2luZyBpbnRvIGhvdyB0byBpbXBy
-b3ZlIGV4aXN0aW5nLiBJDQpsb29rZWQgYXQgZGVwZW5kYW5jaWVzLiBBcyBvZiBub3cgZnVuY3Rp
-b25zIGluIGZpeHAtYXJpdGggaXMgdXNlZCBieSB0d28NCm90aGVyIGZpbGVzLiBSZXBsYWNpbmcg
-Y3VycmVudCBpbXBsZW1lbnRhdGlvbiBpbiBmaXhwLWFyaXRoLmggd2l0aCBoaWdoDQpwcmVjaXNp
-b24gd2lsbCBub3Qgd29yayBhcyBpdCBpcywgYmVjYXVzZSBjYWxsZXIgZnVuY3Rpb25zIGFyZSB1
-c2luZw0KbGVzc2VyIHByZWNpc2lvbi4gV2UgcHJvYmFibHkgbmVlZCB0byBkaXNjdXNzIG1vcmUg
-b24gaG93IHRvIGltcHJvdmUNCmV4aXN0aW5nIGltcGxlbWVudGF0aW9uLg0KDQpTb21lIHRob3Vn
-aHRzIC0NCjEuIEdvaW5nIGJ5IHRoZSBuYW1lIGZpeHAtYXJpdGguaCwgSSBmZWVsLCBpdCBzaG91
-bGQgaGF2ZSBsYXJnZXIgc2NvcGUNCnRoYW4ganVzdCAoY28pc2luZSBpbXBsZW1lbnRhdGlvbi4g
-SXQgY2FuIGluY2x1ZGUgZGl2aWRlIGFzIHdlbGwuIE9uZQ0KY291bGQgYWxzbyBjb25zaWRlciBv
-cHRpb24gdG8ga2VlcCBhbGwgdHJpZ25vbWV0cmljIGZ1bmN0aW9ucyBpbiBhbm90aGVyDQpmaWxl
-DQoyLiBPbmUgY291bGQgc3VwcG9ydCBBUElzIHRvIHByb3ZpZGUgb3V0cHV0IHdpdGggZGlmZmVy
-ZW50IHByZWNpc2lvbnMsIHNheQ0KMTYsIDMyLCA2NCBiaXRzIGV0Yy4gTm90IHN1cmUgaG93IGZp
-bmFsIGltcGxlbWVudGF0aW9uIHdvdWxkIGJlIGJ1dCBvbmUNCm9wdGlvbiB3b3VsZCBiZSB0byBk
-byBpbnRlcm5hbCBjb21wdXRhdGlvbiB3aXRoIGhpZ2hlc3QNCnByZWNpc2lvbiBwb3NzaWJsZSBh
-bmQgdGhlbiB0cnVuY2F0ZSB0aGUgcmVzdWx0IHRvIGhhdmUgZGVzaXJlZCBwcmVjaXNpb24NCmJh
-c2VkIG9uIHRoZSBBUEkgY2FsbGVkLg0KDQoNClJlZ2FyZHMsDQpQcmFzaGFudA0KDQo=
+On Thu, Dec 4, 2014 at 3:24 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Weird, this op isn't used at all. Seems to be orphaned code.
+> Remove it.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Regards,
+--Prabhakar Lad
+
+> ---
+>  include/media/v4l2-subdev.h | 2 --
+>  1 file changed, 2 deletions(-)
+>
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index b052184..5beeb87 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -342,8 +342,6 @@ struct v4l2_subdev_video_ops {
+>                         struct v4l2_dv_timings *timings);
+>         int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
+>                              u32 *code);
+> -       int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
+> -                            struct v4l2_frmsizeenum *fsize);
+>         int (*g_mbus_fmt)(struct v4l2_subdev *sd,
+>                           struct v4l2_mbus_framefmt *fmt);
+>         int (*try_mbus_fmt)(struct v4l2_subdev *sd,
+> --
+> 2.1.3
+>
