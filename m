@@ -1,84 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46446 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753098AbaLKOtT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Dec 2014 09:49:19 -0500
-Message-ID: <5489AE9A.8030204@xs4all.nl>
-Date: Thu, 11 Dec 2014 15:47:54 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:45966 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750772AbaLPDku (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 22:40:50 -0500
+Message-ID: <548FA9BE.8090509@iki.fi>
+Date: Tue, 16 Dec 2014 05:40:46 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Pawel Osciak <pawel@osciak.com>
-CC: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Fabio Estevam <festevam@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-media <linux-media@vger.kernel.org>,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	frederic.sureau@vodalys.com
-Subject: Re: coda: not generating EOS event
-References: <CAOMZO5BgYVQQY4_jJK0h1jMW-Tpb8DHqAkfi2MerhmndMSZr3w@mail.gmail.com> <1418308963.2320.14.camel@collabora.com>
-In-Reply-To: <1418308963.2320.14.camel@collabora.com>
-Content-Type: text/plain; charset=UTF-8
+To: Mark Clarkstone <hello@markclarkstone.co.uk>,
+	Carlos Diogo <cdiogo@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Instalation issue on S960
+References: <CAEzPJ9M=uOY_ujbp7XtrRq3N4jq6L3r_84qggfbQ4xEpX12u-w@mail.gmail.com>	<CAEzPJ9NqYNo2BV0j2jujVO+p3w73qxZOoM3K8J+yebFMVwwhWQ@mail.gmail.com> <CADBe_Tu72XRS=EFEcdLK8wLLsLO60NSvSw18=Rb0aaSeg3WiSg@mail.gmail.com>
+In-Reply-To: <CADBe_Tu72XRS=EFEcdLK8wLLsLO60NSvSw18=Rb0aaSeg3WiSg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
+On 12/16/2014 02:09 AM, Mark Clarkstone wrote:
+> Hi,
+>
+> I was recently trying to build drivers for another tuner on a Pi and
+> also came across a similar problem [unable to find symbols], it turns
+> out that the Raspberry Pi kernel doesn't have I2C_MUX enabled which is
+> needed by some modules.
 
-On 12/11/14 15:42, Nicolas Dufresne wrote:
-> Le jeudi 11 décembre 2014 à 11:00 -0200, Fabio Estevam a écrit :
->> Hi,
+That's likely the reason as I2C mux is needed by m88ds3103 driver.
+
+Antti
+>
+> You could try rebuilding the kernel with the above option enabled and
+> see if that helps.
+>
+> Although I could be totally wrong and hopefully someone with more
+> knowledge will know (I'm still pretty much a Linux noob :p).
+>
+> Hope this helps.
+>
+> On 15 December 2014 at 23:13, Carlos Diogo <cdiogo@gmail.com> wrote:
+>> Dear support team ,
+>> i have spent 4 days trying to get my S960 setup in my raspberrry Pi
 >>
->> I am running Gstreamer 1.4.4 with on a imx6q-sabresd board and I am
->> able to decode a video through the coda driver.
+>> I have tried multiple options and using the linuxtv.org drivers the
+>> power light switches on but then i get the below message
 >>
->> The pipeline I use is:
->> gst-launch-1.0 filesrc
->> location=/home/H264_test1_Talkinghead_mp4_480x360.mp4 ! qtdemux !
->> h264parse ! v4l2video1dec ! videoconvert ! fbdevsink
-> 
-> This is a known issue. The handling of EOS and draining is ill defined
-> in V4L2 specification. We should be clarifying this soon. Currently
-> GStreamer implements what was originally done in Exynos MFC driver. This
-> consist of sending empty buffer to the V4L2 Output (the input), until we
-> get an empty buffer (bytesused = 0) on the V4L2 Capture (output).
-> 
-> The CODA driver uses the new method to initiate the drain, which is to
-> send V4L2_DEC_CMD_STOP, this was not implemented by any driver when GST
-> v4l2 support was added. This is the right thing to do. This is tracked
-> at (contribution welcome of course):
-> 
-> https://bugzilla.gnome.org/show_bug.cgi?id=733864
-> 
-> Finally, CODA indicate that all buffer has been sent through an event,
-> V4L2_EVENT_EOS. This event was designed for another use case, it should
-> in fact be sent when the decoder is done with the encoded buffers,
-> rather then when the last decoded buffer has been queued. When correctly
-> implemented, this event cannot be used to figure-out when the last
-> decoded buffer has been dequeued.
-> 
-> During last workshop, it has been proposed to introduce a flag on the
-> last decoded buffer, _LAST. This flag could also be put on an empty
-
-Are you planning to work on this? That was my assumption, but it's probably
-a good idea to check in case we are waiting for one another :-)
-
-Regards,
-
-	Hans
-
-> buffer to accommodate driver like MFC that only know it's EOS after the
-> last buffer has been delivered. This all need to be SPECed and
-> implemented. If you need to get that to run now, the easiest might be to
-> hack CODA to mimic MFC behavior. Implement DEC_CMD_STOP in GStreamer
-> shall not be very hard though, it simply need someone to do it.
-> 
-> cheers,
-> Nicolas
-> 
+>>
+>>
+>> [    8.561909] usb 1-1.5: dvb_usb_v2: found a 'DVBSky S960/S860' in warm state
+>> [    8.576865] usb 1-1.5: dvb_usb_v2: will pass the complete MPEG2
+>> transport stream to the software demuxer
+>> [    8.591803] DVB: registering new adapter (DVBSky S960/S860)
+>> [    8.603974] usb 1-1.5: dvb_usb_v2: MAC address: 00:18:42:54:96:0c
+>> [    8.650257] DVB: Unable to find symbol m88ds3103_attach()
+>> [    8.661452] usb 1-1.5: dvbsky_s960_attach fail.
+>> [    8.683560] usbcore: registered new interface driver dvb_usb_dvbsky
+>>
+>> I have tried googling it but i have found nothing about this
+>>
+>> i'm using raspbian , with kernel 3.12.34
+>>
+>> Any help here?
+>>
+>> Thanks in advance
+>> Carlos
+>>
+>>
+>> --
+>> Os meus cumprimentos / Best regards /  Mit freundlichen Grüße
+>> Carlos Diogo
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>
 
+-- 
+http://palosaari.fi/
