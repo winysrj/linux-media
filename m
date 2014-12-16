@@ -1,63 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40272 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750765AbaLOTJy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 14:09:54 -0500
-Date: Mon, 15 Dec 2014 17:09:48 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: grigore calugar <zradu1100@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [tvtime] Broke support for cards with multiple numbers of the
- input
-Message-ID: <20141215170948.1066aea9@recife.lan>
-In-Reply-To: <CA+S3egD3p9p2MVNZqWAZ3zvcuJ3KQn9KDZp_Hm1im0NhiPfP3g@mail.gmail.com>
-References: <CA+S3egD3p9p2MVNZqWAZ3zvcuJ3KQn9KDZp_Hm1im0NhiPfP3g@mail.gmail.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:58477 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750866AbaLPT7M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Dec 2014 14:59:12 -0500
+Received: by mail-wi0-f172.google.com with SMTP id n3so13417288wiv.17
+        for <linux-media@vger.kernel.org>; Tue, 16 Dec 2014 11:59:10 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CADBe_Tu72XRS=EFEcdLK8wLLsLO60NSvSw18=Rb0aaSeg3WiSg@mail.gmail.com>
+References: <CAEzPJ9M=uOY_ujbp7XtrRq3N4jq6L3r_84qggfbQ4xEpX12u-w@mail.gmail.com>
+	<CAEzPJ9NqYNo2BV0j2jujVO+p3w73qxZOoM3K8J+yebFMVwwhWQ@mail.gmail.com>
+	<CADBe_Tu72XRS=EFEcdLK8wLLsLO60NSvSw18=Rb0aaSeg3WiSg@mail.gmail.com>
+Date: Tue, 16 Dec 2014 20:59:10 +0100
+Message-ID: <CAEzPJ9PsbZiDE8eZpXPFiZuHo9XjjTEdrz6ntYk+nZ-j9795_w@mail.gmail.com>
+Subject: Re: Instalation issue on S960
+From: Carlos Diogo <cdiogo@gmail.com>
+To: Mark Clarkstone <hello@markclarkstone.co.uk>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 15 Dec 2014 11:56:16 +0000
-grigore calugar <zradu1100@gmail.com> escreveu:
+Hi , thanks for the inputs. Some more details on the issue.
+When i try to build the drivers the m88ds3103 driver is not built (no
+.o /.ko file generated) but also no error shows up. For whatever
+reason the make process skips this drivers.
+I enabled the i2c and re-started the build process which takes as
+couple of hours.
 
-> After commit:http://git.linuxtv.org/cgit.cgi/tvtime.git/commit/?id=c49ebc47c51e0bcf9e8c4403efdf0f31bf1b4479
-> support for support for cards with multiple numbers of the input is
-> broken. My tuner has 4 inputs and after this commit I can not select
-> any from OSD menu.
-
-Sorry, I inverted a test there. The enclosed patch should fix it.
-I'm merging upstream.
-
-Regards,
-Mauro
-
-[PATCH] Fix input select condition
-
-Changeset c49ebc47c51e added an inverted condition with caused a
-regression.
-
-Reported-by: Grigore Calugar <zradu1100@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/src/videoinput.c b/src/videoinput.c
-index 084cc3f4c7ed..50c2b84b70de 100644
---- a/src/videoinput.c
-+++ b/src/videoinput.c
-@@ -849,8 +849,8 @@ void videoinput_set_input_num( videoinput_t *vidin, int inputnum )
- 
-     videoinput_stop_capture_v4l2( vidin );
- 
--    if( !vidin->numinputs ) {
--        if( ioctl( vidin->grab_fd, VIDIOC_S_INPUT, &index ) < 0 ) {
-+    if( vidin->numinputs ) {
-+	if( ioctl( vidin->grab_fd, VIDIOC_S_INPUT, &index ) < 0 ) {
- 	    fprintf( stderr, "videoinput: Card refuses to set its input.\n"
- 		     "Please post a bug report to " PACKAGE_BUGREPORT "\n"
- 		     "indicating your card, driver, and this error message: %s.\n",
+At the end the module was still not compiled and the error continues.
+Any other ideas?
 
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+On Tue, Dec 16, 2014 at 1:09 AM, Mark Clarkstone
+<hello@markclarkstone.co.uk> wrote:
+> Hi,
+>
+> I was recently trying to build drivers for another tuner on a Pi and
+> also came across a similar problem [unable to find symbols], it turns
+> out that the Raspberry Pi kernel doesn't have I2C_MUX enabled which is
+> needed by some modules.
+>
+> You could try rebuilding the kernel with the above option enabled and
+> see if that helps.
+>
+> Although I could be totally wrong and hopefully someone with more
+> knowledge will know (I'm still pretty much a Linux noob :p).
+>
+> Hope this helps.
+>
+> On 15 December 2014 at 23:13, Carlos Diogo <cdiogo@gmail.com> wrote:
+>> Dear support team ,
+>> i have spent 4 days trying to get my S960 setup in my raspberrry Pi
+>>
+>> I have tried multiple options and using the linuxtv.org drivers the
+>> power light switches on but then i get the below message
+>>
+>>
+>>
+>> [    8.561909] usb 1-1.5: dvb_usb_v2: found a 'DVBSky S960/S860' in warm state
+>> [    8.576865] usb 1-1.5: dvb_usb_v2: will pass the complete MPEG2
+>> transport stream to the software demuxer
+>> [    8.591803] DVB: registering new adapter (DVBSky S960/S860)
+>> [    8.603974] usb 1-1.5: dvb_usb_v2: MAC address: 00:18:42:54:96:0c
+>> [    8.650257] DVB: Unable to find symbol m88ds3103_attach()
+>> [    8.661452] usb 1-1.5: dvbsky_s960_attach fail.
+>> [    8.683560] usbcore: registered new interface driver dvb_usb_dvbsky
+>>
+>> I have tried googling it but i have found nothing about this
+>>
+>> i'm using raspbian , with kernel 3.12.34
+>>
+>> Any help here?
+>>
+>> Thanks in advance
+>> Carlos
+>>
+>>
+>> --
+>> Os meus cumprimentos / Best regards /  Mit freundlichen Grüße
+>> Carlos Diogo
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+Os meus cumprimentos / Best regards /  Mit freundlichen Grüße
+Carlos Diogo
