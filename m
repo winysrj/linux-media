@@ -1,50 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:30878 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153AbaLEM33 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 07:29:29 -0500
-Date: Fri, 5 Dec 2014 15:28:55 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Luis de Bethencourt <luis@debethencourt.com>
-Cc: m.chehab@samsung.com, devel@driverdev.osuosl.org,
-	gulsah.1004@gmail.com, gregkh@linuxfoundation.org,
-	jarod@wilsonet.com, linux-kernel@vger.kernel.org,
-	tuomas.tynkkynen@iki.fi, linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 2/2] staging: media: lirc: lirc_zilog.c: keep
- consistency in dev functions
-Message-ID: <20141205122855.GD4912@mwanda>
-References: <20141204223524.GA17650@biggie>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:35802 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248AbaLPAJ4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Dec 2014 19:09:56 -0500
+Received: by mail-lb0-f182.google.com with SMTP id f15so11008424lbj.27
+        for <linux-media@vger.kernel.org>; Mon, 15 Dec 2014 16:09:55 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141204223524.GA17650@biggie>
+In-Reply-To: <CAEzPJ9NqYNo2BV0j2jujVO+p3w73qxZOoM3K8J+yebFMVwwhWQ@mail.gmail.com>
+References: <CAEzPJ9M=uOY_ujbp7XtrRq3N4jq6L3r_84qggfbQ4xEpX12u-w@mail.gmail.com>
+	<CAEzPJ9NqYNo2BV0j2jujVO+p3w73qxZOoM3K8J+yebFMVwwhWQ@mail.gmail.com>
+Date: Tue, 16 Dec 2014 00:09:54 +0000
+Message-ID: <CADBe_Tu72XRS=EFEcdLK8wLLsLO60NSvSw18=Rb0aaSeg3WiSg@mail.gmail.com>
+Subject: Re: Instalation issue on S960
+From: Mark Clarkstone <hello@markclarkstone.co.uk>
+To: Carlos Diogo <cdiogo@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 04, 2014 at 10:35:24PM +0000, Luis de Bethencourt wrote:
-> The previous patch switched some dev functions to move the string to a second
-> line. Doing this for all similar functions because it makes the driver easier
-> to read if all similar lines use the same criteria.
-> 
-> Signed-off-by: Luis de Bethencourt <luis@debethencourt.com>
-> ---
->  drivers/staging/media/lirc/lirc_zilog.c | 155 +++++++++++++++++++++-----------
->  1 file changed, 102 insertions(+), 53 deletions(-)
-> 
-> diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-> index 8814a7e..af46827 100644
-> --- a/drivers/staging/media/lirc/lirc_zilog.c
-> +++ b/drivers/staging/media/lirc/lirc_zilog.c
-> @@ -322,7 +322,8 @@ static int add_to_buf(struct IR *ir)
->  	struct IR_tx *tx;
->  
->  	if (lirc_buffer_full(rbuf)) {
-> -		dev_dbg(ir->l.dev, "buffer overflow\n");
-> +		dev_dbg(ir->l.dev,
-> +			"buffer overflow\n");
+Hi,
 
-No.  Don't do this.  It's better if it is on one line.
+I was recently trying to build drivers for another tuner on a Pi and
+also came across a similar problem [unable to find symbols], it turns
+out that the Raspberry Pi kernel doesn't have I2C_MUX enabled which is
+needed by some modules.
 
-regards,
-dan carpenter
+You could try rebuilding the kernel with the above option enabled and
+see if that helps.
 
+Although I could be totally wrong and hopefully someone with more
+knowledge will know (I'm still pretty much a Linux noob :p).
+
+Hope this helps.
+
+On 15 December 2014 at 23:13, Carlos Diogo <cdiogo@gmail.com> wrote:
+> Dear support team ,
+> i have spent 4 days trying to get my S960 setup in my raspberrry Pi
+>
+> I have tried multiple options and using the linuxtv.org drivers the
+> power light switches on but then i get the below message
+>
+>
+>
+> [    8.561909] usb 1-1.5: dvb_usb_v2: found a 'DVBSky S960/S860' in warm state
+> [    8.576865] usb 1-1.5: dvb_usb_v2: will pass the complete MPEG2
+> transport stream to the software demuxer
+> [    8.591803] DVB: registering new adapter (DVBSky S960/S860)
+> [    8.603974] usb 1-1.5: dvb_usb_v2: MAC address: 00:18:42:54:96:0c
+> [    8.650257] DVB: Unable to find symbol m88ds3103_attach()
+> [    8.661452] usb 1-1.5: dvbsky_s960_attach fail.
+> [    8.683560] usbcore: registered new interface driver dvb_usb_dvbsky
+>
+> I have tried googling it but i have found nothing about this
+>
+> i'm using raspbian , with kernel 3.12.34
+>
+> Any help here?
+>
+> Thanks in advance
+> Carlos
+>
+>
+> --
+> Os meus cumprimentos / Best regards /  Mit freundlichen Grüße
+> Carlos Diogo
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
