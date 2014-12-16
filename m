@@ -1,93 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:26299 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753047AbaLCQIq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 11:08:46 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, robh+dt@kernel.org, pawel.moll@arm.com,
-	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
-	galak@codeaurora.org, Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH/RFC v9 13/19] v4l2-ctrls: Add V4L2_CID_FLASH_SYNC_STROBE control
-Date: Wed, 03 Dec 2014 17:06:48 +0100
-Message-id: <1417622814-10845-14-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:34575 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751021AbaLPLgx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Dec 2014 06:36:53 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NGO00HEIAXGGH40@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 16 Dec 2014 20:36:52 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl,
+	nicolas.dufresne@collabora.com
+Subject: [PATCH 2/2] s5p-mfc: use VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag
+Date: Tue, 16 Dec 2014 12:36:18 +0100
+Message-id: <1418729778-14480-2-git-send-email-k.debski@samsung.com>
+In-reply-to: <1418729778-14480-1-git-send-email-k.debski@samsung.com>
+References: <1418729778-14480-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2_CID_FLASH_SYNC_STROBE control for determining
-whether a flash device strobe has to be synchronized
-with other flash leds controller by the same device.
+The MFC driver interprets a buffer with bytesused equal to 0 as a special
+case indicating end-of-stream. After vb2: fix bytesused == 0 handling
+(8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
+The VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag was added to videobuf2 to keep
+backward compatibility.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml |   11 +++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c         |    2 ++
- include/uapi/linux/v4l2-controls.h           |    1 +
- 3 files changed, 14 insertions(+)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index e013e4b..20179ab 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4563,6 +4563,17 @@ interface and may change in the future.</para>
-     	    after strobe during which another strobe will not be
-     	    possible. This is a read-only control.</entry>
-     	  </row>
-+    	  <row>
-+    	    <entry spanname="id"><constant>V4L2_CID_FLASH_SYNC_STROBE</constant></entry>
-+    	    <entry>boolean</entry>
-+    	  </row>
-+    	  <row>
-+    	    <entry spanname="descr">Synchronized strobe: whether the flash
-+	    should be strobed synchronously with the other one controlled
-+	    by the same device. Flash timeout setting is inherited from the
-+	    LED being strobed explicitly and flash intensity setting of a LED
-+	    being synchronized is used.</entry>
-+    	  </row>
-     	  <row><entry></entry></row>
-     	</tbody>
-           </tgroup>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 45c5b47..a7cca8c 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -846,6 +846,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FLASH_FAULT:		return "Faults";
- 	case V4L2_CID_FLASH_CHARGE:		return "Charge";
- 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
-+	case V4L2_CID_FLASH_SYNC_STROBE:	return "Synchronize Strobe";
- 
- 	/* JPEG encoder controls */
- 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-@@ -949,6 +950,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_FLASH_STROBE_STATUS:
- 	case V4L2_CID_FLASH_CHARGE:
- 	case V4L2_CID_FLASH_READY:
-+	case V4L2_CID_FLASH_SYNC_STROBE:
- 	case V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER:
- 	case V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE:
- 	case V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 661f119..5bce13d 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -833,6 +833,7 @@ enum v4l2_flash_strobe_source {
- 
- #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
- #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
-+#define V4L2_CID_FLASH_SYNC_STROBE		(V4L2_CID_FLASH_CLASS_BASE + 13)
- 
- 
- /* JPEG-class control IDs */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 03204fd..89c148b 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -820,6 +820,13 @@ static int s5p_mfc_open(struct file *file)
+ 		ret = -ENOENT;
+ 		goto err_queue_init;
+ 	}
++	/* One of means to indicate end-of-stream for MFC is to set the
++	 * bytesused == 0. However by default videobuf2 handles videobuf
++	 * equal to 0 as a special case and changes its value to the size
++	 * of the buffer. Set the VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag so
++	 * that videobuf2 will keep the value of bytesused intact.
++	 */
++	q->io_flags = VB2_FILEIO_ALLOW_ZERO_BYTESUSED;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	ret = vb2_queue_init(q);
+@@ -842,6 +849,10 @@ static int s5p_mfc_open(struct file *file)
+ 		ret = -ENOENT;
+ 		goto err_queue_init;
+ 	}
++	/* Set the VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag, for more information
++	 * please see the comment above.
++	 */
++	q->io_flags = VB2_FILEIO_ALLOW_ZERO_BYTESUSED;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	ret = vb2_queue_init(q);
 -- 
 1.7.9.5
 
