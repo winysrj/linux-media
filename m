@@ -1,132 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47323 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751054AbaLOSdQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 13:33:16 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH v2 1/3] yavta: Implement data_offset support for multi plane buffers
-Date: Mon, 15 Dec 2014 20:33:16 +0200
-Message-ID: <2122785.URYoa83k5P@avalon>
-In-Reply-To: <1418660809-30548-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1418660809-30548-1-git-send-email-sakari.ailus@linux.intel.com> <1418660809-30548-2-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:54454 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751147AbaLQRTC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Dec 2014 12:19:02 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linus Walleij <linus.walleij@linaro.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Cc: Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2 05/13] rc: sunxi-cir: Add support for the larger fifo found on sun5i and sun6i
+Date: Wed, 17 Dec 2014 18:18:16 +0100
+Message-Id: <1418836704-15689-6-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Add support for the larger fifo found on sun5i and sun6i, having a separate
+compatible for the ir found on sun5i & sun6i also is useful if we ever want
+to add ir transmit support, because the sun5i & sun6i version do not have
+transmit support.
 
-Thank you for the patch.
+Note this commits also adds checking for the end-of-packet interrupt flag
+(which was already enabled), as the fifo-data-available interrupt flag only
+gets set when the trigger-level is exceeded. So far we've been getting away
+with not doing this because of the low trigger-level, but this is something
+which we should have done since day one.
 
-On Monday 15 December 2014 18:26:47 Sakari Ailus wrote:
-> Support data_offset for multi plane buffers. Also add an option to write the
-> data in the buffer before data offset (--buffer-prefix).
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  yavta.c | 22 +++++++++++++++++++---
->  1 file changed, 19 insertions(+), 3 deletions(-)
-> 
-> diff --git a/yavta.c b/yavta.c
-> index 77e5a41..003d6ba 100644
-> --- a/yavta.c
-> +++ b/yavta.c
-> @@ -80,6 +80,8 @@ struct device
-> 
->  	void *pattern[VIDEO_MAX_PLANES];
->  	unsigned int patternsize[VIDEO_MAX_PLANES];
-> +
-> +	bool write_buffer_prefix;
->  };
-> 
->  static bool video_is_mplane(struct device *dev)
-> @@ -1546,13 +1548,22 @@ static void video_save_image(struct device *dev,
-> struct v4l2_buffer *buf,
-> 
->  	for (i = 0; i < dev->num_planes; i++) {
->  		unsigned int length;
-> +		unsigned int data_offset = 0;
-> 
-> -		if (video_is_mplane(dev))
-> +		if (video_is_mplane(dev)) {
->  			length = buf->m.planes[i].bytesused;
-> -		else
-> +			data_offset = buf->m.planes[i].data_offset;
-> +		} else {
->  			length = buf->bytesused;
-> +		}
-> +
-> +		if (!dev->write_buffer_prefix)
-> +			length -= data_offset;
-> +		else
-> +			data_offset = 0;
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+---
+ .../devicetree/bindings/media/sunxi-ir.txt          |  2 +-
+ drivers/media/rc/sunxi-cir.c                        | 21 ++++++++++++---------
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
-Nitpicking here, I find it a bit hard to read that you're adjusting the length 
-here but still keep the offset to add it to the buffer address below. How 
-about something like
-
-                void *data = dev->buffers[buf->index].mem[i];
-                unsigned int length;
-
-                if (video_is_mplane(dev)) {
-                        length = buf->m.planes[i].bytesused;
-
-                        if (!dev->write_buffer_prefix) {
-                                data += buf->m.planes[i].data_offset;
-                                length -= buf->m.planes[i].data_offset;
-                        }
-
-                } else {
-                        length = buf->bytesused;
-                }
-
-                ret = write(fd, data, length);
-
-> -		ret = write(fd, dev->buffers[buf->index].mem[i], length);
-> +		ret = write(fd, dev->buffers[buf->index].mem[i] + data_offset,
-> +			    length);
->  		if (ret < 0) {
->  			printf("write error: %s (%d)\n", strerror(errno), errno);
->  			break;
-> @@ -1717,6 +1728,7 @@ static void usage(const char *argv0)
->  	printf("-t, --time-per-frame num/denom	Set the time per frame (eg. 1/25 
-=
-> 25 fps)\n"); printf("-u, --userptr			Use the user pointers streaming
-> method\n"); printf("-w, --set-control 'ctrl value'	Set control 'ctrl' to
-> 'value'\n"); +	printf("    --buffer-prefix		Write portions of buffer 
-before
-> data_offset\n"); printf("    --buffer-size		Buffer size in bytes\n");
->  	printf("    --enum-formats		Enumerate formats\n");
->  	printf("    --enum-inputs		Enumerate inputs\n");
-> @@ -1749,10 +1761,12 @@ static void usage(const char *argv0)
->  #define OPT_BUFFER_SIZE		268
->  #define OPT_PREMULTIPLIED	269
->  #define OPT_QUEUE_LATE		270
-> +#define OPT_BUFFER_PREFIX	271
-> 
->  static struct option opts[] = {
->  	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
->  	{"buffer-type", 1, 0, 'B'},
-> +	{"buffer-prefix", 1, 0, OPT_BUFFER_PREFIX},
->  	{"capture", 2, 0, 'c'},
->  	{"check-overrun", 0, 0, 'C'},
->  	{"delay", 1, 0, 'd'},
-> @@ -2016,6 +2030,8 @@ int main(int argc, char *argv[])
->  		case OPT_USERPTR_OFFSET:
->  			userptr_offset = atoi(optarg);
->  			break;
-> +		case OPT_BUFFER_PREFIX:
-> +			dev.write_buffer_prefix = true;
->  		default:
->  			printf("Invalid option -%c\n", c);
->  			printf("Run %s -h for help.\n", argv[0]);
-
+diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+index 6b70b9b..1811a06 100644
+--- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
++++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+@@ -1,7 +1,7 @@
+ Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
+ 
+ Required properties:
+-- compatible	    : should be "allwinner,sun4i-a10-ir";
++- compatible	    : "allwinner,sun4i-a10-ir" or "allwinner,sun5i-a13-ir"
+ - clocks	    : list of clock specifiers, corresponding to
+ 		      entries in clock-names property;
+ - clock-names	    : should contain "apb" and "ir" entries;
+diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+index 06170e0..7830aef 100644
+--- a/drivers/media/rc/sunxi-cir.c
++++ b/drivers/media/rc/sunxi-cir.c
+@@ -56,12 +56,12 @@
+ #define REG_RXINT_RAI_EN		BIT(4)
+ 
+ /* Rx FIFO available byte level */
+-#define REG_RXINT_RAL(val)    (((val) << 8) & (GENMASK(11, 8)))
++#define REG_RXINT_RAL(val)    ((val) << 8)
+ 
+ /* Rx Interrupt Status */
+ #define SUNXI_IR_RXSTA_REG    0x30
+ /* RX FIFO Get Available Counter */
+-#define REG_RXSTA_GET_AC(val) (((val) >> 8) & (GENMASK(5, 0)))
++#define REG_RXSTA_GET_AC(val) (((val) >> 8) & (ir->fifo_size * 2 - 1))
+ /* Clear all interrupt status value */
+ #define REG_RXSTA_CLEARALL    0xff
+ 
+@@ -72,10 +72,6 @@
+ /* CIR_REG register idle threshold */
+ #define REG_CIR_ITHR(val)    (((val) << 8) & (GENMASK(15, 8)))
+ 
+-/* Hardware supported fifo size */
+-#define SUNXI_IR_FIFO_SIZE    16
+-/* How many messages in FIFO trigger IRQ */
+-#define TRIGGER_LEVEL         8
+ /* Required frequency for IR0 or IR1 clock in CIR mode */
+ #define SUNXI_IR_BASE_CLK     8000000
+ /* Frequency after IR internal divider  */
+@@ -94,6 +90,7 @@ struct sunxi_ir {
+ 	struct rc_dev   *rc;
+ 	void __iomem    *base;
+ 	int             irq;
++	int		fifo_size;
+ 	struct clk      *clk;
+ 	struct clk      *apb_clk;
+ 	struct reset_control *rst;
+@@ -115,11 +112,11 @@ static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
+ 	/* clean all pending statuses */
+ 	writel(status | REG_RXSTA_CLEARALL, ir->base + SUNXI_IR_RXSTA_REG);
+ 
+-	if (status & REG_RXINT_RAI_EN) {
++	if (status & (REG_RXINT_RAI_EN | REG_RXINT_RPEI_EN)) {
+ 		/* How many messages in fifo */
+ 		rc  = REG_RXSTA_GET_AC(status);
+ 		/* Sanity check */
+-		rc = rc > SUNXI_IR_FIFO_SIZE ? SUNXI_IR_FIFO_SIZE : rc;
++		rc = rc > ir->fifo_size ? ir->fifo_size : rc;
+ 		/* If we have data */
+ 		for (cnt = 0; cnt < rc; cnt++) {
+ 			/* for each bit in fifo */
+@@ -156,6 +153,11 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 	if (!ir)
+ 		return -ENOMEM;
+ 
++	if (of_device_is_compatible(dn, "allwinner,sun5i-a13-ir"))
++		ir->fifo_size = 64;
++	else
++		ir->fifo_size = 16;
++
+ 	/* Clock */
+ 	ir->apb_clk = devm_clk_get(dev, "apb");
+ 	if (IS_ERR(ir->apb_clk)) {
+@@ -271,7 +273,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 	 * level
+ 	 */
+ 	writel(REG_RXINT_ROI_EN | REG_RXINT_RPEI_EN |
+-	       REG_RXINT_RAI_EN | REG_RXINT_RAL(TRIGGER_LEVEL - 1),
++	       REG_RXINT_RAI_EN | REG_RXINT_RAL(ir->fifo_size / 2 - 1),
+ 	       ir->base + SUNXI_IR_RXINT_REG);
+ 
+ 	/* Enable IR Module */
+@@ -319,6 +321,7 @@ static int sunxi_ir_remove(struct platform_device *pdev)
+ 
+ static const struct of_device_id sunxi_ir_match[] = {
+ 	{ .compatible = "allwinner,sun4i-a10-ir", },
++	{ .compatible = "allwinner,sun5i-a13-ir", },
+ 	{},
+ };
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.0
 
