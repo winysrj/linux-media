@@ -1,47 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:55346 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752367AbaLSKeO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 05:34:14 -0500
-Received: by mail-ob0-f182.google.com with SMTP id wo20so11785472obc.13
-        for <linux-media@vger.kernel.org>; Fri, 19 Dec 2014 02:34:13 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1418984906.3165.53.camel@pengutronix.de>
-References: <54930468.6010007@vodalys.com> <1418921549.4212.57.camel@pengutronix.de>
- <CAL8zT=jjm9BXuUbk5RS-LZpC1EyyTwdGQRy-fQEUMdDfj4Ej7g@mail.gmail.com>
- <1418922570.4212.67.camel@pengutronix.de> <CAL8zT=jL3psKQ7+K4avQp=tr58m-KXvqGGhXzYrafEuRB5hkcw@mail.gmail.com>
- <1418984906.3165.53.camel@pengutronix.de>
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Date: Fri, 19 Dec 2014 11:33:58 +0100
-Message-ID: <CAL8zT=iPJcFung7OpG5nwXTo3G3cJ2mg0GjM0-jGN+Zb-ZqnWA@mail.gmail.com>
-Subject: Re: coda: Unable to use encoder video_bitrate
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?B?RnLDqWTDqXJpYyBTdXJlYXU=?= <frederic.sureau@vodalys.com>,
-	Fabio Estevam <festevam@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from mx1.redhat.com ([209.132.183.28]:49717 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751481AbaLQRT2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Dec 2014 12:19:28 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linus Walleij <linus.walleij@linaro.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Cc: Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2 13/13] ARM: dts: sun6i: Add dts file for CSQ CS908 board
+Date: Wed, 17 Dec 2014 18:18:24 +0100
+Message-Id: <1418836704-15689-14-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2014-12-19 11:28 GMT+01:00 Philipp Zabel <p.zabel@pengutronix.de>:
-> Hi Jean-Michel,
->
-> Am Donnerstag, den 18.12.2014, 18:10 +0100 schrieb Jean-Michel Hautbois:
->> > Sorry, forgot to put all of you on Cc: for the "[media] coda: fix
->> > encoder rate control parameter masks" patch. The coda driver is in
->> > drivers/media/platform/coda, register definitions in coda_regs.h.
->> > The CODA_RATECONTROL_BITRATE_MASK is 0x7f, but it should be 0x7fff.
->> >
->>
->> Well, I meant, the datasheet of the CODA960 because we don't know,
->> just by reading the coda_regs.h which register is where and does what.
->
-> I wish. If you search for "cnm-codadx6-datasheet-v2.9.pdf" with a search
-> engine of your choice, on chipsnmedia.com you can get documentation for
-> the very oldest coda version supported by the driver. That's all I have
-> in addition to the old GPLed Freescale imx-vpu-lib for reference.
+The CSQ CS908 is an A31s based top-set box, with 1G RAM, 8G NAND,
+rtl8188etv usb wifi, 2 USB A receptacles (1 connected through the OTG
+controller), ethernet, 3.5 mm jack with a/v out and hdmi out.
 
-Uh, ok, didn't think about this. Thx a lot !
-JM
+Note it has no sdcard slot and therefore can only be fel booted.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ arch/arm/boot/dts/Makefile             |   3 +-
+ arch/arm/boot/dts/sun6i-a31s-cs908.dts | 109 +++++++++++++++++++++++++++++++++
+ 2 files changed, 111 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/boot/dts/sun6i-a31s-cs908.dts
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index bc58ac3..28506ab 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -459,7 +459,8 @@ dtb-$(CONFIG_MACH_SUN6I) += \
+ 	sun6i-a31-app4-evb1.dtb \
+ 	sun6i-a31-colombus.dtb \
+ 	sun6i-a31-hummingbird.dtb \
+-	sun6i-a31-m9.dtb
++	sun6i-a31-m9.dtb \
++	sun6i-a31s-cs908.dtb
+ dtb-$(CONFIG_MACH_SUN7I) += \
+ 	sun7i-a20-bananapi.dtb \
+ 	sun7i-a20-cubieboard2.dtb \
+diff --git a/arch/arm/boot/dts/sun6i-a31s-cs908.dts b/arch/arm/boot/dts/sun6i-a31s-cs908.dts
+new file mode 100644
+index 0000000..48d3a70
+--- /dev/null
++++ b/arch/arm/boot/dts/sun6i-a31s-cs908.dts
+@@ -0,0 +1,109 @@
++/*
++ * Copyright 2014 Hans de Goede <hdegoede@redhat.com>
++ *
++ * This file is dual-licensed: you can use it either under the terms
++ * of the GPL or the X11 license, at your option. Note that this dual
++ * licensing only applies to this file, and not this project as a
++ * whole.
++ *
++ *  a) This library is free software; you can redistribute it and/or
++ *     modify it under the terms of the GNU General Public License as
++ *     published by the Free Software Foundation; either version 2 of the
++ *     License, or (at your option) any later version.
++ *
++ *     This library is distributed in the hope that it will be useful,
++ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *     GNU General Public License for more details.
++ *
++ *     You should have received a copy of the GNU General Public
++ *     License along with this library; if not, write to the Free
++ *     Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
++ *     MA 02110-1301 USA
++ *
++ * Or, alternatively,
++ *
++ *  b) Permission is hereby granted, free of charge, to any person
++ *     obtaining a copy of this software and associated documentation
++ *     files (the "Software"), to deal in the Software without
++ *     restriction, including without limitation the rights to use,
++ *     copy, modify, merge, publish, distribute, sublicense, and/or
++ *     sell copies of the Software, and to permit persons to whom the
++ *     Software is furnished to do so, subject to the following
++ *     conditions:
++ *
++ *     The above copyright notice and this permission notice shall be
++ *     included in all copies or substantial portions of the Software.
++ *
++ *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
++ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
++ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++ *     OTHER DEALINGS IN THE SOFTWARE.
++ */
++
++/dts-v1/;
++/include/ "sun6i-a31s.dtsi"
++
++/ {
++	model = "CSQ CS908 top set box";
++	compatible = "csq,cs908", "allwinner,sun6i-a31s";
++
++	chosen {
++		bootargs = "earlyprintk console=ttyS0,115200";
++	};
++
++	soc@01c00000 {
++		usbphy: phy@01c19400 {
++			status = "okay";
++		};
++
++		ehci0: usb@01c1a000 {
++			status = "okay";
++		};
++
++		ehci1: usb@01c1b000 {
++			status = "okay";
++		};
++
++		ohci1: usb@01c1b400 {
++			status = "okay";
++		};
++
++		pio: pinctrl@01c20800 {
++			usb1_vbus_pin_csq908: usb1_vbus_pin@0 {
++				allwinner,pins = "PC27";
++				allwinner,function = "gpio_out";
++				allwinner,drive = <0>;
++				allwinner,pull = <0>;
++			};
++		};
++
++		uart0: serial@01c28000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&uart0_pins_a>;
++			status = "okay";
++		};
++
++		gmac: ethernet@01c30000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&gmac_pins_mii_a>;
++			phy = <&phy1>;
++			phy-mode = "mii";
++			status = "okay";
++
++			phy1: ethernet-phy@1 {
++				reg = <1>;
++			};
++		};
++
++		ir@01f02000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&ir_pins_a>;
++			status = "okay";
++		};
++	};
++};
+-- 
+2.1.0
+
