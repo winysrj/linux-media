@@ -1,50 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:57185 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751724AbaLRC2W (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56775 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751531AbaLQDfV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Dec 2014 21:28:22 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<laurent.pinchart@ideasonboard.com>, <s.nawrocki@samsung.com>,
-	<festevam@gmail.com>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v4 0/5] media: ov2640: add device tree support
-Date: Thu, 18 Dec 2014 10:27:21 +0800
-Message-ID: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Tue, 16 Dec 2014 22:35:21 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 913842A0092
+	for <linux-media@vger.kernel.org>; Wed, 17 Dec 2014 04:35:07 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141217033507.913842A0092@tschai.lan>
+Date: Wed, 17 Dec 2014 04:35:07 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series add device tree support for ov2640. And also add
-the document for the devicetree properties.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-v3->v4:
-  1. refined the dt document.
-  2. Add Laurent's acked-by.
+Results of the daily build of media_tree:
 
-v2->v3:
-  1. fix the gpiod_xxx api usage as we use reset pin as ACTIVE_LOW.
-  2. update the devicetree binding document.
+date:		Wed Dec 17 04:00:20 CET 2014
+git branch:	test
+git hash:	427ae153c65ad7a08288d86baf99000569627d03
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-v1 -> v2:
-  1.  modified the dt bindings according to Laurent's suggestion.
-  2. add a fix patch for soc_camera. Otherwise the .reset() function won't work.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-i686: OK
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-x86_64: OK
+apps: ERRORS
+spec-git: OK
+sparse: ERRORS
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+smatch: ERRORS
 
-Josh Wu (5):
-  media: soc-camera: use icd->control instead of icd->pdev for reset()
-  media: ov2640: add async probe function
-  media: ov2640: add primary dt support
-  media: ov2640: add a master clock for sensor
-  media: ov2640: dt: add the device tree binding document
+Detailed results are available here:
 
- .../devicetree/bindings/media/i2c/ov2640.txt       |  46 +++++++
- drivers/media/i2c/soc_camera/ov2640.c              | 141 ++++++++++++++++++---
- drivers/media/platform/soc_camera/soc_camera.c     |   8 +-
- 3 files changed, 175 insertions(+), 20 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
--- 
-1.9.1
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
