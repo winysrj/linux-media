@@ -1,83 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45966 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750772AbaLPDku (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 22:40:50 -0500
-Message-ID: <548FA9BE.8090509@iki.fi>
-Date: Tue, 16 Dec 2014 05:40:46 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp.bredband2.com ([83.219.192.166]:34315 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750811AbaLQASx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Dec 2014 19:18:53 -0500
+Message-ID: <5490CBE6.2030004@southpole.se>
+Date: Wed, 17 Dec 2014 01:18:46 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
 MIME-Version: 1.0
-To: Mark Clarkstone <hello@markclarkstone.co.uk>,
-	Carlos Diogo <cdiogo@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Instalation issue on S960
-References: <CAEzPJ9M=uOY_ujbp7XtrRq3N4jq6L3r_84qggfbQ4xEpX12u-w@mail.gmail.com>	<CAEzPJ9NqYNo2BV0j2jujVO+p3w73qxZOoM3K8J+yebFMVwwhWQ@mail.gmail.com> <CADBe_Tu72XRS=EFEcdLK8wLLsLO60NSvSw18=Rb0aaSeg3WiSg@mail.gmail.com>
-In-Reply-To: <CADBe_Tu72XRS=EFEcdLK8wLLsLO60NSvSw18=Rb0aaSeg3WiSg@mail.gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] mn88472: implement lock for all delivery systems
+References: <1418686808-2530-1-git-send-email-benjamin@southpole.se> <548FA852.50004@iki.fi>
+In-Reply-To: <548FA852.50004@iki.fi>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/16/2014 02:09 AM, Mark Clarkstone wrote:
-> Hi,
->
-> I was recently trying to build drivers for another tuner on a Pi and
-> also came across a similar problem [unable to find symbols], it turns
-> out that the Raspberry Pi kernel doesn't have I2C_MUX enabled which is
-> needed by some modules.
+Hello.
 
-That's likely the reason as I2C mux is needed by m88ds3103 driver.
+On 12/16/2014 04:34 AM, Antti Palosaari wrote:
+> Moikka!
+>
+> On 12/16/2014 01:40 AM, Benjamin Larsson wrote:
+>> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+>> ---
+>>   drivers/staging/media/mn88472/mn88472.c | 23 ++++++++++++++++++++---
+>>   1 file changed, 20 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/staging/media/mn88472/mn88472.c 
+>> b/drivers/staging/media/mn88472/mn88472.c
+>> index 68f5036..426f0ed 100644
+>> --- a/drivers/staging/media/mn88472/mn88472.c
+>> +++ b/drivers/staging/media/mn88472/mn88472.c
+>> @@ -238,6 +238,7 @@ static int mn88472_read_status(struct 
+>> dvb_frontend *fe, fe_status_t *status)
+>>       struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>>       int ret;
+>>       unsigned int utmp;
+>> +    int lock = 0;
+>>
+>>       *status = 0;
+>>
+>> @@ -248,21 +249,37 @@ static int mn88472_read_status(struct 
+>> dvb_frontend *fe, fe_status_t *status)
+>>
+>>       switch (c->delivery_system) {
+>>       case SYS_DVBT:
+>> +        ret = regmap_read(dev->regmap[0], 0x7F, &utmp);
+>> +        if (ret)
+>> +            goto err;
+>> +        if ((utmp&0xF) > 8)
+>
+> You didn't read Kernel coding style doc?
+>
+> around line 206 Documentation/CodingStyle
+> ---------------------------
+> Use one space around (on each side of) most binary and ternary operators,
+> such as any of these:
+>
+>     =  +  -  <  >  *  /  %  |  &  ^  <=  >=  == !=  ?  :
+> ---------------------------
 
-Antti
+Fixed.
+
 >
-> You could try rebuilding the kernel with the above option enabled and
-> see if that helps.
+>> +            lock = 1;
+>> +        break;
+>>       case SYS_DVBT2:
+>> -        /* FIXME: implement me */
+>> -        utmp = 0x08; /* DVB-C lock value */
+>> +        msleep(150);
 >
-> Although I could be totally wrong and hopefully someone with more
-> knowledge will know (I'm still pretty much a Linux noob :p).
+> This sleep does not look correct. Why it is here? In order to provide 
+> more time for lock waiting? In that case you must increase 
+> .get_tune_settings() timeout. On some other case you will need to add 
+> comment why such strange thing is needed.
+
+Increased.
+
 >
-> Hope this helps.
+>> +        ret = regmap_read(dev->regmap[2], 0x92, &utmp);
+>> +        if (ret)
+>> +            goto err;
+>> +        if ((utmp&0xF) >= 0x07)
+>> +            *status |= FE_HAS_SIGNAL;
+>> +        if ((utmp&0xF) >= 0x0a)
+>> +            *status |= FE_HAS_CARRIER;
+>> +        if ((utmp&0xF) >= 0x0d)
+>> +            *status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+>>           break;
+>>       case SYS_DVBC_ANNEX_A:
+>>           ret = regmap_read(dev->regmap[1], 0x84, &utmp);
+>>           if (ret)
+>>               goto err;
+>> +        if ((utmp&0xF) > 7)
+>> +            lock = 1;
+>>           break;
+>>       default:
+>>           ret = -EINVAL;
+>>           goto err;
+>>       }
+>>
+>> -    if (utmp == 0x08)
+>> +    if (lock)
+>>           *status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
+>>                   FE_HAS_SYNC | FE_HAS_LOCK;
 >
-> On 15 December 2014 at 23:13, Carlos Diogo <cdiogo@gmail.com> wrote:
->> Dear support team ,
->> i have spent 4 days trying to get my S960 setup in my raspberrry Pi
->>
->> I have tried multiple options and using the linuxtv.org drivers the
->> power light switches on but then i get the below message
->>
->>
->>
->> [    8.561909] usb 1-1.5: dvb_usb_v2: found a 'DVBSky S960/S860' in warm state
->> [    8.576865] usb 1-1.5: dvb_usb_v2: will pass the complete MPEG2
->> transport stream to the software demuxer
->> [    8.591803] DVB: registering new adapter (DVBSky S960/S860)
->> [    8.603974] usb 1-1.5: dvb_usb_v2: MAC address: 00:18:42:54:96:0c
->> [    8.650257] DVB: Unable to find symbol m88ds3103_attach()
->> [    8.661452] usb 1-1.5: dvbsky_s960_attach fail.
->> [    8.683560] usbcore: registered new interface driver dvb_usb_dvbsky
->>
->> I have tried googling it but i have found nothing about this
->>
->> i'm using raspbian , with kernel 3.12.34
->>
->> Any help here?
->>
->> Thanks in advance
->> Carlos
->>
->>
->> --
->> Os meus cumprimentos / Best regards /  Mit freundlichen Grüße
->> Carlos Diogo
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Antti
 >
 
--- 
-http://palosaari.fi/
+Sent v2 patch.
+
+MvH
+Benjamin Larsson
