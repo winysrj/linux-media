@@ -1,78 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4.pb.cz ([109.72.0.114]:46464 "EHLO smtp4.pb.cz"
+Received: from mga11.intel.com ([192.55.52.93]:56681 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753208AbaLEJzC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Dec 2014 04:55:02 -0500
-Received: from [192.168.1.15] (unknown [109.72.4.22])
-	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by smtp4.pb.cz (Postfix) with ESMTPS id 4BFB782BE2
-	for <linux-media@vger.kernel.org>; Fri,  5 Dec 2014 10:54:54 +0100 (CET)
-Message-ID: <548180EE.2040908@mizera.cz>
-Date: Fri, 05 Dec 2014 10:54:54 +0100
-From: kapetr@mizera.cz
+	id S1751066AbaLQDWr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Dec 2014 22:22:47 -0500
+Date: Wed, 17 Dec 2014 11:22:02 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [linuxtv-media:master 7740/7741]
+ drivers/staging/media/tlg2300/pd-main.c:81 send_set_req() error: doing dma
+ on the stack (&data)
+Message-ID: <201412171158.Z7PG4Zhx%fengguang.wu@intel.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: it913x: probe of 8-001c failed with error -22
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-bump: any Idea please ?
+tree:   git://linuxtv.org/media_tree.git master
+head:   427ae153c65ad7a08288d86baf99000569627d03
+commit: ea2e813e8cc3492c951b9895724fd47187e04a6f [7740/7741] [media] tlg2300: move to staging in preparation for removal
 
-Hello.
+drivers/staging/media/tlg2300/pd-main.c:81 send_set_req() error: doing dma on the stack (&data)
+drivers/staging/media/tlg2300/pd-main.c:121 send_get_req() error: doing dma on the stack (&data)
 
-U12.04 with newly installed 3.8 kernel:
+vim +81 drivers/staging/media/tlg2300/pd-main.c
 
-3.8.0-44-generic #66~precise1-Ubuntu SMP Tue Jul 15 04:01:04 UTC 2014 
-x86_64 x86_64 x86_64 GNU/Linux
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   75  		upper_16 = lower_16 = 0;
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   76  	} else {
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   77  		/* send 32 bit param as  two 16 bit param,little endian */
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   78  		lower_16 = (unsigned short)(param & 0xffff);
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   79  		upper_16 = (unsigned short)((param >> 16) & 0xffff);
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   80  	}
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  @81  	ret = usb_control_msg(pd->udev,
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   82  			 usb_rcvctrlpipe(pd->udev, 0),
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   83  			 REQ_SET_CMD | cmdid,
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   84  			 USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   85  			 lower_16,
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   86  			 upper_16,
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   87  			 &data,
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   88  			 sizeof(*cmd_status),
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   89  			 USB_CTRL_GET_TIMEOUT);
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   90  
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   91  	if (!ret) {
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   92  		return -ENXIO;
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   93  	} else {
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   94  		/*  1st 4 bytes into cmd_status   */
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   95  		memcpy((char *)cmd_status, &(data[0]), sizeof(*cmd_status));
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   96  	}
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   97  	return 0;
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   98  }
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02   99  
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  100  /*
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  101   * send get request to Poseidon firmware.
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  102   */
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  103  s32 send_get_req(struct poseidon *pd, u8 cmdid, s32 param,
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  104  			void *buf, s32 *cmd_status, s32 datalen)
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  105  {
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  106  	s32 ret;
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  107  	s8 data[128] = {};
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  108  	u16 lower_16, upper_16;
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  109  
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  110  	if (pd->state & POSEIDON_STATE_DISCONNECT)
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  111  		return -ENODEV;
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  112  
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  113  	mdelay(30);
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  114  	if (param == 0) {
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  115  		upper_16 = lower_16 = 0;
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  116  	} else {
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  117  		/*send 32 bit param as two 16 bit param, little endian */
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  118  		lower_16 = (unsigned short)(param & 0xffff);
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  119  		upper_16 = (unsigned short)((param >> 16) & 0xffff);
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  120  	}
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02 @121  	ret = usb_control_msg(pd->udev,
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  122  			 usb_rcvctrlpipe(pd->udev, 0),
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  123  			 REQ_GET_CMD | cmdid,
+5b3f03f0 drivers/media/video/tlg2300/pd-main.c Huang Shijie 2010-02-02  124  			 USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
 
-USB dvb-t tuner:
+:::::: The code at line 81 was first introduced by commit
+:::::: 5b3f03f044ad6dffc8cd8c9c50bc5d7769cbd89f V4L/DVB: Add driver for Telegent tlg2300
 
-Bus 001 Device 005: ID 048d:9135 Integrated Technology Express, Inc. 
-Zolid Mini DVB-T Stick
+:::::: TO: Huang Shijie <shijie8@gmail.com>
+:::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Newest V4L drivers installed. But there is an error in log by inserting 
-of the USB tuner:
-
--------------------
-Nov 25 16:24:38 zly-hugo kernel: [  315.927923] usb 1-1.3: new 
-high-speed USB device number 5 using ehci-pci
-Nov 25 16:24:38 zly-hugo kernel: [  316.021755] usb 1-1.3: New USB 
-device found, idVendor=048d, idProduct=9135
-Nov 25 16:24:38 zly-hugo kernel: [  316.021760] usb 1-1.3: New USB 
-device strings: Mfr=0, Product=0, SerialNumber=0
-Nov 25 16:24:38 zly-hugo kernel: [  316.023071] usb 1-1.3: 
-dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135
-Nov 25 16:24:38 zly-hugo kernel: [  316.023443] usb 1-1.3: dvb_usb_v2: 
-found a 'ITE 9135 Generic' in cold state
-Nov 25 16:24:38 zly-hugo kernel: [  316.023519] usb 1-1.3: dvb_usb_v2: 
-downloading firmware from file 'dvb-usb-it9135-02.fw'
-Nov 25 16:24:38 zly-hugo mtp-probe: checking bus 1, device 5: 
-"/sys/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3"
-Nov 25 16:24:38 zly-hugo kernel: [  316.119961] usb 1-1.3: 
-dvb_usb_af9035: firmware version=3.40.1.0
-Nov 25 16:24:38 zly-hugo kernel: [  316.119974] usb 1-1.3: dvb_usb_v2: 
-found a 'ITE 9135 Generic' in warm state
-Nov 25 16:24:38 zly-hugo kernel: [  316.120972] usb 1-1.3: dvb_usb_v2: 
-will pass the complete MPEG2 transport stream to the software demuxer
-Nov 25 16:24:38 zly-hugo kernel: [  316.120996] DVB: registering new 
-adapter (ITE 9135 Generic)
-Nov 25 16:24:38 zly-hugo mtp-probe: bus: 1, device: 5 was not an MTP device
-Nov 25 16:24:38 zly-hugo kernel: [  316.123808] af9033 8-0038: firmware 
-version: LINK 3.40.1.0 - OFDM 3.40.1.0
-Nov 25 16:24:38 zly-hugo kernel: [  316.123812] af9033 8-0038: Afatech 
-AF9033 successfully attached
-Nov 25 16:24:38 zly-hugo kernel: [  316.123822] usb 1-1.3: DVB: 
-registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
-Nov 25 16:24:38 zly-hugo kernel: [  316.125115] it913x: probe of 8-001c 
-failed with error -22
----------------------
-
-What is wrong ?
-
-THX  --kapetr
-
-
-
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
