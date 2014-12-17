@@ -1,89 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49358 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752376AbaLFVfN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Dec 2014 16:35:13 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 10/22] si2168: enhance firmware download routine
-Date: Sat,  6 Dec 2014 23:34:44 +0200
-Message-Id: <1417901696-5517-10-git-send-email-crope@iki.fi>
-In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
-References: <1417901696-5517-1-git-send-email-crope@iki.fi>
+Received: from smtp.bredband2.com ([83.219.192.166]:34289 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751049AbaLQAQJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Dec 2014 19:16:09 -0500
+From: Benjamin Larsson <benjamin@southpole.se>
+To: crope@iki.fi
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v2] mn88472: implement lock for all delivery systems
+Date: Wed, 17 Dec 2014 01:16:06 +0100
+Message-Id: <1418775366-9743-1-git-send-email-benjamin@southpole.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All known old firmware firmware formats are downloaded using 8 byte
-chunks. Reject firmware if it could not be divided to 8 byte chunks
-and because of that we could simplify some calculations. Now both
-supported firmware download routines are rather similar.
+The increase of the lock timeout is needed for dvb-t2.
 
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 ---
- drivers/media/dvb-frontends/si2168.c | 34 +++++++++++++++-------------------
- 1 file changed, 15 insertions(+), 19 deletions(-)
+ drivers/staging/media/mn88472/mn88472.c | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 1fab088..e8e715f 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -348,7 +348,6 @@ static int si2168_init(struct dvb_frontend *fe)
- 	int ret, len, remaining;
- 	const struct firmware *fw = NULL;
- 	u8 *fw_file;
--	const unsigned int i2c_wr_max = 8;
- 	struct si2168_cmd cmd;
- 	unsigned int chip_id;
+diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+index 68f5036..4ddeb09 100644
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -19,7 +19,7 @@
+ static int mn88472_get_tune_settings(struct dvb_frontend *fe,
+ 	struct dvb_frontend_tune_settings *s)
+ {
+-	s->min_delay_ms = 400;
++	s->min_delay_ms = 800;
+ 	return 0;
+ }
  
-@@ -459,31 +458,28 @@ static int si2168_init(struct dvb_frontend *fe)
- 			cmd.wlen = len;
- 			cmd.rlen = 1;
- 			ret = si2168_cmd_execute(client, &cmd);
--			if (ret) {
--				dev_err(&client->dev,
--						"firmware download failed=%d\n",
--						ret);
--				goto err_release_firmware;
--			}
-+			if (ret)
-+				break;
- 		}
--	} else {
-+	} else if (fw->size % 8 == 0) {
- 		/* firmware is in the old format */
--		for (remaining = fw->size; remaining > 0; remaining -= i2c_wr_max) {
--			len = remaining;
--			if (len > i2c_wr_max)
--				len = i2c_wr_max;
--
-+		for (remaining = fw->size; remaining > 0; remaining -= 8) {
-+			len = 8;
- 			memcpy(cmd.args, &fw->data[fw->size - remaining], len);
- 			cmd.wlen = len;
- 			cmd.rlen = 1;
- 			ret = si2168_cmd_execute(client, &cmd);
--			if (ret) {
--				dev_err(&client->dev,
--						"firmware download failed=%d\n",
--						ret);
--				goto err_release_firmware;
--			}
-+			if (ret)
-+				break;
- 		}
-+	} else {
-+		/* bad or unknown firmware format */
-+		ret = -EINVAL;
-+	}
-+
-+	if (ret) {
-+		dev_err(&client->dev, "firmware download failed %d\n", ret);
-+		goto err_release_firmware;
+@@ -238,6 +238,7 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 	unsigned int utmp;
++	int lock = 0;
+ 
+ 	*status = 0;
+ 
+@@ -248,21 +249,36 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBT:
++		ret = regmap_read(dev->regmap[0], 0x7F, &utmp);
++		if (ret)
++			goto err;
++		if ((utmp & 0xF) >= 0x09)
++			lock = 1;
++		break;
+ 	case SYS_DVBT2:
+-		/* FIXME: implement me */
+-		utmp = 0x08; /* DVB-C lock value */
++		ret = regmap_read(dev->regmap[2], 0x92, &utmp);
++		if (ret)
++			goto err;
++		if ((utmp & 0xF) >= 0x07)
++			*status |= FE_HAS_SIGNAL;
++		if ((utmp & 0xF) >= 0x0a)
++			*status |= FE_HAS_CARRIER;
++		if ((utmp & 0xF) >= 0x0d)
++			*status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+ 		break;
+ 	case SYS_DVBC_ANNEX_A:
+ 		ret = regmap_read(dev->regmap[1], 0x84, &utmp);
+ 		if (ret)
+ 			goto err;
++		if ((utmp & 0xF) >= 0x08)
++			lock = 1;
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+ 		goto err;
  	}
  
- 	release_firmware(fw);
+-	if (utmp == 0x08)
++	if (lock)
+ 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
+ 				FE_HAS_SYNC | FE_HAS_LOCK;
+ 
 -- 
-http://palosaari.fi/
+1.9.1
 
