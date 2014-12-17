@@ -1,69 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:60554 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752157AbaLSOgR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 09:36:17 -0500
-Message-ID: <549437DA.6090601@xs4all.nl>
-Date: Fri, 19 Dec 2014 15:36:10 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Florian Echtler <floe@butterbrot.org>,
-	linux-input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] [Patch] implement video driver for sur40
-References: <5492D7E8.504@butterbrot.org> <5492E091.1060404@xs4all.nl> <54943680.3020007@butterbrot.org>
-In-Reply-To: <54943680.3020007@butterbrot.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:43929 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751416AbaLQRTE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Dec 2014 12:19:04 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linus Walleij <linus.walleij@linaro.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Cc: Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2 03/13] ARM: sunxi: Add "allwinner,sun6i-a31s" to mach-sunxi
+Date: Wed, 17 Dec 2014 18:18:14 +0100
+Message-Id: <1418836704-15689-4-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+So far the A31s is 100% compatible with the A31, still lets do the same
+as what we've done for the A13 / A10s and give it its own compatible string,
+in case we need to differentiate later.
 
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ Documentation/arm/sunxi/README | 1 -
+ arch/arm/mach-sunxi/platsmp.c  | 3 ++-
+ arch/arm/mach-sunxi/sunxi.c    | 1 +
+ drivers/clk/sunxi/clk-sunxi.c  | 1 +
+ 4 files changed, 4 insertions(+), 2 deletions(-)
 
-On 12/19/2014 03:30 PM, Florian Echtler wrote:
-> On 18.12.2014 15:11, Hans Verkuil wrote:
->> Run as 'v4l2-compliance -s' (-s starts streaming tests as well and it
->> assumes you have a valid input signal).
->> Mail if you have any questions about the v4l2-compliance output. The failure
->> messages expect you to look at the v4l2-compliance source code as well,
->> but even than it is not always clear what is going on.
-> Ran the most recent version from git master, got a total of 6 fails, 4
-> of which are probably easy fixes:
-> 
->> fail: v4l2-compliance.cpp(306): missing bus_info prefix ('USB:1')
->> test VIDIOC_QUERYCAP: FAIL
-> Changed the relevant code to:
->   usb_make_path(sur40->usbdev, cap->bus_info, sizeof(cap->bus_info));
-> 	
->> fail: v4l2-test-input-output.cpp(455): could set input to invalid input 1
->> test VIDIOC_G/S/ENUMINPUT: FAIL
-> Now returning -EINVAL when S_INPUT called with input != 0.
-> 
->> fail: v4l2-test-formats.cpp(322): !colorspace
->> fail: v4l2-test-formats.cpp(429): testColorspace(pix.pixelformat,
-> pix.colorspace, pix.ycbcr_enc, pix.quantization)
->> test VIDIOC_G_FMT: FAIL
-> Setting colorspace in v4l2_pix_format to V4L2_COLORSPACE_SRGB.	
-> 
->> fail: v4l2-compliance.cpp(365): doioctl(node, VIDIOC_G_PRIORITY, &prio)
->> test VIDIOC_G/S_PRIORITY: FAIL
-> Don't know how to fix this - does this mean VIDIOC_G/S_PRIORITY _must_
-> be implemented?
-> 
->> fail: v4l2-test-buffers.cpp(500): q.has_expbuf(node)
->> test VIDIOC_EXPBUF: FAIL
-> Also not clear how to fix this one.
-> 
-> Could you give some hints on the last two?
+diff --git a/Documentation/arm/sunxi/README b/Documentation/arm/sunxi/README
+index e68d163..1fe2d7f 100644
+--- a/Documentation/arm/sunxi/README
++++ b/Documentation/arm/sunxi/README
+@@ -50,7 +50,6 @@ SunXi family
+           http://dl.linux-sunxi.org/A31/A3x_release_document/A31/IC/A31%20user%20manual%20V1.1%2020130630.pdf
+ 
+       - Allwinner A31s (sun6i)
+-        + Not Supported
+         + Datasheet
+           http://dl.linux-sunxi.org/A31/A3x_release_document/A31s/IC/A31s%20datasheet%20V1.3%2020131106.pdf
+         + User Manual
+diff --git a/arch/arm/mach-sunxi/platsmp.c b/arch/arm/mach-sunxi/platsmp.c
+index e44d028..b1b5b7c 100644
+--- a/arch/arm/mach-sunxi/platsmp.c
++++ b/arch/arm/mach-sunxi/platsmp.c
+@@ -120,4 +120,5 @@ static struct smp_operations sun6i_smp_ops __initdata = {
+ 	.smp_prepare_cpus	= sun6i_smp_prepare_cpus,
+ 	.smp_boot_secondary	= sun6i_smp_boot_secondary,
+ };
+-CPU_METHOD_OF_DECLARE(sun6i_smp, "allwinner,sun6i-a31", &sun6i_smp_ops);
++CPU_METHOD_OF_DECLARE(sun6i_a31_smp, "allwinner,sun6i-a31", &sun6i_smp_ops);
++CPU_METHOD_OF_DECLARE(sun6i_a31s_smp, "allwinner,sun6i-a31s", &sun6i_smp_ops);
+diff --git a/arch/arm/mach-sunxi/sunxi.c b/arch/arm/mach-sunxi/sunxi.c
+index 1f98675..d4bb239 100644
+--- a/arch/arm/mach-sunxi/sunxi.c
++++ b/arch/arm/mach-sunxi/sunxi.c
+@@ -29,6 +29,7 @@ MACHINE_END
+ 
+ static const char * const sun6i_board_dt_compat[] = {
+ 	"allwinner,sun6i-a31",
++	"allwinner,sun6i-a31s",
+ 	NULL,
+ };
+ 
+diff --git a/drivers/clk/sunxi/clk-sunxi.c b/drivers/clk/sunxi/clk-sunxi.c
+index a9d10b9..ee9d7f2 100644
+--- a/drivers/clk/sunxi/clk-sunxi.c
++++ b/drivers/clk/sunxi/clk-sunxi.c
+@@ -1235,6 +1235,7 @@ static void __init sun6i_init_clocks(struct device_node *node)
+ 			  ARRAY_SIZE(sun6i_critical_clocks));
+ }
+ CLK_OF_DECLARE(sun6i_a31_clk_init, "allwinner,sun6i-a31", sun6i_init_clocks);
++CLK_OF_DECLARE(sun6i_a31s_clk_init, "allwinner,sun6i-a31s", sun6i_init_clocks);
+ CLK_OF_DECLARE(sun8i_a23_clk_init, "allwinner,sun8i-a23", sun6i_init_clocks);
+ 
+ static void __init sun9i_init_clocks(struct device_node *node)
+-- 
+2.1.0
 
-Can you post the driver code you used to run these tests? And which kernel version
-and git tree did you base your patch on?
-
-Regards,
-
-	Hans
-
-> 
-> Thanks & best regards, Florian
-> 
