@@ -1,48 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59764 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932112AbaLAUNM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 15:13:12 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH v4 01/10] media: entity: Document the media_entity_ops structure
-Date: Mon,  1 Dec 2014 22:13:31 +0200
-Message-Id: <1417464820-6718-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54497 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751451AbaLQRTI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Dec 2014 12:19:08 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linus Walleij <linus.walleij@linaro.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Cc: Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2 07/13] mfd: sun6i-prcm: Add support for the ir-clk
+Date: Wed, 17 Dec 2014 18:18:18 +0100
+Message-Id: <1418836704-15689-8-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/media/media-entity.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Add support for the ir-clk which is part of the sun6i SoC prcm module.
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index e004591..786906b 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -44,6 +44,15 @@ struct media_pad {
- 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/mfd/sun6i-prcm.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/drivers/mfd/sun6i-prcm.c b/drivers/mfd/sun6i-prcm.c
+index 2f2e9f0..1911731 100644
+--- a/drivers/mfd/sun6i-prcm.c
++++ b/drivers/mfd/sun6i-prcm.c
+@@ -41,6 +41,14 @@ static const struct resource sun6i_a31_apb0_gates_clk_res[] = {
+ 	},
  };
  
-+/**
-+ * struct media_entity_operations - Media entity operations
-+ * @link_setup:		Notify the entity of link changes. The operation can
-+ *			return an error, in which case link setup will be
-+ *			cancelled. Optional.
-+ * @link_validate:	Return whether a link is valid from the entity point of
-+ *			view. The media_entity_pipeline_start() function
-+ *			validates all links by calling this operation. Optional.
-+ */
- struct media_entity_operations {
- 	int (*link_setup)(struct media_entity *entity,
- 			  const struct media_pad *local,
++static const struct resource sun6i_a31_ir_clk_res[] = {
++	{
++		.start = 0x54,
++		.end = 0x57,
++		.flags = IORESOURCE_MEM,
++	},
++};
++
+ static const struct resource sun6i_a31_apb0_rstc_res[] = {
+ 	{
+ 		.start = 0xb0,
+@@ -69,6 +77,12 @@ static const struct mfd_cell sun6i_a31_prcm_subdevs[] = {
+ 		.resources = sun6i_a31_apb0_gates_clk_res,
+ 	},
+ 	{
++		.name = "sun6i-a31-ir-clk",
++		.of_compatible = "allwinner,sun4i-a10-mod0-clk",
++		.num_resources = ARRAY_SIZE(sun6i_a31_ir_clk_res),
++		.resources = sun6i_a31_ir_clk_res,
++	},
++	{
+ 		.name = "sun6i-a31-apb0-clock-reset",
+ 		.of_compatible = "allwinner,sun6i-a31-clock-reset",
+ 		.num_resources = ARRAY_SIZE(sun6i_a31_apb0_rstc_res),
 -- 
-2.0.4
+2.1.0
 
