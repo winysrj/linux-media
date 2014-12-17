@@ -1,280 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:65468 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752362AbaLCQJJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 11:09:09 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, robh+dt@kernel.org, pawel.moll@arm.com,
-	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
-	galak@codeaurora.org, Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH/RFC v9 18/19] leds: max77693: add support for V4L2 Flash
- sub-device
-Date: Wed, 03 Dec 2014 17:06:53 +0100
-Message-id: <1417622814-10845-19-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36125 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750790AbaLQRS5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Dec 2014 12:18:57 -0500
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linus Walleij <linus.walleij@linaro.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Cc: Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2 01/13] pinctrl: sun6i: Add some missing functions
+Date: Wed, 17 Dec 2014 18:18:12 +0100
+Message-Id: <1418836704-15689-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for V4L2 Flash sub-device to the max77693 LED Flash class
-driver. The support allows for V4L2 Flash sub-device to take the control
-of the LED Flash class device.
+While working on pinctrl for the A31s, I noticed that function 4 of
+PA15 - PA18 was missing, add these.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/leds/leds-max77693.c |  133 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 132 insertions(+), 1 deletion(-)
+Changes in v2:
+-Drop the changes to the muxing of i2c3 this was based on
+ "A31s Datasheet v1.40.pdf", but all other A31 related info puts them at the
+ pins where we already have them, so leave this as is
+---
+ drivers/pinctrl/sunxi/pinctrl-sun6i-a31.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/leds/leds-max77693.c b/drivers/leds/leds-max77693.c
-index 67a2f8f..e93edbd 100644
---- a/drivers/leds/leds-max77693.c
-+++ b/drivers/leds/leds-max77693.c
-@@ -21,6 +21,7 @@
- #include <linux/regmap.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
-+#include <media/v4l2-flash.h>
- 
- #define MODE_OFF		0
- #define MODE_FLASH1		(1 << 0)
-@@ -49,6 +50,7 @@ enum {
- struct max77693_sub_led {
- 	struct led_classdev_flash ldev;
- 	struct work_struct work_brightness_set;
-+	struct v4l2_flash *v4l2_flash;
- 
- 	unsigned int torch_brightness;
- 	unsigned int flash_timeout;
-@@ -602,6 +604,32 @@ unlock:									\
- 	return ret;							\
- }
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+#define MAX77693_LED_FLASH_EXTERNAL_STROBE_SET(ID)			\
-+static int max77693_led##ID##_external_strobe_set(			\
-+				struct v4l2_flash *v4l2_flash,		\
-+				bool enable)				\
-+{									\
-+	struct max77693_led *led =					\
-+			ldev##ID##_to_led(v4l2_flash->flash);		\
-+	int ret;							\
-+									\
-+	mutex_lock(&led->lock);						\
-+									\
-+	if (enable)							\
-+		ret = max77693_add_mode(led, MODE_FLASH_EXTERNAL##ID);	\
-+	else								\
-+		ret = max77693_clear_mode(led,				\
-+					MODE_FLASH_EXTERNAL##ID);	\
-+									\
-+	mutex_unlock(&led->lock);					\
-+									\
-+	return ret;							\
-+}
-+#else
-+#define MAX77693_LED_FLASH_EXTERNAL_STROBE_SET(ID)
-+#endif
-+
- #define MAX77693_LED_FLASH_FAULT_GET(ID)				\
- static int max77693_led##ID##_flash_fault_get(				\
- 				struct led_classdev_flash *flash,	\
-@@ -670,6 +698,7 @@ MAX77693_LED_TORCH_BRIGHTNESS_SET(1)
- MAX77693_LED_FLASH_BRIGHTNESS_SET(1)
- MAX77693_LED_FLASH_STROBE_SET(1)
- MAX77693_LED_FLASH_STROBE_GET(1)
-+MAX77693_LED_FLASH_EXTERNAL_STROBE_SET(1)
- MAX77693_LED_FLASH_TIMEOUT_SET(1)
- MAX77693_LED_FLASH_FAULT_GET(1)
- 
-@@ -679,6 +708,7 @@ MAX77693_LED_TORCH_BRIGHTNESS_SET(2)
- MAX77693_LED_FLASH_BRIGHTNESS_SET(2)
- MAX77693_LED_FLASH_STROBE_SET(2)
- MAX77693_LED_FLASH_STROBE_GET(2)
-+MAX77693_LED_FLASH_EXTERNAL_STROBE_SET(2)
- MAX77693_LED_FLASH_TIMEOUT_SET(2)
- MAX77693_LED_FLASH_FAULT_GET(2)
- 
-@@ -838,9 +868,35 @@ static const struct led_flash_ops flash_ops##ID = {				\
- 	.fault_get		= max77693_led##ID##_flash_fault_get,		\
- }
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+#define MAX77693_LED_V4L2_FLASH_OPS(ID)						\
-+static const struct v4l2_flash_ops v4l2_flash##ID##_ops = {			\
-+	.external_strobe_set = max77693_led##ID##_external_strobe_set,		\
-+}
-+
-+#define MAX77693_LED_GET_V4L2_FLASH_OPS(ID)					\
-+static inline const struct v4l2_flash_ops *get_v4l2_flash##ID##_ops(void)	\
-+{										\
-+	return &v4l2_flash##ID##_ops;						\
-+}
-+#else
-+#define MAX77693_LED_V4L2_FLASH_OPS(ID)
-+
-+#define MAX77693_LED_GET_V4L2_FLASH_OPS(ID)					\
-+static inline const struct v4l2_flash_ops *get_v4l2_flash##ID##_ops(void)	\
-+{										\
-+	return NULL;								\
-+}
-+#endif
-+
- MAX77693_LED_INIT_FLASH_OPS(1);
- MAX77693_LED_INIT_FLASH_OPS(2);
- 
-+MAX77693_LED_V4L2_FLASH_OPS(1);
-+MAX77693_LED_V4L2_FLASH_OPS(2);
-+MAX77693_LED_GET_V4L2_FLASH_OPS(1);
-+MAX77693_LED_GET_V4L2_FLASH_OPS(2);
-+
- static void max77693_init_flash_settings(struct max77693_led *led,
- 					 struct max77693_led_settings *s,
- 					 int led_id)
-@@ -876,18 +932,68 @@ static void max77693_init_flash_settings(struct max77693_led *led,
- 	setting->val = setting->max;
- }
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+static void max77693_init_v4l2_ctrl_config(struct max77693_led_settings *s,
-+					struct max77693_led_platform_data *p,
-+					struct v4l2_flash_ctrl_config *config,
-+					int led_id)
-+{
-+	struct led_flash_setting *setting;
-+	struct v4l2_ctrl_config *c;
-+
-+	c = &config->intensity;
-+	setting = &s->torch_brightness;
-+	c->min = setting->min;
-+	c->max = setting->max;
-+	c->step = setting->step;
-+	c->def = setting->val;
-+
-+	c = &config->flash_intensity;
-+	setting = &s->flash_brightness;
-+	c->min = setting->min;
-+	c->max = setting->max;
-+	c->step = setting->step;
-+	c->def = setting->val;
-+
-+	c = &config->flash_timeout;
-+	setting = &s->flash_timeout;
-+	c->min = setting->min;
-+	c->max = setting->max;
-+	c->step = setting->step;
-+	c->def = setting->val;
-+
-+	/* Init flash faults config */
-+	config->flash_faults =	V4L2_FLASH_FAULT_OVER_VOLTAGE |
-+				V4L2_FLASH_FAULT_SHORT_CIRCUIT |
-+				V4L2_FLASH_FAULT_OVER_CURRENT;
-+
-+	config->has_external_strobe =
-+			!!(p->trigger[led_id] & MAX77693_LED_TRIG_FLASH);
-+}
-+#else
-+#define max77693_init_v4l2_ctrl_config(s, p, config, led_id)
-+#endif
-+
- static int max77693_register_led(struct max77693_led *led, int id)
- {
- 	struct platform_device *pdev = led->pdev;
- 	struct led_classdev_flash *flash;
- 	struct led_classdev *led_cdev;
- 	struct max77693_sub_led *sub_leds = led->sub_leds;
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	struct v4l2_flash_ctrl_config v4l2_flash_config;
-+#endif
-+	const struct v4l2_flash_ops *v4l2_flash_ops = NULL;
- 	struct max77693_led_settings settings;
-+	int ret;
- 
- 	flash = &sub_leds[id].ldev;
- 
- 	/* Initialize flash settings */
- 	max77693_init_flash_settings(led, &settings, id);
-+	/* Initialize V4L2 Flash config basing on initialized settings */
-+	max77693_init_v4l2_ctrl_config(&settings, led->pdata,
-+					&v4l2_flash_config, id);
- 
- 	/* Initialize LED Flash class device */
- 	led_cdev = &flash->led_cdev;
-@@ -901,6 +1007,7 @@ static int max77693_register_led(struct max77693_led *led, int id)
- 		INIT_WORK(&sub_leds[id].work_brightness_set,
- 				max77693_led1_brightness_set_work);
- 		flash->ops = &flash_ops1;
-+		v4l2_flash_ops = get_v4l2_flash1_ops();
- 	} else {
- 		led_cdev->brightness_set = max77693_led2_brightness_set;
- 		led_cdev->brightness_set_sync =
-@@ -908,6 +1015,7 @@ static int max77693_register_led(struct max77693_led *led, int id)
- 		INIT_WORK(&sub_leds[id].work_brightness_set,
- 				max77693_led2_brightness_set_work);
- 		flash->ops = &flash_ops2;
-+		v4l2_flash_ops = get_v4l2_flash2_ops();
- 	}
- 
- 	led_cdev->max_brightness = settings.torch_brightness.val /
-@@ -921,7 +1029,27 @@ static int max77693_register_led(struct max77693_led *led, int id)
- 	sub_leds[id].flash_timeout = flash->timeout.val;
- 
- 	/* Register in the LED subsystem. */
--	return led_classdev_flash_register(&pdev->dev, flash);
-+	ret = led_classdev_flash_register(&pdev->dev, flash);
-+	if (ret < 0)
-+		return ret;
-+
-+	sub_leds[id].v4l2_flash =
-+		v4l2_flash_init(flash,
-+				v4l2_flash_ops,
-+				led->pdata->sub_nodes[id],
-+				&v4l2_flash_config);
-+
-+	if (IS_ERR(sub_leds[id].v4l2_flash)) {
-+		ret = PTR_ERR(sub_leds[id].v4l2_flash);
-+		goto err_v4l2_flash_init;
-+	}
-+
-+	return 0;
-+
-+err_v4l2_flash_init:
-+	led_classdev_flash_unregister(flash);
-+
-+	return ret;
- }
- 
- static int max77693_led_probe(struct platform_device *pdev)
-@@ -972,6 +1100,7 @@ static int max77693_led_probe(struct platform_device *pdev)
- err_register_led2:
- 	if (!p->fleds[FLED1])
- 		goto err_setup;
-+	v4l2_flash_release(sub_leds[FLED1].v4l2_flash);
- 	led_classdev_flash_unregister(&sub_leds[FLED1].ldev);
- err_setup:
- 	mutex_destroy(&led->lock);
-@@ -986,11 +1115,13 @@ static int max77693_led_remove(struct platform_device *pdev)
- 	struct max77693_sub_led *sub_leds = led->sub_leds;
- 
- 	if (led->iout_joint || p->fleds[FLED1]) {
-+		v4l2_flash_release(sub_leds[FLED1].v4l2_flash);
- 		led_classdev_flash_unregister(&sub_leds[FLED1].ldev);
- 		cancel_work_sync(&sub_leds[FLED1].work_brightness_set);
- 	}
- 
- 	if (!led->iout_joint && p->fleds[FLED2]) {
-+		v4l2_flash_release(sub_leds[FLED2].v4l2_flash);
- 		led_classdev_flash_unregister(&sub_leds[FLED2].ldev);
- 		cancel_work_sync(&sub_leds[FLED2].work_brightness_set);
- 	}
+diff --git a/drivers/pinctrl/sunxi/pinctrl-sun6i-a31.c b/drivers/pinctrl/sunxi/pinctrl-sun6i-a31.c
+index f42858e..18038f0 100644
+--- a/drivers/pinctrl/sunxi/pinctrl-sun6i-a31.c
++++ b/drivers/pinctrl/sunxi/pinctrl-sun6i-a31.c
+@@ -134,24 +134,28 @@ static const struct sunxi_desc_pin sun6i_a31_pins[] = {
+ 		  SUNXI_FUNCTION(0x1, "gpio_out"),
+ 		  SUNXI_FUNCTION(0x2, "gmac"),		/* RXD4 */
+ 		  SUNXI_FUNCTION(0x3, "lcd1"),		/* D15 */
++		  SUNXI_FUNCTION(0x4, "clk_out_a"),
+ 		  SUNXI_FUNCTION_IRQ_BANK(0x6, 0, 15)),	/* PA_EINT15 */
+ 	SUNXI_PIN(SUNXI_PINCTRL_PIN(A, 16),
+ 		  SUNXI_FUNCTION(0x0, "gpio_in"),
+ 		  SUNXI_FUNCTION(0x1, "gpio_out"),
+ 		  SUNXI_FUNCTION(0x2, "gmac"),		/* RXD5 */
+ 		  SUNXI_FUNCTION(0x3, "lcd1"),		/* D16 */
++		  SUNXI_FUNCTION(0x4, "dmic"),		/* CLK */
+ 		  SUNXI_FUNCTION_IRQ_BANK(0x6, 0, 16)),	/* PA_EINT16 */
+ 	SUNXI_PIN(SUNXI_PINCTRL_PIN(A, 17),
+ 		  SUNXI_FUNCTION(0x0, "gpio_in"),
+ 		  SUNXI_FUNCTION(0x1, "gpio_out"),
+ 		  SUNXI_FUNCTION(0x2, "gmac"),		/* RXD6 */
+ 		  SUNXI_FUNCTION(0x3, "lcd1"),		/* D17 */
++		  SUNXI_FUNCTION(0x4, "dmic"),		/* DIN */
+ 		  SUNXI_FUNCTION_IRQ_BANK(0x6, 0, 17)),	/* PA_EINT17 */
+ 	SUNXI_PIN(SUNXI_PINCTRL_PIN(A, 18),
+ 		  SUNXI_FUNCTION(0x0, "gpio_in"),
+ 		  SUNXI_FUNCTION(0x1, "gpio_out"),
+ 		  SUNXI_FUNCTION(0x2, "gmac"),		/* RXD7 */
+ 		  SUNXI_FUNCTION(0x3, "lcd1"),		/* D18 */
++		  SUNXI_FUNCTION(0x4, "clk_out_b"),
+ 		  SUNXI_FUNCTION_IRQ_BANK(0x6, 0, 18)),	/* PA_EINT18 */
+ 	SUNXI_PIN(SUNXI_PINCTRL_PIN(A, 19),
+ 		  SUNXI_FUNCTION(0x0, "gpio_in"),
+@@ -207,6 +211,7 @@ static const struct sunxi_desc_pin sun6i_a31_pins[] = {
+ 		  SUNXI_FUNCTION(0x1, "gpio_out"),
+ 		  SUNXI_FUNCTION(0x2, "gmac"),		/* MDC */
+ 		  SUNXI_FUNCTION(0x3, "lcd1"),		/* HSYNC */
++		  SUNXI_FUNCTION(0x4, "clk_out_c"),
+ 		  SUNXI_FUNCTION_IRQ_BANK(0x6, 0, 26)),	/* PA_EINT26 */
+ 	SUNXI_PIN(SUNXI_PINCTRL_PIN(A, 27),
+ 		  SUNXI_FUNCTION(0x0, "gpio_in"),
 -- 
-1.7.9.5
+2.1.0
 
