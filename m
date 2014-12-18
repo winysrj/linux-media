@@ -1,55 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40812 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933376AbaLJVQk (ORCPT
+Received: from mail-ie0-f181.google.com ([209.85.223.181]:65375 "EHLO
+	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751513AbaLRCsV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 16:16:40 -0500
-Received: from lanttu.localdomain (lanttu.localdomain [192.168.5.64])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id A63B4600A2
-	for <linux-media@vger.kernel.org>; Wed, 10 Dec 2014 23:16:35 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [REVIEW PATCH 7/7] smiapp: Add parentheses to macro arguments used in macros
-Date: Wed, 10 Dec 2014 23:16:20 +0200
-Message-Id: <1418246180-667-8-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1418246180-667-1-git-send-email-sakari.ailus@iki.fi>
-References: <1418246180-667-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 17 Dec 2014 21:48:21 -0500
+MIME-Version: 1.0
+In-Reply-To: <1418836704-15689-5-git-send-email-hdegoede@redhat.com>
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com> <1418836704-15689-5-git-send-email-hdegoede@redhat.com>
+From: Chen-Yu Tsai <wens@csie.org>
+Date: Thu, 18 Dec 2014 10:48:00 +0800
+Message-ID: <CAGb2v65BW7NABQXK877DkMNqDdBeuZ55wQHFkTexbWACFC4zFA@mail.gmail.com>
+Subject: Re: [linux-sunxi] [PATCH v2 04/13] rc: sunxi-cir: Add support for an
+ optional reset controller
+To: Hans De Goede <hdegoede@redhat.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi <linux-sunxi@googlegroups.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This makes the macros a little bit safer.
+Hi,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-quirk.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+On Thu, Dec 18, 2014 at 1:18 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+> On sun6i the cir block is attached to the reset controller, add support
+> for de-asserting the reset if a reset controller is specified in dt.
+>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> ---
+>  .../devicetree/bindings/media/sunxi-ir.txt         |  2 ++
+>  drivers/media/rc/sunxi-cir.c                       | 25 ++++++++++++++++++++--
+>  2 files changed, 25 insertions(+), 2 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> index 23dd5ad..6b70b9b 100644
+> --- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> @@ -10,6 +10,7 @@ Required properties:
+>
+>  Optional properties:
+>  - linux,rc-map-name : Remote control map name.
+> +- resets : phandle + reset specifier pair
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.h b/drivers/media/i2c/smiapp/smiapp-quirk.h
-index a24eb43..dac5566 100644
---- a/drivers/media/i2c/smiapp/smiapp-quirk.h
-+++ b/drivers/media/i2c/smiapp/smiapp-quirk.h
-@@ -72,14 +72,14 @@ void smiapp_replace_limit(struct smiapp_sensor *sensor,
- 		.val = _val,		\
- 	}
- 
--#define smiapp_call_quirk(_sensor, _quirk, ...)				\
--	(_sensor->minfo.quirk &&					\
--	 _sensor->minfo.quirk->_quirk ?					\
--	 _sensor->minfo.quirk->_quirk(_sensor, ##__VA_ARGS__) : 0)
-+#define smiapp_call_quirk(sensor, _quirk, ...)				\
-+	((sensor)->minfo.quirk &&					\
-+	 (sensor)->minfo.quirk->_quirk ?				\
-+	 (sensor)->minfo.quirk->_quirk(sensor, ##__VA_ARGS__) : 0)
- 
--#define smiapp_needs_quirk(_sensor, _quirk)		\
--	(_sensor->minfo.quirk ?				\
--	 _sensor->minfo.quirk->flags & _quirk : 0)
-+#define smiapp_needs_quirk(sensor, _quirk)		\
-+	((sensor)->minfo.quirk ?			\
-+	 (sensor)->minfo.quirk->flags & _quirk : 0)
- 
- extern const struct smiapp_quirk smiapp_jt8ev1_quirk;
- extern const struct smiapp_quirk smiapp_imx125es_quirk;
--- 
-1.7.10.4
+Should it be optional? Or should we use a sun6i compatible with
+a mandatory reset phandle? I mean, the driver/hardware is not
+going to work with the reset missing on sun6i.
 
+Seems we are doing it one way for some of our drivers, and
+the other (optional) way for more generic ones, like USB.
+
+ChenYu
+
+>  Example:
+>
+> @@ -17,6 +18,7 @@ ir0: ir@01c21800 {
+>         compatible = "allwinner,sun4i-a10-ir";
+>         clocks = <&apb0_gates 6>, <&ir0_clk>;
+>         clock-names = "apb", "ir";
+> +       resets = <&apb0_rst 1>;
+>         interrupts = <0 5 1>;
+>         reg = <0x01C21800 0x40>;
+>         linux,rc-map-name = "rc-rc6-mce";
+> diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+> index 340f7f5..06170e0 100644
+> --- a/drivers/media/rc/sunxi-cir.c
+> +++ b/drivers/media/rc/sunxi-cir.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/module.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/reset.h>
+>  #include <media/rc-core.h>
+>
+>  #define SUNXI_IR_DEV "sunxi-ir"
+> @@ -95,6 +96,7 @@ struct sunxi_ir {
+>         int             irq;
+>         struct clk      *clk;
+>         struct clk      *apb_clk;
+> +       struct reset_control *rst;
+>         const char      *map_name;
+>  };
+>
+> @@ -166,15 +168,29 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+>                 return PTR_ERR(ir->clk);
+>         }
+>
+> +       /* Reset (optional) */
+> +       ir->rst = devm_reset_control_get_optional(dev, NULL);
+> +       if (IS_ERR(ir->rst)) {
+> +               ret = PTR_ERR(ir->rst);
+> +               if (ret == -EPROBE_DEFER)
+> +                       return ret;
+> +               ir->rst = NULL;
+> +       } else {
+> +               ret = reset_control_deassert(ir->rst);
+> +               if (ret)
+> +                       return ret;
+> +       }
+> +
+>         ret = clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
+>         if (ret) {
+>                 dev_err(dev, "set ir base clock failed!\n");
+> -               return ret;
+> +               goto exit_reset_assert;
+>         }
+>
+>         if (clk_prepare_enable(ir->apb_clk)) {
+>                 dev_err(dev, "try to enable apb_ir_clk failed\n");
+> -               return -EINVAL;
+> +               ret = -EINVAL;
+> +               goto exit_reset_assert;
+>         }
+>
+>         if (clk_prepare_enable(ir->clk)) {
+> @@ -271,6 +287,9 @@ exit_clkdisable_clk:
+>         clk_disable_unprepare(ir->clk);
+>  exit_clkdisable_apb_clk:
+>         clk_disable_unprepare(ir->apb_clk);
+> +exit_reset_assert:
+> +       if (ir->rst)
+> +               reset_control_assert(ir->rst);
+>
+>         return ret;
+>  }
+> @@ -282,6 +301,8 @@ static int sunxi_ir_remove(struct platform_device *pdev)
+>
+>         clk_disable_unprepare(ir->clk);
+>         clk_disable_unprepare(ir->apb_clk);
+> +       if (ir->rst)
+> +               reset_control_assert(ir->rst);
+>
+>         spin_lock_irqsave(&ir->ir_lock, flags);
+>         /* disable IR IRQ */
+> --
+> 2.1.0
+>
+> --
+> You received this message because you are subscribed to the Google Groups "linux-sunxi" group.
+> To unsubscribe from this group and stop receiving emails from it, send an email to linux-sunxi+unsubscribe@googlegroups.com.
+> For more options, visit https://groups.google.com/d/optout.
