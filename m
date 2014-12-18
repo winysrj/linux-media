@@ -1,77 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:55359 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752809AbaLANn4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 08:43:56 -0500
-Message-id: <547C7097.4040907@samsung.com>
-Date: Mon, 01 Dec 2014 14:43:51 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	SangYoung Son <hello.son@smasung.com>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH/RFC v8 11/14] DT: Add documentation for the mfd Maxim
- max77693
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-12-git-send-email-j.anaszewski@samsung.com>
- <20141129192607.GB17355@amd> <547C65F7.4090801@samsung.com>
- <20141201130231.GA24737@amd>
-In-reply-to: <20141201130231.GA24737@amd>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from eusmtp01.atmel.com ([212.144.249.242]:60518 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752333AbaLRIv6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 03:51:58 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <nicolas.ferre@atmel.com>
+CC: <voice.shen@atmel.com>, <plagnioj@jcrosoft.com>,
+	<boris.brezillon@free-electrons.com>,
+	<alexandre.belloni@free-electrons.com>,
+	<devicetree@vger.kernel.org>, <robh+dt@kernel.org>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	<laurent.pinchart@ideasonboard.com>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 0/7] ARM: at91: dts: sama5d3: add dt support for atmel isi and ov2640 sensor
+Date: Thu, 18 Dec 2014 16:51:00 +0800
+Message-ID: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+This patch series add ISI and ov2640 support on dts files.
 
-On 12/01/2014 02:02 PM, Pavel Machek wrote:
-> Hi!
->
->>> Is this one needed? Just ommit child note if it is not there.
->>
->> It is needed because you can have one led connected two both
->> outputs. This allows to describe such a design.
->
-> Ok.
->
->>>> +- maxim,trigger-type : Array of trigger types in order: flash, torch
->>>> +	Possible trigger types:
->>>> +		0 - Rising edge of the signal triggers the flash/torch,
->>>> +		1 - Signal level controls duration of the flash/torch.
->>>> +- maxim,trigger : Array of flags indicating which trigger can activate given led
->>>> +	in order: fled1, fled2
->>>> +	Possible flag values (can be combined):
->>>> +		1 - FLASH pin of the chip,
->>>> +		2 - TORCH pin of the chip,
->>>> +		4 - software via I2C command.
->>>
->>> Is it good idea to have bitfields like this?
->>>
->>> Make these required properties of the subnode?
->>
->> This is related to a single property: trigger. I think that splitting
->> it to three properties would make unnecessary noise in the
->> binding.
->
-> Well, maybe it is not that much noise, and you'll have useful names
-> (not a bitfield).
+As the ov2640 driver dt is still in review. The patch is in: https://patchwork.linuxtv.org/patch/27554/
+So I want to send this dt patch early for a review.
 
-I think we'd need an opinion of at least one more person :)
+Bo Shen (3):
+  ARM: at91: dts: sama5d3: split isi pinctrl
+  ARM: at91: dts: sama5d3: add missing pins of isi
+  ARM: at91: dts: sama5d3: move the isi mck pin to mb
 
-> Should these properties move to the LED subnode?
+Josh Wu (4):
+  ARM: at91: dts: sama5d3: add isi clock
+  ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}
+  ARM: at91: dts: sama5d3: add ov2640 camera sensor support
+  ARM: at91: sama5: enable atmel-isi and ov2640 in defconfig
 
-I would leave them device specific.
+ arch/arm/boot/dts/sama5d3.dtsi    | 20 +++++++++++++-----
+ arch/arm/boot/dts/sama5d3xmb.dtsi | 43 +++++++++++++++++++++++++++++++++++----
+ arch/arm/configs/sama5_defconfig  |  6 ++++++
+ 3 files changed, 60 insertions(+), 9 deletions(-)
 
-Regards,
-Jacek
+-- 
+1.9.1
+
