@@ -1,49 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38157 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753918AbaLWRDJ (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:57279 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751268AbaLRC26 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 12:03:09 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Huang Shijie <shijie8@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Jim Davis <jim.epost@gmail.com>
-Subject: [PATCH 2/2] tlg2300: Fix media dependencies
-Date: Tue, 23 Dec 2014 15:02:57 -0200
-Message-Id: <1242d0830a5a384155efaaf84325d342a078aca4.1419354167.git.mchehab@osg.samsung.com>
-In-Reply-To: <0e0a5eabdd703a7afcf310cc24ea1425eea3ef07.1419354167.git.mchehab@osg.samsung.com>
-References: <0e0a5eabdd703a7afcf310cc24ea1425eea3ef07.1419354167.git.mchehab@osg.samsung.com>
-In-Reply-To: <0e0a5eabdd703a7afcf310cc24ea1425eea3ef07.1419354167.git.mchehab@osg.samsung.com>
-References: <0e0a5eabdd703a7afcf310cc24ea1425eea3ef07.1419354167.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Wed, 17 Dec 2014 21:28:58 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <s.nawrocki@samsung.com>,
+	<festevam@gmail.com>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v4 1/5] media: soc-camera: use icd->control instead of icd->pdev for reset()
+Date: Thu, 18 Dec 2014 10:27:22 +0800
+Message-ID: <1418869646-17071-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
+References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changeset ea2e813e8cc3 moved the driver to staging, but it forgot to
-preserve the existing dependency.
+icd->control is the sub device dev, i.e. i2c device.
+icd->pdev is the soc camera device's device.
 
-Fixes: ea2e813e8cc3 ("[media] tlg2300: move to staging in preparation for removal")
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jim Davis <jim.epost@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To be consitent with power() function, we will call reset() with
+icd->control as well.
 
-diff --git a/drivers/staging/media/tlg2300/Kconfig b/drivers/staging/media/tlg2300/Kconfig
-index 81784c6f7b88..77d8753f6ba4 100644
---- a/drivers/staging/media/tlg2300/Kconfig
-+++ b/drivers/staging/media/tlg2300/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_TLG2300
- 	tristate "Telegent TLG2300 USB video capture support (Deprecated)"
- 	depends on VIDEO_DEV && I2C && SND && DVB_CORE
-+	depends on MEDIA_USB_SUPPORT
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	depends on RC_CORE
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+v3->v4:
+  none
+
+v2->v3:
+  1. check whether icd->control is NULL or not.
+
+ drivers/media/platform/soc_camera/soc_camera.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index f4be2a1..7e6b914 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -688,7 +688,8 @@ static int soc_camera_open(struct file *file)
+ 
+ 		/* The camera could have been already on, try to reset */
+ 		if (sdesc->subdev_desc.reset)
+-			sdesc->subdev_desc.reset(icd->pdev);
++			if (icd->control)
++				sdesc->subdev_desc.reset(icd->control);
+ 
+ 		ret = soc_camera_add_device(icd);
+ 		if (ret < 0) {
+@@ -1175,7 +1176,8 @@ static void scan_add_host(struct soc_camera_host *ici)
+ 
+ 			/* The camera could have been already on, try to reset */
+ 			if (ssdd->reset)
+-				ssdd->reset(icd->pdev);
++				if (icd->control)
++					ssdd->reset(icd->control);
+ 
+ 			icd->parent = ici->v4l2_dev.dev;
+ 
+@@ -1461,7 +1463,7 @@ static int soc_camera_async_bound(struct v4l2_async_notifier *notifier,
+ 				memcpy(&sdesc->subdev_desc, ssdd,
+ 				       sizeof(sdesc->subdev_desc));
+ 				if (ssdd->reset)
+-					ssdd->reset(icd->pdev);
++					ssdd->reset(&client->dev);
+ 			}
+ 
+ 			icd->control = &client->dev;
 -- 
-2.1.0
+1.9.1
 
