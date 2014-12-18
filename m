@@ -1,95 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59765 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932268AbaLAUNP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 15:13:15 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH v4 04/10] v4l: Add VUY8 24 bits bus format
-Date: Mon,  1 Dec 2014 22:13:34 +0200
-Message-Id: <1417464820-6718-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:61103 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752377AbaLRIyH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 03:54:07 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <nicolas.ferre@atmel.com>
+CC: <voice.shen@atmel.com>, <plagnioj@jcrosoft.com>,
+	<boris.brezillon@free-electrons.com>,
+	<alexandre.belloni@free-electrons.com>,
+	<devicetree@vger.kernel.org>, <robh+dt@kernel.org>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	<laurent.pinchart@ideasonboard.com>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 6/7] ARM: at91: dts: sama5d3: add ov2640 camera sensor support
+Date: Thu, 18 Dec 2014 16:51:06 +0800
+Message-ID: <1418892667-27428-7-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
+References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hyun Kwon <hyun.kwon@xilinx.com>
+According to v4l2 dt document, we add:
+  a camera host: ISI port.
+  a i2c camera sensor: ov2640 port.
+to sama5d3xmb.dtsi.
 
-Add VUY8 24 bits bus format, V4L2_MBUS_FMT_VUY8_1X24.
+In the ov2640 node, it defines the pinctrls, clocks and isi port.
+In the ISI node, it also reference to a ov2640 port.
 
-Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- Documentation/DocBook/media/v4l/subdev-formats.xml | 30 ++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h              |  3 ++-
- 2 files changed, 32 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/sama5d3xmb.dtsi | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 872ff89..a41e70c 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -2999,6 +2999,36 @@
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-VUY8-1X24">
-+	      <entry>MEDIA_BUS_FMT_VUY8_1X24</entry>
-+	      <entry>0x201a</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="MEDIA-BUS-FMT-UYVY12-1X24">
- 	      <entry>MEDIA_BUS_FMT_UYVY12_1X24</entry>
- 	      <entry>0x2020</entry>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 363a30f..d391893 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -50,7 +50,7 @@
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
- #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
+diff --git a/arch/arm/boot/dts/sama5d3xmb.dtsi b/arch/arm/boot/dts/sama5d3xmb.dtsi
+index 0aaebc6..958a528 100644
+--- a/arch/arm/boot/dts/sama5d3xmb.dtsi
++++ b/arch/arm/boot/dts/sama5d3xmb.dtsi
+@@ -52,6 +52,29 @@
+ 				};
+ 			};
  
--/* YUV (including grey) - next is	0x2024 */
-+/* YUV (including grey) - next is	0x2025 */
- #define MEDIA_BUS_FMT_Y8_1X8			0x2001
- #define MEDIA_BUS_FMT_UV8_1X8			0x2015
- #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-@@ -80,6 +80,7 @@
- #define MEDIA_BUS_FMT_VYUY10_1X20		0x201b
- #define MEDIA_BUS_FMT_YUYV10_1X20		0x200d
- #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
-+#define MEDIA_BUS_FMT_VUY8_1X24			0x2024
- #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
- #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
- #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
++			i2c1: i2c@f0018000 {
++				ov2640: camera@0x30 {
++					compatible = "ovti,ov2640";
++					reg = <0x30>;
++					pinctrl-names = "default";
++					pinctrl-0 = <&pinctrl_isi_pck_as_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++					resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
++					pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
++					/* use pck1 for the master clock of ov2640 */
++					clocks = <&pck1>;
++					clock-names = "xvclk";
++					assigned-clocks = <&pck1>;
++					assigned-clock-rates = <25000000>;
++
++					port {
++						ov2640_0: endpoint {
++							remote-endpoint = <&isi_0>;
++							bus-width = <8>;
++						};
++					};
++				};
++			};
++
+ 			usart1: serial@f0020000 {
+ 				dmas = <0>, <0>;	/*  Do not use DMA for usart1 */
+ 				pinctrl-names = "default";
+@@ -60,6 +83,15 @@
+ 			};
+ 
+ 			isi: isi@f0034000 {
++				port {
++					#address-cells = <1>;
++					#size-cells = <0>;
++
++					isi_0: endpoint {
++						remote-endpoint = <&ov2640_0>;
++						bus-width = <8>;
++					};
++				};
+ 			};
+ 
+ 			mmc1: mmc@f8000000 {
 -- 
-2.0.4
+1.9.1
 
