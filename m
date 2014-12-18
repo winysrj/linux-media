@@ -1,56 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:42110 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752877AbaLTMpo (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:57547 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751640AbaLRCbD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 07:45:44 -0500
-In-Reply-To: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-References: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 6/8] [media] em28xx-audio: fix missing newlines
+	Wed, 17 Dec 2014 21:31:03 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <s.nawrocki@samsung.com>,
+	<festevam@gmail.com>, Josh Wu <josh.wu@atmel.com>,
+	<devicetree@vger.kernel.org>
+Subject: [PATCH v4 4/5] media: ov2640: add a master clock for sensor
+Date: Thu, 18 Dec 2014 10:27:25 +0800
+Message-ID: <1418869646-17071-5-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
+References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1Y2JPh-0006Ui-Cw@rmk-PC.arm.linux.org.uk>
-Date: Sat, 20 Dec 2014 12:45:41 +0000
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Inspection shows that newlines are missing from several kernel messages
-in em28xx-audio.  Fix these.
+The master clock (xvclk) is mandatory. It's a common clock framework clock.
+It can make sensor output a pixel clock to the camera interface.
 
-Cc: <stable@vger.kernel.org>
-Fixes: 6d746f91f230 ("[media] em28xx-audio: implement em28xx_ops: suspend/resume hooks")
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/usb/em28xx/em28xx-audio.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+v3 -> v4:
+  1. Add Laurent's acked by.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index 82d58eb3d32a..49a5f9532bd8 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -1005,7 +1005,7 @@ static int em28xx_audio_suspend(struct em28xx *dev)
- 	if (dev->usb_audio_type != EM28XX_USB_AUDIO_VENDOR)
- 		return 0;
+v2 -> v3:
+  1. should return PTR_ERR().
+
+v1 -> v2:
+  1. change the clock's name.
+  2. Make the clock is mandatory.
+
+ drivers/media/i2c/soc_camera/ov2640.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+index 4c2868c..1d68bcf 100644
+--- a/drivers/media/i2c/soc_camera/ov2640.c
++++ b/drivers/media/i2c/soc_camera/ov2640.c
+@@ -13,6 +13,7 @@
+  * published by the Free Software Foundation.
+  */
  
--	em28xx_info("Suspending audio extension");
-+	em28xx_info("Suspending audio extension\n");
- 	em28xx_deinit_isoc_audio(dev);
- 	atomic_set(&dev->adev.stream_started, 0);
- 	return 0;
-@@ -1019,7 +1019,7 @@ static int em28xx_audio_resume(struct em28xx *dev)
- 	if (dev->usb_audio_type != EM28XX_USB_AUDIO_VENDOR)
- 		return 0;
++#include <linux/clk.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+@@ -31,6 +32,7 @@
  
--	em28xx_info("Resuming audio extension");
-+	em28xx_info("Resuming audio extension\n");
- 	/* Nothing to do other than schedule_work() ?? */
- 	schedule_work(&dev->adev.wq_trigger);
- 	return 0;
+ #define VAL_SET(x, mask, rshift, lshift)  \
+ 		((((x) >> rshift) & mask) << lshift)
++
+ /*
+  * DSP registers
+  * register offset for BANK_SEL == BANK_SEL_DSP
+@@ -284,6 +286,7 @@ struct ov2640_priv {
+ 	struct v4l2_ctrl_handler	hdl;
+ 	u32	cfmt_code;
+ 	struct v4l2_clk			*clk;
++	struct clk			*master_clk;
+ 	const struct ov2640_win_size	*win;
+ 
+ 	struct soc_camera_subdev_desc	ssdd_dt;
+@@ -746,6 +749,7 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
+ 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct ov2640_priv *priv = to_ov2640(client);
+ 	struct v4l2_clk *clk;
++	int ret;
+ 
+ 	if (!priv->clk) {
+ 		clk = v4l2_clk_get(&client->dev, "mclk");
+@@ -755,7 +759,20 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
+ 			priv->clk = clk;
+ 	}
+ 
+-	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
++	if (on) {
++		ret = clk_prepare_enable(priv->master_clk);
++		if (ret)
++			return ret;
++	} else {
++		clk_disable_unprepare(priv->master_clk);
++	}
++
++	ret = soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
++
++	if (ret && on)
++		clk_disable_unprepare(priv->master_clk);
++
++	return ret;
+ }
+ 
+ /* Select the nearest higher resolution for capture */
+@@ -1145,6 +1162,10 @@ static int ov2640_probe(struct i2c_client *client,
+ 			return ret;
+ 	}
+ 
++	priv->master_clk = devm_clk_get(&client->dev, "xvclk");
++	if (IS_ERR(priv->master_clk))
++		return PTR_ERR(priv->master_clk);
++
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+ 	v4l2_ctrl_handler_init(&priv->hdl, 2);
+ 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
 -- 
-1.8.3.1
+1.9.1
 
