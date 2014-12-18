@@ -1,115 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59229 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751320AbaLGDnz (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51113 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751033AbaLRQzt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Dec 2014 22:43:55 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 655D22A0081
-	for <linux-media@vger.kernel.org>; Sun,  7 Dec 2014 04:43:46 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Thu, 18 Dec 2014 11:55:49 -0500
+Received: from avalon.localnet (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id DAF1620BD6
+	for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 17:52:28 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141207034346.655D22A0081@tschai.lan>
-Date: Sun,  7 Dec 2014 04:43:46 +0100 (CET)
+Subject: [GIT PULL FOR v3.20]  OMAP3 ISP and OMAP4 ISS changes
+Date: Thu, 18 Dec 2014 18:55:51 +0200
+Message-ID: <2473465.MT2HERg2rx@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+The following changes since commit 427ae153c65ad7a08288d86baf99000569627d03:
 
-date:		Sun Dec  7 04:00:16 CET 2014
-git branch:	test
-git hash:	71947828caef0c83d4245f7d1eaddc799b4ff1d1
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+  [media] bq/c-qcam, w9966, pms: move to staging in preparation for removal 
+(2014-12-16 23:21:44 -0200)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+are available in the git repository at:
 
-Detailed results are available here:
+  git://linuxtv.org/pinchartl/media.git omap/next
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+for you to fetch changes up to 0ad05d6633d3a6cb4410473ebc93c94b14f16478:
 
-Full logs are available here:
+  v4l: omap4iss: Stop started entities when pipeline start fails (2014-12-18 
+18:54:27 +0200)
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+----------------------------------------------------------------
+Laurent Pinchart (5):
+      omap3isp: Fix division by 0
+      v4l: omap4iss: Enable DMABUF support
+      v4l: omap4iss: Remove bogus frame number propagation
+      v4l: omap4iss: csi2: Perform real frame number propagation
+      v4l: omap4iss: Stop started entities when pipeline start fails
 
-The Media Infrastructure API from this daily build is here:
+ drivers/media/platform/omap3isp/isp.c        |   3 +
+ drivers/staging/media/omap4iss/iss.c         | 111 +++++++++++++++-----------
+ drivers/staging/media/omap4iss/iss_csi2.c    |  43 ++++++++++----
+ drivers/staging/media/omap4iss/iss_csi2.h    |   2 +-
+ drivers/staging/media/omap4iss/iss_ipipeif.c |  22 +------
+ drivers/staging/media/omap4iss/iss_regs.h    |   2 +
+ drivers/staging/media/omap4iss/iss_resizer.c |  18 +-----
+ drivers/staging/media/omap4iss/iss_video.c   |  11 +++-
+ 8 files changed, 116 insertions(+), 96 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Regards,
+
+Laurent Pinchart
+
