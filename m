@@ -1,137 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:61634 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751127AbaLZTCZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Dec 2014 14:02:25 -0500
-MIME-Version: 1.0
-In-Reply-To: <20141224223434.GA20669@amd>
-References: <20141203214641.GA1390@amd> <20141224223434.GA20669@amd>
-From: Rob Herring <robherring2@gmail.com>
-Date: Fri, 26 Dec 2014 13:02:02 -0600
-Message-ID: <CAL_JsqJsDqYm-xfEM1CqNzJxfZY6vnYxaBYpT+3t4+gV2F3M1A@mail.gmail.com>
-Subject: Re: [PATCHv2] media: i2c/adp1653: devicetree support for adp1653
-To: Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>
-Cc: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>,
-	Sebastian Reichel <sre@debian.org>,
-	Sebastian Reichel <sre@ring0.de>,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap <linux-omap@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>, khilman@kernel.org,
-	Aaro Koskinen <aaro.koskinen@iki.fi>, freemangordon@abv.bg,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Benoit Cousson <bcousson@baylibre.com>, sakari.ailus@iki.fi,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.kapsi.fi ([217.30.184.167]:58267 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751696AbaLRKbG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 05:31:06 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [RFC HACK] rtl2832: implement own lock for RegMap
+Date: Thu, 18 Dec 2014 12:29:46 +0200
+Message-Id: <1418898586-8167-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 24, 2014 at 4:34 PM, Pavel Machek <pavel@ucw.cz> wrote:
->
-> We are moving to device tree support on OMAP3, but that currently
-> breaks ADP1653 driver. This adds device tree support, plus required
-> documentation.
->
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->
-> ---
->
-> Changed -microsec to -us, as requested by devicetree people.
->
-> Fixed checkpatch issues.
->
-> diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
-> index 2d88816..2c6c7c5 100644
-> --- a/Documentation/devicetree/bindings/leds/common.txt
-> +++ b/Documentation/devicetree/bindings/leds/common.txt
-> @@ -14,6 +14,15 @@ Optional properties for child nodes:
->       "ide-disk" - LED indicates disk activity
->       "timer" - LED flashes at a fixed, configurable rate
->
-> +- max-microamp : maximum intensity in microamperes of the LED
-> +                (torch LED for flash devices)
-> +- flash-max-microamp : maximum intensity in microamperes of the
-> +                       flash LED; it is mandatory if the LED should
-> +                      support the flash mode
-> +- flash-timeout-microsec : timeout in microseconds after which the flash
-> +                           LED is turned off
+Introduce own lock to silence locdep warning. I suspect lockdep checks
+make wrong decision when two similar name (&map->mutex) locks were
+taken recursively, even those are different mutexes in a two different
+driver. After that patch, functionality remains same, but mutex names
+are different.
 
-Doesn't all this go in your flash led binding patch?
+=============================================
+[ INFO: possible recursive locking detected ]
+3.18.0-rc4+ #4 Tainted: G           O
+---------------------------------------------
+kdvb-ad-0-fe-0/2814 is trying to acquire lock:
+ (&map->mutex){+.+.+.}, at: [<ffffffff814ec90f>] regmap_lock_mutex+0x2f/0x40
 
-> +
-> +
->  Examples:
->
->  system-status {
-> @@ -21,3 +30,10 @@ system-status {
->         linux,default-trigger = "heartbeat";
->         ...
->  };
-> +
-> +camera-flash {
-> +       label = "Flash";
-> +       max-microamp = <50000>;
-> +       flash-max-microamp = <320000>;
-> +       flash-timeout-microsec = <500000>;
-> +}
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adp1653.txt b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
-> new file mode 100644
-> index 0000000..3c7065f
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
-> @@ -0,0 +1,38 @@
-> +* Analog Devices ADP1653 flash LED driver
-> +
-> +Required Properties:
-> +
-> +  - compatible: Must contain one of the following
-> +    - "adi,adp1653"
-> +
-> +  - reg: I2C slave address
-> +
-> +  - gpios: References to the GPIO that controls the power for the chip.
-> +
-> +There are two led outputs available - flash and indicator. One led is
-> +represented by one child node, nodes need to be named "flash" and "indicator".
-> +
-> +Required properties of the LED child node:
-> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +
-> +Required properties of the flash LED child node:
-> +
-> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-> +
-> +Example:
-> +
-> +        adp1653: led-controller@30 {
-> +                compatible = "adi,adp1653";
-> +               reg = <0x30>;
-> +                gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
-> +
-> +               flash {
-> +                        flash-timeout-us = <500000>;
-> +                        flash-max-microamp = <320000>;
-> +                        max-microamp = <50000>;
-> +               };
-> +                indicator {
+but task is already holding lock:
+ (&map->mutex){+.+.+.}, at: [<ffffffff814ec90f>] regmap_lock_mutex+0x2f/0x40
 
-These are different LEDs or different modes?
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+       CPU0
+       ----
+  lock(&map->mutex);
+  lock(&map->mutex);
 
-> +                        max-microamp = <17500>;
+ *** DEADLOCK ***
+ May be due to missing lock nesting notation
+1 lock held by kdvb-ad-0-fe-0/2814:
+ #0:  (&map->mutex){+.+.+.}, at: [<ffffffff814ec90f>] regmap_lock_mutex+0x2f/0x40
 
-This is a bit inconsistent. The binding says this is for flash LEDs
-torch mode, but I see no reason why it can't be common. Can you update
-the binding doc to be clear here.
+stack backtrace:
+CPU: 3 PID: 2814 Comm: kdvb-ad-0-fe-0 Tainted: G           O 3.18.0-rc4+ #4
+Hardware name: System manufacturer System Product Name/M5A78L-M/USB3, BIOS 2001    09/11/2014
+ 0000000000000000 00000000410c8772 ffff880293af3868 ffffffff817a6f82
+ 0000000000000000 ffff8800b3462be0 ffff880293af3968 ffffffff810e7f94
+ ffff880293af3888 00000000410c8772 ffffffff82dfee60 ffffffff81ab8f89
+Call Trace:
+ [<ffffffff817a6f82>] dump_stack+0x4e/0x68
+ [<ffffffff810e7f94>] __lock_acquire+0x1ea4/0x1f50
+ [<ffffffff810e2a7d>] ? trace_hardirqs_off+0xd/0x10
+ [<ffffffff817b01f3>] ? _raw_spin_lock_irqsave+0x83/0xa0
+ [<ffffffff810e13e6>] ? up+0x16/0x50
+ [<ffffffff810e2a7d>] ? trace_hardirqs_off+0xd/0x10
+ [<ffffffff817af8bf>] ? _raw_spin_unlock_irqrestore+0x5f/0x70
+ [<ffffffff810e9069>] lock_acquire+0xc9/0x170
+ [<ffffffff814ec90f>] ? regmap_lock_mutex+0x2f/0x40
+ [<ffffffff817ab50e>] mutex_lock_nested+0x7e/0x430
+ [<ffffffff814ec90f>] ? regmap_lock_mutex+0x2f/0x40
+ [<ffffffff814ec90f>] ? regmap_lock_mutex+0x2f/0x40
+ [<ffffffff817a530b>] ? printk+0x70/0x86
+ [<ffffffff8110d9e8>] ? mod_timer+0x168/0x240
+ [<ffffffff814ec90f>] regmap_lock_mutex+0x2f/0x40
+ [<ffffffff814f08d9>] regmap_update_bits+0x29/0x60
+ [<ffffffffa03e9778>] rtl2832_select+0x38/0x70 [rtl2832]
+ [<ffffffffa039b03d>] i2c_mux_master_xfer+0x3d/0x90 [i2c_mux]
+ [<ffffffff815da493>] __i2c_transfer+0x73/0x2e0
+ [<ffffffff815dbaba>] i2c_transfer+0x5a/0xc0
+ [<ffffffff815dbb6e>] i2c_master_send+0x4e/0x70
+ [<ffffffffa03ff25a>] regmap_i2c_write+0x1a/0x50 [regmap_i2c]
+ [<ffffffff817ab713>] ? mutex_lock_nested+0x283/0x430
+ [<ffffffff814f06b2>] _regmap_raw_write+0x862/0x880
+ [<ffffffff814ec90f>] ? regmap_lock_mutex+0x2f/0x40
+ [<ffffffff814f0744>] _regmap_bus_raw_write+0x74/0xa0
+ [<ffffffff814ef3d2>] _regmap_write+0x92/0x140
+ [<ffffffff814f0b7b>] regmap_write+0x4b/0x70
+ [<ffffffffa032b090>] ? dvb_frontend_release+0x110/0x110 [dvb_core]
+ [<ffffffffa05141d4>] e4000_init+0x34/0x210 [e4000]
+ [<ffffffffa032a029>] dvb_frontend_init+0x59/0xc0 [dvb_core]
+ [<ffffffff810bde30>] ? finish_task_switch+0x80/0x180
+ [<ffffffff810bddf2>] ? finish_task_switch+0x42/0x180
+ [<ffffffffa032b116>] dvb_frontend_thread+0x86/0x7b0 [dvb_core]
+ [<ffffffff817a9203>] ? __schedule+0x343/0x930
+ [<ffffffffa032b090>] ? dvb_frontend_release+0x110/0x110 [dvb_core]
+ [<ffffffff810b826b>] kthread+0x10b/0x130
+ [<ffffffff81020099>] ? sched_clock+0x9/0x10
+ [<ffffffff810b8160>] ? kthread_create_on_node+0x250/0x250
+ [<ffffffff817b063c>] ret_from_fork+0x7c/0xb0
+ [<ffffffff810b8160>] ? kthread_create_on_node+0x250/0x250
 
-Also, aren't you missing label properties?
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832.c      | 49 +++++++++++++++++++++++-------
+ drivers/media/dvb-frontends/rtl2832_priv.h |  2 ++
+ 2 files changed, 40 insertions(+), 11 deletions(-)
 
-Rob
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index f44dc50..2ee5bcf 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -1028,6 +1028,31 @@ static int rtl2832_regmap_gather_write(void *context, const void *reg,
+ 	return 0;
+ }
+ 
++/*
++ * FIXME: Implement own RegMap locking in order to silence lockdep recursive
++ * lock warning. That happens when RegMap I2C client calls I2C mux adapter,
++ * which leads demod I2C repeater enable via demod RegMap. Operation takes two
++ * RegMap locks recursively - but those are different RegMap instances in a two
++ * different I2C drivers, so it should be deadlock.
++ */
++static void rtl2832_regmap_lock(void *__dev)
++{
++	struct rtl2832_dev *dev = __dev;
++	struct i2c_client *client = dev->client;
++
++	dev_dbg(&client->dev, "\n");
++	mutex_lock(&dev->regmap_mutex);
++}
++
++static void rtl2832_regmap_unlock(void *__dev)
++{
++	struct rtl2832_dev *dev = __dev;
++	struct i2c_client *client = dev->client;
++
++	dev_dbg(&client->dev, "\n");
++	mutex_unlock(&dev->regmap_mutex);
++}
++
+ static struct dvb_frontend *rtl2832_get_dvb_frontend(struct i2c_client *client)
+ {
+ 	struct rtl2832_dev *dev = i2c_get_clientdata(client);
+@@ -1186,15 +1211,6 @@ static int rtl2832_probe(struct i2c_client *client,
+ 			.range_max        = 5 * 0x100,
+ 		},
+ 	};
+-	static const struct regmap_config regmap_config = {
+-		.reg_bits    =  8,
+-		.val_bits    =  8,
+-		.volatile_reg = rtl2832_volatile_reg,
+-		.max_register = 5 * 0x100,
+-		.ranges = regmap_range_cfg,
+-		.num_ranges = ARRAY_SIZE(regmap_range_cfg),
+-		.cache_type = REGCACHE_RBTREE,
+-	};
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+@@ -1218,8 +1234,19 @@ static int rtl2832_probe(struct i2c_client *client,
+ 	INIT_DELAYED_WORK(&dev->i2c_gate_work, rtl2832_i2c_gate_work);
+ 	INIT_DELAYED_WORK(&dev->stat_work, rtl2832_stat_work);
+ 	/* create RegMap */
++	mutex_init(&dev->regmap_mutex);
++	dev->regmap_config.reg_bits =  8,
++	dev->regmap_config.val_bits =  8,
++	dev->regmap_config.lock = rtl2832_regmap_lock,
++	dev->regmap_config.unlock = rtl2832_regmap_unlock,
++	dev->regmap_config.lock_arg = dev,
++	dev->regmap_config.volatile_reg = rtl2832_volatile_reg,
++	dev->regmap_config.max_register = 5 * 0x100,
++	dev->regmap_config.ranges = regmap_range_cfg,
++	dev->regmap_config.num_ranges = ARRAY_SIZE(regmap_range_cfg),
++	dev->regmap_config.cache_type = REGCACHE_RBTREE,
+ 	dev->regmap = regmap_init(&client->dev, &regmap_bus, client,
+-				  &regmap_config);
++				  &dev->regmap_config);
+ 	if (IS_ERR(dev->regmap)) {
+ 		ret = PTR_ERR(dev->regmap);
+ 		goto err_kfree;
+@@ -1232,7 +1259,7 @@ static int rtl2832_probe(struct i2c_client *client,
+ 
+ 	/* create muxed i2c adapter for demod tuner bus */
+ 	dev->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, dev,
+-			0, 0, 0, rtl2832_select, rtl2832_deselect);
++			0, 1, 0, rtl2832_select, rtl2832_deselect);
+ 	if (dev->i2c_adapter_tuner == NULL) {
+ 		ret = -ENODEV;
+ 		goto err_regmap_exit;
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index 9ff4f65..c3a922c 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -33,6 +33,8 @@
+ struct rtl2832_dev {
+ 	struct rtl2832_platform_data *pdata;
+ 	struct i2c_client *client;
++	struct mutex regmap_mutex;
++	struct regmap_config regmap_config;
+ 	struct regmap *regmap;
+ 	struct i2c_adapter *i2c_adapter_tuner;
+ 	struct dvb_frontend fe;
+-- 
+http://palosaari.fi/
+
