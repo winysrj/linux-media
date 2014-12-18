@@ -1,59 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:49667 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752854AbaLAS4S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 13:56:18 -0500
-Message-ID: <547CB9BD.5050101@users.sourceforge.net>
-Date: Mon, 01 Dec 2014 19:55:57 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-MIME-Version: 1.0
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH 1/1] [media] lirc_zilog: Deletion of unnecessary checks before
- the function call "vfree"
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:51324 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751776AbaLRLw6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 06:52:58 -0500
+Received: by mail-pa0-f43.google.com with SMTP id kx10so1292186pab.2
+        for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 03:52:58 -0800 (PST)
+From: Chunyan Zhang <zhang.chunyan@linaro.org>
+To: m.chehab@samsung.com, david@hardeman.nu, uli-lirc@uli-eckhardt.de,
+	hans.verkuil@cisco.com, julia.lawall@lip6.fr, himangi774@gmail.com,
+	khoroshilov@ispras.ru, joe@perches.com, dborkman@redhat.com,
+	john.stultz@linaro.org, tglx@linutronix.de, davem@davemloft.net,
+	dwmw2@infradead.org, computersforpeace@gmail.com, arnd@linaro.org
+Cc: linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, zhang.lyra@gmail.com
+Subject: [PATCH 1/3] ktime.h: Introduce ktime_ms_delta
+Date: Thu, 18 Dec 2014 19:52:00 +0800
+Message-Id: <1418903522-19137-2-git-send-email-zhang.chunyan@linaro.org>
+In-Reply-To: <1418903522-19137-1-git-send-email-zhang.chunyan@linaro.org>
+References: <ktime-mtd-rc-v1>
+ <1418903522-19137-1-git-send-email-zhang.chunyan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 1 Dec 2014 19:49:39 +0100
+This patch introduces a reusable time difference function which returns
+the difference in millisecond, as often used in some driver code, e.g.
+mtd/test, media/rc, etc.
 
-The vfree() function performs also input parameter validation. Thus the test
-around the call is not needed.
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Chunyan Zhang <zhang.chunyan@linaro.org>
+Acked-by: Arnd Bergmann <arnd@linaro.org>
 ---
- drivers/staging/media/lirc/lirc_zilog.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ include/linux/ktime.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 3259aac..50b255a 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -729,11 +729,9 @@ static int send_boot_data(struct IR_tx *tx)
- static void fw_unload_locked(void)
+diff --git a/include/linux/ktime.h b/include/linux/ktime.h
+index c9d645a..891ea92 100644
+--- a/include/linux/ktime.h
++++ b/include/linux/ktime.h
+@@ -186,6 +186,11 @@ static inline s64 ktime_us_delta(const ktime_t later, const ktime_t earlier)
+        return ktime_to_us(ktime_sub(later, earlier));
+ }
+ 
++static inline s64 ktime_ms_delta(const ktime_t later, const ktime_t earlier)
++{
++	return ktime_to_ms(ktime_sub(later, earlier));
++}
++
+ static inline ktime_t ktime_add_us(const ktime_t kt, const u64 usec)
  {
- 	if (tx_data) {
--		if (tx_data->code_sets)
--			vfree(tx_data->code_sets);
-+		vfree(tx_data->code_sets);
- 
--		if (tx_data->datap)
--			vfree(tx_data->datap);
-+		vfree(tx_data->datap);
- 
- 		vfree(tx_data);
- 		tx_data = NULL;
+ 	return ktime_add_ns(kt, usec * NSEC_PER_USEC);
 -- 
-2.1.3
+1.7.9.5
 
