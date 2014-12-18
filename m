@@ -1,74 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39025 "EHLO mail.kapsi.fi"
+Received: from mout.gmx.net ([212.227.17.21]:56342 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754691AbaLWVTC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 16:19:02 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Thomas Mair <thomas.mair86@gmail.com>
-Subject: [PATCH 52/66] rtl2832: claim copyright and module author
-Date: Tue, 23 Dec 2014 22:49:45 +0200
-Message-Id: <1419367799-14263-52-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+	id S1751537AbaLRWId (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 17:08:33 -0500
+Date: Thu, 18 Dec 2014 23:08:24 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	prabhakar.csengg@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 3/8] v4l2-subdev: drop unused op enum_mbus_fmt
+In-Reply-To: <1417686899-30149-4-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1412182307100.11953@axis700.grange>
+References: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl>
+ <1417686899-30149-4-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have implemented tons of things for that driver, more than anyone
-else, so lets claim copyright and module authorship.
+Hi Hans,
 
-Cc: Thomas Mair <thomas.mair86@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832.c      | 2 ++
- drivers/media/dvb-frontends/rtl2832.h      | 1 +
- drivers/media/dvb-frontends/rtl2832_priv.h | 1 +
- 3 files changed, 4 insertions(+)
+On Thu, 4 Dec 2014, Hans Verkuil wrote:
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index a552b4b..70fdce4 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -2,6 +2,7 @@
-  * Realtek RTL2832 DVB-T demodulator driver
-  *
-  * Copyright (C) 2012 Thomas Mair <thomas.mair86@gmail.com>
-+ * Copyright (C) 2012-2014 Antti Palosaari <crope@iki.fi>
-  *
-  *	This program is free software; you can redistribute it and/or modify
-  *	it under the terms of the GNU General Public License as published by
-@@ -1304,5 +1305,6 @@ static struct i2c_driver rtl2832_driver = {
- module_i2c_driver(rtl2832_driver);
- 
- MODULE_AUTHOR("Thomas Mair <mair.thomas86@gmail.com>");
-+MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_DESCRIPTION("Realtek RTL2832 DVB-T demodulator driver");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index 73e2717..e5f67cf 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -2,6 +2,7 @@
-  * Realtek RTL2832 DVB-T demodulator driver
-  *
-  * Copyright (C) 2012 Thomas Mair <thomas.mair86@gmail.com>
-+ * Copyright (C) 2012-2014 Antti Palosaari <crope@iki.fi>
-  *
-  *	This program is free software; you can redistribute it and/or modify
-  *	it under the terms of the GNU General Public License as published by
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index 9edab5d..e25d748 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -2,6 +2,7 @@
-  * Realtek RTL2832 DVB-T demodulator driver
-  *
-  * Copyright (C) 2012 Thomas Mair <thomas.mair86@gmail.com>
-+ * Copyright (C) 2012-2014 Antti Palosaari <crope@iki.fi>
-  *
-  *	This program is free software; you can redistribute it and/or modify
-  *	it under the terms of the GNU General Public License as published by
--- 
-http://palosaari.fi/
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Weird, this op isn't used at all. Seems to be orphaned code.
+> Remove it.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  include/media/v4l2-subdev.h | 2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index b052184..5beeb87 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -342,8 +342,6 @@ struct v4l2_subdev_video_ops {
+>  			struct v4l2_dv_timings *timings);
+>  	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
+>  			     u32 *code);
+> -	int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
+> -			     struct v4l2_frmsizeenum *fsize);
 
+After so many cheerful acks I feel a bit bluffed, but... Your subject says 
+"drop enum_mbus_fmt" and your patch drops enum_mbus_fsizes... What am I 
+missing??
+
+Thanks
+Guennadi
+
+>  	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
+>  			  struct v4l2_mbus_framefmt *fmt);
+>  	int (*try_mbus_fmt)(struct v4l2_subdev *sd,
+> -- 
+> 2.1.3
+> 
