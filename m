@@ -1,106 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58273 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933210AbaLMEPM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 23:15:12 -0500
-Message-ID: <548BBD4D.3060001@iki.fi>
-Date: Sat, 13 Dec 2014 06:15:09 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:57185 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751724AbaLRC2W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Dec 2014 21:28:22 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <s.nawrocki@samsung.com>,
+	<festevam@gmail.com>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v4 0/5] media: ov2640: add device tree support
+Date: Thu, 18 Dec 2014 10:27:21 +0800
+Message-ID: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/4] mn88472: implemented ber reporting
-References: <1418429925-16342-1-git-send-email-benjamin@southpole.se> <1418429925-16342-4-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1418429925-16342-4-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/13/2014 02:18 AM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+This patch series add device tree support for ov2640. And also add
+the document for the devicetree properties.
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+v3->v4:
+  1. refined the dt document.
+  2. Add Laurent's acked-by.
 
+v2->v3:
+  1. fix the gpiod_xxx api usage as we use reset pin as ACTIVE_LOW.
+  2. update the devicetree binding document.
 
-Even I could accept that, as a staging driver, I see there some issues:
+v1 -> v2:
+  1.  modified the dt bindings according to Laurent's suggestion.
+  2. add a fix patch for soc_camera. Otherwise the .reset() function won't work.
 
-* missing commit message (ok, it is trivial and patch subject says)
+Josh Wu (5):
+  media: soc-camera: use icd->control instead of icd->pdev for reset()
+  media: ov2640: add async probe function
+  media: ov2640: add primary dt support
+  media: ov2640: add a master clock for sensor
+  media: ov2640: dt: add the device tree binding document
 
-* it is legacy DVBv3 API BER reporting, whilst driver is DVBv5 mostly 
-due to DVB-T2... So DVBv5 statistics are preferred.
-
-* dynamic debugs has unneded __func__,  see 
-Documentation/dynamic-debug-howto.txt
-
-* there should be spaces used around binary and ternary calculation 
-operators, see Documentation/CodingStyle for more info how it should be.
-
-
-Could you read overall these two docs before make new patches:
-Documentation/CodingStyle
-Documentation/dynamic-debug-howto.txt
-
-also use scripts/checkpatch.pl to verify patch, like that
-git diff | ./scripts/checkpatch.pl -
-
-regards
-Antti
-
-> ---
->   drivers/staging/media/mn88472/mn88472.c | 31 +++++++++++++++++++++++++++++++
->   1 file changed, 31 insertions(+)
->
-> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-> index 746cc94..8b35639 100644
-> --- a/drivers/staging/media/mn88472/mn88472.c
-> +++ b/drivers/staging/media/mn88472/mn88472.c
-> @@ -392,6 +392,36 @@ err:
->   	return ret;
->   }
->
-> +static int mn88472_read_ber(struct dvb_frontend *fe, u32 *ber)
-> +{
-> +	struct i2c_client *client = fe->demodulator_priv;
-> +	struct mn88472_dev *dev = i2c_get_clientdata(client);
-> +	int ret, err, len;
-> +	u8 data[3];
-> +
-> +	dev_dbg(&client->dev, "%s:\n", __func__);
-> +
-> +	ret = regmap_bulk_read(dev->regmap[0], 0x9F , data, 3);
-> +	if (ret)
-> +		goto err;
-> +	err = data[0]<<16 | data[1]<<8 | data[2];
-> +
-> +	ret = regmap_bulk_read(dev->regmap[0], 0xA2 , data, 2);
-> +	if (ret)
-> +		goto err;
-> +	len = data[0]<<8 | data[1];
-> +
-> +	if (len)
-> +		*ber = (err*100)/len;
-> +	else
-> +		*ber = 0;
-> +
-> +	return 0;
-> +err:
-> +	dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
-> +	return ret;
-> +}
-> +
->   static struct dvb_frontend_ops mn88472_ops = {
->   	.delsys = {SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A},
->   	.info = {
-> @@ -425,6 +455,7 @@ static struct dvb_frontend_ops mn88472_ops = {
->   	.set_frontend = mn88472_set_frontend,
->
->   	.read_status = mn88472_read_status,
-> +	.read_ber = mn88472_read_ber,
->   };
->
->   static int mn88472_probe(struct i2c_client *client,
->
+ .../devicetree/bindings/media/i2c/ov2640.txt       |  46 +++++++
+ drivers/media/i2c/soc_camera/ov2640.c              | 141 ++++++++++++++++++---
+ drivers/media/platform/soc_camera/soc_camera.c     |   8 +-
+ 3 files changed, 175 insertions(+), 20 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
 
 -- 
-http://palosaari.fi/
+1.9.1
+
