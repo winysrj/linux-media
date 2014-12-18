@@ -1,40 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35379 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752734AbaLAKdC (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:60707 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750978AbaLRIwh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 05:33:02 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 3672A2A008F
-	for <linux-media@vger.kernel.org>; Mon,  1 Dec 2014 11:32:44 +0100 (CET)
-Message-ID: <547C43CC.3040504@xs4all.nl>
-Date: Mon, 01 Dec 2014 11:32:44 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 18 Dec 2014 03:52:37 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <nicolas.ferre@atmel.com>
+CC: <voice.shen@atmel.com>, <plagnioj@jcrosoft.com>,
+	<boris.brezillon@free-electrons.com>,
+	<alexandre.belloni@free-electrons.com>,
+	<devicetree@vger.kernel.org>, <robh+dt@kernel.org>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	<laurent.pinchart@ideasonboard.com>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 1/7] ARM: at91: dts: sama5d3: add isi clock
+Date: Thu, 18 Dec 2014 16:51:01 +0800
+Message-ID: <1418892667-27428-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
+References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [RFC] vino: deprecate and remove
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I propose that this driver is deprecated and moved to staging and that
-1-2 kernel cycles later this driver is removed.
+Add ISI peripheral clock in sama5d3.dtsi.
 
-The reason for this is that this is ancient hardware and it hasn't seen any
-development in ages and no apparent users. It hasn't been tested with actual
-hardware in many, many years.
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+ arch/arm/boot/dts/sama5d3.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-To update it it would need to be converted to the control framework and vb2,
-but without any hardware that's going to be impossible.
+diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+index 5f4144d..61746ef 100644
+--- a/arch/arm/boot/dts/sama5d3.dtsi
++++ b/arch/arm/boot/dts/sama5d3.dtsi
+@@ -214,6 +214,8 @@
+ 				compatible = "atmel,at91sam9g45-isi";
+ 				reg = <0xf0034000 0x4000>;
+ 				interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
++				clocks = <&isi_clk>;
++				clock-names = "isi_clk";
+ 				status = "disabled";
+ 			};
+ 
+-- 
+1.9.1
 
-In my view it is time to retire this driver. The lack of hardware and users
-and the fact that it uses deprecated APIs makes it a good candidate to removal.
-
-Regards,
-
-	Hans
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
