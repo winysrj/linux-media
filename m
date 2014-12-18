@@ -1,102 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36961 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750912AbaLGOu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Dec 2014 09:50:29 -0500
-Message-ID: <5484692D.2020009@iki.fi>
-Date: Sun, 07 Dec 2014 16:50:21 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:57675 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751084AbaLRJVb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 04:21:31 -0500
+Message-ID: <54929C3E.7020001@xs4all.nl>
+Date: Thu, 18 Dec 2014 10:19:58 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Jurgen Kramer <gtmkramer@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: DVBSky T980C: Si2168 fw load failed
-References: <2eea6b3b11e395b7fb238f350a804dc9.squirrel@webmail.xs4all.nl>	 <54834B0D.6070502@iki.fi> <1417940144.2720.1.camel@xs4all.nl>
-In-Reply-To: <1417940144.2720.1.camel@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Thierry Reding <thierry.reding@gmail.com>
+CC: linux-media@vger.kernel.org, marbugge@cisco.com,
+	dri-devel@lists.freedesktop.org
+Subject: Re: [PATCHv2 0/3] hdmi: add unpack and logging functions
+References: <1417522126-31771-1-git-send-email-hverkuil@xs4all.nl> <54895C92.9000007@xs4all.nl> <20141218082457.GB29856@ulmo>
+In-Reply-To: <20141218082457.GB29856@ulmo>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 12/07/2014 10:15 AM, Jurgen Kramer wrote:
-> On Sat, 2014-12-06 at 20:29 +0200, Antti Palosaari wrote:
->> On 12/06/2014 06:48 PM, Jurgen Kramer wrote:
->>> On my new DVBSky T980C the tuner firmware failes to load:
->>> [   51.326525] si2168 2-0064: found a 'Silicon Labs Si2168' in cold state
->>> [   51.356233] si2168 2-0064: downloading firmware from file
->>> 'dvb-demod-si2168-a30-01.fw'
->>> [   51.408166] si2168 2-0064: firmware download failed=-110
->>> [   51.415457] si2157 4-0060: found a 'Silicon Labs Si2146/2147/2148/2157/2158'
->>> in cold state
->>> [   51.521714] si2157 4-0060: downloading firmware from file
->>> 'dvb-tuner-si2158-a20-01.fw'
->>> [   52.330605] si2168 2-0064: found a 'Silicon Labs Si2168' in cold state
->>> [   52.330784] si2168 2-0064: downloading firmware from file
->>> 'dvb-demod-si2168-a30-01.fw'
->>> [   52.382145] si2168 2-0064: firmware download failed=-110
+On 12/18/14 09:24, Thierry Reding wrote:
+> On Thu, Dec 11, 2014 at 09:57:54AM +0100, Hans Verkuil wrote:
+>> Hi Thierry,
+>>
+>> On 12/02/14 13:08, Hans Verkuil wrote:
+>>> This patch series adds new HDMI 2.0/CEA-861-F defines to hdmi.h and
+>>> adds unpacking and logging functions to hdmi.c. It also uses those
+>>> in the V4L2 adv7842 driver (and they will be used in other HDMI drivers
+>>> once this functionality is merged).
 >>>
->>> 110 seems to mean connection timeout. Any pointers how to debug this further?
+>>> Patches 2 and 3 have been posted before by Martin Bugge. It stalled, but
+>>> I am taking over from Martin to try and get this is. I want to use this
+>>> in a bunch of v4l2 drivers, so I would really like to see this merged.
 >>>
->>> This is with the latest media_build from linuxtv.org on 3.17.4.
+>>> Changes since v1:
+>>>
+>>> - rename HDMI_CONTENT_TYPE_NONE to HDMI_CONTENT_TYPE_GRAPHICS to conform
+>>>   to CEA-861-F.
+>>> - added missing HDMI_AUDIO_CODING_TYPE_CXT.
+>>> - Be explicit: out of range values are called "Invalid", reserved
+>>>   values are called "Reserved".
+>>> - Incorporated most of Thierry's suggestions. Exception: I didn't
+>>>   create ..._get_name(buffer, length, ...) functions. I think it makes
+>>>   the API awkward and I am not convinced that it is that useful.
+>>>   I also kept "No Data" since that's what CEA-861-F calls it. I also
+>>>   think that "No Data" is a better description than "None" since it
+>>>   really means that nobody bothered to fill this in.
+>>>
+>>> Please let me know if there are more things that need to be addressed in
+>>> these patches before they can be merged.
 >>
->> Looks like si2168 firmware failed to download, but si2157 succeeded.
->> Could you add some more time for driver timeout? Current timeout is
->> selected by trial and error, lets say it takes always max 43ms for my
->> device I coded it 50ms.
->>
->>
->> drivers/media/dvb-frontends/si2168.c
->> /* wait cmd execution terminate */
->> #define TIMEOUT 50
->>
->> change it to
->> #define TIMEOUT 500
->
-> Thanks, with the larger timeout the fw load works:
->
-> [   56.960982] si2168 4-0064: found a 'Silicon Labs Si2168' in cold
-> state
-> [   56.972650] si2168 4-0064: downloading firmware from file
-> 'dvb-demod-si2168-a30-01.fw'
-> [   60.103509] si2168 4-0064: found a 'Silicon Labs Si2168' in warm
-> state
-> [   60.110739] si2157 6-0060: found a 'Silicon Labs
-> Si2146/2147/2148/2157/2158' in cold state
-> [   60.123720] si2157 6-0060: downloading firmware from file
-> 'dvb-tuner-si2158-a20-01.fw'
+>> Any comments about this v2?
+> 
+> Sorry for taking so long. This got burried under a lot of other stuff.
 
-Have to find out some suitable value. For that I need know how long it 
-took maximum in your case. There is already dubug printing to print 
-execution time of each command, but it is behind dynamic debug. Maybe 
-the most easiest way is change that debug line to info:
-drivers/media/dvb-frontends/si2168.c
--               dev_dbg(&s->client->dev, "cmd execution took %d ms\n",
-+               dev_info(&s->client->dev, "cmd execution took %d ms\n",
+No problem! Much appreciated that you took the time for this review.
 
-and then compile and install and issue command:
-$ dvb-fe-tool --set-delsys=DVBT2
+> I have some minor comments to patch 2/3, but on the whole this looks very
+> nice.
 
-After that is should print a lot of times to log, like:
+I'll make a v3 (probably tomorrow) fixing most of your comments although I'm
+keeping hdmi_log. Using dev_printk just made the code a lot harder to read
+IMHO. I plan to address all other comments.
 
-si2168 6-0064: cmd execution took 1 ms
-si2168 6-0064: cmd execution took 1 ms
-si2168 6-0064: found a 'Silicon Labs Si2168' in cold state
-si2168 6-0064: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
-si2168 6-0064: cmd execution took 26 ms
-si2168 6-0064: cmd execution took 1 ms
+>> If not, is this something you or someone else from dri-devel will
+>> take, or can it be merged through the media git repository?
+> 
+> I'm not aware of anyone currently doing work on this for DRM, so I think
+> it'd be fine if you took it through the media git tree, especially since
+> patch 3/3 clearly belongs there.
 
->
-> BTW Is there a way to switch between T/T2 and DVB-C mode?
+OK, great. I'd appreciate it if you can Ack the v3 patch series when it's
+posted.
 
-$ dvb-fe-tool --set-delsys=xxx
+> If we ever need to resolve dependencies between this and new work in DRM
+> we could set up a stable branch containing patches 1/3 and 2/3 which can
+> be merged into both trees.
 
-but maybe that does not change it permanently. It is application job to 
-tell proper standard used.
+Regards,
 
-regards
-Antti
+	Hans
 
-
--- 
-http://palosaari.fi/
