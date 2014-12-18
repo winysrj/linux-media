@@ -1,58 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:26324 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751860AbaLCQIu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Dec 2014 11:08:50 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, robh+dt@kernel.org, pawel.moll@arm.com,
-	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
-	galak@codeaurora.org, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v9 15/19] Documentation: leds: Add description of
- v4l2-flash sub-device
-Date: Wed, 03 Dec 2014 17:06:50 +0100
-Message-id: <1417622814-10845-16-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:57609 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751622AbaLRCb3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Dec 2014 21:31:29 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <s.nawrocki@samsung.com>,
+	<festevam@gmail.com>, Josh Wu <josh.wu@atmel.com>,
+	<devicetree@vger.kernel.org>
+Subject: [PATCH v4 5/5] media: ov2640: dt: add the device tree binding document
+Date: Thu, 18 Dec 2014 10:27:26 +0800
+Message-ID: <1418869646-17071-6-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
+References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch extends LED Flash class documention by
-the description of interactions with v4l2-flash sub-device.
+Add the document for ov2640 dt.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- Documentation/leds/leds-class-flash.txt |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+v3 -> v4:
+  1. remove aggsigned-clocks as it's general.
+  2. refine the explation.
 
-diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-index 82e58b1..bc3855b 100644
---- a/Documentation/leds/leds-class-flash.txt
-+++ b/Documentation/leds/leds-class-flash.txt
-@@ -48,3 +48,16 @@ Following sysfs attributes are exposed for controlling flash led devices:
- 			  upper limit
- 
- 		Flash faults are cleared by reading the attribute.
+v2 -> v3:
+  1. fix incorrect description.
+  2. Add assigned-clocks & assigned-clock-rates.
+  3. resetb pin should be ACTIVE_LOW.
+
+v1 -> v2:
+  1. change the compatible string to be consistent with verdor file.
+  2. change the clock and pins' name.
+  3. add missed pinctrl in example.
+
+ .../devicetree/bindings/media/i2c/ov2640.txt       | 46 ++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+new file mode 100644
+index 0000000..de11ebb
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+@@ -0,0 +1,46 @@
++* Omnivision ov2640 CMOS sensor
 +
-+A LED subsystem driver can be controlled also from the level of VideoForLinux2
-+subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
-+be defined in the kernel config. The driver must call the v4l2_flash_init
-+function to get registered in the V4L2 subsystem. On remove the
-+v4l2_flash_release function has to be called (see <media/v4l2-flash.h>).
++The Omnivision OV2640 sensor support multiple resolutions output, such as
++CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
++output format.
 +
-+After proper initialization a V4L2 Flash sub-device is created. The sub-device
-+exposes a number of V4L2 controls, which allow for controlling a LED Flash class
-+device with use of its internal kernel API.
-+Opening the V4L2 Flash sub-device makes the LED subsystem sysfs interface
-+unavailable. The interface is re-enabled after the V4L2 Flash sub-device
-+is closed.
++Required Properties:
++- compatible: Must be "ovti,ov2640"
++- clocks: reference to the xvclk input clock.
++- clock-names: Must be "xvclk".
++
++Optional Properties:
++- resetb-gpios: reference to the GPIO connected to the resetb pin, if any.
++- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	i2c1: i2c@f0018000 {
++		ov2640: camera@0x30 {
++			compatible = "ovti,ov2640";
++			reg = <0x30>;
++
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn &pinctrl_ov2640_resetb>;
++
++			resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
++			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
++
++			clocks = <&pck1>;
++			clock-names = "xvclk";
++
++			assigned-clocks = <&pck1>;
++			assigned-clock-rates = <25000000>;
++
++			port {
++				ov2640_0: endpoint {
++					remote-endpoint = <&isi_0>;
++					bus-width = <8>;
++				};
++			};
++		};
++	};
 -- 
-1.7.9.5
+1.9.1
 
