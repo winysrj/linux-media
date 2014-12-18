@@ -1,86 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54009 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:38454 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751078AbaLWVdc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 16:33:32 -0500
+	id S1751107AbaLRVGF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 16:06:05 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 55/66] rtl28xxu: simplify FE callback handling
-Date: Tue, 23 Dec 2014 22:49:48 +0200
-Message-Id: <1419367799-14263-55-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Subject: [PATCH 2/2] rtl2832: add name for RegMap
+Date: Thu, 18 Dec 2014 23:05:17 +0200
+Message-Id: <1418936717-2806-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1418936717-2806-1-git-send-email-crope@iki.fi>
+References: <1418936717-2806-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Logic is so simple that there is no idea to separate tuner selection to
-own function, instead do it in a callback and get rid of one function.
+Pass module name to regmap in order to silence lockdep recursive
+deadlock warning. Lockdep validator groups mutexes per mutex name by
+default. Due to that tuner and demod regmap mutexes were seen as a
+single mutex. Tuner register access causes demod register access,
+because of I2C mux/repeater and that is seen as a recursive locking
+- even those locks are different instances (tuner vs. demod).
+
+Defining name for mutex allows lockdep to separate mutexes and error
+is not shown.
 
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 27 +++++++++------------------
- 1 file changed, 9 insertions(+), 18 deletions(-)
+ drivers/media/dvb-frontends/rtl2832.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 1f29307..f475018 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -721,22 +721,6 @@ err:
- 	return ret;
- }
- 
--static int rtl2832u_tuner_callback(struct dvb_usb_device *d, int cmd, int arg)
--{
--	struct rtl28xxu_priv *priv = d->priv;
--
--	switch (priv->tuner) {
--	case TUNER_RTL2832_FC0012:
--		return rtl2832u_fc0012_tuner_callback(d, cmd, arg);
--	case TUNER_RTL2832_TUA9001:
--		return rtl2832u_tua9001_tuner_callback(d, cmd, arg);
--	default:
--		break;
--	}
--
--	return 0;
--}
--
- static int rtl2832u_frontend_callback(void *adapter_priv, int component,
- 		int cmd, int arg)
- {
-@@ -744,6 +728,7 @@ static int rtl2832u_frontend_callback(void *adapter_priv, int component,
- 	struct device *parent = adapter->dev.parent;
- 	struct i2c_adapter *parent_adapter;
- 	struct dvb_usb_device *d;
-+	struct rtl28xxu_priv *priv;
- 
- 	/*
- 	 * All tuners are connected to demod muxed I2C adapter. We have to
-@@ -757,15 +742,21 @@ static int rtl2832u_frontend_callback(void *adapter_priv, int component,
- 		return -EINVAL;
- 
- 	d = i2c_get_adapdata(parent_adapter);
-+	priv = d->priv;
- 
- 	dev_dbg(&d->udev->dev, "%s: component=%d cmd=%d arg=%d\n",
- 			__func__, component, cmd, arg);
- 
- 	switch (component) {
- 	case DVB_FRONTEND_COMPONENT_TUNER:
--		return rtl2832u_tuner_callback(d, cmd, arg);
-+		switch (priv->tuner) {
-+		case TUNER_RTL2832_FC0012:
-+			return rtl2832u_fc0012_tuner_callback(d, cmd, arg);
-+		case TUNER_RTL2832_TUA9001:
-+			return rtl2832u_tua9001_tuner_callback(d, cmd, arg);
-+		}
- 	default:
--		break;
-+		return -EINVAL;
- 	}
- 
- 	return 0;
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index f44dc50..f41bbd0 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -1187,6 +1187,7 @@ static int rtl2832_probe(struct i2c_client *client,
+ 		},
+ 	};
+ 	static const struct regmap_config regmap_config = {
++		.name = KBUILD_MODNAME,
+ 		.reg_bits    =  8,
+ 		.val_bits    =  8,
+ 		.volatile_reg = rtl2832_volatile_reg,
 -- 
 http://palosaari.fi/
 
