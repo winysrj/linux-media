@@ -1,58 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay010.isp.belgacom.be ([195.238.6.177]:14761 "EHLO
-	mailrelay010.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752339AbaL2ObI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Dec 2014 09:31:08 -0500
-From: Fabian Frederick <fabf@skynet.be>
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Fabian Frederick <fabf@skynet.be>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH 07/11 linux-next] [media] s5p-mfc: remove unnecessary version.h inclusion
-Date: Mon, 29 Dec 2014 15:29:41 +0100
-Message-Id: <1419863387-24233-8-git-send-email-fabf@skynet.be>
-In-Reply-To: <1419863387-24233-1-git-send-email-fabf@skynet.be>
-References: <1419863387-24233-1-git-send-email-fabf@skynet.be>
+Received: from mx1.redhat.com ([209.132.183.28]:46001 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751240AbaLRIvB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 03:51:01 -0500
+Message-ID: <54929552.8090707@redhat.com>
+Date: Thu, 18 Dec 2014 09:50:26 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Chen-Yu Tsai <wens@csie.org>
+CC: Linus Walleij <linus.walleij@linaro.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi <linux-sunxi@googlegroups.com>
+Subject: Re: [linux-sunxi] [PATCH v2 04/13] rc: sunxi-cir: Add support for
+ an optional reset controller
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com> <1418836704-15689-5-git-send-email-hdegoede@redhat.com> <CAGb2v65BW7NABQXK877DkMNqDdBeuZ55wQHFkTexbWACFC4zFA@mail.gmail.com>
+In-Reply-To: <CAGb2v65BW7NABQXK877DkMNqDdBeuZ55wQHFkTexbWACFC4zFA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Based on versioncheck.
+Hi,
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 1 -
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 1 -
- 2 files changed, 2 deletions(-)
+On 18-12-14 03:48, Chen-Yu Tsai wrote:
+> Hi,
+>
+> On Thu, Dec 18, 2014 at 1:18 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> On sun6i the cir block is attached to the reset controller, add support
+>> for de-asserting the reset if a reset controller is specified in dt.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>> Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+>> ---
+>>   .../devicetree/bindings/media/sunxi-ir.txt         |  2 ++
+>>   drivers/media/rc/sunxi-cir.c                       | 25 ++++++++++++++++++++--
+>>   2 files changed, 25 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+>> index 23dd5ad..6b70b9b 100644
+>> --- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
+>> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+>> @@ -10,6 +10,7 @@ Required properties:
+>>
+>>   Optional properties:
+>>   - linux,rc-map-name : Remote control map name.
+>> +- resets : phandle + reset specifier pair
+>
+> Should it be optional? Or should we use a sun6i compatible with
+> a mandatory reset phandle? I mean, the driver/hardware is not
+> going to work with the reset missing on sun6i.
+>
+> Seems we are doing it one way for some of our drivers, and
+> the other (optional) way for more generic ones, like USB.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index c6c3452..a9ef843 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -18,7 +18,6 @@
- #include <linux/platform_device.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
--#include <linux/version.h>
- #include <linux/videodev2.h>
- #include <linux/workqueue.h>
- #include <media/v4l2-ctrls.h>
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index bd64f1d..68df3cd 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -19,7 +19,6 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/sched.h>
--#include <linux/version.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-event.h>
- #include <linux/workqueue.h>
--- 
-2.1.0
+I do not believe that we should add a new compatible just because
+the reset line of a block is hooked up differently. It is the
+exact same ip-block. Only now the reset is not controlled
+through the apb-gate, but controlled separately.
 
+Regards,
+
+Hans
