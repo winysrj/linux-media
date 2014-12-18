@@ -1,162 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:12528 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755234AbaLIM4v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 07:56:51 -0500
-Message-id: <5486F18F.1000202@samsung.com>
-Date: Tue, 09 Dec 2014 13:56:47 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org
-Subject: Re: [PATCH/RFC v9 01/19] leds: Add LED Flash class extension to the
- LED subsystem
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
- <1417622814-10845-2-git-send-email-j.anaszewski@samsung.com>
- <20141203165013.GM14746@valkosipuli.retiisi.org.uk>
- <54802966.8060405@samsung.com>
- <20141209123607.GI15559@valkosipuli.retiisi.org.uk>
-In-reply-to: <20141209123607.GI15559@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail-oi0-f41.google.com ([209.85.218.41]:38992 "EHLO
+	mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751033AbaLRQzU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 11:55:20 -0500
+Received: by mail-oi0-f41.google.com with SMTP id a3so646755oib.28
+        for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 08:55:19 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1418921549.4212.57.camel@pengutronix.de>
+References: <54930468.6010007@vodalys.com> <1418921549.4212.57.camel@pengutronix.de>
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Date: Thu, 18 Dec 2014 17:55:04 +0100
+Message-ID: <CAL8zT=jjm9BXuUbk5RS-LZpC1EyyTwdGQRy-fQEUMdDfj4Ej7g@mail.gmail.com>
+Subject: Re: coda: Unable to use encoder video_bitrate
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?B?RnLDqWTDqXJpYyBTdXJlYXU=?= <frederic.sureau@vodalys.com>,
+	Fabio Estevam <festevam@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Philipp,
 
-On 12/09/2014 01:36 PM, Sakari Ailus wrote:
-> Hi Jacek,
+2014-12-18 17:52 GMT+01:00 Philipp Zabel <p.zabel@pengutronix.de>:
+> Hi Frédéric,
 >
-> On Thu, Dec 04, 2014 at 10:29:10AM +0100, Jacek Anaszewski wrote:
-> ...
->>>> +static struct attribute *led_flash_strobe_attrs[] = {
->>>> +	&dev_attr_flash_strobe.attr,
->>>> +	NULL,
->>>> +};
->>>> +
->>>> +static struct attribute *led_flash_timeout_attrs[] = {
->>>> +	&dev_attr_flash_timeout.attr,
->>>> +	&dev_attr_max_flash_timeout.attr,
->>>> +	NULL,
->>>> +};
->>>> +
->>>> +static struct attribute *led_flash_brightness_attrs[] = {
->>>> +	&dev_attr_flash_brightness.attr,
->>>> +	&dev_attr_max_flash_brightness.attr,
->>>> +	NULL,
->>>> +};
->>>> +
->>>> +static struct attribute *led_flash_fault_attrs[] = {
->>>> +	&dev_attr_flash_fault.attr,
->>>> +	NULL,
->>>> +};
->>>> +
->>>> +static struct attribute *led_flash_sync_strobe_attrs[] = {
->>>> +	&dev_attr_flash_sync_strobe.attr,
->>>> +	NULL,
->>>> +};
->>>> +
->>>> +static const struct attribute_group led_flash_strobe_group = {
->>>> +	.attrs = led_flash_strobe_attrs,
->>>> +};
->>>> +
->>>> +static const struct attribute_group led_flash_timeout_group = {
->>>> +	.attrs = led_flash_timeout_attrs,
->>>> +};
->>>> +
->>>> +static const struct attribute_group led_flash_brightness_group = {
->>>> +	.attrs = led_flash_brightness_attrs,
->>>> +};
->>>> +
->>>> +static const struct attribute_group led_flash_fault_group = {
->>>> +	.attrs = led_flash_fault_attrs,
->>>> +};
->>>> +
->>>> +static const struct attribute_group led_flash_sync_strobe_group = {
->>>> +	.attrs = led_flash_sync_strobe_attrs,
->>>> +};
->>>> +
->>>> +static const struct attribute_group *flash_groups[] = {
->>>> +	&led_flash_strobe_group,
->>>> +	NULL,
->>>> +	NULL,
->>>> +	NULL,
->>>> +	NULL,
->>>> +	NULL,
->>>> +	NULL
->>>> +};
->>>> +
->>>> +static void led_flash_resume(struct led_classdev *led_cdev)
->>>> +{
->>>> +	struct led_classdev_flash *flash = lcdev_to_flash(led_cdev);
->>>> +
->>>> +	call_flash_op(flash, flash_brightness_set, flash->brightness.val);
->>>> +	call_flash_op(flash, timeout_set, flash->timeout.val);
->>>> +}
->>>> +
->>>> +static void led_flash_init_sysfs_groups(struct led_classdev_flash *flash)
->>>> +{
->>>> +	struct led_classdev *led_cdev = &flash->led_cdev;
->>>> +	const struct led_flash_ops *ops = flash->ops;
->>>> +	int num_sysfs_groups = 1;
->>>> +
->>>> +	if (ops->flash_brightness_set)
->>>> +		flash_groups[num_sysfs_groups++] = &led_flash_brightness_group;
->>>> +
->>>> +	if (ops->timeout_set)
->>>> +		flash_groups[num_sysfs_groups++] = &led_flash_timeout_group;
->>>> +
->>>> +	if (ops->fault_get)
->>>> +		flash_groups[num_sysfs_groups++] = &led_flash_fault_group;
->>>> +
->>>> +	if (led_cdev->flags & LED_DEV_CAP_COMPOUND)
->>>> +		flash_groups[num_sysfs_groups++] = &led_flash_sync_strobe_group;
->>>> +
->>>> +	led_cdev->groups = flash_groups;
->>>
->>> Shouldn't you have groups local to the device instead? If you register
->>> another flash device bad things will happen if the ops the device supports
->>> are different.
+> Am Donnerstag, den 18.12.2014, 17:44 +0100 schrieb Frédéric Sureau:
+>> Hi
 >>
->> The groups are local to the device. A LED class device is registered
->> with device_create_with_groups called from led_classdev_register
->> function. It is passed led_cdev->groups in the fifth argument.
->
-> The groups pointer will be stored in struct device. If you have another
-> driver using different groups, it will affect the groups for all flash
-> devices that use the same groups pointer. I'm not sure what exactly would
-> follow from that but I'd rather not change them once the device is created.
-
-I had to take another look at this to understand the problem.
-I think that the best option will be making flash_groups array
-a member of struct led_classdev_flash.
-
->>>> +}
->>>> +
->>>> +int led_classdev_flash_register(struct device *parent,
->>>> +				struct led_classdev_flash *flash)
->>>> +{
->>>> +	struct led_classdev *led_cdev;
->>>> +	const struct led_flash_ops *ops;
->>>> +	int ret;
->>>> +
->>>> +	if (!flash)
->>>
->>> Do you have a use case for this?
+>> I am trying to use the coda encoder through Gstreamer on an iMX6-based
+>> board.
 >>
->> This is just a guard against NULL pointer dereference. Maybe it is
->> indeed redundant, as the driver developer can easily check its
->> origin during implementation.
+>> I use the (rebased and slightly modified) gstv4l2h264enc plugin from:
+>> https://github.com/hizukiayaka/gst-plugins-good
+>>
+>> This pipeline works fine:
+>> gst-launch-1.0 -vvv v4l2src device=/dev/video4 !
+>> "video/x-raw,width=1280,height=720" ! videoconvert ! v4l2video0h264enc !
+>> h264parse ! mp4mux ! filesink location=test.mp4
+>>
+>> When encoder has no bitrate param set (default=0), video encoding works
+>> well, but bitrate reaches ~2.5Mbps
+>>
+>> When I try to set the bitrate with whatever value like 100,000 or
+>> 1,000,000, the encoder produces video with bitrate around 480kbps and a
+>> very poor quality.
+>>
+>> Here is the gstreamer pipeline I use with bitrate set:
+>> gst-launch-1.0 -vvv v4l2src device=/dev/video4 !
+>> "video/x-raw,width=1280,height=720" ! videoconvert ! v4l2video0h264enc
+>> extra-controls="controls,video_bitrate=1000000;" ! h264parse ! mp4mux !
+>> filesink location=test.mp4
+>>
+>> The video_bitrate control seems to be correctly passed to the driver by
+>> GStreamer since I can see the VIDIOC_S_CTRL call.
+>>
+>> Any idea ?
 >
-> Fine for me.
+> There is a bug in the register definitions that causes the driver to
+> apply a wrong mask before writing the bitrate to the register.
+> I've got a fix for this in the pipeline, sending it right now.
 
-Fine regarding my explanation or you agree that it is redundant?
+Where can we find the register definitions ? In order to look at it
+before asking you :) ?
 
-Best Regards,
-Jacek Anaszewski
-
+Thanks,
+JM
