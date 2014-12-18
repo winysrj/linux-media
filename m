@@ -1,65 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59990 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756611AbaLWUue (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:34 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 41/66] rtl2832: use regmap reg cache
-Date: Tue, 23 Dec 2014 22:49:34 +0200
-Message-Id: <1419367799-14263-41-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Received: from eusmtp01.atmel.com ([212.144.249.243]:39313 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751257AbaLRIxi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 03:53:38 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <nicolas.ferre@atmel.com>
+CC: <voice.shen@atmel.com>, <plagnioj@jcrosoft.com>,
+	<boris.brezillon@free-electrons.com>,
+	<alexandre.belloni@free-electrons.com>,
+	<devicetree@vger.kernel.org>, <robh+dt@kernel.org>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	<laurent.pinchart@ideasonboard.com>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 4/7] ARM: at91: dts: sama5d3: move the isi mck pin to mb
+Date: Thu, 18 Dec 2014 16:51:04 +0800
+Message-ID: <1418892667-27428-5-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
+References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable regmap register cache in order to reduce IO.
+From: Bo Shen <voice.shen@atmel.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The mck is decided by the board design, move it to mb related
+dtsi file.
+
+Signed-off-by: Bo Shen <voice.shen@atmel.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- drivers/media/dvb-frontends/rtl2832.c | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ arch/arm/boot/dts/sama5d3.dtsi    | 5 -----
+ arch/arm/boot/dts/sama5d3xmb.dtsi | 5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index b8e7971..4b6e6e0 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -986,6 +986,22 @@ static struct dvb_frontend_ops rtl2832_ops = {
- 	.read_ber = rtl2832_read_ber,
- };
+diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+index b3ac156..ed734e9 100644
+--- a/arch/arm/boot/dts/sama5d3.dtsi
++++ b/arch/arm/boot/dts/sama5d3.dtsi
+@@ -573,11 +573,6 @@
+ 							<AT91_PIOC 27 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PC27 periph C ISI_PD10, conflicts with SPI1_NPCS2, TWCK1 */
+ 							 AT91_PIOC 26 AT91_PERIPH_C AT91_PINCTRL_NONE>;	/* PC26 periph C ISI_PD11, conflicts with SPI1_NPCS1, TWD1 */
+ 					};
+-
+-					pinctrl_isi_pck_as_mck: isi_pck_as_mck-0 {
+-						atmel,pins =
+-							<AT91_PIOD 31 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD31 periph B ISI_MCK */
+-					};
+ 				};
  
-+static bool rtl2832_volatile_reg(struct device *dev, unsigned int reg)
-+{
-+	switch (reg) {
-+	case 0x305:
-+	case 0x33c:
-+	case 0x34e:
-+	case 0x351:
-+	case 0x40c ... 0x40d:
-+		return true;
-+	default:
-+		break;
-+	}
-+
-+	return false;
-+}
-+
- /*
-  * We implement own I2C access routines for regmap in order to get manual access
-  * to I2C adapter lock, which is needed for I2C mux adapter.
-@@ -1240,9 +1256,11 @@ static int rtl2832_probe(struct i2c_client *client,
- 	static const struct regmap_config regmap_config = {
- 		.reg_bits    =  8,
- 		.val_bits    =  8,
-+		.volatile_reg = rtl2832_volatile_reg,
- 		.max_register = 5 * 0x100,
- 		.ranges = regmap_range_cfg,
- 		.num_ranges = ARRAY_SIZE(regmap_range_cfg),
-+		.cache_type = REGCACHE_RBTREE,
- 	};
+ 				mmc0 {
+diff --git a/arch/arm/boot/dts/sama5d3xmb.dtsi b/arch/arm/boot/dts/sama5d3xmb.dtsi
+index 2530541..6af1cba 100644
+--- a/arch/arm/boot/dts/sama5d3xmb.dtsi
++++ b/arch/arm/boot/dts/sama5d3xmb.dtsi
+@@ -117,6 +117,11 @@
+ 							<AT91_PIOD 30 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD30 periph B */
+ 					};
  
- 	dev_dbg(&client->dev, "\n");
++					pinctrl_isi_pck_as_mck: isi_pck_as_mck-0 {
++						atmel,pins =
++							<AT91_PIOD 31 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD31 periph B ISI_MCK */
++					};
++
+ 					pinctrl_isi_reset: isi_reset-0 {
+ 						atmel,pins =
+ 							<AT91_PIOE 24 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;   /* PE24 gpio */
 -- 
-http://palosaari.fi/
+1.9.1
 
