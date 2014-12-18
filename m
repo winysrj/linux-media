@@ -1,119 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56881 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756257AbaLIMjQ (ORCPT
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:50481 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751119AbaLRRlA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Dec 2014 07:39:16 -0500
-Date: Tue, 9 Dec 2014 14:38:19 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org
-Subject: Re: [PATCH/RFC v9 02/19] Documentation: leds: Add description of LED
- Flash class extension
-Message-ID: <20141209123819.GJ15559@valkosipuli.retiisi.org.uk>
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
- <1417622814-10845-3-git-send-email-j.anaszewski@samsung.com>
- <20141203170818.GN14746@valkosipuli.retiisi.org.uk>
- <54802C9F.8030101@samsung.com>
+	Thu, 18 Dec 2014 12:41:00 -0500
+Received: by mail-lb0-f177.google.com with SMTP id b6so1338633lbj.22
+        for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 09:40:59 -0800 (PST)
+Message-ID: <549311A9.8050909@cogentembedded.com>
+Date: Thu, 18 Dec 2014 20:40:57 +0300
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54802C9F.8030101@samsung.com>
+To: Ben Hutchings <ben.hutchings@codethink.co.uk>,
+	linux-media@vger.kernel.org
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-kernel@codethink.co.uk,
+	William Towle <william.towle@codethink.co.uk>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 3/5] media: rcar_vin: Fix race condition terminating
+ stream
+References: <1418914070.22813.13.camel@xylophone.i.decadent.org.uk> <1418914186.22813.16.camel@xylophone.i.decadent.org.uk>
+In-Reply-To: <1418914186.22813.16.camel@xylophone.i.decadent.org.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hello.
 
-On Thu, Dec 04, 2014 at 10:42:55AM +0100, Jacek Anaszewski wrote:
-> Hi Sakari,
-> 
-> Thanks for the review.
-> 
-> On 12/03/2014 06:08 PM, Sakari Ailus wrote:
-> >Hi Jacek,
-> >
-> >On Wed, Dec 03, 2014 at 05:06:37PM +0100, Jacek Anaszewski wrote:
-> >>The documentation being added contains overall description of the
-> >>LED Flash Class and the related sysfs attributes.
-> >>
-> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>Cc: Bryan Wu <cooloney@gmail.com>
-> >>Cc: Richard Purdie <rpurdie@rpsys.net>
-> >>---
-> >>  Documentation/leds/leds-class-flash.txt |   50 +++++++++++++++++++++++++++++++
-> >>  1 file changed, 50 insertions(+)
-> >>  create mode 100644 Documentation/leds/leds-class-flash.txt
-> >>
-> >>diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-> >>new file mode 100644
-> >>index 0000000..82e58b1
-> >>--- /dev/null
-> >>+++ b/Documentation/leds/leds-class-flash.txt
-> >>@@ -0,0 +1,50 @@
-> >>+
-> >>+Flash LED handling under Linux
-> >>+==============================
-> >>+
-> >>+Some LED devices support two modes - torch and flash. The modes are
-> >>+supported by the LED class (see Documentation/leds/leds-class.txt)
-> >>+and LED Flash class respectively.
-> >>+
-> >>+In order to enable support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
-> >>+must be defined in the kernel config. A flash LED driver must register
-> >>+in the LED subsystem with led_classdev_flash_register to gain flash
-> >>+capabilities.
-> >>+
-> >>+Following sysfs attributes are exposed for controlling flash led devices:
-> >>+
-> >>+	- flash_brightness - flash LED brightness in microamperes (RW)
-> >>+	- max_flash_brightness - maximum available flash LED brightness (RO)
-> >>+	- flash_timeout - flash strobe duration in microseconds (RW)
-> >>+	- max_flash_timeout - maximum available flash strobe duration (RO)
-> >>+	- flash_strobe - flash strobe state (RW)
-> >>+	- flash_sync_strobe - one flash device can control more than one
-> >>+			      sub-led; when this atrribute is set to 1
-> >
-> >s/atrribute/attribute/
-> >
-> >>+			      the flash led will be strobed synchronously
-> >>+			      with the other one controlled by the same
-> >>+			      device; flash timeout setting is inherited
-> >>+			      from the led being strobed explicitly and
-> >>+			      flash brightness setting of a sub-led's
-> >>+			      being synchronized is used (RW)
-> >
-> >The flash brightness shouldn't be determined by the strobed LED. If this is
-> >a property of the hardware, then be it, but in general no, it it shouldn't
-> >be an interface requirement. I think this should just say that the strobe is
-> >synchronised.
-> 
-> I intended this to sound exactly as you laid it out above, but maybe it
-> is obscure English. "and flash brightness setting of a sub-led >>>being
-> synchronized<<< is used" - from my point of view the led being
-> synchronized is the one that isn't strobed explicitly. But I'm ok with
-> confining ourselves only to saying that strobe is synchronized.
+On 12/18/2014 05:49 PM, Ben Hutchings wrote:
 
-Agreed.
+> From: Ian Molton <ian.molton@codethink.co.uk>
 
-> >How does the user btw. figure out which flash LEDs may be strobed
-> >synchronously using the LED flash interface?
-> 
-> The flash_sync_strobe argument is absent if synchronized strobe
-> is not available for a LED. The driver defines this by setting
-> newly added LED_DEV_CAP_COMPOUND flag.
+> This patch fixes a race condition whereby a frame being captured may generate an
+>   interrupt between requesting capture to halt and freeing buffers.
 
-I meant that how does the user figure out which LEDs may be strobed
-synchronously, together. Say, if you have two of these chips and four LEDs,
-then how does it work? :-)
+    No need for the leading space.
 
--- 
-Kind regards,
+> This condition is exposed by the earlier patch that explicitly calls
+> vb2_buffer_done() during stop streaming.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+    Hm, perhaps for the sake of bisection, these 2 patches need to be merged?
+
+> The solution is to wait for capture to finish prior to finalising these buffers.
+
+> Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+> ---
+>   drivers/media/platform/soc_camera/rcar_vin.c |   43 +++++++++++++++++---------
+>   1 file changed, 28 insertions(+), 15 deletions(-)
+
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 7069176..b234e57 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+[...]
+> @@ -465,7 +488,6 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
+>   	struct rcar_vin_priv *priv = ici->priv;
+>   	unsigned int i;
+>   	int buf_in_use = 0;
+> -
+
+    Unrelated white space change. Moreover, there should be an empty line 
+after declarations.
+
+>   	spin_lock_irq(&priv->lock);
+>
+>   	/* Is the buffer in use by the VIN hardware? */
+[...]
+> @@ -520,12 +530,15 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
+>
+>   	spin_lock_irq(&priv->lock);
+>
+> +	rcar_vin_wait_stop_streaming(priv);
+> +
+>   	for (i = 0; i < vq->num_buffers; ++i)
+>   		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
+>   			vb2_buffer_done(vq->bufs[i], VB2_BUF_STATE_ERROR);
+>
+>   	list_for_each_safe(buf_head, tmp, &priv->capture)
+>   		list_del_init(buf_head);
+> +
+
+    Also seems like unrelated whitespace cleanup.
+
+>   	spin_unlock_irq(&priv->lock);
+>   }
+
+WBR, Sergei
+
