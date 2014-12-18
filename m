@@ -1,125 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58410 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754711AbaLWDn2 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51463 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751364AbaLRVXY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 22:43:28 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id BB6172A0004
-	for <linux-media@vger.kernel.org>; Tue, 23 Dec 2014 04:43:06 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20141223034306.BB6172A0004@tschai.lan>
-Date: Tue, 23 Dec 2014 04:43:06 +0100 (CET)
+	Thu, 18 Dec 2014 16:23:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: William Manley <will@williammanley.net>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com
+Subject: Re: [PATCH] [media] uvcvideo: Add GUID for BGR 8:8:8
+Date: Thu, 18 Dec 2014 23:23:26 +0200
+Message-ID: <2873589.uTjIvfEhRn@avalon>
+In-Reply-To: <5488F136.6050907@williammanley.net>
+References: <1418065078-27791-1-git-send-email-will@williammanley.net> <1514839.CAtLhmhmvy@avalon> <5488F136.6050907@williammanley.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi William,
 
-Results of the daily build of media_tree:
+On Thursday 11 December 2014 01:19:50 William Manley wrote:
+> On 10/12/14 23:54, Laurent Pinchart wrote:
+> > On Monday 08 December 2014 18:57:58 William Manley wrote:
+> >> The Magewell XI100DUSB-HDMI[1] video capture device reports the pixel
+> >> format "e436eb7d-524f-11ce-9f53-0020af0ba770".  This is its GUID for
+> >> BGR 8:8:8.
+> >> 
+> >> The UVC 1.5 spec[2] only defines GUIDs for YUY2, NV12, M420 and I420.
+> >> This seems to be an extension documented in the Microsoft Windows Media
+> >> Format SDK[3] - or at least the Media Format SDK was the only hit that
+> >> Google gave when searching for the GUID.  This Media Format SDK defines
+> >> this GUID as corresponding to `MEDIASUBTYPE_RGB24`.  Note though, the
+> >> XI100DUSB outputs BGR e.g. byte-reversed.  I don't know if its the
+> >> capture device in error or Microsoft mean BGR when they say RGB.
+> > 
+> > I believe Microsoft defines RGB as BGR. They do at least in BMP
+> > (https://en.wikipedia.org/wiki/BMP_file_format), probably because they
+> > consider the RGB pixel to be stored in little-endian format.
+> 
+> Thanks, that's helpful.
+> 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > I'll apply the patch to my tree and submit it for v3.20.
+> 
+> Great
+> 
+> > Could you please send me the output of 'lsusb -v' for your device, if
+> > possible running as root ?
+> 
+> lsusb output attached.
 
-date:		Tue Dec 23 04:00:24 CET 2014
-git branch:	test
-git hash:	654a731be1a0b6f606f3f3d12b50db08f2ae3c34
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+Thank you. I've updated the supported devices list.
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for mips
-ABI WARNING: change for sh
-smatch: ERRORS
+-- 
+Regards,
 
-Detailed results are available here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
