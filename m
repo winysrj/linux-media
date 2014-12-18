@@ -1,47 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39129 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751999AbaLFKaL (ORCPT
+Received: from mail-oi0-f43.google.com ([209.85.218.43]:51316 "EHLO
+	mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751610AbaLRJTJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Dec 2014 05:30:11 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 979E92A0081
-	for <linux-media@vger.kernel.org>; Sat,  6 Dec 2014 11:30:03 +0100 (CET)
-Message-ID: <5482DAAB.9080001@xs4all.nl>
-Date: Sat, 06 Dec 2014 11:30:03 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 18 Dec 2014 04:19:09 -0500
+Received: by mail-oi0-f43.google.com with SMTP id a3so122510oib.16
+        for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 01:19:08 -0800 (PST)
+Date: Thu, 18 Dec 2014 09:19:03 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 07/13] mfd: sun6i-prcm: Add support for the ir-clk
+Message-ID: <20141218091903.GA4525@x1>
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+ <1418836704-15689-8-git-send-email-hdegoede@redhat.com>
+ <20141218084129.GT13885@x1>
+ <54929602.8020002@redhat.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH for 3.19] vivid: fix CROP_BOUNDS typo for video output
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <54929602.8020002@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-An error was returned if composing was not supported, instead of if
-cropping was not supported.
+On Thu, 18 Dec 2014, Hans de Goede wrote:
 
-A classic copy-and-paste bug. Found with v4l2-compliance.
+> Hi,
+> 
+> On 18-12-14 09:41, Lee Jones wrote:
+> >On Wed, 17 Dec 2014, Hans de Goede wrote:
+> >
+> >>Add support for the ir-clk which is part of the sun6i SoC prcm module.
+> >>
+> >>Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> >>---
+> >>  drivers/mfd/sun6i-prcm.c | 14 ++++++++++++++
+> >>  1 file changed, 14 insertions(+)
+> >
+> >Pretty standard stuff (
+> >
+> >>diff --git a/drivers/mfd/sun6i-prcm.c b/drivers/mfd/sun6i-prcm.c
+> >>index 2f2e9f0..1911731 100644
+> >>--- a/drivers/mfd/sun6i-prcm.c
+> >>+++ b/drivers/mfd/sun6i-prcm.c
+> >>@@ -41,6 +41,14 @@ static const struct resource sun6i_a31_apb0_gates_clk_res[] = {
+> >>  	},
+> >>  };
+> >>
+> >>+static const struct resource sun6i_a31_ir_clk_res[] = {
+> >>+	{
+> >>+		.start = 0x54,
+> >>+		.end = 0x57,
+> >>+		.flags = IORESOURCE_MEM,
+> >>+	},
+> >>+};
+> >
+> >I'm still unkeen on this registers not being defined -- but whateveer!
+> >
+> >>  static const struct resource sun6i_a31_apb0_rstc_res[] = {
+> >>  	{
+> >>  		.start = 0xb0,
+> >>@@ -69,6 +77,12 @@ static const struct mfd_cell sun6i_a31_prcm_subdevs[] = {
+> >>  		.resources = sun6i_a31_apb0_gates_clk_res,
+> >>  	},
+> >>  	{
+> >>+		.name = "sun6i-a31-ir-clk",
+> >>+		.of_compatible = "allwinner,sun4i-a10-mod0-clk",
+> >>+		.num_resources = ARRAY_SIZE(sun6i_a31_ir_clk_res),
+> >>+		.resources = sun6i_a31_ir_clk_res,
+> >>+	},
+> >>+	{
+> >>  		.name = "sun6i-a31-apb0-clock-reset",
+> >>  		.of_compatible = "allwinner,sun6i-a31-clock-reset",
+> >>  		.num_resources = ARRAY_SIZE(sun6i_a31_apb0_rstc_res),
+> >
+> >This is all pretty standard stuff:
+> >
+> >For my own reference:
+> >
+> >Acked-by: Lee Jones <lee.jones@linaro.org>
+> >
+> >Do you do  you expect this patch to be handled?
+> 
+> I've no preference for how this goes upstream. There are no compile time deps
+> and runtime the ir will not work (but not explode) until all the bits are
+> in place.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: <stable@vger.kernel.org>      # for v3.18
----
- drivers/media/platform/vivid/vivid-vid-out.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Great, this is my kind of patch.  Applied, thanks.
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index ee5c399..39ff79f 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -625,7 +625,7 @@ int vivid_vid_out_g_selection(struct file *file, void *priv,
- 		sel->r = dev->fmt_out_rect;
- 		break;
- 	case V4L2_SEL_TGT_CROP_BOUNDS:
--		if (!dev->has_compose_out)
-+		if (!dev->has_crop_out)
- 			return -EINVAL;
- 		sel->r = vivid_max_rect;
- 		break;
 -- 
-2.1.3
-
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
