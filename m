@@ -1,106 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:35389 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751187AbaLTWcb (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:60930 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751956AbaLRIxO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 17:32:31 -0500
-Received: by mail-wg0-f53.google.com with SMTP id l18so3974287wgh.26
-        for <linux-media@vger.kernel.org>; Sat, 20 Dec 2014 14:32:30 -0800 (PST)
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-To: Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: pci: cx18: cx18-alsa-mixer.c:  Remove some unused functions
-Date: Sat, 20 Dec 2014 23:35:17 +0100
-Message-Id: <1419114917-12029-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+	Thu, 18 Dec 2014 03:53:14 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <nicolas.ferre@atmel.com>
+CC: <voice.shen@atmel.com>, <plagnioj@jcrosoft.com>,
+	<boris.brezillon@free-electrons.com>,
+	<alexandre.belloni@free-electrons.com>,
+	<devicetree@vger.kernel.org>, <robh+dt@kernel.org>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	<laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 3/7] ARM: at91: dts: sama5d3: add missing pins of isi
+Date: Thu, 18 Dec 2014 16:51:03 +0800
+Message-ID: <1418892667-27428-4-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
+References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removes some functions that are not used anywhere:
-snd_cx18_mixer_tv_vol_get() snd_cx18_mixer_tv_vol_info() snd_cx18_mixer_tv_vol_put()
+From: Bo Shen <voice.shen@atmel.com>
 
-This was partially found by using a static code analysis program called cppcheck.
+The ISI has 12 data lines, add the missing two data lines.
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Signed-off-by: Bo Shen <voice.shen@atmel.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 ---
- drivers/media/pci/cx18/cx18-alsa-mixer.c |   62 ------------------------------
- 1 file changed, 62 deletions(-)
+ arch/arm/boot/dts/sama5d3.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/pci/cx18/cx18-alsa-mixer.c b/drivers/media/pci/cx18/cx18-alsa-mixer.c
-index 341bddc..e7b0a1f 100644
---- a/drivers/media/pci/cx18/cx18-alsa-mixer.c
-+++ b/drivers/media/pci/cx18/cx18-alsa-mixer.c
-@@ -69,68 +69,6 @@ static inline int cx18_av_vol_to_dB(int v)
- 	return (v >> 9) - 119;
- }
+diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+index 595609f..b3ac156 100644
+--- a/arch/arm/boot/dts/sama5d3.dtsi
++++ b/arch/arm/boot/dts/sama5d3.dtsi
+@@ -568,6 +568,12 @@
+ 							 AT91_PIOC 28 AT91_PERIPH_C AT91_PINCTRL_NONE>;	/* PC28 periph C ISI_PD9, conflicts with SPI1_NPCS3, PWMFI0 */
+ 					};
  
--static int snd_cx18_mixer_tv_vol_info(struct snd_kcontrol *kcontrol,
--				      struct snd_ctl_elem_info *uinfo)
--{
--	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
--	uinfo->count = 1;
--	/* We're already translating values, just keep this control in dB */
--	uinfo->value.integer.min  = -96;
--	uinfo->value.integer.max  =   8;
--	uinfo->value.integer.step =   1;
--	return 0;
--}
--
--static int snd_cx18_mixer_tv_vol_get(struct snd_kcontrol *kctl,
--				     struct snd_ctl_elem_value *uctl)
--{
--	struct snd_cx18_card *cxsc = snd_kcontrol_chip(kctl);
--	struct cx18 *cx = to_cx18(cxsc->v4l2_dev);
--	struct v4l2_control vctrl;
--	int ret;
--
--	vctrl.id = V4L2_CID_AUDIO_VOLUME;
--	vctrl.value = dB_to_cx18_av_vol(uctl->value.integer.value[0]);
--
--	snd_cx18_lock(cxsc);
--	ret = v4l2_subdev_call(cx->sd_av, core, g_ctrl, &vctrl);
--	snd_cx18_unlock(cxsc);
--
--	if (!ret)
--		uctl->value.integer.value[0] = cx18_av_vol_to_dB(vctrl.value);
--	return ret;
--}
--
--static int snd_cx18_mixer_tv_vol_put(struct snd_kcontrol *kctl,
--				     struct snd_ctl_elem_value *uctl)
--{
--	struct snd_cx18_card *cxsc = snd_kcontrol_chip(kctl);
--	struct cx18 *cx = to_cx18(cxsc->v4l2_dev);
--	struct v4l2_control vctrl;
--	int ret;
--
--	vctrl.id = V4L2_CID_AUDIO_VOLUME;
--	vctrl.value = dB_to_cx18_av_vol(uctl->value.integer.value[0]);
--
--	snd_cx18_lock(cxsc);
--
--	/* Fetch current state */
--	ret = v4l2_subdev_call(cx->sd_av, core, g_ctrl, &vctrl);
--
--	if (ret ||
--	    (cx18_av_vol_to_dB(vctrl.value) != uctl->value.integer.value[0])) {
--
--		/* Set, if needed */
--		vctrl.value = dB_to_cx18_av_vol(uctl->value.integer.value[0]);
--		ret = v4l2_subdev_call(cx->sd_av, core, s_ctrl, &vctrl);
--		if (!ret)
--			ret = 1; /* Indicate control was changed w/o error */
--	}
--	snd_cx18_unlock(cxsc);
--
--	return ret;
--}
--
- 
- /* This is a bit of overkill, the slider is already in dB internally */
- static DECLARE_TLV_DB_SCALE(snd_cx18_mixer_tv_vol_db_scale, -9600, 100, 0);
++					pinctrl_isi_data_10_11: isi-0-data-10-11 {
++						atmel,pins =
++							<AT91_PIOC 27 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PC27 periph C ISI_PD10, conflicts with SPI1_NPCS2, TWCK1 */
++							 AT91_PIOC 26 AT91_PERIPH_C AT91_PINCTRL_NONE>;	/* PC26 periph C ISI_PD11, conflicts with SPI1_NPCS1, TWD1 */
++					};
++
+ 					pinctrl_isi_pck_as_mck: isi_pck_as_mck-0 {
+ 						atmel,pins =
+ 							<AT91_PIOD 31 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD31 periph B ISI_MCK */
 -- 
-1.7.10.4
+1.9.1
 
