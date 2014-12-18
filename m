@@ -1,67 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39255 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751407AbaLDRCy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Dec 2014 12:02:54 -0500
-Received: from recife.lan (unknown [187.57.172.76])
-	by lists.s-osg.org (Postfix) with ESMTPSA id B01BA462ED
-	for <linux-media@vger.kernel.org>; Thu,  4 Dec 2014 09:02:53 -0800 (PST)
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-From: Felipe Balbi <balbi@ti.com> (by way of Mauro Carvalho Chehab
-	<mchehab@osg.samsung.com>)
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
-	Linux ARM Kernel Mailing List
-	<linux-arm-kernel@lists.infradead.org>,
-	Felipe Balbi <balbi@ti.com>,
-	Sebastian Reichel <sre@kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Date: Wed, 26 Nov 2014 14:27:35 -0600
-Message-id: <1417033655-32332-1-git-send-email-balbi@ti.com>
-Content-transfer-encoding: 8bit
-Subject: [PATCH] arm: omap2: rx51-peripherals: fix build warning
+Received: from resqmta-po-05v.sys.comcast.net ([96.114.154.164]:35609 "EHLO
+	resqmta-po-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751159AbaLRQhQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 11:37:16 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: m.chehab@samsung.com, hans.verkuil@cisco.com,
+	dheitmueller@kernellabs.com, prabhakar.csengg@gmail.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	ttmesterr@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2 2/3] media: au0828 change to not zero out fmt.pix.priv
+Date: Thu, 18 Dec 2014 09:20:11 -0700
+Message-Id: <54b748fa5cb6883d6ce348c38328161409c1f1be.1418918402.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1418918401.git.shuahkh@osg.samsung.com>
+References: <cover.1418918401.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1418918401.git.shuahkh@osg.samsung.com>
+References: <cover.1418918401.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-commit 68a3c04 ([media] ARM: OMAP2: RX-51: update
-si4713 platform data) updated board-rx51-peripherals.c
-so that si4713 could be easily used on DT boot, but
-it ended up introducing a build warning whenever
-si4713 isn't enabled.
+There is no need to zero out fmt.pix.priv in vidioc_g_fmt_vid_cap()
+vidioc_try_fmt_vid_cap(), and vidioc_s_fmt_vid_cap(). Remove it.
 
-This patches fixes that warning:
-
-arch/arm/mach-omap2/board-rx51-peripherals.c:1000:36: warning: \
-	‘rx51_si4713_platform_data’ defined but not used [-Wunused-variable]
- static struct si4713_platform_data rx51_si4713_platform_data = {
-
-Cc: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/usb/au0828/au0828-video.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index d18a5cf..bda20c5 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -997,9 +997,11 @@ static struct aic3x_pdata rx51_aic3x_data2 = {
- 	.gpio_reset = 60,
- };
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 3011ca8..ef49b2e 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1104,7 +1104,6 @@ static int au0828_set_format(struct au0828_dev *dev, unsigned int cmd,
+ 	format->fmt.pix.sizeimage = width * height * 2;
+ 	format->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 	format->fmt.pix.field = V4L2_FIELD_INTERLACED;
+-	format->fmt.pix.priv = 0;
  
-+#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713)
- static struct si4713_platform_data rx51_si4713_platform_data = {
- 	.is_platform_device = true
- };
-+#endif
+ 	if (cmd == VIDIOC_TRY_FMT)
+ 		return 0;
+@@ -1189,7 +1188,6 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 	f->fmt.pix.sizeimage = dev->frame_size;
+ 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M; /* NTSC/PAL */
+ 	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
+-	f->fmt.pix.priv = 0;
+ 	return 0;
+ }
  
- static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
- #if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713)
 -- 
-2.1.0.GIT
+2.1.0
 
