@@ -1,59 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44391 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751925AbaLCOFo (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56937 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752398AbaLSM3s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Dec 2014 09:05:44 -0500
-Message-ID: <547F1876.6090308@xs4all.nl>
-Date: Wed, 03 Dec 2014 15:04:38 +0100
+	Fri, 19 Dec 2014 07:29:48 -0500
+Received: from [10.61.169.145] (173-38-208-170.cisco.com [173.38.208.170])
+	by tschai.lan (Postfix) with ESMTPSA id A6C5A2A002F
+	for <linux-media@vger.kernel.org>; Fri, 19 Dec 2014 13:29:32 +0100 (CET)
+Message-ID: <54941A37.8040002@xs4all.nl>
+Date: Fri, 19 Dec 2014 13:29:43 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: [PATCH 1/2] v4l2 subdevs: replace get/set_crop by get/set_selection
-References: <1417522901-43604-1-git-send-email-hverkuil@xs4all.nl> <20141203110559.GE14746@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20141203110559.GE14746@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.20] v4l2-subdev cleanups
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/03/14 12:06, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Tue, Dec 02, 2014 at 01:21:40PM +0100, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> The crop and selection pad ops are duplicates. Replace all uses of get/set_crop
->> by get/set_selection. This will make it possible to drop get/set_crop
->> altogether.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
->> Cc: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> For both: 
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Another point I'd like to draw attention to are the reserved fields --- some
-> drivers appear to zero them whereas some pay no attention. Shouldn't we
-> check in the sub-device IOCTL handler that the user has zeroed them, or zero
-> them for the user? I think this has probably been discussed before on V4L2.
-> Both have their advantages, probably zeroing them in the framework would be
-> the best option. What do you think?
+These patches are identical to patches 1, 2, 3 and 5 of this RFC patch series:
 
-If the framework can zero, then that's always better. Also note that valgrind
-understands the subdev ioctls, so that will be able to checks apps as well.
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg82712.html
 
-I haven't really looked into this yet, but I'm happy to review patches :-)
+Except for updating the obviously wrong subject line of patch 3.
 
 Regards,
 
 	Hans
+
+The following changes since commit 427ae153c65ad7a08288d86baf99000569627d03:
+
+  [media] bq/c-qcam, w9966, pms: move to staging in preparation for removal (2014-12-16 23:21:44 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.20e
+
+for you to fetch changes up to c2db336edbcc29bb5eb991c47be6d1524d7857c8:
+
+  media/i2c/Kconfig: drop superfluous MEDIA_CONTROLLER (2014-12-19 12:44:54 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (4):
+      v4l2 subdev: replace get/set_crop by get/set_selection
+      v4l2-subdev: drop get/set_crop pad ops
+      v4l2-subdev: drop unused op enum_mbus_fsizes
+      media/i2c/Kconfig: drop superfluous MEDIA_CONTROLLER
+
+ drivers/media/i2c/Kconfig                       |  6 +++---
+ drivers/media/i2c/mt9m032.c                     | 42 ++++++++++++++++++++++----------------
+ drivers/media/i2c/mt9p031.c                     | 41 +++++++++++++++++++++----------------
+ drivers/media/i2c/mt9t001.c                     | 41 +++++++++++++++++++++----------------
+ drivers/media/i2c/mt9v032.c                     | 43 ++++++++++++++++++++++-----------------
+ drivers/media/i2c/s5k6aa.c                      | 44 +++++++++++++++++++++++----------------
+ drivers/media/v4l2-core/v4l2-subdev.c           |  8 --------
+ drivers/staging/media/davinci_vpfe/dm365_isif.c | 69 ++++++++++++++++++++++++++++++++------------------------------
+ include/media/v4l2-subdev.h                     |  6 ------
+ 9 files changed, 159 insertions(+), 141 deletions(-)
