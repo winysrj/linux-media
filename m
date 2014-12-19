@@ -1,42 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:56897 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932156AbaLATwP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 14:52:15 -0500
-Date: Mon, 1 Dec 2014 14:52:08 -0500
-From: Jonathan Corbet <corbet@lwn.net>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2 06/11] media: marvell-ccic: use
- vb2_ops_wait_prepare/finish helper
-Message-ID: <20141201145208.228b5d55@lwn.net>
-In-Reply-To: <1417041754-8714-7-git-send-email-prabhakar.csengg@gmail.com>
-References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
-	<1417041754-8714-7-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.samsung.com ([203.254.224.34]:18010 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752022AbaLSHpU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 02:45:20 -0500
+From: Tony K Nadackal <tony.kn@samsung.com>
+To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org
+Cc: mchehab@osg.samsung.com, j.anaszewski@samsung.com,
+	kgene@kernel.org, k.debski@samsung.com, s.nawrocki@samsung.com,
+	robh+dt@kernel.org, mark.rutland@arm.com, bhushan.r@samsung.com,
+	Tony K Nadackal <tony.kn@samsung.com>
+Subject: [PATCH v2 1/2] [media] s5p-jpeg: Fix modification sequence of
+ interrupt enable register
+Date: Fri, 19 Dec 2014 13:07:59 +0530
+Message-id: <1418974680-5837-2-git-send-email-tony.kn@samsung.com>
+In-reply-to: <1418974680-5837-1-git-send-email-tony.kn@samsung.com>
+References: <1418974680-5837-1-git-send-email-tony.kn@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 26 Nov 2014 22:42:29 +0000
-"Lad, Prabhakar" <prabhakar.csengg@gmail.com> wrote:
+Fix the bug in modifying the interrupt enable register.
 
-> This patch drops driver specific wait_prepare() and
-> wait_finish() callbacks from vb2_ops and instead uses
-> the the helpers vb2_ops_wait_prepare/finish() provided
-> by the vb2 core
+Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-This is good, what I had in mind.
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+index e53f13a..a61ff7e 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+@@ -155,7 +155,10 @@ void exynos4_jpeg_set_enc_out_fmt(void __iomem *base, unsigned int out_fmt)
+ 
+ void exynos4_jpeg_set_interrupt(void __iomem *base)
+ {
+-	writel(EXYNOS4_INT_EN_ALL, base + EXYNOS4_INT_EN_REG);
++	unsigned int reg;
++
++	reg = readl(base + EXYNOS4_INT_EN_REG) & ~EXYNOS4_INT_EN_MASK;
++	writel(reg | EXYNOS4_INT_EN_ALL, base + EXYNOS4_INT_EN_REG);
+ }
+ 
+ unsigned int exynos4_jpeg_get_int_status(void __iomem *base)
+-- 
+2.2.0
 
-> the lock member of the queue needs
-> to be initalized to a mutex so that vb2 helpers
-> vb2_ops_wait_prepare/finish() can make use of it.
-
-This is excessive, but not worth worrying about.  Thanks for redoing
-things.
-
-Acked-by: Jonathan Corbet <corbet@lwn.net>
-
-jon
