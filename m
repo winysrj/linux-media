@@ -1,70 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47153 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750804AbaLOQbC (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52098 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751364AbaLSLhU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 11:31:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] yavta: Set plane size for mplane buffers in qbuf
-Date: Mon, 15 Dec 2014 18:31:01 +0200
-Message-ID: <9786074.WfrgYWU2fm@avalon>
-In-Reply-To: <1418657264-20388-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1418657264-20388-1-git-send-email-sakari.ailus@linux.intel.com>
+	Fri, 19 Dec 2014 06:37:20 -0500
+Message-ID: <54940DE9.1020709@xs4all.nl>
+Date: Fri, 19 Dec 2014 12:37:13 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	prabhakar.csengg@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 3/8] v4l2-subdev: drop unused op enum_mbus_fmt
+References: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl> <1417686899-30149-4-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1412182307100.11953@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1412182307100.11953@axis700.grange>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
 
-Thank you for the patch.
 
-On Monday 15 December 2014 17:27:44 Sakari Ailus wrote:
-> The plane size was left zero for mplane buffers when queueing a buffer. Fix
-> this.
+On 12/18/2014 11:08 PM, Guennadi Liakhovetski wrote:
+> Hi Hans,
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  yavta.c | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
+> On Thu, 4 Dec 2014, Hans Verkuil wrote:
 > 
-> diff --git a/yavta.c b/yavta.c
-> index 7f9e814..77e5a41 100644
-> --- a/yavta.c
-> +++ b/yavta.c
-> @@ -979,8 +979,12 @@ static int video_queue_buffer(struct device *dev, int
-> index, enum buffer_fill_mo
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Weird, this op isn't used at all. Seems to be orphaned code.
+>> Remove it.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  include/media/v4l2-subdev.h | 2 --
+>>  1 file changed, 2 deletions(-)
+>>
+>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>> index b052184..5beeb87 100644
+>> --- a/include/media/v4l2-subdev.h
+>> +++ b/include/media/v4l2-subdev.h
+>> @@ -342,8 +342,6 @@ struct v4l2_subdev_video_ops {
+>>  			struct v4l2_dv_timings *timings);
+>>  	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
+>>  			     u32 *code);
+>> -	int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
+>> -			     struct v4l2_frmsizeenum *fsize);
 > 
->  	if (dev->memtype == V4L2_MEMORY_USERPTR) {
->  		if (video_is_mplane(dev)) {
-> -			for (i = 0; i < dev->num_planes; i++)
-> -				buf.m.planes[i].m.userptr = (unsigned long)dev->
-> buffers[index].mem[i];
-> +			for (i = 0; i < dev->num_planes; i++) {
-> +				buf.m.planes[i].m.userptr = (unsigned long)
-> +					dev->buffers[index].mem[i];
-> +				buf.m.planes[i].length =
-> +					dev->buffers[index].size[i];
+> After so many cheerful acks I feel a bit bluffed, but... Your subject says 
+> "drop enum_mbus_fmt" and your patch drops enum_mbus_fsizes... What am I 
+> missing??
 
-According to the V4L2 API, this field is set by the driver. That's not in line 
-with the videobuf2 implementation, which requires the length field to be set 
-for USERPTR and DMABUF. Would you like to submit a documentation patch ?
+Oops. Obviously the function name in the subject is wrong.
 
-> +			}
->  		} else {
->  			buf.m.userptr = (unsigned long)dev->buffers[index].mem[0];
+Interesting that everyone (except you!) just read over that :-)
 
-For consistency, what would you think about moving the buf.length assignment 
-from the else statement right before this hunk to here ? If you're fine with 
-that there's no need to resubmit, I'll apply the modification locally.
-
->  		}
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
 
+> 
+> Thanks
+> Guennadi
+> 
+>>  	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
+>>  			  struct v4l2_mbus_framefmt *fmt);
+>>  	int (*try_mbus_fmt)(struct v4l2_subdev *sd,
+>> -- 
+>> 2.1.3
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
