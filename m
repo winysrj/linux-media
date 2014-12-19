@@ -1,37 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailex.mailcore.me ([94.136.40.62]:56964 "EHLO
-	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751482AbaLHRyv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 12:54:51 -0500
-Received: from 188.29.165.112.threembb.co.uk ([188.29.165.112] helo=[192.168.43.247])
-	by smtp04.mailcore.me with esmtpa (Exim 4.80.1)
-	(envelope-from <steve.cookson@sca-uk.com>)
-	id 1Xy2WE-0005fa-DB
-	for linux-media@vger.kernel.org; Mon, 08 Dec 2014 17:54:46 +0000
-Message-ID: <5485E5E2.8020204@sca-uk.com>
-Date: Mon, 08 Dec 2014 17:54:42 +0000
-From: Steve Cookson <steve.cookson@sca-uk.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34313 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751364AbaLSLox (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 06:44:53 -0500
+Message-ID: <54940FAE.1060004@xs4all.nl>
+Date: Fri, 19 Dec 2014 12:44:46 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: HD Capture Cards on Linux
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	prabhakar.csengg@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 5/8] media/i2c/Kconfig: drop superfluous MEDIA_CONTROLLER
+References: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl> <1417686899-30149-6-git-send-email-hverkuil@xs4all.nl> <14053074.Xr1qj9KfnY@avalon>
+In-Reply-To: <14053074.Xr1qj9KfnY@avalon>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guys,
 
-In my apparently eternal quest for a decent HD capture card with support 
-for v4l2 I couldn't find an existing table of cards, I've put one up the 
-Wiki.  I hope I've done it correctly, these tables are horrible to maintain.
 
-Anyhow if people would like to look at it, I'd be grateful for any 
-comments, or indeed you can update the wiki directly.
+On 12/08/2014 12:38 AM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the patch.
+> 
+> On Thursday 04 December 2014 10:54:56 Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> These drivers depend on VIDEO_V4L2_SUBDEV_API, which in turn
+>> depends on MEDIA_CONTROLLER. So it is sufficient to just depend
+>> on VIDEO_V4L2_SUBDEV_API.
+> 
+> Shouldn't the VIDEO_V4L2_SUBDEV_API dependency be dropped from those (and 
+> other) subdev drivers ? They don't require the userspace API, just the kernel 
+> part.
 
-Here is the link:
-
-     https://linuxtv.org/wiki/index.php/HD_Capture
+They set V4L2_SUBDEV_FL_HAS_DEVNODE and use v4l2_subdev_get_try_format,
+so they do need VIDEO_V4L2_SUBDEV_API. Or am I missing something?
 
 Regards,
 
-Steve.
+	Hans
+
+> 
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/i2c/Kconfig | 6 +++---
+>>  1 file changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+>> index f40b4cf..29276fd 100644
+>> --- a/drivers/media/i2c/Kconfig
+>> +++ b/drivers/media/i2c/Kconfig
+>> @@ -196,7 +196,7 @@ config VIDEO_ADV7183
+>>
+>>  config VIDEO_ADV7604
+>>  	tristate "Analog Devices ADV7604 decoder"
+>> -	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
+>> +	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+>>  	---help---
+>>  	  Support for the Analog Devices ADV7604 video decoder.
+>>
+>> @@ -208,7 +208,7 @@ config VIDEO_ADV7604
+>>
+>>  config VIDEO_ADV7842
+>>  	tristate "Analog Devices ADV7842 decoder"
+>> -	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
+>> +	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+>>  	---help---
+>>  	  Support for the Analog Devices ADV7842 video decoder.
+>>
+>> @@ -431,7 +431,7 @@ config VIDEO_ADV7393
+>>
+>>  config VIDEO_ADV7511
+>>  	tristate "Analog Devices ADV7511 encoder"
+>> -	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
+>> +	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+>>  	---help---
+>>  	  Support for the Analog Devices ADV7511 video encoder.
+> 
