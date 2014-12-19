@@ -1,49 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f50.google.com ([209.85.213.50]:34939 "EHLO
-	mail-yh0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165AbaLXLo5 (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:53685 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751156AbaLSVFM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Dec 2014 06:44:57 -0500
-Received: by mail-yh0-f50.google.com with SMTP id 29so4287931yhl.9
-        for <linux-media@vger.kernel.org>; Wed, 24 Dec 2014 03:44:57 -0800 (PST)
-From: Ismael Luceno <ismael@iodev.co.uk>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-	Ismael Luceno <ismael@iodev.co.uk>
-Subject: [PATCH] solo6x10: s/uint8_t/u8/
-Date: Wed, 24 Dec 2014 08:43:36 -0300
-Message-Id: <1419421416-8133-1-git-send-email-ismael@iodev.co.uk>
+	Fri, 19 Dec 2014 16:05:12 -0500
+Date: Fri, 19 Dec 2014 22:05:09 +0100
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: nicolas.ferre@atmel.com, voice.shen@atmel.com,
+	plagnioj@jcrosoft.com, boris.brezillon@free-electrons.com,
+	devicetree@vger.kernel.org, robh+dt@kernel.org,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 6/7] ARM: at91: dts: sama5d3: add ov2640 camera sensor
+ support
+Message-ID: <20141219210509.GC4885@piout.net>
+References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
+ <1418892667-27428-7-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1418892667-27428-7-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
----
- drivers/media/pci/solo6x10/solo6x10-tw28.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On 18/12/2014 at 16:51:06 +0800, Josh Wu wrote :
+> According to v4l2 dt document, we add:
+>   a camera host: ISI port.
+>   a i2c camera sensor: ov2640 port.
+> to sama5d3xmb.dtsi.
+> 
+> In the ov2640 node, it defines the pinctrls, clocks and isi port.
+> In the ISI node, it also reference to a ov2640 port.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> ---
+>  arch/arm/boot/dts/sama5d3xmb.dtsi | 32 ++++++++++++++++++++++++++++++++
+>  1 file changed, 32 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/sama5d3xmb.dtsi b/arch/arm/boot/dts/sama5d3xmb.dtsi
+> index 0aaebc6..958a528 100644
+> --- a/arch/arm/boot/dts/sama5d3xmb.dtsi
+> +++ b/arch/arm/boot/dts/sama5d3xmb.dtsi
+> @@ -52,6 +52,29 @@
+>  				};
+>  			};
+>  
+> +			i2c1: i2c@f0018000 {
+> +				ov2640: camera@0x30 {
+> +					compatible = "ovti,ov2640";
+> +					reg = <0x30>;
+> +					pinctrl-names = "default";
+> +					pinctrl-0 = <&pinctrl_isi_pck_as_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-tw28.c b/drivers/media/pci/solo6x10/solo6x10-tw28.c
-index edd0781..0632d3f 100644
---- a/drivers/media/pci/solo6x10/solo6x10-tw28.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-tw28.c
-@@ -510,7 +510,7 @@ static int tw2815_setup(struct solo_dev *solo_dev, u8 dev_addr)
- #define FIRST_ACTIVE_LINE	0x0008
- #define LAST_ACTIVE_LINE	0x0102
- 
--static void saa712x_write_regs(struct solo_dev *dev, const uint8_t *vals,
-+static void saa712x_write_regs(struct solo_dev *dev, const u8 *vals,
- 		int start, int n)
- {
- 	for (; start < n; start++, vals++) {
-@@ -532,7 +532,7 @@ static void saa712x_write_regs(struct solo_dev *dev, const uint8_t *vals,
- static void saa712x_setup(struct solo_dev *dev)
- {
- 	const int reg_start = 0x26;
--	const uint8_t saa7128_regs_ntsc[] = {
-+	const u8 saa7128_regs_ntsc[] = {
- 	/* :0x26 */
- 		0x0d, 0x00,
- 	/* :0x28 */
+I've acked your previous patch but maybe it should be named
+pinctrl_isi_pck1_as_mck to be clearer (you used the handle to pck1
+below).
+
+> +					resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
+> +					pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
+> +					/* use pck1 for the master clock of ov2640 */
+> +					clocks = <&pck1>;
+> +					clock-names = "xvclk";
+> +					assigned-clocks = <&pck1>;
+> +					assigned-clock-rates = <25000000>;
+> +
+> +					port {
+> +						ov2640_0: endpoint {
+> +							remote-endpoint = <&isi_0>;
+> +							bus-width = <8>;
+> +						};
+> +					};
+> +				};
+> +			};
+> +
+>  			usart1: serial@f0020000 {
+>  				dmas = <0>, <0>;	/*  Do not use DMA for usart1 */
+>  				pinctrl-names = "default";
+> @@ -60,6 +83,15 @@
+>  			};
+>  
+>  			isi: isi@f0034000 {
+> +				port {
+> +					#address-cells = <1>;
+> +					#size-cells = <0>;
+> +
+> +					isi_0: endpoint {
+> +						remote-endpoint = <&ov2640_0>;
+> +						bus-width = <8>;
+> +					};
+> +				};
+>  			};
+>  
+>  			mmc1: mmc@f8000000 {
+> -- 
+> 1.9.1
+> 
+
 -- 
-2.2.0
-
+Alexandre Belloni, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
