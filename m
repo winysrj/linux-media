@@ -1,131 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:63236 "EHLO mout.gmx.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:39764 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751125AbaLRWAK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 17:00:10 -0500
-Date: Thu, 18 Dec 2014 22:59:50 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	linux-arm-kernel@lists.infradead.org,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	festevam@gmail.com
-Subject: Re: [PATCH v4 2/5] media: ov2640: add async probe function
-In-Reply-To: <1418869646-17071-3-git-send-email-josh.wu@atmel.com>
-Message-ID: <Pine.LNX.4.64.1412182237370.11953@axis700.grange>
-References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
- <1418869646-17071-3-git-send-email-josh.wu@atmel.com>
+	id S1751732AbaLSJK2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 04:10:28 -0500
+Received: from dyn3-82-128-190-202.psoas.suomi.net ([82.128.190.202] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1Y1tZq-0005JV-Jj
+	for linux-media@vger.kernel.org; Fri, 19 Dec 2014 11:10:26 +0200
+Message-ID: <5493EB82.5090004@iki.fi>
+Date: Fri, 19 Dec 2014 11:10:26 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: LMML <linux-media@vger.kernel.org>
+Subject: cx23885 streaming lockdep error (VB2 related?)
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+I see thank kind of error when I start streaming cx23885:
 
-Thanks for your patches!
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 3 PID: 27959 Comm: dvbv5-scan Tainted: G         C O   3.18.0-rc4+ #12
+Hardware name: System manufacturer System Product Name/M5A78L-M/USB3, 
+BIOS 2001    09/11/2014
+  0000000000000000 00000000d70b2b44 ffff880162013928 ffffffff817a6f52
+  0000000000000000 ffff88018d3cc1d0 ffff880162013938 ffffffff817a4802
+  ffff880162013a38 ffffffff810e765a ffffffff8102001a ffff88018d3cc1d0
+Call Trace:
+  [<ffffffff817a6f52>] dump_stack+0x4e/0x68
+  [<ffffffff817a4802>] register_lock_class.part.41+0x38/0x3c
+  [<ffffffff810e765a>] __lock_acquire+0x156a/0x1f50
+  [<ffffffff8102001a>] ? native_sched_clock+0x2a/0xa0
+  [<ffffffff810e9069>] lock_acquire+0xc9/0x170
+  [<ffffffffa08f898f>] ? cx23885_buf_queue+0x6f/0x150 [cx23885]
+  [<ffffffff817b0197>] _raw_spin_lock_irqsave+0x57/0xa0
+  [<ffffffffa08f898f>] ? cx23885_buf_queue+0x6f/0x150 [cx23885]
+  [<ffffffffa08f7a79>] ? cx23885_risc_databuffer+0xe9/0x160 [cx23885]
+  [<ffffffffa08f898f>] cx23885_buf_queue+0x6f/0x150 [cx23885]
+  [<ffffffffa08f9f3c>] buffer_queue+0x1c/0x20 [cx23885]
+  [<ffffffffa08913d4>] __enqueue_in_driver+0x84/0x90 [videobuf2_core]
+  [<ffffffffa0891ee0>] vb2_start_streaming+0x40/0x190 [videobuf2_core]
+  [<ffffffffa0892269>] ? __fill_v4l2_buffer+0x119/0x1a0 [videobuf2_core]
+  [<ffffffffa0893c95>] vb2_internal_streamon+0x115/0x150 [videobuf2_core]
+  [<ffffffffa0895f91>] __vb2_init_fileio+0x361/0x3e0 [videobuf2_core]
+  [<ffffffffa08d7220>] ? vb2_dvb_start_feed+0xc0/0xc0 [videobuf2_dvb]
+  [<ffffffffa0896e6e>] vb2_thread_start+0xae/0x240 [videobuf2_core]
+  [<ffffffffa05e104f>] ? dmx_section_feed_start_filtering+0x2f/0x190 
+[dvb_core]
+  [<ffffffffa08d71f0>] vb2_dvb_start_feed+0x90/0xc0 [videobuf2_dvb]
+  [<ffffffffa05e1102>] dmx_section_feed_start_filtering+0xe2/0x190 
+[dvb_core]
+  [<ffffffffa05dee9e>] dvb_dmxdev_filter_start+0x20e/0x3e0 [dvb_core]
+  [<ffffffffa05dfa80>] dvb_demux_do_ioctl+0x4f0/0x650 [dvb_core]
+  [<ffffffffa05dd924>] dvb_usercopy+0x124/0x1a0 [dvb_core]
+  [<ffffffff81341a56>] ? avc_has_perm+0x126/0x1f0
+  [<ffffffffa05df590>] ? dvb_dmxdev_add_pid+0xb0/0xb0 [dvb_core]
+  [<ffffffffa05dde05>] dvb_demux_ioctl+0x15/0x20 [dvb_core]
+  [<ffffffff81245590>] do_vfs_ioctl+0x2f0/0x520
+  [<ffffffff817b12dc>] ? retint_swapgs+0x13/0x1b
+  [<ffffffff81245841>] SyS_ioctl+0x81/0xa0
+  [<ffffffff817b06a9>] system_call_fastpath+0x12/0x17
 
-On Thu, 18 Dec 2014, Josh Wu wrote:
+any idea why?
 
-> To support async probe for ov2640, we need remove the code to get 'mclk'
-> in ov2640_probe() function. oterwise, if soc_camera host is not probed
-> in the moment, then we will fail to get 'mclk' and quit the ov2640_probe()
-> function.
-> 
-> So in this patch, we move such 'mclk' getting code to ov2640_s_power()
-> function. That make ov2640 survive, as we can pass a NULL (priv-clk) to
-> soc_camera_set_power() function.
-> 
-> And if soc_camera host is probed, the when ov2640_s_power() is called,
-> then we can get the 'mclk' and that make us enable/disable soc_camera
-> host's clock as well.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
-> v3 -> v4:
-> v2 -> v3:
-> v1 -> v2:
->   no changes.
-> 
->  drivers/media/i2c/soc_camera/ov2640.c | 31 +++++++++++++++++++++----------
->  1 file changed, 21 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-> index 1fdce2f..9ee910d 100644
-> --- a/drivers/media/i2c/soc_camera/ov2640.c
-> +++ b/drivers/media/i2c/soc_camera/ov2640.c
-> @@ -739,6 +739,15 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
->  	struct ov2640_priv *priv = to_ov2640(client);
-> +	struct v4l2_clk *clk;
-> +
-> +	if (!priv->clk) {
-> +		clk = v4l2_clk_get(&client->dev, "mclk");
-> +		if (IS_ERR(clk))
-> +			dev_warn(&client->dev, "Cannot get the mclk. maybe soc-camera host is not probed yet.\n");
-> +		else
-> +			priv->clk = clk;
-> +	}
->  
->  	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
->  }
-> @@ -1078,21 +1087,21 @@ static int ov2640_probe(struct i2c_client *client,
->  	if (priv->hdl.error)
->  		return priv->hdl.error;
->  
-> -	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(priv->clk)) {
-> -		ret = PTR_ERR(priv->clk);
-> -		goto eclkget;
-> -	}
-> -
->  	ret = ov2640_video_probe(client);
+regards
+Antti
 
-The first thing the above ov2640_video_probe() function will do is call 
-ov2640_s_power(), which will request the clock. So, by moving requesting 
-the clock from ov2640_probe() to ov2640_s_power() doesn't change how 
-probing will be performed, am I right? Or are there any other patched, 
-that change that, that I'm overseeing?
-
-If I'm right, then I would propose an approach, already used in other 
-drivers instead of this one: return -EPROBE_DEFER if the clock isn't 
-available during probing. See ef6672ea35b5bb64ab42e18c1a1ffc717c31588a for 
-an example. Or did I misunderstand anything?
-
-Thanks
-Guennadi
-
->  	if (ret) {
-> -		v4l2_clk_put(priv->clk);
-> -eclkget:
-> -		v4l2_ctrl_handler_free(&priv->hdl);
-> +		goto evideoprobe;
->  	} else {
->  		dev_info(&adapter->dev, "OV2640 Probed\n");
->  	}
->  
-> +	ret = v4l2_async_register_subdev(&priv->subdev);
-> +	if (ret < 0)
-> +		goto evideoprobe;
-> +
-> +	return 0;
-> +
-> +evideoprobe:
-> +	v4l2_ctrl_handler_free(&priv->hdl);
->  	return ret;
->  }
->  
-> @@ -1100,7 +1109,9 @@ static int ov2640_remove(struct i2c_client *client)
->  {
->  	struct ov2640_priv       *priv = to_ov2640(client);
->  
-> -	v4l2_clk_put(priv->clk);
-> +	v4l2_async_unregister_subdev(&priv->subdev);
-> +	if (priv->clk)
-> +		v4l2_clk_put(priv->clk);
->  	v4l2_device_unregister_subdev(&priv->subdev);
->  	v4l2_ctrl_handler_free(&priv->hdl);
->  	return 0;
-> -- 
-> 1.9.1
-> 
+-- 
+http://palosaari.fi/
