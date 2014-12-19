@@ -1,22 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ar-005-i179.relay.mailchannels.net ([162.253.144.64]:56463 "EHLO
-	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932336AbaLAVEJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 16:04:09 -0500
-Message-ID: <1a799f1a8b0fd7710dee9f77551fb577.squirrel@cpanel.kam.kamel37.concrete5.arvixe.com>
-Date: Mon, 1 Dec 2014 11:46:51 -0800
-Subject: pdf
-From: "peter hans" <hans@ad.nl>
-Reply-To: peterh.ans@aol.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59517 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752024AbaLSOwI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 09:52:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	prabhakar.csengg@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 03/11] v4l2-subdev: drop unused op enum_mbus_fsizes
+Date: Fri, 19 Dec 2014 15:51:28 +0100
+Message-Id: <1419000696-25202-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1419000696-25202-1-git-send-email-hverkuil@xs4all.nl>
+References: <1419000696-25202-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Sir/Madam, Here is a pdf attachment of my proposal to you. Please
-read and reply I would be grateful. Peter Hans
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-reply to E-mail: peterh.ans@aol.com
+Weird, this op isn't used at all. Seems to be orphaned code.
+Remove it.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ include/media/v4l2-subdev.h | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index b052184..5beeb87 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -342,8 +342,6 @@ struct v4l2_subdev_video_ops {
+ 			struct v4l2_dv_timings *timings);
+ 	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
+ 			     u32 *code);
+-	int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
+-			     struct v4l2_frmsizeenum *fsize);
+ 	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
+ 			  struct v4l2_mbus_framefmt *fmt);
+ 	int (*try_mbus_fmt)(struct v4l2_subdev *sd,
+-- 
+2.1.3
 
