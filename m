@@ -1,60 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47964 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752385AbaLFMnN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Dec 2014 07:43:13 -0500
-Date: Sat, 6 Dec 2014 13:43:11 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Bryan Wu <cooloney@gmail.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	lkml <linux-kernel@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	b.zolnierkie@samsung.com, "rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC v8 02/14] Documentation: leds: Add description of LED
- Flash class extension
-Message-ID: <20141206124310.GB3411@amd>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-3-git-send-email-j.anaszewski@samsung.com>
- <20141129125832.GA315@amd>
- <547C539A.4010500@samsung.com>
- <20141201130437.GB24737@amd>
- <547C7420.4080801@samsung.com>
- <CAK5ve-KMNszyz6br_Q_dOhvk=_8ev6Uz-ZhPnYBn-ZvuohQpVA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK5ve-KMNszyz6br_Q_dOhvk=_8ev6Uz-ZhPnYBn-ZvuohQpVA@mail.gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60958 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751706AbaLSK2b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 05:28:31 -0500
+Message-ID: <1418984906.3165.53.camel@pengutronix.de>
+Subject: Re: coda: Unable to use encoder video_bitrate
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Cc: =?ISO-8859-1?Q?Fr=E9d=E9ric?= Sureau
+	<frederic.sureau@vodalys.com>, Fabio Estevam <festevam@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Date: Fri, 19 Dec 2014 11:28:26 +0100
+In-Reply-To: <CAL8zT=jL3psKQ7+K4avQp=tr58m-KXvqGGhXzYrafEuRB5hkcw@mail.gmail.com>
+References: <54930468.6010007@vodalys.com>
+	 <1418921549.4212.57.camel@pengutronix.de>
+	 <CAL8zT=jjm9BXuUbk5RS-LZpC1EyyTwdGQRy-fQEUMdDfj4Ej7g@mail.gmail.com>
+	 <1418922570.4212.67.camel@pengutronix.de>
+	 <CAL8zT=jL3psKQ7+K4avQp=tr58m-KXvqGGhXzYrafEuRB5hkcw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Jean-Michel,
 
-> > The format of a sysfs attribute should be concise.
-> > The error codes are generic and map directly to the V4L2 Flash
-> > error codes.
+Am Donnerstag, den 18.12.2014, 18:10 +0100 schrieb Jean-Michel Hautbois:
+> > Sorry, forgot to put all of you on Cc: for the "[media] coda: fix
+> > encoder rate control parameter masks" patch. The coda driver is in
+> > drivers/media/platform/coda, register definitions in coda_regs.h.
+> > The CODA_RATECONTROL_BITRATE_MASK is 0x7f, but it should be 0x7fff.
 > >
 > 
-> Actually I'd like to see those flash fault code defined in LED
-> subsystem. And V4L2 will just include LED flash header file to use it.
-> Because flash fault code is not for V4L2 specific but it's a feature
-> of LED flash devices.
-> 
-> For clearing error code of flash devices, I think it depends on the
-> hardware. If most of our LED flash is using reading to clear error
-> code, we probably can make it simple as this now. But what if some
-> other LED flash devices are using writing to clear error code? we
-> should provide a API to that?
+> Well, I meant, the datasheet of the CODA960 because we don't know,
+> just by reading the coda_regs.h which register is where and does what.
 
-Actually, we should provide API that makes sense, and that is easy to
-use by userspace.
+I wish. If you search for "cnm-codadx6-datasheet-v2.9.pdf" with a search
+engine of your choice, on chipsnmedia.com you can get documentation for
+the very oldest coda version supported by the driver. That's all I have
+in addition to the old GPLed Freescale imx-vpu-lib for reference.
 
-I believe "read" is called read because it does not change anything,
-and it should stay that way in /sysfs. You may want to talk to sysfs
-maintainers if you plan on doing another semantics.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+regards
+Philipp
+
