@@ -1,179 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:42850 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933135AbaLKAWh (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:53942 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751985AbaLSV7Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 19:22:37 -0500
-Date: Thu, 11 Dec 2014 00:22:01 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: m.chehab@samsung.com
-Cc: jarod@wilsonet.com, gregkh@linuxfoundation.org,
-	mahfouz.saif.elyazal@gmail.com, gulsah.1004@gmail.com,
-	tuomas.tynkkynen@iki.fi, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v5 1/3] staging: media: lirc: lirc_zilog.c: fix quoted
- strings split across lines
-Message-ID: <20141211002201.GA10985@biggie>
+	Fri, 19 Dec 2014 16:59:25 -0500
+Date: Fri, 19 Dec 2014 19:24:05 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 06/13] clk: sunxi: Make the mod0 clk driver also a
+ platform driver
+Message-ID: <20141219182405.GU4820@lukather>
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+ <1418836704-15689-7-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8Tx+BDMK09J610+l"
 Content-Disposition: inline
+In-Reply-To: <1418836704-15689-7-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-checkpatch makes an exception to the 80-colum rule for quotes strings, and
-Documentation/CodingStyle recommends not splitting quotes strings across lines
-because it breaks the ability to grep for the string. Fixing these.
 
-WARNING: quoted string split across lines
+--8Tx+BDMK09J610+l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Luis de Bethencourt <luis@debethencourt.com>
+Hi,
+
+On Wed, Dec 17, 2014 at 06:18:17PM +0100, Hans de Goede wrote:
+> With the prcm in sun6i (and some later SoCs) some mod0 clocks are instant=
+iated
+> through the mfd framework, and as such do not work with of_clk_declare, s=
+ince
+> they do not have registers assigned to them yet at of_clk_declare init ti=
+me.
+>=20
+> Silence the error on not finding registers in the of_clk_declare mod0 clk
+> setup method, and also register mod0-clk support as a platform driver to =
+work
+> properly with mfd instantiated mod0 clocks.
+>=20
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/clk/sunxi/clk-mod0.c | 41 ++++++++++++++++++++++++++++++++++++--=
 ---
- drivers/staging/media/lirc/lirc_zilog.c | 61 ++++++++++++++++++---------------
- 1 file changed, 34 insertions(+), 27 deletions(-)
+>  1 file changed, 36 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/drivers/clk/sunxi/clk-mod0.c b/drivers/clk/sunxi/clk-mod0.c
+> index 658d74f..7ddab6f 100644
+> --- a/drivers/clk/sunxi/clk-mod0.c
+> +++ b/drivers/clk/sunxi/clk-mod0.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/clk-provider.h>
+>  #include <linux/clkdev.h>
+>  #include <linux/of_address.h>
+> +#include <linux/platform_device.h>
+> =20
+>  #include "clk-factors.h"
+> =20
+> @@ -67,7 +68,7 @@ static struct clk_factors_config sun4i_a10_mod0_config =
+=3D {
+>  	.pwidth =3D 2,
+>  };
+> =20
+> -static const struct factors_data sun4i_a10_mod0_data __initconst =3D {
+> +static const struct factors_data sun4i_a10_mod0_data =3D {
+>  	.enable =3D 31,
+>  	.mux =3D 24,
+>  	.muxmask =3D BIT(1) | BIT(0),
+> @@ -82,17 +83,47 @@ static void __init sun4i_a10_mod0_setup(struct device=
+_node *node)
+>  	void __iomem *reg;
+> =20
+>  	reg =3D of_iomap(node, 0);
+> -	if (!reg) {
+> -		pr_err("Could not get registers for mod0-clk: %s\n",
+> -		       node->name);
+> +	if (!reg)
+>  		return;
+> -	}
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index dca806a..8814a7e 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -372,14 +372,14 @@ static int add_to_buf(struct IR *ir)
- 					   ret);
- 			if (failures >= 3) {
- 				mutex_unlock(&ir->ir_lock);
--				dev_err(ir->l.dev, "unable to read from the IR chip "
--					    "after 3 resets, giving up\n");
-+				dev_err(ir->l.dev,
-+					"unable to read from the IR chip after 3 resets, giving up\n");
- 				break;
- 			}
- 
- 			/* Looks like the chip crashed, reset it */
--			dev_err(ir->l.dev, "polling the IR receiver chip failed, "
--				    "trying reset\n");
-+			dev_err(ir->l.dev,
-+				"polling the IR receiver chip failed, trying reset\n");
- 
- 			set_current_state(TASK_UNINTERRUPTIBLE);
- 			if (kthread_should_stop()) {
-@@ -405,8 +405,9 @@ static int add_to_buf(struct IR *ir)
- 		ret = i2c_master_recv(rx->c, keybuf, sizeof(keybuf));
- 		mutex_unlock(&ir->ir_lock);
- 		if (ret != sizeof(keybuf)) {
--			dev_err(ir->l.dev, "i2c_master_recv failed with %d -- "
--				    "keeping last read buffer\n", ret);
-+			dev_err(ir->l.dev,
-+				"i2c_master_recv failed with %d -- keeping last read buffer\n",
-+				ret);
- 		} else {
- 			rx->b[0] = keybuf[3];
- 			rx->b[1] = keybuf[4];
-@@ -713,8 +714,9 @@ static int send_boot_data(struct IR_tx *tx)
- 				       buf[0]);
- 		return 0;
- 	}
--	dev_notice(tx->ir->l.dev, "Zilog/Hauppauge IR blaster firmware version "
--		     "%d.%d.%d loaded\n", buf[1], buf[2], buf[3]);
-+	dev_notice(tx->ir->l.dev,
-+		   "Zilog/Hauppauge IR blaster firmware version %d.%d.%d loaded\n",
-+		   buf[1], buf[2], buf[3]);
- 
- 	return 0;
- }
-@@ -794,9 +796,9 @@ static int fw_load(struct IR_tx *tx)
- 	if (!read_uint8(&data, tx_data->endp, &version))
- 		goto corrupt;
- 	if (version != 1) {
--		dev_err(tx->ir->l.dev, "unsupported code set file version (%u, expected"
--			    "1) -- please upgrade to a newer driver",
--			    version);
-+		dev_err(tx->ir->l.dev,
-+			"unsupported code set file version (%u, expected 1) -- please upgrade to a newer driver",
-+			version);
- 		fw_unload_locked();
- 		ret = -EFAULT;
- 		goto out;
-@@ -983,8 +985,9 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
- 	ret = get_key_data(data_block, code, key);
- 
- 	if (ret == -EPROTO) {
--		dev_err(tx->ir->l.dev, "failed to get data for code %u, key %u -- check "
--			    "lircd.conf entries\n", code, key);
-+		dev_err(tx->ir->l.dev,
-+			"failed to get data for code %u, key %u -- check lircd.conf entries\n",
-+			code, key);
- 		return ret;
- 	} else if (ret != 0)
- 		return ret;
-@@ -1059,12 +1062,14 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
- 		ret = i2c_master_send(tx->c, buf, 1);
- 		if (ret == 1)
- 			break;
--		dev_dbg(tx->ir->l.dev, "NAK expected: i2c_master_send "
--			"failed with %d (try %d)\n", ret, i+1);
-+		dev_dbg(tx->ir->l.dev,
-+			"NAK expected: i2c_master_send failed with %d (try %d)\n",
-+			ret, i+1);
- 	}
- 	if (ret != 1) {
--		dev_err(tx->ir->l.dev, "IR TX chip never got ready: last i2c_master_send "
--			    "failed with %d\n", ret);
-+		dev_err(tx->ir->l.dev,
-+			"IR TX chip never got ready: last i2c_master_send failed with %d\n",
-+			ret);
- 		return ret < 0 ? ret : -EFAULT;
- 	}
- 
-@@ -1167,12 +1172,12 @@ static ssize_t write(struct file *filep, const char __user *buf, size_t n,
- 		 */
- 		if (ret != 0) {
- 			/* Looks like the chip crashed, reset it */
--			dev_err(tx->ir->l.dev, "sending to the IR transmitter chip "
--				    "failed, trying reset\n");
-+			dev_err(tx->ir->l.dev,
-+				"sending to the IR transmitter chip failed, trying reset\n");
- 
- 			if (failures >= 3) {
--				dev_err(tx->ir->l.dev, "unable to send to the IR chip "
--					    "after 3 resets, giving up\n");
-+				dev_err(tx->ir->l.dev,
-+					"unable to send to the IR chip after 3 resets, giving up\n");
- 				mutex_unlock(&ir->ir_lock);
- 				mutex_unlock(&tx->client_lock);
- 				put_ir_tx(tx, false);
-@@ -1542,8 +1547,9 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 
- 		/* Proceed only if the Rx client is also ready or not needed */
- 		if (rx == NULL && !tx_only) {
--			dev_info(tx->ir->l.dev, "probe of IR Tx on %s (i2c-%d) done. Waiting"
--				   " on IR Rx.\n", adap->name, adap->nr);
-+			dev_info(tx->ir->l.dev,
-+				 "probe of IR Tx on %s (i2c-%d) done. Waiting on IR Rx.\n",
-+				 adap->name, adap->nr);
- 			goto out_ok;
- 		}
- 	} else {
-@@ -1581,8 +1587,9 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 				       "zilog-rx-i2c-%d", adap->nr);
- 		if (IS_ERR(rx->task)) {
- 			ret = PTR_ERR(rx->task);
--			dev_err(tx->ir->l.dev, "%s: could not start IR Rx polling thread"
--				    "\n", __func__);
-+			dev_err(tx->ir->l.dev,
-+				"%s: could not start IR Rx polling thread\n",
-+				__func__);
- 			/* Failed kthread, so put back the ir ref */
- 			put_ir_device(ir, true);
- 			/* Failure exit, so put back rx ref from i2c_client */
-@@ -1594,8 +1601,8 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 
- 		/* Proceed only if the Tx client is also ready */
- 		if (tx == NULL) {
--			pr_info("probe of IR Rx on %s (i2c-%d) done. Waiting"
--				   " on IR Tx.\n", adap->name, adap->nr);
-+			pr_info("probe of IR Rx on %s (i2c-%d) done. Waiting on IR Tx.\n",
-+				   adap->name, adap->nr);
- 			goto out_ok;
- 		}
- 	}
--- 
-2.1.3
+A comment here would be nice to mention that this is intentional.
 
+It looks good otherwise, thanks!
+
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
+
+--8Tx+BDMK09J610+l
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUlG1FAAoJEBx+YmzsjxAgG8IP/jQ5/K9ng9byYeZ/xwA1Z5QL
+a1HnERImkO9LKl+CVicfJkil+p7jSN21zgWIkObdLgBAsRbNqXnXdbvc5hM9k+fz
+RJYCasyQotWFHxrWtgElCqtj17CJNdaWqiAFa2YQjecL4KjN4LPzJ4eFgVb/Dluo
+EyYJ5L/gy+EMKHXgKPcgaIhfuikcyr0sLEhpe+bAwgfN6zEW0tIxar7jqo+pDSB9
+rlTa+CXts8ABP5pGg/cshlOdpLyxqHJ2+dkxPiZEJ2Ph6JRdJfFQ9uqTtkSNTpVI
+NYmTm1/6le5P+7IBCASaFNOSrrqiotRhbw/xD0510KX2nGP9pDmM6NCAfsRlWrk/
+tuonA7gt6+DEj+XBqhQ5f9l/E4H9caxiMxry+fmfekkaMYoZlFP1SiT76AHUgWTM
+orXQaZf03aX9FqnKiDvNE6Xlwxhu1TyY3ycePlFzSSPFhV0myeR0awTJyyAg/y55
+FLdPpVCIRU0BFvoVed27EXpSHZEPp3ImzR1tPJbIgByQwK+5wyfKwBdrxD3xnp1V
+QPePtIEXGuJkIMmqblW0v2GcRPDyd9FnbtCVRnNn48AyYxvsFO5Yarc1/Z9TsO8w
+pEorBEsNxoAfFdiBkX72UzXC0qNvnQ5cjjvRyNlBw8wWd4Vk61t+0pqRDao56pT+
+JawCbUZqlxtr9j1A3qMN
+=N/zi
+-----END PGP SIGNATURE-----
+
+--8Tx+BDMK09J610+l--
