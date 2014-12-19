@@ -1,52 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51126 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059AbaLRRB2 (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:23209 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751877AbaLSKgt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 12:01:28 -0500
-Received: from avalon.localnet (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id D73C820BD6
-	for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 17:58:08 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Fri, 19 Dec 2014 05:36:49 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NGT00BW5S5B8410@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 19 Dec 2014 19:36:47 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.20] uvcvideo changes
-Date: Thu, 18 Dec 2014 19:01:31 +0200
-Message-ID: <3365098.yJ6YfCn1pi@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl,
+	nicolas.dufresne@collabora.com, p.zabel@pengutronix.de
+Subject: [PATCH] coda: use VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag
+Date: Fri, 19 Dec 2014 11:36:27 +0100
+Message-id: <1418985387-16580-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The coda driver interprets a buffer with bytesused equal to 0 as a special
+case indicating end-of-stream. After vb2: fix bytesused == 0 handling
+(8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
+The VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag was added to videobuf2 to keep
+backward compatibility.
 
-The following changes since commit 427ae153c65ad7a08288d86baf99000569627d03:
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/platform/coda/coda-common.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-  [media] bq/c-qcam, w9966, pms: move to staging in preparation for removal 
-(2014-12-16 23:21:44 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git uvc/next
-
-for you to fetch changes up to b8a2eed854ea417e82f316b45a749bbe0b43fb18:
-
-  uvcvideo: Add GUID for BGR 8:8:8 (2014-12-18 18:59:50 +0200)
-
-----------------------------------------------------------------
-Lad, Prabhakar (1):
-      media: usb: uvc: use vb2_ops_wait_prepare/finish helper
-
-William Manley (1):
-      uvcvideo: Add GUID for BGR 8:8:8
-
- drivers/media/usb/uvc/uvc_driver.c |  5 +++++
- drivers/media/usb/uvc/uvc_queue.c  | 19 +++----------------
- drivers/media/usb/uvc/uvcvideo.h   |  3 +++
- 3 files changed, 11 insertions(+), 16 deletions(-)
-
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 42b4630..6c67e6d 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1491,6 +1491,13 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
+ 	vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	vq->lock = &ctx->dev->dev_mutex;
++	/* One of means to indicate end-of-stream for coda is to set the
++	 * bytesused == 0. However by default videobuf2 handles videobuf
++	 * equal to 0 as a special case and changes its value to the size
++	 * of the buffer. Set the VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag, so
++	 * that videobuf2 will keep the value of bytesused intact.
++	 */
++	vq->io_flags = VB2_FILEIO_ALLOW_ZERO_BYTESUSED;
+ 
+ 	return vb2_queue_init(vq);
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
