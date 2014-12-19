@@ -1,211 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:38756 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751544AbaLEKSH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 05:18:07 -0500
-Message-ID: <54818648.8030601@atmel.com>
-Date: Fri, 5 Dec 2014 18:17:44 +0800
-From: Josh Wu <josh.wu@atmel.com>
+Received: from mail-oi0-f45.google.com ([209.85.218.45]:61400 "EHLO
+	mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752310AbaLSOfx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 09:35:53 -0500
+Received: by mail-oi0-f45.google.com with SMTP id x69so1780511oia.4
+        for <linux-media@vger.kernel.org>; Fri, 19 Dec 2014 06:35:53 -0800 (PST)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
-	<linux-arm-kernel@lists.infradead.org>, <g.liakhovetski@gmx.de>,
-	<devicetree@vger.kernel.org>
-Subject: Re: [PATCH 2/4] media: ov2640: add primary dt support
-References: <1417170507-11172-1-git-send-email-josh.wu@atmel.com> <1417170507-11172-3-git-send-email-josh.wu@atmel.com> <2588866.n5Pjp1h670@avalon>
-In-Reply-To: <2588866.n5Pjp1h670@avalon>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1418729778-14480-1-git-send-email-k.debski@samsung.com>
+References: <1418729778-14480-1-git-send-email-k.debski@samsung.com>
+From: Jean-Michel Hautbois <jhautbois@gmail.com>
+Date: Fri, 19 Dec 2014 15:35:37 +0100
+Message-ID: <CAL8zT=jDYoiYgYm8THFmYQ1-XKndaQE99a2541UywYXLK1KzVg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] vb2: Add VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag to vb2_fileio_flags
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	m.szyprowski@samsung.com, Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Laurent
+Hi Kamil,
 
-On 12/2/2014 6:33 AM, Laurent Pinchart wrote:
-> Hi Josh,
+2014-12-16 12:36 GMT+01:00 Kamil Debski <k.debski@samsung.com>:
+> The vb2: fix bytesused == 0 handling (8a75ffb) patch changed the behavior
+> of __fill_vb2_buffer function, so that if bytesused is 0 it is set to the
+> size of the buffer. However, bytesused set to 0 is used by older codec
+> drivers as as indication used to mark the end of stream.
 >
-> Thank you for the patch.
+> To keep backward compatibility, this patch adds a flag passed to the
+> vb2_queue_init function - VB2_FILEIO_ALLOW_ZERO_BYTESUSED. If the flag is
+> set upon initialization of the queue, the videobuf2 keeps the value of
+> bytesused intact and passes it to the driver.
+
+Nice, this is something we were planning to do :).
+But I would split this patch and the second which is specific to
+s5p-mfc as this is core specific and should be independant.
+
+
+> Reported-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c |   33 ++++++++++++++++++++++++------
+>  include/media/videobuf2-core.h           |    3 +++
+>  2 files changed, 30 insertions(+), 6 deletions(-)
 >
-> On Friday 28 November 2014 18:28:25 Josh Wu wrote:
->> Add device tree support for ov2640.
->>
->> Cc:devicetree@vger.kernel.org
->> Signed-off-by: Josh Wu<josh.wu@atmel.com>
->> ---
->>   drivers/media/i2c/soc_camera/ov2640.c | 95 +++++++++++++++++++++++++++++---
->>   1 file changed, 89 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/i2c/soc_camera/ov2640.c
->> b/drivers/media/i2c/soc_camera/ov2640.c index 9ee910d..6506126 100644
->> --- a/drivers/media/i2c/soc_camera/ov2640.c
->> +++ b/drivers/media/i2c/soc_camera/ov2640.c
->> @@ -18,6 +18,8 @@
->>   #include <linux/i2c.h>
->>   #include <linux/slab.h>
->>   #include <linux/delay.h>
->> +#include <linux/gpio.h>
->> +#include <linux/of_gpio.h>
->>   #include <linux/v4l2-mediabus.h>
->>   #include <linux/videodev2.h>
->>
->> @@ -283,6 +285,10 @@ struct ov2640_priv {
->>   	u32	cfmt_code;
->>   	struct v4l2_clk			*clk;
->>   	const struct ov2640_win_size	*win;
->> +
->> +	struct soc_camera_subdev_desc	ssdd_dt;
->> +	int reset_pin;
->> +	int pwr_down_pin;
->>   };
->>
->>   /*
->> @@ -1047,6 +1053,70 @@ static struct v4l2_subdev_ops ov2640_subdev_ops = {
->>   	.video	= &ov2640_subdev_video_ops,
->>   };
->>
->> +/* OF probe functions */
->> +static int ov2640_hw_power(struct device *dev, int on)
->> +{
->> +	struct i2c_client *client = to_i2c_client(dev);
->> +	struct ov2640_priv *priv = to_ov2640(client);
->> +
->> +	dev_dbg(&client->dev, "%s: %s the camera\n",
->> +			__func__, on ? "ENABLE" : "DISABLE");
->> +
->> +	/* enable or disable the camera */
->> +	gpio_direction_output(priv->pwr_down_pin, !on);
-> Isn't there a delay required to wake the chip up ?
-I don't see any document mention a delay is needed when waked up.
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index d09a891..1068dbb 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1276,13 +1276,23 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>                          * userspace clearly never bothered to set it and
+>                          * it's a safe assumption that they really meant to
+>                          * use the full plane sizes.
+> +                        *
+> +                        * Some drivers, e.g. old codec drivers, use bytesused
+> +                        * == 0 as a way to indicate that streaming is finished.
+> +                        * In that case, the driver should use the following
+> +                        * io_flag VB2_FILEIO_ALLOW_ZERO_BYTESUSED to keep old
+> +                        * userspace applications working.
 
+Not sure if this comment is necessary, as this is already in the commit ?
+
+>                          */
+>                         for (plane = 0; plane < vb->num_planes; ++plane) {
+>                                 struct v4l2_plane *pdst = &v4l2_planes[plane];
+>                                 struct v4l2_plane *psrc = &b->m.planes[plane];
 >
->> +
->> +	return 0;
->> +}
->> +
->> +static int ov2640_hw_reset(struct device *dev)
->> +{
->> +	struct i2c_client *client = to_i2c_client(dev);
->> +	struct ov2640_priv *priv = to_ov2640(client);
->> +
-> If the reset GPIO isn't specified you should return immediately without
-> waiting 120ms.
+> -                               pdst->bytesused = psrc->bytesused ?
+> -                                       psrc->bytesused : pdst->length;
+> +                               if (vb->vb2_queue->io_flags &
+> +                                       VB2_FILEIO_ALLOW_ZERO_BYTESUSED)
+> +                                       pdst->bytesused = psrc->bytesused;
+> +                               else
+> +                                       pdst->bytesused = psrc->bytesused ?
+> +                                               psrc->bytesused : pdst->length;
+>                                 pdst->data_offset = psrc->data_offset;
+>                         }
+>                 }
+> @@ -1295,6 +1305,12 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>                  *
+>                  * If bytesused == 0 for the output buffer, then fall back
+>                  * to the full buffer size as that's a sensible default.
+> +                *
+> +                * Some drivers, e.g. old codec drivers, use bytesused == 0
+> +                * as a way to indicate that streaming is finished. In that
+> +                * case, the driver should use the following io_flag
+> +                * VB2_FILEIO_ALLOW_ZERO_BYTESUSED to keep old userspace
+> +                * applications working.
 
-I find some document that said the reset pulse need >= 3ms. So I think 
-use 3~5ms is enough.
+Again, not sure this is useful.
 
+>                  */
+>                 if (b->memory == V4L2_MEMORY_USERPTR) {
+>                         v4l2_planes[0].m.userptr = b->m.userptr;
+> @@ -1306,11 +1322,16 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>                         v4l2_planes[0].length = b->length;
+>                 }
 >
->> +	/* If enabled, give a reset impulse */
->> +	gpio_direction_output(priv->reset_pin, 0);
->> +	msleep(20);
-> Please use usleep_range().
-
-ok.
+> -               if (V4L2_TYPE_IS_OUTPUT(b->type))
+> -                       v4l2_planes[0].bytesused = b->bytesused ?
+> -                               b->bytesused : v4l2_planes[0].length;
+> -               else
+> +               if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> +                       if (vb->vb2_queue->io_flags &
+> +                               VB2_FILEIO_ALLOW_ZERO_BYTESUSED)
+> +                               v4l2_planes[0].bytesused = b->bytesused;
+> +                       else
+> +                               v4l2_planes[0].bytesused = b->bytesused ?
+> +                                       b->bytesused : v4l2_planes[0].length;
+> +               } else {
+>                         v4l2_planes[0].bytesused = 0;
+> +               }
 >
->> +	gpio_direction_output(priv->reset_pin, 1);
->> +	msleep(100);
-> Is the reset delay documented somewhere ? 100ms seems pretty large to me.
-
-It seems no need to wait another delay after the reset pulse is generated.
-I will remove this line: msleep(100);
->> +
->> +	return 0;
->> +}
->> +
->> +static int ov2640_probe_dt(struct i2c_client *client,
->> +		struct ov2640_priv *priv)
->> +{
->> +	struct device_node *np = client->dev.of_node;
->> +	int ret;
->> +
->> +	priv->reset_pin = of_get_named_gpio(np, "reset-gpio", 0);
->> +	priv->pwr_down_pin = of_get_named_gpio(np, "power-down-gpio", 0);
->> +	if (!gpio_is_valid(priv->reset_pin) ||
->> +			!gpio_is_valid(priv->pwr_down_pin))
->> +		return -EINVAL;
->> +
->> +	ret = devm_gpio_request(&client->dev, priv->pwr_down_pin,
->> +			"power-down-pin");
->> +	if (ret < 0) {
->> +		dev_err(&client->dev, "request gpio pin %d failed\n",
->> +				priv->pwr_down_pin);
->> +		return ret;
->> +	}
->> +
->> +	ret = devm_gpio_request(&client->dev, priv->reset_pin, "reset_pin");
->> +	if (ret < 0) {
->> +		dev_err(&client->dev, "request gpio pin %d failed\n",
->> +				priv->reset_pin);
->> +		return ret;
->> +	}
-> Please use the gpiod API with the devm_gpiod_get_index_optional() function, it
-> will simply your code and take care about GPIO polarity automatically. Don't
-> forget to specify the default state using the GPIOD_* flags.
-
-Thank, I will use it.
-It seems in this case, use devm_gpiod_get_optional() is enough.
-
-Best Regards,
-Josh Wu
+>         }
 >
->> +
->> +	/* Initialize the soc_camera_subdev_desc */
->> +	priv->ssdd_dt.power = ov2640_hw_power;
->> +	priv->ssdd_dt.reset = ov2640_hw_reset;
->> +	client->dev.platform_data = &priv->ssdd_dt;
->> +
->> +	return 0;
->> +}
->> +
->>   /*
->>    * i2c_driver functions
->>    */
->> @@ -1058,12 +1128,6 @@ static int ov2640_probe(struct i2c_client *client,
->>   	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
->>   	int			ret;
->>
->> -	if (!ssdd) {
->> -		dev_err(&adapter->dev,
->> -			"OV2640: Missing platform_data for driver\n");
->> -		return -EINVAL;
->> -	}
->> -
->>   	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
->>   		dev_err(&adapter->dev,
->>   			"OV2640: I2C-Adapter doesn't support SMBUS\n");
->> @@ -1077,6 +1141,18 @@ static int ov2640_probe(struct i2c_client *client,
->>   		return -ENOMEM;
->>   	}
->>
->> +	if (!ssdd) {
->> +		if (client->dev.of_node) {
->> +			ret = ov2640_probe_dt(client, priv);
->> +			if (ret)
->> +				return ret;
->> +		} else {
->> +			dev_err(&client->dev,
->> +				"Missing platform_data for driver\n");
->> +			return  -EINVAL;
->> +		}
->> +	}
->> +
->>   	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
->>   	v4l2_ctrl_handler_init(&priv->hdl, 2);
->>   	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
->> @@ -1123,9 +1199,16 @@ static const struct i2c_device_id ov2640_id[] = {
->>   };
->>   MODULE_DEVICE_TABLE(i2c, ov2640_id);
->>
->> +static const struct of_device_id ov2640_of_match[] = {
->> +	{.compatible = "omnivision,ov2640", },
->> +	{},
->> +};
->> +MODULE_DEVICE_TABLE(of, ov2640_of_match);
->> +
->>   static struct i2c_driver ov2640_i2c_driver = {
->>   	.driver = {
->>   		.name = "ov2640",
->> +		.of_match_table = of_match_ptr(ov2640_of_match),
->>   	},
->>   	.probe    = ov2640_probe,
->>   	.remove   = ov2640_remove,
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index bd2cec2..0540bc3 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -138,10 +138,13 @@ enum vb2_io_modes {
+>   * by default the 'streaming' style is used by the file io emulator
+>   * @VB2_FILEIO_READ_ONCE:      report EOF after reading the first buffer
+>   * @VB2_FILEIO_WRITE_IMMEDIATELY:      queue buffer after each write() call
+> + * @VB2_FILEIO_ALLOW_ZERO_BYTESUSED:   the driver setting this flag will handle
+> + *                                     bytesused == 0 as a special case
+>   */
+>  enum vb2_fileio_flags {
+>         VB2_FILEIO_READ_ONCE            = (1 << 0),
+>         VB2_FILEIO_WRITE_IMMEDIATELY    = (1 << 1),
+> +       VB2_FILEIO_ALLOW_ZERO_BYTESUSED = (1 << 2),
+>  };
+>
+>  /**
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+I tested it with your coda patch too on i.MX6, thank you, this was annoying :).
+JM
