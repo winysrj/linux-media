@@ -1,66 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:55468 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932636AbaLAWgI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Dec 2014 17:36:08 -0500
-Message-ID: <547CED4A.9000207@users.sourceforge.net>
-Date: Mon, 01 Dec 2014 23:35:54 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH 2/2] [media] mn88473: One function call less in mn88473_init()
- after error detection
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net> <547CEBF5.4040004@users.sourceforge.net>
-In-Reply-To: <547CEBF5.4040004@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:9129 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751194AbaLSDg4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Dec 2014 22:36:56 -0500
+From: Tony K Nadackal <tony.kn@samsung.com>
+To: 'Jacek Anaszewski' <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	mchehab@osg.samsung.com, kgene@kernel.org, k.debski@samsung.com,
+	s.nawrocki@samsung.com, robh+dt@kernel.org, mark.rutland@arm.com,
+	bhushan.r@samsung.com
+References: <1418801229-7532-1-git-send-email-tony.kn@samsung.com>
+ <54919010.8020507@samsung.com>
+In-reply-to: <54919010.8020507@samsung.com>
+Subject: RE: [PATCH] [media] s5p-jpeg: Adding Exynos7 Jpeg variant support
+Date: Fri, 19 Dec 2014 09:07:40 +0530
+Message-id: <001801d01b3d$2cb181d0$86148570$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 1 Dec 2014 23:15:20 +0100
+Hi Jacek,
 
-The release_firmware() function was called by the mn88473_init() function even
-if a previous function call "request_firmware" failed.
-This implementation detail could be improved by the introduction of another
-jump label.
+On Wednesday, December 17, 2014 7:46 PM Jacek Anaszewski wrote,
+> Hi Tony,
+> 
+> Thanks for the patches.
+> 
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/staging/media/mn88473/mn88473.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Thanks for the review.
 
-diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
-index 52180bb..a333744 100644
---- a/drivers/staging/media/mn88473/mn88473.c
-+++ b/drivers/staging/media/mn88473/mn88473.c
-@@ -225,7 +225,7 @@ static int mn88473_init(struct dvb_frontend *fe)
- 	ret = request_firmware(&fw, fw_file, &client->dev);
- 	if (ret) {
- 		dev_err(&client->dev, "firmare file '%s' not found\n", fw_file);
--		goto err;
-+		goto err_request_firmware;
- 	}
- 
- 	dev_info(&client->dev, "downloading firmware from file '%s'\n",
-@@ -261,9 +261,10 @@ static int mn88473_init(struct dvb_frontend *fe)
- 	dev->warm = true;
- 
- 	return 0;
-+
- err:
- 	release_firmware(fw);
--
-+err_request_firmware:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
--- 
-2.1.3
+> Please process them with scripts/checkpatch.pl as you will be submitting the
+next
+> version - they contain many coding style related issues.
+> 
+
+I ran checkpatch before posting. Do you find any checkpatch related issues in
+the patch?
+
+> My remaining comments below.
+> 
+
+[snip]
+
+> > +		if (ctx->jpeg->variant->version == SJPEG_EXYNOS7) {
+> > +			exynos4_jpeg_set_interrupt(jpeg->regs,
+> SJPEG_EXYNOS7);
+> > +			exynos4_jpeg_set_enc_out_fmt(jpeg->regs,
+> > +					ctx->subsampling,
+> EXYNOS7_ENC_FMT_MASK);
+> > +			exynos4_jpeg_set_img_fmt(jpeg->regs,
+> > +					ctx->out_q.fmt->fourcc,
+> > +					EXYNOS7_SWAP_CHROMA_SHIFT);
+> > +		} else {
+> > +			exynos4_jpeg_set_interrupt(jpeg->regs,
+> SJPEG_EXYNOS4);
+> > +			exynos4_jpeg_set_enc_out_fmt(jpeg->regs,
+> > +					ctx->subsampling,
+> EXYNOS4_ENC_FMT_MASK);
+> > +			exynos4_jpeg_set_img_fmt(jpeg->regs,
+> > +					ctx->out_q.fmt->fourcc,
+> > +					EXYNOS4_SWAP_CHROMA_SHIFT);
+> > +		}
+> > +
+> 
+> I'd implement it this way:
+> 
+> exynos4_jpeg_set_interrupt(jpeg->regs, ctx->jpeg->variant->version);
+> exynos4_jpeg_set_enc_out_fmt(jpeg->regs, ctx->subsampling,
+> 			(ctx->jpeg->variant->version == SJPEG_EXYNOS4) ?
+> 				EXYNOS4_ENC_FMT_MASK :
+> 				EXYNOS7_ENC_FMT_MASK);
+> exynos4_jpeg_set_img_fmt(jpeg->regs, ctx->out_q.fmt->fourcc,
+> 			(ctx->jpeg->variant->version == SJPEG_EXYNOS4) ?
+> 				EXYNOS4_SWAP_CHROMA_SHIFT :
+> 				EXYNOS7_SWAP_CHROMA_SHIFT);
+> 
+
+OK. Looks goods to me. Thanks for the suggestion.
+
+> >   		exynos4_jpeg_set_img_addr(ctx);
+> >   		exynos4_jpeg_set_jpeg_addr(ctx);
+> >   		exynos4_jpeg_set_encode_hoff_cnt(jpeg->regs,
+> >   							ctx->out_q.fmt->fourcc);
+> >   	} else {
+> >   		exynos4_jpeg_sw_reset(jpeg->regs);
+> > -		exynos4_jpeg_set_interrupt(jpeg->regs);
+> >   		exynos4_jpeg_set_img_addr(ctx);
+> >   		exynos4_jpeg_set_jpeg_addr(ctx);
+> > -		exynos4_jpeg_set_img_fmt(jpeg->regs, ctx->cap_q.fmt-
+> >fourcc);
+> >
+> > -		bitstream_size = DIV_ROUND_UP(ctx->out_q.size, 32);
+> > +		if (ctx->jpeg->variant->version == SJPEG_EXYNOS7) {
+> > +			exynos4_jpeg_set_interrupt(jpeg->regs,
+> SJPEG_EXYNOS7);
+> > +			exynos4_jpeg_set_huff_tbl(jpeg->regs);
+> > +			exynos4_jpeg_set_huf_table_enable(jpeg->regs, 1);
+> > +
+> > +			/*
+> > +			 * JPEG IP allows storing 4 quantization tables
+> > +			 * We fill table 0 for luma and table 1 for chroma
+> > +			 */
+> > +			exynos4_jpeg_set_qtbl_lum(jpeg->regs,
+> > +							ctx->compr_quality);
+> > +			exynos4_jpeg_set_qtbl_chr(jpeg->regs,
+> > +							ctx->compr_quality);
+> 
+> Is it really required to setup quantization tables for encoding?
+> 
+
+Without setting up the quantization tables, encoder is working fine.
+But, as per Exynos7 User Manual setting up the quantization tables are required
+for encoding also.
+
+> > +			exynos4_jpeg_set_stream_size(jpeg->regs, ctx-
+> >cap_q.w,
+> > +					ctx->cap_q.h);
+> 
+> For exynos4 this function writes the number of samples per line and number
+> lines of the resulting JPEG image and is used only during encoding. Is the
+> semantics of the related register different in case of Exynos7?
+> 
+
+Yes. In case of Exynos7 Encoding, This step is required.
+
+[snip]
+
+> > --- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
+> > +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+> > @@ -71,6 +71,7 @@
+> >   #define SJPEG_S5P		1
+> >   #define SJPEG_EXYNOS3250	2
+> >   #define SJPEG_EXYNOS4		3
+> > +#define SJPEG_EXYNOS7		4
+> 
+> As you adding a new variant I propose to turn these macros into enum.
+> 
+
+Ok. I will make this change in my next version.
+
+[snip]
+
+> > -void exynos4_jpeg_set_interrupt(void __iomem *base)
+> > +void exynos4_jpeg_set_interrupt(void __iomem *base, unsigned int
+> > +version)
+> >   {
+> > -	writel(EXYNOS4_INT_EN_ALL, base + EXYNOS4_INT_EN_REG);
+> > +	unsigned int reg;
+> > +
+> > +	reg = readl(base + EXYNOS4_INT_EN_REG) &
+> ~EXYNOS4_INT_EN_MASK(version);
+> > +	writel(EXYNOS4_INT_EN_ALL(version), base + EXYNOS4_INT_EN_REG);
+> >   }
+> 
+> I believe that adding readl is a fix. I'd enclose it into separate patch and
+explain its
+> merit.
+> 
+
+Thanks for the suggestion.  I will make a separate patch for this bug fix.
+
+[snip]
+
+> 
+> --
+> Best Regards,
+> Jacek Anaszewski
+
+Thanks,
+Tony K Nadackal
 
