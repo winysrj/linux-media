@@ -1,23 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39097 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755997AbaLWMZV (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42353 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752127AbaLSK5A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 07:25:21 -0500
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A7EE72A0085
-	for <linux-media@vger.kernel.org>; Tue, 23 Dec 2014 13:24:58 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/4] Remove deprecated drivers
-Date: Tue, 23 Dec 2014 13:24:53 +0100
-Message-Id: <1419337497-7231-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 19 Dec 2014 05:57:00 -0500
+Message-ID: <1418986616.3165.60.camel@pengutronix.de>
+Subject: Re: [PATCH] coda: use VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	hverkuil@xs4all.nl, nicolas.dufresne@collabora.com
+Date: Fri, 19 Dec 2014 11:56:56 +0100
+In-Reply-To: <1418985387-16580-1-git-send-email-k.debski@samsung.com>
+References: <1418985387-16580-1-git-send-email-k.debski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As promised, let's remove these for 3.20.
+Hi Kamil,
 
-Regards,
+Am Freitag, den 19.12.2014, 11:36 +0100 schrieb Kamil Debski:
+> The coda driver interprets a buffer with bytesused equal to 0 as a special
+> case indicating end-of-stream. After vb2: fix bytesused == 0 handling
+> (8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
+> The VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag was added to videobuf2 to keep
+> backward compatibility.
+> 
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
 
-	Hans
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+thanks
+Philipp
 
