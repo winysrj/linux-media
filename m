@@ -1,102 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:55900 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751946AbaLRIZB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 03:25:01 -0500
-Received: by mail-wi0-f181.google.com with SMTP id r20so891182wiv.14
-        for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 00:25:00 -0800 (PST)
-Date: Thu, 18 Dec 2014 09:24:58 +0100
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, marbugge@cisco.com,
-	dri-devel@lists.freedesktop.org
-Subject: Re: [PATCHv2 0/3] hdmi: add unpack and logging functions
-Message-ID: <20141218082457.GB29856@ulmo>
-References: <1417522126-31771-1-git-send-email-hverkuil@xs4all.nl>
- <54895C92.9000007@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.18]:55520 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751448AbaLSWQW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 17:16:22 -0500
+Date: Fri, 19 Dec 2014 23:16:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	linux-arm-kernel@lists.infradead.org,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	festevam@gmail.com
+Subject: Re: [PATCH v4 2/5] media: ov2640: add async probe function
+In-Reply-To: <5493C1A8.4050204@atmel.com>
+Message-ID: <Pine.LNX.4.64.1412192307320.21176@axis700.grange>
+References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
+ <1418869646-17071-3-git-send-email-josh.wu@atmel.com>
+ <Pine.LNX.4.64.1412182237370.11953@axis700.grange> <5493C1A8.4050204@atmel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LyciRD1jyfeSSjG0"
-Content-Disposition: inline
-In-Reply-To: <54895C92.9000007@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, 19 Dec 2014, Josh Wu wrote:
 
---LyciRD1jyfeSSjG0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Hi, Guennadi
+> 
+> Thanks for the review.
+> 
+> On 12/19/2014 5:59 AM, Guennadi Liakhovetski wrote:
+> > Hi Josh,
+> > 
+> > Thanks for your patches!
+> > 
+> > On Thu, 18 Dec 2014, Josh Wu wrote:
+> > 
+> > > To support async probe for ov2640, we need remove the code to get 'mclk'
+> > > in ov2640_probe() function. oterwise, if soc_camera host is not probed
+> > > in the moment, then we will fail to get 'mclk' and quit the ov2640_probe()
+> > > function.
+> > > 
+> > > So in this patch, we move such 'mclk' getting code to ov2640_s_power()
+> > > function. That make ov2640 survive, as we can pass a NULL (priv-clk) to
+> > > soc_camera_set_power() function.
+> > > 
+> > > And if soc_camera host is probed, the when ov2640_s_power() is called,
+> > > then we can get the 'mclk' and that make us enable/disable soc_camera
+> > > host's clock as well.
+> > > 
+> > > Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> > > ---
+> > > v3 -> v4:
+> > > v2 -> v3:
+> > > v1 -> v2:
+> > >    no changes.
+> > > 
+> > >   drivers/media/i2c/soc_camera/ov2640.c | 31
+> > > +++++++++++++++++++++----------
+> > >   1 file changed, 21 insertions(+), 10 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/i2c/soc_camera/ov2640.c
+> > > b/drivers/media/i2c/soc_camera/ov2640.c
+> > > index 1fdce2f..9ee910d 100644
+> > > --- a/drivers/media/i2c/soc_camera/ov2640.c
+> > > +++ b/drivers/media/i2c/soc_camera/ov2640.c
+> > > @@ -739,6 +739,15 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int
+> > > on)
+> > >   	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > >   	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+> > >   	struct ov2640_priv *priv = to_ov2640(client);
+> > > +	struct v4l2_clk *clk;
+> > > +
+> > > +	if (!priv->clk) {
+> > > +		clk = v4l2_clk_get(&client->dev, "mclk");
+> > > +		if (IS_ERR(clk))
+> > > +			dev_warn(&client->dev, "Cannot get the mclk. maybe
+> > > soc-camera host is not probed yet.\n");
+> > > +		else
+> > > +			priv->clk = clk;
+> > > +	}
+> > >     	return soc_camera_set_power(&client->dev, ssdd, priv->clk,
+> > > on);
+> > >   }
 
-On Thu, Dec 11, 2014 at 09:57:54AM +0100, Hans Verkuil wrote:
-> Hi Thierry,
->=20
-> On 12/02/14 13:08, Hans Verkuil wrote:
-> > This patch series adds new HDMI 2.0/CEA-861-F defines to hdmi.h and
-> > adds unpacking and logging functions to hdmi.c. It also uses those
-> > in the V4L2 adv7842 driver (and they will be used in other HDMI drivers
-> > once this functionality is merged).
-> >=20
-> > Patches 2 and 3 have been posted before by Martin Bugge. It stalled, but
-> > I am taking over from Martin to try and get this is. I want to use this
-> > in a bunch of v4l2 drivers, so I would really like to see this merged.
-> >=20
-> > Changes since v1:
-> >=20
-> > - rename HDMI_CONTENT_TYPE_NONE to HDMI_CONTENT_TYPE_GRAPHICS to conform
-> >   to CEA-861-F.
-> > - added missing HDMI_AUDIO_CODING_TYPE_CXT.
-> > - Be explicit: out of range values are called "Invalid", reserved
-> >   values are called "Reserved".
-> > - Incorporated most of Thierry's suggestions. Exception: I didn't
-> >   create ..._get_name(buffer, length, ...) functions. I think it makes
-> >   the API awkward and I am not convinced that it is that useful.
-> >   I also kept "No Data" since that's what CEA-861-F calls it. I also
-> >   think that "No Data" is a better description than "None" since it
-> >   really means that nobody bothered to fill this in.
-> >=20
-> > Please let me know if there are more things that need to be addressed in
-> > these patches before they can be merged.
->=20
-> Any comments about this v2?
+Ok, think about this: you check whether priv->clk is set on each 
+.s_power() call, which is already a bit awkward. Such approach can be used 
+when there's no other way to perform a one-time action, but here we have 
+one. But never mind, that's not the main problem. If priv->clk isn't set, 
+you try to acquire it. But during probing, when this function is called 
+for the first time clock isn't available yet, but you still want to 
+succeed probing. So, you just issue a warning and continue. But then later 
+an application opens the camera, .s_power() is called again, but for some 
+reason the clock might still be not available, and this time you should 
+fail. But you don't, you succeed and then you'll fail somewhere later, 
+presumably, with a timeout waiting for frames. Am I right?
 
-Sorry for taking so long. This got burried under a lot of other stuff. I
-have some minor comments to patch 2/3, but on the whole this looks very
-nice.
+> > > @@ -1078,21 +1087,21 @@ static int ov2640_probe(struct i2c_client *client,
+> > >   	if (priv->hdl.error)
+> > >   		return priv->hdl.error;
+> > >   -	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+> > > -	if (IS_ERR(priv->clk)) {
+> > > -		ret = PTR_ERR(priv->clk);
+> > > -		goto eclkget;
+> > > -	}
+> > > -
+> > >   	ret = ov2640_video_probe(client);
+> > The first thing the above ov2640_video_probe() function will do is call
+> > ov2640_s_power(), which will request the clock. So, by moving requesting
+> > the clock from ov2640_probe() to ov2640_s_power() doesn't change how
+> > probing will be performed, am I right?
+> yes, you are right. In this patch, the "mclk" will requested by
+> ov2640_s_power().
+> 
+> The reason why I put the getting "mclk" code from ov2640_probe() to
+> ov2640_s_power() is : as the "mclk" here is camera host's peripheral clock.
+> That means ov2640 still can be probed properly (read ov2640 id) even no
+> "mclk". So when I move this code to ov2640_s_power(), otherwise the
+> ov2640_probe() will be failed or DEFER_PROBE.
+> 
+> Is this true for all camera host? If it's not true, then I think use
+> -EPROBE_DEFER would be a proper way.
 
-> If not, is this something you or someone else from dri-devel will
-> take, or can it be merged through the media git repository?
+Sorry, not sure what your question is. And I'm not sure ov2640's registers 
+can be accessed with no running clock. I think some camera sensors can do 
+this, but I have no idea about this one. How did you verify? Is it 
+mentioned in a datasheet? Or did you really disconnected (grounded) the 
+sensor clock input and tried to access its reqisters? If you just 
+verified, that it's working without requesting the clock, are you sure 
+your clock output isn't running permanently all the time anyway?
 
-I'm not aware of anyone currently doing work on this for DRM, so I think
-it'd be fine if you took it through the media git tree, especially since
-patch 3/3 clearly belongs there.
+Thanks
+Guennadi
 
-If we ever need to resolve dependencies between this and new work in DRM
-we could set up a stable branch containing patches 1/3 and 2/3 which can
-be merged into both trees.
-
-Thierry
-
---LyciRD1jyfeSSjG0
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJUko9ZAAoJEN0jrNd/PrOhgIcP/RgWFpAF0AZYpMBb/E2HoFYd
-3Or27TkpZKKurvS7XAkF88SJSpVzyhHCAGC/PBICKpBRQFagR8ZOOdaWUxkVlkVM
-m0VlnDg618sbc5vXPHLi77aN85/8xruOXre326mcE7Hzu23Dm4UJ9BX7ToHEc/qn
-TaOY8q/Q9c/L/MSuy5rxnjwrKPgMUWQupMYyTwahGrnWR6ZUCxNF1hoDXiK77hSr
-yoyX9VkyBIzprJ2lOVRZFgHJkk5ATWpDKACyyG3kM/HO7+MQM/cMMci0pS7x5Fs1
-cFvLh7twWBA1qoY+RMxpcy6TE8ehPweJobMSoPL9vxa3HM4TSVQ+0FmKBMW1uL1W
-Ynl5pCGhJU/OCAckKqa6EeRQ4CteswUfUDaOkFC05jLs7Yx1PqrIFXQnLENwv5If
-Voa0HCZAwTQwcgSA4qmjb0HobFpT+UPKZJtVTkDSPkZOz9mSXHh46+1oX/6Lthfd
-gO1NiIRazm9WjWVGgmMQPK86LeuofxZjTfQOdRbrn85CTvTqYzNcJfB9Sq66wHPY
-yiovfT2wM1IE2DOllY3MpS04d8v1AW/Spm9/qUe0g36q8+myKQffoEmWqTtMGb8t
-8nlt3bEwA5onkGVcxohZ/5dj0T8xA1YBKKN1vBWKo1pEBwxKFzG7zpOBuldvlemR
-6ivbzhAoLJ4YRDI+XRVU
-=orBJ
------END PGP SIGNATURE-----
-
---LyciRD1jyfeSSjG0--
+> 
+> 
+> > Or are there any other patched,
+> > that change that, that I'm overseeing?
+> > 
+> > If I'm right, then I would propose an approach, already used in other
+> > drivers instead of this one: return -EPROBE_DEFER if the clock isn't
+> > available during probing. See ef6672ea35b5bb64ab42e18c1a1ffc717c31588a for
+> > an example. Or did I misunderstand anything?
+> Actually months ago I already done a version of ov2640 patch which use
+> -EPROBE_DEFER way.
+> 
+> But now I think the ov2640 can be probed correctly without "mclk", so it is no
+> need to return -EPROBE_DEFER.
+> And the v4l2 asyn API can handle the synchronization of host. So I prefer to
+> use this way.
+> What do you think about this?
+> 
+> Best Regards,
+> Josh Wu
+> 
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> > >   	if (ret) {
+> > > -		v4l2_clk_put(priv->clk);
+> > > -eclkget:
+> > > -		v4l2_ctrl_handler_free(&priv->hdl);
+> > > +		goto evideoprobe;
+> > >   	} else {
+> > >   		dev_info(&adapter->dev, "OV2640 Probed\n");
+> > >   	}
+> > >   +	ret = v4l2_async_register_subdev(&priv->subdev);
+> > > +	if (ret < 0)
+> > > +		goto evideoprobe;
+> > > +
+> > > +	return 0;
+> > > +
+> > > +evideoprobe:
+> > > +	v4l2_ctrl_handler_free(&priv->hdl);
+> > >   	return ret;
+> > >   }
+> > >   @@ -1100,7 +1109,9 @@ static int ov2640_remove(struct i2c_client
+> > > *client)
+> > >   {
+> > >   	struct ov2640_priv       *priv = to_ov2640(client);
+> > >   -	v4l2_clk_put(priv->clk);
+> > > +	v4l2_async_unregister_subdev(&priv->subdev);
+> > > +	if (priv->clk)
+> > > +		v4l2_clk_put(priv->clk);
+> > >   	v4l2_device_unregister_subdev(&priv->subdev);
+> > >   	v4l2_ctrl_handler_free(&priv->hdl);
+> > >   	return 0;
+> > > -- 
+> > > 1.9.1
+> > > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
