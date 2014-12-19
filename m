@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
 Received: from down.free-electrons.com ([37.187.137.238]:53935 "EHLO
 	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751792AbaLSV7Y (ORCPT
+	with ESMTP id S1752011AbaLSV70 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 16:59:24 -0500
-Date: Fri, 19 Dec 2014 19:22:26 +0100
+	Fri, 19 Dec 2014 16:59:26 -0500
+Date: Fri, 19 Dec 2014 19:25:31 +0100
 From: Maxime Ripard <maxime.ripard@free-electrons.com>
 To: Hans de Goede <hdegoede@redhat.com>
 Cc: Linus Walleij <linus.walleij@linaro.org>,
@@ -15,30 +15,26 @@ Cc: Linus Walleij <linus.walleij@linaro.org>,
 	linux-arm-kernel@lists.infradead.org,
 	devicetree <devicetree@vger.kernel.org>,
 	linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 03/13] ARM: sunxi: Add "allwinner,sun6i-a31s" to
- mach-sunxi
-Message-ID: <20141219182226.GT4820@lukather>
+Subject: Re: [PATCH v2 08/13] ARM: dts: sun6i: Add ir_clk node
+Message-ID: <20141219182531.GV4820@lukather>
 References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
- <1418836704-15689-4-git-send-email-hdegoede@redhat.com>
+ <1418836704-15689-9-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MET8MpPxp2u2c48q"
+	protocol="application/pgp-signature"; boundary="o3Y+93sjbn8Tp8J9"
 Content-Disposition: inline
-In-Reply-To: <1418836704-15689-4-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1418836704-15689-9-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---MET8MpPxp2u2c48q
+--o3Y+93sjbn8Tp8J9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Dec 17, 2014 at 06:18:14PM +0100, Hans de Goede wrote:
-> So far the A31s is 100% compatible with the A31, still lets do the same
-> as what we've done for the A13 / A10s and give it its own compatible stri=
-ng,
-> in case we need to differentiate later.
+On Wed, Dec 17, 2014 at 06:18:19PM +0100, Hans de Goede wrote:
+> Add an ir_clk sub-node to the prcm node.
 >=20
 > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
@@ -51,26 +47,26 @@ Maxime Ripard, Free Electrons
 Embedded Linux, Kernel and Android engineering
 http://free-electrons.com
 
---MET8MpPxp2u2c48q
+--o3Y+93sjbn8Tp8J9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUlGziAAoJEBx+YmzsjxAgD/UQAJGuMifYk2mAaprQmI83kZOJ
-f3LLFmlvgieV3FzOGSqMiJPh6SI6ZC0ud/0NJi1sI6ONmcSOaYmiS38u0u5lZacO
-+M0mQ8OmFS49qfKIffqUZC82/K7leYCv84bOf9kMOQ6mpbX6As07Q9wY1E06EkGo
-19CRzt1aDOm1KKVPbxS3AOBCkDq1FyjiBc+oL81tO8Tos85vBQ65a6JC1yI84Rlx
-bsdjBUUpbuisC7uRW3eNylVTBnDvtm+YTms4xKvu5oc6qiVS6/lprPuAYSAXYm9j
-jdej9hLTNT3LLIbTjmayWj9W33SOOF3N03HXH5cCw2R5B4rvW7V6Hq12TzEqzCAq
-fXelcmlktpY/wtoAeHer39PO5OireyUSy5JtWzSX9xwYLNxN3uB6YWTBDEipXsLs
-Nha4WPbgyp/kMKP1Ni6cDzGYHdk8oNFS9IWo/18+YpiBehRlZJmnLOxoYH8A05JW
-HgN3dIH7wdpT/msLZ08nAJvIIOq41mHbtEMeeFFoHU0XydotqAcGunhaban7ngtx
-fHJ3fJybqQ5eJB5JJlGFY/86TA+Y/F3qrEA0OHJOgogpDCTlLkL/4xsmGp/eaKAA
-EVsItTp5BmIP7Nvzu1fZhq0uiSHewXvgZonaEpHqZbWrrQzGxa7/OOqlxRSzy6xL
-nOgUd8Uex05jEjBAV5rF
-=uh+1
+iQIcBAEBAgAGBQJUlG2bAAoJEBx+YmzsjxAgpd4QAIb81mULGDadq9pMHmL7LZz+
+09O6bdicYTy2uPf3NYHRx6PgP56kQu8U65iJSukIRIMis+g9u4yechm8oUhzmkIh
+dNRzNmHp9neToGfCkuVN4eKlT4ssdvgET3fCUkh6PN96Kr5zJAxDQ0x+XUrPJpe8
+sU/bsuc8PaahEVnd/iNsdwS2g5kEhMcPMTJEFNzv3lCHIq0eKBqTW8cUh2nZEQ3H
+0LLZGB07FzcTivfBT/HNcAPfoc3Qs4GdBNr8cuK1w1h9yLZF5NiVhnXKWvRX+6Kj
+Swm3Isj+pskhc+mPBCa/jtmwBNewaMbq6bzOqunMAp1hyvqTaenGLaNOsZtn3ebc
+mZe/KNyxxkBCQnkLUQN9FeQzSEkE3zIYt0brR+YdKk3tvpsuddLKNureCDoWH7Io
+xjk6igow4gnRAnw2ovjqcpqCZ9sboXI9UXB9nMuHThB+abq929wbgZb3npitPv35
+VGzawFkP5kvHiYUETclQgEBxV2xJe7ISJxOUFu+54w285C4yq0/eZmdtEGrzpqau
+0ym0K2EY+6GRaqas4FsSsEm4G7Kv/cSBAuXb3Ijml1agRMwfo/iv7dgyQZ3HhkgN
+jQK736BW56aJX6Avcyk4hLSi8RdPDaTTv5erbfosQg+DoH4TLVvavQ8fDDLbC/7w
+kPOzSz+7Y3qUh6wsibEb
+=bSrF
 -----END PGP SIGNATURE-----
 
---MET8MpPxp2u2c48q--
+--o3Y+93sjbn8Tp8J9--
