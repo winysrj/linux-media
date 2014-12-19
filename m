@@ -1,31 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37715 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964963AbaLMLxL (ORCPT
+Received: from mail-oi0-f48.google.com ([209.85.218.48]:51768 "EHLO
+	mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751284AbaLSDs7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Dec 2014 06:53:11 -0500
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E576B2A008E
-	for <linux-media@vger.kernel.org>; Sat, 13 Dec 2014 12:53:01 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 18 Dec 2014 22:48:59 -0500
+Received: by mail-oi0-f48.google.com with SMTP id u20so54795oif.7
+        for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 19:48:59 -0800 (PST)
+MIME-Version: 1.0
+Date: Fri, 19 Dec 2014 11:48:58 +0800
+Message-ID: <CANC6fRHnixRvs8ZOuCeMLaoAR1LOaExHxTBZqKy2qbEeWjmv4Q@mail.gmail.com>
+Subject: V4L2_CID_AUTO_FOCUS_START VS V4L2_CID_FOCUS_AUTO
+From: Bin Chen <bin.chen@linaro.org>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 00/10] Sparse fixes
-Date: Sat, 13 Dec 2014 12:52:50 +0100
-Message-Id: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series fixes almost all remaining sparse warnings. The only one
-still there is this one in this platform driver:
+Hi,
 
-.../platform/timblogiw.c:562:22: warning: context imbalance in 'buffer_queue' - unexpected unlock
+Can anyone explain what is the difference between setting control
+V4L2_CID_FOCUS_AUTO to 1 and and issuing V4L2_CID_AUTO_FOCUS_START?
+Confused...
 
-Note that due to a bug in the daily build process not all media drivers were
-checked with sparse. Now that I've fixed the build script I got a bunch of new
-sparse warnings and one error. Those new sparse messages are addressed by
-patches 6-10. Several of those fix real bugs too.
 
+-- 
 Regards,
-
-	Hans
-
+Bin
