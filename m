@@ -1,115 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41251 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964843AbaLMDnb (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:60767 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752022AbaLSHpY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 22:43:31 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 308752A008C
-	for <linux-media@vger.kernel.org>; Sat, 13 Dec 2014 04:43:23 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141213034323.308752A008C@tschai.lan>
-Date: Sat, 13 Dec 2014 04:43:23 +0100 (CET)
+	Fri, 19 Dec 2014 02:45:24 -0500
+From: Tony K Nadackal <tony.kn@samsung.com>
+To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org
+Cc: mchehab@osg.samsung.com, j.anaszewski@samsung.com,
+	kgene@kernel.org, k.debski@samsung.com, s.nawrocki@samsung.com,
+	robh+dt@kernel.org, mark.rutland@arm.com, bhushan.r@samsung.com,
+	Tony K Nadackal <tony.kn@samsung.com>
+Subject: [PATCH v2 0/2] Adding support for Exynos7 Jpeg variant
+Date: Fri, 19 Dec 2014 13:07:58 +0530
+Message-id: <1418974680-5837-1-git-send-email-tony.kn@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch series adds support for Exynos7 JPEG variant, which is mostly
+same as Exynos4 JPEG variants with few register configuration differences.
+At the same time it modifies #define based JPEG variant macros into enum.
+Patch 1/2 fixes possible bug in setting INT EN register,
+where EXYNOS4_INT_EN_REG was getting modified without reading before.
 
-Results of the daily build of media_tree:
+Patch set v1 and related discussion can be found here [1].
 
-date:		Sat Dec 13 04:00:22 CET 2014
-git branch:	test
-git hash:	e272d95f8c0544cff55c485a10828b063c8e417c
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+[1]: http://www.spinics.net/lists/linux-samsung-soc/msg40308.html
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Changes since v1:
+ - Added new patch 1/2 which fixes issues in writing EXYNOS4_INT_EN_REG.
+ - Converted JPEG variant macros into enum as suggested by Jacek Anaszewski.
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Tony K Nadackal (2):
+  [media] s5p-jpeg: Fix modification sequence of interrupt enable
+    register
+  [media] s5p-jpeg: Adding Exynos7 Jpeg variant
 
-Full logs are available here:
+ .../bindings/media/exynos-jpeg-codec.txt           |  2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        | 61 ++++++++++++++++++----
+ drivers/media/platform/s5p-jpeg/jpeg-core.h        | 10 ++--
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c  | 33 +++++++-----
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h  |  8 +--
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h        | 17 ++++--
+ 6 files changed, 95 insertions(+), 36 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+-- 
+2.2.0
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
