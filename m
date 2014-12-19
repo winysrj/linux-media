@@ -1,108 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:14301 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751260AbaLSFhf (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:53935 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751792AbaLSV7Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 00:37:35 -0500
-Message-ID: <5493B990.7020302@atmel.com>
-Date: Fri, 19 Dec 2014 13:37:20 +0800
-From: Josh Wu <josh.wu@atmel.com>
+	Fri, 19 Dec 2014 16:59:24 -0500
+Date: Fri, 19 Dec 2014 19:22:26 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 03/13] ARM: sunxi: Add "allwinner,sun6i-a31s" to
+ mach-sunxi
+Message-ID: <20141219182226.GT4820@lukather>
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+ <1418836704-15689-4-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: <nicolas.ferre@atmel.com>, <voice.shen@atmel.com>,
-	<plagnioj@jcrosoft.com>, <boris.brezillon@free-electrons.com>,
-	<alexandre.belloni@free-electrons.com>,
-	<devicetree@vger.kernel.org>, <robh+dt@kernel.org>,
-	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 6/7] ARM: at91: dts: sama5d3: add ov2640 camera sensor
- support
-References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com> <1418892667-27428-7-git-send-email-josh.wu@atmel.com> <5518219.5PdO7T0ydL@avalon>
-In-Reply-To: <5518219.5PdO7T0ydL@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="MET8MpPxp2u2c48q"
+Content-Disposition: inline
+In-Reply-To: <1418836704-15689-4-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Hi, Laurent
+--MET8MpPxp2u2c48q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 12/18/2014 8:32 PM, Laurent Pinchart wrote:
-> Hi Josh,
->
-> Thank you for the patch.
->
-> On Thursday 18 December 2014 16:51:06 Josh Wu wrote:
->> According to v4l2 dt document, we add:
->>    a camera host: ISI port.
->>    a i2c camera sensor: ov2640 port.
->> to sama5d3xmb.dtsi.
->>
->> In the ov2640 node, it defines the pinctrls, clocks and isi port.
->> In the ISI node, it also reference to a ov2640 port.
->>
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> ---
->>   arch/arm/boot/dts/sama5d3xmb.dtsi | 32 ++++++++++++++++++++++++++++++++
->>   1 file changed, 32 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/sama5d3xmb.dtsi
->> b/arch/arm/boot/dts/sama5d3xmb.dtsi index 0aaebc6..958a528 100644
->> --- a/arch/arm/boot/dts/sama5d3xmb.dtsi
->> +++ b/arch/arm/boot/dts/sama5d3xmb.dtsi
->> @@ -52,6 +52,29 @@
->>   				};
->>   			};
->>
->> +			i2c1: i2c@f0018000 {
->> +				ov2640: camera@0x30 {
->> +					compatible = "ovti,ov2640";
->> +					reg = <0x30>;
->> +					pinctrl-names = "default";
->> +					pinctrl-0 = <&pinctrl_isi_pck_as_mck
->> &pinctrl_sensor_power &pinctrl_sensor_reset>;
->> +					resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
->> +					pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
->> +					/* use pck1 for the master clock of ov2640 */
->> +					clocks = <&pck1>;
->> +					clock-names = "xvclk";
->> +					assigned-clocks = <&pck1>;
->> +					assigned-clock-rates = <25000000>;
->> +
->> +					port {
->> +						ov2640_0: endpoint {
->> +							remote-endpoint = <&isi_0>;
->> +							bus-width = <8>;
->> +						};
->> +					};
->> +				};
->> +			};
->> +
->>   			usart1: serial@f0020000 {
->>   				dmas = <0>, <0>;	/*  Do not use DMA for usart1 */
->>   				pinctrl-names = "default";
->> @@ -60,6 +83,15 @@
->>   			};
->>
->>   			isi: isi@f0034000 {
->> +				port {
->> +					#address-cells = <1>;
->> +					#size-cells = <0>;
->> +
-> I would add the port node and those two properties to
-> arch/arm/boot/dts/sama5d3.dtsi, as the isi has a single port. The endpoint, of
-> course, should stay in this file.
+On Wed, Dec 17, 2014 at 06:18:14PM +0100, Hans de Goede wrote:
+> So far the A31s is 100% compatible with the A31, still lets do the same
+> as what we've done for the A13 / A10s and give it its own compatible stri=
+ng,
+> in case we need to differentiate later.
+>=20
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-That makes sense. I'll fix that. Thanks for the review.
+Applied, thanks!
 
-Best Regards,
-Josh Wu
->
->> +					isi_0: endpoint {
->> +						remote-endpoint = <&ov2640_0>;
->> +						bus-width = <8>;
->> +					};
->> +				};
->>   			};
->>
->>   			mmc1: mmc@f8000000 {
+Maxime
 
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
+
+--MET8MpPxp2u2c48q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUlGziAAoJEBx+YmzsjxAgD/UQAJGuMifYk2mAaprQmI83kZOJ
+f3LLFmlvgieV3FzOGSqMiJPh6SI6ZC0ud/0NJi1sI6ONmcSOaYmiS38u0u5lZacO
++M0mQ8OmFS49qfKIffqUZC82/K7leYCv84bOf9kMOQ6mpbX6As07Q9wY1E06EkGo
+19CRzt1aDOm1KKVPbxS3AOBCkDq1FyjiBc+oL81tO8Tos85vBQ65a6JC1yI84Rlx
+bsdjBUUpbuisC7uRW3eNylVTBnDvtm+YTms4xKvu5oc6qiVS6/lprPuAYSAXYm9j
+jdej9hLTNT3LLIbTjmayWj9W33SOOF3N03HXH5cCw2R5B4rvW7V6Hq12TzEqzCAq
+fXelcmlktpY/wtoAeHer39PO5OireyUSy5JtWzSX9xwYLNxN3uB6YWTBDEipXsLs
+Nha4WPbgyp/kMKP1Ni6cDzGYHdk8oNFS9IWo/18+YpiBehRlZJmnLOxoYH8A05JW
+HgN3dIH7wdpT/msLZ08nAJvIIOq41mHbtEMeeFFoHU0XydotqAcGunhaban7ngtx
+fHJ3fJybqQ5eJB5JJlGFY/86TA+Y/F3qrEA0OHJOgogpDCTlLkL/4xsmGp/eaKAA
+EVsItTp5BmIP7Nvzu1fZhq0uiSHewXvgZonaEpHqZbWrrQzGxa7/OOqlxRSzy6xL
+nOgUd8Uex05jEjBAV5rF
+=uh+1
+-----END PGP SIGNATURE-----
+
+--MET8MpPxp2u2c48q--
