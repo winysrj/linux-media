@@ -1,85 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40014 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030874AbaLLRgo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 12:36:44 -0500
-Date: Fri, 12 Dec 2014 15:36:38 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [REVIEW] au0828-video.c
-Message-ID: <20141212153638.6ecb9664@recife.lan>
-In-Reply-To: <CAGoCfiywSrq0f-L6a2LOS=ZS7xzfUJym46njesR8TkfoybQ5Pw@mail.gmail.com>
-References: <548AC061.3050700@xs4all.nl>
-	<20141212104942.0ea3c1d7@recife.lan>
-	<548AE5B2.1070306@xs4all.nl>
-	<20141212111424.0595125b@recife.lan>
-	<548B092F.2090803@osg.samsung.com>
-	<548B09A5.80506@xs4all.nl>
-	<CAGoCfiw1pdJGGfG5Gs-3Jf2e48buzwEA1O3+j-E+2Pjj657eEQ@mail.gmail.com>
-	<548B1884.6090005@xs4all.nl>
-	<CAGoCfiywSrq0f-L6a2LOS=ZS7xzfUJym46njesR8TkfoybQ5Pw@mail.gmail.com>
+Received: from down.free-electrons.com ([37.187.137.238]:53930 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751762AbaLSV7Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 16:59:24 -0500
+Date: Fri, 19 Dec 2014 19:20:11 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 02/13] pinctrl: sun6i: Add A31s pinctrl support
+Message-ID: <20141219182011.GS4820@lukather>
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+ <1418836704-15689-3-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UFRfxei4j9xfgtfb"
+Content-Disposition: inline
+In-Reply-To: <1418836704-15689-3-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 12 Dec 2014 11:46:13 -0500
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
 
-> >> In short, that code cannot be removed.
-> >
-> > Sure it can. I just tried tvtime and you are right, it blocks the GUI.
-> > But the fix is very easy as well. So now I've updated tvtime so that
-> > it timeouts and gives the GUI time to update itself.
-> 
-> That's a nice change to tvtime and I'm sure it will make it more robust.
-> 
-> > No more need for such an ugly hack in au0828. The au0828 isn't the only
-> > driver that can block, others do as well. Admittedly, they aren't very
-> > common, but they do exist. So it is much better to fix the application
-> > than adding application workarounds in the kernel.
-> 
-> You're breaking the ABI.  You're making a change to the kernel that
-> causes existing applications to stop working.  Sure you can make the
-> argument that applications probably never should have expected such
-> behavior (even if it's relied on that behavior for 15+ years).  And
-> sure, you can make a change to the application in some random git
-> repository that avoids the issue, and that change might get sucked in
-> to the major distributions over the next couple of years.  That
-> doesn't change the fact that you're breaking the ABI and everybody who
-> has the existing application that updates their kernel will stop
-> working.
-> 
-> Please don't do this.
+--UFRfxei4j9xfgtfb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I agree. We should not break the ABI, except if we're 100% sure that
-all apps that rely on the old behavior got fixed at the distros.
+On Wed, Dec 17, 2014 at 06:18:13PM +0100, Hans de Goede wrote:
+> The A31s is a stripped down version of the A31, as such it is missing some
+> pins and some functions on some pins.
+>=20
+> The new pinctrl-sun6i-a31s.c this commit adds is a copy of pinctrl-sun6i-=
+a31s.c
 
-That means that we'll need to keep holding such timeout code for
-years, until all distros update to a new tvtime, of course assuming
-that this is the only one application with such issue.
+I guess you meant pinctrl-sun6i-a31.c for the second one, right?
 
-With regards to tvtime, I think we need to bump version there and
-update it at the distros.
+> with the missing pins and functions removed.
+>=20
+> Note there is no a31s specific version of pinctrl-sun6i-a31-r.c, as the
+> prcm pins are identical between the A31 and the A31s.
+>=20
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-I added myself a few patches today, in order to fix it to work with
-vivid driver on webcam mode.
+Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
 
-My proposal is to wait for one extra week for people to review it.
+We should probably refactor it at some point like mvebu does though to
+deal with similar pin sets like this and the A31.
 
-As we've discussed on IRC channel, it would be good to add support
-for format enumeration on it, but the changes don't seem to be
-trivial. I'm not willing to do it, due to my lack of time, but,
-if someone steps up for doing that, then we can wait for those
-patches before bumping the version.
+Maxime
 
-In anycase, if everything is ok after ~1 week of waiting for
-tests, we can bump to version 1.0.5 and I can port the latest
-version to Fedora. I dunno who maintains it on other distros.
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
 
-Regards,
-Mauro
+--UFRfxei4j9xfgtfb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUlGxbAAoJEBx+YmzsjxAgclYP/2x9Ba71Kdya9e8aP0NRAbon
+TVgV3CtH1bfNLDbBff0f4dQ8EEMA8wdryh1TR2GQUypVWKVX39FadacxhcfLQiX9
++BkvJYEBEw6aLThy0XYcnsh7jYz+qp713ZTG2/oswmr57GY3l9UIwCxre6bHEPgd
+iuTC6BRzNCxVvudsDVQpun8GaHQ1De2WMsjXPBOAUNjk8qWcl1BcG/emivfwWu17
+0JEdH90WLrdo70pR9D5mSW7J6ceFjhTTx59Fo5RhuHgM5rELnsha7YKmIRA19taW
+EsJhCEsflQEOMmkBCD+eLfGOckDXDkX/XrdRRe8kSa9FbT4vnRbw41X2ViDcpliu
+5XQvFGvXJO/91pzPqBNEb4huGPTA34DXD2kbpRPxw/HpWZPhRCpdS43Haa+RrKju
+eL1dEWMnzGXVDXSYntx5Z9+yboEWikVAF9yuBKxRaU7905Cl/2uWKfMSi1myo+ve
++ath5y54agoQ5j+xpbLD3gej1Dmt99BUWHK5tgN/pxuTtWsC/aRMb7xuZHLe+RoZ
+tykRqhjOsQIDb5Elk020Xrx/fOns1eY/w1ZbimLC0LJ7T8nhiPMUsYOQ6t9KK4g+
+E3MM8Ssjk3uYoZfB7qHhOEd/R4dFz2pqL47YjEi7ZH5yA52xzhRhqyJ7QqeHNgeh
+f98Np/TTIiyG4900ecKH
+=tYMr
+-----END PGP SIGNATURE-----
+
+--UFRfxei4j9xfgtfb--
