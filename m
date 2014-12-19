@@ -1,117 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:44180 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124AbaLFR3s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Dec 2014 12:29:48 -0500
-Received: by mail-wi0-f180.google.com with SMTP id n3so1401515wiv.7
-        for <linux-media@vger.kernel.org>; Sat, 06 Dec 2014 09:29:46 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAG6OQ48bSjgVKOBwKyRhZr9ud1ohf6oGgtjDQ_TDBikfocgMBw@mail.gmail.com>
-References: <CAG6OQ48bSjgVKOBwKyRhZr9ud1ohf6oGgtjDQ_TDBikfocgMBw@mail.gmail.com>
-Date: Sat, 6 Dec 2014 15:29:46 -0200
-Message-ID: <CAG6OQ49kSOFieYRFcqqV_gQJ990OpJTWhE4ZuinfcruzFZ4-YQ@mail.gmail.com>
-Subject: Fwd: USB capture card regression
-From: Juan Xavier <juanvicious@gmail.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:48532 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751681AbaLSOw6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 09:52:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001a11c2aeea302c0405098f8aca
+Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	prabhakar.csengg@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 08/11] v4l2-subdev.c: add which checks for enum ops.
+Date: Fri, 19 Dec 2014 15:51:33 +0100
+Message-Id: <1419000696-25202-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1419000696-25202-1-git-send-email-hverkuil@xs4all.nl>
+References: <1419000696-25202-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001a11c2aeea302c0405098f8aca
-Content-Type: text/plain; charset=UTF-8
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I've noticed my Easycap DC60+ stopped capturing audio after a kernel
-upgrade on my distribution (Arch Linux x86_64); going from linux
-3.17.2 to 3.17.3.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-I started a thread on the Arch Linux forums
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 3c8b198..8bafb94 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -321,6 +321,10 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
+ 		struct v4l2_subdev_mbus_code_enum *code = arg;
+ 
++		if (code->which != V4L2_SUBDEV_FORMAT_TRY &&
++		    code->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++			return -EINVAL;
++
+ 		if (code->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
+@@ -331,6 +335,10 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE: {
+ 		struct v4l2_subdev_frame_size_enum *fse = arg;
+ 
++		if (fse->which != V4L2_SUBDEV_FORMAT_TRY &&
++		    fse->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++			return -EINVAL;
++
+ 		if (fse->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
+@@ -359,6 +367,10 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL: {
+ 		struct v4l2_subdev_frame_interval_enum *fie = arg;
+ 
++		if (fie->which != V4L2_SUBDEV_FORMAT_TRY &&
++		    fie->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++			return -EINVAL;
++
+ 		if (fie->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
+-- 
+2.1.3
 
-https://bbs.archlinux.org/viewtopic.php?pid=1482059
-
-and was adviced to report it to this mailing list.
-
-Attached to this message are the related dmesg logs.
-
-Thanks in advance
-
---001a11c2aeea302c0405098f8aca
-Content-Type: application/octet-stream; name="easycap-dmesg-3.17.2"
-Content-Disposition: attachment; filename="easycap-dmesg-3.17.2"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_i3d916on0
-
-WyAgIDgwLjA1OTA5MV0gdXNiIDEtMS4xOiBuZXcgaGlnaC1zcGVlZCBVU0IgZGV2aWNlIG51bWJl
-ciAzIHVzaW5nIGVoY2ktcGNpClsgICA4MC43MzEyMzVdIGVtMjh4eDogTmV3IGRldmljZSAgIEAg
-NDgwIE1icHMgKGViMWE6Mjg2MSwgaW50ZXJmYWNlIDAsIGNsYXNzIDApClsgICA4MC43MzEyMzld
-IGVtMjh4eDogVmlkZW8gaW50ZXJmYWNlIDAgZm91bmQ6IGlzb2MKWyAgIDgwLjczMTI5OF0gZW0y
-OHh4OiBjaGlwIElEIGlzIGVtMjg2MApbICAgODAuODEzMjc2XSBlbTI4NjAgIzA6IGJvYXJkIGhh
-cyBubyBlZXByb20KWyAgIDgwLjg2MjkxNl0gZW0yODYwICMwOiBObyBzZW5zb3IgZGV0ZWN0ZWQK
-WyAgIDgwLjg3NjU0MF0gZW0yODYwICMwOiBmb3VuZCBpMmMgZGV2aWNlIEAgMHg0YSBvbiBidXMg
-MCBbc2FhNzExM2hdClsgICA4MC45MDU0MzRdIGVtMjg2MCAjMDogWW91ciBib2FyZCBoYXMgbm8g
-dW5pcXVlIFVTQiBJRC4KWyAgIDgwLjkwNTQzOF0gZW0yODYwICMwOiBBIGhpbnQgd2VyZSBzdWNj
-ZXNzZnVsbHkgZG9uZSwgYmFzZWQgb24gaTJjIGRldmljZWxpc3QgaGFzaC4KWyAgIDgwLjkwNTQ0
-MF0gZW0yODYwICMwOiBUaGlzIG1ldGhvZCBpcyBub3QgMTAwJSBmYWlscHJvb2YuClsgICA4MC45
-MDU0NDFdIGVtMjg2MCAjMDogSWYgdGhlIGJvYXJkIHdlcmUgbWlzc2RldGVjdGVkLCBwbGVhc2Ug
-ZW1haWwgdGhpcyBsb2cgdG86ClsgICA4MC45MDU0NDJdIGVtMjg2MCAjMDogICAgICAgVjRMIE1h
-aWxpbmcgTGlzdCAgPGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZz4KWyAgIDgwLjkwNTQ0M10g
-ZW0yODYwICMwOiBCb2FyZCBkZXRlY3RlZCBhcyBFTTI4NjAvU0FBNzExWCBSZWZlcmVuY2UgRGVz
-aWduClsgICA4MC45NzYxOTJdIGVtMjg2MCAjMDogSWRlbnRpZmllZCBhcyBFTTI4NjAvU0FBNzEx
-WCBSZWZlcmVuY2UgRGVzaWduIChjYXJkPTE5KQpbICAgODAuOTc2MTk3XSBlbTI4NjAgIzA6IGFu
-YWxvZyBzZXQgdG8gaXNvYyBtb2RlLgpbICAgODAuOTc2MjI0XSBlbTI4eHggYXVkaW8gZGV2aWNl
-IChlYjFhOjI4NjEpOiBpbnRlcmZhY2UgMSwgY2xhc3MgMQpbICAgODAuOTc2MjM0XSBlbTI4eHgg
-YXVkaW8gZGV2aWNlIChlYjFhOjI4NjEpOiBpbnRlcmZhY2UgMiwgY2xhc3MgMQpbICAgODAuOTc2
-MjYyXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGVtMjh4eApbICAg
-ODEuMDMxOTU0XSBlbTI4NjAgIzA6IFJlZ2lzdGVyaW5nIFY0TDIgZXh0ZW5zaW9uClsgICA4MS4w
-OTc1OTZdIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgc25kLXVzYi1h
-dWRpbwpbICAgODEuMzgzNzM1XSBzYWE3MTE1IDctMDAyNTogc2FhNzExMyBmb3VuZCBAIDB4NGEg
-KGVtMjg2MCAjMCkKWyAgIDgyLjU4NDQ3NV0gZW0yODYwICMwOiBWNEwyIHZpZGVvIGRldmljZSBy
-ZWdpc3RlcmVkIGFzIHZpZGVvMQpbICAgODIuNTg0NDgxXSBlbTI4NjAgIzA6IFY0TDIgVkJJIGRl
-dmljZSByZWdpc3RlcmVkIGFzIHZiaTAKWyAgIDgyLjU4NDQ4NV0gZW0yODYwICMwOiBWNEwyIGV4
-dGVuc2lvbiBzdWNjZXNzZnVsbHkgaW5pdGlhbGl6ZWQKWyAgIDgyLjU4NDQ4OF0gZW0yOHh4OiBS
-ZWdpc3RlcmVkIChFbTI4eHggdjRsMiBFeHRlbnNpb24pIGV4dGVuc2lvbgpbICAgODIuNjMxMTIy
-XSBlbTI4NjAgIzA6IFJlZ2lzdGVyaW5nIHNuYXBzaG90IGJ1dHRvbi4uLgpbICAgODIuNjMxMjI1
-XSBpbnB1dDogZW0yOHh4IHNuYXBzaG90IGJ1dHRvbiBhcyAvZGV2aWNlcy9wY2kwMDAwOjAwLzAw
-MDA6MDA6MWEuMC91c2IxLzEtMS8xLTEuMS9pbnB1dC9pbnB1dDE2ClsgICA4Mi42MzEzMTFdIGVt
-Mjg2MCAjMDogUmVtb3RlIGNvbnRyb2wgc3VwcG9ydCBpcyBub3QgYXZhaWxhYmxlIGZvciB0aGlz
-IGNhcmQuClsgICA4Mi42MzEzMTRdIGVtMjh4eDogUmVnaXN0ZXJlZCAoRW0yOHh4IElucHV0IEV4
-dGVuc2lvbikgZXh0ZW5zaW9uIAo=
---001a11c2aeea302c0405098f8aca
-Content-Type: application/octet-stream; name="easycap-dmesg-3.17.4"
-Content-Disposition: attachment; filename="easycap-dmesg-3.17.4"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_i3d919cg1
-
-WzM2NTA1LjMxOTUxN10gdXNiIDMtMS4xOiBuZXcgaGlnaC1zcGVlZCBVU0IgZGV2aWNlIG51bWJl
-ciA1IHVzaW5nIGVoY2ktcGNpClszNjUwNS40MDM3NzddIGVtMjh4eDogTmV3IGRldmljZSAgIEAg
-NDgwIE1icHMgKGViMWE6Mjg2MSwgaW50ZXJmYWNlIDAsIGNsYXNzIDApClszNjUwNS40MDM3ODZd
-IGVtMjh4eDogVmlkZW8gaW50ZXJmYWNlIDAgZm91bmQ6IGlzb2MKWzM2NTA1LjQwMzkwOV0gZW0y
-OHh4OiBjaGlwIElEIGlzIGVtMjg2MApbMzY1MDUuNDg2NDk3XSBlbTI4NjAgIzA6IGJvYXJkIGhh
-cyBubyBlZXByb20KWzM2NTA1LjUzNjUyMV0gZW0yODYwICMwOiBObyBzZW5zb3IgZGV0ZWN0ZWQK
-WzM2NTA1LjU1MTM4NF0gZW0yODYwICMwOiBmb3VuZCBpMmMgZGV2aWNlIEAgMHg0YSBvbiBidXMg
-MCBbc2FhNzExM2hdClszNjUwNS41ODE4ODRdIGVtMjg2MCAjMDogWW91ciBib2FyZCBoYXMgbm8g
-dW5pcXVlIFVTQiBJRC4KWzM2NTA1LjU4MTg5Ml0gZW0yODYwICMwOiBBIGhpbnQgd2VyZSBzdWNj
-ZXNzZnVsbHkgZG9uZSwgYmFzZWQgb24gaTJjIGRldmljZWxpc3QgaGFzaC4KWzM2NTA1LjU4MTg5
-NV0gZW0yODYwICMwOiBUaGlzIG1ldGhvZCBpcyBub3QgMTAwJSBmYWlscHJvb2YuClszNjUwNS41
-ODE4OTddIGVtMjg2MCAjMDogSWYgdGhlIGJvYXJkIHdlcmUgbWlzc2RldGVjdGVkLCBwbGVhc2Ug
-ZW1haWwgdGhpcyBsb2cgdG86ClszNjUwNS41ODE4OTldIGVtMjg2MCAjMDogICAgICAgVjRMIE1h
-aWxpbmcgTGlzdCAgPGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZz4KWzM2NTA1LjU4MTkwMV0g
-ZW0yODYwICMwOiBCb2FyZCBkZXRlY3RlZCBhcyBFTTI4NjAvU0FBNzExWCBSZWZlcmVuY2UgRGVz
-aWduClszNjUwNS42NTI4MTddIGVtMjg2MCAjMDogSWRlbnRpZmllZCBhcyBFTTI4NjAvU0FBNzEx
-WCBSZWZlcmVuY2UgRGVzaWduIChjYXJkPTE5KQpbMzY1MDUuNjUyODIyXSBlbTI4NjAgIzA6IGFu
-YWxvZyBzZXQgdG8gaXNvYyBtb2RlLgpbMzY1MDUuNjUyODMzXSBlbTI4NjAgIzA6IFJlZ2lzdGVy
-aW5nIFY0TDIgZXh0ZW5zaW9uClszNjUwNS42NTMwMTBdIGVtMjh4eCBhdWRpbyBkZXZpY2UgKGVi
-MWE6Mjg2MSk6IGludGVyZmFjZSAxLCBjbGFzcyAxClszNjUwNS45NzcwMDVdIHNhYTcxMTUgNy0w
-MDI1OiBzYWE3MTEzIGZvdW5kIEAgMHg0YSAoZW0yODYwICMwKQpbMzY1MDYuNjE3MjYxXSBlbTI4
-NjAgIzA6IENvbmZpZyByZWdpc3RlciByYXcgZGF0YTogMHgxMApbMzY1MDYuNjM3MTU2XSBlbTI4
-NjAgIzA6IEFDOTcgdmVuZG9yIElEID0gMHg1NzRmNTcyYgpbMzY1MDYuNjQ3MTkzXSBlbTI4NjAg
-IzA6IEFDOTcgZmVhdHVyZXMgPSAweDVmOGIKWzM2NTA2LjY0NzIwMF0gZW0yODYwICMwOiBVbmtu
-b3duIEFDOTcgYXVkaW8gcHJvY2Vzc29yIGRldGVjdGVkIQpbMzY1MDguNjQyMjY4XSBlbTI4NjAg
-IzA6IFY0TDIgdmlkZW8gZGV2aWNlIHJlZ2lzdGVyZWQgYXMgdmlkZW8xClszNjUwOC42NDIyNzVd
-IGVtMjg2MCAjMDogVjRMMiBWQkkgZGV2aWNlIHJlZ2lzdGVyZWQgYXMgdmJpMApbMzY1MDguNjQy
-MjgxXSBlbTI4NjAgIzA6IFY0TDIgZXh0ZW5zaW9uIHN1Y2Nlc3NmdWxseSBpbml0aWFsaXplZApb
-MzY1MDguNjQyMjg1XSBlbTI4NjAgIzA6IFJlZ2lzdGVyaW5nIHNuYXBzaG90IGJ1dHRvbi4uLgpb
-MzY1MDguNjQyMzU5XSBpbnB1dDogZW0yOHh4IHNuYXBzaG90IGJ1dHRvbiBhcyAvZGV2aWNlcy9w
-Y2kwMDAwOjAwLzAwMDA6MDA6MWEuMC91c2IzLzMtMS8zLTEuMS9pbnB1dC9pbnB1dDE4ClszNjUw
-OC42NDI0NzBdIGVtMjg2MCAjMDogUmVtb3RlIGNvbnRyb2wgc3VwcG9ydCBpcyBub3QgYXZhaWxh
-YmxlIGZvciB0aGlzIGNhcmQuCiAK
---001a11c2aeea302c0405098f8aca--
