@@ -1,57 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:8857 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757157AbaLINOM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 08:14:12 -0500
-Message-id: <5486F5A0.9060700@samsung.com>
-Date: Tue, 09 Dec 2014 14:14:08 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org
-Subject: Re: [PATCH/RFC v9 02/19] Documentation: leds: Add description of LED
- Flash class extension
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
- <1417622814-10845-3-git-send-email-j.anaszewski@samsung.com>
- <20141203170818.GN14746@valkosipuli.retiisi.org.uk>
- <54802C9F.8030101@samsung.com>
- <20141209123819.GJ15559@valkosipuli.retiisi.org.uk>
-In-reply-to: <20141209123819.GJ15559@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from down.free-electrons.com ([37.187.137.238]:53621 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751414AbaLSU7E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 15:59:04 -0500
+Date: Fri, 19 Dec 2014 21:59:02 +0100
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: nicolas.ferre@atmel.com, voice.shen@atmel.com,
+	plagnioj@jcrosoft.com, boris.brezillon@free-electrons.com,
+	devicetree@vger.kernel.org, robh+dt@kernel.org,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/7] ARM: at91: dts: sama5d3: add isi clock
+Message-ID: <20141219205902.GY4885@piout.net>
+References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
+ <1418892667-27428-2-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1418892667-27428-2-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On 18/12/2014 at 16:51:01 +0800, Josh Wu wrote :
+> Add ISI peripheral clock in sama5d3.dtsi.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 
-On 12/09/2014 01:38 PM, Sakari Ailus wrote:
+> ---
+>  arch/arm/boot/dts/sama5d3.dtsi | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+> index 5f4144d..61746ef 100644
+> --- a/arch/arm/boot/dts/sama5d3.dtsi
+> +++ b/arch/arm/boot/dts/sama5d3.dtsi
+> @@ -214,6 +214,8 @@
+>  				compatible = "atmel,at91sam9g45-isi";
+>  				reg = <0xf0034000 0x4000>;
+>  				interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
+> +				clocks = <&isi_clk>;
+> +				clock-names = "isi_clk";
+>  				status = "disabled";
+>  			};
+>  
+> -- 
+> 1.9.1
+> 
 
-[...]
-
->>> How does the user btw. figure out which flash LEDs may be strobed
->>> synchronously using the LED flash interface?
->>
->> The flash_sync_strobe argument is absent if synchronized strobe
->> is not available for a LED. The driver defines this by setting
->> newly added LED_DEV_CAP_COMPOUND flag.
->
-> I meant that how does the user figure out which LEDs may be strobed
-> synchronously, together. Say, if you have two of these chips and four LEDs,
-> then how does it work? :-)
->
-
-User can figure it out by checking the existence of the
-flash_sync_strobe attribute. Sub-leds can by synchronized only
-when are driven by common chip. It is assumed that sub-leds of
-one chip will have common segment in their name, defined in
-DT 'label' property. Maybe we should enforce it by adding another
-property to the leds/common.txt DT binding, e.g. 'device-prefix'?
-
-Best Regards,
-Jacek Anaszewski
-
+-- 
+Alexandre Belloni, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
