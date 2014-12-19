@@ -1,228 +1,484 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58555 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756561AbaLWUu2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:28 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59517 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751952AbaLSOxI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 09:53:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/66] rtl28xxu: use I2C binding for RTL2830 demod driver
-Date: Tue, 23 Dec 2014 22:48:59 +0200
-Message-Id: <1419367799-14263-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	prabhakar.csengg@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 09/11] v4l2-subdev: add support for the new enum_frame_size which field.
+Date: Fri, 19 Dec 2014 15:51:34 +0100
+Message-Id: <1419000696-25202-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1419000696-25202-1-git-send-email-hverkuil@xs4all.nl>
+References: <1419000696-25202-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-rtl2830 driver supports now I2C model too. Start using it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 80 +++++++++++++++------------------
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h | 17 +++++++
- 2 files changed, 54 insertions(+), 43 deletions(-)
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           | 23 ++++++++++++++++++----
+ drivers/media/platform/omap3isp/ispccdc.c          |  4 ++--
+ drivers/media/platform/omap3isp/ispccp2.c          |  4 ++--
+ drivers/media/platform/omap3isp/ispcsi2.c          |  4 ++--
+ drivers/media/platform/omap3isp/isppreview.c       |  4 ++--
+ drivers/media/platform/omap3isp/ispresizer.c       |  4 ++--
+ drivers/media/platform/vsp1/vsp1_hsit.c            |  4 +++-
+ drivers/media/platform/vsp1/vsp1_lif.c             |  4 +++-
+ drivers/media/platform/vsp1/vsp1_lut.c             |  4 +++-
+ drivers/media/platform/vsp1/vsp1_rwpf.c            |  3 ++-
+ drivers/media/platform/vsp1/vsp1_sru.c             |  4 +++-
+ drivers/media/platform/vsp1/vsp1_uds.c             |  4 +++-
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |  6 ++----
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |  6 ++----
+ drivers/staging/media/davinci_vpfe/dm365_isif.c    |  4 ++--
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c |  6 ++----
+ drivers/staging/media/omap4iss/iss_csi2.c          |  4 ++--
+ drivers/staging/media/omap4iss/iss_ipipe.c         |  4 ++--
+ drivers/staging/media/omap4iss/iss_ipipeif.c       |  6 ++----
+ drivers/staging/media/omap4iss/iss_resizer.c       |  6 ++----
+ 20 files changed, 62 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 705c6c3..fcb5c36 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -22,23 +22,6 @@
- 
- #include "rtl28xxu.h"
- 
--#include "rtl2830.h"
--#include "rtl2832.h"
--#include "rtl2832_sdr.h"
--#include "mn88472.h"
--#include "mn88473.h"
--
--#include "qt1010.h"
--#include "mt2060.h"
--#include "mxl5005s.h"
--#include "fc0012.h"
--#include "fc0013.h"
--#include "e4000.h"
--#include "fc2580.h"
--#include "tua9001.h"
--#include "r820t.h"
--
--
- #ifdef CONFIG_MEDIA_ATTACH
- #define dvb_attach_sdr(FUNCTION, ARGS...) ({ \
- 	void *__r = NULL; \
-@@ -572,10 +555,8 @@ err:
- 	return ret;
- }
- 
--static const struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
--	.i2c_addr = 0x10, /* 0x20 */
--	.xtal = 28800000,
--	.ts_mode = 0,
-+static const struct rtl2830_platform_data rtl2830_mt2060_platform_data = {
-+	.clk = 28800000,
- 	.spec_inv = 1,
- 	.vtop = 0x20,
- 	.krf = 0x04,
-@@ -583,20 +564,16 @@ static const struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
- 
- };
- 
--static const struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
--	.i2c_addr = 0x10, /* 0x20 */
--	.xtal = 28800000,
--	.ts_mode = 0,
-+static const struct rtl2830_platform_data rtl2830_qt1010_platform_data = {
-+	.clk = 28800000,
- 	.spec_inv = 1,
- 	.vtop = 0x20,
- 	.krf = 0x04,
- 	.agc_targ_val = 0x2d,
- };
- 
--static const struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
--	.i2c_addr = 0x10, /* 0x20 */
--	.xtal = 28800000,
--	.ts_mode = 0,
-+static const struct rtl2830_platform_data rtl2830_mxl5005s_platform_data = {
-+	.clk = 28800000,
- 	.spec_inv = 0,
- 	.vtop = 0x3f,
- 	.krf = 0x04,
-@@ -607,20 +584,22 @@ static int rtl2831u_frontend_attach(struct dvb_usb_adapter *adap)
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+index 257a335..08b234b 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+@@ -1251,6 +1251,7 @@ static int s5c73m3_oif_enum_frame_size(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_pad_config *cfg,
+ 				   struct v4l2_subdev_frame_size_enum *fse)
  {
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
--	const struct rtl2830_config *rtl2830_config;
-+	struct rtl2830_platform_data *pdata = &priv->rtl2830_platform_data;
-+	struct i2c_board_info board_info;
-+	struct i2c_client *client;
- 	int ret;
++	struct s5c73m3 *state = oif_sd_to_s5c73m3(sd);
+ 	int idx;
  
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
- 	switch (priv->tuner) {
- 	case TUNER_RTL2830_QT1010:
--		rtl2830_config = &rtl28xxu_rtl2830_qt1010_config;
-+		*pdata = rtl2830_qt1010_platform_data;
- 		break;
- 	case TUNER_RTL2830_MT2060:
--		rtl2830_config = &rtl28xxu_rtl2830_mt2060_config;
-+		*pdata = rtl2830_mt2060_platform_data;
- 		break;
- 	case TUNER_RTL2830_MXL5005S:
--		rtl2830_config = &rtl28xxu_rtl2830_mxl5005s_config;
-+		*pdata = rtl2830_mxl5005s_platform_data;
- 		break;
- 	default:
- 		dev_err(&d->udev->dev, "%s: unknown tuner=%s\n",
-@@ -630,12 +609,28 @@ static int rtl2831u_frontend_attach(struct dvb_usb_adapter *adap)
- 	}
- 
- 	/* attach demodulator */
--	adap->fe[0] = dvb_attach(rtl2830_attach, rtl2830_config, &d->i2c_adap);
--	if (!adap->fe[0]) {
-+	memset(&board_info, 0, sizeof(board_info));
-+	strlcpy(board_info.type, "rtl2830", I2C_NAME_SIZE);
-+	board_info.addr = 0x10;
-+	board_info.platform_data = pdata;
-+	request_module("%s", board_info.type);
-+	client = i2c_new_device(&d->i2c_adap, &board_info);
-+	if (client == NULL || client->dev.driver == NULL) {
- 		ret = -ENODEV;
- 		goto err;
- 	}
- 
-+	if (!try_module_get(client->dev.driver->owner)) {
-+		i2c_unregister_device(client);
-+		ret = -ENODEV;
-+		goto err;
-+	}
+ 	if (fse->pad == OIF_SOURCE_PAD) {
+@@ -1260,11 +1261,25 @@ static int s5c73m3_oif_enum_frame_size(struct v4l2_subdev *sd,
+ 		switch (fse->code) {
+ 		case S5C73M3_JPEG_FMT:
+ 		case S5C73M3_ISP_FMT: {
+-			struct v4l2_mbus_framefmt *mf =
+-				v4l2_subdev_get_try_format(sd, cfg, OIF_ISP_PAD);
++			unsigned w, h;
 +
-+	adap->fe[0] = pdata->get_dvb_frontend(client);
-+	priv->demod_i2c_adapter = pdata->get_i2c_adapter(client);
++			if (fse->which == V4L2_SUBDEV_FORMAT_TRY) {
++				struct v4l2_mbus_framefmt *mf;
 +
-+	priv->i2c_client_demod = client;
++				mf = v4l2_subdev_get_try_format(sd, cfg,
++								OIF_ISP_PAD);
 +
- 	return 0;
- err:
- 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-@@ -973,27 +968,25 @@ static int rtl2831u_tuner_attach(struct dvb_usb_adapter *adap)
- 	int ret;
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
--	struct i2c_adapter *rtl2830_tuner_i2c;
- 	struct dvb_frontend *fe;
++				w = mf->width;
++				h = mf->height;
++			} else {
++				const struct s5c73m3_frame_size *fs;
  
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+-			fse->max_width = fse->min_width = mf->width;
+-			fse->max_height = fse->min_height = mf->height;
++				fs = state->oif_pix_size[RES_ISP];
++				w = fs->width;
++				h = fs->height;
++			}
++			fse->max_width = fse->min_width = w;
++			fse->max_height = fse->min_height = h;
+ 			return 0;
+ 		}
+ 		default:
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 818aa52..6e0291b 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -2195,7 +2195,7 @@ static int ccdc_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	ccdc_try_format(ccdc, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	ccdc_try_format(ccdc, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
  
--	/* use rtl2830 driver I2C adapter, for more info see rtl2830 driver */
--	rtl2830_tuner_i2c = rtl2830_get_tuner_i2c_adapter(adap->fe[0]);
--
- 	switch (priv->tuner) {
- 	case TUNER_RTL2830_QT1010:
- 		fe = dvb_attach(qt1010_attach, adap->fe[0],
--				rtl2830_tuner_i2c, &rtl28xxu_qt1010_config);
-+				priv->demod_i2c_adapter,
-+				&rtl28xxu_qt1010_config);
- 		break;
- 	case TUNER_RTL2830_MT2060:
- 		fe = dvb_attach(mt2060_attach, adap->fe[0],
--				rtl2830_tuner_i2c, &rtl28xxu_mt2060_config,
--				1220);
-+				priv->demod_i2c_adapter,
-+				&rtl28xxu_mt2060_config, 1220);
- 		break;
- 	case TUNER_RTL2830_MXL5005S:
- 		fe = dvb_attach(mxl5005s_attach, adap->fe[0],
--				rtl2830_tuner_i2c, &rtl28xxu_mxl5005s_config);
-+				priv->demod_i2c_adapter,
-+				&rtl28xxu_mxl5005s_config);
- 		break;
- 	default:
- 		fe = NULL;
-@@ -1586,6 +1579,7 @@ static const struct dvb_usb_device_properties rtl2831u_props = {
- 	.i2c_algo = &rtl28xxu_i2c_algo,
- 	.read_config = rtl2831u_read_config,
- 	.frontend_attach = rtl2831u_frontend_attach,
-+	.frontend_detach = rtl2832u_frontend_detach,
- 	.tuner_attach = rtl2831u_tuner_attach,
- 	.init = rtl28xxu_init,
- 	.get_rc_config = rtl2831u_get_rc_config,
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-index e52a2b7..3f630c8 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-@@ -24,6 +24,22 @@
+@@ -2205,7 +2205,7 @@ static int ccdc_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	ccdc_try_format(ccdc, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	ccdc_try_format(ccdc, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
  
- #include "dvb_usb.h"
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index 1d79368..44c20fa 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -723,7 +723,7 @@ static int ccp2_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	ccp2_try_format(ccp2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	ccp2_try_format(ccp2, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
  
-+#include "rtl2830.h"
-+#include "rtl2832.h"
-+#include "rtl2832_sdr.h"
-+#include "mn88472.h"
-+#include "mn88473.h"
-+
-+#include "qt1010.h"
-+#include "mt2060.h"
-+#include "mxl5005s.h"
-+#include "fc0012.h"
-+#include "fc0013.h"
-+#include "e4000.h"
-+#include "fc2580.h"
-+#include "tua9001.h"
-+#include "r820t.h"
-+
- /*
-  * USB commands
-  * (usb_control_msg() index parameter)
-@@ -64,6 +80,7 @@ struct rtl28xxu_priv {
- 	#define SLAVE_DEMOD_MN88472        1
- 	#define SLAVE_DEMOD_MN88473        2
- 	unsigned int slave_demod:2;
-+	struct rtl2830_platform_data rtl2830_platform_data;
- };
+@@ -733,7 +733,7 @@ static int ccp2_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	ccp2_try_format(ccp2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	ccp2_try_format(ccp2, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
  
- enum rtl28xxu_chip_id {
+diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+index bde734c..bbadf66 100644
+--- a/drivers/media/platform/omap3isp/ispcsi2.c
++++ b/drivers/media/platform/omap3isp/ispcsi2.c
+@@ -944,7 +944,7 @@ static int csi2_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	csi2_try_format(csi2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	csi2_try_format(csi2, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
+ 
+@@ -954,7 +954,7 @@ static int csi2_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	csi2_try_format(csi2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	csi2_try_format(csi2, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
+ 
+diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
+index 0571c57..15cb254 100644
+--- a/drivers/media/platform/omap3isp/isppreview.c
++++ b/drivers/media/platform/omap3isp/isppreview.c
+@@ -1905,7 +1905,7 @@ static int preview_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	preview_try_format(prev, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	preview_try_format(prev, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
+ 
+@@ -1915,7 +1915,7 @@ static int preview_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	preview_try_format(prev, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	preview_try_format(prev, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
+ 
+diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
+index 02549fa8..7cfb43d 100644
+--- a/drivers/media/platform/omap3isp/ispresizer.c
++++ b/drivers/media/platform/omap3isp/ispresizer.c
+@@ -1451,7 +1451,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	resizer_try_format(res, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	resizer_try_format(res, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
+ 
+@@ -1461,7 +1461,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	resizer_try_format(res, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	resizer_try_format(res, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
+index 89c230d..2e15c73 100644
+--- a/drivers/media/platform/vsp1/vsp1_hsit.c
++++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+@@ -81,9 +81,11 @@ static int hsit_enum_frame_size(struct v4l2_subdev *subdev,
+ 				struct v4l2_subdev_pad_config *cfg,
+ 				struct v4l2_subdev_frame_size_enum *fse)
+ {
++	struct vsp1_hsit *hsit = to_hsit(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+-	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
++	format = vsp1_entity_get_pad_format(&hsit->entity, cfg, fse->pad,
++					    fse->which);
+ 
+ 	if (fse->index || fse->code != format->code)
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index 60f1bd8..39fa5ef 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -109,9 +109,11 @@ static int lif_enum_frame_size(struct v4l2_subdev *subdev,
+ 			       struct v4l2_subdev_pad_config *cfg,
+ 			       struct v4l2_subdev_frame_size_enum *fse)
+ {
++	struct vsp1_lif *lif = to_lif(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+-	format = v4l2_subdev_get_try_format(subdev, cfg, LIF_PAD_SINK);
++	format = vsp1_entity_get_pad_format(&lif->entity, cfg, LIF_PAD_SINK,
++					    fse->which);
+ 
+ 	if (fse->index || fse->code != format->code)
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 8aa8c11..656ec27 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -117,9 +117,11 @@ static int lut_enum_frame_size(struct v4l2_subdev *subdev,
+ 			       struct v4l2_subdev_pad_config *cfg,
+ 			       struct v4l2_subdev_frame_size_enum *fse)
+ {
++	struct vsp1_lut *lut = to_lut(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+-	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
++	format = vsp1_entity_get_pad_format(&lut->entity, cfg,
++					    fse->pad, fse->which);
+ 
+ 	if (fse->index || fse->code != format->code)
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
+index a083d85..fa71f46 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
+@@ -48,7 +48,8 @@ int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+ 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+-	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
++	format = vsp1_entity_get_pad_format(&rwpf->entity, cfg, fse->pad,
++					    fse->which);
+ 
+ 	if (fse->index || fse->code != format->code)
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index 554340d..6310aca 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -200,9 +200,11 @@ static int sru_enum_frame_size(struct v4l2_subdev *subdev,
+ 			       struct v4l2_subdev_pad_config *cfg,
+ 			       struct v4l2_subdev_frame_size_enum *fse)
+ {
++	struct vsp1_sru *sru = to_sru(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+-	format = v4l2_subdev_get_try_format(subdev, cfg, SRU_PAD_SINK);
++	format = vsp1_entity_get_pad_format(&sru->entity, cfg,
++					    SRU_PAD_SINK, fse->which);
+ 
+ 	if (fse->index || fse->code != format->code)
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index ef4d307..ccc8243 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -204,9 +204,11 @@ static int uds_enum_frame_size(struct v4l2_subdev *subdev,
+ 			       struct v4l2_subdev_pad_config *cfg,
+ 			       struct v4l2_subdev_frame_size_enum *fse)
+ {
++	struct vsp1_uds *uds = to_uds(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+-	format = v4l2_subdev_get_try_format(subdev, cfg, UDS_PAD_SINK);
++	format = vsp1_entity_get_pad_format(&uds->entity, cfg,
++					    UDS_PAD_SINK, fse->which);
+ 
+ 	if (fse->index || fse->code != format->code)
+ 		return -EINVAL;
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+index 75fae655..0c2985c 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+@@ -1548,8 +1548,7 @@ ipipe_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	ipipe_try_format(ipipe, cfg, fse->pad, &format,
+-			   V4L2_SUBDEV_FORMAT_TRY);
++	ipipe_try_format(ipipe, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
+ 
+@@ -1559,8 +1558,7 @@ ipipe_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	ipipe_try_format(ipipe, cfg, fse->pad, &format,
+-			   V4L2_SUBDEV_FORMAT_TRY);
++	ipipe_try_format(ipipe, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+index aa27fc7..35c68ae 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+@@ -653,8 +653,7 @@ ipipeif_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *c
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	ipipeif_try_format(ipipeif, cfg, fse->pad, &format,
+-			   V4L2_SUBDEV_FORMAT_TRY);
++	ipipeif_try_format(ipipeif, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
+ 
+@@ -664,8 +663,7 @@ ipipeif_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *c
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	ipipeif_try_format(ipipeif, cfg, fse->pad, &format,
+-			   V4L2_SUBDEV_FORMAT_TRY);
++	ipipeif_try_format(ipipeif, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
+index 55ae242..de05260 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
+@@ -1489,7 +1489,7 @@ isif_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
+ 	format.format.code = fse->code;
+ 	format.format.width = 1;
+ 	format.format.height = 1;
+-	format.which = V4L2_SUBDEV_FORMAT_TRY;
++	format.which = fse->which;
+ 	isif_try_format(isif, cfg, &format);
+ 	fse->min_width = format.format.width;
+ 	fse->min_height = format.format.height;
+@@ -1501,7 +1501,7 @@ isif_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
+ 	format.format.code = fse->code;
+ 	format.format.width = -1;
+ 	format.format.height = -1;
+-	format.which = V4L2_SUBDEV_FORMAT_TRY;
++	format.which = fse->which;
+ 	isif_try_format(isif, cfg, &format);
+ 	fse->max_width = format.format.width;
+ 	fse->max_height = format.format.height;
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+index 2c1c3ed..42b146f 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+@@ -1484,8 +1484,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	resizer_try_format(sd, cfg, fse->pad, &format,
+-			    V4L2_SUBDEV_FORMAT_TRY);
++	resizer_try_format(sd, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
+ 
+@@ -1495,8 +1494,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	resizer_try_format(sd, cfg, fse->pad, &format,
+-			   V4L2_SUBDEV_FORMAT_TRY);
++	resizer_try_format(sd, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
+index ea3476f..f3059b0 100644
+--- a/drivers/staging/media/omap4iss/iss_csi2.c
++++ b/drivers/staging/media/omap4iss/iss_csi2.c
+@@ -918,7 +918,7 @@ static int csi2_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	csi2_try_format(csi2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	csi2_try_format(csi2, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
+ 
+@@ -928,7 +928,7 @@ static int csi2_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	csi2_try_format(csi2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	csi2_try_format(csi2, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
+index 4e49620..47a82b0 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipe.c
++++ b/drivers/staging/media/omap4iss/iss_ipipe.c
+@@ -280,7 +280,7 @@ static int ipipe_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	ipipe_try_format(ipipe, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	ipipe_try_format(ipipe, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
+ 
+@@ -290,7 +290,7 @@ static int ipipe_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	ipipe_try_format(ipipe, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
++	ipipe_try_format(ipipe, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
+index 319b96f..a21965c 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipeif.c
++++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
+@@ -508,8 +508,7 @@ static int ipipeif_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	ipipeif_try_format(ipipeif, cfg, fse->pad, &format,
+-			   V4L2_SUBDEV_FORMAT_TRY);
++	ipipeif_try_format(ipipeif, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
+ 
+@@ -519,8 +518,7 @@ static int ipipeif_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	ipipeif_try_format(ipipeif, cfg, fse->pad, &format,
+-			   V4L2_SUBDEV_FORMAT_TRY);
++	ipipeif_try_format(ipipeif, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
+index 4967373..26ca4c6 100644
+--- a/drivers/staging/media/omap4iss/iss_resizer.c
++++ b/drivers/staging/media/omap4iss/iss_resizer.c
+@@ -570,8 +570,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = 1;
+ 	format.height = 1;
+-	resizer_try_format(resizer, cfg, fse->pad, &format,
+-			   V4L2_SUBDEV_FORMAT_TRY);
++	resizer_try_format(resizer, cfg, fse->pad, &format, fse->which);
+ 	fse->min_width = format.width;
+ 	fse->min_height = format.height;
+ 
+@@ -581,8 +580,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
+ 	format.code = fse->code;
+ 	format.width = -1;
+ 	format.height = -1;
+-	resizer_try_format(resizer, cfg, fse->pad, &format,
+-			   V4L2_SUBDEV_FORMAT_TRY);
++	resizer_try_format(resizer, cfg, fse->pad, &format, fse->which);
+ 	fse->max_width = format.width;
+ 	fse->max_height = format.height;
+ 
 -- 
-http://palosaari.fi/
+2.1.3
 
