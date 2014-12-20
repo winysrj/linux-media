@@ -1,125 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:57401 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751231AbaLXDUe (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:54748 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335AbaLTX5o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 22:20:34 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 4EE1B2A0085
-	for <linux-media@vger.kernel.org>; Wed, 24 Dec 2014 04:20:12 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20141224032012.4EE1B2A0085@tschai.lan>
-Date: Wed, 24 Dec 2014 04:20:12 +0100 (CET)
+	Sat, 20 Dec 2014 18:57:44 -0500
+From: Benjamin Larsson <benjamin@southpole.se>
+To: crope@iki.fi
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [RFC][PATCH] mn88472: add support for the mn88473 demod
+Date: Sun, 21 Dec 2014 00:57:33 +0100
+Message-Id: <1419119853-29452-1-git-send-email-benjamin@southpole.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Factor out the bw_val data to a table and load data from it
+depending on the configured demod.
 
-Results of the daily build of media_tree:
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+---
+ drivers/media/dvb-frontends/mn88472.h        | 30 +++++++++++++
+ drivers/staging/media/mn88472/mn88472.c      | 66 ++++++++++++++--------------
+ drivers/staging/media/mn88472/mn88472_priv.h |  1 +
+ 3 files changed, 64 insertions(+), 33 deletions(-)
 
-date:		Wed Dec 24 04:00:12 CET 2014
-git branch:	test
-git hash:	cb9564e133f4f790920d715714790512085bb2e3
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+diff --git a/drivers/media/dvb-frontends/mn88472.h b/drivers/media/dvb-frontends/mn88472.h
+index f0fdc7e..0016f7b 100644
+--- a/drivers/media/dvb-frontends/mn88472.h
++++ b/drivers/media/dvb-frontends/mn88472.h
+@@ -29,6 +29,35 @@ enum ts_mode {
+ 	PARALLEL_TS_MODE,
+ };
+ 
++enum model {
++	MODEL_MN88472,
++	MODEL_MN88473,
++	MODEL_MAX,
++};
++
++enum bw_modes {
++	BW_5MHZ,
++	BW_6MHZ,
++	BW_7MHZ,
++	BW_8MHZ,
++	BW_MODE_MAX,
++};
++
++/* close to y=freq*4.5714285 */
++static u32 ad_frequency_factor[BW_MODE_MAX] = {
++	0x15CC5B6,	/* 5MHz */
++	0x1A286DC,	/* 6MHz */
++	0x1E84800,	/* 7MHz */
++	0x22E0925,	/* 8MHz */
++};
++
++static u8 bw_param[MODEL_MAX][BW_MODE_MAX][2] = {
++	{ { 0x1b, 0xa9 }, { 0x00, 0x00 } },	/* 5MHz */
++	{ { 0x15, 0x6b }, { 0x1c, 0x29 } },	/* 6MHz */
++	{ { 0x0f, 0x2c }, { 0x17, 0x0a } },	/* 7MHz */
++	{ { 0x08, 0xee }, { 0x11, 0xec } },	/* 8MHz */
++};
++
+ struct mn88472_config {
+ 	/*
+ 	 * Max num of bytes given I2C adapter could write at once.
+@@ -53,6 +82,7 @@ struct mn88472_config {
+ 	u32 xtal;
+ 	int ts_mode;
+ 	int ts_clock;
++	int model;
+ };
+ 
+ #endif
+diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+index 8b35639..77ed941 100644
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -28,10 +28,10 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
+ 	struct i2c_client *client = fe->demodulator_priv;
+ 	struct mn88472_dev *dev = i2c_get_clientdata(client);
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	int ret, i;
++	int ret, i, bw;
+ 	u64 tmp;
+-	u8 delivery_system_val, if_val[3], bw_val[7], bw_val2;
++	u8 delivery_system_val, if_val[3], ad_val[3], bw_val2;
+ 
+ 	dev_dbg(&client->dev, "%s:\n", __func__);
+ 	dev_dbg(&client->dev,
+@@ -59,35 +59,20 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
+ 		goto err;
+ 	}
+ 
+-	switch (c->delivery_system) {
+-	case SYS_DVBT:
+-	case SYS_DVBT2:
+-		if (c->bandwidth_hz <= 5000000) {
+-			memcpy(bw_val, "\xe5\x99\x9a\x1b\xa9\x1b\xa9", 7);
+-			bw_val2 = 0x03;
+-		} else if (c->bandwidth_hz <= 6000000) {
+-			/* IF 3570000 Hz, BW 6000000 Hz */
+-			memcpy(bw_val, "\xbf\x55\x55\x15\x6b\x15\x6b", 7);
+-			bw_val2 = 0x02;
+-		} else if (c->bandwidth_hz <= 7000000) {
+-			/* IF 4570000 Hz, BW 7000000 Hz */
+-			memcpy(bw_val, "\xa4\x00\x00\x0f\x2c\x0f\x2c", 7);
+-			bw_val2 = 0x01;
+-		} else if (c->bandwidth_hz <= 8000000) {
+-			/* IF 4570000 Hz, BW 8000000 Hz */
+-			memcpy(bw_val, "\x8f\x80\x00\x08\xee\x08\xee", 7);
+-			bw_val2 = 0x00;
+-		} else {
+-			ret = -EINVAL;
+-			goto err;
+-		}
+-		break;
+-	case SYS_DVBC_ANNEX_A:
+-		/* IF 5070000 Hz, BW 8000000 Hz */
+-		memcpy(bw_val, "\x8f\x80\x00\x08\xee\x08\xee", 7);
++	/* bw related parameters */
++	if (c->bandwidth_hz <= 5000000) {
++		bw = BW_5MHZ;
++		bw_val2 = 0x03;
++	} else if (c->bandwidth_hz <= 6000000) {
++		bw = BW_6MHZ;
++		bw_val2 = 0x02;
++	} else if (c->bandwidth_hz <= 7000000) {
++		bw = BW_7MHZ;
++		bw_val2 = 0x01;
++	} else if (c->bandwidth_hz <= 8000000) {
++		bw = BW_8MHZ;
+ 		bw_val2 = 0x00;
+-		break;
+-	default:
++	} else {
+ 		ret = -EINVAL;
+ 		goto err;
+ 	}
+@@ -114,6 +99,14 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
+ 	if_val[1] = ((tmp >>  8) & 0xff);
+ 	if_val[2] = ((tmp >>  0) & 0xff);
+ 
++	/* Calculate A/D frequency registers (Xtal * ad_freq_fac) */
++	tmp =  div_u64(dev->xtal * (u64)(1<<24) +
++		     ((dev->xtal * (u64)(1<<24))/ 2),
++		       ad_frequency_factor[bw] );
++	ad_val[0] = ((tmp >> 16) & 0xff);
++	ad_val[1] = ((tmp >>  8) & 0xff);
++	ad_val[2] = ((tmp >>  0) & 0xff);
++
+ 	ret = regmap_write(dev->regmap[2], 0xfb, 0x13);
+ 	ret = regmap_write(dev->regmap[2], 0xef, 0x13);
+ 	ret = regmap_write(dev->regmap[2], 0xf9, 0x13);
+@@ -142,12 +135,19 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ 
+-	for (i = 0; i < sizeof(bw_val); i++) {
+-		ret = regmap_write(dev->regmap[2], 0x13 + i, bw_val[i]);
++	for (i = 0; i < sizeof(ad_val); i++) {
++		ret = regmap_write(dev->regmap[2], 0x13 + i, ad_val[i]);
+ 		if (ret)
+ 			goto err;
+ 	}
+ 
++	ret = regmap_write(dev->regmap[2], 0x16, bw_param[dev->model][bw][0]);
++	ret = regmap_write(dev->regmap[2], 0x17, bw_param[dev->model][bw][1]);
++	ret = regmap_write(dev->regmap[2], 0x18, bw_param[dev->model][bw][0]);
++	ret = regmap_write(dev->regmap[2], 0x19, bw_param[dev->model][bw][1]);
++	if (ret)
++		goto err;
++
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBT:
+ 		ret = regmap_write(dev->regmap[0], 0x07, 0x26);
+diff --git a/drivers/staging/media/mn88472/mn88472_priv.h b/drivers/staging/media/mn88472/mn88472_priv.h
+index 9ba8c8b..c5d40c2 100644
+--- a/drivers/staging/media/mn88472/mn88472_priv.h
++++ b/drivers/staging/media/mn88472/mn88472_priv.h
+@@ -34,6 +34,7 @@ struct mn88472_dev {
+ 	u32 xtal;
+ 	int ts_mode;
+ 	int ts_clock;
++	int model;
+ };
+ 
+ #endif
+-- 
+1.9.1
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16-i686: ERRORS
-linux-3.17-i686: ERRORS
-linux-3.18-i686: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16-x86_64: ERRORS
-linux-3.17-x86_64: ERRORS
-linux-3.18-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for mips
-ABI WARNING: change for sh
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
