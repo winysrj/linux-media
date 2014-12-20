@@ -1,102 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60658 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967795AbaLLN3N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 08:29:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 7/7] cx25821: remove video output support
-Date: Fri, 12 Dec 2014 14:28:00 +0100
-Message-Id: <1418390880-39009-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1418390880-39009-1-git-send-email-hverkuil@xs4all.nl>
-References: <1418390880-39009-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:48820 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752556AbaLTPbN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Dec 2014 10:31:13 -0500
+Message-ID: <5495963D.3080004@iki.fi>
+Date: Sat, 20 Dec 2014 17:31:09 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Matthias Schwarzott <zzam@gentoo.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: cx23885: Add si2165 support for HVR-5500
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Matthias and Mauro,
+so you decided to add that patch, which makes rather big changes for 
+existing HVR-4400 models, without any testing. I plugged HVR-4400 
+version that has only DVB-S2 in my machine in order to start finding out 
+one lockdep issue but what I see is bad HVR-4400.
 
-The video output functionality never worked for this driver. Now remove the
-creation of the output video nodes as well to prevent users from thinking
-that video output is available, when it isn't.
+*********************
+commit 36efec48e2e6016e05364906720a0ec350a5d768
+Author: Matthias Schwarzott <zzam@gentoo.org>
+Date:   Tue Jul 22 17:12:13 2014 -0300
 
-To correctly implement this the video output should use vb2 as well, and
-that requires rewriting the output DMA setup. But without hardware to test
-I am not able to do that.
+     [media] cx23885: Add si2165 support for HVR-5500
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx25821/Makefile        | 2 +-
- drivers/media/pci/cx25821/cx25821-core.c  | 6 +++++-
- drivers/media/pci/cx25821/cx25821-video.c | 2 +-
- drivers/media/pci/cx25821/cx25821.h       | 7 +++++++
- 4 files changed, 14 insertions(+), 3 deletions(-)
+     The same card entry is used for HVR-4400 and HVR-5500.
+     Only HVR-5500 has been tested.
 
-diff --git a/drivers/media/pci/cx25821/Makefile b/drivers/media/pci/cx25821/Makefile
-index 5872feb..c8f8598 100644
---- a/drivers/media/pci/cx25821/Makefile
-+++ b/drivers/media/pci/cx25821/Makefile
-@@ -1,6 +1,6 @@
- cx25821-y   := cx25821-core.o cx25821-cards.o cx25821-i2c.o \
- 		       cx25821-gpio.o cx25821-medusa-video.o \
--		       cx25821-video.o cx25821-video-upstream.o
-+		       cx25821-video.o
- 
- obj-$(CONFIG_VIDEO_CX25821) += cx25821.o
- obj-$(CONFIG_VIDEO_CX25821_ALSA) += cx25821-alsa.o
-diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
-index c1ea24e..559f829 100644
---- a/drivers/media/pci/cx25821/cx25821-core.c
-+++ b/drivers/media/pci/cx25821/cx25821-core.c
-@@ -965,11 +965,15 @@ void cx25821_dev_unregister(struct cx25821_dev *dev)
- 
- 	release_mem_region(dev->base_io_addr, pci_resource_len(dev->pci, 0));
- 
--	for (i = 0; i < MAX_VID_CHANNEL_NUM - 1; i++) {
-+	for (i = 0; i < MAX_VID_CAP_CHANNEL_NUM - 1; i++) {
- 		if (i == SRAM_CH08) /* audio channel */
- 			continue;
-+		/*
-+		 * TODO: enable when video output is properly
-+		 * supported.
- 		if (i == SRAM_CH09 || i == SRAM_CH10)
- 			cx25821_free_mem_upstream(&dev->channels[i]);
-+		 */
- 		cx25821_video_unregister(dev, i);
- 	}
- 
-diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
-index 827c3c0..7bc495e 100644
---- a/drivers/media/pci/cx25821/cx25821-video.c
-+++ b/drivers/media/pci/cx25821/cx25821-video.c
-@@ -692,7 +692,7 @@ int cx25821_video_register(struct cx25821_dev *dev)
- 
- 	spin_lock_init(&dev->slock);
- 
--	for (i = 0; i < MAX_VID_CHANNEL_NUM - 1; ++i) {
-+	for (i = 0; i < MAX_VID_CAP_CHANNEL_NUM - 1; ++i) {
- 		struct cx25821_channel *chan = &dev->channels[i];
- 		struct video_device *vdev = &chan->vdev;
- 		struct v4l2_ctrl_handler *hdl = &chan->hdl;
-diff --git a/drivers/media/pci/cx25821/cx25821.h b/drivers/media/pci/cx25821/cx25821.h
-index 34c5ff1..d81a08a 100644
---- a/drivers/media/pci/cx25821/cx25821.h
-+++ b/drivers/media/pci/cx25821/cx25821.h
-@@ -88,6 +88,13 @@
- 
- #define CX25821_BOARD_CONEXANT_ATHENA10 1
- #define MAX_VID_CHANNEL_NUM     12
-+
-+/*
-+ * Maximum capture-only channels. This can go away once video/audio output
-+ * is fully supported in this driver.
-+ */
-+#define MAX_VID_CAP_CHANNEL_NUM     10
-+
- #define VID_CHANNEL_NUM 8
- 
- struct cx25821_fmt {
+     Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+     Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
+*********************
+
+I would also criticize Mauro as he has committed that patch. It should 
+be obvious for every experienced media developer that this kind of not 
+trivial change needs some more careful review or testing.
+
+That patch should be done differently, not blindly trying to attach chip 
+drivers for non-existent chips. I think correct solution is to detect 
+different HW models somehow, probing or reading from eeprom or so. Then 
+make 2 profiles, one for boards having both satellite and 
+terristrial/cable and one for boards having satellite only.
+
+
+*********************
+
+cx23885 driver version 0.0.4 loaded
+CORE cx23885[0]: subsystem: 0070:c12a, board: Hauppauge WinTV-HVR4400 
+[card=38,autodetected]
+tveeprom 5-0050: Hauppauge model 121200, rev B2C3, serial# 4034388477
+tveeprom 5-0050: MAC address is 00:0d:fe:77:e1:fd
+tveeprom 5-0050: tuner model is Conexant CX24118A (idx 123, type 4)
+tveeprom 5-0050: TV standards ATSC/DVB Digital (eeprom 0x80)
+tveeprom 5-0050: audio processor is CX23888 (idx 40)
+tveeprom 5-0050: decoder processor is CX23888 (idx 34)
+tveeprom 5-0050: has no radio, has IR receiver, has no IR transmitter
+cx23885[0]: warning: unknown hauppauge model #121200
+cx23885[0]: hauppauge eeprom: model=121200
+All bytes are equal. It is not a TEA5767
+tuner 6-0060: Tuner -1 found with type(s) Radio TV.
+tda18271 6-0060: creating new instance
+Unknown device (0) detected @ 6-0060, device not supported.
+tda18271_attach: [6-0060|M] error -22 on line 1285
+tda18271 6-0060: destroying instance
+tuner 6-0060: Tuner has no way to set tv freq
+cx23885[0]: registered device video0 [v4l2]
+cx23885[0]: registered device vbi0
+cx23885[0]: registered ALSA audio device
+cx23885_dvb_register() allocating 1 frontend(s)
+cx23885[0]: cx23885 based dvb card
+i2c i2c-5: a8293: Allegro A8293 SEC attached
+DVB: registering new adapter (cx23885[0])
+cx23885 0000:02:00.0: DVB: registering adapter 0 frontend 0 (NXP 
+TDA10071)...
+cx23885_dvb_register() allocating 1 frontend(s)
+cx23885[0]: cx23885 based dvb card
+cx23885[0]: frontend initialization failed
+cx23885_dvb_register() dvb_register failed err = -22
+cx23885_dev_setup() Failed to register dvb on VID_C
+cx23885_dev_checkrevision() Hardware revision = 0xd0
+cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 18, latency: 0, mmio: 
+0xfe800000
+
+*********************
+
+# ../rmmod.pl unload
+Seeking media drivers at /lib/modules/3.18.0-rc4+/kernel/drivers/media/
+found 0 modules
+Seeking media drivers at /lib/modules/3.18.0-rc4+/extra/
+found 511 modules
+Seeking media drivers at /lib/modules/3.18.0-rc4+/updates/media/
+found 511 modules
+/sbin/rmmod cx23885
+rmmod: ERROR: Module cx23885 is in use
+/sbin/rmmod videobuf2_dvb
+rmmod: ERROR: Module videobuf2_dvb is in use by: cx23885
+/sbin/rmmod videobuf2_core
+rmmod: ERROR: Module videobuf2_core is in use by: cx23885 videobuf2_dvb
+/sbin/rmmod tuner
+rmmod: ERROR: Module tuner is in use
+/sbin/rmmod cx2341x
+rmmod: ERROR: Module cx2341x is in use by: cx23885
+/sbin/rmmod v4l2_common
+rmmod: ERROR: Module v4l2_common is in use by: cx2341x cx23885 tuner 
+videobuf2_core
+/sbin/rmmod altera_ci
+rmmod: ERROR: Module altera_ci is in use by: cx23885
+/sbin/rmmod videobuf2_dma_sg
+rmmod: ERROR: Module videobuf2_dma_sg is in use by: cx23885
+/sbin/rmmod videodev
+rmmod: ERROR: Module videodev is in use by: cx2341x cx23885 tuner 
+v4l2_common videobuf2_core
+/sbin/rmmod dvb_core
+rmmod: ERROR: Module dvb_core is in use by: cx23885 altera_ci videobuf2_dvb
+/sbin/rmmod a8293
+rmmod: ERROR: Module a8293 is in use
+/sbin/rmmod videobuf2_memops
+rmmod: ERROR: Module videobuf2_memops is in use by: videobuf2_dma_sg
+/sbin/rmmod tda18271
+rmmod: ERROR: Module tda18271 is in use by: cx23885
+/sbin/rmmod rc_core
+rmmod: ERROR: Module rc_core is in use by: cx23885
+/sbin/rmmod tveeprom
+rmmod: ERROR: Module tveeprom is in use by: cx23885
+/sbin/rmmod media
+rmmod: ERROR: Module media is in use by: videodev
+/sbin/rmmod tda10071
+rmmod: ERROR: Module tda10071 is in use
+/sbin/rmmod cx23885
+rmmod: ERROR: Module cx23885 is in use
+/sbin/rmmod videobuf2_dvb
+rmmod: ERROR: Module videobuf2_dvb is in use by: cx23885
+/sbin/rmmod videobuf2_core
+rmmod: ERROR: Module videobuf2_core is in use by: cx23885 videobuf2_dvb
+/sbin/rmmod tuner
+rmmod: ERROR: Module tuner is in use
+/sbin/rmmod cx2341x
+rmmod: ERROR: Module cx2341x is in use by: cx23885
+/sbin/rmmod v4l2_common
+rmmod: ERROR: Module v4l2_common is in use by: cx2341x cx23885 tuner 
+videobuf2_core
+/sbin/rmmod altera_ci
+rmmod: ERROR: Module altera_ci is in use by: cx23885
+/sbin/rmmod videobuf2_dma_sg
+rmmod: ERROR: Module videobuf2_dma_sg is in use by: cx23885
+/sbin/rmmod videodev
+rmmod: ERROR: Module videodev is in use by: cx2341x cx23885 tuner 
+v4l2_common videobuf2_core
+/sbin/rmmod dvb_core
+rmmod: ERROR: Module dvb_core is in use by: cx23885 altera_ci videobuf2_dvb
+/sbin/rmmod a8293
+rmmod: ERROR: Module a8293 is in use
+/sbin/rmmod videobuf2_memops
+rmmod: ERROR: Module videobuf2_memops is in use by: videobuf2_dma_sg
+/sbin/rmmod tda18271
+rmmod: ERROR: Module tda18271 is in use by: cx23885
+/sbin/rmmod rc_core
+rmmod: ERROR: Module rc_core is in use by: cx23885
+/sbin/rmmod tveeprom
+rmmod: ERROR: Module tveeprom is in use by: cx23885
+/sbin/rmmod media
+rmmod: ERROR: Module media is in use by: videodev
+/sbin/rmmod tda10071
+rmmod: ERROR: Module tda10071 is in use
+Couldn't unload: tda10071 media tveeprom rc_core tda18271 
+videobuf2_memops a8293 dvb_core videodev videobuf2_dma_sg altera_ci 
+v4l2_common cx2341x tuner videobuf2_core videobuf2_dvb cx23885
+[root@localhost linux]#
+
+
+Antti
+
 -- 
-2.1.3
-
+http://palosaari.fi/
