@@ -1,118 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:50330 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751065AbaLEOTr (ORCPT
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:42112 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752877AbaLTMpt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Dec 2014 09:19:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH for v3.19 2/4] DocBook media: add missing ycbcr_enc and quantization fields
-Date: Fri,  5 Dec 2014 15:19:22 +0100
-Message-Id: <1417789164-28468-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417789164-28468-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 20 Dec 2014 07:45:49 -0500
+In-Reply-To: <20141220124448.GG11285@n2100.arm.linux.org.uk>
+References: <20141220124448.GG11285@n2100.arm.linux.org.uk>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 7/8] [media] em28xx-dvb: fix missing newlines
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1Y2JPm-0006Um-GT@rmk-PC.arm.linux.org.uk>
+Date: Sat, 20 Dec 2014 12:45:46 +0000
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Inspection shows that newlines are missing from several kernel messages
+in em28xx-dvb.  Fix these.
 
-I forgot to add these fields to the relevant structs.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: <stable@vger.kernel.org>
+Fixes: ca2b46dacbf5 ("[media] em28xx-dvb: implement em28xx_ops: suspend/resume hooks")
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- Documentation/DocBook/media/v4l/pixfmt.xml         | 36 ++++++++++++++++++++--
- Documentation/DocBook/media/v4l/subdev-formats.xml | 18 ++++++++++-
- 2 files changed, 51 insertions(+), 3 deletions(-)
+ drivers/media/usb/em28xx/em28xx-dvb.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index ccf6053..d5eca4b 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -138,9 +138,25 @@ applicable values.</para></entry>
- 	<row>
- 	  <entry>__u32</entry>
- 	  <entry><structfield>flags</structfield></entry>
--	    <entry>Flags set by the application or driver, see <xref
-+	  <entry>Flags set by the application or driver, see <xref
- linkend="format-flags" />.</entry>
- 	</row>
-+	<row>
-+	  <entry>&v4l2-ycbcr-encoding;</entry>
-+	  <entry><structfield>ycbcr_enc</structfield></entry>
-+	  <entry>This information supplements the
-+<structfield>colorspace</structfield> and must be set by the driver for
-+capture streams and by the application for output streams,
-+see <xref linkend="colorspaces" />.</entry>
-+	</row>
-+	<row>
-+	  <entry>&v4l2-quantization;</entry>
-+	  <entry><structfield>quantization</structfield></entry>
-+	  <entry>This information supplements the
-+<structfield>colorspace</structfield> and must be set by the driver for
-+capture streams and by the application for output streams,
-+see <xref linkend="colorspaces" />.</entry>
-+	</row>
-       </tbody>
-     </tgroup>
-   </table>
-@@ -232,9 +248,25 @@ codes can be used.</entry>
- 	  <entry>Flags set by the application or driver, see <xref
- linkend="format-flags" />.</entry>
- 	</row>
-+	<row>
-+	  <entry>&v4l2-ycbcr-encoding;</entry>
-+	  <entry><structfield>ycbcr_enc</structfield></entry>
-+	  <entry>This information supplements the
-+<structfield>colorspace</structfield> and must be set by the driver for
-+capture streams and by the application for output streams,
-+see <xref linkend="colorspaces" />.</entry>
-+	</row>
-+	<row>
-+	  <entry>&v4l2-quantization;</entry>
-+	  <entry><structfield>quantization</structfield></entry>
-+	  <entry>This information supplements the
-+<structfield>colorspace</structfield> and must be set by the driver for
-+capture streams and by the application for output streams,
-+see <xref linkend="colorspaces" />.</entry>
-+	</row>
-         <row>
-           <entry>__u8</entry>
--          <entry><structfield>reserved[10]</structfield></entry>
-+          <entry><structfield>reserved[8]</structfield></entry>
-           <entry>Reserved for future extensions. Should be zeroed by the
-            application.</entry>
-         </row>
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 18730b9..c5ea868 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -34,8 +34,24 @@
- 	  <xref linkend="colorspaces" /> for details.</entry>
- 	</row>
- 	<row>
-+	  <entry>&v4l2-ycbcr-encoding;</entry>
-+	  <entry><structfield>ycbcr_enc</structfield></entry>
-+	  <entry>This information supplements the
-+<structfield>colorspace</structfield> and must be set by the driver for
-+capture streams and by the application for output streams,
-+see <xref linkend="colorspaces" />.</entry>
-+	</row>
-+	<row>
-+	  <entry>&v4l2-quantization;</entry>
-+	  <entry><structfield>quantization</structfield></entry>
-+	  <entry>This information supplements the
-+<structfield>colorspace</structfield> and must be set by the driver for
-+capture streams and by the application for output streams,
-+see <xref linkend="colorspaces" />.</entry>
-+	</row>
-+	<row>
- 	  <entry>__u32</entry>
--	  <entry><structfield>reserved</structfield>[7]</entry>
-+	  <entry><structfield>reserved</structfield>[6]</entry>
- 	  <entry>Reserved for future extensions. Applications and drivers must
- 	  set the array to zero.</entry>
- 	</row>
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 80c384c390e2..aee70d483264 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1775,17 +1775,17 @@ static int em28xx_dvb_suspend(struct em28xx *dev)
+ 	if (!dev->board.has_dvb)
+ 		return 0;
+ 
+-	em28xx_info("Suspending DVB extension");
++	em28xx_info("Suspending DVB extension\n");
+ 	if (dev->dvb) {
+ 		struct em28xx_dvb *dvb = dev->dvb;
+ 
+ 		if (dvb->fe[0]) {
+ 			ret = dvb_frontend_suspend(dvb->fe[0]);
+-			em28xx_info("fe0 suspend %d", ret);
++			em28xx_info("fe0 suspend %d\n", ret);
+ 		}
+ 		if (dvb->fe[1]) {
+ 			dvb_frontend_suspend(dvb->fe[1]);
+-			em28xx_info("fe1 suspend %d", ret);
++			em28xx_info("fe1 suspend %d\n", ret);
+ 		}
+ 	}
+ 
+@@ -1802,18 +1802,18 @@ static int em28xx_dvb_resume(struct em28xx *dev)
+ 	if (!dev->board.has_dvb)
+ 		return 0;
+ 
+-	em28xx_info("Resuming DVB extension");
++	em28xx_info("Resuming DVB extension\n");
+ 	if (dev->dvb) {
+ 		struct em28xx_dvb *dvb = dev->dvb;
+ 
+ 		if (dvb->fe[0]) {
+ 			ret = dvb_frontend_resume(dvb->fe[0]);
+-			em28xx_info("fe0 resume %d", ret);
++			em28xx_info("fe0 resume %d\n", ret);
+ 		}
+ 
+ 		if (dvb->fe[1]) {
+ 			ret = dvb_frontend_resume(dvb->fe[1]);
+-			em28xx_info("fe1 resume %d", ret);
++			em28xx_info("fe1 resume %d\n", ret);
+ 		}
+ 	}
+ 
 -- 
-2.1.3
+1.8.3.1
 
