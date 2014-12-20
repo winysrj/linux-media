@@ -1,42 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39267 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932746AbaLDSGR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Dec 2014 13:06:17 -0500
-Date: Thu, 4 Dec 2014 16:05:55 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [git:media_tree/master] [media] tuners: remove unneeded checks
- before release_firmware()
-Message-ID: <20141204160555.40683503@recife.lan>
-In-Reply-To: <54809C0D.3030703@users.sourceforge.net>
-References: <E1XwaEk-0007jP-5V@www.linuxtv.org>
-	<54809C0D.3030703@users.sourceforge.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:34341 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752918AbaLTKsY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Dec 2014 05:48:24 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 05/15] media: blackfin: bfin_capture: improve queue_setup() callback
+Date: Sat, 20 Dec 2014 16:17:32 +0530
+Message-Id: <1419072462-3168-6-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 04 Dec 2014 18:38:21 +0100
-SF Markus Elfring <elfring@users.sourceforge.net> escreveu:
+this patch improves the queue_setup() callback.
 
-> > This is an automatic generated email to let you know that the following patch were queued at the 
-> > http://git.linuxtv.org/media_tree.git tree:
-> > 
-> > Subject: [media] tuners: remove uneeded checks before release_firmware()
-> 
-> Would you like to amend a typo in the commit title?
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Too late for that.
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 8bd94a1..76d42bb 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -44,7 +44,6 @@
+ #include <media/blackfin/ppi.h>
+ 
+ #define CAPTURE_DRV_NAME        "bfin_capture"
+-#define BCAP_MIN_NUM_BUF        2
+ 
+ struct bcap_format {
+ 	char *desc;
+@@ -292,11 +291,14 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+ {
+ 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
+ 
+-	if (*nbuffers < BCAP_MIN_NUM_BUF)
+-		*nbuffers = BCAP_MIN_NUM_BUF;
++	if (fmt && fmt->fmt.pix.sizeimage < bcap_dev->fmt.sizeimage)
++		return -EINVAL;
++
++	if (vq->num_buffers + *nbuffers < 3)
++		*nbuffers = 3 - vq->num_buffers;
+ 
+ 	*nplanes = 1;
+-	sizes[0] = bcap_dev->fmt.sizeimage;
++	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : bcap_dev->fmt.sizeimage;
+ 	alloc_ctxs[0] = bcap_dev->alloc_ctx;
+ 
+ 	return 0;
+-- 
+1.9.1
 
-Btw, next time, please try to use ~70 bytes per line on your patches.
-
-> 
-> Regards,
-> Markus
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
