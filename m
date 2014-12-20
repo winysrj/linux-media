@@ -1,58 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41469 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:41020 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754300AbaLVNZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 08:25:58 -0500
-Date: Mon, 22 Dec 2014 11:25:50 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: crope@iki.fi, linux-media@vger.kernel.org
-Subject: Re: [PATCH] cx23885: Split Hauppauge WinTV Starburst from HVR4400
- card entry
-Message-ID: <20141222112550.5f5e80c7@concha.lan.sisa.samsung.com>
-In-Reply-To: <54972866.3030101@gentoo.org>
-References: <1419191964-29833-1-git-send-email-zzam@gentoo.org>
-	<54972866.3030101@gentoo.org>
+	id S1751880AbaLTA1J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Dec 2014 19:27:09 -0500
+Message-ID: <5494C254.2080306@osg.samsung.com>
+Date: Fri, 19 Dec 2014 17:27:00 -0700
+From: Shuah Khan <shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Shuah Khan <shuah.kh@samsung.com>, m.chehab@samsung.com,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	laurent.pinchart@ideasonboard.com
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: fix au0828_analog_register() to not free au0828_dev
+References: <1419032579-7720-1-git-send-email-shuah.kh@samsung.com>
+In-Reply-To: <1419032579-7720-1-git-send-email-shuah.kh@samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 21 Dec 2014 21:07:02 +0100
-Matthias Schwarzott <zzam@gentoo.org> escreveu:
+On 12/19/2014 04:42 PM, Shuah Khan wrote:
+> From: Shuah Khan <shuahkh@osg.samsung.com>
 
-> Hi!
+Sorry. That doesn't look right. Looks like my gitconfig
+is bad. I can resend the patch.
+
+-- Shuah
 > 
-> Should the commit message directly point to the breaking commit
-> 36efec48e2e6016e05364906720a0ec350a5d768?
-
-Yes, if this fixes an issue that happened on a previous commit, then
-you should add the original commit there.
-
-That likely means that this is a regression fix, right? So, you should
-c/c the patch to stable, adding a comment msg telling to what Kernel
-version it applies (assuming that the patch was merged on 3.18).
-Also, please add "PATCH FIX" to the subject, as this patch should be
-sent to 3.19 as well.
-
+> au0828_analog_register() frees au0828_dev when it fails to
+> locate isoc endpoint. au0828_usb_probe() continues with dvb
+> and rc probe and registration assuming dev is still valid.
+> When au0828_analog_register() fails to locate isoc endpoint,
+> it should return without free'ing au0828_dev. Otherwise, the
+> probe will fail as dev is null when au0828_dvb_register() is
+> called.
 > 
-> This commit hopefully reverts the problematic attach for the Starburst
-> card. I kept the GPIO-part in common, but I can split this also if
-> necessary.
-
-Keep the GPIO part in common is better, if the GPIOs are the same.
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/usb/au0828/au0828-video.c | 1 -
+>  1 file changed, 1 deletion(-)
 > 
-> Regards
-> Matthias
+> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+> index 3bdf132..94b65b8 100644
+> --- a/drivers/media/usb/au0828/au0828-video.c
+> +++ b/drivers/media/usb/au0828/au0828-video.c
+> @@ -1713,7 +1713,6 @@ int au0828_analog_register(struct au0828_dev *dev,
+>  	}
+>  	if (!(dev->isoc_in_endpointaddr)) {
+>  		pr_info("Could not locate isoc endpoint\n");
+> -		kfree(dev);
+>  		return -ENODEV;
+>  	}
+>  
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 -- 
-
-Cheers,
-Mauro
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Open Source Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
