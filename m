@@ -1,70 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:9019 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752111AbaLHK3Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 05:29:24 -0500
-Message-id: <54857D7B.8050304@samsung.com>
-Date: Mon, 08 Dec 2014 11:29:15 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-leds@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, s.nawrocki@samsung.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH/RFC v9 06/19] DT: Add documentation for the mfd Maxim
- max77693
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
- <1417622814-10845-7-git-send-email-j.anaszewski@samsung.com>
- <20141204100706.GP14746@valkosipuli.retiisi.org.uk>
- <54804840.4030202@samsung.com> <20141204161201.GB29080@amd>
-In-reply-to: <20141204161201.GB29080@amd>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:58873 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752572AbaLTWfa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Dec 2014 17:35:30 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Mark Brown <broonie@kernel.org>
+Subject: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
+Date: Sun, 21 Dec 2014 00:34:51 +0200
+Message-Id: <1419114892-4550-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Lockdep validator complains recursive locking and deadlock when two
+different regmap instances are called in a nested order, as regmap
+groups locks by default. That happens easily for example when both
+I2C client and I2C adapter are using regmap. As a solution, add
+configuration option to pass custom lock class key for lockdep
+validator.
 
-On 12/04/2014 05:12 PM, Pavel Machek wrote:
-> Hi!
->
->>>> +- maxim,boost-mode :
->>>> +	In boost mode the device can produce up to 1.2A of total current
->>>> +	on both outputs. The maximum current on each output is reduced
->>>> +	to 625mA then. If there are two child led nodes defined then boost
->>>> +	is enabled by default.
->>>> +	Possible values:
->>>> +		MAX77693_LED_BOOST_OFF - no boost,
->>>> +		MAX77693_LED_BOOST_ADAPTIVE - adaptive mode,
->>>> +		MAX77693_LED_BOOST_FIXED - fixed mode.
->>>> +- maxim,boost-vout : Output voltage of the boost module in millivolts.
->>>> +- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
->>>> +	if chip estimates that system voltage could drop below this level due
->>>> +	to flash power consumption.
->>>> +
->>>> +Required properties of the LED child node:
->>>> +- label : see Documentation/devicetree/bindings/leds/common.txt
->>>> +- maxim,fled_id : Identifier of the fled output the led is connected to;
->>>
->>> I'm pretty sure this will be needed for about every chip that can drive
->>> multiple LEDs. Shouldn't it be documented in the generic documentation?
->>
->> OK.
->
-> Well... "fled_id" is not exactly suitable name. On other busses, it
-> would be "reg = <1>"?
+Here is example schema, where nested regmap calls are issued, when
+more than 1 block uses regmap.
+ __________         ___________         ___________
+|  USB IF  |       |   demod   |       |   tuner   |
+|----------|       |-----------|       |-----------|
+|          |--I2C--|-----/ ----|--I2C--|           |
+|I2C master|       |  I2C mux  |       | I2C slave |
+|__________|       |___________|       |___________|
 
-I'm ok with "reg". This scheme is used for pca963x.txt and is described
-as "number of LED line". We could define it similarly in the common.txt.
-A device would have to specify the range of allowed values though.
-I would add such a note to the generic binding.
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Mark Brown <broonie@kernel.org>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/base/regmap/regmap.c | 3 +++
+ include/linux/regmap.h       | 5 +++++
+ 2 files changed, 8 insertions(+)
 
-Regards,
-Jacek
+diff --git a/drivers/base/regmap/regmap.c b/drivers/base/regmap/regmap.c
+index d2f8a81..56064d3 100644
+--- a/drivers/base/regmap/regmap.c
++++ b/drivers/base/regmap/regmap.c
+@@ -559,6 +559,9 @@ struct regmap *regmap_init(struct device *dev,
+ 			mutex_init(&map->mutex);
+ 			map->lock = regmap_lock_mutex;
+ 			map->unlock = regmap_unlock_mutex;
++			if (config->lockdep_lock_class_key)
++				lockdep_set_class(&map->mutex,
++						  config->lockdep_lock_class_key);
+ 		}
+ 		map->lock_arg = map;
+ 	}
+diff --git a/include/linux/regmap.h b/include/linux/regmap.h
+index c5ed83f..f930370 100644
+--- a/include/linux/regmap.h
++++ b/include/linux/regmap.h
+@@ -134,6 +134,10 @@ typedef void (*regmap_unlock)(void *);
+  * @lock_arg:	  this field is passed as the only argument of lock/unlock
+  *		  functions (ignored in case regular lock/unlock functions
+  *		  are not overridden).
++ * @lock_class_key: Custom lock class key for lockdep validator. Use that when
++ *                regmap in question is used for bus master IO in order to avoid
++ *                false lockdep nested locking warning. Valid only when regmap
++ *                default mutex locking is used.
+  * @reg_read:	  Optional callback that if filled will be used to perform
+  *           	  all the reads from the registers. Should only be provided for
+  *		  devices whose read operation cannot be represented as a simple
+@@ -197,6 +201,7 @@ struct regmap_config {
+ 	regmap_lock lock;
+ 	regmap_unlock unlock;
+ 	void *lock_arg;
++	struct lock_class_key *lockdep_lock_class_key;
+ 
+ 	int (*reg_read)(void *context, unsigned int reg, unsigned int *val);
+ 	int (*reg_write)(void *context, unsigned int reg, unsigned int val);
+-- 
+http://palosaari.fi/
+
