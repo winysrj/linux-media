@@ -1,51 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39911 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751320AbaLFWcU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Dec 2014 17:32:20 -0500
-Message-ID: <548383F1.1030400@iki.fi>
-Date: Sun, 07 Dec 2014 00:32:17 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:42099 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753066AbaLTMpY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Dec 2014 07:45:24 -0500
+In-Reply-To: <20141220124448.GG11285@n2100.arm.linux.org.uk>
+References: <20141220124448.GG11285@n2100.arm.linux.org.uk>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 2/8] [media] em28xx: ensure "closing" messages terminate with
+ a newline
 MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] mn88472: add 5MHz dvb-t2 bandwitdh support
-References: <1417903051-22099-1-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1417903051-22099-1-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1Y2JPM-0006UR-W1@rmk-PC.arm.linux.org.uk>
+Date: Sat, 20 Dec 2014 12:45:20 +0000
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The lockdep splat addressed in a previous commit revealed that at
+least one message in em28xx-input.c was missing a new line:
 
-On 12/06/2014 11:57 PM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+em28178 #0: Closing input extensionINFO: trying to register non-static key.
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Further inspection shows several other messages also miss a new line.
+These will be fixed in a subsequent patch.
 
-Antti
+Cc: <stable@vger.kernel.org>
+Fixes: aa929ad783c0 ("[media] em28xx: print a message at disconnect")
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ drivers/media/usb/em28xx/em28xx-audio.c | 2 +-
+ drivers/media/usb/em28xx/em28xx-dvb.c   | 2 +-
+ drivers/media/usb/em28xx/em28xx-input.c | 2 +-
+ drivers/media/usb/em28xx/em28xx-video.c | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-> ---
->   drivers/staging/media/mn88472/mn88472.c | 5 ++++-
->   1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-> index c6895ee..be8a6d5 100644
-> --- a/drivers/staging/media/mn88472/mn88472.c
-> +++ b/drivers/staging/media/mn88472/mn88472.c
-> @@ -61,7 +61,10 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
->   	switch (c->delivery_system) {
->   	case SYS_DVBT:
->   	case SYS_DVBT2:
-> -		if (c->bandwidth_hz <= 6000000) {
-> +		if (c->bandwidth_hz <= 5000000) {
-> +			memcpy(bw_val, "\xe5\x99\x9a\x1b\xa9\x1b\xa9", 7);
-> +			bw_val2 = 0x03;
-> +		} else if (c->bandwidth_hz <= 6000000) {
->   			/* IF 3570000 Hz, BW 6000000 Hz */
->   			memcpy(bw_val, "\xbf\x55\x55\x15\x6b\x15\x6b", 7);
->   			bw_val2 = 0x02;
->
-
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 44ae1e0661e6..52dc9d70da72 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -981,7 +981,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
+ 		return 0;
+ 	}
+ 
+-	em28xx_info("Closing audio extension");
++	em28xx_info("Closing audio extension\n");
+ 
+ 	if (dev->adev.sndcard) {
+ 		snd_card_disconnect(dev->adev.sndcard);
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 9877b699c6bc..80c384c390e2 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1724,7 +1724,7 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+ 	if (!dev->dvb)
+ 		return 0;
+ 
+-	em28xx_info("Closing DVB extension");
++	em28xx_info("Closing DVB extension\n");
+ 
+ 	dvb = dev->dvb;
+ 	client = dvb->i2c_client_tuner;
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index ef36c49ef166..aea22deadc0a 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -832,7 +832,7 @@ static int em28xx_ir_fini(struct em28xx *dev)
+ 		return 0;
+ 	}
+ 
+-	em28xx_info("Closing input extension");
++	em28xx_info("Closing input extension\n");
+ 
+ 	em28xx_shutdown_buttons(dev);
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index cf7f58b76292..3b8c464bf25a 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1958,7 +1958,7 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+ 	if (v4l2 == NULL)
+ 		return 0;
+ 
+-	em28xx_info("Closing video extension");
++	em28xx_info("Closing video extension\n");
+ 
+ 	mutex_lock(&dev->lock);
+ 
 -- 
-http://palosaari.fi/
+1.8.3.1
+
