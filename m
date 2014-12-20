@@ -1,334 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39011 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865AbaLOJ0P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 04:26:15 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3] Add LVDS RGB media bus formats
-Date: Mon, 15 Dec 2014 10:26:04 +0100
-Message-Id: <1418635564-25464-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mx1.redhat.com ([209.132.183.28]:59840 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750831AbaLTKUs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Dec 2014 05:20:48 -0500
+Message-ID: <54954D5B.2020904@redhat.com>
+Date: Sat, 20 Dec 2014 11:20:11 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+CC: Chen-Yu Tsai <wens@csie.org>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi <linux-sunxi@googlegroups.com>
+Subject: Re: [linux-sunxi] [PATCH v2 04/13] rc: sunxi-cir: Add support for
+ an optional reset controller
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com> <1418836704-15689-5-git-send-email-hdegoede@redhat.com> <CAGb2v65BW7NABQXK877DkMNqDdBeuZ55wQHFkTexbWACFC4zFA@mail.gmail.com> <54929552.8090707@redhat.com> <20141219181708.GQ4820@lukather>
+In-Reply-To: <20141219181708.GQ4820@lukather>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds three new RGB media bus formats that describe
-18-bit or 24-bit samples transferred over an LVDS bus with three
-or four differential data pairs, serialized into 7 time slots,
-using standard SPWG/PSWG/VESA or JEIDA data ordering.
+Hi,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - Clarified LVDS paragraph, added an example
- - Changed 'LVDS' to '1X7X3' / '1X7X4' to denote serialized formats
- - Reordered LVDS table (lanes in columns, time slots in rows)
-Changes since v2:
- - Moved LVDS paragraph below v4l2-mbus-pixelcode-rgb table so it
-   appears right before the v4l2-mbus-pixelcode-rgb-lvds table
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 255 +++++++++++++++++++++
- include/uapi/linux/media-bus-format.h              |   5 +-
- 2 files changed, 259 insertions(+), 1 deletion(-)
+On 19-12-14 19:17, Maxime Ripard wrote:
+> Hi,
+>
+> On Thu, Dec 18, 2014 at 09:50:26AM +0100, Hans de Goede wrote:
+>> Hi,
+>>
+>> On 18-12-14 03:48, Chen-Yu Tsai wrote:
+>>> Hi,
+>>>
+>>> On Thu, Dec 18, 2014 at 1:18 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+>>>> On sun6i the cir block is attached to the reset controller, add support
+>>>> for de-asserting the reset if a reset controller is specified in dt.
+>>>>
+>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>>> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>> Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+>>>> ---
+>>>>   .../devicetree/bindings/media/sunxi-ir.txt         |  2 ++
+>>>>   drivers/media/rc/sunxi-cir.c                       | 25 ++++++++++++++++++++--
+>>>>   2 files changed, 25 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+>>>> index 23dd5ad..6b70b9b 100644
+>>>> --- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
+>>>> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+>>>> @@ -10,6 +10,7 @@ Required properties:
+>>>>
+>>>>   Optional properties:
+>>>>   - linux,rc-map-name : Remote control map name.
+>>>> +- resets : phandle + reset specifier pair
+>>>
+>>> Should it be optional? Or should we use a sun6i compatible with
+>>> a mandatory reset phandle? I mean, the driver/hardware is not
+>>> going to work with the reset missing on sun6i.
+>>>
+>>> Seems we are doing it one way for some of our drivers, and
+>>> the other (optional) way for more generic ones, like USB.
+>>
+>> I do not believe that we should add a new compatible just because
+>> the reset line of a block is hooked up differently. It is the
+>> exact same ip-block. Only now the reset is not controlled
+>> through the apb-gate, but controlled separately.
+>
+> He has a point though. Your driver might very well probe nicely and
+> everything, but still wouldn't be functional at all because the reset
+> line wouldn't have been specified in the DT.
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 0d6f731..57892cb 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -606,6 +606,261 @@
- 	  </tbody>
- 	</tgroup>
-       </table>
-+
-+      <para>On LVDS buses, usually each sample is transferred serialized in
-+      seven time slots per pixel clock, on three (18-bit) or four (24-bit)
-+      differential data pairs at the same time. The remaining bits are used for
-+      control signals as defined by SPWG/PSWG/VESA or JEIDA standards.
-+      The 24-bit RGB format serialized in seven time slots on four lanes using
-+      JEIDA defined bit mapping will be named
-+      <constant>MEDIA_BUS_FMT_RGB888_1X7X3_JEIDA</constant>, for example.
-+      </para>
-+
-+      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-rgb-lvds">
-+	<title>LVDS RGB formats</title>
-+	<tgroup cols="8">
-+	  <colspec colname="id" align="left" />
-+	  <colspec colname="code" align="center" />
-+	  <colspec colname="slot" align="center" />
-+	  <colspec colname="lane" />
-+	  <colspec colnum="5" colname="l03" align="center" />
-+	  <colspec colnum="6" colname="l02" align="center" />
-+	  <colspec colnum="7" colname="l01" align="center" />
-+	  <colspec colnum="8" colname="l00" align="center" />
-+	  <spanspec namest="l03" nameend="l00" spanname="l0" />
-+	  <thead>
-+	    <row>
-+	      <entry>Identifier</entry>
-+	      <entry>Code</entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry spanname="l0">Data organization</entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>Timeslot</entry>
-+	      <entry>Lane</entry>
-+	      <entry>3</entry>
-+	      <entry>2</entry>
-+	      <entry>1</entry>
-+	      <entry>0</entry>
-+	    </row>
-+	  </thead>
-+	  <tbody valign="top">
-+	    <row id="MEDIA-BUS-FMT-RGB666-1X7X3-SPWG">
-+	      <entry>MEDIA_BUS_FMT_RGB666_1X7X3_SPWG</entry>
-+	      <entry>0x1010</entry>
-+	      <entry>0</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>1</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>2</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>d</entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>3</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>4</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>5</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>6</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="MEDIA-BUS-FMT-RGB888-1X7X4-SPWG">
-+	      <entry>MEDIA_BUS_FMT_RGB888_1X7X4_SPWG</entry>
-+	      <entry>0x1011</entry>
-+	      <entry>0</entry>
-+	      <entry></entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>1</entry>
-+	      <entry></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>2</entry>
-+	      <entry></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>3</entry>
-+	      <entry></entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>4</entry>
-+	      <entry></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>5</entry>
-+	      <entry></entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>6</entry>
-+	      <entry></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA">
-+	      <entry>MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA</entry>
-+	      <entry>0x1012</entry>
-+	      <entry>0</entry>
-+	      <entry></entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>1</entry>
-+	      <entry></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>2</entry>
-+	      <entry></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>3</entry>
-+	      <entry></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>4</entry>
-+	      <entry></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>5</entry>
-+	      <entry></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>6</entry>
-+	      <entry></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	    </row>
-+	  </tbody>
-+	</tgroup>
-+      </table>
-     </section>
- 
-     <section>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 37091c6..3fb9cbb 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -33,7 +33,7 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x1010 */
-+/* RGB - next is	0x1013 */
- #define MEDIA_BUS_FMT_RGB444_1X12		0x100e
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-@@ -45,9 +45,12 @@
- #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
- #define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
- #define MEDIA_BUS_FMT_RGB666_1X18		0x1009
-+#define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG		0x1010
- #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
- #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
- #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
-+#define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG		0x1011
-+#define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
- 
- /* YUV (including grey) - next is	0x2024 */
--- 
-2.1.3
+Right, just like other drivers we've, see e.g.:
 
+Documentation/devicetree/bindings/mmc/sunxi-mmc.txt
+
+Which is dealing with this in the same way.
+
+> The easiest way to deal with that would be in the bindings doc to
+> update it with a compatible for the A31, and mentionning that the
+> reset property is mandatory there.
+
+No the easiest way to deal with this is to expect people writing
+the dts to know what they are doing, just like we do for a lot
+of the other blocks in sun6i.
+
+Maybe put a generic note somewhere that sun6i has a reset controller,
+and that for all the blocks with optional resets property it should
+be considered mandatory on sun6i ?
+
+I'm sorry but I'm not going to make this change for the ir bindings
+given that we've the same situation in a lot of other places.
+
+Consistency is important. Moreover I believe that having a sun6i
+specific compatible string is just wrong, since it is the exact
+same hardware block as on sun5i, just with its reset line routed
+differently, just like e.g. the mmc controller, the uarts or the gmac
+all of which also do not have a sun6i specific compatible to enforce
+reset controller usage.
+
+Regards,
+
+Hans
+
+
+
+> Note that the code itself might not change at all though. I'd just
+> like to avoid any potential breaking of the DT bindings themselves. If
+> we further want to refine the code, we can do that however we want.
+>
+> I have a slight preference for a clean error if reset is missing, but
+> I won't get in the way just for that.
+>
+> Maxime
+>
