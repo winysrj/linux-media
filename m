@@ -1,49 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54988 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754155AbaLWOVe (ORCPT
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:47673 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753054AbaLTKsw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 09:21:34 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] dib8000: upd_demod_gain_period should be u32
-Date: Tue, 23 Dec 2014 12:21:12 -0200
-Message-Id: <1419344472-29927-1-git-send-email-mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sat, 20 Dec 2014 05:48:52 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 12/15] media: blackfin: bfin_capture: add support for vidioc_create_bufs
+Date: Sat, 20 Dec 2014 16:17:39 +0530
+Message-Id: <1419072462-3168-13-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As shown at the code, upd_demod_gain_period is used to write
-to two 16-bit registers:
-    dib8000_write_word(state, 1946, upd_demod_gain_period & 0xFFFF);
-    dib8000_write_word(state, 1947, reg | (1<<14) | ((upd_demod_gain_period >> 16) & 0xFF));
+this patch adds support for vidioc_create_bufs.
 
-So, it should be declared as u32.
-
-This fixes the following smatch warning:
-	drivers/media/dvb-frontends/dib8000.c:1282 dib8000_agc_startup() warn: right shifting more than type allows
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/dvb-frontends/dib8000.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/platform/blackfin/bfin_capture.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index 61e31f2d2f71..8c6663b6399d 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -1263,7 +1263,8 @@ static int dib8000_agc_startup(struct dvb_frontend *fe)
- 	struct dib8000_state *state = fe->demodulator_priv;
- 	enum frontend_tune_state *tune_state = &state->tune_state;
- 	int ret = 0;
--	u16 reg, upd_demod_gain_period = 0x8000;
-+	u16 reg;
-+	u32 upd_demod_gain_period = 0x8000;
- 
- 	switch (*tune_state) {
- 	case CT_AGC_START:
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index f663687..38870c4 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -759,6 +759,7 @@ static const struct v4l2_ioctl_ops bcap_ioctl_ops = {
+ 	.vidioc_query_dv_timings = bcap_query_dv_timings,
+ 	.vidioc_enum_dv_timings  = bcap_enum_dv_timings,
+ 	.vidioc_reqbufs          = vb2_ioctl_reqbufs,
++	.vidioc_create_bufs      = vb2_ioctl_create_bufs,
+ 	.vidioc_querybuf         = vb2_ioctl_querybuf,
+ 	.vidioc_qbuf             = vb2_ioctl_qbuf,
+ 	.vidioc_dqbuf            = vb2_ioctl_dqbuf,
 -- 
-2.1.0
+1.9.1
 
