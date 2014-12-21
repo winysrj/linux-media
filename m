@@ -1,85 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59946 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932484AbaLAXZs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 18:25:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API for v4l2_subdev_get_try_*()
-Date: Tue, 02 Dec 2014 01:26:21 +0200
-Message-ID: <1429705.acTXlHE2TG@avalon>
-In-Reply-To: <CA+V-a8uaw2X_a3rfx0=avbuGnUdbqveMvJaU25hewzv9eAA8+Q@mail.gmail.com>
-References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com> <1680188.7K1XCBdsCk@avalon> <CA+V-a8uaw2X_a3rfx0=avbuGnUdbqveMvJaU25hewzv9eAA8+Q@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:43089 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751204AbaLUJVL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Dec 2014 04:21:11 -0500
+Message-ID: <54969102.3030204@iki.fi>
+Date: Sun, 21 Dec 2014 11:21:06 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Benjamin Larsson <benjamin@southpole.se>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC][PATCH] mn88472: add support for the mn88473 demod
+References: <1419119853-29452-1-git-send-email-benjamin@southpole.se> <54960F0C.5020506@southpole.se>
+In-Reply-To: <54960F0C.5020506@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Moikka!
 
-On Sunday 30 November 2014 21:30:35 Prabhakar Lad wrote:
-> On Sun, Nov 30, 2014 at 9:16 PM, Laurent Pinchart wrote:
-> > On Sunday 30 November 2014 21:05:50 Prabhakar Lad wrote:
-> >> On Sat, Nov 29, 2014 at 7:12 PM, Laurent Pinchart wrote:
-> >> > Hi Prabhakar,
-> >> 
-> >> [Snip]
-> >> 
-> >>>>> Sure. That's a better choice than removing the config option
-> >>>>> dependency of the fields struct v4l2_subdev.
-> >>> 
-> >>> Decoupling CONFIG_VIDEO_V4L2_SUBDEV_API from the availability of the
-> >>> in-kernel pad format and selection rectangles helpers is definitely a
-> >>> good idea. I was thinking about decoupling the try format and
-> >>> rectangles from v4l2_subdev_fh by creating a kind of configuration store
-> >>> structure to store them, and embedding that structure in v4l2_subdev_fh.
-> >>> The pad-level operations would then take a pointer to the configuration
-> >>> store instead of the v4l2_subdev_fh. Bridge drivers that want to
-> >>> implement TRY_FMT based on pad-level operations would create a
-> >>> configuration store, use the pad-level operations, and destroy the
-> >>> configuration store. The userspace subdev API would use the
-> >>> configuration store from the file handle.
-> >> 
-> >> are planning to work/post any time soon ? Or are you OK with suggestion
-> >> from Hans ?
-> > 
-> > I have no plan to work on that myself now, I was hoping you could
-> > implement it ;-)
-> 
-> OK will implement it.
-> 
-> Can you please elaborate a more on this "The userspace subdev API would use
-> the configuration store from the file handle."
+On 12/21/2014 02:06 AM, Benjamin Larsson wrote:
+> This is what mn88473 support in the mn88472 demod driver could look
+> like. The code is untested but will look similar in the final version.
+> It is also possible to let the driver figure out the demod version from
+> the 0xff register. Then the users would not need to set that parameter.
+> Same goes to the xtal parameter.
+>
+> So does the mn88473 support look ok and should the driver figure out
+> what demod is connected ?
 
-Basically,
 
-1. Create a subdev pad configuration store structure to store the formats and 
-selection rectangles for each pad.
+You patch looks rather good and these drivers should be merged to one if 
+possible, lets say registers are 80% same or something like that. Looks 
+like those are.
 
-2. Embed an instance of that structure in v4l2_subdev_fh.
+About detecting the chip type. Prefer always detecting automatically be 
+reading the chip id.
 
-3. Modify the subdev pad ops to take a configuration store pointer instead of 
-a file handle pointer.
+Second best way is to use device ID for that:
 
-The userspace API implementation (v4l2-subdev.c) would then pass &fh->store to 
-the pad operations instead of fh.
+static const struct i2c_device_id mn88472_id_table[] = {
+	{"mn88472", 0},
+	{"mn88473", 1},
+	{}
 
-Bridge drivers that need to implement TRY_FMT on top of pad ops would create a 
-temporary store (or temporary stores when multiple subsdevs are involved), 
-call the pad ops with a pointer to the temporary store to propagate TRY 
-formats, destroy the store(s) and return the resulting format.
 
-Is that clear ?
+Put the xtal/clock freq to config struct or use clock framework for it 
+(maybe too heavy solution).
+
+regards
+Antti
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
