@@ -1,103 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:58272 "EHLO
-	mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374AbaLGVXl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Dec 2014 16:23:41 -0500
-Received: by mail-oi0-f54.google.com with SMTP id u20so2579689oif.41
-        for <linux-media@vger.kernel.org>; Sun, 07 Dec 2014 13:23:41 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:50385 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753140AbaLUTzZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Dec 2014 14:55:25 -0500
+Message-ID: <549725AA.8000704@iki.fi>
+Date: Sun, 21 Dec 2014 21:55:22 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1717818.6PrJVEWcvp@avalon>
-References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com>
-	<10129477.C7LMJl3dKC@avalon>
-	<CANOLnOMvBFiR2n0BMBO+DQ+b21Veb3r1dsw7C72OSyskxorY0w@mail.gmail.com>
-	<1717818.6PrJVEWcvp@avalon>
-Date: Sun, 7 Dec 2014 23:23:41 +0200
-Message-ID: <CANOLnONtDgBChFERg8y1HGFnOtU8WO+VSpVK=uktDL5PAb5nxA@mail.gmail.com>
-Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
-From: Grazvydas Ignotas <notasas@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: =?UTF-8?Q?R=C3=A9mi_Denis=2DCourmont?= <remi@remlab.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Paulo Assis <pj.assis@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Matthias Schwarzott <zzam@gentoo.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: cx23885: Add si2165 support for HVR-5500
+References: <5495963D.3080004@iki.fi> <54971E29.2000702@gentoo.org>
+In-Reply-To: <54971E29.2000702@gentoo.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 12/21/2014 09:23 PM, Matthias Schwarzott wrote:
+> On 20.12.2014 16:31, Antti Palosaari wrote:
+>> Matthias and Mauro,
+> Hi Antti,
+> meanwhile HVR-4400 has been tested by multiple people. And it works
+> rather good for DVB-T.
 
-On Sun, Dec 7, 2014 at 9:23 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Grazvydas,
+My board has only satellite support, no terrestrial nor satellite. Even 
+all those errors, it still creates frontend - and it even likely works, 
+I didn't tested.
+
+But as you likely saw from the messages, it prints any IO errors as 
+registering terrestrial or cable frontend failed, because of missing 
+chips. And module reference counts went wrong as unloading modules is 
+impossible.
+
+
+>> so you decided to add that patch, which makes rather big changes for
+>> existing HVR-4400 models, without any testing. I plugged HVR-4400
+>> version that has only DVB-S2 in my machine in order to start finding out
+>> one lockdep issue but what I see is bad HVR-4400.
 >
-> (CC'ing Paulo Assis)
+> I checked that all known HVR-4400 and HVR-5500 versions have a
+> Si2161/Si2165 chip.
 >
-> On Saturday 06 December 2014 02:25:25 Grazvydas Ignotas wrote:
->> On Fri, Dec 5, 2014 at 1:46 PM, Laurent Pinchart wrote:
->> > On Thursday 06 November 2014 00:29:53 Grazvydas Ignotas wrote:
->> >> On Wed, Nov 5, 2014 at 4:05 PM, Laurent Pinchart wrote:
->> >> > Would you be able to capture images from the C920 using yavta, with the
->> >> > uvcvideo trace parameter set to 4096, and send me both the yavta log
->> >> > and the kernel log ? Let's start with a capture sequence of 50 to 100
->> >> > images.
->> >>
->> >> I've done 2 captures, if that helps:
->> >> http://notaz.gp2x.de/tmp/c920_yavta/
->> >>
->> >> The second one was done using low exposure setting, which allows
->> >> camera to achieve higher frame rate.
->> >
->> > Thank you for the log, they were very helpful. They revealed that the USB
->> > SOF (Start Of Frame) counter values on the device and host side are not
->> > in sync. The counters get incremented are very different rates. What USB
->> > controller are you using ?
+> I checked your subsystem id 0070:c12a. In windows inf file it is listed
+> as "Hauppauge WinTV Starburst (Model 121x00, DVB-S2, IR)".
+> But this subsystem id is also part of the HVR-4400 entry (as is HVR-5500).
+>
+> So I rechecked the HVR4400 entry.
+> It points to these subsys ids (plus description from inf file):
+> * 0070:c108 "Hauppauge WinTV HVR-4400 (Model 121xxx, Hybrid DVB-T/S2, IR)"
+> * 0070:c138 "Hauppauge WinTV HVR-5500 (Model 121xxx, Hybrid DVB-T/C/S2, IR)"
+> * 0070:c1f8 "Hauppauge WinTV HVR-5500 (Model 121xxx, Hybrid DVB-T/C/S2, IR)"
+> * 0070:c12a "Hauppauge WinTV Starburst (Model 121x00, DVB-S2, IR)"
+
+My board is that Starburst. All those others, 4400 and 5500 models, are 
+hybrid containing two receivers. Due to that, Starburst is only one 
+which is broken.
+
+>> I would also criticize Mauro as he has committed that patch. It should
+>> be obvious for every experienced media developer that this kind of not
+>> trivial change needs some more careful review or testing.
 >>
->> 00:1d.7 USB controller: Intel Corporation NM10/ICH7 Family USB2 EHCI
->> Controller (rev 01) (prog-if 20 [EHCI])
->>         Subsystem: Micro-Star International Co., Ltd. [MSI] Device 7592
->>         Flags: bus master, medium devsel, latency 0, IRQ 23
->>         Memory at fe9fbc00 (32-bit, non-prefetchable) [size=1K]
->>         Capabilities: [50] Power Management version 2
->>         Capabilities: [58] Debug port: BAR=1 offset=00a0
->>         Kernel driver in use: ehci-pci
+>> That patch should be done differently, not blindly trying to attach chip
+>> drivers for non-existent chips. I think correct solution is to detect
+>> different HW models somehow, probing or reading from eeprom or so. Then
+>> make 2 profiles, one for boards having both satellite and
+>> terristrial/cable and one for boards having satellite only.
 >>
->> If it helps, I could try on an ARM board, currently don't have any
->> other x86 hardware around.
->
-> Actually the frequencies I've computed from the log are correct on the host
-> side but quite off on the device side. I'm puzzled.
->
-> The following patch allows accessing the contents of the clock data buffer
-> through debugfs. Would you be able to apply it and execute the following
-> steps ?
->
-> 1. Load the uvcvideo module with the clock trace flag (0x1000) set.
->
-> 2. Start capturing clock data.
->
-> while true; do
->         cat /sys/kernel/debug/usb/uvcvideo/2-6/clocks ;
-> done > ~/samples.log
->
-> 3. Capture 100 frames.
->
-> yavta -c100 > yavta.log
->
-> 4. Stop the "while true" with ctrl-C.
->
-> 5. Capture the uvcvideo stats.
->
-> cat /sys/kernel/debug/usb/uvcvideo/2-6/stats > stats.log
->
-> 6. Capture the kernel log.
->
-> dmesg > dmesg.log
->
-> 7. Send me all the log files.
+> As can be seen above it should be possible to decide by checking the
+> subsys id.
+> So having two board entries should be the best solution.
+> One for HVR-4400/HVR-5500 and the other for the Starburst.
 
-Done:
-http://notaz.gp2x.de/tmp/c920_yavta/3/
+regards
+Antti
 
---
-Gražvydas
+-- 
+http://palosaari.fi/
