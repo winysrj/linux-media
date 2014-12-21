@@ -1,115 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:56675 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750848AbaLCDej (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:39647 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753524AbaLUMyE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 22:34:39 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2E43D2A0092
-	for <linux-media@vger.kernel.org>; Wed,  3 Dec 2014 04:34:21 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20141203033421.2E43D2A0092@tschai.lan>
-Date: Wed,  3 Dec 2014 04:34:21 +0100 (CET)
+	Sun, 21 Dec 2014 07:54:04 -0500
+Received: by mail-wi0-f181.google.com with SMTP id r20so5732289wiv.8
+        for <linux-media@vger.kernel.org>; Sun, 21 Dec 2014 04:54:02 -0800 (PST)
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: radio: wl128x: fmdrv_rx.c:  Remove unused function
+Date: Sun, 21 Dec 2014 13:56:49 +0100
+Message-Id: <1419166609-2320-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Remove the function fm_rx_get_rds_system() that is not used anywhere.
 
-Results of the daily build of media_tree:
+This was partially found by using a static code analysis program called cppcheck.
 
-date:		Wed Dec  3 04:00:15 CET 2014
-git branch:	test
-git hash:	e8bd888a148cb55a5ba27070fdfeb62386c89577
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+---
+ drivers/media/radio/wl128x/fmdrv_rx.c |   16 ----------------
+ drivers/media/radio/wl128x/fmdrv_rx.h |    1 -
+ 2 files changed, 17 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/radio/wl128x/fmdrv_rx.c b/drivers/media/radio/wl128x/fmdrv_rx.c
+index 09632cb..cfaeb24 100644
+--- a/drivers/media/radio/wl128x/fmdrv_rx.c
++++ b/drivers/media/radio/wl128x/fmdrv_rx.c
+@@ -785,22 +785,6 @@ int fm_rx_set_rds_system(struct fmdev *fmdev, u8 rds_mode)
+ 	return 0;
+ }
+ 
+-/* Returns current RDS operation mode */
+-int fm_rx_get_rds_system(struct fmdev *fmdev, u8 *rds_mode)
+-{
+-	if (fmdev->curr_fmmode != FM_MODE_RX)
+-		return -EPERM;
+-
+-	if (rds_mode == NULL) {
+-		fmerr("Invalid memory\n");
+-		return -ENOMEM;
+-	}
+-
+-	*rds_mode = fmdev->rx.rds_mode;
+-
+-	return 0;
+-}
+-
+ /* Configures Alternate Frequency switch mode */
+ int fm_rx_set_af_switch(struct fmdev *fmdev, u8 af_mode)
+ {
+diff --git a/drivers/media/radio/wl128x/fmdrv_rx.h b/drivers/media/radio/wl128x/fmdrv_rx.h
+index 32add81..2392218 100644
+--- a/drivers/media/radio/wl128x/fmdrv_rx.h
++++ b/drivers/media/radio/wl128x/fmdrv_rx.h
+@@ -40,7 +40,6 @@ void fm_rx_reset_station_info(struct fmdev *);
+ int fm_rx_seek(struct fmdev *, u32, u32, u32);
+ 
+ int fm_rx_get_rds_mode(struct fmdev *, u8 *);
+-int fm_rx_get_rds_system(struct fmdev *, u8 *);
+ int fm_rx_get_mute_mode(struct fmdev *, u8 *);
+ int fm_rx_get_volume(struct fmdev *, u16 *);
+ int fm_rx_get_band_freq_range(struct fmdev *,
+-- 
+1.7.10.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
