@@ -1,67 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-035.synserver.de ([212.40.185.35]:1140 "EHLO
-	smtp-out-033.synserver.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752482AbaLSNpP (ORCPT
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:38533 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751372AbaLUTSt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 08:45:15 -0500
-Message-ID: <54942BE5.1060803@metafoo.de>
-Date: Fri, 19 Dec 2014 14:45:09 +0100
-From: Lars-Peter Clausen <lars@metafoo.de>
+	Sun, 21 Dec 2014 14:18:49 -0500
+Received: by mail-wg0-f46.google.com with SMTP id x13so5193627wgg.19
+        for <linux-media@vger.kernel.org>; Sun, 21 Dec 2014 11:18:47 -0800 (PST)
+Message-ID: <54971D13.7090508@googlemail.com>
+Date: Sun, 21 Dec 2014 20:18:43 +0100
+From: =?windows-1252?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org, Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/2] regmap: pass map name to lockdep
-References: <1418936717-2806-1-git-send-email-crope@iki.fi> <5493485E.7020803@metafoo.de> <549404DE.3060905@iki.fi>
-In-Reply-To: <549404DE.3060905@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	"linux-media@vger.kernel.org >> Linux Media Mailing List"
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/8] [media] em28xx: fix em28xx-input removal
+References: <20141220124448.GG11285@n2100.arm.linux.org.uk> <E1Y2JPH-0006UN-SW@rmk-PC.arm.linux.org.uk> <549583AA.9040204@googlemail.com> <20141220145119.GH11285@n2100.arm.linux.org.uk>
+In-Reply-To: <20141220145119.GH11285@n2100.arm.linux.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/19/2014 11:58 AM, Antti Palosaari wrote:
-> On 12/18/2014 11:34 PM, Lars-Peter Clausen wrote:
->> On 12/18/2014 10:05 PM, Antti Palosaari wrote:
->>> lockdep complains recursive locking and deadlock when two different
->>> regmap instances are called in a nested order. That happen easily
->>> for example when both I2C client and muxed/repeater I2C adapter are
->>> using regmap. As a solution, pass regmap name for lockdep in order
->>> to force lockdep validate regmap mutex per driver - not as all regmap
->>> instances grouped together.
->>
->> That's not how it works. Locks are grouped by lock class, the name is
->> just for pretty printing. The only reason you do not get a warning
->> anymore is because you have now different lock classes one for configs
->> with a name and one for configs without a name.
->>
->> You really need a way to specify a custom lock class per regmap instance
->> in order to solve this problem.
->
-> I looked example for that solution from v4l controls. So it is also wrong?
->
-> https://patchwork.linuxtv.org/patch/17262/
 
-No, that's correct. It creates one lock class per v4l2_ctrl_handler_init() 
-invocation site.
+Am 20.12.2014 um 15:51 schrieb Russell King - ARM Linux:
+> On Sat, Dec 20, 2014 at 03:11:54PM +0100, Frank Schäfer wrote:
+>> Hi Russel,
+> I guess you won't mind if I mis-spell your name too...
+
+Wow... it seems to be very easy to offend you...
+Sorry, that was definitely not my intention. I did not do this on purpose.
+It was just a simple mistake and I will try to avoid it in the future.
 
 >
+>> I'd prefer to keep the button initialization related stuff together in
+>> em28xx_init_buttons() and do the cancel_delayed_work_sync() only if we
+>> have buttons (dev->num_button_polling_addresses).
+>> That's how we already do it with the IR work struct (see
+>> em28xx_ir_suspend()).
+> Provided all places that touch buttons_query_work are properly updated
+> that's fine, but to me that is fragile and asking for trouble.  It's far
+> better to ensure that everything is properly initialised so you don't
+> have to remember to conditionalise every single reference to a work
+> struct.
 >
-> Do you think I should change to mutex_lock_nested() as documented in
-> Documentation/locking/lockdep-design.txt ?
+> In any case, delayed work struct initialisation is cheap - it doesn't
+> involve any additional memory, it only initialises the various members
+> of the struct (and the lockdep information for the static key) so there
+> really is no argument against always initialising delayed works or normal
+> works, timers, etc to avoid these kinds of bugs.
 
-No, mutex_lock_nested() only works if you can identify lock subclasses.
+Fair enough !
 
->
-> Should these macros used at all:
-> include/linux/lockdep.h
->
-> There is not much documentation, especially how these recursive lock
-> warnings should be silenced.
-
-You have a couple of options, either do what v4l2_ctrl_handler_init() and 
-create a lock class key per regmap_init_*() invocation site. Or just add a 
-lock class key per regmap instance. Or add a helper function which allows to 
-change the lock class of a regmap instance that can be used by drivers where 
-we expect that there will be nested locking. E.g. like in a bus master.
-
-- Lars
+Regards,
+Frank Schäfer
 
