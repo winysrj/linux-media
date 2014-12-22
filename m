@@ -1,55 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:59899 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932094AbaLATRl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 14:17:41 -0500
-Received: by mail-la0-f51.google.com with SMTP id ms9so9334923lab.38
-        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 11:17:40 -0800 (PST)
+Received: from nasmtp01.atmel.com ([192.199.1.245]:61912 "EHLO
+	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751957AbaLVKcN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Dec 2014 05:32:13 -0500
+Message-ID: <5497F327.4040903@atmel.com>
+Date: Mon, 22 Dec 2014 18:32:07 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-In-Reply-To: <546B92E3.30105@collabora.com>
-References: <CAOMZO5AX0R-s94-5m0G=SKkNb38u+jZo=7Toa+LDOkiJLAh=Tg@mail.gmail.com>
-	<20141117185554.GW25554@pengutronix.de>
-	<CAOMZO5DGR=Y1MVAc46OG6f26s9kEAoT+XCXgyezFOefM6H_NQg@mail.gmail.com>
-	<CAOMZO5CtXEzBw2_McwTpn3S4FB_8wRE-HYTghv=ceBo_AAuMqA@mail.gmail.com>
-	<546B92E3.30105@collabora.com>
-Date: Mon, 1 Dec 2014 17:17:40 -0200
-Message-ID: <CAOMZO5AkyqNt5g8+AVhoLdLiKv20_q9YRQidNv+2JuOO4BBzSg@mail.gmail.com>
-Subject: Re: Using the coda driver with Gstreamer
-From: Fabio Estevam <festevam@gmail.com>
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: Robert Schwebel <r.schwebel@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Jean-Michel Hautbois <jhautbois@gmail.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sascha Hauer <kernel@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	<m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <festevam@gmail.com>,
+	<devicetree@vger.kernel.org>
+Subject: Re: [PATCH v4 5/5] media: ov2640: dt: add the device tree binding
+ document
+References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com> <1418869646-17071-6-git-send-email-josh.wu@atmel.com> <5492C4E3.4050401@samsung.com>
+In-Reply-To: <5492C4E3.4050401@samsung.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 18, 2014 at 4:41 PM, Nicolas Dufresne
-<nicolas.dufresne@collabora.com> wrote:
+Hi, Sylwester
 
-> Ok, let us know when the switch is made. Assuming your goal is to get
-> the HW decoder working, you should test with simpler pipeline. In your
-> specific case, you should try and get this pipeline to preroll:
+On 12/18/2014 8:13 PM, Sylwester Nawrocki wrote:
+> Hi Josh,
 >
-> gst-launch-1.0 \
->   filesrc location=/home/H264_test1_Talk inghead_mp4_480x360.mp4 \
->   ! qtdemux ! h264parse ! v4l2video1dec ! fakesink
+> On 18/12/14 03:27, Josh Wu wrote:
+>> Add the document for ov2640 dt.
+>>
+>> Cc: devicetree@vger.kernel.org
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Thanks.
 
-After applying Philipp's dts patch:
-http://www.spinics.net/lists/arm-kernel/msg382314.html
+>
+> It seems "ovti" is not in the list of vendor prefixes. You may want
+> to send a patch adding it to Documentation/devicetree/bindings/
+> vendor-prefixes.txt.
+>
+> Just few minor comments below..
+>
+>>   .../devicetree/bindings/media/i2c/ov2640.txt       | 46 ++++++++++++++++++++++
+>>   1 file changed, 46 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>> new file mode 100644
+>> index 0000000..de11ebb
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+>> @@ -0,0 +1,46 @@
+>> +* Omnivision ov2640 CMOS sensor
+> s/ov2640/OV2640 ?
 
-,I am able to play the video clip with the following Gstreamer pipeline:
+OK.
+>
+>> +
+>> +The Omnivision OV2640 sensor support multiple resolutions output, such as
+>> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+>> +output format.
+>> +
+>> +Required Properties:
+>> +- compatible: Must be "ovti,ov2640"
+> I believe it is preferred to put it as "Should contain", rather than
+> "Must be".
+I don't have a strong opinion here. After check many documents, it seems 
+many people use "Should be".
+Is it okay?
 
-gst-launch-1.0 filesrc
-location=/home/H264_test1_Talkinghead_mp4_480x360.mp4 ! qtdemux !
-h264parse ! v4l2video1dec ! videoconvert ! fbdevsink
+Best Regards,
+Josh Wu
 
-(Still on Gstreamer 1.4.1 version though, as I was not able to upgrade it yet).
+>
+>> +- clocks: reference to the xvclk input clock.
+>> +- clock-names: Must be "xvclk".
+> --
+> Regards,
+> Sylwester
 
-Regards,
-
-Fabio Estevam
