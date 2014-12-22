@@ -1,379 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52226 "EHLO mail.kapsi.fi"
+Received: from smtp04.udag.de ([62.146.106.30]:57276 "EHLO smtp04.udag.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756639AbaLWUud (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:33 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 09/66] rtl2830: carry pointer to I2C client for every function
-Date: Tue, 23 Dec 2014 22:49:02 +0200
-Message-Id: <1419367799-14263-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+	id S932079AbaLVVNP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Dec 2014 16:13:15 -0500
+Message-ID: <54988806.7030800@cevel.net>
+Date: Mon, 22 Dec 2014 22:07:18 +0100
+From: Tolga Cakir <tolga@cevel.net>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>
+CC: Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: Support for Elgato Game Capture HD / MStar MST3367CMK
+References: <536C3403.8010402@cevel.net> <CALzAhNVtyhmt8cCapu2oK5pGkJY2zNTaf6Ws26Sn9kZxgAddew@mail.gmail.com>
+In-Reply-To: <CALzAhNVtyhmt8cCapu2oK5pGkJY2zNTaf6Ws26Sn9kZxgAddew@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As a I2C driver struct i2c_client is top level structure representing
-the driver. Use it as parameter to carry all needed information for
-each function in order to simplify things.
+Am 09.05.2014 um 14:38 schrieb Steven Toth:
+> On Thu, May 8, 2014 at 9:48 PM, Tolga Cakir <tolga@cevel.net> wrote:
+>> Hello everyone!
+> Hi Tolga!
+>
+>> Over the past weeks, I've been busy capturing USB packets between the Elgato
+>> Game Capture HD and my PC. It's using the MStar MST3367CMK chip, which seems
+>> to have proprietary Linux support available only for hardware vendors in
+>> form of an SDK. Problem is, that this SDK is strictly kept under an NDA,
+>> making it kinda impossible for us to get our hands on.
+> Thanks for raising the subject.
+>
+> While your comment is true, it would have been more appropriate to the
+> development community to say that it truly uses the Fujitsu USB
+> encoder, a fujitsu USB API along with a series of smaller subsystems
+> for HDMI receivers and transmitters. Your capture logs indicate
+> (largely) interaction with the Fujitsu USB bridge + integral encoder.
+> The distinction is important.
+>
+> We outlined the architecture of the device (along with the brief tear
+> down) here: http://www.kernellabs.com/blog/?p=1959
+>
+>> So, I got my hands dirty and have found some very good stuff! First of all,
+>> in contrast to many sources, the Elgato Game Capture HD outputs compressed
+>> video and audio via USB! It's already encoded, so there is no need for
+>> reencoding, this will save CPU power. For testing purposes, I've only tried
+>> capturing 720p data for now, but this should be more than enough.
+> Have you posted any source code? I don't see any in the zips or on github.
+>
+> Paging through a 600MB usb capture to find an occasional comment
+> (assuming you have inserted them) doesn't encourage me to contribute.
+>
+>> Basically, we need to read raw USB traffic, write an MPEG-TS file header,
+>> put in the raw USB data and close the file. I'm not super experienced in C /
+>> kernel development (especially V4L), but I'll give my best to get this
+>> project forward. My next step is getting a prototype working with libusb in
+>> userland; after that's done, I'll try porting it over to kernel / V4L
+>>
+>> Project page can be found here:
+>> https://github.com/tolga9009/elgato-gchd
+> I must be missing something. your repo contains a LICENSE file and
+> README. Did you forget to checking a homebrew datasheet or working
+> sample source code?
+>
+>> USB logs and docs:
+>> v1.0 as 7zip: https://docs.google.com/file/d/0B29z6-xPIPLEQVBMTWZHbUswYjg
+>> v1.0 as rar: https://docs.google.com/file/d/0B29z6-xPIPLEcENMWnh1MklPdTQ
+>> v1.0 as zip: https://docs.google.com/file/d/0B29z6-xPIPLEQWtibWk3T3AtVjA
+> Ahh, thank you for circulating the datasheets and images from our blog
+> post, you are most welcome! The internet is a wonderful thing, I'm
+> glad you found them useful.
+>
+>> Is anyone interested in getting involved / taking over? Overall, it seems
+>> doable and not too complex. I'd be happy about any help! Also, if you need
+>> more information, just ask me. I'll provide you everything I have about this
+>> little device.
+> How about instead of some usb dumps, pictures and pdfs, a working
+> program and a description of the device protocol? This would help.
+>
+> I spent a few days late 2012 with the usb analyzer and brought
+> together a primitive collection of personal notes on the API. Sadly
+> I'm struggling to locate them currently. From memory, the device has
+> an odd protocol which isn't exactly obvious. Its firmware like, not
+> i2c based. You don't appear to control the HDMI rx/tx silicon by hand,
+> the fijutsu firmware does this via firmware APIs. you would think,
+> YAY! firmware API, easy, surprisingly not. A lot of byte guess to be
+> done. If you have any significant homebrew documentation on the byte
+> sequences that control the device, this would help.
+>
+> Part of the problem is that the device also streams (with the
+> windows/osx drivers I was using) permanently on, making it difficult
+> to see the wood from the noise. So, even when you are not 'using it',
+> its streaming payload via USB to the host. Urgh. I hope they've fixed
+> this.
+>
+> The device outputs native ISO13818 TS packets which are easily
+> playable in VLC as is. I don't even think you need to add a header,
+> unless you are electing to create an updated PMT.
+>
+> I have datasheets and/or source on everything except the fujitsu
+> encoder, sorry - I can't share.
+>
+> Keep going with your project, this should be a fun to follow. libusb
+> is easy to work with, you should have the device running in no time.
+>
+> If you can make the device run at both 720p and 1080i then you should
+> find enough variance in the protocol bytes, build that into your app,
+> to be useful for some people.
+>
+> - Steve
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2830.c | 97 +++++++++++++++++++----------------
- 1 file changed, 54 insertions(+), 43 deletions(-)
+Hi Steven!
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index 44643d9..e7ba665 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -31,8 +31,9 @@
- #define MAX_XFER_SIZE  64
- 
- /* write multiple hardware registers */
--static int rtl2830_wr(struct rtl2830_dev *dev, u8 reg, const u8 *val, int len)
-+static int rtl2830_wr(struct i2c_client *client, u8 reg, const u8 *val, int len)
- {
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret;
- 	u8 buf[MAX_XFER_SIZE];
- 	struct i2c_msg msg[1] = {
-@@ -66,8 +67,9 @@ static int rtl2830_wr(struct rtl2830_dev *dev, u8 reg, const u8 *val, int len)
- }
- 
- /* read multiple hardware registers */
--static int rtl2830_rd(struct rtl2830_dev *dev, u8 reg, u8 *val, int len)
-+static int rtl2830_rd(struct i2c_client *client, u8 reg, u8 *val, int len)
- {
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret;
- 	struct i2c_msg msg[2] = {
- 		{
-@@ -95,59 +97,60 @@ static int rtl2830_rd(struct rtl2830_dev *dev, u8 reg, u8 *val, int len)
- }
- 
- /* write multiple registers */
--static int rtl2830_wr_regs(struct rtl2830_dev *dev, u16 reg, const u8 *val,
--		int len)
-+static int rtl2830_wr_regs(struct i2c_client *client, u16 reg, const u8 *val, int len)
- {
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret;
- 	u8 reg2 = (reg >> 0) & 0xff;
- 	u8 page = (reg >> 8) & 0xff;
- 
- 	/* switch bank if needed */
- 	if (page != dev->page) {
--		ret = rtl2830_wr(dev, 0x00, &page, 1);
-+		ret = rtl2830_wr(client, 0x00, &page, 1);
- 		if (ret)
- 			return ret;
- 
- 		dev->page = page;
- 	}
- 
--	return rtl2830_wr(dev, reg2, val, len);
-+	return rtl2830_wr(client, reg2, val, len);
- }
- 
- /* read multiple registers */
--static int rtl2830_rd_regs(struct rtl2830_dev *dev, u16 reg, u8 *val, int len)
-+static int rtl2830_rd_regs(struct i2c_client *client, u16 reg, u8 *val, int len)
- {
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret;
- 	u8 reg2 = (reg >> 0) & 0xff;
- 	u8 page = (reg >> 8) & 0xff;
- 
- 	/* switch bank if needed */
- 	if (page != dev->page) {
--		ret = rtl2830_wr(dev, 0x00, &page, 1);
-+		ret = rtl2830_wr(client, 0x00, &page, 1);
- 		if (ret)
- 			return ret;
- 
- 		dev->page = page;
- 	}
- 
--	return rtl2830_rd(dev, reg2, val, len);
-+	return rtl2830_rd(client, reg2, val, len);
- }
- 
- /* read single register */
--static int rtl2830_rd_reg(struct rtl2830_dev *dev, u16 reg, u8 *val)
-+static int rtl2830_rd_reg(struct i2c_client *client, u16 reg, u8 *val)
- {
--	return rtl2830_rd_regs(dev, reg, val, 1);
-+	return rtl2830_rd_regs(client, reg, val, 1);
- }
- 
- /* write single register with mask */
--static int rtl2830_wr_reg_mask(struct rtl2830_dev *dev, u16 reg, u8 val, u8 mask)
-+static int rtl2830_wr_reg_mask(struct i2c_client *client, u16 reg, u8 val, u8 mask)
- {
- 	int ret;
- 	u8 tmp;
- 
- 	/* no need for read if whole reg is written */
- 	if (mask != 0xff) {
--		ret = rtl2830_rd_regs(dev, reg, &tmp, 1);
-+		ret = rtl2830_rd_regs(client, reg, &tmp, 1);
- 		if (ret)
- 			return ret;
- 
-@@ -156,16 +159,16 @@ static int rtl2830_wr_reg_mask(struct rtl2830_dev *dev, u16 reg, u8 val, u8 mask
- 		val |= tmp;
- 	}
- 
--	return rtl2830_wr_regs(dev, reg, &val, 1);
-+	return rtl2830_wr_regs(client, reg, &val, 1);
- }
- 
- /* read single register with mask */
--static int rtl2830_rd_reg_mask(struct rtl2830_dev *dev, u16 reg, u8 *val, u8 mask)
-+static int rtl2830_rd_reg_mask(struct i2c_client *client, u16 reg, u8 *val, u8 mask)
- {
- 	int ret, i;
- 	u8 tmp;
- 
--	ret = rtl2830_rd_regs(dev, reg, &tmp, 1);
-+	ret = rtl2830_rd_regs(client, reg, &tmp, 1);
- 	if (ret)
- 		return ret;
- 
-@@ -183,7 +186,8 @@ static int rtl2830_rd_reg_mask(struct rtl2830_dev *dev, u16 reg, u8 *val, u8 mas
- 
- static int rtl2830_init(struct dvb_frontend *fe)
- {
--	struct rtl2830_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret, i;
- 	struct rtl2830_reg_val_mask tab[] = {
- 		{ 0x00d, 0x01, 0x03 },
-@@ -225,17 +229,17 @@ static int rtl2830_init(struct dvb_frontend *fe)
- 	};
- 
- 	for (i = 0; i < ARRAY_SIZE(tab); i++) {
--		ret = rtl2830_wr_reg_mask(dev, tab[i].reg, tab[i].val,
-+		ret = rtl2830_wr_reg_mask(client, tab[i].reg, tab[i].val,
- 			tab[i].mask);
- 		if (ret)
- 			goto err;
- 	}
- 
--	ret = rtl2830_wr_regs(dev, 0x18f, "\x28\x00", 2);
-+	ret = rtl2830_wr_regs(client, 0x18f, "\x28\x00", 2);
- 	if (ret)
- 		goto err;
- 
--	ret = rtl2830_wr_regs(dev, 0x195,
-+	ret = rtl2830_wr_regs(client, 0x195,
- 		"\x04\x06\x0a\x12\x0a\x12\x1e\x28", 8);
- 	if (ret)
- 		goto err;
-@@ -243,11 +247,11 @@ static int rtl2830_init(struct dvb_frontend *fe)
- 	/* TODO: spec init */
- 
- 	/* soft reset */
--	ret = rtl2830_wr_reg_mask(dev, 0x101, 0x04, 0x04);
-+	ret = rtl2830_wr_reg_mask(client, 0x101, 0x04, 0x04);
- 	if (ret)
- 		goto err;
- 
--	ret = rtl2830_wr_reg_mask(dev, 0x101, 0x00, 0x04);
-+	ret = rtl2830_wr_reg_mask(client, 0x101, 0x00, 0x04);
- 	if (ret)
- 		goto err;
- 
-@@ -261,7 +265,8 @@ err:
- 
- static int rtl2830_sleep(struct dvb_frontend *fe)
- {
--	struct rtl2830_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	dev->sleeping = true;
- 	return 0;
- }
-@@ -278,7 +283,8 @@ static int rtl2830_get_tune_settings(struct dvb_frontend *fe,
- 
- static int rtl2830_set_frontend(struct dvb_frontend *fe)
- {
--	struct rtl2830_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, i;
- 	u64 num;
-@@ -331,7 +337,7 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
- 		return -EINVAL;
- 	}
- 
--	ret = rtl2830_wr_reg_mask(dev, 0x008, i << 1, 0x06);
-+	ret = rtl2830_wr_reg_mask(client, 0x008, i << 1, 0x06);
- 	if (ret)
- 		goto err;
- 
-@@ -352,7 +358,7 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
- 	dev_dbg(&dev->i2c->dev, "%s: if_frequency=%d if_ctl=%08x\n",
- 			__func__, if_frequency, if_ctl);
- 
--	ret = rtl2830_rd_reg_mask(dev, 0x119, &tmp, 0xc0); /* b[7:6] */
-+	ret = rtl2830_rd_reg_mask(client, 0x119, &tmp, 0xc0); /* b[7:6] */
- 	if (ret)
- 		goto err;
- 
-@@ -361,21 +367,21 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
- 	buf[1] = (if_ctl >>  8) & 0xff;
- 	buf[2] = (if_ctl >>  0) & 0xff;
- 
--	ret = rtl2830_wr_regs(dev, 0x119, buf, 3);
-+	ret = rtl2830_wr_regs(client, 0x119, buf, 3);
- 	if (ret)
- 		goto err;
- 
- 	/* 1/2 split I2C write */
--	ret = rtl2830_wr_regs(dev, 0x11c, &bw_params1[i][0], 17);
-+	ret = rtl2830_wr_regs(client, 0x11c, &bw_params1[i][0], 17);
- 	if (ret)
- 		goto err;
- 
- 	/* 2/2 split I2C write */
--	ret = rtl2830_wr_regs(dev, 0x12d, &bw_params1[i][17], 17);
-+	ret = rtl2830_wr_regs(client, 0x12d, &bw_params1[i][17], 17);
- 	if (ret)
- 		goto err;
- 
--	ret = rtl2830_wr_regs(dev, 0x19d, bw_params2[i], 6);
-+	ret = rtl2830_wr_regs(client, 0x19d, bw_params2[i], 6);
- 	if (ret)
- 		goto err;
- 
-@@ -387,7 +393,8 @@ err:
- 
- static int rtl2830_get_frontend(struct dvb_frontend *fe)
- {
--	struct rtl2830_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
- 	u8 buf[3];
-@@ -395,11 +402,11 @@ static int rtl2830_get_frontend(struct dvb_frontend *fe)
- 	if (dev->sleeping)
- 		return 0;
- 
--	ret = rtl2830_rd_regs(dev, 0x33c, buf, 2);
-+	ret = rtl2830_rd_regs(client, 0x33c, buf, 2);
- 	if (ret)
- 		goto err;
- 
--	ret = rtl2830_rd_reg(dev, 0x351, &buf[2]);
-+	ret = rtl2830_rd_reg(client, 0x351, &buf[2]);
- 	if (ret)
- 		goto err;
- 
-@@ -499,6 +506,7 @@ err:
- 
- static int rtl2830_read_status(struct dvb_frontend *fe, fe_status_t *status)
- {
-+	struct i2c_client *client = fe->demodulator_priv;
- 	struct rtl2830_dev *dev = fe->demodulator_priv;
- 	int ret;
- 	u8 tmp;
-@@ -507,7 +515,7 @@ static int rtl2830_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	if (dev->sleeping)
- 		return 0;
- 
--	ret = rtl2830_rd_reg_mask(dev, 0x351, &tmp, 0x78); /* [6:3] */
-+	ret = rtl2830_rd_reg_mask(client, 0x351, &tmp, 0x78); /* [6:3] */
- 	if (ret)
- 		goto err;
- 
-@@ -527,7 +535,8 @@ err:
- 
- static int rtl2830_read_snr(struct dvb_frontend *fe, u16 *snr)
- {
--	struct rtl2830_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret, hierarchy, constellation;
- 	u8 buf[2], tmp;
- 	u16 tmp16;
-@@ -544,7 +553,7 @@ static int rtl2830_read_snr(struct dvb_frontend *fe, u16 *snr)
- 
- 	/* reports SNR in resolution of 0.1 dB */
- 
--	ret = rtl2830_rd_reg(dev, 0x33c, &tmp);
-+	ret = rtl2830_rd_reg(client, 0x33c, &tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -556,7 +565,7 @@ static int rtl2830_read_snr(struct dvb_frontend *fe, u16 *snr)
- 	if (hierarchy > HIERARCHY_NUM - 1)
- 		goto err;
- 
--	ret = rtl2830_rd_regs(dev, 0x40c, buf, 2);
-+	ret = rtl2830_rd_regs(client, 0x40c, buf, 2);
- 	if (ret)
- 		goto err;
- 
-@@ -576,14 +585,15 @@ err:
- 
- static int rtl2830_read_ber(struct dvb_frontend *fe, u32 *ber)
- {
--	struct rtl2830_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret;
- 	u8 buf[2];
- 
- 	if (dev->sleeping)
- 		return 0;
- 
--	ret = rtl2830_rd_regs(dev, 0x34e, buf, 2);
-+	ret = rtl2830_rd_regs(client, 0x34e, buf, 2);
- 	if (ret)
- 		goto err;
- 
-@@ -603,7 +613,8 @@ static int rtl2830_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- 
- static int rtl2830_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- {
--	struct rtl2830_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 	int ret;
- 	u8 buf[2];
- 	u16 if_agc_raw, if_agc;
-@@ -611,7 +622,7 @@ static int rtl2830_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- 	if (dev->sleeping)
- 		return 0;
- 
--	ret = rtl2830_rd_regs(dev, 0x359, buf, 2);
-+	ret = rtl2830_rd_regs(client, 0x359, buf, 2);
- 	if (ret)
- 		goto err;
- 
-@@ -774,7 +785,7 @@ static int rtl2830_probe(struct i2c_client *client,
- 	dev->cfg.agc_targ_val = pdata->agc_targ_val;
- 
- 	/* check if the demod is there */
--	ret = rtl2830_rd_reg(dev, 0x000, &u8tmp);
-+	ret = rtl2830_rd_reg(client, 0x000, &u8tmp);
- 	if (ret)
- 		goto err_kfree;
- 
-@@ -788,7 +799,7 @@ static int rtl2830_probe(struct i2c_client *client,
- 
- 	/* create dvb frontend */
- 	memcpy(&dev->fe.ops, &rtl2830_ops, sizeof(dev->fe.ops));
--	dev->fe.demodulator_priv = dev;
-+	dev->fe.demodulator_priv = client;
- 
- 	/* setup callbacks */
- 	pdata->get_dvb_frontend = rtl2830_get_dvb_frontend;
--- 
-http://palosaari.fi/
+thank you for your hints so far! They really helped me moving forward. 6 
+months have passed and I was able to learn more about the device. I have 
+captured some more USB logs using the OpenVizsla USB 2.0 analyzer, 
+comparing Windows and Mac drivers side-by-side. There are some findings, 
+I want to share with you:
 
+- The device has 5 endpoints, excluding EP0. EP1 and EP4 is used for 
+video / audio transmission and supports bulk transfers only; EP2 is used 
+for booting firmwares (which are not flashed onto the device, like FPGAs 
+- so, no brick chance!); EP5 is used for flashing a firmware onto the 
+device and shouldn't be touched by us. I have no idea about EP3, as I 
+haven't come across of it yet. You can find the output of "lsusb -v" 
+here: 
+https://github.com/tolga9009/elgato-gchd/blob/master/descriptors/lsusb_usb_descriptor
+
+- Setting up the device is done in several, non-trivial steps. There are 
+2 firmwares loaded onto the device (which we were able to transfer onto 
+the device!).
+
+- I have come across a bootup script, which was bundled with the Elgato 
+Mac drivers: 
+https://drive.google.com/file/d/0B29z6-xPIPLEZTZhSzJiQTVoR3c/view?usp=sharing. 
+This is a very interesting, documented script. You should definitely 
+take a look at it. The device seems to be using I2C for configuration. I 
+wasn't able to translate between I2C and the USB packets so far, but I'm 
+sure it can be done.
+
+I'm currently stuck after successfully loading the 2nd firmware onto the 
+device. That's a point, where things are getting really complicated. I 
+have studied and compared the (new) USB capture logs countless hours, 
+but wasn't able to find anything to move forward. Can you look into this 
+a second time? You can find everything in the GitHub repo: 
+https://github.com/tolga9009/elgato-gchd. By the way: Elgato has 
+improved alot. The new v2.0 Mac drivers stripped away tons of 
+unnecessary USB packets. That helps concentrating on the important stuff.
+
+Thank you!
+
+Cheers,
+Tolga
