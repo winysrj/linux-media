@@ -1,63 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42425 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751347AbaLWVXW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 16:23:22 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 56/66] rtl28xxu: do not refcount rtl2832_sdr module
-Date: Tue, 23 Dec 2014 22:49:49 +0200
-Message-Id: <1419367799-14263-56-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:57888 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754004AbaLVJof (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Dec 2014 04:44:35 -0500
+Received: by mail-wg0-f48.google.com with SMTP id y19so6205974wgg.7
+        for <linux-media@vger.kernel.org>; Mon, 22 Dec 2014 01:44:34 -0800 (PST)
+Date: Mon, 22 Dec 2014 10:44:05 +0100
+From: Francesco Marletta <fmarletta@movia.biz>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: Help required for TVP5151 on Overo
+Message-ID: <20141222104405.46d1adaf@crow>
+In-Reply-To: <1661712.GcM7Su7W5y@avalon>
+References: <20141119094656.5459258b@crow>
+	<5213550.zrY0P2Gc9u@avalon>
+	<20141212163802.6efa5dd0@crow>
+	<1661712.GcM7Su7W5y@avalon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver, rtl28xxu, offers frontend service for rtl2832_sdr
-module, thus we are producer and rtl2832_sdr module is consumer.
-Due to that, reference counting should be done in way rtl2832_sdr
-takes refrence to rtl28xxu. Remove wrong refcount.
+Il giorno Sat, 13 Dec 2014 00:50:10 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> ha scritto:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+> Hi Francesco,
+> 
+> On Friday 12 December 2014 16:38:02 Francesco Marletta wrote:
+> > Hi Laurent,
+> >
+> > I'll check the patches you indicated on
+> > 	git://linuxtv.org/pinchartl/media.git omap3isp/tvp5151
+> > 
+> > Which version of the kernel are these patches for?
+> 
+> Do you know that, if you clone the above tree and checkout the 
+> omap3isp/tvp5151 branch, you will get a Linux kernel source tree with
+> complete history and a Makefile that contains the version number ? :-)
+> 
+> http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/tree/Makefile?h=omap3isp/tvp5151
+> 
+Yes, I know that... I was just asking to have a "memo" on the email.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index f475018..27cf341 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1142,16 +1142,12 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 		pdata.v4l2_subdev = subdev;
- 
- 		request_module("%s", "rtl2832_sdr");
--		pdev = platform_device_register_data(&priv->i2c_client_demod->dev,
-+		pdev = platform_device_register_data(&d->intf->dev,
- 						     "rtl2832_sdr",
- 						     PLATFORM_DEVID_AUTO,
- 						     &pdata, sizeof(pdata));
- 		if (pdev == NULL || pdev->dev.driver == NULL)
- 			break;
--		if (!try_module_get(pdev->dev.driver->owner)) {
--			platform_device_unregister(pdev);
--			break;
--		}
- 		priv->platform_device_sdr = pdev;
- 		break;
- 	default:
-@@ -1175,10 +1171,8 @@ static int rtl2832u_tuner_detach(struct dvb_usb_adapter *adap)
- 
- 	/* remove platform SDR */
- 	pdev = priv->platform_device_sdr;
--	if (pdev) {
--		module_put(pdev->dev.driver->owner);
-+	if (pdev)
- 		platform_device_unregister(pdev);
--	}
- 
- 	/* remove I2C tuner */
- 	client = priv->i2c_client_tuner;
--- 
-http://palosaari.fi/
-
+Regards
