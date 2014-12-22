@@ -1,62 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:52213 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849AbaLRLji (ORCPT
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:38922 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754051AbaLVK6v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 06:39:38 -0500
-Received: by mail-wi0-f174.google.com with SMTP id h11so1461966wiw.1
-        for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 03:39:37 -0800 (PST)
+	Mon, 22 Dec 2014 05:58:51 -0500
 MIME-Version: 1.0
-In-Reply-To: <20141218090053.68a0aad6@recife.lan>
-References: <1418873833-5084-1-git-send-email-zhang.chunyan@linaro.org>
-	<1685288.Gd2P1eSoIW@wuerfel>
-	<CAG2=9p9eL6kx8AfrLMw3Ct+eQcsQq5KJt=TkJ8ySmaWsWOmQ5A@mail.gmail.com>
-	<20141218090053.68a0aad6@recife.lan>
-Date: Thu, 18 Dec 2014 19:39:37 +0800
-Message-ID: <CAG2=9p_-=pDeU5C0On5Qt8fRJuW6o_zZEECvvAgPVoMgrc_5JA@mail.gmail.com>
-Subject: Re: [PATCH] media: rc: Replace timeval with ktime_t in imon.c
-From: Chunyan Zhang <zhang.chunyan@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Arnd Bergmann <arnd@linaro.org>, david@hardeman.nu,
-	uli-lirc@uli-eckhardt.de, hans.verkuil@cisco.com,
-	julia.lawall@lip6.fr, Himangi Saraogi <himangi774@gmail.com>,
-	Alexey Khoroshilov <khoroshilov@ispras.ru>, joe@perches.com,
-	John Stultz <john.stultz@linaro.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Lyra Zhang <zhang.lyra@gmail.com>
+Date: Mon, 22 Dec 2014 11:58:49 +0100
+Message-ID: <CAMuHMdV6XPseBk6pCoWogiU6AuSt1P_DVib-HdydnyCF0kKMSQ@mail.gmail.com>
+Subject: SuperH Mobile CEU driver warning
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux-sh list <linux-sh@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 18, 2014 at 7:00 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Em Thu, 18 Dec 2014 17:38:14 +0800
-> Chunyan Zhang <zhang.chunyan@linaro.org> escreveu:
->
->> On Thu, Dec 18, 2014 at 3:50 PM, Arnd Bergmann <arnd@linaro.org> wrote:
->> > On Thursday 18 December 2014 11:37:13 Chunyan Zhang wrote:
->> >> This patch changes the 32-bit time type (timeval) to the 64-bit one
->> >> (ktime_t), since 32-bit time types will break in the year 2038.
->> >>
->> >> I use ktime_t instead of all uses of timeval in imon.c
->> >>
->> >> This patch also changes do_gettimeofday() to ktime_get() accordingly,
->> >> since ktime_get returns a ktime_t, but do_gettimeofday returns a
->> >> struct timeval, and the other reason is that ktime_get() uses
->> >> the monotonic clock.
->> >>
->> >> This patch use a new function which is provided by another patch listed below
->> >> to get the millisecond time difference.
->> >
->> > The patch looks great. Just a few small details that could still be
->> > improved:
->
-> Yes, patch looks OK. After addressing the bits pointed by Arnd:
->
-> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> Feel free to merge via y2038 tree.
->
-Ok, thank you, I'll send the updated patch-set soon.
+commit 454a4e728dd56c8515b80381c14168099279e7fc
+("[media] v4l2-ioctl: WARN_ON if querycap didn't fill device_caps")
+causes on r8a7740/armadillo-legacy:
 
-Chunyan
+sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver attached to camera 0
+sh_mobile_ceu sh_mobile_ceu.0: pm_clk_resume()
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 199 at drivers/media/v4l2-core/v4l2-ioctl.c:1025
+v4l_querycap+0x5c/0x78()
+Modules linked in:
+CPU: 0 PID: 199 Comm: v4l_id Not tainted
+3.19.0-rc1-armadillo-legacy-00258-g85f5ee22d89dad78 #425
+Hardware name: armadillo800eva
+Backtrace:
+[<c001130c>] (dump_backtrace) from [<c001152c>] (show_stack+0x18/0x1c)
+ r6:c04a30cb r5:00000009 r4:00000000 r3:00400000
+[<c0011514>] (show_stack) from [<c03a57bc>] (dump_stack+0x20/0x28)
+[<c03a579c>] (dump_stack) from [<c0020374>] (warn_slowpath_common+0x90/0xb8)
+[<c00202e4>] (warn_slowpath_common) from [<c0020440>]
+(warn_slowpath_null+0x24/0x2c)
+ r8:de323e30 r7:80685600 r6:c0553dc4 r5:00000000 r4:de323e30
+[<c002041c>] (warn_slowpath_null) from [<c027209c>] (v4l_querycap+0x5c/0x78)
+[<c0272040>] (v4l_querycap) from [<c0273c2c>] (__video_do_ioctl+0x1b0/0x290)
+ r5:debc1000 r4:00000000
+[<c0273a7c>] (__video_do_ioctl) from [<c0273848>] (video_usercopy+0x1d8/0x3f0)
+ r10:00000000 r9:00000000 r8:00000000 r7:de323e30 r6:80685600 r5:00000000
+ r4:00000000
+[<c0273670>] (video_usercopy) from [<c0273a74>] (video_ioctl2+0x14/0x1c)
+ r10:00000000 r9:de5a3840 r8:bef20c6c r7:00000003 r6:debc14d0 r5:80685600
+ r4:debc1000
+[<c0273a60>] (video_ioctl2) from [<c026e7ec>] (v4l2_ioctl+0x68/0x120)
+[<c026e784>] (v4l2_ioctl) from [<c00c4f4c>] (do_vfs_ioctl+0x4a4/0x5ac)
+ r9:de322000 r8:00000003 r7:00000003 r6:de5a3840 r5:de2530a0 r4:bef20c6c
+[<c00c4aa8>] (do_vfs_ioctl) from [<c00c5090>] (SyS_ioctl+0x3c/0x64)
+ r10:00000000 r9:de322000 r8:00000003 r7:80685600 r6:de5a3840 r5:de5a3840
+ r4:bef20c6c
+[<c00c5054>] (SyS_ioctl) from [<c000dea0>] (ret_fast_syscall+0x0/0x48)
+ r8:c000e064 r7:00000036 r6:00020fbc r5:b6f20f10 r4:00000003 r3:00000000
+---[ end trace ef1469dbfa7397f4 ]---
+sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver detached from camera 0
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
