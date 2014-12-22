@@ -1,63 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:44078 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932067AbaLVPc2 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38338 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753602AbaLVDn1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 10:32:28 -0500
-Date: Mon, 22 Dec 2014 15:32:03 +0000
-From: Mark Brown <broonie@kernel.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <20141222153203.GZ17800@sirena.org.uk>
-References: <1419114892-4550-1-git-send-email-crope@iki.fi>
- <20141222124411.GK17800@sirena.org.uk>
- <549814BB.3040808@iki.fi>
- <20141222133142.GM17800@sirena.org.uk>
- <20141222122319.4eefacb3@concha.lan.sisa.samsung.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Ix2jQZQ3wXOip0b1"
-Content-Disposition: inline
-In-Reply-To: <20141222122319.4eefacb3@concha.lan.sisa.samsung.com>
-Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
+	Sun, 21 Dec 2014 22:43:27 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 81C502A0083
+	for <linux-media@vger.kernel.org>; Mon, 22 Dec 2014 04:43:07 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141222034307.81C502A0083@tschai.lan>
+Date: Mon, 22 Dec 2014 04:43:07 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---Ix2jQZQ3wXOip0b1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Results of the daily build of media_tree:
 
-On Mon, Dec 22, 2014 at 12:23:19PM -0200, Mauro Carvalho Chehab wrote:
+date:		Mon Dec 22 04:00:14 CET 2014
+git branch:	test
+git hash:	427ae153c65ad7a08288d86baf99000569627d03
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-> What this patch does is to offer a way for drivers B and C to define
-> different mutex groups (e. g. different mutex "IDs") that will teach
-> the lockdep code to threat regmap mutex on drivers B and C as different
-> mutexes.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
-> I hope the above explanation helps.
+Detailed results are available here:
 
-No, not really - even the best explanation on the mailing list isn't
-going to make the commit clearer (something like this needs to be at
-least clear in the commit log and ideally the code) and it'd be much
-better if the interface were improved so it's obvious that users are
-doing the right thing when they use it.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
---Ix2jQZQ3wXOip0b1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Full logs are available here:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-iQEcBAEBAgAGBQJUmDlyAAoJECTWi3JdVIfQNN4H/j4cKHgqK4WxWpGRwY0fXPSE
-2mIjU+uD8GqOdyfNtz61TiR+HEOsYEZXfFLGNhaNrSbGT4se0N1OFXEmQxh997IK
-vYuqFVm3gF9S5UtXojlayg5sqi6iY96sZRMOui1jZeNuni2YDE/k4LqIdSXGA7Ap
-JHOhE+tXo0Ivlgw5Ac50gof1dwsyqS0wQo805c228G9wk/yAcV47EC7bkh/IxCTj
-3Uyi8cO4n2BILZ0+YnYExxZDfAJn6skx2eFc8y2CF7yqyBAcrLaPpT8NruU9UlnR
-Bg9hBCqmk86+B6EtSq7vUUc7B663bqvmwZopkE4LeOI8QveWu3igI5VXc9UtAaQ=
-=nxue
------END PGP SIGNATURE-----
+The Media Infrastructure API from this daily build is here:
 
---Ix2jQZQ3wXOip0b1--
+http://www.xs4all.nl/~hverkuil/spec/media.html
