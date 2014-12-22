@@ -1,125 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f177.google.com ([209.85.216.177]:34700 "EHLO
-	mail-qc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752248AbaLIOlN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Dec 2014 09:41:13 -0500
-Received: by mail-qc0-f177.google.com with SMTP id x3so488222qcv.36
-        for <linux-media@vger.kernel.org>; Tue, 09 Dec 2014 06:41:12 -0800 (PST)
-Date: Tue, 9 Dec 2014 14:41:00 +0000
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v9 04/19] mfd: max77693: adjust
- max77693_led_platform_data
-Message-ID: <20141209144100.GA3951@x1>
-References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
- <1417622814-10845-5-git-send-email-j.anaszewski@samsung.com>
- <20141209085047.GR3951@x1>
- <5486BC44.7010602@samsung.com>
- <20141209100413.GW3951@x1>
- <5486CE1F.9010102@samsung.com>
- <20141209135017.GY3951@x1>
- <548700DE.2050208@samsung.com>
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:37477 "EHLO
+	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754910AbaLVVJr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Dec 2014 16:09:47 -0500
+Received: by mail-oi0-f44.google.com with SMTP id e131so11451744oig.3
+        for <linux-media@vger.kernel.org>; Mon, 22 Dec 2014 13:09:46 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <548700DE.2050208@samsung.com>
+In-Reply-To: <1419261091-29888-2-git-send-email-p.zabel@pengutronix.de>
+References: <1419261091-29888-1-git-send-email-p.zabel@pengutronix.de>
+	<1419261091-29888-2-git-send-email-p.zabel@pengutronix.de>
+Date: Mon, 22 Dec 2014 14:09:46 -0700
+Message-ID: <CANLsYkydZGBQa2KXyVsjp3PaAvfBtOSf+qa0yVdzidJbxcQybw@mail.gmail.com>
+Subject: Re: [PATCH v6 1/3] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	kernel@pengutronix.de
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 09 Dec 2014, Jacek Anaszewski wrote:
+On 22 December 2014 at 08:11, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Decrementing the reference count of the previous endpoint node allows to
+> use the of_graph_get_next_endpoint function in a for_each_... style macro.
+> All current users of this function that pass a non-NULL prev parameter
+> (that is, soc_camera and imx-drm) are changed to not decrement the passed
+> prev argument's refcount themselves.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+> Changes since v5:
+>  - Rebased onto v3.19-rc1
+>  - Added coresight and rcar-du
+> ---
+>  drivers/coresight/of_coresight.c               | 13 ++-----------
+>  drivers/gpu/drm/imx/imx-drm-core.c             | 13 ++-----------
+>  drivers/gpu/drm/rcar-du/rcar_du_kms.c          | 15 ++++-----------
+>  drivers/media/platform/soc_camera/soc_camera.c |  3 ++-
+>  drivers/of/base.c                              |  9 +--------
+>  5 files changed, 11 insertions(+), 42 deletions(-)
+>
+> diff --git a/drivers/coresight/of_coresight.c b/drivers/coresight/of_coresight.c
+> index 5030c07..349c88b 100644
+> --- a/drivers/coresight/of_coresight.c
+> +++ b/drivers/coresight/of_coresight.c
+> @@ -52,15 +52,6 @@ of_coresight_get_endpoint_device(struct device_node *endpoint)
+>                                endpoint, of_dev_node_match);
+>  }
+>
+> -static struct device_node *of_get_coresight_endpoint(
+> -               const struct device_node *parent, struct device_node *prev)
+> -{
+> -       struct device_node *node = of_graph_get_next_endpoint(parent, prev);
+> -
+> -       of_node_put(prev);
+> -       return node;
+> -}
+> -
+>  static void of_coresight_get_ports(struct device_node *node,
+>                                    int *nr_inport, int *nr_outport)
+>  {
+> @@ -68,7 +59,7 @@ static void of_coresight_get_ports(struct device_node *node,
+>         int in = 0, out = 0;
+>
+>         do {
+> -               ep = of_get_coresight_endpoint(node, ep);
+> +               ep = of_graph_get_next_endpoint(node, ep);
+>                 if (!ep)
+>                         break;
+>
+> @@ -140,7 +131,7 @@ struct coresight_platform_data *of_get_coresight_platform_data(
+>                 /* Iterate through each port to discover topology */
+>                 do {
+>                         /* Get a handle on a port */
+> -                       ep = of_get_coresight_endpoint(node, ep);
+> +                       ep = of_graph_get_next_endpoint(node, ep);
+>                         if (!ep)
+>                                 break;
+>
 
-> On 12/09/2014 02:50 PM, Lee Jones wrote:
-> >On Tue, 09 Dec 2014, Jacek Anaszewski wrote:
-> >
-> >>On 12/09/2014 11:04 AM, Lee Jones wrote:
-> >>>On Tue, 09 Dec 2014, Jacek Anaszewski wrote:
-> >>>
-> >>>>On 12/09/2014 09:50 AM, Lee Jones wrote:
-> >>>>>On Wed, 03 Dec 2014, Jacek Anaszewski wrote:
-> >>>>>
-> >>>>>>Add "label" array for Device Tree strings with the name of a LED device
-> >>>>>>and make flash_timeout a two element array, for caching the sub-led
-> >>>>>>related flash timeout. Added is also an array for caching pointers to the
-> >>>>>>sub-nodes representing sub-leds.
-> >>>>>>
-> >>>>>>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>>>>>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>>>>>Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> >>>>>>Cc: Lee Jones <lee.jones@linaro.org>
-> >>>>>>---
-> >>>>>>  include/linux/mfd/max77693.h |    4 +++-
-> >>>>>>  1 file changed, 3 insertions(+), 1 deletion(-)
-> >>>>>>
-> >>>>>>diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
-> >>>>>>index f0b6585..c80ee99 100644
-> >>>>>>--- a/include/linux/mfd/max77693.h
-> >>>>>>+++ b/include/linux/mfd/max77693.h
-> >>>>>>@@ -88,16 +88,18 @@ enum max77693_led_boost_mode {
-> >>>>>>  };
-> >>>>>>
-> >>>>>>  struct max77693_led_platform_data {
-> >>>>>>+	const char *label[2];
-> >>>>>>  	u32 fleds[2];
-> >>>>>>  	u32 iout_torch[2];for_each_available_child_of_node
-> >>>>>>  	u32 iout_flash[2];
-> >>>>>>  	u32 trigger[2];
-> >>>>>>  	u32 trigger_type[2];
-> >>>>>>+	u32 flash_timeout[2];
-> >>>>>>  	u32 num_leds;
-> >>>>>>  	u32 boost_mode;
-> >>>>>>-	u32 flash_timeout;
-> >>>>>>  	u32 boost_vout;
-> >>>>>>  	u32 low_vsys;
-> >>>>>>+	struct device_node *sub_nodes[2];
-> >>>>>
-> >>>>>I haven't seen anyone do this before.  Why can't you use the provided
-> >>>>>OF functions to traverse through your tree?
-> >>>>
-> >>>>I use for_each_available_child_of_node when parsing DT node, but I
-> >>>>need to cache the pointer to sub-node to be able to use it later
-> >>>>when it needs to be passed to V4L2 sub-device which is then
-> >>>>asynchronously matched by the phandle to sub-node.
-> >>>>
-> >>>>If it is not well seen to cache it in the platform data then
-> >>>>I will find different way to accomplish this.
-> >>>
-> >>>I haven't seen the end-driver for this, but why can't you use that
-> >>>device's of_node pointer?
-> >>
-> >>Maybe it is indeed a good idea. I could pass the of_node pointer
-> >>and the sub-led identifier to the V4L2 sub-device and there look
-> >>for the sub-node containing relevant identifier. The downside
-> >>would be only that for_each_available_child_of_node would
-> >>have to be called twice - in the led driver and in the V4L2 sub-device.
-> >>I think that we can live with it.
-> >
-> >Are the LED and V4L2 drivers children of this MFD?  If so, you can use
-> >the of_compatible attribute in struct mfd_cell to populate the each
-> >child's of_node dynamically i.e. the MFD core will do that for you.
-> >
-> 
-> V4L2 driver wraps LED driver. This way the LED device can be
-> controlled with use of two interfaces - LED subsystem sysfs
-> and V4L2 Flash. This is the aim of the whole patch set.
-> 
-> I've thought it over again and it seems that I will need to cache
-> somewhere these sub_nodes pointers. They have to be easily accessible
-> for the V4L2 sub-device as it can be asynchronously registered
-> or unregistered within V4L2 media device. Sub-devices are matched
-> basing on the sub-node phandle.
-
-Not quite getting this.  Can you explain this in another way please?
-
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+I tested this in my tree - ack.
