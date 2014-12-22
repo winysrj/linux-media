@@ -1,178 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:58009 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132AbaLEK4G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 05:56:06 -0500
-Received: by mail-pa0-f47.google.com with SMTP id kq14so493990pab.6
-        for <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 02:56:05 -0800 (PST)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH 1/5] dvb: qm1d1c0042: use dvb-core i2c binding model template
-Date: Fri,  5 Dec 2014 19:55:36 +0900
-Message-Id: <1417776940-16381-2-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1417776940-16381-1-git-send-email-tskd08@gmail.com>
-References: <1417776940-16381-1-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
-References: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50656 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755268AbaLVPLt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Dec 2014 10:11:49 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v6 3/3] of: Add of_graph_get_port_by_id function
+Date: Mon, 22 Dec 2014 16:11:31 +0100
+Message-Id: <1419261091-29888-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1419261091-29888-1-git-send-email-p.zabel@pengutronix.de>
+References: <1419261091-29888-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+This patch adds a function to get a port device tree node by port id,
+or reg property value.
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/tuners/qm1d1c0042.c | 61 +++++++++++++--------------------------
- drivers/media/tuners/qm1d1c0042.h |  2 --
- 2 files changed, 20 insertions(+), 43 deletions(-)
+ drivers/of/base.c        | 26 ++++++++++++++++++++++++++
+ include/linux/of_graph.h |  7 +++++++
+ 2 files changed, 33 insertions(+)
 
-diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
-index 18bc745..f1f4bec 100644
---- a/drivers/media/tuners/qm1d1c0042.c
-+++ b/drivers/media/tuners/qm1d1c0042.c
-@@ -29,6 +29,7 @@
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index aac66df..c816299 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -2080,6 +2080,32 @@ int of_graph_parse_endpoint(const struct device_node *node,
+ EXPORT_SYMBOL(of_graph_parse_endpoint);
  
- #include <linux/kernel.h>
- #include <linux/math64.h>
-+#include "dvb_i2c.h"
- #include "qm1d1c0042.h"
- 
- #define QM1D1C0042_NUM_REGS 0x20
-@@ -55,11 +56,6 @@ struct qm1d1c0042_state {
- 	u8 regs[QM1D1C0042_NUM_REGS];
- };
- 
--static struct qm1d1c0042_state *cfg_to_state(struct qm1d1c0042_config *c)
--{
--	return container_of(c, struct qm1d1c0042_state, cfg);
--}
--
- static int reg_write(struct qm1d1c0042_state *state, u8 reg, u8 val)
- {
- 	u8 wbuf[2] = { reg, val };
-@@ -106,10 +102,12 @@ static int qm1d1c0042_set_srch_mode(struct qm1d1c0042_state *state, bool fast)
- 	return reg_write(state, 0x03, state->regs[0x03]);
- }
- 
--static int qm1d1c0042_wakeup(struct qm1d1c0042_state *state)
-+static int qm1d1c0042_wakeup(struct dvb_frontend *fe)
- {
-+	struct qm1d1c0042_state *state;
- 	int ret;
- 
-+	state = fe->tuner_priv;
- 	state->regs[0x01] |= 1 << 3;             /* BB_Reg_enable */
- 	state->regs[0x01] &= (~(1 << 0)) & 0xff; /* NORMAL (wake-up) */
- 	state->regs[0x05] &= (~(1 << 3)) & 0xff; /* pfd_rst NORMAL */
-@@ -119,7 +117,7 @@ static int qm1d1c0042_wakeup(struct qm1d1c0042_state *state)
- 
- 	if (ret < 0)
- 		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
--			__func__, state->cfg.fe->dvb->num, state->cfg.fe->id);
-+			__func__, fe->dvb->num, fe->id);
- 	return ret;
- }
- 
-@@ -133,9 +131,6 @@ static int qm1d1c0042_set_config(struct dvb_frontend *fe, void *priv_cfg)
- 	state = fe->tuner_priv;
- 	cfg = priv_cfg;
- 
--	if (cfg->fe)
--		state->cfg.fe = cfg->fe;
--
- 	if (cfg->xtal_freq != QM1D1C0042_CFG_XTAL_DFLT)
- 		dev_warn(&state->i2c->dev,
- 			"(%s) changing xtal_freq not supported. ", __func__);
-@@ -359,7 +354,7 @@ static int qm1d1c0042_init(struct dvb_frontend *fe)
- 			goto failed;
- 	}
- 
--	ret = qm1d1c0042_wakeup(state);
-+	ret = qm1d1c0042_wakeup(fe);
- 	if (ret < 0)
- 		goto failed;
- 
-@@ -395,53 +390,37 @@ static const struct dvb_tuner_ops qm1d1c0042_ops = {
- static int qm1d1c0042_probe(struct i2c_client *client,
- 			    const struct i2c_device_id *id)
- {
--	struct qm1d1c0042_state *state;
--	struct qm1d1c0042_config *cfg;
-+	struct dvb_i2c_tuner_config *tcfg;
- 	struct dvb_frontend *fe;
-+	struct qm1d1c0042_state *state;
- 
--	state = kzalloc(sizeof(*state), GFP_KERNEL);
--	if (!state)
--		return -ENOMEM;
-+dev_info(&client->dev, "qm1d1c0042_probe().\n");
-+	tcfg = client->dev.platform_data;
-+	fe = tcfg->fe;
-+	state = fe->tuner_priv;
- 	state->i2c = client;
- 
--	cfg = client->dev.platform_data;
--	fe = cfg->fe;
--	fe->tuner_priv = state;
--	qm1d1c0042_set_config(fe, cfg);
--	memcpy(&fe->ops.tuner_ops, &qm1d1c0042_ops, sizeof(qm1d1c0042_ops));
-+	qm1d1c0042_set_config(fe, (void *)tcfg->devcfg.priv_cfg);
- 
--	i2c_set_clientdata(client, &state->cfg);
- 	dev_info(&client->dev, "Sharp QM1D1C0042 attached.\n");
- 	return 0;
- }
- 
--static int qm1d1c0042_remove(struct i2c_client *client)
--{
--	struct qm1d1c0042_state *state;
--
--	state = cfg_to_state(i2c_get_clientdata(client));
--	state->cfg.fe->tuner_priv = NULL;
--	kfree(state);
--	return 0;
--}
--
- 
- static const struct i2c_device_id qm1d1c0042_id[] = {
- 	{"qm1d1c0042", 0},
- 	{}
- };
--MODULE_DEVICE_TABLE(i2c, qm1d1c0042_id);
- 
--static struct i2c_driver qm1d1c0042_driver = {
--	.driver = {
--		.name	= "qm1d1c0042",
--	},
--	.probe		= qm1d1c0042_probe,
--	.remove		= qm1d1c0042_remove,
--	.id_table	= qm1d1c0042_id,
-+static const struct dvb_i2c_module_param qm1d1c0042_param = {
-+	.ops.tuner_ops = &qm1d1c0042_ops,
-+	.priv_probe = qm1d1c0042_probe,
+ /**
++ * of_graph_get_port_by_id() - get the port matching a given id
++ * @parent: pointer to the parent device node
++ * @id: id of the port
++ *
++ * Return: A 'port' node pointer with refcount incremented. The caller
++ * has to use of_node_put() on it when done.
++ */
++struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id)
++{
++	struct device_node *port;
 +
-+	.priv_size = sizeof(struct qm1d1c0042_state),
-+	.is_tuner = true,
- };
++	for_each_child_of_node(node, port) {
++		u32 port_id = 0;
++
++		if (of_node_cmp(port->name, "port") != 0)
++			continue;
++		of_property_read_u32(port, "reg", &port_id);
++		if (id == port_id)
++			return port;
++	}
++
++	return NULL;
++}
++EXPORT_SYMBOL(of_graph_get_port_by_id);
++
++/**
+  * of_graph_get_next_endpoint() - get next endpoint node
+  * @parent: pointer to the parent device node
+  * @prev: previous endpoint node, or NULL to get first
+diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+index e43442e..3c1c95a 100644
+--- a/include/linux/of_graph.h
++++ b/include/linux/of_graph.h
+@@ -40,6 +40,7 @@ struct of_endpoint {
+ #ifdef CONFIG_OF
+ int of_graph_parse_endpoint(const struct device_node *node,
+ 				struct of_endpoint *endpoint);
++struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id);
+ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 					struct device_node *previous);
+ struct device_node *of_graph_get_remote_port_parent(
+@@ -53,6 +54,12 @@ static inline int of_graph_parse_endpoint(const struct device_node *node,
+ 	return -ENOSYS;
+ }
  
--module_i2c_driver(qm1d1c0042_driver);
-+DEFINE_DVB_I2C_MODULE(qm1d1c0042, qm1d1c0042_id, qm1d1c0042_param);
- 
- MODULE_DESCRIPTION("Sharp QM1D1C0042 tuner");
- MODULE_AUTHOR("Akihiro TSUKADA");
-diff --git a/drivers/media/tuners/qm1d1c0042.h b/drivers/media/tuners/qm1d1c0042.h
-index 4f5c188..043787e 100644
---- a/drivers/media/tuners/qm1d1c0042.h
-+++ b/drivers/media/tuners/qm1d1c0042.h
-@@ -21,8 +21,6 @@
- 
- 
- struct qm1d1c0042_config {
--	struct dvb_frontend *fe;
--
- 	u32  xtal_freq;    /* [kHz] */ /* currently ignored */
- 	bool lpf;          /* enable LPF */
- 	bool fast_srch;    /* enable fast search mode, no LPF */
++static inline struct device_node *of_graph_get_port_by_id(
++					struct device_node *node, u32 id)
++{
++	return NULL;
++}
++
+ static inline struct device_node *of_graph_get_next_endpoint(
+ 					const struct device_node *parent,
+ 					struct device_node *previous)
 -- 
-2.1.3
+2.1.4
 
