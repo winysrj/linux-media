@@ -1,80 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40808 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932782AbaLJVQi (ORCPT
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:43848 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754590AbaLVMo2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 16:16:38 -0500
-Received: from lanttu.localdomain (lanttu.localdomain [192.168.5.64])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 6ED1060097
-	for <linux-media@vger.kernel.org>; Wed, 10 Dec 2014 23:16:34 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [REVIEW PATCH 1/7] smiapp: Access flash capabilities through limits
-Date: Wed, 10 Dec 2014 23:16:14 +0200
-Message-Id: <1418246180-667-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1418246180-667-1-git-send-email-sakari.ailus@iki.fi>
-References: <1418246180-667-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 22 Dec 2014 07:44:28 -0500
+Date: Mon, 22 Dec 2014 12:44:11 +0000
+From: Mark Brown <broonie@kernel.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Message-ID: <20141222124411.GK17800@sirena.org.uk>
+References: <1419114892-4550-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/0P/MvzTfyTu5j9Q"
+Content-Disposition: inline
+In-Reply-To: <1419114892-4550-1-git-send-email-crope@iki.fi>
+Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-The flash capability register is already read as part of the limit
-registers. Do no access it separately; instead use the value from the
-limits.
+--/0P/MvzTfyTu5j9Q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c |    9 +--------
- drivers/media/i2c/smiapp/smiapp.h      |    1 -
- 2 files changed, 1 insertion(+), 9 deletions(-)
+On Sun, Dec 21, 2014 at 12:34:51AM +0200, Antti Palosaari wrote:
+> Lockdep validator complains recursive locking and deadlock when two
+> different regmap instances are called in a nested order, as regmap
+> groups locks by default. That happens easily for example when both
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 48e1a1f..4f36be5 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -1483,7 +1483,7 @@ static int smiapp_start_streaming(struct smiapp_sensor *sensor)
- 	if (rval < 0)
- 		goto out;
- 
--	if ((sensor->flash_capability &
-+	if ((sensor->limits[SMIAPP_LIMIT_FLASH_MODE_CAPABILITY] &
- 	     (SMIAPP_FLASH_MODE_CAPABILITY_SINGLE_STROBE |
- 	      SMIAPP_FLASH_MODE_CAPABILITY_MULTIPLE_STROBE)) &&
- 	    sensor->platform_data->strobe_setup != NULL &&
-@@ -2529,7 +2529,6 @@ static int smiapp_init(struct smiapp_sensor *sensor)
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
- 	struct smiapp_pll *pll = &sensor->pll;
- 	struct smiapp_subdev *last = NULL;
--	u32 tmp;
- 	unsigned int i;
- 	int rval;
- 
-@@ -2785,12 +2784,6 @@ static int smiapp_init(struct smiapp_sensor *sensor)
- 	sensor->streaming = false;
- 	sensor->dev_init_done = true;
- 
--	/* check flash capability */
--	rval = smiapp_read(sensor, SMIAPP_REG_U8_FLASH_MODE_CAPABILITY, &tmp);
--	sensor->flash_capability = tmp;
--	if (rval)
--		goto out_cleanup;
--
- 	smiapp_power_off(sensor);
- 
- 	return 0;
-diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
-index 8fded46..ed010a8 100644
---- a/drivers/media/i2c/smiapp/smiapp.h
-+++ b/drivers/media/i2c/smiapp/smiapp.h
-@@ -216,7 +216,6 @@ struct smiapp_sensor {
- 	u8 scaling_mode;
- 
- 	u8 hvflip_inv_mask; /* H/VFLIP inversion due to sensor orientation */
--	u8 flash_capability;
- 	u8 frame_skip;
- 
- 	int power_count;
--- 
-1.7.10.4
+I don't know what "regmap groups locks by default" means.
 
+> I2C client and I2C adapter are using regmap. As a solution, add
+> configuration option to pass custom lock class key for lockdep
+> validator.
+
+Why is this configurable, how would a device know if the system it is in
+needs a custom locking class and can safely use one?
+
+--/0P/MvzTfyTu5j9Q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUmBIbAAoJECTWi3JdVIfQlgEH/2gAPhy2lxOwQuk+8T8KVqgF
+45hSaBX6xoHcSqg9vzQlbUXpDUGJAB1/CWni4NZ0jR32GRcntzP4QtdkolLS6SuU
+iQhqnSgPz3DTZfjOBvqKwg0UvZxrTJ843t8w6yFfXBxYDaWcMzofXwaHRDPU1mml
+XUmFPsSmXv0hFbSc4kgkT6IrrMKw8ZD2gs9h2av0PjeMpw65LAhEaUMpkmPRWiT0
+82u8YQ2sBGdUXd3DRPws092Hp6r2PQQeA4ZonL65blebwRE5e9uoUFdblcN87K3g
+bWaTUs/lOj6SqFShwW4LDKYsKrLhXjfmnAtPodaeuJWDadPQGqFUTSpZXvamJZM=
+=Z9y7
+-----END PGP SIGNATURE-----
+
+--/0P/MvzTfyTu5j9Q--
