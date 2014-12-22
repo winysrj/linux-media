@@ -1,60 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43595 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751759AbaLOPmI (ORCPT
+Received: from mail-yk0-f172.google.com ([209.85.160.172]:60420 "EHLO
+	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754593AbaLVNMF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 10:42:08 -0500
-Date: Mon, 15 Dec 2014 17:41:29 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: aviv.d.greenberg@intel.com
-Subject: [GIT PULL FOR v3.20] 10-bit packed raw bayer format support
-Message-ID: <20141215154129.GD17565@valkosipuli.retiisi.org.uk>
+	Mon, 22 Dec 2014 08:12:05 -0500
+Received: by mail-yk0-f172.google.com with SMTP id 131so2214809ykp.17
+        for <linux-media@vger.kernel.org>; Mon, 22 Dec 2014 05:12:04 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <54981772.4080708@gentoo.org>
+References: <1419191964-29833-1-git-send-email-zzam@gentoo.org>
+	<CALzAhNVkW3spVHVi0h--1XDp+1ekR1Z+v-FBYX61wf5Bj1H7wg@mail.gmail.com>
+	<54981772.4080708@gentoo.org>
+Date: Mon, 22 Dec 2014 08:12:04 -0500
+Message-ID: <CALzAhNUxuAddth38C9dvnYQZx+4CNa6_6jHFEpyRG7o5zw=h0w@mail.gmail.com>
+Subject: Re: [PATCH] cx23885: Split Hauppauge WinTV Starburst from HVR4400
+ card entry
+From: Steven Toth <stoth@kernellabs.com>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+>> Please change CX23885_BOARD_HAUPPAUGE_STARBURST to
+>> CX23885_BOARD_HAUPPAUGE_HVR5500.
+>>
+>> Thanks,
+>>
+> Hi Steven,
+>
+> thank you for your feedback.
+>
+> I rechecked the names and this are the more or less supported devices:
+> * Starburst supports DVB-S2 only
+> * HVR-4400 supports DVB-S2 + DVB-T (Si2161)
+> * HVR-5500 supports DVB-S2 + DVB-C/T (Si2165)
+>
+> As starburst has only one demod and HVR-4400/HVR-5500 have two, there is
+> one card entry for HVR-4400/HVR-5500 and a second one with different
+> name for the Sturburst.
+>
+> Checking hauppauge homepage I directly get to the WinTV-Starburst:
+> http://www.hauppauge.de/site/products/data_starburst.html
+>
+> So I see this is an official product name. Why not show this name?
 
-These patches make minor cleanups in raw bayer format documentation and
-finally add a definition for 10-bit packed raw bayer formats.
+You are correct. I was assuming you were attempting to add HVR5500 support.
 
-Please pull.
+Please disregard my previous request, CX23885_BOARD_HAUPPAUGE_STARBURST is fine.
 
-The following changes since commit e272d95f8c0544cff55c485a10828b063c8e417c:
-
-  [media] rcar_vin: Fix interrupt enable in progressive (2014-12-12 10:29:40 -0200)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git srggb10p
-
-for you to fetch changes up to 84e49381d980c2188e660b684d9e1770d9154ff6:
-
-  v4l: Add packed Bayer raw10 pixel formats (2014-12-15 17:36:19 +0200)
-
-----------------------------------------------------------------
-Aviv Greenberg (1):
-      v4l: Add packed Bayer raw10 pixel formats
-
-Sakari Ailus (2):
-      DocBook: v4l: Fix raw bayer pixel format documentation wording
-      DocBook: v4l: Rearrange raw bayer format definitions, remove bad comment
-
- Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
- .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |    2 +-
- .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |    2 +-
- .../DocBook/media/v4l/pixfmt-srggb10p.xml          |   99 ++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt-srggb12.xml |    2 +-
- Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
- include/uapi/linux/videodev2.h                     |   17 ++--
- 7 files changed, 113 insertions(+), 12 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
+- Steve
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
