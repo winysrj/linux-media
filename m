@@ -1,81 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:39367 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752330AbaLRIxq (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50626 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754988AbaLVPLl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 03:53:46 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <nicolas.ferre@atmel.com>
-CC: <voice.shen@atmel.com>, <plagnioj@jcrosoft.com>,
-	<boris.brezillon@free-electrons.com>,
-	<alexandre.belloni@free-electrons.com>,
-	<devicetree@vger.kernel.org>, <robh+dt@kernel.org>,
-	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
-	<laurent.pinchart@ideasonboard.com>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH 5/7] ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}
-Date: Thu, 18 Dec 2014 16:51:05 +0800
-Message-ID: <1418892667-27428-6-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
-References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Mon, 22 Dec 2014 10:11:41 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v6 0/3] Add of-graph helpers to loop over endpoints and find ports by id
+Date: Mon, 22 Dec 2014 16:11:28 +0100
+Message-Id: <1419261091-29888-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For sama5d3xmb board, the pins: pinctrl_isi_{power,reset} is used to
-power-down or reset camera sensor.
+Hi,
 
-So we should let camera sensor instead of ISI to configure the pins.
-This patch will change pinctrl name from pinctrl_isi_{power,reset} to
-pinctrl_sensor_{power,reset}.
+next try for v3.20. After the merge window we have a few new users of
+of_graph_get_next_endpoint, could I please get some acks from the respective
+maintainers for this to go in through Grant's tree?
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
- arch/arm/boot/dts/sama5d3.dtsi    | 2 ++
- arch/arm/boot/dts/sama5d3xmb.dtsi | 6 ++----
- 2 files changed, 4 insertions(+), 4 deletions(-)
+This series converts all existing users of of_graph_get_next_endpoint that pass
+a non-NULL prev argument to the function and decrement its refcount themselves
+to stop doing that. The of_node_put is moved into of_graph_get_next_endpoint
+instead.
+This allows to add a for_each_endpoint_of_node helper macro to loop over all
+endpoints in a device tree node.
 
-diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
-index ed734e9..ff0fa3a 100644
---- a/arch/arm/boot/dts/sama5d3.dtsi
-+++ b/arch/arm/boot/dts/sama5d3.dtsi
-@@ -214,6 +214,8 @@
- 				compatible = "atmel,at91sam9g45-isi";
- 				reg = <0xf0034000 0x4000>;
- 				interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
-+				pinctrl-names = "default";
-+				pinctrl-0 = <&pinctrl_isi_data_0_7>;
- 				clocks = <&isi_clk>;
- 				clock-names = "isi_clk";
- 				status = "disabled";
-diff --git a/arch/arm/boot/dts/sama5d3xmb.dtsi b/arch/arm/boot/dts/sama5d3xmb.dtsi
-index 6af1cba..0aaebc6 100644
---- a/arch/arm/boot/dts/sama5d3xmb.dtsi
-+++ b/arch/arm/boot/dts/sama5d3xmb.dtsi
-@@ -60,8 +60,6 @@
- 			};
- 
- 			isi: isi@f0034000 {
--				pinctrl-names = "default";
--				pinctrl-0 = <&pinctrl_isi_data_0_7 &pinctrl_isi_pck_as_mck &pinctrl_isi_power &pinctrl_isi_reset>;
- 			};
- 
- 			mmc1: mmc@f8000000 {
-@@ -122,12 +120,12 @@
- 							<AT91_PIOD 31 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD31 periph B ISI_MCK */
- 					};
- 
--					pinctrl_isi_reset: isi_reset-0 {
-+					pinctrl_sensor_reset: sensor_reset-0 {
- 						atmel,pins =
- 							<AT91_PIOE 24 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;   /* PE24 gpio */
- 					};
- 
--					pinctrl_isi_power: isi_power-0 {
-+					pinctrl_sensor_power: sensor_power-0 {
- 						atmel,pins =
- 							<AT91_PIOE 29 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>; /* PE29 gpio */
- 					};
+Changes since v5:
+ - Rebased onto v3.19-rc1
+ - Added new users of of_graph_get_next_endpoint, coresight and
+   drm/rcar-du. There's also rockchip, but the driver already doesn't
+   decrement the prev node's reference count.
+ - Dropped the "use for_each_endpoint_of_node macro" patches,
+   I'll add the new users and resend them separately.
+
+The previous version can be found here: https://lkml.org/lkml/2014/9/29/529
+
+regards
+Philipp
+
+Philipp Zabel (3):
+  of: Decrement refcount of previous endpoint in
+    of_graph_get_next_endpoint
+  of: Add for_each_endpoint_of_node helper macro
+  of: Add of_graph_get_port_by_id function
+
+ drivers/coresight/of_coresight.c               | 13 ++--------
+ drivers/gpu/drm/imx/imx-drm-core.c             | 13 ++--------
+ drivers/gpu/drm/rcar-du/rcar_du_kms.c          | 15 +++--------
+ drivers/media/platform/soc_camera/soc_camera.c |  3 ++-
+ drivers/of/base.c                              | 35 ++++++++++++++++++++------
+ include/linux/of_graph.h                       | 18 +++++++++++++
+ 6 files changed, 55 insertions(+), 42 deletions(-)
+
 -- 
-1.9.1
+2.1.4
 
