@@ -1,108 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:59428 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753901AbaLHHja (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Dec 2014 02:39:30 -0500
-Message-ID: <1418024368.2867.1.camel@xs4all.nl>
-Subject: Re: DVBSky T980C: Si2168 fw load failed
-From: Jurgen Kramer <gtmkramer@xs4all.nl>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Date: Mon, 08 Dec 2014 08:39:28 +0100
-In-Reply-To: <5484692D.2020009@iki.fi>
-References: <2eea6b3b11e395b7fb238f350a804dc9.squirrel@webmail.xs4all.nl>
-		 <54834B0D.6070502@iki.fi> <1417940144.2720.1.camel@xs4all.nl>
-	 <5484692D.2020009@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:55310 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753184AbaLVNqo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Dec 2014 08:46:44 -0500
+Message-ID: <549820A4.9090900@redhat.com>
+Date: Mon, 22 Dec 2014 14:46:12 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+CC: Linus Walleij <linus.walleij@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 12/13] ARM: dts: sun6i: Add sun6i-a31s.dtsi
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com> <1418836704-15689-13-git-send-email-hdegoede@redhat.com> <20141219183450.GZ4820@lukather> <54954E77.4070302@redhat.com> <20141221223941.GC4820@lukather>
+In-Reply-To: <20141221223941.GC4820@lukather>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2014-12-07 at 16:50 +0200, Antti Palosaari wrote:
-> 
-> On 12/07/2014 10:15 AM, Jurgen Kramer wrote:
-> > On Sat, 2014-12-06 at 20:29 +0200, Antti Palosaari wrote:
-> >> On 12/06/2014 06:48 PM, Jurgen Kramer wrote:
-> >>> On my new DVBSky T980C the tuner firmware failes to load:
-> >>> [   51.326525] si2168 2-0064: found a 'Silicon Labs Si2168' in cold state
-> >>> [   51.356233] si2168 2-0064: downloading firmware from file
-> >>> 'dvb-demod-si2168-a30-01.fw'
-> >>> [   51.408166] si2168 2-0064: firmware download failed=-110
-> >>> [   51.415457] si2157 4-0060: found a 'Silicon Labs Si2146/2147/2148/2157/2158'
-> >>> in cold state
-> >>> [   51.521714] si2157 4-0060: downloading firmware from file
-> >>> 'dvb-tuner-si2158-a20-01.fw'
-> >>> [   52.330605] si2168 2-0064: found a 'Silicon Labs Si2168' in cold state
-> >>> [   52.330784] si2168 2-0064: downloading firmware from file
-> >>> 'dvb-demod-si2168-a30-01.fw'
-> >>> [   52.382145] si2168 2-0064: firmware download failed=-110
-> >>>
-> >>> 110 seems to mean connection timeout. Any pointers how to debug this further?
-> >>>
-> >>> This is with the latest media_build from linuxtv.org on 3.17.4.
-> >>
-> >> Looks like si2168 firmware failed to download, but si2157 succeeded.
-> >> Could you add some more time for driver timeout? Current timeout is
-> >> selected by trial and error, lets say it takes always max 43ms for my
-> >> device I coded it 50ms.
-> >>
-> >>
-> >> drivers/media/dvb-frontends/si2168.c
-> >> /* wait cmd execution terminate */
-> >> #define TIMEOUT 50
-> >>
-> >> change it to
-> >> #define TIMEOUT 500
-> >
-> > Thanks, with the larger timeout the fw load works:
-> >
-> > [   56.960982] si2168 4-0064: found a 'Silicon Labs Si2168' in cold
-> > state
-> > [   56.972650] si2168 4-0064: downloading firmware from file
-> > 'dvb-demod-si2168-a30-01.fw'
-> > [   60.103509] si2168 4-0064: found a 'Silicon Labs Si2168' in warm
-> > state
-> > [   60.110739] si2157 6-0060: found a 'Silicon Labs
-> > Si2146/2147/2148/2157/2158' in cold state
-> > [   60.123720] si2157 6-0060: downloading firmware from file
-> > 'dvb-tuner-si2158-a20-01.fw'
-> 
-> Have to find out some suitable value. For that I need know how long it 
-> took maximum in your case. There is already dubug printing to print 
-> execution time of each command, but it is behind dynamic debug. Maybe 
-> the most easiest way is change that debug line to info:
-> drivers/media/dvb-frontends/si2168.c
-> -               dev_dbg(&s->client->dev, "cmd execution took %d ms\n",
-> +               dev_info(&s->client->dev, "cmd execution took %d ms\n",
-> 
-> and then compile and install and issue command:
+Hi,
 
-This gives the following results:
-[   50.152281] si2168 4-0064: cmd execution took 0 ms
-[   50.154007] si2168 4-0064: cmd execution took 1 ms
-[   50.154010] si2168 4-0064: found a 'Silicon Labs Si2168' in cold
-state
-[   50.181157] si2168 4-0064: downloading firmware from file
-'dvb-demod-si2168-a30-01.fw'
-[   50.233374] si2168 4-0064: cmd execution took 52 ms
+On 21-12-14 23:39, Maxime Ripard wrote:
+> On Sat, Dec 20, 2014 at 11:24:55AM +0100, Hans de Goede wrote:
+>> Hi,
+>>
+>> On 19-12-14 19:34, Maxime Ripard wrote:
+>>> On Wed, Dec 17, 2014 at 06:18:23PM +0100, Hans de Goede wrote:
+>>>> Add a dtsi file for A31s based boards.
+>>>>
+>>>> Since the  A31s is the same die as the A31 in a different package, this dtsi
+>>>> simply includes sun6i-a31.dtsi and then overrides the pinctrl compatible to
+>>>> reflect the different package, everything else is identical.
+>>>>
+>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>>> ---
+>>>> Changes in v2:
+>>>> -include sun6i-a31.dtsi and override the pinctrl compatible, rather then
+>>>>   copying everything
+>>>> ---
+>>>>   arch/arm/boot/dts/sun6i-a31s.dtsi | 62 +++++++++++++++++++++++++++++++++++++++
+>>>>   1 file changed, 62 insertions(+)
+>>>>   create mode 100644 arch/arm/boot/dts/sun6i-a31s.dtsi
+>>>>
+>>>> diff --git a/arch/arm/boot/dts/sun6i-a31s.dtsi b/arch/arm/boot/dts/sun6i-a31s.dtsi
+>>>> new file mode 100644
+>>>> index 0000000..d0bd2b9
+>>>> --- /dev/null
+>>>> +++ b/arch/arm/boot/dts/sun6i-a31s.dtsi
+>>>> @@ -0,0 +1,62 @@
+>>>> +/*
+>>>> + * Copyright 2014 Hans de Goede <hdegoede@redhat.com>
+>>>> + *
+>>>> + * This file is dual-licensed: you can use it either under the terms
+>>>> + * of the GPL or the X11 license, at your option. Note that this dual
+>>>> + * licensing only applies to this file, and not this project as a
+>>>> + * whole.
+>>>> + *
+>>>> + *  a) This library is free software; you can redistribute it and/or
+>>>> + *     modify it under the terms of the GNU General Public License as
+>>>> + *     published by the Free Software Foundation; either version 2 of the
+>>>> + *     License, or (at your option) any later version.
+>>>> + *
+>>>> + *     This library is distributed in the hope that it will be useful,
+>>>> + *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>>> + *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>>> + *     GNU General Public License for more details.
+>>>> + *
+>>>> + *     You should have received a copy of the GNU General Public
+>>>> + *     License along with this library; if not, write to the Free
+>>>> + *     Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+>>>> + *     MA 02110-1301 USA
+>>>> + *
+>>>> + * Or, alternatively,
+>>>> + *
+>>>> + *  b) Permission is hereby granted, free of charge, to any person
+>>>> + *     obtaining a copy of this software and associated documentation
+>>>> + *     files (the "Software"), to deal in the Software without
+>>>> + *     restriction, including without limitation the rights to use,
+>>>> + *     copy, modify, merge, publish, distribute, sublicense, and/or
+>>>> + *     sell copies of the Software, and to permit persons to whom the
+>>>> + *     Software is furnished to do so, subject to the following
+>>>> + *     conditions:
+>>>> + *
+>>>> + *     The above copyright notice and this permission notice shall be
+>>>> + *     included in all copies or substantial portions of the Software.
+>>>> + *
+>>>> + *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+>>>> + *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+>>>> + *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+>>>> + *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+>>>> + *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+>>>> + *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+>>>> + *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+>>>> + *     OTHER DEALINGS IN THE SOFTWARE.
+>>>> + */
+>>>> +
+>>>> +/*
+>>>> + * The A31s is the same die as the A31 in a different package, this is
+>>>> + * reflected by it having different pinctrl compatible everything else is
+>>>> + * identical.
+>>>> + */
+>>>> +
+>>>> +/include/ "sun6i-a31.dtsi"
+>>>> +
+>>>> +/ {
+>>>> +	soc@01c00000 {
+>>>> +		pio: pinctrl@01c20800 {
+>>>> +			compatible = "allwinner,sun6i-a31s-pinctrl";
+>>>> +		};
+>>>> +	};
+>>>> +};
+>>>
+>>> Given your previous changes, you should also update the enable-method.
+>>
+>> I've not added a new compatible for the enable-method, given that
+>> this is the exact same die, so the 2 are 100?% compatible, just like you
+>> insisted that "allwinner,sun4i-a10-mod0-clk" should be used for the ir-clk
+>> since it was 100% compatible to that I believe that the enable method
+>> should use the existing compatible and not invent a new one for something
+>> which is 100% compatible.
+>
+> Yeah, you have a point and I agree, but your patch 3 does add a
+> CPU_METHOD_OF_DECLARE for the A31s.
 
-[   53.300879] si2168 4-0064: cmd execution took 0 ms
-[   53.300880] si2168 4-0064: found a 'Silicon Labs Si2168' in warm
-state
-[   53.308282] si2157 6-0060: found a 'Silicon Labs
-Si2146/2147/2148/2157/2158' in cold state
-[   53.321085] si2157 6-0060: downloading firmware from file
-'dvb-tuner-si2158-a20-01.fw'
-[   54.152370] si2168 4-0064: cmd execution took 1 ms
+Ah right, it does, my bad.
 
-So the initial timeout of 50ms is just missed. New value 60ms? or 75 to
-be really safe.
+> Since I was going to push the branch now that 3.19-rc1 is out, do you
+> want me to edit your patch before doing so?
 
-> $ dvb-fe-tool --set-delsys=DVBT2
-Thanks, dvb-fe-tool -a 2 -d dvbc/annex_a worked.
+Yes, please drop the addition of the extra CPU_METHOD_OF_DECLARE, or let
+me know if you want a new version instead.
+
+>>> Also, for this patch and the next one, Arnd just warned me that we
+>>> shouldn't duplicate the DT path, and that we should switch to the new
+>>> trend on using label references (like what TI or Amlogic does for
+>>> example).
+>>
+>> Ok, so something like this, right ?  :
+>>
+>> &pio {
+>> 	compatible = "allwinner,sun6i-a31s-pinctrl";
+>> };
+>
+> Yep.
 
 Regards,
-Jurgen
 
+Hans
