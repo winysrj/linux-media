@@ -1,113 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60664 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753363AbaLBM6z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Dec 2014 07:58:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API for v4l2_subdev_get_try_*()
-Date: Tue, 02 Dec 2014 14:59:29 +0200
-Message-ID: <6626165.z9d655UICS@avalon>
-In-Reply-To: <547DB631.3060309@xs4all.nl>
-References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com> <547D6E20.7040406@xs4all.nl> <547DB631.3060309@xs4all.nl>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:44340 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755363AbaLVUGz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Dec 2014 15:06:55 -0500
+Date: Mon, 22 Dec 2014 20:06:27 +0000
+From: Mark Brown <broonie@kernel.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Message-ID: <20141222200627.GN17800@sirena.org.uk>
+References: <1419114892-4550-1-git-send-email-crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="z7bbLlDR+qKEHzO8"
+Content-Disposition: inline
+In-Reply-To: <1419114892-4550-1-git-send-email-crope@iki.fi>
+Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On Tuesday 02 December 2014 13:53:05 Hans Verkuil wrote:
-> On 12/02/14 08:45, Hans Verkuil wrote:
-> > On 12/02/2014 12:26 AM, Laurent Pinchart wrote:
-> >> On Sunday 30 November 2014 21:30:35 Prabhakar Lad wrote:
-> >>> On Sun, Nov 30, 2014 at 9:16 PM, Laurent Pinchart wrote:
-> >>>> On Sunday 30 November 2014 21:05:50 Prabhakar Lad wrote:
-> >>>>> On Sat, Nov 29, 2014 at 7:12 PM, Laurent Pinchart wrote:
-> >>>>>> Hi Prabhakar,
-> >>>>> 
-> >>>>> [Snip]
-> >>>>> 
-> >>>>>>>> Sure. That's a better choice than removing the config option
-> >>>>>>>> dependency of the fields struct v4l2_subdev.
-> >>>>>> 
-> >>>>>> Decoupling CONFIG_VIDEO_V4L2_SUBDEV_API from the availability of the
-> >>>>>> in-kernel pad format and selection rectangles helpers is definitely a
-> >>>>>> good idea. I was thinking about decoupling the try format and
-> >>>>>> rectangles from v4l2_subdev_fh by creating a kind of configuration
-> >>>>>> store structure to store them, and embedding that structure in
-> >>>>>> v4l2_subdev_fh. The pad-level operations would then take a pointer to
-> >>>>>> the configuration store instead of the v4l2_subdev_fh. Bridge drivers
-> >>>>>> that want to implement TRY_FMT based on pad-level operations would
-> >>>>>> create a configuration store, use the pad-level operations, and
-> >>>>>> destroy the configuration store. The userspace subdev API would use
-> >>>>>> the configuration store from the file handle.
-> >>>>> 
-> >>>>> are planning to work/post any time soon ? Or are you OK with
-> >>>>> suggestion from Hans ?
-> >>>> 
-> >>>> I have no plan to work on that myself now, I was hoping you could
-> >>>> implement it ;-)
-> >>> 
-> >>> OK will implement it.
-> >>> 
-> >>> Can you please elaborate a more on this "The userspace subdev API would
-> >>> use the configuration store from the file handle."
-> >> 
-> >> Basically,
-> >> 
-> >> 1. Create a subdev pad configuration store structure to store the formats
-> >> and selection rectangles for each pad.
-> > 
-> > I wouldn't call it a 'store'. Just call it fmt_config or pad_config
-> > something like that.
+--z7bbLlDR+qKEHzO8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Sure, the name doesn't matter too much.
+On Sun, Dec 21, 2014 at 12:34:51AM +0200, Antti Palosaari wrote:
 
-> >> 2. Embed an instance of that structure in v4l2_subdev_fh.
-> >> 
-> >> 3. Modify the subdev pad ops to take a configuration store pointer
-> >> instead of a file handle pointer.
-> >> 
-> >> The userspace API implementation (v4l2-subdev.c) would then pass
-> >> &fh->store to the pad operations instead of fh.
-> >> 
-> >> Bridge drivers that need to implement TRY_FMT on top of pad ops would
-> >> create a temporary store (or temporary stores when multiple subsdevs are
-> >> involved), call the pad ops with a pointer to the temporary store to
-> >> propagate TRY formats, destroy the store(s) and return the resulting
-> >> format.
-> > 
-> > That will work. I think this is a good approach and it shouldn't be too
-> > difficult.
->
-> Laurent, just so I understand this correctly: does this mean that all
-> occurrences of 'struct v4l2_subdev_fh *fh' will be replaced by 'struct
-> v4l2_subdev_pad_config *cfg'?
+> + * @lock_class_key: Custom lock class key for lockdep validator. Use that when
+> + *                regmap in question is used for bus master IO in order to avoid
+> + *                false lockdep nested locking warning. Valid only when regmap
+> + *                default mutex locking is used.
 
-That's the plan, yes.
+Thinking about this further this comment definitely isn't accurate, it's
+not just bus masters that are potentially affected but also things like
+clock controllers that might need to be interacted with in order to do
+I/O.  Thinking about those I'm even unsure that a per driver class
+(which seems to be the idea here) will be enough, it's at least in
+theory possible that two different instances of the same clock IP (or
+generic regmap clock controller) will both need to be turned on for this
+to work.
 
-> Is there any reason why the 'fh' should still be passed on?
+If it was just bus controllers it looks like we can probably just have
+the clients set a flag saying that's what they are and then define the
+class in the regmap core but I don't think that's all that's going on
+here.
 
-We might find out reasons to still pass the fh, but in that case I think they 
-should be addressed and the fh just dropped from the pad ops arguments.
+--z7bbLlDR+qKEHzO8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> Personally I am in favor of this since the 'fh' always made it hard for
-> bridge drivers to use these pad ops. So if we can replace it by something
-> that can be used by bridge drivers as well, then that will make it easier
-> to move all drivers over to the pad ops.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-Good, looks like we have a plan for world domination :-)
+iQEcBAEBAgAGBQJUmHnCAAoJECTWi3JdVIfQk50H/RGS2wUXfa/aWuGNK/lZGSRo
+2lgKusMBw2ddm5X0uZwsvV3RPraRQKUqiaToFbs/3gC2n71k+o/mi7ybhj9LGyal
+i66TIKrkw2kTYnCCtpwc2+LodxME/hJpO5vf6vhe/F0ikWtNsJb4cS1pOYFSZ8rn
+YFdn/TGQmhL5T402ozTa7xxGNtxCERoBcNOPJrxNsQERkBdYyp3y2cX1O/O9PdL9
+Ml7BgPVSGKZhKlsXttKogwyJZbJsWK8/6ZiopGyfYR1THEQ0eMy11F9Edguw8kfa
+RerT9csU0+AqZEEdSaotkgqkOM6hPFTYp4OAq/OALSWKwGqbfpPeqYi6Sj7E3Pw=
+=XPvQ
+-----END PGP SIGNATURE-----
 
--- 
-Regards,
-
-Laurent Pinchart
-
+--z7bbLlDR+qKEHzO8--
