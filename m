@@ -1,72 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f169.google.com ([209.85.214.169]:42318 "EHLO
-	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752835AbaLAMYv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 07:24:51 -0500
-Received: by mail-ob0-f169.google.com with SMTP id vb8so7851099obc.0
-        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 04:24:50 -0800 (PST)
+Received: from nasmtp01.atmel.com ([192.199.1.246]:20393 "EHLO
+	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753978AbaLVHG2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Dec 2014 02:06:28 -0500
+Message-ID: <5497C2DF.2040202@atmel.com>
+Date: Mon, 22 Dec 2014 15:06:07 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-In-Reply-To: <20141201072028.6466a2b3@recife.lan>
-References: <CA+QJwyh2OupTtNJ89TWgyBZm0dhaHQ2Ax1XPDPjaFat-aTKsCA@mail.gmail.com>
-	<20141201072028.6466a2b3@recife.lan>
-Date: Mon, 1 Dec 2014 13:24:50 +0100
-Message-ID: <CA+QJwyh-3YL1UCR7Q1d3jy8z49YM2yqNp_WmiD3zXLRzEuC-Uw@mail.gmail.com>
-Subject: Re: Kernel 3.17.0 broke xc4000-based DTV1800h
-From: =?UTF-8?B?SXN0dsOhbiwgVmFyZ2E=?= <istvan_v@mailbox.hu>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+CC: <nicolas.ferre@atmel.com>, <voice.shen@atmel.com>,
+	<plagnioj@jcrosoft.com>, <boris.brezillon@free-electrons.com>,
+	<devicetree@vger.kernel.org>, <robh+dt@kernel.org>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	<laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 6/7] ARM: at91: dts: sama5d3: add ov2640 camera sensor
+ support
+References: <1418892667-27428-1-git-send-email-josh.wu@atmel.com> <1418892667-27428-7-git-send-email-josh.wu@atmel.com> <20141219210509.GC4885@piout.net>
+In-Reply-To: <20141219210509.GC4885@piout.net>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2014-12-01 10:20 GMT+01:00 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+Hi, Alexandre
 
-> Hi István,
+Thanks for the review.
+
+On 12/20/2014 5:05 AM, Alexandre Belloni wrote:
+> On 18/12/2014 at 16:51:06 +0800, Josh Wu wrote :
+>> According to v4l2 dt document, we add:
+>>    a camera host: ISI port.
+>>    a i2c camera sensor: ov2640 port.
+>> to sama5d3xmb.dtsi.
+>>
+>> In the ov2640 node, it defines the pinctrls, clocks and isi port.
+>> In the ISI node, it also reference to a ov2640 port.
+>>
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>>   arch/arm/boot/dts/sama5d3xmb.dtsi | 32 ++++++++++++++++++++++++++++++++
+>>   1 file changed, 32 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/sama5d3xmb.dtsi b/arch/arm/boot/dts/sama5d3xmb.dtsi
+>> index 0aaebc6..958a528 100644
+>> --- a/arch/arm/boot/dts/sama5d3xmb.dtsi
+>> +++ b/arch/arm/boot/dts/sama5d3xmb.dtsi
+>> @@ -52,6 +52,29 @@
+>>   				};
+>>   			};
+>>   
+>> +			i2c1: i2c@f0018000 {
+>> +				ov2640: camera@0x30 {
+>> +					compatible = "ovti,ov2640";
+>> +					reg = <0x30>;
+>> +					pinctrl-names = "default";
+>> +					pinctrl-0 = <&pinctrl_isi_pck_as_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
+> I've acked your previous patch but maybe it should be named
+> pinctrl_isi_pck1_as_mck to be clearer (you used the handle to pck1
+> below).
+It's a good idea. Maybe I prefer to use the name: pinctrl_pck1_as_isi_mck ?
+If you are ok with this name, in next version, I will add one more patch 
+in the series to do this.
+And I will keep your acked-by in my previous patch.
+
+Best Regards,
+Josh Wu
+
 >
-> Yeah, Xceive granted a license to redistribute such firmware file via
-> Hauppauge. The firmware we sent to linux-firmware is this one with
-> the proper license.
+>> +					resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
+>> +					pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
+>> +					/* use pck1 for the master clock of ov2640 */
+>> +					clocks = <&pck1>;
+>> +					clock-names = "xvclk";
+>> +					assigned-clocks = <&pck1>;
+>> +					assigned-clock-rates = <25000000>;
+>> +
+>> +					port {
+>> +						ov2640_0: endpoint {
+>> +							remote-endpoint = <&isi_0>;
+>> +							bus-width = <8>;
+>> +						};
+>> +					};
+>> +				};
+>> +			};
+>> +
+>>   			usart1: serial@f0020000 {
+>>   				dmas = <0>, <0>;	/*  Do not use DMA for usart1 */
+>>   				pinctrl-names = "default";
+>> @@ -60,6 +83,15 @@
+>>   			};
+>>   
+>>   			isi: isi@f0034000 {
+>> +				port {
+>> +					#address-cells = <1>;
+>> +					#size-cells = <0>;
+>> +
+>> +					isi_0: endpoint {
+>> +						remote-endpoint = <&ov2640_0>;
+>> +						bus-width = <8>;
+>> +					};
+>> +				};
+>>   			};
+>>   
+>>   			mmc1: mmc@f8000000 {
+>> -- 
+>> 1.9.1
+>>
 
-Hi, does the license apply specifically to the kernellabs.com firmware file,
-or the header files released by Xceive (xc4000_firmwares.h, xc4000_scodes.h) ?
-In the latter case, it should cover my firmware file
-(dvb-fe-xc4000-1.4.fw) as well,
-because it is generated from the same headers. Also, it is no longer generated
-from the Leadtek Windows drivers (like it was in the past before I had access to
-the Xceive header files), so it should in theory only be licensed by
-Xceive, rather
-than Leadtek.
-
-> Hmm... I remember I did some tests with PCTV 340e using that firmware
-> and it works for me.
-
->From a quick look at the contents of dvb-fe-xc4000-1.4.1.fw (the kernellabs.com
-file), it appears to be missing all the firmware data related to
-analog TV and radio
-standards, and all scodes are (incorrectly) a copy of the one needed for
-int_freq = 5400. Therefore, it only works with the demodulator used on the PCTV
-340e, which is using that frequency, but not with the Leadtek cards
-with zl10153,
-since those require 4560 instead. It also seems to be missing some standard and
-firmware type flags. I am not sure if those are responsible for the
-I2C errors, or
-simply the lack of the analog firmwares. Perhaps the latter if the errors do not
-occur with the (currently DVB-only) PCTV 340e.
-
-> Such change shouldn't affect devices with zl10153, as this demod doesn't
-> call tuner's get_frequency().
-
-The get_frequency() change is not an issue, the kernellabs.com firmware that is
-now the default and part of the kernel packages does not include data that is
-required for the Leadtek cards to work.
-
-> However, if the firmware doesn't work properly with PCTV 340e and/or
-> Leadtek/Xceive cannot grant a license to redistribute the other version
-> of the firmware, the best would be to rename the firmware file used
-> by Leadtek devices to dvb-fe-xc4000-leadtek-1.4.fw, in order to avoid
-> confusion.
-
-Although I did not test it, the firmware should work with the PCTV 340e as
-well. It definitely does with the Leadtek devices in DVB-T mode, and on the
-PCTV 340e the only difference is the IF (5400 vs. 4560).
