@@ -1,78 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.59.15.196]:3404 "EHLO
-	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753332AbaLDPjN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Dec 2014 10:39:13 -0500
-From: Sifan Naeem <sifan.naeem@imgtec.com>
-To: <james.hogan@imgtec.com>, <mchehab@osg.samsung.com>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<james.hartley@imgtec.com>, <ezequiel.garcia@imgtec.com>,
-	Sifan Naeem <sifan.naeem@imgtec.com>
-Subject: [PATCH 2/5] rc: img-ir: pass toggle bit to the rc driver
-Date: Thu, 4 Dec 2014 15:38:39 +0000
-Message-ID: <1417707523-7730-3-git-send-email-sifan.naeem@imgtec.com>
-In-Reply-To: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com>
-References: <1417707523-7730-1-git-send-email-sifan.naeem@imgtec.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:57423 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754844AbaLVNxN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Dec 2014 08:53:13 -0500
+Message-ID: <54982246.20300@iki.fi>
+Date: Mon, 22 Dec 2014 15:53:10 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mark Brown <broonie@kernel.org>
+CC: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
+References: <1419114892-4550-1-git-send-email-crope@iki.fi> <20141222124411.GK17800@sirena.org.uk> <549814BB.3040808@iki.fi> <20141222133142.GM17800@sirena.org.uk>
+In-Reply-To: <20141222133142.GM17800@sirena.org.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add toggle bit to struct img_ir_scancode_req so that protocols can
-provide it to img_ir_handle_data(), and pass that toggle bit up to
-rc_keydown instead of 0.
+On 12/22/2014 03:31 PM, Mark Brown wrote:
+> On Mon, Dec 22, 2014 at 02:55:23PM +0200, Antti Palosaari wrote:
+>> On 12/22/2014 02:44 PM, Mark Brown wrote:
+>>> On Sun, Dec 21, 2014 at 12:34:51AM +0200, Antti Palosaari wrote:
+>
+>>>> I2C client and I2C adapter are using regmap. As a solution, add
+>>>> configuration option to pass custom lock class key for lockdep
+>>>> validator.
+>
+>>> Why is this configurable, how would a device know if the system it is in
+>>> needs a custom locking class and can safely use one?
+>
+>> If RegMap instance is bus master, eg. I2C adapter, then you should define
+>> own custom key. If you don't define own key and there will be slave on that
+>> bus which uses RegMap too, there will be recursive locking from a lockdep
+>> point of view.
+>
+> That doesn't really explain to me why this is configurable, why should
+> drivers have to worry about this?
 
-This is nedded for the upcoming rc-5 and rc-6 patches.
+Did you read the lockdep documentation I pointed previous mail?
+from: Documentation/locking/lockdep-design.txt
 
-Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
----
- drivers/media/rc/img-ir/img-ir-hw.c |    8 +++++---
- drivers/media/rc/img-ir/img-ir-hw.h |    2 ++
- 2 files changed, 7 insertions(+), 3 deletions(-)
+There is not very detailed documentation available, but the section 
+"Exception: Nested data dependencies leading to nested locking" explains 
+something.
 
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-index 61850a6..4a1407b 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.c
-+++ b/drivers/media/rc/img-ir/img-ir-hw.c
-@@ -792,6 +792,7 @@ static void img_ir_handle_data(struct img_ir_priv *priv, u32 len, u64 raw)
- 	struct img_ir_scancode_req request;
- 
- 	request.protocol = RC_TYPE_UNKNOWN;
-+	request.toggle   = 0;
- 
- 	if (dec->scancode)
- 		ret = dec->scancode(len, raw, hw->enabled_protocols, &request);
-@@ -802,9 +803,10 @@ static void img_ir_handle_data(struct img_ir_priv *priv, u32 len, u64 raw)
- 	dev_dbg(priv->dev, "data (%u bits) = %#llx\n",
- 		len, (unsigned long long)raw);
- 	if (ret == IMG_IR_SCANCODE) {
--		dev_dbg(priv->dev, "decoded scan code %#x\n",
--			request.scancode);
--		rc_keydown(hw->rdev, request.protocol, request.scancode, 0);
-+		dev_dbg(priv->dev, "decoded scan code %#x, toggle %u\n",
-+			request.scancode, request.toggle);
-+		rc_keydown(hw->rdev, request.protocol, request.scancode,
-+			   request.toggle);
- 		img_ir_end_repeat(priv);
- 	} else if (ret == IMG_IR_REPEATCODE) {
- 		if (hw->mode == IMG_IR_M_REPEATING) {
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
-index 1fc9583..5e59e8e 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.h
-+++ b/drivers/media/rc/img-ir/img-ir-hw.h
-@@ -138,10 +138,12 @@ struct img_ir_timing_regvals {
-  *		RC_TYPE_UNKNOWN).
-  * @scancode:	Scan code of received message (must be written by
-  *		handler if IMG_IR_SCANCODE is returned).
-+ * @toggle:	Toggle bit (defaults to 0).
-  */
- struct img_ir_scancode_req {
- 	enum rc_type protocol;
- 	u32 scancode;
-+	u8 toggle;
- };
- 
- /**
+One possibility is to disable lockdep checking from that driver totally, 
+then drivers do not need to care it about. But I don't think it is 
+proper way. One solution is to use custom regmap locking available 
+already, but Mauro nor me didn't like that hack:
+[RFC HACK] rtl2832: implement own lock for RegMap
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg83323.html
+
+> Please also write technical terms like regmap normally.
+
+Lower-case letters?
+
+regards
+Antti
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
