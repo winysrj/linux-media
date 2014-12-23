@@ -1,53 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:38205 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751047AbaLOVLe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 16:11:34 -0500
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:54605 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756612AbaLWUuc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:32 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Arun Kumar K <arun.kk@samsung.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: [PATCH 1/3] s5p-mfc-v6+: Use display_delay_enable CID
-Date: Mon, 15 Dec 2014 16:10:57 -0500
-Message-Id: <1418677859-31440-2-git-send-email-nicolas.dufresne@collabora.com>
-In-Reply-To: <1418677859-31440-1-git-send-email-nicolas.dufresne@collabora.com>
-References: <1418677859-31440-1-git-send-email-nicolas.dufresne@collabora.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 32/66] rtl2832: implement DVBv5 BER statistic
+Date: Tue, 23 Dec 2014 22:49:25 +0200
+Message-Id: <1419367799-14263-32-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MFC driver has two controls, DISPLAY_DELAY and DISPLAY_DELAY_ENABLE
-that allow forcing the decoder to return a decoded frame sooner
-regardless of the order. The added support for firmware version 6 and
-higher was not taking into account the DISPLAY_DELAY_ENABLE boolean.
-Instead it had a comment stating that DISPLAY_DELAY should be set to a
-negative value to disable it. This is not possible since the control
-range is from 0 to 65535. This feature was also supposed to be disabled
-by default in order to produce frames in display order.
+DVBv5 BER.
 
-Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/media/dvb-frontends/rtl2832.c      | 25 +++++++++++++++++++++++++
+ drivers/media/dvb-frontends/rtl2832_priv.h |  2 ++
+ 2 files changed, 27 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 92032a0..0675515 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -1340,11 +1340,7 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
- 	/* FMO_ASO_CTRL - 0: Enable, 1: Disable */
- 	reg |= (fmo_aso_ctrl << S5P_FIMV_D_OPT_FMO_ASO_CTRL_MASK_V6);
- 
--	/* When user sets desplay_delay to 0,
--	 * It works as "display_delay enable" and delay set to 0.
--	 * If user wants display_delay disable, It should be
--	 * set to negative value. */
--	if (ctx->display_delay >= 0) {
-+	if (ctx->display_delay_enable) {
- 		reg |= (0x1 << S5P_FIMV_D_OPT_DDELAY_EN_SHIFT_V6);
- 		writel(ctx->display_delay, mfc_regs->d_display_delay);
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 7dc4c27..cd53311 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -476,6 +476,10 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 	/* init stats here in order signal app which stats are supported */
+ 	c->cnr.len = 1;
+ 	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_error.len = 1;
++	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_count.len = 1;
++	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	/* start statistics polling */
+ 	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
+ 	dev->sleeping = false;
+@@ -904,6 +908,27 @@ static void rtl2832_stat_work(struct work_struct *work)
+ 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
  	}
+ 
++	/* BER */
++	if (dev->fe_status & FE_HAS_LOCK) {
++		ret = rtl2832_bulk_read(client, 0x34e, buf, 2);
++		if (ret)
++			goto err;
++
++		u16tmp = buf[0] << 8 | buf[1] << 0;
++		dev->post_bit_error += u16tmp;
++		dev->post_bit_count += 1000000;
++
++		dev_dbg(&client->dev, "ber errors=%u total=1000000\n", u16tmp);
++
++		c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
++		c->post_bit_error.stat[0].uvalue = dev->post_bit_error;
++		c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
++		c->post_bit_count.stat[0].uvalue = dev->post_bit_count;
++	} else {
++		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
+ err_schedule_delayed_work:
+ 	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
+ 	return;
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index 3c44983..a5f5ccd 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -35,6 +35,8 @@ struct rtl2832_dev {
+ 	struct dvb_frontend fe;
+ 	struct delayed_work stat_work;
+ 	fe_status_t fe_status;
++	u64 post_bit_error;
++	u64 post_bit_count;
+ 	bool i2c_gate_state;
+ 	bool sleeping;
+ 	struct delayed_work i2c_gate_work;
 -- 
-2.1.0
+http://palosaari.fi/
 
