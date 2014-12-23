@@ -1,75 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-1.cisco.com ([72.163.197.25]:56824 "EHLO
-	bgl-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750AbaLOJTf (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42072 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932085AbaLWNJ1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 04:19:35 -0500
-From: Prashant Laddha <prladdha@cisco.com>
-To: <hverkuil@xs4all.nl>
-Cc: Prashant Laddha <prladdha@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/6] Vivid sine gen: Refactor get_sin_val ()
-Date: Mon, 15 Dec 2014 14:49:19 +0530
-Message-Id: <1418635162-8814-4-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1418635162-8814-1-git-send-email-prladdha@cisco.com>
-References: <1418635162-8814-1-git-send-email-prladdha@cisco.com>
+	Tue, 23 Dec 2014 08:09:27 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v7 3/3] of: Add of_graph_get_port_by_id function
+Date: Tue, 23 Dec 2014 14:09:18 +0100
+Message-Id: <1419340158-20567-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1419340158-20567-1-git-send-email-p.zabel@pengutronix.de>
+References: <1419340158-20567-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removed recursion. Also reduced few if() checks.
+This patch adds a function to get a port device tree node by port id,
+or reg property value.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/vivid/vivid-sin.c | 28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+Changes since v6:
+ - Fixed of_graph_get_port_by_id to handle the optional 'ports' node
+   and synchronize documentation and parameter names in the process,
+   spotted by Andrzej Hajda.
+---
+ drivers/of/base.c        | 32 ++++++++++++++++++++++++++++++++
+ include/linux/of_graph.h |  7 +++++++
+ 2 files changed, 39 insertions(+)
 
-diff --git a/drivers/media/platform/vivid/vivid-sin.c b/drivers/media/platform/vivid/vivid-sin.c
-index 2ed9f7f..c9face9 100644
---- a/drivers/media/platform/vivid/vivid-sin.c
-+++ b/drivers/media/platform/vivid/vivid-sin.c
-@@ -36,25 +36,23 @@ static s32 sin[65] = {
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index aac66df..8389215 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -2080,6 +2080,38 @@ int of_graph_parse_endpoint(const struct device_node *node,
+ EXPORT_SYMBOL(of_graph_parse_endpoint);
  
- static s32 get_sin_val(u32 index)
- {
-+	s32 sign = 1;
- 	u32 tab_index;
- 	u32 new_index;
- 
--	if (index <= 64)
--		return sin[index];
--	else if (index > 64 && index <= 128) {
--		tab_index = 64 - (index - 64);
--		return sin[tab_index];
--	} else if (index > 128 && index <= 192) {
--		tab_index = index - 128;
--		return (-1) * sin[tab_index];
--	} else if (index > 192 && index <= 255) {
--		tab_index = 64 - (index - 192);
--		return (-1) * sin[tab_index];
--	}
--
--	new_index = index % 256;
--	return get_sin_val(new_index);
-+	new_index = index & 0xFF; /* new_index = index % 256*/
- 
-+	if (new_index > 128)
-+		sign = -1;
+ /**
++ * of_graph_get_port_by_id() - get the port matching a given id
++ * @parent: pointer to the parent device node
++ * @id: id of the port
++ *
++ * Return: A 'port' node pointer with refcount incremented. The caller
++ * has to use of_node_put() on it when done.
++ */
++struct device_node *of_graph_get_port_by_id(struct device_node *parent, u32 id)
++{
++	struct device_node *node, *port;
 +
-+	new_index = index & 0x7F; /* new_index = index % 256*/
++	node = of_get_child_by_name(parent, "ports");
++	if (node)
++		parent = node;
 +
-+	if (new_index <= 64)
-+		tab_index = new_index;
-+	else
-+		tab_index = 64 - (new_index - 64);
++	for_each_child_of_node(parent, port) {
++		u32 port_id = 0;
 +
-+	return sign * sin[tab_index];
++		if (of_node_cmp(port->name, "port") != 0)
++			continue;
++		of_property_read_u32(port, "reg", &port_id);
++		if (id == port_id)
++			break;
++	}
++
++	of_node_put(node);
++
++	return port;
++}
++EXPORT_SYMBOL(of_graph_get_port_by_id);
++
++/**
+  * of_graph_get_next_endpoint() - get next endpoint node
+  * @parent: pointer to the parent device node
+  * @prev: previous endpoint node, or NULL to get first
+diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+index e43442e..3c1c95a 100644
+--- a/include/linux/of_graph.h
++++ b/include/linux/of_graph.h
+@@ -40,6 +40,7 @@ struct of_endpoint {
+ #ifdef CONFIG_OF
+ int of_graph_parse_endpoint(const struct device_node *node,
+ 				struct of_endpoint *endpoint);
++struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id);
+ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 					struct device_node *previous);
+ struct device_node *of_graph_get_remote_port_parent(
+@@ -53,6 +54,12 @@ static inline int of_graph_parse_endpoint(const struct device_node *node,
+ 	return -ENOSYS;
  }
  
- /*
++static inline struct device_node *of_graph_get_port_by_id(
++					struct device_node *node, u32 id)
++{
++	return NULL;
++}
++
+ static inline struct device_node *of_graph_get_next_endpoint(
+ 					const struct device_node *parent,
+ 					struct device_node *previous)
 -- 
-1.9.1
+2.1.4
 
