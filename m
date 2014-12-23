@@ -1,48 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f196.google.com ([209.85.212.196]:54689 "EHLO
-	mail-wi0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752717AbaLBFay (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Dec 2014 00:30:54 -0500
-Received: by mail-wi0-f196.google.com with SMTP id ex7so6800404wid.7
-        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 21:30:53 -0800 (PST)
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40894 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751542AbaLWUtI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:49:08 -0500
+Date: Tue, 23 Dec 2014 21:49:04 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	bcousson@baylibre.com, sakari.ailus@iki.fi,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	j.anaszewski@samsung.com, apw@canonical.com, joe@perches.com
+Subject: Re: [PATCH] media: i2c/adp1653: devicetree support for adp1653
+Message-ID: <20141223204903.GA1780@amd>
+References: <20141203214641.GA1390@amd>
+ <20141223152325.75e8cb4a@concha.lan.sisa.samsung.com>
 MIME-Version: 1.0
-Date: Tue, 2 Dec 2014 14:30:53 +0900
-Message-ID: <CAEwyzatXZQ57n=SbrX9iM1r-_kB_acKC5WGkyGtWexpRu1eoZA@mail.gmail.com>
-Subject: Changing exposure using v4l2
-From: Kansai Robot <adapt.robot.lab@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20141223152325.75e8cb4a@concha.lan.sisa.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello. This is my first message. Please forgive me if I am making a
-mistake since I don't use mailing lists that much.
+On Tue 2014-12-23 15:23:25, Mauro Carvalho Chehab wrote:
+> Em Wed, 3 Dec 2014 22:46:41 +0100
+> Pavel Machek <pavel@ucw.cz> escreveu:
+> 
+> > 
+> > We are moving to device tree support on OMAP3, but that currently
+> > breaks ADP1653 driver. This adds device tree support, plus required
+> > documentation.
+> > 
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> Please be sure to check your patch with checkpatch. There are several
+> issues on it:
 
-I am currently writing a program using V4L2 that takes pictures from a
-UVC camera. It works fine. I also added some function to set several
-camera settings in particular exposure. (Of course I use VIDIOC_S_CTRL
-with ioctl for that)
+> WARNING: DT compatible string "adi,adp1653" appears un-documented -- check ./Documentation/devicetree/bindings/
+> #78: FILE: arch/arm/boot/dts/omap3-n900.dts:572:
+> +		compatible = "adi,adp1653";
 
-I can see that once I set exposure to manual I can set the exposure
-value. However when I take a pic after that the image does not reflect
-the settings. For example with a high exposure, the image must be
-overexposed but it is not.
+Hmm. Take a look at part quoted below. Someone needs to fix
+checkpatch. Ccing authors.
 
-Originally I set the settings in the beginning and then I took a number of pics.
+> ERROR: trailing whitespace
+> WARNING: line over 80 characters
 
-But since it was not working I now take one pic and change the setting
-and take another pic and set the settings and so on.
+Will fix.
 
-Well now, the pics are reflecting the settings it seems correctly. The
-problem is that the settings (with VIDIOC_S_CTRL) take effect after 3
-additional picture captures.
+> ERROR: trailing statements should be on next line
+> #177: FILE: drivers/media/i2c/adp1653.c:454:
+> +	if (!child) return -EINVAL;
 
-What I mean is that if I set the exposure to say 4000, and I take an
-image the photo is not overexposed (as it should) so I have repeat the
-ioctl and take another photo and repeat this three times before I
-could get a photo with exposure 4000.
+I actually did these on purporse... the function is trivial, and by
+keeping returns on one line it fits into screen. I see you want it
+fixed below, so I'll do that for next version.
 
-Any idea what could be happening with V4L2 over here? Any help or any
-hint will be greatly appreciated.
+								Pavel
 
-Thanks a lot
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
+> > @@ -0,0 +1,38 @@
+> > +* Analog Devices ADP1653 flash LED driver
+> > +
+> > +Required Properties:
+> > +
+> > +  - compatible: Must contain one of the following
+> > +    - "adi,adp1653"
+> > +
+> > +  - reg: I2C slave address
+> > +
+> > +  - gpios: References to the GPIO that controls the power for the chip.
+> > +
+> > +There are two led outputs available - flash and indicator. One led is
+> > +represented by one child node, nodes need to be named "flash" and "indicator".
+> > +
+> > +Required properties of the LED child node:
+> > +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> > +
+> > +Required properties of the flash LED child node:
+> > +
+> > +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> > +- flash-timeout-microsec : see Documentation/devicetree/bindings/leds/common.txt
+> > +
+> > +Example:
+> > +
+> > +        adp1653: led-controller@30 {
+> > +                compatible = "adi,adp1653";
+> > +		reg = <0x30>;
+> > +                gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
+> > +
+> > +		flash {
+> > +                        flash-timeout-microsec = <500000>;
+> > +                        flash-max-microamp = <320000>;
+> > +                        max-microamp = <50000>;
+> > +		};
+> > +                indicator {
+> > +                        max-microamp = <17500>;
+> > +		};
+> > +        };
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
