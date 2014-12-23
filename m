@@ -1,53 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55912 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752026AbaLWLDx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 06:03:53 -0500
-Received: from dyn3-82-128-190-202.psoas.suomi.net ([82.128.190.202] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1Y3NFm-00026V-VZ
-	for linux-media@vger.kernel.org; Tue, 23 Dec 2014 13:03:50 +0200
-Message-ID: <54994C16.5030603@iki.fi>
-Date: Tue, 23 Dec 2014 13:03:50 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47234 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755778AbaLWMCV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 07:02:21 -0500
+Date: Tue, 23 Dec 2014 13:01:37 +0100
+From: Philipp Zabel <pza@pengutronix.de>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Grant Likely <grant.likely@linaro.org>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	kernel@pengutronix.de, Russell King <rmk+kernel@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v6 3/3] of: Add of_graph_get_port_by_id function
+Message-ID: <20141223120137.GA26129@pengutronix.de>
+References: <1419261091-29888-1-git-send-email-p.zabel@pengutronix.de>
+ <1419261091-29888-4-git-send-email-p.zabel@pengutronix.de>
+ <54994D88.3000009@samsung.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] cx23885: Hauppauge WinTV-HVR5525
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <54994D88.3000009@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 654a731be1a0b6f606f3f3d12b50db08f2ae3c34:
+Hi Andrzej,
 
-   [media] media: s5p-mfc: use vb2_ops_wait_prepare/finish helper 
-(2014-12-22 14:36:21 -0200)
+On Tue, Dec 23, 2014 at 12:10:00PM +0100, Andrzej Hajda wrote:
+[...]
+> >  /**
+> > + * of_graph_get_port_by_id() - get the port matching a given id
+> > + * @parent: pointer to the parent device node
+> 
+> Here you have 'parent' and 'node' in the code.
+[...]
+> Maybe I miss something but it does not handle optional 'ports' node.
 
-are available in the git repository at:
+You missed nothing, thank you for the comments! I'll fix both issues
+like this:
 
-   git://linuxtv.org/anttip/media_tree.git WinTV-HVR5525
+struct device_node *of_graph_get_port_by_id(struct device_node *parent, u32 id)
+{
+	struct device_node *node, *port;
 
-for you to fetch changes up to 30a8af2761c4955ea0869b1baee5bc65fb6b949f:
+	node = of_get_child_by_name(parent, "ports");
+	if (node)
+		parent = node;
 
-   cx23885: Hauppauge WinTV-HVR5525 (2014-12-23 13:00:05 +0200)
+	for_each_child_of_node(parent, port) {
+		u32 port_id = 0;
 
-----------------------------------------------------------------
-Antti Palosaari (4):
-       cx23885: do not unregister demod I2C client twice on error
-       cx23885: correct some I2C client indentations
-       cx23885: fix I2C scan printout
-       cx23885: Hauppauge WinTV-HVR5525
+		if (of_node_cmp(port->name, "port") != 0)
+			continue;
+		of_property_read_u32(port, "reg", &port_id);
+		if (id == port_id)
+			break;
+	}
 
-  drivers/media/pci/cx23885/Kconfig         |   1 +
-  drivers/media/pci/cx23885/cx23885-cards.c |  43 
-+++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/pci/cx23885/cx23885-dvb.c   | 124 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------
-  drivers/media/pci/cx23885/cx23885-i2c.c   |   4 ++--
-  drivers/media/pci/cx23885/cx23885.h       |   1 +
-  5 files changed, 157 insertions(+), 16 deletions(-)
+	of_node_put(node);
 
--- 
-http://palosaari.fi/
+	return port;
+}
+
+regards
+Philipp
