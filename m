@@ -1,47 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:35322 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932454AbaLAUf6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 15:35:58 -0500
-Message-ID: <0dabfbb34c548337f7d1098b46e2d197.squirrel@www.codeaurora.org>
-Date: Mon, 1 Dec 2014 20:35:57 -0000
-Subject: V4L2_MEMORY_DMABUF for video decoders
-From: vkalia@codeaurora.org
+Received: from mail.kapsi.fi ([217.30.184.167]:40922 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756614AbaLWUu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:29 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, vrajesh@codeaurora.org, sachins@codeaurora.org,
-	apurupa@codeaurora.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 16/66] rtl2830: wrap DVBv5 signal strength to DVBv3
+Date: Tue, 23 Dec 2014 22:49:09 +0200
+Message-Id: <1419367799-14263-16-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Change legacy DVBv3 signal strength to return values calculated by
+DVBv5 statistics.
 
-I am facing an issue while using videobuf2-dma-contig.c mem_ops. Following
-is brief description of the driver architecture and the limitation. Any
-pointers/hints are appreciated.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2830.c | 27 ++++-----------------------
+ 1 file changed, 4 insertions(+), 23 deletions(-)
 
-Driver architecture:
-It is a video codec driver for video decoding. It exposes two ports -
-CAPTURE and OUTPUT. Raw bitstream buffers are queued/dequeued via OUTPUT
-capability and YUV via CAPTURE. This driver uses vb2_qops as well as
-vb2_mem_ops from videobuf2-dma-contig.c. Video hardware has MMU.
-
-V4L2 framework limitation:
-The empty buffers are allocated by userspace and file descriptor is queued
-to the V4L2 driver via VIDIOC_QBUF call. I am using vb2_mem_ops so the
-buffers are mapped into video device's MMU by map_dmabuf op. Then video
-driver sends this buffer down to hardware and hardware does the decoding
-and writes YUV data in this buffer. This buffer is ready to be shared with
-userspace so hardware returns this buffer back to driver. Userspace calls
-VIDIOC_DQBUF to get the buffer but as a result the buffer is also unmapped
-from video device's MMU. This is because DQBUF calls unmap_dmabuf op. This
-causes problem because video device will still need this buffer so future
-frames referencing to it can be decoded properly. Has anyone else faced
-this problem? Is there a patch for reference counting the MMU
-mappings/unmappings so that driver has more control over it?
-
-Thanks
-Vinay
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index 147b3a6..a02ccdf 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -623,33 +623,14 @@ static int rtl2830_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 
+ static int rtl2830_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ {
+-	struct i2c_client *client = fe->demodulator_priv;
+-	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+-	int ret;
+-	u8 buf[2];
+-	u16 if_agc_raw, if_agc;
+-
+-	if (dev->sleeping)
+-		return 0;
+-
+-	ret = rtl2830_rd_regs(client, 0x359, buf, 2);
+-	if (ret)
+-		goto err;
+-
+-	if_agc_raw = (buf[0] << 8 | buf[1]) & 0x3fff;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 
+-	if (if_agc_raw & (1 << 9))
+-		if_agc = -(~(if_agc_raw - 1) & 0x1ff);
++	if (c->strength.stat[0].scale == FE_SCALE_RELATIVE)
++		*strength = c->strength.stat[0].uvalue;
+ 	else
+-		if_agc = if_agc_raw;
+-
+-	*strength = (u8)(55 - if_agc / 182);
+-	*strength |= *strength << 8;
++		*strength = 0;
+ 
+ 	return 0;
+-err:
+-	dev_dbg(&client->dev, "failed=%d\n", ret);
+-	return ret;
+ }
+ 
+ static struct dvb_frontend_ops rtl2830_ops = {
+-- 
+http://palosaari.fi/
 
