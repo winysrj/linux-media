@@ -1,94 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34576 "EHLO comal.ext.ti.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:43813 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753105AbaLALAL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 06:00:11 -0500
-From: "Devshatwar, Nikhil" <nikhil.nd@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v3 1/4] media: ti-vpe: Use data offset for getting
- dma_addr for a plane
-Date: Mon, 1 Dec 2014 11:00:05 +0000
-Message-ID: <E60A9E1B4132A24DB80BD56ABC92684735027F16@DBDE04.ent.ti.com>
-References: <1417256860-20233-1-git-send-email-nikhil.nd@ti.com>
- <1417256860-20233-2-git-send-email-nikhil.nd@ti.com>
- <547C4765.1040807@xs4all.nl>
-In-Reply-To: <547C4765.1040807@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1756623AbaLWUub (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:31 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 23/66] rtl2832: add platform data callbacks for exported resources
+Date: Tue, 23 Dec 2014 22:49:16 +0200
+Message-Id: <1419367799-14263-23-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Monday, December 01, 2014 4:18 PM
-> To: Devshatwar, Nikhil; linux-media@vger.kernel.org
-> Subject: Re: [PATCH v3 1/4] media: ti-vpe: Use data offset for getting
-> dma_addr for a plane
-> 
-> On 11/29/2014 11:27 AM, Nikhil Devshatwar wrote:
-> > The data_offset in v4l2_planes structure will help us point to the
-> > start of data content for that particular plane. This may be useful
-> > when a single buffer contains the data for different planes e.g. Y
-> > planes of two fields in the same buffer. With this, user space can
-> > pass queue top field and bottom field with same dmafd and different
-> data_offsets.
-> >
-> > Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-> > ---
-> > Changes from v2:
-> >  * Use data_offset only for OUTPUT stream buffers
-> >
-> >  drivers/media/platform/ti-vpe/vpe.c |   10 +++++++++-
-> >  1 file changed, 9 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/platform/ti-vpe/vpe.c
-> > b/drivers/media/platform/ti-vpe/vpe.c
-> > index 9a081c2..ba26b83 100644
-> > --- a/drivers/media/platform/ti-vpe/vpe.c
-> > +++ b/drivers/media/platform/ti-vpe/vpe.c
-> > @@ -496,6 +496,14 @@ struct vpe_mmr_adb {
-> >
-> >  #define VPE_SET_MMR_ADB_HDR(ctx, hdr, regs, offset_a)	\
-> >  	VPDMA_SET_MMR_ADB_HDR(ctx->mmr_adb, vpe_mmr_adb, hdr, regs,
-> > offset_a)
-> > +
-> > +static inline dma_addr_t vb2_dma_addr_plus_data_offset(struct
-> vb2_buffer *vb,
-> > +	unsigned int plane_no)
-> > +{
-> > +	return vb2_dma_contig_plane_dma_addr(vb, plane_no) +
-> > +		vb->v4l2_planes[plane_no].data_offset;
-> > +}
-> > +
-> >  /*
-> >   * Set the headers for all of the address/data block structures.
-> >   */
-> > @@ -1043,7 +1051,7 @@ static void add_in_dtd(struct vpe_ctx *ctx, int
-> > port)
-> >
-> >  		vpdma_fmt = fmt->vpdma_fmt[plane];
-> >
-> > -		dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
-> > +		dma_addr = vb2_dma_addr_plus_data_offset(vb, plane);
-> >  		if (!dma_addr) {
-> >  			vpe_err(ctx->dev,
-> >  				"acquiring input buffer(%d) dma_addr failed\n",
-> >
-> 
-> Should there be a check somewhere that verifies that
-> vb2_get_plane_payload() -
-> vb->v4l2_planes[plane_no].data_offset is still large enough for the
-> vb->image you
-> want to copy?
+Add callback for all of those functions which are currently
+exported using EXPORT_SYMBOL. That allows us convert every user to
+callbacks and eventually all exported symbols could be removed.
 
-Yes, it is done as part of the vb2_qbuf -> __buf_prepare -> __verify_length function
-If the data_offset is high enough that it goes out of the length of that plane,
-The qbuf ioctl should have failed, So we can safely assume the validity of data_offset here
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832.c | 90 +++++++++++++++++++++++++++++++----
+ drivers/media/dvb-frontends/rtl2832.h |  7 +++
+ 2 files changed, 89 insertions(+), 8 deletions(-)
 
-> 
-> Regards,
-> 
-> 	Hans
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 9597ae1..4e77ef2 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -1183,6 +1183,80 @@ static struct dvb_frontend_ops rtl2832_ops = {
+ 	.i2c_gate_ctrl = rtl2832_i2c_gate_ctrl,
+ };
+ 
++static struct dvb_frontend *rtl2832_get_dvb_frontend(struct i2c_client *client)
++{
++	struct rtl2832_priv *dev = i2c_get_clientdata(client);
++
++	dev_dbg(&client->dev, "\n");
++	return &dev->fe;
++}
++
++static struct i2c_adapter *rtl2832_get_i2c_adapter_(struct i2c_client *client)
++{
++	struct rtl2832_priv *dev = i2c_get_clientdata(client);
++
++	dev_dbg(&client->dev, "\n");
++	return dev->i2c_adapter_tuner;
++}
++
++static struct i2c_adapter *rtl2832_get_private_i2c_adapter_(struct i2c_client *client)
++{
++	struct rtl2832_priv *dev = i2c_get_clientdata(client);
++
++	dev_dbg(&client->dev, "\n");
++	return dev->i2c_adapter;
++}
++
++static int rtl2832_enable_slave_ts(struct i2c_client *client)
++{
++	struct rtl2832_priv *dev = i2c_get_clientdata(client);
++	int ret;
++
++	dev_dbg(&client->dev, "setting PIP mode\n");
++
++	ret = rtl2832_wr_regs(dev, 0x0c, 1, "\x5f\xff", 2);
++	if (ret)
++		goto err;
++
++	ret = rtl2832_wr_demod_reg(dev, DVBT_PIP_ON, 0x1);
++	if (ret)
++		goto err;
++
++	ret = rtl2832_wr_reg(dev, 0xbc, 0, 0x18);
++	if (ret)
++		goto err;
++
++	ret = rtl2832_wr_reg(dev, 0x22, 0, 0x01);
++	if (ret)
++		goto err;
++
++	ret = rtl2832_wr_reg(dev, 0x26, 0, 0x1f);
++	if (ret)
++		goto err;
++
++	ret = rtl2832_wr_reg(dev, 0x27, 0, 0xff);
++	if (ret)
++		goto err;
++
++	ret = rtl2832_wr_regs(dev, 0x92, 1, "\x7f\xf7\xff", 3);
++	if (ret)
++		goto err;
++
++	/* soft reset */
++	ret = rtl2832_wr_demod_reg(dev, DVBT_SOFT_RST, 0x1);
++	if (ret)
++		goto err;
++
++	ret = rtl2832_wr_demod_reg(dev, DVBT_SOFT_RST, 0x0);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
+ static int rtl2832_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *id)
+ {
+@@ -1200,13 +1274,6 @@ static int rtl2832_probe(struct i2c_client *client,
+ 		goto err;
+ 	}
+ 
+-	/* Caller really need to provide pointer for frontend we create. */
+-	if (pdata->dvb_frontend == NULL) {
+-		dev_err(&client->dev, "frontend pointer not defined\n");
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+ 	/* allocate memory for the internal state */
+ 	priv = kzalloc(sizeof(struct rtl2832_priv), GFP_KERNEL);
+ 	if (priv == NULL) {
+@@ -1248,7 +1315,14 @@ static int rtl2832_probe(struct i2c_client *client,
+ 	priv->fe.ops.release = NULL;
+ 	priv->fe.demodulator_priv = priv;
+ 	i2c_set_clientdata(client, priv);
+-	*pdata->dvb_frontend = &priv->fe;
++	if (pdata->dvb_frontend)
++		*pdata->dvb_frontend = &priv->fe;
++
++	/* setup callbacks */
++	pdata->get_dvb_frontend = rtl2832_get_dvb_frontend;
++	pdata->get_i2c_adapter = rtl2832_get_i2c_adapter_;
++	pdata->get_private_i2c_adapter = rtl2832_get_private_i2c_adapter_;
++	pdata->enable_slave_ts = rtl2832_enable_slave_ts;
+ 
+ 	dev_info(&client->dev, "Realtek RTL2832 successfully attached\n");
+ 	return 0;
+diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
+index cfd69d8..dbc4d3c 100644
+--- a/drivers/media/dvb-frontends/rtl2832.h
++++ b/drivers/media/dvb-frontends/rtl2832.h
+@@ -58,6 +58,13 @@ struct rtl2832_platform_data {
+ 	 * returned by driver
+ 	 */
+ 	struct dvb_frontend **dvb_frontend;
++
++	/*
++	 */
++	struct dvb_frontend* (*get_dvb_frontend)(struct i2c_client *);
++	struct i2c_adapter* (*get_i2c_adapter)(struct i2c_client *);
++	struct i2c_adapter* (*get_private_i2c_adapter)(struct i2c_client *);
++	int (*enable_slave_ts)(struct i2c_client *);
+ };
+ 
+ #if IS_ENABLED(CONFIG_DVB_RTL2832)
+-- 
+http://palosaari.fi/
+
