@@ -1,65 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:50582 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753192AbaLAIyg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 03:54:36 -0500
-Received: by mail-ob0-f178.google.com with SMTP id gq1so7606129obb.9
-        for <linux-media@vger.kernel.org>; Mon, 01 Dec 2014 00:54:35 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1417188223.3721.2.camel@pengutronix.de>
-References: <CAL8zT=i+UZP7gpukW-cRe2M=xWW5Av9Mzd-FnnZAP5d+5J7Mzg@mail.gmail.com>
- <1417020934.3177.15.camel@pengutronix.de> <CAL8zT=hY8XeAb4j7-eBt3VJX-3Kzg6-BOajvSpxvgc+o3ZRuYQ@mail.gmail.com>
- <CAL8zT=gnkaD=9XbyBDcDh7D=w+rDSQPsi3dKfQ17ezvz6NZMCg@mail.gmail.com>
- <CAOMZO5BsikrKPCjV129FWWW2DVe-ziLz_kMGSh6aM2JC=wnkhA@mail.gmail.com> <1417188223.3721.2.camel@pengutronix.de>
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Date: Mon, 1 Dec 2014 09:54:19 +0100
-Message-ID: <CAL8zT=ga2G7Zb2wjrT91Jq__OzUvjdCVgPH5ofcuX-7ZOCDkow@mail.gmail.com>
-Subject: Re: i.MX6 CODA960 encoder
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Fabio Estevam <festevam@gmail.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Schwebel <r.schwebel@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.kapsi.fi ([217.30.184.167]:54699 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753526AbaLWUu1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:27 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 04/66] rtl28xxu: change module unregister order
+Date: Tue, 23 Dec 2014 22:48:57 +0200
+Message-Id: <1419367799-14263-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+We must unregister frontend first and after that driver itself. That
+order went wrong after demod drivers were switched to kernel I2C
+drivers, causing crashes.
 
-2014-11-28 16:23 GMT+01:00 Philipp Zabel <p.zabel@pengutronix.de>:
-> Am Donnerstag, den 27.11.2014, 16:10 -0200 schrieb Fabio Estevam:
->> On Thu, Nov 27, 2014 at 3:54 PM, Jean-Michel Hautbois
->> <jean-michel.hautbois@vodalys.com> wrote:
->>
->> > I don't have the same behaviour, but I may have missed a patch.
->> > I have taken linux-next and rebased my work on it. I have some issues,
->> > but nothing to be worried about, no link with coda.
->> > I get the following :
->> > $> v4l2-ctl -d0 --set-fmt-video-out=width=1280,height=720,pixelfor
->> > $> v4l2-ctl -d0 --stream-mmap --stream-out-mmap --stream-to x.raw
->> > [  173.705701] coda 2040000.vpu: CODA PIC_RUN timeout
->>
->> I have this same error with linux-next when I try to decode a file.
->>
->> Philipp,
->>
->> Do you know if linux-next contains all required coda patches?
->>
->> Could this be caused by the fact that we are using an unsupported VPU
->> firmware version?
->
-> I missed that the commit a04a0b6fed4f ("ARM: dts: imx6qdl: Enable
-> CODA960 VPU") lost the switching of the interrupts between
-> http://www.spinics.net/lists/arm-kernel/msg338645.html
-> and
-> http://www.spinics.net/lists/arm-kernel/msg376571.html .
->
-> Of course the JPEG interrupt will never fire when encoding H.264, which
-> causes the timeout. Patch in another mail.
+Tested-by: Benjamin Larsson <benjamin@southpole.se>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 77 +++++++++++++++++++--------------
+ 1 file changed, 45 insertions(+), 32 deletions(-)
 
-OK, I applied the patch you mentionned, and it works ! :)
-Now, I will try to make it working with gstreamer...
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 2165734..705c6c3 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -917,6 +917,31 @@ err:
+ 	return ret;
+ }
+ 
++static int rtl2832u_frontend_detach(struct dvb_usb_adapter *adap)
++{
++	struct dvb_usb_device *d = adap_to_d(adap);
++	struct rtl28xxu_priv *priv = d_to_priv(d);
++	struct i2c_client *client;
++
++	dev_dbg(&d->udev->dev, "%s:\n", __func__);
++
++	/* remove I2C slave demod */
++	client = priv->i2c_client_slave_demod;
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++
++	/* remove I2C demod */
++	client = priv->i2c_client_demod;
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++
++	return 0;
++}
++
+ static struct qt1010_config rtl28xxu_qt1010_config = {
+ 	.i2c_address = 0x62, /* 0xc4 */
+ };
+@@ -1151,6 +1176,24 @@ err:
+ 	return ret;
+ }
+ 
++static int rtl2832u_tuner_detach(struct dvb_usb_adapter *adap)
++{
++	struct dvb_usb_device *d = adap_to_d(adap);
++	struct rtl28xxu_priv *priv = d_to_priv(d);
++	struct i2c_client *client;
++
++	dev_dbg(&d->udev->dev, "%s:\n", __func__);
++
++	/* remove I2C tuner */
++	client = priv->i2c_client_tuner;
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++
++	return 0;
++}
++
+ static int rtl28xxu_init(struct dvb_usb_device *d)
+ {
+ 	int ret;
+@@ -1185,37 +1228,6 @@ err:
+ 	return ret;
+ }
+ 
+-static void rtl28xxu_exit(struct dvb_usb_device *d)
+-{
+-	struct rtl28xxu_priv *priv = d->priv;
+-	struct i2c_client *client;
+-
+-	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+-
+-	/* remove I2C tuner */
+-	client = priv->i2c_client_tuner;
+-	if (client) {
+-		module_put(client->dev.driver->owner);
+-		i2c_unregister_device(client);
+-	}
+-
+-	/* remove I2C slave demod */
+-	client = priv->i2c_client_slave_demod;
+-	if (client) {
+-		module_put(client->dev.driver->owner);
+-		i2c_unregister_device(client);
+-	}
+-
+-	/* remove I2C demod */
+-	client = priv->i2c_client_demod;
+-	if (client) {
+-		module_put(client->dev.driver->owner);
+-		i2c_unregister_device(client);
+-	}
+-
+-	return;
+-}
+-
+ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ {
+ 	int ret;
+@@ -1597,9 +1609,10 @@ static const struct dvb_usb_device_properties rtl2832u_props = {
+ 	.i2c_algo = &rtl28xxu_i2c_algo,
+ 	.read_config = rtl2832u_read_config,
+ 	.frontend_attach = rtl2832u_frontend_attach,
++	.frontend_detach = rtl2832u_frontend_detach,
+ 	.tuner_attach = rtl2832u_tuner_attach,
++	.tuner_detach = rtl2832u_tuner_detach,
+ 	.init = rtl28xxu_init,
+-	.exit = rtl28xxu_exit,
+ 	.get_rc_config = rtl2832u_get_rc_config,
+ 
+ 	.num_adapters = 1,
+-- 
+http://palosaari.fi/
 
-JM
