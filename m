@@ -1,140 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39175 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756643AbaLWUud (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 15:50:33 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58410 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754711AbaLWDn2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Dec 2014 22:43:28 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id BB6172A0004
+	for <linux-media@vger.kernel.org>; Tue, 23 Dec 2014 04:43:06 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 39/66] rtl2832: implement PID filter
-Date: Tue, 23 Dec 2014 22:49:32 +0200
-Message-Id: <1419367799-14263-39-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141223034306.BB6172A0004@tschai.lan>
+Date: Tue, 23 Dec 2014 04:43:06 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement PID filter. This demod has PID filter size of 32 PIDs.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832.c      | 69 ++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/rtl2832.h      |  2 +
- drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
- 3 files changed, 72 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index b80e1c0..b8e7971 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -1145,6 +1145,73 @@ err:
- 	return ret;
- }
- 
-+static int rtl2832_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
-+{
-+	struct rtl2832_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
-+	int ret;
-+	u8 u8tmp;
-+
-+	dev_dbg(&client->dev, "onoff=%d\n", onoff);
-+
-+	/* enable / disable PID filter */
-+	if (onoff)
-+		u8tmp = 0x80;
-+	else
-+		u8tmp = 0x00;
-+
-+	ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
-+	return ret;
-+}
-+
-+static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
-+			      int onoff)
-+{
-+	struct rtl2832_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
-+	int ret;
-+	u8 buf[4];
-+
-+	dev_dbg(&client->dev, "index=%d pid=%04x onoff=%d\n",
-+		index, pid, onoff);
-+
-+	/* skip invalid PIDs (0x2000) */
-+	if (pid > 0x1fff || index > 32)
-+		return 0;
-+
-+	if (onoff)
-+		set_bit(index, &dev->filters);
-+	else
-+		clear_bit(index, &dev->filters);
-+
-+	/* enable / disable PIDs */
-+	buf[0] = (dev->filters >>  0) & 0xff;
-+	buf[1] = (dev->filters >>  8) & 0xff;
-+	buf[2] = (dev->filters >> 16) & 0xff;
-+	buf[3] = (dev->filters >> 24) & 0xff;
-+	ret = rtl2832_bulk_write(client, 0x062, buf, 4);
-+	if (ret)
-+		goto err;
-+
-+	/* add PID */
-+	buf[0] = (pid >> 8) & 0xff;
-+	buf[1] = (pid >> 0) & 0xff;
-+	ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
-+	return ret;
-+}
-+
- static int rtl2832_probe(struct i2c_client *client,
- 		const struct i2c_device_id *id)
- {
-@@ -1240,6 +1307,8 @@ static int rtl2832_probe(struct i2c_client *client,
- 	pdata->get_i2c_adapter = rtl2832_get_i2c_adapter_;
- 	pdata->get_private_i2c_adapter = rtl2832_get_private_i2c_adapter_;
- 	pdata->enable_slave_ts = rtl2832_enable_slave_ts;
-+	pdata->pid_filter = rtl2832_pid_filter;
-+	pdata->pid_filter_ctrl = rtl2832_pid_filter_ctrl;
- 
- 	dev_info(&client->dev, "Realtek RTL2832 successfully attached\n");
- 	return 0;
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index 35e86e6..e79c479 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -78,6 +78,8 @@ struct rtl2832_platform_data {
- 	struct i2c_adapter* (*get_i2c_adapter)(struct i2c_client *);
- 	struct i2c_adapter* (*get_private_i2c_adapter)(struct i2c_client *);
- 	int (*enable_slave_ts)(struct i2c_client *);
-+	int (*pid_filter)(struct dvb_frontend *, u8, u16, int);
-+	int (*pid_filter_ctrl)(struct dvb_frontend *, int);
- };
- 
- #endif /* RTL2832_H */
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index 6f3fe77..216e905 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -41,6 +41,7 @@ struct rtl2832_dev {
- 	u64 post_bit_count;
- 	bool sleeping;
- 	struct delayed_work i2c_gate_work;
-+	unsigned long filters; /* PID filter */
- };
- 
- struct rtl2832_reg_entry {
--- 
-http://palosaari.fi/
+date:		Tue Dec 23 04:00:24 CET 2014
+git branch:	test
+git hash:	654a731be1a0b6f606f3f3d12b50db08f2ae3c34
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for mips
+ABI WARNING: change for sh
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
