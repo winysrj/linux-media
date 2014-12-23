@@ -1,160 +1,397 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47977 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753535AbaLAMft (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 07:35:49 -0500
-Message-ID: <1417437343.4624.14.camel@pengutronix.de>
-Subject: Re: [PATCH v5 1/6] of: Decrement refcount of previous endpoint in
- of_graph_get_next_endpoint
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Philipp Zabel <pza@pengutronix.de>,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de
-Date: Mon, 01 Dec 2014 13:35:43 +0100
-In-Reply-To: <Pine.LNX.4.64.1411091651210.17370@axis700.grange>
-References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
-	 <1412013819-29181-2-git-send-email-p.zabel@pengutronix.de>
-	 <Pine.LNX.4.64.1411072255130.4252@axis700.grange>
-	 <20141109153644.GA3132@pengutronix.de>
-	 <Pine.LNX.4.64.1411091651210.17370@axis700.grange>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:46440 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754025AbaLWVQL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 16:16:11 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 65/66] rtl28xxu: correct reg access routine name prefixes
+Date: Tue, 23 Dec 2014 22:49:58 +0200
+Message-Id: <1419367799-14263-65-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Sonntag, den 09.11.2014, 16:51 +0100 schrieb Guennadi Liakhovetski:
-> On Sun, 9 Nov 2014, Philipp Zabel wrote:
-> 
-> > Hi Guennadi,
-> > 
-> > On Fri, Nov 07, 2014 at 11:06:21PM +0100, Guennadi Liakhovetski wrote:
-> > > Hi Philipp,
-> > > 
-> > > Thanks for the patch and sorry for a late reply. I did look at your 
-> > > patches earlier too, but maybe not attentively enough, or maybe I'm 
-> > > misunderstanding something now. In the scan_of_host() function in 
-> > > soc_camera.c as of current -next I see:
-> > > 
-> > > 		epn = of_graph_get_next_endpoint(np, epn);
-> > > 
-> > > which already looks like a refcount leak to me. If epn != NULL, its 
-> > > refcount is incremented, but then immediately the variable gets 
-> > > overwritten, and there's no extra copy of that variable to fix this. If 
-> > > I'm right, then that bug in itself should be fixed, ideally before your 
-> > > patch is applied. But in fact, your patch fixes this, since it modifies 
-> > > of_graph_get_next_endpoint() to return with prev's refcount not 
-> > > incremented, right? Whereas the of_node_put(epn) later down in 
-> > > scan_of_host() decrements refcount of the _next_ endpoint, not the 
-> > > previous one, so, it should be left alone? I.e. AFAICT your modification 
-> > > to of_graph_get_next_endpoint() fixes soc_camera.c with no further 
-> > > modifications to it required?
-> > 
-> > You are right. With the old implementation, you'd have to do the
-> > epn = of_graph_get_next_endpoint(np, prev); of_node_put(prev); prev = epn;
-> > dance to avoid leaking a reference to the first endpoint. This series
-> > accidentally fixes soc_camera by changing of_graph_get_next_endpoint
-> > to decrement the reference count itself.
-> 
-> Right, so, the patch has to be adjusted not to touch soc_camera.c at all.
+Use rtl28xxu_ prefix for all register access routine names.
 
-No. As of the current media-tree we still need move the of_node_put(epn)
-out of the loop:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 100 ++++++++++++++++----------------
+ 1 file changed, 50 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index f4308fe..619b2d4 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1696,7 +1696,6 @@ static void scan_of_host(struct soc_camera_host *ici)
- 		if (!i)
- 			soc_of_bind(ici, epn, ren->parent);
- 
--		of_node_put(epn);
- 		of_node_put(ren);
- 
- 		if (i) {
-@@ -1704,6 +1703,8 @@ static void scan_of_host(struct soc_camera_host *ici)
- 			break;
- 		}
- 	}
-+
-+	of_node_put(epn);
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 23ded77..d88f799 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -62,7 +62,7 @@ err:
+ 	return ret;
  }
  
- #else
-
-We can do this in two steps (step 1 fixing the current status quo, step
-2 as part of this series). Step 1:
-
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1691,11 +1691,13 @@ static void scan_of_host(struct soc_camera_host *ici)
+-static int rtl28xx_wr_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
++static int rtl28xxu_wr_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
  {
- 	struct device *dev = ici->v4l2_dev.dev;
- 	struct device_node *np = dev->of_node;
--	struct device_node *epn = NULL, *ren;
-+	struct device_node *epn, *prev = NULL, *ren;
- 	unsigned int i;
+ 	struct rtl28xxu_req req;
  
- 	for (i = 0; ; i++) {
--		epn = of_graph_get_next_endpoint(np, epn);
-+		epn = of_graph_get_next_endpoint(np, prev);
-+		of_node_put(prev);
-+		prev = epn;
- 		if (!epn)
- 			break;
- 
-@@ -1710,7 +1712,6 @@ static void scan_of_host(struct soc_camera_host *ici)
- 		if (!i)
- 			soc_of_bind(ici, epn, ren->parent);
- 
--		of_node_put(epn);
- 		of_node_put(ren);
- 
- 		if (i) {
-
-And step 2:
-
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 3d44773..1de62bf 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1691,13 +1691,11 @@ static void scan_of_host(struct soc_camera_host *ici)
- {
- 	struct device *dev = ici->v4l2_dev.dev;
- 	struct device_node *np = dev->of_node;
--	struct device_node *epn, *prev = NULL, *ren;
-+	struct device_node *epn = NULL, *ren;
- 	unsigned int i;
- 
- 	for (i = 0; ; i++) {
--		epn = of_graph_get_next_endpoint(np, prev);
--		of_node_put(prev);
--		prev = epn;
-+		epn = of_graph_get_next_endpoint(np, epn);
- 		if (!epn)
- 			break;
- 
-@@ -1719,6 +1717,8 @@ static void scan_of_host(struct soc_camera_host *ici)
- 			break;
- 		}
- 	}
-+
-+	of_node_put(epn);
+@@ -80,7 +80,7 @@ static int rtl28xx_wr_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
+ 	return rtl28xxu_ctrl_msg(d, &req);
  }
  
- #else
-
-Would you prefer that option?
-
-regards
-Philipp
-
+-static int rtl2831_rd_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
++static int rtl28xxu_rd_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
+ {
+ 	struct rtl28xxu_req req;
+ 
+@@ -98,17 +98,17 @@ static int rtl2831_rd_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
+ 	return rtl28xxu_ctrl_msg(d, &req);
+ }
+ 
+-static int rtl28xx_wr_reg(struct dvb_usb_device *d, u16 reg, u8 val)
++static int rtl28xxu_wr_reg(struct dvb_usb_device *d, u16 reg, u8 val)
+ {
+-	return rtl28xx_wr_regs(d, reg, &val, 1);
++	return rtl28xxu_wr_regs(d, reg, &val, 1);
+ }
+ 
+-static int rtl28xx_rd_reg(struct dvb_usb_device *d, u16 reg, u8 *val)
++static int rtl28xxu_rd_reg(struct dvb_usb_device *d, u16 reg, u8 *val)
+ {
+-	return rtl2831_rd_regs(d, reg, val, 1);
++	return rtl28xxu_rd_regs(d, reg, val, 1);
+ }
+ 
+-static int rtl28xx_wr_reg_mask(struct dvb_usb_device *d, u16 reg, u8 val,
++static int rtl28xxu_wr_reg_mask(struct dvb_usb_device *d, u16 reg, u8 val,
+ 		u8 mask)
+ {
+ 	int ret;
+@@ -116,7 +116,7 @@ static int rtl28xx_wr_reg_mask(struct dvb_usb_device *d, u16 reg, u8 val,
+ 
+ 	/* no need for read if whole reg is written */
+ 	if (mask != 0xff) {
+-		ret = rtl28xx_rd_reg(d, reg, &tmp);
++		ret = rtl28xxu_rd_reg(d, reg, &tmp);
+ 		if (ret)
+ 			return ret;
+ 
+@@ -125,7 +125,7 @@ static int rtl28xx_wr_reg_mask(struct dvb_usb_device *d, u16 reg, u8 val,
+ 		val |= tmp;
+ 	}
+ 
+-	return rtl28xx_wr_reg(d, reg, val);
++	return rtl28xxu_wr_reg(d, reg, val);
+ }
+ 
+ /* I2C */
+@@ -274,12 +274,12 @@ static int rtl2831u_read_config(struct dvb_usb_device *d)
+ 	 */
+ 
+ 	/* GPIO direction */
+-	ret = rtl28xx_wr_reg(d, SYS_GPIO_DIR, 0x0a);
++	ret = rtl28xxu_wr_reg(d, SYS_GPIO_DIR, 0x0a);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* enable as output GPIO0, GPIO2, GPIO4 */
+-	ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_EN, 0x15);
++	ret = rtl28xxu_wr_reg(d, SYS_GPIO_OUT_EN, 0x15);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -361,11 +361,11 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
+ 	dev_dbg(&d->intf->dev, "\n");
+ 
+ 	/* enable GPIO3 and GPIO6 as output */
+-	ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_DIR, 0x00, 0x40);
++	ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_DIR, 0x00, 0x40);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_EN, 0x48, 0x48);
++	ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_OUT_EN, 0x48, 0x48);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -483,15 +483,15 @@ tuner_found:
+ 	/* probe slave demod */
+ 	if (dev->tuner == TUNER_RTL2832_R828D) {
+ 		/* power on MN88472 demod on GPIO0 */
+-		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, 0x01, 0x01);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_OUT_VAL, 0x01, 0x01);
+ 		if (ret)
+ 			goto err;
+ 
+-		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_DIR, 0x00, 0x01);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_DIR, 0x00, 0x01);
+ 		if (ret)
+ 			goto err;
+ 
+-		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_EN, 0x01, 0x01);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_OUT_EN, 0x01, 0x01);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -679,7 +679,7 @@ static int rtl2832u_fc0012_tuner_callback(struct dvb_usb_device *d,
+ 	switch (cmd) {
+ 	case FC_FE_CALLBACK_VHF_ENABLE:
+ 		/* set output values */
+-		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
++		ret = rtl28xxu_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -689,7 +689,7 @@ static int rtl2832u_fc0012_tuner_callback(struct dvb_usb_device *d,
+ 			val |= 0x40; /* set GPIO6 high */
+ 
+ 
+-		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
++		ret = rtl28xxu_wr_reg(d, SYS_GPIO_OUT_VAL, val);
+ 		if (ret)
+ 			goto err;
+ 		break;
+@@ -724,7 +724,7 @@ static int rtl2832u_tua9001_tuner_callback(struct dvb_usb_device *d,
+ 		else
+ 			val = (0 << 4);
+ 
+-		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, val, 0x10);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_OUT_VAL, val, 0x10);
+ 		if (ret)
+ 			goto err;
+ 		break;
+@@ -734,7 +734,7 @@ static int rtl2832u_tua9001_tuner_callback(struct dvb_usb_device *d,
+ 		else
+ 			val = (0 << 1);
+ 
+-		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, val, 0x02);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_OUT_VAL, val, 0x02);
+ 		if (ret)
+ 			goto err;
+ 		break;
+@@ -1109,11 +1109,11 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		break;
+ 	case TUNER_RTL2832_TUA9001:
+ 		/* enable GPIO1 and GPIO4 as output */
+-		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_DIR, 0x00, 0x12);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_DIR, 0x00, 0x12);
+ 		if (ret)
+ 			goto err;
+ 
+-		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_EN, 0x12, 0x12);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_OUT_EN, 0x12, 0x12);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -1234,23 +1234,23 @@ static int rtl28xxu_init(struct dvb_usb_device *d)
+ 	dev_dbg(&d->intf->dev, "\n");
+ 
+ 	/* init USB endpoints */
+-	ret = rtl28xx_rd_reg(d, USB_SYSCTL_0, &val);
++	ret = rtl28xxu_rd_reg(d, USB_SYSCTL_0, &val);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* enable DMA and Full Packet Mode*/
+ 	val |= 0x09;
+-	ret = rtl28xx_wr_reg(d, USB_SYSCTL_0, val);
++	ret = rtl28xxu_wr_reg(d, USB_SYSCTL_0, val);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* set EPA maximum packet size to 0x0200 */
+-	ret = rtl28xx_wr_regs(d, USB_EPA_MAXPKT, "\x00\x02\x00\x00", 4);
++	ret = rtl28xxu_wr_regs(d, USB_EPA_MAXPKT, "\x00\x02\x00\x00", 4);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* change EPA FIFO length */
+-	ret = rtl28xx_wr_regs(d, USB_EPA_FIFO_CFG, "\x14\x00\x00\x00", 4);
++	ret = rtl28xxu_wr_regs(d, USB_EPA_FIFO_CFG, "\x14\x00\x00\x00", 4);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1268,12 +1268,12 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 	dev_dbg(&d->intf->dev, "onoff=%d\n", onoff);
+ 
+ 	/* demod adc */
+-	ret = rtl28xx_rd_reg(d, SYS_SYS0, &sys0);
++	ret = rtl28xxu_rd_reg(d, SYS_SYS0, &sys0);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* tuner power, read GPIOs */
+-	ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &gpio);
++	ret = rtl28xxu_rd_reg(d, SYS_GPIO_OUT_VAL, &gpio);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1299,17 +1299,17 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 	dev_dbg(&d->intf->dev, "WR SYS0=%02x GPIO_OUT_VAL=%02x\n", sys0, gpio);
+ 
+ 	/* demod adc */
+-	ret = rtl28xx_wr_reg(d, SYS_SYS0, sys0);
++	ret = rtl28xxu_wr_reg(d, SYS_SYS0, sys0);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* tuner power, write GPIOs */
+-	ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, gpio);
++	ret = rtl28xxu_wr_reg(d, SYS_GPIO_OUT_VAL, gpio);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* streaming EP: stall & reset */
+-	ret = rtl28xx_wr_regs(d, USB_EPA_CTL, epa_ctl, 2);
++	ret = rtl28xxu_wr_regs(d, USB_EPA_CTL, epa_ctl, 2);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1330,27 +1330,27 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 
+ 	if (onoff) {
+ 		/* GPIO3=1, GPIO4=0 */
+-		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, 0x08, 0x18);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_OUT_VAL, 0x08, 0x18);
+ 		if (ret)
+ 			goto err;
+ 
+ 		/* suspend? */
+-		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL1, 0x00, 0x10);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_DEMOD_CTL1, 0x00, 0x10);
+ 		if (ret)
+ 			goto err;
+ 
+ 		/* enable PLL */
+-		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x80, 0x80);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_DEMOD_CTL, 0x80, 0x80);
+ 		if (ret)
+ 			goto err;
+ 
+ 		/* disable reset */
+-		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x20, 0x20);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_DEMOD_CTL, 0x20, 0x20);
+ 		if (ret)
+ 			goto err;
+ 
+ 		/* streaming EP: clear stall & reset */
+-		ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x00\x00", 2);
++		ret = rtl28xxu_wr_regs(d, USB_EPA_CTL, "\x00\x00", 2);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -1359,17 +1359,17 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 			goto err;
+ 	} else {
+ 		/* GPIO4=1 */
+-		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, 0x10, 0x10);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_OUT_VAL, 0x10, 0x10);
+ 		if (ret)
+ 			goto err;
+ 
+ 		/* disable PLL */
+-		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x00, 0x80);
++		ret = rtl28xxu_wr_reg_mask(d, SYS_DEMOD_CTL, 0x00, 0x80);
+ 		if (ret)
+ 			goto err;
+ 
+ 		/* streaming EP: set stall & reset */
+-		ret = rtl28xx_wr_regs(d, USB_EPA_CTL, "\x10\x02", 2);
++		ret = rtl28xxu_wr_regs(d, USB_EPA_CTL, "\x10\x02", 2);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -1409,7 +1409,7 @@ static int rtl28xxu_frontend_ctrl(struct dvb_frontend *fe, int onoff)
+ 	else
+ 		val = 0x00; /* disable ADC */
+ 
+-	ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, val, 0x48);
++	ret = rtl28xxu_wr_reg_mask(d, SYS_DEMOD_CTL, val, 0x48);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1453,7 +1453,7 @@ static int rtl2831u_rc_query(struct dvb_usb_device *d)
+ 	/* init remote controller */
+ 	if (!dev->rc_active) {
+ 		for (i = 0; i < ARRAY_SIZE(rc_nec_tab); i++) {
+-			ret = rtl28xx_wr_reg(d, rc_nec_tab[i].reg,
++			ret = rtl28xxu_wr_reg(d, rc_nec_tab[i].reg,
+ 					rc_nec_tab[i].val);
+ 			if (ret)
+ 				goto err;
+@@ -1461,7 +1461,7 @@ static int rtl2831u_rc_query(struct dvb_usb_device *d)
+ 		dev->rc_active = true;
+ 	}
+ 
+-	ret = rtl2831_rd_regs(d, SYS_IRRC_RP, buf, 5);
++	ret = rtl28xxu_rd_regs(d, SYS_IRRC_RP, buf, 5);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1483,12 +1483,12 @@ static int rtl2831u_rc_query(struct dvb_usb_device *d)
+ 
+ 		rc_keydown(d->rc_dev, RC_TYPE_NEC, rc_code, 0);
+ 
+-		ret = rtl28xx_wr_reg(d, SYS_IRRC_SR, 1);
++		ret = rtl28xxu_wr_reg(d, SYS_IRRC_SR, 1);
+ 		if (ret)
+ 			goto err;
+ 
+ 		/* repeated intentionally to avoid extra keypress */
+-		ret = rtl28xx_wr_reg(d, SYS_IRRC_SR, 1);
++		ret = rtl28xxu_wr_reg(d, SYS_IRRC_SR, 1);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -1544,7 +1544,7 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
+ 		};
+ 
+ 		for (i = 0; i < ARRAY_SIZE(init_tab); i++) {
+-			ret = rtl28xx_wr_reg_mask(d, init_tab[i].reg,
++			ret = rtl28xxu_wr_reg_mask(d, init_tab[i].reg,
+ 					init_tab[i].val, init_tab[i].mask);
+ 			if (ret)
+ 				goto err;
+@@ -1553,27 +1553,27 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
+ 		dev->rc_active = true;
+ 	}
+ 
+-	ret = rtl28xx_rd_reg(d, IR_RX_IF, &buf[0]);
++	ret = rtl28xxu_rd_reg(d, IR_RX_IF, &buf[0]);
+ 	if (ret)
+ 		goto err;
+ 
+ 	if (buf[0] != 0x83)
+ 		goto exit;
+ 
+-	ret = rtl28xx_rd_reg(d, IR_RX_BC, &buf[0]);
++	ret = rtl28xxu_rd_reg(d, IR_RX_BC, &buf[0]);
+ 	if (ret)
+ 		goto err;
+ 
+ 	len = buf[0];
+ 
+ 	/* read raw code from hw */
+-	ret = rtl2831_rd_regs(d, IR_RX_BUF, buf, len);
++	ret = rtl28xxu_rd_regs(d, IR_RX_BUF, buf, len);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* let hw receive new code */
+ 	for (i = 0; i < ARRAY_SIZE(refresh_tab); i++) {
+-		ret = rtl28xx_wr_reg_mask(d, refresh_tab[i].reg,
++		ret = rtl28xxu_wr_reg_mask(d, refresh_tab[i].reg,
+ 				refresh_tab[i].val, refresh_tab[i].mask);
+ 		if (ret)
+ 			goto err;
+@@ -1603,7 +1603,7 @@ static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
+ {
+ 	/* disable IR interrupts in order to avoid SDR sample loss */
+ 	if (rtl28xxu_disable_rc)
+-		return rtl28xx_wr_reg(d, IR_RX_IE, 0x00);
++		return rtl28xxu_wr_reg(d, IR_RX_IE, 0x00);
+ 
+ 	/* load empty to enable rc */
+ 	if (!rc->map_name)
+-- 
+http://palosaari.fi/
 
