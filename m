@@ -1,42 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44570 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429AbaLLWtX (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42069 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755870AbaLWNJ0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 17:49:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Francesco Marletta <fmarletta@movia.biz>
-Cc: Carlos =?ISO-8859-1?Q?Sanmart=EDn?= Bustos <carsanbu@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: Help required for TVP5151 on Overo
-Date: Sat, 13 Dec 2014 00:50:10 +0200
-Message-ID: <1661712.GcM7Su7W5y@avalon>
-In-Reply-To: <20141212163802.6efa5dd0@crow>
-References: <20141119094656.5459258b@crow> <5213550.zrY0P2Gc9u@avalon> <20141212163802.6efa5dd0@crow>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 23 Dec 2014 08:09:26 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v7 0/3] Add of-graph helpers to loop over endpoints and find ports by id
+Date: Tue, 23 Dec 2014 14:09:15 +0100
+Message-Id: <1419340158-20567-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Francesco,
+Hi,
 
-On Friday 12 December 2014 16:38:02 Francesco Marletta wrote:
-> Hi Laurent,
->
-> I'll check the patches you indicated on
-> 	git://linuxtv.org/pinchartl/media.git omap3isp/tvp5151
-> 
-> Which version of the kernel are these patches for?
+I addressed Andrzej's comments on of_graph_get_port_by_id() and added
+Mathieu's ack to the first patch. Also I missed the omap2-dss init code
+last time around. For the first patch, I'd like to get an ack for the rcar-du
+and omap2-dss changes so this can go in through Grant's tree.
 
-Do you know that, if you clone the above tree and checkout the 
-omap3isp/tvp5151 branch, you will get a Linux kernel source tree with complete 
-history and a Makefile that contains the version number ? :-)
+This series converts all existing users of of_graph_get_next_endpoint that pass
+a non-NULL prev argument to the function and decrement its refcount themselves
+to stop doing that. The of_node_put is moved into of_graph_get_next_endpoint
+instead.
+This allows to add a for_each_endpoint_of_node helper macro to loop over all
+endpoints in a device tree node.
 
-http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/tree/Makefile?h=omap3isp/tvp5151
+Changes since v6:
+ - Fixed of_graph_get_port_by_id to handle the optional 'ports' node
+   and synchronize documentation and parameter names in the process.
+ - Added omap2-dss to the list of updated of_graph_get_next_endpoint
+   users in the first patch.
+ - Added Mathieu's ack to the first patch.
+
+The previous version can be found here: https://lkml.org/lkml/2014/12/22/220
+
+regards
+Philipp
+
+Philipp Zabel (3):
+  of: Decrement refcount of previous endpoint in
+    of_graph_get_next_endpoint
+  of: Add for_each_endpoint_of_node helper macro
+  of: Add of_graph_get_port_by_id function
+
+ drivers/coresight/of_coresight.c                  | 13 ++-----
+ drivers/gpu/drm/imx/imx-drm-core.c                | 13 ++-----
+ drivers/gpu/drm/rcar-du/rcar_du_kms.c             | 15 +++------
+ drivers/media/platform/soc_camera/soc_camera.c    |  3 +-
+ drivers/of/base.c                                 | 41 ++++++++++++++++++-----
+ drivers/video/fbdev/omap2/dss/omapdss-boot-init.c |  7 +---
+ include/linux/of_graph.h                          | 18 ++++++++++
+ 7 files changed, 62 insertions(+), 48 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
