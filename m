@@ -1,135 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-4.cisco.com ([72.163.197.28]:30564 "EHLO
-	bgl-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970AbaLOJTf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 04:19:35 -0500
-From: Prashant Laddha <prladdha@cisco.com>
-To: <hverkuil@xs4all.nl>
-Cc: Prashant Laddha <prladdha@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/6] Vivid sine gen: Optimization for sine LUT size
-Date: Mon, 15 Dec 2014 14:49:18 +0530
-Message-Id: <1418635162-8814-3-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1418635162-8814-1-git-send-email-prladdha@cisco.com>
-References: <1418635162-8814-1-git-send-email-prladdha@cisco.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:58555 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756561AbaLWUu2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:28 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 06/66] rtl28xxu: use I2C binding for RTL2830 demod driver
+Date: Tue, 23 Dec 2014 22:48:59 +0200
+Message-Id: <1419367799-14263-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exploiting the symmetry and repetitive nature of sine waveform
-to reduce size of sine LUT. Values up to phase <= pi/4, can be
-used to calculate sine for remaining phases.
+rtl2830 driver supports now I2C model too. Start using it.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/vivid/vivid-sin.c | 74 ++++++++++++++------------------
- 1 file changed, 32 insertions(+), 42 deletions(-)
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 80 +++++++++++++++------------------
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h | 17 +++++++
+ 2 files changed, 54 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-sin.c b/drivers/media/platform/vivid/vivid-sin.c
-index e3d6149..2ed9f7f 100644
---- a/drivers/media/platform/vivid/vivid-sin.c
-+++ b/drivers/media/platform/vivid/vivid-sin.c
-@@ -25,46 +25,38 @@
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 705c6c3..fcb5c36 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -22,23 +22,6 @@
  
- #define SIN_TAB_SIZE 256
+ #include "rtl28xxu.h"
  
--	/*TODO- Reduce the size of the table */
--/* Since sinewave is symmetric, it can be represented using only quarter
--   of the samples compared to the number of samples used below  */
+-#include "rtl2830.h"
+-#include "rtl2832.h"
+-#include "rtl2832_sdr.h"
+-#include "mn88472.h"
+-#include "mn88473.h"
 -
--static s32 sin[257] = {
--	     0,    31,    63,    94,   125,   156,   187,   218,
--	   249,   279,   310,   340,   370,   400,   430,   459,
--	   488,   517,   545,   573,   601,   628,   655,   682,
--	   708,   734,   760,   784,   809,   833,   856,   879,
--	   902,   923,   945,   965,   986,  1005,  1024,  1042,
--	  1060,  1077,  1094,  1109,  1124,  1139,  1153,  1166,
--	  1178,  1190,  1200,  1211,  1220,  1229,  1237,  1244,
--	  1251,  1256,  1261,  1265,  1269,  1272,  1273,  1275,
--	  1275,  1275,  1273,  1272,  1269,  1265,  1261,  1256,
--	  1251,  1244,  1237,  1229,  1220,  1211,  1200,  1190,
--	  1178,  1166,  1153,  1139,  1124,  1109,  1094,  1077,
--	  1060,  1042,  1024,  1005,   986,   965,   945,   923,
--	   902,   879,   856,   833,   809,   784,   760,   734,
--	   708,   682,   655,   628,   601,   573,   545,   517,
--	   488,   459,   430,   400,   370,   340,   310,   279,
--	   249,   218,   187,   156,   125,    94,    63,    31,
--	     0,   -31,   -63,   -94,  -125,   156,  -187,  -218,
--	  -249,  -279,  -310,  -340,  -370,  -400,  -430,  -459,
--	  -488,  -517,  -545,  -573,  -601,  -628,  -655,  -682,
--	  -708,  -734,  -760,  -784,  -809,  -833,  -856,  -879,
--	  -902,  -923,  -945,  -965,  -986, -1005, -1024, -1042,
--	 -1060, -1077, -1094, -1109, -1124, -1139, -1153, -1166,
--	 -1178, -1190, -1200, -1211, -1220, -1229, -1237, -1244,
--	 -1251, -1256, -1261, -1265, -1269, -1272, -1273, -1275,
--	 -1275, -1275, -1273, -1272, -1269, -1265, -1261, -1256,
--	 -1251, -1244, -1237, -1229, -1220, -1211, -1200, -1190,
--	 -1178, -1166, -1153, -1139, -1124, -1109, -1094, -1077,
--	 -1060, -1042, -1024, -1005,  -986,  -965,  -945,  -923,
--	  -902,  -879,  -856,  -833,  -809,  -784,  -760,  -734,
--	  -708,  -682,  -655,  -628,  -601,  -573,  -545,  -517,
--	  -488,  -459,  -430,  -400,  -370,  -340,  -310,  -279,
--	  -249,  -218,  -187,  -156,  -125,   -94,   -63,   -31,
--	     0
-+static s32 sin[65] = {
-+	   0,   31,   63,   94,  125,  156,  187,  218,  249,  279,  310,  340,
-+	 370,  400,  430,  459,  488,  517,  545,  573,  601,  628,  655,  682,
-+	 708,  734,  760,  784,  809,  833,  856,  879,  902,  923,  945,  965,
-+	 986, 1005, 1024, 1042, 1060, 1077, 1094, 1109, 1124, 1139, 1153, 1166,
-+	1178, 1190, 1200, 1211, 1220, 1229, 1237, 1244, 1251, 1256, 1261, 1265,
-+	1269, 1272, 1273, 1275, 1275
- 	};
+-#include "qt1010.h"
+-#include "mt2060.h"
+-#include "mxl5005s.h"
+-#include "fc0012.h"
+-#include "fc0013.h"
+-#include "e4000.h"
+-#include "fc2580.h"
+-#include "tua9001.h"
+-#include "r820t.h"
+-
+-
+ #ifdef CONFIG_MEDIA_ATTACH
+ #define dvb_attach_sdr(FUNCTION, ARGS...) ({ \
+ 	void *__r = NULL; \
+@@ -572,10 +555,8 @@ err:
+ 	return ret;
+ }
  
-+static s32 get_sin_val(u32 index)
-+{
-+	u32 tab_index;
-+	u32 new_index;
-+
-+	if (index <= 64)
-+		return sin[index];
-+	else if (index > 64 && index <= 128) {
-+		tab_index = 64 - (index - 64);
-+		return sin[tab_index];
-+	} else if (index > 128 && index <= 192) {
-+		tab_index = index - 128;
-+		return (-1) * sin[tab_index];
-+	} else if (index > 192 && index <= 255) {
-+		tab_index = 64 - (index - 192);
-+		return (-1) * sin[tab_index];
+-static const struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
+-	.i2c_addr = 0x10, /* 0x20 */
+-	.xtal = 28800000,
+-	.ts_mode = 0,
++static const struct rtl2830_platform_data rtl2830_mt2060_platform_data = {
++	.clk = 28800000,
+ 	.spec_inv = 1,
+ 	.vtop = 0x20,
+ 	.krf = 0x04,
+@@ -583,20 +564,16 @@ static const struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
+ 
+ };
+ 
+-static const struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
+-	.i2c_addr = 0x10, /* 0x20 */
+-	.xtal = 28800000,
+-	.ts_mode = 0,
++static const struct rtl2830_platform_data rtl2830_qt1010_platform_data = {
++	.clk = 28800000,
+ 	.spec_inv = 1,
+ 	.vtop = 0x20,
+ 	.krf = 0x04,
+ 	.agc_targ_val = 0x2d,
+ };
+ 
+-static const struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
+-	.i2c_addr = 0x10, /* 0x20 */
+-	.xtal = 28800000,
+-	.ts_mode = 0,
++static const struct rtl2830_platform_data rtl2830_mxl5005s_platform_data = {
++	.clk = 28800000,
+ 	.spec_inv = 0,
+ 	.vtop = 0x3f,
+ 	.krf = 0x04,
+@@ -607,20 +584,22 @@ static int rtl2831u_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct rtl28xxu_priv *priv = d_to_priv(d);
+-	const struct rtl2830_config *rtl2830_config;
++	struct rtl2830_platform_data *pdata = &priv->rtl2830_platform_data;
++	struct i2c_board_info board_info;
++	struct i2c_client *client;
+ 	int ret;
+ 
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
+ 	switch (priv->tuner) {
+ 	case TUNER_RTL2830_QT1010:
+-		rtl2830_config = &rtl28xxu_rtl2830_qt1010_config;
++		*pdata = rtl2830_qt1010_platform_data;
+ 		break;
+ 	case TUNER_RTL2830_MT2060:
+-		rtl2830_config = &rtl28xxu_rtl2830_mt2060_config;
++		*pdata = rtl2830_mt2060_platform_data;
+ 		break;
+ 	case TUNER_RTL2830_MXL5005S:
+-		rtl2830_config = &rtl28xxu_rtl2830_mxl5005s_config;
++		*pdata = rtl2830_mxl5005s_platform_data;
+ 		break;
+ 	default:
+ 		dev_err(&d->udev->dev, "%s: unknown tuner=%s\n",
+@@ -630,12 +609,28 @@ static int rtl2831u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	}
+ 
+ 	/* attach demodulator */
+-	adap->fe[0] = dvb_attach(rtl2830_attach, rtl2830_config, &d->i2c_adap);
+-	if (!adap->fe[0]) {
++	memset(&board_info, 0, sizeof(board_info));
++	strlcpy(board_info.type, "rtl2830", I2C_NAME_SIZE);
++	board_info.addr = 0x10;
++	board_info.platform_data = pdata;
++	request_module("%s", board_info.type);
++	client = i2c_new_device(&d->i2c_adap, &board_info);
++	if (client == NULL || client->dev.driver == NULL) {
+ 		ret = -ENODEV;
+ 		goto err;
+ 	}
+ 
++	if (!try_module_get(client->dev.driver->owner)) {
++		i2c_unregister_device(client);
++		ret = -ENODEV;
++		goto err;
 +	}
 +
-+	new_index = index % 256;
-+	return get_sin_val(new_index);
++	adap->fe[0] = pdata->get_dvb_frontend(client);
++	priv->demod_i2c_adapter = pdata->get_i2c_adapter(client);
 +
-+}
++	priv->i2c_client_demod = client;
++
+ 	return 0;
+ err:
+ 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+@@ -973,27 +968,25 @@ static int rtl2831u_tuner_attach(struct dvb_usb_adapter *adap)
+ 	int ret;
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct rtl28xxu_priv *priv = d_to_priv(d);
+-	struct i2c_adapter *rtl2830_tuner_i2c;
+ 	struct dvb_frontend *fe;
+ 
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
+-	/* use rtl2830 driver I2C adapter, for more info see rtl2830 driver */
+-	rtl2830_tuner_i2c = rtl2830_get_tuner_i2c_adapter(adap->fe[0]);
+-
+ 	switch (priv->tuner) {
+ 	case TUNER_RTL2830_QT1010:
+ 		fe = dvb_attach(qt1010_attach, adap->fe[0],
+-				rtl2830_tuner_i2c, &rtl28xxu_qt1010_config);
++				priv->demod_i2c_adapter,
++				&rtl28xxu_qt1010_config);
+ 		break;
+ 	case TUNER_RTL2830_MT2060:
+ 		fe = dvb_attach(mt2060_attach, adap->fe[0],
+-				rtl2830_tuner_i2c, &rtl28xxu_mt2060_config,
+-				1220);
++				priv->demod_i2c_adapter,
++				&rtl28xxu_mt2060_config, 1220);
+ 		break;
+ 	case TUNER_RTL2830_MXL5005S:
+ 		fe = dvb_attach(mxl5005s_attach, adap->fe[0],
+-				rtl2830_tuner_i2c, &rtl28xxu_mxl5005s_config);
++				priv->demod_i2c_adapter,
++				&rtl28xxu_mxl5005s_config);
+ 		break;
+ 	default:
+ 		fe = NULL;
+@@ -1586,6 +1579,7 @@ static const struct dvb_usb_device_properties rtl2831u_props = {
+ 	.i2c_algo = &rtl28xxu_i2c_algo,
+ 	.read_config = rtl2831u_read_config,
+ 	.frontend_attach = rtl2831u_frontend_attach,
++	.frontend_detach = rtl2832u_frontend_detach,
+ 	.tuner_attach = rtl2831u_tuner_attach,
+ 	.init = rtl28xxu_init,
+ 	.get_rc_config = rtl2831u_get_rc_config,
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+index e52a2b7..3f630c8 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+@@ -24,6 +24,22 @@
+ 
+ #include "dvb_usb.h"
+ 
++#include "rtl2830.h"
++#include "rtl2832.h"
++#include "rtl2832_sdr.h"
++#include "mn88472.h"
++#include "mn88473.h"
++
++#include "qt1010.h"
++#include "mt2060.h"
++#include "mxl5005s.h"
++#include "fc0012.h"
++#include "fc0013.h"
++#include "e4000.h"
++#include "fc2580.h"
++#include "tua9001.h"
++#include "r820t.h"
 +
  /*
-  * Calculation of sine is implemented using a look up table for range of
-  * phase values from 0 to 2*pi. Look table contains finite entries, say N.
-@@ -142,8 +134,7 @@ s32 calc_sin(u32 phase)
- 	d1 =  temp0 - temp1;
- 	d0 = (1 << FIX_PT_PREC) - d1;
+  * USB commands
+  * (usb_control_msg() index parameter)
+@@ -64,6 +80,7 @@ struct rtl28xxu_priv {
+ 	#define SLAVE_DEMOD_MN88472        1
+ 	#define SLAVE_DEMOD_MN88473        2
+ 	unsigned int slave_demod:2;
++	struct rtl2830_platform_data rtl2830_platform_data;
+ };
  
--	result = (d0 * sin[index % 256] + d1 * sin[(index+1)%256]);
--
-+	result = d0 * get_sin_val(index) + d1 * get_sin_val(index+1);
- 	return result >> FIX_PT_PREC;
- }
- 
-@@ -166,8 +157,7 @@ s32 calc_cos(u32 phase)
- 	d0 = (1 << FIX_PT_PREC) - d1;
- 
- 	index += 64;
--	result = (d0 * sin[index % 256] + d1 * sin[(index+1)%256]);
--
-+	result = d0 * get_sin_val(index) + d1 * get_sin_val(index+1);
- 	return result >> FIX_PT_PREC;
- }
- 
+ enum rtl28xxu_chip_id {
 -- 
-1.9.1
+http://palosaari.fi/
 
