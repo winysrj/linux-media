@@ -1,71 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:37493 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983AbaLWOc5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 09:32:57 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NH100K35HQWGKD0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 23 Dec 2014 23:32:56 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, Hans Verkuil <hansverk@cisco.com>
-Subject: [RFC 2/6] v4l2-subdev: add cec ops.
-Date: Tue, 23 Dec 2014 15:32:18 +0100
-Message-id: <1419345142-3364-3-git-send-email-k.debski@samsung.com>
-In-reply-to: <1419345142-3364-1-git-send-email-k.debski@samsung.com>
-References: <1419345142-3364-1-git-send-email-k.debski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:60104 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756640AbaLWUud (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:33 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 37/66] rtl2832: drop FE i2c gate control support
+Date: Tue, 23 Dec 2014 22:49:30 +0200
+Message-Id: <1419367799-14263-37-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+We don't need it anymore as all users are using muxed I2C adapter.
 
-Add callbacks to the v4l2_subdev_video_ops.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- include/media/v4l2-subdev.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/dvb-frontends/rtl2832.c      | 33 ------------------------------
+ drivers/media/dvb-frontends/rtl2832_priv.h |  1 -
+ 2 files changed, 34 deletions(-)
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 5beeb87..fdf620d 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -40,6 +40,9 @@
- #define V4L2_SUBDEV_IR_TX_NOTIFY		_IOW('v', 1, u32)
- #define V4L2_SUBDEV_IR_TX_FIFO_SERVICE_REQ	0x00000001
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 39c8f34..94d08fb 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -309,30 +309,6 @@ err:
  
-+#define V4L2_SUBDEV_CEC_TX_DONE			_IOW('v', 2, u32)
-+#define V4L2_SUBDEV_CEC_RX_MSG			_IOW('v', 3, struct cec_msg)
-+
- struct v4l2_device;
- struct v4l2_ctrl_handler;
- struct v4l2_event_subscription;
-@@ -48,6 +51,7 @@ struct v4l2_subdev;
- struct v4l2_subdev_fh;
- struct tuner_setup;
- struct v4l2_mbus_frame_desc;
-+struct cec_msg;
+ }
  
- /* decode_vbi_line */
- struct v4l2_decode_vbi_line {
-@@ -354,6 +358,10 @@ struct v4l2_subdev_video_ops {
- 			     const struct v4l2_mbus_config *cfg);
- 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
- 			   unsigned int *size);
-+	int (*cec_enable)(struct v4l2_subdev *sd, bool enable);
-+	int (*cec_log_addr)(struct v4l2_subdev *sd, u8 logical_addr);
-+	int (*cec_transmit)(struct v4l2_subdev *sd, struct cec_msg *msg);
-+	void (*cec_transmit_timed_out)(struct v4l2_subdev *sd);
+-static int rtl2832_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+-{
+-	struct rtl2832_dev *dev = fe->demodulator_priv;
+-	struct i2c_client *client = dev->client;
+-	int ret;
+-
+-	dev_dbg(&client->dev, "enable=%d\n", enable);
+-
+-	/* gate already open or close */
+-	if (dev->i2c_gate_state == enable)
+-		return 0;
+-
+-	ret = rtl2832_wr_demod_reg(dev, DVBT_IIC_REPEAT, (enable ? 0x1 : 0x0));
+-	if (ret)
+-		goto err;
+-
+-	dev->i2c_gate_state = enable;
+-
+-	return ret;
+-err:
+-	dev_dbg(&client->dev, "failed=%d\n", ret);
+-	return ret;
+-}
+-
+ static int rtl2832_set_if(struct dvb_frontend *fe, u32 if_freq)
+ {
+ 	struct rtl2832_dev *dev = fe->demodulator_priv;
+@@ -932,8 +908,6 @@ static void rtl2832_i2c_gate_work(struct work_struct *work)
+ 	if (ret)
+ 		goto err;
+ 
+-	dev->i2c_gate_state = false;
+-
+ 	return;
+ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+@@ -949,9 +923,6 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ 	/* terminate possible gate closing */
+ 	cancel_delayed_work(&dev->i2c_gate_work);
+ 
+-	if (dev->i2c_gate_state == chan_id)
+-		return 0;
+-
+ 	/*
+ 	 * chan_id 1 is muxed adapter demod provides and chan_id 0 is demod
+ 	 * itself. We need open gate when request is for chan_id 1. On that case
+@@ -965,8 +936,6 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ 	if (ret)
+ 		goto err;
+ 
+-	dev->i2c_gate_state = chan_id;
+-
+ 	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+@@ -1017,8 +986,6 @@ static struct dvb_frontend_ops rtl2832_ops = {
+ 	.read_status = rtl2832_read_status,
+ 	.read_snr = rtl2832_read_snr,
+ 	.read_ber = rtl2832_read_ber,
+-
+-	.i2c_gate_ctrl = rtl2832_i2c_gate_ctrl,
  };
  
  /*
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index a44614c..6f3fe77 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -39,7 +39,6 @@ struct rtl2832_dev {
+ 	u64 post_bit_error_prev; /* for old DVBv3 read_ber() calculation */
+ 	u64 post_bit_error;
+ 	u64 post_bit_count;
+-	bool i2c_gate_state;
+ 	bool sleeping;
+ 	struct delayed_work i2c_gate_work;
+ };
 -- 
-1.7.9.5
+http://palosaari.fi/
 
