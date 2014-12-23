@@ -1,73 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47952 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:40963 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754746AbaLHUzp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Dec 2014 15:55:45 -0500
-Message-ID: <5486104D.8090601@iki.fi>
-Date: Mon, 08 Dec 2014 22:55:41 +0200
+	id S1756655AbaLWUuf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:35 -0500
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] mn88472: fix firmware downloading
-References: <1418070667-13349-1-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1418070667-13349-1-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 48/66] rtl28xxu: use master I2C adapter for slave demods
+Date: Tue, 23 Dec 2014 22:49:41 +0200
+Message-Id: <1419367799-14263-48-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
+Both mn88472 and mn88473 slave demods are connected to master I2C
+bus, not the bus behind master demod I2C gate like tuners. Use
+correct bus.
 
-But that patch is rather useless :] Only thing needed is to change 
-existing value in file drivers/media/usb/dvb-usb-v2/rtl28xxu.c :
-mn88472_config.i2c_wr_max = 22,
-... and that leaves room for use even smaller values if there is an I2C 
-adapter which cannot write even 17 bytes.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-2nd thing is to add comment mn88472.h to specify that max limit and 
-that's all.
-
-regards
-Antti
-
-
-On 12/08/2014 10:31 PM, Benjamin Larsson wrote:
-> The max amount of payload bytes in each i2c transfer when
-> loading the demodulator firmware is 16 bytes.
->
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
-> ---
->   drivers/staging/media/mn88472/mn88472.c | 7 ++++---
->   1 file changed, 4 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-> index ffee187..df7dbe9 100644
-> --- a/drivers/staging/media/mn88472/mn88472.c
-> +++ b/drivers/staging/media/mn88472/mn88472.c
-> @@ -15,6 +15,7 @@
->    */
->
->   #include "mn88472_priv.h"
-> +#define FW_BUF_SIZE 16
->
->   static int mn88472_get_tune_settings(struct dvb_frontend *fe,
->   	struct dvb_frontend_tune_settings *s)
-> @@ -331,10 +332,10 @@ static int mn88472_init(struct dvb_frontend *fe)
->   		goto err;
->
->   	for (remaining = fw->size; remaining > 0;
-> -			remaining -= (dev->i2c_wr_max - 1)) {
-> +			remaining -= FW_BUF_SIZE) {
->   		len = remaining;
-> -		if (len > (dev->i2c_wr_max - 1))
-> -			len = (dev->i2c_wr_max - 1);
-> +		if (len > FW_BUF_SIZE)
-> +			len = FW_BUF_SIZE;
->
->   		ret = regmap_bulk_write(dev->regmap[0], 0xf6,
->   				&fw->data[fw->size - remaining], len);
->
-
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index c2d377f..0d37d0c 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -841,7 +841,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 			info.addr = 0x18;
+ 			info.platform_data = &mn88472_config;
+ 			request_module(info.type);
+-			client = i2c_new_device(priv->demod_i2c_adapter, &info);
++			client = i2c_new_device(&d->i2c_adap, &info);
+ 			if (client == NULL || client->dev.driver == NULL) {
+ 				priv->slave_demod = SLAVE_DEMOD_NONE;
+ 				goto err_slave_demod_failed;
+@@ -863,7 +863,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 			info.addr = 0x18;
+ 			info.platform_data = &mn88473_config;
+ 			request_module(info.type);
+-			client = i2c_new_device(priv->demod_i2c_adapter, &info);
++			client = i2c_new_device(&d->i2c_adap, &info);
+ 			if (client == NULL || client->dev.driver == NULL) {
+ 				priv->slave_demod = SLAVE_DEMOD_NONE;
+ 				goto err_slave_demod_failed;
 -- 
 http://palosaari.fi/
+
