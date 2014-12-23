@@ -1,349 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57782 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753453AbaLLXHy (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:12917 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbaLWOdI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 18:07:54 -0500
-Date: Sat, 13 Dec 2014 01:07:45 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH] Add LVDS RGB media bus formats
-Message-ID: <20141212230745.GA17565@valkosipuli.retiisi.org.uk>
-References: <1418403062-15663-1-git-send-email-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1418403062-15663-1-git-send-email-p.zabel@pengutronix.de>
+	Tue, 23 Dec 2014 09:33:08 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NH1007LIHR5XAA0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 23 Dec 2014 23:33:05 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, Hans Verkuil <hansverk@cisco.com>
+Subject: [RFC 3/6] adv7604: add cec support.
+Date: Tue, 23 Dec 2014 15:32:19 +0100
+Message-id: <1419345142-3364-4-git-send-email-k.debski@samsung.com>
+In-reply-to: <1419345142-3364-1-git-send-email-k.debski@samsung.com>
+References: <1419345142-3364-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pilipp,
+From: Hans Verkuil <hansverk@cisco.com>
 
-On Fri, Dec 12, 2014 at 05:51:02PM +0100, Philipp Zabel wrote:
-> This patch adds three new RGB media bus formats that describe
-> 18-bit or 24-bit samples transferred over an LVDS bus with three
-> or four differential data pairs, serialized into 7 time slots,
-> using standard SPWG/PSWG/VESA or JEIDA data ordering.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  Documentation/DocBook/media/v4l/subdev-formats.xml | 253 +++++++++++++++++++++
->  include/uapi/linux/media-bus-format.h              |   5 +-
->  2 files changed, 257 insertions(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> index 0d6f731..6d59a0e 100644
-> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> @@ -89,6 +89,14 @@
->        <constant>MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE</constant>.
->        </para>
->  
-> +      <para>On LVDS buses, usually each sample is transferred serialized in seven
+Add CEC support ot the adv7604 driver.
 
-80 characters per line, please.
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/i2c/adv7604.c |  182 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 182 insertions(+)
 
-Could you move this paragraph just before the LVDS table?
-
-> +      time slots per pixel clock, on three (18-bit) or four (24-bit) differential
-> +      data pairs at the same time. The remaining bits are used for control signals
-> +      as defined by SPWG/PSWG/VESA or JEIDA standards. The 24-bit RGB format serialized
-> +      in seven time slots on four lanes using JEIDA defined bit mapping will be
-> +      named <constant>MEDIA_BUS_FMT_RGB888_1X7X3_JEIDA</constant>, for example.
-> +      </para>
-> +
->        <para>The following tables list existing packed RGB formats.</para>
->  
->        <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-rgb">
-> @@ -606,6 +614,251 @@
->  	  </tbody>
->  	</tgroup>
->        </table>
-> +      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-rgb-lvds">
-> +	<title>LVDS RGB formats</title>
-> +	<tgroup cols="8">
-> +	  <colspec colname="id" align="left" />
-> +	  <colspec colname="code" align="center" />
-> +	  <colspec colname="slot" align="center" />
-> +	  <colspec colname="lane" />
-> +	  <colspec colnum="5" colname="l03" align="center" />
-> +	  <colspec colnum="6" colname="l02" align="center" />
-> +	  <colspec colnum="7" colname="l01" align="center" />
-> +	  <colspec colnum="8" colname="l00" align="center" />
-> +	  <spanspec namest="l03" nameend="l00" spanname="l0" />
-> +	  <thead>
-> +	    <row>
-> +	      <entry>Identifier</entry>
-> +	      <entry>Code</entry>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry spanname="l0">Data organization</entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>Timeslot</entry>
-> +	      <entry>Lane</entry>
-> +	      <entry>3</entry>
-> +	      <entry>2</entry>
-> +	      <entry>1</entry>
-> +	      <entry>0</entry>
-> +	    </row>
-> +	  </thead>
-> +	  <tbody valign="top">
-> +	    <row id="MEDIA-BUS-FMT-RGB666-1X7X3-SPWG">
-> +	      <entry>MEDIA_BUS_FMT_RGB666_1X7X3_SPWG</entry>
-> +	      <entry>0x1010</entry>
-> +	      <entry>0</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>d</entry>
-> +	      <entry>b<subscript>1</subscript></entry>
-> +	      <entry>g<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>1</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>d</entry>
-> +	      <entry>b<subscript>0</subscript></entry>
-> +	      <entry>r<subscript>5</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>2</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>d</entry>
-> +	      <entry>g<subscript>5</subscript></entry>
-> +	      <entry>r<subscript>4</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>3</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>b<subscript>5</subscript></entry>
-> +	      <entry>g<subscript>4</subscript></entry>
-> +	      <entry>r<subscript>3</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>4</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>b<subscript>4</subscript></entry>
-> +	      <entry>g<subscript>3</subscript></entry>
-> +	      <entry>r<subscript>2</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>5</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>b<subscript>3</subscript></entry>
-> +	      <entry>g<subscript>2</subscript></entry>
-> +	      <entry>r<subscript>1</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>6</entry>
-> +	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>b<subscript>2</subscript></entry>
-> +	      <entry>g<subscript>1</subscript></entry>
-> +	      <entry>r<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row id="MEDIA-BUS-FMT-RGB888-1X7X4-SPWG">
-> +	      <entry>MEDIA_BUS_FMT_RGB888_1X7X4_SPWG</entry>
-> +	      <entry>0x1011</entry>
-> +	      <entry>0</entry>
-> +	      <entry></entry>
-> +	      <entry>d</entry>
-> +	      <entry>d</entry>
-> +	      <entry>b<subscript>1</subscript></entry>
-> +	      <entry>g<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>1</entry>
-> +	      <entry></entry>
-> +	      <entry>b<subscript>7</subscript></entry>
-> +	      <entry>d</entry>
-> +	      <entry>b<subscript>0</subscript></entry>
-> +	      <entry>r<subscript>5</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>2</entry>
-> +	      <entry></entry>
-> +	      <entry>b<subscript>6</subscript></entry>
-> +	      <entry>d</entry>
-> +	      <entry>g<subscript>5</subscript></entry>
-> +	      <entry>r<subscript>4</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>3</entry>
-> +	      <entry></entry>
-> +	      <entry>g<subscript>7</subscript></entry>
-> +	      <entry>b<subscript>5</subscript></entry>
-> +	      <entry>g<subscript>4</subscript></entry>
-> +	      <entry>r<subscript>3</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>4</entry>
-> +	      <entry></entry>
-> +	      <entry>g<subscript>6</subscript></entry>
-> +	      <entry>b<subscript>4</subscript></entry>
-> +	      <entry>g<subscript>3</subscript></entry>
-> +	      <entry>r<subscript>2</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>5</entry>
-> +	      <entry></entry>
-> +	      <entry>r<subscript>7</subscript></entry>
-> +	      <entry>b<subscript>3</subscript></entry>
-> +	      <entry>g<subscript>2</subscript></entry>
-> +	      <entry>r<subscript>1</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>6</entry>
-> +	      <entry></entry>
-> +	      <entry>r<subscript>6</subscript></entry>
-> +	      <entry>b<subscript>2</subscript></entry>
-> +	      <entry>g<subscript>1</subscript></entry>
-> +	      <entry>r<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row id="MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA">
-> +	      <entry>MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA</entry>
-> +	      <entry>0x1012</entry>
-> +	      <entry>0</entry>
-> +	      <entry></entry>
-> +	      <entry>d</entry>
-> +	      <entry>d</entry>
-> +	      <entry>b<subscript>3</subscript></entry>
-> +	      <entry>g<subscript>2</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>1</entry>
-> +	      <entry></entry>
-> +	      <entry>b<subscript>1</subscript></entry>
-> +	      <entry>d</entry>
-> +	      <entry>b<subscript>2</subscript></entry>
-> +	      <entry>r<subscript>7</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>2</entry>
-> +	      <entry></entry>
-> +	      <entry>b<subscript>0</subscript></entry>
-> +	      <entry>d</entry>
-> +	      <entry>g<subscript>7</subscript></entry>
-> +	      <entry>r<subscript>6</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>3</entry>
-> +	      <entry></entry>
-> +	      <entry>g<subscript>1</subscript></entry>
-> +	      <entry>b<subscript>7</subscript></entry>
-> +	      <entry>g<subscript>6</subscript></entry>
-> +	      <entry>r<subscript>5</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>4</entry>
-> +	      <entry></entry>
-> +	      <entry>g<subscript>0</subscript></entry>
-> +	      <entry>b<subscript>6</subscript></entry>
-> +	      <entry>g<subscript>5</subscript></entry>
-> +	      <entry>r<subscript>4</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>5</entry>
-> +	      <entry></entry>
-> +	      <entry>r<subscript>1</subscript></entry>
-> +	      <entry>b<subscript>5</subscript></entry>
-> +	      <entry>g<subscript>4</subscript></entry>
-> +	      <entry>r<subscript>3</subscript></entry>
-> +	    </row>
-> +	    <row>
-> +	      <entry></entry>
-> +	      <entry></entry>
-> +	      <entry>6</entry>
-> +	      <entry></entry>
-> +	      <entry>r<subscript>0</subscript></entry>
-> +	      <entry>b<subscript>4</subscript></entry>
-> +	      <entry>g<subscript>3</subscript></entry>
-> +	      <entry>r<subscript>2</subscript></entry>
-> +	    </row>
-> +	  </tbody>
-> +	</tgroup>
-> +      </table>
->      </section>
->  
->      <section>
-> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-> index 37091c6..3fb9cbb 100644
-> --- a/include/uapi/linux/media-bus-format.h
-> +++ b/include/uapi/linux/media-bus-format.h
-> @@ -33,7 +33,7 @@
->  
->  #define MEDIA_BUS_FMT_FIXED			0x0001
->  
-> -/* RGB - next is	0x1010 */
-
-Does your patch depend on another patch which is not merged yet?
-
-> +/* RGB - next is	0x1013 */
->  #define MEDIA_BUS_FMT_RGB444_1X12		0x100e
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-> @@ -45,9 +45,12 @@
->  #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
->  #define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
->  #define MEDIA_BUS_FMT_RGB666_1X18		0x1009
-> +#define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG		0x1010
->  #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
->  #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
->  #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
-> +#define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG		0x1011
-> +#define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
->  #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
->  
->  /* YUV (including grey) - next is	0x2024 */
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index e43dd2e..f0ea929 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -42,6 +42,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-dv-timings.h>
+ #include <media/v4l2-of.h>
++#include <media/cec.h>
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+@@ -158,6 +159,10 @@ struct adv7604_state {
+ 	u16 spa_port_a[2];
+ 	struct v4l2_fract aspect_ratio;
+ 	u32 rgb_quantization_range;
++	u8   cec_addr[3];
++	u8   cec_valid_addrs;
++	bool cec_enabled_adap;
++
+ 	struct workqueue_struct *work_queues;
+ 	struct delayed_work delayed_work_enable_hotplug;
+ 	bool restart_stdi_once;
+@@ -1935,6 +1940,176 @@ static int adv7604_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	return 0;
+ }
+ 
++static void adv7604_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
++{
++	if ((cec_read(sd, 0x11) & 0x01) == 0) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
++		return;
++	}
++
++	if (tx_raw_status & 0x02) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: arbitration lost\n", __func__);
++		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, (void *)CEC_TX_STATUS_ARB_LOST);
++		return;
++	}
++	if (tx_raw_status & 0x04) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
++		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, (void *)CEC_TX_STATUS_RETRY_TIMEOUT);
++		return;
++	}
++	if (tx_raw_status & 0x01) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
++		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, (void *)CEC_TX_STATUS_OK);
++		return;
++	}
++}
++
++static void adv7604_cec_isr(struct v4l2_subdev *sd, bool *handled)
++{
++	struct cec_msg msg;
++	u8 cec_irq;
++
++	/* cec controller */
++	cec_irq = io_read(sd, 0x4d) & 0x0f;
++	if (!cec_irq)
++		return;
++
++	v4l2_dbg(1, debug, sd, "%s: cec: irq 0x%x\n", __func__, cec_irq);
++	adv7604_cec_tx_raw_status(sd, cec_irq);
++	if (cec_irq & 0x08) {
++		msg.len = cec_read(sd, 0x25) & 0x1f;
++		if (msg.len > 16)
++			msg.len = 16;
++
++		if (msg.len) {
++			u8 i;
++
++			for (i = 0; i < msg.len; i++)
++				msg.msg[i] = cec_read(sd, i + 0x15);
++			cec_write(sd, 0x26, 0x01); /* re-enable rx */
++			v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_RX_MSG, &msg);
++		}
++	}
++
++	/* note: the bit order is swapped between 0x4d and 0x4e */
++	cec_irq = ((cec_irq & 0x08) >> 3) | ((cec_irq & 0x04) >> 1) |
++		  ((cec_irq & 0x02) << 1) | ((cec_irq & 0x01) << 3);
++	io_write(sd, 0x4e, cec_irq);
++
++	if (handled)
++		*handled = true;
++}
++
++static int adv7604_cec_enable(struct v4l2_subdev *sd, bool enable)
++{
++	struct adv7604_state *state = to_state(sd);
++	
++	if (!state->cec_enabled_adap && enable) {
++		cec_write_and_or(sd, 0x2a, 0xfe, 0x01);	/* power up cec */
++		cec_write(sd, 0x2c, 0x01);	/* cec soft reset */
++		cec_write_and_or(sd, 0x11, 0xfe, 0);  /* initially disable tx */
++		/* enabled irqs: */
++		/* tx: ready */
++		/* tx: arbitration lost */
++		/* tx: retry timeout */
++		/* rx: ready */
++		io_write_and_or(sd, 0x50, 0xf0, 0x0f);
++		cec_write(sd, 0x26, 0x01);            /* enable rx */
++	} else if (state->cec_enabled_adap && !enable) {
++		io_write_and_or(sd, 0x50, 0xf0, 0x00);  /* disable cec interrupts */
++		cec_write_and_or(sd, 0x27, 0x8f, 0x70); /* disable address mask 1-3 */
++		cec_write_and_or(sd, 0x2a, 0xfe, 0x00); /* power down cec section */
++		state->cec_valid_addrs = 0;
++	}
++	state->cec_enabled_adap = enable;
++	return 0;
++}
++
++#define ADV7604_MAX_ADDRS (3)
++
++static int adv7604_cec_log_addr(struct v4l2_subdev *sd, u8 addr)
++{
++	struct adv7604_state *state = to_state(sd);
++	unsigned i, free_idx = ADV7604_MAX_ADDRS;
++	
++	if (!state->cec_enabled_adap)
++		return -EIO;
++
++	for (i = 0; i < ADV7604_MAX_ADDRS; i++) {
++		bool is_valid = state->cec_valid_addrs & (1 << i);
++
++		if (free_idx == ADV7604_MAX_ADDRS && !is_valid)
++			free_idx = i;
++		if (is_valid && state->cec_addr[i] == addr)
++			return 0;
++	}
++	if (i == ADV7604_MAX_ADDRS) {
++		i = free_idx;
++		if (i == ADV7604_MAX_ADDRS)
++			return -ENXIO;
++	}
++	state->cec_addr[i] = addr;
++	state->cec_valid_addrs |= 1 << i;
++
++	switch (i) {
++	case 0:
++		/* enable address mask 0 */
++		cec_write_and_or(sd, 0x27, 0xef, 0x10);
++		/* set address for mask 0 */
++		cec_write_and_or(sd, 0x28, 0xf0, addr);
++		break;
++	case 1:
++		/* enable address mask 1 */
++		cec_write_and_or(sd, 0x27, 0xdf, 0x20);
++		/* set address for mask 1 */
++		cec_write_and_or(sd, 0x28, 0x0f, addr << 4);
++		break;
++	case 2:
++		/* enable address mask 2 */
++		cec_write_and_or(sd, 0x27, 0xbf, 0x40);
++		/* set address for mask 1 */
++		cec_write_and_or(sd, 0x29, 0xf0, addr);
++		break;
++	}
++	return 0;
++}
++
++static int adv7604_cec_transmit(struct v4l2_subdev *sd, struct cec_msg *msg)
++{
++	u8 len = msg->len;
++	unsigned i;
++
++	if (len == 1)
++		cec_write_and_or(sd, 0x12, 0xf8, 1);  /* allow for one retry for polling */
++	else
++		cec_write_and_or(sd, 0x12, 0xf8, 3);  /* allow for three retries */
++
++	if (len > 16) {
++		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
++		return -EINVAL;
++	}
++
++	/* write data */
++	for (i = 0; i < len; i++)
++		cec_write(sd, i, msg->msg[i]);
++
++	/* set length (data + header) */
++	cec_write(sd, 0x10, len);
++	/* start transmit, enable tx */
++	cec_write(sd, 0x11, 0x01);
++	/* For some reason sometimes the
++	 * transmit won't start.
++	 * Doing it twice seems to help ?
++	*/
++	cec_write(sd, 0x11, 0x01);
++	return 0;
++}
++
++static void adv7604_cec_transmit_timed_out(struct v4l2_subdev *sd)
++{
++	cec_write_and_or(sd, 0x11, 0xfe, 0);  /* disable tx */
++}
++
+ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ {
+ 	struct adv7604_state *state = to_state(sd);
+@@ -1980,6 +2155,9 @@ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 			*handled = true;
+ 	}
+ 
++ 	/* cec */
++ 	adv7604_cec_isr(sd, handled);
++
+ 	/* tx 5v detect */
+ 	tx_5v = io_read(sd, 0x70) & info->cable_det_mask;
+ 	if (tx_5v) {
+@@ -2374,6 +2552,10 @@ static const struct v4l2_subdev_video_ops adv7604_video_ops = {
+ 	.s_dv_timings = adv7604_s_dv_timings,
+ 	.g_dv_timings = adv7604_g_dv_timings,
+ 	.query_dv_timings = adv7604_query_dv_timings,
++	.cec_enable = adv7604_cec_enable,
++	.cec_log_addr = adv7604_cec_log_addr,
++	.cec_transmit = adv7604_cec_transmit,
++	.cec_transmit_timed_out = adv7604_cec_transmit_timed_out,
+ };
+ 
+ static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
 -- 
-Kind regards,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
