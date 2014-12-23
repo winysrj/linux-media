@@ -1,95 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:58016 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752911AbaLTKs2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 05:48:28 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 06/15] media: blackfin: bfin_capture: use vb2_fop_mmap/poll
-Date: Sat, 20 Dec 2014 16:17:33 +0530
-Message-Id: <1419072462-3168-7-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:38818 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753526AbaLWUud (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:33 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 35/66] rtl2832: implement DVBv5 signal strength statistics
+Date: Tue, 23 Dec 2014 22:49:28 +0200
+Message-Id: <1419367799-14263-35-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No need to reinvent the wheel. Just use the already existing
-functions provided by vb2.
+Estimate signal strength from IF digital AGC.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/blackfin/bfin_capture.c | 28 +++-----------------------
- 1 file changed, 3 insertions(+), 25 deletions(-)
+ drivers/media/dvb-frontends/rtl2832.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 76d42bb..df4a6b4 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -244,18 +244,6 @@ static int bcap_release(struct file *file)
- 	return 0;
- }
- 
--static int bcap_mmap(struct file *file, struct vm_area_struct *vma)
--{
--	struct bcap_device *bcap_dev = video_drvdata(file);
--	int ret;
--
--	if (mutex_lock_interruptible(&bcap_dev->mutex))
--		return -ERESTARTSYS;
--	ret = vb2_mmap(&bcap_dev->buffer_queue, vma);
--	mutex_unlock(&bcap_dev->mutex);
--	return ret;
--}
--
- #ifndef CONFIG_MMU
- static unsigned long bcap_get_unmapped_area(struct file *file,
- 					    unsigned long addr,
-@@ -273,17 +261,6 @@ static unsigned long bcap_get_unmapped_area(struct file *file,
- }
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 531099b..39c8f34 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -474,6 +474,8 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 		goto err;
  #endif
+ 	/* init stats here in order signal app which stats are supported */
++	c->strength.len = 1;
++	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	c->cnr.len = 1;
+ 	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	c->post_bit_error.len = 1;
+@@ -823,6 +825,24 @@ static void rtl2832_stat_work(struct work_struct *work)
  
--static unsigned int bcap_poll(struct file *file, poll_table *wait)
--{
--	struct bcap_device *bcap_dev = video_drvdata(file);
--	unsigned int res;
--
--	mutex_lock(&bcap_dev->mutex);
--	res = vb2_poll(&bcap_dev->buffer_queue, file, wait);
--	mutex_unlock(&bcap_dev->mutex);
--	return res;
--}
--
- static int bcap_queue_setup(struct vb2_queue *vq,
- 				const struct v4l2_format *fmt,
- 				unsigned int *nbuffers, unsigned int *nplanes,
-@@ -896,11 +873,11 @@ static struct v4l2_file_operations bcap_fops = {
- 	.open = bcap_open,
- 	.release = bcap_release,
- 	.unlocked_ioctl = video_ioctl2,
--	.mmap = bcap_mmap,
-+	.mmap = vb2_fop_mmap,
- #ifndef CONFIG_MMU
- 	.get_unmapped_area = bcap_get_unmapped_area,
- #endif
--	.poll = bcap_poll
-+	.poll = vb2_fop_poll
- };
+ 	dev_dbg(&client->dev, "\n");
  
- static int bcap_probe(struct platform_device *pdev)
-@@ -997,6 +974,7 @@ static int bcap_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&bcap_dev->dma_queue);
- 
- 	vfd->lock = &bcap_dev->mutex;
-+	vfd->queue = q;
- 
- 	/* register video device */
- 	ret = video_register_device(bcap_dev->video_dev, VFL_TYPE_GRABBER, -1);
++	/* signal strength */
++	if (dev->fe_status & FE_HAS_SIGNAL) {
++		/* read digital AGC */
++		ret = rtl2832_bulk_read(client, 0x305, &u8tmp, 1);
++		if (ret)
++			goto err;
++
++		dev_dbg(&client->dev, "digital agc=%02x", u8tmp);
++
++		u8tmp = ~u8tmp;
++		u16tmp = u8tmp << 8 | u8tmp << 0;
++
++		c->strength.stat[0].scale = FE_SCALE_RELATIVE;
++		c->strength.stat[0].uvalue = u16tmp;
++	} else {
++		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
+ 	/* CNR */
+ 	if (dev->fe_status & FE_HAS_VITERBI) {
+ 		unsigned hierarchy, constellation;
 -- 
-1.9.1
+http://palosaari.fi/
 
