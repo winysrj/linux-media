@@ -1,87 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:59306 "EHLO mout.gmx.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:39025 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933153AbaLDX1L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Dec 2014 18:27:11 -0500
-Received: from linux.local ([94.216.58.185]) by mail.gmx.com (mrgmx103) with
- ESMTPSA (Nemesis) id 0LfTC1-1Xcz7F45Rx-00p50n for
- <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 00:27:09 +0100
-From: Peter Seiderer <ps.report@gmx.net>
+	id S1754691AbaLWVTC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 16:19:02 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] configure.ac: add qt5 detection support
-Date: Fri,  5 Dec 2014 00:27:05 +0100
-Message-Id: <1417735627-13945-1-git-send-email-ps.report@gmx.net>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Thomas Mair <thomas.mair86@gmail.com>
+Subject: [PATCH 52/66] rtl2832: claim copyright and module author
+Date: Tue, 23 Dec 2014 22:49:45 +0200
+Message-Id: <1419367799-14263-52-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Disable QTGL for qt5 because of qv4l2 crash on startup.
+I have implemented tons of things for that driver, more than anyone
+else, so lets claim copyright and module authorship.
 
-Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+Cc: Thomas Mair <thomas.mair86@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- configure.ac | 41 +++++++++++++++++++++++++++--------------
- 1 file changed, 27 insertions(+), 14 deletions(-)
+ drivers/media/dvb-frontends/rtl2832.c      | 2 ++
+ drivers/media/dvb-frontends/rtl2832.h      | 1 +
+ drivers/media/dvb-frontends/rtl2832_priv.h | 1 +
+ 3 files changed, 4 insertions(+)
 
-diff --git a/configure.ac b/configure.ac
-index 7bf9bf6..245a409 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -131,29 +131,42 @@ AS_IF([test "x$with_jpeg" != xno],
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index a552b4b..70fdce4 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -2,6 +2,7 @@
+  * Realtek RTL2832 DVB-T demodulator driver
+  *
+  * Copyright (C) 2012 Thomas Mair <thomas.mair86@gmail.com>
++ * Copyright (C) 2012-2014 Antti Palosaari <crope@iki.fi>
+  *
+  *	This program is free software; you can redistribute it and/or modify
+  *	it under the terms of the GNU General Public License as published by
+@@ -1304,5 +1305,6 @@ static struct i2c_driver rtl2832_driver = {
+ module_i2c_driver(rtl2832_driver);
  
- AM_CONDITIONAL([HAVE_JPEG], [$have_jpeg])
- 
--PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4], [qt_pkgconfig=true], [qt_pkgconfig=false])
-+PKG_CHECK_MODULES(QT, [Qt5Core >= 5.0 Qt5Gui >= 5.0 Qt5Widgets >= 5.0], [qt_pkgconfig=true], [qt_pkgconfig=false])
- if test "x$qt_pkgconfig" = "xtrue"; then
-+   QT_CFLAGS="$QT_CFLAGS -fPIC"
-    AC_SUBST(QT_CFLAGS)
-    AC_SUBST(QT_LIBS)
--   MOC=`$PKG_CONFIG --variable=moc_location QtCore`
--   UIC=`$PKG_CONFIG --variable=uic_location QtCore`
--   RCC=`$PKG_CONFIG --variable=rcc_location QtCore`
--   if test -z "$RCC"; then
--      RCC="rcc"
--   fi
-+   AC_CHECK_PROGS(MOC, [moc-qt5 moc])
-+   AC_CHECK_PROGS(UIC, [uic-qt5 uic])
-+   AC_CHECK_PROGS(RCC, [rcc-qt5 rcc])
-    AC_SUBST(MOC)
-    AC_SUBST(UIC)
-    AC_SUBST(RCC)
-+# disable QTGL for qt5 because qv4l2 crash
-+   qt_pkgconfig_gl=false
- else
--   AC_MSG_WARN(Qt4 or higher is not available)
-+   PKG_CHECK_MODULES(QT, [QtCore >= 4.0 QtGui >= 4.0], [qt_pkgconfig=true], [qt_pkgconfig=false])
-+   if test "x$qt_pkgconfig" = "xtrue"; then
-+      MOC=`$PKG_CONFIG --variable=moc_location Qt5Core`
-+      UIC=`$PKG_CONFIG --variable=uic_location Qt5Core`
-+      RCC=`$PKG_CONFIG --variable=rcc_location Qt5Core`
-+      if test -z "$RCC"; then
-+         RCC="rcc"
-+      fi
-+      AC_SUBST(MOC)
-+      AC_SUBST(UIC)
-+      AC_SUBST(RCC)
-+      PKG_CHECK_MODULES(QTGL, [QtOpenGL >= 4.8 gl], [qt_pkgconfig_gl=true], [qt_pkgconfig_gl=false])
-+      if test "x$qt_pkgconfig_gl" = "xtrue"; then
-+         AC_DEFINE([HAVE_QTGL], [1], [qt has opengl support])
-+      else
-+         AC_MSG_WARN(Qt4 OpenGL is not available)
-+      fi
-+   else
-+      AC_MSG_WARN(Qt4 or higher is not available)
-+   fi
- fi
- 
--PKG_CHECK_MODULES(QTGL, [QtOpenGL >= 4.8 gl], [qt_pkgconfig_gl=true], [qt_pkgconfig_gl=false])
--if test "x$qt_pkgconfig_gl" = "xtrue"; then
--   AC_DEFINE([HAVE_QTGL], [1], [qt has opengl support])
--else
--   AC_MSG_WARN(Qt4 OpenGL or higher is not available)
--fi
- 
- PKG_CHECK_MODULES(ALSA, [alsa], [alsa_pkgconfig=true], [alsa_pkgconfig=false])
- if test "x$alsa_pkgconfig" = "xtrue"; then
+ MODULE_AUTHOR("Thomas Mair <mair.thomas86@gmail.com>");
++MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_DESCRIPTION("Realtek RTL2832 DVB-T demodulator driver");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
+index 73e2717..e5f67cf 100644
+--- a/drivers/media/dvb-frontends/rtl2832.h
++++ b/drivers/media/dvb-frontends/rtl2832.h
+@@ -2,6 +2,7 @@
+  * Realtek RTL2832 DVB-T demodulator driver
+  *
+  * Copyright (C) 2012 Thomas Mair <thomas.mair86@gmail.com>
++ * Copyright (C) 2012-2014 Antti Palosaari <crope@iki.fi>
+  *
+  *	This program is free software; you can redistribute it and/or modify
+  *	it under the terms of the GNU General Public License as published by
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index 9edab5d..e25d748 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -2,6 +2,7 @@
+  * Realtek RTL2832 DVB-T demodulator driver
+  *
+  * Copyright (C) 2012 Thomas Mair <thomas.mair86@gmail.com>
++ * Copyright (C) 2012-2014 Antti Palosaari <crope@iki.fi>
+  *
+  *	This program is free software; you can redistribute it and/or modify
+  *	it under the terms of the GNU General Public License as published by
 -- 
-2.1.2
+http://palosaari.fi/
 
