@@ -1,132 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:35082 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755617AbaLILOg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Dec 2014 06:14:36 -0500
-Message-ID: <5486D950.6050108@xs4all.nl>
-Date: Tue, 09 Dec 2014 12:13:20 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devicetree@vger.kernel.org,
-	linux-api <linux-api@vger.kernel.org>
-CC: LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v5] media: platform: add VPFE capture driver support for
- AM437X
-References: <1418077306-2493-1-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1418077306-2493-1-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:50902 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756647AbaLWUue (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:34 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 42/66] rtl2832: remove unneeded software reset from init()
+Date: Tue, 23 Dec 2014 22:49:35 +0200
+Message-Id: <1419367799-14263-42-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/08/14 23:21, Lad, Prabhakar wrote:
-> From: Benoit Parrot <bparrot@ti.com>
-> 
-> This patch adds Video Processing Front End (VPFE) driver for
-> AM437X family of devices
-> Driver supports the following:
-> - V4L2 API using MMAP buffer access based on videobuf2 api
-> - Asynchronous sensor/decoder sub device registration
-> - DT support
-> 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Darren Etheridge <detheridge@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  Changes for v5:
->  1: Fixed review comments pointed out by Hans, fixing race condition.
-> 
->  v4l2-compliance output:
+There is no need to do software reset on init() as it is done a bit
+later on end of set_frontend(). Software reset usually means
+restarting (resetting to starting point) chip internal state machine
+(FSM). Naturally it is done after all parameters are programmed.
 
-Thanks!
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832.c | 15 ---------------
+ 1 file changed, 15 deletions(-)
 
-<snip>
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 4b6e6e0..82398d8 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -434,21 +434,6 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ 
+-	/*
+-	 * r820t NIM code does a software reset here at the demod -
+-	 * may not be needed, as there's already a software reset at
+-	 * set_params()
+-	 */
+-#if 1
+-	/* soft reset */
+-	ret = rtl2832_wr_demod_reg(dev, DVBT_SOFT_RST, 0x1);
+-	if (ret)
+-		goto err;
+-
+-	ret = rtl2832_wr_demod_reg(dev, DVBT_SOFT_RST, 0x0);
+-	if (ret)
+-		goto err;
+-#endif
+ 	/* init stats here in order signal app which stats are supported */
+ 	c->strength.len = 1;
+ 	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+-- 
+http://palosaari.fi/
 
->  ----------------------
-> 
-> diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-> new file mode 100644
-> index 0000000..c2b29a2
-> --- /dev/null
-> +++ b/drivers/media/platform/am437x/am437x-vpfe.c
-> +/*
-> + * vpfe_release : This function is based on the vb2_fop_release
-> + * helper function.
-> + * It has been augmented to handle module power management,
-> + * by disabling/enabling h/w module fcntl clock when necessary.
-> + */
-> +static int vpfe_release(struct file *file)
-> +{
-> +	struct vpfe_device *vpfe = video_drvdata(file);
-> +	bool close = v4l2_fh_is_singular_file(file);
-> +	int ret;
-> +
-> +	vpfe_dbg(2, vpfe, "vpfe_release\n");
-> +
-> +	mutex_lock(&vpfe->lock);
-
-The v4l2_fh_is_singular_file() call should be inside the lock as well.
-So:
-
-	close = v4l2_fh_is_singular_file(file);
-
-> +
-> +	ret = _vb2_fop_release(file, NULL);
-> +	if (close)
-> +		vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
-> +
-> +	mutex_unlock(&vpfe->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +/*
-> + * vpfe_open : This function is based on the v4l2_fh_open helper function.
-> + * It has been augmented to handle module power management,
-> + * by disabling/enabling h/w module fcntl clock when necessary.
-> + */
-> +static int vpfe_open(struct file *file)
-> +{
-> +	struct vpfe_device *vpfe = video_drvdata(file);
-> +	int ret;
-> +
-> +	ret = v4l2_fh_open(file);
-
-Same here, v4l2_fh_open should be inside the lock.
-
-> +	if (ret) {
-> +		vpfe_err(vpfe, "v4l2_fh_open failed\n");
-> +		return ret;
-> +	}
-> +
-> +	mutex_lock(&vpfe->lock);
-
-So:
-
-	ret = v4l2_fh_open(file);
-	if (ret) {
-		vpfe_err(vpfe, "v4l2_fh_open failed\n");
-		goto unlock;
-	}
-
-	
-> +
-> +	if (!v4l2_fh_is_singular_file(file))
-> +		goto unlock;
-> +
-> +	if (vpfe_initialize_device(vpfe)) {
-> +		v4l2_fh_release(file);
-> +		ret = -ENODEV;
-> +	}
-> +
-> +unlock:
-> +	mutex_unlock(&vpfe->lock);
-> +	return ret;
-> +}
-
-Regards,
-
-	Hans
