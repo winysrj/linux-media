@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay010.isp.belgacom.be ([195.238.6.177]:25326 "EHLO
-	mailrelay010.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752351AbaL2ObK (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:38157 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753918AbaLWRDJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Dec 2014 09:31:10 -0500
-From: Fabian Frederick <fabf@skynet.be>
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Fabian Frederick <fabf@skynet.be>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 05/11 linux-next] [media] tw68: remove unnecessary version.h inclusion
-Date: Mon, 29 Dec 2014 15:29:39 +0100
-Message-Id: <1419863387-24233-6-git-send-email-fabf@skynet.be>
-In-Reply-To: <1419863387-24233-1-git-send-email-fabf@skynet.be>
-References: <1419863387-24233-1-git-send-email-fabf@skynet.be>
+	Tue, 23 Dec 2014 12:03:09 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Huang Shijie <shijie8@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Jim Davis <jim.epost@gmail.com>
+Subject: [PATCH 2/2] tlg2300: Fix media dependencies
+Date: Tue, 23 Dec 2014 15:02:57 -0200
+Message-Id: <1242d0830a5a384155efaaf84325d342a078aca4.1419354167.git.mchehab@osg.samsung.com>
+In-Reply-To: <0e0a5eabdd703a7afcf310cc24ea1425eea3ef07.1419354167.git.mchehab@osg.samsung.com>
+References: <0e0a5eabdd703a7afcf310cc24ea1425eea3ef07.1419354167.git.mchehab@osg.samsung.com>
+In-Reply-To: <0e0a5eabdd703a7afcf310cc24ea1425eea3ef07.1419354167.git.mchehab@osg.samsung.com>
+References: <0e0a5eabdd703a7afcf310cc24ea1425eea3ef07.1419354167.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Based on versioncheck.
+Changeset ea2e813e8cc3 moved the driver to staging, but it forgot to
+preserve the existing dependency.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
----
- drivers/media/pci/tw68/tw68.h | 1 -
- 1 file changed, 1 deletion(-)
+Fixes: ea2e813e8cc3 ("[media] tlg2300: move to staging in preparation for removal")
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jim Davis <jim.epost@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/pci/tw68/tw68.h b/drivers/media/pci/tw68/tw68.h
-index 7a7501b..93f2335 100644
---- a/drivers/media/pci/tw68/tw68.h
-+++ b/drivers/media/pci/tw68/tw68.h
-@@ -25,7 +25,6 @@
-  *  GNU General Public License for more details.
-  */
- 
--#include <linux/version.h>
- #include <linux/pci.h>
- #include <linux/videodev2.h>
- #include <linux/notifier.h>
+diff --git a/drivers/staging/media/tlg2300/Kconfig b/drivers/staging/media/tlg2300/Kconfig
+index 81784c6f7b88..77d8753f6ba4 100644
+--- a/drivers/staging/media/tlg2300/Kconfig
++++ b/drivers/staging/media/tlg2300/Kconfig
+@@ -1,6 +1,7 @@
+ config VIDEO_TLG2300
+ 	tristate "Telegent TLG2300 USB video capture support (Deprecated)"
+ 	depends on VIDEO_DEV && I2C && SND && DVB_CORE
++	depends on MEDIA_USB_SUPPORT
+ 	select VIDEO_TUNER
+ 	select VIDEO_TVEEPROM
+ 	depends on RC_CORE
 -- 
 2.1.0
 
