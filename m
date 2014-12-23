@@ -1,38 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43444 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752005AbaL3MiK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Dec 2014 07:38:10 -0500
-Date: Tue, 30 Dec 2014 14:38:05 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Bin Chen <bin.chen@linaro.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: V4L2_CID_AUTO_FOCUS_START VS V4L2_CID_FOCUS_AUTO
-Message-ID: <20141230123804.GL17565@valkosipuli.retiisi.org.uk>
-References: <CANC6fRHnixRvs8ZOuCeMLaoAR1LOaExHxTBZqKy2qbEeWjmv4Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CANC6fRHnixRvs8ZOuCeMLaoAR1LOaExHxTBZqKy2qbEeWjmv4Q@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:33297 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753526AbaLWUu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:29 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 17/66] rtl2830: wrap DVBv5 BER to DVBv3
+Date: Tue, 23 Dec 2014 22:49:10 +0200
+Message-Id: <1419367799-14263-17-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ben,
+Change legacy DVBv3 read BER to return values calculated by DVBv5
+statistics.
 
-On Fri, Dec 19, 2014 at 11:48:58AM +0800, Bin Chen wrote:
-> Hi,
-> 
-> Can anyone explain what is the difference between setting control
-> V4L2_CID_FOCUS_AUTO to 1 and and issuing V4L2_CID_AUTO_FOCUS_START?
-> Confused...
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2830.c      | 15 ++-------------
+ drivers/media/dvb-frontends/rtl2830_priv.h |  1 +
+ 2 files changed, 3 insertions(+), 13 deletions(-)
 
-V4L2_CID_AUTO_FOCUS_START starts a single-pass AF algorithm which ends after
-reaching focus (or failing in trying that), whereas enabling the
-V4L2_CID_FOCUS_AUTO control enables a contiguous AF algorithm.
-
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index a02ccdf..0112b3f 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -596,22 +596,11 @@ static int rtl2830_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+ 	struct i2c_client *client = fe->demodulator_priv;
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+-	int ret;
+-	u8 buf[2];
+-
+-	if (dev->sleeping)
+-		return 0;
+-
+-	ret = rtl2830_rd_regs(client, 0x34e, buf, 2);
+-	if (ret)
+-		goto err;
+ 
+-	*ber = buf[0] << 8 | buf[1];
++	*ber = (dev->post_bit_error - dev->post_bit_error_prev);
++	dev->post_bit_error_prev = dev->post_bit_error;
+ 
+ 	return 0;
+-err:
+-	dev_dbg(&client->dev, "failed=%d\n", ret);
+-	return ret;
+ }
+ 
+ static int rtl2830_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
+index cdcaacf..6636834 100644
+--- a/drivers/media/dvb-frontends/rtl2830_priv.h
++++ b/drivers/media/dvb-frontends/rtl2830_priv.h
+@@ -32,6 +32,7 @@ struct rtl2830_dev {
+ 	u8 page; /* active register page */
+ 	struct delayed_work stat_work;
+ 	fe_status_t fe_status;
++	u64 post_bit_error_prev; /* for old DVBv3 read_ber() calculation */
+ 	u64 post_bit_error;
+ 	u64 post_bit_count;
+ };
 -- 
-Regards,
+http://palosaari.fi/
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
