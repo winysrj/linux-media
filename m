@@ -1,56 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:44973 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966281AbaLLOCV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 09:02:21 -0500
-Message-ID: <548AF563.3050204@xs4all.nl>
-Date: Fri, 12 Dec 2014 15:02:11 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Ira Snyder <ira.snyder@gmail.com>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	iws@ovro.caltech.edu, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, dwh@ovro.caltech.edu
-Subject: Re: [PATCH 0/3] carma-fpga: remove videobuf dependency
-References: <1416752630-47360-1-git-send-email-hverkuil@xs4all.nl> <CAH1ssNCnfdzCx5DhVW1=Kd8_J0wGaQ2yhbmUoZLG29g+12qV+g@mail.gmail.com>
-In-Reply-To: <CAH1ssNCnfdzCx5DhVW1=Kd8_J0wGaQ2yhbmUoZLG29g+12qV+g@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:58303 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756645AbaLWUue (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:34 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 40/66] rtl28xxu: add support for RTL2832U/RTL2832 PID filter
+Date: Tue, 23 Dec 2014 22:49:33 +0200
+Message-Id: <1419367799-14263-40-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dave,
+RTL2832 demod integrated into RTL2832U has PID filter. PID filtering
+is provided by rtl2832 demod driver. Add support for it.
 
-On 11/24/2014 06:45 PM, Ira Snyder wrote:
-> 
-> On Nov 23, 2014 6:31 AM, "Hans Verkuil" <hverkuil@xs4all.nl <mailto:hverkuil@xs4all.nl>> wrote:
->>
->> While checking which drivers were still abusing internal videobuf API
->> functions I came across these carma fpga misc drivers. These drivers
->> have absolutely nothing to do with videobuf or the media subsystem.
->>
->> Drivers shouldn't use those low-level functions in the first place,
->> and in fact in the long run the videobuf API will be removed altogether.
->>
->> So remove the videobuf dependency from these two drivers.
->>
->> This has been compile tested (and that clearly hasn't been done for
->> carma-fpga-program.c recently).
->>
->> Greg, is this something you want to take as misc driver maintainer?
->> That makes more sense than going through the media tree.
->>
->> The first patch should probably go to 3.18.
->>
->> I have no idea if anyone can test this with actual hardware. Ira, is
->> that something you can do?
->>
-> 
-> Hi Hans. My colleague Dave Hawkins (CC'd) is in charge of this hardware now. He can help to get this patch tested.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 33 +++++++++++++++++++++++++++++----
+ 1 file changed, 29 insertions(+), 4 deletions(-)
 
-Any updates on this?
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index ef27ad0..c64b5ed 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1599,7 +1599,7 @@ static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
+ #define rtl2832u_get_rc_config NULL
+ #endif
+ 
+-static int rtl28xxu_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
++static int rtl2831u_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ {
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct rtl28xxu_priv *priv = d_to_priv(d);
+@@ -1608,7 +1608,16 @@ static int rtl28xxu_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 	return pdata->pid_filter_ctrl(adap->fe[0], onoff);
+ }
+ 
+-static int rtl28xxu_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid, int onoff)
++static int rtl2832u_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
++{
++	struct dvb_usb_device *d = adap_to_d(adap);
++	struct rtl28xxu_priv *priv = d_to_priv(d);
++	struct rtl2832_platform_data *pdata = &priv->rtl2832_platform_data;
++
++	return pdata->pid_filter_ctrl(adap->fe[0], onoff);
++}
++
++static int rtl2831u_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid, int onoff)
+ {
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct rtl28xxu_priv *priv = d_to_priv(d);
+@@ -1617,6 +1626,15 @@ static int rtl28xxu_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid,
+ 	return pdata->pid_filter(adap->fe[0], index, pid, onoff);
+ }
+ 
++static int rtl2832u_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid, int onoff)
++{
++	struct dvb_usb_device *d = adap_to_d(adap);
++	struct rtl28xxu_priv *priv = d_to_priv(d);
++	struct rtl2832_platform_data *pdata = &priv->rtl2832_platform_data;
++
++	return pdata->pid_filter(adap->fe[0], index, pid, onoff);
++}
++
+ static const struct dvb_usb_device_properties rtl2831u_props = {
+ 	.driver_name = KBUILD_MODNAME,
+ 	.owner = THIS_MODULE,
+@@ -1639,8 +1657,8 @@ static const struct dvb_usb_device_properties rtl2831u_props = {
+ 				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
+ 
+ 			.pid_filter_count = 32,
+-			.pid_filter_ctrl = rtl28xxu_pid_filter_ctrl,
+-			.pid_filter = rtl28xxu_pid_filter,
++			.pid_filter_ctrl = rtl2831u_pid_filter_ctrl,
++			.pid_filter = rtl2831u_pid_filter,
+ 
+ 			.stream = DVB_USB_STREAM_BULK(0x81, 6, 8 * 512),
+ 		},
+@@ -1667,6 +1685,13 @@ static const struct dvb_usb_device_properties rtl2832u_props = {
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
++			.caps = DVB_USB_ADAP_HAS_PID_FILTER |
++				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
++
++			.pid_filter_count = 32,
++			.pid_filter_ctrl = rtl2832u_pid_filter_ctrl,
++			.pid_filter = rtl2832u_pid_filter,
++
+ 			.stream = DVB_USB_STREAM_BULK(0x81, 6, 8 * 512),
+ 		},
+ 	},
+-- 
+http://palosaari.fi/
 
-Regards,
-
-	Hans
