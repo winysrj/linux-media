@@ -1,673 +1,568 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47341 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751244AbaLFVfN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Dec 2014 16:35:13 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 02/22] si2168: rename device state variable from 's' to 'dev'
-Date: Sat,  6 Dec 2014 23:34:36 +0200
-Message-Id: <1417901696-5517-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
-References: <1417901696-5517-1-git-send-email-crope@iki.fi>
+Received: from mailout4.samsung.com ([203.254.224.34]:12938 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbaLWOdO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 09:33:14 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NH1006BHHRCYAB0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 23 Dec 2014 23:33:12 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, Hans Verkuil <hansverk@cisco.com>
+Subject: [RFC 4/6] adv7511: add cec support.
+Date: Tue, 23 Dec 2014 15:32:20 +0100
+Message-id: <1419345142-3364-5-git-send-email-k.debski@samsung.com>
+In-reply-to: <1419345142-3364-1-git-send-email-k.debski@samsung.com>
+References: <1419345142-3364-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'dev' is most common name in kernel for structure containing device
-state instance, so rename it.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Add CEC support to the adv7511 driver.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
 ---
- drivers/media/dvb-frontends/si2168.c      | 202 +++++++++++++++---------------
- drivers/media/dvb-frontends/si2168_priv.h |   2 +-
- 2 files changed, 102 insertions(+), 102 deletions(-)
+ drivers/media/i2c/adv7511.c |  325 ++++++++++++++++++++++++++++++++++++++++++-
+ include/media/adv7511.h     |    6 +-
+ 2 files changed, 323 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index acf0fc3..e989bd4 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -19,16 +19,16 @@
- static const struct dvb_frontend_ops si2168_ops;
+diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+index 81736aa..63ec6c1 100644
+--- a/drivers/media/i2c/adv7511.c
++++ b/drivers/media/i2c/adv7511.c
+@@ -33,6 +33,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-dv-timings.h>
+ #include <media/adv7511.h>
++#include <media/cec.h>
  
- /* execute firmware command */
--static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
-+static int si2168_cmd_execute(struct si2168_dev *dev, struct si2168_cmd *cmd)
- {
- 	int ret;
- 	unsigned long timeout;
- 
--	mutex_lock(&s->i2c_mutex);
-+	mutex_lock(&dev->i2c_mutex);
- 
- 	if (cmd->wlen) {
- 		/* write cmd and args for firmware */
--		ret = i2c_master_send(s->client, cmd->args, cmd->wlen);
-+		ret = i2c_master_send(dev->client, cmd->args, cmd->wlen);
- 		if (ret < 0) {
- 			goto err_mutex_unlock;
- 		} else if (ret != cmd->wlen) {
-@@ -42,7 +42,7 @@ static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
- 		#define TIMEOUT 50
- 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
- 		while (!time_after(jiffies, timeout)) {
--			ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
-+			ret = i2c_master_recv(dev->client, cmd->args, cmd->rlen);
- 			if (ret < 0) {
- 				goto err_mutex_unlock;
- 			} else if (ret != cmd->rlen) {
-@@ -55,7 +55,7 @@ static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
- 				break;
- 		}
- 
--		dev_dbg(&s->client->dev, "cmd execution took %d ms\n",
-+		dev_dbg(&dev->client->dev, "cmd execution took %d ms\n",
- 				jiffies_to_msecs(jiffies) -
- 				(jiffies_to_msecs(timeout) - TIMEOUT));
- 
-@@ -68,26 +68,26 @@ static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
- 	ret = 0;
- 
- err_mutex_unlock:
--	mutex_unlock(&s->i2c_mutex);
-+	mutex_unlock(&dev->i2c_mutex);
- 	if (ret)
- 		goto err;
- 
- 	return 0;
- err:
--	dev_dbg(&s->client->dev, "failed=%d\n", ret);
-+	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+ static int debug;
+ module_param(debug, int, 0644);
+@@ -91,6 +92,12 @@ struct adv7511_state {
+ 	int chip_revision;
+ 	uint8_t i2c_edid_addr;
+ 	uint8_t i2c_cec_addr;
++
++	struct i2c_client *i2c_cec;
++	u8   cec_addr[3];
++	u8   cec_valid_addrs;
++	bool cec_enabled_adap;
++
+ 	/* Is the adv7511 powered on? */
+ 	bool power_on;
+ 	/* Did we receive hotplug and rx-sense signals? */
+@@ -222,7 +229,7 @@ static int adv_smbus_read_i2c_block_data(struct i2c_client *client,
  	return ret;
  }
  
- static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
+-static inline void adv7511_edid_rd(struct v4l2_subdev *sd, uint16_t len, uint8_t *buf)
++static void adv7511_edid_rd(struct v4l2_subdev *sd, uint16_t len, uint8_t *buf)
  {
--	struct si2168 *s = fe->demodulator_priv;
-+	struct si2168_dev *dev = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
- 	struct si2168_cmd cmd;
+ 	struct adv7511_state *state = get_adv7511_state(sd);
+ 	int i;
+@@ -237,6 +244,33 @@ static inline void adv7511_edid_rd(struct v4l2_subdev *sd, uint16_t len, uint8_t
+ 		v4l2_err(sd, "%s: i2c read error\n", __func__);
+ }
  
- 	*status = 0;
++static inline int cec_read(struct v4l2_subdev *sd, u8 reg)
++{
++	struct adv7511_state *state = get_adv7511_state(sd);
++
++	return i2c_smbus_read_byte_data(state->i2c_cec, reg);
++}
++
++static int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++{
++	struct adv7511_state *state = get_adv7511_state(sd);
++	int ret;
++	int i;
++
++	for (i = 0; i < 3; i++) {
++		ret = i2c_smbus_write_byte_data(state->i2c_cec, reg, val);
++		if (ret == 0)
++			return 0;
++	}
++	v4l2_err(sd, "%s: I2C Write Problem\n", __func__);
++	return ret;
++}
++
++static inline int cec_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
++{
++	return cec_write(sd, reg, (cec_read(sd, reg) & mask) | val);
++}
++
+ static inline bool adv7511_have_hotplug(struct v4l2_subdev *sd)
+ {
+ 	return adv7511_rd(sd, 0x42) & MASK_ADV7511_HPD_DETECT;
+@@ -381,16 +415,28 @@ static const struct v4l2_ctrl_ops adv7511_ctrl_ops = {
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ static void adv7511_inv_register(struct v4l2_subdev *sd)
+ {
++	struct adv7511_state *state = get_adv7511_state(sd);
++
+ 	v4l2_info(sd, "0x000-0x0ff: Main Map\n");
++	if (state->i2c_cec)
++		v4l2_info(sd, "0x100-0x1ff: CEC Map\n");
+ }
  
--	if (!s->active) {
-+	if (!dev->active) {
- 		ret = -EAGAIN;
- 		goto err;
- 	}
-@@ -113,7 +113,7 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 		goto err;
- 	}
- 
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -138,7 +138,7 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ static int adv7511_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg)
+ {
++	struct adv7511_state *state = get_adv7511_state(sd);
++
+ 	reg->size = 1;
+ 	switch (reg->reg >> 8) {
+ 	case 0:
+ 		reg->val = adv7511_rd(sd, reg->reg & 0xff);
  		break;
- 	}
- 
--	s->fe_status = *status;
-+	dev->fe_status = *status;
- 
- 	if (*status & FE_HAS_LOCK) {
- 		c->cnr.len = 1;
-@@ -149,30 +149,30 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	}
- 
--	dev_dbg(&s->client->dev, "status=%02x args=%*ph\n",
-+	dev_dbg(&dev->client->dev, "status=%02x args=%*ph\n",
- 			*status, cmd.rlen, cmd.args);
- 
- 	return 0;
- err:
--	dev_dbg(&s->client->dev, "failed=%d\n", ret);
-+	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int si2168_set_frontend(struct dvb_frontend *fe)
- {
--	struct si2168 *s = fe->demodulator_priv;
-+	struct si2168_dev *dev = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
- 	struct si2168_cmd cmd;
- 	u8 bandwidth, delivery_system;
- 
--	dev_dbg(&s->client->dev,
-+	dev_dbg(&dev->client->dev,
- 			"delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u, stream_id=%d\n",
- 			c->delivery_system, c->modulation,
- 			c->frequency, c->bandwidth_hz, c->symbol_rate,
- 			c->inversion, c->stream_id);
- 
--	if (!s->active) {
-+	if (!dev->active) {
- 		ret = -EAGAIN;
- 		goto err;
- 	}
-@@ -217,7 +217,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	memcpy(cmd.args, "\x88\x02\x02\x02\x02", 5);
- 	cmd.wlen = 5;
- 	cmd.rlen = 5;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -230,7 +230,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 		memcpy(cmd.args, "\x89\x21\x06\x11\x89\x20", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 3;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -241,7 +241,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 		cmd.args[2] = c->stream_id == NO_STREAM_ID_FILTER ? 0 : 1;
- 		cmd.wlen = 3;
- 		cmd.rlen = 1;
--		ret = si2168_cmd_execute(s, &cmd);
-+		ret = si2168_cmd_execute(dev, &cmd);
- 		if (ret)
- 			goto err;
- 	}
-@@ -249,35 +249,35 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	memcpy(cmd.args, "\x51\x03", 2);
- 	cmd.wlen = 2;
- 	cmd.rlen = 12;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
- 	memcpy(cmd.args, "\x12\x08\x04", 3);
- 	cmd.wlen = 3;
- 	cmd.rlen = 3;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
- 	memcpy(cmd.args, "\x14\x00\x0c\x10\x12\x00", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
- 	memcpy(cmd.args, "\x14\x00\x06\x10\x24\x00", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
- 	memcpy(cmd.args, "\x14\x00\x07\x10\x00\x24", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -285,7 +285,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	cmd.args[4] = delivery_system | bandwidth;
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -296,7 +296,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 		cmd.args[5] = ((c->symbol_rate / 1000) >> 8) & 0xff;
- 		cmd.wlen = 6;
- 		cmd.rlen = 4;
--		ret = si2168_cmd_execute(s, &cmd);
-+		ret = si2168_cmd_execute(dev, &cmd);
- 		if (ret)
- 			goto err;
- 	}
-@@ -304,58 +304,58 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	memcpy(cmd.args, "\x14\x00\x0f\x10\x10\x00", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
- 	memcpy(cmd.args, "\x14\x00\x09\x10\xe3\x08", 6);
--	cmd.args[5] |= s->ts_clock_inv ? 0x00 : 0x10;
-+	cmd.args[5] |= dev->ts_clock_inv ? 0x00 : 0x10;
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
- 	memcpy(cmd.args, "\x14\x00\x08\x10\xd7\x05", 6);
--	cmd.args[5] |= s->ts_clock_inv ? 0x00 : 0x10;
-+	cmd.args[5] |= dev->ts_clock_inv ? 0x00 : 0x10;
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
- 	memcpy(cmd.args, "\x14\x00\x01\x12\x00\x00", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
- 	memcpy(cmd.args, "\x14\x00\x01\x03\x0c\x00", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
- 	memcpy(cmd.args, "\x85", 1);
- 	cmd.wlen = 1;
- 	cmd.rlen = 1;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
--	s->delivery_system = c->delivery_system;
-+	dev->delivery_system = c->delivery_system;
- 
- 	return 0;
- err:
--	dev_dbg(&s->client->dev, "failed=%d\n", ret);
-+	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int si2168_init(struct dvb_frontend *fe)
- {
--	struct si2168 *s = fe->demodulator_priv;
-+	struct si2168_dev *dev = fe->demodulator_priv;
- 	int ret, len, remaining;
- 	const struct firmware *fw = NULL;
- 	u8 *fw_file;
-@@ -363,29 +363,29 @@ static int si2168_init(struct dvb_frontend *fe)
- 	struct si2168_cmd cmd;
- 	unsigned int chip_id;
- 
--	dev_dbg(&s->client->dev, "\n");
-+	dev_dbg(&dev->client->dev, "\n");
- 
- 	/* initialize */
- 	memcpy(cmd.args, "\xc0\x12\x00\x0c\x00\x0d\x16\x00\x00\x00\x00\x00\x00", 13);
- 	cmd.wlen = 13;
- 	cmd.rlen = 0;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
--	if (s->fw_loaded) {
-+	if (dev->fw_loaded) {
- 		/* resume */
- 		memcpy(cmd.args, "\xc0\x06\x08\x0f\x00\x20\x21\x01", 8);
- 		cmd.wlen = 8;
- 		cmd.rlen = 1;
--		ret = si2168_cmd_execute(s, &cmd);
-+		ret = si2168_cmd_execute(dev, &cmd);
- 		if (ret)
- 			goto err;
- 
- 		memcpy(cmd.args, "\x85", 1);
- 		cmd.wlen = 1;
- 		cmd.rlen = 1;
--		ret = si2168_cmd_execute(s, &cmd);
-+		ret = si2168_cmd_execute(dev, &cmd);
- 		if (ret)
- 			goto err;
- 
-@@ -396,7 +396,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 	memcpy(cmd.args, "\xc0\x06\x01\x0f\x00\x20\x20\x01", 8);
- 	cmd.wlen = 8;
- 	cmd.rlen = 1;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -404,7 +404,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 	memcpy(cmd.args, "\x02", 1);
- 	cmd.wlen = 1;
- 	cmd.rlen = 13;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -426,7 +426,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 		fw_file = SI2168_B40_FIRMWARE;
- 		break;
++	case 1:
++		if (state->i2c_cec) {
++			reg->val = cec_read(sd, reg->reg & 0xff);
++			break;
++		}
++		/* fall through */
  	default:
--		dev_err(&s->client->dev,
-+		dev_err(&dev->client->dev,
- 				"unknown chip version Si21%d-%c%c%c\n",
- 				cmd.args[2], cmd.args[1],
- 				cmd.args[3], cmd.args[4]);
-@@ -435,31 +435,31 @@ static int si2168_init(struct dvb_frontend *fe)
- 	}
+ 		v4l2_info(sd, "Register %03llx not supported\n", reg->reg);
+ 		adv7511_inv_register(sd);
+@@ -401,10 +447,18 @@ static int adv7511_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *
  
- 	/* cold state - try to download firmware */
--	dev_info(&s->client->dev, "found a '%s' in cold state\n",
-+	dev_info(&dev->client->dev, "found a '%s' in cold state\n",
- 			si2168_ops.info.name);
- 
- 	/* request the firmware, this will block and timeout */
--	ret = request_firmware(&fw, fw_file, &s->client->dev);
-+	ret = request_firmware(&fw, fw_file, &dev->client->dev);
- 	if (ret) {
- 		/* fallback mechanism to handle old name for Si2168 B40 fw */
- 		if (chip_id == SI2168_B40) {
- 			fw_file = SI2168_B40_FIRMWARE_FALLBACK;
--			ret = request_firmware(&fw, fw_file, &s->client->dev);
-+			ret = request_firmware(&fw, fw_file, &dev->client->dev);
- 		}
- 
- 		if (ret == 0) {
--			dev_notice(&s->client->dev,
-+			dev_notice(&dev->client->dev,
- 					"please install firmware file '%s'\n",
- 					SI2168_B40_FIRMWARE);
- 		} else {
--			dev_err(&s->client->dev,
-+			dev_err(&dev->client->dev,
- 					"firmware file '%s' not found\n",
- 					fw_file);
- 			goto error_fw_release;
- 		}
- 	}
- 
--	dev_info(&s->client->dev, "downloading firmware from file '%s'\n",
-+	dev_info(&dev->client->dev, "downloading firmware from file '%s'\n",
- 			fw_file);
- 
- 	if ((fw->size % 17 == 0) && (fw->data[0] > 5)) {
-@@ -469,9 +469,9 @@ static int si2168_init(struct dvb_frontend *fe)
- 			memcpy(cmd.args, &fw->data[(fw->size - remaining) + 1], len);
- 			cmd.wlen = len;
- 			cmd.rlen = 1;
--			ret = si2168_cmd_execute(s, &cmd);
-+			ret = si2168_cmd_execute(dev, &cmd);
- 			if (ret) {
--				dev_err(&s->client->dev,
-+				dev_err(&dev->client->dev,
- 						"firmware download failed=%d\n",
- 						ret);
- 				goto error_fw_release;
-@@ -487,9 +487,9 @@ static int si2168_init(struct dvb_frontend *fe)
- 			memcpy(cmd.args, &fw->data[fw->size - remaining], len);
- 			cmd.wlen = len;
- 			cmd.rlen = 1;
--			ret = si2168_cmd_execute(s, &cmd);
-+			ret = si2168_cmd_execute(dev, &cmd);
- 			if (ret) {
--				dev_err(&s->client->dev,
-+				dev_err(&dev->client->dev,
- 						"firmware download failed=%d\n",
- 						ret);
- 				goto error_fw_release;
-@@ -503,7 +503,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 	memcpy(cmd.args, "\x01\x01", 2);
- 	cmd.wlen = 2;
- 	cmd.rlen = 1;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -511,58 +511,58 @@ static int si2168_init(struct dvb_frontend *fe)
- 	memcpy(cmd.args, "\x11", 1);
- 	cmd.wlen = 1;
- 	cmd.rlen = 10;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
--	dev_dbg(&s->client->dev, "firmware version: %c.%c.%d\n",
-+	dev_dbg(&dev->client->dev, "firmware version: %c.%c.%d\n",
- 			cmd.args[6], cmd.args[7], cmd.args[8]);
- 
- 	/* set ts mode */
- 	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
--	cmd.args[4] |= s->ts_mode;
-+	cmd.args[4] |= dev->ts_mode;
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
--	s->fw_loaded = true;
-+	dev->fw_loaded = true;
- 
--	dev_info(&s->client->dev, "found a '%s' in warm state\n",
-+	dev_info(&dev->client->dev, "found a '%s' in warm state\n",
- 			si2168_ops.info.name);
- warm:
--	s->active = true;
-+	dev->active = true;
- 
- 	return 0;
- 
- error_fw_release:
- 	release_firmware(fw);
- err:
--	dev_dbg(&s->client->dev, "failed=%d\n", ret);
-+	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int si2168_sleep(struct dvb_frontend *fe)
+ static int adv7511_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg)
  {
--	struct si2168 *s = fe->demodulator_priv;
-+	struct si2168_dev *dev = fe->demodulator_priv;
- 	int ret;
- 	struct si2168_cmd cmd;
- 
--	dev_dbg(&s->client->dev, "\n");
-+	dev_dbg(&dev->client->dev, "\n");
- 
--	s->active = false;
-+	dev->active = false;
- 
- 	memcpy(cmd.args, "\x13", 1);
- 	cmd.wlen = 1;
- 	cmd.rlen = 0;
--	ret = si2168_cmd_execute(s, &cmd);
-+	ret = si2168_cmd_execute(dev, &cmd);
- 	if (ret)
- 		goto err;
- 
- 	return 0;
- err:
--	dev_dbg(&s->client->dev, "failed=%d\n", ret);
-+	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -581,21 +581,21 @@ static int si2168_get_tune_settings(struct dvb_frontend *fe,
-  */
- static int si2168_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
++	struct adv7511_state *state = get_adv7511_state(sd);
++
+ 	switch (reg->reg >> 8) {
+ 	case 0:
+ 		adv7511_wr(sd, reg->reg & 0xff, reg->val & 0xff);
+ 		break;
++	case 1:
++		if (state->i2c_cec) {
++			cec_write(sd, reg->reg & 0xff, reg->val & 0xff);
++			break;
++		}
++		/* fall through */
+ 	default:
+ 		v4l2_info(sd, "Register %03llx not supported\n", reg->reg);
+ 		adv7511_inv_register(sd);
+@@ -418,6 +472,7 @@ static int adv7511_log_status(struct v4l2_subdev *sd)
  {
--	struct si2168 *s = mux_priv;
-+	struct si2168_dev *dev = mux_priv;
- 	int ret;
- 	struct i2c_msg gate_open_msg = {
--		.addr = s->client->addr,
-+		.addr = dev->client->addr,
- 		.flags = 0,
- 		.len = 3,
- 		.buf = "\xc0\x0d\x01",
- 	};
+ 	struct adv7511_state *state = get_adv7511_state(sd);
+ 	struct adv7511_state_edid *edid = &state->edid;
++	int i;
  
--	mutex_lock(&s->i2c_mutex);
-+	mutex_lock(&dev->i2c_mutex);
- 
- 	/* open tuner I2C gate */
--	ret = __i2c_transfer(s->client->adapter, &gate_open_msg, 1);
-+	ret = __i2c_transfer(dev->client->adapter, &gate_open_msg, 1);
- 	if (ret != 1) {
--		dev_warn(&s->client->dev, "i2c write failed=%d\n", ret);
-+		dev_warn(&dev->client->dev, "i2c write failed=%d\n", ret);
- 		if (ret >= 0)
- 			ret = -EREMOTEIO;
- 	} else {
-@@ -607,26 +607,26 @@ static int si2168_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
- 
- static int si2168_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
- {
--	struct si2168 *s = mux_priv;
-+	struct si2168_dev *dev = mux_priv;
- 	int ret;
- 	struct i2c_msg gate_close_msg = {
--		.addr = s->client->addr,
-+		.addr = dev->client->addr,
- 		.flags = 0,
- 		.len = 3,
- 		.buf = "\xc0\x0d\x00",
- 	};
- 
- 	/* close tuner I2C gate */
--	ret = __i2c_transfer(s->client->adapter, &gate_close_msg, 1);
-+	ret = __i2c_transfer(dev->client->adapter, &gate_close_msg, 1);
- 	if (ret != 1) {
--		dev_warn(&s->client->dev, "i2c write failed=%d\n", ret);
-+		dev_warn(&dev->client->dev, "i2c write failed=%d\n", ret);
- 		if (ret >= 0)
- 			ret = -EREMOTEIO;
- 	} else {
- 		ret = 0;
- 	}
- 
--	mutex_unlock(&s->i2c_mutex);
-+	mutex_unlock(&dev->i2c_mutex);
- 
- 	return ret;
- }
-@@ -672,62 +672,62 @@ static int si2168_probe(struct i2c_client *client,
- 		const struct i2c_device_id *id)
- {
- 	struct si2168_config *config = client->dev.platform_data;
--	struct si2168 *s;
-+	struct si2168_dev *dev;
- 	int ret;
- 
- 	dev_dbg(&client->dev, "\n");
- 
--	s = kzalloc(sizeof(struct si2168), GFP_KERNEL);
--	if (!s) {
-+	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-+	if (!dev) {
- 		ret = -ENOMEM;
- 		dev_err(&client->dev, "kzalloc() failed\n");
- 		goto err;
- 	}
- 
--	s->client = client;
--	mutex_init(&s->i2c_mutex);
-+	dev->client = client;
-+	mutex_init(&dev->i2c_mutex);
- 
- 	/* create mux i2c adapter for tuner */
--	s->adapter = i2c_add_mux_adapter(client->adapter, &client->dev, s,
-+	dev->adapter = i2c_add_mux_adapter(client->adapter, &client->dev, dev,
- 			0, 0, 0, si2168_select, si2168_deselect);
--	if (s->adapter == NULL) {
-+	if (dev->adapter == NULL) {
- 		ret = -ENODEV;
- 		goto err;
- 	}
- 
- 	/* create dvb_frontend */
--	memcpy(&s->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
--	s->fe.demodulator_priv = s;
-+	memcpy(&dev->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
-+	dev->fe.demodulator_priv = dev;
- 
--	*config->i2c_adapter = s->adapter;
--	*config->fe = &s->fe;
--	s->ts_mode = config->ts_mode;
--	s->ts_clock_inv = config->ts_clock_inv;
--	s->fw_loaded = false;
-+	*config->i2c_adapter = dev->adapter;
-+	*config->fe = &dev->fe;
-+	dev->ts_mode = config->ts_mode;
-+	dev->ts_clock_inv = config->ts_clock_inv;
-+	dev->fw_loaded = false;
- 
--	i2c_set_clientdata(client, s);
-+	i2c_set_clientdata(client, dev);
- 
--	dev_info(&s->client->dev,
-+	dev_info(&dev->client->dev,
- 			"Silicon Labs Si2168 successfully attached\n");
- 	return 0;
- err:
--	kfree(s);
-+	kfree(dev);
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int si2168_remove(struct i2c_client *client)
- {
--	struct si2168 *s = i2c_get_clientdata(client);
-+	struct si2168_dev *dev = i2c_get_clientdata(client);
- 
- 	dev_dbg(&client->dev, "\n");
- 
--	i2c_del_mux_adapter(s->adapter);
-+	i2c_del_mux_adapter(dev->adapter);
- 
--	s->fe.ops.release = NULL;
--	s->fe.demodulator_priv = NULL;
-+	dev->fe.ops.release = NULL;
-+	dev->fe.demodulator_priv = NULL;
- 
--	kfree(s);
-+	kfree(dev);
- 
+ 	static const char * const states[] = {
+ 		"in reset",
+@@ -486,7 +541,20 @@ static int adv7511_log_status(struct v4l2_subdev *sd)
+ 	else
+ 		v4l2_info(sd, "no timings set\n");
+ 	v4l2_info(sd, "i2c edid addr: 0x%x\n", state->i2c_edid_addr);
++
++	if (state->i2c_cec == NULL)
++		return 0;
++
+ 	v4l2_info(sd, "i2c cec addr: 0x%x\n", state->i2c_cec_addr);
++
++	if (cec_read(sd, 0x4e) & 0x01) {
++		v4l2_info(sd, "cec: enabled\n");
++		for (i = 0; i < 3; i++)
++			if (state->cec_valid_addrs & (1 << i))
++				v4l2_info(sd, "cec device %d: addr %d\n", i, state->cec_addr[i]);
++	} else {
++		v4l2_info(sd, "cec: disabled\n");
++	}
  	return 0;
  }
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 60bc334..cb8827a 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -28,7 +28,7 @@
- #define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
  
- /* state struct */
--struct si2168 {
-+struct si2168_dev {
- 	struct i2c_client *client;
- 	struct i2c_adapter *adapter;
- 	struct mutex i2c_mutex;
+@@ -542,15 +610,132 @@ static int adv7511_s_power(struct v4l2_subdev *sd, int on)
+ 	return true;
+ }
+ 
++static int adv7511_cec_enable(struct v4l2_subdev *sd, bool enable)
++{
++	struct adv7511_state *state = get_adv7511_state(sd);
++	
++	if (!state->cec_enabled_adap && enable) {
++		cec_write_and_or(sd, 0x4e, 0xfc, 0x01); /* power up cec section */
++		cec_write(sd, 0x4a, 0x07); /* legacy mode and clear all rx buffers */
++		cec_write(sd, 0x4a, 0);
++		cec_write_and_or(sd, 0x11, 0xfe, 0); /* initially disable tx */
++		/* enabled irqs: */
++		/* tx: ready */
++		/* tx: arbitration lost */
++		/* tx: retry timeout */
++		/* rx: ready 1 */
++		adv7511_wr_and_or(sd, 0x95, 0xc0, 0x39);
++	} else if (state->cec_enabled_adap && !enable) {
++		adv7511_wr_and_or(sd, 0x95, 0xc0, 0x00);
++		cec_write_and_or(sd, 0x4b, 0x8f, 0x00); /* disable address mask 1-3 */
++		cec_write_and_or(sd, 0x4e, 0xfc, 0x00); /* power down cec section */
++		state->cec_valid_addrs = 0;
++	}
++	state->cec_enabled_adap = enable;
++	return 0;
++}
++
++#define ADV7511_MAX_ADDRS (3)
++
++static int adv7511_cec_log_addr(struct v4l2_subdev *sd, u8 addr)
++{
++	struct adv7511_state *state = get_adv7511_state(sd);
++	unsigned i, free_idx = ADV7511_MAX_ADDRS;
++	
++	if (!state->cec_enabled_adap)
++		return -EIO;
++
++	for (i = 0; i < ADV7511_MAX_ADDRS; i++) {
++		bool is_valid = state->cec_valid_addrs & (1 << i);
++
++		if (free_idx == ADV7511_MAX_ADDRS && !is_valid)
++			free_idx = i;
++		if (is_valid && state->cec_addr[i] == addr)
++			return 0;
++	}
++	if (i == ADV7511_MAX_ADDRS) {
++		i = free_idx;
++		if (i == ADV7511_MAX_ADDRS)
++			return -ENXIO;
++	}
++	state->cec_addr[i] = addr;
++	state->cec_valid_addrs |= 1 << i;
++
++	switch (i) {
++	case 0:
++		/* enable address mask 0 */
++		cec_write_and_or(sd, 0x4b, 0xef, 0x10);
++		/* set address for mask 0 */
++		cec_write_and_or(sd, 0x4c, 0xf0, addr);
++		break;
++	case 1:
++		/* enable address mask 1 */
++		cec_write_and_or(sd, 0x4b, 0xdf, 0x20);
++		/* set address for mask 1 */
++		cec_write_and_or(sd, 0x4c, 0x0f, addr << 4);
++		break;
++	case 2:
++		/* enable address mask 2 */
++		cec_write_and_or(sd, 0x4b, 0xbf, 0x40);
++		/* set address for mask 1 */
++		cec_write_and_or(sd, 0x4d, 0xf0, addr);
++		break;
++	}
++	return 0;
++}
++
++static int adv7511_cec_transmit(struct v4l2_subdev *sd, struct cec_msg *msg)
++{
++	u8 len = msg->len;
++	unsigned i;
++	
++	v4l2_dbg(1, debug, sd, "%s: len %d\n", __func__, len);
++
++	if (len > 16) {
++		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
++		return -EINVAL;
++	}
++
++	/* blocking, clear cec tx irq status */
++	adv7511_wr_and_or(sd, 0x97, 0xc7, 0x38);
++
++	/* write data */
++	for (i = 0; i < len; i++)
++		cec_write(sd, i, msg->msg[i]);
++
++	/* set length (data + header) */
++	cec_write(sd, 0x10, len);
++	/* start transmit, enable tx */
++	cec_write(sd, 0x11, 0x01);
++	return 0;
++}
++
++static void adv7511_cec_transmit_timed_out(struct v4l2_subdev *sd)
++{
++	cec_write_and_or(sd, 0x11, 0xfe, 0); /* disable tx */
++}
++
+ /* Enable interrupts */
+ static void adv7511_set_isr(struct v4l2_subdev *sd, bool enable)
+ {
++	struct adv7511_state *state = get_adv7511_state(sd);
+ 	uint8_t irqs = MASK_ADV7511_HPD_INT | MASK_ADV7511_MSEN_INT;
+ 	uint8_t irqs_rd;
+ 	int retries = 100;
+ 
+ 	v4l2_dbg(2, debug, sd, "%s: %s\n", __func__, enable ? "enable" : "disable");
+ 
++	if (state->i2c_cec) {
++		/*
++		 * Enabled CEC irqs:
++		 * tx: ready
++		 * tx: arbitration lost
++		 * tx: retry timeout
++		 * rx: ready 1
++		 */
++		adv7511_wr_and_or(sd, 0x95, 0xc0, enable ? 0x39 : 0);
++	}
++
+ 	/* The datasheet says that the EDID ready interrupt should be
+ 	   disabled if there is no hotplug. */
+ 	if (!enable)
+@@ -576,24 +761,76 @@ static void adv7511_set_isr(struct v4l2_subdev *sd, bool enable)
+ 	v4l2_err(sd, "Could not set interrupts: hw failure?\n");
+ }
+ 
++static void adv_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
++{
++	if ((cec_read(sd, 0x11) & 0x01) == 0) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
++		return;
++	}
++
++	if (tx_raw_status & 0x10) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: arbitration lost\n", __func__);
++		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, (void *)CEC_TX_STATUS_ARB_LOST);
++		return;
++	}
++	if (tx_raw_status & 0x08) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
++		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, (void *)CEC_TX_STATUS_RETRY_TIMEOUT);
++		return;
++	}
++	if (tx_raw_status & 0x20) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
++		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, (void *)CEC_TX_STATUS_OK);
++		return;
++	}
++}
++
+ /* Interrupt handler */
+ static int adv7511_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ {
+ 	uint8_t irq_status;
++	uint8_t cec_irq;
+ 
+ 	/* disable interrupts to prevent a race condition */
+ 	adv7511_set_isr(sd, false);
+ 	irq_status = adv7511_rd(sd, 0x96);
++	cec_irq = adv7511_rd(sd, 0x97);
+ 	/* clear detected interrupts */
+ 	adv7511_wr(sd, 0x96, irq_status);
++	adv7511_wr(sd, 0x97, cec_irq);
+ 
+-	v4l2_dbg(1, debug, sd, "%s: irq 0x%x\n", __func__, irq_status);
++	v4l2_dbg(1, debug, sd, "%s: irq 0x%x, cec-irq 0x%x\n", __func__, irq_status, cec_irq);
+ 
+ 	if (irq_status & (MASK_ADV7511_HPD_INT | MASK_ADV7511_MSEN_INT))
+ 		adv7511_check_monitor_present_status(sd);
+ 	if (irq_status & MASK_ADV7511_EDID_RDY_INT)
+ 		adv7511_check_edid_status(sd);
+ 
++	if (cec_irq & 0x38)
++		adv_cec_tx_raw_status(sd, cec_irq);
++
++	if (cec_irq & 1) {
++		struct cec_msg msg;
++
++		msg.len = cec_read(sd, 0x25) & 0x1f;
++
++		v4l2_dbg(1, debug, sd, "%s: cec msg len %d\n", __func__, msg.len);
++
++		if (msg.len > 16)
++			msg.len = 16;
++
++		if (msg.len) {
++			u8 i;
++
++			for (i = 0; i < msg.len; i++)
++				msg.msg[i] = cec_read(sd, i + 0x15);
++
++			cec_write(sd, 0x4a, 1); /* toggle to re-enable rx 1 */
++			cec_write(sd, 0x4a, 0);
++			v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_RX_MSG, &msg);
++		}
++	}
++
+ 	/* enable interrupts */
+ 	adv7511_set_isr(sd, true);
+ 
+@@ -697,6 +934,10 @@ static const struct v4l2_subdev_video_ops adv7511_video_ops = {
+ 	.s_stream = adv7511_s_stream,
+ 	.s_dv_timings = adv7511_s_dv_timings,
+ 	.g_dv_timings = adv7511_g_dv_timings,
++	.cec_enable = adv7511_cec_enable,
++	.cec_log_addr = adv7511_cec_log_addr,
++	.cec_transmit = adv7511_cec_transmit,
++	.cec_transmit_timed_out = adv7511_cec_transmit_timed_out,
+ };
+ 
+ /* ------------------------------ AUDIO OPS ------------------------------ */
+@@ -1078,6 +1319,7 @@ static void adv7511_edid_handler(struct work_struct *work)
+ 	/* We failed to read the EDID, so send an event for this. */
+ 	ed.present = false;
+ 	ed.segment = adv7511_rd(sd, 0xc4);
++	ed.phys_addr = 0xffff;
+ 	v4l2_subdev_notify(sd, ADV7511_EDID_DETECT, (void *)&ed);
+ 	v4l2_dbg(1, debug, sd, "%s: no edid found\n", __func__);
+ }
+@@ -1218,10 +1460,38 @@ static bool edid_verify_header(struct v4l2_subdev *sd, u32 segment)
+ 	return !memcmp(data, hdmi_header, sizeof(hdmi_header));
+ }
+ 
++static int get_edid_spa_location(const u8 *edid)
++{
++	u8 d;
++
++	if ((edid[0x7e] != 1) ||
++			(edid[0x80] != 0x02) ||
++			(edid[0x81] != 0x03)) {
++		return -1;
++	}
++
++	/* search Vendor Specific Data Block (tag 3) */
++	d = edid[0x82] & 0x7f;
++	if (d > 4) {
++		int i = 0x84;
++		int end = 0x80 + d;
++		do {
++			u8 tag = edid[i] >> 5;
++			u8 len = edid[i] & 0x1f;
++
++			if ((tag == 3) && (len >= 5))
++				return i + 4;
++			i += len + 1;
++		} while (i < end);
++	}
++	return -1;
++}
++
+ static bool adv7511_check_edid_status(struct v4l2_subdev *sd)
+ {
+ 	struct adv7511_state *state = get_adv7511_state(sd);
+ 	uint8_t edidRdy = adv7511_rd(sd, 0xc5);
++	int offset;
+ 
+ 	v4l2_dbg(1, debug, sd, "%s: edid ready (retries: %d)\n",
+ 			 __func__, EDID_MAX_RETRIES - state->edid.read_retries);
+@@ -1267,6 +1537,12 @@ static bool adv7511_check_edid_status(struct v4l2_subdev *sd)
+ 
+ 		v4l2_dbg(1, debug, sd, "%s: edid complete with %d segment(s)\n", __func__, state->edid.segments);
+ 		state->edid.complete = true;
++		offset = get_edid_spa_location(state->edid.data);
++		if (offset > 0)
++			ed.phys_addr = (state->edid.data[offset] << 8) |
++					state->edid.data[offset + 1];
++		else
++			ed.phys_addr = 0xffff;
+ 
+ 		/* report when we have all segments
+ 		   but report only for segment 0
+@@ -1288,11 +1564,14 @@ static void adv7511_init_setup(struct v4l2_subdev *sd)
+ {
+ 	struct adv7511_state *state = get_adv7511_state(sd);
+ 	struct adv7511_state_edid *edid = &state->edid;
++	u32 cec_clk = state->pdata.cec_clk;
++	u8 ratio;
+ 
+ 	v4l2_dbg(1, debug, sd, "%s\n", __func__);
+ 
+ 	/* clear all interrupts */
+ 	adv7511_wr(sd, 0x96, 0xff);
++	adv7511_wr(sd, 0x97, 0xff);
+ 	/*
+ 	 * Stop HPD from resetting a lot of registers.
+ 	 * It might leave the chip in a partly un-initialized state,
+@@ -1304,6 +1583,24 @@ static void adv7511_init_setup(struct v4l2_subdev *sd)
+ 	adv7511_set_isr(sd, false);
+ 	adv7511_s_stream(sd, false);
+ 	adv7511_s_audio_stream(sd, false);
++
++	if (state->i2c_cec == NULL)
++		return;
++
++	v4l2_dbg(1, debug, sd, "%s: cec_clk %d\n", __func__, cec_clk);
++
++	/* cec soft reset */
++	cec_write(sd, 0x50, 0x01);
++	cec_write(sd, 0x50, 0x00);
++
++	/* legacy mode */
++	cec_write(sd, 0x4a, 0x00);
++
++	if (cec_clk % 750000 != 0)
++		v4l2_err(sd, "%s: cec_clk %d, not multiple of 750 Khz\n", __func__, cec_clk);
++
++	ratio = (cec_clk / 750000) - 1;
++	cec_write(sd, 0x4e, ratio << 2);
+ }
+ 
+ static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *id)
+@@ -1391,7 +1688,24 @@ static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *
+ 		goto err_entity;
+ 	}
+ 
+-	adv7511_wr(sd, 0xe2, 0x01); /* power down cec section */
++	adv7511_wr(sd, 0xe1, state->i2c_cec_addr);
++	if (state->pdata.cec_clk < 3000000 || state->pdata.cec_clk > 100000000) {
++		v4l2_err(sd, "%s: cec_clk %u outside range, disabling cec\n",
++				__func__, state->pdata.cec_clk);
++		state->pdata.cec_clk = 0;
++	}
++
++	if (state->pdata.cec_clk) {
++		state->i2c_cec = i2c_new_dummy(client->adapter, (state->i2c_cec_addr>>1));
++		if (state->i2c_cec == NULL) {
++			v4l2_err(sd, "failed to register cec i2c client\n");
++			goto err_unreg_edid;
++		}
++		adv7511_wr(sd, 0xe2, 0x00); /* power up cec section */
++	} else {
++		adv7511_wr(sd, 0xe2, 0x01); /* power down cec section */
++	}
++
+ 	state->work_queue = create_singlethread_workqueue(sd->name);
+ 	if (state->work_queue == NULL) {
+ 		v4l2_err(sd, "could not create workqueue\n");
+@@ -1410,6 +1724,9 @@ static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *
+ 	return 0;
+ 
+ err_unreg_cec:
++	if (state->i2c_cec)
++		i2c_unregister_device(state->i2c_cec);
++err_unreg_edid:
+ 	i2c_unregister_device(state->i2c_edid);
+ err_entity:
+ 	media_entity_cleanup(&sd->entity);
+@@ -1433,6 +1750,8 @@ static int adv7511_remove(struct i2c_client *client)
+ 	adv7511_init_setup(sd);
+ 	cancel_delayed_work(&state->edid_handler);
+ 	i2c_unregister_device(state->i2c_edid);
++	if (state->i2c_cec)
++		i2c_unregister_device(state->i2c_cec);
+ 	destroy_workqueue(state->work_queue);
+ 	v4l2_device_unregister_subdev(sd);
+ 	media_entity_cleanup(&sd->entity);
+diff --git a/include/media/adv7511.h b/include/media/adv7511.h
+index bb78bed..c971b52 100644
+--- a/include/media/adv7511.h
++++ b/include/media/adv7511.h
+@@ -32,11 +32,7 @@ struct adv7511_monitor_detect {
+ struct adv7511_edid_detect {
+ 	int present;
+ 	int segment;
+-};
+-
+-struct adv7511_cec_arg {
+-	void *arg;
+-	u32 f_flags;
++	uint16_t phys_addr;
+ };
+ 
+ struct adv7511_platform_data {
 -- 
-http://palosaari.fi/
+1.7.9.5
 
