@@ -1,131 +1,379 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59763 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932319AbaLAUNM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Dec 2014 15:13:12 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:52226 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756639AbaLWUud (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:33 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>, devicetree@vger.kernel.org
-Subject: [PATCH v4 00/10] Xilinx Video IP Core support
-Date: Mon,  1 Dec 2014 22:13:30 +0200
-Message-Id: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 09/66] rtl2830: carry pointer to I2C client for every function
+Date: Tue, 23 Dec 2014 22:49:02 +0200
+Message-Id: <1419367799-14263-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+As a I2C driver struct i2c_client is top level structure representing
+the driver. Use it as parameter to carry all needed information for
+each function in order to simplify things.
 
-Here's the fourth version of the Xilinx FPGA Video IP Cores kernel drivers.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2830.c | 97 +++++++++++++++++++----------------
+ 1 file changed, 54 insertions(+), 43 deletions(-)
 
-I won't detail in great lengths the Xilinx Video IP architecture here, as that
-would result in dozens of pages of documentation. The interested reader can
-refer to the Zynq ZC702 Base TRD (Targeted Reference Design) User Guide
-(http://www.xilinx.com/support/documentation/boards_and_kits/zc702_zvik/2014_2/ug925-zynq-zc702-base-trd.pdf).
-
-In a nutshell, the Xilinx Video IP Cores architecture specifies how
-video-related IP cores need to be designed to interoperate and how to assemble
-them in pipelines of various complexities. The concepts map neatly to the
-media controller architecture, which this patch set uses extensively.
-
-The series starts with various new V4L2 core features, bug fixes or cleanups,
-with a small documentation enhancement (01/10), the addition of new media bus
-formats needed by the new drivers (02/10 to 04/10) and a new V4L2 OF link
-parsing function (05/10).
-
-The next two patches (06/10 and 07/10) fix two race conditions in videobuf2.
-I'd like to get them in v3.19, either as part of this series or independently.
-
-The last three patches are the core of this series.
-
-Patch 08/10 adds support for the Xilinx Video IP architecture core in the form
-of a base object to model video IP cores (xilinx-vip.c - Video IP), a
-framework that parses a DT representation of a video pipeline and connects the
-corresponding V4L2 subdevices together (xilinx-vipp.c - Video IP Pipeline) and
-a glue between the Video DMA engine driver and the V4L2 API (xilinx-dma.c).
-
-Patch à9/10 adds a driver for the Video Timing Controller (VTC) IP core. While
-not strictly a video processing IP core, the VTC is required by other video IP
-core drivers.
-
-Finally, patch 10/10 adds a first video IP core driver for the Test Pattern
-Generator (TPG). Drivers for other IP cores will be added in the future.
-
-Changes since v3:
-
-- Drop the three Xilinx Video DMA patches since they have been merged in the
-  dmaengine tree
-- Manage the subdevs clocks explicitly
-- Add and use resource init and cleanup helpers
-- Rename V4L2_MBUS_FMT_* to MEDIA_BUS_FMT_*
-- Cleanup unused vdma configuration.
-- Return buffers to vb2 when media pipeline start fails
-
-Cc: devicetree@vger.kernel.org
-
-Hyun Kwon (2):
-  v4l: Sort YUV formats of v4l2_mbus_pixelcode
-  v4l: Add VUY8 24 bits bus format
-
-Laurent Pinchart (8):
-  media: entity: Document the media_entity_ops structure
-  v4l: Add RBG and RGB 8:8:8 media bus formats on 24 and 32 bit busses
-  v4l: of: Add v4l2_of_parse_link() function
-  v4l: vb2: Fix race condition in vb2_fop_poll
-  v4l: vb2: Fix race condition in _vb2_fop_release
-  v4l: xilinx: Add Xilinx Video IP core
-  v4l: xilinx: Add Video Timing Controller driver
-  v4l: xilinx: Add Test Pattern Generator driver
-
- Documentation/DocBook/media/v4l/subdev-formats.xml | 719 +++++++++-------
- .../devicetree/bindings/media/xilinx/video.txt     |  52 ++
- .../devicetree/bindings/media/xilinx/xlnx,v-tc.txt |  33 +
- .../bindings/media/xilinx/xlnx,v-tpg.txt           |  71 ++
- .../bindings/media/xilinx/xlnx,video.txt           |  55 ++
- MAINTAINERS                                        |  10 +
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/xilinx/Kconfig              |  23 +
- drivers/media/platform/xilinx/Makefile             |   5 +
- drivers/media/platform/xilinx/xilinx-dma.c         | 753 +++++++++++++++++
- drivers/media/platform/xilinx/xilinx-dma.h         | 109 +++
- drivers/media/platform/xilinx/xilinx-tpg.c         | 925 +++++++++++++++++++++
- drivers/media/platform/xilinx/xilinx-vip.c         | 296 +++++++
- drivers/media/platform/xilinx/xilinx-vip.h         | 233 ++++++
- drivers/media/platform/xilinx/xilinx-vipp.c        | 669 +++++++++++++++
- drivers/media/platform/xilinx/xilinx-vipp.h        |  49 ++
- drivers/media/platform/xilinx/xilinx-vtc.c         | 380 +++++++++
- drivers/media/platform/xilinx/xilinx-vtc.h         |  42 +
- drivers/media/v4l2-core/v4l2-of.c                  |  61 ++
- drivers/media/v4l2-core/videobuf2-core.c           |  35 +-
- include/media/media-entity.h                       |   9 +
- include/media/v4l2-of.h                            |  27 +
- include/uapi/linux/Kbuild                          |   1 +
- include/uapi/linux/media-bus-format.h              |  19 +-
- include/uapi/linux/xilinx-v4l2-controls.h          |  73 ++
- 26 files changed, 4310 insertions(+), 342 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/xilinx/video.txt
- create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,v-tc.txt
- create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,v-tpg.txt
- create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt
- create mode 100644 drivers/media/platform/xilinx/Kconfig
- create mode 100644 drivers/media/platform/xilinx/Makefile
- create mode 100644 drivers/media/platform/xilinx/xilinx-dma.c
- create mode 100644 drivers/media/platform/xilinx/xilinx-dma.h
- create mode 100644 drivers/media/platform/xilinx/xilinx-tpg.c
- create mode 100644 drivers/media/platform/xilinx/xilinx-vip.c
- create mode 100644 drivers/media/platform/xilinx/xilinx-vip.h
- create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.c
- create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.h
- create mode 100644 drivers/media/platform/xilinx/xilinx-vtc.c
- create mode 100644 drivers/media/platform/xilinx/xilinx-vtc.h
- create mode 100644 include/uapi/linux/xilinx-v4l2-controls.h
-
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index 44643d9..e7ba665 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -31,8 +31,9 @@
+ #define MAX_XFER_SIZE  64
+ 
+ /* write multiple hardware registers */
+-static int rtl2830_wr(struct rtl2830_dev *dev, u8 reg, const u8 *val, int len)
++static int rtl2830_wr(struct i2c_client *client, u8 reg, const u8 *val, int len)
+ {
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+ 	u8 buf[MAX_XFER_SIZE];
+ 	struct i2c_msg msg[1] = {
+@@ -66,8 +67,9 @@ static int rtl2830_wr(struct rtl2830_dev *dev, u8 reg, const u8 *val, int len)
+ }
+ 
+ /* read multiple hardware registers */
+-static int rtl2830_rd(struct rtl2830_dev *dev, u8 reg, u8 *val, int len)
++static int rtl2830_rd(struct i2c_client *client, u8 reg, u8 *val, int len)
+ {
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+ 	struct i2c_msg msg[2] = {
+ 		{
+@@ -95,59 +97,60 @@ static int rtl2830_rd(struct rtl2830_dev *dev, u8 reg, u8 *val, int len)
+ }
+ 
+ /* write multiple registers */
+-static int rtl2830_wr_regs(struct rtl2830_dev *dev, u16 reg, const u8 *val,
+-		int len)
++static int rtl2830_wr_regs(struct i2c_client *client, u16 reg, const u8 *val, int len)
+ {
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+ 	u8 reg2 = (reg >> 0) & 0xff;
+ 	u8 page = (reg >> 8) & 0xff;
+ 
+ 	/* switch bank if needed */
+ 	if (page != dev->page) {
+-		ret = rtl2830_wr(dev, 0x00, &page, 1);
++		ret = rtl2830_wr(client, 0x00, &page, 1);
+ 		if (ret)
+ 			return ret;
+ 
+ 		dev->page = page;
+ 	}
+ 
+-	return rtl2830_wr(dev, reg2, val, len);
++	return rtl2830_wr(client, reg2, val, len);
+ }
+ 
+ /* read multiple registers */
+-static int rtl2830_rd_regs(struct rtl2830_dev *dev, u16 reg, u8 *val, int len)
++static int rtl2830_rd_regs(struct i2c_client *client, u16 reg, u8 *val, int len)
+ {
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+ 	u8 reg2 = (reg >> 0) & 0xff;
+ 	u8 page = (reg >> 8) & 0xff;
+ 
+ 	/* switch bank if needed */
+ 	if (page != dev->page) {
+-		ret = rtl2830_wr(dev, 0x00, &page, 1);
++		ret = rtl2830_wr(client, 0x00, &page, 1);
+ 		if (ret)
+ 			return ret;
+ 
+ 		dev->page = page;
+ 	}
+ 
+-	return rtl2830_rd(dev, reg2, val, len);
++	return rtl2830_rd(client, reg2, val, len);
+ }
+ 
+ /* read single register */
+-static int rtl2830_rd_reg(struct rtl2830_dev *dev, u16 reg, u8 *val)
++static int rtl2830_rd_reg(struct i2c_client *client, u16 reg, u8 *val)
+ {
+-	return rtl2830_rd_regs(dev, reg, val, 1);
++	return rtl2830_rd_regs(client, reg, val, 1);
+ }
+ 
+ /* write single register with mask */
+-static int rtl2830_wr_reg_mask(struct rtl2830_dev *dev, u16 reg, u8 val, u8 mask)
++static int rtl2830_wr_reg_mask(struct i2c_client *client, u16 reg, u8 val, u8 mask)
+ {
+ 	int ret;
+ 	u8 tmp;
+ 
+ 	/* no need for read if whole reg is written */
+ 	if (mask != 0xff) {
+-		ret = rtl2830_rd_regs(dev, reg, &tmp, 1);
++		ret = rtl2830_rd_regs(client, reg, &tmp, 1);
+ 		if (ret)
+ 			return ret;
+ 
+@@ -156,16 +159,16 @@ static int rtl2830_wr_reg_mask(struct rtl2830_dev *dev, u16 reg, u8 val, u8 mask
+ 		val |= tmp;
+ 	}
+ 
+-	return rtl2830_wr_regs(dev, reg, &val, 1);
++	return rtl2830_wr_regs(client, reg, &val, 1);
+ }
+ 
+ /* read single register with mask */
+-static int rtl2830_rd_reg_mask(struct rtl2830_dev *dev, u16 reg, u8 *val, u8 mask)
++static int rtl2830_rd_reg_mask(struct i2c_client *client, u16 reg, u8 *val, u8 mask)
+ {
+ 	int ret, i;
+ 	u8 tmp;
+ 
+-	ret = rtl2830_rd_regs(dev, reg, &tmp, 1);
++	ret = rtl2830_rd_regs(client, reg, &tmp, 1);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -183,7 +186,8 @@ static int rtl2830_rd_reg_mask(struct rtl2830_dev *dev, u16 reg, u8 *val, u8 mas
+ 
+ static int rtl2830_init(struct dvb_frontend *fe)
+ {
+-	struct rtl2830_dev *dev = fe->demodulator_priv;
++	struct i2c_client *client = fe->demodulator_priv;
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret, i;
+ 	struct rtl2830_reg_val_mask tab[] = {
+ 		{ 0x00d, 0x01, 0x03 },
+@@ -225,17 +229,17 @@ static int rtl2830_init(struct dvb_frontend *fe)
+ 	};
+ 
+ 	for (i = 0; i < ARRAY_SIZE(tab); i++) {
+-		ret = rtl2830_wr_reg_mask(dev, tab[i].reg, tab[i].val,
++		ret = rtl2830_wr_reg_mask(client, tab[i].reg, tab[i].val,
+ 			tab[i].mask);
+ 		if (ret)
+ 			goto err;
+ 	}
+ 
+-	ret = rtl2830_wr_regs(dev, 0x18f, "\x28\x00", 2);
++	ret = rtl2830_wr_regs(client, 0x18f, "\x28\x00", 2);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2830_wr_regs(dev, 0x195,
++	ret = rtl2830_wr_regs(client, 0x195,
+ 		"\x04\x06\x0a\x12\x0a\x12\x1e\x28", 8);
+ 	if (ret)
+ 		goto err;
+@@ -243,11 +247,11 @@ static int rtl2830_init(struct dvb_frontend *fe)
+ 	/* TODO: spec init */
+ 
+ 	/* soft reset */
+-	ret = rtl2830_wr_reg_mask(dev, 0x101, 0x04, 0x04);
++	ret = rtl2830_wr_reg_mask(client, 0x101, 0x04, 0x04);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2830_wr_reg_mask(dev, 0x101, 0x00, 0x04);
++	ret = rtl2830_wr_reg_mask(client, 0x101, 0x00, 0x04);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -261,7 +265,8 @@ err:
+ 
+ static int rtl2830_sleep(struct dvb_frontend *fe)
+ {
+-	struct rtl2830_dev *dev = fe->demodulator_priv;
++	struct i2c_client *client = fe->demodulator_priv;
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	dev->sleeping = true;
+ 	return 0;
+ }
+@@ -278,7 +283,8 @@ static int rtl2830_get_tune_settings(struct dvb_frontend *fe,
+ 
+ static int rtl2830_set_frontend(struct dvb_frontend *fe)
+ {
+-	struct rtl2830_dev *dev = fe->demodulator_priv;
++	struct i2c_client *client = fe->demodulator_priv;
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i;
+ 	u64 num;
+@@ -331,7 +337,7 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
+ 		return -EINVAL;
+ 	}
+ 
+-	ret = rtl2830_wr_reg_mask(dev, 0x008, i << 1, 0x06);
++	ret = rtl2830_wr_reg_mask(client, 0x008, i << 1, 0x06);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -352,7 +358,7 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
+ 	dev_dbg(&dev->i2c->dev, "%s: if_frequency=%d if_ctl=%08x\n",
+ 			__func__, if_frequency, if_ctl);
+ 
+-	ret = rtl2830_rd_reg_mask(dev, 0x119, &tmp, 0xc0); /* b[7:6] */
++	ret = rtl2830_rd_reg_mask(client, 0x119, &tmp, 0xc0); /* b[7:6] */
+ 	if (ret)
+ 		goto err;
+ 
+@@ -361,21 +367,21 @@ static int rtl2830_set_frontend(struct dvb_frontend *fe)
+ 	buf[1] = (if_ctl >>  8) & 0xff;
+ 	buf[2] = (if_ctl >>  0) & 0xff;
+ 
+-	ret = rtl2830_wr_regs(dev, 0x119, buf, 3);
++	ret = rtl2830_wr_regs(client, 0x119, buf, 3);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* 1/2 split I2C write */
+-	ret = rtl2830_wr_regs(dev, 0x11c, &bw_params1[i][0], 17);
++	ret = rtl2830_wr_regs(client, 0x11c, &bw_params1[i][0], 17);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* 2/2 split I2C write */
+-	ret = rtl2830_wr_regs(dev, 0x12d, &bw_params1[i][17], 17);
++	ret = rtl2830_wr_regs(client, 0x12d, &bw_params1[i][17], 17);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2830_wr_regs(dev, 0x19d, bw_params2[i], 6);
++	ret = rtl2830_wr_regs(client, 0x19d, bw_params2[i], 6);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -387,7 +393,8 @@ err:
+ 
+ static int rtl2830_get_frontend(struct dvb_frontend *fe)
+ {
+-	struct rtl2830_dev *dev = fe->demodulator_priv;
++	struct i2c_client *client = fe->demodulator_priv;
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 	u8 buf[3];
+@@ -395,11 +402,11 @@ static int rtl2830_get_frontend(struct dvb_frontend *fe)
+ 	if (dev->sleeping)
+ 		return 0;
+ 
+-	ret = rtl2830_rd_regs(dev, 0x33c, buf, 2);
++	ret = rtl2830_rd_regs(client, 0x33c, buf, 2);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2830_rd_reg(dev, 0x351, &buf[2]);
++	ret = rtl2830_rd_reg(client, 0x351, &buf[2]);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -499,6 +506,7 @@ err:
+ 
+ static int rtl2830_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ {
++	struct i2c_client *client = fe->demodulator_priv;
+ 	struct rtl2830_dev *dev = fe->demodulator_priv;
+ 	int ret;
+ 	u8 tmp;
+@@ -507,7 +515,7 @@ static int rtl2830_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	if (dev->sleeping)
+ 		return 0;
+ 
+-	ret = rtl2830_rd_reg_mask(dev, 0x351, &tmp, 0x78); /* [6:3] */
++	ret = rtl2830_rd_reg_mask(client, 0x351, &tmp, 0x78); /* [6:3] */
+ 	if (ret)
+ 		goto err;
+ 
+@@ -527,7 +535,8 @@ err:
+ 
+ static int rtl2830_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
+-	struct rtl2830_dev *dev = fe->demodulator_priv;
++	struct i2c_client *client = fe->demodulator_priv;
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret, hierarchy, constellation;
+ 	u8 buf[2], tmp;
+ 	u16 tmp16;
+@@ -544,7 +553,7 @@ static int rtl2830_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 
+ 	/* reports SNR in resolution of 0.1 dB */
+ 
+-	ret = rtl2830_rd_reg(dev, 0x33c, &tmp);
++	ret = rtl2830_rd_reg(client, 0x33c, &tmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -556,7 +565,7 @@ static int rtl2830_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	if (hierarchy > HIERARCHY_NUM - 1)
+ 		goto err;
+ 
+-	ret = rtl2830_rd_regs(dev, 0x40c, buf, 2);
++	ret = rtl2830_rd_regs(client, 0x40c, buf, 2);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -576,14 +585,15 @@ err:
+ 
+ static int rtl2830_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+-	struct rtl2830_dev *dev = fe->demodulator_priv;
++	struct i2c_client *client = fe->demodulator_priv;
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+ 	u8 buf[2];
+ 
+ 	if (dev->sleeping)
+ 		return 0;
+ 
+-	ret = rtl2830_rd_regs(dev, 0x34e, buf, 2);
++	ret = rtl2830_rd_regs(client, 0x34e, buf, 2);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -603,7 +613,8 @@ static int rtl2830_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 
+ static int rtl2830_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ {
+-	struct rtl2830_dev *dev = fe->demodulator_priv;
++	struct i2c_client *client = fe->demodulator_priv;
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+ 	u8 buf[2];
+ 	u16 if_agc_raw, if_agc;
+@@ -611,7 +622,7 @@ static int rtl2830_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ 	if (dev->sleeping)
+ 		return 0;
+ 
+-	ret = rtl2830_rd_regs(dev, 0x359, buf, 2);
++	ret = rtl2830_rd_regs(client, 0x359, buf, 2);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -774,7 +785,7 @@ static int rtl2830_probe(struct i2c_client *client,
+ 	dev->cfg.agc_targ_val = pdata->agc_targ_val;
+ 
+ 	/* check if the demod is there */
+-	ret = rtl2830_rd_reg(dev, 0x000, &u8tmp);
++	ret = rtl2830_rd_reg(client, 0x000, &u8tmp);
+ 	if (ret)
+ 		goto err_kfree;
+ 
+@@ -788,7 +799,7 @@ static int rtl2830_probe(struct i2c_client *client,
+ 
+ 	/* create dvb frontend */
+ 	memcpy(&dev->fe.ops, &rtl2830_ops, sizeof(dev->fe.ops));
+-	dev->fe.demodulator_priv = dev;
++	dev->fe.demodulator_priv = client;
+ 
+ 	/* setup callbacks */
+ 	pdata->get_dvb_frontend = rtl2830_get_dvb_frontend;
 -- 
-Regards,
-
-Laurent Pinchart
+http://palosaari.fi/
 
