@@ -1,103 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:57538 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754436AbaLJNRU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 08:17:20 -0500
-Message-id: <548847DB.2090806@samsung.com>
-Date: Wed, 10 Dec 2014 14:17:15 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Bryan Wu <cooloney@gmail.com>,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	lkml <linux-kernel@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	b.zolnierkie@samsung.com, "rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC v8 02/14] Documentation: leds: Add description of LED
- Flash class extension
-References: <1417166286-27685-3-git-send-email-j.anaszewski@samsung.com>
- <20141129125832.GA315@amd> <547C539A.4010500@samsung.com>
- <20141201130437.GB24737@amd> <547C7420.4080801@samsung.com>
- <CAK5ve-KMNszyz6br_Q_dOhvk=_8ev6Uz-ZhPnYBn-ZvuohQpVA@mail.gmail.com>
- <20141206124310.GB3411@amd> <5485D7F8.10807@samsung.com>
- <20141208201855.GA16648@amd> <5486B8AE.5000408@samsung.com>
- <20141209155033.GB21422@amd>
-In-reply-to: <20141209155033.GB21422@amd>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:46843 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752127AbaLWUu1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:27 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 02/66] rtl2832: convert driver to I2C binding
+Date: Tue, 23 Dec 2014 22:48:55 +0200
+Message-Id: <1419367799-14263-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/09/2014 04:50 PM, Pavel Machek wrote:
-> On Tue 2014-12-09 09:54:06, Jacek Anaszewski wrote:
->> Hi Pavel,
->>
->> On 12/08/2014 09:18 PM, Pavel Machek wrote:
->>> On Mon 2014-12-08 17:55:20, Jacek Anaszewski wrote:
->>>> On 12/06/2014 01:43 PM, Pavel Machek wrote:
->>>>>
->>>>>>> The format of a sysfs attribute should be concise.
->>>>>>> The error codes are generic and map directly to the V4L2 Flash
->>>>>>> error codes.
->>>>>>>
->>>>>>
->>>>>> Actually I'd like to see those flash fault code defined in LED
->>>>>> subsystem. And V4L2 will just include LED flash header file to use it.
->>>>>> Because flash fault code is not for V4L2 specific but it's a feature
->>>>>> of LED flash devices.
->>>>>>
->>>>>> For clearing error code of flash devices, I think it depends on the
->>>>>> hardware. If most of our LED flash is using reading to clear error
->>>>>> code, we probably can make it simple as this now. But what if some
->>>>>> other LED flash devices are using writing to clear error code? we
->>>>>> should provide a API to that?
->>>>>
->>>>> Actually, we should provide API that makes sense, and that is easy to
->>>>> use by userspace.
->>>>>
->>>>> I believe "read" is called read because it does not change anything,
->>>>> and it should stay that way in /sysfs. You may want to talk to sysfs
->>>>> maintainers if you plan on doing another semantics.
->>>>
->>>> How would you proceed in case of devices which clear their fault
->>>> register upon I2C readout (e.g. AS3645)? In this case read does have
->>>> a side effect. For such devices attribute semantics would have to be
->>>> different than for the devices which don't clear faults on readout.
->>>
->>> No, semantics should be same for all devices.
->>>
->>> If device clears fault register during I2C readout, kernel will simply
->>> gather faults in an variable, and clear them upon write to sysfs file.
->>
->> This approach would require implementing additional mechanisms on
->> both sides: LED Flash class core and a LED Flash class driver.
->> In the former the sysfs attribute write permissions would have
->> to be decided in the runtime and in the latter caching mechanism
->
-> Write attributes at runtime? Why? We can emulate sane and consistent
-> behaviour for all the controllers: read gives you list of faults,
-> write clears it. We can do it for all the controllers.
+Convert that driver to I2C driver model.
+Legacy DVB binding is left also for later removal...
 
-I don't like the idea of listing the faults in the form of strings.
-I'd like to see the third opinion :)
+Tested-by: Benjamin Larsson <benjamin@southpole.se>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832.c      | 113 +++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/rtl2832.h      |  10 +++
+ drivers/media/dvb-frontends/rtl2832_priv.h |   1 +
+ 3 files changed, 124 insertions(+)
 
-> Only cost is few lines of code in the drivers where hardware clears
-> faults at read.
-
-As above - the third opinion would be appreciated.
-
->> would have to be implemented per driver. We would have to also
->> consider how to approach the issue in case of sub-leds.
->
-> Actually.. sub-leds. That is one physical LED being connected to two
-> current sources at the same time, right?
-
-There are possible designs with two separate LEDs.
-
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 9026e1a..9597ae1 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -1183,6 +1183,119 @@ static struct dvb_frontend_ops rtl2832_ops = {
+ 	.i2c_gate_ctrl = rtl2832_i2c_gate_ctrl,
+ };
+ 
++static int rtl2832_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	struct rtl2832_platform_data *pdata = client->dev.platform_data;
++	const struct rtl2832_config *config = pdata->config;
++	struct i2c_adapter *i2c = client->adapter;
++	struct rtl2832_priv *priv;
++	int ret;
++	u8 tmp;
++
++	dev_dbg(&client->dev, "\n");
++
++	if (pdata == NULL) {
++		ret = -EINVAL;
++		goto err;
++	}
++
++	/* Caller really need to provide pointer for frontend we create. */
++	if (pdata->dvb_frontend == NULL) {
++		dev_err(&client->dev, "frontend pointer not defined\n");
++		ret = -EINVAL;
++		goto err;
++	}
++
++	/* allocate memory for the internal state */
++	priv = kzalloc(sizeof(struct rtl2832_priv), GFP_KERNEL);
++	if (priv == NULL) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	/* setup the priv */
++	priv->client = client;
++	priv->i2c = i2c;
++	priv->tuner = config->tuner;
++	priv->sleeping = true;
++	memcpy(&priv->cfg, config, sizeof(struct rtl2832_config));
++	INIT_DELAYED_WORK(&priv->i2c_gate_work, rtl2832_i2c_gate_work);
++
++	/* create muxed i2c adapter for demod itself */
++	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
++			rtl2832_select, NULL);
++	if (priv->i2c_adapter == NULL) {
++		ret = -ENODEV;
++		goto err_kfree;
++	}
++
++	/* check if the demod is there */
++	ret = rtl2832_rd_reg(priv, 0x00, 0x0, &tmp);
++	if (ret)
++		goto err_i2c_del_mux_adapter;
++
++	/* create muxed i2c adapter for demod tuner bus */
++	priv->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, priv,
++			0, 1, 0, rtl2832_select, rtl2832_deselect);
++	if (priv->i2c_adapter_tuner == NULL) {
++		ret = -ENODEV;
++		goto err_i2c_del_mux_adapter;
++	}
++
++	/* create dvb_frontend */
++	memcpy(&priv->fe.ops, &rtl2832_ops, sizeof(struct dvb_frontend_ops));
++	priv->fe.ops.release = NULL;
++	priv->fe.demodulator_priv = priv;
++	i2c_set_clientdata(client, priv);
++	*pdata->dvb_frontend = &priv->fe;
++
++	dev_info(&client->dev, "Realtek RTL2832 successfully attached\n");
++	return 0;
++err_i2c_del_mux_adapter:
++	i2c_del_mux_adapter(priv->i2c_adapter);
++err_kfree:
++	kfree(priv);
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static int rtl2832_remove(struct i2c_client *client)
++{
++	struct rtl2832_priv *priv = i2c_get_clientdata(client);
++
++	dev_dbg(&client->dev, "\n");
++
++	cancel_delayed_work_sync(&priv->i2c_gate_work);
++
++	i2c_del_mux_adapter(priv->i2c_adapter_tuner);
++
++	i2c_del_mux_adapter(priv->i2c_adapter);
++
++	kfree(priv);
++
++	return 0;
++}
++
++static const struct i2c_device_id rtl2832_id_table[] = {
++	{"rtl2832", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, rtl2832_id_table);
++
++static struct i2c_driver rtl2832_driver = {
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "rtl2832",
++	},
++	.probe		= rtl2832_probe,
++	.remove		= rtl2832_remove,
++	.id_table	= rtl2832_id_table,
++};
++
++module_i2c_driver(rtl2832_driver);
++
+ MODULE_AUTHOR("Thomas Mair <mair.thomas86@gmail.com>");
+ MODULE_DESCRIPTION("Realtek RTL2832 DVB-T demodulator driver");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
+index 5254c1d..cfd69d8 100644
+--- a/drivers/media/dvb-frontends/rtl2832.h
++++ b/drivers/media/dvb-frontends/rtl2832.h
+@@ -50,6 +50,16 @@ struct rtl2832_config {
+ 	u8 tuner;
+ };
+ 
++struct rtl2832_platform_data {
++	const struct rtl2832_config *config;
++
++	/*
++	 * frontend
++	 * returned by driver
++	 */
++	struct dvb_frontend **dvb_frontend;
++};
++
+ #if IS_ENABLED(CONFIG_DVB_RTL2832)
+ struct dvb_frontend *rtl2832_attach(
+ 	const struct rtl2832_config *cfg,
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index ae469f0..05b2b62 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -26,6 +26,7 @@
+ #include <linux/i2c-mux.h>
+ 
+ struct rtl2832_priv {
++	struct i2c_client *client;
+ 	struct i2c_adapter *i2c;
+ 	struct i2c_adapter *i2c_adapter;
+ 	struct i2c_adapter *i2c_adapter_tuner;
 -- 
-Best Regards,
-Jacek Anaszewski
+http://palosaari.fi/
+
