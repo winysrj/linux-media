@@ -1,44 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:54188 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132AbaLEK4C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 05:56:02 -0500
-Received: by mail-pa0-f46.google.com with SMTP id lj1so494480pab.5
-        for <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 02:56:01 -0800 (PST)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH 0/5] ports to dvb-core i2c template code
-Date: Fri,  5 Dec 2014 19:55:35 +0900
-Message-Id: <1417776940-16381-1-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
-References: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:37493 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbaLWOc5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 09:32:57 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NH100K35HQWGKD0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 23 Dec 2014 23:32:56 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, Hans Verkuil <hansverk@cisco.com>
+Subject: [RFC 2/6] v4l2-subdev: add cec ops.
+Date: Tue, 23 Dec 2014 15:32:18 +0100
+Message-id: <1419345142-3364-3-git-send-email-k.debski@samsung.com>
+In-reply-to: <1419345142-3364-1-git-send-email-k.debski@samsung.com>
+References: <1419345142-3364-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-These patches are example ports of earth-pt3 (adapter),
-tc90522 (demod), qm1d1c0042,mxl301rf (tuners) drivers
-using the i2c template code in dvb-core.
+Add callbacks to the v4l2_subdev_video_ops.
 
-Akihiro Tsukada (5):
-  dvb: qm1d1c0042: use dvb-core i2c binding model template
-  dvb: mxl301rf: use dvb-core i2c binding model template
-  dvb: tc90522: use dvb-core i2c binding model template
-  dvb: tc90522: remove a redundant state variable
-  dvb: pci/pt3: use dvb-core i2c binding model template
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ include/media/v4l2-subdev.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
- drivers/media/dvb-frontends/tc90522.c | 145 ++++++++++++++--------------------
- drivers/media/dvb-frontends/tc90522.h |   8 +-
- drivers/media/pci/pt3/pt3.c           |  89 +++++++--------------
- drivers/media/pci/pt3/pt3.h           |  12 +--
- drivers/media/tuners/mxl301rf.c       |  50 +++---------
- drivers/media/tuners/mxl301rf.h       |   2 +-
- drivers/media/tuners/qm1d1c0042.c     |  61 +++++---------
- drivers/media/tuners/qm1d1c0042.h     |   2 -
- 8 files changed, 131 insertions(+), 238 deletions(-)
-
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 5beeb87..fdf620d 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -40,6 +40,9 @@
+ #define V4L2_SUBDEV_IR_TX_NOTIFY		_IOW('v', 1, u32)
+ #define V4L2_SUBDEV_IR_TX_FIFO_SERVICE_REQ	0x00000001
+ 
++#define V4L2_SUBDEV_CEC_TX_DONE			_IOW('v', 2, u32)
++#define V4L2_SUBDEV_CEC_RX_MSG			_IOW('v', 3, struct cec_msg)
++
+ struct v4l2_device;
+ struct v4l2_ctrl_handler;
+ struct v4l2_event_subscription;
+@@ -48,6 +51,7 @@ struct v4l2_subdev;
+ struct v4l2_subdev_fh;
+ struct tuner_setup;
+ struct v4l2_mbus_frame_desc;
++struct cec_msg;
+ 
+ /* decode_vbi_line */
+ struct v4l2_decode_vbi_line {
+@@ -354,6 +358,10 @@ struct v4l2_subdev_video_ops {
+ 			     const struct v4l2_mbus_config *cfg);
+ 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
+ 			   unsigned int *size);
++	int (*cec_enable)(struct v4l2_subdev *sd, bool enable);
++	int (*cec_log_addr)(struct v4l2_subdev *sd, u8 logical_addr);
++	int (*cec_transmit)(struct v4l2_subdev *sd, struct cec_msg *msg);
++	void (*cec_transmit_timed_out)(struct v4l2_subdev *sd);
+ };
+ 
+ /*
 -- 
-2.1.3
+1.7.9.5
 
