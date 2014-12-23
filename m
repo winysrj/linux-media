@@ -1,38 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:48923 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754835AbaLHU7L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 15:59:11 -0500
-Message-ID: <5486111D.2000800@southpole.se>
-Date: Mon, 08 Dec 2014 21:59:09 +0100
-From: Benjamin Larsson <benjamin@southpole.se>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] mn88472: fix firmware downloading
-References: <1418070667-13349-1-git-send-email-benjamin@southpole.se> <5486104D.8090601@iki.fi>
-In-Reply-To: <5486104D.8090601@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:45260 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756606AbaLWUua (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:30 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 21/66] rtl2830: implement own I2C locking
+Date: Tue, 23 Dec 2014 22:49:14 +0200
+Message-Id: <1419367799-14263-21-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/08/2014 09:55 PM, Antti Palosaari wrote:
-> Moikka!
->
-> But that patch is rather useless :] Only thing needed is to change 
-> existing value in file drivers/media/usb/dvb-usb-v2/rtl28xxu.c :
-> mn88472_config.i2c_wr_max = 22,
-> ... and that leaves room for use even smaller values if there is an 
-> I2C adapter which cannot write even 17 bytes.
->
-> 2nd thing is to add comment mn88472.h to specify that max limit and 
-> that's all.
->
-> regards
-> Antti
+Own I2C locking is needed due to two special reasons:
+1) Chips uses multiple register pages/banks on single I2C slave.
+Page is changed via I2C register access.
+2) Chip offers muxed/gated I2C adapter for tuner. Gate/mux is
+controlled by I2C register access.
 
-Ok, I'll do that.
+Due to these reasons, I2C locking did not fit very well.
 
-MvH
-Benjamin Larsson
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2830.c      | 45 +++++++++++++++++++++++++-----
+ drivers/media/dvb-frontends/rtl2830_priv.h |  1 +
+ 2 files changed, 39 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index 8abaca6..3a9e4e9 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -43,7 +43,7 @@ static int rtl2830_wr(struct i2c_client *client, u8 reg, const u8 *val, int len)
+ 	buf[0] = reg;
+ 	memcpy(&buf[1], val, len);
+ 
+-	ret = i2c_transfer(client->adapter, msg, 1);
++	ret = __i2c_transfer(client->adapter, msg, 1);
+ 	if (ret == 1) {
+ 		ret = 0;
+ 	} else {
+@@ -73,7 +73,7 @@ static int rtl2830_rd(struct i2c_client *client, u8 reg, u8 *val, int len)
+ 		}
+ 	};
+ 
+-	ret = i2c_transfer(client->adapter, msg, 2);
++	ret = __i2c_transfer(client->adapter, msg, 2);
+ 	if (ret == 2) {
+ 		ret = 0;
+ 	} else {
+@@ -93,16 +93,23 @@ static int rtl2830_wr_regs(struct i2c_client *client, u16 reg, const u8 *val, in
+ 	u8 reg2 = (reg >> 0) & 0xff;
+ 	u8 page = (reg >> 8) & 0xff;
+ 
++	mutex_lock(&dev->i2c_mutex);
++
+ 	/* switch bank if needed */
+ 	if (page != dev->page) {
+ 		ret = rtl2830_wr(client, 0x00, &page, 1);
+ 		if (ret)
+-			return ret;
++			goto err_mutex_unlock;
+ 
+ 		dev->page = page;
+ 	}
+ 
+-	return rtl2830_wr(client, reg2, val, len);
++	ret = rtl2830_wr(client, reg2, val, len);
++
++err_mutex_unlock:
++	mutex_unlock(&dev->i2c_mutex);
++
++	return ret;
+ }
+ 
+ /* read multiple registers */
+@@ -113,16 +120,23 @@ static int rtl2830_rd_regs(struct i2c_client *client, u16 reg, u8 *val, int len)
+ 	u8 reg2 = (reg >> 0) & 0xff;
+ 	u8 page = (reg >> 8) & 0xff;
+ 
++	mutex_lock(&dev->i2c_mutex);
++
+ 	/* switch bank if needed */
+ 	if (page != dev->page) {
+ 		ret = rtl2830_wr(client, 0x00, &page, 1);
+ 		if (ret)
+-			return ret;
++			goto err_mutex_unlock;
+ 
+ 		dev->page = page;
+ 	}
+ 
+-	return rtl2830_rd(client, reg2, val, len);
++	ret = rtl2830_rd(client, reg2, val, len);
++
++err_mutex_unlock:
++	mutex_unlock(&dev->i2c_mutex);
++
++	return ret;
+ }
+ 
+ /* read single register */
+@@ -815,6 +829,10 @@ static int rtl2830_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ 	};
+ 	int ret;
+ 
++	dev_dbg(&client->dev, "\n");
++
++	mutex_lock(&dev->i2c_mutex);
++
+ 	/* select register page */
+ 	ret = __i2c_transfer(client->adapter, select_reg_page_msg, 1);
+ 	if (ret != 1) {
+@@ -841,6 +859,18 @@ err:
+ 	return ret;
+ }
+ 
++static int rtl2830_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
++{
++	struct i2c_client *client = mux_priv;
++	struct rtl2830_dev *dev = i2c_get_clientdata(client);
++
++	dev_dbg(&client->dev, "\n");
++
++	mutex_unlock(&dev->i2c_mutex);
++
++	return 0;
++}
++
+ static struct dvb_frontend *rtl2830_get_dvb_frontend(struct i2c_client *client)
+ {
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+@@ -886,6 +916,7 @@ static int rtl2830_probe(struct i2c_client *client,
+ 	dev->client = client;
+ 	dev->pdata = client->dev.platform_data;
+ 	dev->sleeping = true;
++	mutex_init(&dev->i2c_mutex);
+ 	INIT_DELAYED_WORK(&dev->stat_work, rtl2830_stat_work);
+ 
+ 	/* check if the demod is there */
+@@ -895,7 +926,7 @@ static int rtl2830_probe(struct i2c_client *client,
+ 
+ 	/* create muxed i2c adapter for tuner */
+ 	dev->adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
+-			client, 0, 0, 0, rtl2830_select, NULL);
++			client, 0, 0, 0, rtl2830_select, rtl2830_deselect);
+ 	if (dev->adapter == NULL) {
+ 		ret = -ENODEV;
+ 		goto err_kfree;
+diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
+index 2931889..517758a 100644
+--- a/drivers/media/dvb-frontends/rtl2830_priv.h
++++ b/drivers/media/dvb-frontends/rtl2830_priv.h
+@@ -30,6 +30,7 @@ struct rtl2830_dev {
+ 	struct i2c_adapter *adapter;
+ 	struct dvb_frontend fe;
+ 	bool sleeping;
++	struct mutex i2c_mutex;
+ 	u8 page; /* active register page */
+ 	unsigned long filters;
+ 	struct delayed_work stat_work;
+-- 
+http://palosaari.fi/
+
