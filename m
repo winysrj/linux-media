@@ -1,66 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:34575 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751021AbaLPLgx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Dec 2014 06:36:53 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NGO00HEIAXGGH40@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Dec 2014 20:36:52 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:51497 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756629AbaLWUuc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Dec 2014 15:50:32 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl,
-	nicolas.dufresne@collabora.com
-Subject: [PATCH 2/2] s5p-mfc: use VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag
-Date: Tue, 16 Dec 2014 12:36:18 +0100
-Message-id: <1418729778-14480-2-git-send-email-k.debski@samsung.com>
-In-reply-to: <1418729778-14480-1-git-send-email-k.debski@samsung.com>
-References: <1418729778-14480-1-git-send-email-k.debski@samsung.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 29/66] rtl28xxu: use platform data config for rtl2832 demod
+Date: Tue, 23 Dec 2014 22:49:22 +0200
+Message-Id: <1419367799-14263-29-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MFC driver interprets a buffer with bytesused equal to 0 as a special
-case indicating end-of-stream. After vb2: fix bytesused == 0 handling
-(8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
-The VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag was added to videobuf2 to keep
-backward compatibility.
+Use platform data configuration for rtl2832 demod driver. Old
+configuration are still left as it is used for rtl2832_sdr driver.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 38 +++++++++++++++++++++++++++------
+ 1 file changed, 32 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 03204fd..89c148b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -820,6 +820,13 @@ static int s5p_mfc_open(struct file *file)
- 		ret = -ENOENT;
- 		goto err_queue_init;
- 	}
-+	/* One of means to indicate end-of-stream for MFC is to set the
-+	 * bytesused == 0. However by default videobuf2 handles videobuf
-+	 * equal to 0 as a special case and changes its value to the size
-+	 * of the buffer. Set the VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag so
-+	 * that videobuf2 will keep the value of bytesused intact.
-+	 */
-+	q->io_flags = VB2_FILEIO_ALLOW_ZERO_BYTESUSED;
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	ret = vb2_queue_init(q);
-@@ -842,6 +849,10 @@ static int s5p_mfc_open(struct file *file)
- 		ret = -ENOENT;
- 		goto err_queue_init;
- 	}
-+	/* Set the VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag, for more information
-+	 * please see the comment above.
-+	 */
-+	q->io_flags = VB2_FILEIO_ALLOW_ZERO_BYTESUSED;
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	ret = vb2_queue_init(q);
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 3d619de..25c885f 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -637,6 +637,32 @@ err:
+ 	return ret;
+ }
+ 
++static const struct rtl2832_platform_data rtl2832_fc0012_platform_data = {
++	.clk = 28800000,
++	.tuner = TUNER_RTL2832_FC0012
++};
++
++static const struct rtl2832_platform_data rtl2832_fc0013_platform_data = {
++	.clk = 28800000,
++	.tuner = TUNER_RTL2832_FC0013
++};
++
++static const struct rtl2832_platform_data rtl2832_tua9001_platform_data = {
++	.clk = 28800000,
++	.tuner = TUNER_RTL2832_TUA9001,
++};
++
++static const struct rtl2832_platform_data rtl2832_e4000_platform_data = {
++	.clk = 28800000,
++	.tuner = TUNER_RTL2832_E4000,
++};
++
++static const struct rtl2832_platform_data rtl2832_r820t_platform_data = {
++	.clk = 28800000,
++	.tuner = TUNER_RTL2832_R820T,
++};
++
++/* TODO: these are redundant information for rtl2832_sdr driver */
+ static const struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+@@ -793,24 +819,24 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 
+ 	switch (priv->tuner) {
+ 	case TUNER_RTL2832_FC0012:
+-		pdata->config = &rtl28xxu_rtl2832_fc0012_config;
++		*pdata = rtl2832_fc0012_platform_data;
+ 		break;
+ 	case TUNER_RTL2832_FC0013:
+-		pdata->config = &rtl28xxu_rtl2832_fc0013_config;
++		*pdata = rtl2832_fc0013_platform_data;
+ 		break;
+ 	case TUNER_RTL2832_FC2580:
+ 		/* FIXME: do not abuse fc0012 settings */
+-		pdata->config = &rtl28xxu_rtl2832_fc0012_config;
++		*pdata = rtl2832_fc0012_platform_data;
+ 		break;
+ 	case TUNER_RTL2832_TUA9001:
+-		pdata->config = &rtl28xxu_rtl2832_tua9001_config;
++		*pdata = rtl2832_tua9001_platform_data;
+ 		break;
+ 	case TUNER_RTL2832_E4000:
+-		pdata->config = &rtl28xxu_rtl2832_e4000_config;
++		*pdata = rtl2832_e4000_platform_data;
+ 		break;
+ 	case TUNER_RTL2832_R820T:
+ 	case TUNER_RTL2832_R828D:
+-		pdata->config = &rtl28xxu_rtl2832_r820t_config;
++		*pdata = rtl2832_r820t_platform_data;
+ 		break;
+ 	default:
+ 		dev_err(&d->udev->dev, "%s: unknown tuner=%s\n",
 -- 
-1.7.9.5
+http://palosaari.fi/
 
