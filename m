@@ -1,96 +1,4093 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:43896 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751627AbaLYCQz (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39097 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756006AbaLWMZa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Dec 2014 21:16:55 -0500
-Received: by mail-ie0-f174.google.com with SMTP id at20so8243203iec.33
-        for <linux-media@vger.kernel.org>; Wed, 24 Dec 2014 18:16:55 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAA9z4Lb5PkGhs5EYyVyoLbpmNi-TbnFmfxhgpCMDNQFKD+1SxQ@mail.gmail.com>
-References: <CAA9z4LZn8wKHw6=F_e8nLQLEDPFVmmaEojv=5Lev3hr6hX3K5Q@mail.gmail.com>
-	<CAA9z4Lb5PkGhs5EYyVyoLbpmNi-TbnFmfxhgpCMDNQFKD+1SxQ@mail.gmail.com>
-Date: Wed, 24 Dec 2014 19:16:54 -0700
-Message-ID: <CAA9z4La9B3nY9xbdbYOROjDsk4c3BUPm5XdZC+KmrtY32e_faA@mail.gmail.com>
-Subject: Re: Prof 7301 issues
-From: Chris Lee <updatelee@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 23 Dec 2014 07:25:30 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Huang Shijie <shijie8@gmail.com>
+Subject: [PATCH 1/4] tlg2300: remove deprecated staging driver
+Date: Tue, 23 Dec 2014 13:24:54 +0100
+Message-Id: <1419337497-7231-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1419337497-7231-1-git-send-email-hverkuil@xs4all.nl>
+References: <1419337497-7231-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Another issue is I can't unload the module any longer.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Dec 24 17:50:39 DVB kernel: [ 7547.269390] ------------[ cut here ]------------
-Dec 24 17:50:39 DVB kernel: [ 7547.269397] WARNING: CPU: 7 PID: 10618
-at kernel/irq/manage.c:1311 __free_irq+0x9f/0x1f0()
-Dec 24 17:50:39 DVB kernel: [ 7547.269398] Trying to free already-free IRQ 0
-Dec 24 17:50:39 DVB kernel: [ 7547.269398] Modules linked in:
-cx88_vp3054_i2c cx8802(-) cx88xx videobuf2_core videobuf2_dma_sg
-videobuf2_memops tveeprom v4l2_common videodev stb6100 stv090x
-dvb_usb_tbsqbox2ci dvb_usb dvb_core rc_core nf_conntrack_ipv4
-nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4
-xt_tcpudp iptable_filter ip_tables x_tables bridge stp llc
-snd_hda_codec_hdmi mxm_wmi snd_hda_codec_via snd_hda_codec_generic
-snd_usb_audio x86_pkg_temp_thermal bnep snd_usbmidi_lib rfcomm
-snd_hda_intel kvm_intel snd_hda_controller bluetooth snd_hda_codec kvm
-snd_hwdep snd_pcm ghash_clmulni_intel snd_seq_midi aesni_intel
-snd_seq_midi_event aes_x86_64 snd_rawmidi lrw i915 gf128mul
-glue_helper ablk_helper cryptd snd_seq snd_seq_device snd_timer
-drm_kms_helper snd drm microcode soundcore i2c_algo_bit shpchp lpc_ich
-serio_raw wmi tpm_infineon tpm_tis video nfsd mac_hid auth_rpcgss
-oid_registry nfs_acl parport_pc ppdev nfs lockd grace it87 binfmt_misc
-sunrpc hwmon_vid coretemp fscache lp parport nls_iso8859_1 hid_generic
-usbhid hid psmouse ahci alx libahci mdio [last unloaded:
-videobuf2_dvb]
-Dec 24 17:50:39 DVB kernel: [ 7547.269434] CPU: 7 PID: 10618 Comm:
-modprobe Not tainted 3.19.0-rc1+ #2
-Dec 24 17:50:39 DVB kernel: [ 7547.269434] Hardware name: Gigabyte
-Technology Co., Ltd. To be filled by O.E.M./Z77X-UD3H, BIOS F20e
-01/06/2014
-Dec 24 17:50:39 DVB kernel: [ 7547.269435]  ffffffff81a72a51
-ffff8803a382bcb8 ffffffff8174947e 0000000000000007
-Dec 24 17:50:39 DVB kernel: [ 7547.269437]  ffff8803a382bd08
-ffff8803a382bcf8 ffffffff8105899a ffff8803a382bcd8
-Dec 24 17:50:39 DVB kernel: [ 7547.269438]  0000000000000000
-0000000000000000 ffff88040e80a6a4 ffff88040e80a600
-Dec 24 17:50:39 DVB kernel: [ 7547.269439] Call Trace:
-Dec 24 17:50:39 DVB kernel: [ 7547.269444]  [<ffffffff8174947e>]
-dump_stack+0x45/0x57
-Dec 24 17:50:39 DVB kernel: [ 7547.269446]  [<ffffffff8105899a>]
-warn_slowpath_common+0x8a/0xc0
-Dec 24 17:50:39 DVB kernel: [ 7547.269447]  [<ffffffff81058a16>]
-warn_slowpath_fmt+0x46/0x50
-Dec 24 17:50:39 DVB kernel: [ 7547.269450]  [<ffffffff810af52f>]
-__free_irq+0x9f/0x1f0
-Dec 24 17:50:39 DVB kernel: [ 7547.269451]  [<ffffffff810af71d>]
-free_irq+0x4d/0xd0
-Dec 24 17:50:39 DVB kernel: [ 7547.269454]  [<ffffffffa06c0d96>]
-cx8802_remove+0xa6/0x1c0 [cx8802]
-Dec 24 17:50:39 DVB kernel: [ 7547.269456]  [<ffffffff813c0f1f>]
-pci_device_remove+0x3f/0xc0
-Dec 24 17:50:39 DVB kernel: [ 7547.269459]  [<ffffffff81498fef>]
-__device_release_driver+0x7f/0xf0
-Dec 24 17:50:39 DVB kernel: [ 7547.269461]  [<ffffffff81499a08>]
-driver_detach+0xb8/0xc0
-Dec 24 17:50:39 DVB kernel: [ 7547.269462]  [<ffffffff81498c69>]
-bus_remove_driver+0x59/0xe0
-Dec 24 17:50:39 DVB kernel: [ 7547.269464]  [<ffffffff8149a1d0>]
-driver_unregister+0x30/0x70
-Dec 24 17:50:39 DVB kernel: [ 7547.269465]  [<ffffffff813c0895>]
-pci_unregister_driver+0x25/0x90
-Dec 24 17:50:39 DVB kernel: [ 7547.269466]  [<ffffffffa06c18f5>]
-cx8802_pci_driver_exit+0x10/0x71b [cx8802]
-Dec 24 17:50:39 DVB kernel: [ 7547.269469]  [<ffffffff810d708f>]
-SyS_delete_module+0x1af/0x250
-Dec 24 17:50:39 DVB kernel: [ 7547.269471]  [<ffffffff810030e1>] ?
-do_notify_resume+0x61/0x90
-Dec 24 17:50:39 DVB kernel: [ 7547.269473]  [<ffffffff81750056>]
-system_call_fastpath+0x16/0x1b
-Dec 24 17:50:39 DVB kernel: [ 7547.269474] ---[ end trace 935d21431b629f9c ]---
+This driver hasn't been tested in a long, long time. The company that made
+this chip has gone bust many years ago and hardware using this chip is next
+to impossible to find.
 
-It shows as a warning but its more than that. It locks my computer up
-so badly even the reset button doesnt work. Even if I do this in a VM
-(qemu) it will lock up the host.
+This driver needs to be converted to newer media frameworks but due to the
+lack of hardware that's going to be impossible. Since cheap alternatives are
+easily available, there is little point in keeping this driver alive.
 
-Chris Lee
+This driver is already deprecated, so now remove it altogether.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Huang Shijie <shijie8@gmail.com>
+---
+ MAINTAINERS                                |    6 -
+ drivers/staging/media/Kconfig              |    2 -
+ drivers/staging/media/Makefile             |    1 -
+ drivers/staging/media/tlg2300/Kconfig      |   20 -
+ drivers/staging/media/tlg2300/Makefile     |    9 -
+ drivers/staging/media/tlg2300/pd-alsa.c    |  337 ------
+ drivers/staging/media/tlg2300/pd-common.h  |  271 -----
+ drivers/staging/media/tlg2300/pd-dvb.c     |  597 -----------
+ drivers/staging/media/tlg2300/pd-main.c    |  553 ----------
+ drivers/staging/media/tlg2300/pd-radio.c   |  339 ------
+ drivers/staging/media/tlg2300/pd-video.c   | 1570 ----------------------------
+ drivers/staging/media/tlg2300/vendorcmds.h |  243 -----
+ 12 files changed, 3948 deletions(-)
+ delete mode 100644 drivers/staging/media/tlg2300/Kconfig
+ delete mode 100644 drivers/staging/media/tlg2300/Makefile
+ delete mode 100644 drivers/staging/media/tlg2300/pd-alsa.c
+ delete mode 100644 drivers/staging/media/tlg2300/pd-common.h
+ delete mode 100644 drivers/staging/media/tlg2300/pd-dvb.c
+ delete mode 100644 drivers/staging/media/tlg2300/pd-main.c
+ delete mode 100644 drivers/staging/media/tlg2300/pd-radio.c
+ delete mode 100644 drivers/staging/media/tlg2300/pd-video.c
+ delete mode 100644 drivers/staging/media/tlg2300/vendorcmds.h
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ddb9ac8..36d0b18 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8355,12 +8355,6 @@ F:	kernel/time/clocksource.c
+ F:	kernel/time/time*.c
+ F:	kernel/time/ntp.c
+ 
+-TLG2300 VIDEO4LINUX-2 DRIVER
+-M:	Huang Shijie <shijie8@gmail.com>
+-M:	Hans Verkuil <hverkuil@xs4all.nl>
+-S:	Odd Fixes
+-F:	drivers/media/usb/tlg2300/
+-
+ SC1200 WDT DRIVER
+ M:	Zwane Mwaikambo <zwanem@gmail.com>
+ S:	Maintained
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index 2a054a9..61e4acb 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -27,8 +27,6 @@ source "drivers/staging/media/davinci_vpfe/Kconfig"
+ 
+ source "drivers/staging/media/dt3155v4l/Kconfig"
+ 
+-source "drivers/staging/media/tlg2300/Kconfig"
+-
+ source "drivers/staging/media/mn88472/Kconfig"
+ 
+ source "drivers/staging/media/mn88473/Kconfig"
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index 412b284..b7bda10 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -7,6 +7,5 @@ obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
+ obj-$(CONFIG_DVB_MN88472)       += mn88472/
+ obj-$(CONFIG_DVB_MN88473)       += mn88473/
+ obj-y				+= parport/
+-obj-$(CONFIG_VIDEO_TLG2300)	+= tlg2300/
+ obj-y                           += vino/
+ 
+diff --git a/drivers/staging/media/tlg2300/Kconfig b/drivers/staging/media/tlg2300/Kconfig
+deleted file mode 100644
+index 81784c6..0000000
+--- a/drivers/staging/media/tlg2300/Kconfig
++++ /dev/null
+@@ -1,20 +0,0 @@
+-config VIDEO_TLG2300
+-	tristate "Telegent TLG2300 USB video capture support (Deprecated)"
+-	depends on VIDEO_DEV && I2C && SND && DVB_CORE
+-	select VIDEO_TUNER
+-	select VIDEO_TVEEPROM
+-	depends on RC_CORE
+-	select VIDEOBUF_VMALLOC
+-	select SND_PCM
+-	select VIDEOBUF_DVB
+-
+-	---help---
+-	  This is a video4linux driver for Telegent tlg2300 based TV cards.
+-	  The driver supports V4L2, DVB-T and radio.
+-
+-	  This driver is deprecated and will be removed soon. If you have
+-	  hardware for this and you want to work on this driver, then contact
+-	  the linux-media mailinglist.
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called poseidon
+diff --git a/drivers/staging/media/tlg2300/Makefile b/drivers/staging/media/tlg2300/Makefile
+deleted file mode 100644
+index 137f8e3..0000000
+--- a/drivers/staging/media/tlg2300/Makefile
++++ /dev/null
+@@ -1,9 +0,0 @@
+-poseidon-objs := pd-video.o pd-alsa.o pd-dvb.o pd-radio.o pd-main.o
+-
+-obj-$(CONFIG_VIDEO_TLG2300) += poseidon.o
+-
+-ccflags-y += -Idrivers/media/i2c
+-ccflags-y += -Idrivers/media/tuners
+-ccflags-y += -Idrivers/media/dvb-core
+-ccflags-y += -Idrivers/media/dvb-frontends
+-
+diff --git a/drivers/staging/media/tlg2300/pd-alsa.c b/drivers/staging/media/tlg2300/pd-alsa.c
+deleted file mode 100644
+index dd8fe10..0000000
+--- a/drivers/staging/media/tlg2300/pd-alsa.c
++++ /dev/null
+@@ -1,337 +0,0 @@
+-#include <linux/kernel.h>
+-#include <linux/usb.h>
+-#include <linux/init.h>
+-#include <linux/sound.h>
+-#include <linux/spinlock.h>
+-#include <linux/soundcard.h>
+-#include <linux/vmalloc.h>
+-#include <linux/proc_fs.h>
+-#include <linux/module.h>
+-#include <linux/gfp.h>
+-#include <sound/core.h>
+-#include <sound/pcm.h>
+-#include <sound/pcm_params.h>
+-#include <sound/info.h>
+-#include <sound/initval.h>
+-#include <sound/control.h>
+-#include <media/v4l2-common.h>
+-#include "pd-common.h"
+-#include "vendorcmds.h"
+-
+-static void complete_handler_audio(struct urb *urb);
+-#define AUDIO_EP	(0x83)
+-#define AUDIO_BUF_SIZE	(512)
+-#define PERIOD_SIZE	(1024 * 8)
+-#define PERIOD_MIN	(4)
+-#define PERIOD_MAX 	PERIOD_MIN
+-
+-static struct snd_pcm_hardware snd_pd_hw_capture = {
+-	.info = SNDRV_PCM_INFO_BLOCK_TRANSFER |
+-		SNDRV_PCM_INFO_MMAP           |
+-		SNDRV_PCM_INFO_INTERLEAVED |
+-		SNDRV_PCM_INFO_MMAP_VALID,
+-
+-	.formats = SNDRV_PCM_FMTBIT_S16_LE,
+-	.rates = SNDRV_PCM_RATE_48000,
+-
+-	.rate_min = 48000,
+-	.rate_max = 48000,
+-	.channels_min = 2,
+-	.channels_max = 2,
+-	.buffer_bytes_max = PERIOD_SIZE * PERIOD_MIN,
+-	.period_bytes_min = PERIOD_SIZE,
+-	.period_bytes_max = PERIOD_SIZE,
+-	.periods_min = PERIOD_MIN,
+-	.periods_max = PERIOD_MAX,
+-	/*
+-	.buffer_bytes_max = 62720 * 8,
+-	.period_bytes_min = 64,
+-	.period_bytes_max = 12544,
+-	.periods_min = 2,
+-	.periods_max = 98
+-	*/
+-};
+-
+-static int snd_pd_capture_open(struct snd_pcm_substream *substream)
+-{
+-	struct poseidon *p = snd_pcm_substream_chip(substream);
+-	struct poseidon_audio *pa = &p->audio;
+-	struct snd_pcm_runtime *runtime = substream->runtime;
+-
+-	if (!p)
+-		return -ENODEV;
+-	pa->users++;
+-	pa->card_close 		= 0;
+-	pa->capture_pcm_substream	= substream;
+-	runtime->private_data		= p;
+-
+-	runtime->hw = snd_pd_hw_capture;
+-	snd_pcm_hw_constraint_integer(runtime, SNDRV_PCM_HW_PARAM_PERIODS);
+-	usb_autopm_get_interface(p->interface);
+-	kref_get(&p->kref);
+-	return 0;
+-}
+-
+-static int snd_pd_pcm_close(struct snd_pcm_substream *substream)
+-{
+-	struct poseidon *p = snd_pcm_substream_chip(substream);
+-	struct poseidon_audio *pa = &p->audio;
+-
+-	pa->users--;
+-	pa->card_close 		= 1;
+-	usb_autopm_put_interface(p->interface);
+-	kref_put(&p->kref, poseidon_delete);
+-	return 0;
+-}
+-
+-static int snd_pd_hw_capture_params(struct snd_pcm_substream *substream,
+-					struct snd_pcm_hw_params *hw_params)
+-{
+-	struct snd_pcm_runtime *runtime = substream->runtime;
+-	unsigned int size;
+-
+-	size = params_buffer_bytes(hw_params);
+-	if (runtime->dma_area) {
+-		if (runtime->dma_bytes > size)
+-			return 0;
+-		vfree(runtime->dma_area);
+-	}
+-	runtime->dma_area = vmalloc(size);
+-	if (!runtime->dma_area)
+-		return -ENOMEM;
+-	else
+-		runtime->dma_bytes = size;
+-	return 0;
+-}
+-
+-static int audio_buf_free(struct poseidon *p)
+-{
+-	struct poseidon_audio *pa = &p->audio;
+-	int i;
+-
+-	for (i = 0; i < AUDIO_BUFS; i++)
+-		if (pa->urb_array[i])
+-			usb_kill_urb(pa->urb_array[i]);
+-	free_all_urb_generic(pa->urb_array, AUDIO_BUFS);
+-	logpm();
+-	return 0;
+-}
+-
+-static int snd_pd_hw_capture_free(struct snd_pcm_substream *substream)
+-{
+-	struct poseidon *p = snd_pcm_substream_chip(substream);
+-
+-	logpm();
+-	audio_buf_free(p);
+-	return 0;
+-}
+-
+-static int snd_pd_prepare(struct snd_pcm_substream *substream)
+-{
+-	return 0;
+-}
+-
+-#define AUDIO_TRAILER_SIZE	(16)
+-static inline void handle_audio_data(struct urb *urb, int *period_elapsed)
+-{
+-	struct poseidon_audio *pa = urb->context;
+-	struct snd_pcm_runtime *runtime = pa->capture_pcm_substream->runtime;
+-
+-	int stride	= runtime->frame_bits >> 3;
+-	int len		= urb->actual_length / stride;
+-	unsigned char *cp	= urb->transfer_buffer;
+-	unsigned int oldptr	= pa->rcv_position;
+-
+-	if (urb->actual_length == AUDIO_BUF_SIZE - 4)
+-		len -= (AUDIO_TRAILER_SIZE / stride);
+-
+-	/* do the copy */
+-	if (oldptr + len >= runtime->buffer_size) {
+-		unsigned int cnt = runtime->buffer_size - oldptr;
+-
+-		memcpy(runtime->dma_area + oldptr * stride, cp, cnt * stride);
+-		memcpy(runtime->dma_area, (cp + cnt * stride),
+-					(len * stride - cnt * stride));
+-	} else
+-		memcpy(runtime->dma_area + oldptr * stride, cp, len * stride);
+-
+-	/* update the statas */
+-	snd_pcm_stream_lock(pa->capture_pcm_substream);
+-	pa->rcv_position	+= len;
+-	if (pa->rcv_position >= runtime->buffer_size)
+-		pa->rcv_position -= runtime->buffer_size;
+-
+-	pa->copied_position += (len);
+-	if (pa->copied_position >= runtime->period_size) {
+-		pa->copied_position -= runtime->period_size;
+-		*period_elapsed = 1;
+-	}
+-	snd_pcm_stream_unlock(pa->capture_pcm_substream);
+-}
+-
+-static void complete_handler_audio(struct urb *urb)
+-{
+-	struct poseidon_audio *pa = urb->context;
+-	struct snd_pcm_substream *substream = pa->capture_pcm_substream;
+-	int    period_elapsed = 0;
+-	int    ret;
+-
+-	if (1 == pa->card_close || pa->capture_stream != STREAM_ON)
+-		return;
+-
+-	if (urb->status != 0) {
+-		/*if (urb->status == -ESHUTDOWN)*/
+-			return;
+-	}
+-
+-	if (substream) {
+-		if (urb->actual_length) {
+-			handle_audio_data(urb, &period_elapsed);
+-			if (period_elapsed)
+-				snd_pcm_period_elapsed(substream);
+-		}
+-	}
+-
+-	ret = usb_submit_urb(urb, GFP_ATOMIC);
+-	if (ret < 0)
+-		log("audio urb failed (errcod = %i)", ret);
+-	return;
+-}
+-
+-static int fire_audio_urb(struct poseidon *p)
+-{
+-	int i, ret = 0;
+-	struct poseidon_audio *pa = &p->audio;
+-
+-	alloc_bulk_urbs_generic(pa->urb_array, AUDIO_BUFS,
+-			p->udev, AUDIO_EP,
+-			AUDIO_BUF_SIZE, GFP_ATOMIC,
+-			complete_handler_audio, pa);
+-
+-	for (i = 0; i < AUDIO_BUFS; i++) {
+-		ret = usb_submit_urb(pa->urb_array[i], GFP_KERNEL);
+-		if (ret)
+-			log("urb err : %d", ret);
+-	}
+-	log();
+-	return ret;
+-}
+-
+-static int snd_pd_capture_trigger(struct snd_pcm_substream *substream, int cmd)
+-{
+-	struct poseidon *p = snd_pcm_substream_chip(substream);
+-	struct poseidon_audio *pa = &p->audio;
+-
+-	if (debug_mode)
+-		log("cmd %d, audio stat : %d\n", cmd, pa->capture_stream);
+-
+-	switch (cmd) {
+-	case SNDRV_PCM_TRIGGER_RESUME:
+-	case SNDRV_PCM_TRIGGER_START:
+-		if (pa->capture_stream == STREAM_ON)
+-			return 0;
+-
+-		pa->rcv_position = pa->copied_position = 0;
+-		pa->capture_stream = STREAM_ON;
+-
+-		if (in_hibernation(p))
+-			return 0;
+-		fire_audio_urb(p);
+-		return 0;
+-
+-	case SNDRV_PCM_TRIGGER_SUSPEND:
+-		pa->capture_stream = STREAM_SUSPEND;
+-		return 0;
+-	case SNDRV_PCM_TRIGGER_STOP:
+-		pa->capture_stream = STREAM_OFF;
+-		return 0;
+-	default:
+-		return -EINVAL;
+-	}
+-}
+-
+-static snd_pcm_uframes_t
+-snd_pd_capture_pointer(struct snd_pcm_substream *substream)
+-{
+-	struct poseidon *p = snd_pcm_substream_chip(substream);
+-	struct poseidon_audio *pa = &p->audio;
+-	return pa->rcv_position;
+-}
+-
+-static struct page *snd_pcm_pd_get_page(struct snd_pcm_substream *subs,
+-					     unsigned long offset)
+-{
+-	void *pageptr = subs->runtime->dma_area + offset;
+-	return vmalloc_to_page(pageptr);
+-}
+-
+-static struct snd_pcm_ops pcm_capture_ops = {
+-	.open      = snd_pd_capture_open,
+-	.close     = snd_pd_pcm_close,
+-	.ioctl     = snd_pcm_lib_ioctl,
+-	.hw_params = snd_pd_hw_capture_params,
+-	.hw_free   = snd_pd_hw_capture_free,
+-	.prepare   = snd_pd_prepare,
+-	.trigger   = snd_pd_capture_trigger,
+-	.pointer   = snd_pd_capture_pointer,
+-	.page      = snd_pcm_pd_get_page,
+-};
+-
+-#ifdef CONFIG_PM
+-int pm_alsa_suspend(struct poseidon *p)
+-{
+-	logpm(p);
+-	audio_buf_free(p);
+-	return 0;
+-}
+-
+-int pm_alsa_resume(struct poseidon *p)
+-{
+-	logpm(p);
+-	fire_audio_urb(p);
+-	return 0;
+-}
+-#endif
+-
+-int poseidon_audio_init(struct poseidon *p)
+-{
+-	struct poseidon_audio *pa = &p->audio;
+-	struct snd_card *card;
+-	struct snd_pcm *pcm;
+-	int ret;
+-
+-	ret = snd_card_new(&p->interface->dev, -1, "Telegent",
+-			   THIS_MODULE, 0, &card);
+-	if (ret != 0)
+-		return ret;
+-
+-	ret = snd_pcm_new(card, "poseidon audio", 0, 0, 1, &pcm);
+-	if (ret < 0) {
+-		snd_card_free(card);
+-		return ret;
+-	}
+-	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &pcm_capture_ops);
+-	pcm->info_flags   = 0;
+-	pcm->private_data = p;
+-	strcpy(pcm->name, "poseidon audio capture");
+-
+-	strcpy(card->driver, "ALSA driver");
+-	strcpy(card->shortname, "poseidon Audio");
+-	strcpy(card->longname, "poseidon ALSA Audio");
+-
+-	if (snd_card_register(card)) {
+-		snd_card_free(card);
+-		return -ENOMEM;
+-	}
+-	pa->card = card;
+-	return 0;
+-}
+-
+-int poseidon_audio_free(struct poseidon *p)
+-{
+-	struct poseidon_audio *pa = &p->audio;
+-
+-	if (pa->card)
+-		snd_card_free(pa->card);
+-	return 0;
+-}
+diff --git a/drivers/staging/media/tlg2300/pd-common.h b/drivers/staging/media/tlg2300/pd-common.h
+deleted file mode 100644
+index 9e23ad32..0000000
+--- a/drivers/staging/media/tlg2300/pd-common.h
++++ /dev/null
+@@ -1,271 +0,0 @@
+-#ifndef PD_COMMON_H
+-#define PD_COMMON_H
+-
+-#include <linux/fs.h>
+-#include <linux/wait.h>
+-#include <linux/list.h>
+-#include <linux/videodev2.h>
+-#include <linux/semaphore.h>
+-#include <linux/usb.h>
+-#include <linux/poll.h>
+-#include <media/videobuf-vmalloc.h>
+-#include <media/v4l2-device.h>
+-#include <media/v4l2-ctrls.h>
+-
+-#include "dvb_frontend.h"
+-#include "dvbdev.h"
+-#include "dvb_demux.h"
+-#include "dmxdev.h"
+-
+-#define SBUF_NUM	8
+-#define MAX_BUFFER_NUM	6
+-#define PK_PER_URB	32
+-#define ISO_PKT_SIZE	3072
+-
+-#define POSEIDON_STATE_NONE		(0x0000)
+-#define POSEIDON_STATE_ANALOG		(0x0001)
+-#define POSEIDON_STATE_FM		(0x0002)
+-#define POSEIDON_STATE_DVBT		(0x0004)
+-#define POSEIDON_STATE_DISCONNECT	(0x0080)
+-
+-#define PM_SUSPEND_DELAY	3
+-
+-#define V4L_PAL_VBI_LINES	18
+-#define V4L_NTSC_VBI_LINES	12
+-#define V4L_PAL_VBI_FRAMESIZE	(V4L_PAL_VBI_LINES * 1440 * 2)
+-#define V4L_NTSC_VBI_FRAMESIZE	(V4L_NTSC_VBI_LINES * 1440 * 2)
+-
+-#define TUNER_FREQ_MIN		(45000000U)
+-#define TUNER_FREQ_MAX		(862000000U)
+-
+-struct vbi_data {
+-	struct video_device	v_dev;
+-	struct video_data	*video;
+-	struct front_face	*front;
+-
+-	unsigned int		copied;
+-	unsigned int		vbi_size; /* the whole size of two fields */
+-	int 			users;
+-};
+-
+-/*
+- * This is the running context of the video, it is useful for
+- * resume()
+- */
+-struct running_context {
+-	u32		freq;		/* VIDIOC_S_FREQUENCY */
+-	int		audio_idx;	/* VIDIOC_S_TUNER    */
+-	v4l2_std_id	tvnormid;	/* VIDIOC_S_STD     */
+-	int		sig_index;	/* VIDIOC_S_INPUT  */
+-	struct v4l2_pix_format pix;	/* VIDIOC_S_FMT   */
+-};
+-
+-struct video_data {
+-	/* v4l2 video device */
+-	struct video_device	v_dev;
+-	struct v4l2_ctrl_handler ctrl_handler;
+-
+-	/* the working context */
+-	struct running_context	context;
+-
+-	/* for data copy */
+-	int		field_count;
+-
+-	char		*dst;
+-	int		lines_copied;
+-	int		prev_left;
+-
+-	int		lines_per_field;
+-	int		lines_size;
+-
+-	/* for communication */
+-	u8			endpoint_addr;
+-	struct urb 		*urb_array[SBUF_NUM];
+-	struct vbi_data		*vbi;
+-	struct poseidon 	*pd;
+-	struct front_face	*front;
+-
+-	int			is_streaming;
+-	int			users;
+-
+-	/* for bubble handler */
+-	struct work_struct	bubble_work;
+-};
+-
+-enum pcm_stream_state {
+-	STREAM_OFF,
+-	STREAM_ON,
+-	STREAM_SUSPEND,
+-};
+-
+-#define AUDIO_BUFS (3)
+-#define CAPTURE_STREAM_EN 1
+-struct poseidon_audio {
+-	struct urb		*urb_array[AUDIO_BUFS];
+-	unsigned int 		copied_position;
+-	struct snd_pcm_substream   *capture_pcm_substream;
+-
+-	unsigned int 		rcv_position;
+-	struct	snd_card	*card;
+-	int 			card_close;
+-
+-	int 			users;
+-	int			pm_state;
+-	enum pcm_stream_state 	capture_stream;
+-};
+-
+-struct radio_data {
+-	__u32		fm_freq;
+-	unsigned int	is_radio_streaming;
+-	int		pre_emphasis;
+-	struct video_device fm_dev;
+-	struct v4l2_ctrl_handler ctrl_handler;
+-};
+-
+-#define DVB_SBUF_NUM		4
+-#define DVB_URB_BUF_SIZE	0x2000
+-struct pd_dvb_adapter {
+-	struct dvb_adapter	dvb_adap;
+-	struct dvb_frontend	dvb_fe;
+-	struct dmxdev		dmxdev;
+-	struct dvb_demux	demux;
+-
+-	atomic_t		users;
+-	atomic_t		active_feed;
+-
+-	/* data transfer */
+-	s32			is_streaming;
+-	struct urb		*urb_array[DVB_SBUF_NUM];
+-	struct poseidon		*pd_device;
+-	u8			ep_addr;
+-	u8			reserved[3];
+-
+-	/* data for power resume*/
+-	struct dtv_frontend_properties fe_param;
+-
+-	/* for channel scanning */
+-	int		prev_freq;
+-	int		bandwidth;
+-	unsigned long	last_jiffies;
+-};
+-
+-struct front_face {
+-	/* use this field to distinguish VIDEO and VBI */
+-	enum v4l2_buf_type	type;
+-
+-	/* for host */
+-	struct videobuf_queue	q;
+-
+-	/* the bridge for host and device */
+-	struct videobuf_buffer	*curr_frame;
+-
+-	/* for device */
+-	spinlock_t		queue_lock;
+-	struct list_head	active;
+-	struct poseidon		*pd;
+-};
+-
+-struct poseidon {
+-	struct list_head	device_list;
+-
+-	struct mutex		lock;
+-	struct kref		kref;
+-
+-	/* for V4L2 */
+-	struct v4l2_device	v4l2_dev;
+-
+-	/* hardware info */
+-	struct usb_device	*udev;
+-	struct usb_interface	*interface;
+-	int 			cur_transfer_mode;
+-
+-	struct video_data	video_data;	/* video */
+-	struct vbi_data		vbi_data;	/* vbi	 */
+-	struct poseidon_audio	audio;		/* audio (alsa) */
+-	struct radio_data	radio_data;	/* FM	 */
+-	struct pd_dvb_adapter	dvb_data;	/* DVB	 */
+-
+-	u32			state;
+-	struct file		*file_for_stream; /* the active stream*/
+-
+-#ifdef CONFIG_PM
+-	int (*pm_suspend)(struct poseidon *);
+-	int (*pm_resume)(struct poseidon *);
+-	pm_message_t		msg;
+-
+-	struct work_struct	pm_work;
+-	u8			portnum;
+-#endif
+-};
+-
+-struct poseidon_format {
+-	char 	*name;
+-	int	fourcc;		 /* video4linux 2	  */
+-	int	depth;		 /* bit/pixel		  */
+-	int	flags;
+-};
+-
+-struct poseidon_tvnorm {
+-	v4l2_std_id	v4l2_id;
+-	char		name[12];
+-	u32		tlg_tvnorm;
+-};
+-
+-/* video */
+-int pd_video_init(struct poseidon *);
+-void pd_video_exit(struct poseidon *);
+-int stop_all_video_stream(struct poseidon *);
+-
+-/* alsa audio */
+-int poseidon_audio_init(struct poseidon *);
+-int poseidon_audio_free(struct poseidon *);
+-#ifdef CONFIG_PM
+-int pm_alsa_suspend(struct poseidon *);
+-int pm_alsa_resume(struct poseidon *);
+-#endif
+-
+-/* dvb */
+-int pd_dvb_usb_device_init(struct poseidon *);
+-void pd_dvb_usb_device_exit(struct poseidon *);
+-void pd_dvb_usb_device_cleanup(struct poseidon *);
+-int pd_dvb_get_adapter_num(struct pd_dvb_adapter *);
+-void dvb_stop_streaming(struct pd_dvb_adapter *);
+-
+-/* FM */
+-int poseidon_fm_init(struct poseidon *);
+-int poseidon_fm_exit(struct poseidon *);
+-
+-/* vendor command ops */
+-int send_set_req(struct poseidon*, u8, s32, s32*);
+-int send_get_req(struct poseidon*, u8, s32, void*, s32*, s32);
+-s32 set_tuner_mode(struct poseidon*, unsigned char);
+-
+-/* bulk urb alloc/free */
+-int alloc_bulk_urbs_generic(struct urb **urb_array, int num,
+-			struct usb_device *udev, u8 ep_addr,
+-			int buf_size, gfp_t gfp_flags,
+-			usb_complete_t complete_fn, void *context);
+-void free_all_urb_generic(struct urb **urb_array, int num);
+-
+-/* misc */
+-void poseidon_delete(struct kref *kref);
+-extern int debug_mode;
+-void set_debug_mode(struct video_device *vfd, int debug_mode);
+-
+-#ifdef CONFIG_PM
+-#define in_hibernation(pd) (pd->msg.event == PM_EVENT_FREEZE)
+-#else
+-#define in_hibernation(pd) (0)
+-#endif
+-#define get_pm_count(p) (atomic_read(&(p)->interface->pm_usage_cnt))
+-
+-#define log(a, ...) printk(KERN_DEBUG "\t[ %s : %.3d ] "a"\n", \
+-				__func__, __LINE__,  ## __VA_ARGS__)
+-
+-/* for power management */
+-#define logpm(pd) do {\
+-			if (debug_mode & 0x10)\
+-				log();\
+-		} while (0)
+-
+-#endif
+diff --git a/drivers/staging/media/tlg2300/pd-dvb.c b/drivers/staging/media/tlg2300/pd-dvb.c
+deleted file mode 100644
+index ca4994a..0000000
+--- a/drivers/staging/media/tlg2300/pd-dvb.c
++++ /dev/null
+@@ -1,597 +0,0 @@
+-#include "pd-common.h"
+-#include <linux/kernel.h>
+-#include <linux/usb.h>
+-#include <linux/time.h>
+-#include <linux/dvb/dmx.h>
+-#include <linux/delay.h>
+-#include <linux/gfp.h>
+-
+-#include "vendorcmds.h"
+-#include <linux/sched.h>
+-#include <linux/atomic.h>
+-
+-static void dvb_urb_cleanup(struct pd_dvb_adapter *pd_dvb);
+-
+-static int dvb_bandwidth[][2] = {
+-	{ TLG_BW_8, 8000000 },
+-	{ TLG_BW_7, 7000000 },
+-	{ TLG_BW_6, 6000000 }
+-};
+-static int dvb_bandwidth_length = ARRAY_SIZE(dvb_bandwidth);
+-
+-static s32 dvb_start_streaming(struct pd_dvb_adapter *pd_dvb);
+-static int poseidon_check_mode_dvbt(struct poseidon *pd)
+-{
+-	s32 ret = 0, cmd_status = 0;
+-
+-	set_current_state(TASK_INTERRUPTIBLE);
+-	schedule_timeout(HZ/4);
+-
+-	ret = usb_set_interface(pd->udev, 0, BULK_ALTERNATE_IFACE);
+-	if (ret != 0)
+-		return ret;
+-
+-	ret = set_tuner_mode(pd, TLG_MODE_CAPS_DVB_T);
+-	if (ret)
+-		return ret;
+-
+-	/* signal source */
+-	ret = send_set_req(pd, SGNL_SRC_SEL, TLG_SIG_SRC_ANTENNA, &cmd_status);
+-	if (ret|cmd_status)
+-		return ret;
+-
+-	return 0;
+-}
+-
+-/* acquire :
+- * 	1 == open
+- * 	0 == release
+- */
+-static int poseidon_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
+-{
+-	struct poseidon *pd = fe->demodulator_priv;
+-	struct pd_dvb_adapter *pd_dvb;
+-	int ret = 0;
+-
+-	if (!pd)
+-		return -ENODEV;
+-
+-	pd_dvb = container_of(fe, struct pd_dvb_adapter, dvb_fe);
+-	if (acquire) {
+-		mutex_lock(&pd->lock);
+-		if (pd->state & POSEIDON_STATE_DISCONNECT) {
+-			ret = -ENODEV;
+-			goto open_out;
+-		}
+-
+-		if (pd->state && !(pd->state & POSEIDON_STATE_DVBT)) {
+-			ret = -EBUSY;
+-			goto open_out;
+-		}
+-
+-		usb_autopm_get_interface(pd->interface);
+-		if (0 == pd->state) {
+-			ret = poseidon_check_mode_dvbt(pd);
+-			if (ret < 0) {
+-				usb_autopm_put_interface(pd->interface);
+-				goto open_out;
+-			}
+-			pd->state |= POSEIDON_STATE_DVBT;
+-			pd_dvb->bandwidth = 0;
+-			pd_dvb->prev_freq = 0;
+-		}
+-		atomic_inc(&pd_dvb->users);
+-		kref_get(&pd->kref);
+-open_out:
+-		mutex_unlock(&pd->lock);
+-	} else {
+-		dvb_stop_streaming(pd_dvb);
+-
+-		if (atomic_dec_and_test(&pd_dvb->users)) {
+-			mutex_lock(&pd->lock);
+-			pd->state &= ~POSEIDON_STATE_DVBT;
+-			mutex_unlock(&pd->lock);
+-		}
+-		kref_put(&pd->kref, poseidon_delete);
+-		usb_autopm_put_interface(pd->interface);
+-	}
+-	return ret;
+-}
+-
+-#ifdef CONFIG_PM
+-static void poseidon_fe_release(struct dvb_frontend *fe)
+-{
+-	struct poseidon *pd = fe->demodulator_priv;
+-
+-	pd->pm_suspend = NULL;
+-	pd->pm_resume  = NULL;
+-}
+-#else
+-#define poseidon_fe_release NULL
+-#endif
+-
+-static s32 poseidon_fe_sleep(struct dvb_frontend *fe)
+-{
+-	return 0;
+-}
+-
+-/*
+- * return true if we can satisfy the conditions, else return false.
+- */
+-static bool check_scan_ok(__u32 freq, int bandwidth,
+-			struct pd_dvb_adapter *adapter)
+-{
+-	if (bandwidth < 0)
+-		return false;
+-
+-	if (adapter->prev_freq == freq
+-		&& adapter->bandwidth == bandwidth) {
+-		long nl = jiffies - adapter->last_jiffies;
+-		unsigned int msec ;
+-
+-		msec = jiffies_to_msecs(abs(nl));
+-		return msec > 15000 ? true : false;
+-	}
+-	return true;
+-}
+-
+-/*
+- * Check if the firmware delays too long for an invalid frequency.
+- */
+-static int fw_delay_overflow(struct pd_dvb_adapter *adapter)
+-{
+-	long nl = jiffies - adapter->last_jiffies;
+-	unsigned int msec ;
+-
+-	msec = jiffies_to_msecs(abs(nl));
+-	return msec > 800 ? true : false;
+-}
+-
+-static int poseidon_set_fe(struct dvb_frontend *fe)
+-{
+-	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+-	s32 ret = 0, cmd_status = 0;
+-	s32 i, bandwidth = -1;
+-	struct poseidon *pd = fe->demodulator_priv;
+-	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
+-
+-	if (in_hibernation(pd))
+-		return -EBUSY;
+-
+-	mutex_lock(&pd->lock);
+-	for (i = 0; i < dvb_bandwidth_length; i++)
+-		if (fep->bandwidth_hz == dvb_bandwidth[i][1])
+-			bandwidth = dvb_bandwidth[i][0];
+-
+-	if (check_scan_ok(fep->frequency, bandwidth, pd_dvb)) {
+-		ret = send_set_req(pd, TUNE_FREQ_SELECT,
+-					fep->frequency / 1000, &cmd_status);
+-		if (ret | cmd_status) {
+-			log("error line");
+-			goto front_out;
+-		}
+-
+-		ret = send_set_req(pd, DVBT_BANDW_SEL,
+-						bandwidth, &cmd_status);
+-		if (ret | cmd_status) {
+-			log("error line");
+-			goto front_out;
+-		}
+-
+-		ret = send_set_req(pd, TAKE_REQUEST, 0, &cmd_status);
+-		if (ret | cmd_status) {
+-			log("error line");
+-			goto front_out;
+-		}
+-
+-		/* save the context for future */
+-		memcpy(&pd_dvb->fe_param, fep, sizeof(*fep));
+-		pd_dvb->bandwidth = bandwidth;
+-		pd_dvb->prev_freq = fep->frequency;
+-		pd_dvb->last_jiffies = jiffies;
+-	}
+-front_out:
+-	mutex_unlock(&pd->lock);
+-	return ret;
+-}
+-
+-#ifdef CONFIG_PM
+-static int pm_dvb_suspend(struct poseidon *pd)
+-{
+-	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
+-	dvb_stop_streaming(pd_dvb);
+-	dvb_urb_cleanup(pd_dvb);
+-	msleep(500);
+-	return 0;
+-}
+-
+-static int pm_dvb_resume(struct poseidon *pd)
+-{
+-	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
+-
+-	poseidon_check_mode_dvbt(pd);
+-	msleep(300);
+-	poseidon_set_fe(&pd_dvb->dvb_fe);
+-
+-	dvb_start_streaming(pd_dvb);
+-	return 0;
+-}
+-#endif
+-
+-static s32 poseidon_fe_init(struct dvb_frontend *fe)
+-{
+-	struct poseidon *pd = fe->demodulator_priv;
+-	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
+-
+-#ifdef CONFIG_PM
+-	pd->pm_suspend = pm_dvb_suspend;
+-	pd->pm_resume  = pm_dvb_resume;
+-#endif
+-	memset(&pd_dvb->fe_param, 0,
+-			sizeof(struct dtv_frontend_properties));
+-	return 0;
+-}
+-
+-static int poseidon_get_fe(struct dvb_frontend *fe)
+-{
+-	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+-	struct poseidon *pd = fe->demodulator_priv;
+-	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
+-
+-	memcpy(fep, &pd_dvb->fe_param, sizeof(*fep));
+-	return 0;
+-}
+-
+-static int poseidon_fe_get_tune_settings(struct dvb_frontend *fe,
+-				struct dvb_frontend_tune_settings *tune)
+-{
+-	tune->min_delay_ms = 1000;
+-	return 0;
+-}
+-
+-static int poseidon_read_status(struct dvb_frontend *fe, fe_status_t *stat)
+-{
+-	struct poseidon *pd = fe->demodulator_priv;
+-	s32 ret = -1, cmd_status;
+-	struct tuner_dtv_sig_stat_s status = {};
+-
+-	if (in_hibernation(pd))
+-		return -EBUSY;
+-	mutex_lock(&pd->lock);
+-
+-	ret = send_get_req(pd, TUNER_STATUS, TLG_MODE_DVB_T,
+-				&status, &cmd_status, sizeof(status));
+-	if (ret | cmd_status) {
+-		log("get tuner status error");
+-		goto out;
+-	}
+-
+-	if (debug_mode)
+-		log("P : %d, L %d, LB :%d", status.sig_present,
+-			status.sig_locked, status.sig_lock_busy);
+-
+-	if (status.sig_lock_busy) {
+-		goto out;
+-	} else if (status.sig_present || status.sig_locked) {
+-		*stat |= FE_HAS_LOCK | FE_HAS_SIGNAL | FE_HAS_CARRIER
+-				| FE_HAS_SYNC | FE_HAS_VITERBI;
+-	} else {
+-		if (fw_delay_overflow(&pd->dvb_data))
+-			*stat |= FE_TIMEDOUT;
+-	}
+-out:
+-	mutex_unlock(&pd->lock);
+-	return ret;
+-}
+-
+-static int poseidon_read_ber(struct dvb_frontend *fe, u32 *ber)
+-{
+-	struct poseidon *pd = fe->demodulator_priv;
+-	struct tuner_ber_rate_s tlg_ber = {};
+-	s32 ret = -1, cmd_status;
+-
+-	mutex_lock(&pd->lock);
+-	ret = send_get_req(pd, TUNER_BER_RATE, 0,
+-				&tlg_ber, &cmd_status, sizeof(tlg_ber));
+-	if (ret | cmd_status)
+-		goto out;
+-	*ber = tlg_ber.ber_rate;
+-out:
+-	mutex_unlock(&pd->lock);
+-	return ret;
+-}
+-
+-static s32 poseidon_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+-{
+-	struct poseidon *pd = fe->demodulator_priv;
+-	struct tuner_dtv_sig_stat_s status = {};
+-	s32 ret = 0, cmd_status;
+-
+-	mutex_lock(&pd->lock);
+-	ret = send_get_req(pd, TUNER_STATUS, TLG_MODE_DVB_T,
+-				&status, &cmd_status, sizeof(status));
+-	if (ret | cmd_status)
+-		goto out;
+-	if ((status.sig_present || status.sig_locked) && !status.sig_strength)
+-		*strength = 0xFFFF;
+-	else
+-		*strength = status.sig_strength;
+-out:
+-	mutex_unlock(&pd->lock);
+-	return ret;
+-}
+-
+-static int poseidon_read_snr(struct dvb_frontend *fe, u16 *snr)
+-{
+-	return 0;
+-}
+-
+-static int poseidon_read_unc_blocks(struct dvb_frontend *fe, u32 *unc)
+-{
+-	*unc = 0;
+-	return 0;
+-}
+-
+-static struct dvb_frontend_ops poseidon_frontend_ops = {
+-	.delsys = { SYS_DVBT },
+-	.info = {
+-		.name		= "Poseidon DVB-T",
+-		.frequency_min	= 174000000,
+-		.frequency_max  = 862000000,
+-		.frequency_stepsize	  = 62500,/* FIXME */
+-		.caps = FE_CAN_INVERSION_AUTO |
+-			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+-			FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+-			FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
+-			FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
+-			FE_CAN_GUARD_INTERVAL_AUTO |
+-			FE_CAN_RECOVER |
+-			FE_CAN_HIERARCHY_AUTO,
+-	},
+-
+-	.release = poseidon_fe_release,
+-
+-	.init = poseidon_fe_init,
+-	.sleep = poseidon_fe_sleep,
+-
+-	.set_frontend = poseidon_set_fe,
+-	.get_frontend = poseidon_get_fe,
+-	.get_tune_settings = poseidon_fe_get_tune_settings,
+-
+-	.read_status	= poseidon_read_status,
+-	.read_ber	= poseidon_read_ber,
+-	.read_signal_strength = poseidon_read_signal_strength,
+-	.read_snr	= poseidon_read_snr,
+-	.read_ucblocks	= poseidon_read_unc_blocks,
+-
+-	.ts_bus_ctrl = poseidon_ts_bus_ctrl,
+-};
+-
+-static void dvb_urb_irq(struct urb *urb)
+-{
+-	struct pd_dvb_adapter *pd_dvb = urb->context;
+-	int len = urb->transfer_buffer_length;
+-	struct dvb_demux *demux = &pd_dvb->demux;
+-	s32 ret;
+-
+-	if (!pd_dvb->is_streaming || urb->status) {
+-		if (urb->status == -EPROTO)
+-			goto resend;
+-		return;
+-	}
+-
+-	if (urb->actual_length == len)
+-		dvb_dmx_swfilter(demux, urb->transfer_buffer, len);
+-	else if (urb->actual_length == len - 4) {
+-		int offset;
+-		u8 *buf = urb->transfer_buffer;
+-
+-		/*
+-		 * The packet size is 512,
+-		 * last packet contains 456 bytes tsp data
+-		 */
+-		for (offset = 456; offset < len; offset += 512) {
+-			if (!strncmp(buf + offset, "DVHS", 4)) {
+-				dvb_dmx_swfilter(demux, buf, offset);
+-				if (len > offset + 52 + 4) {
+-					/*16 bytes trailer + 36 bytes padding */
+-					buf += offset + 52;
+-					len -= offset + 52 + 4;
+-					dvb_dmx_swfilter(demux, buf, len);
+-				}
+-				break;
+-			}
+-		}
+-	}
+-
+-resend:
+-	ret = usb_submit_urb(urb, GFP_ATOMIC);
+-	if (ret)
+-		log(" usb_submit_urb failed: error %d", ret);
+-}
+-
+-static int dvb_urb_init(struct pd_dvb_adapter *pd_dvb)
+-{
+-	if (pd_dvb->urb_array[0])
+-		return 0;
+-
+-	alloc_bulk_urbs_generic(pd_dvb->urb_array, DVB_SBUF_NUM,
+-			pd_dvb->pd_device->udev, pd_dvb->ep_addr,
+-			DVB_URB_BUF_SIZE, GFP_KERNEL,
+-			dvb_urb_irq, pd_dvb);
+-	return 0;
+-}
+-
+-static void dvb_urb_cleanup(struct pd_dvb_adapter *pd_dvb)
+-{
+-	free_all_urb_generic(pd_dvb->urb_array, DVB_SBUF_NUM);
+-}
+-
+-static s32 dvb_start_streaming(struct pd_dvb_adapter *pd_dvb)
+-{
+-	struct poseidon *pd = pd_dvb->pd_device;
+-	int ret = 0;
+-
+-	if (pd->state & POSEIDON_STATE_DISCONNECT)
+-		return -ENODEV;
+-
+-	mutex_lock(&pd->lock);
+-	if (!pd_dvb->is_streaming) {
+-		s32 i, cmd_status = 0;
+-		/*
+-		 * Once upon a time, there was a difficult bug lying here.
+-		 * ret = send_set_req(pd, TAKE_REQUEST, 0, &cmd_status);
+-		 */
+-
+-		ret = send_set_req(pd, PLAY_SERVICE, 1, &cmd_status);
+-		if (ret | cmd_status)
+-			goto out;
+-
+-		ret = dvb_urb_init(pd_dvb);
+-		if (ret < 0)
+-			goto out;
+-
+-		pd_dvb->is_streaming = 1;
+-		for (i = 0; i < DVB_SBUF_NUM; i++) {
+-			ret = usb_submit_urb(pd_dvb->urb_array[i],
+-						       GFP_KERNEL);
+-			if (ret) {
+-				log(" submit urb error %d", ret);
+-				goto out;
+-			}
+-		}
+-	}
+-out:
+-	mutex_unlock(&pd->lock);
+-	return ret;
+-}
+-
+-void dvb_stop_streaming(struct pd_dvb_adapter *pd_dvb)
+-{
+-	struct poseidon *pd = pd_dvb->pd_device;
+-
+-	mutex_lock(&pd->lock);
+-	if (pd_dvb->is_streaming) {
+-		s32 i, ret, cmd_status = 0;
+-
+-		pd_dvb->is_streaming = 0;
+-
+-		for (i = 0; i < DVB_SBUF_NUM; i++)
+-			if (pd_dvb->urb_array[i])
+-				usb_kill_urb(pd_dvb->urb_array[i]);
+-
+-		ret = send_set_req(pd, PLAY_SERVICE, TLG_TUNE_PLAY_SVC_STOP,
+-					&cmd_status);
+-		if (ret | cmd_status)
+-			log("error");
+-	}
+-	mutex_unlock(&pd->lock);
+-}
+-
+-static int pd_start_feed(struct dvb_demux_feed *feed)
+-{
+-	struct pd_dvb_adapter *pd_dvb = feed->demux->priv;
+-	int ret = 0;
+-
+-	if (!pd_dvb)
+-		return -1;
+-	if (atomic_inc_return(&pd_dvb->active_feed) == 1)
+-		ret = dvb_start_streaming(pd_dvb);
+-	return ret;
+-}
+-
+-static int pd_stop_feed(struct dvb_demux_feed *feed)
+-{
+-	struct pd_dvb_adapter *pd_dvb = feed->demux->priv;
+-
+-	if (!pd_dvb)
+-		return -1;
+-	if (atomic_dec_and_test(&pd_dvb->active_feed))
+-		dvb_stop_streaming(pd_dvb);
+-	return 0;
+-}
+-
+-DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+-int pd_dvb_usb_device_init(struct poseidon *pd)
+-{
+-	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
+-	struct dvb_demux *dvbdemux;
+-	int ret = 0;
+-
+-	pd_dvb->ep_addr = 0x82;
+-	atomic_set(&pd_dvb->users, 0);
+-	atomic_set(&pd_dvb->active_feed, 0);
+-	pd_dvb->pd_device = pd;
+-
+-	ret = dvb_register_adapter(&pd_dvb->dvb_adap,
+-				"Poseidon dvbt adapter",
+-				THIS_MODULE,
+-				NULL /* for hibernation correctly*/,
+-				adapter_nr);
+-	if (ret < 0)
+-		goto error1;
+-
+-	/* register frontend */
+-	pd_dvb->dvb_fe.demodulator_priv = pd;
+-	memcpy(&pd_dvb->dvb_fe.ops, &poseidon_frontend_ops,
+-			sizeof(struct dvb_frontend_ops));
+-	ret = dvb_register_frontend(&pd_dvb->dvb_adap, &pd_dvb->dvb_fe);
+-	if (ret < 0)
+-		goto error2;
+-
+-	/* register demux device */
+-	dvbdemux = &pd_dvb->demux;
+-	dvbdemux->dmx.capabilities = DMX_TS_FILTERING | DMX_SECTION_FILTERING;
+-	dvbdemux->priv = pd_dvb;
+-	dvbdemux->feednum = dvbdemux->filternum = 64;
+-	dvbdemux->start_feed = pd_start_feed;
+-	dvbdemux->stop_feed = pd_stop_feed;
+-	dvbdemux->write_to_decoder = NULL;
+-
+-	ret = dvb_dmx_init(dvbdemux);
+-	if (ret < 0)
+-		goto error3;
+-
+-	pd_dvb->dmxdev.filternum = pd_dvb->demux.filternum;
+-	pd_dvb->dmxdev.demux = &pd_dvb->demux.dmx;
+-	pd_dvb->dmxdev.capabilities = 0;
+-
+-	ret = dvb_dmxdev_init(&pd_dvb->dmxdev, &pd_dvb->dvb_adap);
+-	if (ret < 0)
+-		goto error3;
+-	return 0;
+-
+-error3:
+-	dvb_unregister_frontend(&pd_dvb->dvb_fe);
+-error2:
+-	dvb_unregister_adapter(&pd_dvb->dvb_adap);
+-error1:
+-	return ret;
+-}
+-
+-void pd_dvb_usb_device_exit(struct poseidon *pd)
+-{
+-	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
+-
+-	while (atomic_read(&pd_dvb->users) != 0
+-		|| atomic_read(&pd_dvb->active_feed) != 0) {
+-		set_current_state(TASK_INTERRUPTIBLE);
+-		schedule_timeout(HZ);
+-	}
+-	dvb_dmxdev_release(&pd_dvb->dmxdev);
+-	dvb_unregister_frontend(&pd_dvb->dvb_fe);
+-	dvb_unregister_adapter(&pd_dvb->dvb_adap);
+-	pd_dvb_usb_device_cleanup(pd);
+-}
+-
+-void pd_dvb_usb_device_cleanup(struct poseidon *pd)
+-{
+-	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
+-
+-	dvb_urb_cleanup(pd_dvb);
+-}
+-
+-int pd_dvb_get_adapter_num(struct pd_dvb_adapter *pd_dvb)
+-{
+-	return pd_dvb->dvb_adap.num;
+-}
+diff --git a/drivers/staging/media/tlg2300/pd-main.c b/drivers/staging/media/tlg2300/pd-main.c
+deleted file mode 100644
+index b31f479..0000000
+--- a/drivers/staging/media/tlg2300/pd-main.c
++++ /dev/null
+@@ -1,553 +0,0 @@
+-/*
+- * device driver for Telegent tlg2300 based TV cards
+- *
+- * Author :
+- * 	Kang Yong	<kangyong@telegent.com>
+- * 	Zhang Xiaobing	<xbzhang@telegent.com>
+- * 	Huang Shijie	<zyziii@telegent.com> or <shijie8@gmail.com>
+- *
+- *	(c) 2009 Telegent Systems
+- *	(c) 2010 Telegent Systems
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation; either version 2 of the License, or
+- *  (at your option) any later version.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/init.h>
+-#include <linux/slab.h>
+-#include <linux/module.h>
+-#include <linux/kref.h>
+-#include <linux/suspend.h>
+-#include <linux/usb/quirks.h>
+-#include <linux/ctype.h>
+-#include <linux/string.h>
+-#include <linux/types.h>
+-#include <linux/firmware.h>
+-
+-#include "vendorcmds.h"
+-#include "pd-common.h"
+-
+-#define VENDOR_ID	0x1B24
+-#define PRODUCT_ID	0x4001
+-static struct usb_device_id id_table[] = {
+-	{ USB_DEVICE_AND_INTERFACE_INFO(VENDOR_ID, PRODUCT_ID, 255, 1, 0) },
+-	{ USB_DEVICE_AND_INTERFACE_INFO(VENDOR_ID, PRODUCT_ID, 255, 1, 1) },
+-	{ },
+-};
+-MODULE_DEVICE_TABLE(usb, id_table);
+-
+-int debug_mode;
+-module_param(debug_mode, int, 0644);
+-MODULE_PARM_DESC(debug_mode, "0 = disable, 1 = enable, 2 = verbose");
+-
+-#define TLG2300_FIRMWARE "tlg2300_firmware.bin"
+-static const char *firmware_name = TLG2300_FIRMWARE;
+-static LIST_HEAD(pd_device_list);
+-
+-/*
+- * send set request to USB firmware.
+- */
+-s32 send_set_req(struct poseidon *pd, u8 cmdid, s32 param, s32 *cmd_status)
+-{
+-	s32 ret;
+-	s8  data[32] = {};
+-	u16 lower_16, upper_16;
+-
+-	if (pd->state & POSEIDON_STATE_DISCONNECT)
+-		return -ENODEV;
+-
+-	mdelay(30);
+-
+-	if (param == 0) {
+-		upper_16 = lower_16 = 0;
+-	} else {
+-		/* send 32 bit param as  two 16 bit param,little endian */
+-		lower_16 = (unsigned short)(param & 0xffff);
+-		upper_16 = (unsigned short)((param >> 16) & 0xffff);
+-	}
+-	ret = usb_control_msg(pd->udev,
+-			 usb_rcvctrlpipe(pd->udev, 0),
+-			 REQ_SET_CMD | cmdid,
+-			 USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-			 lower_16,
+-			 upper_16,
+-			 &data,
+-			 sizeof(*cmd_status),
+-			 USB_CTRL_GET_TIMEOUT);
+-
+-	if (!ret) {
+-		return -ENXIO;
+-	} else {
+-		/*  1st 4 bytes into cmd_status   */
+-		memcpy((char *)cmd_status, &(data[0]), sizeof(*cmd_status));
+-	}
+-	return 0;
+-}
+-
+-/*
+- * send get request to Poseidon firmware.
+- */
+-s32 send_get_req(struct poseidon *pd, u8 cmdid, s32 param,
+-			void *buf, s32 *cmd_status, s32 datalen)
+-{
+-	s32 ret;
+-	s8 data[128] = {};
+-	u16 lower_16, upper_16;
+-
+-	if (pd->state & POSEIDON_STATE_DISCONNECT)
+-		return -ENODEV;
+-
+-	mdelay(30);
+-	if (param == 0) {
+-		upper_16 = lower_16 = 0;
+-	} else {
+-		/*send 32 bit param as two 16 bit param, little endian */
+-		lower_16 = (unsigned short)(param & 0xffff);
+-		upper_16 = (unsigned short)((param >> 16) & 0xffff);
+-	}
+-	ret = usb_control_msg(pd->udev,
+-			 usb_rcvctrlpipe(pd->udev, 0),
+-			 REQ_GET_CMD | cmdid,
+-			 USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-			 lower_16,
+-			 upper_16,
+-			 &data,
+-			 (datalen + sizeof(*cmd_status)),
+-			 USB_CTRL_GET_TIMEOUT);
+-
+-	if (ret < 0) {
+-		return -ENXIO;
+-	} else {
+-		/* 1st 4 bytes into cmd_status, remaining data into cmd_data */
+-		memcpy((char *)cmd_status, &data[0], sizeof(*cmd_status));
+-		memcpy((char *)buf, &data[sizeof(*cmd_status)], datalen);
+-	}
+-	return 0;
+-}
+-
+-static int pm_notifier_block(struct notifier_block *nb,
+-				unsigned long event, void *dummy)
+-{
+-	struct poseidon *pd = NULL;
+-	struct list_head *node, *next;
+-
+-	switch (event) {
+-	case PM_POST_HIBERNATION:
+-		list_for_each_safe(node, next, &pd_device_list) {
+-			struct usb_device *udev;
+-			struct usb_interface *iface;
+-			int rc = 0;
+-
+-			pd = container_of(node, struct poseidon, device_list);
+-			udev = pd->udev;
+-			iface = pd->interface;
+-
+-			/* It will cause the system to reload the firmware */
+-			rc = usb_lock_device_for_reset(udev, iface);
+-			if (rc >= 0) {
+-				usb_reset_device(udev);
+-				usb_unlock_device(udev);
+-			}
+-		}
+-		break;
+-	default:
+-		break;
+-	}
+-	log("event :%ld\n", event);
+-	return 0;
+-}
+-
+-static struct notifier_block pm_notifer = {
+-	.notifier_call = pm_notifier_block,
+-};
+-
+-int set_tuner_mode(struct poseidon *pd, unsigned char mode)
+-{
+-	s32 ret, cmd_status;
+-
+-	if (pd->state & POSEIDON_STATE_DISCONNECT)
+-		return -ENODEV;
+-
+-	ret = send_set_req(pd, TUNE_MODE_SELECT, mode, &cmd_status);
+-	if (ret || cmd_status)
+-		return -ENXIO;
+-	return 0;
+-}
+-
+-void poseidon_delete(struct kref *kref)
+-{
+-	struct poseidon *pd = container_of(kref, struct poseidon, kref);
+-
+-	if (!pd)
+-		return;
+-	list_del_init(&pd->device_list);
+-
+-	pd_dvb_usb_device_cleanup(pd);
+-	/* clean_audio_data(&pd->audio_data);*/
+-
+-	if (pd->udev) {
+-		usb_put_dev(pd->udev);
+-		pd->udev = NULL;
+-	}
+-	if (pd->interface) {
+-		usb_put_intf(pd->interface);
+-		pd->interface = NULL;
+-	}
+-	kfree(pd);
+-	log();
+-}
+-
+-static int firmware_download(struct usb_device *udev)
+-{
+-	int ret = 0, actual_length;
+-	const struct firmware *fw = NULL;
+-	void *fwbuf = NULL;
+-	size_t fwlength = 0, offset;
+-	size_t max_packet_size;
+-
+-	ret = request_firmware(&fw, firmware_name, &udev->dev);
+-	if (ret) {
+-		log("download err : %d", ret);
+-		return ret;
+-	}
+-
+-	fwlength = fw->size;
+-
+-	fwbuf = kmemdup(fw->data, fwlength, GFP_KERNEL);
+-	if (!fwbuf) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
+-
+-	max_packet_size = le16_to_cpu(udev->ep_out[0x1]->desc.wMaxPacketSize);
+-	log("\t\t download size : %d", (int)max_packet_size);
+-
+-	for (offset = 0; offset < fwlength; offset += max_packet_size) {
+-		actual_length = 0;
+-		ret = usb_bulk_msg(udev,
+-				usb_sndbulkpipe(udev, 0x01), /* ep 1 */
+-				fwbuf + offset,
+-				min(max_packet_size, fwlength - offset),
+-				&actual_length,
+-				HZ * 10);
+-		if (ret)
+-			break;
+-	}
+-	kfree(fwbuf);
+-out:
+-	release_firmware(fw);
+-	return ret;
+-}
+-
+-static inline struct poseidon *get_pd(struct usb_interface *intf)
+-{
+-	return usb_get_intfdata(intf);
+-}
+-
+-#ifdef CONFIG_PM
+-/* one-to-one map : poseidon{} <----> usb_device{}'s port */
+-static inline void set_map_flags(struct poseidon *pd, struct usb_device *udev)
+-{
+-	pd->portnum = udev->portnum;
+-}
+-
+-static inline int get_autopm_ref(struct poseidon *pd)
+-{
+-	return  pd->video_data.users + pd->vbi_data.users + pd->audio.users
+-		+ atomic_read(&pd->dvb_data.users) +
+-		!list_empty(&pd->radio_data.fm_dev.fh_list);
+-}
+-
+-/* fixup something for poseidon */
+-static inline struct poseidon *fixup(struct poseidon *pd)
+-{
+-	int count;
+-
+-	/* old udev and interface have gone, so put back reference . */
+-	count = get_autopm_ref(pd);
+-	log("count : %d, ref count : %d", count, get_pm_count(pd));
+-	while (count--)
+-		usb_autopm_put_interface(pd->interface);
+-	/*usb_autopm_set_interface(pd->interface); */
+-
+-	usb_put_dev(pd->udev);
+-	usb_put_intf(pd->interface);
+-	log("event : %d\n", pd->msg.event);
+-	return pd;
+-}
+-
+-static struct poseidon *find_old_poseidon(struct usb_device *udev)
+-{
+-	struct poseidon *pd;
+-
+-	list_for_each_entry(pd, &pd_device_list, device_list) {
+-		if (pd->portnum == udev->portnum && in_hibernation(pd))
+-			return fixup(pd);
+-	}
+-	return NULL;
+-}
+-
+-/* Is the card working now ? */
+-static inline int is_working(struct poseidon *pd)
+-{
+-	return get_pm_count(pd) > 0;
+-}
+-
+-static int poseidon_suspend(struct usb_interface *intf, pm_message_t msg)
+-{
+-	struct poseidon *pd = get_pd(intf);
+-
+-	if (!pd)
+-		return 0;
+-	if (!is_working(pd)) {
+-		if (get_pm_count(pd) <= 0 && !in_hibernation(pd)) {
+-			pd->msg.event = PM_EVENT_AUTO_SUSPEND;
+-			pd->pm_resume = NULL; /*  a good guard */
+-			printk(KERN_DEBUG "TLG2300 auto suspend\n");
+-		}
+-		return 0;
+-	}
+-	pd->msg = msg; /* save it here */
+-	logpm(pd);
+-	return pd->pm_suspend ? pd->pm_suspend(pd) : 0;
+-}
+-
+-static int poseidon_resume(struct usb_interface *intf)
+-{
+-	struct poseidon *pd = get_pd(intf);
+-
+-	if (!pd)
+-		return 0;
+-	printk(KERN_DEBUG "TLG2300 resume\n");
+-
+-	if (!is_working(pd)) {
+-		if (PM_EVENT_AUTO_SUSPEND == pd->msg.event)
+-			pd->msg = PMSG_ON;
+-		return 0;
+-	}
+-	if (in_hibernation(pd)) {
+-		logpm(pd);
+-		return 0;
+-	}
+-	logpm(pd);
+-	return pd->pm_resume ? pd->pm_resume(pd) : 0;
+-}
+-
+-static void hibernation_resume(struct work_struct *w)
+-{
+-	struct poseidon *pd = container_of(w, struct poseidon, pm_work);
+-	int count;
+-
+-	pd->msg.event = 0; /* clear it here */
+-	pd->state &= ~POSEIDON_STATE_DISCONNECT;
+-
+-	/* set the new interface's reference */
+-	count = get_autopm_ref(pd);
+-	while (count--)
+-		usb_autopm_get_interface(pd->interface);
+-
+-	/* resume the context */
+-	logpm(pd);
+-	if (pd->pm_resume)
+-		pd->pm_resume(pd);
+-}
+-#else /* CONFIG_PM is not enabled: */
+-static inline struct poseidon *find_old_poseidon(struct usb_device *udev)
+-{
+-	return NULL;
+-}
+-
+-static inline void set_map_flags(struct poseidon *pd, struct usb_device *udev)
+-{
+-}
+-#endif
+-
+-static int check_firmware(struct usb_device *udev)
+-{
+-	void *buf;
+-	int ret;
+-	struct cmd_firmware_vers_s *cmd_firm;
+-
+-	buf = kzalloc(sizeof(*cmd_firm) + sizeof(u32), GFP_KERNEL);
+-	if (!buf)
+-		return -ENOMEM;
+-	ret = usb_control_msg(udev,
+-			 usb_rcvctrlpipe(udev, 0),
+-			 REQ_GET_CMD | GET_FW_ID,
+-			 USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-			 0,
+-			 0,
+-			 buf,
+-			 sizeof(*cmd_firm) + sizeof(u32),
+-			 USB_CTRL_GET_TIMEOUT);
+-	kfree(buf);
+-
+-	if (ret < 0)
+-		return firmware_download(udev);
+-	return 0;
+-}
+-
+-static int poseidon_probe(struct usb_interface *interface,
+-				const struct usb_device_id *id)
+-{
+-	struct usb_device *udev = interface_to_usbdev(interface);
+-	struct poseidon *pd = NULL;
+-	int ret = 0;
+-	int new_one = 0;
+-
+-	/* download firmware */
+-	ret = check_firmware(udev);
+-	if (ret)
+-		return ret;
+-
+-	/* Do I recovery from the hibernate ? */
+-	pd = find_old_poseidon(udev);
+-	if (!pd) {
+-		pd = kzalloc(sizeof(*pd), GFP_KERNEL);
+-		if (!pd)
+-			return -ENOMEM;
+-		kref_init(&pd->kref);
+-		set_map_flags(pd, udev);
+-		new_one = 1;
+-	}
+-
+-	pd->udev	= usb_get_dev(udev);
+-	pd->interface	= usb_get_intf(interface);
+-	usb_set_intfdata(interface, pd);
+-
+-	if (new_one) {
+-		logpm(pd);
+-		mutex_init(&pd->lock);
+-
+-		/* register v4l2 device */
+-		ret = v4l2_device_register(&interface->dev, &pd->v4l2_dev);
+-		if (ret)
+-			goto err_v4l2;
+-
+-		/* register devices in directory /dev */
+-		ret = pd_video_init(pd);
+-		if (ret)
+-			goto err_video;
+-		ret = poseidon_audio_init(pd);
+-		if (ret)
+-			goto err_audio;
+-		ret = poseidon_fm_init(pd);
+-		if (ret)
+-			goto err_fm;
+-		ret = pd_dvb_usb_device_init(pd);
+-		if (ret)
+-			goto err_dvb;
+-
+-		INIT_LIST_HEAD(&pd->device_list);
+-		list_add_tail(&pd->device_list, &pd_device_list);
+-	}
+-
+-	device_init_wakeup(&udev->dev, 1);
+-#ifdef CONFIG_PM
+-	pm_runtime_set_autosuspend_delay(&pd->udev->dev,
+-			1000 * PM_SUSPEND_DELAY);
+-	usb_enable_autosuspend(pd->udev);
+-
+-	if (in_hibernation(pd)) {
+-		INIT_WORK(&pd->pm_work, hibernation_resume);
+-		schedule_work(&pd->pm_work);
+-	}
+-#endif
+-	return 0;
+-err_dvb:
+-	poseidon_fm_exit(pd);
+-err_fm:
+-	poseidon_audio_free(pd);
+-err_audio:
+-	pd_video_exit(pd);
+-err_video:
+-	v4l2_device_unregister(&pd->v4l2_dev);
+-err_v4l2:
+-	usb_put_intf(pd->interface);
+-	usb_put_dev(pd->udev);
+-	kfree(pd);
+-	return ret;
+-}
+-
+-static void poseidon_disconnect(struct usb_interface *interface)
+-{
+-	struct poseidon *pd = get_pd(interface);
+-
+-	if (!pd)
+-		return;
+-	logpm(pd);
+-	if (in_hibernation(pd))
+-		return;
+-
+-	mutex_lock(&pd->lock);
+-	pd->state |= POSEIDON_STATE_DISCONNECT;
+-	mutex_unlock(&pd->lock);
+-
+-	/* stop urb transferring */
+-	stop_all_video_stream(pd);
+-	dvb_stop_streaming(&pd->dvb_data);
+-
+-	/*unregister v4l2 device */
+-	v4l2_device_unregister(&pd->v4l2_dev);
+-
+-	pd_dvb_usb_device_exit(pd);
+-	poseidon_fm_exit(pd);
+-
+-	poseidon_audio_free(pd);
+-	pd_video_exit(pd);
+-
+-	usb_set_intfdata(interface, NULL);
+-	kref_put(&pd->kref, poseidon_delete);
+-}
+-
+-static struct usb_driver poseidon_driver = {
+-	.name		= "poseidon",
+-	.probe		= poseidon_probe,
+-	.disconnect	= poseidon_disconnect,
+-	.id_table	= id_table,
+-#ifdef CONFIG_PM
+-	.suspend	= poseidon_suspend,
+-	.resume		= poseidon_resume,
+-#endif
+-	.supports_autosuspend = 1,
+-};
+-
+-static int __init poseidon_init(void)
+-{
+-	int ret;
+-
+-	ret = usb_register(&poseidon_driver);
+-	if (ret)
+-		return ret;
+-	register_pm_notifier(&pm_notifer);
+-	return ret;
+-}
+-
+-static void __exit poseidon_exit(void)
+-{
+-	log();
+-	unregister_pm_notifier(&pm_notifer);
+-	usb_deregister(&poseidon_driver);
+-}
+-
+-module_init(poseidon_init);
+-module_exit(poseidon_exit);
+-
+-MODULE_AUTHOR("Telegent Systems");
+-MODULE_DESCRIPTION("For tlg2300-based USB device");
+-MODULE_LICENSE("GPL");
+-MODULE_VERSION("0.0.2");
+-MODULE_FIRMWARE(TLG2300_FIRMWARE);
+diff --git a/drivers/staging/media/tlg2300/pd-radio.c b/drivers/staging/media/tlg2300/pd-radio.c
+deleted file mode 100644
+index b391194..0000000
+--- a/drivers/staging/media/tlg2300/pd-radio.c
++++ /dev/null
+@@ -1,339 +0,0 @@
+-#include <linux/init.h>
+-#include <linux/list.h>
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/bitmap.h>
+-#include <linux/usb.h>
+-#include <linux/i2c.h>
+-#include <media/v4l2-dev.h>
+-#include <linux/mm.h>
+-#include <linux/mutex.h>
+-#include <media/v4l2-ioctl.h>
+-#include <media/v4l2-event.h>
+-#include <media/v4l2-fh.h>
+-#include <linux/sched.h>
+-
+-#include "pd-common.h"
+-#include "vendorcmds.h"
+-
+-static int set_frequency(struct poseidon *p, __u32 frequency);
+-static int poseidon_fm_close(struct file *filp);
+-static int poseidon_fm_open(struct file *filp);
+-
+-#define TUNER_FREQ_MIN_FM 76000000U
+-#define TUNER_FREQ_MAX_FM 108000000U
+-
+-#define MAX_PREEMPHASIS (V4L2_PREEMPHASIS_75_uS + 1)
+-static int preemphasis[MAX_PREEMPHASIS] = {
+-	TLG_TUNE_ASTD_NONE,   /* V4L2_PREEMPHASIS_DISABLED */
+-	TLG_TUNE_ASTD_FM_EUR, /* V4L2_PREEMPHASIS_50_uS    */
+-	TLG_TUNE_ASTD_FM_US,  /* V4L2_PREEMPHASIS_75_uS    */
+-};
+-
+-static int poseidon_check_mode_radio(struct poseidon *p)
+-{
+-	int ret;
+-	u32 status;
+-
+-	set_current_state(TASK_INTERRUPTIBLE);
+-	schedule_timeout(HZ/2);
+-	ret = usb_set_interface(p->udev, 0, BULK_ALTERNATE_IFACE);
+-	if (ret < 0)
+-		goto out;
+-
+-	ret = set_tuner_mode(p, TLG_MODE_FM_RADIO);
+-	if (ret != 0)
+-		goto out;
+-
+-	ret = send_set_req(p, SGNL_SRC_SEL, TLG_SIG_SRC_ANTENNA, &status);
+-	ret = send_set_req(p, TUNER_AUD_ANA_STD,
+-				p->radio_data.pre_emphasis, &status);
+-	ret |= send_set_req(p, TUNER_AUD_MODE,
+-				TLG_TUNE_TVAUDIO_MODE_STEREO, &status);
+-	ret |= send_set_req(p, AUDIO_SAMPLE_RATE_SEL,
+-				ATV_AUDIO_RATE_48K, &status);
+-	ret |= send_set_req(p, TUNE_FREQ_SELECT, TUNER_FREQ_MIN_FM, &status);
+-out:
+-	return ret;
+-}
+-
+-#ifdef CONFIG_PM
+-static int pm_fm_suspend(struct poseidon *p)
+-{
+-	logpm(p);
+-	pm_alsa_suspend(p);
+-	usb_set_interface(p->udev, 0, 0);
+-	msleep(300);
+-	return 0;
+-}
+-
+-static int pm_fm_resume(struct poseidon *p)
+-{
+-	logpm(p);
+-	poseidon_check_mode_radio(p);
+-	set_frequency(p, p->radio_data.fm_freq);
+-	pm_alsa_resume(p);
+-	return 0;
+-}
+-#endif
+-
+-static int poseidon_fm_open(struct file *filp)
+-{
+-	struct poseidon *p = video_drvdata(filp);
+-	int ret = 0;
+-
+-	mutex_lock(&p->lock);
+-	if (p->state & POSEIDON_STATE_DISCONNECT) {
+-		ret = -ENODEV;
+-		goto out;
+-	}
+-
+-	if (p->state && !(p->state & POSEIDON_STATE_FM)) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
+-	ret = v4l2_fh_open(filp);
+-	if (ret)
+-		goto out;
+-
+-	usb_autopm_get_interface(p->interface);
+-	if (0 == p->state) {
+-		struct video_device *vfd = &p->radio_data.fm_dev;
+-
+-		/* default pre-emphasis */
+-		if (p->radio_data.pre_emphasis == 0)
+-			p->radio_data.pre_emphasis = TLG_TUNE_ASTD_FM_EUR;
+-		set_debug_mode(vfd, debug_mode);
+-
+-		ret = poseidon_check_mode_radio(p);
+-		if (ret < 0) {
+-			usb_autopm_put_interface(p->interface);
+-			goto out;
+-		}
+-		p->state |= POSEIDON_STATE_FM;
+-	}
+-	kref_get(&p->kref);
+-out:
+-	mutex_unlock(&p->lock);
+-	return ret;
+-}
+-
+-static int poseidon_fm_close(struct file *filp)
+-{
+-	struct poseidon *p = video_drvdata(filp);
+-	struct radio_data *fm = &p->radio_data;
+-	uint32_t status;
+-
+-	mutex_lock(&p->lock);
+-	if (v4l2_fh_is_singular_file(filp))
+-		p->state &= ~POSEIDON_STATE_FM;
+-
+-	if (fm->is_radio_streaming && filp == p->file_for_stream) {
+-		fm->is_radio_streaming = 0;
+-		send_set_req(p, PLAY_SERVICE, TLG_TUNE_PLAY_SVC_STOP, &status);
+-	}
+-	usb_autopm_put_interface(p->interface);
+-	mutex_unlock(&p->lock);
+-
+-	kref_put(&p->kref, poseidon_delete);
+-	return v4l2_fh_release(filp);
+-}
+-
+-static int vidioc_querycap(struct file *file, void *priv,
+-			struct v4l2_capability *v)
+-{
+-	struct poseidon *p = video_drvdata(file);
+-
+-	strlcpy(v->driver, "tele-radio", sizeof(v->driver));
+-	strlcpy(v->card, "Telegent Poseidon", sizeof(v->card));
+-	usb_make_path(p->udev, v->bus_info, sizeof(v->bus_info));
+-	v->device_caps = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
+-	/* Report all capabilities of the USB device */
+-	v->capabilities = v->device_caps | V4L2_CAP_DEVICE_CAPS |
+-			V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VBI_CAPTURE |
+-			V4L2_CAP_AUDIO | V4L2_CAP_STREAMING |
+-			V4L2_CAP_READWRITE;
+-	return 0;
+-}
+-
+-static const struct v4l2_file_operations poseidon_fm_fops = {
+-	.owner         = THIS_MODULE,
+-	.open          = poseidon_fm_open,
+-	.release       = poseidon_fm_close,
+-	.poll		= v4l2_ctrl_poll,
+-	.unlocked_ioctl = video_ioctl2,
+-};
+-
+-static int tlg_fm_vidioc_g_tuner(struct file *file, void *priv,
+-				 struct v4l2_tuner *vt)
+-{
+-	struct poseidon *p = video_drvdata(file);
+-	struct tuner_fm_sig_stat_s fm_stat = {};
+-	int ret, status, count = 5;
+-
+-	if (vt->index != 0)
+-		return -EINVAL;
+-
+-	vt->type	= V4L2_TUNER_RADIO;
+-	vt->capability	= V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_LOW;
+-	vt->rangelow	= TUNER_FREQ_MIN_FM * 2 / 125;
+-	vt->rangehigh	= TUNER_FREQ_MAX_FM * 2 / 125;
+-	vt->rxsubchans	= V4L2_TUNER_SUB_STEREO;
+-	vt->audmode	= V4L2_TUNER_MODE_STEREO;
+-	vt->signal	= 0;
+-	vt->afc 	= 0;
+-	strlcpy(vt->name, "Radio", sizeof(vt->name));
+-
+-	mutex_lock(&p->lock);
+-	ret = send_get_req(p, TUNER_STATUS, TLG_MODE_FM_RADIO,
+-			      &fm_stat, &status, sizeof(fm_stat));
+-
+-	while (fm_stat.sig_lock_busy && count-- && !ret) {
+-		set_current_state(TASK_INTERRUPTIBLE);
+-		schedule_timeout(HZ);
+-
+-		ret = send_get_req(p, TUNER_STATUS, TLG_MODE_FM_RADIO,
+-				  &fm_stat, &status, sizeof(fm_stat));
+-	}
+-	mutex_unlock(&p->lock);
+-
+-	if (ret || status) {
+-		vt->signal = 0;
+-	} else if ((fm_stat.sig_present || fm_stat.sig_locked)
+-			&& fm_stat.sig_strength == 0) {
+-		vt->signal = 0xffff;
+-	} else
+-		vt->signal = (fm_stat.sig_strength * 255 / 10) << 8;
+-
+-	return 0;
+-}
+-
+-static int fm_get_freq(struct file *file, void *priv,
+-		       struct v4l2_frequency *argp)
+-{
+-	struct poseidon *p = video_drvdata(file);
+-
+-	if (argp->tuner)
+-		return -EINVAL;
+-	argp->frequency = p->radio_data.fm_freq;
+-	return 0;
+-}
+-
+-static int set_frequency(struct poseidon *p, __u32 frequency)
+-{
+-	__u32 freq ;
+-	int ret, status;
+-
+-	mutex_lock(&p->lock);
+-
+-	ret = send_set_req(p, TUNER_AUD_ANA_STD,
+-				p->radio_data.pre_emphasis, &status);
+-
+-	freq = (frequency * 125) / 2; /* Hz */
+-	freq = clamp(freq, TUNER_FREQ_MIN_FM, TUNER_FREQ_MAX_FM);
+-
+-	ret = send_set_req(p, TUNE_FREQ_SELECT, freq, &status);
+-	if (ret < 0)
+-		goto error ;
+-	ret = send_set_req(p, TAKE_REQUEST, 0, &status);
+-
+-	set_current_state(TASK_INTERRUPTIBLE);
+-	schedule_timeout(HZ/4);
+-	if (!p->radio_data.is_radio_streaming) {
+-		ret = send_set_req(p, TAKE_REQUEST, 0, &status);
+-		ret = send_set_req(p, PLAY_SERVICE,
+-				TLG_TUNE_PLAY_SVC_START, &status);
+-		p->radio_data.is_radio_streaming = 1;
+-	}
+-	p->radio_data.fm_freq = freq * 2 / 125;
+-error:
+-	mutex_unlock(&p->lock);
+-	return ret;
+-}
+-
+-static int fm_set_freq(struct file *file, void *priv,
+-		       const struct v4l2_frequency *argp)
+-{
+-	struct poseidon *p = video_drvdata(file);
+-
+-	if (argp->tuner)
+-		return -EINVAL;
+-	p->file_for_stream = file;
+-#ifdef CONFIG_PM
+-	p->pm_suspend = pm_fm_suspend;
+-	p->pm_resume  = pm_fm_resume;
+-#endif
+-	return set_frequency(p, argp->frequency);
+-}
+-
+-static int tlg_fm_s_ctrl(struct v4l2_ctrl *ctrl)
+-{
+-	struct poseidon *p = container_of(ctrl->handler, struct poseidon,
+-						radio_data.ctrl_handler);
+-	int pre_emphasis;
+-	u32 status;
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_TUNE_PREEMPHASIS:
+-		pre_emphasis = preemphasis[ctrl->val];
+-		send_set_req(p, TUNER_AUD_ANA_STD, pre_emphasis, &status);
+-		p->radio_data.pre_emphasis = pre_emphasis;
+-		return 0;
+-	}
+-	return -EINVAL;
+-}
+-
+-static int vidioc_s_tuner(struct file *file, void *priv, const struct v4l2_tuner *vt)
+-{
+-	return vt->index > 0 ? -EINVAL : 0;
+-}
+-
+-static const struct v4l2_ctrl_ops tlg_fm_ctrl_ops = {
+-	.s_ctrl = tlg_fm_s_ctrl,
+-};
+-
+-static const struct v4l2_ioctl_ops poseidon_fm_ioctl_ops = {
+-	.vidioc_querycap    = vidioc_querycap,
+-	.vidioc_s_tuner     = vidioc_s_tuner,
+-	.vidioc_g_tuner     = tlg_fm_vidioc_g_tuner,
+-	.vidioc_g_frequency = fm_get_freq,
+-	.vidioc_s_frequency = fm_set_freq,
+-	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+-	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+-};
+-
+-static struct video_device poseidon_fm_template = {
+-	.name       = "Telegent-Radio",
+-	.fops       = &poseidon_fm_fops,
+-	.minor      = -1,
+-	.release    = video_device_release_empty,
+-	.ioctl_ops  = &poseidon_fm_ioctl_ops,
+-};
+-
+-int poseidon_fm_init(struct poseidon *p)
+-{
+-	struct video_device *vfd = &p->radio_data.fm_dev;
+-	struct v4l2_ctrl_handler *hdl = &p->radio_data.ctrl_handler;
+-
+-	*vfd = poseidon_fm_template;
+-
+-	set_frequency(p, TUNER_FREQ_MIN_FM);
+-	v4l2_ctrl_handler_init(hdl, 1);
+-	v4l2_ctrl_new_std_menu(hdl, &tlg_fm_ctrl_ops, V4L2_CID_TUNE_PREEMPHASIS,
+-			V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
+-	if (hdl->error) {
+-		v4l2_ctrl_handler_free(hdl);
+-		return hdl->error;
+-	}
+-	vfd->v4l2_dev = &p->v4l2_dev;
+-	vfd->ctrl_handler = hdl;
+-	video_set_drvdata(vfd, p);
+-	return video_register_device(vfd, VFL_TYPE_RADIO, -1);
+-}
+-
+-int poseidon_fm_exit(struct poseidon *p)
+-{
+-	video_unregister_device(&p->radio_data.fm_dev);
+-	v4l2_ctrl_handler_free(&p->radio_data.ctrl_handler);
+-	return 0;
+-}
+diff --git a/drivers/staging/media/tlg2300/pd-video.c b/drivers/staging/media/tlg2300/pd-video.c
+deleted file mode 100644
+index 8cd7f02..0000000
+--- a/drivers/staging/media/tlg2300/pd-video.c
++++ /dev/null
+@@ -1,1570 +0,0 @@
+-#include <linux/fs.h>
+-#include <linux/vmalloc.h>
+-#include <linux/videodev2.h>
+-#include <linux/usb.h>
+-#include <linux/mm.h>
+-#include <linux/sched.h>
+-#include <linux/slab.h>
+-
+-#include <media/v4l2-ioctl.h>
+-#include <media/v4l2-dev.h>
+-#include <media/v4l2-ctrls.h>
+-
+-#include "pd-common.h"
+-#include "vendorcmds.h"
+-
+-#ifdef CONFIG_PM
+-static int pm_video_suspend(struct poseidon *pd);
+-static int pm_video_resume(struct poseidon *pd);
+-#endif
+-static void iso_bubble_handler(struct work_struct *w);
+-
+-static int usb_transfer_mode;
+-module_param(usb_transfer_mode, int, 0644);
+-MODULE_PARM_DESC(usb_transfer_mode, "0 = Bulk, 1 = Isochronous");
+-
+-static const struct poseidon_format poseidon_formats[] = {
+-	{ "YUV 422", V4L2_PIX_FMT_YUYV, 16, 0},
+-	{ "RGB565", V4L2_PIX_FMT_RGB565, 16, 0},
+-};
+-
+-static const struct poseidon_tvnorm poseidon_tvnorms[] = {
+-	{ V4L2_STD_PAL_D, "PAL-D",  TLG_TUNE_VSTD_PAL_D },
+-	{ V4L2_STD_PAL_B, "PAL-B",  TLG_TUNE_VSTD_PAL_B },
+-	{ V4L2_STD_PAL_G, "PAL-G",  TLG_TUNE_VSTD_PAL_G },
+-	{ V4L2_STD_PAL_H, "PAL-H",  TLG_TUNE_VSTD_PAL_H },
+-	{ V4L2_STD_PAL_I, "PAL-I",  TLG_TUNE_VSTD_PAL_I },
+-	{ V4L2_STD_PAL_M, "PAL-M",  TLG_TUNE_VSTD_PAL_M },
+-	{ V4L2_STD_PAL_N, "PAL-N",  TLG_TUNE_VSTD_PAL_N_COMBO },
+-	{ V4L2_STD_PAL_Nc, "PAL-Nc", TLG_TUNE_VSTD_PAL_N_COMBO },
+-	{ V4L2_STD_NTSC_M, "NTSC-M", TLG_TUNE_VSTD_NTSC_M },
+-	{ V4L2_STD_NTSC_M_JP, "NTSC-JP", TLG_TUNE_VSTD_NTSC_M_J },
+-	{ V4L2_STD_SECAM_B, "SECAM-B", TLG_TUNE_VSTD_SECAM_B },
+-	{ V4L2_STD_SECAM_D, "SECAM-D", TLG_TUNE_VSTD_SECAM_D },
+-	{ V4L2_STD_SECAM_G, "SECAM-G", TLG_TUNE_VSTD_SECAM_G },
+-	{ V4L2_STD_SECAM_H, "SECAM-H", TLG_TUNE_VSTD_SECAM_H },
+-	{ V4L2_STD_SECAM_K, "SECAM-K", TLG_TUNE_VSTD_SECAM_K },
+-	{ V4L2_STD_SECAM_K1, "SECAM-K1", TLG_TUNE_VSTD_SECAM_K1 },
+-	{ V4L2_STD_SECAM_L, "SECAM-L", TLG_TUNE_VSTD_SECAM_L },
+-	{ V4L2_STD_SECAM_LC, "SECAM-LC", TLG_TUNE_VSTD_SECAM_L1 },
+-};
+-static const unsigned int POSEIDON_TVNORMS = ARRAY_SIZE(poseidon_tvnorms);
+-
+-struct pd_audio_mode {
+-	u32 tlg_audio_mode;
+-	u32 v4l2_audio_sub;
+-	u32 v4l2_audio_mode;
+-};
+-
+-static const struct pd_audio_mode pd_audio_modes[] = {
+-	{ TLG_TUNE_TVAUDIO_MODE_MONO, V4L2_TUNER_SUB_MONO,
+-		V4L2_TUNER_MODE_MONO },
+-	{ TLG_TUNE_TVAUDIO_MODE_STEREO, V4L2_TUNER_SUB_STEREO,
+-		V4L2_TUNER_MODE_STEREO },
+-	{ TLG_TUNE_TVAUDIO_MODE_LANG_A, V4L2_TUNER_SUB_LANG1,
+-		V4L2_TUNER_MODE_LANG1 },
+-	{ TLG_TUNE_TVAUDIO_MODE_LANG_B, V4L2_TUNER_SUB_LANG2,
+-		V4L2_TUNER_MODE_LANG2 },
+-	{ TLG_TUNE_TVAUDIO_MODE_LANG_C, V4L2_TUNER_SUB_LANG1,
+-		V4L2_TUNER_MODE_LANG1_LANG2 }
+-};
+-static const unsigned int POSEIDON_AUDIOMODS = ARRAY_SIZE(pd_audio_modes);
+-
+-struct pd_input {
+-	char *name;
+-	uint32_t tlg_src;
+-};
+-
+-static const struct pd_input pd_inputs[] = {
+-	{ "TV Antenna", TLG_SIG_SRC_ANTENNA },
+-	{ "TV Cable", TLG_SIG_SRC_CABLE },
+-	{ "TV SVideo", TLG_SIG_SRC_SVIDEO },
+-	{ "TV Composite", TLG_SIG_SRC_COMPOSITE }
+-};
+-static const unsigned int POSEIDON_INPUTS = ARRAY_SIZE(pd_inputs);
+-
+-struct video_std_to_audio_std {
+-	v4l2_std_id	video_std;
+-	int 		audio_std;
+-};
+-
+-static const struct video_std_to_audio_std video_to_audio_map[] = {
+-	/* country : { 27, 32, 33, 34, 36, 44, 45, 46, 47, 48, 64,
+-			65, 86, 351, 352, 353, 354, 358, 372, 852, 972 } */
+-	{ (V4L2_STD_PAL_I | V4L2_STD_PAL_B | V4L2_STD_PAL_D |
+-		V4L2_STD_SECAM_L | V4L2_STD_SECAM_D), TLG_TUNE_ASTD_NICAM },
+-
+-	/* country : { 1, 52, 54, 55, 886 } */
+-	{V4L2_STD_NTSC_M | V4L2_STD_PAL_N | V4L2_STD_PAL_M, TLG_TUNE_ASTD_BTSC},
+-
+-	/* country : { 81 } */
+-	{ V4L2_STD_NTSC_M_JP, TLG_TUNE_ASTD_EIAJ },
+-
+-	/* other country : TLG_TUNE_ASTD_A2 */
+-};
+-static const unsigned int map_size = ARRAY_SIZE(video_to_audio_map);
+-
+-static int get_audio_std(v4l2_std_id v4l2_std)
+-{
+-	int i = 0;
+-
+-	for (; i < map_size; i++) {
+-		if (v4l2_std & video_to_audio_map[i].video_std)
+-			return video_to_audio_map[i].audio_std;
+-	}
+-	return TLG_TUNE_ASTD_A2;
+-}
+-
+-static int vidioc_querycap(struct file *file, void *fh,
+-			struct v4l2_capability *cap)
+-{
+-	struct video_device *vdev = video_devdata(file);
+-	struct poseidon *p = video_get_drvdata(vdev);
+-
+-	strcpy(cap->driver, "tele-video");
+-	strcpy(cap->card, "Telegent Poseidon");
+-	usb_make_path(p->udev, cap->bus_info, sizeof(cap->bus_info));
+-	cap->device_caps = V4L2_CAP_TUNER | V4L2_CAP_AUDIO |
+-			V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
+-	if (vdev->vfl_type == VFL_TYPE_VBI)
+-		cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
+-	else
+-		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
+-	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS |
+-		V4L2_CAP_RADIO | V4L2_CAP_VBI_CAPTURE | V4L2_CAP_VIDEO_CAPTURE;
+-	return 0;
+-}
+-
+-/*====================================================================*/
+-static void init_copy(struct video_data *video, bool index)
+-{
+-	struct front_face *front = video->front;
+-
+-	video->field_count	= index;
+-	video->lines_copied	= 0;
+-	video->prev_left	= 0 ;
+-	video->dst 		= (char *)videobuf_to_vmalloc(front->curr_frame)
+-					+ index * video->lines_size;
+-	video->vbi->copied 	= 0; /* set it here */
+-}
+-
+-static bool get_frame(struct front_face *front, int *need_init)
+-{
+-	struct videobuf_buffer *vb = front->curr_frame;
+-
+-	if (vb)
+-		return true;
+-
+-	spin_lock(&front->queue_lock);
+-	if (!list_empty(&front->active)) {
+-		vb = list_entry(front->active.next,
+-			       struct videobuf_buffer, queue);
+-		if (need_init)
+-			*need_init = 1;
+-		front->curr_frame = vb;
+-		list_del_init(&vb->queue);
+-	}
+-	spin_unlock(&front->queue_lock);
+-
+-	return !!vb;
+-}
+-
+-/* check if the video's buffer is ready */
+-static bool get_video_frame(struct front_face *front, struct video_data *video)
+-{
+-	int need_init = 0;
+-	bool ret = true;
+-
+-	ret = get_frame(front, &need_init);
+-	if (ret && need_init)
+-		init_copy(video, 0);
+-	return ret;
+-}
+-
+-static void submit_frame(struct front_face *front)
+-{
+-	struct videobuf_buffer *vb = front->curr_frame;
+-
+-	if (vb == NULL)
+-		return;
+-
+-	front->curr_frame	= NULL;
+-	vb->state		= VIDEOBUF_DONE;
+-	vb->field_count++;
+-	v4l2_get_timestamp(&vb->ts);
+-
+-	wake_up(&vb->done);
+-}
+-
+-/*
+- * A frame is composed of two fields. If we receive all the two fields,
+- * call the  submit_frame() to submit the whole frame to applications.
+- */
+-static void end_field(struct video_data *video)
+-{
+-	if (1 == video->field_count)
+-		submit_frame(video->front);
+-	else
+-		init_copy(video, 1);
+-}
+-
+-static void copy_video_data(struct video_data *video, char *src,
+-				unsigned int count)
+-{
+-#define copy_data(len)  \
+-	do { \
+-		if (++video->lines_copied > video->lines_per_field) \
+-			goto overflow; \
+-		memcpy(video->dst, src, len);\
+-		video->dst += len + video->lines_size; \
+-		src += len; \
+-		count -= len; \
+-	 } while (0)
+-
+-	while (count && count >= video->lines_size) {
+-		if (video->prev_left) {
+-			copy_data(video->prev_left);
+-			video->prev_left = 0;
+-			continue;
+-		}
+-		copy_data(video->lines_size);
+-	}
+-	if (count && count < video->lines_size) {
+-		memcpy(video->dst, src, count);
+-
+-		video->prev_left = video->lines_size - count;
+-		video->dst += count;
+-	}
+-	return;
+-
+-overflow:
+-	end_field(video);
+-}
+-
+-static void check_trailer(struct video_data *video, char *src, int count)
+-{
+-	struct vbi_data *vbi = video->vbi;
+-	int offset; /* trailer's offset */
+-	char *buf;
+-
+-	offset = (video->context.pix.sizeimage / 2 + vbi->vbi_size / 2)
+-		- (vbi->copied + video->lines_size * video->lines_copied);
+-	if (video->prev_left)
+-		offset -= (video->lines_size - video->prev_left);
+-
+-	if (offset > count || offset <= 0)
+-		goto short_package;
+-
+-	buf = src + offset;
+-
+-	/* trailer : (VFHS) + U32 + U32 + field_num */
+-	if (!strncmp(buf, "VFHS", 4)) {
+-		int field_num = *((u32 *)(buf + 12));
+-
+-		if ((field_num & 1) ^ video->field_count) {
+-			init_copy(video, video->field_count);
+-			return;
+-		}
+-		copy_video_data(video, src, offset);
+-	}
+-short_package:
+-	end_field(video);
+-}
+-
+-/* ==========  Check this more carefully! =========== */
+-static inline void copy_vbi_data(struct vbi_data *vbi,
+-				char *src, unsigned int count)
+-{
+-	struct front_face *front = vbi->front;
+-
+-	if (front && get_frame(front, NULL)) {
+-		char *buf = videobuf_to_vmalloc(front->curr_frame);
+-
+-		if (vbi->video->field_count)
+-			buf += (vbi->vbi_size / 2);
+-		memcpy(buf + vbi->copied, src, count);
+-	}
+-	vbi->copied += count;
+-}
+-
+-/*
+- * Copy the normal data (VBI or VIDEO) without the trailer.
+- * VBI is not interlaced, while VIDEO is interlaced.
+- */
+-static inline void copy_vbi_video_data(struct video_data *video,
+-				char *src, unsigned int count)
+-{
+-	struct vbi_data *vbi = video->vbi;
+-	unsigned int vbi_delta = (vbi->vbi_size / 2) - vbi->copied;
+-
+-	if (vbi_delta >= count) {
+-		copy_vbi_data(vbi, src, count);
+-	} else {
+-		if (vbi_delta) {
+-			copy_vbi_data(vbi, src, vbi_delta);
+-
+-			/* we receive the two fields of the VBI*/
+-			if (vbi->front && video->field_count)
+-				submit_frame(vbi->front);
+-		}
+-		copy_video_data(video, src + vbi_delta, count - vbi_delta);
+-	}
+-}
+-
+-static void urb_complete_bulk(struct urb *urb)
+-{
+-	struct front_face *front = urb->context;
+-	struct video_data *video = &front->pd->video_data;
+-	char *src = (char *)urb->transfer_buffer;
+-	int count = urb->actual_length;
+-	int ret = 0;
+-
+-	if (!video->is_streaming || urb->status) {
+-		if (urb->status == -EPROTO)
+-			goto resend_it;
+-		return;
+-	}
+-	if (!get_video_frame(front, video))
+-		goto resend_it;
+-
+-	if (count == urb->transfer_buffer_length)
+-		copy_vbi_video_data(video, src, count);
+-	else
+-		check_trailer(video, src, count);
+-
+-resend_it:
+-	ret = usb_submit_urb(urb, GFP_ATOMIC);
+-	if (ret)
+-		log(" submit failed: error %d", ret);
+-}
+-
+-/************************* for ISO *********************/
+-#define GET_SUCCESS		(0)
+-#define GET_TRAILER		(1)
+-#define GET_TOO_MUCH_BUBBLE	(2)
+-#define GET_NONE		(3)
+-static int get_chunk(int start, struct urb *urb,
+-			int *head, int *tail, int *bubble_err)
+-{
+-	struct usb_iso_packet_descriptor *pkt = NULL;
+-	int ret = GET_SUCCESS;
+-
+-	for (*head = *tail = -1; start < urb->number_of_packets; start++) {
+-		pkt = &urb->iso_frame_desc[start];
+-
+-		/* handle the bubble of the Hub */
+-		if (-EOVERFLOW == pkt->status) {
+-			if (++*bubble_err > urb->number_of_packets / 3)
+-				return GET_TOO_MUCH_BUBBLE;
+-			continue;
+-		}
+-
+-		/* This is the gap */
+-		if (pkt->status || pkt->actual_length <= 0
+-				|| pkt->actual_length > ISO_PKT_SIZE) {
+-			if (*head != -1)
+-				break;
+-			continue;
+-		}
+-
+-		/* a good isochronous packet */
+-		if (pkt->actual_length == ISO_PKT_SIZE) {
+-			if (*head == -1)
+-				*head = start;
+-			*tail = start;
+-			continue;
+-		}
+-
+-		/* trailer is here */
+-		if (pkt->actual_length < ISO_PKT_SIZE) {
+-			if (*head == -1) {
+-				*head = start;
+-				*tail = start;
+-				return GET_TRAILER;
+-			}
+-			break;
+-		}
+-	}
+-
+-	if (*head == -1 && *tail == -1)
+-		ret = GET_NONE;
+-	return ret;
+-}
+-
+-/*
+- * |__|------|___|-----|_______|
+- *       ^          ^
+- *       |          |
+- *      gap        gap
+- */
+-static void urb_complete_iso(struct urb *urb)
+-{
+-	struct front_face *front = urb->context;
+-	struct video_data *video = &front->pd->video_data;
+-	int bubble_err = 0, head = 0, tail = 0;
+-	char *src = (char *)urb->transfer_buffer;
+-	int ret = 0;
+-
+-	if (!video->is_streaming)
+-		return;
+-
+-	do {
+-		if (!get_video_frame(front, video))
+-			goto out;
+-
+-		switch (get_chunk(head, urb, &head, &tail, &bubble_err)) {
+-		case GET_SUCCESS:
+-			copy_vbi_video_data(video, src + (head * ISO_PKT_SIZE),
+-					(tail - head + 1) * ISO_PKT_SIZE);
+-			break;
+-		case GET_TRAILER:
+-			check_trailer(video, src + (head * ISO_PKT_SIZE),
+-					ISO_PKT_SIZE);
+-			break;
+-		case GET_NONE:
+-			goto out;
+-		case GET_TOO_MUCH_BUBBLE:
+-			log("\t We got too much bubble");
+-			schedule_work(&video->bubble_work);
+-			return;
+-		}
+-	} while (head = tail + 1, head < urb->number_of_packets);
+-
+-out:
+-	ret = usb_submit_urb(urb, GFP_ATOMIC);
+-	if (ret)
+-		log("usb_submit_urb err : %d", ret);
+-}
+-/*============================= [  end  ] =====================*/
+-
+-static int prepare_iso_urb(struct video_data *video)
+-{
+-	struct usb_device *udev = video->pd->udev;
+-	int i;
+-
+-	if (video->urb_array[0])
+-		return 0;
+-
+-	for (i = 0; i < SBUF_NUM; i++) {
+-		struct urb *urb;
+-		void *mem;
+-		int j;
+-
+-		urb = usb_alloc_urb(PK_PER_URB, GFP_KERNEL);
+-		if (urb == NULL)
+-			goto out;
+-
+-		video->urb_array[i] = urb;
+-		mem = usb_alloc_coherent(udev,
+-					 ISO_PKT_SIZE * PK_PER_URB,
+-					 GFP_KERNEL,
+-					 &urb->transfer_dma);
+-
+-		urb->complete	= urb_complete_iso;	/* handler */
+-		urb->dev	= udev;
+-		urb->context	= video->front;
+-		urb->pipe	= usb_rcvisocpipe(udev,
+-						video->endpoint_addr);
+-		urb->interval	= 1;
+-		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-		urb->number_of_packets	= PK_PER_URB;
+-		urb->transfer_buffer	= mem;
+-		urb->transfer_buffer_length = PK_PER_URB * ISO_PKT_SIZE;
+-
+-		for (j = 0; j < PK_PER_URB; j++) {
+-			urb->iso_frame_desc[j].offset = ISO_PKT_SIZE * j;
+-			urb->iso_frame_desc[j].length = ISO_PKT_SIZE;
+-		}
+-	}
+-	return 0;
+-out:
+-	for (; i > 0; i--)
+-		;
+-	return -ENOMEM;
+-}
+-
+-/* return the succeeded number of the allocation */
+-int alloc_bulk_urbs_generic(struct urb **urb_array, int num,
+-			struct usb_device *udev, u8 ep_addr,
+-			int buf_size, gfp_t gfp_flags,
+-			usb_complete_t complete_fn, void *context)
+-{
+-	int i = 0;
+-
+-	for (; i < num; i++) {
+-		void *mem;
+-		struct urb *urb = usb_alloc_urb(0, gfp_flags);
+-		if (urb == NULL)
+-			return i;
+-
+-		mem = usb_alloc_coherent(udev, buf_size, gfp_flags,
+-					 &urb->transfer_dma);
+-		if (mem == NULL) {
+-			usb_free_urb(urb);
+-			return i;
+-		}
+-
+-		usb_fill_bulk_urb(urb, udev, usb_rcvbulkpipe(udev, ep_addr),
+-				mem, buf_size, complete_fn, context);
+-		urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+-		urb_array[i] = urb;
+-	}
+-	return i;
+-}
+-
+-void free_all_urb_generic(struct urb **urb_array, int num)
+-{
+-	int i;
+-	struct urb *urb;
+-
+-	for (i = 0; i < num; i++) {
+-		urb = urb_array[i];
+-		if (urb) {
+-			usb_free_coherent(urb->dev,
+-					urb->transfer_buffer_length,
+-					urb->transfer_buffer,
+-					urb->transfer_dma);
+-			usb_free_urb(urb);
+-			urb_array[i] = NULL;
+-		}
+-	}
+-}
+-
+-static int prepare_bulk_urb(struct video_data *video)
+-{
+-	if (video->urb_array[0])
+-		return 0;
+-
+-	alloc_bulk_urbs_generic(video->urb_array, SBUF_NUM,
+-			video->pd->udev, video->endpoint_addr,
+-			0x2000, GFP_KERNEL,
+-			urb_complete_bulk, video->front);
+-	return 0;
+-}
+-
+-/* free the URBs */
+-static void free_all_urb(struct video_data *video)
+-{
+-	free_all_urb_generic(video->urb_array, SBUF_NUM);
+-}
+-
+-static void pd_buf_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
+-{
+-	videobuf_vmalloc_free(vb);
+-	vb->state = VIDEOBUF_NEEDS_INIT;
+-}
+-
+-static void pd_buf_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
+-{
+-	struct front_face *front = q->priv_data;
+-	vb->state = VIDEOBUF_QUEUED;
+-	list_add_tail(&vb->queue, &front->active);
+-}
+-
+-static int pd_buf_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
+-			   enum v4l2_field field)
+-{
+-	struct front_face *front = q->priv_data;
+-	int rc;
+-
+-	switch (front->type) {
+-	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+-		if (VIDEOBUF_NEEDS_INIT == vb->state) {
+-			struct v4l2_pix_format *pix;
+-
+-			pix = &front->pd->video_data.context.pix;
+-			vb->size	= pix->sizeimage; /* real frame size */
+-			vb->width	= pix->width;
+-			vb->height	= pix->height;
+-			rc = videobuf_iolock(q, vb, NULL);
+-			if (rc < 0)
+-				return rc;
+-		}
+-		break;
+-	case V4L2_BUF_TYPE_VBI_CAPTURE:
+-		if (VIDEOBUF_NEEDS_INIT == vb->state) {
+-			vb->size	= front->pd->vbi_data.vbi_size;
+-			rc = videobuf_iolock(q, vb, NULL);
+-			if (rc < 0)
+-				return rc;
+-		}
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-	vb->field = field;
+-	vb->state = VIDEOBUF_PREPARED;
+-	return 0;
+-}
+-
+-static int fire_all_urb(struct video_data *video)
+-{
+-	int i, ret;
+-
+-	video->is_streaming = 1;
+-
+-	for (i = 0; i < SBUF_NUM; i++) {
+-		ret = usb_submit_urb(video->urb_array[i], GFP_KERNEL);
+-		if (ret)
+-			log("(%d) failed: error %d", i, ret);
+-	}
+-	return ret;
+-}
+-
+-static int start_video_stream(struct poseidon *pd)
+-{
+-	struct video_data *video = &pd->video_data;
+-	s32 cmd_status;
+-
+-	send_set_req(pd, TAKE_REQUEST, 0, &cmd_status);
+-	send_set_req(pd, PLAY_SERVICE, TLG_TUNE_PLAY_SVC_START, &cmd_status);
+-
+-	if (pd->cur_transfer_mode) {
+-		prepare_iso_urb(video);
+-		INIT_WORK(&video->bubble_work, iso_bubble_handler);
+-	} else {
+-		/* The bulk mode does not need a bubble handler */
+-		prepare_bulk_urb(video);
+-	}
+-	fire_all_urb(video);
+-	return 0;
+-}
+-
+-static int pd_buf_setup(struct videobuf_queue *q, unsigned int *count,
+-		       unsigned int *size)
+-{
+-	struct front_face *front = q->priv_data;
+-	struct poseidon *pd	= front->pd;
+-
+-	switch (front->type) {
+-	default:
+-		return -EINVAL;
+-	case V4L2_BUF_TYPE_VIDEO_CAPTURE: {
+-		struct video_data *video = &pd->video_data;
+-		struct v4l2_pix_format *pix = &video->context.pix;
+-
+-		*size = PAGE_ALIGN(pix->sizeimage);/* page aligned frame size */
+-		if (*count < 4)
+-			*count = 4;
+-		if (1) {
+-			/* same in different altersetting */
+-			video->endpoint_addr	= 0x82;
+-			video->vbi		= &pd->vbi_data;
+-			video->vbi->video	= video;
+-			video->pd		= pd;
+-			video->lines_per_field	= pix->height / 2;
+-			video->lines_size	= pix->width * 2;
+-			video->front 		= front;
+-		}
+-		return start_video_stream(pd);
+-	}
+-
+-	case V4L2_BUF_TYPE_VBI_CAPTURE: {
+-		struct vbi_data *vbi = &pd->vbi_data;
+-
+-		*size = PAGE_ALIGN(vbi->vbi_size);
+-		log("size : %d", *size);
+-		if (*count == 0)
+-			*count = 4;
+-	}
+-		break;
+-	}
+-	return 0;
+-}
+-
+-static struct videobuf_queue_ops pd_video_qops = {
+-	.buf_setup      = pd_buf_setup,
+-	.buf_prepare    = pd_buf_prepare,
+-	.buf_queue      = pd_buf_queue,
+-	.buf_release    = pd_buf_release,
+-};
+-
+-static int vidioc_enum_fmt(struct file *file, void *fh,
+-				struct v4l2_fmtdesc *f)
+-{
+-	if (ARRAY_SIZE(poseidon_formats) <= f->index)
+-		return -EINVAL;
+-	f->type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	f->flags	= 0;
+-	f->pixelformat	= poseidon_formats[f->index].fourcc;
+-	strcpy(f->description, poseidon_formats[f->index].name);
+-	return 0;
+-}
+-
+-static int vidioc_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
+-{
+-	struct front_face *front = fh;
+-	struct poseidon *pd = front->pd;
+-
+-	f->fmt.pix = pd->video_data.context.pix;
+-	return 0;
+-}
+-
+-/*
+- * VLC calls VIDIOC_S_STD before VIDIOC_S_FMT, while
+- * Mplayer calls them in the reverse order.
+- */
+-static int pd_vidioc_s_fmt(struct poseidon *pd, struct v4l2_pix_format *pix)
+-{
+-	struct video_data *video	= &pd->video_data;
+-	struct running_context *context = &video->context;
+-	struct v4l2_pix_format *pix_def	= &context->pix;
+-	s32 ret = 0, cmd_status = 0, vid_resol;
+-
+-	/* set the pixel format to firmware */
+-	if (pix->pixelformat == V4L2_PIX_FMT_RGB565) {
+-		vid_resol = TLG_TUNER_VID_FORMAT_RGB_565;
+-	} else {
+-		pix->pixelformat = V4L2_PIX_FMT_YUYV;
+-		vid_resol = TLG_TUNER_VID_FORMAT_YUV;
+-	}
+-	ret = send_set_req(pd, VIDEO_STREAM_FMT_SEL,
+-				vid_resol, &cmd_status);
+-
+-	/* set the resolution to firmware */
+-	vid_resol = TLG_TUNE_VID_RES_720;
+-	switch (pix->width) {
+-	case 704:
+-		vid_resol = TLG_TUNE_VID_RES_704;
+-		break;
+-	default:
+-		pix->width = 720;
+-	case 720:
+-		break;
+-	}
+-	ret |= send_set_req(pd, VIDEO_ROSOLU_SEL,
+-				vid_resol, &cmd_status);
+-	if (ret || cmd_status)
+-		return -EBUSY;
+-
+-	pix_def->pixelformat = pix->pixelformat; /* save it */
+-	pix->height = (context->tvnormid & V4L2_STD_525_60) ?  480 : 576;
+-
+-	/* Compare with the default setting */
+-	if ((pix_def->width != pix->width)
+-		|| (pix_def->height != pix->height)) {
+-		pix_def->width		= pix->width;
+-		pix_def->height		= pix->height;
+-		pix_def->bytesperline	= pix->width * 2;
+-		pix_def->sizeimage 	= pix->width * pix->height * 2;
+-	}
+-	*pix = *pix_def;
+-
+-	return 0;
+-}
+-
+-static int vidioc_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
+-{
+-	struct front_face *front	= fh;
+-	struct poseidon *pd		= front->pd;
+-
+-	/* stop VBI here */
+-	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != f->type)
+-		return -EINVAL;
+-
+-	mutex_lock(&pd->lock);
+-	if (pd->file_for_stream == NULL)
+-		pd->file_for_stream = file;
+-	else if (file != pd->file_for_stream) {
+-		mutex_unlock(&pd->lock);
+-		return -EINVAL;
+-	}
+-
+-	pd_vidioc_s_fmt(pd, &f->fmt.pix);
+-	mutex_unlock(&pd->lock);
+-	return 0;
+-}
+-
+-static int vidioc_g_fmt_vbi(struct file *file, void *fh,
+-			       struct v4l2_format *v4l2_f)
+-{
+-	struct front_face *front	= fh;
+-	struct poseidon *pd		= front->pd;
+-	struct v4l2_vbi_format *vbi_fmt	= &v4l2_f->fmt.vbi;
+-
+-	vbi_fmt->samples_per_line	= 720 * 2;
+-	vbi_fmt->sampling_rate		= 6750000 * 4;
+-	vbi_fmt->sample_format		= V4L2_PIX_FMT_GREY;
+-	vbi_fmt->offset			= 64 * 4;  /*FIXME: why offset */
+-	if (pd->video_data.context.tvnormid & V4L2_STD_525_60) {
+-		vbi_fmt->start[0] = 10;
+-		vbi_fmt->start[1] = 264;
+-		vbi_fmt->count[0] = V4L_NTSC_VBI_LINES;
+-		vbi_fmt->count[1] = V4L_NTSC_VBI_LINES;
+-	} else {
+-		vbi_fmt->start[0] = 6;
+-		vbi_fmt->start[1] = 314;
+-		vbi_fmt->count[0] = V4L_PAL_VBI_LINES;
+-		vbi_fmt->count[1] = V4L_PAL_VBI_LINES;
+-	}
+-	vbi_fmt->flags = V4L2_VBI_UNSYNC;
+-	return 0;
+-}
+-
+-static int set_std(struct poseidon *pd, v4l2_std_id norm)
+-{
+-	struct video_data *video = &pd->video_data;
+-	struct vbi_data *vbi	= &pd->vbi_data;
+-	struct running_context *context;
+-	struct v4l2_pix_format *pix;
+-	s32 i, ret = 0, cmd_status, param;
+-	int height;
+-
+-	for (i = 0; i < POSEIDON_TVNORMS; i++) {
+-		if (norm & poseidon_tvnorms[i].v4l2_id) {
+-			param = poseidon_tvnorms[i].tlg_tvnorm;
+-			log("name : %s", poseidon_tvnorms[i].name);
+-			goto found;
+-		}
+-	}
+-	return -EINVAL;
+-found:
+-	mutex_lock(&pd->lock);
+-	ret = send_set_req(pd, VIDEO_STD_SEL, param, &cmd_status);
+-	if (ret || cmd_status)
+-		goto out;
+-
+-	/* Set vbi size and check the height of the frame */
+-	context = &video->context;
+-	context->tvnormid = poseidon_tvnorms[i].v4l2_id;
+-	if (context->tvnormid & V4L2_STD_525_60) {
+-		vbi->vbi_size = V4L_NTSC_VBI_FRAMESIZE;
+-		height = 480;
+-	} else {
+-		vbi->vbi_size = V4L_PAL_VBI_FRAMESIZE;
+-		height = 576;
+-	}
+-
+-	pix = &context->pix;
+-	if (pix->height != height) {
+-		pix->height	= height;
+-		pix->sizeimage 	= pix->width * pix->height * 2;
+-	}
+-
+-out:
+-	mutex_unlock(&pd->lock);
+-	return ret;
+-}
+-
+-static int vidioc_s_std(struct file *file, void *fh, v4l2_std_id norm)
+-{
+-	struct front_face *front = fh;
+-
+-	return set_std(front->pd, norm);
+-}
+-
+-static int vidioc_g_std(struct file *file, void *fh, v4l2_std_id *norm)
+-{
+-	struct front_face *front = fh;
+-
+-	*norm = front->pd->video_data.context.tvnormid;
+-	return 0;
+-}
+-
+-static int vidioc_enum_input(struct file *file, void *fh, struct v4l2_input *in)
+-{
+-	if (in->index >= POSEIDON_INPUTS)
+-		return -EINVAL;
+-	strcpy(in->name, pd_inputs[in->index].name);
+-	in->type  = V4L2_INPUT_TYPE_TUNER;
+-
+-	/*
+-	 * the audio input index mixed with this video input,
+-	 * Poseidon only have one audio/video, set to "0"
+-	 */
+-	in->audioset	= 1;
+-	in->tuner	= 0;
+-	in->std		= V4L2_STD_ALL;
+-	in->status	= 0;
+-	return 0;
+-}
+-
+-static int vidioc_g_input(struct file *file, void *fh, unsigned int *i)
+-{
+-	struct front_face *front = fh;
+-	struct poseidon *pd = front->pd;
+-	struct running_context *context = &pd->video_data.context;
+-
+-	*i = context->sig_index;
+-	return 0;
+-}
+-
+-/* We can support several inputs */
+-static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
+-{
+-	struct front_face *front = fh;
+-	struct poseidon *pd = front->pd;
+-	s32 ret, cmd_status;
+-
+-	if (i >= POSEIDON_INPUTS)
+-		return -EINVAL;
+-	ret = send_set_req(pd, SGNL_SRC_SEL,
+-			pd_inputs[i].tlg_src, &cmd_status);
+-	if (ret)
+-		return ret;
+-
+-	pd->video_data.context.sig_index = i;
+-	return 0;
+-}
+-
+-static int tlg_s_ctrl(struct v4l2_ctrl *c)
+-{
+-	struct poseidon *pd = container_of(c->handler, struct poseidon,
+-						video_data.ctrl_handler);
+-	struct tuner_custom_parameter_s param = {0};
+-	s32 ret = 0, cmd_status, params;
+-
+-	switch (c->id) {
+-	case V4L2_CID_BRIGHTNESS:
+-		param.param_id = CUST_PARM_ID_BRIGHTNESS_CTRL;
+-		break;
+-	case V4L2_CID_CONTRAST:
+-		param.param_id = CUST_PARM_ID_CONTRAST_CTRL;
+-		break;
+-	case V4L2_CID_HUE:
+-		param.param_id = CUST_PARM_ID_HUE_CTRL;
+-		break;
+-	case V4L2_CID_SATURATION:
+-		param.param_id = CUST_PARM_ID_SATURATION_CTRL;
+-		break;
+-	}
+-	param.param_value = c->val;
+-	params = *(s32 *)&param; /* temp code */
+-
+-	mutex_lock(&pd->lock);
+-	ret = send_set_req(pd, TUNER_CUSTOM_PARAMETER, params, &cmd_status);
+-	ret = send_set_req(pd, TAKE_REQUEST, 0, &cmd_status);
+-	mutex_unlock(&pd->lock);
+-
+-	set_current_state(TASK_INTERRUPTIBLE);
+-	schedule_timeout(HZ/4);
+-	return ret;
+-}
+-
+-/* Audio ioctls */
+-static int vidioc_enumaudio(struct file *file, void *fh, struct v4l2_audio *a)
+-{
+-	if (0 != a->index)
+-		return -EINVAL;
+-	a->capability = V4L2_AUDCAP_STEREO;
+-	strcpy(a->name, "USB audio in");
+-	/*Poseidon have no AVL function.*/
+-	a->mode = 0;
+-	return 0;
+-}
+-
+-static int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
+-{
+-	a->index = 0;
+-	a->capability = V4L2_AUDCAP_STEREO;
+-	strcpy(a->name, "USB audio in");
+-	a->mode = 0;
+-	return 0;
+-}
+-
+-static int vidioc_s_audio(struct file *file, void *fh, const struct v4l2_audio *a)
+-{
+-	return (0 == a->index) ? 0 : -EINVAL;
+-}
+-
+-/* Tuner ioctls */
+-static int vidioc_g_tuner(struct file *file, void *fh, struct v4l2_tuner *tuner)
+-{
+-	struct front_face *front	= fh;
+-	struct poseidon *pd		= front->pd;
+-	struct tuner_atv_sig_stat_s atv_stat;
+-	s32 count = 5, ret, cmd_status;
+-	int index;
+-
+-	if (0 != tuner->index)
+-		return -EINVAL;
+-
+-	mutex_lock(&pd->lock);
+-	ret = send_get_req(pd, TUNER_STATUS, TLG_MODE_ANALOG_TV,
+-				&atv_stat, &cmd_status, sizeof(atv_stat));
+-
+-	while (atv_stat.sig_lock_busy && count-- && !ret) {
+-		set_current_state(TASK_INTERRUPTIBLE);
+-		schedule_timeout(HZ);
+-
+-		ret = send_get_req(pd, TUNER_STATUS, TLG_MODE_ANALOG_TV,
+-				&atv_stat, &cmd_status, sizeof(atv_stat));
+-	}
+-	mutex_unlock(&pd->lock);
+-
+-	if (debug_mode)
+-		log("P:%d,S:%d", atv_stat.sig_present, atv_stat.sig_strength);
+-
+-	if (ret || cmd_status)
+-		tuner->signal = 0;
+-	else if (atv_stat.sig_present && !atv_stat.sig_strength)
+-		tuner->signal = 0xFFFF;
+-	else
+-		tuner->signal = (atv_stat.sig_strength * 255 / 10) << 8;
+-
+-	strcpy(tuner->name, "Telegent Systems");
+-	tuner->type = V4L2_TUNER_ANALOG_TV;
+-	tuner->rangelow = TUNER_FREQ_MIN / 62500;
+-	tuner->rangehigh = TUNER_FREQ_MAX / 62500;
+-	tuner->capability = V4L2_TUNER_CAP_NORM | V4L2_TUNER_CAP_STEREO |
+-				V4L2_TUNER_CAP_LANG1 | V4L2_TUNER_CAP_LANG2;
+-	index = pd->video_data.context.audio_idx;
+-	tuner->rxsubchans = pd_audio_modes[index].v4l2_audio_sub;
+-	tuner->audmode = pd_audio_modes[index].v4l2_audio_mode;
+-	tuner->afc = 0;
+-	return 0;
+-}
+-
+-static int pd_vidioc_s_tuner(struct poseidon *pd, int index)
+-{
+-	s32 ret = 0, cmd_status, param, audiomode;
+-
+-	mutex_lock(&pd->lock);
+-	param = pd_audio_modes[index].tlg_audio_mode;
+-	ret = send_set_req(pd, TUNER_AUD_MODE, param, &cmd_status);
+-	audiomode = get_audio_std(pd->video_data.context.tvnormid);
+-	ret |= send_set_req(pd, TUNER_AUD_ANA_STD, audiomode,
+-				&cmd_status);
+-	if (!ret)
+-		pd->video_data.context.audio_idx = index;
+-	mutex_unlock(&pd->lock);
+-	return ret;
+-}
+-
+-static int vidioc_s_tuner(struct file *file, void *fh, const struct v4l2_tuner *a)
+-{
+-	struct front_face *front	= fh;
+-	struct poseidon *pd		= front->pd;
+-	int index;
+-
+-	if (0 != a->index)
+-		return -EINVAL;
+-	for (index = 0; index < POSEIDON_AUDIOMODS; index++)
+-		if (a->audmode == pd_audio_modes[index].v4l2_audio_mode)
+-			return pd_vidioc_s_tuner(pd, index);
+-	return -EINVAL;
+-}
+-
+-static int vidioc_g_frequency(struct file *file, void *fh,
+-			struct v4l2_frequency *freq)
+-{
+-	struct front_face *front = fh;
+-	struct poseidon *pd = front->pd;
+-	struct running_context *context = &pd->video_data.context;
+-
+-	if (0 != freq->tuner)
+-		return -EINVAL;
+-	freq->frequency = context->freq;
+-	freq->type = V4L2_TUNER_ANALOG_TV;
+-	return 0;
+-}
+-
+-static int set_frequency(struct poseidon *pd, u32 *frequency)
+-{
+-	s32 ret = 0, param, cmd_status;
+-	struct running_context *context = &pd->video_data.context;
+-
+-	*frequency = clamp(*frequency,
+-			TUNER_FREQ_MIN / 62500, TUNER_FREQ_MAX / 62500);
+-	param = (*frequency) * 62500 / 1000;
+-
+-	mutex_lock(&pd->lock);
+-	ret = send_set_req(pd, TUNE_FREQ_SELECT, param, &cmd_status);
+-	ret = send_set_req(pd, TAKE_REQUEST, 0, &cmd_status);
+-
+-	msleep(250); /* wait for a while until the hardware is ready. */
+-	context->freq = *frequency;
+-	mutex_unlock(&pd->lock);
+-	return ret;
+-}
+-
+-static int vidioc_s_frequency(struct file *file, void *fh,
+-				const struct v4l2_frequency *freq)
+-{
+-	struct front_face *front = fh;
+-	struct poseidon *pd = front->pd;
+-	u32 frequency = freq->frequency;
+-
+-	if (freq->tuner)
+-		return -EINVAL;
+-#ifdef CONFIG_PM
+-	pd->pm_suspend = pm_video_suspend;
+-	pd->pm_resume = pm_video_resume;
+-#endif
+-	return set_frequency(pd, &frequency);
+-}
+-
+-static int vidioc_reqbufs(struct file *file, void *fh,
+-				struct v4l2_requestbuffers *b)
+-{
+-	struct front_face *front = file->private_data;
+-	return videobuf_reqbufs(&front->q, b);
+-}
+-
+-static int vidioc_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
+-{
+-	struct front_face *front = file->private_data;
+-	return videobuf_querybuf(&front->q, b);
+-}
+-
+-static int vidioc_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+-{
+-	struct front_face *front = file->private_data;
+-	return videobuf_qbuf(&front->q, b);
+-}
+-
+-static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+-{
+-	struct front_face *front = file->private_data;
+-	return videobuf_dqbuf(&front->q, b, file->f_flags & O_NONBLOCK);
+-}
+-
+-/* Just stop the URBs, do not free the URBs */
+-static int usb_transfer_stop(struct video_data *video)
+-{
+-	if (video->is_streaming) {
+-		int i;
+-		s32 cmd_status;
+-		struct poseidon *pd = video->pd;
+-
+-		video->is_streaming = 0;
+-		for (i = 0; i < SBUF_NUM; ++i) {
+-			if (video->urb_array[i])
+-				usb_kill_urb(video->urb_array[i]);
+-		}
+-
+-		send_set_req(pd, PLAY_SERVICE, TLG_TUNE_PLAY_SVC_STOP,
+-			       &cmd_status);
+-	}
+-	return 0;
+-}
+-
+-int stop_all_video_stream(struct poseidon *pd)
+-{
+-	struct video_data *video = &pd->video_data;
+-	struct vbi_data *vbi	= &pd->vbi_data;
+-
+-	mutex_lock(&pd->lock);
+-	if (video->is_streaming) {
+-		struct front_face *front = video->front;
+-
+-		/* stop the URBs */
+-		usb_transfer_stop(video);
+-		free_all_urb(video);
+-
+-		/* stop the host side of VIDEO */
+-		videobuf_stop(&front->q);
+-		videobuf_mmap_free(&front->q);
+-
+-		/* stop the host side of VBI */
+-		front = vbi->front;
+-		if (front) {
+-			videobuf_stop(&front->q);
+-			videobuf_mmap_free(&front->q);
+-		}
+-	}
+-	mutex_unlock(&pd->lock);
+-	return 0;
+-}
+-
+-/*
+- * The bubbles can seriously damage the video's quality,
+- * though it occurs in very rare situation.
+- */
+-static void iso_bubble_handler(struct work_struct *w)
+-{
+-	struct video_data *video;
+-	struct poseidon *pd;
+-
+-	video = container_of(w, struct video_data, bubble_work);
+-	pd = video->pd;
+-
+-	mutex_lock(&pd->lock);
+-	usb_transfer_stop(video);
+-	msleep(500);
+-	start_video_stream(pd);
+-	mutex_unlock(&pd->lock);
+-}
+-
+-
+-static int vidioc_streamon(struct file *file, void *fh,
+-				enum v4l2_buf_type type)
+-{
+-	struct front_face *front = fh;
+-
+-	if (unlikely(type != front->type))
+-		return -EINVAL;
+-	return videobuf_streamon(&front->q);
+-}
+-
+-static int vidioc_streamoff(struct file *file, void *fh,
+-				enum v4l2_buf_type type)
+-{
+-	struct front_face *front = file->private_data;
+-
+-	if (unlikely(type != front->type))
+-		return -EINVAL;
+-	return videobuf_streamoff(&front->q);
+-}
+-
+-/* Set the firmware's default values : need altersetting */
+-static int pd_video_checkmode(struct poseidon *pd)
+-{
+-	s32 ret = 0, cmd_status, audiomode;
+-
+-	set_current_state(TASK_INTERRUPTIBLE);
+-	schedule_timeout(HZ/2);
+-
+-	/* choose the altersetting */
+-	ret = usb_set_interface(pd->udev, 0,
+-					(pd->cur_transfer_mode ?
+-					 ISO_3K_BULK_ALTERNATE_IFACE :
+-					 BULK_ALTERNATE_IFACE));
+-	if (ret < 0)
+-		goto error;
+-
+-	/* set default parameters for PAL-D , with the VBI enabled*/
+-	ret = set_tuner_mode(pd, TLG_MODE_ANALOG_TV);
+-	ret |= send_set_req(pd, SGNL_SRC_SEL,
+-				TLG_SIG_SRC_ANTENNA, &cmd_status);
+-	ret |= send_set_req(pd, VIDEO_STD_SEL,
+-				TLG_TUNE_VSTD_PAL_D, &cmd_status);
+-	ret |= send_set_req(pd, VIDEO_STREAM_FMT_SEL,
+-				TLG_TUNER_VID_FORMAT_YUV, &cmd_status);
+-	ret |= send_set_req(pd, VIDEO_ROSOLU_SEL,
+-				TLG_TUNE_VID_RES_720, &cmd_status);
+-	ret |= send_set_req(pd, TUNE_FREQ_SELECT, TUNER_FREQ_MIN, &cmd_status);
+-	ret |= send_set_req(pd, VBI_DATA_SEL, 1, &cmd_status);/* enable vbi */
+-
+-	/* set the audio */
+-	audiomode = get_audio_std(pd->video_data.context.tvnormid);
+-	ret |= send_set_req(pd, TUNER_AUD_ANA_STD, audiomode, &cmd_status);
+-	ret |= send_set_req(pd, TUNER_AUD_MODE,
+-				TLG_TUNE_TVAUDIO_MODE_STEREO, &cmd_status);
+-	ret |= send_set_req(pd, AUDIO_SAMPLE_RATE_SEL,
+-				ATV_AUDIO_RATE_48K, &cmd_status);
+-error:
+-	return ret;
+-}
+-
+-#ifdef CONFIG_PM
+-static int pm_video_suspend(struct poseidon *pd)
+-{
+-	/* stop audio */
+-	pm_alsa_suspend(pd);
+-
+-	/* stop and free all the URBs */
+-	usb_transfer_stop(&pd->video_data);
+-	free_all_urb(&pd->video_data);
+-
+-	/* reset the interface */
+-	usb_set_interface(pd->udev, 0, 0);
+-	msleep(300);
+-	return 0;
+-}
+-
+-static int restore_v4l2_context(struct poseidon *pd,
+-				struct running_context *context)
+-{
+-	struct front_face *front = pd->video_data.front;
+-
+-	pd_video_checkmode(pd);
+-
+-	set_std(pd, context->tvnormid);
+-	vidioc_s_input(NULL, front, context->sig_index);
+-	pd_vidioc_s_tuner(pd, context->audio_idx);
+-	pd_vidioc_s_fmt(pd, &context->pix);
+-	set_frequency(pd, &context->freq);
+-	return 0;
+-}
+-
+-static int pm_video_resume(struct poseidon *pd)
+-{
+-	struct video_data *video = &pd->video_data;
+-
+-	/* resume the video */
+-	/* [1] restore the origin V4L2 parameters */
+-	restore_v4l2_context(pd, &video->context);
+-
+-	/* [2] initiate video copy variables */
+-	if (video->front->curr_frame)
+-		init_copy(video, 0);
+-
+-	/* [3] fire urbs	*/
+-	start_video_stream(pd);
+-
+-	/* resume the audio */
+-	pm_alsa_resume(pd);
+-	return 0;
+-}
+-#endif
+-
+-void set_debug_mode(struct video_device *vfd, int debug_mode)
+-{
+-	vfd->debug = 0;
+-	if (debug_mode & 0x1)
+-		vfd->debug = V4L2_DEBUG_IOCTL;
+-	if (debug_mode & 0x2)
+-		vfd->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
+-}
+-
+-static void init_video_context(struct running_context *context)
+-{
+-	context->sig_index	= 0;
+-	context->audio_idx	= 1; /* stereo */
+-	context->tvnormid  	= V4L2_STD_PAL_D;
+-	context->pix = (struct v4l2_pix_format) {
+-				.width		= 720,
+-				.height		= 576,
+-				.pixelformat	= V4L2_PIX_FMT_YUYV,
+-				.field		= V4L2_FIELD_INTERLACED,
+-				.bytesperline	= 720 * 2,
+-				.sizeimage	= 720 * 576 * 2,
+-				.colorspace	= V4L2_COLORSPACE_SMPTE170M,
+-			};
+-}
+-
+-static int pd_video_open(struct file *file)
+-{
+-	struct video_device *vfd = video_devdata(file);
+-	struct poseidon *pd = video_get_drvdata(vfd);
+-	struct front_face *front = NULL;
+-	int ret = -ENOMEM;
+-
+-	mutex_lock(&pd->lock);
+-	usb_autopm_get_interface(pd->interface);
+-
+-	if (pd->state && !(pd->state & POSEIDON_STATE_ANALOG)) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
+-	front = kzalloc(sizeof(struct front_face), GFP_KERNEL);
+-	if (!front)
+-		goto out;
+-	if (vfd->vfl_type == VFL_TYPE_GRABBER) {
+-		pd->cur_transfer_mode	= usb_transfer_mode;/* bulk or iso */
+-		init_video_context(&pd->video_data.context);
+-
+-		ret = pd_video_checkmode(pd);
+-		if (ret < 0) {
+-			kfree(front);
+-			ret = -1;
+-			goto out;
+-		}
+-
+-		front->type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-		pd->video_data.users++;
+-		set_debug_mode(vfd, debug_mode);
+-
+-		videobuf_queue_vmalloc_init(&front->q, &pd_video_qops,
+-				NULL, &front->queue_lock,
+-				V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-				V4L2_FIELD_INTERLACED,/* video is interlacd */
+-				sizeof(struct videobuf_buffer),/*it's enough*/
+-				front, NULL);
+-	} else {
+-		front->type	= V4L2_BUF_TYPE_VBI_CAPTURE;
+-		pd->vbi_data.front = front;
+-		pd->vbi_data.users++;
+-
+-		videobuf_queue_vmalloc_init(&front->q, &pd_video_qops,
+-				NULL, &front->queue_lock,
+-				V4L2_BUF_TYPE_VBI_CAPTURE,
+-				V4L2_FIELD_NONE, /* vbi is NONE mode */
+-				sizeof(struct videobuf_buffer),
+-				front, NULL);
+-	}
+-
+-	pd->state |= POSEIDON_STATE_ANALOG;
+-	front->pd = pd;
+-	front->curr_frame = NULL;
+-	INIT_LIST_HEAD(&front->active);
+-	spin_lock_init(&front->queue_lock);
+-
+-	file->private_data = front;
+-	kref_get(&pd->kref);
+-
+-	mutex_unlock(&pd->lock);
+-	return 0;
+-out:
+-	usb_autopm_put_interface(pd->interface);
+-	mutex_unlock(&pd->lock);
+-	return ret;
+-}
+-
+-static int pd_video_release(struct file *file)
+-{
+-	struct front_face *front = file->private_data;
+-	struct poseidon *pd = front->pd;
+-	s32 cmd_status = 0;
+-
+-	mutex_lock(&pd->lock);
+-
+-	if (front->type	== V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		/* stop the device, and free the URBs */
+-		usb_transfer_stop(&pd->video_data);
+-		free_all_urb(&pd->video_data);
+-
+-		/* stop the firmware */
+-		send_set_req(pd, PLAY_SERVICE, TLG_TUNE_PLAY_SVC_STOP,
+-			       &cmd_status);
+-
+-		pd->file_for_stream = NULL;
+-		pd->video_data.users--;
+-	} else if (front->type	== V4L2_BUF_TYPE_VBI_CAPTURE) {
+-		pd->vbi_data.front = NULL;
+-		pd->vbi_data.users--;
+-	}
+-	if (!pd->vbi_data.users && !pd->video_data.users)
+-		pd->state &= ~POSEIDON_STATE_ANALOG;
+-	videobuf_stop(&front->q);
+-	videobuf_mmap_free(&front->q);
+-
+-	usb_autopm_put_interface(pd->interface);
+-	mutex_unlock(&pd->lock);
+-
+-	kfree(front);
+-	file->private_data = NULL;
+-	kref_put(&pd->kref, poseidon_delete);
+-	return 0;
+-}
+-
+-static int pd_video_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	struct front_face *front = file->private_data;
+-	return  videobuf_mmap_mapper(&front->q, vma);
+-}
+-
+-static unsigned int pd_video_poll(struct file *file, poll_table *table)
+-{
+-	struct front_face *front = file->private_data;
+-	return videobuf_poll_stream(file, &front->q, table);
+-}
+-
+-static ssize_t pd_video_read(struct file *file, char __user *buffer,
+-			size_t count, loff_t *ppos)
+-{
+-	struct front_face *front = file->private_data;
+-	return videobuf_read_stream(&front->q, buffer, count, ppos,
+-				0, file->f_flags & O_NONBLOCK);
+-}
+-
+-/* This struct works for both VIDEO and VBI */
+-static const struct v4l2_file_operations pd_video_fops = {
+-	.owner		= THIS_MODULE,
+-	.open		= pd_video_open,
+-	.release	= pd_video_release,
+-	.read		= pd_video_read,
+-	.poll		= pd_video_poll,
+-	.mmap		= pd_video_mmap,
+-	.ioctl		= video_ioctl2, /* maybe changed in future */
+-};
+-
+-static const struct v4l2_ioctl_ops pd_video_ioctl_ops = {
+-	.vidioc_querycap	= vidioc_querycap,
+-
+-	/* Video format */
+-	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt,
+-	.vidioc_enum_fmt_vid_cap	= vidioc_enum_fmt,
+-	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt,
+-	.vidioc_g_fmt_vbi_cap	= vidioc_g_fmt_vbi, /* VBI */
+-
+-	/* Input */
+-	.vidioc_g_input		= vidioc_g_input,
+-	.vidioc_s_input		= vidioc_s_input,
+-	.vidioc_enum_input	= vidioc_enum_input,
+-
+-	/* Audio ioctls */
+-	.vidioc_enumaudio	= vidioc_enumaudio,
+-	.vidioc_g_audio		= vidioc_g_audio,
+-	.vidioc_s_audio		= vidioc_s_audio,
+-
+-	/* Tuner ioctls */
+-	.vidioc_g_tuner		= vidioc_g_tuner,
+-	.vidioc_s_tuner		= vidioc_s_tuner,
+-	.vidioc_g_std		= vidioc_g_std,
+-	.vidioc_s_std		= vidioc_s_std,
+-	.vidioc_g_frequency	= vidioc_g_frequency,
+-	.vidioc_s_frequency	= vidioc_s_frequency,
+-
+-	/* Buffer handlers */
+-	.vidioc_reqbufs		= vidioc_reqbufs,
+-	.vidioc_querybuf	= vidioc_querybuf,
+-	.vidioc_qbuf		= vidioc_qbuf,
+-	.vidioc_dqbuf		= vidioc_dqbuf,
+-
+-	/* Stream on/off */
+-	.vidioc_streamon	= vidioc_streamon,
+-	.vidioc_streamoff	= vidioc_streamoff,
+-};
+-
+-static struct video_device pd_video_template = {
+-	.name = "Telegent-Video",
+-	.fops = &pd_video_fops,
+-	.minor = -1,
+-	.release = video_device_release_empty,
+-	.tvnorms = V4L2_STD_ALL,
+-	.ioctl_ops = &pd_video_ioctl_ops,
+-};
+-
+-static const struct v4l2_ctrl_ops tlg_ctrl_ops = {
+-	.s_ctrl = tlg_s_ctrl,
+-};
+-
+-void pd_video_exit(struct poseidon *pd)
+-{
+-	struct video_data *video = &pd->video_data;
+-	struct vbi_data *vbi = &pd->vbi_data;
+-
+-	video_unregister_device(&video->v_dev);
+-	video_unregister_device(&vbi->v_dev);
+-	v4l2_ctrl_handler_free(&video->ctrl_handler);
+-	log();
+-}
+-
+-int pd_video_init(struct poseidon *pd)
+-{
+-	struct video_data *video = &pd->video_data;
+-	struct vbi_data *vbi	= &pd->vbi_data;
+-	struct v4l2_ctrl_handler *hdl = &video->ctrl_handler;
+-	u32 freq = TUNER_FREQ_MIN / 62500;
+-	int ret = -ENOMEM;
+-
+-	v4l2_ctrl_handler_init(hdl, 4);
+-	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_BRIGHTNESS,
+-			0, 10000, 1, 100);
+-	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_CONTRAST,
+-			0, 10000, 1, 100);
+-	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_HUE,
+-			0, 10000, 1, 100);
+-	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_SATURATION,
+-			0, 10000, 1, 100);
+-	if (hdl->error) {
+-		v4l2_ctrl_handler_free(hdl);
+-		return hdl->error;
+-	}
+-	set_frequency(pd, &freq);
+-	video->v_dev = pd_video_template;
+-	video->v_dev.v4l2_dev = &pd->v4l2_dev;
+-	video->v_dev.ctrl_handler = hdl;
+-	video_set_drvdata(&video->v_dev, pd);
+-
+-	ret = video_register_device(&video->v_dev, VFL_TYPE_GRABBER, -1);
+-	if (ret != 0)
+-		goto out;
+-
+-	/* VBI uses the same template as video */
+-	vbi->v_dev = pd_video_template;
+-	vbi->v_dev.v4l2_dev = &pd->v4l2_dev;
+-	vbi->v_dev.ctrl_handler = hdl;
+-	video_set_drvdata(&vbi->v_dev, pd);
+-	ret = video_register_device(&vbi->v_dev, VFL_TYPE_VBI, -1);
+-	if (ret != 0)
+-		goto out;
+-	log("register VIDEO/VBI devices");
+-	return 0;
+-out:
+-	log("VIDEO/VBI devices register failed, : %d", ret);
+-	pd_video_exit(pd);
+-	return ret;
+-}
+diff --git a/drivers/staging/media/tlg2300/vendorcmds.h b/drivers/staging/media/tlg2300/vendorcmds.h
+deleted file mode 100644
+index ba6f4ae..0000000
+--- a/drivers/staging/media/tlg2300/vendorcmds.h
++++ /dev/null
+@@ -1,243 +0,0 @@
+-#ifndef VENDOR_CMD_H_
+-#define VENDOR_CMD_H_
+-
+-#define BULK_ALTERNATE_IFACE		(2)
+-#define ISO_3K_BULK_ALTERNATE_IFACE     (1)
+-#define REQ_SET_CMD			(0X00)
+-#define REQ_GET_CMD			(0X80)
+-
+-enum tlg__analog_audio_standard {
+-	TLG_TUNE_ASTD_NONE	= 0x00000000,
+-	TLG_TUNE_ASTD_A2	= 0x00000001,
+-	TLG_TUNE_ASTD_NICAM	= 0x00000002,
+-	TLG_TUNE_ASTD_EIAJ	= 0x00000004,
+-	TLG_TUNE_ASTD_BTSC	= 0x00000008,
+-	TLG_TUNE_ASTD_FM_US	= 0x00000010,
+-	TLG_TUNE_ASTD_FM_EUR	= 0x00000020,
+-	TLG_TUNE_ASTD_ALL	= 0x0000003f
+-};
+-
+-/*
+- * identifiers for Custom Parameter messages.
+- * @typedef cmd_custom_param_id_t
+- */
+-enum cmd_custom_param_id {
+-	CUST_PARM_ID_NONE		= 0x00,
+-	CUST_PARM_ID_BRIGHTNESS_CTRL	= 0x01,
+-	CUST_PARM_ID_CONTRAST_CTRL	= 0x02,
+-	CUST_PARM_ID_HUE_CTRL		= 0x03,
+-	CUST_PARM_ID_SATURATION_CTRL	  = 0x04,
+-	CUST_PARM_ID_AUDIO_SNR_THRESHOLD  = 0x10,
+-	CUST_PARM_ID_AUDIO_AGC_THRESHOLD  = 0x11,
+-	CUST_PARM_ID_MAX
+-};
+-
+-struct  tuner_custom_parameter_s {
+-	uint16_t	param_id;	 /*  Parameter identifier  */
+-	uint16_t	param_value;	 /*  Parameter value	   */
+-};
+-
+-struct  tuner_ber_rate_s {
+-	uint32_t	ber_rate;  /*  BER sample rate in seconds   */
+-};
+-
+-struct tuner_atv_sig_stat_s {
+-	uint32_t	sig_present;
+-	uint32_t	sig_locked;
+-	uint32_t	sig_lock_busy;
+-	uint32_t	sig_strength;	   /*  milliDb	  */
+-	uint32_t	tv_audio_chan;	  /*  mono/stereo/sap*/
+-	uint32_t 	mvision_stat;	   /*  macrovision status */
+-};
+-
+-struct tuner_dtv_sig_stat_s {
+-	uint32_t sig_present;   /*  Boolean*/
+-	uint32_t sig_locked;	/*  Boolean */
+-	uint32_t sig_lock_busy; /*  Boolean	(Can this time-out?) */
+-	uint32_t sig_strength;  /*  milliDb*/
+-};
+-
+-struct tuner_fm_sig_stat_s {
+-	uint32_t sig_present;	/* Boolean*/
+-	uint32_t sig_locked;	 /* Boolean */
+-	uint32_t sig_lock_busy;  /* Boolean */
+-	uint32_t sig_stereo_mono;/* TBD*/
+-	uint32_t sig_strength;   /* milliDb*/
+-};
+-
+-enum _tag_tlg_tune_srv_cmd {
+-	TLG_TUNE_PLAY_SVC_START = 1,
+-	TLG_TUNE_PLAY_SVC_STOP
+-};
+-
+-enum  _tag_tune_atv_audio_mode_caps {
+-	TLG_TUNE_TVAUDIO_MODE_MONO	= 0x00000001,
+-	TLG_TUNE_TVAUDIO_MODE_STEREO	= 0x00000002,
+-	TLG_TUNE_TVAUDIO_MODE_LANG_A	= 0x00000010,/* Primary language*/
+-	TLG_TUNE_TVAUDIO_MODE_LANG_B	= 0x00000020,/* 2nd avail language*/
+-	TLG_TUNE_TVAUDIO_MODE_LANG_C	= 0x00000040
+-};
+-
+-
+-enum   _tag_tuner_atv_audio_rates {
+-	ATV_AUDIO_RATE_NONE	= 0x00,/* Audio not supported*/
+-	ATV_AUDIO_RATE_32K	= 0x01,/* Audio rate = 32 KHz*/
+-	ATV_AUDIO_RATE_48K	= 0x02, /* Audio rate = 48 KHz*/
+-	ATV_AUDIO_RATE_31_25K	= 0x04 /* Audio rate = 31.25KHz */
+-};
+-
+-enum  _tag_tune_atv_vid_res_caps {
+-	TLG_TUNE_VID_RES_NONE	= 0x00000000,
+-	TLG_TUNE_VID_RES_720	= 0x00000001,
+-	TLG_TUNE_VID_RES_704	= 0x00000002,
+-	TLG_TUNE_VID_RES_360	= 0x00000004
+-};
+-
+-enum _tag_tuner_analog_video_format {
+-	TLG_TUNER_VID_FORMAT_YUV	= 0x00000001,
+-	TLG_TUNER_VID_FORMAT_YCRCB	= 0x00000002,
+-	TLG_TUNER_VID_FORMAT_RGB_565	= 0x00000004,
+-};
+-
+-enum  tlg_ext_audio_support {
+-	TLG_EXT_AUDIO_NONE 	= 0x00,/*  No external audio input supported */
+-	TLG_EXT_AUDIO_LR	= 0x01/*  LR external audio inputs supported*/
+-};
+-
+-enum {
+-	TLG_MODE_NONE			= 0x00, /* No Mode specified*/
+-	TLG_MODE_ANALOG_TV		= 0x01, /* Analog Television mode*/
+-	TLG_MODE_ANALOG_TV_UNCOMP	= 0x01, /* Analog Television mode*/
+-	TLG_MODE_ANALOG_TV_COMP  	= 0x02, /* Analog TV mode (compressed)*/
+-	TLG_MODE_FM_RADIO		= 0x04, /* FM Radio mode*/
+-	TLG_MODE_DVB_T			= 0x08, /* Digital TV (DVB-T)*/
+-};
+-
+-enum  tlg_signal_sources_t {
+-	TLG_SIG_SRC_NONE	= 0x00,/* Signal source not specified */
+-	TLG_SIG_SRC_ANTENNA	= 0x01,/* Signal src is: Antenna */
+-	TLG_SIG_SRC_CABLE	= 0x02,/* Signal src is: Coax Cable*/
+-	TLG_SIG_SRC_SVIDEO	= 0x04,/* Signal src is: S_VIDEO   */
+-	TLG_SIG_SRC_COMPOSITE   = 0x08 /* Signal src is: Composite Video */
+-};
+-
+-enum tuner_analog_video_standard {
+-	TLG_TUNE_VSTD_NONE	= 0x00000000,
+-	TLG_TUNE_VSTD_NTSC_M	= 0x00000001,
+-	TLG_TUNE_VSTD_NTSC_M_J	= 0x00000002,/* Japan   */
+-	TLG_TUNE_VSTD_PAL_B	= 0x00000010,
+-	TLG_TUNE_VSTD_PAL_D	= 0x00000020,
+-	TLG_TUNE_VSTD_PAL_G	= 0x00000040,
+-	TLG_TUNE_VSTD_PAL_H	= 0x00000080,
+-	TLG_TUNE_VSTD_PAL_I	= 0x00000100,
+-	TLG_TUNE_VSTD_PAL_M	= 0x00000200,
+-	TLG_TUNE_VSTD_PAL_N	= 0x00000400,
+-	TLG_TUNE_VSTD_SECAM_B	= 0x00001000,
+-	TLG_TUNE_VSTD_SECAM_D	= 0x00002000,
+-	TLG_TUNE_VSTD_SECAM_G	= 0x00004000,
+-	TLG_TUNE_VSTD_SECAM_H	= 0x00008000,
+-	TLG_TUNE_VSTD_SECAM_K	= 0x00010000,
+-	TLG_TUNE_VSTD_SECAM_K1	= 0x00020000,
+-	TLG_TUNE_VSTD_SECAM_L	= 0x00040000,
+-	TLG_TUNE_VSTD_SECAM_L1	= 0x00080000,
+-	TLG_TUNE_VSTD_PAL_N_COMBO = 0x00100000
+-};
+-
+-enum tlg_mode_caps {
+-	TLG_MODE_CAPS_NONE		= 0x00,  /*  No Mode specified	*/
+-	TLG_MODE_CAPS_ANALOG_TV_UNCOMP  = 0x01,  /*  Analog TV mode     */
+-	TLG_MODE_CAPS_ANALOG_TV_COMP	= 0x02,  /*  Analog TV (compressed)*/
+-	TLG_MODE_CAPS_FM_RADIO		= 0x04,  /*  FM Radio mode	*/
+-	TLG_MODE_CAPS_DVB_T		= 0x08,  /*  Digital TV (DVB-T)	*/
+-};
+-
+-enum poseidon_vendor_cmds {
+-	LAST_CMD_STAT		= 0x00,
+-	GET_CHIP_ID		= 0x01,
+-	GET_FW_ID		= 0x02,
+-	PRODUCT_CAPS		= 0x03,
+-
+-	TUNE_MODE_CAP_ATV	= 0x10,
+-	TUNE_MODE_CAP_ATVCOMP	= 0X10,
+-	TUNE_MODE_CAP_DVBT	= 0x10,
+-	TUNE_MODE_CAP_FM	= 0x10,
+-	TUNE_MODE_SELECT	= 0x11,
+-	TUNE_FREQ_SELECT	= 0x12,
+-	SGNL_SRC_SEL		= 0x13,
+-
+-	VIDEO_STD_SEL		= 0x14,
+-	VIDEO_STREAM_FMT_SEL	= 0x15,
+-	VIDEO_ROSOLU_AVAIL	= 0x16,
+-	VIDEO_ROSOLU_SEL	= 0x17,
+-	VIDEO_CONT_PROTECT	= 0x20,
+-
+-	VCR_TIMING_MODSEL	= 0x21,
+-	EXT_AUDIO_CAP		= 0x22,
+-	EXT_AUDIO_SEL		= 0x23,
+-	TEST_PATTERN_SEL	= 0x24,
+-	VBI_DATA_SEL		= 0x25,
+-	AUDIO_SAMPLE_RATE_CAP   = 0x28,
+-	AUDIO_SAMPLE_RATE_SEL   = 0x29,
+-	TUNER_AUD_MODE		= 0x2a,
+-	TUNER_AUD_MODE_AVAIL	= 0x2b,
+-	TUNER_AUD_ANA_STD	= 0x2c,
+-	TUNER_CUSTOM_PARAMETER	= 0x2f,
+-
+-	DVBT_TUNE_MODE_SEL	= 0x30,
+-	DVBT_BANDW_CAP		= 0x31,
+-	DVBT_BANDW_SEL		= 0x32,
+-	DVBT_GUARD_INTERV_CAP   = 0x33,
+-	DVBT_GUARD_INTERV_SEL   = 0x34,
+-	DVBT_MODULATION_CAP	= 0x35,
+-	DVBT_MODULATION_SEL	= 0x36,
+-	DVBT_INNER_FEC_RATE_CAP = 0x37,
+-	DVBT_INNER_FEC_RATE_SEL = 0x38,
+-	DVBT_TRANS_MODE_CAP	= 0x39,
+-	DVBT_TRANS_MODE_SEL	= 0x3a,
+-	DVBT_SEARCH_RANG	= 0x3c,
+-
+-	TUNER_SETUP_ANALOG	= 0x40,
+-	TUNER_SETUP_DIGITAL	= 0x41,
+-	TUNER_SETUP_FM_RADIO	= 0x42,
+-	TAKE_REQUEST		= 0x43, /* Take effect of the command */
+-	PLAY_SERVICE		= 0x44, /* Play start or Play stop */
+-	TUNER_STATUS		= 0x45,
+-	TUNE_PROP_DVBT		= 0x46,
+-	ERR_RATE_STATS		= 0x47,
+-	TUNER_BER_RATE		= 0x48,
+-
+-	SCAN_CAPS		= 0x50,
+-	SCAN_SETUP		= 0x51,
+-	SCAN_SERVICE		= 0x52,
+-	SCAN_STATS		= 0x53,
+-
+-	PID_SET			= 0x58,
+-	PID_UNSET		= 0x59,
+-	PID_LIST		= 0x5a,
+-
+-	IRD_CAP			= 0x60,
+-	IRD_MODE_SEL		= 0x61,
+-	IRD_SETUP		= 0x62,
+-
+-	PTM_MODE_CAP		= 0x70,
+-	PTM_MODE_SEL		= 0x71,
+-	PTM_SERVICE		= 0x72,
+-	TUNER_REG_SCRIPT	= 0x73,
+-	CMD_CHIP_RST		= 0x74,
+-};
+-
+-enum tlg_bw {
+-	TLG_BW_5 = 5,
+-	TLG_BW_6 = 6,
+-	TLG_BW_7 = 7,
+-	TLG_BW_8 = 8,
+-	TLG_BW_12 = 12,
+-	TLG_BW_15 = 15
+-};
+-
+-struct cmd_firmware_vers_s {
+-	uint8_t	 fw_rev_major;
+-	uint8_t	 fw_rev_minor;
+-	uint16_t fw_patch;
+-};
+-#endif /* VENDOR_CMD_H_ */
+-- 
+2.1.3
+
