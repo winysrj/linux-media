@@ -1,153 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37442 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751983AbaLCLOw (ORCPT
+Received: from mail-yh0-f42.google.com ([209.85.213.42]:41077 "EHLO
+	mail-yh0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751165AbaLXLhP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Dec 2014 06:14:52 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Wed, 24 Dec 2014 06:37:15 -0500
+Received: by mail-yh0-f42.google.com with SMTP id v1so3967143yhn.1
+        for <linux-media@vger.kernel.org>; Wed, 24 Dec 2014 03:37:14 -0800 (PST)
+From: Ismael Luceno <ismael@iodev.co.uk>
 To: linux-media@vger.kernel.org
-Cc: aviv.d.greenberg@intel.com
-Subject: [REVIEW PATCH 2/2] v4l: Add packed Bayer raw10 pixel formats
-Date: Wed,  3 Dec 2014 13:14:09 +0200
-Message-Id: <1417605249-5322-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1417605249-5322-1-git-send-email-sakari.ailus@iki.fi>
-References: <1417605249-5322-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+	Ismael Luceno <ismael@iodev.co.uk>
+Subject: [PATCH 1/3] solo6x10: s/unsigned char/u8/
+Date: Wed, 24 Dec 2014 08:35:59 -0300
+Message-Id: <1419420961-7819-1-git-send-email-ismael@iodev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Aviv Greenberg <aviv.d.greenberg@intel.com>
-
-These formats are just like 10-bit raw bayer formats that exist already, but
-the pixels are not padded to byte boundaries. Instead, the eight high order
-bits of four consecutive pixels are stored in four bytes, followed by a byte
-of two low order bits of each of the four pixels.
-
-Signed-off-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
 ---
- .../DocBook/media/v4l/pixfmt-srggb10p.xml          | 83 ++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
- include/uapi/linux/videodev2.h                     |  5 ++
- 3 files changed, 89 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
+ drivers/media/pci/solo6x10/solo6x10-enc.c      |  6 +++---
+ drivers/media/pci/solo6x10/solo6x10-g723.c     |  4 ++--
+ drivers/media/pci/solo6x10/solo6x10-jpeg.h     |  4 ++--
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 18 +++++++++---------
+ drivers/media/pci/solo6x10/solo6x10.h          |  4 ++--
+ 5 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
-new file mode 100644
-index 0000000..3e88d8d
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
-@@ -0,0 +1,83 @@
-+    <refentry id="pixfmt-srggb10p">
-+      <refmeta>
-+	<refentrytitle>V4L2_PIX_FMT_SRGGB10P ('pRAA'),
-+	 V4L2_PIX_FMT_SGRBG10P ('pgAA'),
-+	 V4L2_PIX_FMT_SGBRG10P ('pGAA'),
-+	 V4L2_PIX_FMT_SBGGR10P ('pBAA'),
-+	 </refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+	<refname id="V4L2-PIX-FMT-SRGGB10P"><constant>V4L2_PIX_FMT_SRGGB10P</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGRBG10P"><constant>V4L2_PIX_FMT_SGRBG10P</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGBRG10P"><constant>V4L2_PIX_FMT_SGBRG10P</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SBGGR10P"><constant>V4L2_PIX_FMT_SBGGR10P</constant></refname>
-+	<refpurpose>10-bit packed Bayer formats</refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+	<para>The following four pixel formats are packed raw sRGB /
-+	Bayer formats with 10 bits per colour. Every four consequtive
-+	colour components are packed into 5 bytes such that each of
-+	the first 4 bytes contain their 8 high bits, and the fifth
-+	byte contains 4 groups of 2 their low bits. Bytes are stored
-+	in memory in little endian order.</para>
-+
-+	<para>Each n-pixel row contains n/2 green samples and n/2 blue
-+	or red samples, with alternating green-red and green-blue
-+	rows. They are conventionally described as GRGR... BGBG...,
-+	RGRG... GBGB..., etc. Below is an example of one of these
-+	formats</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_SBGGR10P</constant> 4 &times; 4
-+      pixel image</title>
-+
-+      <formalpara>
-+	<title>Byte Order.</title>
-+	<para>Each cell is one byte.
-+	  <informaltable frame="none">
-+	    <tgroup cols="5" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;0:</entry>
-+		  <entry>B<subscript>00high</subscript></entry>
-+		  <entry>G<subscript>01high</subscript></entry>
-+		  <entry>B<subscript>02high</subscript></entry>
-+		  <entry>G<subscript>03high</subscript></entry>
-+		  <entry>B+G<subscript>0-3low</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;5:</entry>
-+		  <entry>G<subscript>04high</subscript></entry>
-+		  <entry>R<subscript>05high</subscript></entry>
-+		  <entry>G<subscript>06high</subscript></entry>
-+		  <entry>R<subscript>07high</subscript></entry>
-+		  <entry>G+R<subscript>4-7low</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;10:</entry>
-+		  <entry>B<subscript>08high</subscript></entry>
-+		  <entry>G<subscript>09high</subscript></entry>
-+		  <entry>B<subscript>10high</subscript></entry>
-+		  <entry>G<subscript>11high</subscript></entry>
-+		  <entry>B+G<subscript>8-11low</subscript></entry>
-+		</row>
-+		<row>
-+          <entry>start&nbsp;+&nbsp;15:</entry>
-+		  <entry>G<subscript>12high</subscript></entry>
-+		  <entry>R<subscript>13high</subscript></entry>
-+		  <entry>G<subscript>14high</subscript></entry>
-+		  <entry>R<subscript>15high</subscript></entry>
-+		  <entry>G+R<subscript>12-15low</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index df5b23d..5a83d9c 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -716,6 +716,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
-     &sub-srggb10alaw8;
-     &sub-srggb10dpcm8;
-     &sub-srggb12;
-+    &sub-srggb10p;
-   </section>
+diff --git a/drivers/media/pci/solo6x10/solo6x10-enc.c b/drivers/media/pci/solo6x10/solo6x10-enc.c
+index d19c0ae..d28211b 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-enc.c
++++ b/drivers/media/pci/solo6x10/solo6x10-enc.c
+@@ -136,11 +136,11 @@ static void solo_capture_config(struct solo_dev *solo_dev)
+ int solo_osd_print(struct solo_enc_dev *solo_enc)
+ {
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+-	unsigned char *str = solo_enc->osd_text;
++	u8 *str = solo_enc->osd_text;
+ 	u8 *buf = solo_enc->osd_buf;
+ 	u32 reg;
+ 	const struct font_desc *vga = find_font("VGA8x16");
+-	const unsigned char *vga_data;
++	const u8 *vga_data;
+ 	int i, j;
  
-   <section id="yuv-formats">
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index e9806c6..faba23a 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -402,6 +402,11 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
- #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
- #define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
-+	/* 10bit raw bayer packed, 5 bytes for every 4 pixels */
-+#define V4L2_PIX_FMT_SBGGR10P v4l2_fourcc('p', 'B', 'A', 'A')
-+#define V4L2_PIX_FMT_SGBRG10P v4l2_fourcc('p', 'G', 'A', 'A')
-+#define V4L2_PIX_FMT_SGRBG10P v4l2_fourcc('p', 'g', 'A', 'A')
-+#define V4L2_PIX_FMT_SRGGB10P v4l2_fourcc('p', 'R', 'A', 'A')
- 	/*
- 	 * 10bit raw bayer, expanded to 16 bits
- 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+ 	if (WARN_ON_ONCE(!vga))
+@@ -154,7 +154,7 @@ int solo_osd_print(struct solo_enc_dev *solo_enc)
+ 	}
+ 
+ 	memset(buf, 0, SOLO_OSD_WRITE_SIZE);
+-	vga_data = (const unsigned char *)vga->data;
++	vga_data = (const u8 *)vga->data;
+ 
+ 	for (i = 0; *str; i++, str++) {
+ 		for (j = 0; j < 16; j++) {
+diff --git a/drivers/media/pci/solo6x10/solo6x10-g723.c b/drivers/media/pci/solo6x10/solo6x10-g723.c
+index c7141f2..7ddc767 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-g723.c
++++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
+@@ -56,8 +56,8 @@
+ struct solo_snd_pcm {
+ 	int				on;
+ 	spinlock_t			lock;
+-	struct solo_dev		*solo_dev;
+-	unsigned char			*g723_buf;
++	struct solo_dev			*solo_dev;
++	u8				*g723_buf;
+ 	dma_addr_t			g723_dma;
+ };
+ 
+diff --git a/drivers/media/pci/solo6x10/solo6x10-jpeg.h b/drivers/media/pci/solo6x10/solo6x10-jpeg.h
+index 1c66a46..3c611bd 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-jpeg.h
++++ b/drivers/media/pci/solo6x10/solo6x10-jpeg.h
+@@ -21,7 +21,7 @@
+ #ifndef __SOLO6X10_JPEG_H
+ #define __SOLO6X10_JPEG_H
+ 
+-static const unsigned char jpeg_header[] = {
++static const u8 jpeg_header[] = {
+ 	0xff, 0xd8, 0xff, 0xfe, 0x00, 0x0d, 0x42, 0x6c,
+ 	0x75, 0x65, 0x63, 0x68, 0x65, 0x72, 0x72, 0x79,
+ 	0x20, 0xff, 0xdb, 0x00, 0x43, 0x00, 0x20, 0x16,
+@@ -106,7 +106,7 @@ static const unsigned char jpeg_header[] = {
+ /* This is the byte marker for the start of the DQT */
+ #define DQT_START	17
+ #define DQT_LEN		138
+-static const unsigned char jpeg_dqt[4][DQT_LEN] = {
++static const u8 jpeg_dqt[4][DQT_LEN] = {
+ 	{
+ 		0xff, 0xdb, 0x00, 0x43, 0x00,
+ 		0x08, 0x06, 0x06, 0x07, 0x06, 0x05, 0x08, 0x07,
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+index 6e933d3..e752140 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+@@ -38,28 +38,28 @@
+ #define DMA_ALIGN		4096
+ 
+ /* 6010 M4V */
+-static unsigned char vop_6010_ntsc_d1[] = {
++static u8 vop_6010_ntsc_d1[] = {
+ 	0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x20,
+ 	0x02, 0x48, 0x1d, 0xc0, 0x00, 0x40, 0x00, 0x40,
+ 	0x00, 0x40, 0x00, 0x80, 0x00, 0x97, 0x53, 0x04,
+ 	0x1f, 0x4c, 0x58, 0x10, 0xf0, 0x71, 0x18, 0x3f,
+ };
+ 
+-static unsigned char vop_6010_ntsc_cif[] = {
++static u8 vop_6010_ntsc_cif[] = {
+ 	0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x20,
+ 	0x02, 0x48, 0x1d, 0xc0, 0x00, 0x40, 0x00, 0x40,
+ 	0x00, 0x40, 0x00, 0x80, 0x00, 0x97, 0x53, 0x04,
+ 	0x1f, 0x4c, 0x2c, 0x10, 0x78, 0x51, 0x18, 0x3f,
+ };
+ 
+-static unsigned char vop_6010_pal_d1[] = {
++static u8 vop_6010_pal_d1[] = {
+ 	0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x20,
+ 	0x02, 0x48, 0x15, 0xc0, 0x00, 0x40, 0x00, 0x40,
+ 	0x00, 0x40, 0x00, 0x80, 0x00, 0x97, 0x53, 0x04,
+ 	0x1f, 0x4c, 0x58, 0x11, 0x20, 0x71, 0x18, 0x3f,
+ };
+ 
+-static unsigned char vop_6010_pal_cif[] = {
++static u8 vop_6010_pal_cif[] = {
+ 	0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x20,
+ 	0x02, 0x48, 0x15, 0xc0, 0x00, 0x40, 0x00, 0x40,
+ 	0x00, 0x40, 0x00, 0x80, 0x00, 0x97, 0x53, 0x04,
+@@ -67,25 +67,25 @@ static unsigned char vop_6010_pal_cif[] = {
+ };
+ 
+ /* 6110 h.264 */
+-static unsigned char vop_6110_ntsc_d1[] = {
++static u8 vop_6110_ntsc_d1[] = {
+ 	0x00, 0x00, 0x00, 0x01, 0x67, 0x42, 0x00, 0x1e,
+ 	0x9a, 0x74, 0x05, 0x81, 0xec, 0x80, 0x00, 0x00,
+ 	0x00, 0x01, 0x68, 0xce, 0x32, 0x28, 0x00, 0x00,
+ };
+ 
+-static unsigned char vop_6110_ntsc_cif[] = {
++static u8 vop_6110_ntsc_cif[] = {
+ 	0x00, 0x00, 0x00, 0x01, 0x67, 0x42, 0x00, 0x1e,
+ 	0x9a, 0x74, 0x0b, 0x0f, 0xc8, 0x00, 0x00, 0x00,
+ 	0x01, 0x68, 0xce, 0x32, 0x28, 0x00, 0x00, 0x00,
+ };
+ 
+-static unsigned char vop_6110_pal_d1[] = {
++static u8 vop_6110_pal_d1[] = {
+ 	0x00, 0x00, 0x00, 0x01, 0x67, 0x42, 0x00, 0x1e,
+ 	0x9a, 0x74, 0x05, 0x80, 0x93, 0x20, 0x00, 0x00,
+ 	0x00, 0x01, 0x68, 0xce, 0x32, 0x28, 0x00, 0x00,
+ };
+ 
+-static unsigned char vop_6110_pal_cif[] = {
++static u8 vop_6110_pal_cif[] = {
+ 	0x00, 0x00, 0x00, 0x01, 0x67, 0x42, 0x00, 0x1e,
+ 	0x9a, 0x74, 0x0b, 0x04, 0xb2, 0x00, 0x00, 0x00,
+ 	0x01, 0x68, 0xce, 0x32, 0x28, 0x00, 0x00, 0x00,
+@@ -149,7 +149,7 @@ void solo_update_mode(struct solo_enc_dev *solo_enc)
+ {
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+ 	int vop_len;
+-	unsigned char *vop;
++	u8 *vop;
+ 
+ 	solo_enc->interlaced = (solo_enc->mode & 0x08) ? 1 : 0;
+ 	solo_enc->bw_weight = max(solo_dev->fps / solo_enc->interval, 1);
+diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
+index bd8edfa..e2f1759 100644
+--- a/drivers/media/pci/solo6x10/solo6x10.h
++++ b/drivers/media/pci/solo6x10/solo6x10.h
+@@ -170,9 +170,9 @@ struct solo_enc_dev {
+ 					__aligned(4);
+ 
+ 	/* VOP stuff */
+-	unsigned char		vop[64];
++	u8			vop[64];
+ 	int			vop_len;
+-	unsigned char		jpeg_header[1024];
++	u8			jpeg_header[1024];
+ 	int			jpeg_len;
+ 
+ 	u32			fmt;
 -- 
-1.9.1
+2.2.0
 
