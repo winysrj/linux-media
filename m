@@ -1,82 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:61912 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751957AbaLVKcN (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:50443 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754104AbaLXApg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 05:32:13 -0500
-Message-ID: <5497F327.4040903@atmel.com>
-Date: Mon, 22 Dec 2014 18:32:07 +0800
-From: Josh Wu <josh.wu@atmel.com>
+	Tue, 23 Dec 2014 19:45:36 -0500
+Message-ID: <549A0CA9.6050401@southpole.se>
+Date: Wed, 24 Dec 2014 01:45:29 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
-	<m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<laurent.pinchart@ideasonboard.com>, <festevam@gmail.com>,
-	<devicetree@vger.kernel.org>
-Subject: Re: [PATCH v4 5/5] media: ov2640: dt: add the device tree binding
- document
-References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com> <1418869646-17071-6-git-send-email-josh.wu@atmel.com> <5492C4E3.4050401@samsung.com>
-In-Reply-To: <5492C4E3.4050401@samsung.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 48/66] rtl28xxu: use master I2C adapter for slave demods
+References: <1419367799-14263-1-git-send-email-crope@iki.fi> <1419367799-14263-48-git-send-email-crope@iki.fi>
+In-Reply-To: <1419367799-14263-48-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sylwester
+On 12/23/2014 09:49 PM, Antti Palosaari wrote:
+> Both mn88472 and mn88473 slave demods are connected to master I2C
+> bus, not the bus behind master demod I2C gate like tuners. Use
+> correct bus.
+>
 
-On 12/18/2014 8:13 PM, Sylwester Nawrocki wrote:
-> Hi Josh,
->
-> On 18/12/14 03:27, Josh Wu wrote:
->> Add the document for ov2640 dt.
->>
->> Cc: devicetree@vger.kernel.org
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Thanks.
+Hello Antti, in my work tree I am still getting i2c errors even with the 
+ir poll workaround (it takes really long time to get them). If I reload 
+the rtl28xxu driver 2 times it starts working again. Could this change 
+be related to such errors ?
 
->
-> It seems "ovti" is not in the list of vendor prefixes. You may want
-> to send a patch adding it to Documentation/devicetree/bindings/
-> vendor-prefixes.txt.
->
-> Just few minor comments below..
->
->>   .../devicetree/bindings/media/i2c/ov2640.txt       | 46 ++++++++++++++++++++++
->>   1 file changed, 46 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
->> new file mode 100644
->> index 0000000..de11ebb
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
->> @@ -0,0 +1,46 @@
->> +* Omnivision ov2640 CMOS sensor
-> s/ov2640/OV2640 ?
-
-OK.
->
->> +
->> +The Omnivision OV2640 sensor support multiple resolutions output, such as
->> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
->> +output format.
->> +
->> +Required Properties:
->> +- compatible: Must be "ovti,ov2640"
-> I believe it is preferred to put it as "Should contain", rather than
-> "Must be".
-I don't have a strong opinion here. After check many documents, it seems 
-many people use "Should be".
-Is it okay?
-
-Best Regards,
-Josh Wu
-
->
->> +- clocks: reference to the xvclk input clock.
->> +- clock-names: Must be "xvclk".
-> --
-> Regards,
-> Sylwester
+MvH
+Benjamin Larsson
 
