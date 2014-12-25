@@ -1,81 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:42112 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752877AbaLTMpt (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:56334 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751692AbaLYDVT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Dec 2014 07:45:49 -0500
-In-Reply-To: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-References: <20141220124448.GG11285@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 7/8] [media] em28xx-dvb: fix missing newlines
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1Y2JPm-0006Um-GT@rmk-PC.arm.linux.org.uk>
-Date: Sat, 20 Dec 2014 12:45:46 +0000
+	Wed, 24 Dec 2014 22:21:19 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0F44A2A1A5B
+	for <linux-media@vger.kernel.org>; Thu, 25 Dec 2014 04:20:55 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141225032055.0F44A2A1A5B@tschai.lan>
+Date: Thu, 25 Dec 2014 04:20:55 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Inspection shows that newlines are missing from several kernel messages
-in em28xx-dvb.  Fix these.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Cc: <stable@vger.kernel.org>
-Fixes: ca2b46dacbf5 ("[media] em28xx-dvb: implement em28xx_ops: suspend/resume hooks")
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/media/usb/em28xx/em28xx-dvb.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 80c384c390e2..aee70d483264 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1775,17 +1775,17 @@ static int em28xx_dvb_suspend(struct em28xx *dev)
- 	if (!dev->board.has_dvb)
- 		return 0;
- 
--	em28xx_info("Suspending DVB extension");
-+	em28xx_info("Suspending DVB extension\n");
- 	if (dev->dvb) {
- 		struct em28xx_dvb *dvb = dev->dvb;
- 
- 		if (dvb->fe[0]) {
- 			ret = dvb_frontend_suspend(dvb->fe[0]);
--			em28xx_info("fe0 suspend %d", ret);
-+			em28xx_info("fe0 suspend %d\n", ret);
- 		}
- 		if (dvb->fe[1]) {
- 			dvb_frontend_suspend(dvb->fe[1]);
--			em28xx_info("fe1 suspend %d", ret);
-+			em28xx_info("fe1 suspend %d\n", ret);
- 		}
- 	}
- 
-@@ -1802,18 +1802,18 @@ static int em28xx_dvb_resume(struct em28xx *dev)
- 	if (!dev->board.has_dvb)
- 		return 0;
- 
--	em28xx_info("Resuming DVB extension");
-+	em28xx_info("Resuming DVB extension\n");
- 	if (dev->dvb) {
- 		struct em28xx_dvb *dvb = dev->dvb;
- 
- 		if (dvb->fe[0]) {
- 			ret = dvb_frontend_resume(dvb->fe[0]);
--			em28xx_info("fe0 resume %d", ret);
-+			em28xx_info("fe0 resume %d\n", ret);
- 		}
- 
- 		if (dvb->fe[1]) {
- 			ret = dvb_frontend_resume(dvb->fe[1]);
--			em28xx_info("fe1 resume %d", ret);
-+			em28xx_info("fe1 resume %d\n", ret);
- 		}
- 	}
- 
--- 
-1.8.3.1
+date:		Thu Dec 25 04:00:07 CET 2014
+git branch:	test
+git hash:	cb9564e133f4f790920d715714790512085bb2e3
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16-i686: ERRORS
+linux-3.17-i686: ERRORS
+linux-3.18-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17-x86_64: ERRORS
+linux-3.18-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
