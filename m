@@ -1,203 +1,280 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:61762 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbaLEK4Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Dec 2014 05:56:25 -0500
-Received: by mail-pa0-f43.google.com with SMTP id kx10so501936pab.2
-        for <linux-media@vger.kernel.org>; Fri, 05 Dec 2014 02:56:25 -0800 (PST)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH 5/5] dvb: pci/pt3: use dvb-core i2c binding model template
-Date: Fri,  5 Dec 2014 19:55:40 +0900
-Message-Id: <1417776940-16381-6-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1417776940-16381-1-git-send-email-tskd08@gmail.com>
-References: <1417776940-16381-1-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
-References: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58344 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751824AbaLZJoA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Dec 2014 04:44:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH v7 1/3] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
+Date: Fri, 26 Dec 2014 11:44:04 +0200
+Message-ID: <1673229.XX60cPdPif@avalon>
+In-Reply-To: <1419340158-20567-2-git-send-email-p.zabel@pengutronix.de>
+References: <1419340158-20567-1-git-send-email-p.zabel@pengutronix.de> <1419340158-20567-2-git-send-email-p.zabel@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Hi Philipp,
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
- drivers/media/pci/pt3/pt3.c | 89 ++++++++++++++-------------------------------
- drivers/media/pci/pt3/pt3.h | 12 +++---
- 2 files changed, 33 insertions(+), 68 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/pci/pt3/pt3.c b/drivers/media/pci/pt3/pt3.c
-index 7a37e8f..3fe491b 100644
---- a/drivers/media/pci/pt3/pt3.c
-+++ b/drivers/media/pci/pt3/pt3.c
-@@ -26,6 +26,7 @@
- #include "dvbdev.h"
- #include "dvb_demux.h"
- #include "dvb_frontend.h"
-+#include "dvb_i2c.h"
- 
- #include "pt3.h"
- 
-@@ -103,12 +104,12 @@ pt3_demod_write(struct pt3_adapter *adap, const struct reg_val *data, int num)
- 	int i, ret;
- 
- 	ret = 0;
--	msg.addr = adap->i2c_demod->addr;
-+	msg.addr = adap->fe->fe_cl->addr;
- 	msg.flags = 0;
- 	msg.len = 2;
- 	for (i = 0; i < num; i++) {
- 		msg.buf = (u8 *)&data[i];
--		ret = i2c_transfer(adap->i2c_demod->adapter, &msg, 1);
-+		ret = i2c_transfer(adap->fe->fe_cl->adapter, &msg, 1);
- 		if (ret == 0)
- 			ret = -EREMOTE;
- 		if (ret < 0)
-@@ -375,67 +376,38 @@ static int pt3_fe_init(struct pt3_board *pt3)
- 
- static int pt3_attach_fe(struct pt3_board *pt3, int i)
- {
--	struct i2c_board_info info;
--	struct tc90522_config cfg;
--	struct i2c_client *cl;
-+	struct dvb_frontend *fe;
-+	struct tc90522_out *out;
-+	struct i2c_client *tuner_cl;
- 	struct dvb_adapter *dvb_adap;
- 	int ret;
- 
--	info = adap_conf[i].demod_info;
--	cfg = adap_conf[i].demod_cfg;
--	cfg.tuner_i2c = NULL;
--	info.platform_data = &cfg;
-+	out = NULL;
-+	fe = dvb_i2c_attach_fe(&pt3->i2c_adap, &adap_conf[i].demod_info,
-+			       &adap_conf[i].demod_cfg, (void **)&out);
-+	if (!fe)
-+		return -ENODEV;
- 
- 	ret = -ENODEV;
--	request_module("tc90522");
--	cl = i2c_new_device(&pt3->i2c_adap, &info);
--	if (!cl || !cl->dev.driver)
--		return -ENODEV;
--	pt3->adaps[i]->i2c_demod = cl;
--	if (!try_module_get(cl->dev.driver->owner))
--		goto err_demod_i2c_unregister_device;
--
--	if (!strncmp(cl->name, TC90522_I2C_DEV_SAT, sizeof(cl->name))) {
--		struct qm1d1c0042_config tcfg;
--
--		tcfg = adap_conf[i].tuner_cfg.qm1d1c0042;
--		tcfg.fe = cfg.fe;
--		info = adap_conf[i].tuner_info;
--		info.platform_data = &tcfg;
--		request_module("qm1d1c0042");
--		cl = i2c_new_device(cfg.tuner_i2c, &info);
--	} else {
--		struct mxl301rf_config tcfg;
--
--		tcfg = adap_conf[i].tuner_cfg.mxl301rf;
--		tcfg.fe = cfg.fe;
--		info = adap_conf[i].tuner_info;
--		info.platform_data = &tcfg;
--		request_module("mxl301rf");
--		cl = i2c_new_device(cfg.tuner_i2c, &info);
--	}
--	if (!cl || !cl->dev.driver)
--		goto err_demod_module_put;
--	pt3->adaps[i]->i2c_tuner = cl;
--	if (!try_module_get(cl->dev.driver->owner))
--		goto err_tuner_i2c_unregister_device;
-+	if (!out)
-+		goto err;
-+	tuner_cl = dvb_i2c_attach_tuner(&(out->demod_bus),
-+					&adap_conf[i].tuner_info, fe,
-+					&adap_conf[i].tuner_cfg, NULL);
-+	if (!tuner_cl)
-+		goto err;
- 
- 	dvb_adap = &pt3->adaps[one_adapter ? 0 : i]->dvb_adap;
--	ret = dvb_register_frontend(dvb_adap, cfg.fe);
-+	ret = dvb_register_frontend(dvb_adap, fe);
- 	if (ret < 0)
--		goto err_tuner_module_put;
--	pt3->adaps[i]->fe = cfg.fe;
-+		goto err;
-+	pt3->adaps[i]->fe = fe;
- 	return 0;
- 
--err_tuner_module_put:
--	module_put(pt3->adaps[i]->i2c_tuner->dev.driver->owner);
--err_tuner_i2c_unregister_device:
--	i2c_unregister_device(pt3->adaps[i]->i2c_tuner);
--err_demod_module_put:
--	module_put(pt3->adaps[i]->i2c_demod->dev.driver->owner);
--err_demod_i2c_unregister_device:
--	i2c_unregister_device(pt3->adaps[i]->i2c_demod);
--
-+err:
-+	/* tuner i2c_client is unregister'ed as well, */
-+	/* because it is a (grand) child of the demod i2c_client device */
-+	i2c_unregister_device(fe->fe_cl);
- 	return ret;
- }
- 
-@@ -630,17 +602,10 @@ static void pt3_cleanup_adapter(struct pt3_board *pt3, int index)
- 	dmx = &adap->demux.dmx;
- 	dmx->close(dmx);
- 	if (adap->fe) {
--		adap->fe->callback = NULL;
- 		if (adap->fe->frontend_priv)
- 			dvb_unregister_frontend(adap->fe);
--		if (adap->i2c_tuner) {
--			module_put(adap->i2c_tuner->dev.driver->owner);
--			i2c_unregister_device(adap->i2c_tuner);
--		}
--		if (adap->i2c_demod) {
--			module_put(adap->i2c_demod->dev.driver->owner);
--			i2c_unregister_device(adap->i2c_demod);
--		}
-+		if (adap->fe->fe_cl)
-+			i2c_unregister_device(adap->fe->fe_cl);
- 	}
- 	pt3_free_dmabuf(adap);
- 	dvb_dmxdev_release(&adap->dmxdev);
-diff --git a/drivers/media/pci/pt3/pt3.h b/drivers/media/pci/pt3/pt3.h
-index 1b3f2ad..88c3d17 100644
---- a/drivers/media/pci/pt3/pt3.h
-+++ b/drivers/media/pci/pt3/pt3.h
-@@ -104,15 +104,17 @@ struct dma_data_buffer {
- /*
-  * device things
-  */
-+union pt3_tuner_config {
-+	struct qm1d1c0042_config qm1d1c0042;
-+	struct mxl301rf_config   mxl301rf;
-+};
-+
- struct pt3_adap_config {
- 	struct i2c_board_info demod_info;
- 	struct tc90522_config demod_cfg;
- 
- 	struct i2c_board_info tuner_info;
--	union tuner_config {
--		struct qm1d1c0042_config qm1d1c0042;
--		struct mxl301rf_config   mxl301rf;
--	} tuner_cfg;
-+	union pt3_tuner_config tuner_cfg;
- 	u32 init_freq;
- };
- 
-@@ -123,8 +125,6 @@ struct pt3_adapter {
- 	struct dvb_demux    demux;
- 	struct dmxdev       dmxdev;
- 	struct dvb_frontend *fe;
--	struct i2c_client   *i2c_demod;
--	struct i2c_client   *i2c_tuner;
- 
- 	/* data fetch thread */
- 	struct task_struct *thread;
+On Tuesday 23 December 2014 14:09:16 Philipp Zabel wrote:
+> Decrementing the reference count of the previous endpoint node allows to
+> use the of_graph_get_next_endpoint function in a for_each_... style macro.
+> All current users of this function that pass a non-NULL prev parameter
+> (coresight, rcar-du, imx-drm, soc_camera, and omap2-dss) are changed to
+> not decrement the passed prev argument's refcount themselves.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+> ---
+> Changes since v6:
+>  - Added omap2-dss.
+>  - Added Mathieu's ack.
+> ---
+>  drivers/coresight/of_coresight.c                  | 13 ++-----------
+>  drivers/gpu/drm/imx/imx-drm-core.c                | 13 ++-----------
+>  drivers/gpu/drm/rcar-du/rcar_du_kms.c             | 15 ++++-----------
+
+For rcar-du,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  drivers/media/platform/soc_camera/soc_camera.c    |  3 ++-
+>  drivers/of/base.c                                 |  9 +--------
+>  drivers/video/fbdev/omap2/dss/omapdss-boot-init.c |  7 +------
+>  6 files changed, 12 insertions(+), 48 deletions(-)
+> 
+> diff --git a/drivers/coresight/of_coresight.c
+> b/drivers/coresight/of_coresight.c index 5030c07..349c88b 100644
+> --- a/drivers/coresight/of_coresight.c
+> +++ b/drivers/coresight/of_coresight.c
+> @@ -52,15 +52,6 @@ of_coresight_get_endpoint_device(struct device_node
+> *endpoint) endpoint, of_dev_node_match);
+>  }
+> 
+> -static struct device_node *of_get_coresight_endpoint(
+> -		const struct device_node *parent, struct device_node *prev)
+> -{
+> -	struct device_node *node = of_graph_get_next_endpoint(parent, prev);
+> -
+> -	of_node_put(prev);
+> -	return node;
+> -}
+> -
+>  static void of_coresight_get_ports(struct device_node *node,
+>  				   int *nr_inport, int *nr_outport)
+>  {
+> @@ -68,7 +59,7 @@ static void of_coresight_get_ports(struct device_node
+> *node, int in = 0, out = 0;
+> 
+>  	do {
+> -		ep = of_get_coresight_endpoint(node, ep);
+> +		ep = of_graph_get_next_endpoint(node, ep);
+>  		if (!ep)
+>  			break;
+> 
+> @@ -140,7 +131,7 @@ struct coresight_platform_data
+> *of_get_coresight_platform_data( /* Iterate through each port to discover
+> topology */
+>  		do {
+>  			/* Get a handle on a port */
+> -			ep = of_get_coresight_endpoint(node, ep);
+> +			ep = of_graph_get_next_endpoint(node, ep);
+>  			if (!ep)
+>  				break;
+> 
+> diff --git a/drivers/gpu/drm/imx/imx-drm-core.c
+> b/drivers/gpu/drm/imx/imx-drm-core.c index b250130..fed627d 100644
+> --- a/drivers/gpu/drm/imx/imx-drm-core.c
+> +++ b/drivers/gpu/drm/imx/imx-drm-core.c
+> @@ -436,15 +436,6 @@ static uint32_t imx_drm_find_crtc_mask(struct
+> imx_drm_device *imxdrm, return 0;
+>  }
+> 
+> -static struct device_node *imx_drm_of_get_next_endpoint(
+> -		const struct device_node *parent, struct device_node *prev)
+> -{
+> -	struct device_node *node = of_graph_get_next_endpoint(parent, prev);
+> -
+> -	of_node_put(prev);
+> -	return node;
+> -}
+> -
+>  int imx_drm_encoder_parse_of(struct drm_device *drm,
+>  	struct drm_encoder *encoder, struct device_node *np)
+>  {
+> @@ -456,7 +447,7 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
+>  	for (i = 0; ; i++) {
+>  		u32 mask;
+> 
+> -		ep = imx_drm_of_get_next_endpoint(np, ep);
+> +		ep = of_graph_get_next_endpoint(np, ep);
+>  		if (!ep)
+>  			break;
+> 
+> @@ -504,7 +495,7 @@ int imx_drm_encoder_get_mux_id(struct device_node *node,
+> return -EINVAL;
+> 
+>  	do {
+> -		ep = imx_drm_of_get_next_endpoint(node, ep);
+> +		ep = of_graph_get_next_endpoint(node, ep);
+>  		if (!ep)
+>  			break;
+> 
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_kms.c
+> b/drivers/gpu/drm/rcar-du/rcar_du_kms.c index 0c5ee61..480c4d9 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_kms.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
+> @@ -206,7 +206,7 @@ static int rcar_du_encoders_init_one(struct
+> rcar_du_device *rcdu, enum rcar_du_encoder_type enc_type =
+> RCAR_DU_ENCODER_NONE;
+>  	struct device_node *connector = NULL;
+>  	struct device_node *encoder = NULL;
+> -	struct device_node *prev = NULL;
+> +	struct device_node *ep_node = NULL;
+>  	struct device_node *entity_ep_node;
+>  	struct device_node *entity;
+>  	int ret;
+> @@ -225,11 +225,7 @@ static int rcar_du_encoders_init_one(struct
+> rcar_du_device *rcdu, entity_ep_node = of_parse_phandle(ep->local_node,
+> "remote-endpoint", 0);
+> 
+>  	while (1) {
+> -		struct device_node *ep_node;
+> -
+> -		ep_node = of_graph_get_next_endpoint(entity, prev);
+> -		of_node_put(prev);
+> -		prev = ep_node;
+> +		ep_node = of_graph_get_next_endpoint(entity, ep_node);
+> 
+>  		if (!ep_node)
+>  			break;
+> @@ -300,7 +296,7 @@ static int rcar_du_encoders_init_one(struct
+> rcar_du_device *rcdu, static int rcar_du_encoders_init(struct
+> rcar_du_device *rcdu)
+>  {
+>  	struct device_node *np = rcdu->dev->of_node;
+> -	struct device_node *prev = NULL;
+> +	struct device_node *ep_node = NULL;
+>  	unsigned int num_encoders = 0;
+> 
+>  	/*
+> @@ -308,15 +304,12 @@ static int rcar_du_encoders_init(struct rcar_du_device
+> *rcdu) * pipeline.
+>  	 */
+>  	while (1) {
+> -		struct device_node *ep_node;
+>  		enum rcar_du_output output;
+>  		struct of_endpoint ep;
+>  		unsigned int i;
+>  		int ret;
+> 
+> -		ep_node = of_graph_get_next_endpoint(np, prev);
+> -		of_node_put(prev);
+> -		prev = ep_node;
+> +		ep_node = of_graph_get_next_endpoint(np, ep_node);
+> 
+>  		if (ep_node == NULL)
+>  			break;
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c
+> b/drivers/media/platform/soc_camera/soc_camera.c index b3db51c..289b637
+> 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -1710,7 +1710,6 @@ static void scan_of_host(struct soc_camera_host *ici)
+>  		if (!i)
+>  			soc_of_bind(ici, epn, ren->parent);
+> 
+> -		of_node_put(epn);
+>  		of_node_put(ren);
+> 
+>  		if (i) {
+> @@ -1718,6 +1717,8 @@ static void scan_of_host(struct soc_camera_host *ici)
+>  			break;
+>  		}
+>  	}
+> +
+> +	of_node_put(epn);
+>  }
+> 
+>  #else
+> diff --git a/drivers/of/base.c b/drivers/of/base.c
+> index 36536b6..aac66df 100644
+> --- a/drivers/of/base.c
+> +++ b/drivers/of/base.c
+> @@ -2085,8 +2085,7 @@ EXPORT_SYMBOL(of_graph_parse_endpoint);
+>   * @prev: previous endpoint node, or NULL to get first
+>   *
+>   * Return: An 'endpoint' node pointer with refcount incremented. Refcount
+> - * of the passed @prev node is not decremented, the caller have to use
+> - * of_node_put() on it when done.
+> + * of the passed @prev node is decremented.
+>   */
+>  struct device_node *of_graph_get_next_endpoint(const struct device_node
+> *parent, struct device_node *prev)
+> @@ -2122,12 +2121,6 @@ struct device_node *of_graph_get_next_endpoint(const
+> struct device_node *parent, if (WARN_ONCE(!port, "%s(): endpoint %s has no
+> parent node\n",
+>  			      __func__, prev->full_name))
+>  			return NULL;
+> -
+> -		/*
+> -		 * Avoid dropping prev node refcount to 0 when getting the next
+> -		 * child below.
+> -		 */
+> -		of_node_get(prev);
+>  	}
+> 
+>  	while (1) {
+> diff --git a/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
+> b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c index 2f0822e..76fb18b
+> 100644
+> --- a/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
+> +++ b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
+> @@ -164,20 +164,15 @@ static void __init omapdss_walk_device(struct
+> device_node *node, bool root)
+> 
+>  		pn = of_graph_get_remote_port_parent(n);
+> 
+> -		if (!pn) {
+> -			of_node_put(n);
+> +		if (!pn)
+>  			continue;
+> -		}
+> 
+>  		if (!of_device_is_available(pn) || omapdss_list_contains(pn)) {
+>  			of_node_put(pn);
+> -			of_node_put(n);
+>  			continue;
+>  		}
+> 
+>  		omapdss_walk_device(pn, false);
+> -
+> -		of_node_put(n);
+>  	}
+>  }
+
 -- 
-2.1.3
+Regards,
+
+Laurent Pinchart
 
