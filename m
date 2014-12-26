@@ -1,86 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40805 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933214AbaLJVQi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Dec 2014 16:16:38 -0500
-Received: from lanttu.localdomain (lanttu.localdomain [192.168.5.64])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id D230F6009C
-	for <linux-media@vger.kernel.org>; Wed, 10 Dec 2014 23:16:34 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [REVIEW PATCH 3/7] smiapp: Clean up smiapp_init_controls()
-Date: Wed, 10 Dec 2014 23:16:16 +0200
-Message-Id: <1418246180-667-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1418246180-667-1-git-send-email-sakari.ailus@iki.fi>
-References: <1418246180-667-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mout.gmx.net ([212.227.15.19]:56442 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751404AbaLZKiX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Dec 2014 05:38:23 -0500
+Date: Fri, 26 Dec 2014 11:38:11 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Josh Wu <josh.wu@atmel.com>, linux-media@vger.kernel.org,
+	m.chehab@samsung.com, linux-arm-kernel@lists.infradead.org,
+	s.nawrocki@samsung.com, festevam@gmail.com
+Subject: Re: [PATCH v4 2/5] media: ov2640: add async probe function
+In-Reply-To: <1492726.KPKGvtrvz4@avalon>
+Message-ID: <Pine.LNX.4.64.1412261136360.9254@axis700.grange>
+References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com>
+ <7803041.cyoUKFJAdh@avalon> <Pine.LNX.4.64.1412261006290.9254@axis700.grange>
+ <1492726.KPKGvtrvz4@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Clean up smiapp_init_controls() by adding newlines to appropriate places and
-by removing superfluous error handling. The caller will clean up control
-handlers in any case if the function fails.
+On Fri, 26 Dec 2014, Laurent Pinchart wrote:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c |   19 ++++++-------------
- 1 file changed, 6 insertions(+), 13 deletions(-)
+> Hi Guennadi,
+> 
+> On Friday 26 December 2014 10:14:26 Guennadi Liakhovetski wrote:
+> > On Fri, 26 Dec 2014, Laurent Pinchart wrote:
+> > > On Friday 26 December 2014 14:37:14 Josh Wu wrote:
+> > >> On 12/25/2014 6:39 AM, Guennadi Liakhovetski wrote:
+> > >>> On Mon, 22 Dec 2014, Josh Wu wrote:
+> > >>>> On 12/20/2014 6:16 AM, Guennadi Liakhovetski wrote:
+> > >>>>> On Fri, 19 Dec 2014, Josh Wu wrote:
+> > >>>>>> On 12/19/2014 5:59 AM, Guennadi Liakhovetski wrote:
+> > >>>>>>> On Thu, 18 Dec 2014, Josh Wu wrote:
+> > >>>>>>>> To support async probe for ov2640, we need remove the code to get
+> > >>>>>>>> 'mclk' in ov2640_probe() function. oterwise, if soc_camera host
+> > >>>>>>>> is not probed in the moment, then we will fail to get 'mclk' and
+> > >>>>>>>> quit the ov2640_probe() function.
+> > >>>>>>>> 
+> > >>>>>>>> So in this patch, we move such 'mclk' getting code to
+> > >>>>>>>> ov2640_s_power() function. That make ov2640 survive, as we can
+> > >>>>>>>> pass a NULL (priv-clk) to soc_camera_set_power() function.
+> > >>>>>>>> 
+> > >>>>>>>> And if soc_camera host is probed, the when ov2640_s_power() is
+> > >>>>>>>> called, then we can get the 'mclk' and that make us
+> > >>>>>>>> enable/disable soc_camera host's clock as well.
+> > >>>>>>>> 
+> > >>>>>>>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> > >>>>>>>> ---
+> > >>>>>>>> v3 -> v4:
+> > >>>>>>>> v2 -> v3:
+> > >>>>>>>> v1 -> v2:
+> > >>>>>>>>      no changes.
+> > >>>>>>>>  
+> > >>>>>>>>  drivers/media/i2c/soc_camera/ov2640.c | 31 ++++++++++++++-------
+> > >>>>>>>>  1 file changed, 21 insertions(+), 10 deletions(-)
+> > >>>>>>>> 
+> > >>>>>>>> diff --git a/drivers/media/i2c/soc_camera/ov2640.c
+> > >>>>>>>> b/drivers/media/i2c/soc_camera/ov2640.c
+> > >>>>>>>> index 1fdce2f..9ee910d 100644
+> > >>>>>>>> --- a/drivers/media/i2c/soc_camera/ov2640.c
+> > >>>>>>>> +++ b/drivers/media/i2c/soc_camera/ov2640.c
+> > >>>>>>>> @@ -739,6 +739,15 @@ static int ov2640_s_power(struct v4l2_subdev
+> > >>>>>>>> *sd, int on)
+> > >>>>>>>>     	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > >>>>>>>>     	struct soc_camera_subdev_desc *ssdd =
+> > >>>>>>>> soc_camera_i2c_to_desc(client);
+> > >>>>>>>>     	struct ov2640_priv *priv = to_ov2640(client);
+> > >>>>>>>> +	struct v4l2_clk *clk;
+> > >>>>>>>> +
+> > >>>>>>>> +	if (!priv->clk) {
+> > >>>>>>>> +		clk = v4l2_clk_get(&client->dev, "mclk");
+> > >>>>>>>> +		if (IS_ERR(clk))
+> > >>>>>>>> +			dev_warn(&client->dev, "Cannot get the mclk.
+> > >>>>>>>> maybe soc-camera host is not probed yet.\n");
+> > >>>>>>>> +		else
+> > >>>>>>>> +			priv->clk = clk;
+> > >>>>>>>> +	}
+> > >>>>>>>>       	return soc_camera_set_power(&client->dev, ssdd, priv
+> > >>>>>>>> ->clk, on);
+> > >>>>>>>>     }
+> > >>>> 
+> > >>>> Just let me explained a little more details at first:
+> > >>>> 
+> > >>>> As my understanding, current the priv->clk is a v4l2_clk: mclk, which
+> > >>>> is a wrapper clock in soc_camera.c. it can make soc_camera to call
+> > >>>> camera host's clock_start() clock_stop(). As in ov2640, the real mck
+> > >>>> (pck1) is in ov2640 dt node (xvclk). So the camera host's
+> > >>>> clock_start()/stop() only need to enable/disable his peripheral
+> > >>>> clock.
+> > >>> 
+> > >>> I'm looking at the ov2640 datasheet. In the block diagram I only see
+> > >>> one input clock - the xvclk. Yes, it can be supplied by the camera
+> > >>> host controller, in which case it is natural for the camera host
+> > >>> driver to own and control it, or it can be a separate clock device -
+> > >>> either static or configurable. This is just a note to myself to
+> > >>> clarify, that it's one and the same clock pin we're talking about.
+> > >>> 
+> > >>> Now, from the hardware / DT PoV, I think, the DT should look like:
+> > >>> 
+> > >>> a) in the ov2640 I2C DT node we should have a clock consumer entry,
+> > >>> linking to a board-specific source.
+> > >> 
+> > >> That's what this patch series do right now.
+> > >> In my patch 5/5 DT document said, ov2640 need a clock consumer which
+> > >> refer to the xvclk input clock.
+> > >> And it is a required property.
+> > >> 
+> > >>> b) if the ov2640 clock is supplied by a camera host, its DT entry
+> > >>> should have a clock source subnode, to which ov2640 clock consumer
+> > >>> entry should link. The respective camera host driver should then parse
+> > >>> that clock subnode and register the respective clock with the V4L2
+> > >>> framework, by calling v4l2_clk_register().
+> > >> 
+> > >> Ok, So in this case, I need to wait for the "mclk" in probe of ov2640
+> > >> driver. So that I can be compatible for the camera host which provide
+> > >> the clock source.
+> > > 
+> > > Talking about mclk and xvclk is quite confusing. There's no mclk from an
+> > > ov2640 point of view. The ov2640 driver should call v4l2_clk_get("xvclk").
+> > 
+> > Yes, I also was thinking about this, and yes, requesting a "xvclk" clock
+> > would be more logical. But then, as you write below, if we let the
+> > v4l2_clk wrapper first check for a CCF "xvclk" clock, say, none is found.
+> > How do we then find the exported "mclk" V4L2 clock? Maybe v4l2_clk_get()
+> > should use two names?..
+> 
+> Given that v4l2_clk_get() is only used by soc-camera drivers and that they all 
+> call it with the clock name set to "mclk", I wonder whether we couldn't just 
+> get rid of struct v4l2_clk.id and ignore the id argument to v4l2_clk_get() 
+> when CCF isn't available. Maybe we've overdesigned v4l2_clk :-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 72a0de6..66d94c3 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -527,6 +527,7 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
- 	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 12);
- 	if (rval)
- 		return rval;
-+
- 	sensor->pixel_array->ctrl_handler.lock = &sensor->mutex;
- 
- 	sensor->analog_gain = v4l2_ctrl_new_std(
-@@ -585,8 +586,7 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
- 		dev_err(&client->dev,
- 			"pixel array controls initialization failed (%d)\n",
- 			sensor->pixel_array->ctrl_handler.error);
--		rval = sensor->pixel_array->ctrl_handler.error;
--		goto error;
-+		return sensor->pixel_array->ctrl_handler.error;
- 	}
- 
- 	sensor->pixel_array->sd.ctrl_handler =
-@@ -596,7 +596,8 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
- 
- 	rval = v4l2_ctrl_handler_init(&sensor->src->ctrl_handler, 0);
- 	if (rval)
--		goto error;
-+		return rval;
-+
- 	sensor->src->ctrl_handler.lock = &sensor->mutex;
- 
- 	for (max = 0; sensor->platform_data->op_sys_clock[max + 1]; max++);
-@@ -614,20 +615,12 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
- 		dev_err(&client->dev,
- 			"src controls initialization failed (%d)\n",
- 			sensor->src->ctrl_handler.error);
--		rval = sensor->src->ctrl_handler.error;
--		goto error;
-+		return sensor->src->ctrl_handler.error;
- 	}
- 
--	sensor->src->sd.ctrl_handler =
--		&sensor->src->ctrl_handler;
-+	sensor->src->sd.ctrl_handler = &sensor->src->ctrl_handler;
- 
- 	return 0;
--
--error:
--	v4l2_ctrl_handler_free(&sensor->pixel_array->ctrl_handler);
--	v4l2_ctrl_handler_free(&sensor->src->ctrl_handler);
--
--	return rval;
- }
- 
- static void smiapp_free_controls(struct smiapp_sensor *sensor)
--- 
-1.7.10.4
+Sure, that'd be fine with me, if everyone else agrees.
 
+> > >>> c) if the ov2640 clock is supplied by a different clock source, the
+> > >>> respective driver should parse it and also eventually call
+> > >>> v4l2_clk_register().
+> > >>> 
+> > >>> Implementing case (b) above is so far up to each individual
+> > >>> (soc-camera) camera host driver. In soc-camera host drivers don't
+> > >>> register V4L2 clocks themselves, as you correctly noticed, they just
+> > >>> provide a .clock_start() and a .clock_stop() callbacks. The
+> > >>> registration is done by the soc-camera core.
+> > >>> 
+> > >>> If I understand correctly you have case (c). Unfortunately, this case
+> > >>> isn't supported atm. I think, a suitable way to do this would be:
+> > >>> 
+> > >>> (1) modify soc-camera to not register a V4L2 clock if the host doesn't
+> > >>> provide the required callbacks.
+> > >>> 
+> > >>> (2) hosts should recognise configurations, in which they don't supply
+> > >>> the master clock to clients and not provide the callbacks then.
+> > >>> 
+> > >>> (3) a separate driver should register a suitable V4L2 clock.
+> > >>> 
+> > >>> Whereas I don't think we need to modify camera drivers. Their
+> > >>> requesting of a V4L2 clock is correct as is.
+> > >>> 
+> > >>> Some more fine-print: if the clock is supplied by a generic device, it
+> > >>> would be wrong for it to register a V4L2 clock. It should register a
+> > >>> normal CCF clock, and a separate V4L2 driver should create a V4L2
+> > >>> clock from it. This isn't implemented either and we've been talking
+> > >>> about it for a while now...
+> > > 
+> > > v4l2_clk_get() should try to get the clock from CCF with a call to
+> > > clk_get() first, and then look at the list of v4l2-specific clocks.
+> > 
+> > Yes, how will it find the "mclk" when "xvclk" (or any other name) is
+> > requested? We did discuss this in the beginning and agreed to use a fixed
+> > clock name for the time being...
+> 
+> Please see above.
+> 
+> > > That's at least how I had envisioned it when v4l2_clk_get() was
+> > > introduced. Let's remember that v4l2_clk was designed as a temporary
+> > > workaround for platforms not implementing CCF yet. Is that still needed,
+> > > or could be instead just get rid of it now ?
+> >
+> > I didn't check, but I don't think all platforms, handled by soc-camera,
+> > support CCF yet.
+> 
+> After a quick check it looks like only OMAP1 and SH Mobile are missing. Atmel, 
+> MX2, MX3 and R-Car all support CCF. PXA27x has CCF support but doesn't enable 
+> it yet for an unknown (to me) reason.
+> 
+> The CEU driver is used on both arch/sh and arch/arm/mach-shmobile. The former 
+> will most likely never receive CCF support, and the latter is getting fixed. 
+> As arch/sh isn't maintained anymore I would be fine with dropping CEU support 
+> for it.
+> 
+> OMAP1 is thus the only long-term show-stopper. What should we do with it ?
+
+Indeed, what should we? :)
+
+Thanks
+Guennadi
+
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
