@@ -1,57 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:34864 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754816AbaLHUbK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Dec 2014 15:31:10 -0500
-From: Benjamin Larsson <benjamin@southpole.se>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] mn88472: implement firmware parity check
-Date: Mon,  8 Dec 2014 21:31:07 +0100
-Message-Id: <1418070667-13349-2-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1418070667-13349-1-git-send-email-benjamin@southpole.se>
-References: <1418070667-13349-1-git-send-email-benjamin@southpole.se>
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:17532 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751875AbaLZOm3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Dec 2014 09:42:29 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mike Isely <isely@pobox.com>
+Cc: kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 19/27] [media] pvrusb2: Use setup_timer
+Date: Fri, 26 Dec 2014 15:35:50 +0100
+Message-Id: <1419604558-29743-20-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1419604558-29743-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1419604558-29743-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/staging/media/mn88472/mn88472.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+Convert a call to init_timer and accompanying intializations of
+the timer's data and function fields to a call to setup_timer.
 
-diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-index df7dbe9..1df85a7 100644
---- a/drivers/staging/media/mn88472/mn88472.c
-+++ b/drivers/staging/media/mn88472/mn88472.c
-@@ -294,6 +294,7 @@ static int mn88472_init(struct dvb_frontend *fe)
- 	int ret, len, remaining;
- 	const struct firmware *fw = NULL;
- 	u8 *fw_file = MN88472_FIRMWARE;
-+	unsigned int csum;
- 
- 	dev_dbg(&client->dev, "\n");
- 
-@@ -346,6 +347,20 @@ static int mn88472_init(struct dvb_frontend *fe)
- 		}
+A simplified version of the semantic match that fixes this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression t,f,d;
+@@
+
+-init_timer(&t);
++setup_timer(&t,f,d);
+-t.data = d;
+-t.function = f;
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c |   26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+index 2fd9b5e..08f2f5a 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+@@ -2425,22 +2425,18 @@ struct pvr2_hdw *pvr2_hdw_create(struct usb_interface *intf,
  	}
+ 	if (!hdw) goto fail;
  
-+	/* parity check of firmware */
-+	ret = regmap_read(dev->regmap[0], 0xf8, &csum);
-+	if (ret) {
-+		dev_err(&client->dev,
-+				"parity reg read failed=%d\n", ret);
-+		goto err;
-+	}
-+	if (csum & 0x10) {
-+		dev_err(&client->dev,
-+				"firmware parity check failed=0x%x\n", csum);
-+		goto err;
-+	}
-+	dev_err(&client->dev, "firmware parity check succeeded=0x%x\n", csum);
-+
- 	ret = regmap_write(dev->regmap[0], 0xf5, 0x00);
- 	if (ret)
- 		goto err;
--- 
-1.9.1
+-	init_timer(&hdw->quiescent_timer);
+-	hdw->quiescent_timer.data = (unsigned long)hdw;
+-	hdw->quiescent_timer.function = pvr2_hdw_quiescent_timeout;
++	setup_timer(&hdw->quiescent_timer, pvr2_hdw_quiescent_timeout,
++		    (unsigned long)hdw);
+ 
+-	init_timer(&hdw->decoder_stabilization_timer);
+-	hdw->decoder_stabilization_timer.data = (unsigned long)hdw;
+-	hdw->decoder_stabilization_timer.function =
+-		pvr2_hdw_decoder_stabilization_timeout;
++	setup_timer(&hdw->decoder_stabilization_timer,
++		    pvr2_hdw_decoder_stabilization_timeout,
++		    (unsigned long)hdw);
+ 
+-	init_timer(&hdw->encoder_wait_timer);
+-	hdw->encoder_wait_timer.data = (unsigned long)hdw;
+-	hdw->encoder_wait_timer.function = pvr2_hdw_encoder_wait_timeout;
++	setup_timer(&hdw->encoder_wait_timer, pvr2_hdw_encoder_wait_timeout,
++		    (unsigned long)hdw);
+ 
+-	init_timer(&hdw->encoder_run_timer);
+-	hdw->encoder_run_timer.data = (unsigned long)hdw;
+-	hdw->encoder_run_timer.function = pvr2_hdw_encoder_run_timeout;
++	setup_timer(&hdw->encoder_run_timer, pvr2_hdw_encoder_run_timeout,
++		    (unsigned long)hdw);
+ 
+ 	hdw->master_state = PVR2_STATE_DEAD;
+ 
+@@ -3680,10 +3676,8 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
+ 	hdw->ctl_timeout_flag = 0;
+ 	hdw->ctl_write_pend_flag = 0;
+ 	hdw->ctl_read_pend_flag = 0;
+-	init_timer(&timer);
++	setup_timer(&timer, pvr2_ctl_timeout, (unsigned long)hdw);
+ 	timer.expires = jiffies + timeout;
+-	timer.data = (unsigned long)hdw;
+-	timer.function = pvr2_ctl_timeout;
+ 
+ 	if (write_len) {
+ 		hdw->cmd_debug_state = 2;
 
