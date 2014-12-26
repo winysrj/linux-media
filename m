@@ -1,148 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42119 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934054AbaLLJmd (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:4736 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751659AbaLZOmZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 04:42:33 -0500
-Message-ID: <548AB881.2030206@xs4all.nl>
-Date: Fri, 12 Dec 2014 10:42:25 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: [REVIEW] au0828-vbi.c
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Fri, 26 Dec 2014 09:42:25 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 2/27] [media] au0828: Use setup_timer
+Date: Fri, 26 Dec 2014 15:35:32 +0100
+Message-Id: <1419604558-29743-2-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1419604558-29743-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1419604558-29743-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+Convert a call to init_timer and accompanying intializations of
+the timer's data and function fields to a call to setup_timer.
 
-This is my review for au0828-vbi.c with your patch applied.
+A simplified version of the semantic match that fixes this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-> /*
->    au0828-vbi.c - VBI driver for au0828
-> 
->    Copyright (C) 2010 Devin Heitmueller <dheitmueller@kernellabs.com>
-> 
->    This work was sponsored by GetWellNetwork Inc.
-> 
->    This program is free software; you can redistribute it and/or modify
->    it under the terms of the GNU General Public License as published by
->    the Free Software Foundation; either version 2 of the License, or
->    (at your option) any later version.
-> 
->    This program is distributed in the hope that it will be useful,
->    but WITHOUT ANY WARRANTY; without even the implied warranty of
->    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->    GNU General Public License for more details.
-> 
->    You should have received a copy of the GNU General Public License
->    along with this program; if not, write to the Free Software
->    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
->    02110-1301, USA.
->  */
-> 
-> #include "au0828.h"
-> 
-> #include <linux/kernel.h>
-> #include <linux/module.h>
-> #include <linux/init.h>
-> #include <linux/slab.h>
-> 
-> static unsigned int vbibufs = 5;
-> module_param(vbibufs, int, 0644);
-> MODULE_PARM_DESC(vbibufs, "number of vbi buffers, range 2-32");
+// <smpl>
+@@
+expression t,f,d;
+@@
 
-Drop this vbibufs argument. It's bogus.
+-t.function = f;
+-t.data = d;
+-init_timer(&t);
++setup_timer(&t,f,d);
+// </smpl>
 
-> 
-> /* ------------------------------------------------------------------ */
-> 
-> static int vbi_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
-> 			   unsigned int *nbuffers, unsigned int *nplanes,
-> 			   unsigned int sizes[], void *alloc_ctxs[])
-> {
-> 	struct au0828_dev *dev = vb2_get_drv_priv(vq);
-> 	unsigned long size;
-> 
-> 	if (fmt)
-> 		size = fmt->fmt.pix.sizeimage;
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-It's a VBI format, so the size is
+---
+ drivers/media/usb/au0828/au0828-video.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-	fmt->fmt.vbi.samples_per_line *
-                   (fmt->fmt.vbi.count[0] + fmt->fmt.vbi.count[1]);
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 5f337b1..0b24791 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -2043,13 +2043,10 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	INIT_LIST_HEAD(&dev->vbiq.active);
+ 	INIT_LIST_HEAD(&dev->vbiq.queued);
+ 
+-	dev->vid_timeout.function = au0828_vid_buffer_timeout;
+-	dev->vid_timeout.data = (unsigned long) dev;
+-	init_timer(&dev->vid_timeout);
+-
+-	dev->vbi_timeout.function = au0828_vbi_buffer_timeout;
+-	dev->vbi_timeout.data = (unsigned long) dev;
+-	init_timer(&dev->vbi_timeout);
++	setup_timer(&dev->vid_timeout, au0828_vid_buffer_timeout,
++		    (unsigned long)dev);
++	setup_timer(&dev->vbi_timeout, au0828_vbi_buffer_timeout,
++		    (unsigned long)dev);
+ 
+ 	dev->width = NTSC_STD_W;
+ 	dev->height = NTSC_STD_H;
 
-
-> 	else
-> 		size = dev->vbi_width * dev->vbi_height * 2;
-> 
-> 	if (0 == *nbuffers)
-> 		*nbuffers = 32;
-> 	if (*nbuffers < 2)
-> 		*nbuffers = 2;
-> 	if (*nbuffers > 32)
-> 		*nbuffers = 32;
-
-Remove these checks, they are not needed.
-
-But if a fmt is passed in, then you *do* need to check if the new format size
-is enough to store the vbi data. If not, return -EINVAL.
-
-Test with v4l2-compliance -V0 -s.
-
-> 
-> 	*nplanes = 1;
-> 	sizes[0] = size;
-> 
-> 	return 0;
-> }
-> 
-> static int vbi_buffer_prepare(struct vb2_buffer *vb)
-> {
-> 	struct au0828_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-> 	struct au0828_buffer *buf = container_of(vb, struct au0828_buffer, vb);
-> 	unsigned long size;
-> 
-> 	size = dev->vbi_width * dev->vbi_height * 2;
-> 
-> 	if (vb2_plane_size(vb, 0) < size) {
-> 		pr_err("%s data will not fit into plane (%lu < %lu)\n",
-> 			__func__, vb2_plane_size(vb, 0), size);
-> 		return -EINVAL;
-> 	}
-> 	vb2_set_plane_payload(&buf->vb, 0, size);
-> 
-> 	return 0;
-> }
-> 
-> static void
-> vbi_buffer_queue(struct vb2_buffer *vb)
-> {
-> 	struct au0828_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-> 	struct au0828_buffer *buf = container_of(vb, struct au0828_buffer, vb);
-> 	struct au0828_dmaqueue *vbiq = &dev->vbiq;
-> 	unsigned long flags = 0;
-> 
-> 	buf->mem = vb2_plane_vaddr(vb, 0);
-> 	buf->length = vb2_plane_size(vb, 0);
-> 
-> 	spin_lock_irqsave(&dev->slock, flags);
-> 	list_add_tail(&buf->list, &vbiq->active);
-> 	spin_unlock_irqrestore(&dev->slock, flags);
-> }
-> 
-> struct vb2_ops au0828_vbi_qops = {
-> 	.queue_setup     = vbi_queue_setup,
-> 	.buf_prepare     = vbi_buffer_prepare,
-> 	.buf_queue       = vbi_buffer_queue,
-> 	.start_streaming = au0828_start_analog_streaming,
-> 	.stop_streaming  = au0828_stop_vbi_streaming,
-> 	.wait_prepare    = vb2_ops_wait_prepare,
-> 	.wait_finish     = vb2_ops_wait_finish,
-> };
-
-Regards,
-
-	Hans
