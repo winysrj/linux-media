@@ -1,52 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36610 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967664AbaLLN2a (ORCPT
+Received: from mail-yh0-f47.google.com ([209.85.213.47]:54217 "EHLO
+	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751197AbaLZHNy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Dec 2014 08:28:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/7] cx231xx: remove btcx_riscmem reference
-Date: Fri, 12 Dec 2014 14:27:55 +0100
-Message-Id: <1418390880-39009-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1418390880-39009-1-git-send-email-hverkuil@xs4all.nl>
-References: <1418390880-39009-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 26 Dec 2014 02:13:54 -0500
+MIME-Version: 1.0
+In-Reply-To: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
+Date: Fri, 26 Dec 2014 15:13:53 +0800
+Message-ID: <CAHG8p1DxTmd6QDpmjHSG0+40GaeGV0ox0aZpX_VVxTJUnxhB1A@mail.gmail.com>
+Subject: Re: [PATCH 00/15] media: blackfin: bfin_capture enhancements
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Lad,
 
-Remove this comment block, it's unused. This removes the btcx_riscmem
-reference as well, since that will no longer be available to other
-drivers except bttv.
+I'm on holiday these days. I will test these patches later.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/cx231xx/cx231xx.h | 10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+Thanks,
+Scott
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index f9e262eb..6d6f3ee 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -532,15 +532,7 @@ struct cx231xx_video_mode {
- 	unsigned int *alt_max_pkt_size;	/* array of wMaxPacketSize */
- 	u16 end_point_addr;
- };
--/*
--struct cx23885_dmaqueue {
--	struct list_head       active;
--	struct list_head       queued;
--	struct timer_list      timeout;
--	struct btcx_riscmem    stopper;
--	u32                    count;
--};
--*/
-+
- struct cx231xx_tsport {
- 	struct cx231xx *dev;
- 
--- 
-2.1.3
-
+2014-12-20 18:47 GMT+08:00 Lad, Prabhakar <prabhakar.csengg@gmail.com>:
+> Hi Scott,
+>
+> Although I was on holiday but couldn't resist myself from working,
+> since I was away from my hardware I had to choose a different one,
+> blackfin driver was lucky one. Since I don't have the blackfin
+> board I haven't tested them on the actual board, but just compile
+> tested, Can you please test it & ACK.
+>
+> Lad, Prabhakar (15):
+>   media: blackfin: bfin_capture: drop buf_init() callback
+>   media: blackfin: bfin_capture: release buffers in case
+>     start_streaming() call back fails
+>   media: blackfin: bfin_capture: set min_buffers_needed
+>   media: blackfin: bfin_capture: improve buf_prepare() callback
+>   media: blackfin: bfin_capture: improve queue_setup() callback
+>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
+>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
+>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
+>   media: blackfin: bfin_capture: make sure all buffers are returned on
+>     stop_streaming() callback
+>   media: blackfin: bfin_capture: return -ENODATA for *std calls
+>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
+>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
+>   media: blackfin: bfin_capture: add support for VB2_DMABUF
+>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
+>   media: blackfin: bfin_capture: set v4l2 buffer sequence
+>
+>  drivers/media/platform/blackfin/bfin_capture.c | 310 ++++++++-----------------
+>  1 file changed, 98 insertions(+), 212 deletions(-)
+>
+> --
+> 1.9.1
+>
