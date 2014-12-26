@@ -1,129 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46633 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751163AbaLSDn1 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55894 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750779AbaLZUdn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 22:43:27 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 3FBA42A009D
-	for <linux-media@vger.kernel.org>; Fri, 19 Dec 2014 04:43:11 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20141219034311.3FBA42A009D@tschai.lan>
-Date: Fri, 19 Dec 2014 04:43:11 +0100 (CET)
+	Fri, 26 Dec 2014 15:33:43 -0500
+Date: Fri, 26 Dec 2014 21:33:40 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Rob Herring <robherring2@gmail.com>
+Cc: Bryan Wu <cooloney@gmail.com>,
+	Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+	Sebastian Reichel <sre@debian.org>,
+	Sebastian Reichel <sre@ring0.de>,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap <linux-omap@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>, khilman@kernel.org,
+	Aaro Koskinen <aaro.koskinen@iki.fi>, freemangordon@abv.bg,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Benoit Cousson <bcousson@baylibre.com>, sakari.ailus@iki.fi,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: [PATCHv2] media: i2c/adp1653: devicetree support for adp1653
+Message-ID: <20141226203340.GA1791@amd>
+References: <20141203214641.GA1390@amd>
+ <20141224223434.GA20669@amd>
+ <CAL_JsqJsDqYm-xfEM1CqNzJxfZY6vnYxaBYpT+3t4+gV2F3M1A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqJsDqYm-xfEM1CqNzJxfZY6vnYxaBYpT+3t4+gV2F3M1A@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi!
 
-Results of the daily build of media_tree:
+> > We are moving to device tree support on OMAP3, but that currently
+> > breaks ADP1653 driver. This adds device tree support, plus required
+> > documentation.
+> >
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> >
+> > ---
+> >
+> > Changed -microsec to -us, as requested by devicetree people.
+> >
+> > Fixed checkpatch issues.
+> >
+> > diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+> > index 2d88816..2c6c7c5 100644
+> > --- a/Documentation/devicetree/bindings/leds/common.txt
+> > +++ b/Documentation/devicetree/bindings/leds/common.txt
+> > @@ -14,6 +14,15 @@ Optional properties for child nodes:
+> >       "ide-disk" - LED indicates disk activity
+> >       "timer" - LED flashes at a fixed, configurable rate
+> >
+> > +- max-microamp : maximum intensity in microamperes of the LED
+> > +                (torch LED for flash devices)
+> > +- flash-max-microamp : maximum intensity in microamperes of the
+> > +                       flash LED; it is mandatory if the LED should
+> > +                      support the flash mode
+> > +- flash-timeout-microsec : timeout in microseconds after which the flash
+> > +                           LED is turned off
+> 
+> Doesn't all this go in your flash led binding patch?
 
-date:		Fri Dec 19 04:00:16 CET 2014
-git branch:	test
-git hash:	427ae153c65ad7a08288d86baf99000569627d03
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+No, I should not have included this part.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-x86_64: OK
-apps: ERRORS
-spec-git: OK
-sparse: ERRORS
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-smatch: ERRORS
+> > +Example:
+> > +
+> > +        adp1653: led-controller@30 {
+> > +                compatible = "adi,adp1653";
+> > +               reg = <0x30>;
+> > +                gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
+> > +
+> > +               flash {
+> > +                        flash-timeout-us = <500000>;
+> > +                        flash-max-microamp = <320000>;
+> > +                        max-microamp = <50000>;
+> > +               };
+> > +                indicator {
+> 
+> These are different LEDs or different modes?
 
-Detailed results are available here:
+flash & indicator are different LEDs. One is white, one is red. Flash
+can be used as a flash and as a torch.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+> > +                        max-microamp = <17500>;
+> 
+> This is a bit inconsistent. The binding says this is for flash LEDs
+> torch mode, but I see no reason why it can't be common. Can you update
+> the binding doc to be clear here.
 
-Full logs are available here:
+By inconsisnent, you mean you want patch below?
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+> Also, aren't you missing label properties?
 
-The Media Infrastructure API from this daily build is here:
+label is optional, and as my driver does not yet use it, I forgot
+about it.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+index 2c6c7c5..92d4dac 100644
+--- a/Documentation/devicetree/bindings/leds/common.txt
++++ b/Documentation/devicetree/bindings/leds/common.txt
+@@ -15,7 +15,6 @@ Optional properties for child nodes:
+      "timer" - LED flashes at a fixed, configurable rate
+ 
+ - max-microamp : maximum intensity in microamperes of the LED
+-	         (torch LED for flash devices)
+ - flash-max-microamp : maximum intensity in microamperes of the
+                        flash LED; it is mandatory if the LED should
+ 		       support the flash mode
+
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
