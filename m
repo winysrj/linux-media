@@ -1,47 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60958 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751706AbaLSK2b (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:17526 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751680AbaLZOmZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 05:28:31 -0500
-Message-ID: <1418984906.3165.53.camel@pengutronix.de>
-Subject: Re: coda: Unable to use encoder video_bitrate
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Cc: =?ISO-8859-1?Q?Fr=E9d=E9ric?= Sureau
-	<frederic.sureau@vodalys.com>, Fabio Estevam <festevam@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Date: Fri, 19 Dec 2014 11:28:26 +0100
-In-Reply-To: <CAL8zT=jL3psKQ7+K4avQp=tr58m-KXvqGGhXzYrafEuRB5hkcw@mail.gmail.com>
-References: <54930468.6010007@vodalys.com>
-	 <1418921549.4212.57.camel@pengutronix.de>
-	 <CAL8zT=jjm9BXuUbk5RS-LZpC1EyyTwdGQRy-fQEUMdDfj4Ej7g@mail.gmail.com>
-	 <1418922570.4212.67.camel@pengutronix.de>
-	 <CAL8zT=jL3psKQ7+K4avQp=tr58m-KXvqGGhXzYrafEuRB5hkcw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 26 Dec 2014 09:42:25 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/27] [media] s2255drv: Use setup_timer
+Date: Fri, 26 Dec 2014 15:35:33 +0100
+Message-Id: <1419604558-29743-3-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1419604558-29743-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1419604558-29743-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Michel,
+Convert a call to init_timer and accompanying intializations of
+the timer's data and function fields to a call to setup_timer.
 
-Am Donnerstag, den 18.12.2014, 18:10 +0100 schrieb Jean-Michel Hautbois:
-> > Sorry, forgot to put all of you on Cc: for the "[media] coda: fix
-> > encoder rate control parameter masks" patch. The coda driver is in
-> > drivers/media/platform/coda, register definitions in coda_regs.h.
-> > The CODA_RATECONTROL_BITRATE_MASK is 0x7f, but it should be 0x7fff.
-> >
-> 
-> Well, I meant, the datasheet of the CODA960 because we don't know,
-> just by reading the coda_regs.h which register is where and does what.
+A simplified version of the semantic match that fixes this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-I wish. If you search for "cnm-codadx6-datasheet-v2.9.pdf" with a search
-engine of your choice, on chipsnmedia.com you can get documentation for
-the very oldest coda version supported by the driver. That's all I have
-in addition to the old GPLed Freescale imx-vpu-lib for reference.
+// <smpl>
+@@
+expression t,f,d;
+@@
 
-regards
-Philipp
+-init_timer(&t);
++setup_timer(&t,f,d);
+-t.function = f;
+-t.data = d;
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+ drivers/media/usb/s2255/s2255drv.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index de55e96..0f3c34d 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -2274,9 +2274,7 @@ static int s2255_probe(struct usb_interface *interface,
+ 		dev_err(&interface->dev, "Could not find bulk-in endpoint\n");
+ 		goto errorEP;
+ 	}
+-	init_timer(&dev->timer);
+-	dev->timer.function = s2255_timer;
+-	dev->timer.data = (unsigned long)dev->fw_data;
++	setup_timer(&dev->timer, s2255_timer, (unsigned long)dev->fw_data);
+ 	init_waitqueue_head(&dev->fw_data->wait_fw);
+ 	for (i = 0; i < MAX_CHANNELS; i++) {
+ 		struct s2255_vc *vc = &dev->vc[i];
 
