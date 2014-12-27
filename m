@@ -1,49 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:54807 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751440AbaLWRM3 (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:59626 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751200AbaL0JfT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Dec 2014 12:12:29 -0500
-Message-ID: <5499A26E.802@xs4all.nl>
-Date: Tue, 23 Dec 2014 18:12:14 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Huang Shijie <shijie8@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	devel@driverdev.osuosl.org, Jim Davis <jim.epost@gmail.com>
-Subject: Re: [PATCH 2/2] tlg2300: Fix media dependencies
-References: <0e0a5eabdd703a7afcf310cc24ea1425eea3ef07.1419354167.git.mchehab@osg.samsung.com> <1242d0830a5a384155efaaf84325d342a078aca4.1419354167.git.mchehab@osg.samsung.com>
-In-Reply-To: <1242d0830a5a384155efaaf84325d342a078aca4.1419354167.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
+	Sat, 27 Dec 2014 04:35:19 -0500
+Message-ID: <1419672917.2377.3.camel@xs4all.nl>
+Subject: videobuf2_core oops, recent media_build
+From: Jurgen Kramer <gtmkramer@xs4all.nl>
+To: linux-media@vger.kernel.org
+Date: Sat, 27 Dec 2014 10:35:17 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+I am seeing kernel oopses using recent media_builds on kernel 3.17:
 
-On 12/23/2014 06:02 PM, Mauro Carvalho Chehab wrote:
-> Changeset ea2e813e8cc3 moved the driver to staging, but it forgot to
-> preserve the existing dependency.
-> 
-> Fixes: ea2e813e8cc3 ("[media] tlg2300: move to staging in preparation for removal")
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Jim Davis <jim.epost@gmail.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/staging/media/tlg2300/Kconfig b/drivers/staging/media/tlg2300/Kconfig
-> index 81784c6f7b88..77d8753f6ba4 100644
-> --- a/drivers/staging/media/tlg2300/Kconfig
-> +++ b/drivers/staging/media/tlg2300/Kconfig
-> @@ -1,6 +1,7 @@
->  config VIDEO_TLG2300
->  	tristate "Telegent TLG2300 USB video capture support (Deprecated)"
->  	depends on VIDEO_DEV && I2C && SND && DVB_CORE
-> +	depends on MEDIA_USB_SUPPORT
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
->  	depends on RC_CORE
-> 
+[  506.969697] BUG: unable to handle kernel NULL pointer dereference at
+0000000000000058
+[  506.969720] IP: [<ffffffffa03a233a>] vb2_thread+0x17a/0x480
+[videobuf2_core]
+[  506.969739] PGD 0 
+[  506.969746] Oops: 0002 [#1] SMP 
+[  506.969754] Modules linked in: nf_conntrack_netbios_ns
+nf_conntrack_broadcast cfg80211 rfkill ip6t_rpfilter ip6t_REJECT
+xt_conntrack ebtable_nat ebtable_broute bridge stp llc ebtable_filter
+ebtables ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6
+ip6table_mangle ip6table_security ip6table_raw ip6table_filter
+ip6_tables iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4
+nf_nat nf_conntrack iptable_mangle iptable_security iptable_raw sp2(OE)
+si2157(OE) si2168(OE) i2c_mux nouveau cx25840(OE) cx23885(OE)
+altera_ci(OE) tda18271(OE) altera_stapl(OE) videobuf2_dvb(OE)
+videobuf2_core(OE) videobuf2_dma_sg(OE) videobuf2_memops(OE) snd_seq
+snd_seq_device snd_pcm snd_timer snd video i2c_algo_bit ttm
+drm_kms_helper soundcore iTCO_wdt ppdev gpio_ich iTCO_vendor_support
+tveeprom(OE) cx2341x(OE)
+[  506.969871]  coretemp dvb_core(OE) v4l2_common(OE) videodev(OE)
+media(OE) kvm crc32c_intel raid456 async_raid6_recov async_memcpy
+async_pq async_xor drm xor async_tx raid6_pq microcode serio_raw shpchp
+i7core_edac edac_core i2c_i801 lpc_ich mfd_core parport_pc parport
+ite_cir(OE) rc_core(OE) tpm_infineon tpm_tis tpm acpi_cpufreq nfsd
+auth_rpcgss nfs_acl lockd sunrpc mxm_wmi asix usbnet r8169 mii wmi
+[  506.969970] CPU: 0 PID: 3160 Comm: vb2-cx23885[0] Tainted: G
+OE  3.17.4-200.fc20.x86_64 #1
+[  506.969982] Hardware name: To Be Filled By O.E.M. To Be Filled By
+O.E.M./P55 Extreme, BIOS P2.70 08/20/2010
+[  506.969993] task: ffff8800bc18e220 ti: ffff88020d36c000 task.ti:
+ffff88020d36c000
+[  506.970002] RIP: 0010:[<ffffffffa03a233a>]  [<ffffffffa03a233a>]
+vb2_thread+0x17a/0x480 [videobuf2_core]
+[  506.970021] RSP: 0018:ffff88020d36fe68  EFLAGS: 00010246
+[  506.970663] RAX: 0000000000000000 RBX: 0000000000000000 RCX:
+000000000000000b
+[  506.971305] RDX: 0000000000000058 RSI: ffff8800bc18e220 RDI:
+0000000000000058
+[  506.971952] RBP: ffff88020d36fec0 R08: ffff88020d36c000 R09:
+000000000000158f
+[  506.972611] R10: 00000000000030de R11: 0000000000000010 R12:
+0000000000000058
+[  506.973275] R13: ffff8800b81814a0 R14: 0000000000000000 R15:
+ffff880225c61028
+[  506.973947] FS:  0000000000000000(0000) GS:ffff880233c00000(0000)
+knlGS:0000000000000000
+[  506.974634] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  506.975321] CR2: 0000000000000058 CR3: 0000000001c14000 CR4:
+00000000000007f0
+[  506.976021] Stack:
+[  506.976723]  ffff8800bc18e220 0000000000000070 00ffffff81c1b460
+0000000000000000
+[  506.977442]  ffff880200000000 ffff880225c61028 ffff88020d1d8480
+ffff880225c61028
+[  506.978165]  ffffffffa03a21c0 0000000000000000 0000000000000000
+ffff88020d36ff48
+[  506.979055] Call Trace:
+[  506.979795]  [<ffffffffa03a21c0>] ? vb2_internal_qbuf+0x210/0x210
+[videobuf2_core]
+[  506.980545]  [<ffffffff810b0498>] kthread+0xd8/0xf0
+[  506.981293]  [<ffffffff810b03c0>] ? kthread_create_on_node
++0x190/0x190
+[  506.982045]  [<ffffffff8172e33c>] ret_from_fork+0x7c/0xb0
+[  506.982806]  [<ffffffff810b03c0>] ? kthread_create_on_node
++0x190/0x190
+[  506.983568] Code: 89 e7 ba 58 00 00 00 0f 85 94 01 00 00 40 f6 c7 02
+0f 85 72 01 00 00 40 f6 c7 04 0f 85 50 01 00 00 89 d1 31 c0 c1 e9 03 f6
+c2 04 <f3> 48 ab 74 0a c7 07 00 00 00 00 48 83 c7 04 f6 c2 02 74 0a 31 
+[  506.984464] RIP  [<ffffffffa03a233a>] vb2_thread+0x17a/0x480
+[videobuf2_core]
+[  506.985306]  RSP <ffff88020d36fe68>
+[  506.986147] CR2: 0000000000000058
+[  506.990986] ---[ end trace 1973fbcab83c3353 ]---
+
+First I thought is was related to CAM initialization but after removing
+the CAMS and doing a fresh cold start I am still seeing the oopses.
+After the oops everything is still functioning. I am using 3x DVBSKY
+T980C. How can I debug this further?
+
+Thanks,
+Jurgen
+
+
