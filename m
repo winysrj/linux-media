@@ -1,693 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:42992 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751009AbaLPOtu (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:60801 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751607AbaL2DVi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Dec 2014 09:49:50 -0500
-Received: by mail-wg0-f53.google.com with SMTP id l18so17527839wgh.40
-        for <linux-media@vger.kernel.org>; Tue, 16 Dec 2014 06:49:48 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1417686899-30149-2-git-send-email-hverkuil@xs4all.nl>
-References: <1417686899-30149-1-git-send-email-hverkuil@xs4all.nl> <1417686899-30149-2-git-send-email-hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 16 Dec 2014 20:19:18 +0530
-Message-ID: <CA+V-a8tcNfehfpiS5m5uUvMKFMcdmQ-gsgdXfcFKPXz+s511=g@mail.gmail.com>
-Subject: Re: [RFC PATCH 1/8] v4l2 subdevs: replace get/set_crop by get/set_selection
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	laurent pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
+	Sun, 28 Dec 2014 22:21:38 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 5869C2A0090
+	for <linux-media@vger.kernel.org>; Mon, 29 Dec 2014 04:21:09 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141229032109.5869C2A0090@tschai.lan>
+Date: Mon, 29 Dec 2014 04:21:09 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 4, 2014 at 3:24 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> The crop and selection pad ops are duplicates. Replace all uses of get/set_crop
-> by get/set_selection. This will make it possible to drop get/set_crop
-> altogether.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
-> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Results of the daily build of media_tree:
 
-Regards,
---Prabhakar Lad
+date:		Mon Dec 29 04:00:13 CET 2014
+git branch:	test
+git hash:	cb9564e133f4f790920d715714790512085bb2e3
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-> ---
->  drivers/media/i2c/mt9m032.c                     | 42 ++++++++-------
->  drivers/media/i2c/mt9p031.c                     | 41 ++++++++-------
->  drivers/media/i2c/mt9t001.c                     | 41 ++++++++-------
->  drivers/media/i2c/mt9v032.c                     | 43 ++++++++-------
->  drivers/media/i2c/s5k6aa.c                      | 44 +++++++++-------
->  drivers/staging/media/davinci_vpfe/dm365_isif.c | 69 +++++++++++++------------
->  6 files changed, 156 insertions(+), 124 deletions(-)
->
-> diff --git a/drivers/media/i2c/mt9m032.c b/drivers/media/i2c/mt9m032.c
-> index 45b3fca..7643122 100644
-> --- a/drivers/media/i2c/mt9m032.c
-> +++ b/drivers/media/i2c/mt9m032.c
-> @@ -422,22 +422,25 @@ done:
->         return ret;
->  }
->
-> -static int mt9m032_get_pad_crop(struct v4l2_subdev *subdev,
-> -                               struct v4l2_subdev_fh *fh,
-> -                               struct v4l2_subdev_crop *crop)
-> +static int mt9m032_get_pad_selection(struct v4l2_subdev *subdev,
-> +                                    struct v4l2_subdev_fh *fh,
-> +                                    struct v4l2_subdev_selection *sel)
->  {
->         struct mt9m032 *sensor = to_mt9m032(subdev);
->
-> +       if (sel->target != V4L2_SEL_TGT_CROP)
-> +               return -EINVAL;
-> +
->         mutex_lock(&sensor->lock);
-> -       crop->rect = *__mt9m032_get_pad_crop(sensor, fh, crop->which);
-> +       sel->r = *__mt9m032_get_pad_crop(sensor, fh, sel->which);
->         mutex_unlock(&sensor->lock);
->
->         return 0;
->  }
->
-> -static int mt9m032_set_pad_crop(struct v4l2_subdev *subdev,
-> -                               struct v4l2_subdev_fh *fh,
-> -                               struct v4l2_subdev_crop *crop)
-> +static int mt9m032_set_pad_selection(struct v4l2_subdev *subdev,
-> +                                    struct v4l2_subdev_fh *fh,
-> +                                    struct v4l2_subdev_selection *sel)
->  {
->         struct mt9m032 *sensor = to_mt9m032(subdev);
->         struct v4l2_mbus_framefmt *format;
-> @@ -445,9 +448,12 @@ static int mt9m032_set_pad_crop(struct v4l2_subdev *subdev,
->         struct v4l2_rect rect;
->         int ret = 0;
->
-> +       if (sel->target != V4L2_SEL_TGT_CROP)
-> +               return -EINVAL;
-> +
->         mutex_lock(&sensor->lock);
->
-> -       if (sensor->streaming && crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +       if (sensor->streaming && sel->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
->                 ret = -EBUSY;
->                 goto done;
->         }
-> @@ -455,13 +461,13 @@ static int mt9m032_set_pad_crop(struct v4l2_subdev *subdev,
->         /* Clamp the crop rectangle boundaries and align them to a multiple of 2
->          * pixels to ensure a GRBG Bayer pattern.
->          */
-> -       rect.left = clamp(ALIGN(crop->rect.left, 2), MT9M032_COLUMN_START_MIN,
-> +       rect.left = clamp(ALIGN(sel->r.left, 2), MT9M032_COLUMN_START_MIN,
->                           MT9M032_COLUMN_START_MAX);
-> -       rect.top = clamp(ALIGN(crop->rect.top, 2), MT9M032_ROW_START_MIN,
-> +       rect.top = clamp(ALIGN(sel->r.top, 2), MT9M032_ROW_START_MIN,
->                          MT9M032_ROW_START_MAX);
-> -       rect.width = clamp_t(unsigned int, ALIGN(crop->rect.width, 2),
-> +       rect.width = clamp_t(unsigned int, ALIGN(sel->r.width, 2),
->                              MT9M032_COLUMN_SIZE_MIN, MT9M032_COLUMN_SIZE_MAX);
-> -       rect.height = clamp_t(unsigned int, ALIGN(crop->rect.height, 2),
-> +       rect.height = clamp_t(unsigned int, ALIGN(sel->r.height, 2),
->                               MT9M032_ROW_SIZE_MIN, MT9M032_ROW_SIZE_MAX);
->
->         rect.width = min_t(unsigned int, rect.width,
-> @@ -469,21 +475,21 @@ static int mt9m032_set_pad_crop(struct v4l2_subdev *subdev,
->         rect.height = min_t(unsigned int, rect.height,
->                             MT9M032_PIXEL_ARRAY_HEIGHT - rect.top);
->
-> -       __crop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
-> +       __crop = __mt9m032_get_pad_crop(sensor, fh, sel->which);
->
->         if (rect.width != __crop->width || rect.height != __crop->height) {
->                 /* Reset the output image size if the crop rectangle size has
->                  * been modified.
->                  */
-> -               format = __mt9m032_get_pad_format(sensor, fh, crop->which);
-> +               format = __mt9m032_get_pad_format(sensor, fh, sel->which);
->                 format->width = rect.width;
->                 format->height = rect.height;
->         }
->
->         *__crop = rect;
-> -       crop->rect = rect;
-> +       sel->r = rect;
->
-> -       if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> +       if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE)
->                 ret = mt9m032_update_geom_timing(sensor);
->
->  done:
-> @@ -690,8 +696,8 @@ static const struct v4l2_subdev_pad_ops mt9m032_pad_ops = {
->         .enum_frame_size = mt9m032_enum_frame_size,
->         .get_fmt = mt9m032_get_pad_format,
->         .set_fmt = mt9m032_set_pad_format,
-> -       .set_crop = mt9m032_set_pad_crop,
-> -       .get_crop = mt9m032_get_pad_crop,
-> +       .set_selection = mt9m032_set_pad_selection,
-> +       .get_selection = mt9m032_get_pad_selection,
->  };
->
->  static const struct v4l2_subdev_ops mt9m032_ops = {
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index edb76bd..e3acae9 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -581,37 +581,42 @@ static int mt9p031_set_format(struct v4l2_subdev *subdev,
->         return 0;
->  }
->
-> -static int mt9p031_get_crop(struct v4l2_subdev *subdev,
-> -                           struct v4l2_subdev_fh *fh,
-> -                           struct v4l2_subdev_crop *crop)
-> +static int mt9p031_get_selection(struct v4l2_subdev *subdev,
-> +                                struct v4l2_subdev_fh *fh,
-> +                                struct v4l2_subdev_selection *sel)
->  {
->         struct mt9p031 *mt9p031 = to_mt9p031(subdev);
->
-> -       crop->rect = *__mt9p031_get_pad_crop(mt9p031, fh, crop->pad,
-> -                                            crop->which);
-> +       if (sel->target != V4L2_SEL_TGT_CROP)
-> +               return -EINVAL;
-> +
-> +       sel->r = *__mt9p031_get_pad_crop(mt9p031, fh, sel->pad, sel->which);
->         return 0;
->  }
->
-> -static int mt9p031_set_crop(struct v4l2_subdev *subdev,
-> -                           struct v4l2_subdev_fh *fh,
-> -                           struct v4l2_subdev_crop *crop)
-> +static int mt9p031_set_selection(struct v4l2_subdev *subdev,
-> +                                struct v4l2_subdev_fh *fh,
-> +                                struct v4l2_subdev_selection *sel)
->  {
->         struct mt9p031 *mt9p031 = to_mt9p031(subdev);
->         struct v4l2_mbus_framefmt *__format;
->         struct v4l2_rect *__crop;
->         struct v4l2_rect rect;
->
-> +       if (sel->target != V4L2_SEL_TGT_CROP)
-> +               return -EINVAL;
-> +
->         /* Clamp the crop rectangle boundaries and align them to a multiple of 2
->          * pixels to ensure a GRBG Bayer pattern.
->          */
-> -       rect.left = clamp(ALIGN(crop->rect.left, 2), MT9P031_COLUMN_START_MIN,
-> +       rect.left = clamp(ALIGN(sel->r.left, 2), MT9P031_COLUMN_START_MIN,
->                           MT9P031_COLUMN_START_MAX);
-> -       rect.top = clamp(ALIGN(crop->rect.top, 2), MT9P031_ROW_START_MIN,
-> +       rect.top = clamp(ALIGN(sel->r.top, 2), MT9P031_ROW_START_MIN,
->                          MT9P031_ROW_START_MAX);
-> -       rect.width = clamp_t(unsigned int, ALIGN(crop->rect.width, 2),
-> +       rect.width = clamp_t(unsigned int, ALIGN(sel->r.width, 2),
->                              MT9P031_WINDOW_WIDTH_MIN,
->                              MT9P031_WINDOW_WIDTH_MAX);
-> -       rect.height = clamp_t(unsigned int, ALIGN(crop->rect.height, 2),
-> +       rect.height = clamp_t(unsigned int, ALIGN(sel->r.height, 2),
->                               MT9P031_WINDOW_HEIGHT_MIN,
->                               MT9P031_WINDOW_HEIGHT_MAX);
->
-> @@ -620,20 +625,20 @@ static int mt9p031_set_crop(struct v4l2_subdev *subdev,
->         rect.height = min_t(unsigned int, rect.height,
->                             MT9P031_PIXEL_ARRAY_HEIGHT - rect.top);
->
-> -       __crop = __mt9p031_get_pad_crop(mt9p031, fh, crop->pad, crop->which);
-> +       __crop = __mt9p031_get_pad_crop(mt9p031, fh, sel->pad, sel->which);
->
->         if (rect.width != __crop->width || rect.height != __crop->height) {
->                 /* Reset the output image size if the crop rectangle size has
->                  * been modified.
->                  */
-> -               __format = __mt9p031_get_pad_format(mt9p031, fh, crop->pad,
-> -                                                   crop->which);
-> +               __format = __mt9p031_get_pad_format(mt9p031, fh, sel->pad,
-> +                                                   sel->which);
->                 __format->width = rect.width;
->                 __format->height = rect.height;
->         }
->
->         *__crop = rect;
-> -       crop->rect = rect;
-> +       sel->r = rect;
->
->         return 0;
->  }
-> @@ -980,8 +985,8 @@ static struct v4l2_subdev_pad_ops mt9p031_subdev_pad_ops = {
->         .enum_frame_size = mt9p031_enum_frame_size,
->         .get_fmt = mt9p031_get_format,
->         .set_fmt = mt9p031_set_format,
-> -       .get_crop = mt9p031_get_crop,
-> -       .set_crop = mt9p031_set_crop,
-> +       .get_selection = mt9p031_get_selection,
-> +       .set_selection = mt9p031_set_selection,
->  };
->
->  static struct v4l2_subdev_ops mt9p031_subdev_ops = {
-> diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
-> index d9e9889..f6ca636 100644
-> --- a/drivers/media/i2c/mt9t001.c
-> +++ b/drivers/media/i2c/mt9t001.c
-> @@ -401,39 +401,44 @@ static int mt9t001_set_format(struct v4l2_subdev *subdev,
->         return 0;
->  }
->
-> -static int mt9t001_get_crop(struct v4l2_subdev *subdev,
-> -                           struct v4l2_subdev_fh *fh,
-> -                           struct v4l2_subdev_crop *crop)
-> +static int mt9t001_get_selection(struct v4l2_subdev *subdev,
-> +                                struct v4l2_subdev_fh *fh,
-> +                                struct v4l2_subdev_selection *sel)
->  {
->         struct mt9t001 *mt9t001 = to_mt9t001(subdev);
->
-> -       crop->rect = *__mt9t001_get_pad_crop(mt9t001, fh, crop->pad,
-> -                                            crop->which);
-> +       if (sel->target != V4L2_SEL_TGT_CROP)
-> +               return -EINVAL;
-> +
-> +       sel->r = *__mt9t001_get_pad_crop(mt9t001, fh, sel->pad, sel->which);
->         return 0;
->  }
->
-> -static int mt9t001_set_crop(struct v4l2_subdev *subdev,
-> -                           struct v4l2_subdev_fh *fh,
-> -                           struct v4l2_subdev_crop *crop)
-> +static int mt9t001_set_selection(struct v4l2_subdev *subdev,
-> +                                struct v4l2_subdev_fh *fh,
-> +                                struct v4l2_subdev_selection *sel)
->  {
->         struct mt9t001 *mt9t001 = to_mt9t001(subdev);
->         struct v4l2_mbus_framefmt *__format;
->         struct v4l2_rect *__crop;
->         struct v4l2_rect rect;
->
-> +       if (sel->target != V4L2_SEL_TGT_CROP)
-> +               return -EINVAL;
-> +
->         /* Clamp the crop rectangle boundaries and align them to a multiple of 2
->          * pixels.
->          */
-> -       rect.left = clamp(ALIGN(crop->rect.left, 2),
-> +       rect.left = clamp(ALIGN(sel->r.left, 2),
->                           MT9T001_COLUMN_START_MIN,
->                           MT9T001_COLUMN_START_MAX);
-> -       rect.top = clamp(ALIGN(crop->rect.top, 2),
-> +       rect.top = clamp(ALIGN(sel->r.top, 2),
->                          MT9T001_ROW_START_MIN,
->                          MT9T001_ROW_START_MAX);
-> -       rect.width = clamp_t(unsigned int, ALIGN(crop->rect.width, 2),
-> +       rect.width = clamp_t(unsigned int, ALIGN(sel->r.width, 2),
->                              MT9T001_WINDOW_WIDTH_MIN + 1,
->                              MT9T001_WINDOW_WIDTH_MAX + 1);
-> -       rect.height = clamp_t(unsigned int, ALIGN(crop->rect.height, 2),
-> +       rect.height = clamp_t(unsigned int, ALIGN(sel->r.height, 2),
->                               MT9T001_WINDOW_HEIGHT_MIN + 1,
->                               MT9T001_WINDOW_HEIGHT_MAX + 1);
->
-> @@ -442,20 +447,20 @@ static int mt9t001_set_crop(struct v4l2_subdev *subdev,
->         rect.height = min_t(unsigned int, rect.height,
->                             MT9T001_PIXEL_ARRAY_HEIGHT - rect.top);
->
-> -       __crop = __mt9t001_get_pad_crop(mt9t001, fh, crop->pad, crop->which);
-> +       __crop = __mt9t001_get_pad_crop(mt9t001, fh, sel->pad, sel->which);
->
->         if (rect.width != __crop->width || rect.height != __crop->height) {
->                 /* Reset the output image size if the crop rectangle size has
->                  * been modified.
->                  */
-> -               __format = __mt9t001_get_pad_format(mt9t001, fh, crop->pad,
-> -                                                   crop->which);
-> +               __format = __mt9t001_get_pad_format(mt9t001, fh, sel->pad,
-> +                                                   sel->which);
->                 __format->width = rect.width;
->                 __format->height = rect.height;
->         }
->
->         *__crop = rect;
-> -       crop->rect = rect;
-> +       sel->r = rect;
->
->         return 0;
->  }
-> @@ -819,8 +824,8 @@ static struct v4l2_subdev_pad_ops mt9t001_subdev_pad_ops = {
->         .enum_frame_size = mt9t001_enum_frame_size,
->         .get_fmt = mt9t001_get_format,
->         .set_fmt = mt9t001_set_format,
-> -       .get_crop = mt9t001_get_crop,
-> -       .set_crop = mt9t001_set_crop,
-> +       .get_selection = mt9t001_get_selection,
-> +       .set_selection = mt9t001_set_selection,
->  };
->
->  static struct v4l2_subdev_ops mt9t001_subdev_ops = {
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index 93687c1..bd3f979 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -552,39 +552,44 @@ static int mt9v032_set_format(struct v4l2_subdev *subdev,
->         return 0;
->  }
->
-> -static int mt9v032_get_crop(struct v4l2_subdev *subdev,
-> -                           struct v4l2_subdev_fh *fh,
-> -                           struct v4l2_subdev_crop *crop)
-> +static int mt9v032_get_selection(struct v4l2_subdev *subdev,
-> +                                struct v4l2_subdev_fh *fh,
-> +                                struct v4l2_subdev_selection *sel)
->  {
->         struct mt9v032 *mt9v032 = to_mt9v032(subdev);
->
-> -       crop->rect = *__mt9v032_get_pad_crop(mt9v032, fh, crop->pad,
-> -                                            crop->which);
-> +       if (sel->target != V4L2_SEL_TGT_CROP)
-> +               return -EINVAL;
-> +
-> +       sel->r = *__mt9v032_get_pad_crop(mt9v032, fh, sel->pad, sel->which);
->         return 0;
->  }
->
-> -static int mt9v032_set_crop(struct v4l2_subdev *subdev,
-> -                           struct v4l2_subdev_fh *fh,
-> -                           struct v4l2_subdev_crop *crop)
-> +static int mt9v032_set_selection(struct v4l2_subdev *subdev,
-> +                                struct v4l2_subdev_fh *fh,
-> +                                struct v4l2_subdev_selection *sel)
->  {
->         struct mt9v032 *mt9v032 = to_mt9v032(subdev);
->         struct v4l2_mbus_framefmt *__format;
->         struct v4l2_rect *__crop;
->         struct v4l2_rect rect;
->
-> +       if (sel->target != V4L2_SEL_TGT_CROP)
-> +               return -EINVAL;
-> +
->         /* Clamp the crop rectangle boundaries and align them to a non multiple
->          * of 2 pixels to ensure a GRBG Bayer pattern.
->          */
-> -       rect.left = clamp(ALIGN(crop->rect.left + 1, 2) - 1,
-> +       rect.left = clamp(ALIGN(sel->r.left + 1, 2) - 1,
->                           MT9V032_COLUMN_START_MIN,
->                           MT9V032_COLUMN_START_MAX);
-> -       rect.top = clamp(ALIGN(crop->rect.top + 1, 2) - 1,
-> +       rect.top = clamp(ALIGN(sel->r.top + 1, 2) - 1,
->                          MT9V032_ROW_START_MIN,
->                          MT9V032_ROW_START_MAX);
-> -       rect.width = clamp_t(unsigned int, ALIGN(crop->rect.width, 2),
-> +       rect.width = clamp_t(unsigned int, ALIGN(sel->r.width, 2),
->                              MT9V032_WINDOW_WIDTH_MIN,
->                              MT9V032_WINDOW_WIDTH_MAX);
-> -       rect.height = clamp_t(unsigned int, ALIGN(crop->rect.height, 2),
-> +       rect.height = clamp_t(unsigned int, ALIGN(sel->r.height, 2),
->                               MT9V032_WINDOW_HEIGHT_MIN,
->                               MT9V032_WINDOW_HEIGHT_MAX);
->
-> @@ -593,17 +598,17 @@ static int mt9v032_set_crop(struct v4l2_subdev *subdev,
->         rect.height = min_t(unsigned int,
->                             rect.height, MT9V032_PIXEL_ARRAY_HEIGHT - rect.top);
->
-> -       __crop = __mt9v032_get_pad_crop(mt9v032, fh, crop->pad, crop->which);
-> +       __crop = __mt9v032_get_pad_crop(mt9v032, fh, sel->pad, sel->which);
->
->         if (rect.width != __crop->width || rect.height != __crop->height) {
->                 /* Reset the output image size if the crop rectangle size has
->                  * been modified.
->                  */
-> -               __format = __mt9v032_get_pad_format(mt9v032, fh, crop->pad,
-> -                                                   crop->which);
-> +               __format = __mt9v032_get_pad_format(mt9v032, fh, sel->pad,
-> +                                                   sel->which);
->                 __format->width = rect.width;
->                 __format->height = rect.height;
-> -               if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +               if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
->                         mt9v032->hratio = 1;
->                         mt9v032->vratio = 1;
->                         mt9v032_configure_pixel_rate(mt9v032);
-> @@ -611,7 +616,7 @@ static int mt9v032_set_crop(struct v4l2_subdev *subdev,
->         }
->
->         *__crop = rect;
-> -       crop->rect = rect;
-> +       sel->r = rect;
->
->         return 0;
->  }
-> @@ -844,8 +849,8 @@ static struct v4l2_subdev_pad_ops mt9v032_subdev_pad_ops = {
->         .enum_frame_size = mt9v032_enum_frame_size,
->         .get_fmt = mt9v032_get_format,
->         .set_fmt = mt9v032_set_format,
-> -       .get_crop = mt9v032_get_crop,
-> -       .set_crop = mt9v032_set_crop,
-> +       .get_selection = mt9v032_get_selection,
-> +       .set_selection = mt9v032_set_selection,
->  };
->
->  static struct v4l2_subdev_ops mt9v032_subdev_ops = {
-> diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
-> index 2851581..19edafb 100644
-> --- a/drivers/media/i2c/s5k6aa.c
-> +++ b/drivers/media/i2c/s5k6aa.c
-> @@ -1161,17 +1161,21 @@ static int s5k6aa_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->         return ret;
->  }
->
-> -static int s5k6aa_get_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> -                          struct v4l2_subdev_crop *crop)
-> +static int s5k6aa_get_selection(struct v4l2_subdev *sd,
-> +                               struct v4l2_subdev_fh *fh,
-> +                               struct v4l2_subdev_selection *sel)
->  {
->         struct s5k6aa *s5k6aa = to_s5k6aa(sd);
->         struct v4l2_rect *rect;
->
-> -       memset(crop->reserved, 0, sizeof(crop->reserved));
-> +       if (sel->target != V4L2_SEL_TGT_CROP)
-> +               return -EINVAL;
-> +
-> +       memset(sel->reserved, 0, sizeof(sel->reserved));
->
->         mutex_lock(&s5k6aa->lock);
-> -       rect = __s5k6aa_get_crop_rect(s5k6aa, fh, crop->which);
-> -       crop->rect = *rect;
-> +       rect = __s5k6aa_get_crop_rect(s5k6aa, fh, sel->which);
-> +       sel->r = *rect;
->         mutex_unlock(&s5k6aa->lock);
->
->         v4l2_dbg(1, debug, sd, "Current crop rectangle: (%d,%d)/%dx%d\n",
-> @@ -1180,35 +1184,39 @@ static int s5k6aa_get_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->         return 0;
->  }
->
-> -static int s5k6aa_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> -                          struct v4l2_subdev_crop *crop)
-> +static int s5k6aa_set_selection(struct v4l2_subdev *sd,
-> +                               struct v4l2_subdev_fh *fh,
-> +                               struct v4l2_subdev_selection *sel)
->  {
->         struct s5k6aa *s5k6aa = to_s5k6aa(sd);
->         struct v4l2_mbus_framefmt *mf;
->         unsigned int max_x, max_y;
->         struct v4l2_rect *crop_r;
->
-> +       if (sel->target != V4L2_SEL_TGT_CROP)
-> +               return -EINVAL;
-> +
->         mutex_lock(&s5k6aa->lock);
-> -       crop_r = __s5k6aa_get_crop_rect(s5k6aa, fh, crop->which);
-> +       crop_r = __s5k6aa_get_crop_rect(s5k6aa, fh, sel->which);
->
-> -       if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +       if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
->                 mf = &s5k6aa->preset->mbus_fmt;
->                 s5k6aa->apply_crop = 1;
->         } else {
->                 mf = v4l2_subdev_get_try_format(fh, 0);
->         }
-> -       v4l_bound_align_image(&crop->rect.width, mf->width,
-> +       v4l_bound_align_image(&sel->r.width, mf->width,
->                               S5K6AA_WIN_WIDTH_MAX, 1,
-> -                             &crop->rect.height, mf->height,
-> +                             &sel->r.height, mf->height,
->                               S5K6AA_WIN_HEIGHT_MAX, 1, 0);
->
-> -       max_x = (S5K6AA_WIN_WIDTH_MAX - crop->rect.width) & ~1;
-> -       max_y = (S5K6AA_WIN_HEIGHT_MAX - crop->rect.height) & ~1;
-> +       max_x = (S5K6AA_WIN_WIDTH_MAX - sel->r.width) & ~1;
-> +       max_y = (S5K6AA_WIN_HEIGHT_MAX - sel->r.height) & ~1;
->
-> -       crop->rect.left = clamp_t(unsigned int, crop->rect.left, 0, max_x);
-> -       crop->rect.top  = clamp_t(unsigned int, crop->rect.top, 0, max_y);
-> +       sel->r.left = clamp_t(unsigned int, sel->r.left, 0, max_x);
-> +       sel->r.top  = clamp_t(unsigned int, sel->r.top, 0, max_y);
->
-> -       *crop_r = crop->rect;
-> +       *crop_r = sel->r;
->
->         mutex_unlock(&s5k6aa->lock);
->
-> @@ -1224,8 +1232,8 @@ static const struct v4l2_subdev_pad_ops s5k6aa_pad_ops = {
->         .enum_frame_interval    = s5k6aa_enum_frame_interval,
->         .get_fmt                = s5k6aa_get_fmt,
->         .set_fmt                = s5k6aa_set_fmt,
-> -       .get_crop               = s5k6aa_get_crop,
-> -       .set_crop               = s5k6aa_set_crop,
-> +       .get_selection          = s5k6aa_get_selection,
-> +       .set_selection          = s5k6aa_set_selection,
->  };
->
->  static const struct v4l2_subdev_video_ops s5k6aa_video_ops = {
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> index fa26f63..6010e72f 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> @@ -1535,7 +1535,7 @@ isif_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->  }
->
->  /*
-> - * isif_pad_set_crop() - set crop rectangle on pad
-> + * isif_pad_set_selection() - set crop rectangle on pad
->   * @sd: VPFE isif V4L2 subdevice
->   * @fh: V4L2 subdev file handle
->   * @code: pointer to v4l2_subdev_mbus_code_enum structure
-> @@ -1543,35 +1543,36 @@ isif_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->   * Return 0 on success, -EINVAL if pad is invalid
->   */
->  static int
-> -isif_pad_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> -                 struct v4l2_subdev_crop *crop)
-> +isif_pad_set_selection(struct v4l2_subdev *sd,
-> +                      struct v4l2_subdev_fh *fh,
-> +                      struct v4l2_subdev_selection *sel)
->  {
->         struct vpfe_isif_device *vpfe_isif = v4l2_get_subdevdata(sd);
->         struct v4l2_mbus_framefmt *format;
->
-> -       /* check wether its a valid pad */
-> -       if (crop->pad != ISIF_PAD_SINK)
-> +       /* check whether it's a valid pad and target */
-> +       if (sel->pad != ISIF_PAD_SINK || sel->target != V4L2_SEL_TGT_CROP)
->                 return -EINVAL;
->
-> -       format = __isif_get_format(vpfe_isif, fh, crop->pad, crop->which);
-> +       format = __isif_get_format(vpfe_isif, fh, sel->pad, sel->which);
->         if (format == NULL)
->                 return -EINVAL;
->
->         /* check wether crop rect is within limits */
-> -       if (crop->rect.top < 0 || crop->rect.left < 0 ||
-> -               (crop->rect.left + crop->rect.width >
-> +       if (sel->r.top < 0 || sel->r.left < 0 ||
-> +               (sel->r.left + sel->r.width >
->                 vpfe_isif->formats[ISIF_PAD_SINK].width) ||
-> -               (crop->rect.top + crop->rect.height >
-> +               (sel->r.top + sel->r.height >
->                         vpfe_isif->formats[ISIF_PAD_SINK].height)) {
-> -               crop->rect.left = 0;
-> -               crop->rect.top = 0;
-> -               crop->rect.width = format->width;
-> -               crop->rect.height = format->height;
-> +               sel->r.left = 0;
-> +               sel->r.top = 0;
-> +               sel->r.width = format->width;
-> +               sel->r.height = format->height;
->         }
->         /* adjust the width to 16 pixel boundary */
-> -       crop->rect.width = ((crop->rect.width + 15) & ~0xf);
-> -       vpfe_isif->crop = crop->rect;
-> -       if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +       sel->r.width = ((sel->r.width + 15) & ~0xf);
-> +       vpfe_isif->crop = sel->r;
-> +       if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
->                 isif_set_image_window(vpfe_isif);
->         } else {
->                 struct v4l2_rect *rect;
-> @@ -1583,7 +1584,7 @@ isif_pad_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->  }
->
->  /*
-> - * isif_pad_get_crop() - get crop rectangle on pad
-> + * isif_pad_get_selection() - get crop rectangle on pad
->   * @sd: VPFE isif V4L2 subdevice
->   * @fh: V4L2 subdev file handle
->   * @code: pointer to v4l2_subdev_mbus_code_enum structure
-> @@ -1591,21 +1592,22 @@ isif_pad_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->   * Return 0 on success, -EINVAL if pad is invalid
->   */
->  static int
-> -isif_pad_get_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> -                 struct v4l2_subdev_crop *crop)
-> +isif_pad_get_selection(struct v4l2_subdev *sd,
-> +                      struct v4l2_subdev_fh *fh,
-> +                      struct v4l2_subdev_selection *sel)
->  {
->         struct vpfe_isif_device *vpfe_isif = v4l2_get_subdevdata(sd);
->
-> -       /* check wether its a valid pad */
-> -       if (crop->pad != ISIF_PAD_SINK)
-> +       /* check whether it's a valid pad and target */
-> +       if (sel->pad != ISIF_PAD_SINK || sel->target != V4L2_SEL_TGT_CROP)
->                 return -EINVAL;
->
-> -       if (crop->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +       if (sel->which == V4L2_SUBDEV_FORMAT_TRY) {
->                 struct v4l2_rect *rect;
->                 rect = v4l2_subdev_get_try_crop(fh, ISIF_PAD_SINK);
-> -               memcpy(&crop->rect, rect, sizeof(*rect));
-> +               memcpy(&sel->r, rect, sizeof(*rect));
->         } else {
-> -               crop->rect = vpfe_isif->crop;
-> +               sel->r = vpfe_isif->crop;
->         }
->
->         return 0;
-> @@ -1625,7 +1627,7 @@ isif_init_formats(struct v4l2_subdev *sd,
->                   struct v4l2_subdev_fh *fh)
->  {
->         struct v4l2_subdev_format format;
-> -       struct v4l2_subdev_crop crop;
-> +       struct v4l2_subdev_selection sel;
->
->         memset(&format, 0, sizeof(format));
->         format.pad = ISIF_PAD_SINK;
-> @@ -1643,12 +1645,13 @@ isif_init_formats(struct v4l2_subdev *sd,
->         format.format.height = MAX_HEIGHT;
->         isif_set_format(sd, fh, &format);
->
-> -       memset(&crop, 0, sizeof(crop));
-> -       crop.pad = ISIF_PAD_SINK;
-> -       crop.which = fh ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
-> -       crop.rect.width = MAX_WIDTH;
-> -       crop.rect.height = MAX_HEIGHT;
-> -       isif_pad_set_crop(sd, fh, &crop);
-> +       memset(&sel, 0, sizeof(sel));
-> +       sel.pad = ISIF_PAD_SINK;
-> +       sel.which = fh ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
-> +       sel.target = V4L2_SEL_TGT_CROP;
-> +       sel.r.width = MAX_WIDTH;
-> +       sel.r.height = MAX_HEIGHT;
-> +       isif_pad_set_selection(sd, fh, &sel);
->
->         return 0;
->  }
-> @@ -1674,8 +1677,8 @@ static const struct v4l2_subdev_pad_ops isif_v4l2_pad_ops = {
->         .enum_frame_size = isif_enum_frame_size,
->         .get_fmt = isif_get_format,
->         .set_fmt = isif_set_format,
-> -       .set_crop = isif_pad_set_crop,
-> -       .get_crop = isif_pad_get_crop,
-> +       .set_selection = isif_pad_set_selection,
-> +       .get_selection = isif_pad_get_selection,
->  };
->
->  /* subdev operations */
-> --
-> 2.1.3
->
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16-i686: ERRORS
+linux-3.17-i686: ERRORS
+linux-3.18-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17-x86_64: ERRORS
+linux-3.18-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
