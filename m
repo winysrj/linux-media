@@ -1,41 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:38033 "EHLO
-	mail-1.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751312AbaL2Neg (ORCPT
+Received: from mailrelay010.isp.belgacom.be ([195.238.6.177]:1394 "EHLO
+	mailrelay010.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751291AbaL2OaE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Dec 2014 08:34:36 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: linux-media@vger.kernel.org
-Subject: CMYG support in V4L2
-Date: Mon, 29 Dec 2014 14:33:58 +0100
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201412291433.58677.linux@rainbow-software.org>
+	Mon, 29 Dec 2014 09:30:04 -0500
+From: Fabian Frederick <fabf@skynet.be>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Fabian Frederick <fabf@skynet.be>,
+	openipmi-developer@lists.sourceforge.net,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org
+Subject: [PATCH 00/11 linux-next] drivers: remove unnecessary version.h inclusion
+Date: Mon, 29 Dec 2014 15:29:34 +0100
+Message-Id: <1419863387-24233-1-git-send-email-fabf@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-I'm working on an old driver called "qcamvc" for Connectix QuickCam VC webcams 
-(parallel port and USB models), found here:
-http://sourceforge.net/projects/usb-quickcam-vc/
+This small patchset removes unnecessary version.h includes detected by
+versioncheck in drivers branch.
 
-Luckily, it was modified last year to compile with 3.x kernels.
+Fabian Frederick (11):
+  rsxx: remove unnecessary version.h inclusion
+  skd: remove unnecessary version.h inclusion
+  ipmi: remove unnecessary version.h inclusion
+  input: remove unnecessary version.h inclusion
+  [media] tw68: remove unnecessary version.h inclusion
+  [media] s5p-g2d: remove unnecessary version.h inclusion
+  [media] s5p-mfc: remove unnecessary version.h inclusion
+  [media] vivid: remove unnecessary version.h inclusion
+  [media] uvcvideo: remove unnecessary version.h inclusion
+  GenWQE: remove unnecessary version.h inclusion
+  s390/hmcdrv: remove unnecessary version.h inclusion
 
-After trivial modification (mfr and model), it works with parallel-port 
-QuickCam Pro (sort of - only at 320x240 and with vertical lines on the left 
-and blank part at the top). I don't have QuickCam VC (yet).
-
-After removing a lot of code (it's now around 1200 [main] + 660 [parallel] + 
-320 [usb] lines), one problem still remains: in-kernel colour conversion with 
-software contrast, hue, saturation and gamma.
-
-According to comments in the code, the camera sensor seems to have a CMYG 
-filter, like no other linux-supported camera. So the proper way to support 
-these cameras is to introduce a new pixel format, move the conversion to 
-libv4lconvert and remove all controls not provided by hardware?
+ drivers/block/rsxx/rsxx_priv.h               | 1 -
+ drivers/block/skd_main.c                     | 1 -
+ drivers/char/ipmi/ipmi_ssif.c                | 1 -
+ drivers/input/touchscreen/elants_i2c.c       | 2 --
+ drivers/media/pci/tw68/tw68.h                | 1 -
+ drivers/media/platform/s5p-g2d/g2d.c         | 1 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 1 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 1 -
+ drivers/media/platform/vivid/vivid-tpg.h     | 1 -
+ drivers/media/usb/uvc/uvc_v4l2.c             | 1 -
+ drivers/misc/genwqe/card_base.h              | 1 -
+ drivers/misc/genwqe/card_sysfs.c             | 1 -
+ drivers/s390/char/hmcdrv_mod.c               | 1 -
+ 13 files changed, 14 deletions(-)
 
 -- 
-Ondrej Zary
+2.1.0
+
