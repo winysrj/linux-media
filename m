@@ -1,92 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37715 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964963AbaLMLyd (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:52812 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751134AbaL2Mp1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Dec 2014 06:54:33 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 10/10] s5k5baf: fix sparse warnings
-Date: Sat, 13 Dec 2014 12:53:00 +0100
-Message-Id: <1418471580-26510-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
-References: <1418471580-26510-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 29 Dec 2014 07:45:27 -0500
+Date: Mon, 29 Dec 2014 13:45:22 +0100
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2] [media] Add RGB444_1X12 and RGB565_1X16 media bus
+ formats
+Message-ID: <20141229134522.07ffd4a5@bbrezillon>
+In-Reply-To: <1416126278-17708-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1416126278-17708-1-git-send-email-boris.brezillon@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello Mauro,
 
-drivers/media/i2c/s5k5baf.c:1796:33: warning: duplicate const
-drivers/media/i2c/s5k5baf.c:379:24: warning: cast to restricted __le16
-drivers/media/i2c/s5k5baf.c:437:11: warning: incorrect type in assignment (different base types)
-drivers/media/i2c/s5k5baf.c:445:16: warning: incorrect type in return expression (different base types)
+Last week I received a notification informing me that this patch was
+"Not Applicable".
+Could you give more details on why you think this should not go through
+the media-tree (or am I misunderstanding the meaning of "Not
+Applicable") ?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/i2c/s5k5baf.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+I really need this patch for the atmel HLCDC DRM driver, moreover this
+patch from Philip [1] depends on mine.
 
-diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-index 60a74d8..a3d7d03 100644
---- a/drivers/media/i2c/s5k5baf.c
-+++ b/drivers/media/i2c/s5k5baf.c
-@@ -353,7 +353,7 @@ static struct v4l2_rect s5k5baf_cis_rect = {
-  *
-  */
- static int s5k5baf_fw_parse(struct device *dev, struct s5k5baf_fw **fw,
--			    size_t count, const u16 *data)
-+			    size_t count, const __le16 *data)
- {
- 	struct s5k5baf_fw *f;
- 	u16 *d, i, *end;
-@@ -421,6 +421,7 @@ static u16 s5k5baf_i2c_read(struct s5k5baf *state, u16 addr)
- {
- 	struct i2c_client *c = v4l2_get_subdevdata(&state->sd);
- 	__be16 w, r;
-+	u16 res;
- 	struct i2c_msg msg[] = {
- 		{ .addr = c->addr, .flags = 0,
- 		  .len = 2, .buf = (u8 *)&w },
-@@ -434,15 +435,15 @@ static u16 s5k5baf_i2c_read(struct s5k5baf *state, u16 addr)
- 
- 	w = cpu_to_be16(addr);
- 	ret = i2c_transfer(c->adapter, msg, 2);
--	r = be16_to_cpu(r);
-+	res = be16_to_cpu(r);
- 
--	v4l2_dbg(3, debug, c, "i2c_read: 0x%04x : 0x%04x\n", addr, r);
-+	v4l2_dbg(3, debug, c, "i2c_read: 0x%04x : 0x%04x\n", addr, res);
- 
- 	if (ret != 2) {
- 		v4l2_err(c, "i2c_read: error during transfer (%d)\n", ret);
- 		state->error = ret;
- 	}
--	return r;
-+	return res;
- }
- 
- static void s5k5baf_i2c_write(struct s5k5baf *state, u16 addr, u16 val)
-@@ -1037,7 +1038,7 @@ static int s5k5baf_load_setfile(struct s5k5baf *state)
- 	}
- 
- 	ret = s5k5baf_fw_parse(&c->dev, &state->fw, fw->size / 2,
--			       (u16 *)fw->data);
-+			       (__le16 *)fw->data);
- 
- 	release_firmware(fw);
- 
-@@ -1793,7 +1794,7 @@ static const struct v4l2_subdev_ops s5k5baf_subdev_ops = {
- 
- static int s5k5baf_configure_gpios(struct s5k5baf *state)
- {
--	static const char const *name[] = { "S5K5BAF_STBY", "S5K5BAF_RST" };
-+	static const char * const name[] = { "S5K5BAF_STBY", "S5K5BAF_RST" };
- 	struct i2c_client *c = v4l2_get_subdevdata(&state->sd);
- 	struct s5k5baf_gpio *g = state->gpios;
- 	int ret, i;
+Regards,
+
+Boris
+
+[1]http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/85952
+
+On Sun, 16 Nov 2014 09:24:38 +0100
+Boris Brezillon <boris.brezillon@free-electrons.com> wrote:
+
+> Add RGB444_1X12 and RGB565_1X16 format definitions and update the
+> documentation.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+> Changes since v1:
+> - keep BPP and bits per sample ordering
+> 
+>  Documentation/DocBook/media/v4l/subdev-formats.xml | 40 ++++++++++++++++++++++
+>  include/uapi/linux/media-bus-format.h              |  4 ++-
+>  2 files changed, 43 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> index 18730b9..0d6f731 100644
+> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> @@ -176,6 +176,24 @@
+>  	    </row>
+>  	  </thead>
+>  	  <tbody valign="top">
+> +	    <row id="MEDIA-BUS-FMT-RGB444-1X12">
+> +	      <entry>MEDIA_BUS_FMT_RGB444_1X12</entry>
+> +	      <entry>0x100d</entry>
+> +	      <entry></entry>
+> +	      &dash-ent-20;
+> +	      <entry>r<subscript>3</subscript></entry>
+> +	      <entry>r<subscript>2</subscript></entry>
+> +	      <entry>r<subscript>1</subscript></entry>
+> +	      <entry>r<subscript>0</subscript></entry>
+> +	      <entry>g<subscript>3</subscript></entry>
+> +	      <entry>g<subscript>2</subscript></entry>
+> +	      <entry>g<subscript>1</subscript></entry>
+> +	      <entry>g<subscript>0</subscript></entry>
+> +	      <entry>b<subscript>3</subscript></entry>
+> +	      <entry>b<subscript>2</subscript></entry>
+> +	      <entry>b<subscript>1</subscript></entry>
+> +	      <entry>b<subscript>0</subscript></entry>
+> +	    </row>
+>  	    <row id="MEDIA-BUS-FMT-RGB444-2X8-PADHI-BE">
+>  	      <entry>MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE</entry>
+>  	      <entry>0x1001</entry>
+> @@ -288,6 +306,28 @@
+>  	      <entry>g<subscript>4</subscript></entry>
+>  	      <entry>g<subscript>3</subscript></entry>
+>  	    </row>
+> +	    <row id="MEDIA-BUS-FMT-RGB565-1X16">
+> +	      <entry>MEDIA_BUS_FMT_RGB565_1X16</entry>
+> +	      <entry>0x100d</entry>
+> +	      <entry></entry>
+> +	      &dash-ent-16;
+> +	      <entry>r<subscript>4</subscript></entry>
+> +	      <entry>r<subscript>3</subscript></entry>
+> +	      <entry>r<subscript>2</subscript></entry>
+> +	      <entry>r<subscript>1</subscript></entry>
+> +	      <entry>r<subscript>0</subscript></entry>
+> +	      <entry>g<subscript>5</subscript></entry>
+> +	      <entry>g<subscript>4</subscript></entry>
+> +	      <entry>g<subscript>3</subscript></entry>
+> +	      <entry>g<subscript>2</subscript></entry>
+> +	      <entry>g<subscript>1</subscript></entry>
+> +	      <entry>g<subscript>0</subscript></entry>
+> +	      <entry>b<subscript>4</subscript></entry>
+> +	      <entry>b<subscript>3</subscript></entry>
+> +	      <entry>b<subscript>2</subscript></entry>
+> +	      <entry>b<subscript>1</subscript></entry>
+> +	      <entry>b<subscript>0</subscript></entry>
+> +	    </row>
+>  	    <row id="MEDIA-BUS-FMT-BGR565-2X8-BE">
+>  	      <entry>MEDIA_BUS_FMT_BGR565_2X8_BE</entry>
+>  	      <entry>0x1005</entry>
+> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+> index 23b4090..37091c6 100644
+> --- a/include/uapi/linux/media-bus-format.h
+> +++ b/include/uapi/linux/media-bus-format.h
+> @@ -33,11 +33,13 @@
+>  
+>  #define MEDIA_BUS_FMT_FIXED			0x0001
+>  
+> -/* RGB - next is	0x100e */
+> +/* RGB - next is	0x1010 */
+> +#define MEDIA_BUS_FMT_RGB444_1X12		0x100e
+>  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+>  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+>  #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
+>  #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE	0x1004
+> +#define MEDIA_BUS_FMT_RGB565_1X16		0x100f
+>  #define MEDIA_BUS_FMT_BGR565_2X8_BE		0x1005
+>  #define MEDIA_BUS_FMT_BGR565_2X8_LE		0x1006
+>  #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
+
+
+
 -- 
-2.1.3
-
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
