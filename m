@@ -1,59 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51113 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751033AbaLRQzt (ORCPT
+Received: from mail-qg0-f54.google.com ([209.85.192.54]:40808 "EHLO
+	mail-qg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751551AbaL2PA1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 11:55:49 -0500
-Received: from avalon.localnet (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id DAF1620BD6
-	for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 17:52:28 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.20]  OMAP3 ISP and OMAP4 ISS changes
-Date: Thu, 18 Dec 2014 18:55:51 +0200
-Message-ID: <2473465.MT2HERg2rx@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 29 Dec 2014 10:00:27 -0500
+From: Joe Howse <josephhowse@nummist.com>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Joe Howse <josephhowse@nummist.com>
+Subject: [PATCH 1/1] gspca: Add high-speed modes for PS3 Eye camera
+Date: Mon, 29 Dec 2014 11:00:03 -0400
+Message-Id: <1419865203-3967-1-git-send-email-josephhowse@nummist.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Add support in the PS3 Eye driver for QVGA capture at higher
+frame rates: 187, 150, and 137 FPS. This functionality is valuable
+because the PS3 Eye is popular for computer vision projects and no
+other camera in its price range supports such high frame rates.
 
-The following changes since commit 427ae153c65ad7a08288d86baf99000569627d03:
+Correct a QVGA mode that was listed as 40 FPS. It is really 37 FPS
+(half of 75 FPS).
 
-  [media] bq/c-qcam, w9966, pms: move to staging in preparation for removal 
-(2014-12-16 23:21:44 -0200)
+Tests confirm that the nominal frame rates are achieved.
 
-are available in the git repository at:
+Signed-off-by: Joe Howse <josephhowse@nummist.com>
+---
+ drivers/media/usb/gspca/ov534.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-  git://linuxtv.org/pinchartl/media.git omap/next
-
-for you to fetch changes up to 0ad05d6633d3a6cb4410473ebc93c94b14f16478:
-
-  v4l: omap4iss: Stop started entities when pipeline start fails (2014-12-18 
-18:54:27 +0200)
-
-----------------------------------------------------------------
-Laurent Pinchart (5):
-      omap3isp: Fix division by 0
-      v4l: omap4iss: Enable DMABUF support
-      v4l: omap4iss: Remove bogus frame number propagation
-      v4l: omap4iss: csi2: Perform real frame number propagation
-      v4l: omap4iss: Stop started entities when pipeline start fails
-
- drivers/media/platform/omap3isp/isp.c        |   3 +
- drivers/staging/media/omap4iss/iss.c         | 111 +++++++++++++++-----------
- drivers/staging/media/omap4iss/iss_csi2.c    |  43 ++++++++++----
- drivers/staging/media/omap4iss/iss_csi2.h    |   2 +-
- drivers/staging/media/omap4iss/iss_ipipeif.c |  22 +------
- drivers/staging/media/omap4iss/iss_regs.h    |   2 +
- drivers/staging/media/omap4iss/iss_resizer.c |  18 +-----
- drivers/staging/media/omap4iss/iss_video.c   |  11 +++-
- 8 files changed, 116 insertions(+), 96 deletions(-)
-
+diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
+index 90f0d63..a9c866d 100644
+--- a/drivers/media/usb/gspca/ov534.c
++++ b/drivers/media/usb/gspca/ov534.c
+@@ -12,6 +12,8 @@
+  * PS3 Eye camera enhanced by Richard Kaswy http://kaswy.free.fr
+  * PS3 Eye camera - brightness, contrast, awb, agc, aec controls
+  *                  added by Max Thrun <bear24rw@gmail.com>
++ * PS3 Eye camera - FPS range extended by Joseph Howse
++ *                  <josephhowse@nummist.com> http://nummist.com
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -116,7 +118,7 @@ static const struct v4l2_pix_format ov767x_mode[] = {
+ 		.colorspace = V4L2_COLORSPACE_JPEG},
+ };
+ 
+-static const u8 qvga_rates[] = {125, 100, 75, 60, 50, 40, 30};
++static const u8 qvga_rates[] = {187, 150, 137, 125, 100, 75, 60, 50, 37, 30};
+ static const u8 vga_rates[] = {60, 50, 40, 30, 15};
+ 
+ static const struct framerates ov772x_framerates[] = {
+@@ -769,12 +771,16 @@ static void set_frame_rate(struct gspca_dev *gspca_dev)
+ 		{15, 0x03, 0x41, 0x04},
+ 	};
+ 	static const struct rate_s rate_1[] = {	/* 320x240 */
++/*		{205, 0x01, 0xc1, 0x02},  * 205 FPS: video is partly corrupt */
++		{187, 0x01, 0x81, 0x02}, /* 187 FPS or below: video is valid */
++		{150, 0x01, 0xc1, 0x04},
++		{137, 0x02, 0xc1, 0x02},
+ 		{125, 0x02, 0x81, 0x02},
+ 		{100, 0x02, 0xc1, 0x04},
+ 		{75, 0x03, 0xc1, 0x04},
+ 		{60, 0x04, 0xc1, 0x04},
+ 		{50, 0x02, 0x41, 0x04},
+-		{40, 0x03, 0x41, 0x04},
++		{37, 0x03, 0x41, 0x04},
+ 		{30, 0x04, 0x41, 0x04},
+ 	};
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
