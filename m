@@ -1,60 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35447 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752342AbaLSMOz (ORCPT
+Received: from mailrelay010.isp.belgacom.be ([195.238.6.177]:14761 "EHLO
+	mailrelay010.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752339AbaL2ObI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 07:14:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, marbugge@cisco.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 3/4] hdmi: rename HDMI_AUDIO_CODING_TYPE_EXT_STREAM to _EXT_CT
-Date: Fri, 19 Dec 2014 13:14:22 +0100
-Message-Id: <1418991263-17934-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1418991263-17934-1-git-send-email-hverkuil@xs4all.nl>
-References: <1418991263-17934-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 29 Dec 2014 09:31:08 -0500
+From: Fabian Frederick <fabf@skynet.be>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Fabian Frederick <fabf@skynet.be>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH 07/11 linux-next] [media] s5p-mfc: remove unnecessary version.h inclusion
+Date: Mon, 29 Dec 2014 15:29:41 +0100
+Message-Id: <1419863387-24233-8-git-send-email-fabf@skynet.be>
+In-Reply-To: <1419863387-24233-1-git-send-email-fabf@skynet.be>
+References: <1419863387-24233-1-git-send-email-fabf@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Based on versioncheck.
 
-As per the suggestion of Thierry Reding rename
-HDMI_AUDIO_CODING_TYPE_EXT_STREAM to HDMI_AUDIO_CODING_TYPE_EXT_CT to
-be consistent with the CEA-861 spec.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 ---
- drivers/video/hdmi.c | 2 +-
- include/linux/hdmi.h | 3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 1 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 1 -
+ 2 files changed, 2 deletions(-)
 
-diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
-index a7c6ae4..1626892 100644
---- a/drivers/video/hdmi.c
-+++ b/drivers/video/hdmi.c
-@@ -842,7 +842,7 @@ hdmi_audio_coding_type_ext_get_name(enum hdmi_audio_coding_type_ext ctx)
- 		return "Invalid";
- 
- 	switch (ctx) {
--	case HDMI_AUDIO_CODING_TYPE_EXT_STREAM:
-+	case HDMI_AUDIO_CODING_TYPE_EXT_CT:
- 		return "Refer to CT";
- 	case HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC:
- 		return "HE AAC";
-diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
-index d6dea20..d70a457 100644
---- a/include/linux/hdmi.h
-+++ b/include/linux/hdmi.h
-@@ -215,7 +215,8 @@ enum hdmi_audio_sample_frequency {
- };
- 
- enum hdmi_audio_coding_type_ext {
--	HDMI_AUDIO_CODING_TYPE_EXT_STREAM,
-+	/* Refer to Audio Coding Type (CT) field in Data Byte 1 */
-+	HDMI_AUDIO_CODING_TYPE_EXT_CT,
- 
- 	/*
- 	 * The next three CXT values are defined in CEA-861-E only.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index c6c3452..a9ef843 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -18,7 +18,6 @@
+ #include <linux/platform_device.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+-#include <linux/version.h>
+ #include <linux/videodev2.h>
+ #include <linux/workqueue.h>
+ #include <media/v4l2-ctrls.h>
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index bd64f1d..68df3cd 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -19,7 +19,6 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/sched.h>
+-#include <linux/version.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-event.h>
+ #include <linux/workqueue.h>
 -- 
-2.1.3
+2.1.0
 
