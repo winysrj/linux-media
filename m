@@ -1,167 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42206 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751533AbaLNI3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Dec 2014 03:29:49 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 09/18] rtl2830: implement DVBv5 CNR statistic
-Date: Sun, 14 Dec 2014 10:28:34 +0200
-Message-Id: <1418545723-9536-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1418545723-9536-1-git-send-email-crope@iki.fi>
-References: <1418545723-9536-1-git-send-email-crope@iki.fi>
+Received: from smtp0.sscnet.ucla.edu ([128.97.229.230]:40819 "EHLO
+	smtp0.sscnet.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495AbaL3IYO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Dec 2014 03:24:14 -0500
+Message-ID: <54A26109.1040109@cogweb.net>
+Date: Tue, 30 Dec 2014 00:23:37 -0800
+From: David Liontooth <lionteeth@cogweb.net>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: dvbv5-scan needs which channel file?
+References: <54A1B4FD.70006@cogweb.net> <CAAZRmGxoOTf9f4gq05RgbcD44tmiySMXo-_ZHtBQX0pw6ZXPUA@mail.gmail.com>
+In-Reply-To: <CAAZRmGxoOTf9f4gq05RgbcD44tmiySMXo-_ZHtBQX0pw6ZXPUA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DVBv5 CNR.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2830.c      | 74 ++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/rtl2830_priv.h |  3 ++
- 2 files changed, 77 insertions(+)
+Ah, thank you Olli -- much appreciated!
 
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index 8025b19..c484634 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -177,6 +177,7 @@ static int rtl2830_init(struct dvb_frontend *fe)
- {
- 	struct i2c_client *client = fe->demodulator_priv;
- 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
-+	struct dtv_frontend_properties *c = &dev->fe.dtv_property_cache;
- 	int ret, i;
- 	struct rtl2830_reg_val_mask tab[] = {
- 		{0x00d, 0x01, 0x03},
-@@ -244,6 +245,12 @@ static int rtl2830_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	/* init stats here in order signal app which stats are supported */
-+	c->cnr.len = 1;
-+	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	/* start statistics polling */
-+	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
-+
- 	dev->sleeping = false;
- 
- 	return ret;
-@@ -258,6 +265,9 @@ static int rtl2830_sleep(struct dvb_frontend *fe)
- 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
- 
- 	dev->sleeping = true;
-+	/* stop statistics polling */
-+	cancel_delayed_work_sync(&dev->stat_work);
-+	dev->fe_status = 0;
- 
- 	return 0;
- }
-@@ -518,6 +528,8 @@ static int rtl2830_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 			FE_HAS_VITERBI;
- 	}
- 
-+	dev->fe_status = *status;
-+
- 	return ret;
- err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
-@@ -670,6 +682,66 @@ static struct dvb_frontend_ops rtl2830_ops = {
- 	.read_signal_strength = rtl2830_read_signal_strength,
- };
- 
-+static void rtl2830_stat_work(struct work_struct *work)
-+{
-+	struct rtl2830_dev *dev = container_of(work, struct rtl2830_dev, stat_work.work);
-+	struct i2c_client *client = dev->client;
-+	struct dtv_frontend_properties *c = &dev->fe.dtv_property_cache;
-+	int ret, tmp;
-+	u8 u8tmp, buf[2];
-+	u16 u16tmp;
-+
-+	dev_dbg(&client->dev, "\n");
-+
-+	/* CNR */
-+	if (dev->fe_status & FE_HAS_VITERBI) {
-+		unsigned hierarchy, constellation;
-+		#define CONSTELLATION_NUM 3
-+		#define HIERARCHY_NUM 4
-+		static const u32 constant[CONSTELLATION_NUM][HIERARCHY_NUM] = {
-+			{70705899, 70705899, 70705899, 70705899},
-+			{82433173, 82433173, 87483115, 94445660},
-+			{92888734, 92888734, 95487525, 99770748},
-+		};
-+
-+		ret = rtl2830_rd_reg(client, 0x33c, &u8tmp);
-+		if (ret)
-+			goto err;
-+
-+		constellation = (u8tmp >> 2) & 0x03; /* [3:2] */
-+		if (constellation > CONSTELLATION_NUM - 1)
-+			goto err_schedule_delayed_work;
-+
-+		hierarchy = (u8tmp >> 4) & 0x07; /* [6:4] */
-+		if (hierarchy > HIERARCHY_NUM - 1)
-+			goto err_schedule_delayed_work;
-+
-+		ret = rtl2830_rd_regs(client, 0x40c, buf, 2);
-+		if (ret)
-+			goto err;
-+
-+		u16tmp = buf[0] << 8 | buf[1] << 0;
-+		if (u16tmp)
-+			tmp = (constant[constellation][hierarchy] -
-+			       intlog10(u16tmp)) / ((1 << 24) / 10000);
-+		else
-+			tmp = 0;
-+
-+		dev_dbg(&client->dev, "CNR raw=%u\n", u16tmp);
-+
-+		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
-+		c->cnr.stat[0].svalue = tmp;
-+	} else {
-+		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
-+
-+err_schedule_delayed_work:
-+	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
-+	return;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
-+}
-+
- /*
-  * I2C gate/repeater logic
-  * We must use unlocked i2c_transfer() here because I2C lock is already taken
-@@ -765,8 +837,10 @@ static int rtl2830_probe(struct i2c_client *client,
- 
- 	/* setup the state */
- 	i2c_set_clientdata(client, dev);
-+	dev->client = client;
- 	dev->pdata = client->dev.platform_data;
- 	dev->sleeping = true;
-+	INIT_DELAYED_WORK(&dev->stat_work, rtl2830_stat_work);
- 
- 	/* check if the demod is there */
- 	ret = rtl2830_rd_reg(client, 0x000, &u8tmp);
-diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
-index 5f9973a..7cf316d 100644
---- a/drivers/media/dvb-frontends/rtl2830_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2830_priv.h
-@@ -25,10 +25,13 @@
- 
- struct rtl2830_dev {
- 	struct rtl2830_platform_data *pdata;
-+	struct i2c_client *client;
- 	struct i2c_adapter *adapter;
- 	struct dvb_frontend fe;
- 	bool sleeping;
- 	u8 page; /* active register page */
-+	struct delayed_work stat_work;
-+	fe_status_t fe_status;
- };
- 
- struct rtl2830_reg_val_mask {
--- 
-http://palosaari.fi/
+If dvbv5-scan expects the initial scan files in the new DVBV5 format, 
+does that mean that these still somewhat mysterious "initial scan files" 
+have to be supplied, as in the link to the dtv-scan-tables? How are 
+these "initial scan files" themselves generated?
+
+Surely there must be thousands of different dvb signal locations -- is 
+linux-tv going to try to maintain these thousands of scan tables for 
+download? What do users do when their particular location is not 
+represented in the dtv-scan-tables.git?
+
+Finally, I'm using gnutv to record television; I imagine it still only 
+accepts the old format? What's the new alternative?
+
+Cheers,
+David
+
+On 12/29/14, 11:55 PM, Olli Salonen wrote:
+> Hello David,
+>
+> Coincidentally I was just yesterday working with dvbv5-scan and the
+> initial scan files. dvbv5-scan expects the initial scan files in the
+> new DVBV5 format. w_scan is not producing results in this format.
+>
+> The scan tables at
+> http://git.linuxtv.org/cgit.cgi/dtv-scan-tables.git/ are in the new
+> format. Some of them are a bit outdated though (send in a patch if you
+> can update it for your area).
+>
+> The v4l-utils package also includes tools to convert between the old
+> and the new format.
+>
+> Cheers,
+> -olli
+>
+>
+> On 29 December 2014 at 22:09, David Liontooth <lionteeth@cogweb.net> wrote:
+>> Greetings --
+>>
+>> How do you actually use dvbv5-scan? It seems to require some kind of input
+>> file but there is no man page and the --help screen doesn't say anything
+>> about it.
+>>
+>> Could we document this? I tried
+>>
+>> $ dvbv5-scan
+>> Usage: dvbv5-scan [OPTION...] <initial file>
+>> scan DVB services using the channel file
+>>
+>> What is "the channel file"? Maybe the channels.conf file? (I created mine
+>> using "w_scan -ft -A3 -X -cUS -o7 -a /dev/dvb/adapter0/")
+>>
+>> $ dvbv5-scan /etc/channels.conf
+>> ERROR key/value without a channel group while parsing line 1 of
+>> /etc/channels.conf
+>>
+>> So it knows what it wants -- but what is it? Or is this a matter of dvb
+>> versions, and my /etc/channels.conf is in the older format?
+>>
+>> Very mysterious.
+>>
+>> Cheers,
+>> David
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
