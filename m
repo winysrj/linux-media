@@ -1,47 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:47268 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751839AbaLRLws (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 06:52:48 -0500
-Received: by mail-pd0-f175.google.com with SMTP id g10so1275655pdj.34
-        for <linux-media@vger.kernel.org>; Thu, 18 Dec 2014 03:52:48 -0800 (PST)
-From: Chunyan Zhang <zhang.chunyan@linaro.org>
-To: m.chehab@samsung.com, david@hardeman.nu, uli-lirc@uli-eckhardt.de,
-	hans.verkuil@cisco.com, julia.lawall@lip6.fr, himangi774@gmail.com,
-	khoroshilov@ispras.ru, joe@perches.com, dborkman@redhat.com,
-	john.stultz@linaro.org, tglx@linutronix.de, davem@davemloft.net,
-	dwmw2@infradead.org, computersforpeace@gmail.com, arnd@linaro.org
-Cc: linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, zhang.lyra@gmail.com
-Subject: [PATCH 0/3] Changes the time type 'timeval' to 'Ktime'
-Date: Thu, 18 Dec 2014 19:51:59 +0800
-Message-Id: <1418903522-19137-1-git-send-email-zhang.chunyan@linaro.org>
-In-Reply-To: <ktime-mtd-rc-v1>
-References: <ktime-mtd-rc-v1>
+Received: from mout.gmx.net ([212.227.17.22]:63577 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751967AbaL3MNA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Dec 2014 07:13:00 -0500
+Date: Tue, 30 Dec 2014 13:12:27 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, m.chehab@samsung.com,
+	linux-arm-kernel@lists.infradead.org, s.nawrocki@samsung.com,
+	festevam@gmail.com, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v4 2/5] media: ov2640: add async probe function
+In-Reply-To: <54A279A6.1060003@atmel.com>
+Message-ID: <alpine.DEB.2.00.1412301308070.9569@axis700.grange>
+References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com> <1492726.KPKGvtrvz4@avalon> <Pine.LNX.4.64.1412261136360.9254@axis700.grange> <2421077.hZ7S0HT2At@avalon> <alpine.DEB.2.00.1412300927380.8237@axis700.grange> <54A279A6.1060003@atmel.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch-set changes the 32-bit time type (timeval) to the 64-bit one
-(ktime_t) in imon.c, speedtest.c and torturetest.c, since 32-bit time
-types will break in the year 2038.
+On Tue, 30 Dec 2014, Josh Wu wrote:
 
-This patch-set also introduces a reusable time difference function which
-returns the difference in millisecond in ktime.h. The last two patches
-of this patch-set will use this function, so they are dependent on the
-first one. 
+[snip]
 
-Chunyan Zhang (3):
-  ktime.h: Introduce ktime_ms_delta
-  mtd: test: Replace timeval with ktime_t in speedtest.c and torturetest.c
-  media: rc: Replace timeval with ktime_t in imon.c
+> > And until omap1 is in the mainline we cannot drop v4l2_clk.
 
- drivers/media/rc/imon.c         |   49 +++++++++++----------------------------
- drivers/mtd/tests/speedtest.c   |   10 ++++----
- drivers/mtd/tests/torturetest.c |   10 ++++----
- include/linux/ktime.h           |    5 ++++
- 4 files changed, 28 insertions(+), 46 deletions(-)
+s/until/as lonh as/
 
--- 
-1.7.9.5
+> So I think the better way right now for ov2640 driver is still request both
+> the v4l2_clock: mclk, and the clock: xvclk in probe().
+> In that way,  we can take our time to introduce other patches to merged these
+> two clocks.
+> Does it make sense?
 
+How about this sequence, that we cat still try to get in on time for the 
+next merge window:
+
+1. stop using the clock name in v4l2_clk
+2. add support for CCF to v4l2_clk, falling back to current behaviour if 
+no clock is found
+3. switch ov2640 to using "xvclk"
+
+Otherwise I would propose to add asynchronous probing support to ov2640 
+_without_ changing the clock name. Whether or not we changee clock's name 
+isn't related directly to async support, since the driver already is using 
+v4l2_clk with the standarf "wrong" name. So, I would consider these two 
+changes separately - one is a new feature, another is a fix. The only 
+question is in which order to apply them. In general fix-first is 
+preferred, but since in this case the fix requires framework changes, we 
+could go with feature-first. This also makes sense since features need to 
+catch a merge window, whereas a fix can go in later too. So, if we don't 
+manage the above 3-step plan, I would priposw the most primitive patch ro 
+ov2640 just adding async support in line wuth other drivers and without 
+changing the clock name at first.
+
+Thanks
+Guennadi
