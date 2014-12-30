@@ -1,59 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56937 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752398AbaLSM3s (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45718 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751939AbaL3WP7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Dec 2014 07:29:48 -0500
-Received: from [10.61.169.145] (173-38-208-170.cisco.com [173.38.208.170])
-	by tschai.lan (Postfix) with ESMTPSA id A6C5A2A002F
-	for <linux-media@vger.kernel.org>; Fri, 19 Dec 2014 13:29:32 +0100 (CET)
-Message-ID: <54941A37.8040002@xs4all.nl>
-Date: Fri, 19 Dec 2014 13:29:43 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 30 Dec 2014 17:15:59 -0500
+Date: Wed, 31 Dec 2014 00:15:22 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v9 07/19] dt-binding: mfd: max77693: Add DT binding
+ related macros
+Message-ID: <20141230221522.GO17565@valkosipuli.retiisi.org.uk>
+References: <1417622814-10845-1-git-send-email-j.anaszewski@samsung.com>
+ <1417622814-10845-8-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.20] v4l2-subdev cleanups
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1417622814-10845-8-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches are identical to patches 1, 2, 3 and 5 of this RFC patch series:
+Hi Jacek,
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg82712.html
+The driver depends on these so I'd rearrange this patch in the set before
+the driver patch.
 
-Except for updating the obviously wrong subject line of patch 3.
+On Wed, Dec 03, 2014 at 05:06:42PM +0100, Jacek Anaszewski wrote:
+> Add macros for max77693 led part related binding.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> ---
+>  include/dt-bindings/mfd/max77693.h |   38 ++++++++++++++++++++++++++++++++++++
+>  1 file changed, 38 insertions(+)
+>  create mode 100644 include/dt-bindings/mfd/max77693.h
+> 
+> diff --git a/include/dt-bindings/mfd/max77693.h b/include/dt-bindings/mfd/max77693.h
+> new file mode 100644
+> index 0000000..4011cb47
+> --- /dev/null
+> +++ b/include/dt-bindings/mfd/max77693.h
+> @@ -0,0 +1,38 @@
+> +/*
+> + * This header provides macros for MAX77693 device binding
+> + *
+> + * Copyright (C) 2014, Samsung Electronics Co., Ltd.
+> + *
+> + * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+> + */
+> +
+> +#ifndef __DT_BINDINGS_MAX77693_H__
+> +#define __DT_BINDINGS_MAX77693_H
+> +
+> +/* External control pins */
+> +#define MAX77693_LED_FLED_UNUSED	0
+> +#define MAX77693_LED_FLED_USED		1
+> +
+> +/* FLED pins */
+> +#define MAX77693_LED_FLED1		1
+> +#define MAX77693_LED_FLED2		2
 
+I'd personally simply use numbers for the above but I can't really say to be
+an expert on the topic.
+
+> +/* External trigger type */
+> +#define MAX77693_LED_TRIG_TYPE_EDGE	0
+> +#define MAX77693_LED_TRIG_TYPE_LEVEL	1
+> +
+> +/* Trigger flags */
+> +#define MAX77693_LED_TRIG_FLASHEN	(1 << 0)
+> +#define MAX77693_LED_TRIG_TORCHEN	(1 << 1)
+> +#define MAX77693_LED_TRIG_SOFTWARE	(1 << 2)
+> +
+> +#define MAX77693_LED_TRIG_ALL		(MAX77693_LED_TRIG_FLASHEN | \
+> +					 MAX77693_LED_TRIG_TORCHEN | \
+> +					 MAX77693_LED_TRIG_SOFTWARE)
+> +
+> +/* Boost modes */
+> +#define MAX77693_LED_BOOST_OFF		0
+> +#define MAX77693_LED_BOOST_ADAPTIVE	1
+> +#define MAX77693_LED_BOOST_FIXED	2
+> +
+> +#endif /* __DT_BINDINGS_MAX77693_H */
+
+-- 
 Regards,
 
-	Hans
-
-The following changes since commit 427ae153c65ad7a08288d86baf99000569627d03:
-
-  [media] bq/c-qcam, w9966, pms: move to staging in preparation for removal (2014-12-16 23:21:44 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.20e
-
-for you to fetch changes up to c2db336edbcc29bb5eb991c47be6d1524d7857c8:
-
-  media/i2c/Kconfig: drop superfluous MEDIA_CONTROLLER (2014-12-19 12:44:54 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (4):
-      v4l2 subdev: replace get/set_crop by get/set_selection
-      v4l2-subdev: drop get/set_crop pad ops
-      v4l2-subdev: drop unused op enum_mbus_fsizes
-      media/i2c/Kconfig: drop superfluous MEDIA_CONTROLLER
-
- drivers/media/i2c/Kconfig                       |  6 +++---
- drivers/media/i2c/mt9m032.c                     | 42 ++++++++++++++++++++++----------------
- drivers/media/i2c/mt9p031.c                     | 41 +++++++++++++++++++++----------------
- drivers/media/i2c/mt9t001.c                     | 41 +++++++++++++++++++++----------------
- drivers/media/i2c/mt9v032.c                     | 43 ++++++++++++++++++++++-----------------
- drivers/media/i2c/s5k6aa.c                      | 44 +++++++++++++++++++++++----------------
- drivers/media/v4l2-core/v4l2-subdev.c           |  8 --------
- drivers/staging/media/davinci_vpfe/dm365_isif.c | 69 ++++++++++++++++++++++++++++++++------------------------------
- include/media/v4l2-subdev.h                     |  6 ------
- 9 files changed, 159 insertions(+), 141 deletions(-)
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
