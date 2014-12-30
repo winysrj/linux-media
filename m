@@ -1,93 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:59247 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751962AbaLRHu0 (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:41997 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751728AbaL3NPj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Dec 2014 02:50:26 -0500
-From: Arnd Bergmann <arnd@linaro.org>
-To: Chunyan Zhang <zhang.chunyan@linaro.org>
-Cc: m.chehab@samsung.com, david@hardeman.nu, uli-lirc@uli-eckhardt.de,
-	hans.verkuil@cisco.com, julia.lawall@lip6.fr, himangi774@gmail.com,
-	khoroshilov@ispras.ru, joe@perches.com, john.stultz@linaro.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	zhang.lyra@gmail.com
-Subject: Re: [PATCH] media: rc: Replace timeval with ktime_t in imon.c
-Date: Thu, 18 Dec 2014 08:50:14 +0100
-Message-ID: <1685288.Gd2P1eSoIW@wuerfel>
-In-Reply-To: <1418873833-5084-1-git-send-email-zhang.chunyan@linaro.org>
-References: <1418873833-5084-1-git-send-email-zhang.chunyan@linaro.org>
+	Tue, 30 Dec 2014 08:15:39 -0500
+Received: by mail-wi0-f180.google.com with SMTP id n3so23977465wiv.13
+        for <linux-media@vger.kernel.org>; Tue, 30 Dec 2014 05:15:38 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <54A26109.1040109@cogweb.net>
+References: <54A1B4FD.70006@cogweb.net>
+	<CAAZRmGxoOTf9f4gq05RgbcD44tmiySMXo-_ZHtBQX0pw6ZXPUA@mail.gmail.com>
+	<54A26109.1040109@cogweb.net>
+Date: Tue, 30 Dec 2014 15:15:38 +0200
+Message-ID: <CAAZRmGz1Xp9bL+R-sMsHpeuwAJ4aR=Dhu2Hwo-wAqbbFkr1B9w@mail.gmail.com>
+Subject: Re: dvbv5-scan needs which channel file?
+From: Olli Salonen <olli.salonen@iki.fi>
+To: David Liontooth <lionteeth@cogweb.net>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 18 December 2014 11:37:13 Chunyan Zhang wrote:
-> This patch changes the 32-bit time type (timeval) to the 64-bit one
-> (ktime_t), since 32-bit time types will break in the year 2038.
-> 
-> I use ktime_t instead of all uses of timeval in imon.c
-> 
-> This patch also changes do_gettimeofday() to ktime_get() accordingly,
-> since ktime_get returns a ktime_t, but do_gettimeofday returns a
-> struct timeval, and the other reason is that ktime_get() uses
-> the monotonic clock.
-> 
-> This patch use a new function which is provided by another patch listed below
-> to get the millisecond time difference.
+Hi David,
 
-The patch looks great. Just a few small details that could still be
-improved:
+Well, the initial scan files need to be supplied for dvbv5-scan somehow.
 
-> http://lkml.iu.edu//hypermail/linux/kernel/1412.2/00625.html
-> 
-> Signed-off-by: Chunyan Zhang <zhang.chunyan@linaro.org>
+The initial scan files that are maintained in the the git repo I
+posted earlier are updated by users who notice differencies. Basically
+I and some other users have created scripts that automatically
+generate the files for my country, so it's rather easy. I don't know
+how it works for other countries.
 
-In general, when you give a mailing list link, use the 'Link' tag
-under your Signed-off-by line, like
+Anyway, if you prefer to generate the data yourself you can use w_scan
+to generate it in DVBV3 format:
+w_scan -ft -c FI -x > ~/initial_v3.conf
 
-Link: http://lkml.iu.edu//hypermail/linux/kernel/1412.2/00625.html
+Then use the dvb-format-convert tool that comes in the v4l-utils package:
+dvb-format-convert -I CHANNEL -O DVBV5 ~/initial_v3.conf ~/initial_data_v5.conf
 
-It's not used much yet, but getting more popular and seems useful to me.
+Then you can run dvbv5-scan with this file:
+dvbv5-scan ~/initial_data_v5.conf
 
-In this particular case, when you have patches that depend on one
-another, you can make do it even better by sending all three patches
-as a series with a [PATCH 0/3] cover letter.
+Alternatively you can skip the whole conversion phase and run
+dvbv5-scan with the DVBV3 initial tuning data:
+dvbv5-scan -I CHANNEL ~/initial_v3.conf
 
-If the media maintainers can provide an Ack for this patch, I would
-suggest to queue it up in the y2038 branch together with your first
-patch that it depends on.
+Cheers,
+-olli
 
-> @@ -1191,16 +1168,16 @@ static inline int tv2int(const struct timeval *a, const struct timeval *b)
->   */
->  static int stabilize(int a, int b, u16 timeout, u16 threshold)
->  {
-> -	struct timeval ct;
-> -	static struct timeval prev_time = {0, 0};
-> -	static struct timeval hit_time  = {0, 0};
-> +	ktime_t ct;
-> +	static ktime_t prev_time = {0};
-> +	static ktime_t hit_time  = {0};
->  	static int x, y, prev_result, hits;
->  	int result = 0;
-
-The "= {0}" part here is redundant, since static variables are always
-initialized to zero. Normally, adding the explicit initializer can
-help readability, but in this case I would leave it out because it shows
-implementation details of ktime_t that are better hidden from drivers.
-
-> @@ -1596,9 +1573,9 @@ static void imon_incoming_packet(struct imon_context *ictx,
->  	int i;
->  	u64 scancode;
->  	int press_type = 0;
-> -	int msec;
-> -	struct timeval t;
-> -	static struct timeval prev_time = { 0, 0 };
-> +	long msec;
-> +	ktime_t t;
-> +	static ktime_t prev_time = {0};
->  	u8 ktype;
-
-Same thing here of course.
-
-	Arnd
+On 30 December 2014 at 10:23, David Liontooth <lionteeth@cogweb.net> wrote:
+>
+> Ah, thank you Olli -- much appreciated!
+>
+> If dvbv5-scan expects the initial scan files in the new DVBV5 format, does
+> that mean that these still somewhat mysterious "initial scan files" have to
+> be supplied, as in the link to the dtv-scan-tables? How are these "initial
+> scan files" themselves generated?
+>
+> Surely there must be thousands of different dvb signal locations -- is
+> linux-tv going to try to maintain these thousands of scan tables for
+> download? What do users do when their particular location is not represented
+> in the dtv-scan-tables.git?
+>
+> Finally, I'm using gnutv to record television; I imagine it still only
+> accepts the old format? What's the new alternative?
+>
+> Cheers,
+> David
+>
+> On 12/29/14, 11:55 PM, Olli Salonen wrote:
+>>
+>> Hello David,
+>>
+>> Coincidentally I was just yesterday working with dvbv5-scan and the
+>> initial scan files. dvbv5-scan expects the initial scan files in the
+>> new DVBV5 format. w_scan is not producing results in this format.
+>>
+>> The scan tables at
+>> http://git.linuxtv.org/cgit.cgi/dtv-scan-tables.git/ are in the new
+>> format. Some of them are a bit outdated though (send in a patch if you
+>> can update it for your area).
+>>
+>> The v4l-utils package also includes tools to convert between the old
+>> and the new format.
+>>
+>> Cheers,
+>> -olli
+>>
+>>
+>> On 29 December 2014 at 22:09, David Liontooth <lionteeth@cogweb.net>
+>> wrote:
+>>>
+>>> Greetings --
+>>>
+>>> How do you actually use dvbv5-scan? It seems to require some kind of
+>>> input
+>>> file but there is no man page and the --help screen doesn't say anything
+>>> about it.
+>>>
+>>> Could we document this? I tried
+>>>
+>>> $ dvbv5-scan
+>>> Usage: dvbv5-scan [OPTION...] <initial file>
+>>> scan DVB services using the channel file
+>>>
+>>> What is "the channel file"? Maybe the channels.conf file? (I created mine
+>>> using "w_scan -ft -A3 -X -cUS -o7 -a /dev/dvb/adapter0/")
+>>>
+>>> $ dvbv5-scan /etc/channels.conf
+>>> ERROR key/value without a channel group while parsing line 1 of
+>>> /etc/channels.conf
+>>>
+>>> So it knows what it wants -- but what is it? Or is this a matter of dvb
+>>> versions, and my /etc/channels.conf is in the older format?
+>>>
+>>> Very mysterious.
+>>>
+>>> Cheers,
+>>> David
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
