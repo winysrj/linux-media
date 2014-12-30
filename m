@@ -1,41 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-ch2-04v.sys.comcast.net ([69.252.207.36]:36318 "EHLO
-	resqmta-ch2-04v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751066AbaLPXR0 (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:50843 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751773AbaL3XXv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Dec 2014 18:17:26 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: au0828 VBI support comment cleanup
-Date: Tue, 16 Dec 2014 16:17:20 -0700
-Message-Id: <1418771840-8825-1-git-send-email-shuahkh@osg.samsung.com>
+	Tue, 30 Dec 2014 18:23:51 -0500
+Message-ID: <54A333FF.3050201@southpole.se>
+Date: Wed, 31 Dec 2014 00:23:43 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC][PATCH] mn88472: add support for the mn88473 demod
+References: <1419119853-29452-1-git-send-email-benjamin@southpole.se> <54960F0C.5020506@southpole.se> <54969102.3030204@iki.fi>
+In-Reply-To: <54969102.3030204@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver supports VBI and the comment "VBI support
-is not yet working" is inaccurate. Remove it.
+On 12/21/2014 10:21 AM, Antti Palosaari wrote:
+> Moikka!
+>
+[...]
+>
+>
+> You patch looks rather good and these drivers should be merged to one if
+> possible, lets say registers are 80% same or something like that. Looks
+> like those are.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-video.c | 1 -
- 1 file changed, 1 deletion(-)
+I've dropped this effort, the chips registers are not similar enough. 
+The code that could be shared is not enough to give any advantage over 2 
+drivers.
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 5f337b1..8a7a547 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -22,7 +22,6 @@
- 
- /* Developer Notes:
-  *
-- * VBI support is not yet working
-  * The hardware scaler supported is unimplemented
-  * AC97 audio support is unimplemented (only i2s audio mode)
-  *
--- 
-2.1.0
-
+MvH
+Benjamin Larsson
