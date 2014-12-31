@@ -1,69 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:35432 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751690AbaLOOKj (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60658 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751374AbaLaDVg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Dec 2014 09:10:39 -0500
-MIME-Version: 1.0
-In-Reply-To: <20141215090404.6d5cb86e@lwn.net>
-References: <1418651737-10016-1-git-send-email-geert@linux-m68k.org>
-	<20141215090404.6d5cb86e@lwn.net>
-Date: Mon, 15 Dec 2014 15:10:38 +0100
-Message-ID: <CAMuHMdVGXyGJU1SoTMCX4P5BJEStpYrp0_dJ8TqaPhQTC_-guA@mail.gmail.com>
-Subject: Re: [PATCH/RESEND] [media] VIDEO_CAFE_CCIC should select VIDEOBUF2_DMA_SG
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 30 Dec 2014 22:21:36 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7B8C72A0092
+	for <linux-media@vger.kernel.org>; Wed, 31 Dec 2014 04:21:05 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141231032105.7B8C72A0092@tschai.lan>
+Date: Wed, 31 Dec 2014 04:21:05 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jon,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Mon, Dec 15, 2014 at 3:04 PM, Jonathan Corbet <corbet@lwn.net> wrote:
-> On Mon, 15 Dec 2014 14:55:37 +0100
-> Geert Uytterhoeven <geert@linux-m68k.org> wrote:
->
->> If VIDEO_CAFE_CCIC=y, but VIDEOBUF2_DMA_SG=m:
->>
->> drivers/built-in.o: In function `mcam_v4l_open':
->> mcam-core.c:(.text+0x1c2e81): undefined reference to `vb2_dma_sg_memops'
->> mcam-core.c:(.text+0x1c2eb0): undefined reference to `vb2_dma_sg_init_ctx'
->> drivers/built-in.o: In function `mcam_v4l_release':
->> mcam-core.c:(.text+0x1c34bf): undefined reference to `vb2_dma_sg_cleanup_ctx'
->
-> I've been mildly resistant to this because I've never figured out how
-> such a configuration can come about.  The Cafe chip only appeared in the
-> OLPC XO-1 and cannot even come close to doing S/G I/O.  So this patch
-> robs a bit of memory for no use on a platform that can ill afford it.
+Results of the daily build of media_tree:
 
-If the driver cannot do SG, perhaps this block should be removed from
-drivers/media/platform/marvell-ccic/mcam-core.h?
+date:		Wed Dec 31 04:00:09 CET 2014
+git branch:	test
+git hash:	99f3cd52aee21091ce62442285a68873e3be833f
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-    #if IS_ENABLED(CONFIG_VIDEOBUF2_DMA_SG)
-    #define MCAM_MODE_DMA_SG 1
-    #endif
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16-i686: ERRORS
+linux-3.17-i686: ERRORS
+linux-3.18-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17-x86_64: ERRORS
+linux-3.18-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Oh, this seems to be a reason for the breakage, too: IS_ENABLED()
-evaluates to true for modular options...
+Detailed results are available here:
 
-> OTOH, the number of people building contemporary kernels for the XO-1 has
-> got to be pretty small.  So, in the interest of mollifying randconfig
-> users out there, you can add my:
->
-> Acked-by: Jonathan Corbet <corbet@lwn.net>
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Thanks!
+Full logs are available here:
 
-Gr{oetje,eeting}s,
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-                        Geert
+The Media Infrastructure API from this daily build is here:
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+http://www.xs4all.nl/~hverkuil/spec/media.html
