@@ -1,74 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40428 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932724AbaLBMWI (ORCPT
+Received: from resqmta-po-10v.sys.comcast.net ([96.114.154.169]:36125 "EHLO
+	resqmta-po-10v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751888AbaLaAWS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Dec 2014 07:22:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 2/2] v4l2-subdev: drop get/set_crop pad ops
-Date: Tue,  2 Dec 2014 13:21:41 +0100
-Message-Id: <1417522901-43604-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417522901-43604-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417522901-43604-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 30 Dec 2014 19:22:18 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	sakari.ailus@linux.intel.com, prabhakar.csengg@gmail.com,
+	laurent.pinchart@ideasonboard.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: au0828 analog_register error path fixes to do proper cleanup
+Date: Tue, 30 Dec 2014 17:22:14 -0700
+Message-Id: <1419985334-6155-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+au0828_analog_register() doesn't release video and vbi queues
+created by vb2_queue_init(). In addition, it doesn't unregister
+vdev when vbi register fails. Add vb2_queue_release() calls to
+release video and vbi queues to the failure path to be called
+when vdev register fails. Add video_unregister_device() for
+vdev when vbi register fails.
 
-Drop the duplicate get/set_crop pad ops and only use get/set_selection.
-It makes no sense to have two duplicate ops in the internal subdev API.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-subdev.c | 8 --------
- include/media/v4l2-subdev.h           | 4 ----
- 2 files changed, 12 deletions(-)
+Please note that this patch is dependent on the au0828 vb2
+conversion patch.
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 543631c..19a034e 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -283,10 +283,6 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (rval)
- 			return rval;
+ drivers/media/usb/au0828/au0828-video.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 94b65b8..17450eb 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1785,7 +1785,7 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 		dprintk(1, "unable to register video device (error = %d).\n",
+ 			retval);
+ 		ret = -ENODEV;
+-		goto err_vbi_dev;
++		goto err_reg_vdev;
+ 	}
  
--		rval = v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
--		if (rval != -ENOIOCTLCMD)
--			return rval;
--
- 		memset(&sel, 0, sizeof(sel));
- 		sel.which = crop->which;
- 		sel.pad = crop->pad;
-@@ -308,10 +304,6 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (rval)
- 			return rval;
+ 	/* Register the vbi device */
+@@ -1795,14 +1795,18 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 		dprintk(1, "unable to register vbi device (error = %d).\n",
+ 			retval);
+ 		ret = -ENODEV;
+-		goto err_vbi_dev;
++		goto err_reg_vbi_dev;
+ 	}
  
--		rval = v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
--		if (rval != -ENOIOCTLCMD)
--			return rval;
 -
- 		memset(&sel, 0, sizeof(sel));
- 		sel.which = crop->which;
- 		sel.pad = crop->pad;
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 5860292..b052184 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -503,10 +503,6 @@ struct v4l2_subdev_pad_ops {
- 		       struct v4l2_subdev_format *format);
- 	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		       struct v4l2_subdev_format *format);
--	int (*set_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
--		       struct v4l2_subdev_crop *crop);
--	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
--		       struct v4l2_subdev_crop *crop);
- 	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 			     struct v4l2_subdev_selection *sel);
- 	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	dprintk(1, "%s completed!\n", __func__);
+ 
+ 	return 0;
+ 
++err_reg_vbi_dev:
++	video_unregister_device(dev->vdev);
++err_reg_vdev:
++	vb2_queue_release(&dev->vb_vidq);
++	vb2_queue_release(&dev->vb_vbiq);
+ err_vbi_dev:
+ 	video_device_release(dev->vbi_dev);
+ err_vdev:
 -- 
-2.1.3
+2.1.0
 
