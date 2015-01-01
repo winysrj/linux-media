@@ -1,51 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f172.google.com ([209.85.213.172]:35504 "EHLO
-	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750723AbbABKHK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jan 2015 05:07:10 -0500
-Received: by mail-ig0-f172.google.com with SMTP id a13so4544873igq.5
-        for <linux-media@vger.kernel.org>; Fri, 02 Jan 2015 02:07:10 -0800 (PST)
-MIME-Version: 1.0
-Date: Fri, 2 Jan 2015 11:07:09 +0100
-Message-ID: <CAPZSoVsvxcH7aa2WJwaw0jeo7VT=dWYGgB1Lh1DJdVLKM_KUCg@mail.gmail.com>
-Subject: Video resolution limited to 32x32 pixels in Skype with Syntek 1135 webcam
-From: =?UTF-8?Q?Tibor_Mi=C5=A1uth?= <tibor.misuth@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:60700 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751854AbbAARsa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Jan 2015 12:48:30 -0500
+Received: by mail-wg0-f42.google.com with SMTP id k14so23485912wgh.29
+        for <linux-media@vger.kernel.org>; Thu, 01 Jan 2015 09:48:29 -0800 (PST)
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: platform: vsp1: vsp1_hsit:  Remove unused function
+Date: Thu,  1 Jan 2015 18:51:30 +0100
+Message-Id: <1420134690-993-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Remove the function vsp1_hsit_read() that is not used anywhere.
 
-I've installed Ubuntu 14.04 (kernel 3.13.0-43-generic) on an old Asus
-F5R laptop recently. It's equipped with an integrated Syntek 1135
-webcam for which the gspca_stk1135 module is loaded.
+This was partially found by using a static code analysis program called cppcheck.
 
-lsusb:
-Bus 001 Device 005: ID 174f:6a31 Syntek Web Cam - Asus A8J, F3S, F5R, VX2S, V1S
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+---
+ drivers/media/platform/vsp1/vsp1_hsit.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-lsmod (extract):
-gspca_stk1135          13318  0
-gspca_main             27814  1 gspca_stk1135
-videodev              108503  2 gspca_stk1135,gspca_main
+diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
+index db2950a..9fb003b 100644
+--- a/drivers/media/platform/vsp1/vsp1_hsit.c
++++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+@@ -26,11 +26,6 @@
+  * Device Access
+  */
+ 
+-static inline u32 vsp1_hsit_read(struct vsp1_hsit *hsit, u32 reg)
+-{
+-	return vsp1_read(hsit->entity.vsp1, reg);
+-}
+-
+ static inline void vsp1_hsit_write(struct vsp1_hsit *hsit, u32 reg, u32 data)
+ {
+ 	vsp1_write(hsit->entity.vsp1, reg, data);
+-- 
+1.7.10.4
 
-The webcam works fine in guvcview and almost fine in cheese
-(resolutions are limited to square options, e.g. 1024x1024).
-
-Unfortunately there is an issue with Skype. It can detect the device
-/dev/video0 (once
-LD_PRELOAD=/usr/lib/i386-linux-gnu/libv4l/v4l2convert.so) but the
-resolution is limited to 32x32 pixels which is useless. I tried to set
-video size in Skype's config.xml, but then Skype didn't show anything
-(just black screen).
-
-I did a test with an external Genius USB webcam (gspca_sonixb module)
-that worked fine (resolution was 640x480 that is max for the camera).
-
-Is there any way to debug the driver (gspca_stk1135) and v4l to find
-out the root cause of the issue?
-
-Thanks for help.
-
-Best regards,
-Tibor Misuth
