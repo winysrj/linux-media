@@ -1,68 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36181 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751430AbbAARoI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Jan 2015 12:44:08 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Josh Wu <josh.wu@atmel.com>, linux-media@vger.kernel.org,
-	m.chehab@samsung.com, linux-arm-kernel@lists.infradead.org,
-	s.nawrocki@samsung.com, festevam@gmail.com,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v4 2/5] media: ov2640: add async probe function
-Date: Thu, 01 Jan 2015 19:44:18 +0200
-Message-ID: <59175204.C2PYysBhu5@avalon>
-In-Reply-To: <alpine.DEB.2.00.1412301308070.9569@axis700.grange>
-References: <1418869646-17071-1-git-send-email-josh.wu@atmel.com> <54A279A6.1060003@atmel.com> <alpine.DEB.2.00.1412301308070.9569@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:57604 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751532AbbAAPvo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Jan 2015 10:51:44 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/5] mb86a20s: remove two uneeded macros
+Date: Thu,  1 Jan 2015 13:51:24 -0200
+Message-Id: <216db047d8a0780a050a6d4d5d7cabb2e25f949e.1420127255.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420127255.git.mchehab@osg.samsung.com>
+References: <cover.1420127255.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420127255.git.mchehab@osg.samsung.com>
+References: <cover.1420127255.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+There are two macros that are there just to simplify the parameter
+passage. Remove them, as the i2c address is already inside the
+i2c client structure.
 
-On Tuesday 30 December 2014 13:12:27 Guennadi Liakhovetski wrote:
-> On Tue, 30 Dec 2014, Josh Wu wrote:
-> 
-> [snip]
-> 
-> > > And until omap1 is in the mainline we cannot drop v4l2_clk.
-> 
-> s/until/as lonh as/
-> 
-> > So I think the better way right now for ov2640 driver is still request
-> > both the v4l2_clock: mclk, and the clock: xvclk in probe().
-> > In that way,  we can take our time to introduce other patches to merged
-> > these two clocks. Does it make sense?
-> 
-> How about this sequence, that we cat still try to get in on time for the
-> next merge window:
-> 
-> 1. stop using the clock name in v4l2_clk
-> 2. add support for CCF to v4l2_clk, falling back to current behaviour if
-> no clock is found
-> 3. switch ov2640 to using "xvclk"
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-It looks good at first sight.
-
-> Otherwise I would propose to add asynchronous probing support to ov2640
-> _without_ changing the clock name. Whether or not we changee clock's name
-> isn't related directly to async support, since the driver already is using
-> v4l2_clk with the standarf "wrong" name. So, I would consider these two
-> changes separately - one is a new feature, another is a fix. The only
-> question is in which order to apply them. In general fix-first is
-> preferred, but since in this case the fix requires framework changes, we
-> could go with feature-first. This also makes sense since features need to
-> catch a merge window, whereas a fix can go in later too. So, if we don't
-> manage the above 3-step plan, I would priposw the most primitive patch ro
-> ov2640 just adding async support in line wuth other drivers and without
-> changing the clock name at first.
-
-Async support can go in without the clock rename, but DT support can't.
-
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 8dd608be1edd..7d6a688f6f12 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -224,12 +224,12 @@ static struct regdata mb86a20s_per_ber_reset[] = {
+  * I2C read/write functions and macros
+  */
+ 
+-static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
+-			     u8 i2c_addr, u8 reg, u8 data)
++static int mb86a20s_writereg(struct mb86a20s_state *state,
++			     u8 reg, u8 data)
+ {
+ 	u8 buf[] = { reg, data };
+ 	struct i2c_msg msg = {
+-		.addr = i2c_addr, .flags = 0, .buf = buf, .len = 2
++		.addr = state->i2c->addr, .flags = 0, .buf = buf, .len = 2
+ 	};
+ 	int rc;
+ 
+@@ -245,27 +245,25 @@ static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
+ }
+ 
+ static int mb86a20s_i2c_writeregdata(struct mb86a20s_state *state,
+-				     u8 i2c_addr, struct regdata *rd, int size)
++				 struct regdata *rd, int size)
+ {
+ 	int i, rc;
+ 
+ 	for (i = 0; i < size; i++) {
+-		rc = mb86a20s_i2c_writereg(state, i2c_addr, rd[i].reg,
+-					   rd[i].data);
++		rc = mb86a20s_writereg(state, rd[i].reg, rd[i].data);
+ 		if (rc < 0)
+ 			return rc;
+ 	}
+ 	return 0;
+ }
+ 
+-static int mb86a20s_i2c_readreg(struct mb86a20s_state *state,
+-				u8 i2c_addr, u8 reg)
++static int mb86a20s_readreg(struct mb86a20s_state *state, u8 reg)
+ {
+ 	u8 val;
+ 	int rc;
+ 	struct i2c_msg msg[] = {
+-		{ .addr = i2c_addr, .flags = 0, .buf = &reg, .len = 1 },
+-		{ .addr = i2c_addr, .flags = I2C_M_RD, .buf = &val, .len = 1 }
++		{ .addr = state->i2c->addr, .flags = 0, .buf = &reg, .len = 1 },
++		{ .addr = state->i2c->addr, .flags = I2C_M_RD, .buf = &val, .len = 1 }
+ 	};
+ 
+ 	rc = i2c_transfer(state->i2c->adapter, msg, 2);
+@@ -279,12 +277,8 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state,
+ 	return val;
+ }
+ 
+-#define mb86a20s_readreg(state, reg) \
+-	mb86a20s_i2c_readreg(state, state->i2c->addr, reg)
+-#define mb86a20s_writereg(state, reg, val) \
+-	mb86a20s_i2c_writereg(state, state->i2c->addr, reg, val)
+ #define mb86a20s_writeregdata(state, regdata) \
+-	mb86a20s_i2c_writeregdata(state, state->i2c->addr, \
++	mb86a20s_i2c_writeregdata(state, \
+ 	regdata, ARRAY_SIZE(regdata))
+ 
+ /*
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.0
 
