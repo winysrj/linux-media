@@ -1,90 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54974 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645AbbAFVJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv3 12/20] cx231xx: create media links for analog mode
-Date: Tue,  6 Jan 2015 19:08:43 -0200
-Message-Id: <883e1fda80794ac1ef627c358b967316c7dd2878.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
+Received: from mout.gmx.net ([212.227.15.15]:59890 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750783AbbABUSq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Jan 2015 15:18:46 -0500
+Date: Fri, 2 Jan 2015 21:18:41 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v2 2/2] V4L2: add CCF support to the v4l2_clk API
+In-Reply-To: <2303897.CzDnkeNcGb@avalon>
+Message-ID: <Pine.LNX.4.64.1501022107370.3028@axis700.grange>
+References: <Pine.LNX.4.64.1501021244580.30761@axis700.grange>
+ <Pine.LNX.4.64.1501021247590.30761@axis700.grange> <2303897.CzDnkeNcGb@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we have entities and pads, let's create media links
-between them, for analog setup.
+>From aeaee56e04d023f3a019d2595ef5128015acdb06 Mon Sep 17 00:00:00 2001
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date: Fri, 2 Jan 2015 12:26:41 +0100
+Subject: [PATCH 2/2] V4L2: add CCF support to the v4l2_clk API
 
-We may not have all the links for digital yet, as the dvb extention
-may not be loaded yet.
+V4L2 clocks, e.g. used by camera sensors for their master clock, do not
+have to be supplied by a different V4L2 driver, they can also be
+supplied by an independent source. In this case the standart kernel
+clock API should be used to handle such clocks. This patch adds support
+for such cases.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 7e1c73a5172d..5cc4efcf82d6 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1159,6 +1159,42 @@ static void cx231xx_media_device_register(struct cx231xx *dev,
- #endif
- }
+Hi Laurent,
+Thanks for the comment. The idea of allocating a new object for each "get" 
+operation seems a bit weird to me, and completely trusting the user is a 
+bit scary... :) But yes, it can work this way too, I think, and the user 
+can screw either way too, anyway. So, here comes a v2. Something like 
+this?
+
+v2: don't add CCF-related clocks on the global list, just allocate a new 
+instance on each v4l2_clk_get()
+
+ drivers/media/v4l2-core/v4l2-clk.c | 45 +++++++++++++++++++++++++++++++++++---
+ include/media/v4l2-clk.h           |  2 ++
+ 2 files changed, 44 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
+index c210906..f5d1688 100644
+--- a/drivers/media/v4l2-core/v4l2-clk.c
++++ b/drivers/media/v4l2-core/v4l2-clk.c
+@@ -9,6 +9,7 @@
+  */
  
-+static void cx231xx_create_media_graph(struct cx231xx *dev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device *mdev = dev->media_dev;
-+	struct media_entity *entity;
-+	struct media_entity *tuner = NULL, *decoder = NULL;
+ #include <linux/atomic.h>
++#include <linux/clk.h>
+ #include <linux/device.h>
+ #include <linux/errno.h>
+ #include <linux/list.h>
+@@ -42,6 +43,18 @@ static struct v4l2_clk *v4l2_clk_find(const char *dev_id, const char *id)
+ struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
+ {
+ 	struct v4l2_clk *clk;
++	struct clk *ccf_clk = clk_get(dev, id);
 +
-+	if (!mdev)
-+		return;
-+
-+	media_device_for_each_entity(entity, mdev) {
-+		switch (entity->type) {
-+		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
-+			tuner = entity;
-+			break;
-+		case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
-+			decoder = entity;
-+			break;
++	if (!IS_ERR(ccf_clk)) {
++		clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
++		if (!clk) {
++			clk_put(ccf_clk);
++			return ERR_PTR(-ENOMEM);
 +		}
++		clk->clk = ccf_clk;
++
++		return clk;
++	}
+ 
+ 	mutex_lock(&clk_lock);
+ 	clk = v4l2_clk_find(dev_name(dev), id);
+@@ -61,6 +74,12 @@ void v4l2_clk_put(struct v4l2_clk *clk)
+ 	if (IS_ERR(clk))
+ 		return;
+ 
++	if (clk->clk) {
++		clk_put(clk->clk);
++		kfree(clk);
++		return;
 +	}
 +
-+	/* Analog setup, using tuner as a link */
-+
-+	if (!decoder)
-+		return;
-+
-+	if (tuner)
-+		media_entity_create_link(tuner, 0, decoder, 0,
-+					 MEDIA_LNK_FL_ENABLED);
-+	media_entity_create_link(decoder, 1, &dev->vdev->entity, 0,
-+				 MEDIA_LNK_FL_ENABLED);
-+	media_entity_create_link(decoder, 2, &dev->vbi_dev->entity, 0,
-+				 MEDIA_LNK_FL_ENABLED);
-+#endif
-+}
-+
- /*
-  * cx231xx_init_dev()
-  * allocates and inits the device structs, registers i2c bus and v4l device
-@@ -1615,6 +1651,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 	/* load other modules required */
- 	request_modules(dev);
+ 	mutex_lock(&clk_lock);
  
-+	cx231xx_create_media_graph(dev);
+ 	list_for_each_entry(tmp, &clk_list, list)
+@@ -98,8 +117,12 @@ static void v4l2_clk_unlock_driver(struct v4l2_clk *clk)
+ 
+ int v4l2_clk_enable(struct v4l2_clk *clk)
+ {
+-	int ret = v4l2_clk_lock_driver(clk);
++	int ret;
+ 
++	if (clk->clk)
++		return clk_enable(clk->clk);
 +
- 	return 0;
- err_video_alt:
- 	/* cx231xx_uninit_dev: */
++	ret = v4l2_clk_lock_driver(clk);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -125,6 +148,9 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
+ {
+ 	int enable;
+ 
++	if (clk->clk)
++		return clk_disable(clk->clk);
++
+ 	mutex_lock(&clk->lock);
+ 
+ 	enable = --clk->enable;
+@@ -142,8 +168,12 @@ EXPORT_SYMBOL(v4l2_clk_disable);
+ 
+ unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
+ {
+-	int ret = v4l2_clk_lock_driver(clk);
++	int ret;
++
++	if (clk->clk)
++		return clk_get_rate(clk->clk);
+ 
++	ret = v4l2_clk_lock_driver(clk);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -162,7 +192,16 @@ EXPORT_SYMBOL(v4l2_clk_get_rate);
+ 
+ int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
+ {
+-	int ret = v4l2_clk_lock_driver(clk);
++	int ret;
++
++	if (clk->clk) {
++		long r = clk_round_rate(clk->clk, rate);
++		if (r < 0)
++			return r;
++		return clk_set_rate(clk->clk, r);
++	}
++
++	ret = v4l2_clk_lock_driver(clk);
+ 
+ 	if (ret < 0)
+ 		return ret;
+diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+index 8f06967..4402b2d 100644
+--- a/include/media/v4l2-clk.h
++++ b/include/media/v4l2-clk.h
+@@ -22,6 +22,7 @@
+ struct module;
+ struct device;
+ 
++struct clk;
+ struct v4l2_clk {
+ 	struct list_head list;
+ 	const struct v4l2_clk_ops *ops;
+@@ -30,6 +31,7 @@ struct v4l2_clk {
+ 	int enable;
+ 	struct mutex lock; /* Protect the enable count */
+ 	atomic_t use_count;
++	struct clk *clk;
+ 	void *priv;
+ };
+ 
 -- 
-2.1.0
+1.9.3
 
