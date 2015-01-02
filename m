@@ -1,189 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:56681 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752121AbbABN46 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jan 2015 08:56:58 -0500
-Received: by mail-wi0-f174.google.com with SMTP id h11so27733862wiw.1
-        for <linux-media@vger.kernel.org>; Fri, 02 Jan 2015 05:56:57 -0800 (PST)
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH 3/5] lmedm04: create frontend callbacks for signal/snr/ber/ucblocks
-Date: Fri,  2 Jan 2015 13:56:29 +0000
-Message-Id: <1420206991-3939-3-git-send-email-tvboxspy@gmail.com>
-In-Reply-To: <1420206991-3939-1-git-send-email-tvboxspy@gmail.com>
-References: <1420206991-3939-1-git-send-email-tvboxspy@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36721 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750761AbbABLfD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jan 2015 06:35:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] UVC: Remove extra commit on resume()
+Date: Fri, 02 Jan 2015 13:35:08 +0200
+Message-ID: <59177052.2xsYjgkMSa@avalon>
+In-Reply-To: <Pine.LNX.4.64.1409020813180.24932@axis700.grange>
+References: <Pine.LNX.4.64.1409020813180.24932@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Create call backs dm04_read_signal_strength, dm04_read_snr and
-move dm04_read_ber and dm04_read_ucblocks for all frontends
+Hi Guennadi,
 
-Removing the I2C filtering from lme2510_msg and the old rs2000 callbacks.
+Thank you for the patch, and sorry for the late reply.
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/usb/dvb-usb-v2/lmedm04.c | 93 ++++++++++++----------------------
- 1 file changed, 33 insertions(+), 60 deletions(-)
+On Tuesday 02 September 2014 08:16:28 Guennadi Liakhovetski wrote:
+> From: Aviv Greenberg <aviv.d.greenberg@intel.com>
+> 
+> The UVC spec is a bit vague wrt devices using bulk endpoints,
+> specifically, how to signal to a device to start streaming.
+> 
+> For devices using isoc endpoints, the sequence for start streaming is:
+> 1) The host sends PROBE_CONTROL(SET_CUR) PROBE_CONTROL(GET_CUR)
+> 2) Host selects desired config and calls COMMIT_CONTROL(SET_CUR)
+> 3) Host selects an alt interface other then zero - e.g
+> SELECT_ALTERNATE_INTERFACE(1) 4) The device starts streaming
+> 
+> However for devices using bulk endpoints, there must be *no* alt interface
+> other than setting zero. From the UVC spec:
+> "A VideoStreaming interface containing a bulk endpoint for streaming shall
+> support only alternate setting zero. Additional alternate settings
+> containing bulk endpoints are not permitted in a device that is compliant
+> with the Video Class specification."
+> 
+> So for devices using bulk endpoints, step #3 above is irrelevant, and thus
+> cannot be used as an indication for the device to start streaming.
+> So in practice, such devices start streaming immediately after a
+> COMMIT_CONTROL(SET_CUR).
+> 
+> In the uvc resume() handler, an unsolicited commit is sent, which causes
+> devices using bulk endpoints to start streaming unintentionally.
+> 
+> This patch modifies resume() handler to send a commit only if streaming
+> needs to be reestablished, i.e if the device was actually streaming before
+> is was suspended.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-index 15db9f6..55d7690 100644
---- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-+++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-@@ -515,21 +515,6 @@ static int lme2510_msg(struct dvb_usb_device *d,
- 				rbuf[0] = 0x55;
- 				rbuf[1] = st->signal_lock;
- 				break;
--			case 0x43:
--				rbuf[0] = 0x55;
--				rbuf[1] = st->signal_level;
--				break;
--			case 0x1c:
--				rbuf[0] = 0x55;
--				rbuf[1] = st->signal_sn;
--				break;
--			case 0x15:
--			case 0x16:
--			case 0x17:
--			case 0x18:
--				rbuf[0] = 0x55;
--				rbuf[1] = 0x00;
--				break;
- 			default:
- 				lme2510_usb_talk(d, wbuf, wlen, rbuf, rlen);
- 				st->i2c_talk_onoff = 1;
-@@ -538,25 +523,10 @@ static int lme2510_msg(struct dvb_usb_device *d,
- 			break;
- 		case TUNER_S7395:
- 			switch (wbuf[3]) {
--			case 0x10:
--				rbuf[0] = 0x55;
--				rbuf[1] = (st->signal_level & 0x80)
--						? 0 : (st->signal_level * 2);
--				break;
--			case 0x2d:
--				rbuf[0] = 0x55;
--				rbuf[1] = st->signal_sn;
--				break;
- 			case 0x24:
- 				rbuf[0] = 0x55;
- 				rbuf[1] = st->signal_lock;
- 				break;
--			case 0x2e:
--			case 0x26:
--			case 0x27:
--				rbuf[0] = 0x55;
--				rbuf[1] = 0x00;
--				break;
- 			default:
- 				lme2510_usb_talk(d, wbuf, wlen, rbuf, rlen);
- 				st->i2c_talk_onoff = 1;
-@@ -565,26 +535,10 @@ static int lme2510_msg(struct dvb_usb_device *d,
- 			break;
- 		case TUNER_S0194:
- 			switch (wbuf[3]) {
--			case 0x18:
--				rbuf[0] = 0x55;
--				rbuf[1] = (st->signal_level & 0x80)
--						? 0 : (st->signal_level * 2);
--				break;
--			case 0x24:
--				rbuf[0] = 0x55;
--				rbuf[1] = st->signal_sn;
--				break;
- 			case 0x1b:
- 				rbuf[0] = 0x55;
- 				rbuf[1] = st->signal_lock;
- 				break;
--			case 0x19:
--			case 0x25:
--			case 0x1e:
--			case 0x1d:
--				rbuf[0] = 0x55;
--				rbuf[1] = 0x00;
--				break;
- 			default:
- 				lme2510_usb_talk(d, wbuf, wlen, rbuf, rlen);
- 				st->i2c_talk_onoff = 1;
-@@ -1006,21 +960,44 @@ static int dm04_lme2510_set_voltage(struct dvb_frontend *fe,
- 	return (ret < 0) ? -ENODEV : 0;
- }
- 
--static int dm04_rs2000_read_signal_strength(struct dvb_frontend *fe,
--	u16 *strength)
-+static int dm04_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- {
- 	struct lme2510_state *st = fe_to_priv(fe);
- 
--	*strength = (u16)((u32)st->signal_level * 0xffff / 0xff);
-+	switch (st->tuner_config) {
-+	case TUNER_LG:
-+		*strength = 0xff - st->signal_level;
-+		*strength |= *strength << 8;
-+		break;
-+	/* fall through */
-+	case TUNER_S7395:
-+	case TUNER_S0194:
-+		*strength = 0xffff - (((st->signal_level * 2) << 8) * 5 / 4);
-+		break;
-+	case TUNER_RS2000:
-+		*strength = (u16)((u32)st->signal_level * 0xffff / 0xff);
-+	}
- 
- 	return 0;
- }
- 
--static int dm04_rs2000_read_snr(struct dvb_frontend *fe, u16 *snr)
-+static int dm04_read_snr(struct dvb_frontend *fe, u16 *snr)
- {
- 	struct lme2510_state *st = fe_to_priv(fe);
- 
--	*snr = (u16)((u32)st->signal_sn * 0xffff / 0x7f);
-+	switch (st->tuner_config) {
-+	case TUNER_LG:
-+		*snr = 0xff - st->signal_sn;
-+		*snr |= *snr << 8;
-+		break;
-+	/* fall through */
-+	case TUNER_S7395:
-+	case TUNER_S0194:
-+		*snr = (u16)((0xff - st->signal_sn - 0xa1) * 3) << 8;
-+		break;
-+	case TUNER_RS2000:
-+		*snr = (u16)((u32)st->signal_sn * 0xffff / 0x7f);
-+	}
- 
- 	return 0;
- }
-@@ -1127,15 +1104,6 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
- 			st->tuner_config = TUNER_RS2000;
- 			st->fe_set_voltage =
- 				adap->fe[0]->ops.set_voltage;
--
--			adap->fe[0]->ops.read_signal_strength =
--				dm04_rs2000_read_signal_strength;
--			adap->fe[0]->ops.read_snr =
--				dm04_rs2000_read_snr;
--			adap->fe[0]->ops.read_ber =
--				dm04_read_ber;
--			adap->fe[0]->ops.read_ucblocks =
--				dm04_read_ucblocks;
- 		}
- 		break;
- 	}
-@@ -1154,7 +1122,12 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
- 		return -ENODEV;
- 	}
- 
-+	adap->fe[0]->ops.read_signal_strength = dm04_read_signal_strength;
-+	adap->fe[0]->ops.read_snr = dm04_read_snr;
-+	adap->fe[0]->ops.read_ber = dm04_read_ber;
-+	adap->fe[0]->ops.read_ucblocks = dm04_read_ucblocks;
- 	adap->fe[0]->ops.set_voltage = dm04_lme2510_set_voltage;
-+
- 	ret = lme_name(adap);
- 	return ret;
- }
+Speaking of bulk devices, based on your experience, how do devices detect a 
+stream stop condition in practice ?
+
+> Signed-off-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+I've taken the patch in my tree and will send a pull request for v3.20.
+
+> ---
+>  drivers/media/usb/uvc/uvc_video.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 3394c34..c111de2 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1709,15 +1709,15 @@ int uvc_video_resume(struct uvc_streaming *stream,
+> int reset)
+> 
+>  	uvc_video_clock_reset(stream);
+> 
+> +	if (!uvc_queue_streaming(&stream->queue))
+> +		return 0;
+> +
+>  	ret = uvc_commit_video(stream, &stream->ctrl);
+>  	if (ret < 0) {
+>  		uvc_queue_enable(&stream->queue, 0);
+>  		return ret;
+>  	}
+> 
+> -	if (!uvc_queue_streaming(&stream->queue))
+> -		return 0;
+> -
+>  	ret = uvc_init_video(stream, GFP_NOIO);
+>  	if (ret < 0)
+>  		uvc_queue_enable(&stream->queue, 0);
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
