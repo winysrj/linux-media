@@ -1,46 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53863 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751461AbbAAVOM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Jan 2015 16:14:12 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org
-Subject: [REVIEW PATCH 1/1] omap3isp: Correctly set QUERYCAP capabilities
-Date: Thu,  1 Jan 2015 23:13:54 +0200
-Message-Id: <1420146834-13458-1-git-send-email-sakari.ailus@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36750 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750765AbbABMJt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jan 2015 07:09:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: platform: vsp1: vsp1_hsit:  Remove unused function
+Date: Fri, 02 Jan 2015 14:09:58 +0200
+Message-ID: <3534952.jhm28o5kMm@avalon>
+In-Reply-To: <1420134690-993-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+References: <1420134690-993-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-device_caps in struct v4l2_capability were inadequately set in
-VIDIOC_QUERYCAP. Fix this.
+Hi Rickard,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/platform/omap3isp/ispvideo.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index cdfec27..d644164 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -602,10 +602,13 @@ isp_video_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
- 	strlcpy(cap->card, video->video.name, sizeof(cap->card));
- 	strlcpy(cap->bus_info, "media", sizeof(cap->bus_info));
- 
-+	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
-+		| V4L2_CAP_STREAMING | V4L2_CAP_DEVICE_CAPS;
-+
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
- 	else
--		cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-+		cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
- 
- 	return 0;
- }
+On Thursday 01 January 2015 18:51:30 Rickard Strandqvist wrote:
+> Remove the function vsp1_hsit_read() that is not used anywhere.
+> 
+> This was partially found by using a static code analysis program called
+> cppcheck.
+> 
+> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+
+Acked-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+
+I've taken the patch in my tree and will send a pull request for v3.20.
+
+> ---
+>  drivers/media/platform/vsp1/vsp1_hsit.c |    5 -----
+>  1 file changed, 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c
+> b/drivers/media/platform/vsp1/vsp1_hsit.c index db2950a..9fb003b 100644
+> --- a/drivers/media/platform/vsp1/vsp1_hsit.c
+> +++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+> @@ -26,11 +26,6 @@
+>   * Device Access
+>   */
+> 
+> -static inline u32 vsp1_hsit_read(struct vsp1_hsit *hsit, u32 reg)
+> -{
+> -	return vsp1_read(hsit->entity.vsp1, reg);
+> -}
+> -
+>  static inline void vsp1_hsit_write(struct vsp1_hsit *hsit, u32 reg, u32
+> data) {
+>  	vsp1_write(hsit->entity.vsp1, reg, data);
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
