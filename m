@@ -1,203 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:49547 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751947AbbABLsv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Jan 2015 06:48:51 -0500
-Date: Fri, 2 Jan 2015 12:48:43 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Josh Wu <josh.wu@atmel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 2/2] V4L2: add CCF support to the v4l2_clk API
-In-Reply-To: <Pine.LNX.4.64.1501021244580.30761@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1501021247590.30761@axis700.grange>
-References: <Pine.LNX.4.64.1501021244580.30761@axis700.grange>
+Received: from mail-ig0-f172.google.com ([209.85.213.172]:35504 "EHLO
+	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750723AbbABKHK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jan 2015 05:07:10 -0500
+Received: by mail-ig0-f172.google.com with SMTP id a13so4544873igq.5
+        for <linux-media@vger.kernel.org>; Fri, 02 Jan 2015 02:07:10 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Fri, 2 Jan 2015 11:07:09 +0100
+Message-ID: <CAPZSoVsvxcH7aa2WJwaw0jeo7VT=dWYGgB1Lh1DJdVLKM_KUCg@mail.gmail.com>
+Subject: Video resolution limited to 32x32 pixels in Skype with Syntek 1135 webcam
+From: =?UTF-8?Q?Tibor_Mi=C5=A1uth?= <tibor.misuth@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2 clocks, e.g. used by camera sensors for their master clock, do not
-have to be supplied by a different V4L2 driver, they can also be
-supplied by an independent source. In this case the standart kernel
-clock API should be used to handle such clocks. This patch adds support
-for such cases.
+Hello,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/v4l2-core/v4l2-clk.c | 76 +++++++++++++++++++++++++++++++++-----
- include/media/v4l2-clk.h           |  2 +
- 2 files changed, 68 insertions(+), 10 deletions(-)
+I've installed Ubuntu 14.04 (kernel 3.13.0-43-generic) on an old Asus
+F5R laptop recently. It's equipped with an integrated Syntek 1135
+webcam for which the gspca_stk1135 module is loaded.
 
-diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
-index c210906..693e5a0 100644
---- a/drivers/media/v4l2-core/v4l2-clk.c
-+++ b/drivers/media/v4l2-core/v4l2-clk.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include <linux/atomic.h>
-+#include <linux/clk.h>
- #include <linux/device.h>
- #include <linux/errno.h>
- #include <linux/list.h>
-@@ -39,9 +40,24 @@ static struct v4l2_clk *v4l2_clk_find(const char *dev_id, const char *id)
- 	return ERR_PTR(-ENODEV);
- }
- 
-+static int v4l2_clk_add(struct v4l2_clk *clk, const char *dev_id,
-+			const char *id)
-+{
-+	mutex_lock(&clk_lock);
-+	if (!IS_ERR(v4l2_clk_find(dev_id, id))) {
-+		mutex_unlock(&clk_lock);
-+		return -EEXIST;
-+	}
-+	list_add_tail(&clk->list, &clk_list);
-+	mutex_unlock(&clk_lock);
-+
-+	return 0;
-+}
-+
- struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
- {
- 	struct v4l2_clk *clk;
-+	struct clk *ccf_clk = clk_get(dev, id);
- 
- 	mutex_lock(&clk_lock);
- 	clk = v4l2_clk_find(dev_name(dev), id);
-@@ -50,6 +66,22 @@ struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
- 		atomic_inc(&clk->use_count);
- 	mutex_unlock(&clk_lock);
- 
-+	if (!IS_ERR(ccf_clk) && IS_ERR(clk)) {
-+		/* not yet on the list */
-+		clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
-+		if (clk)
-+			clk->id = kstrdup(id, GFP_KERNEL);
-+		if (!clk || !clk->id) {
-+			kfree(clk);
-+			clk_put(ccf_clk);
-+			return ERR_PTR(-ENOMEM);
-+		}
-+		clk->clk = ccf_clk;
-+		atomic_set(&clk->use_count, 1);
-+
-+		v4l2_clk_add(clk, dev_name(dev), id);
-+	}
-+
- 	return clk;
- }
- EXPORT_SYMBOL(v4l2_clk_get);
-@@ -67,6 +99,15 @@ void v4l2_clk_put(struct v4l2_clk *clk)
- 		if (tmp == clk)
- 			atomic_dec(&clk->use_count);
- 
-+	if (clk->clk) {
-+		clk_put(clk->clk);
-+		if (!atomic_read(&clk->use_count)) {
-+			list_del(&clk->list);
-+			kfree(clk->id);
-+			kfree(clk);
-+		}
-+	}
-+
- 	mutex_unlock(&clk_lock);
- }
- EXPORT_SYMBOL(v4l2_clk_put);
-@@ -98,8 +139,12 @@ static void v4l2_clk_unlock_driver(struct v4l2_clk *clk)
- 
- int v4l2_clk_enable(struct v4l2_clk *clk)
- {
--	int ret = v4l2_clk_lock_driver(clk);
-+	int ret;
-+
-+	if (clk->clk)
-+		return clk_enable(clk->clk);
- 
-+	ret = v4l2_clk_lock_driver(clk);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -125,6 +170,9 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
- {
- 	int enable;
- 
-+	if (clk->clk)
-+		return clk_disable(clk->clk);
-+
- 	mutex_lock(&clk->lock);
- 
- 	enable = --clk->enable;
-@@ -142,8 +190,12 @@ EXPORT_SYMBOL(v4l2_clk_disable);
- 
- unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
- {
--	int ret = v4l2_clk_lock_driver(clk);
-+	int ret;
- 
-+	if (clk->clk)
-+		return clk_get_rate(clk->clk);
-+
-+	ret = v4l2_clk_lock_driver(clk);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -162,7 +214,16 @@ EXPORT_SYMBOL(v4l2_clk_get_rate);
- 
- int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
- {
--	int ret = v4l2_clk_lock_driver(clk);
-+	int ret;
-+
-+	if (clk->clk) {
-+		long r = clk_round_rate(clk->clk, rate);
-+		if (r < 0)
-+			return r;
-+		return clk_set_rate(clk->clk, r);
-+	}
-+
-+	ret = v4l2_clk_lock_driver(clk);
- 
- 	if (ret < 0)
- 		return ret;
-@@ -204,14 +265,9 @@ struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
- 	atomic_set(&clk->use_count, 0);
- 	mutex_init(&clk->lock);
- 
--	mutex_lock(&clk_lock);
--	if (!IS_ERR(v4l2_clk_find(dev_id, NULL))) {
--		mutex_unlock(&clk_lock);
--		ret = -EEXIST;
-+	ret = v4l2_clk_add(clk, dev_id, NULL);
-+	if (ret < 0)
- 		goto eexist;
--	}
--	list_add_tail(&clk->list, &clk_list);
--	mutex_unlock(&clk_lock);
- 
- 	return clk;
- 
-diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-index 8f06967..4402b2d 100644
---- a/include/media/v4l2-clk.h
-+++ b/include/media/v4l2-clk.h
-@@ -22,6 +22,7 @@
- struct module;
- struct device;
- 
-+struct clk;
- struct v4l2_clk {
- 	struct list_head list;
- 	const struct v4l2_clk_ops *ops;
-@@ -30,6 +31,7 @@ struct v4l2_clk {
- 	int enable;
- 	struct mutex lock; /* Protect the enable count */
- 	atomic_t use_count;
-+	struct clk *clk;
- 	void *priv;
- };
- 
--- 
-1.9.3
+lsusb:
+Bus 001 Device 005: ID 174f:6a31 Syntek Web Cam - Asus A8J, F3S, F5R, VX2S, V1S
 
+lsmod (extract):
+gspca_stk1135          13318  0
+gspca_main             27814  1 gspca_stk1135
+videodev              108503  2 gspca_stk1135,gspca_main
+
+The webcam works fine in guvcview and almost fine in cheese
+(resolutions are limited to square options, e.g. 1024x1024).
+
+Unfortunately there is an issue with Skype. It can detect the device
+/dev/video0 (once
+LD_PRELOAD=/usr/lib/i386-linux-gnu/libv4l/v4l2convert.so) but the
+resolution is limited to 32x32 pixels which is useless. I tried to set
+video size in Skype's config.xml, but then Skype didn't show anything
+(just black screen).
+
+I did a test with an external Genius USB webcam (gspca_sonixb module)
+that worked fine (resolution was 640x480 that is max for the camera).
+
+Is there any way to debug the driver (gspca_stk1135) and v4l to find
+out the root cause of the issue?
+
+Thanks for help.
+
+Best regards,
+Tibor Misuth
