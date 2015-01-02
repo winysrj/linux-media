@@ -1,115 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44128 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751522AbbABDVZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Jan 2015 22:21:25 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E7DB52A009D
-	for <linux-media@vger.kernel.org>; Fri,  2 Jan 2015 04:20:50 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150102032050.E7DB52A009D@tschai.lan>
-Date: Fri,  2 Jan 2015 04:20:50 +0100 (CET)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36727 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750962AbbABLlw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jan 2015 06:41:52 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 1/1] omap3isp: Correctly set QUERYCAP capabilities
+Date: Fri, 02 Jan 2015 13:42:03 +0200
+Message-ID: <7936187.KpBi4ciavk@avalon>
+In-Reply-To: <20150102085441.GP17565@valkosipuli.retiisi.org.uk>
+References: <1420146834-13458-1-git-send-email-sakari.ailus@iki.fi> <17321888.FUCG9ahuk4@avalon> <20150102085441.GP17565@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sakari,
 
-Results of the daily build of media_tree:
+On Friday 02 January 2015 10:54:41 Sakari Ailus wrote:
+> On Fri, Jan 02, 2015 at 01:04:16AM +0200, Laurent Pinchart wrote:
+> > On Thursday 01 January 2015 23:13:54 Sakari Ailus wrote:
+> > > device_caps in struct v4l2_capability were inadequately set in
+> > > VIDIOC_QUERYCAP. Fix this.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > ---
+> > > 
+> > >  drivers/media/platform/omap3isp/ispvideo.c |    7 +++++--
+> > >  1 file changed, 5 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> > > b/drivers/media/platform/omap3isp/ispvideo.c index cdfec27..d644164
+> > > 100644
+> > > --- a/drivers/media/platform/omap3isp/ispvideo.c
+> > > +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> > > @@ -602,10 +602,13 @@ isp_video_querycap(struct file *file, void *fh,
+> > > struct v4l2_capability *cap) strlcpy(cap->card, video->video.name,
+> > > sizeof(cap->card));
+> > > 
+> > >  	strlcpy(cap->bus_info, "media", sizeof(cap->bus_info));
+> > > 
+> > > +	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
+> > > +		| V4L2_CAP_STREAMING | V4L2_CAP_DEVICE_CAPS;
+> > 
+> > I would align the | under the =. Apart from that,
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> I assume you'd apply the patch to your tree eventually? Can you make the
+> change, or would you prefer me to resend?
 
-date:		Fri Jan  2 04:00:08 CET 2015
-git branch:	test
-git hash:	99f3cd52aee21091ce62442285a68873e3be833f
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-3.slh.2-amd64
+I can make the change when applying, no need to resend. I'll send a pull 
+request for v3.20.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16-i686: ERRORS
-linux-3.17-i686: ERRORS
-linux-3.18-i686: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16-x86_64: ERRORS
-linux-3.17-x86_64: ERRORS
-linux-3.18-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+-- 
+Regards,
 
-Detailed results are available here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
