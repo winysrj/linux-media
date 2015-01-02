@@ -1,53 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0220.hostedemail.com ([216.40.44.220]:49211 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755964AbbA1UfA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 15:35:00 -0500
-From: Joe Perches <joe@perches.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] dvb_net: Use vsprintf %pM extension to print Ethernet addresses
-Date: Wed, 28 Jan 2015 10:05:50 -0800
-Message-Id: <5e0ccf5c0cf308317c79f5497d7eb63adca72e44.1422468185.git.joe@perches.com>
-In-Reply-To: <cover.1422468185.git.joe@perches.com>
-References: <cover.1422468185.git.joe@perches.com>
+Received: from the.earth.li ([46.43.34.31]:44529 "EHLO the.earth.li"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751217AbbABSFO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Jan 2015 13:05:14 -0500
+Date: Fri, 2 Jan 2015 17:55:17 +0000
+From: Jonathan McDowell <noodles@earth.li>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH] Fix Mygica T230 support
+Message-ID: <20150102175517.GE5209@earth.li>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No need for more macros, so remove them and use the kernel extension.
+Commit 2adb177e57417cf8409e86bda2c516e5f99a2099 removed 2 devices
+from the cxusb device table but failed to fix up the T230 properties
+that follow, meaning that this device no longer gets detected properly.
+Adjust the cxusb_table index appropriate so detection works.
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/media/dvb-core/dvb_net.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+Signed-Off-By: Jonathan McDowell <noodles@earth.li>
 
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index e4041f0..ff79b0b 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -90,9 +90,6 @@ static inline __u32 iov_crc32( __u32 c, struct kvec *iov, unsigned int cnt )
- 
- #ifdef ULE_DEBUG
- 
--#define MAC_ADDR_PRINTFMT "%.2x:%.2x:%.2x:%.2x:%.2x:%.2x"
--#define MAX_ADDR_PRINTFMT_ARGS(macap) (macap)[0],(macap)[1],(macap)[2],(macap)[3],(macap)[4],(macap)[5]
--
- #define isprint(c)	((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'))
- 
- static void hexdump( const unsigned char *buf, unsigned short len )
-@@ -700,8 +697,8 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 
- 					if (drop) {
- #ifdef ULE_DEBUG
--						dprintk("Dropping SNDU: MAC destination address does not match: dest addr: "MAC_ADDR_PRINTFMT", dev addr: "MAC_ADDR_PRINTFMT"\n",
--							MAX_ADDR_PRINTFMT_ARGS(priv->ule_skb->data), MAX_ADDR_PRINTFMT_ARGS(dev->dev_addr));
-+						dprintk("Dropping SNDU: MAC destination address does not match: dest addr: %pM, dev addr: %pM\n",
-+							priv->ule_skb->data, dev->dev_addr);
- #endif
- 						dev_kfree_skb(priv->ule_skb);
- 						goto sndu_done;
+-----
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index 0f345b1..f327c49 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -2232,7 +2232,7 @@ static struct dvb_usb_device_properties cxusb_mygica_t230_properties = {
+ 		{
+ 			"Mygica T230 DVB-T/T2/C",
+ 			{ NULL },
+-			{ &cxusb_table[22], NULL },
++			{ &cxusb_table[20], NULL },
+ 		},
+ 	}
+ };
+-----
+
+J.
+
 -- 
-2.1.2
-
+"Save usenet: rmgroup ox.colleges.keble" -- Simon Cozens, ox.test
+This .sig brought to you by the letter J and the number 47
+Product of the Republic of HuggieTag
