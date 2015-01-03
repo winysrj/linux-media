@@ -1,179 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:34039 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752232AbbAZNmY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 08:42:24 -0500
-Message-ID: <54C64421.1030302@xs4all.nl>
-Date: Mon, 26 Jan 2015 14:41:53 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Ricardo Ribalda <ricardo.ribalda@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH 1/3] media: Fix ALSA and DVB representation at media controller
- API
-References: <cover.1422273497.git.mchehab@osg.samsung.com>	<cb0517f150942a2d3657c1f2e55754061bfae2c4.1422273497.git.mchehab@osg.samsung.com>	<54C63D16.3070607@xs4all.nl> <20150126113416.311fb376@recife.lan>
-In-Reply-To: <20150126113416.311fb376@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:56138 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493AbbACUJw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jan 2015 15:09:52 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/7] add link graph to cx231xx using the media controller
+Date: Sat,  3 Jan 2015 18:09:32 -0200
+Message-Id: <cover.1420315245.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/26/2015 02:34 PM, Mauro Carvalho Chehab wrote:
-> Em Mon, 26 Jan 2015 14:11:50 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 01/26/2015 01:47 PM, Mauro Carvalho Chehab wrote:
->>> The previous provision for DVB media controller support were to
->>> define an ID (likely meaning the adapter number) for the DVB
->>> devnodes.
->>>
->>> This is just plain wrong. Just like V4L, DVB devices (and ALSA,
->>> or whatever) are identified via a (major, minor) tuple.
->>>
->>> This is enough to uniquely identify a devnode, no matter what
->>> API it implements.
->>>
->>> So, before we go too far, let's mark the old v4l, dvb and alsa
->>> "devnode" info as deprecated, and just call it as "dev".
->>>
->>> As we don't want to break compilation on already existing apps,
->>> let's just keep the old definitions as-is, adding a note that
->>> those are deprecated at media-entity.h.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
->>> index 86bb93fd7db8..d89d5cb465d9 100644
->>> --- a/drivers/media/v4l2-core/v4l2-dev.c
->>> +++ b/drivers/media/v4l2-core/v4l2-dev.c
->>> @@ -943,8 +943,8 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
->>>  	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
->>>  		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
->>>  		vdev->entity.name = vdev->name;
->>> -		vdev->entity.info.v4l.major = VIDEO_MAJOR;
->>> -		vdev->entity.info.v4l.minor = vdev->minor;
->>> +		vdev->entity.info.dev.major = VIDEO_MAJOR;
->>> +		vdev->entity.info.dev.minor = vdev->minor;
->>>  		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
->>>  			&vdev->entity);
->>>  		if (ret < 0)
->>> diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
->>> index 015f92aab44a..204cc67c84e8 100644
->>> --- a/drivers/media/v4l2-core/v4l2-device.c
->>> +++ b/drivers/media/v4l2-core/v4l2-device.c
->>> @@ -248,8 +248,8 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
->>>  			goto clean_up;
->>>  		}
->>>  #if defined(CONFIG_MEDIA_CONTROLLER)
->>> -		sd->entity.info.v4l.major = VIDEO_MAJOR;
->>> -		sd->entity.info.v4l.minor = vdev->minor;
->>> +		sd->entity.info.dev.major = VIDEO_MAJOR;
->>> +		sd->entity.info.dev.minor = vdev->minor;
->>>  #endif
->>>  		sd->devnode = vdev;
->>>  	}
->>> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
->>> index e00459185d20..d6d74bcfe183 100644
->>> --- a/include/media/media-entity.h
->>> +++ b/include/media/media-entity.h
->>> @@ -87,17 +87,7 @@ struct media_entity {
->>>  		struct {
->>>  			u32 major;
->>>  			u32 minor;
->>> -		} v4l;
->>> -		struct {
->>> -			u32 major;
->>> -			u32 minor;
->>> -		} fb;
->>> -		struct {
->>> -			u32 card;
->>> -			u32 device;
->>> -			u32 subdevice;
->>> -		} alsa;
->>
->> I don't think the alsa entity information can be replaced by major/minor.
->> In particular you will loose the subdevice information which you need as
->> well. In addition, alsa devices are almost never referenced via major and
->> minor numbers, but always by card/device/subdevice numbers.
-> 
-> For media-ctl, it is easier to handle major/minor, in order to identify
-> the associated devnode name. Btw, media-ctl currently assumes that all
-> devnode devices are specified by v4l.major/v4l.minor.
-> 
-> Ok, maybe for alsa we'll need also card/device/subdevice, but I think this
-> should be mapped elsewhere, if this can't be retrieved via its sysfs/udev
-> interface (with seems to be doubtful).
+This patch series depends on the patch media controller patch series
+sent previously. The full set of patches are at:
+	http://git.linuxtv.org/cgit.cgi/mchehab/experimental.git/log/?h=dvb-media-ctl
 
-The card/device tuple can likely be mapped to major/minor, but not subdevice.
-And since everything inside alsa is based on card/device I wouldn't change
-that.
+It adds the logic needed to create the remaining media PADs and the
+links to represent the media graph.
 
-> 
->>
->>> -		int dvb;
->>> +		} dev;
->>>  
->>>  		/* Sub-device specifications */
->>>  		/* Nothing needed yet */
->>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
->>> index d847c760e8f0..418f4fec391a 100644
->>> --- a/include/uapi/linux/media.h
->>> +++ b/include/uapi/linux/media.h
->>> @@ -78,6 +78,20 @@ struct media_entity_desc {
->>>  		struct {
->>>  			__u32 major;
->>>  			__u32 minor;
->>> +		} dev;
->>> +
->>> +#if 1
->>> +		/*
->>> +		 * DEPRECATED: previous node specifications. Kept just to
->>> +		 * avoid breaking compilation, but media_entity_desc.dev
->>> +		 * should be used instead. In particular, alsa and dvb
->>> +		 * fields below are wrong: for all devnodes, there should
->>> +		 * be just major/minor inside the struct, as this is enough
->>> +		 * to represent any devnode, no matter what type.
->>> +		 */
->>> +		struct {
->>> +			__u32 major;
->>> +			__u32 minor;
->>>  		} v4l;
->>>  		struct {
->>>  			__u32 major;
->>> @@ -89,6 +103,7 @@ struct media_entity_desc {
->>>  			__u32 subdevice;
->>>  		} alsa;
->>>  		int dvb;
->>
->> I wouldn't merge all the v4l/fb/etc. structs into one struct. That will make it
->> difficult in the future if you need to add a field for e.g. v4l entities.
-> 
-> No. You could just create another union for the API-specific bits, using the
-> reserved bytes.
-> 
->> So I would keep the v4l, fb and alsa structs, and just add a new struct for
->> dvb. I wonder if the dvb field can't just be replaced since I doubt anyone is
->> using it. And even if someone does, then it can't be right since a single
->> int isn't enough and never worked anyway.
-> 
-> All devnodes have major/minor. Making it standard for all devices makes
-> easy for userspace to properly get the data it requires to work.
+TODO:
+- The links are now static and don't change when the device is switched
+  to DVB mode.
 
-I think you are making assumptions here that may not be true. I don't see any
-reason to make a 'dev' struct here. The real problem is the dvb int, so that's
-what needs to be addressed. Changing anything else will cause API headaches
-for no good reason.
+With this change:
 
-Regards,
+Media controller API version 0.1.1
 
-	Hans
+Media device information
+------------------------
+driver          cx231xx
+model           Pixelview PlayTV USB Hybrid
+serial          CIR000000000001
+bus info        4
+hw revision     0x4001
+driver version  3.19.0
+
+Device topology
+- entity 1: cx25840 19-0044 (3 pads, 3 links)
+            type V4L2 subdev subtype Decoder flags 0
+	pad0: Sink
+		<- "NXP TDA18271HD":0 [ENABLED]
+	pad1: Source
+		-> "cx231xx #0 video":0 [ENABLED]
+	pad2: Source
+		-> "cx231xx #0 vbi":0 [ENABLED]
+
+- entity 2: NXP TDA18271HD (1 pad, 2 links)
+            type V4L2 subdev subtype Tuner flags 0
+	pad0: Source
+		-> "cx25840 19-0044":0 [ENABLED]
+		-> "Fujitsu mb86A20s":0 []
+
+- entity 3: cx231xx #0 video (1 pad, 1 link)
+            type Node subtype V4L flags 0
+            device node name /dev/video0
+	pad0: Sink
+		<- "cx25840 19-0044":1 [ENABLED]
+
+- entity 4: cx231xx #0 vbi (1 pad, 1 link)
+            type Node subtype V4L flags 0
+            device node name /dev/vbi0
+	pad0: Sink
+		<- "cx25840 19-0044":2 [ENABLED]
+
+- entity 5: Fujitsu mb86A20s (2 pads, 2 links)
+            type Node subtype DVB FE flags 0
+            device node name /dev/dvb/adapter0/frontend0
+	pad0: Sink
+		<- "NXP TDA18271HD":0 []
+	pad1: Source
+		-> "demux":0 []
+
+- entity 6: demux (2 pads, 2 links)
+            type Node subtype DVB DEMUX flags 0
+            device node name /dev/dvb/adapter0/demux0
+	pad0: Sink
+		<- "Fujitsu mb86A20s":1 []
+	pad1: Source
+		-> "dvr":0 []
+
+- entity 7: dvr (1 pad, 1 link)
+            type Node subtype DVB DVR flags 0
+            device node name /dev/dvb/adapter0/dvr0
+	pad0: Sink
+		<- "demux":1 []
+
+- entity 8: dvb net (0 pad, 0 link)
+            type Node subtype DVB NET flags 0
+            device node name /dev/dvb/adapter0/net0
+
+
+Mauro Carvalho Chehab (7):
+  tuner-core: properly initialize media controller subdev
+  cx25840: fill the media controller entity
+  cx231xx: initialize video/vbi pads
+  cx231xx: create media links for analog mode
+  dvbdev: represent frontend with two pads
+  dvbdev: add a function to create DVB media graph
+  cx231xx: create DVB graph
+
+ drivers/media/dvb-core/dvbdev.c           | 59 ++++++++++++++++++++++++++++---
+ drivers/media/dvb-core/dvbdev.h           |  1 +
+ drivers/media/i2c/cx25840/cx25840-core.c  | 14 +++++++-
+ drivers/media/i2c/cx25840/cx25840-core.h  |  3 ++
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 40 +++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   |  1 +
+ drivers/media/usb/cx231xx/cx231xx-video.c | 13 ++++++-
+ drivers/media/usb/cx231xx/cx231xx.h       |  1 +
+ drivers/media/v4l2-core/tuner-core.c      | 15 ++++++++
+ include/uapi/linux/media.h                |  2 ++
+ 10 files changed, 142 insertions(+), 7 deletions(-)
+
+-- 
+2.1.0
+
+DOT file with the graph:
+
+digraph board {
+	rankdir=TB
+	n00000001 [label="{{<port0> 0} | cx25840 19-0044 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000001:port1 -> n00000003
+	n00000001:port2 -> n00000004
+	n00000002 [label="{{} | NXP TDA18271HD | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000002:port0 -> n00000001:port0
+	n00000002:port0 -> n00000005 [style=dashed]
+	n00000003 [label="cx231xx #0 video\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
+	n00000004 [label="cx231xx #0 vbi\n/dev/vbi0", shape=box, style=filled, fillcolor=yellow]
+	n00000005 [label="Fujitsu mb86A20s\n/dev/dvb/adapter0/frontend0", shape=box, style=filled, fillcolor=yellow]
+	n00000005 -> n00000006 [style=dashed]
+	n00000006 [label="demux\n/dev/dvb/adapter0/demux0", shape=box, style=filled, fillcolor=yellow]
+	n00000006 -> n00000007 [style=dashed]
+	n00000007 [label="dvr\n/dev/dvb/adapter0/dvr0", shape=box, style=filled, fillcolor=yellow]
+	n00000008 [label="dvb net\n/dev/dvb/adapter0/net0", shape=box, style=filled, fillcolor=yellow]
+}
