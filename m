@@ -1,215 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0226.hostedemail.com ([216.40.44.226]:45738 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932889AbbA1U0Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 15:26:25 -0500
-From: Joe Perches <joe@perches.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/3] dvb_net: Use standard debugging facilities
-Date: Wed, 28 Jan 2015 10:05:51 -0800
-Message-Id: <1cdb444dd553279f1369bc9059f775425b5df791.1422468185.git.joe@perches.com>
-In-Reply-To: <cover.1422468185.git.joe@perches.com>
-References: <cover.1422468185.git.joe@perches.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:56130 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751422AbbACUJw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jan 2015 15:09:52 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Joe Perches <joe@perches.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: [PATCH 2/7] cx25840: fill the media controller entity
+Date: Sat,  3 Jan 2015 18:09:34 -0200
+Message-Id: <487a406afc2d79b2027f1d9667dfad4a716ed630.1420315245.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420315245.git.mchehab@osg.samsung.com>
+References: <cover.1420315245.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420315245.git.mchehab@osg.samsung.com>
+References: <cover.1420315245.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert dprintk to netdev_dbg where appropriate.
-Remove dvb_net_debug module_param.
-Remove __func__ from output as that can be added by dynamic_debug.
+Instead of keeping the media controller entity not initialized,
+fill it and create the pads for cx25840.
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/media/dvb-core/dvb_net.c | 57 +++++++++++++++++-----------------------
- 1 file changed, 24 insertions(+), 33 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index ff79b0b..0b0f97a 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -68,13 +68,6 @@
- #include "dvb_demux.h"
- #include "dvb_net.h"
- 
--static int dvb_net_debug;
--module_param(dvb_net_debug, int, 0444);
--MODULE_PARM_DESC(dvb_net_debug, "enable debug messages");
--
--#define dprintk(x...) do { if (dvb_net_debug) printk(x); } while (0)
--
--
- static inline __u32 iov_crc32( __u32 c, struct kvec *iov, unsigned int cnt )
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+index 573e08826b9b..831c74b97798 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.c
++++ b/drivers/media/i2c/cx25840/cx25840-core.c
+@@ -5134,7 +5134,7 @@ static int cx25840_probe(struct i2c_client *client,
  {
- 	unsigned int j;
-@@ -312,9 +305,9 @@ static int handle_ule_extensions( struct dvb_net_priv *p )
- 			return l;	/* Stop extension header processing and discard SNDU. */
- 		total_ext_len += l;
- #ifdef ULE_DEBUG
--		dprintk("handle_ule_extensions: ule_next_hdr=%p, ule_sndu_type=%i, "
--			"l=%i, total_ext_len=%i\n", p->ule_next_hdr,
--			(int) p->ule_sndu_type, l, total_ext_len);
-+		pr_debug("ule_next_hdr=%p, ule_sndu_type=%i, l=%i, total_ext_len=%i\n",
-+			 p->ule_next_hdr, (int)p->ule_sndu_type,
-+			 l, total_ext_len);
- #endif
+ 	struct cx25840_state *state;
+ 	struct v4l2_subdev *sd;
+-	int default_volume;
++	int default_volume, ret;
+ 	u32 id;
+ 	u16 device_id;
  
- 	} while (p->ule_sndu_type < ETH_P_802_3_MIN);
-@@ -697,8 +690,8 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+@@ -5178,6 +5178,18 @@ static int cx25840_probe(struct i2c_client *client,
  
- 					if (drop) {
- #ifdef ULE_DEBUG
--						dprintk("Dropping SNDU: MAC destination address does not match: dest addr: %pM, dev addr: %pM\n",
--							priv->ule_skb->data, dev->dev_addr);
-+						netdev_dbg(dev, "Dropping SNDU: MAC destination address does not match: dest addr: %pM, dev addr: %pM\n",
-+							   priv->ule_skb->data, dev->dev_addr);
- #endif
- 						dev_kfree_skb(priv->ule_skb);
- 						goto sndu_done;
-@@ -961,8 +954,7 @@ static int dvb_net_filter_sec_set(struct net_device *dev,
- 	(*secfilter)->filter_mask[10] = mac_mask[1];
- 	(*secfilter)->filter_mask[11]=mac_mask[0];
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &cx25840_ops);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	/* TODO: need to represent analog inputs too */
++	state->pads[0].flags = MEDIA_PAD_FL_SINK;	/* Tuner or input */
++	state->pads[1].flags = MEDIA_PAD_FL_SOURCE;	/* Video */
++	state->pads[2].flags = MEDIA_PAD_FL_SOURCE;	/* VBI */
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
++
++	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
++				state->pads, 0);
++	if (ret < 0)
++		v4l_info(client, "failed to initialize media entity!\n");
++#endif
  
--	dprintk("%s: filter mac=%pM\n", dev->name, mac);
--	dprintk("%s: filter mask=%pM\n", dev->name, mac_mask);
-+	netdev_dbg(dev, "filter mac=%pM mask=%pM\n", mac, mac_mask);
+ 	switch (id) {
+ 	case CX23885_AV:
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.h b/drivers/media/i2c/cx25840/cx25840-core.h
+index 37bc04217c44..17b409f55445 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.h
++++ b/drivers/media/i2c/cx25840/cx25840-core.h
+@@ -64,6 +64,9 @@ struct cx25840_state {
+ 	wait_queue_head_t fw_wait;    /* wake up when the fw load is finished */
+ 	struct work_struct fw_work;   /* work entry for fw load */
+ 	struct cx25840_ir_state *ir_state;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad	pads[3];
++#endif
+ };
  
- 	return 0;
- }
-@@ -974,7 +966,7 @@ static int dvb_net_feed_start(struct net_device *dev)
- 	struct dmx_demux *demux = priv->demux;
- 	unsigned char *mac = (unsigned char *) dev->dev_addr;
- 
--	dprintk("%s: rx_mode %i\n", __func__, priv->rx_mode);
-+	netdev_dbg(dev, "rx_mode %i\n", priv->rx_mode);
- 	mutex_lock(&priv->mutex);
- 	if (priv->tsfeed || priv->secfeed || priv->secfilter || priv->multi_secfilter[0])
- 		printk("%s: BUG %d\n", __func__, __LINE__);
-@@ -984,7 +976,7 @@ static int dvb_net_feed_start(struct net_device *dev)
- 	priv->tsfeed = NULL;
- 
- 	if (priv->feedtype == DVB_NET_FEEDTYPE_MPE) {
--		dprintk("%s: alloc secfeed\n", __func__);
-+		netdev_dbg(dev, "alloc secfeed\n");
- 		ret=demux->allocate_section_feed(demux, &priv->secfeed,
- 					 dvb_net_sec_callback);
- 		if (ret<0) {
-@@ -1002,38 +994,38 @@ static int dvb_net_feed_start(struct net_device *dev)
- 		}
- 
- 		if (priv->rx_mode != RX_MODE_PROMISC) {
--			dprintk("%s: set secfilter\n", __func__);
-+			netdev_dbg(dev, "set secfilter\n");
- 			dvb_net_filter_sec_set(dev, &priv->secfilter, mac, mask_normal);
- 		}
- 
- 		switch (priv->rx_mode) {
- 		case RX_MODE_MULTI:
- 			for (i = 0; i < priv->multi_num; i++) {
--				dprintk("%s: set multi_secfilter[%d]\n", __func__, i);
-+				netdev_dbg(dev, "set multi_secfilter[%d]\n", i);
- 				dvb_net_filter_sec_set(dev, &priv->multi_secfilter[i],
- 						       priv->multi_macs[i], mask_normal);
- 			}
- 			break;
- 		case RX_MODE_ALL_MULTI:
- 			priv->multi_num=1;
--			dprintk("%s: set multi_secfilter[0]\n", __func__);
-+			netdev_dbg(dev, "set multi_secfilter[0]\n");
- 			dvb_net_filter_sec_set(dev, &priv->multi_secfilter[0],
- 					       mac_allmulti, mask_allmulti);
- 			break;
- 		case RX_MODE_PROMISC:
- 			priv->multi_num=0;
--			dprintk("%s: set secfilter\n", __func__);
-+			netdev_dbg(dev, "set secfilter\n");
- 			dvb_net_filter_sec_set(dev, &priv->secfilter, mac, mask_promisc);
- 			break;
- 		}
- 
--		dprintk("%s: start filtering\n", __func__);
-+		netdev_dbg(dev, "start filtering\n");
- 		priv->secfeed->start_filtering(priv->secfeed);
- 	} else if (priv->feedtype == DVB_NET_FEEDTYPE_ULE) {
- 		struct timespec timeout = { 0, 10000000 }; // 10 msec
- 
- 		/* we have payloads encapsulated in TS */
--		dprintk("%s: alloc tsfeed\n", __func__);
-+		netdev_dbg(dev, "alloc tsfeed\n");
- 		ret = demux->allocate_ts_feed(demux, &priv->tsfeed, dvb_net_ts_callback);
- 		if (ret < 0) {
- 			printk("%s: could not allocate ts feed\n", dev->name);
-@@ -1057,7 +1049,7 @@ static int dvb_net_feed_start(struct net_device *dev)
- 			goto error;
- 		}
- 
--		dprintk("%s: start filtering\n", __func__);
-+		netdev_dbg(dev, "start filtering\n");
- 		priv->tsfeed->start_filtering(priv->tsfeed);
- 	} else
- 		ret = -EINVAL;
-@@ -1072,17 +1064,16 @@ static int dvb_net_feed_stop(struct net_device *dev)
- 	struct dvb_net_priv *priv = netdev_priv(dev);
- 	int i, ret = 0;
- 
--	dprintk("%s\n", __func__);
- 	mutex_lock(&priv->mutex);
- 	if (priv->feedtype == DVB_NET_FEEDTYPE_MPE) {
- 		if (priv->secfeed) {
- 			if (priv->secfeed->is_filtering) {
--				dprintk("%s: stop secfeed\n", __func__);
-+				netdev_dbg(dev, "stop secfeed\n");
- 				priv->secfeed->stop_filtering(priv->secfeed);
- 			}
- 
- 			if (priv->secfilter) {
--				dprintk("%s: release secfilter\n", __func__);
-+				netdev_dbg(dev, "release secfilter\n");
- 				priv->secfeed->release_filter(priv->secfeed,
- 							      priv->secfilter);
- 				priv->secfilter=NULL;
-@@ -1090,8 +1081,8 @@ static int dvb_net_feed_stop(struct net_device *dev)
- 
- 			for (i=0; i<priv->multi_num; i++) {
- 				if (priv->multi_secfilter[i]) {
--					dprintk("%s: release multi_filter[%d]\n",
--						__func__, i);
-+					netdev_dbg(dev, "release multi_filter[%d]\n",
-+						   i);
- 					priv->secfeed->release_filter(priv->secfeed,
- 								      priv->multi_secfilter[i]);
- 					priv->multi_secfilter[i] = NULL;
-@@ -1105,7 +1096,7 @@ static int dvb_net_feed_stop(struct net_device *dev)
- 	} else if (priv->feedtype == DVB_NET_FEEDTYPE_ULE) {
- 		if (priv->tsfeed) {
- 			if (priv->tsfeed->is_filtering) {
--				dprintk("%s: stop tsfeed\n", __func__);
-+				netdev_dbg(dev, "stop tsfeed\n");
- 				priv->tsfeed->stop_filtering(priv->tsfeed);
- 			}
- 			priv->demux->release_ts_feed(priv->demux, priv->tsfeed);
-@@ -1145,16 +1136,16 @@ static void wq_set_multicast_list (struct work_struct *work)
- 	netif_addr_lock_bh(dev);
- 
- 	if (dev->flags & IFF_PROMISC) {
--		dprintk("%s: promiscuous mode\n", dev->name);
-+		netdev_dbg(dev, "promiscuous mode\n");
- 		priv->rx_mode = RX_MODE_PROMISC;
- 	} else if ((dev->flags & IFF_ALLMULTI)) {
--		dprintk("%s: allmulti mode\n", dev->name);
-+		netdev_dbg(dev, "allmulti mode\n");
- 		priv->rx_mode = RX_MODE_ALL_MULTI;
- 	} else if (!netdev_mc_empty(dev)) {
- 		struct netdev_hw_addr *ha;
- 
--		dprintk("%s: set_mc_list, %d entries\n",
--			dev->name, netdev_mc_count(dev));
-+		netdev_dbg(dev, "set_mc_list, %d entries\n",
-+			   netdev_mc_count(dev));
- 
- 		priv->rx_mode = RX_MODE_MULTI;
- 		priv->multi_num = 0;
+ static inline struct cx25840_state *to_state(struct v4l2_subdev *sd)
 -- 
-2.1.2
+2.1.0
 
