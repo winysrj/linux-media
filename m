@@ -1,78 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:33586 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753761AbbATLMu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 06:12:50 -0500
-Received: by mail-ie0-f182.google.com with SMTP id ar1so4717948iec.13
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 03:12:50 -0800 (PST)
-Date: Tue, 20 Jan 2015 11:12:43 +0000
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v10 04/19] dt-binding: mfd: max77693: Add DT binding
- related macros
-Message-ID: <20150120111243.GC13701@x1>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-5-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1420816989-1808-5-git-send-email-j.anaszewski@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:56120 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751311AbbACUJv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jan 2015 15:09:51 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 4/7] cx231xx: create media links for analog mode
+Date: Sat,  3 Jan 2015 18:09:36 -0200
+Message-Id: <4143f052ec91ea72fe08faf16ef4c043bf447369.1420315245.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420315245.git.mchehab@osg.samsung.com>
+References: <cover.1420315245.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420315245.git.mchehab@osg.samsung.com>
+References: <cover.1420315245.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
+Now that we have entities and pads, let's create media links
+between them, for analog setup.
 
-> Add macros for max77693 led part related binding.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> ---
->  include/dt-bindings/mfd/max77693.h |   21 +++++++++++++++++++++
->  1 file changed, 21 insertions(+)
->  create mode 100644 include/dt-bindings/mfd/max77693.h
-> 
-> diff --git a/include/dt-bindings/mfd/max77693.h b/include/dt-bindings/mfd/max77693.h
-> new file mode 100644
-> index 0000000..f53e197
-> --- /dev/null
-> +++ b/include/dt-bindings/mfd/max77693.h
-> @@ -0,0 +1,21 @@
-> +/*
-> + * This header provides macros for MAX77693 device binding
-> + *
-> + * Copyright (C) 2014, Samsung Electronics Co., Ltd.
-> + *
-> + * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-> + */
-> +
-> +#ifndef __DT_BINDINGS_MAX77693_H__
-> +#define __DT_BINDINGS_MAX77693_H
-> +
-> +/* External trigger type */
-> +#define MAX77693_LED_TRIG_TYPE_EDGE	0
-> +#define MAX77693_LED_TRIG_TYPE_LEVEL	1
-> +
-> +/* Boost modes */
-> +#define MAX77693_LED_BOOST_OFF		0
-> +#define MAX77693_LED_BOOST_ADAPTIVE	1
-> +#define MAX77693_LED_BOOST_FIXED	2
-> +
-> +#endif /* __DT_BINDINGS_MAX77693_H */
+We may not have all the links for digital yet, as the dvb extention
+may not be loaded yet.
 
-These look fairly generic.  Do generic LED defines already exist?  If
-not, can they?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 7e1c73a5172d..5fc7d97df166 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1159,6 +1159,44 @@ static void cx231xx_media_device_register(struct cx231xx *dev,
+ #endif
+ }
+ 
++static void cx231xx_create_media_graph(struct cx231xx *dev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev = dev->media_dev;
++	struct media_entity *entity;
++	struct media_entity *tuner = NULL, *decoder = NULL;
++
++	if (!mdev)
++		return;
++
++	media_device_for_each_entity(entity, mdev) {
++		printk("entity %s, type %d\n", entity->name, entity->type);
++
++		switch (entity->type) {
++		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
++			tuner = entity;
++			break;
++		case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
++			decoder = entity;
++			break;
++		}
++	}
++
++	/* Analog setup, using tuner as a link */
++
++	if (!decoder)
++		return;
++
++	if (tuner)
++		media_entity_create_link(tuner, 0, decoder, 0,
++					 MEDIA_LNK_FL_ENABLED);
++	media_entity_create_link(decoder, 1, &dev->vdev->entity, 0,
++				 MEDIA_LNK_FL_ENABLED);
++	media_entity_create_link(decoder, 2, &dev->vbi_dev->entity, 0,
++				 MEDIA_LNK_FL_ENABLED);
++#endif
++}
++
+ /*
+  * cx231xx_init_dev()
+  * allocates and inits the device structs, registers i2c bus and v4l device
+@@ -1615,6 +1653,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	/* load other modules required */
+ 	request_modules(dev);
+ 
++	cx231xx_create_media_graph(dev);
++
+ 	return 0;
+ err_video_alt:
+ 	/* cx231xx_uninit_dev: */
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+2.1.0
+
