@@ -1,125 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-190.synserver.de ([212.40.185.190]:1094 "EHLO
-	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755789AbbAWPwu (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35869 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750761AbbACDV2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 10:52:50 -0500
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?=
-	<richard.rojfors@mocean-labs.com>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 14/15] [media] adv7180: Add fast switch support
-Date: Fri, 23 Jan 2015 16:52:33 +0100
-Message-Id: <1422028354-31891-15-git-send-email-lars@metafoo.de>
-In-Reply-To: <1422028354-31891-1-git-send-email-lars@metafoo.de>
-References: <1422028354-31891-1-git-send-email-lars@metafoo.de>
+	Fri, 2 Jan 2015 22:21:28 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 08DA92A002F
+	for <linux-media@vger.kernel.org>; Sat,  3 Jan 2015 04:20:53 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150103032053.08DA92A002F@tschai.lan>
+Date: Sat,  3 Jan 2015 04:20:53 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In fast switch mode the adv7180 (and similar) can lock onto a new signal
-faster when switching between different inputs. As a downside though it is
-no longer able to auto-detect the incoming format.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The fast switch mode is exposed as a boolean v4l control that allows
-userspace applications to either enable or disable fast switch mode.
+Results of the daily build of media_tree:
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
---
-Changes since v1:
-	* Reserve private control range and use it for the fast switch control
-	* Changed control name from "Fast switch" to "Fast Switch"
----
- drivers/media/i2c/adv7180.c        | 29 +++++++++++++++++++++++++++++
- include/uapi/linux/v4l2-controls.h |  4 ++++
- 2 files changed, 33 insertions(+)
+date:		Sat Jan  3 04:00:08 CET 2015
+git branch:	test
+git hash:	99f3cd52aee21091ce62442285a68873e3be833f
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-3.slh.2-amd64
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 4d789c7..ee73b29 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -127,6 +127,9 @@
- #define ADV7180_REG_VPP_SLAVE_ADDR	0xFD
- #define ADV7180_REG_CSI_SLAVE_ADDR	0xFE
- 
-+#define ADV7180_REG_FLCONTROL 0x40e0
-+#define ADV7180_FLCONTROL_FL_ENABLE 0x1
-+
- #define ADV7180_CSI_REG_PWRDN	0x00
- #define ADV7180_CSI_PWRDN	0x80
- 
-@@ -164,6 +167,8 @@
- #define ADV7180_DEFAULT_CSI_I2C_ADDR 0x44
- #define ADV7180_DEFAULT_VPP_I2C_ADDR 0x42
- 
-+#define V4L2_CID_ADV_FAST_SWITCH	(V4L2_CID_USER_ADV7180_BASE + 0x00)
-+
- struct adv7180_state;
- 
- #define ADV7180_FLAG_RESET_POWERED	BIT(0)
-@@ -509,6 +514,18 @@ static int adv7180_s_ctrl(struct v4l2_ctrl *ctrl)
- 			break;
- 		ret = adv7180_write(state, ADV7180_REG_SD_SAT_CR, val);
- 		break;
-+	case V4L2_CID_ADV_FAST_SWITCH:
-+		if (ctrl->val) {
-+			/* ADI required write */
-+			adv7180_write(state, 0x80d9, 0x44);
-+			adv7180_write(state, ADV7180_REG_FLCONTROL,
-+				ADV7180_FLCONTROL_FL_ENABLE);
-+		} else {
-+			/* ADI required write */
-+			adv7180_write(state, 0x80d9, 0xc4);
-+			adv7180_write(state, ADV7180_REG_FLCONTROL, 0x00);
-+		}
-+		break;
- 	default:
- 		ret = -EINVAL;
- 	}
-@@ -521,6 +538,16 @@ static const struct v4l2_ctrl_ops adv7180_ctrl_ops = {
- 	.s_ctrl = adv7180_s_ctrl,
- };
- 
-+static const struct v4l2_ctrl_config adv7180_ctrl_fast_switch = {
-+	.ops = &adv7180_ctrl_ops,
-+	.id = V4L2_CID_ADV_FAST_SWITCH,
-+	.name = "Fast Switching",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.min = 0,
-+	.max = 1,
-+	.step = 1,
-+};
-+
- static int adv7180_init_controls(struct adv7180_state *state)
- {
- 	v4l2_ctrl_handler_init(&state->ctrl_hdl, 4);
-@@ -537,6 +564,8 @@ static int adv7180_init_controls(struct adv7180_state *state)
- 	v4l2_ctrl_new_std(&state->ctrl_hdl, &adv7180_ctrl_ops,
- 			  V4L2_CID_HUE, ADV7180_HUE_MIN,
- 			  ADV7180_HUE_MAX, 1, ADV7180_HUE_DEF);
-+	v4l2_ctrl_new_custom(&state->ctrl_hdl, &adv7180_ctrl_fast_switch, NULL);
-+
- 	state->sd.ctrl_handler = &state->ctrl_hdl;
- 	if (state->ctrl_hdl.error) {
- 		int err = state->ctrl_hdl.error;
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 661f119..9f6e108 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -170,6 +170,10 @@ enum v4l2_colorfx {
-  * We reserve 16 controls for this driver. */
- #define V4L2_CID_USER_SAA7134_BASE		(V4L2_CID_USER_BASE + 0x1060)
- 
-+/* The base for the adv7180 driver controls.
-+ * We reserve 16 controls for this driver. */
-+#define V4L2_CID_USER_ADV7180_BASE		(V4L2_CID_USER_BASE + 0x1070)
-+
- /* MPEG-class control IDs */
- /* The MPEG controls are applicable to all codec controls
-  * and the 'MPEG' part of the define is historical */
--- 
-1.8.0
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16-i686: ERRORS
+linux-3.17-i686: ERRORS
+linux-3.18-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17-x86_64: ERRORS
+linux-3.18-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
