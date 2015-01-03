@@ -1,171 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:59890 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750783AbbABUSq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Jan 2015 15:18:46 -0500
-Date: Fri, 2 Jan 2015 21:18:41 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from bombadil.infradead.org ([198.137.202.9]:46661 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750960AbbACOtZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jan 2015 09:49:25 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v2 2/2] V4L2: add CCF support to the v4l2_clk API
-In-Reply-To: <2303897.CzDnkeNcGb@avalon>
-Message-ID: <Pine.LNX.4.64.1501022107370.3028@axis700.grange>
-References: <Pine.LNX.4.64.1501021244580.30761@axis700.grange>
- <Pine.LNX.4.64.1501021247590.30761@axis700.grange> <2303897.CzDnkeNcGb@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv2 9/9] dvbdev: add pad for the DVB devnodes
+Date: Sat,  3 Jan 2015 12:49:11 -0200
+Message-Id: <7535eb2087c6d888d59b82ecea4aa399ef5d285e.1420294938.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420294938.git.mchehab@osg.samsung.com>
+References: <cover.1420294938.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420294938.git.mchehab@osg.samsung.com>
+References: <cover.1420294938.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From aeaee56e04d023f3a019d2595ef5128015acdb06 Mon Sep 17 00:00:00 2001
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date: Fri, 2 Jan 2015 12:26:41 +0100
-Subject: [PATCH 2/2] V4L2: add CCF support to the v4l2_clk API
+We want to represent the links between the several DVB devnodes,
+so let's create PADs for them.
 
-V4L2 clocks, e.g. used by camera sensors for their master clock, do not
-have to be supplied by a different V4L2 driver, they can also be
-supplied by an independent source. In this case the standart kernel
-clock API should be used to handle such clocks. This patch adds support
-for such cases.
+The DVB net devnode is a different matter, as it is not related
+to the media stream, but with network. So, at least for now, let's
+not add any pad for it.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Hi Laurent,
-Thanks for the comment. The idea of allocating a new object for each "get" 
-operation seems a bit weird to me, and completely trusting the user is a 
-bit scary... :) But yes, it can work this way too, I think, and the user 
-can screw either way too, anyway. So, here comes a v2. Something like 
-this?
-
-v2: don't add CCF-related clocks on the global list, just allocate a new 
-instance on each v4l2_clk_get()
-
- drivers/media/v4l2-core/v4l2-clk.c | 45 +++++++++++++++++++++++++++++++++++---
- include/media/v4l2-clk.h           |  2 ++
- 2 files changed, 44 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
-index c210906..f5d1688 100644
---- a/drivers/media/v4l2-core/v4l2-clk.c
-+++ b/drivers/media/v4l2-core/v4l2-clk.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include <linux/atomic.h>
-+#include <linux/clk.h>
- #include <linux/device.h>
- #include <linux/errno.h>
- #include <linux/list.h>
-@@ -42,6 +43,18 @@ static struct v4l2_clk *v4l2_clk_find(const char *dev_id, const char *id)
- struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 28e9d53d0979..202c15582fa3 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -184,7 +184,7 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 				      int type, int minor)
  {
- 	struct v4l2_clk *clk;
-+	struct clk *ccf_clk = clk_get(dev, id);
-+
-+	if (!IS_ERR(ccf_clk)) {
-+		clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
-+		if (!clk) {
-+			clk_put(ccf_clk);
-+			return ERR_PTR(-ENOMEM);
-+		}
-+		clk->clk = ccf_clk;
-+
-+		return clk;
-+	}
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	int ret;
++	int ret = 0, npads;
  
- 	mutex_lock(&clk_lock);
- 	clk = v4l2_clk_find(dev_name(dev), id);
-@@ -61,6 +74,12 @@ void v4l2_clk_put(struct v4l2_clk *clk)
- 	if (IS_ERR(clk))
+ 	if (!dvbdev->mdev)
  		return;
- 
-+	if (clk->clk) {
-+		clk_put(clk->clk);
-+		kfree(clk);
-+		return;
+@@ -196,18 +196,46 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 	dvbdev->entity->info.dvb.major = DVB_MAJOR;
+ 	dvbdev->entity->info.dvb.minor = minor;
+ 	dvbdev->entity->name = dvbdev->name;
++
++	switch(type) {
++	case DVB_DEVICE_CA:
++	case DVB_DEVICE_DEMUX:
++		npads = 2;
++		break;
++	case DVB_DEVICE_NET:
++		npads = 0;
++		break;
++	default:
++		npads = 1;
 +	}
 +
- 	mutex_lock(&clk_lock);
- 
- 	list_for_each_entry(tmp, &clk_list, list)
-@@ -98,8 +117,12 @@ static void v4l2_clk_unlock_driver(struct v4l2_clk *clk)
- 
- int v4l2_clk_enable(struct v4l2_clk *clk)
- {
--	int ret = v4l2_clk_lock_driver(clk);
-+	int ret;
- 
-+	if (clk->clk)
-+		return clk_enable(clk->clk);
-+
-+	ret = v4l2_clk_lock_driver(clk);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -125,6 +148,9 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
- {
- 	int enable;
- 
-+	if (clk->clk)
-+		return clk_disable(clk->clk);
-+
- 	mutex_lock(&clk->lock);
- 
- 	enable = --clk->enable;
-@@ -142,8 +168,12 @@ EXPORT_SYMBOL(v4l2_clk_disable);
- 
- unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
- {
--	int ret = v4l2_clk_lock_driver(clk);
-+	int ret;
-+
-+	if (clk->clk)
-+		return clk_get_rate(clk->clk);
- 
-+	ret = v4l2_clk_lock_driver(clk);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -162,7 +192,16 @@ EXPORT_SYMBOL(v4l2_clk_get_rate);
- 
- int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
- {
--	int ret = v4l2_clk_lock_driver(clk);
-+	int ret;
-+
-+	if (clk->clk) {
-+		long r = clk_round_rate(clk->clk, rate);
-+		if (r < 0)
-+			return r;
-+		return clk_set_rate(clk->clk, r);
++	if (npads) {
++		dvbdev->pads = kcalloc(npads, sizeof(*dvbdev->pads),
++				       GFP_KERNEL);
++		if (!dvbdev->pads) {
++			kfree(dvbdev->entity);
++			return;
++		}
 +	}
 +
-+	ret = v4l2_clk_lock_driver(clk);
+ 	switch(type) {
+ 	case DVB_DEVICE_FRONTEND:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+ 		break;
+ 	case DVB_DEVICE_DEMUX:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
++		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
+ 		break;
+ 	case DVB_DEVICE_DVR:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+ 		break;
+ 	case DVB_DEVICE_CA:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
++		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
+ 		break;
+ 	case DVB_DEVICE_NET:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
+@@ -218,11 +246,16 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 		return;
+ 	}
  
- 	if (ret < 0)
- 		return ret;
-diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-index 8f06967..4402b2d 100644
---- a/include/media/v4l2-clk.h
-+++ b/include/media/v4l2-clk.h
-@@ -22,6 +22,7 @@
- struct module;
- struct device;
+-	ret = media_device_register_entity(dvbdev->mdev, dvbdev->entity);
++	if (npads)
++		ret = media_entity_init(dvbdev->entity, npads, dvbdev->pads, 0);
++	if (!ret)
++		ret = media_device_register_entity(dvbdev->mdev,
++						   dvbdev->entity);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR
+ 			"%s: media_device_register_entity failed for %s\n",
+ 			__func__, dvbdev->entity->name);
++		kfree(dvbdev->pads);
+ 		kfree(dvbdev->entity);
+ 		dvbdev->entity = NULL;
+ 		return;
+@@ -335,6 +368,7 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
+ 	if (dvbdev->entity) {
+ 		media_device_unregister_entity(dvbdev->entity);
+ 		kfree(dvbdev->entity);
++		kfree(dvbdev->pads);
+ 	}
+ #endif
  
-+struct clk;
- struct v4l2_clk {
- 	struct list_head list;
- 	const struct v4l2_clk_ops *ops;
-@@ -30,6 +31,7 @@ struct v4l2_clk {
- 	int enable;
- 	struct mutex lock; /* Protect the enable count */
- 	atomic_t use_count;
-+	struct clk *clk;
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index f58dfef46984..513ca92028dd 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -98,8 +98,9 @@ struct dvb_device {
+ 	struct media_device *mdev;
+ 	const char *name;
+ 
+-	/* Filled inside dvbdev.c */
++	/* Allocated and filled inside dvbdev.c */
+ 	struct media_entity *entity;
++	struct media_pad *pads;
+ #endif
+ 
  	void *priv;
- };
- 
 -- 
-1.9.3
+2.1.0
 
