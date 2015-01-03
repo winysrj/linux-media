@@ -1,47 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35152 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750955AbbALPWy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2015 10:22:54 -0500
-Message-ID: <54B3E6C0.2090608@xs4all.nl>
-Date: Mon, 12 Jan 2015 16:22:40 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Ondrej Zary <linux@rainbow-software.org>,
-	linux-media@vger.kernel.org
-Subject: Re: CMYG support in V4L2
-References: <201412291433.58677.linux@rainbow-software.org>
-In-Reply-To: <201412291433.58677.linux@rainbow-software.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:56122 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751395AbbACUJv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jan 2015 15:09:51 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-api@vger.kernel.org
+Subject: [PATCH 1/7] tuner-core: properly initialize media controller subdev
+Date: Sat,  3 Jan 2015 18:09:33 -0200
+Message-Id: <4ff2de5fce002a6f6f87993440f45e0f198c57cb.1420315245.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420315245.git.mchehab@osg.samsung.com>
+References: <cover.1420315245.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420315245.git.mchehab@osg.samsung.com>
+References: <cover.1420315245.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/29/2014 02:33 PM, Ondrej Zary wrote:
-> Hello,
-> I'm working on an old driver called "qcamvc" for Connectix QuickCam VC webcams 
-> (parallel port and USB models), found here:
-> http://sourceforge.net/projects/usb-quickcam-vc/
-> 
-> Luckily, it was modified last year to compile with 3.x kernels.
-> 
-> After trivial modification (mfr and model), it works with parallel-port 
-> QuickCam Pro (sort of - only at 320x240 and with vertical lines on the left 
-> and blank part at the top). I don't have QuickCam VC (yet).
-> 
-> After removing a lot of code (it's now around 1200 [main] + 660 [parallel] + 
-> 320 [usb] lines), one problem still remains: in-kernel colour conversion with 
-> software contrast, hue, saturation and gamma.
-> 
-> According to comments in the code, the camera sensor seems to have a CMYG 
-> filter, like no other linux-supported camera. So the proper way to support 
-> these cameras is to introduce a new pixel format, move the conversion to 
-> libv4lconvert and remove all controls not provided by hardware?
-> 
+Properly initialize tuner core subdev at the media controller.
 
-Correct.
+That requires a new subtype at the media controller API.
 
-Regards,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-	Hans
+diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+index 559f8372e2eb..114715ed0110 100644
+--- a/drivers/media/v4l2-core/tuner-core.c
++++ b/drivers/media/v4l2-core/tuner-core.c
+@@ -134,6 +134,9 @@ struct tuner {
+ 	unsigned int        type; /* chip type id */
+ 	void                *config;
+ 	const char          *name;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad	pad;
++#endif
+ };
+ 
+ /*
+@@ -434,6 +437,8 @@ static void set_type(struct i2c_client *c, unsigned int type,
+ 		t->name = analog_ops->info.name;
+ 	}
+ 
++	t->sd.entity.name = t->name;
++
+ 	tuner_dbg("type set to %s\n", t->name);
+ 
+ 	t->mode_mask = new_mode_mask;
+@@ -592,6 +597,7 @@ static int tuner_probe(struct i2c_client *client,
+ 	struct tuner *t;
+ 	struct tuner *radio;
+ 	struct tuner *tv;
++	int ret;
+ 
+ 	t = kzalloc(sizeof(struct tuner), GFP_KERNEL);
+ 	if (NULL == t)
+@@ -696,6 +702,15 @@ register_client:
+ 		   t->type,
+ 		   t->mode_mask & T_RADIO ? " Radio" : "",
+ 		   t->mode_mask & T_ANALOG_TV ? " TV" : "");
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	t->pad.flags = MEDIA_PAD_FL_SOURCE;
++	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
++	t->sd.entity.name = t->name;
++
++	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
++	if (ret < 0)
++		tuner_err("failed to initialize media entity!\n");
++#endif
+ 	return 0;
+ }
+ 
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 707db275f92b..5ffde035789b 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -66,6 +66,8 @@ struct media_device_info {
+ /* A converter of analogue video to its digital representation. */
+ #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
+ 
++#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
++
+ #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
+ 
+ struct media_entity_desc {
+-- 
+2.1.0
+
