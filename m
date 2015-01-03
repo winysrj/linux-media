@@ -1,72 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:50957 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959AbbAEFLT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jan 2015 00:11:19 -0500
-From: Tony K Nadackal <tony.kn@samsung.com>
-To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: mchehab@osg.samsung.com, j.anaszewski@samsung.com,
-	kgene@kernel.org, k.debski@samsung.com, s.nawrocki@samsung.com,
-	bhushan.r@samsung.com, tony.kn@samsung.com
-References: <1418797339-27877-1-git-send-email-tony.kn@samsung.com>
-In-reply-to: <1418797339-27877-1-git-send-email-tony.kn@samsung.com>
-Subject: RE: [PATCH] [media] s5p-jpeg: Clear JPEG_CODEC_ON bits in sw reset
- function
-Date: Mon, 05 Jan 2015 10:41:55 +0530
-Message-id: <000001d028a6$2da27c90$88e775b0$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-us
+Received: from bombadil.infradead.org ([198.137.202.9]:60277 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750768AbbACCE4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jan 2015 21:04:56 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/7] dvb core: add basic support for the media controller
+Date: Sat,  3 Jan 2015 00:04:33 -0200
+Message-Id: <cover.1420250453.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gentle Reminder.
+This patch series adds basic support for the media controller at the
+DVB core: it creates one media entity per DVB devnode, if the media
+device is passed as an argument to the DVB structures.
 
-Thanks
-Tony
+The cx231xx driver was modified to pass such argument for DVB NET,
+DVB frontend and DVB demux.
 
-> -----Original Message-----
-> From: Tony K Nadackal [mailto:tony.kn@samsung.com]
-> Sent: Wednesday, December 17, 2014 11:52 AM
-> To: linux-media@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
-> samsung-soc@vger.kernel.org
-> Cc: mchehab@osg.samsung.com; j.anaszewski@samsung.com;
-> kgene@kernel.org; k.debski@samsung.com; s.nawrocki@samsung.com;
-> bhushan.r@samsung.com; Tony K Nadackal
-> Subject: [PATCH] [media] s5p-jpeg: Clear JPEG_CODEC_ON bits in sw reset
-> function
-> 
-> Bits EXYNOS4_DEC_MODE and EXYNOS4_ENC_MODE do not get cleared on
-> software reset. These bits need to be cleared explicitly.
-> 
-> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-> ---
-> This patch is created and tested on top of linux-next-20141210.
-> It can be cleanly applied on media-next and kgene/for-next.
-> 
-> 
->  drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> index ab6d6f43..e53f13a 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> @@ -21,6 +21,10 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
->  	unsigned int reg;
-> 
->  	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
-> +	writel(reg & ~(EXYNOS4_DEC_MODE | EXYNOS4_ENC_MODE),
-> +				base + EXYNOS4_JPEG_CNTL_REG);
-> +
-> +	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
->  	writel(reg & ~EXYNOS4_SOFT_RESET_HI, base +
-> EXYNOS4_JPEG_CNTL_REG);
-> 
->  	udelay(100);
-> --
-> 2.2.0
+TODO: The media PADs weren't created yet, nor the links between the
+several entities.
+
+Mauro Carvalho Chehab (7):
+  media: Fix DVB representation at media controller API
+  dvb core: add support for media controller at dvbdev
+  dvb core: add media controller support for DVB frontend
+  dvb core: add support for demux/dvr nodes at media controller
+  dvb core: add support for CA node at the media controller
+  dvb core: add support for DVB net node at the media controller
+  cx231xx: add media controller support
+
+ drivers/media/dvb-core/dmxdev.c           | 34 ++++++++++-------
+ drivers/media/dvb-core/dmxdev.h           |  6 +++
+ drivers/media/dvb-core/dvb_ca_en50221.c   | 19 ++++++----
+ drivers/media/dvb-core/dvb_ca_en50221.h   |  6 +++
+ drivers/media/dvb-core/dvb_frontend.c     |  8 +++-
+ drivers/media/dvb-core/dvb_frontend.h     |  7 ++++
+ drivers/media/dvb-core/dvb_net.c          | 18 +++++----
+ drivers/media/dvb-core/dvb_net.h          |  6 +++
+ drivers/media/dvb-core/dvbdev.c           | 63 ++++++++++++++++++++++++++++++-
+ drivers/media/dvb-core/dvbdev.h           | 10 +++++
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 60 ++++++++++++++++++++++++++---
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   |  4 ++
+ drivers/media/usb/cx231xx/cx231xx.h       |  4 ++
+ include/media/media-entity.h              |  5 ++-
+ include/uapi/linux/media.h                | 13 ++++++-
+ 15 files changed, 221 insertions(+), 42 deletions(-)
+
+-- 
+2.1.0
 
