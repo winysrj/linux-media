@@ -1,56 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60057 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751449AbbAVOsP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 09:48:15 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	sadegh abbasi <sadegh612000@yahoo.co.uk>
-Subject: [PATCH 0/7] omap4iss: Add RGB2RGB blending matrix support
-Date: Thu, 22 Jan 2015 16:48:39 +0200
-Message-Id: <1421938126-17747-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:60274 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750761AbbACCE4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jan 2015 21:04:56 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH 1/7] media: Fix DVB representation at media controller API
+Date: Sat,  3 Jan 2015 00:04:34 -0200
+Message-Id: <ea1dd8e443b34e2047468866ec423d4334f54eba.1420250453.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420250453.git.mchehab@osg.samsung.com>
+References: <cover.1420250453.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420250453.git.mchehab@osg.samsung.com>
+References: <cover.1420250453.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The DVB devices are identified via a (major, minor) tuple,
+and not by a random id. Fix it, before we start using it.
 
-This patch set adds support for exposing the OMAP4 ISS IPIPE RGB2RGB blending
-matrix through V4L2 controls, using the compound controls support.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Patches 1 to 4 add new signed compound control types and simplify the control
-type init operation. Patches 5 and 6 then fix two issues with the omap4iss
-driver, and patch 7 finally adds RGB2RGB blending matrix support.
-
-Hans, patch 5 is a 3.19 fix for a compilation breakage introduced by commit
-17028cdb74bf8bb5 ("[media] v4l2 core: improve debug flag handling"). Should I
-submit it directly to Mauro, or would you like to queue it up in your 3.19
-fixes branch ?
-
-Laurent Pinchart (7):
-  v4l2-ctrls: Add new S8, S16 and S32 compound control types
-  v4l2-ctrls: Don't initialize array tail when setting a control
-  v4l2-ctrls: Make the control type init op initialize the whole control
-  v4l2-ctrls: Export the standard control type operations
-  Revert "[media] v4l: omap4iss: Add module debug parameter"
-  staging: media: omap4iss: Cleanup media entities after unregistration
-  staging: media: omap4iss: ipipe: Expose the RGB2RGB blending matrix
-
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |  21 ++++
- .../DocBook/media/v4l/vidioc-queryctrl.xml         |  30 +++++
- drivers/media/v4l2-core/v4l2-ctrls.c               |  99 +++++++++++----
- drivers/staging/media/omap4iss/iss_ipipe.c         | 135 ++++++++++++++++++++-
- drivers/staging/media/omap4iss/iss_ipipe.h         |  17 +++
- drivers/staging/media/omap4iss/iss_ipipeif.c       |   6 +-
- drivers/staging/media/omap4iss/iss_resizer.c       |   6 +-
- drivers/staging/media/omap4iss/iss_video.c         |   5 -
- include/media/v4l2-ctrls.h                         |  16 ++-
- include/uapi/linux/videodev2.h                     |   6 +
- 10 files changed, 302 insertions(+), 39 deletions(-)
-
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index e00459185d20..de333cc8261b 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -97,7 +97,10 @@ struct media_entity {
+ 			u32 device;
+ 			u32 subdevice;
+ 		} alsa;
+-		int dvb;
++		struct {
++			u32 major;
++			u32 minor;
++		} dvb;
+ 
+ 		/* Sub-device specifications */
+ 		/* Nothing needed yet */
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index d847c760e8f0..7902e800f019 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -27,7 +27,7 @@
+ #include <linux/types.h>
+ #include <linux/version.h>
+ 
+-#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 0)
++#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 1)
+ 
+ struct media_device_info {
+ 	char driver[16];
+@@ -88,7 +88,10 @@ struct media_entity_desc {
+ 			__u32 device;
+ 			__u32 subdevice;
+ 		} alsa;
+-		int dvb;
++		struct {
++			__u32 major;
++			__u32 minor;
++		} dvb;
+ 
+ 		/* Sub-device specifications */
+ 		/* Nothing needed yet */
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.0
 
