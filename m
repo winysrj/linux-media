@@ -1,53 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:35925 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750971AbbALLmU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2015 06:42:20 -0500
-Message-ID: <54B3B30A.3080908@xs4all.nl>
-Date: Mon, 12 Jan 2015 12:42:02 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: dri-devel@lists.freedesktop.org, marbugge@cisco.com,
-	Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCHv3 0/3] hdmi: add unpack and logging functions
-References: <1418991263-17934-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1418991263-17934-1-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:46666 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751097AbbACOtZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jan 2015 09:49:25 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv2 3/9] dvb core: add support for media controller at dvbdev
+Date: Sat,  3 Jan 2015 12:49:05 -0200
+Message-Id: <df3a472288618854cd5ca6b59a4e747164638f3e.1420294938.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420294938.git.mchehab@osg.samsung.com>
+References: <cover.1420294938.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420294938.git.mchehab@osg.samsung.com>
+References: <cover.1420294938.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thierry,
+Provide a way to register media controller device nodes
+at the DVB core.
 
-On 12/19/2014 01:14 PM, Hans Verkuil wrote:
-> This patch series adds new HDMI 2.0/CEA-861-F defines to hdmi.h and
-> adds unpacking and logging functions to hdmi.c. It also uses those
-> in the V4L2 adv7842 driver (and they will be used in other HDMI drivers
-> once this functionality is merged).
-> 
-> Changes since v2:
-> - Applied most comments from Thierry's review
-> - Renamed HDMI_AUDIO_CODING_TYPE_EXT_STREAM as per Thierry's suggestion.
-> 
-> Thierry, if this OK, then please give your Ack and I'll post a pull
-> request for 3.20 for the media git tree.
+Please notice that the dvbdev callers also require changes
+for the devices to be registered via the media controller.
 
-Can you Ack this patch series?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Thanks!
-
-	Hans
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 983db75de350..28e9d53d0979 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -180,6 +180,58 @@ skip:
+ 	return -ENFILE;
+ }
+ 
++static void dvb_register_media_device(struct dvb_device *dvbdev,
++				      int type, int minor)
++{
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	int ret;
++
++	if (!dvbdev->mdev)
++		return;
++
++	dvbdev->entity = kzalloc(sizeof(*dvbdev->entity), GFP_KERNEL);
++	if (!dvbdev->entity)
++		return;
++
++	dvbdev->entity->info.dvb.major = DVB_MAJOR;
++	dvbdev->entity->info.dvb.minor = minor;
++	dvbdev->entity->name = dvbdev->name;
++	switch(type) {
++	case DVB_DEVICE_FRONTEND:
++		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
++		break;
++	case DVB_DEVICE_DEMUX:
++		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
++		break;
++	case DVB_DEVICE_DVR:
++		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
++		break;
++	case DVB_DEVICE_CA:
++		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
++		break;
++	case DVB_DEVICE_NET:
++		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
++		break;
++	default:
++		kfree(dvbdev->entity);
++		dvbdev->entity = NULL;
++		return;
++	}
++
++	ret = media_device_register_entity(dvbdev->mdev, dvbdev->entity);
++	if (ret < 0) {
++		printk(KERN_ERR
++			"%s: media_device_register_entity failed for %s\n",
++			__func__, dvbdev->entity->name);
++		kfree(dvbdev->entity);
++		dvbdev->entity = NULL;
++		return;
++	}
++
++	printk(KERN_DEBUG "%s: media device '%s' registered.\n",
++		__func__, dvbdev->entity->name);
++#endif
++}
+ 
+ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+ 			const struct dvb_device *template, void *priv, int type)
+@@ -258,10 +310,11 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+ 		       __func__, adap->num, dnames[type], id, PTR_ERR(clsdev));
+ 		return PTR_ERR(clsdev);
+ 	}
+-
+ 	dprintk(KERN_DEBUG "DVB: register adapter%d/%s%d @ minor: %i (0x%02x)\n",
+ 		adap->num, dnames[type], id, minor, minor);
+ 
++	dvb_register_media_device(dvbdev, type, minor);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL(dvb_register_device);
+@@ -278,6 +331,13 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
+ 
+ 	device_destroy(dvb_class, MKDEV(DVB_MAJOR, dvbdev->minor));
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (dvbdev->entity) {
++		media_device_unregister_entity(dvbdev->entity);
++		kfree(dvbdev->entity);
++	}
++#endif
++
+ 	list_del (&dvbdev->list_head);
+ 	kfree (dvbdev->fops);
+ 	kfree (dvbdev);
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index f96b28e7fc95..f58dfef46984 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -27,6 +27,7 @@
+ #include <linux/poll.h>
+ #include <linux/fs.h>
+ #include <linux/list.h>
++#include <media/media-device.h>
+ 
+ #define DVB_MAJOR 212
+ 
+@@ -92,6 +93,15 @@ struct dvb_device {
+ 	/* don't really need those !? -- FIXME: use video_usercopy  */
+ 	int (*kernel_ioctl)(struct file *file, unsigned int cmd, void *arg);
+ 
++	/* Needed for media controller register/unregister */
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_device *mdev;
++	const char *name;
++
++	/* Filled inside dvbdev.c */
++	struct media_entity *entity;
++#endif
++
+ 	void *priv;
+ };
+ 
+-- 
+2.1.0
 
