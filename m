@@ -1,61 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:53206 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754139AbbAVWVD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 17:21:03 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 15/15] media: blackfin: bfin_capture: set v4l2 buffer sequence
-Date: Thu, 22 Jan 2015 22:18:48 +0000
-Message-Id: <1421965128-10470-16-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from nasmtp01.atmel.com ([192.199.1.246]:45351 "EHLO
+	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750905AbbADKAL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 05:00:11 -0500
+Message-ID: <54A90F17.8020902@atmel.com>
+Date: Sun, 4 Jan 2015 17:59:51 +0800
+From: Josh Wu <josh.wu@atmel.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 0/2] V4L2: add CCF support to v4l2_clk
+References: <Pine.LNX.4.64.1501021244580.30761@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1501021244580.30761@axis700.grange>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch adds support to set the v4l2 buffer sequence.
+Hi, Guennadi
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 5 +++++
- 1 file changed, 5 insertions(+)
+On 1/2/2015 7:48 PM, Guennadi Liakhovetski wrote:
+> Hi,
+>
+> This is an attempt to implement CCF support for v4l2_clk to be able to use
+> e.g. DT-based clocks. Beware - completely untested! Josh, could you please
+> see, whether you can use this as a starting point?
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index f154f25..65c1301 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -103,6 +103,8 @@ struct bcap_device {
- 	struct completion comp;
- 	/* prepare to stop */
- 	bool stop;
-+	/* vb2 buffer sequence counter */
-+	unsigned sequence;
- };
- 
- static const struct bcap_format bcap_formats[] = {
-@@ -342,6 +344,8 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- 		goto err;
- 	}
- 
-+	bcap_dev->sequence = 0;
-+
- 	reinit_completion(&bcap_dev->comp);
- 	bcap_dev->stop = false;
- 
-@@ -412,6 +416,7 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
- 			vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
- 			ppi->err = false;
- 		} else {
-+			vb->v4l2_buf.sequence = bcap_dev->sequence++;
- 			vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
- 		}
- 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
--- 
-2.1.0
+Thanks for the patches. I will test these patches tomorrow.
+
+Best Regards,
+Josh Wu
+
+>
+> Thanks
+> Guennadi
 
