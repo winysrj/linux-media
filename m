@@ -1,92 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.gsystem.sk ([62.176.172.50]:44299 "EHLO gsystem.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753363AbbAOULA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2015 15:11:00 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 3/3] bttv: Improve TEA575x support
-Date: Thu, 15 Jan 2015 21:10:47 +0100
-Message-Id: <1421352647-10383-3-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1421352647-10383-1-git-send-email-linux@rainbow-software.org>
-References: <1421352647-10383-1-git-send-email-linux@rainbow-software.org>
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:54230 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750905AbbADMfA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 07:35:00 -0500
+Received: from smtp1-g21.free.fr (smtp1-g21.free.fr [212.27.42.1])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id 667F8CA94A2
+	for <linux-media@vger.kernel.org>; Sun,  4 Jan 2015 13:27:46 +0100 (CET)
+From: Romain Naour <romain.naour@openwide.fr>
+To: linux-media@vger.kernel.org
+Cc: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
+Subject: [PATCH 1/3] Fix generate-keynames.sh script for cross-compilation
+Date: Sun,  4 Jan 2015 13:27:35 +0100
+Message-Id: <1420374457-8633-2-git-send-email-romain.naour@openwide.fr>
+In-Reply-To: <1420374457-8633-1-git-send-email-romain.naour@openwide.fr>
+References: <1420374457-8633-1-git-send-email-romain.naour@openwide.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Improve g_tuner and add s_hw_freq_seek and enum_freq_bands support for cards
-with TEA575x radio.
+From: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
 
-This allows signal/stereo detection and HW seek to work on these cards.
+generate-keynames.sh reads /usr/include/linux to find the keyname
+symbols. However, when cross-compiling, the include path points
+somewhere else. Allow the user to pass CROSS_ROOT to point to the
+root of the cross-compilation environment.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Signed-off-by: Arnout Vandecappelle (Essensium/Mind) <arnout@mind.be>
 ---
- drivers/media/pci/bt8xx/bttv-driver.c |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ util/av7110_loadkeys/generate-keynames.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index e7f8ade..5476a7d 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -2515,6 +2515,8 @@ static int bttv_querycap(struct file *file, void  *priv,
- 		if (btv->has_saa6588)
- 			cap->device_caps |= V4L2_CAP_READWRITE |
- 						V4L2_CAP_RDS_CAPTURE;
-+		if (btv->has_tea575x)
-+			cap->device_caps |= V4L2_CAP_HW_FREQ_SEEK;
- 	}
- 	return 0;
- }
-@@ -3244,6 +3246,9 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- 	if (btv->audio_mode_gpio)
- 		btv->audio_mode_gpio(btv, t, 0);
- 
-+	if (btv->has_tea575x)
-+		return snd_tea575x_g_tuner(&btv->tea, t);
-+
- 	return 0;
- }
- 
-@@ -3261,6 +3266,30 @@ static int radio_s_tuner(struct file *file, void *priv,
- 	return 0;
- }
- 
-+static int radio_s_hw_freq_seek(struct file *file, void *priv,
-+					const struct v4l2_hw_freq_seek *a)
-+{
-+	struct bttv_fh *fh = priv;
-+	struct bttv *btv = fh->btv;
-+
-+	if (btv->has_tea575x)
-+		return snd_tea575x_s_hw_freq_seek(file, &btv->tea, a);
-+	else
-+		return -ENOTTY;
-+}
-+
-+static int radio_enum_freq_bands(struct file *file, void *priv,
-+					 struct v4l2_frequency_band *band)
-+{
-+	struct bttv_fh *fh = priv;
-+	struct bttv *btv = fh->btv;
-+
-+	if (btv->has_tea575x)
-+		return snd_tea575x_enum_freq_bands(&btv->tea, band);
-+	else
-+		return -ENOTTY;
-+}
-+
- static ssize_t radio_read(struct file *file, char __user *data,
- 			 size_t count, loff_t *ppos)
- {
-@@ -3318,6 +3347,8 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
- 	.vidioc_s_tuner         = radio_s_tuner,
- 	.vidioc_g_frequency     = bttv_g_frequency,
- 	.vidioc_s_frequency     = bttv_s_frequency,
-+	.vidioc_s_hw_freq_seek	= radio_s_hw_freq_seek,
-+	.vidioc_enum_freq_bands	= radio_enum_freq_bands,
- 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
+diff --git a/util/av7110_loadkeys/generate-keynames.sh b/util/av7110_loadkeys/generate-keynames.sh
+index 49d2b71..cb8f5c5 100644
+--- a/util/av7110_loadkeys/generate-keynames.sh
++++ b/util/av7110_loadkeys/generate-keynames.sh
+@@ -18,7 +18,7 @@ echo "};" >> $1
+ echo >> $1
+ echo >> $1
+ echo "static struct input_key_name key_name [] = {" >> $1
+-for x in $(cat /usr/include/linux/input.h input_fake.h | \
++for x in $(cat ${CROSS_ROOT}/usr/include/linux/input.h input_fake.h | \
+            egrep "#define[ \t]+KEY_" | grep -v KEY_MAX | \
+            cut -f 1 | cut -f 2 -d " " | sort -u) ; do
+     echo "        { \"$(echo $x | cut -b 5-)\", $x }," >> $1
+@@ -26,7 +26,7 @@ done
+ echo "};" >> $1
+ echo >> $1
+ echo "static struct input_key_name btn_name [] = {" >> $1
+-for x in $(cat /usr/include/linux/input.h input_fake.h | \
++for x in $(cat ${CROSS_ROOT}/usr/include/linux/input.h input_fake.h | \
+            egrep "#define[ \t]+BTN_" | \
+            cut -f 1 | cut -f 2 -d " " | sort -u) ; do
+      echo "        { \"$(echo $x | cut -b 5-)\", $x }," >> $1
 -- 
-Ondrej Zary
+1.9.3
 
