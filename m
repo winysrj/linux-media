@@ -1,50 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58268 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578AbbAVL2n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 06:28:43 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Peter Seiderer <ps.report@gmx.net>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC PATCH 1/2] [media] videodev2: Add V4L2_BUF_FLAG_LAST
-Date: Thu, 22 Jan 2015 12:28:37 +0100
-Message-Id: <1421926118-29535-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1421926118-29535-1-git-send-email-p.zabel@pengutronix.de>
-References: <1421926118-29535-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:59615 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750905AbbADMIg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 07:08:36 -0500
+Received: by mail-wi0-f172.google.com with SMTP id n3so1726798wiv.5
+        for <linux-media@vger.kernel.org>; Sun, 04 Jan 2015 04:08:35 -0800 (PST)
+MIME-Version: 1.0
+Date: Sun, 4 Jan 2015 13:08:35 +0100
+Message-ID: <CAL9G6WXsWP9L67hWTw7k864SKBH0RBS3HJTaEDiJgcpVJ-yMrA@mail.gmail.com>
+Subject: TeVii S482 driver installation
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Seiderer <ps.report@gmx.net>
+Hello,
 
-This v4l2_buffer flag can be used by drivers to mark a capture buffer
-as the last generated buffer, for example after a V4L2_DEC_CMD_STOP
-command was issued.
+I am trying to install the drivers for the TeVii S482 device, I am
+using official drivers:
 
-Signed-off-by: Peter Seiderer <ps.report@gmx.net>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- include/uapi/linux/videodev2.h | 2 ++
- 1 file changed, 2 insertions(+)
+cd /usr/src/
+wget http://www.tevii.com/Tevii_Product_20140428_media_build_b6.tar.bz2.rar
+bzip2 -dc Tevii_Product_20140428_media_build_b6.tar.bz2.rar | tar -xv
+cd b6/media_build/
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index fbdc360..c642c10 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -809,6 +809,8 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
- #define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
- #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
-+/* mem2mem encoder/decoder */
-+#define V4L2_BUF_FLAG_LAST			0x00100000
- 
- /**
-  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+When execute "make", I get this:
+
+# make
+make -C /usr/src/b6/media_build/v4l
+make[1]: Entering directory '/usr/src/b6/media_build/v4l'
+
+... [complete output: http://paste.debian.net/139122/ ]
+
+/usr/src/linux-headers-3.16.0-4-common/scripts/Makefile.build:262:
+recipe for target '/usr/src/b6/media_build/v4l/altera-lpt.o' failed
+make[5]: *** [/usr/src/b6/media_build/v4l/altera-lpt.o] Error 1
+/usr/src/linux-headers-3.16.0-4-common/Makefile:1350: recipe for
+target '_module_/usr/src/b6/media_build/v4l' failed
+make[4]: *** [_module_/usr/src/b6/media_build/v4l] Error 2
+Makefile:181: recipe for target 'sub-make' failed
+make[3]: *** [sub-make] Error 2
+Makefile:8: recipe for target 'all' failed
+make[2]: *** [all] Error 2
+make[2]: Leaving directory '/usr/src/linux-headers-3.16.0-4-amd64'
+Makefile:51: recipe for target 'default' failed
+make[1]: *** [default] Error 2
+make[1]: Leaving directory '/usr/src/b6/media_build/v4l'
+Makefile:26: recipe for target 'all' failed
+make: *** [all] Error 2
+
+I am in Debian Jessie with 3.16.0-4-amd64 kernel.
+
+I need to install or configure some software? Anyone with this device?
+
+Thanks and regards.
+
 -- 
-2.1.4
-
+Josu Lazkano
