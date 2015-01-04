@@ -1,72 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:46164 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752760AbbAGMve convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 07:51:34 -0500
-Received: by mail-la0-f41.google.com with SMTP id hv19so3228286lab.0
-        for <linux-media@vger.kernel.org>; Wed, 07 Jan 2015 04:51:32 -0800 (PST)
+Received: from eusmtp01.atmel.com ([212.144.249.242]:16713 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751753AbbADJDD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 04:03:03 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <devicetree@vger.kernel.org>, <nicolas.ferre@atmel.com>
+CC: <grant.likely@linaro.org>, <galak@codeaurora.org>,
+	<rob@landley.net>, <robh+dt@kernel.org>,
+	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
+	<linux-arm-kernel@lists.infradead.org>, <voice.shen@atmel.com>,
+	<laurent.pinchart@ideasonboard.com>,
+	<alexandre.belloni@free-electrons.com>, <plagnioj@jcrosoft.com>,
+	<boris.brezillon@free-electrons.com>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+Subject: [PATCH v2 3/8] ARM: at91: dts: sama5d3: add missing pins of isi
+Date: Sun, 4 Jan 2015 17:02:28 +0800
+Message-ID: <1420362153-500-4-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
+References: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAEmZozMwaymYObj0MQtnJrnyo0rm4DienfKec+E7N4MAsT2Lhg@mail.gmail.com>
-References: <CAEmZozMwaymYObj0MQtnJrnyo0rm4DienfKec+E7N4MAsT2Lhg@mail.gmail.com>
-From: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>
-Date: Wed, 7 Jan 2015 13:51:02 +0100
-Message-ID: <CAEmZozO+C5VpvSred3pBUC5z1aQZzXab_APTkrkDKRWR+izp+Q@mail.gmail.com>
-Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working
- since kernel 3.17
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No one is interested? I'd like to get this patch to kernel to fix the
-issue. Can someone here do it please?
+From: Bo Shen <voice.shen@atmel.com>
 
+The ISI has 12 data lines, add the missing two data lines.
 
-2014-12-20 14:36 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
-> Hi,
->
-> with kernel 3.17 remote control for Pinnacle 73e (ID 2304:0237
-> Pinnacle Systems, Inc. PCTV 73e [DiBcom DiB7000PC]) does not work
-> anymore.
->
-> I checked the changes and found out the problem in commit
-> af3a4a9bbeb00df3e42e77240b4cdac5479812f9.
->
-> In dib0700_core.c in struct dib0700_rc_response the following union:
->
-> union {
->     u16 system16;
->     struct {
->         u8 not_system;
->         u8 system;
->     };
-> };
->
-> has been replaced by simple variables:
->
-> u8 system;
-> u8 not_system;
->
-> But these variables are in reverse order! When I switch the order
-> back, the remote works fine again! Here is the patch:
->
->
-> --- a/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
-> 14:27:15.000000000 +0100
-> +++ b/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
-> 14:27:36.000000000 +0100
-> @@ -658,8 +658,8 @@
->  struct dib0700_rc_response {
->      u8 report_id;
->      u8 data_state;
-> -    u8 system;
->      u8 not_system;
-> +    u8 system;
->      u8 data;
->      u8 not_data;
->  };
->
->
-> Regards,
-> David
+Signed-off-by: Bo Shen <voice.shen@atmel.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+---
+ arch/arm/boot/dts/sama5d3.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+index 595609f..b3ac156 100644
+--- a/arch/arm/boot/dts/sama5d3.dtsi
++++ b/arch/arm/boot/dts/sama5d3.dtsi
+@@ -568,6 +568,12 @@
+ 							 AT91_PIOC 28 AT91_PERIPH_C AT91_PINCTRL_NONE>;	/* PC28 periph C ISI_PD9, conflicts with SPI1_NPCS3, PWMFI0 */
+ 					};
+ 
++					pinctrl_isi_data_10_11: isi-0-data-10-11 {
++						atmel,pins =
++							<AT91_PIOC 27 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PC27 periph C ISI_PD10, conflicts with SPI1_NPCS2, TWCK1 */
++							 AT91_PIOC 26 AT91_PERIPH_C AT91_PINCTRL_NONE>;	/* PC26 periph C ISI_PD11, conflicts with SPI1_NPCS1, TWD1 */
++					};
++
+ 					pinctrl_isi_pck_as_mck: isi_pck_as_mck-0 {
+ 						atmel,pins =
+ 							<AT91_PIOD 31 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD31 periph B ISI_MCK */
+-- 
+1.9.1
+
