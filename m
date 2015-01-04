@@ -1,47 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33739 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751969AbbAIU5j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 15:57:39 -0500
-Date: Fri, 9 Jan 2015 21:57:36 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH/RFC v10 17/19] DT: Add documentation for exynos4-is
- 'flashes' property
-Message-ID: <20150109205736.GR18076@amd>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-18-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1420816989-1808-18-git-send-email-j.anaszewski@samsung.com>
+Received: from smtp209.alice.it ([82.57.200.105]:57956 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752586AbbADPf3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Jan 2015 10:35:29 -0500
+Date: Sun, 4 Jan 2015 16:29:09 +0100
+From: Antonio Ospite <ao2@ao2.it>
+To: Joe Howse <josephhowse@nummist.com>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/1] gspca: Add high-speed modes for PS3 Eye camera
+Message-Id: <20150104162909.f29952436894222f8074862f@ao2.it>
+In-Reply-To: <1419865203-3967-1-git-send-email-josephhowse@nummist.com>
+References: <1419865203-3967-1-git-send-email-josephhowse@nummist.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 2015-01-09 16:23:07, Jacek Anaszewski wrote:
-> This patch adds a description of 'flashes' property
-> to the samsung-fimc.txt.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Pawel Moll <pawel.moll@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-> Cc: Kumar Gala <galak@codeaurora.org>
+On Mon, 29 Dec 2014 11:00:03 -0400
+Joe Howse <josephhowse@nummist.com> wrote:
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+> Add support in the PS3 Eye driver for QVGA capture at higher
+> frame rates: 187, 150, and 137 FPS. This functionality is valuable
+> because the PS3 Eye is popular for computer vision projects and no
+> other camera in its price range supports such high frame rates.
+> 
+> Correct a QVGA mode that was listed as 40 FPS. It is really 37 FPS
+> (half of 75 FPS).
+> 
+> Tests confirm that the nominal frame rates are achieved.
+> 
+> Signed-off-by: Joe Howse <josephhowse@nummist.com>
+
+Tested-by: Antonio Ospite <ao2@ao2.it>
+
+Thanks Joe.
+
+I noticed that qv4l2 displays max 60fps even though from the video I can
+perceive the higher framerate, and same happens in guvcview.
+
+gst-inspect-1.0 won't even let me set framerates higher than 75 so
+I didn't test with GStreamer.
+
+I know that the camera is also able to stream raw Bayer data which
+requires less bandwidth than the default YUYV, although the driver does
+not currently expose that; maybe some higher framerates can be achieved
+also at VGA with Bayer output.
+
+In case you wanted to explore that remember to set supported framerates
+appropriately in ov772x_framerates for the 4 combinations of formats and
+resolutions (i.e. Bayer outputs will support more framerates).
+
+Ciao,
+   Antonio
+
+> ---
+>  drivers/media/usb/gspca/ov534.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
+> index 90f0d63..a9c866d 100644
+> --- a/drivers/media/usb/gspca/ov534.c
+> +++ b/drivers/media/usb/gspca/ov534.c
+> @@ -12,6 +12,8 @@
+>   * PS3 Eye camera enhanced by Richard Kaswy http://kaswy.free.fr
+>   * PS3 Eye camera - brightness, contrast, awb, agc, aec controls
+>   *                  added by Max Thrun <bear24rw@gmail.com>
+> + * PS3 Eye camera - FPS range extended by Joseph Howse
+> + *                  <josephhowse@nummist.com> http://nummist.com
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License as published by
+> @@ -116,7 +118,7 @@ static const struct v4l2_pix_format ov767x_mode[] = {
+>  		.colorspace = V4L2_COLORSPACE_JPEG},
+>  };
+>  
+> -static const u8 qvga_rates[] = {125, 100, 75, 60, 50, 40, 30};
+> +static const u8 qvga_rates[] = {187, 150, 137, 125, 100, 75, 60, 50, 37, 30};
+>  static const u8 vga_rates[] = {60, 50, 40, 30, 15};
+>  
+>  static const struct framerates ov772x_framerates[] = {
+> @@ -769,12 +771,16 @@ static void set_frame_rate(struct gspca_dev *gspca_dev)
+>  		{15, 0x03, 0x41, 0x04},
+>  	};
+>  	static const struct rate_s rate_1[] = {	/* 320x240 */
+> +/*		{205, 0x01, 0xc1, 0x02},  * 205 FPS: video is partly corrupt */
+> +		{187, 0x01, 0x81, 0x02}, /* 187 FPS or below: video is valid */
+> +		{150, 0x01, 0xc1, 0x04},
+> +		{137, 0x02, 0xc1, 0x02},
+>  		{125, 0x02, 0x81, 0x02},
+>  		{100, 0x02, 0xc1, 0x04},
+>  		{75, 0x03, 0xc1, 0x04},
+>  		{60, 0x04, 0xc1, 0x04},
+>  		{50, 0x02, 0x41, 0x04},
+> -		{40, 0x03, 0x41, 0x04},
+> +		{37, 0x03, 0x41, 0x04},
+>  		{30, 0x04, 0x41, 0x04},
+>  	};
+>  
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
