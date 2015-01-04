@@ -1,98 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40127 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751736AbbAMLJg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 06:09:36 -0500
-Message-ID: <54B4FC9C.2050207@ti.com>
-Date: Tue, 13 Jan 2015 13:08:12 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:16906 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751129AbbADJDl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 04:03:41 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <devicetree@vger.kernel.org>, <nicolas.ferre@atmel.com>
+CC: <grant.likely@linaro.org>, <galak@codeaurora.org>,
+	<rob@landley.net>, <robh+dt@kernel.org>,
+	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
+	<linux-arm-kernel@lists.infradead.org>, <voice.shen@atmel.com>,
+	<laurent.pinchart@ideasonboard.com>,
+	<alexandre.belloni@free-electrons.com>, <plagnioj@jcrosoft.com>,
+	<boris.brezillon@free-electrons.com>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v2 5/8] ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}
+Date: Sun, 4 Jan 2015 17:02:30 +0800
+Message-ID: <1420362153-500-6-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
+References: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Grant Likely <grant.likely@linaro.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<dri-devel@lists.freedesktop.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mathieu Poirier <mathieu.poirier@linaro.org>,
-	David Airlie <airlied@linux.ie>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	<kernel@pengutronix.de>
-Subject: Re: [PATCH v7 1/3] of: Decrement refcount of previous endpoint in
- of_graph_get_next_endpoint
-References: <1419340158-20567-1-git-send-email-p.zabel@pengutronix.de> <1419340158-20567-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1419340158-20567-2-git-send-email-p.zabel@pengutronix.de>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="wnR2XfbTETJWxvR7a7bCjC4m1HjK6iUKh"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---wnR2XfbTETJWxvR7a7bCjC4m1HjK6iUKh
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+For sama5d3xmb board, the pins: pinctrl_isi_{power,reset} is used to
+power-down or reset camera sensor.
+So we should let camera sensor instead of ISI to configure the pins.
 
-On 23/12/14 15:09, Philipp Zabel wrote:
-> Decrementing the reference count of the previous endpoint node allows t=
-o
-> use the of_graph_get_next_endpoint function in a for_each_... style mac=
-ro.
-> All current users of this function that pass a non-NULL prev parameter
-> (coresight, rcar-du, imx-drm, soc_camera, and omap2-dss) are changed to=
+This patch will change pinctrl name from pinctrl_isi_{power,reset} to
+pinctrl_sensor_{power,reset}. And remove these two pinctrl from ISI's
+DT node. We will add these two pinctrl to sensor's DT node.
 
-> not decrement the passed prev argument's refcount themselves.
->=20
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Mathieu Poirier <mathieu.poirier@linaro.org>
-> ---
-> Changes since v6:
->  - Added omap2-dss.
->  - Added Mathieu's ack.
-> ---
->  drivers/coresight/of_coresight.c                  | 13 ++-----------
->  drivers/gpu/drm/imx/imx-drm-core.c                | 13 ++-----------
->  drivers/gpu/drm/rcar-du/rcar_du_kms.c             | 15 ++++-----------=
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+v1 -> v2:
+  1. only do things that mentioned in commit message.
 
->  drivers/media/platform/soc_camera/soc_camera.c    |  3 ++-
->  drivers/of/base.c                                 |  9 +--------
->  drivers/video/fbdev/omap2/dss/omapdss-boot-init.c |  7 +------
->  6 files changed, 12 insertions(+), 48 deletions(-)
->=20
+ arch/arm/boot/dts/sama5d3xmb.dtsi | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-For omapdss:
+diff --git a/arch/arm/boot/dts/sama5d3xmb.dtsi b/arch/arm/boot/dts/sama5d3xmb.dtsi
+index 6af1cba..db47f8b 100644
+--- a/arch/arm/boot/dts/sama5d3xmb.dtsi
++++ b/arch/arm/boot/dts/sama5d3xmb.dtsi
+@@ -61,7 +61,7 @@
+ 
+ 			isi: isi@f0034000 {
+ 				pinctrl-names = "default";
+-				pinctrl-0 = <&pinctrl_isi_data_0_7 &pinctrl_isi_pck_as_mck &pinctrl_isi_power &pinctrl_isi_reset>;
++				pinctrl-0 = <&pinctrl_isi_data_0_7 &pinctrl_isi_pck_as_mck>;
+ 			};
+ 
+ 			mmc1: mmc@f8000000 {
+@@ -122,12 +122,12 @@
+ 							<AT91_PIOD 31 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD31 periph B ISI_MCK */
+ 					};
+ 
+-					pinctrl_isi_reset: isi_reset-0 {
++					pinctrl_sensor_reset: sensor_reset-0 {
+ 						atmel,pins =
+ 							<AT91_PIOE 24 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;   /* PE24 gpio */
+ 					};
+ 
+-					pinctrl_isi_power: isi_power-0 {
++					pinctrl_sensor_power: sensor_power-0 {
+ 						atmel,pins =
+ 							<AT91_PIOE 29 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>; /* PE29 gpio */
+ 					};
+-- 
+1.9.1
 
-Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-
- Tomi
-
-
-
---wnR2XfbTETJWxvR7a7bCjC4m1HjK6iUKh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUtPycAAoJEPo9qoy8lh71exQQAKqNGfJfjw4sIvbukVuTUPFd
-pCQXUm9CR90RlszlrkdD3VVUGYaxEbbRMHprEDfzxe+hxZbkP63gABo0kGVQhN3F
-TAITYLsCGqU5kNivacUBIGuNLAHwjbkjFySf2NuhCPJ82FttqWB9WDBj42EUlbL9
-+pGAKyIm7MweTWHo6IhyEdZbBvmrfwD/j6NENo7dIP1uunrPR+3L/g8VzTzvlf6V
-geHqFbbTKBD2A23BjPgykqLkuEblLaxkS5qRHnX9MIfSDCWK1cO29UyiOnvqwXnN
-nTm9lvsq+RtR0xTmYPVw3P9R1coXPe1fRNgTErb5apI5DB9kdPyWVzSy7D6H5YYr
-QOUohxV2P4EMi29rsj5IKMtSQFR+TVquz13qrPstYbpW2XpcujAGmbOS5bgI+ruh
-9Mfw+8KRym/xP8LTVjdFwiKlnmGaZdzzIQsqm8oINE+Q4SW4o4eaEjj9URa5UQle
-o1JvK9QQTuMwQR/aV8to11GLXyNhx4cNbUW0JyyHG4z/4S8xNUYrVgKfGSLHkrEm
-Nnl64TQRKnk3a84qGLbcEMR1pZ4zSzEjSSDSz6lfLR8lxFmRTRAkpPQ6z80Xzdnj
-pJbxqfDQZRv9bloFjZtLLMnYErEWGX623787tmotD0yeswUk57K8kccBk9ULyrC6
-qXQFulsuc9dX6Ao/rbY8
-=cGFR
------END PGP SIGNATURE-----
-
---wnR2XfbTETJWxvR7a7bCjC4m1HjK6iUKh--
