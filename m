@@ -1,83 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:61999 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751364AbbANTXp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2015 14:23:45 -0500
-Received: by mail-wi0-f172.google.com with SMTP id n3so30387915wiv.5
-        for <linux-media@vger.kernel.org>; Wed, 14 Jan 2015 11:23:44 -0800 (PST)
+Received: from nasmtp01.atmel.com ([192.199.1.246]:27796 "EHLO
+	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750919AbbADJBU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 04:01:20 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <devicetree@vger.kernel.org>, <nicolas.ferre@atmel.com>
+CC: <grant.likely@linaro.org>, <galak@codeaurora.org>,
+	<rob@landley.net>, <robh+dt@kernel.org>,
+	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
+	<linux-arm-kernel@lists.infradead.org>, <voice.shen@atmel.com>,
+	<laurent.pinchart@ideasonboard.com>,
+	<alexandre.belloni@free-electrons.com>, <plagnioj@jcrosoft.com>,
+	<boris.brezillon@free-electrons.com>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v2 0/8] ARM: at91: dts: sama5d3: add dt support for atmel isi and ov2640 sensor
+Date: Sun, 4 Jan 2015 17:02:25 +0800
+Message-ID: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAEt6MXkDPcZ47gnH9FFmYGkw1-ZFt8JAN1qKsBGBKXLTdQauzw@mail.gmail.com>
-References: <CAPx3zdRnHcQOasSjnYZkuE+Hk-L6PVaPVAzBbCMnGdM3ZysxFw@mail.gmail.com>
-	<CAEt6MX=f-kkemgmAUNsEdZQzH2tRgtPDacbCn4hwH27uY-upDA@mail.gmail.com>
-	<CAPx3zdSLb8gzcGTUcWrktc9icJBCCJ0FbPecxeUJRot3ztHwSA@mail.gmail.com>
-	<CAEt6MX=rmPAb798TysHDWHAQxpVxzKiaDNv4P9ZtUNPz2YEwpA@mail.gmail.com>
-	<CAPx3zdQK+wM1YHfzWfvzQ9ZgWgQb4WEY+6AW=cSb_YOwAKKr4Q@mail.gmail.com>
-	<CAEt6MXkDPcZ47gnH9FFmYGkw1-ZFt8JAN1qKsBGBKXLTdQauzw@mail.gmail.com>
-Date: Wed, 14 Jan 2015 20:23:44 +0100
-Message-ID: <CAPx3zdT+mCujtCvJSKO=npFDKGaFcyhqSrg0jTuUY9cgafBKVQ@mail.gmail.com>
-Subject: Re: Driver/module in kernel fault. Anyone expert to help me? Siano ID 187f:0600
-From: Francesco Other <francesco.other@gmail.com>
-To: =?UTF-8?Q?Roberto_Alc=C3=A2ntara?= <roberto@eletronica.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Roberto,
+This patch series add ISI and ov2640 support on dts files.
 
-It doesn't record anything, the file is blank (0 bytes) :-(
+As the ov2640 driver dt is still in review. The patch is in: https://patchwork.linuxtv.org/patch/27554/
+So I want to send this dt patch early for a review.
 
-$ dd if=/dev/dvb/adapter0/dvr0 of=test.ts
+v1 -> v2:
+  1. add one more patch to change the pin name of ISI_MCK
+  2. rewrite the commit [4/8] ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}.
+  3. move the common chip parts of ISI node to sama5d3.dtsi.
 
-0+0 records in
-0+0 records out
-0 bytes (0 B) copied, 13,4642 s, 0,0 kB/s
+Bo Shen (3):
+  ARM: at91: dts: sama5d3: split isi pinctrl
+  ARM: at91: dts: sama5d3: add missing pins of isi
+  ARM: at91: dts: sama5d3: move the isi mck pin to mb
 
-Francesco
+Josh Wu (5):
+  ARM: at91: dts: sama5d3: add isi clock
+  ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}
+  ARM: at91: dts: sama5d3: change name of pinctrl of ISI_MCK
+  ARM: at91: dts: sama5d3: add ov2640 camera sensor support
+  ARM: at91: sama5: enable atmel-isi and ov2640 in defconfig
 
+ arch/arm/boot/dts/sama5d3.dtsi    | 24 ++++++++++++++++++-----
+ arch/arm/boot/dts/sama5d3xmb.dtsi | 40 +++++++++++++++++++++++++++++++++++----
+ arch/arm/configs/sama5_defconfig  |  6 ++++++
+ 3 files changed, 61 insertions(+), 9 deletions(-)
 
-2015-01-14 16:58 GMT+01:00 Roberto Alcântara <roberto@eletronica.org>:
-> Francesco,
->
-> Seems very strange not work once you have lock (1f) and ber 0. not a
-> real problem signal report.
->
-> After tzap -r open another console and:
->
-> dd if=/dev/dvb/adapter0/dvr0 of=test.ts
->
-> Wait 10 seconds and stop it. Please check file size (try to open on
-> vlc too if big enough...).
->
-> Cheers,
->  - Roberto
->
-> On Tue, Jan 13, 2015 at 6:56 PM, Francesco Other
-> <francesco.other@gmail.com> wrote:
->>
->>
->> So, this is the output for tzap with the NOT-working-device:
->>
->> $ tzap -r -c ~/.tzap/channels.conf Italia1
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> reading channels from file '/home/ionic/.tzap/channels.conf'
->> Version: 5.10   FE_CAN { DVB-T }
->> tuning to 698000000 Hz
->> video pid 0x0654, audio pid 0x0655
->> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 0000 | snr 010e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 0000 | snr 010e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->
->
->
->
->  - Roberto
+-- 
+1.9.1
+
