@@ -1,62 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:53891 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751591AbbA2U5w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 15:57:52 -0500
-Date: Thu, 29 Jan 2015 21:57:45 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-cc: William Towle <william.towle@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 5/8] media: rcar_vin: Add RGB888_1X24 input format support
-In-Reply-To: <54CA99D9.4020901@cogentembedded.com>
-Message-ID: <Pine.LNX.4.64.1501292146310.7281@axis700.grange>
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
- <1422548388-28861-6-git-send-email-william.towle@codethink.co.uk>
- <54CA6869.9060100@cogentembedded.com> <Pine.LNX.4.64.1501291915100.30602@axis700.grange>
- <54CA7BBF.6070607@cogentembedded.com> <Pine.LNX.4.64.1501292118020.7281@axis700.grange>
- <54CA99D9.4020901@cogentembedded.com>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:16654 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750921AbbADJCm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 04:02:42 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: <devicetree@vger.kernel.org>, <nicolas.ferre@atmel.com>
+CC: <grant.likely@linaro.org>, <galak@codeaurora.org>,
+	<rob@landley.net>, <robh+dt@kernel.org>,
+	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
+	<linux-arm-kernel@lists.infradead.org>, <voice.shen@atmel.com>,
+	<laurent.pinchart@ideasonboard.com>,
+	<alexandre.belloni@free-electrons.com>, <plagnioj@jcrosoft.com>,
+	<boris.brezillon@free-electrons.com>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v2 2/8] ARM: at91: dts: sama5d3: split isi pinctrl
+Date: Sun, 4 Jan 2015 17:02:27 +0800
+Message-ID: <1420362153-500-3-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
+References: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 29 Jan 2015, Sergei Shtylyov wrote:
+From: Bo Shen <voice.shen@atmel.com>
 
-> On 01/29/2015 11:19 PM, Guennadi Liakhovetski wrote:
-> 
-> > > > > > This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
-> > > > > > which is used by the ADV7612 chip.
-> 
-> > > > > > Signed-off-by: Valentine Barshak
-> > > > > > <valentine.barshak@cogentembedded.com>
-> 
-> > > > >      I wonder why it hasn't been merged still? It's pending since
-> > > > > 2013, and
-> > > > > I'm
-> > > > > seeing no objections to it...
-> 
-> > > > Indeed, strange. I'm saving it for me to look at it for the next
-> > > > merge...
-> > > > and I'll double-check that series. Maybe the series had some objections,
-> 
-> > >     Indeed, I'm now seeing the patch #1 was objected to. Patch #2 has been
-> > > merged somewhat later.
-> 
-> > Right, and since this RGB888 format support was needed for the ADV761X
-> > driver from patch #1, this patch wasn't merged either. Do you need it now
-> > for something different?
-> 
->    No, the same ADV7612 chip, just the different driver this time, it seems.
+As the ISI has 12 data lines, however we only use 8 data lines with
+sensor module. So, split the data line into two groups which make
+it can be choosed depends on the hardware design.
 
-Right, I see now. [OT] The problem is - this is not the first time this is 
-happening - I didn't get that thread in my INBOX, only in the mailing list 
-folder. I subscribe the mailing list from a different email address, than 
-the one I'm CC'ed at. So, I anyway should be getting 2 copies of all these 
-mails. I received 2 copies of Sergei's mails, but the rest only once... 
-Not in spam, not in logs - they just disappear. A day or two ago another 
-similar thread also missed my INBOX... Investigating...
+Signed-off-by: Bo Shen <voice.shen@atmel.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+ arch/arm/boot/dts/sama5d3.dtsi    | 11 ++++++++---
+ arch/arm/boot/dts/sama5d3xmb.dtsi |  2 +-
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-Thanks
-Guennadi
+diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+index 61746ef..595609f 100644
+--- a/arch/arm/boot/dts/sama5d3.dtsi
++++ b/arch/arm/boot/dts/sama5d3.dtsi
+@@ -547,7 +547,7 @@
+ 				};
+ 
+ 				isi {
+-					pinctrl_isi: isi-0 {
++					pinctrl_isi_data_0_7: isi-0-data-0-7 {
+ 						atmel,pins =
+ 							<AT91_PIOA 16 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PA16 periph C ISI_D0, conflicts with LCDDAT16 */
+ 							 AT91_PIOA 17 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PA17 periph C ISI_D1, conflicts with LCDDAT17 */
+@@ -559,10 +559,15 @@
+ 							 AT91_PIOA 23 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PA23 periph C ISI_D7, conflicts with LCDDAT23, PWML1 */
+ 							 AT91_PIOC 30 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PC30 periph C ISI_PCK, conflicts with UTXD0 */
+ 							 AT91_PIOA 31 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PA31 periph C ISI_HSYNC, conflicts with TWCK0, UTXD1 */
+-							 AT91_PIOA 30 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PA30 periph C ISI_VSYNC, conflicts with TWD0, URXD1 */
+-							 AT91_PIOC 29 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PC29 periph C ISI_PD8, conflicts with URXD0, PWMFI2 */
++							 AT91_PIOA 30 AT91_PERIPH_C AT91_PINCTRL_NONE>;	/* PA30 periph C ISI_VSYNC, conflicts with TWD0, URXD1 */
++					};
++
++					pinctrl_isi_data_8_9: isi-0-data-8-9 {
++						atmel,pins =
++							<AT91_PIOC 29 AT91_PERIPH_C AT91_PINCTRL_NONE	/* PC29 periph C ISI_PD8, conflicts with URXD0, PWMFI2 */
+ 							 AT91_PIOC 28 AT91_PERIPH_C AT91_PINCTRL_NONE>;	/* PC28 periph C ISI_PD9, conflicts with SPI1_NPCS3, PWMFI0 */
+ 					};
++
+ 					pinctrl_isi_pck_as_mck: isi_pck_as_mck-0 {
+ 						atmel,pins =
+ 							<AT91_PIOD 31 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* PD31 periph B ISI_MCK */
+diff --git a/arch/arm/boot/dts/sama5d3xmb.dtsi b/arch/arm/boot/dts/sama5d3xmb.dtsi
+index 49c10d3..2530541 100644
+--- a/arch/arm/boot/dts/sama5d3xmb.dtsi
++++ b/arch/arm/boot/dts/sama5d3xmb.dtsi
+@@ -61,7 +61,7 @@
+ 
+ 			isi: isi@f0034000 {
+ 				pinctrl-names = "default";
+-				pinctrl-0 = <&pinctrl_isi &pinctrl_isi_pck_as_mck &pinctrl_isi_power &pinctrl_isi_reset>;
++				pinctrl-0 = <&pinctrl_isi_data_0_7 &pinctrl_isi_pck_as_mck &pinctrl_isi_power &pinctrl_isi_reset>;
+ 			};
+ 
+ 			mmc1: mmc@f8000000 {
+-- 
+1.9.1
+
