@@ -1,89 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42472 "EHLO mail.kapsi.fi"
+Received: from mga02.intel.com ([134.134.136.20]:2067 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750976AbbAMQ50 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 11:57:26 -0500
-Message-ID: <54B54E74.5010908@iki.fi>
-Date: Tue, 13 Jan 2015 18:57:24 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1751236AbbADAjk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Jan 2015 19:39:40 -0500
+Message-ID: <54A88BB5.1030103@linux.intel.com>
+Date: Sun, 04 Jan 2015 02:39:17 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] mn88472: simplify bandwidth registers setting code
-References: <1420246244-6031-1-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1420246244-6031-1-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH 1/7] tuner-core: properly initialize media controller subdev
+References: <cover.1420315245.git.mchehab@osg.samsung.com> <4ff2de5fce002a6f6f87993440f45e0f198c57cb.1420315245.git.mchehab@osg.samsung.com>
+In-Reply-To: <4ff2de5fce002a6f6f87993440f45e0f198c57cb.1420315245.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/03/2015 02:50 AM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+Hi Mauro,
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-
-regards
-Antti
-
-> ---
->   drivers/staging/media/mn88472/mn88472.c | 41 +++++++++++----------------------
->   1 file changed, 14 insertions(+), 27 deletions(-)
+Mauro Carvalho Chehab wrote:
+> Properly initialize tuner core subdev at the media controller.
 >
-> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-> index 33604dc..ee933c3 100644
-> --- a/drivers/staging/media/mn88472/mn88472.c
-> +++ b/drivers/staging/media/mn88472/mn88472.c
-> @@ -58,35 +58,22 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
->   		goto err;
+> That requires a new subtype at the media controller API.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> index 559f8372e2eb..114715ed0110 100644
+> --- a/drivers/media/v4l2-core/tuner-core.c
+> +++ b/drivers/media/v4l2-core/tuner-core.c
+> @@ -134,6 +134,9 @@ struct tuner {
+>   	unsigned int        type; /* chip type id */
+>   	void                *config;
+>   	const char          *name;
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	struct media_pad	pad;
+> +#endif
+>   };
+>
+>   /*
+> @@ -434,6 +437,8 @@ static void set_type(struct i2c_client *c, unsigned int type,
+>   		t->name = analog_ops->info.name;
 >   	}
 >
-> -	switch (c->delivery_system) {
-> -	case SYS_DVBT:
-> -	case SYS_DVBT2:
-> -		if (c->bandwidth_hz <= 5000000) {
-> -			memcpy(bw_val, "\xe5\x99\x9a\x1b\xa9\x1b\xa9", 7);
-> -			bw_val2 = 0x03;
-> -		} else if (c->bandwidth_hz <= 6000000) {
-> -			/* IF 3570000 Hz, BW 6000000 Hz */
-> -			memcpy(bw_val, "\xbf\x55\x55\x15\x6b\x15\x6b", 7);
-> -			bw_val2 = 0x02;
-> -		} else if (c->bandwidth_hz <= 7000000) {
-> -			/* IF 4570000 Hz, BW 7000000 Hz */
-> -			memcpy(bw_val, "\xa4\x00\x00\x0f\x2c\x0f\x2c", 7);
-> -			bw_val2 = 0x01;
-> -		} else if (c->bandwidth_hz <= 8000000) {
-> -			/* IF 4570000 Hz, BW 8000000 Hz */
-> -			memcpy(bw_val, "\x8f\x80\x00\x08\xee\x08\xee", 7);
-> -			bw_val2 = 0x00;
-> -		} else {
-> -			ret = -EINVAL;
-> -			goto err;
-> -		}
-> -		break;
-> -	case SYS_DVBC_ANNEX_A:
-> -		/* IF 5070000 Hz, BW 8000000 Hz */
-> +	if (c->bandwidth_hz <= 5000000) {
-> +		memcpy(bw_val, "\xe5\x99\x9a\x1b\xa9\x1b\xa9", 7);
-> +		bw_val2 = 0x03;
-> +	} else if (c->bandwidth_hz <= 6000000) {
-> +		/* IF 3570000 Hz, BW 6000000 Hz */
-> +		memcpy(bw_val, "\xbf\x55\x55\x15\x6b\x15\x6b", 7);
-> +		bw_val2 = 0x02;
-> +	} else if (c->bandwidth_hz <= 7000000) {
-> +		/* IF 4570000 Hz, BW 7000000 Hz */
-> +		memcpy(bw_val, "\xa4\x00\x00\x0f\x2c\x0f\x2c", 7);
-> +		bw_val2 = 0x01;
-> +	} else if (c->bandwidth_hz <= 8000000) {
-> +		/* IF 4570000 Hz, BW 8000000 Hz */
->   		memcpy(bw_val, "\x8f\x80\x00\x08\xee\x08\xee", 7);
->   		bw_val2 = 0x00;
-> -		break;
-> -	default:
-> +	} else {
->   		ret = -EINVAL;
->   		goto err;
->   	}
+> +	t->sd.entity.name = t->name;
+> +
+>   	tuner_dbg("type set to %s\n", t->name);
+>
+>   	t->mode_mask = new_mode_mask;
+> @@ -592,6 +597,7 @@ static int tuner_probe(struct i2c_client *client,
+>   	struct tuner *t;
+>   	struct tuner *radio;
+>   	struct tuner *tv;
+> +	int ret;
+
+This will emit a compiler warning if CONFIG_MEDIA_CONTROLLER isn't defined.
+
+>   	t = kzalloc(sizeof(struct tuner), GFP_KERNEL);
+>   	if (NULL == t)
+> @@ -696,6 +702,15 @@ register_client:
+>   		   t->type,
+>   		   t->mode_mask & T_RADIO ? " Radio" : "",
+>   		   t->mode_mask & T_ANALOG_TV ? " TV" : "");
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	t->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
+> +	t->sd.entity.name = t->name;
+> +
+> +	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
+> +	if (ret < 0)
+> +		tuner_err("failed to initialize media entity!\n");
+
+I might return the error back to the caller. The failing initialisation 
+of a media entity itself might not be a fatal problem, but someone later 
+assuming it has been initialised might be.
+
+> +#endif
+>   	return 0;
+>   }
+>
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 707db275f92b..5ffde035789b 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -66,6 +66,8 @@ struct media_device_info {
+>   /* A converter of analogue video to its digital representation. */
+>   #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
+>
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
+> +
+>   #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
+>
+>   struct media_entity_desc {
 >
 
 -- 
-http://palosaari.fi/
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
