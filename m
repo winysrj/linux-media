@@ -1,78 +1,417 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56125 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751394AbbACUJv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jan 2015 15:09:51 -0500
+Received: from lists.s-osg.org ([54.187.51.154]:42747 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753951AbbAESgl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jan 2015 13:36:41 -0500
+Date: Mon, 5 Jan 2015 16:36:21 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, Olli Salonen <olli.salonen@iki.fi>,
+	James Harper <james.harper@ejbdigital.com.au>,
+	Nibble Max <nibble.max@gmail.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/7] cx231xx: initialize video/vbi pads
-Date: Sat,  3 Jan 2015 18:09:35 -0200
-Message-Id: <726621bec9cc34ca2bad01f7200e372aa3396062.1420315245.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420315245.git.mchehab@osg.samsung.com>
-References: <cover.1420315245.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420315245.git.mchehab@osg.samsung.com>
-References: <cover.1420315245.git.mchehab@osg.samsung.com>
+	Matthias Schwarzott <zzam@gentoo.org>
+Subject: Re: [PATCH 2/5] mb86a20s: convert it to I2C binding model
+Message-ID: <20150105163621.17393544@concha.lan>
+In-Reply-To: <E1Y6nKe-0002Tz-1q@mail.kapsi.fi>
+References: <E1Y6nKe-0002Tz-1q@mail.kapsi.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both video and vbi are sink pads. Initialize them as such.
+Em Thu, 01 Jan 2015 21:30:36 +0000
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> I am on holiday trip now. But generally speaking I would like to separate all drivers from the interfaces. That means for example I2C tuner driver is just a I2C driver and nothing more - no relations to DVB nor V4L API.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index ecea76fe07f6..f3d1a488dfa7 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -2121,7 +2121,12 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
- 		dev_err(dev->dev, "cannot allocate video_device.\n");
- 		return -ENODEV;
- 	}
--
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_init(&dev->vdev->entity, 1, &dev->video_pad, 0);
-+	if (ret < 0)
-+		dev_err(dev->dev, "failed to initialize video media entity!\n");
-+#endif
- 	dev->vdev->ctrl_handler = &dev->ctrl_handler;
- 	/* register v4l2 video video_device */
- 	ret = video_register_device(dev->vdev, VFL_TYPE_GRABBER,
-@@ -2147,6 +2152,12 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
- 		dev_err(dev->dev, "cannot allocate video_device.\n");
- 		return -ENODEV;
- 	}
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_init(&dev->vbi_dev->entity, 1, &dev->vbi_pad, 0);
-+	if (ret < 0)
-+		dev_err(dev->dev, "failed to initialize vbi media entity!\n");
-+#endif
- 	dev->vbi_dev->ctrl_handler = &dev->ctrl_handler;
- 	/* register v4l2 vbi video_device */
- 	ret = video_register_device(dev->vbi_dev, VFL_TYPE_VBI,
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index af9d6c4041dc..e0d3106f6b44 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -660,6 +660,7 @@ struct cx231xx {
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	struct media_device *media_dev;
-+	struct media_pad video_pad, vbi_pad;
- #endif
- 
- 	unsigned char eedata[256];
+That would never work, as the tuner driver needs to include the DVB
+and v4l headers, in order to implement the proper ops and to recognize
+the cache struct, etc.
+
+> That is something I said many times earlier too, but for my taste
+> drivers should be agnostics to APIs.
+
+The big issue right now is that each patch converting to the new I2C
+model adds extra complexity to the drivers, as it doesn't use any
+helper function to do the binding, but just replicate several lines
+of code everywhere, as I already pointed.
+
+I agree with the concept that whatever solution done should be agnostic
+if the caller module is V4L, DVB or some other driver, but we need some
+helper functions somewhere to do the bindings, in a way that we can easily
+convert all drivers to it, via some scripts.
+
+It is a nightmare right now, as each driver does something that can be
+different than the others.
+
+Regards,
+Mauro
+
+> Antti
+> On 1 Jan 2015 15:51, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> >
+> > Instead of using I2C raw API, use the standard I2C binding API, 
+> > with the DVB core support for it. 
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com> 
+> >
+> > diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c 
+> > index 8f54c39ca63f..8dd608be1edd 100644 
+> > --- a/drivers/media/dvb-frontends/mb86a20s.c 
+> > +++ b/drivers/media/dvb-frontends/mb86a20s.c 
+> > @@ -18,6 +18,7 @@ 
+> > #include <asm/div64.h> 
+> >
+> > #include "dvb_frontend.h" 
+> > +#include "dvb_i2c.h" 
+> > #include "mb86a20s.h" 
+> >
+> > #define NUM_LAYERS 3 
+> > @@ -35,12 +36,10 @@ static u8 mb86a20s_subchannel[] = { 
+> > }; 
+> >
+> > struct mb86a20s_state { 
+> > - struct i2c_adapter *i2c; 
+> > + struct i2c_client *i2c; 
+> > const struct mb86a20s_config *config; 
+> > u32 last_frequency; 
+> >
+> > - struct dvb_frontend frontend; 
+> > - 
+> > u32 if_freq; 
+> > enum mb86a20s_bandwidth bw; 
+> > bool inversion; 
+> > @@ -234,7 +233,7 @@ static int mb86a20s_i2c_writereg(struct mb86a20s_state *state, 
+> > }; 
+> > int rc; 
+> >
+> > - rc = i2c_transfer(state->i2c, &msg, 1); 
+> > + rc = i2c_transfer(state->i2c->adapter, &msg, 1); 
+> > if (rc != 1) { 
+> > dev_err(&state->i2c->dev, 
+> > "%s: writereg error (rc == %i, reg == 0x%02x, data == 0x%02x)\n", 
+> > @@ -269,7 +268,7 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state, 
+> > { .addr = i2c_addr, .flags = I2C_M_RD, .buf = &val, .len = 1 } 
+> > }; 
+> >
+> > - rc = i2c_transfer(state->i2c, msg, 2); 
+> > + rc = i2c_transfer(state->i2c->adapter, msg, 2); 
+> >
+> > if (rc != 2) { 
+> > dev_err(&state->i2c->dev, "%s: reg=0x%x (error=%d)\n", 
+> > @@ -281,11 +280,11 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state, 
+> > } 
+> >
+> > #define mb86a20s_readreg(state, reg) \ 
+> > - mb86a20s_i2c_readreg(state, state->config->demod_address, reg) 
+> > + mb86a20s_i2c_readreg(state, state->i2c->addr, reg) 
+> > #define mb86a20s_writereg(state, reg, val) \ 
+> > - mb86a20s_i2c_writereg(state, state->config->demod_address, reg, val) 
+> > + mb86a20s_i2c_writereg(state, state->i2c->addr, reg, val) 
+> > #define mb86a20s_writeregdata(state, regdata) \ 
+> > - mb86a20s_i2c_writeregdata(state, state->config->demod_address, \ 
+> > + mb86a20s_i2c_writeregdata(state, state->i2c->addr, \ 
+> > regdata, ARRAY_SIZE(regdata)) 
+> >
+> > /* 
+> > @@ -2058,41 +2057,34 @@ static int mb86a20s_tune(struct dvb_frontend *fe, 
+> > return rc; 
+> > } 
+> >
+> > -static void mb86a20s_release(struct dvb_frontend *fe) 
+> > +static int mb86a20s_remove(struct i2c_client *i2c) 
+> > { 
+> > - struct mb86a20s_state *state = fe->demodulator_priv; 
+> > + dev_dbg(&i2c->dev, "%s called.\n", __func__); 
+> >
+> > - dev_dbg(&state->i2c->dev, "%s called.\n", __func__); 
+> > - 
+> > - kfree(state); 
+> > + return 0; 
+> > } 
+> >
+> > static struct dvb_frontend_ops mb86a20s_ops; 
+> >
+> > -struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config, 
+> > -     struct i2c_adapter *i2c) 
+> > +static int mb86a20s_probe(struct i2c_client *i2c, 
+> > +   const struct i2c_device_id *id) 
+> > { 
+> > + struct dvb_frontend *fe; 
+> > struct mb86a20s_state *state; 
+> > u8 rev; 
+> >
+> > dev_dbg(&i2c->dev, "%s called.\n", __func__); 
+> >
+> > - /* allocate memory for the internal state */ 
+> > - state = kzalloc(sizeof(struct mb86a20s_state), GFP_KERNEL); 
+> > - if (state == NULL) { 
+> > - dev_err(&i2c->dev, 
+> > - "%s: unable to allocate memory for state\n", __func__); 
+> > - goto error; 
+> > - } 
+> > + fe = i2c_get_clientdata(i2c); 
+> > + state = fe->demodulator_priv; 
+> >
+> > /* setup the state */ 
+> > - state->config = config; 
+> > + memcpy(&state->config, i2c->dev.platform_data, sizeof(state->config)); 
+> > state->i2c = i2c; 
+> >
+> > /* create dvb_frontend */ 
+> > - memcpy(&state->frontend.ops, &mb86a20s_ops, 
+> > + memcpy(&fe->ops, &mb86a20s_ops, 
+> > sizeof(struct dvb_frontend_ops)); 
+> > - state->frontend.demodulator_priv = state; 
+> >
+> > /* Check if it is a mb86a20s frontend */ 
+> > rev = mb86a20s_readreg(state, 0); 
+> > @@ -2104,16 +2096,11 @@ struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config, 
+> > dev_dbg(&i2c->dev, 
+> > "Frontend revision %d is unknown - aborting.\n", 
+> >        rev); 
+> > - goto error; 
+> > + return -ENODEV; 
+> > } 
+> >
+> > - return &state->frontend; 
+> > - 
+> > -error: 
+> > - kfree(state); 
+> > - return NULL; 
+> > + return 0; 
+> > } 
+> > -EXPORT_SYMBOL(mb86a20s_attach); 
+> >
+> > static struct dvb_frontend_ops mb86a20s_ops = { 
+> > .delsys = { SYS_ISDBT }, 
+> > @@ -2132,8 +2119,6 @@ static struct dvb_frontend_ops mb86a20s_ops = { 
+> > .frequency_stepsize = 62500, 
+> > }, 
+> >
+> > - .release = mb86a20s_release, 
+> > - 
+> > .init = mb86a20s_initfe, 
+> > .set_frontend = mb86a20s_set_frontend, 
+> > .get_frontend = mb86a20s_get_frontend_dummy, 
+> > @@ -2142,6 +2127,21 @@ static struct dvb_frontend_ops mb86a20s_ops = { 
+> > .tune = mb86a20s_tune, 
+> > }; 
+> >
+> > +static const struct i2c_device_id mb86a20s_id[] = { 
+> > + { "mb86a20s", 0 }, 
+> > + {} 
+> > +}; 
+> > + 
+> > +static const struct dvb_i2c_module_param mb86a20s_param = { 
+> > + .ops.fe_ops = NULL, 
+> > + .priv_probe = mb86a20s_probe, 
+> > + .priv_remove = mb86a20s_remove, 
+> > + .priv_size = sizeof(struct mb86a20s_state), 
+> > + .is_tuner = false, 
+> > +}; 
+> > + 
+> > +DEFINE_DVB_I2C_MODULE(mb86a20s, mb86a20s_id, mb86a20s_param); 
+> > + 
+> > MODULE_DESCRIPTION("DVB Frontend module for Fujitsu mb86A20s hardware"); 
+> > MODULE_AUTHOR("Mauro Carvalho Chehab"); 
+> > MODULE_LICENSE("GPL"); 
+> > diff --git a/drivers/media/dvb-frontends/mb86a20s.h b/drivers/media/dvb-frontends/mb86a20s.h 
+> > index cbeb941fba7c..18743c32209c 100644 
+> > --- a/drivers/media/dvb-frontends/mb86a20s.h 
+> > +++ b/drivers/media/dvb-frontends/mb86a20s.h 
+> > @@ -34,23 +34,4 @@ struct mb86a20s_config { 
+> > bool is_serial; 
+> > }; 
+> >
+> > -#if IS_ENABLED(CONFIG_DVB_MB86A20S) 
+> > -extern struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config, 
+> > -    struct i2c_adapter *i2c); 
+> > -extern struct i2c_adapter *mb86a20s_get_tuner_i2c_adapter(struct dvb_frontend *); 
+> > -#else 
+> > -static inline struct dvb_frontend *mb86a20s_attach( 
+> > - const struct mb86a20s_config *config, struct i2c_adapter *i2c) 
+> > -{ 
+> > - printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__); 
+> > - return NULL; 
+> > -} 
+> > -static struct i2c_adapter * 
+> > - mb86a20s_get_tuner_i2c_adapter(struct dvb_frontend *fe) 
+> > -{ 
+> > - printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__); 
+> > - return NULL; 
+> > -} 
+> > -#endif 
+> > - 
+> > #endif /* MB86A20S */ 
+> > diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c 
+> > index c47d18270cfc..fc23b7ad194f 100644 
+> > --- a/drivers/media/pci/cx23885/cx23885-dvb.c 
+> > +++ b/drivers/media/pci/cx23885/cx23885-dvb.c 
+> > @@ -26,6 +26,7 @@ 
+> > #include "cx23885.h" 
+> > #include <media/v4l2-common.h> 
+> >
+> > +#include "dvb_i2c.h" 
+> > #include "dvb_ca_en50221.h" 
+> > #include "s5h1409.h" 
+> > #include "s5h1411.h" 
+> > @@ -542,7 +543,10 @@ static struct xc5000_config mygica_x8506_xc5000_config = { 
+> > }; 
+> >
+> > static struct mb86a20s_config mygica_x8507_mb86a20s_config = { 
+> > - .demod_address = 0x10, 
+> > +}; 
+> > + 
+> > +static const struct i2c_board_info mb86a20s_board_info = { 
+> > + I2C_BOARD_INFO("mb86a20s", 0x10) 
+> > }; 
+> >
+> > static struct xc5000_config mygica_x8507_xc5000_config = { 
+> > @@ -1503,9 +1507,10 @@ static int dvb_register(struct cx23885_tsport *port) 
+> > case CX23885_BOARD_MYGICA_X8507: 
+> > i2c_bus = &dev->i2c_bus[0]; 
+> > i2c_bus2 = &dev->i2c_bus[1]; 
+> > - fe0->dvb.frontend = dvb_attach(mb86a20s_attach, 
+> > - &mygica_x8507_mb86a20s_config, 
+> > - &i2c_bus->i2c_adap); 
+> > + fe0->dvb.frontend = dvb_i2c_attach_fe(&i2c_bus->i2c_adap, 
+> > +        &mb86a20s_board_info, 
+> > +        &mygica_x8507_mb86a20s_config, 
+> > +        NULL); 
+> > if (fe0->dvb.frontend == NULL) 
+> > break; 
+> >
+> > diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c 
+> > index 73ffbabf831c..74b5ce0de488 100644 
+> > --- a/drivers/media/pci/saa7134/saa7134-dvb.c 
+> > +++ b/drivers/media/pci/saa7134/saa7134-dvb.c 
+> > @@ -34,6 +34,7 @@ 
+> > #include "dvb-pll.h" 
+> > #include <dvb_frontend.h> 
+> >
+> > +#include "dvb_i2c.h" 
+> > #include "mt352.h" 
+> > #include "mt352_priv.h" /* FIXME */ 
+> > #include "tda1004x.h" 
+> > @@ -245,7 +246,10 @@ static struct tda18271_config kworld_tda18271_config = { 
+> > }; 
+> >
+> > static const struct mb86a20s_config kworld_mb86a20s_config = { 
+> > - .demod_address = 0x10, 
+> > +}; 
+> > + 
+> > +static const struct i2c_board_info mb86a20s_board_info = { 
+> > + I2C_BOARD_INFO("mb86a20s", 0x10) 
+> > }; 
+> >
+> > static int kworld_sbtvd_gate_ctrl(struct dvb_frontend* fe, int enable) 
+> > @@ -1807,9 +1811,10 @@ static int dvb_init(struct saa7134_dev *dev) 
+> > /* Switch to digital mode */ 
+> > saa7134_tuner_callback(dev, 0, 
+> >        TDA18271_CALLBACK_CMD_AGC_ENABLE, 1); 
+> > - fe0->dvb.frontend = dvb_attach(mb86a20s_attach, 
+> > -        &kworld_mb86a20s_config, 
+> > -        &dev->i2c_adap); 
+> > + fe0->dvb.frontend = dvb_i2c_attach_fe(&dev->i2c_adap, 
+> > +        &mb86a20s_board_info, 
+> > +        &kworld_mb86a20s_config, 
+> > +        NULL); 
+> > if (fe0->dvb.frontend != NULL) { 
+> > dvb_attach(tda829x_attach, fe0->dvb.frontend, 
+> >    &dev->i2c_adap, 0x4b, 
+> > diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c 
+> > index dd600b994e69..27803a8cf5a4 100644 
+> > --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c 
+> > +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c 
+> > @@ -26,6 +26,7 @@ 
+> > #include <media/v4l2-common.h> 
+> > #include <media/videobuf-vmalloc.h> 
+> >
+> > +#include "dvb_i2c.h" 
+> > #include "xc5000.h" 
+> > #include "s5h1432.h" 
+> > #include "tda18271.h" 
+> > @@ -138,10 +139,13 @@ static struct tda18271_config hcw_tda18271_config = { 
+> > }; 
+> >
+> > static const struct mb86a20s_config pv_mb86a20s_config = { 
+> > - .demod_address = 0x10, 
+> > .is_serial = true, 
+> > }; 
+> >
+> > +static const struct i2c_board_info mb86a20s_board_info = { 
+> > + I2C_BOARD_INFO("mb86a20s", 0x10) 
+> > +}; 
+> > + 
+> > static struct tda18271_config pv_tda18271_config = { 
+> > .std_map = &mb86a20s_tda18271_config, 
+> > .gate    = TDA18271_GATE_DIGITAL, 
+> > @@ -815,10 +819,10 @@ static int dvb_init(struct cx231xx *dev) 
+> > "%s: looking for demod on i2c bus: %d\n", 
+> > __func__, i2c_adapter_id(tuner_i2c)); 
+> >
+> > - dev->dvb->frontend = dvb_attach(mb86a20s_attach, 
+> > - &pv_mb86a20s_config, 
+> > - demod_i2c); 
+> > - 
+> > + dev->dvb->frontend = dvb_i2c_attach_fe(demod_i2c, 
+> > +        &mb86a20s_board_info, 
+> > +        &pv_mb86a20s_config, 
+> > +        NULL); 
+> > if (dev->dvb->frontend == NULL) { 
+> > dev_err(dev->dev, 
+> > "Failed to attach mb86a20s demod\n"); 
+> > diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c 
+> > index aee70d483264..6fa4eeed9f50 100644 
+> > --- a/drivers/media/usb/em28xx/em28xx-dvb.c 
+> > +++ b/drivers/media/usb/em28xx/em28xx-dvb.c 
+> > @@ -34,6 +34,7 @@ 
+> > #include "tuner-simple.h" 
+> > #include <linux/gpio.h> 
+> >
+> > +#include "dvb_i2c.h" 
+> > #include "lgdt330x.h" 
+> > #include "lgdt3305.h" 
+> > #include "zl10353.h" 
+> > @@ -833,10 +834,13 @@ static struct qt1010_config em28xx_qt1010_config = { 
+> > }; 
+> >
+> > static const struct mb86a20s_config c3tech_duo_mb86a20s_config = { 
+> > - .demod_address = 0x10, 
+> > .is_serial = true, 
+> > }; 
+> >
+> > +static const struct i2c_board_info mb86a20s_board_info = { 
+> > + I2C_BOARD_INFO("mb86a20s", 0x10) 
+> > +}; 
+> > + 
+> > static struct tda18271_std_map mb86a20s_tda18271_config = { 
+> > .dvbt_6   = { .if_freq = 4000, .agc_mode = 3, .std = 4, 
+> >       .if_lvl = 1, .rfagc_top = 0x37, }, 
+> > @@ -1323,9 +1327,10 @@ static int em28xx_dvb_init(struct em28xx *dev) 
+> >
+> > break; 
+> > case EM2884_BOARD_C3TECH_DIGITAL_DUO: 
+> > - dvb->fe[0] = dvb_attach(mb86a20s_attach, 
+> > -    &c3tech_duo_mb86a20s_config, 
+> > -    &dev->i2c_adap[dev->def_i2c_bus]); 
+> > + dvb->fe[0] = dvb_i2c_attach_fe(&dev->i2c_adap[dev->def_i2c_bus], 
+> > +        &mb86a20s_board_info, 
+> > +        &c3tech_duo_mb86a20s_config, 
+> > +        NULL); 
+> > if (dvb->fe[0] != NULL) 
+> > dvb_attach(tda18271_attach, dvb->fe[0], 0x60, 
+> >    &dev->i2c_adap[dev->def_i2c_bus], 
+> > -- 
+> > 2.1.0 
+> >
+
+
 -- 
-2.1.0
 
+Cheers,
+Mauro
