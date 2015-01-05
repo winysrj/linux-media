@@ -1,46 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:59439 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132AbbAMO3i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 09:29:38 -0500
-Received: by mail-ie0-f178.google.com with SMTP id vy18so2958512iec.9
-        for <linux-media@vger.kernel.org>; Tue, 13 Jan 2015 06:29:38 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1418836704-15689-2-git-send-email-hdegoede@redhat.com>
-References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
-	<1418836704-15689-2-git-send-email-hdegoede@redhat.com>
-Date: Tue, 13 Jan 2015 15:29:38 +0100
-Message-ID: <CACRpkdZMv0VNjSmhB0VoGt=wo02+g56YQtekD9MnxYUSmJDXEw@mail.gmail.com>
-Subject: Re: [PATCH v2 01/13] pinctrl: sun6i: Add some missing functions
-From: Linus Walleij <linus.walleij@linaro.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi <linux-sunxi@googlegroups.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout3.samsung.com ([203.254.224.33]:51226 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751068AbbAEFM2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jan 2015 00:12:28 -0500
+From: Tony K Nadackal <tony.kn@samsung.com>
+To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: mchehab@osg.samsung.com, j.anaszewski@samsung.com,
+	kgene@kernel.org, k.debski@samsung.com, s.nawrocki@samsung.com,
+	bhushan.r@samsung.com, tony.kn@samsung.com
+References: <1418800881-7428-1-git-send-email-tony.kn@samsung.com>
+In-reply-to: <1418800881-7428-1-git-send-email-tony.kn@samsung.com>
+Subject: RE: [PATCH] [media] s5p-jpeg: Initialize cb and cr to zero.
+Date: Mon, 05 Jan 2015 10:43:08 +0530
+Message-id: <000201d028a6$55a31e20$00e95a60$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 17, 2014 at 6:18 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+Gentle Reminder.
 
-> While working on pinctrl for the A31s, I noticed that function 4 of
-> PA15 - PA18 was missing, add these.
->
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Thanks,
+Tony
+
+> -----Original Message-----
+> From: Tony K Nadackal [mailto:tony.kn@samsung.com]
+> Sent: Wednesday, December 17, 2014 12:51 PM
+> To: linux-media@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+> samsung-soc@vger.kernel.org
+> Cc: mchehab@osg.samsung.com; j.anaszewski@samsung.com;
+> kgene@kernel.org; k.debski@samsung.com; s.nawrocki@samsung.com;
+> bhushan.r@samsung.com; Tony K Nadackal
+> Subject: [PATCH] [media] s5p-jpeg: Initialize cb and cr to zero.
+> 
+> To avoid garbage value written into image base address planes, initialize cb
+and cr
+> of structure s5p_jpeg_addr to zero.
+> 
+> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
 > ---
-> Changes in v2:
-> -Drop the changes to the muxing of i2c3 this was based on
->  "A31s Datasheet v1.40.pdf", but all other A31 related info puts them at the
->  pins where we already have them, so leave this as is
+> This patch is created and tested on top of linux-next-20141210.
+> It can be cleanly applied on media-next and kgene/for-next.
+> 
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 91bd3e6..54fa5d9 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -1845,6 +1845,9 @@ static void exynos4_jpeg_set_img_addr(struct
+> s5p_jpeg_ctx *ctx)
+>  	struct s5p_jpeg_addr jpeg_addr;
+>  	u32 pix_size, padding_bytes = 0;
+> 
+> +	jpeg_addr.cb = 0;
+> +	jpeg_addr.cr = 0;
+> +
+>  	pix_size = ctx->cap_q.w * ctx->cap_q.h;
+> 
+>  	if (ctx->mode == S5P_JPEG_ENCODE) {
+> --
+> 2.2.0
 
-Patch applied with Maxime's ACK.
-
-Yours,
-Linus Walleij
