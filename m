@@ -1,90 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44090 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757668AbbAHWr1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 17:47:27 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Josh Wu <josh.wu@atmel.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] V4L: remove clock name from v4l2_clk API
-Date: Fri, 09 Jan 2015 00:47:36 +0200
-Message-ID: <10297396.jglheYyvzx@avalon>
-In-Reply-To: <Pine.LNX.4.64.1501082324510.27341@axis700.grange>
-References: <Pine.LNX.4.64.1501021244580.30761@axis700.grange> <54AC970B.3090503@atmel.com> <Pine.LNX.4.64.1501082324510.27341@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:37249 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751133AbbAEJbg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Jan 2015 04:31:36 -0500
+Message-ID: <54AA59D9.7030909@redhat.com>
+Date: Mon, 05 Jan 2015 10:31:05 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+CC: Linus Walleij <linus.walleij@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 12/13] ARM: dts: sun6i: Add sun6i-a31s.dtsi
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com> <1418836704-15689-13-git-send-email-hdegoede@redhat.com> <20141219183450.GZ4820@lukather> <54954E77.4070302@redhat.com> <20141221223941.GC4820@lukather> <549820A4.9090900@redhat.com> <20150105090825.GA31311@lukather>
+In-Reply-To: <20150105090825.GA31311@lukather>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi and Josh,
+Hi,
 
-On Thursday 08 January 2015 23:37:58 Guennadi Liakhovetski wrote:
-> On Wed, 7 Jan 2015, Josh Wu wrote:
-> > On 1/7/2015 6:17 AM, Guennadi Liakhovetski wrote:
-> >> On Tue, 6 Jan 2015, Josh Wu wrote:
-> >>> Hi, Guennadi
-> >>> 
-> >>> After look deep into this patch, I found you miss one line that should
-> >>> be changed as well.
-> >>> It's In function v4l2_clk_get(), there still has one line code called
-> >>> v4l2_clk_find(dev_id, id).
-> >>> You need to change it to v4l2_clk_find(dev_id, NULL) as well.
-> >>> Otherwise the code that many sensor used: v4l2_clk_get(&client->dev,
-> >>> "mclk") cannot acquired the "mclk" clock.
-> >>> 
-> >>> After above changes, this patch works for me.
-> >> 
-> >> I think you're right, in fact, since we now don't store CCF-based
-> >> v4l2_clk wrappers on the list, this can be simplified even further, I'll
-> >> update the patch. Did you only test this patch or both?
-> > 
-> > I tested both patches with Atmel-isi driver. For the 2/2 patch I applied
-> > the modification Laurent suggested.
-> > Those patches works for me.
-> > 
-> > The only concern is in ov2640 I still need to acquired two v4l2 clocks:
-> >    "xvclk"  that will get the xvclk CCF clock directly.
-> >    "mclk"  that make ISI driver call his clock_start()/stop() to
-> >    enable/disable ISI's peripheral clock.
-> > If I only get xvclk clock, then the camera capture will be failed with a
-> > ISI timeout error.
-> 
-> No, this doesn't look right to me. The camera sensor has only one clock
-> input, so, it should only request one clock. Where does the clock signal
-> to the camera come from on your system?
-
-That's correct, the sensor driver only has one clock input, so it should just 
-request the xvclk clock.
-
-> If it comes from the ISI itself, you don't need to specify the clock in
-> the DT, since the ISI doesn't produce a clock from DT. If you do want to
-> have your clock consumer (ov2640) and the supplier (ISI) properly
-> described in DT, you'll have to teach the ISI to register a CCF clock
-> source, which then will be connected to from the ov2640. If you choose not
-> to show your clock in the DT, you can just use v4l2_clk_get(dev, "xvclk")
-> and it will be handled by v4l2_clk / soc-camera / isi-atmel.
+On 05-01-15 10:08, Maxime Ripard wrote:
+> Hi,
 >
-> If the closk to ov2640 is supplied by a separate clock source, then you
-> v4l2_clk_get() will connect ov2640 to it directly and soc-camera will
-> enable and disable it on power-on / -off as required.
+> On Mon, Dec 22, 2014 at 02:46:12PM +0100, Hans de Goede wrote:
+>> On 21-12-14 23:39, Maxime Ripard wrote:
+>>> On Sat, Dec 20, 2014 at 11:24:55AM +0100, Hans de Goede wrote:
 
-The ISI has no way to supply a sensor clock, the clock is supplied by a 
-separate clock source.
+<snip>
 
-> From your above description it looks like the clock to ov2640 is supplied
-> by a separate source, but atmel-isi's .clock_start() / .clock_stop()
-> functions still need to be called? By looking at those functions it looks
-> like they turn on and off clocks, supplying the ISI itself... Instead of
-> only turning on and off clocks, provided by the ISI to a camera sensor. If
-> my understanding is right, then this is a bug in atmel-isi and it has to
-> be fixed.
+>>>>> Given your previous changes, you should also update the enable-method.
+>>>>
+>>>> I've not added a new compatible for the enable-method, given that
+>>>> this is the exact same die, so the 2 are 100?% compatible, just like you
+>>>> insisted that "allwinner,sun4i-a10-mod0-clk" should be used for the ir-clk
+>>>> since it was 100% compatible to that I believe that the enable method
+>>>> should use the existing compatible and not invent a new one for something
+>>>> which is 100% compatible.
+>>>
+>>> Yeah, you have a point and I agree, but your patch 3 does add a
+>>> CPU_METHOD_OF_DECLARE for the A31s.
+>>
+>> Ah right, it does, my bad.
+>>
+>>> Since I was going to push the branch now that 3.19-rc1 is out, do you
+>>> want me to edit your patch before doing so?
+>>
+>> Yes, please drop the addition of the extra CPU_METHOD_OF_DECLARE, or let
+>> me know if you want a new version instead.
+>
+> I just modified it, and pushed it, no need to resend it.
 
-That's correct as well, the ISI driver needs to be fixed.
+Thanks, while looking at your dt-for-3.20 branch I noticed that you've
+merged v2 of "ARM: dts: sun6i: Add ir node", I did a v3 adding an ir:
+label to the node, which I noticed was missing because you asked me to
+move the a31s dt stuff to moving label references, can you fix this up, or
+do you want me to do a follow up patch ?
 
--- 
+Note that having this fixed is a pre-req for the csq-cs908 dts patch.
+
 Regards,
 
-Laurent Pinchart
-
+Hans
