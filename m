@@ -1,73 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60823 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755659AbbAWQvj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 11:51:39 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 16/21] [media] coda: switch BIT decoder source queue to vmalloc
-Date: Fri, 23 Jan 2015 17:51:30 +0100
-Message-Id: <1422031895-7740-17-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
-References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mga03.intel.com ([134.134.136.65]:2944 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753060AbbAEXuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Jan 2015 18:50:25 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [yavta PATCH 1/2] Rename buffer prefix as data prefix
+Date: Tue,  6 Jan 2015 01:50:14 +0200
+Message-Id: <1420501815-3684-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1420501815-3684-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1420501815-3684-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since we have to copy from input buffers into the bitstream ringbuffer
-with the CPU, there is no need for contiguous DMA buffers on the decoder
-input side.
+Data prefix is a much better name for this (think of data_offset, for
+instance).
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/Kconfig            | 1 +
- drivers/media/platform/coda/coda-common.c | 6 ++++--
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ yavta.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 765bffb..74c2101 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -140,6 +140,7 @@ config VIDEO_CODA
- 	depends on HAS_DMA
- 	select SRAM
- 	select VIDEOBUF2_DMA_CONTIG
-+	select VIDEOBUF2_VMALLOC
- 	select V4L2_MEM2MEM_DEV
- 	select GENERIC_ALLOCATOR
- 	---help---
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index f7fc355..24d9f8a 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -37,6 +37,7 @@
- #include <media/v4l2-mem2mem.h>
- #include <media/videobuf2-core.h>
- #include <media/videobuf2-dma-contig.h>
-+#include <media/videobuf2-vmalloc.h>
+diff --git a/yavta.c b/yavta.c
+index 0055c7d..3bec0be 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -81,7 +81,7 @@ struct device
+ 	void *pattern[VIDEO_MAX_PLANES];
+ 	unsigned int patternsize[VIDEO_MAX_PLANES];
  
- #include "coda.h"
+-	bool write_buffer_prefix;
++	bool write_data_prefix;
+ };
  
-@@ -1121,6 +1122,7 @@ static int coda_queue_setup(struct vb2_queue *vq,
- 	*nplanes = 1;
- 	sizes[0] = size;
+ static bool video_is_mplane(struct device *dev)
+@@ -1556,7 +1556,7 @@ static void video_save_image(struct device *dev, struct v4l2_buffer *buf,
+ 		if (video_is_mplane(dev)) {
+ 			length = buf->m.planes[i].bytesused;
  
-+	/* Set to vb2-dma-contig allocator context, ignored by vb2-vmalloc */
- 	alloc_ctxs[0] = ctx->dev->alloc_ctx;
+-			if (!dev->write_buffer_prefix) {
++			if (!dev->write_data_prefix) {
+ 				data += buf->m.planes[i].data_offset;
+ 				length -= buf->m.planes[i].data_offset;
+ 			}
+@@ -1763,14 +1763,14 @@ static void usage(const char *argv0)
+ #define OPT_BUFFER_SIZE		268
+ #define OPT_PREMULTIPLIED	269
+ #define OPT_QUEUE_LATE		270
+-#define OPT_BUFFER_PREFIX	271
++#define OPT_DATA_PREFIX		271
  
- 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
-@@ -1567,8 +1569,8 @@ int coda_decoder_queue_init(void *priv, struct vb2_queue *src_vq,
- 	int ret;
- 
- 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	src_vq->io_modes = VB2_DMABUF | VB2_MMAP;
--	src_vq->mem_ops = &vb2_dma_contig_memops;
-+	src_vq->io_modes = VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
-+	src_vq->mem_ops = &vb2_vmalloc_memops;
- 
- 	ret = coda_queue_init(priv, src_vq);
- 	if (ret)
+ static struct option opts[] = {
+ 	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
+ 	{"buffer-type", 1, 0, 'B'},
+-	{"buffer-prefix", 1, 0, OPT_BUFFER_PREFIX},
+ 	{"capture", 2, 0, 'c'},
+ 	{"check-overrun", 0, 0, 'C'},
++	{"data-prefix", 1, 0, OPT_DATA_PREFIX},
+ 	{"delay", 1, 0, 'd'},
+ 	{"enum-formats", 0, 0, OPT_ENUM_FORMATS},
+ 	{"enum-inputs", 0, 0, OPT_ENUM_INPUTS},
+@@ -2032,8 +2032,8 @@ int main(int argc, char *argv[])
+ 		case OPT_USERPTR_OFFSET:
+ 			userptr_offset = atoi(optarg);
+ 			break;
+-		case OPT_BUFFER_PREFIX:
+-			dev.write_buffer_prefix = true;
++		case OPT_DATA_PREFIX:
++			dev.write_data_prefix = true;
+ 		default:
+ 			printf("Invalid option -%c\n", c);
+ 			printf("Run %s -h for help.\n", argv[0]);
 -- 
-2.1.4
+2.1.0.231.g7484e3b
 
