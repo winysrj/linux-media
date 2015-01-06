@@ -1,132 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:34815 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752207AbbABX0I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jan 2015 18:26:08 -0500
-Received: by mail-wi0-f181.google.com with SMTP id r20so264849wiv.14
-        for <linux-media@vger.kernel.org>; Fri, 02 Jan 2015 15:26:07 -0800 (PST)
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
-Subject: [PATCH] media: i2c: adv7604:  Remove some unused functions
-Date: Sat,  3 Jan 2015 00:29:08 +0100
-Message-Id: <1420241348-4776-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Received: from bombadil.infradead.org ([198.137.202.9]:55000 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756794AbbAFVJI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Joe Perches <joe@perches.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: [PATCHv3 10/20] cx25840: fill the media controller entity
+Date: Tue,  6 Jan 2015 19:08:41 -0200
+Message-Id: <f312c9563615f8f5666c1621a20d3fa07831ae89.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removes some functions that are not used anywhere:
-test_read() edid_read_block() dpp_write() dpp_read()
-esdp_write() esdp_read() cec_write_clr_set()
+Instead of keeping the media controller entity not initialized,
+fill it and create the pads for cx25840.
 
-This was partially found by using a static code analysis program called cppcheck.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
----
- drivers/media/i2c/adv7604.c |   66 -------------------------------------------
- 1 file changed, 66 deletions(-)
-
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 47795ff..5e07b91 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -466,11 +466,6 @@ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_CEC, reg, val);
- }
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+index 573e08826b9b..bdb5bb6b58da 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.c
++++ b/drivers/media/i2c/cx25840/cx25840-core.c
+@@ -5137,6 +5137,9 @@ static int cx25840_probe(struct i2c_client *client,
+ 	int default_volume;
+ 	u32 id;
+ 	u16 device_id;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	int ret;
++#endif
  
--static inline int cec_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
--{
--	return cec_write(sd, reg, (cec_read(sd, reg) & ~mask) | val);
--}
--
- static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv7604_state *state = to_state(sd);
-@@ -486,34 +481,6 @@ static inline int infoframe_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 					 reg, val);
- }
+ 	/* Check if the adapter supports the needed features */
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+@@ -5178,6 +5181,21 @@ static int cx25840_probe(struct i2c_client *client,
  
--static inline int esdp_read(struct v4l2_subdev *sd, u8 reg)
--{
--	struct adv7604_state *state = to_state(sd);
--
--	return adv_smbus_read_byte_data(state, ADV7604_PAGE_ESDP, reg);
--}
--
--static inline int esdp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
--{
--	struct adv7604_state *state = to_state(sd);
--
--	return adv_smbus_write_byte_data(state, ADV7604_PAGE_ESDP, reg, val);
--}
--
--static inline int dpp_read(struct v4l2_subdev *sd, u8 reg)
--{
--	struct adv7604_state *state = to_state(sd);
--
--	return adv_smbus_read_byte_data(state, ADV7604_PAGE_DPP, reg);
--}
--
--static inline int dpp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
--{
--	struct adv7604_state *state = to_state(sd);
--
--	return adv_smbus_write_byte_data(state, ADV7604_PAGE_DPP, reg, val);
--}
--
- static inline int afe_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv7604_state *state = to_state(sd);
-@@ -561,32 +528,6 @@ static inline int edid_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_EDID, reg, val);
- }
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &cx25840_ops);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	/* TODO: need to represent analog inputs too */
++	state->pads[0].flags = MEDIA_PAD_FL_SINK;	/* Tuner or input */
++	state->pads[1].flags = MEDIA_PAD_FL_SOURCE;	/* Video */
++	state->pads[2].flags = MEDIA_PAD_FL_SOURCE;	/* VBI */
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
++
++	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
++				state->pads, 0);
++	if (ret < 0) {
++		v4l_info(client, "failed to initialize media entity!\n");
++		kfree(state);
++		return -ENODEV;
++	}
++#endif
  
--static inline int edid_read_block(struct v4l2_subdev *sd, unsigned len, u8 *val)
--{
--	struct adv7604_state *state = to_state(sd);
--	struct i2c_client *client = state->i2c_clients[ADV7604_PAGE_EDID];
--	u8 msgbuf0[1] = { 0 };
--	u8 msgbuf1[256];
--	struct i2c_msg msg[2] = {
--		{
--			.addr = client->addr,
--			.len = 1,
--			.buf = msgbuf0
--		},
--		{
--			.addr = client->addr,
--			.flags = I2C_M_RD,
--			.len = len,
--			.buf = msgbuf1
--		},
--	};
--
--	if (i2c_transfer(client->adapter, msg, 2) < 0)
--		return -EIO;
--	memcpy(val, msgbuf1, len);
--	return 0;
--}
--
- static inline int edid_write_block(struct v4l2_subdev *sd,
- 					unsigned len, const u8 *val)
- {
-@@ -652,13 +593,6 @@ static inline int hdmi_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8
- 	return hdmi_write(sd, reg, (hdmi_read(sd, reg) & ~mask) | val);
- }
+ 	switch (id) {
+ 	case CX23885_AV:
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.h b/drivers/media/i2c/cx25840/cx25840-core.h
+index 37bc04217c44..17b409f55445 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.h
++++ b/drivers/media/i2c/cx25840/cx25840-core.h
+@@ -64,6 +64,9 @@ struct cx25840_state {
+ 	wait_queue_head_t fw_wait;    /* wake up when the fw load is finished */
+ 	struct work_struct fw_work;   /* work entry for fw load */
+ 	struct cx25840_ir_state *ir_state;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad	pads[3];
++#endif
+ };
  
--static inline int test_read(struct v4l2_subdev *sd, u8 reg)
--{
--	struct adv7604_state *state = to_state(sd);
--
--	return adv_smbus_read_byte_data(state, ADV7604_PAGE_TEST, reg);
--}
--
- static inline int test_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv7604_state *state = to_state(sd);
+ static inline struct cx25840_state *to_state(struct v4l2_subdev *sd)
 -- 
-1.7.10.4
+2.1.0
 
