@@ -1,71 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:56705 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752177AbbAGKIP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 05:08:15 -0500
-Message-id: <54AD058B.6070900@samsung.com>
-Date: Wed, 07 Jan 2015 11:08:11 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Tony K Nadackal <tony.kn@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	mchehab@osg.samsung.com, kgene@kernel.org, k.debski@samsung.com,
-	s.nawrocki@samsung.com, robh+dt@kernel.org, mark.rutland@arm.com,
-	bhushan.r@samsung.com
-Subject: Re: [PATCH v2 1/2] [media] s5p-jpeg: Fix modification sequence of
- interrupt enable register
-References: <1418974680-5837-1-git-send-email-tony.kn@samsung.com>
- <1418974680-5837-2-git-send-email-tony.kn@samsung.com>
-In-reply-to: <1418974680-5837-2-git-send-email-tony.kn@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:42335 "EHLO
+	relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753148AbbAFAIA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jan 2015 19:08:00 -0500
+Message-ID: <1420502814.14388.27.camel@hadess.net>
+Subject: Re: Baytrail camera csi / isp support status ?
+From: Bastien Nocera <hadess@hadess.net>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Tue, 06 Jan 2015 01:06:54 +0100
+In-Reply-To: <548ACC7E.5070507@redhat.com>
+References: <548ACC7E.5070507@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tony,
+Hey,
 
-On 12/19/2014 08:37 AM, Tony K Nadackal wrote:
-> Fix the bug in modifying the interrupt enable register.
+On Fri, 2014-12-12 at 12:07 +0100, Hans de Goede wrote:
+> Hi All,
+> 
+> A college of mine has a baytrail bases tablet:
+> 
+> http://www.onda-tablet.com/onda-v975w-quad-core-win-8-tablet-9-7-inch-retina-screen-ram-2gb-wifi-32gb.html
+> 
+> And he is trying to get Linux to run on it, he has things mostly
+> working, but he would also like to get the cameras to work.
+> 
+> I've found this:
+> 
+> http://sourceforge.net/projects/e3845mipi/files/
+> 
+> Which is some not so pretty code, with the usual problems of using
+> custom ioctls to pass info from the statistics block of the isp
+> to userspace and then let some userspace thingie (blob?) handle it.
+> 
+> So I was wondering if anyone is working on proper support
+> (targeting upstream) for this ? It would be nice if we could at least
+> get the csi bits going, using the sensors or software auto-whitebal, etc.
+> for now.
 
-For Exynos4 this was not a bug as there are only five bit fields
-used in the EXYNOS4_INT_EN_REG - all of them enable related
-interrupt signal and EXYNOS4_INT_EN_ALL value is 0x1f which
-just sets these bit fields to 1.
+As I mentioned to Hans in private, I would be ready to provide the
+hardware for somebody with a track record to keep, to allow testing and
+hopefully maintaining that code longer term.
 
-If for Exynos7 there are other bit fields in this register
-and it has to be read prior setting to find out current
-state then I'd parametrize this function with version argument
-as you do it in the patch adding support for Exynos7, but
-for Exynos4 case I'd left the behaviour as it is currenlty, i.e.
-avoid reading the register and do it only for Exynos7 case.
-Effectively, this patch is not required, as it doesn't fix
-anything but adds redundant call to readl.
+I would expect that this sort of hardware is already quite common
+amongst Windows 8 tablets so it would be very helpful to have working
+out-of-the-box on a stock Linux.
 
-> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-> ---
->   drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c | 5 ++++-
->   1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> index e53f13a..a61ff7e 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> @@ -155,7 +155,10 @@ void exynos4_jpeg_set_enc_out_fmt(void __iomem *base, unsigned int out_fmt)
->
->   void exynos4_jpeg_set_interrupt(void __iomem *base)
->   {
-> -	writel(EXYNOS4_INT_EN_ALL, base + EXYNOS4_INT_EN_REG);
-> +	unsigned int reg;
-> +
-> +	reg = readl(base + EXYNOS4_INT_EN_REG) & ~EXYNOS4_INT_EN_MASK;
-> +	writel(reg | EXYNOS4_INT_EN_ALL, base + EXYNOS4_INT_EN_REG);
->   }
->
->   unsigned int exynos4_jpeg_get_int_status(void __iomem *base)
->
+Cheers
 
-
--- 
-Best Regards,
-Jacek Anaszewski
