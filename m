@@ -1,55 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59381 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752578AbbAVAgG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2015 19:36:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Takanari Hayama <taki@igel.co.jp>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Subject: Re: [PATCH] [media] v4l: vsp1: bru: Fix minimum input pixel size
-Date: Thu, 22 Jan 2015 02:36:39 +0200
-Message-ID: <1786801.5JPtxNYoMj@avalon>
-In-Reply-To: <1421885663-19565-1-git-send-email-taki@igel.co.jp>
-References: <1421885663-19565-1-git-send-email-taki@igel.co.jp>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:55836 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752052AbbAFUWX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 15:22:23 -0500
+Received: by mail-wi0-f177.google.com with SMTP id l15so219159wiw.16
+        for <linux-media@vger.kernel.org>; Tue, 06 Jan 2015 12:22:22 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAL9G6WUXhv+b+oVYL6XMnyvQnj7+=gVPw2Z-0ZchNtNtS4cXrg@mail.gmail.com>
+References: <CAL9G6WUXhv+b+oVYL6XMnyvQnj7+=gVPw2Z-0ZchNtNtS4cXrg@mail.gmail.com>
+Date: Tue, 6 Jan 2015 21:22:22 +0100
+Message-ID: <CAL9G6WUFK0Wu-J96Sag=jE=ZSF873fmO+4SdqZhUEopAehqAbQ@mail.gmail.com>
+Subject: Re: TeVii S482 dual DVB-S2
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hayama-san,
+2014-10-13 8:33 GMT+02:00 Josu Lazkano <josu.lazkano@gmail.com>:
+> Hello,
+>
+> I have TeVii S482 dual DVB-S2 device, is similar to the S480, but it
+> doesn't work with same driver.
+>
+> The problem is that my device is not ported to the Linux kernel, there
+> is a source code in tevii website and liplianin tree:
+>
+> http://www.tevii.com/Tevii_Product_20140428_media_build_b6.tar.bz2.rar
+>
+> https://bitbucket.org/liplianin/s2-liplianin-v39
+>
+> Is it possible to add this code to the linux-media tree? And to the
+> Linux kernel?
+>
+> Any developer with this device? I am not developer, but I could make some test.
+>
+> Thanks and best regards.
 
-Thank you for the patch.
+Hello again,
 
-On Thursday 22 January 2015 09:14:23 Takanari Hayama wrote:
-> According to the spec, the minimum input pixel size for BRU is 1px,
-> not 4px.
-> 
-> Signed-off-by: Takanari Hayama <taki@igel.co.jp>
+I create wiki page in the linuxtv web:
+http://www.linuxtv.org/wiki/index.php/TeVii_S482
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+I try to add all the information I have about the device. I can
+compile Liplianin driver in Debian Wheezy (not in Jessie) but the
+image and audio is bad in some channels, I get this output when it
+occurs:
 
-> ---
->  drivers/media/platform/vsp1/vsp1_bru.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_bru.c
-> b/drivers/media/platform/vsp1/vsp1_bru.c index b21f381..401e2b7 100644
-> --- a/drivers/media/platform/vsp1/vsp1_bru.c
-> +++ b/drivers/media/platform/vsp1/vsp1_bru.c
-> @@ -20,7 +20,7 @@
->  #include "vsp1_bru.h"
->  #include "vsp1_rwpf.h"
-> 
-> -#define BRU_MIN_SIZE				4U
-> +#define BRU_MIN_SIZE				1U
->  #define BRU_MAX_SIZE				8190U
-> 
->  /* ------------------------------------------------------------------------
+# dmesg
+...
+[  373.556033] ts2022_set_params: offset -500khz
+[  373.556038] ts2022_set_params:  1256000khz  1255500khz
+[ 1670.824033] ts2022_set_params: offset 571khz
+[ 1670.824038] ts2022_set_params:  1847000khz  1847571khz
+[ 2176.212034] ts2022_set_params: offset -500khz
+[ 2176.212039] ts2022_set_params:  1256000khz  1255500khz
+[ 2256.228031] ts2022_set_params: offset 571khz
+[ 2256.228036] ts2022_set_params:  1847000khz  1847571khz
+[ 2321.128038] ts2022_set_params: offset -500khz
+[ 2321.128043] ts2022_set_params:  1256000khz  1255500khz
+[ 2342.896034] ts2022_set_params: offset 571khz
+[ 2342.896039] ts2022_set_params:  1847000khz  1847571khz
+[ 2455.744057] ts2022_set_params: offset 357khz
+[ 2455.744062] ts2022_set_params:  1178000khz  1178357khz
+
+Anyone with this device?
+
+Thanks and best regards.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Josu Lazkano
