@@ -1,65 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:51650 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754131AbbAZOud (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 09:50:33 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: am437x: fix sparse warnings
-Date: Mon, 26 Jan 2015 14:50:15 +0000
-Message-Id: <1422283815-1795-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40778 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751414AbbAFHza (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 02:55:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bastien Nocera <hadess@hadess.net>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Baytrail camera csi / isp support status ?
+Date: Tue, 06 Jan 2015 09:55:37 +0200
+Message-ID: <2140737.P20K9QBf6L@avalon>
+In-Reply-To: <1420502814.14388.27.camel@hadess.net>
+References: <548ACC7E.5070507@redhat.com> <1420502814.14388.27.camel@hadess.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes following spare warnings:
+Hi Bastien,
 
-drivers/media/platform/am437x/am437x-vpfe.c:66:28: warning: symbol 'vpfe_standards' was not declared. Should it be static?
-drivers/media/platform/am437x/am437x-vpfe.c:2202:57: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/platform/am437x/am437x-vpfe.c:2202:57:    expected void [noderef] <asn:1>*params
-drivers/media/platform/am437x/am437x-vpfe.c:2202:57:    got void *param
-include/linux/spinlock.h:364:9: warning: context imbalance in 'vpfe_start_streaming' - unexpected unlock
+On Tuesday 06 January 2015 01:06:54 Bastien Nocera wrote:
+> On Fri, 2014-12-12 at 12:07 +0100, Hans de Goede wrote:
+> > Hi All,
+> > 
+> > A college of mine has a baytrail bases tablet:
+> > 
+> > http://www.onda-tablet.com/onda-v975w-quad-core-win-8-tablet-9-7-inch-reti
+> > na-screen-ram-2gb-wifi-32gb.html
+> > 
+> > And he is trying to get Linux to run on it, he has things mostly
+> > working, but he would also like to get the cameras to work.
+> > 
+> > I've found this:
+> > 
+> > http://sourceforge.net/projects/e3845mipi/files/
+> > 
+> > Which is some not so pretty code, with the usual problems of using
+> > custom ioctls to pass info from the statistics block of the isp
+> > to userspace and then let some userspace thingie (blob?) handle it.
+> > 
+> > So I was wondering if anyone is working on proper support
+> > (targeting upstream) for this ? It would be nice if we could at least
+> > get the csi bits going, using the sensors or software auto-whitebal, etc.
+> > for now.
+> 
+> As I mentioned to Hans in private, I would be ready to provide the
+> hardware for somebody with a track record to keep, to allow testing and
+> hopefully maintaining that code longer term.
+> 
+> I would expect that this sort of hardware is already quite common
+> amongst Windows 8 tablets so it would be very helpful to have working
+> out-of-the-box on a stock Linux.
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/am437x/am437x-vpfe.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+$ cat BYT_LSP_3.11_ISP_2013-12-26.patch | diffstat -s
+ 302 files changed, 91662 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index e01ac22..349bd06 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -63,7 +63,7 @@ struct vpfe_standard {
- 	int frame_format;
- };
- 
--const struct vpfe_standard vpfe_standards[] = {
-+static const struct vpfe_standard vpfe_standards[] = {
- 	{V4L2_STD_525_60, 720, 480, {11, 10}, 1},
- 	{V4L2_STD_625_50, 720, 576, {54, 59}, 1},
- };
-@@ -2024,7 +2024,6 @@ err:
- 		list_del(&buf->list);
- 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
- 	}
--	spin_unlock_irqrestore(&vpfe->dma_queue_lock, flags);
- 
- 	return ret;
- }
-@@ -2199,7 +2198,7 @@ static long vpfe_ioctl_default(struct file *file, void *priv,
- 
- 	switch (cmd) {
- 	case VIDIOC_AM437X_CCDC_CFG:
--		ret = vpfe_ccdc_set_params(&vpfe->ccdc, param);
-+		ret = vpfe_ccdc_set_params(&vpfe->ccdc, (void __user *)param);
- 		if (ret) {
- 			vpfe_dbg(2, vpfe,
- 				"Error setting parameters in CCDC\n");
+There's no interest in upstreaming the code on Intel's side. As far as I 
+understand their ISP is more like a programmable DSP than a fixed pipeline 
+ISP. I expect the driver they have published to hardcode the pipeline 
+programmed in a particular firmware and thus be specific to a limited number 
+of devices. Given the amount of work required to get the code in shape, and 
+given that reusability would be very limited if my assumptions are correct, I 
+don't really see this happening unless you can find a motivated developer with 
+way too much free time.
+
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
