@@ -1,141 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:45287 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754942AbbAPMGC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2015 07:06:02 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id CDA5D2A002F
-	for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 13:05:43 +0100 (CET)
-Message-ID: <54B8FE97.3040606@xs4all.nl>
-Date: Fri, 16 Jan 2015 13:05:43 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.20] Fixes, cleanups, improvements
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:55125 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756799AbbAFVJN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:13 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 03/20] cx231xx: add media controller support
+Date: Tue,  6 Jan 2015 19:08:34 -0200
+Message-Id: <fa927b6207391e52a106c170939968b3a0a885ab.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Let's add media controller support for this driver and register it
+for both V4L and DVB.
 
-This pull request contains various fixes, cleanups and improvements.
+The media controller on this driver is not mandatory, as it can fully
+work without it. So, if the media controller register fails, just print
+an error message, but proceed with device registering.
 
-The only notable change is the addition of unpacking and logging functions
-for InfoFrames to drivers/video/hdmi.c. Thierry was OK with taking this via
-the media tree (http://www.spinics.net/lists/linux-media/msg84655.html) and
-Acked all patches touching hdmi.c/h.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Regards,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index ae05d591f228..7e1c73a5172d 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -912,9 +912,6 @@ static inline void cx231xx_set_model(struct cx231xx *dev)
+  */
+ void cx231xx_pre_card_setup(struct cx231xx *dev)
+ {
+-
+-	cx231xx_set_model(dev);
+-
+ 	dev_info(dev->dev, "Identified as %s (card=%d)\n",
+ 		dev->board.name, dev->model);
+ 
+@@ -1092,6 +1089,17 @@ void cx231xx_config_i2c(struct cx231xx *dev)
+ 	call_all(dev, video, s_stream, 1);
+ }
+ 
++static void cx231xx_unregister_media_device(struct cx231xx *dev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	if (dev->media_dev) {
++		media_device_unregister(dev->media_dev);
++		kfree(dev->media_dev);
++		dev->media_dev = NULL;
++	}
++#endif
++}
++
+ /*
+  * cx231xx_realease_resources()
+  * unregisters the v4l2,i2c and usb devices
+@@ -1099,6 +1107,8 @@ void cx231xx_config_i2c(struct cx231xx *dev)
+ */
+ void cx231xx_release_resources(struct cx231xx *dev)
+ {
++	cx231xx_unregister_media_device(dev);
++
+ 	cx231xx_release_analog_resources(dev);
+ 
+ 	cx231xx_remove_from_devlist(dev);
+@@ -1117,6 +1127,38 @@ void cx231xx_release_resources(struct cx231xx *dev)
+ 	clear_bit(dev->devno, &cx231xx_devused);
+ }
+ 
++static void cx231xx_media_device_register(struct cx231xx *dev,
++					  struct usb_device *udev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev;
++	int ret;
++
++	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	if (!mdev)
++		return;
++
++	mdev->dev = dev->dev;
++	strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
++	if (udev->serial)
++		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
++	strcpy(mdev->bus_info, udev->devpath);
++	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
++	mdev->driver_version = LINUX_VERSION_CODE;
++
++	ret = media_device_register(mdev);
++	if (ret) {
++		dev_err(dev->dev,
++			"Couldn't create a media device. Error: %d\n",
++			ret);
++		kfree(mdev);
++		return;
++	}
++
++	dev->media_dev = mdev;
++#endif
++}
++
+ /*
+  * cx231xx_init_dev()
+  * allocates and inits the device structs, registers i2c bus and v4l device
+@@ -1225,10 +1267,8 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 	}
+ 
+ 	retval = cx231xx_register_analog_devices(dev);
+-	if (retval) {
+-		cx231xx_release_analog_resources(dev);
++	if (retval)
+ 		goto err_analog;
+-	}
+ 
+ 	cx231xx_ir_init(dev);
+ 
+@@ -1236,6 +1276,8 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 
+ 	return 0;
+ err_analog:
++	cx231xx_unregister_media_device(dev);
++	cx231xx_release_analog_resources(dev);
+ 	cx231xx_remove_from_devlist(dev);
+ err_dev_init:
+ 	cx231xx_dev_uninit(dev);
+@@ -1437,6 +1479,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	dev->video_mode.alt = -1;
+ 	dev->dev = d;
+ 
++	cx231xx_set_model(dev);
++
+ 	dev->interface_count++;
+ 	/* reset gpio dir and value */
+ 	dev->gpio_dir = 0;
+@@ -1501,7 +1545,11 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	/* save our data pointer in this interface device */
+ 	usb_set_intfdata(interface, dev);
+ 
++	/* Register the media controller */
++	cx231xx_media_device_register(dev, udev);
++
+ 	/* Create v4l2 device */
++	dev->v4l2_dev.mdev = dev->media_dev;
+ 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
+ 	if (retval) {
+ 		dev_err(d, "v4l2_device_register failed\n");
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index dd600b994e69..05d21b9f30d8 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -455,6 +455,7 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 
+ 	mutex_init(&dvb->lock);
+ 
++
+ 	/* register adapter */
+ 	result = dvb_register_adapter(&dvb->adapter, dev->name, module, device,
+ 				      adapter_nr);
+@@ -465,6 +466,8 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 		goto fail_adapter;
+ 	}
+ 
++	dvb->adapter.mdev = dev->media_dev;
++
+ 	/* Ensure all frontends negotiate bus access */
+ 	dvb->frontend->ops.ts_bus_ctrl = cx231xx_dvb_bus_ctrl;
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 6d6f3ee812f6..af9d6c4041dc 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -658,6 +658,10 @@ struct cx231xx {
+ 	struct video_device *vbi_dev;
+ 	struct video_device *radio_dev;
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_device *media_dev;
++#endif
++
+ 	unsigned char eedata[256];
+ 
+ 	struct cx231xx_video_mode video_mode;
+-- 
+2.1.0
 
-	Hans
-
-The following changes since commit 99f3cd52aee21091ce62442285a68873e3be833f:
-
-  [media] vb2-vmalloc: Protect DMA-specific code by #ifdef CONFIG_HAS_DMA (2014-12-23 16:28:09 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.20a
-
-for you to fetch changes up to 2f45da9e0a1b198a99b6e92486a85311920e799d:
-
-  adv7842: simplify InfoFrame logging (2015-01-16 12:54:55 +0100)
-
-----------------------------------------------------------------
-Asaf Vertz (1):
-      media: stb0899_drv: use time_after()
-
-Dan Carpenter (1):
-      coda: improve safety in coda_register_device()
-
-Fabian Frederick (2):
-      tw68: remove unnecessary version.h inclusion
-      vivid: remove unnecessary version.h inclusion
-
-Fabio Estevam (2):
-      coda: coda-common: Remove mx53 entry from coda_platform_ids
-      adv7180: Remove the unneeded 'err' label
-
-Hans Verkuil (3):
-      videobuf: make unused exported functions static
-      hdmi: add new HDMI 2.0 defines
-      hdmi: rename HDMI_AUDIO_CODING_TYPE_EXT_STREAM to _EXT_CT
-
-Ismael Luceno (4):
-      solo6x10: s/unsigned char/u8/
-      solo6x10: Fix eeprom_* functions buffer's type
-      solo6x10: Fix solo_eeprom_read retval type
-      solo6x10: s/uint8_t/u8/
-
-Julia Lawall (4):
-      au0828: Use setup_timer
-      s2255drv: Use setup_timer
-      usbvision: Use setup_timer
-      pvrusb2: Use setup_timer
-
-Martin Bugge (2):
-      hdmi: added unpack and logging functions for InfoFrames
-      adv7842: simplify InfoFrame logging
-
-Ondrej Zary (3):
-      bttv: Convert to generic TEA575x interface
-      tea575x: split and export functions
-      bttv: Improve TEA575x support
-
-Prabhakar Lad (1):
-      media: Kconfig: drop duplicate dependency of HAS_DMA
-
-Rickard Strandqvist (7):
-      media: radio: wl128x: fmdrv_rx.c: Remove unused function
-      media: i2c: adv7604.c: Remove some unused functions
-      media: pci: mantis: mantis_core.c: Remove unused function
-      media: pci: saa7134: saa7134-video.c: Remove unused function
-      media: platform: vsp1: vsp1_hsit: Remove unused function
-      media: i2c: adv7604: Remove some unused functions
-      usb: pvrusb2: pvrusb2-hdw: Remove unused function
-
-Wolfram Sang (1):
-      staging: media: bcm2048: Remove obsolete cleanup for clientdata
-
- drivers/media/dvb-frontends/stb0899_drv.c      |   7 +-
- drivers/media/i2c/Kconfig                      |   1 +
- drivers/media/i2c/adv7180.c                    |   7 +-
- drivers/media/i2c/adv7604.c                    |  76 --------
- drivers/media/i2c/adv7842.c                    | 184 +++++-------------
- drivers/media/i2c/ths8200.c                    |  10 -
- drivers/media/pci/bt8xx/Kconfig                |   3 +
- drivers/media/pci/bt8xx/bttv-cards.c           | 317 +++++++++++-------------------
- drivers/media/pci/bt8xx/bttv-driver.c          |  37 +++-
- drivers/media/pci/bt8xx/bttvp.h                |  14 +-
- drivers/media/pci/mantis/mantis_core.c         |  23 ---
- drivers/media/pci/saa7134/saa7134-video.c      |   5 -
- drivers/media/pci/solo6x10/solo6x10-core.c     |   4 +-
- drivers/media/pci/solo6x10/solo6x10-eeprom.c   |   2 +-
- drivers/media/pci/solo6x10/solo6x10-enc.c      |   6 +-
- drivers/media/pci/solo6x10/solo6x10-g723.c     |   4 +-
- drivers/media/pci/solo6x10/solo6x10-jpeg.h     |   4 +-
- drivers/media/pci/solo6x10/solo6x10-tw28.c     |   4 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c |  18 +-
- drivers/media/pci/solo6x10/solo6x10.h          |   4 +-
- drivers/media/pci/tw68/tw68.h                  |   1 -
- drivers/media/platform/Kconfig                 |   1 -
- drivers/media/platform/coda/coda-common.c      |   6 +-
- drivers/media/platform/vivid/vivid-tpg.h       |   1 -
- drivers/media/platform/vsp1/vsp1_hsit.c        |   5 -
- drivers/media/radio/tea575x.c                  |  41 +++-
- drivers/media/radio/wl128x/fmdrv_rx.c          |  16 --
- drivers/media/radio/wl128x/fmdrv_rx.h          |   1 -
- drivers/media/usb/au0828/au0828-video.c        |  11 +-
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c        |  31 +--
- drivers/media/usb/pvrusb2/pvrusb2-hdw.h        |   3 -
- drivers/media/usb/s2255/s2255drv.c             |   4 +-
- drivers/media/usb/usbvision/usbvision-core.c   |   5 +-
- drivers/media/v4l2-core/videobuf-dma-sg.c      |  15 +-
- drivers/staging/media/bcm2048/radio-bcm2048.c  |   2 -
- drivers/video/hdmi.c                           | 822 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- include/linux/hdmi.h                           |  37 +++-
- include/media/tea575x.h                        |   5 +
- include/media/videobuf-dma-sg.h                |   8 -
- 39 files changed, 1144 insertions(+), 601 deletions(-)
