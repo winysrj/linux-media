@@ -1,72 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:43522 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755294AbbAWLHu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 06:07:50 -0500
-Date: Fri, 23 Jan 2015 11:07:47 +0000
-From: Sean Young <sean@mess.org>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	m.szyprowski@samsung.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	thomas@tommie-lie.de, Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [RFC v2 3/7] cec: add new framework for cec support.
-Message-ID: <20150123110747.GA3084@gofer.mess.org>
-References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
- <1421942679-23609-4-git-send-email-k.debski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1421942679-23609-4-git-send-email-k.debski@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:54998 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756793AbbAFVJI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv3 14/20] dvbdev: add a function to create DVB media graph
+Date: Tue,  6 Jan 2015 19:08:45 -0200
+Message-Id: <df385f18a3f0617a2b74e749741141486f38c427.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 22, 2015 at 05:04:35PM +0100, Kamil Debski wrote:
-> Add the CEC framework.
--snip-
-> +Remote control handling
-> +-----------------------
-> +
-> +The CEC framework provides two ways of handling the key messages of remote
-> +control. In the first case, the CEC framework will handle these messages and
-> +provide the keypressed via the RC framework. In the second case the messages
-> +related to the key down/up events are not parsed by the framework and are
-> +passed to the userspace as raw messages.
-> +
-> +Switching between these modes is done with a special ioctl.
-> +
-> +#define CEC_G_KEY_PASSTHROUGH	_IOR('a', 10, __u8)
-> +#define CEC_S_KEY_PASSTHROUGH	_IOW('a', 11, __u8)
-> +#define CEC_KEY_PASSTHROUGH_DISABLE	0
-> +#define CEC_KEY_PASSTHROUGH_ENABLE	1
+We need to create a DVB graph, linking the several DVB devnodes.
 
-This is ugly. This ioctl stops keypresses from going to rc-core. The cec 
-device is still registered with rc-core but no keys will be passed to it. 
-This could also be handled by loading an empty keymap; this way the input 
-layer will still receive scancodes but no keypresses.
+Add such function. Please notice that this helper function
+doesn't take into account devices with multiple DVB adapters
+and frontends.
 
-> +static ssize_t cec_read(struct file *filp, char __user *buf,
-> +		size_t sz, loff_t *off)
-> +{
-> +	struct cec_devnode *cecdev = cec_devnode_data(filp);
-> +
-> +	if (!cec_devnode_is_registered(cecdev))
-> +		return -EIO;
-> +	return 0;
-> +}
-> +
-> +static ssize_t cec_write(struct file *filp, const char __user *buf,
-> +		size_t sz, loff_t *off)
-> +{
-> +	struct cec_devnode *cecdev = cec_devnode_data(filp);
-> +
-> +	if (!cec_devnode_is_registered(cecdev))
-> +		return -EIO;
-> +	return 0;
-> +}
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Both read and write do nothing; they should either -ENOSYS or the fuctions
-should be removed.
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 3aaffb319688..30acf97f4e4b 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -380,6 +380,51 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
+ }
+ EXPORT_SYMBOL(dvb_unregister_device);
+ 
++
++void dvb_create_media_graph(struct media_device *mdev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_entity *entity, *tuner = NULL, *fe = NULL;
++	struct media_entity *demux = NULL, *dvr = NULL, *ca = NULL;
++
++	if (!mdev)
++		return;
++
++	media_device_for_each_entity(entity, mdev) {
++		switch (entity->type) {
++		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
++			tuner = entity;
++			break;
++		case MEDIA_ENT_T_DEVNODE_DVB_FE:
++			fe = entity;
++			break;
++		case MEDIA_ENT_T_DEVNODE_DVB_DEMUX:
++			demux = entity;
++			break;
++		case MEDIA_ENT_T_DEVNODE_DVB_DVR:
++			dvr = entity;
++			break;
++		case MEDIA_ENT_T_DEVNODE_DVB_CA:
++			ca = entity;
++			break;
++		}
++	}
++
++	if (tuner && fe)
++		media_entity_create_link(tuner, 0, fe, 0, 0);
++
++	if (fe && demux)
++		media_entity_create_link(fe, 1, demux, 0, 0);
++
++	if (demux && dvr)
++		media_entity_create_link(demux, 1, dvr, 0, 0);
++
++	if (demux && ca)
++		media_entity_create_link(demux, 1, ca, 0, 0);
++#endif
++}
++EXPORT_SYMBOL_GPL(dvb_create_media_graph);
++
+ static int dvbdev_check_free_adapter_num(int num)
+ {
+ 	struct list_head *entry;
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index c037c2ff9f5a..3ee767449fff 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -122,6 +122,7 @@ extern int dvb_register_device (struct dvb_adapter *adap,
+ 				int type);
+ 
+ extern void dvb_unregister_device (struct dvb_device *dvbdev);
++void dvb_create_media_graph(struct media_device *mdev);
+ 
+ extern int dvb_generic_open (struct inode *inode, struct file *file);
+ extern int dvb_generic_release (struct inode *inode, struct file *file);
+-- 
+2.1.0
 
-
-Sean
