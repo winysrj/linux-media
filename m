@@ -1,75 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:39744 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095AbbAVQFH (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47525 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751539AbbAFNBt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 11:05:07 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NIL00J9F60HQP70@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 23 Jan 2015 01:05:05 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org
-Subject: [RFC v2 1/7] ARM: dts: add hdmi cec driver to exynos4412-odroidu3
-Date: Thu, 22 Jan 2015 17:04:33 +0100
-Message-id: <1421942679-23609-2-git-send-email-k.debski@samsung.com>
-In-reply-to: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
-References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
+	Tue, 6 Jan 2015 08:01:49 -0500
+Message-ID: <54ABDCB6.7070807@xs4all.nl>
+Date: Tue, 06 Jan 2015 14:01:42 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Florian Echtler <floe@butterbrot.org>
+CC: linux-input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] [Patch] implement video driver for sur40
+References: <5492D7E8.504@butterbrot.org> <5492E091.1060404@xs4all.nl> <54943680.3020007@butterbrot.org> <549437DA.6090601@xs4all.nl> <54943CC2.6040803@butterbrot.org> <549443C9.6090900@xs4all.nl> <alpine.DEB.2.02.1501061018580.3223@butterbrot> <54ABAC8C.6020401@xs4all.nl> <54ABB641.7050002@butterbrot.org> <54ABB79D.7010700@xs4all.nl> <54ABD08C.7010107@butterbrot.org>
+In-Reply-To: <54ABD08C.7010107@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree node for the s5p-cec hdmi CEC driver.
+On 01/06/2015 01:09 PM, Florian Echtler wrote:
+> On 06.01.2015 11:23, Hans Verkuil wrote:
+>> On 01/06/2015 11:17 AM, Florian Echtler wrote:
+>>>> You're not filling in the 'field' field of struct v4l2_buffer when returning a
+>>>> frame. It should most likely be FIELD_NONE in your case.
+>>>>>  		fail: v4l2-test-buffers.cpp(611): buf.check(q, last_seq)
+>>>>>  		fail: v4l2-test-buffers.cpp(884): captureBufs(node, q, m2m_q, frame_count, false)
+>>> OK, easy to fix. This will also influence the other two warnings, I assume?
+>> Most likely, yes.
+> Done. I would say that it's nearly ready for submission now (all tests
+> from v4l2-compliance -s pass), I still have to sort out all the warnings
+> from scripts/checkpatch.pl.
+> 
+>>>>> On a different note, I'm getting occasional warnings in syslog when I run 
+>>>>> a regular video streaming application (e.g. cheese):
+>>> Is there another possible explanation?
+>> No :-)
+>> You are still missing a buffer somewhere. I'd have to see your latest source code
+>> to see what's wrong.
+> Weirdly enough, the syslog warning/error doesn't seem to occur anymore
+> since I've fixed the v4l2_buffer field. Perhaps some oddity within cheese?
+> 
+> I'm attaching the current source again for you to maybe have another
+> look; I will submit a proper patch in the next days.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- arch/arm/boot/dts/exynos4412-odroid-common.dtsi |    7 +++++++
- arch/arm/boot/dts/exynos4412-odroidu3.dts       |   13 +++++++++++++
- 2 files changed, 20 insertions(+)
+Just a few quick remarks:
 
-diff --git a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-index 3fbf588..0aa6664 100644
---- a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-+++ b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-@@ -403,4 +403,11 @@
- 		samsung,pin-pud = <0>;
- 		samsung,pin-drv = <0>;
- 	};
-+
-+	hdmi_cec: hdmi-cec {
-+		samsung,pins = "gpx3-6";
-+		samsung,pin-function = <3>;
-+		samsung,pin-pud = <0>;
-+		samsung,pin-drv = <0>;
-+	};
- };
-diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-index c8a64be..934c9f8 100644
---- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
-+++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-@@ -31,6 +31,19 @@
- 			linux,default-trigger = "heartbeat";
- 		};
- 	};
-+
-+	hdmicec: cec@100B0000 {
-+		compatible = "samsung,s5p-cec";
-+		reg = <0x100B0000 0x200>;
-+		interrupts = <0 114 0>;
-+		clocks = <&clock CLK_HDMI_CEC>;
-+		clock-names = "hdmicec";
-+		samsung,syscon-phandle = <&pmu_system_controller>;
-+		cec-gpio = <&gpx3 6 0>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&hdmi_cec>;
-+		status = "okay";
-+	};
- };
- 
- &usb3503 {
--- 
-1.7.9.5
+- run scripts/checkpatch.pl over your source, I'm fairly certain it will complain
+  about several constructs.
+- use videobuf2-vmalloc instead of dma-contig. There is no DMA involved, so there
+  is no reason to use dma-contig.
+- Don't set V4L2_CAP_EXT_PIX_FORMAT in querycap: it will be set automatically by
+  the v4l2 core.
 
+Regards,
+
+	Hans
