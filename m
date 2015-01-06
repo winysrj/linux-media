@@ -1,88 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:50636 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754920AbbA0PnM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 10:43:12 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NIU009HCEIUF780@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 27 Jan 2015 15:47:18 +0000 (GMT)
-Message-id: <54C7B20D.4000103@samsung.com>
-Date: Tue, 27 Jan 2015 16:43:09 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: setting volatile v4l2-control
-References: <54C79385.2050702@samsung.com> <54C79D47.9090609@xs4all.nl>
-In-reply-to: <54C79D47.9090609@xs4all.nl>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:54975 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756715AbbAFVJI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv3 08/20] dvbdev: add pad for the DVB devnodes
+Date: Tue,  6 Jan 2015 19:08:39 -0200
+Message-Id: <217d062821f8c8377d59c8c548d09e0c404817dd.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/27/2015 03:14 PM, Hans Verkuil wrote:
-> On 01/27/15 14:32, Jacek Anaszewski wrote:
->> While testing the LED / flash API integration patches
->> I noticed that the v4l2-controls marked as volatile with
->> V4L2_CTRL_FLAG_VOLATILE flag behave differently than I would
->> expect.
->>
->> Let's consider following use case:
->>
->> There is a volatile V4L2_CID_FLASH_INTENSITY v4l2 control with
->> following constraints:
->>
->> min: 1
->> max: 100
->> step: 1
->> def: 1
->>
->> 1. Set the V4L2_CID_FLASH_INTENSITY control to 100.
->>      - as a result s_ctrl op is called
->> 2. Set flash_brightness LED sysfs attribute to 10.
->> 3. Set the V4L2_CID_FLASH_INTENSITY control to 100.
->>      - s_ctrl op isn't called
->>
->> This way we are unable to write a new value to the device, despite
->> that the related setting was changed from the LED subsystem level.
->>
->> I would expect that if a control is marked volatile, then
->> the v4l2-control framework should by default call g_volatile_ctrl
->> op before set and not try to use the cached value.
->>
->> Is there some vital reason for not doing this?
->
-> It's rather strange to have a writable volatile control. The semantics
-> of this are ambiguous and I don't believe we have ever used such controls
-> before.
->
-> Actually, the commit log of this patch (never merged) gives some
-> background information about this:
->
-> http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/commit/?h=volatilefix
->
-> It's never been merged because I have never been certain how to handle
-> such controls. Why do you have such controls in the first place? What
-> is it supposed to do?
+We want to represent the links between the several DVB devnodes,
+so let's create PADs for them.
 
-In case of integrated LED subsystem and V4L2 Flash API [1] a driver
-can be accessed from the level of either LED subsystem sysfs interface
-or v4l2-flash sub-device. Once the v4l2 sub-device is opened the LED
-subsystem sysfs interface is locked, but it gets released on sub-device
-closing. Since that moment the driver/device state can be changed
-through sysfs interface.
+The DVB net devnode is a different matter, as it is not related
+to the media stream, but with network. So, at least for now, let's
+not add any pad for it.
 
-When the sub-device is opened again it cannot be certain that the cached
-state of the controls reflects the actual state of the driver/device.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-That's why I made the shared settings volatile, maybe abusing the
-intended purpose of the related flags.
-
-[1] http://www.spinics.net/lists/linux-media/msg85351.html
-
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index d975cbb29705..1071d31b7f1d 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -184,7 +184,7 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 				      int type, int minor)
+ {
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	int ret;
++	int ret = 0, npads;
+ 
+ 	if (!dvbdev->adapter->mdev)
+ 		return;
+@@ -196,18 +196,46 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 	dvbdev->entity->info.dvb.major = DVB_MAJOR;
+ 	dvbdev->entity->info.dvb.minor = minor;
+ 	dvbdev->entity->name = dvbdev->name;
++
++	switch(type) {
++	case DVB_DEVICE_CA:
++	case DVB_DEVICE_DEMUX:
++		npads = 2;
++		break;
++	case DVB_DEVICE_NET:
++		npads = 0;
++		break;
++	default:
++		npads = 1;
++	}
++
++	if (npads) {
++		dvbdev->pads = kcalloc(npads, sizeof(*dvbdev->pads),
++				       GFP_KERNEL);
++		if (!dvbdev->pads) {
++			kfree(dvbdev->entity);
++			return;
++		}
++	}
++
+ 	switch(type) {
+ 	case DVB_DEVICE_FRONTEND:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+ 		break;
+ 	case DVB_DEVICE_DEMUX:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
++		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
+ 		break;
+ 	case DVB_DEVICE_DVR:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+ 		break;
+ 	case DVB_DEVICE_CA:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
++		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
+ 		break;
+ 	case DVB_DEVICE_NET:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
+@@ -218,11 +246,16 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 		return;
+ 	}
+ 
+-	ret = media_device_register_entity(dvbdev->adapter->mdev, dvbdev->entity);
++	if (npads)
++		ret = media_entity_init(dvbdev->entity, npads, dvbdev->pads, 0);
++	if (!ret)
++		ret = media_device_register_entity(dvbdev->adapter->mdev,
++						   dvbdev->entity);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR
+ 			"%s: media_device_register_entity failed for %s\n",
+ 			__func__, dvbdev->entity->name);
++		kfree(dvbdev->pads);
+ 		kfree(dvbdev->entity);
+ 		dvbdev->entity = NULL;
+ 		return;
+@@ -335,6 +368,7 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
+ 	if (dvbdev->entity) {
+ 		media_device_unregister_entity(dvbdev->entity);
+ 		kfree(dvbdev->entity);
++		kfree(dvbdev->pads);
+ 	}
+ #endif
+ 
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index ace8575975d8..c037c2ff9f5a 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -101,8 +101,9 @@ struct dvb_device {
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	const char *name;
+ 
+-	/* Filled inside dvbdev.c */
++	/* Allocated and filled inside dvbdev.c */
+ 	struct media_entity *entity;
++	struct media_pad *pads;
+ #endif
+ 
+ 	void *priv;
 -- 
-Best Regards,
-Jacek Anaszewski
+2.1.0
+
