@@ -1,98 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54972 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756734AbbAFVJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	linux-api@vger.kernel.org
-Subject: [PATCHv3 09/20] tuner-core: properly initialize media controller subdev
-Date: Tue,  6 Jan 2015 19:08:40 -0200
-Message-Id: <58826b3a683cac474935783286d7a4d0a5ef4e3a.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
+Received: from 200-90-17-86.genericrev.cantv.net ([200.90.17.86]:37939 "EHLO
+	correo.inavi.gob.ve" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1754526AbbAFJ7t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 04:59:49 -0500
+Date: Tue, 6 Jan 2015 03:59:24 -0430 (VET)
+From: Finance Department <comedor@inavi.gob.ve>
+Reply-To: Finance Department <defnce@qq.com>
+Message-ID: <517910090.1014478.1420532964611.JavaMail.zimbra@inavi.gob.ve>
+Subject: Payment
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Properly initialize tuner core subdev at the media controller.
+Dear Recipient,
 
-That requires a new subtype at the media controller API.
+You have been awarded the sum of  8,000,000.00 (Eight Million Pounds sterling) with reference number 77100146 by office of the ministry of finance UK.Send us your personal details to deliver your funds.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index 559f8372e2eb..9a83b27a7e8f 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -134,6 +134,9 @@ struct tuner {
- 	unsigned int        type; /* chip type id */
- 	void                *config;
- 	const char          *name;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_pad	pad;
-+#endif
- };
- 
- /*
-@@ -434,6 +437,8 @@ static void set_type(struct i2c_client *c, unsigned int type,
- 		t->name = analog_ops->info.name;
- 	}
- 
-+	t->sd.entity.name = t->name;
-+
- 	tuner_dbg("type set to %s\n", t->name);
- 
- 	t->mode_mask = new_mode_mask;
-@@ -592,6 +597,9 @@ static int tuner_probe(struct i2c_client *client,
- 	struct tuner *t;
- 	struct tuner *radio;
- 	struct tuner *tv;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	int ret;
-+#endif
- 
- 	t = kzalloc(sizeof(struct tuner), GFP_KERNEL);
- 	if (NULL == t)
-@@ -684,6 +692,18 @@ static int tuner_probe(struct i2c_client *client,
- 
- 	/* Should be just before return */
- register_client:
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	t->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
-+	t->sd.entity.name = t->name;
-+
-+	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
-+	if (ret < 0) {
-+		tuner_err("failed to initialize media entity!\n");
-+		kfree(t);
-+		return -ENODEV;
-+	}
-+#endif
- 	/* Sets a default mode */
- 	if (t->mode_mask & T_ANALOG_TV)
- 		t->mode = V4L2_TUNER_ANALOG_TV;
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 707db275f92b..5ffde035789b 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -66,6 +66,8 @@ struct media_device_info {
- /* A converter of analogue video to its digital representation. */
- #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
- 
-+#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
-+
- #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
- 
- struct media_entity_desc {
--- 
-2.1.0
-
+Gloria Peter
