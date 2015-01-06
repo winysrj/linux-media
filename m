@@ -1,56 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41504 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754149AbbAZMr1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 07:47:27 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 0/3] Media controller changes to support DVB
-Date: Mon, 26 Jan 2015 10:47:09 -0200
-Message-Id: <cover.1422273497.git.mchehab@osg.samsung.com>
+Received: from down.free-electrons.com ([37.187.137.238]:43061 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753053AbbAFLns (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 06:43:48 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	linux-kernel@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [RESEND PATCH v2] [media] Add RGB444_1X12 and RGB565_1X16 media bus formats
+Date: Tue,  6 Jan 2015 12:43:35 +0100
+Message-Id: <1420544615-18788-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series change the media controller API to allow adding
-support for DVB media controller support.
+Add RGB444_1X12 and RGB565_1X16 format definitions and update the
+documentation.
 
-I removed the actual implementation from this series, in order to
-better identify the API bits required to add media controller support
-to DVB. They'll be sent o a separate patch series, after we agree
-with the API needs.
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+Hi Mauro, Sakari,
 
-If this gets accepted, the other patches will be basically the ones
-already sent at:
-	https://www.mail-archive.com/linux-media@vger.kernel.org/msg83895.html
+This patch has been rejected as 'Not Applicable'.
+Is there anyting wrong in it ?
 
-With one small change at the patch that adds media controller support
-at dvbdev, replacing "info.dvb" by "info.dev", due to a change at the
-media controller's representation for all devnodes.
+Best Regards,
 
-As a reference, a typical analog/digital TV hardware looks like:
-	http://linuxtv.org/downloads/presentations/typical_hybrid_hardware.png
+Boris
 
-And the media controller representation for it is:
-	http://linuxtv.org/downloads/presentations/cx231xx.dot
-	http://linuxtv.org/downloads/presentations/cx231xx.ps
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 40 ++++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h              |  4 ++-
+ 2 files changed, 43 insertions(+), 1 deletion(-)
 
-The full patch series with the DVB controller implementation is at:
-	http://git.linuxtv.org/cgit.cgi/mchehab/experimental.git/log/?h=dvb-media-ctl
-
-Mauro Carvalho Chehab (3):
-  media: Fix ALSA and DVB representation at media controller API
-  media: add new types for DVB devnodes
-  media: add a subdev type for tuner
-
- drivers/media/v4l2-core/v4l2-dev.c    |  4 ++--
- drivers/media/v4l2-core/v4l2-device.c |  4 ++--
- include/media/media-entity.h          | 12 +-----------
- include/uapi/linux/media.h            | 26 +++++++++++++++++++++++++-
- 4 files changed, 30 insertions(+), 16 deletions(-)
-
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index c5ea868..be57efa 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -192,6 +192,24 @@ see <xref linkend="colorspaces" />.</entry>
+ 	    </row>
+ 	  </thead>
+ 	  <tbody valign="top">
++	    <row id="MEDIA-BUS-FMT-RGB444-1X12">
++	      <entry>MEDIA_BUS_FMT_RGB444_1X12</entry>
++	      <entry>0x100d</entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>r<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>b<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="MEDIA-BUS-FMT-RGB444-2X8-PADHI-BE">
+ 	      <entry>MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE</entry>
+ 	      <entry>0x1001</entry>
+@@ -304,6 +322,28 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>g<subscript>4</subscript></entry>
+ 	      <entry>g<subscript>3</subscript></entry>
+ 	    </row>
++	    <row id="MEDIA-BUS-FMT-RGB565-1X16">
++	      <entry>MEDIA_BUS_FMT_RGB565_1X16</entry>
++	      <entry>0x100d</entry>
++	      <entry></entry>
++	      &dash-ent-16;
++	      <entry>r<subscript>4</subscript></entry>
++	      <entry>r<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	      <entry>b<subscript>4</subscript></entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>b<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="MEDIA-BUS-FMT-BGR565-2X8-BE">
+ 	      <entry>MEDIA_BUS_FMT_BGR565_2X8_BE</entry>
+ 	      <entry>0x1005</entry>
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 23b4090..37091c6 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -33,11 +33,13 @@
+ 
+ #define MEDIA_BUS_FMT_FIXED			0x0001
+ 
+-/* RGB - next is	0x100e */
++/* RGB - next is	0x1010 */
++#define MEDIA_BUS_FMT_RGB444_1X12		0x100e
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+ #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
+ #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE	0x1004
++#define MEDIA_BUS_FMT_RGB565_1X16		0x100f
+ #define MEDIA_BUS_FMT_BGR565_2X8_BE		0x1005
+ #define MEDIA_BUS_FMT_BGR565_2X8_LE		0x1006
+ #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
 -- 
-2.1.0
+1.9.1
 
