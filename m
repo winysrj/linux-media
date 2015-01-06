@@ -1,98 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:57312 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752393AbbASOKF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 09:10:05 -0500
-Received: by mail-wg0-f47.google.com with SMTP id n12so1879313wgh.6
-        for <linux-media@vger.kernel.org>; Mon, 19 Jan 2015 06:10:03 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20150119123212.GA33475@shambles.windy>
-References: <20150119123212.GA33475@shambles.windy>
-Date: Mon, 19 Jan 2015 15:10:03 +0100
-Message-ID: <CAPx3zdQnvc7g1Z=bORWoCodV0E_-fUdvAwPsvvLne1Fj=z9N8g@mail.gmail.com>
-Subject: Re: build failure on ubuntu 14.04.1 LTS
-From: Francesco Other <francesco.other@gmail.com>
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:54978 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756785AbbAFVJI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv3 11/20] cx231xx: initialize video/vbi pads
+Date: Tue,  6 Jan 2015 19:08:42 -0200
+Message-Id: <a5936ea965f4d7db9f1b37b390dd838882c61990.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vincent,
+Both video and vbi are sink pads. Initialize them as such.
 
-you may use this workaround, I have the same problem:
-https://github.com/ljalves/linux_media/issues/68
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Reagrds
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index ecea76fe07f6..f3d1a488dfa7 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -2121,7 +2121,12 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
+ 		dev_err(dev->dev, "cannot allocate video_device.\n");
+ 		return -ENODEV;
+ 	}
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&dev->vdev->entity, 1, &dev->video_pad, 0);
++	if (ret < 0)
++		dev_err(dev->dev, "failed to initialize video media entity!\n");
++#endif
+ 	dev->vdev->ctrl_handler = &dev->ctrl_handler;
+ 	/* register v4l2 video video_device */
+ 	ret = video_register_device(dev->vdev, VFL_TYPE_GRABBER,
+@@ -2147,6 +2152,12 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
+ 		dev_err(dev->dev, "cannot allocate video_device.\n");
+ 		return -ENODEV;
+ 	}
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&dev->vbi_dev->entity, 1, &dev->vbi_pad, 0);
++	if (ret < 0)
++		dev_err(dev->dev, "failed to initialize vbi media entity!\n");
++#endif
+ 	dev->vbi_dev->ctrl_handler = &dev->ctrl_handler;
+ 	/* register v4l2 vbi video_device */
+ 	ret = video_register_device(dev->vbi_dev, VFL_TYPE_VBI,
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index af9d6c4041dc..e0d3106f6b44 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -660,6 +660,7 @@ struct cx231xx {
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct media_device *media_dev;
++	struct media_pad video_pad, vbi_pad;
+ #endif
+ 
+ 	unsigned char eedata[256];
+-- 
+2.1.0
 
-Francesco
-
-
-2015-01-19 13:32 GMT+01:00 Vincent McIntyre <vincent.mcintyre@gmail.com>:
-> Hi
->
-> I am seeing build failures since 11 January.
-> A build I did on 22 December worked fine.
-> My build procedure and the error are shown below.
->
-> $ cat /etc/lsb-release
-> DISTRIB_ID=Ubuntu
-> DISTRIB_RELEASE=14.04
-> DISTRIB_CODENAME=trusty
-> DISTRIB_DESCRIPTION="Ubuntu 14.04.1 LTS"
-> $ uname -a
-> Linux ubuntu 3.13.0-37-generic #64-Ubuntu SMP Mon Sep 22 21:30:01 UTC 2014 i686 i686 i686 GNU/Linux
-> $ make distclean
-> $ rm v4l/.config
-> $ git pull
-> $ git log |head
-> commit de98549b53c938b44f578833fe8440b92f4a8c64
-> Author: Hans Verkuil <hans.verkuil@cisco.com>
-> Date:   Mon Jan 12 10:53:27 2015 +0100
->
->     Update v3.11_dev_groups.patch
->
->     Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->
-> commit 3886d538f89948d49b652465e0d52e6e9a7329ab
-> Author: Hans Verkuil <hans.verkuil@cisco.com>
->
-> $ ./build --main-git
-> ...
->   CC [M]  /home/me/git/clones/media_build/v4l/smiapp-core.o
-> /home/me/git/clones/media_build/v4l/smiapp-core.c: In function 'smiapp_get_pdata':
-> /home/me/git/clones/media_build/v4l/smiapp-core.c:3061:3: error: implicit declaration of function 'of_read_number' [-Werror=implicit-function-declaration]
->    pdata->op_sys_clock[i] = of_read_number(val + i * 2, 2);
->    ^
-> cc1: some warnings being treated as errors
-> make[3]: *** [/home/me/git/clones/media_build/v4l/smiapp-core.o] Error 1
-> make[2]: *** [_module_/home/me/git/clones/media_build/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-headers-3.13.0-37-generic'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/me/git/clones/media_build/v4l'
-> make: *** [all] Error 2
-> build failed at ./build line 491, <IN> line 4.
->
-> $ grep -ilr "implicit-function-declaration" . |grep -v o.cmd
-> ./media/tools/thermal/tmon/Makefile
-> ./media/arch/parisc/math-emu/Makefile
-> ./media/Makefile
->
-> It's not clear to me whether this a problem with the media_tree code
-> or the media_build code.
->
-> media/Makefile contains this definition
->
-> KBUILD_CFLAGS := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
->                  -fno-strict-aliasing -fno-common \
->                  -Werror-implicit-function-declaration \
->                  -Wno-format-security \
->                  -std=gnu89
->
-> Regards
-> Vince
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
