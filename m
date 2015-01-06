@@ -1,73 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:41974 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753928AbbAVWU5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 17:20:57 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 10/15] media: blackfin: bfin_capture: return -ENODATA for *std calls
-Date: Thu, 22 Jan 2015 22:18:43 +0000
-Message-Id: <1421965128-10470-11-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:54996 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756792AbbAFVJI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv3 06/20] dvb_ca_en50221: add support for CA node at the media controller
+Date: Tue,  6 Jan 2015 19:08:37 -0200
+Message-Id: <b82f4e25317c4ecfa1dee7e6b93c7f0d7e06a286.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch adds supports to return -ENODATA to *_std calls
-if the selected output does not support it.
+Make the dvb core CA support aware of the media controller and
+register the corresponding devices.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 57f3b8c..6b38e63 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -441,6 +441,11 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
- static int bcap_querystd(struct file *file, void *priv, v4l2_std_id *std)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_input input;
-+
-+	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
-+	if (!(input.capabilities & V4L2_IN_CAP_STD))
-+		return -ENODATA;
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 0aac3096728e..22258e15baa9 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -1638,15 +1638,17 @@ static const struct file_operations dvb_ca_fops = {
+ 	.llseek = noop_llseek,
+ };
  
- 	return v4l2_subdev_call(bcap_dev->sd, video, querystd, std);
- }
-@@ -448,6 +453,11 @@ static int bcap_querystd(struct file *file, void *priv, v4l2_std_id *std)
- static int bcap_g_std(struct file *file, void *priv, v4l2_std_id *std)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_input input;
-+
-+	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
-+	if (!(input.capabilities & V4L2_IN_CAP_STD))
-+		return -ENODATA;
+-static struct dvb_device dvbdev_ca = {
++static const struct dvb_device dvbdev_ca = {
+ 	.priv = NULL,
+ 	.users = 1,
+ 	.readers = 1,
+ 	.writers = 1,
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	.name = "ca_en50221",
++#endif
+ 	.fops = &dvb_ca_fops,
+ };
  
- 	*std = bcap_dev->std;
- 	return 0;
-@@ -456,8 +466,13 @@ static int bcap_g_std(struct file *file, void *priv, v4l2_std_id *std)
- static int bcap_s_std(struct file *file, void *priv, v4l2_std_id std)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_input input;
- 	int ret;
- 
-+	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
-+	if (!(input.capabilities & V4L2_IN_CAP_STD))
-+		return -ENODATA;
-+
- 	if (vb2_is_busy(&bcap_dev->buffer_queue))
- 		return -EBUSY;
+-
+ /* ******************************************************************************** */
+ /* Initialisation/shutdown functions */
  
 -- 
 2.1.0
