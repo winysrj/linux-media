@@ -1,63 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:55510 "EHLO
-	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754031AbbA2QTw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 11:19:52 -0500
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: RFC: supporting adv7604.c under soc_camera/rcar_vin
-Date: Thu, 29 Jan 2015 16:19:40 +0000
-Message-Id: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
+Received: from bombadil.infradead.org ([198.137.202.9]:54974 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754645AbbAFVJI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv3 12/20] cx231xx: create media links for analog mode
+Date: Tue,  6 Jan 2015 19:08:43 -0200
+Message-Id: <883e1fda80794ac1ef627c358b967316c7dd2878.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  The following constitutes parts of our rcar_vin development branch
-beyond the update to our hotfixes published earlier this month.
-Similarly, these patches are intended to the mainline 3.18 kernel.
-Further development is required, but we would like to highlight the
-following issues and discuss them before completing the work.
+Now that we have entities and pads, let's create media links
+between them, for analog setup.
 
-1. Our internal review has noted that our use of v4l2_subdev_has_op()
-is not yet ideal (but but does suffice for the purposes of generating
-images as-is). These tests are intended to detect whether or not a
-camera whose driver is aware of the pad API is present or not, and
-ensure we interact with subdevices accordingly. We think we should be
-iterating around all camera(s), and testing each subdevice link in
-turn. Is this sound, or is there a better way?
+We may not have all the links for digital yet, as the dvb extention
+may not be loaded yet.
 
-2. Our second problem regards the supported formats list in adv7604.c,
-which needs further attention. We believe that having entries that go
-on to be rejected by rcar_vin_get_formats() may trigger a failure to
-initialise cleanly. Workaround code is marked "Ian Hack"; we intend to
-remove this and the list entries that cause this issue.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-3. Our third problem concerns detecting the resolution of the stream.
-Our code works with the obsoleted driver (adv761x.c) in place, but with
-our modifications to adv7604.c we have seen a) recovery of a 640x480
-image which is cropped rather than scaled, and/or b) recovery of a
-2048x2048 image with the stream content in the top left corner. We
-think we understand the former problem, but the latter seems to be
-caused by full initialisation of the 'struct v4l2_subdev_format
-sd_format' variable, and we only have a partial solution [included
-as patch 4/8] so far. Of particular concern here is that potential
-consequences of changes in this particular patch are not clear.
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 7e1c73a5172d..5cc4efcf82d6 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1159,6 +1159,42 @@ static void cx231xx_media_device_register(struct cx231xx *dev,
+ #endif
+ }
+ 
++static void cx231xx_create_media_graph(struct cx231xx *dev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev = dev->media_dev;
++	struct media_entity *entity;
++	struct media_entity *tuner = NULL, *decoder = NULL;
++
++	if (!mdev)
++		return;
++
++	media_device_for_each_entity(entity, mdev) {
++		switch (entity->type) {
++		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
++			tuner = entity;
++			break;
++		case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
++			decoder = entity;
++			break;
++		}
++	}
++
++	/* Analog setup, using tuner as a link */
++
++	if (!decoder)
++		return;
++
++	if (tuner)
++		media_entity_create_link(tuner, 0, decoder, 0,
++					 MEDIA_LNK_FL_ENABLED);
++	media_entity_create_link(decoder, 1, &dev->vdev->entity, 0,
++				 MEDIA_LNK_FL_ENABLED);
++	media_entity_create_link(decoder, 2, &dev->vbi_dev->entity, 0,
++				 MEDIA_LNK_FL_ENABLED);
++#endif
++}
++
+ /*
+  * cx231xx_init_dev()
+  * allocates and inits the device structs, registers i2c bus and v4l device
+@@ -1615,6 +1651,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	/* load other modules required */
+ 	request_modules(dev);
+ 
++	cx231xx_create_media_graph(dev);
++
+ 	return 0;
+ err_video_alt:
+ 	/* cx231xx_uninit_dev: */
+-- 
+2.1.0
 
-
-  Any advice would be appreciated, particularly regarding the first and
-last point above.
-
-Cheers,
-  Wills.
-
-  Associated patches:
-	[PATCH 1/8] Add ability to read default input port from DT
-	[PATCH 2/8] adv7604.c: formats, default colourspace, and IRQs
-	[PATCH 3/8] WmT: document "adi,adv7612"
-	[PATCH 4/8] WmT: m-5mols_core style pad handling for adv7604
-	[PATCH 5/8] media: rcar_vin: Add RGB888_1X24 input format support
-	[PATCH 6/8] WmT: adv7604 driver compatibility
-	[PATCH 7/8] WmT: rcar_vin new ADV7612 support
-	[PATCH 8/8] WmT: dts/i vin0/adv7612 (HDMI)
