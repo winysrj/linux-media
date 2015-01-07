@@ -1,291 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36778 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758547AbbA0NKJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 08:10:09 -0500
-Date: Tue, 27 Jan 2015 11:10:04 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 05/66] rtl2830: convert driver to kernel I2C model
-Message-ID: <20150127111004.795c40ca@recife.lan>
-In-Reply-To: <1419367799-14263-5-git-send-email-crope@iki.fi>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
-	<1419367799-14263-5-git-send-email-crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:62580 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753063AbbAGNVP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 08:21:15 -0500
+Received: by mail-pa0-f46.google.com with SMTP id lf10so4867135pab.5
+        for <linux-media@vger.kernel.org>; Wed, 07 Jan 2015 05:21:14 -0800 (PST)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH v2 4/4] dvb: earth-pt3: use dvb-core i2c binding model template
+Date: Wed,  7 Jan 2015 22:20:44 +0900
+Message-Id: <1420636844-32553-5-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1420636844-32553-1-git-send-email-tskd08@gmail.com>
+References: <1420636844-32553-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 23 Dec 2014 22:48:58 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-> Convert driver to kernel I2C model. Old DVB proprietary model is
-> still left there also.
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/dvb-frontends/Kconfig        |   2 +-
->  drivers/media/dvb-frontends/rtl2830.c      | 167 +++++++++++++++++++++++++++++
->  drivers/media/dvb-frontends/rtl2830.h      |  31 ++++++
->  drivers/media/dvb-frontends/rtl2830_priv.h |   2 +
->  4 files changed, 201 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-> index 6c75418..e8827fc 100644
-> --- a/drivers/media/dvb-frontends/Kconfig
-> +++ b/drivers/media/dvb-frontends/Kconfig
-> @@ -443,7 +443,7 @@ config DVB_CXD2820R
->  
->  config DVB_RTL2830
->  	tristate "Realtek RTL2830 DVB-T"
-> -	depends on DVB_CORE && I2C
-> +	depends on DVB_CORE && I2C && I2C_MUX
->  	default m if !MEDIA_SUBDRV_AUTOSELECT
->  	help
->  	  Say Y when you want to support this frontend.
-> diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-> index 50e8b63..ec4a19c 100644
-> --- a/drivers/media/dvb-frontends/rtl2830.c
-> +++ b/drivers/media/dvb-frontends/rtl2830.c
-> @@ -767,6 +767,173 @@ static struct dvb_frontend_ops rtl2830_ops = {
->  	.read_signal_strength = rtl2830_read_signal_strength,
->  };
->  
-> +/*
-> + * I2C gate/repeater logic
-> + * We must use unlocked i2c_transfer() here because I2C lock is already taken
-> + * by tuner driver. Gate is closed automatically after single I2C xfer.
-> + */
-> +static int rtl2830_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
-> +{
-> +	struct i2c_client *client = mux_priv;
-> +	struct rtl2830_priv *priv = i2c_get_clientdata(client);
-> +	struct i2c_msg select_reg_page_msg[1] = {
-> +		{
-> +			.addr = priv->cfg.i2c_addr,
-> +			.flags = 0,
-> +			.len = 2,
-> +			.buf = "\x00\x01",
-> +		}
-> +	};
-> +	struct i2c_msg gate_open_msg[1] = {
-> +		{
-> +			.addr = priv->cfg.i2c_addr,
-> +			.flags = 0,
-> +			.len = 2,
-> +			.buf = "\x01\x08",
-> +		}
-> +	};
-> +	int ret;
-> +
-> +	/* select register page */
-> +	ret = __i2c_transfer(adap, select_reg_page_msg, 1);
-> +	if (ret != 1) {
-> +		dev_warn(&client->dev, "i2c write failed %d\n", ret);
-> +		if (ret >= 0)
-> +			ret = -EREMOTEIO;
-> +		goto err;
-> +	}
-> +
-> +	priv->page = 1;
-> +
-> +	/* open tuner I2C repeater for 1 xfer, closes automatically */
-> +	ret = __i2c_transfer(adap, gate_open_msg, 1);
-> +	if (ret != 1) {
-> +		dev_warn(&client->dev, "i2c write failed %d\n", ret);
-> +		if (ret >= 0)
-> +			ret = -EREMOTEIO;
-> +		goto err;
-> +	}
-> +
-> +	return 0;
-> +
-> +err:
-> +	dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
-> +	return ret;
-> +}
-> +
-> +static struct dvb_frontend *rtl2830_get_dvb_frontend(struct i2c_client *client)
-> +{
-> +	struct rtl2830_priv *priv = i2c_get_clientdata(client);
-> +
-> +	dev_dbg(&client->dev, "\n");
-> +
-> +	return &priv->fe;
-> +}
-> +
-> +static struct i2c_adapter *rtl2830_get_i2c_adapter(struct i2c_client *client)
-> +{
-> +	struct rtl2830_priv *priv = i2c_get_clientdata(client);
-> +
-> +	dev_dbg(&client->dev, "\n");
-> +
-> +	return priv->adapter;
-> +}
-> +
-> +static int rtl2830_probe(struct i2c_client *client,
-> +		const struct i2c_device_id *id)
-> +{
-> +	struct rtl2830_platform_data *pdata = client->dev.platform_data;
-> +	struct i2c_adapter *i2c = client->adapter;
-> +	struct rtl2830_priv *priv;
-> +	int ret;
-> +	u8 u8tmp;
-> +
-> +	dev_dbg(&client->dev, "\n");
-> +
-> +	if (pdata == NULL) {
-> +		ret = -EINVAL;
-> +		goto err;
-> +	}
-> +
-> +	/* allocate memory for the internal state */
-> +	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-> +	if (priv == NULL) {
-> +		ret = -ENOMEM;
-> +		goto err;
-> +	}
-> +
-> +	/* setup the state */
-> +	i2c_set_clientdata(client, priv);
-> +	priv->i2c = i2c;
-> +	priv->sleeping = true;
-> +	priv->cfg.i2c_addr = client->addr;
-> +	priv->cfg.xtal = pdata->clk;
-> +	priv->cfg.spec_inv = pdata->spec_inv;
-> +	priv->cfg.vtop = pdata->vtop;
-> +	priv->cfg.krf = pdata->krf;
-> +	priv->cfg.agc_targ_val = pdata->agc_targ_val;
-> +
-> +	/* check if the demod is there */
-> +	ret = rtl2830_rd_reg(priv, 0x000, &u8tmp);
-> +	if (ret)
-> +		goto err_kfree;
-> +
-> +	/* create muxed i2c adapter for tuner */
-> +	priv->adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
-> +			client, 0, 0, 0, rtl2830_select, NULL);
-> +	if (priv->adapter == NULL) {
-> +		ret = -ENODEV;
-> +		goto err_kfree;
-> +	}
-> +
-> +	/* create dvb frontend */
-> +	memcpy(&priv->fe.ops, &rtl2830_ops, sizeof(priv->fe.ops));
-> +	priv->fe.ops.release = NULL;
-> +	priv->fe.demodulator_priv = priv;
-> +
-> +	/* setup callbacks */
-> +	pdata->get_dvb_frontend = rtl2830_get_dvb_frontend;
-> +	pdata->get_i2c_adapter = rtl2830_get_i2c_adapter;
-> +
-> +	dev_info(&client->dev, "Realtek RTL2830 successfully attached\n");
-> +	return 0;
-> +
-> +err_kfree:
-> +	kfree(priv);
-> +err:
-> +	dev_dbg(&client->dev, "failed=%d\n", ret);
-> +	return ret;
-> +}
-> +
-> +static int rtl2830_remove(struct i2c_client *client)
-> +{
-> +	struct rtl2830_priv *priv = i2c_get_clientdata(client);
-> +
-> +	dev_dbg(&client->dev, "\n");
-> +
-> +	i2c_del_mux_adapter(priv->adapter);
-> +	kfree(priv);
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id rtl2830_id_table[] = {
-> +	{"rtl2830", 0},
-> +	{}
-> +};
-> +MODULE_DEVICE_TABLE(i2c, rtl2830_id_table);
-> +
-> +static struct i2c_driver rtl2830_driver = {
-> +	.driver = {
-> +		.owner	= THIS_MODULE,
-> +		.name	= "rtl2830",
-> +	},
-> +	.probe		= rtl2830_probe,
-> +	.remove		= rtl2830_remove,
-> +	.id_table	= rtl2830_id_table,
-> +};
-> +
-> +module_i2c_driver(rtl2830_driver);
-> +
->  MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
->  MODULE_DESCRIPTION("Realtek RTL2830 DVB-T demodulator driver");
->  MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/dvb-frontends/rtl2830.h b/drivers/media/dvb-frontends/rtl2830.h
-> index 3313847..b925ea5 100644
-> --- a/drivers/media/dvb-frontends/rtl2830.h
-> +++ b/drivers/media/dvb-frontends/rtl2830.h
-> @@ -24,6 +24,37 @@
->  #include <linux/kconfig.h>
->  #include <linux/dvb/frontend.h>
->  
-> +struct rtl2830_platform_data {
-> +	/*
-> +	 * Clock frequency.
-> +	 * Hz
-> +	 * 4000000, 16000000, 25000000, 28800000
-> +	 */
-> +	u32 clk;
-> +
-> +	/*
-> +	 * Spectrum inversion.
-> +	 */
-> +	bool spec_inv;
-> +
-> +	/*
-> +	 */
-> +	u8 vtop;
-> +
-> +	/*
-> +	 */
-> +	u8 krf;
-> +
-> +	/*
-> +	 */
-> +	u8 agc_targ_val;
-> +
-> +	/*
-> +	 */
-> +	struct dvb_frontend* (*get_dvb_frontend)(struct i2c_client *);
-> +	struct i2c_adapter* (*get_i2c_adapter)(struct i2c_client *);
-> +};
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+ drivers/media/pci/pt3/pt3.c | 89 ++++++++++++++-------------------------------
+ drivers/media/pci/pt3/pt3.h | 12 +++---
+ 2 files changed, 33 insertions(+), 68 deletions(-)
 
-Please fix this to follow the Kernel CodingStyle for struct/function/...
-documentation:
-	Documentation/kernel-doc-nano-HOWTO.txt
+diff --git a/drivers/media/pci/pt3/pt3.c b/drivers/media/pci/pt3/pt3.c
+index 7a37e8f..31ffe83 100644
+--- a/drivers/media/pci/pt3/pt3.c
++++ b/drivers/media/pci/pt3/pt3.c
+@@ -26,6 +26,7 @@
+ #include "dvbdev.h"
+ #include "dvb_demux.h"
+ #include "dvb_frontend.h"
++#include "dvb_i2c.h"
+ 
+ #include "pt3.h"
+ 
+@@ -103,12 +104,12 @@ pt3_demod_write(struct pt3_adapter *adap, const struct reg_val *data, int num)
+ 	int i, ret;
+ 
+ 	ret = 0;
+-	msg.addr = adap->i2c_demod->addr;
++	msg.addr = adap->fe->fe_i2c_client->addr;
+ 	msg.flags = 0;
+ 	msg.len = 2;
+ 	for (i = 0; i < num; i++) {
+ 		msg.buf = (u8 *)&data[i];
+-		ret = i2c_transfer(adap->i2c_demod->adapter, &msg, 1);
++		ret = i2c_transfer(adap->fe->fe_i2c_client->adapter, &msg, 1);
+ 		if (ret == 0)
+ 			ret = -EREMOTE;
+ 		if (ret < 0)
+@@ -375,67 +376,38 @@ static int pt3_fe_init(struct pt3_board *pt3)
+ 
+ static int pt3_attach_fe(struct pt3_board *pt3, int i)
+ {
+-	struct i2c_board_info info;
+-	struct tc90522_config cfg;
+-	struct i2c_client *cl;
++	struct dvb_frontend *fe;
++	struct tc90522_out *out;
++	struct i2c_client *tuner_cl;
+ 	struct dvb_adapter *dvb_adap;
+ 	int ret;
+ 
+-	info = adap_conf[i].demod_info;
+-	cfg = adap_conf[i].demod_cfg;
+-	cfg.tuner_i2c = NULL;
+-	info.platform_data = &cfg;
++	out = NULL;
++	fe = dvb_i2c_attach_fe(&pt3->i2c_adap, &adap_conf[i].demod_info,
++			       &adap_conf[i].demod_cfg, (void **)&out);
++	if (!fe)
++		return -ENODEV;
+ 
+ 	ret = -ENODEV;
+-	request_module("tc90522");
+-	cl = i2c_new_device(&pt3->i2c_adap, &info);
+-	if (!cl || !cl->dev.driver)
+-		return -ENODEV;
+-	pt3->adaps[i]->i2c_demod = cl;
+-	if (!try_module_get(cl->dev.driver->owner))
+-		goto err_demod_i2c_unregister_device;
+-
+-	if (!strncmp(cl->name, TC90522_I2C_DEV_SAT, sizeof(cl->name))) {
+-		struct qm1d1c0042_config tcfg;
+-
+-		tcfg = adap_conf[i].tuner_cfg.qm1d1c0042;
+-		tcfg.fe = cfg.fe;
+-		info = adap_conf[i].tuner_info;
+-		info.platform_data = &tcfg;
+-		request_module("qm1d1c0042");
+-		cl = i2c_new_device(cfg.tuner_i2c, &info);
+-	} else {
+-		struct mxl301rf_config tcfg;
+-
+-		tcfg = adap_conf[i].tuner_cfg.mxl301rf;
+-		tcfg.fe = cfg.fe;
+-		info = adap_conf[i].tuner_info;
+-		info.platform_data = &tcfg;
+-		request_module("mxl301rf");
+-		cl = i2c_new_device(cfg.tuner_i2c, &info);
+-	}
+-	if (!cl || !cl->dev.driver)
+-		goto err_demod_module_put;
+-	pt3->adaps[i]->i2c_tuner = cl;
+-	if (!try_module_get(cl->dev.driver->owner))
+-		goto err_tuner_i2c_unregister_device;
++	if (!out)
++		goto err;
++	tuner_cl = dvb_i2c_attach_tuner(&(out->demod_bus),
++					&adap_conf[i].tuner_info, fe,
++					&adap_conf[i].tuner_cfg, NULL);
++	if (!tuner_cl)
++		goto err;
+ 
+ 	dvb_adap = &pt3->adaps[one_adapter ? 0 : i]->dvb_adap;
+-	ret = dvb_register_frontend(dvb_adap, cfg.fe);
++	ret = dvb_register_frontend(dvb_adap, fe);
+ 	if (ret < 0)
+-		goto err_tuner_module_put;
+-	pt3->adaps[i]->fe = cfg.fe;
++		goto err;
++	pt3->adaps[i]->fe = fe;
+ 	return 0;
+ 
+-err_tuner_module_put:
+-	module_put(pt3->adaps[i]->i2c_tuner->dev.driver->owner);
+-err_tuner_i2c_unregister_device:
+-	i2c_unregister_device(pt3->adaps[i]->i2c_tuner);
+-err_demod_module_put:
+-	module_put(pt3->adaps[i]->i2c_demod->dev.driver->owner);
+-err_demod_i2c_unregister_device:
+-	i2c_unregister_device(pt3->adaps[i]->i2c_demod);
+-
++err:
++	/* tuner i2c_client is unregister'ed as well, */
++	/* because it is a (grand) child of the demod i2c_client device */
++	i2c_unregister_device(fe->fe_i2c_client);
+ 	return ret;
+ }
+ 
+@@ -630,17 +602,10 @@ static void pt3_cleanup_adapter(struct pt3_board *pt3, int index)
+ 	dmx = &adap->demux.dmx;
+ 	dmx->close(dmx);
+ 	if (adap->fe) {
+-		adap->fe->callback = NULL;
+ 		if (adap->fe->frontend_priv)
+ 			dvb_unregister_frontend(adap->fe);
+-		if (adap->i2c_tuner) {
+-			module_put(adap->i2c_tuner->dev.driver->owner);
+-			i2c_unregister_device(adap->i2c_tuner);
+-		}
+-		if (adap->i2c_demod) {
+-			module_put(adap->i2c_demod->dev.driver->owner);
+-			i2c_unregister_device(adap->i2c_demod);
+-		}
++		if (adap->fe->fe_i2c_client)
++			i2c_unregister_device(adap->fe->fe_i2c_client);
+ 	}
+ 	pt3_free_dmabuf(adap);
+ 	dvb_dmxdev_release(&adap->dmxdev);
+diff --git a/drivers/media/pci/pt3/pt3.h b/drivers/media/pci/pt3/pt3.h
+index 1b3f2ad..88c3d17 100644
+--- a/drivers/media/pci/pt3/pt3.h
++++ b/drivers/media/pci/pt3/pt3.h
+@@ -104,15 +104,17 @@ struct dma_data_buffer {
+ /*
+  * device things
+  */
++union pt3_tuner_config {
++	struct qm1d1c0042_config qm1d1c0042;
++	struct mxl301rf_config   mxl301rf;
++};
++
+ struct pt3_adap_config {
+ 	struct i2c_board_info demod_info;
+ 	struct tc90522_config demod_cfg;
+ 
+ 	struct i2c_board_info tuner_info;
+-	union tuner_config {
+-		struct qm1d1c0042_config qm1d1c0042;
+-		struct mxl301rf_config   mxl301rf;
+-	} tuner_cfg;
++	union pt3_tuner_config tuner_cfg;
+ 	u32 init_freq;
+ };
+ 
+@@ -123,8 +125,6 @@ struct pt3_adapter {
+ 	struct dvb_demux    demux;
+ 	struct dmxdev       dmxdev;
+ 	struct dvb_frontend *fe;
+-	struct i2c_client   *i2c_demod;
+-	struct i2c_client   *i2c_tuner;
+ 
+ 	/* data fetch thread */
+ 	struct task_struct *thread;
+-- 
+2.2.1
 
-Sometimes, I just leave things like that to pass, but the above one is too
-ugly, with empty multiple line comments, uncommented arguments, etc.
-
-
-> +
->  struct rtl2830_config {
->  	/*
->  	 * Demodulator I2C address.
-> diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
-> index fab10ec..1a78351 100644
-> --- a/drivers/media/dvb-frontends/rtl2830_priv.h
-> +++ b/drivers/media/dvb-frontends/rtl2830_priv.h
-> @@ -24,8 +24,10 @@
->  #include "dvb_frontend.h"
->  #include "dvb_math.h"
->  #include "rtl2830.h"
-> +#include <linux/i2c-mux.h>
->  
->  struct rtl2830_priv {
-> +	struct i2c_adapter *adapter;
->  	struct i2c_adapter *i2c;
->  	struct dvb_frontend fe;
->  	struct rtl2830_config cfg;
