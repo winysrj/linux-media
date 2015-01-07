@@ -1,38 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:37436 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753337AbbAIRnW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 12:43:22 -0500
-Date: Fri, 9 Jan 2015 18:43:19 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v10 04/19] dt-binding: mfd: max77693: Add DT binding
- related macros
-Message-ID: <20150109174319.GE18076@amd>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-5-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-yk0-f178.google.com ([209.85.160.178]:50288 "EHLO
+	mail-yk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754028AbbAGUFy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 15:05:54 -0500
+Received: by mail-yk0-f178.google.com with SMTP id 20so917882yks.23
+        for <linux-media@vger.kernel.org>; Wed, 07 Jan 2015 12:05:53 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1420816989-1808-5-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <Pine.LNX.4.64.1501072043490.16637@axis700.grange>
+References: <1420597628-317-1-git-send-email-andy.shevchenko@gmail.com>
+	<Pine.LNX.4.64.1501072043490.16637@axis700.grange>
+Date: Wed, 7 Jan 2015 22:05:53 +0200
+Message-ID: <CAHp75VfsCDSiviC7-tprXCqDqXmvJs87V8ve4HoPECyVoh4eww@mail.gmail.com>
+Subject: Re: [PATCH] [media] soc_camera: avoid potential null-dereference
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 2015-01-09 16:22:54, Jacek Anaszewski wrote:
-> Add macros for max77693 led part related binding.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+On Wed, Jan 7, 2015 at 9:44 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Andy,
+>
+> Thanks for the patch. Will queue for the next pull request.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+If you didn't do that please wait. It seems it has one more place with
+similar issue. Moreover, I would like to add a person's name who
+reported this.
+
+>
+> Regards
+> Guennadi
+>
+> On Wed, 7 Jan 2015, Andy Shevchenko wrote:
+>
+>> We have to check the pointer before dereferencing it.
+>>
+>> Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+>> ---
+>>  drivers/media/platform/soc_camera/soc_camera.c | 4 +++-
+>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+>> index b3db51c..8c665c4 100644
+>> --- a/drivers/media/platform/soc_camera/soc_camera.c
+>> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+>> @@ -2166,7 +2166,7 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
+>>  static int soc_camera_pdrv_probe(struct platform_device *pdev)
+>>  {
+>>       struct soc_camera_desc *sdesc = pdev->dev.platform_data;
+>> -     struct soc_camera_subdev_desc *ssdd = &sdesc->subdev_desc;
+>> +     struct soc_camera_subdev_desc *ssdd;
+>>       struct soc_camera_device *icd;
+>>       int ret;
+>>
+>> @@ -2177,6 +2177,8 @@ static int soc_camera_pdrv_probe(struct platform_device *pdev)
+>>       if (!icd)
+>>               return -ENOMEM;
+>>
+>> +     ssdd = &sdesc->subdev_desc;
+>> +
+>>       /*
+>>        * In the asynchronous case ssdd->num_regulators == 0 yet, so, the below
+>>        * regulator allocation is a dummy. They are actually requested by the
+>> --
+>> 1.8.3.101.g727a46b
+>>
+
+
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+With Best Regards,
+Andy Shevchenko
