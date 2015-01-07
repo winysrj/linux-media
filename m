@@ -1,56 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:57701 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754804AbbA2BZR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 20:25:17 -0500
-Received: by mail-wi0-f174.google.com with SMTP id n3so18276150wiv.1
-        for <linux-media@vger.kernel.org>; Wed, 28 Jan 2015 17:25:16 -0800 (PST)
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: media: vino: vino: Removed variables that is never used
-Date: Wed, 28 Jan 2015 23:47:45 +0100
-Message-Id: <1422485265-11231-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Received: from mail-yh0-f45.google.com ([209.85.213.45]:37522 "EHLO
+	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751847AbbAGUO7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 15:14:59 -0500
+Received: by mail-yh0-f45.google.com with SMTP id f10so980520yha.4
+        for <linux-media@vger.kernel.org>; Wed, 07 Jan 2015 12:14:59 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAHp75VfsCDSiviC7-tprXCqDqXmvJs87V8ve4HoPECyVoh4eww@mail.gmail.com>
+References: <1420597628-317-1-git-send-email-andy.shevchenko@gmail.com>
+	<Pine.LNX.4.64.1501072043490.16637@axis700.grange>
+	<CAHp75VfsCDSiviC7-tprXCqDqXmvJs87V8ve4HoPECyVoh4eww@mail.gmail.com>
+Date: Wed, 7 Jan 2015 22:14:58 +0200
+Message-ID: <CAHp75Ve1L=v68moUvTahw_O4HYY9-tTQfWoDdD7KcJv5HPb5Mw@mail.gmail.com>
+Subject: Re: [PATCH] [media] soc_camera: avoid potential null-dereference
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Variable ar assigned a value that is never used.
-I have also removed all the code that thereby serves no purpose.
+On Wed, Jan 7, 2015 at 10:05 PM, Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+> On Wed, Jan 7, 2015 at 9:44 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+>> Hi Andy,
+>>
+>> Thanks for the patch. Will queue for the next pull request.
+>
+> If you didn't do that please wait. It seems it has one more place with
+> similar issue. Moreover, I would like to add a person's name who
+> reported this.
 
-This was found using a static code analysis program called cppcheck
+Okay, the second one is false positive.
+And
+Reported-by: Andrey Karpov <karpov@viva64.com>
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
----
- drivers/staging/media/vino/vino.c |    2 --
- 1 file changed, 2 deletions(-)
+>
+>>
+>> Regards
+>> Guennadi
+>>
+>> On Wed, 7 Jan 2015, Andy Shevchenko wrote:
+>>
+>>> We have to check the pointer before dereferencing it.
+>>>
+>>> Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+>>> ---
+>>>  drivers/media/platform/soc_camera/soc_camera.c | 4 +++-
+>>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+>>> index b3db51c..8c665c4 100644
+>>> --- a/drivers/media/platform/soc_camera/soc_camera.c
+>>> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+>>> @@ -2166,7 +2166,7 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
+>>>  static int soc_camera_pdrv_probe(struct platform_device *pdev)
+>>>  {
+>>>       struct soc_camera_desc *sdesc = pdev->dev.platform_data;
+>>> -     struct soc_camera_subdev_desc *ssdd = &sdesc->subdev_desc;
+>>> +     struct soc_camera_subdev_desc *ssdd;
+>>>       struct soc_camera_device *icd;
+>>>       int ret;
+>>>
+>>> @@ -2177,6 +2177,8 @@ static int soc_camera_pdrv_probe(struct platform_device *pdev)
+>>>       if (!icd)
+>>>               return -ENOMEM;
+>>>
+>>> +     ssdd = &sdesc->subdev_desc;
+>>> +
+>>>       /*
+>>>        * In the asynchronous case ssdd->num_regulators == 0 yet, so, the below
+>>>        * regulator allocation is a dummy. They are actually requested by the
+>>> --
+>>> 1.8.3.101.g727a46b
+>>>
+>
+>
+>
+> --
+> With Best Regards,
+> Andy Shevchenko
 
-diff --git a/drivers/staging/media/vino/vino.c b/drivers/staging/media/vino/vino.c
-index 2c85357..f43c1ea 100644
---- a/drivers/staging/media/vino/vino.c
-+++ b/drivers/staging/media/vino/vino.c
-@@ -2375,7 +2375,6 @@ static irqreturn_t vino_interrupt(int irq, void *dev_id)
- 		next_4_desc = vino->a.next_4_desc;
- 	unsigned int line_count_2,
- 		page_index_2,
--		field_counter_2,
- 		start_desc_tbl_2,
- 		next_4_desc_2;
- #endif
-@@ -2421,7 +2420,6 @@ static irqreturn_t vino_interrupt(int irq, void *dev_id)
- #ifdef VINO_DEBUG_INT
- 			line_count_2 = vino->a.line_count;
- 			page_index_2 = vino->a.page_index;
--			field_counter_2 = vino->a.field_counter;
- 			start_desc_tbl_2 = vino->a.start_desc_tbl;
- 			next_4_desc_2 = vino->a.next_4_desc;
- 
+
+
 -- 
-1.7.10.4
-
+With Best Regards,
+Andy Shevchenko
