@@ -1,24 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f172.google.com ([209.85.160.172]:36900 "EHLO
-	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752207AbbAGQUH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 11:20:07 -0500
-Received: by mail-yk0-f172.google.com with SMTP id 131so739695ykp.3
-        for <linux-media@vger.kernel.org>; Wed, 07 Jan 2015 08:20:07 -0800 (PST)
-MIME-Version: 1.0
-Date: Wed, 7 Jan 2015 11:20:06 -0500
-Message-ID: <CALzAhNW+-pEpYFYH3_Zn8xwMXUoWL6j0LvyPGkvG7hna4z4gLQ@mail.gmail.com>
-Subject: ELC 2015 - March - San Jose
-From: Steven Toth <stoth@kernellabs.com>
-To: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from gw01.mail.saunalahti.fi ([195.197.172.115]:55094 "EHLO
+	gw01.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754845AbbAGC1W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 21:27:22 -0500
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: [PATCH] [media] soc_camera: avoid potential null-dereference
+Date: Wed,  7 Jan 2015 04:27:08 +0200
+Message-Id: <1420597628-317-1-git-send-email-andy.shevchenko@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Is anyone planning to attend this year?
+We have to check the pointer before dereferencing it.
 
-- Steve
+Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+---
+ drivers/media/platform/soc_camera/soc_camera.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index b3db51c..8c665c4 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -2166,7 +2166,7 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
+ static int soc_camera_pdrv_probe(struct platform_device *pdev)
+ {
+ 	struct soc_camera_desc *sdesc = pdev->dev.platform_data;
+-	struct soc_camera_subdev_desc *ssdd = &sdesc->subdev_desc;
++	struct soc_camera_subdev_desc *ssdd;
+ 	struct soc_camera_device *icd;
+ 	int ret;
+ 
+@@ -2177,6 +2177,8 @@ static int soc_camera_pdrv_probe(struct platform_device *pdev)
+ 	if (!icd)
+ 		return -ENOMEM;
+ 
++	ssdd = &sdesc->subdev_desc;
++
+ 	/*
+ 	 * In the asynchronous case ssdd->num_regulators == 0 yet, so, the below
+ 	 * regulator allocation is a dummy. They are actually requested by the
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.8.3.101.g727a46b
+
