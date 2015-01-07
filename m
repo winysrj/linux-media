@@ -1,77 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42794 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755045AbbATRkN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 12:40:13 -0500
-Date: Tue, 20 Jan 2015 18:40:10 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Rob Herring <robherring2@gmail.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-leds@vger.kernel.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
-Message-ID: <20150120174010.GA2900@amd>
-References: <CAL_Jsq+UaA41DvawdOMmOib=Fi0hC-nBdKV-+P4DFo+MoOy-bQ@mail.gmail.com>
- <54B3F1EF.4060506@samsung.com>
- <CAL_JsqKpJtUG0G6g1GOuSVpc31oe-dp3qdrKJUE0upG-xRDFhA@mail.gmail.com>
- <54B4DA81.7060900@samsung.com>
- <CAL_JsqLYxB5hzLAWXpU=uncM5DEMZU78mP673H9oSSNB-cgcYQ@mail.gmail.com>
- <54B8D4D0.3000904@samsung.com>
- <CAL_Jsq+EFWzs1HP1tVt6P=p=HZn2AtSPjp55YrmMQi_mE+kNfQ@mail.gmail.com>
- <54B933D0.1090004@samsung.com>
- <54BE7DAB.80702@samsung.com>
- <CAL_JsqKoiaUmVhbQdnNveG=AAYh4-OHGS70L+LAgLLoKChUuYQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqKoiaUmVhbQdnNveG=AAYh4-OHGS70L+LAgLLoKChUuYQ@mail.gmail.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:55557 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752900AbbAGJpa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 04:45:30 -0500
+Message-id: <54AD0033.1020103@samsung.com>
+Date: Wed, 07 Jan 2015 10:45:23 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Tony K Nadackal <tony.kn@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	mchehab@osg.samsung.com, kgene@kernel.org, k.debski@samsung.com,
+	s.nawrocki@samsung.com, robh+dt@kernel.org, mark.rutland@arm.com,
+	bhushan.r@samsung.com
+Subject: Re: [PATCH] [media] s5p-jpeg: Adding Exynos7 Jpeg variant support
+References: <1418801229-7532-1-git-send-email-tony.kn@samsung.com>
+ <54919010.8020507@samsung.com> <001801d01b3d$2cb181d0$86148570$@samsung.com>
+In-reply-to: <001801d01b3d$2cb181d0$86148570$@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 2015-01-20 11:29:16, Rob Herring wrote:
-> On Tue, Jan 20, 2015 at 10:09 AM, Jacek Anaszewski
-> <j.anaszewski@samsung.com> wrote:
-> > On 01/16/2015 04:52 PM, Jacek Anaszewski wrote:
-> >>
-> >> On 01/16/2015 02:48 PM, Rob Herring wrote:
-> 
-> [...]
-> 
-> >>> You may want to add something like led-output-cnt or led-driver-cnt in
-> >>> the parent so you know the max list size.
-> >>
-> >>
-> >> Why should we need this? The number of current outputs exposed by the
-> >> device is fixed and can be specified in a LED device bindings
-> >> documentation.
-> >>
-> >
-> > OK. The led-output-cnt property should be put in each sub-node, as the
-> > number of the current outputs each LED can be connected to is variable.
-> 
-> Sorry, I meant this for the parent node meaning how many outputs the
-> driver IC has. I did say maybe because you may always know this. It
-> can make it easier to allocate memory for led-sources knowing the max
-> size up front.
+Hi Tony,
 
-Umm. Not sure if that kind of "help" should go to the device
-tree.
-									Pavel
+Sorry for late response, just got back from vacation.
+
+On 12/19/2014 04:37 AM, Tony K Nadackal wrote:
+> Hi Jacek,
+>
+> On Wednesday, December 17, 2014 7:46 PM Jacek Anaszewski wrote,
+>> Hi Tony,
+>>
+>> Thanks for the patches.
+>>
+>
+> Thanks for the review.
+>
+>> Please process them with scripts/checkpatch.pl as you will be submitting the
+> next
+>> version - they contain many coding style related issues.
+>>
+>
+> I ran checkpatch before posting. Do you find any checkpatch related issues in
+> the patch?
+
+There was a problem on my side, sorry for making confusion.
+
+>> My remaining comments below.
+>>
+>
+> [snip]
+>
+>>> +		if (ctx->jpeg->variant->version == SJPEG_EXYNOS7) {
+>>> +			exynos4_jpeg_set_interrupt(jpeg->regs,
+>> SJPEG_EXYNOS7);
+>>> +			exynos4_jpeg_set_enc_out_fmt(jpeg->regs,
+>>> +					ctx->subsampling,
+>> EXYNOS7_ENC_FMT_MASK);
+>>> +			exynos4_jpeg_set_img_fmt(jpeg->regs,
+>>> +					ctx->out_q.fmt->fourcc,
+>>> +					EXYNOS7_SWAP_CHROMA_SHIFT);
+>>> +		} else {
+>>> +			exynos4_jpeg_set_interrupt(jpeg->regs,
+>> SJPEG_EXYNOS4);
+>>> +			exynos4_jpeg_set_enc_out_fmt(jpeg->regs,
+>>> +					ctx->subsampling,
+>> EXYNOS4_ENC_FMT_MASK);
+>>> +			exynos4_jpeg_set_img_fmt(jpeg->regs,
+>>> +					ctx->out_q.fmt->fourcc,
+>>> +					EXYNOS4_SWAP_CHROMA_SHIFT);
+>>> +		}
+>>> +
+>>
+>> I'd implement it this way:
+>>
+>> exynos4_jpeg_set_interrupt(jpeg->regs, ctx->jpeg->variant->version);
+>> exynos4_jpeg_set_enc_out_fmt(jpeg->regs, ctx->subsampling,
+>> 			(ctx->jpeg->variant->version == SJPEG_EXYNOS4) ?
+>> 				EXYNOS4_ENC_FMT_MASK :
+>> 				EXYNOS7_ENC_FMT_MASK);
+>> exynos4_jpeg_set_img_fmt(jpeg->regs, ctx->out_q.fmt->fourcc,
+>> 			(ctx->jpeg->variant->version == SJPEG_EXYNOS4) ?
+>> 				EXYNOS4_SWAP_CHROMA_SHIFT :
+>> 				EXYNOS7_SWAP_CHROMA_SHIFT);
+>>
+>
+> OK. Looks goods to me. Thanks for the suggestion.
+>
+>>>    		exynos4_jpeg_set_img_addr(ctx);
+>>>    		exynos4_jpeg_set_jpeg_addr(ctx);
+>>>    		exynos4_jpeg_set_encode_hoff_cnt(jpeg->regs,
+>>>    							ctx->out_q.fmt->fourcc);
+>>>    	} else {
+>>>    		exynos4_jpeg_sw_reset(jpeg->regs);
+>>> -		exynos4_jpeg_set_interrupt(jpeg->regs);
+>>>    		exynos4_jpeg_set_img_addr(ctx);
+>>>    		exynos4_jpeg_set_jpeg_addr(ctx);
+>>> -		exynos4_jpeg_set_img_fmt(jpeg->regs, ctx->cap_q.fmt-
+>>> fourcc);
+>>>
+>>> -		bitstream_size = DIV_ROUND_UP(ctx->out_q.size, 32);
+>>> +		if (ctx->jpeg->variant->version == SJPEG_EXYNOS7) {
+>>> +			exynos4_jpeg_set_interrupt(jpeg->regs,
+>> SJPEG_EXYNOS7);
+>>> +			exynos4_jpeg_set_huff_tbl(jpeg->regs);
+>>> +			exynos4_jpeg_set_huf_table_enable(jpeg->regs, 1);
+>>> +
+>>> +			/*
+>>> +			 * JPEG IP allows storing 4 quantization tables
+>>> +			 * We fill table 0 for luma and table 1 for chroma
+>>> +			 */
+>>> +			exynos4_jpeg_set_qtbl_lum(jpeg->regs,
+>>> +							ctx->compr_quality);
+>>> +			exynos4_jpeg_set_qtbl_chr(jpeg->regs,
+>>> +							ctx->compr_quality);
+>>
+>> Is it really required to setup quantization tables for encoding?
+>>
+>
+> Without setting up the quantization tables, encoder is working fine.
+> But, as per Exynos7 User Manual setting up the quantization tables are required
+> for encoding also.
+
+Actually I intended to ask if setting the quantization tables is
+required for *decoding*, as you set it also in decoding path, whereas
+for Exynos4 it is not required. I looks strange for me as quantization
+tables are usually required only for encoding raw images.
+The same is related to huffman tables.
+
+>>> +			exynos4_jpeg_set_stream_size(jpeg->regs, ctx-
+>>> cap_q.w,
+>>> +					ctx->cap_q.h);
+>>
+>> For exynos4 this function writes the number of samples per line and number
+>> lines of the resulting JPEG image and is used only during encoding. Is the
+>> semantics of the related register different in case of Exynos7?
+>>
+>
+> Yes. In case of Exynos7 Encoding, This step is required.
+
+Ack.
+
+> [snip]
+>
+>>> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
+>>> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+>>> @@ -71,6 +71,7 @@
+>>>    #define SJPEG_S5P		1
+>>>    #define SJPEG_EXYNOS3250	2
+>>>    #define SJPEG_EXYNOS4		3
+>>> +#define SJPEG_EXYNOS7		4
+>>
+>> As you adding a new variant I propose to turn these macros into enum.
+>>
+>
+> Ok. I will make this change in my next version.
+
+Thanks.
+
+> [snip]
+>
+>>> -void exynos4_jpeg_set_interrupt(void __iomem *base)
+>>> +void exynos4_jpeg_set_interrupt(void __iomem *base, unsigned int
+>>> +version)
+>>>    {
+>>> -	writel(EXYNOS4_INT_EN_ALL, base + EXYNOS4_INT_EN_REG);
+>>> +	unsigned int reg;
+>>> +
+>>> +	reg = readl(base + EXYNOS4_INT_EN_REG) &
+>> ~EXYNOS4_INT_EN_MASK(version);
+>>> +	writel(EXYNOS4_INT_EN_ALL(version), base + EXYNOS4_INT_EN_REG);
+>>>    }
+>>
+>> I believe that adding readl is a fix. I'd enclose it into separate patch and
+> explain its
+>> merit.
+>>
+>
+> Thanks for the suggestion.  I will make a separate patch for this bug fix.
+
+Great.
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Best Regards,
+Jacek Anaszewski
