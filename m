@@ -1,90 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41430 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753927AbbA2BtK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 20:49:10 -0500
-Message-ID: <54C9769C.1090502@osg.samsung.com>
-Date: Wed, 28 Jan 2015 16:54:04 -0700
-From: Shuah Khan <shuahkh@osg.samsung.com>
+Received: from userp1040.oracle.com ([156.151.31.81]:48071 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790AbbAGLEh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 06:04:37 -0500
+Date: Wed, 7 Jan 2015 14:04:21 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] gspca: underflow in vidioc_s_parm()
+Message-ID: <20150107110421.GB14864@mwanda>
 MIME-Version: 1.0
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	sakari.ailus@linux.intel.com, prabhakar.csengg@gmail.com,
-	laurent.pinchart@ideasonboard.com
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: au0828 analog_register error path fixes to do
- proper cleanup
-References: <1419985334-6155-1-git-send-email-shuahkh@osg.samsung.com>
-In-Reply-To: <1419985334-6155-1-git-send-email-shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/30/2014 05:22 PM, Shuah Khan wrote:
-> au0828_analog_register() doesn't release video and vbi queues
-> created by vb2_queue_init(). In addition, it doesn't unregister
-> vdev when vbi register fails. Add vb2_queue_release() calls to
-> release video and vbi queues to the failure path to be called
-> when vdev register fails. Add video_unregister_device() for
-> vdev when vbi register fails.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
-> Please note that this patch is dependent on the au0828 vb2
-> conversion patch.
+"n" is a user controlled integer.  The code here doesn't handle the case
+where "n" is negative and this causes a static checker warning.
 
-I have to fold this patch into the vb2 conversion patch as
-it no longer applies after the recent changes to address
-comments on patch v3. I will fold it into vb2 convert patch v6.
-It makes sense since vb2_queue_release() should be part of the
-conversion work anyway.
+	drivers/media/usb/gspca/gspca.c:1571 vidioc_s_parm()
+	warn: no lower bound on 'n'
 
-thanks,
--- Shuah
-> 
->  drivers/media/usb/au0828/au0828-video.c | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-> index 94b65b8..17450eb 100644
-> --- a/drivers/media/usb/au0828/au0828-video.c
-> +++ b/drivers/media/usb/au0828/au0828-video.c
-> @@ -1785,7 +1785,7 @@ int au0828_analog_register(struct au0828_dev *dev,
->  		dprintk(1, "unable to register video device (error = %d).\n",
->  			retval);
->  		ret = -ENODEV;
-> -		goto err_vbi_dev;
-> +		goto err_reg_vdev;
->  	}
->  
->  	/* Register the vbi device */
-> @@ -1795,14 +1795,18 @@ int au0828_analog_register(struct au0828_dev *dev,
->  		dprintk(1, "unable to register vbi device (error = %d).\n",
->  			retval);
->  		ret = -ENODEV;
-> -		goto err_vbi_dev;
-> +		goto err_reg_vbi_dev;
->  	}
->  
-> -
->  	dprintk(1, "%s completed!\n", __func__);
->  
->  	return 0;
->  
-> +err_reg_vbi_dev:
-> +	video_unregister_device(dev->vdev);
-> +err_reg_vdev:
-> +	vb2_queue_release(&dev->vb_vidq);
-> +	vb2_queue_release(&dev->vb_vbiq);
->  err_vbi_dev:
->  	video_device_release(dev->vbi_dev);
->  err_vdev:
-> 
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+I haven't followed through to see if this is a real problem.
 
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 43d6505..27f7da1 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -1565,6 +1565,8 @@ static int vidioc_s_parm(struct file *filp, void *priv,
+ 	int n;
+ 
+ 	n = parm->parm.capture.readbuffers;
++	if (n < 0)
++		return -EINVAL;
+ 	if (n == 0 || n >= GSPCA_MAX_FRAMES)
+ 		parm->parm.capture.readbuffers = gspca_dev->nbufread;
+ 	else
