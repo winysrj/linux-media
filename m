@@ -1,44 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58266 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbbAVL2n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 06:28:43 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC PATCH 0/2] Signalling last decoded frame by V4L2_BUF_FLAG_LAST and -EPIPE
-Date: Thu, 22 Jan 2015 12:28:36 +0100
-Message-Id: <1421926118-29535-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mga11.intel.com ([192.55.52.93]:14864 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753226AbbAGOJH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Jan 2015 09:09:07 -0500
+Message-ID: <54AD3E00.5070208@linux.intel.com>
+Date: Wed, 07 Jan 2015 16:09:04 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCHv3 01/20] media: add new types for DVB devnodes
+References: <cover.1420578087.git.mchehab@osg.samsung.com> <7f1ea82b1055aa490726f3af2ad22bca25e49a28.1420578087.git.mchehab@osg.samsung.com>
+In-Reply-To: <7f1ea82b1055aa490726f3af2ad22bca25e49a28.1420578087.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At the V4L2 codec API session during ELC-E 2014, we agreed that for the decoder
-draining flow, after a V4L2_DEC_CMD_STOP decoder command was issued, the last
-decoded buffer should get dequeued with a V4L2_BUF_FLAG_LAST set. After that,
-poll should immediately return and all following VIDIOC_DQBUF should return
--EPIPE until the stream is stopped or decoding continued via V4L2_DEC_CMD_START.
-(or STREAMOFF/STREAMON).
+Hi Mauro,
 
-regards
-Philipp
+Mauro Carvalho Chehab wrote:
+> Most of the DVB subdevs have already their own devnode.
+>
+> Add support for them at the media controller API.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 7902e800f019..707db275f92b 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -50,7 +50,14 @@ struct media_device_info {
+>   #define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
+>   #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+>   #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+> -#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
 
-Peter Seiderer (1):
-  [media] videodev2: Add V4L2_BUF_FLAG_LAST
+I'd create another type for the DVB sub-type devices, as there is for 
+V4L2 sub-devices. I wonder what Laurent thinks.
 
-Philipp Zabel (1):
-  [media] videobuf2: return -EPIPE from DQBUF after the last buffer
+> +
+> +/* Legacy symbol. Use it to avoid userspace compilation breakages */
+> +#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
+>
+>   #define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
+>   #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
+>
 
- drivers/media/v4l2-core/v4l2-mem2mem.c   | 10 +++++++++-
- drivers/media/v4l2-core/videobuf2-core.c | 18 +++++++++++++++++-
- include/media/videobuf2-core.h           |  1 +
- include/uapi/linux/videodev2.h           |  2 ++
- 4 files changed, 29 insertions(+), 2 deletions(-)
 
 -- 
-2.1.4
+Kind regards,
 
+Sakari Ailus
+sakari.ailus@linux.intel.com
