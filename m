@@ -1,119 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:60073 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961AbbA0KoU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 05:44:20 -0500
-Received: by mail-wg0-f45.google.com with SMTP id x12so13996548wgg.4
-        for <linux-media@vger.kernel.org>; Tue, 27 Jan 2015 02:44:18 -0800 (PST)
-Received: from [192.168.1.100] (net-93-64-207-188.cust.vodafonedsl.it. [93.64.207.188])
-        by mx.google.com with ESMTPSA id lk2sm1605094wic.22.2015.01.27.02.44.17
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 27 Jan 2015 02:44:18 -0800 (PST)
-Message-ID: <54C76BFF.3030102@movia.biz>
-Date: Tue, 27 Jan 2015 11:44:15 +0100
-From: Francesco Marletta <francesco.marletta@movia.biz>
-MIME-Version: 1.0
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:49989 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753048AbbAGNVH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 08:21:07 -0500
+Received: by mail-pa0-f54.google.com with SMTP id fb1so4805519pad.13
+        for <linux-media@vger.kernel.org>; Wed, 07 Jan 2015 05:21:07 -0800 (PST)
+From: tskd08@gmail.com
 To: linux-media@vger.kernel.org
-Subject: Re: Strange behaviour of sizeof(struct v4l2_queryctrl)
-References: <54C76BB9.8020308@movia.biz>
-In-Reply-To: <54C76BB9.8020308@movia.biz>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH v2 2/4] dvb: mxl301rf: use dvb-core i2c binding model template
+Date: Wed,  7 Jan 2015 22:20:42 +0900
+Message-Id: <1420636844-32553-3-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1420636844-32553-1-git-send-email-tskd08@gmail.com>
+References: <1420636844-32553-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello again,
-I was able to solve the problem... now the userspace program use the 
-correct value for VIDIOC_QUERYCTRL.
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Regards
-Francesco
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+ drivers/media/tuners/mxl301rf.c | 50 +++++++++++------------------------------
+ drivers/media/tuners/mxl301rf.h |  2 +-
+ 2 files changed, 14 insertions(+), 38 deletions(-)
 
-
-Il 27/01/2015 11:43, Francesco Marletta ha scritto:
-> Hello to anyone,
-> I'm working on a problem with V4L2 on Linux Kernel 2.6.37.
->
-> The problem arise when I try to query a video device to list the 
-> controls it provides.
->
-> When is call
->     ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl)
->
-> the function doesn't return 0 and errno is set to EINVAL
->
-> This happen for every control, even for the controls that the driver 
-> provides (checked in the code) like brightness.
->
-> After adding a lot of printk in the videodev.ko module I found that 
-> the problem is caused by a wrong value of VIDIOC_QUERYCTRL, that in 
-> the kernel module is 0xC0485624 while in userspace application is 
-> 0xC0445624.
->
-> I digged the kernel source to understand what's happening, and 
-> discovered the definition of VIDIOC_QUERYCTRL:
->         #define VIDIOC_QUERYCTRL        _IOWR('V', 36, struct 
-> v4l2_queryctrl)
->
-> dove:
->         #define _IOWR(type,nr,size)     \
-> _IOC(_IOC_READ|_IOC_WRITE,(type),(nr),(_IOC_TYPECHECK(size)))
->
-> with
->         #define _IOC(dir,type,nr,size) \
->                         (((dir)  << _IOC_DIRSHIFT)  | \
->                         ((type)  << _IOC_TYPESHIFT) | \
->                         ((nr)    << _IOC_NRSHIFT)   | \
->                         ((size)  << _IOC_SIZESHIFT))
->
-> and
->         #define _IOC_NRSHIFT    0
->         #define _IOC_TYPESHIFT  (_IOC_NRSHIFT+_IOC_NRBITS)
->         #define _IOC_SIZESHIFT  (_IOC_TYPESHIFT+_IOC_TYPEBITS)
->         #define _IOC_DIRSHIFT   (_IOC_SIZESHIFT+_IOC_SIZEBITS)
->
->         #define _IOC_NRBITS     8
->         #define _IOC_TYPEBITS   8
->         #define _IOC_SIZEBITS   14
->
->         #define _IOC_NONE       0U
->         #define _IOC_WRITE      1U
->         #define _IOC_READ       2U
->
->         #define _IOC_TYPECHECK(t) (sizeof(t))
->
-> thus, the _IOC definition means:
->         _IOC(dir,type,nr,size)   <=>   [dir|size|type|nr]
->
-> that, for the aftermentioned values means:
->         0xC0445624 <=> [3|044|56|24]  ==> size = 0x44 = 68
->         0xC0485624 <=> [3|048|56|24]  ==> size = 0x48 = 72
->
-> To be sure that the number 68 and 72 are correct, I added a printk() 
-> in the videodev.ko module and a println() in the userspace application 
-> to print "sizeof(struct v4l2_queryctrl)", and the outputs are:
->
->     Kernel module:
->         printk("[DBG] %s() ~ sizeof(struct v4l2_queryctrl): %u\n", 
-> __func__, sizeof(struct v4l2_queryctrl));
->             => [DBG] videodev_init() ~ sizeof(struct v4l2_queryctrl): 72
->
->     Userspace application:
->         printf("[dbg] sizeof(struct v4l2_queryctrl): %u\n", 
-> sizeof(struct v4l2_queryctrl));
->             => [dbg] sizeof(struct v4l2_queryctrl): 68
->
-> In both cases (module and application), there is the inclusion of 
-> <linux/videodev2.h>.
->
-> When I compiled the application I istructed the compiler to pick the 
-> same kernel header of the module, with a proper CFLAGS += -I<PATH> in 
-> the Makefile.
->
-> Any idea about this strangeness?
->
-> Regards
-> Francesco
+diff --git a/drivers/media/tuners/mxl301rf.c b/drivers/media/tuners/mxl301rf.c
+index 1575a5d..d94a692 100644
+--- a/drivers/media/tuners/mxl301rf.c
++++ b/drivers/media/tuners/mxl301rf.c
+@@ -29,6 +29,8 @@
+  */
+ 
+ #include <linux/kernel.h>
++#include "dvb_i2c.h"
++
+ #include "mxl301rf.h"
+ 
+ struct mxl301rf_state {
+@@ -36,11 +38,6 @@ struct mxl301rf_state {
+ 	struct i2c_client *i2c;
+ };
+ 
+-static struct mxl301rf_state *cfg_to_state(struct mxl301rf_config *c)
+-{
+-	return container_of(c, struct mxl301rf_state, cfg);
+-}
+-
+ static int raw_write(struct mxl301rf_state *state, const u8 *buf, int len)
+ {
+ 	int ret;
+@@ -295,54 +292,33 @@ static const struct dvb_tuner_ops mxl301rf_ops = {
+ static int mxl301rf_probe(struct i2c_client *client,
+ 			  const struct i2c_device_id *id)
+ {
++	struct dvb_i2c_tuner_config *cfg;
+ 	struct mxl301rf_state *state;
+-	struct mxl301rf_config *cfg;
+-	struct dvb_frontend *fe;
+ 
+-	state = kzalloc(sizeof(*state), GFP_KERNEL);
+-	if (!state)
+-		return -ENOMEM;
+-
+-	state->i2c = client;
+ 	cfg = client->dev.platform_data;
++	state = cfg->fe->tuner_priv;
++	state->i2c = client;
+ 
+-	memcpy(&state->cfg, cfg, sizeof(state->cfg));
+-	fe = cfg->fe;
+-	fe->tuner_priv = state;
+-	memcpy(&fe->ops.tuner_ops, &mxl301rf_ops, sizeof(mxl301rf_ops));
++	memcpy(&state->cfg, cfg->devcfg.priv_cfg, sizeof(state->cfg));
+ 
+-	i2c_set_clientdata(client, &state->cfg);
+ 	dev_info(&client->dev, "MaxLinear MxL301RF attached.\n");
+ 	return 0;
+ }
+ 
+-static int mxl301rf_remove(struct i2c_client *client)
+-{
+-	struct mxl301rf_state *state;
+-
+-	state = cfg_to_state(i2c_get_clientdata(client));
+-	state->cfg.fe->tuner_priv = NULL;
+-	kfree(state);
+-	return 0;
+-}
+-
+-
+ static const struct i2c_device_id mxl301rf_id[] = {
+ 	{"mxl301rf", 0},
+ 	{}
+ };
+-MODULE_DEVICE_TABLE(i2c, mxl301rf_id);
+ 
+-static struct i2c_driver mxl301rf_driver = {
+-	.driver = {
+-		.name	= "mxl301rf",
+-	},
+-	.probe		= mxl301rf_probe,
+-	.remove		= mxl301rf_remove,
+-	.id_table	= mxl301rf_id,
++static const struct dvb_i2c_module_param mxl301rf_param = {
++	.ops.tuner_ops = &mxl301rf_ops,
++	.priv_probe = mxl301rf_probe,
++
++	.priv_size = sizeof(struct mxl301rf_state),
++	.is_tuner = true,
+ };
+ 
+-module_i2c_driver(mxl301rf_driver);
++DEFINE_DVB_I2C_MODULE(mxl301rf, mxl301rf_id, mxl301rf_param);
+ 
+ MODULE_DESCRIPTION("MaxLinear MXL301RF tuner");
+ MODULE_AUTHOR("Akihiro TSUKADA");
+diff --git a/drivers/media/tuners/mxl301rf.h b/drivers/media/tuners/mxl301rf.h
+index 19e6840..069a6a0 100644
+--- a/drivers/media/tuners/mxl301rf.h
++++ b/drivers/media/tuners/mxl301rf.h
+@@ -20,7 +20,7 @@
+ #include "dvb_frontend.h"
+ 
+ struct mxl301rf_config {
+-	struct dvb_frontend *fe;
++	/* none now */
+ };
+ 
+ #endif /* MXL301RF_H */
+-- 
+2.2.1
 
