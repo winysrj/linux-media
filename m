@@ -1,72 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43854 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750728AbbASNPr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 08:15:47 -0500
-Message-ID: <54BD036D.8020701@xs4all.nl>
-Date: Mon, 19 Jan 2015 14:15:25 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from dub004-omc2s32.hotmail.com ([157.55.1.171]:56032 "EHLO
+	DUB004-OMC2S32.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752202AbbAGKIg convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Jan 2015 05:08:36 -0500
+Message-ID: <DUB128-W616FABD8864A79107E5C809C460@phx.gbl>
+From: David Binderman <dcb314@hotmail.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: tuners/mxl5005s.c: 2 * ternary operator problems ?
+Date: Wed, 7 Jan 2015 10:03:32 +0000
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>,
-	Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/3] mn88472: make sure the private data struct is nulled
- after free
-References: <1417825533-13081-1-git-send-email-benjamin@southpole.se> <1417825533-13081-2-git-send-email-benjamin@southpole.se> <54832EE7.10705@iki.fi> <54834628.50702@southpole.se> <54834CD7.1060709@iki.fi> <54836680.9010404@southpole.se>
-In-Reply-To: <54836680.9010404@southpole.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/06/2014 09:26 PM, Benjamin Larsson wrote:
-> On 12/06/2014 07:37 PM, Antti Palosaari wrote:
->>>
->>> I do think it is good practice to set pointers to null generally as that
->>> would have saved me several days of work of whentracking down this bug.
->>> The current dvb framework contain several other cases where pointers are
->>> feed'd but not nulled.
->>
->> There is kzfree() for that, but still I am very unsure should we start 
->> zeroing memory upon release driver has allocated, or just relase it 
->> using kfree.
->>
->> regards
->> Antti 
-> 
-> Well I guess I am biased as I have spent lots of time finding a bug that 
-> probably wouldn't exist if the policy was that drivers always should set 
-> their memory to zero before it is free'd.
+Hello there,
 
-Just because you zero memory before it is freed doesn't mean it stays zeroed.
-As soon as it is freed some other process might take that memory and fill it
-up again. So zeroing is pointless and in fact will only *hide* bugs.
+[linux-3.19-rc3/drivers/media/tuners/mxl5005s.c:1817]: (style) Same expression in both branches of ternary operator.
+[linux-3.19-rc3/drivers/media/tuners/mxl5005s.c:1818]: (style) Same expression in both branches of ternary operator.
 
-The only reason I know of for zeroing memory before freeing is if that memory
-contains sensitive information and you want to make sure it is gone from memory.
+Source code is
 
-You can turn on the kmemcheck kernel option when compiling the kernel to test
-for accesses to uninitialized memory if you suspect you have a bug in that
-area.
+    status += MXL_ControlWrite(fe,
+        RFSYN_EN_CHP_HIGAIN, state->Mode ? 1 : 1);
+    status += MXL_ControlWrite(fe, EN_CHP_LIN_B, state->Mode ? 0 : 0);
 
-Anyway:
+Suggest code rework.
 
-Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Regards
 
-Regards,
-
-	Hans
-
-> Maybe we should have a compile 
-> time override so that all free calls zeroes the memory before the actual 
-> free? Maybe there already is this kind of feature?
-> 
-> MvH
-> Benjamin Larsson
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+David Binderman
+ 		 	   		  
