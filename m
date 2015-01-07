@@ -1,57 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:52071 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752288AbbA2Bmj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 20:42:39 -0500
-From: Arnd Bergmann <arnd@arndb.de>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:57839 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751625AbbAGLoj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 06:44:39 -0500
+Received: by mail-pa0-f48.google.com with SMTP id rd3so4402204pab.7
+        for <linux-media@vger.kernel.org>; Wed, 07 Jan 2015 03:44:39 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <f312c9563615f8f5666c1621a20d3fa07831ae89.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com> <f312c9563615f8f5666c1621a20d3fa07831ae89.1420578087.git.mchehab@osg.samsung.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 7 Jan 2015 11:44:08 +0000
+Message-ID: <CA+V-a8sJzqbM5T-pRJ-gkZq-0HPDqG4MxO5DRUZy_GwMU-QKkQ@mail.gmail.com>
+Subject: Re: [PATCHv3 10/20] cx25840: fill the media controller entity
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 6/7] [media] marvell-ccic: MMP_CAMERA never worked
-Date: Wed, 28 Jan 2015 22:17:46 +0100
-Message-Id: <1422479867-3370921-7-git-send-email-arnd@arndb.de>
-In-Reply-To: <1422479867-3370921-1-git-send-email-arnd@arndb.de>
-References: <1422479867-3370921-1-git-send-email-arnd@arndb.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Joe Perches <joe@perches.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mmp ccic driver uses a platform_data structure that has never
-existed in an upstream kernel and always fails to build:
+Hi Mauro,
 
-media/platform/marvell-ccic/mmp-driver.c: In function 'mmpcam_calc_dphy':
-media/platform/marvell-ccic/mmp-driver.c:252:15: error: 'struct mmp_camera_platform_data' has no member named 'dphy3_algo'
-  switch (pdata->dphy3_algo) {
-               ^
-media/platform/marvell-ccic/mmp-driver.c:253:7: error: 'DPHY3_ALGO_PXA910' undeclared (first use in this function)
-  case DPHY3_ALGO_PXA910:
-       ^
-media/platform/marvell-ccic/mmp-driver.c:253:7: note: each undeclared identifier is reported only once for each function it appears in
-media/platform/marvell-ccic/mmp-driver.c:257:8: error: 'struct mmp_camera_platform_data' has no member named 'dphy'
+Thanks for the patch.
 
-This marks the driver as 'BROKEN' but keeps the code around.
-Alternatively it could be removed entirely.
+On Tue, Jan 6, 2015 at 9:08 PM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Instead of keeping the media controller entity not initialized,
+> fill it and create the pads for cx25840.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+> index 573e08826b9b..bdb5bb6b58da 100644
+> --- a/drivers/media/i2c/cx25840/cx25840-core.c
+> +++ b/drivers/media/i2c/cx25840/cx25840-core.c
+> @@ -5137,6 +5137,9 @@ static int cx25840_probe(struct i2c_client *client,
+>         int default_volume;
+>         u32 id;
+>         u16 device_id;
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +       int ret;
+> +#endif
+>
+>         /* Check if the adapter supports the needed features */
+>         if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> @@ -5178,6 +5181,21 @@ static int cx25840_probe(struct i2c_client *client,
+>
+>         sd = &state->sd;
+>         v4l2_i2c_subdev_init(sd, client, &cx25840_ops);
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +       /* TODO: need to represent analog inputs too */
+> +       state->pads[0].flags = MEDIA_PAD_FL_SINK;       /* Tuner or input */
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
----
- drivers/media/platform/marvell-ccic/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ | MEDIA_PAD_FL_MUST_CONNECT ?
 
-diff --git a/drivers/media/platform/marvell-ccic/Kconfig b/drivers/media/platform/marvell-ccic/Kconfig
-index 6265d36adceb..7ac0f13c98be 100644
---- a/drivers/media/platform/marvell-ccic/Kconfig
-+++ b/drivers/media/platform/marvell-ccic/Kconfig
-@@ -13,7 +13,7 @@ config VIDEO_CAFE_CCIC
- config VIDEO_MMP_CAMERA
- 	tristate "Marvell Armada 610 integrated camera controller support"
- 	depends on ARCH_MMP && I2C && VIDEO_V4L2
--	depends on HAS_DMA
-+	depends on HAS_DMA && BROKEN
- 	select VIDEO_OV7670
- 	select I2C_GPIO
- 	select VIDEOBUF2_DMA_SG
--- 
-2.1.0.rc2
+> +       state->pads[1].flags = MEDIA_PAD_FL_SOURCE;     /* Video */
+> +       state->pads[2].flags = MEDIA_PAD_FL_SOURCE;     /* VBI */
 
+Macros for 0,1,2, and 3 would make it more readable.
+
+> +       sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
+> +
+> +       ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
+> +                               state->pads, 0);
+> +       if (ret < 0) {
+> +               v4l_info(client, "failed to initialize media entity!\n");
+> +               kfree(state);
+Not required.
+
+> +               return -ENODEV;
+return ret; instead ?
+
+Thanks,
+--Prabhakar Lad
