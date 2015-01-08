@@ -1,289 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:36129 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754060AbbAUERh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 23:17:37 -0500
-Received: by mail-pa0-f45.google.com with SMTP id lf10so50232334pab.4
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 20:17:36 -0800 (PST)
-From: Sumit Semwal <sumit.semwal@linaro.org>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org
-Cc: linaro-kernel@lists.linaro.org, robdclark@gmail.com,
-	daniel@ffwll.ch, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [RFCv2 2/2] dma-buf: add helpers for sharing attacher constraints with dma-parms
-Date: Wed, 21 Jan 2015 09:46:47 +0530
-Message-Id: <1421813807-9178-3-git-send-email-sumit.semwal@linaro.org>
-In-Reply-To: <1421813807-9178-1-git-send-email-sumit.semwal@linaro.org>
-References: <1421813807-9178-1-git-send-email-sumit.semwal@linaro.org>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:46223 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754346AbbAHMvA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 07:51:00 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NHU00LNOZVNQPA0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 08 Jan 2015 12:54:59 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
+	linux-media@vger.kernel.org
+Cc: 'Arun Kumar K' <arun.kk@samsung.com>
+References: <1418677859-31440-1-git-send-email-nicolas.dufresne@collabora.com>
+ <1418677859-31440-2-git-send-email-nicolas.dufresne@collabora.com>
+In-reply-to: <1418677859-31440-2-git-send-email-nicolas.dufresne@collabora.com>
+Subject: RE: [PATCH 1/3] s5p-mfc-v6+: Use display_delay_enable CID
+Date: Thu, 08 Jan 2015 13:50:55 +0100
+Message-id: <009801d02b41$bf319270$3d94b750$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add some helpers to share the constraints of devices while attaching
-to the dmabuf buffer.
+> -----Original Message-----
+> From: Nicolas Dufresne [mailto:nicolas.dufresne@collabora.com]
+> Sent: Monday, December 15, 2014 10:11 PM
+> To: linux-media@vger.kernel.org
+> Cc: Kamil Debski; Arun Kumar K; Nicolas Dufresne
+> Subject: [PATCH 1/3] s5p-mfc-v6+: Use display_delay_enable CID
+> 
+> The MFC driver has two controls, DISPLAY_DELAY and DISPLAY_DELAY_ENABLE
+> that allow forcing the decoder to return a decoded frame sooner
+> regardless of the order. The added support for firmware version 6 and
+> higher was not taking into account the DISPLAY_DELAY_ENABLE boolean.
+> Instead it had a comment stating that DISPLAY_DELAY should be set to a
+> negative value to disable it. This is not possible since the control
+> range is from 0 to 65535. This feature was also supposed to be disabled
+> by default in order to produce frames in display order.
+> 
+> Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 
-At each attach, the constraints are calculated based on the following:
-- dma_mask, coherent_dma_mask from struct device,
-- max_segment_size, max_segment_count, segment_boundary_mask from
-   device_dma_parameters.
+Acked-by: Kamil Debski <k.debski@samsung.com>
 
-In case the attaching device's constraints don't match up, attach() fails.
-
-At detach, the constraints are recalculated based on the remaining
-attached devices.
-
-Two helpers are added:
-- dma_buf_get_constraints - which gives the current constraints as calculated
-      during each attach on the buffer till the time,
-- dma_buf_recalc_constraints - which recalculates the constraints for all
-      currently attached devices for the 'paranoid' ones amongst us.
-
-The idea of this patch is largely taken from Rob Clark's RFC at
-https://lkml.org/lkml/2012/7/19/285, and the comments received on it.
-
-Cc: Rob Clark <robdclark@gmail.com>
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
----
- drivers/dma-buf/dma-buf.c | 132 +++++++++++++++++++++++++++++++++++++++++++++-
- include/linux/dma-buf.h   |  22 ++++++++
- 2 files changed, 153 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index 5be225c..3781f43 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -264,6 +264,77 @@ static inline int is_dma_buf_file(struct file *file)
- 	return file->f_op == &dma_buf_fops;
- }
- 
-+static inline void init_constraints(struct dma_buf_constraints *cons)
-+{
-+	cons->coherent_dma_mask = (u64)-1;
-+	cons->dma_mask = (u64)-1;
-+	cons->dma_parms.max_segment_count = (unsigned int)-1;
-+	cons->dma_parms.max_segment_size = (unsigned int)-1;
-+	cons->dma_parms.segment_boundary_mask = (unsigned int)-1;
-+}
-+
-+/*
-+ * calc_constraints - calculates if the new attaching device's constraints
-+ * match, with the constraints of already attached devices; if yes, returns
-+ * the constraints; else return ERR_PTR(-EINVAL)
-+ */
-+static int calc_constraints(struct device *dev,
-+			    struct dma_buf_constraints *calc_cons)
-+{
-+	struct dma_buf_constraints cons = *calc_cons;
-+
-+	cons.dma_mask &= dma_get_mask(dev);
-+	/* TODO: Check if this is the right way for coherent_mask ? */
-+	cons.coherent_dma_mask &= dev->coherent_dma_mask;
-+
-+	cons.dma_parms.max_segment_count =
-+			min(cons.dma_parms.max_segment_count,
-+			    dma_get_max_seg_count(dev));
-+	cons.dma_parms.max_segment_size =
-+			min(cons.dma_parms.max_segment_size,
-+			    dma_get_max_seg_size(dev));
-+	cons.dma_parms.segment_boundary_mask &=
-+			dma_get_seg_boundary(dev);
-+
-+	if (!cons.dma_parms.max_segment_count ||
-+	    !cons.dma_parms.max_segment_size ||
-+	    !cons.dma_parms.segment_boundary_mask ||
-+	    !cons.dma_mask ||
-+	    !cons.coherent_dma_mask) {
-+		pr_err("Dev: %s's constraints don't match\n", dev_name(dev));
-+		return -EINVAL;
-+	}
-+
-+	*calc_cons = cons;
-+
-+	return 0;
-+}
-+
-+/*
-+ * recalc_constraints - recalculates constraints for all attached devices;
-+ *  useful for detach() recalculation, and for dma_buf_recalc_constraints()
-+ *  helper.
-+ *  Returns recalculated constraints in recalc_cons, or error in the unlikely
-+ *  case when constraints of attached devices might have changed.
-+ */
-+static int recalc_constraints(struct dma_buf *dmabuf,
-+			      struct dma_buf_constraints *recalc_cons)
-+{
-+	struct dma_buf_constraints calc_cons;
-+	struct dma_buf_attachment *attach;
-+	int ret = 0;
-+
-+	init_constraints(&calc_cons);
-+
-+	list_for_each_entry(attach, &dmabuf->attachments, node) {
-+		ret = calc_constraints(attach->dev, &calc_cons);
-+		if (ret)
-+			return ret;
-+	}
-+	*recalc_cons = calc_cons;
-+	return 0;
-+}
-+
- /**
-  * dma_buf_export_named - Creates a new dma_buf, and associates an anon file
-  * with this buffer, so it can be exported.
-@@ -313,6 +384,9 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
- 	dmabuf->ops = ops;
- 	dmabuf->size = size;
- 	dmabuf->exp_name = exp_name;
-+
-+	init_constraints(&dmabuf->constraints);
-+
- 	init_waitqueue_head(&dmabuf->poll);
- 	dmabuf->cb_excl.poll = dmabuf->cb_shared.poll = &dmabuf->poll;
- 	dmabuf->cb_excl.active = dmabuf->cb_shared.active = 0;
-@@ -422,7 +496,7 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
- 					  struct device *dev)
- {
- 	struct dma_buf_attachment *attach;
--	int ret;
-+	int ret = 0;
- 
- 	if (WARN_ON(!dmabuf || !dev))
- 		return ERR_PTR(-EINVAL);
-@@ -436,6 +510,9 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
- 
- 	mutex_lock(&dmabuf->lock);
- 
-+	if (calc_constraints(dev, &dmabuf->constraints))
-+		goto err_constraints;
-+
- 	if (dmabuf->ops->attach) {
- 		ret = dmabuf->ops->attach(dmabuf, dev, attach);
- 		if (ret)
-@@ -448,6 +525,7 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
- 
- err_attach:
- 	kfree(attach);
-+err_constraints:
- 	mutex_unlock(&dmabuf->lock);
- 	return ERR_PTR(ret);
- }
-@@ -470,6 +548,8 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
- 	if (dmabuf->ops->detach)
- 		dmabuf->ops->detach(dmabuf, attach);
- 
-+	recalc_constraints(dmabuf, &dmabuf->constraints);
-+
- 	mutex_unlock(&dmabuf->lock);
- 	kfree(attach);
- }
-@@ -770,6 +850,56 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
- }
- EXPORT_SYMBOL_GPL(dma_buf_vunmap);
- 
-+/**
-+ * dma_buf_get_constraints - get the *current* constraints of the dmabuf,
-+ *  as calculated during each attach(); returns error on invalid inputs
-+ *
-+ * @dmabuf:		[in]	buffer to get constraints of
-+ * @constraints:	[out]	current constraints are returned in this
-+ */
-+int dma_buf_get_constraints(struct dma_buf *dmabuf,
-+			    struct dma_buf_constraints *constraints)
-+{
-+	if (WARN_ON(!dmabuf || !constraints))
-+		return -EINVAL;
-+
-+	mutex_lock(&dmabuf->lock);
-+	*constraints = dmabuf->constraints;
-+	mutex_unlock(&dmabuf->lock);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_get_constraints);
-+
-+/**
-+ * dma_buf_recalc_constraints - *recalculate* the constraints for the buffer
-+ *  afresh, from the list of currently attached devices; this could be useful
-+ *  cross-check the current constraints, for exporters that might want to be
-+ *  'paranoid' about the device constraints.
-+ *
-+ *  returns error on invalid inputs
-+ *
-+ * @dmabuf:		[in]	buffer to get constraints of
-+ * @constraints:	[out]	recalculated constraints are returned in this
-+ */
-+int dma_buf_recalc_constraints(struct dma_buf *dmabuf,
-+			    struct dma_buf_constraints *constraints)
-+{
-+	struct dma_buf_constraints calc_cons;
-+	int ret = 0;
-+
-+	if (WARN_ON(!dmabuf || !constraints))
-+		return -EINVAL;
-+
-+	mutex_lock(&dmabuf->lock);
-+	ret = recalc_constraints(dmabuf, &calc_cons);
-+	if (!ret)
-+		*constraints = calc_cons;
-+
-+	mutex_unlock(&dmabuf->lock);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_recalc_constraints);
-+
- #ifdef CONFIG_DEBUG_FS
- static int dma_buf_describe(struct seq_file *s)
- {
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 694e1fe..e1f7cbe 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -34,10 +34,28 @@
- #include <linux/wait.h>
- 
- struct device;
-+struct device_dma_parameters;
- struct dma_buf;
- struct dma_buf_attachment;
- 
- /**
-+ * struct dma_buf_constraints - holds constraints for the dma-buf
-+ * @dma_mask:	dma_mask if the device is dma'able
-+ * @coherent_dma_mask: like dma_mask, but for alloc_coherent mappings
-+ * @dma_parms: collated dma_parms from all devices.
-+ *
-+ * This structure holds the constraints of the dma_buf, dependent on the
-+ * currently attached devices. Semantics for each of the members are the same
-+ * as defined in device.h
-+ */
-+struct dma_buf_constraints {
-+	u64		dma_mask;
-+	u64		coherent_dma_mask;
-+	struct device_dma_parameters dma_parms;
-+};
-+
-+
-+/**
-  * struct dma_buf_ops - operations possible on struct dma_buf
-  * @attach: [optional] allows different devices to 'attach' themselves to the
-  *	    given buffer. It might return -EBUSY to signal that backing storage
-@@ -130,6 +148,7 @@ struct dma_buf {
- 	void *vmap_ptr;
- 	const char *exp_name;
- 	struct list_head list_node;
-+	struct dma_buf_constraints constraints;
- 	void *priv;
- 	struct reservation_object *resv;
- 
-@@ -211,4 +230,7 @@ void *dma_buf_vmap(struct dma_buf *);
- void dma_buf_vunmap(struct dma_buf *, void *vaddr);
- int dma_buf_debugfs_create_file(const char *name,
- 				int (*write)(struct seq_file *));
-+
-+int dma_buf_get_constraints(struct dma_buf *, struct dma_buf_constraints *);
-+int dma_buf_recalc_constraints(struct dma_buf *, struct dma_buf_constraints *);
- #endif /* __DMA_BUF_H__ */
--- 
-1.9.1
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> index 92032a0..0675515 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> @@ -1340,11 +1340,7 @@ static int s5p_mfc_init_decode_v6(struct
+> s5p_mfc_ctx *ctx)
+>  	/* FMO_ASO_CTRL - 0: Enable, 1: Disable */
+>  	reg |= (fmo_aso_ctrl << S5P_FIMV_D_OPT_FMO_ASO_CTRL_MASK_V6);
+> 
+> -	/* When user sets desplay_delay to 0,
+> -	 * It works as "display_delay enable" and delay set to 0.
+> -	 * If user wants display_delay disable, It should be
+> -	 * set to negative value. */
+> -	if (ctx->display_delay >= 0) {
+> +	if (ctx->display_delay_enable) {
+>  		reg |= (0x1 << S5P_FIMV_D_OPT_DDELAY_EN_SHIFT_V6);
+>  		writel(ctx->display_delay, mfc_regs->d_display_delay);
+>  	}
+> --
+> 2.1.0
 
