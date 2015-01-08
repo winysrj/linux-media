@@ -1,69 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35404 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752323AbbAUNbD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2015 08:31:03 -0500
-Message-ID: <54BFA9D6.1040201@xs4all.nl>
-Date: Wed, 21 Jan 2015 14:29:58 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:43240 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755305AbbAHTTn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 14:19:43 -0500
+Date: Thu, 8 Jan 2015 17:19:37 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux-Media <linux-media@vger.kernel.org>
+Cc: Shuah Khan <shuahkhan@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Media Summit planning for 2015 - was: Re: ELC 2015 - March - San
+ Jose
+Message-ID: <20150108171937.228316a7@concha.lan>
+In-Reply-To: <CAKocOOOLH9gHpGRCX=6Y3x=-nSj3N9dYpySBH2opdjXbg7w0BA@mail.gmail.com>
+References: <CALzAhNW+-pEpYFYH3_Zn8xwMXUoWL6j0LvyPGkvG7hna4z4gLQ@mail.gmail.com>
+	<54AD7B96.209@xs4all.nl>
+	<CAKocOOOLH9gHpGRCX=6Y3x=-nSj3N9dYpySBH2opdjXbg7w0BA@mail.gmail.com>
 MIME-Version: 1.0
-To: Florian Echtler <floe@butterbrot.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
-References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <64652239.MTTlcOgNK2@avalon> <54BE5204.3020600@xs4all.nl> <6025823.veVKIskIW2@avalon> <54BFA989.4090405@butterbrot.org>
-In-Reply-To: <54BFA989.4090405@butterbrot.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/21/15 14:28, Florian Echtler wrote:
-> Hello everyone,
-> 
-> On 20.01.2015 14:06, Laurent Pinchart wrote:
->> On Tuesday 20 January 2015 14:03:00 Hans Verkuil wrote:
->>> On 01/20/15 13:59, Laurent Pinchart wrote:
->>>> On Tuesday 20 January 2015 10:30:07 Hans Verkuil wrote:
->>>>> I've CC-ed Laurent, I think he knows a lot more about this than I do.
->>>>>
->>>>> Laurent, when does the USB core use DMA? What do you need to do on the
->>>>> driver side to have USB use DMA when doing bulk transfers?
->>>>
->>>> How USB HCD drivers map buffers for DMA is HCD-specific, but all drivers
->>>> exepct ehci-tegra, max3421-hcd and musb use the default implementation
->>>> usb_hcd_map_urb_for_dma() (in drivers/usb/core/hcd.c).
->>>>
->>>> Unless the buffer has already been mapped by the USB driver (in which case
->>>> the driver will have set the URB_NO_TRANSFER_DMA_MAP flag in
->>>> urb->transfer_flags and initialized the urb->transfer_dma field), the
->>>> function will use dma_map_sg(), dma_map_page() or dma_map_single()
->>>> depending on the buffer type (controlled through urb->sg and
->>>> urb->num_sgs). DMA will thus always be used *expect* if the platform uses
->>>> bounce buffers when the buffer can't be mapped directly for DMA.
->>>
->>> So we can safely use videobuf2-vmalloc, right?
->>
->> That depends on the platform and whether it can DMA to vmalloc'ed memory :-) 
->> To be totally safe I think vb2-dma-sg would be better, but I'm not sure it's 
->> worth the trouble. uvcvideo uses vb2-vmalloc as it performs a memcpy anyway.
-> 
-> The SUR40 sends raw video data without any headers over the bulk
-> endpoint in blocks of 16k, so I'm assuming that in this specific case,
-> vb2-dma-sg would be the most efficient choice?
-> 
-> On that note, I've seen that vb2_dma_sg_{init|cleanup}_ctx will appear
-> only in 3.19. If I want to maintain a backwards-compatible version for
-> older kernels, what do I use in that case?
+Hi all,
 
-Easiest would actually be to copy all the videobuf2 sources and headers
-to that older kernel.
+I want to do the media planning for 2015. As we've agreed last year, we're
+planning to do one media summit together with the Kernel Summit. While
+things may change, this year, KS will likely happen by Oct in Korea.
 
-Obviously, for upstreaming you should always use the latest APIs and
-never use backwards-compatible constructs.
+I think we may do another summit in US. Looking at:
+	http://events.linuxfoundation.org/
+
+Some possible events would be to do it together with:
+	ELC - end of March - San Jose, CA - US
+	LinuxCon - mid of August - Seattle, WA - US
+
+I took a look at https://lwn.net/Calendar/ to see if are there some
+other event at the first semester, as LinuxCon seems too close to
+KS, and ELC means about two months to prepare for it, but was unable
+to find some other interesting event that we could use to merge
+with the Media Summit.
+
+Of course, nothing prevents us to choose some other event or even
+do a Media Summit that would be independent. We did one like that
+already in the past, in Helsinki.
+
+That's said, probably, the best would be to do the first media
+summit together with ELC, if we have enough people for it and
+enough subject for discussions.
+
+What do you think?
+
+>From my side, I'd like to do some deeper discussions related to
+DVB media controller API.
 
 Regards,
+Mauro
 
-	Hans
+Em Thu, 8 Jan 2015 09:54:17 -0700
+Shuah Khan <shuahkhan@gmail.com> escreveu:
 
+> On Wed, Jan 7, 2015 at 11:31 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On 01/07/2015 05:20 PM, Steven Toth wrote:
+> >> Is anyone planning to attend this year?
+> >
+> > I'm planning to attend.
+> >
+> 
+> I am planning to attend as well.
+> 
+> -- Shuah
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+
+Cheers,
+Mauro
