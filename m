@@ -1,80 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:56527 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751093AbbAMNEw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 08:04:52 -0500
-Message-ID: <54B517C3.3070205@xs4all.nl>
-Date: Tue, 13 Jan 2015 14:04:03 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:45616 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755038AbbAHVPH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 16:15:07 -0500
+Received: by mail-ie0-f177.google.com with SMTP id rd18so11696836iec.8
+        for <linux-media@vger.kernel.org>; Thu, 08 Jan 2015 13:15:06 -0800 (PST)
 MIME-Version: 1.0
-To: Lars-Peter Clausen <lars@metafoo.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/16] [media] adv7180: Add support for different chip
-References: <1421150481-30230-1-git-send-email-lars@metafoo.de>
-In-Reply-To: <1421150481-30230-1-git-send-email-lars@metafoo.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <a1fa09af2da026204f2b0d7eebcad14149a0f880.1420578087.git.mchehab@osg.samsung.com>
+References: <cover.1420578087.git.mchehab@osg.samsung.com>
+	<a1fa09af2da026204f2b0d7eebcad14149a0f880.1420578087.git.mchehab@osg.samsung.com>
+Date: Thu, 8 Jan 2015 14:15:05 -0700
+Message-ID: <CAKocOOPNg8ft-KZEBKnTxrdfw0qmiUCc7jY78K-4LH9eH_O8wg@mail.gmail.com>
+Subject: Re: [PATCHv3 18/20] cx231xx: enable tuner->decoder link at videobuf start
+From: Shuah Khan <shuahkhan@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lars,
+On Tue, Jan 6, 2015 at 2:08 PM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> The tuner->decoder needs to be enabled when we're about to
+> start streaming.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+> index f3d1a488dfa7..634763535d60 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+> @@ -703,6 +703,74 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
+>         buf->vb.state = VIDEOBUF_NEEDS_INIT;
+>  }
+>
+> +static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
+> +{
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +       struct media_device *mdev = dev->media_dev;
+> +       struct media_entity  *entity, *decoder = NULL, *source;
+> +       struct media_link *link, *found_link = NULL;
+> +       int i, ret, active_links = 0;
+> +
+> +       if (!mdev)
+> +               return 0;
+> +
+> +/*
+> + * This will find the tuner that it is connected into the decoder.
+> + * Technically, this is not 100% correct, as the device may be using an
+> + * analog input instead of the tuner. However, we can't use the DVB for dvb
+> + * while the DMA engine is being used for V4L2.
+> + */
+> +       media_device_for_each_entity(entity, mdev) {
+> +               if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
+> +                       decoder = entity;
+> +                       break;
+> +               }
+> +       }
+> +       if (!decoder)
+> +               return 0;
+> +
+> +       for (i = 0; i < decoder->num_links; i++) {
+> +               link = &decoder->links[i];
+> +               if (link->sink->entity == decoder) {
+> +                       found_link = link;
+> +                       if (link->flags & MEDIA_LNK_FL_ENABLED)
+> +                               active_links++;
+> +                       break;
+> +               }
+> +       }
 
-On 01/13/15 13:01, Lars-Peter Clausen wrote:
-> The adv7180 is part of a larger family of chips which all implement
-> different features from a feature superset. This patch series step by step
-> extends the current adv7180 with features from the superset that are
-> currently not supported and gradually adding support for more variations of
-> the chip.
-> 
-> The first half of this series contains fixes and cleanups while the second
-> half adds new features and support for new chips.
+Does this code path need to be protected?
 
-For patches 1-7, 9-13 and 16:
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-I need a bit more time to review patches 8 and 15. Ping me if you haven't
-heard from me by Friday.
-
-BTW: is the adv7183 part of the same family? There is a separate i2c driver
-for it in the kernel, so I was wondering if that could be merged into this
-driver eventually.
-
-Did you check with authors of drivers that use the adv7180 to ensure nothing
-broke? They should be pinged about this at least.
-
-Regards,
-
-	Hans
-
-> 
-> - Lars
-> 
-> Lars-Peter Clausen (16):
->   [media] adv7180: Do not request the IRQ again during resume
->   [media] adv7180: Pass correct flags to request_threaded_irq()
->   [media] adv7180: Use inline function instead of macro
->   [media] adv7180: Cleanup register define naming
->   [media] adv7180: Do implicit register paging
->   [media] adv7180: Reset the device before initialization
->   [media] adv7180: Add media controller support
->   [media] adv7180: Consolidate video mode setting
->   [media] adv7180: Prepare for multi-chip support
->   [media] adv7180: Add support for the ad7182
->   [media] adv7180: Add support for the adv7280/adv7281/adv7282
->   [media] adv7180: Add support for the
->     adv7280-m/adv7281-m/adv7281-ma/adv7282-m
->   [media] adv7180: Add I2P support
->   [media] adv7180: Add fast switch support
->   [media] adv7180: Add free run mode controls
->   [media] Add MAINTAINERS entry for the adv7180
-> 
->  MAINTAINERS                       |    7 +
->  drivers/media/i2c/Kconfig         |    2 +-
->  drivers/media/i2c/adv7180.c       | 1137 ++++++++++++++++++++++++++++++-------
->  drivers/media/pci/sta2x11/Kconfig |    1 +
->  drivers/media/platform/Kconfig    |    2 +-
->  5 files changed, 947 insertions(+), 202 deletions(-)
-> 
-
+> +
+> +       if (active_links == 1 || !found_link)
+> +               return 0;
+> +
+> +       source = found_link->source->entity;
+> +       for (i = 0; i < source->num_links; i++) {
+> +               struct media_entity *sink;
+> +               int flags = 0;
+> +
+> +               link = &source->links[i];
+> +               sink = link->sink->entity;
+> +
+> +               if (sink == entity)
+> +                       flags = MEDIA_LNK_FL_ENABLED;
+> +
+> +               ret = media_entity_setup_link(link, flags);
+> +               if (ret) {
+> +                       dev_err(dev->dev,
+> +                               "Couldn't change link %s->%s to %s. Error %d\n",
+> +                               source->name, sink->name,
+> +                               flags ? "enabled" : "disabled",
+> +                               ret);
+> +                       return ret;
+> +               } else
+> +                       dev_dbg(dev->dev,
+> +                               "link %s->%s was %s\n",
+> +                               source->name, sink->name,
+> +                               flags ? "ENABLED" : "disabled");
+> +       }
+> +#endif
+> +       return 0;
+> +}
+> +
+>  static int
+>  buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+>                enum v4l2_field field)
+> @@ -756,6 +824,9 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+>         }
+>
+>         buf->vb.state = VIDEOBUF_PREPARED;
+> +
+> +       cx231xx_enable_analog_tuner(dev);
+> +
+>         return 0;
+>
+>  fail:
+> --
+> 2.1.0
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
