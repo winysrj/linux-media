@@ -1,46 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:39694 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753297AbbAGXPb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 18:15:31 -0500
-Message-ID: <54ADBE0E.5030205@collabora.com>
-Date: Wed, 07 Jan 2015 18:15:26 -0500
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Kamil Debski <k.debski@samsung.com>,
-	Arun Kumar K <arun.kk@samsung.com>
-Subject: Re: [PATCH 0/3] Various fixes for s5p-mfc driver
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:53158 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754642AbbAHMvE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 07:51:04 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NHU005Q6ZVUUH80@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 08 Jan 2015 12:55:06 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
+	linux-media@vger.kernel.org
+Cc: 'Arun Kumar K' <arun.kk@samsung.com>
 References: <1418677859-31440-1-git-send-email-nicolas.dufresne@collabora.com>
-In-Reply-To: <1418677859-31440-1-git-send-email-nicolas.dufresne@collabora.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+ <1418677859-31440-4-git-send-email-nicolas.dufresne@collabora.com>
+In-reply-to: <1418677859-31440-4-git-send-email-nicolas.dufresne@collabora.com>
+Subject: RE: [PATCH 3/3] media-doc: Fix MFC display delay control doc
+Date: Thu, 08 Jan 2015 13:51:01 +0100
+Message-id: <009a01d02b41$c1e281a0$45a784e0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just a friendly reminder that this patch is pending review ;-P
+> -----Original Message-----
+> From: Nicolas Dufresne [mailto:nicolas.dufresne@collabora.com]
+> Sent: Monday, December 15, 2014 10:11 PM
+> To: linux-media@vger.kernel.org
+> Cc: Kamil Debski; Arun Kumar K; Nicolas Dufresne
+> Subject: [PATCH 3/3] media-doc: Fix MFC display delay control doc
+> 
+> The V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE control
+> is a boolean but was documented as a integer. The documentation was
+> also slightly miss-leading.
+> 
+> Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 
-cheers,
-Nicolas
+Acked-by: Kamil Debski <k.debski@samsung.com>
 
-Le 2014-12-15 16:10, Nicolas Dufresne a écrit :
-> This patchset fixes ability to drain the decoder due to use of wrong
-> enumeration name and fixes implementation of display delay controls
-> for MFC firmware v6 and higher.
->
-> Note that there is no need in the display delay fix for trying to be
-> backward compatible with what the comment was saying since the control
-> properties was preventing it. There was basically no way other then
-> setting a large delay value to get the frames in display order.
->
-> Nicolas Dufresne (3):
->    s5p-mfc-v6+: Use display_delay_enable CID
->    s5p-mfc-dec: Don't use encoder stop command
->    media-doc: Fix MFC display delay control doc
->
->   Documentation/DocBook/media/v4l/controls.xml    | 11 +++++------
->   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  2 +-
->   drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  6 +-----
->   3 files changed, 7 insertions(+), 12 deletions(-)
->
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml | 11 +++++------
+>  1 file changed, 5 insertions(+), 6 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> b/Documentation/DocBook/media/v4l/controls.xml
+> index e013e4b..4e9462f 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -2692,12 +2692,11 @@ in the S5P family of SoCs by Samsung.
+>  	      <row><entry></entry></row>
+>  	      <row>
+>  		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_
+> DELAY_ENABLE</constant>&nbsp;</entry>
+> -		<entry>integer</entry>
+> -	      </row><row><entry spanname="descr">If the display delay is
+> enabled then the decoder has to return a
+> -CAPTURE buffer after processing a certain number of OUTPUT buffers. If
+> this number is low, then it may result in -buffers not being dequeued
+> in display order. In addition hardware may still use those buffers as
+> reference, thus -application should not write to those buffers. This
+> feature can be used for example for generating thumbnails of videos.
+> -Applicable to the H264 decoder.
+> +		<entry>boolean</entry>
+> +	      </row><row><entry spanname="descr">If the display delay is
+> +enabled then the decoder is forced to return a CAPTURE buffer (decoded
+> +frame) after processing a certain number of OUTPUT buffers. The delay
+> +can be set through
+> <constant>V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY</constan
+> t>. This feature can be used for example for generating thumbnails of
+> videos. Applicable to the H264 decoder.
+>  	      </entry>
+>  	      </row>
+>  	      <row><entry></entry></row>
+> --
+> 2.1.0
 
