@@ -1,45 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:55174 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753421AbbA2BXe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 20:23:34 -0500
-Received: by mail-pa0-f49.google.com with SMTP id fa1so32120039pad.8
-        for <linux-media@vger.kernel.org>; Wed, 28 Jan 2015 17:23:34 -0800 (PST)
-From: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
-To: laurent.pinchart+renesas@ideasonboard.com
-Cc: linux-media@vger.kernel.org,
-	Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
-Subject: [PATCH 2/3] [media] v4l: vsp1: Fix VI6_DPR_ROUTE_FP_MASK macro
-Date: Thu, 29 Jan 2015 09:53:54 +0900
-Message-Id: <1422492835-4398-2-git-send-email-nobuhiro.iwamatsu.yj@renesas.com>
-In-Reply-To: <1422492835-4398-1-git-send-email-nobuhiro.iwamatsu.yj@renesas.com>
-References: <1422492835-4398-1-git-send-email-nobuhiro.iwamatsu.yj@renesas.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44090 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757668AbbAHWr1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 17:47:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Josh Wu <josh.wu@atmel.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] V4L: remove clock name from v4l2_clk API
+Date: Fri, 09 Jan 2015 00:47:36 +0200
+Message-ID: <10297396.jglheYyvzx@avalon>
+In-Reply-To: <Pine.LNX.4.64.1501082324510.27341@axis700.grange>
+References: <Pine.LNX.4.64.1501021244580.30761@axis700.grange> <54AC970B.3090503@atmel.com> <Pine.LNX.4.64.1501082324510.27341@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-FP bit of VI6_DPR_mod_ROUTE register is 6bit. But VI6_DPR_ROUTE_FP_MASK is set
-to 0xFF, this will mask until the reserve bit.
-This fixes size for VI6_DPR_ROUTE_FP_MASK.
+Hi Guennadi and Josh,
 
-Signed-off-by: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
----
- drivers/media/platform/vsp1/vsp1_regs.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Thursday 08 January 2015 23:37:58 Guennadi Liakhovetski wrote:
+> On Wed, 7 Jan 2015, Josh Wu wrote:
+> > On 1/7/2015 6:17 AM, Guennadi Liakhovetski wrote:
+> >> On Tue, 6 Jan 2015, Josh Wu wrote:
+> >>> Hi, Guennadi
+> >>> 
+> >>> After look deep into this patch, I found you miss one line that should
+> >>> be changed as well.
+> >>> It's In function v4l2_clk_get(), there still has one line code called
+> >>> v4l2_clk_find(dev_id, id).
+> >>> You need to change it to v4l2_clk_find(dev_id, NULL) as well.
+> >>> Otherwise the code that many sensor used: v4l2_clk_get(&client->dev,
+> >>> "mclk") cannot acquired the "mclk" clock.
+> >>> 
+> >>> After above changes, this patch works for me.
+> >> 
+> >> I think you're right, in fact, since we now don't store CCF-based
+> >> v4l2_clk wrappers on the list, this can be simplified even further, I'll
+> >> update the patch. Did you only test this patch or both?
+> > 
+> > I tested both patches with Atmel-isi driver. For the 2/2 patch I applied
+> > the modification Laurent suggested.
+> > Those patches works for me.
+> > 
+> > The only concern is in ov2640 I still need to acquired two v4l2 clocks:
+> >    "xvclk"  that will get the xvclk CCF clock directly.
+> >    "mclk"  that make ISI driver call his clock_start()/stop() to
+> >    enable/disable ISI's peripheral clock.
+> > If I only get xvclk clock, then the camera capture will be failed with a
+> > ISI timeout error.
+> 
+> No, this doesn't look right to me. The camera sensor has only one clock
+> input, so, it should only request one clock. Where does the clock signal
+> to the camera come from on your system?
 
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-index f61e109..4177f98 100644
---- a/drivers/media/platform/vsp1/vsp1_regs.h
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -306,7 +306,7 @@
- #define VI6_DPR_BRU_ROUTE		0x204c
- #define VI6_DPR_ROUTE_FXA_MASK		(0xff << 8)
- #define VI6_DPR_ROUTE_FXA_SHIFT		16
--#define VI6_DPR_ROUTE_FP_MASK		(0xff << 8)
-+#define VI6_DPR_ROUTE_FP_MASK		(0x3f << 8)
- #define VI6_DPR_ROUTE_FP_SHIFT		8
- #define VI6_DPR_ROUTE_RT_MASK		(0x3f << 0)
- #define VI6_DPR_ROUTE_RT_SHIFT		0
+That's correct, the sensor driver only has one clock input, so it should just 
+request the xvclk clock.
+
+> If it comes from the ISI itself, you don't need to specify the clock in
+> the DT, since the ISI doesn't produce a clock from DT. If you do want to
+> have your clock consumer (ov2640) and the supplier (ISI) properly
+> described in DT, you'll have to teach the ISI to register a CCF clock
+> source, which then will be connected to from the ov2640. If you choose not
+> to show your clock in the DT, you can just use v4l2_clk_get(dev, "xvclk")
+> and it will be handled by v4l2_clk / soc-camera / isi-atmel.
+>
+> If the closk to ov2640 is supplied by a separate clock source, then you
+> v4l2_clk_get() will connect ov2640 to it directly and soc-camera will
+> enable and disable it on power-on / -off as required.
+
+The ISI has no way to supply a sensor clock, the clock is supplied by a 
+separate clock source.
+
+> From your above description it looks like the clock to ov2640 is supplied
+> by a separate source, but atmel-isi's .clock_start() / .clock_stop()
+> functions still need to be called? By looking at those functions it looks
+> like they turn on and off clocks, supplying the ISI itself... Instead of
+> only turning on and off clocks, provided by the ISI to a camera sensor. If
+> my understanding is right, then this is a bug in atmel-isi and it has to
+> be fixed.
+
+That's correct as well, the ISI driver needs to be fixed.
+
 -- 
-2.1.3
+Regards,
+
+Laurent Pinchart
 
