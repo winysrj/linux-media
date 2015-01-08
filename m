@@ -1,78 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:41210 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753840AbbANIad (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2015 03:30:33 -0500
-Date: Wed, 14 Jan 2015 09:30:30 +0100
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-To: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Josh Wu <josh.wu@atmel.com>, devicetree@vger.kernel.org,
-	grant.likely@linaro.org, galak@codeaurora.org, rob@landley.net,
-	robh+dt@kernel.org, ijc+devicetree@hellion.org.uk,
-	pawel.moll@arm.com, linux-arm-kernel@lists.infradead.org,
-	voice.shen@atmel.com, laurent.pinchart@ideasonboard.com,
-	plagnioj@jcrosoft.com, boris.brezillon@free-electrons.com,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-Subject: Re: [PATCH v2 0/8] ARM: at91: dts: sama5d3: add dt support for atmel
- isi and ov2640 sensor
-Message-ID: <20150114083030.GI3843@piout.net>
-References: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
- <54B53455.9050407@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <54B53455.9050407@atmel.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:60057 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751568AbbAHQuT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 11:50:19 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NHV00KB5AYP4J60@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 08 Jan 2015 16:54:25 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sean Young' <sean@mess.org>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, 'Hans Verkuil' <hansverk@cisco.com>
+References: <1419345142-3364-1-git-send-email-k.debski@samsung.com>
+ <1419345142-3364-2-git-send-email-k.debski@samsung.com>
+ <20141230133249.GA1566@gofer.mess.org>
+In-reply-to: <20141230133249.GA1566@gofer.mess.org>
+Subject: RE: [RFC 1/6] cec: add new driver for cec support.
+Date: Thu, 08 Jan 2015 17:50:15 +0100
+Message-id: <00b201d02b63$2e3471d0$8a9d5570$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+Hi Sean,
 
-BTW, you can add my ack on the remaining patches (5-7).
+> -----Original Message-----
+> From: Sean Young [mailto:sean@mess.org]
+> Sent: Tuesday, December 30, 2014 2:33 PM
+> To: Kamil Debski
+> Cc: dri-devel@lists.freedesktop.org; linux-media@vger.kernel.org;
+> m.szyprowski@samsung.com; mchehab@osg.samsung.com; hverkuil@xs4all.nl;
+> kyungmin.park@samsung.com; Hans Verkuil
+> Subject: Re: [RFC 1/6] cec: add new driver for cec support.
+> 
+> On Tue, Dec 23, 2014 at 03:32:17PM +0100, Kamil Debski wrote:
+> > +There are still a few todo's, the main one being the remote control
+> > +support feature of CEC. I need to research if that should be
+> > +implemented via the standard kernel remote control support.
+> 
+> I guess a new rc driver type RC_DRIVER_CEC should be introduced
+> (existing types are RC_DRIVER_IR_RAW and RC_DRIVER_SCANCODE).
+> rc_register_device() should not register the sysfs attributes specific
+> for IR, but register sysfs attributes for cec like a link to the device.
+> 
+> In addition there should be a new rc_type protocol RC_TYPE_CEC; now
+> rc_keydown_notimeout() can be called for each key press.
+> 
+> I guess a new keymap should exist too.
+> 
 
-On 13/01/2015 at 16:05:57 +0100, Nicolas Ferre wrote :
-> Le 04/01/2015 10:02, Josh Wu a écrit :
-> > This patch series add ISI and ov2640 support on dts files.
-> > 
-> > As the ov2640 driver dt is still in review. The patch is in: https://patchwork.linuxtv.org/patch/27554/
-> > So I want to send this dt patch early for a review.
-> > 
-> > v1 -> v2:
-> >   1. add one more patch to change the pin name of ISI_MCK
-> >   2. rewrite the commit [4/8] ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}.
-> >   3. move the common chip parts of ISI node to sama5d3.dtsi.
-> > 
-> > Bo Shen (3):
-> >   ARM: at91: dts: sama5d3: split isi pinctrl
-> >   ARM: at91: dts: sama5d3: add missing pins of isi
-> >   ARM: at91: dts: sama5d3: move the isi mck pin to mb
-> > 
-> > Josh Wu (5):
-> >   ARM: at91: dts: sama5d3: add isi clock
-> >   ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}
-> >   ARM: at91: dts: sama5d3: change name of pinctrl of ISI_MCK
-> >   ARM: at91: dts: sama5d3: add ov2640 camera sensor support
-> >   ARM: at91: sama5: enable atmel-isi and ov2640 in defconfig
-> 
-> Josh,
-> 
-> It seems that this patch doesn't show up in the series: I only received
-> up to 6/8 patches (2 missing?). Can you please send it(them?)?
-> 
-> Bye,
-> 
-> >  arch/arm/boot/dts/sama5d3.dtsi    | 24 ++++++++++++++++++-----
-> >  arch/arm/boot/dts/sama5d3xmb.dtsi | 40 +++++++++++++++++++++++++++++++++++----
-> >  arch/arm/configs/sama5_defconfig  |  6 ++++++
-> >  3 files changed, 61 insertions(+), 9 deletions(-)
-> > 
-> 
-> 
-> -- 
-> Nicolas Ferre
+Thank you for your suggestions. They are surely helpful and I agree with
+them.
 
+Best wishes,
 -- 
-Alexandre Belloni, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+Kamil Debski
+Samsung R&D Institute Poland
+
