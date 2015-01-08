@@ -1,59 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:45252 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751444AbbASRSg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 12:18:36 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id BB5162A0080
-	for <linux-media@vger.kernel.org>; Mon, 19 Jan 2015 18:18:14 +0100 (CET)
-Message-ID: <54BD3C56.4070600@xs4all.nl>
-Date: Mon, 19 Jan 2015 18:18:14 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT FIXES FOR v3.19] Various fixes
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bruce.bmat.com ([176.9.54.181]:49832 "EHLO bruce.bmat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752601AbbAHPMf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 10:12:35 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by bruce.bmat.com (Postfix) with ESMTP id BD9A7C14328
+	for <linux-media@vger.kernel.org>; Thu,  8 Jan 2015 16:12:34 +0100 (CET)
+Received: from bruce.bmat.com ([127.0.0.1])
+	by localhost (bruce.bmat.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id da70kofj0cEk for <linux-media@vger.kernel.org>;
+	Thu,  8 Jan 2015 16:12:33 +0100 (CET)
+Received: from jbrines.bmat.office (164.red-80-28-250.adsl.static.ccgg.telefonica.net [80.28.250.164])
+	(Authenticated sender: jbrines@bmat.es)
+	by bruce.bmat.com (Postfix) with ESMTPSA id E55AEC14325
+	for <linux-media@vger.kernel.org>; Thu,  8 Jan 2015 16:12:32 +0100 (CET)
+From: Javier Brines Garcia <jbrines@bmat.es>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Subject: HDMI recording signals
+Message-Id: <60337A00-448B-43E0-A002-1E3E6EA9CF14@bmat.es>
+Date: Thu, 8 Jan 2015 16:12:31 +0100
+To: linux-media@vger.kernel.org
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-This pull request fixes two cases of missing device_caps (3.19 warns about that
-now, so fix this before it's released), one cx23885 warning related to the
-incorrect freeing of an interrupt, and one important fix for vb2 thread race
-conditions. The last bug is responsible for various kernel warnings and oopses
-when using DVB and vb2. The last one is CC-ed to stable and should be applied
-to all kernels >= 3.16.
+Sorry I'm newbie into this. Can anyone help me to record HDMI signal with the DeckLink Mini Recorder via command line? In the SDK there's a program called Capture and I've also tried with a GIT repo from the bmdcapture soft that comes with other cards.
 
-Regards,
+When I type this command
 
-	Hans
+bmdcapture -m 13 -F nut -A 2 -V 3 -f test.raw
 
-The following changes since commit 99f3cd52aee21091ce62442285a68873e3be833f:
+I get first time a file with the typical color bars. And second time and so, it generates 0 size files. Same problem testing different inputs with different video formats...
 
-  [media] vb2-vmalloc: Protect DMA-specific code by #ifdef CONFIG_HAS_DMA (2014-12-23 16:28:09 -0200)
+Now I've got connected a Raspberry P (B Model), with a Game of Thrones chapter looped, and I can't get any signal. If I install the GUI I can't see anything with the visual soft. I've tried different DeckLink MiniRecorder cards (in case card was broken/not working good), and spoke to the technician support from Blackmagic and it seems that this card is difficult to make it work with Debian.
 
-are available in the git repository at:
+I need to make it work with the command-line. Can somebody help me?
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.19b
+Many thanks in advance, 
 
-for you to fetch changes up to b65558a8f31bcd585989a8259272f975d3236612:
-
-  omap3isp: Correctly set QUERYCAP capabilities (2015-01-19 12:12:44 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (3):
-      vb2: fix vb2_thread_stop race conditions
-      pvrusb2: fix missing device_caps in querycap
-      cx23885: fix free interrupt bug
-
-Sakari Ailus (1):
-      omap3isp: Correctly set QUERYCAP capabilities
-
- drivers/media/pci/cx23885/cx23885-core.c   |  4 ++--
- drivers/media/platform/omap3isp/ispvideo.c |  7 +++++--
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c   | 24 +++++++++++++-----------
- drivers/media/v4l2-core/videobuf2-core.c   | 19 +++++++++----------
- 4 files changed, 29 insertions(+), 25 deletions(-)
+Javier
