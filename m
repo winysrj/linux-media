@@ -1,86 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40452 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750727AbbATJbH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 04:31:07 -0500
-Message-ID: <54BE201F.4060209@xs4all.nl>
-Date: Tue, 20 Jan 2015 10:30:07 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Florian Echtler <floe@butterbrot.org>
-CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
-References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <54BCDE91.90807@xs4all.nl> <54BE1EBC.2090001@butterbrot.org>
-In-Reply-To: <54BE1EBC.2090001@butterbrot.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:47655 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754346AbbAHMvB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 07:51:01 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NHU00CJRZVR14A0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 08 Jan 2015 12:55:03 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
+	linux-media@vger.kernel.org
+Cc: 'Arun Kumar K' <arun.kk@samsung.com>
+References: <1418677859-31440-1-git-send-email-nicolas.dufresne@collabora.com>
+ <1418677859-31440-3-git-send-email-nicolas.dufresne@collabora.com>
+In-reply-to: <1418677859-31440-3-git-send-email-nicolas.dufresne@collabora.com>
+Subject: RE: [PATCH 2/3] s5p-mfc-dec: Don't use encoder stop command
+Date: Thu, 08 Jan 2015 13:50:58 +0100
+Message-id: <009901d02b41$c0343560$409ca020$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/20/15 10:24, Florian Echtler wrote:
-> Hello Hans,
+> -----Original Message-----
+> From: Nicolas Dufresne [mailto:nicolas.dufresne@collabora.com]
+> Sent: Monday, December 15, 2014 10:11 PM
+> To: linux-media@vger.kernel.org
+> Cc: Kamil Debski; Arun Kumar K; Nicolas Dufresne
+> Subject: [PATCH 2/3] s5p-mfc-dec: Don't use encoder stop command
 > 
-> On 19.01.2015 11:38, Hans Verkuil wrote:
->> Sorry for the delay.
-> No problem, thanks for your feedback.
+> The decoder should handle V4L2_DEC_CMD_STOP to trigger drain, but it
+> currently expecting V4L2_ENC_CMD_STOP.
 > 
->>> Note: I'm intentionally using dma-contig instead of vmalloc, as the USB
->>> core apparently _will_ try to use DMA for larger bulk transfers. 
->> As far as I can tell from looking through the usb core code it supports
->> scatter-gather DMA, so you should at least use dma-sg rather than dma-contig.
->> Physically contiguous memory should always be avoided.
-> OK, will this work transparently (i.e. just switch from *-contig-* to
-> *-sg-*)? If not, can you suggest an example driver to use as template?
+> Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 
-Yes, that should pretty much be seamless. BTW, the more I think about it,
-the more I am convinced that DMA will also be used by the USB core when
-you use videobuf2-vmalloc.
+Acked-by: Kamil Debski <k.debski@samsung.com>
 
-I've CC-ed Laurent, I think he knows a lot more about this than I do.
-
-Laurent, when does the USB core use DMA? What do you need to do on the
-driver side to have USB use DMA when doing bulk transfers?
-
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
->> I'm also missing a patch for the Kconfig that adds a dependency on MEDIA_USB_SUPPORT
->> and that selects VIDEOBUF2_DMA_SG.
->
-> Good point, will add that.
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index 99e2e84..98304fc 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -816,7 +816,7 @@ static int vidioc_decoder_cmd(struct file *file,
+> void *priv,
+>  	unsigned long flags;
 > 
->>> +err_unreg_video:
->>> +	video_unregister_device(&sur40->vdev);
->>> +err_unreg_v4l2:
->>> +	v4l2_device_unregister(&sur40->v4l2);
->>>  err_free_buffer:
->>>  	kfree(sur40->bulk_in_buffer);
->>>  err_free_polldev:
->>> @@ -436,6 +604,10 @@ static void sur40_disconnect(struct usb_interface *interface)
->>
->> Is this a hardwired device or hotpluggable? If it is hardwired, then this code is
->> OK, but if it is hotpluggable, then this isn't good enough.
->
-> It's hardwired. Out of curiosity, what would I have to change for a
-> hotpluggable one?
-
-In that case you can't clean everything up since some application might
-still have a filehandle open. You have to wait until the very last filehandle
-is closed.
-
+>  	switch (cmd->cmd) {
+> -	case V4L2_ENC_CMD_STOP:
+> +	case V4L2_DEC_CMD_STOP:
+>  		if (cmd->flags != 0)
+>  			return -EINVAL;
 > 
->>> +	i->type = V4L2_INPUT_TYPE_CAMERA;
->>> +	i->std = V4L2_STD_UNKNOWN;
->>> +	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
->
->> Perhaps just say "Sensor" here? I'm not sure what "In-Cell" means.
->
-> In-cell is referring to the concept of integrating sensor pixels
-> directly with LCD pixels, I think it's what Samsung calls it.
-> 
-> Thanks & best regards, Florian
-> 
+> --
+> 2.1.0
 
-Regards,
-
-	Hans
