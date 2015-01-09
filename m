@@ -1,39 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:37793 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751401AbbASSi2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 13:38:28 -0500
-Message-ID: <54BD4F1A.6030100@southpole.se>
-Date: Mon, 19 Jan 2015 19:38:18 +0100
-From: Benjamin Larsson <benjamin@southpole.se>
+Received: from mail-ob0-f180.google.com ([209.85.214.180]:53729 "EHLO
+	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753346AbbAIIiy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 03:38:54 -0500
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/3] mn88472: make sure the private data struct is nulled
- after free
-References: <1417825533-13081-1-git-send-email-benjamin@southpole.se> <1417825533-13081-2-git-send-email-benjamin@southpole.se> <54832EE7.10705@iki.fi> <54834628.50702@southpole.se> <54834CD7.1060709@iki.fi> <54836680.9010404@southpole.se> <54BD036D.8020701@xs4all.nl>
-In-Reply-To: <54BD036D.8020701@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <19115179.EGFbFL174J@avalon>
+References: <1413992061-28678-1-git-send-email-jean-michel.hautbois@vodalys.com>
+ <1645583.LAOF2HV7Iq@avalon> <CAL8zT=gUaBDiq=KC5YqCD5dqx2WO1PSXGckvchX_9XxDbJJEpw@mail.gmail.com>
+ <19115179.EGFbFL174J@avalon>
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Date: Fri, 9 Jan 2015 09:38:38 +0100
+Message-ID: <CAL8zT=goqUXzK+HhxrJf=ZRTGgcT4agyR+QY9BYV3gtfWvZH4g@mail.gmail.com>
+Subject: Re: [PATCH] adv7604: Add DT parsing support
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	wsa@the-dreams.de, Lars-Peter Clausen <lars@metafoo.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/19/2015 02:15 PM, Hans Verkuil wrote:
-> On 12/06/2014 09:26 PM, Benjamin Larsson wrote:
+Hi,
+
+2014-10-27 0:30 GMT+01:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Jean-Michel,
+>
+> On Thursday 23 October 2014 07:51:50 Jean-Michel Hautbois wrote:
+>> 2014-10-23 1:53 GMT+02:00 Laurent Pinchart:
+>> > On Wednesday 22 October 2014 17:34:21 Jean-Michel Hautbois wrote:
+>> >> This patch adds support for DT parsing of ADV7604 as well as ADV7611.
+>> >> It needs to be improved in order to get ports parsing too.
+>> >
+>> > Let's improve it then :-) The DT bindings as proposed by this patch are
+>> > incomplete, that's just asking for trouble.
+>> >
+>> > How would you model the adv7604 ports ?
 >>
->> Well I guess I am biased as I have spent lots of time finding a bug that
->> probably wouldn't exist if the policy was that drivers always should set
->> their memory to zero before it is free'd.
+>> I am opened to suggestions :).
+>> But it has to remain as simple as possible, ideally allowing for giving
+>> names to the ports.
+>> As done today, it works, ports are parsed but are all the same...
 >
-> Just because you zero memory before it is freed doesn't mean it stays zeroed.
-> As soon as it is freed some other process might take that memory and fill it
-> up again. So zeroing is pointless and in fact will only *hide* bugs.
+> The ADV7611 was easy, it had a single HDMI input only. The ADV7612 is easy as
+> well as it just has two separate HDMI inputs.
 >
+> The ADV7604 is a more complex beast. The HDMI inputs shouldn't be much of an
+> issue as they're independent and multiplexed internally. You can just create
+> one pad per HDMI input.
+>
+> The analog inputs, however, can't be modeled as easily. A naive approach would
+> be to create one pad for each of the 12 analog inputs, but the chip has three
+> separate ADCs and can combine 3 inputs in a single digital video stream. I
+> don't know how we should model support for that. Lars-Peter, Hans, would you
+> have a revolutionary idea to same the world today ?
 
-Well in this specific case NOT zeroing the memory it actually hid a use 
-after free bug. So stating that it is pointless and that it will only 
-hide bugs is not correct at least for this case.
+I get back to working on this specific part, but I don't know how
+these analog inputs should be modeled.
+On page 68 of ADV7604_HW_RevF there is Figure 11 showing typical
+configurations using AIN_SEL[2:0].
+I can see 4 inputs muxed : this would suggest to have 4 pads for analog inputs.
+Not sure it makes sense though...
 
-MvH
-Benjamin Larsson
+Thanks,
+JM
