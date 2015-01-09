@@ -1,68 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:9815 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751423AbbAOPQ1 (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42998 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752668AbbAIDVg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2015 10:16:27 -0500
-Message-ID: <54B7D9C9.5090001@atmel.com>
-Date: Thu, 15 Jan 2015 16:16:25 +0100
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-MIME-Version: 1.0
-To: Josh Wu <josh.wu@atmel.com>, <devicetree@vger.kernel.org>
-CC: <grant.likely@linaro.org>, <galak@codeaurora.org>,
-	<rob@landley.net>, <robh+dt@kernel.org>,
-	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
-	<linux-arm-kernel@lists.infradead.org>, <voice.shen@atmel.com>,
-	<laurent.pinchart@ideasonboard.com>,
-	<alexandre.belloni@free-electrons.com>, <plagnioj@jcrosoft.com>,
-	<boris.brezillon@free-electrons.com>,
-	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v2 0/8] ARM: at91: dts: sama5d3: add dt support for atmel
- isi and ov2640 sensor
-References: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+	Thu, 8 Jan 2015 22:21:36 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D472C2A0088
+	for <linux-media@vger.kernel.org>; Fri,  9 Jan 2015 04:21:26 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150109032126.D472C2A0088@tschai.lan>
+Date: Fri,  9 Jan 2015 04:21:26 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 04/01/2015 10:02, Josh Wu a écrit :
-> This patch series add ISI and ov2640 support on dts files.
-> 
-> As the ov2640 driver dt is still in review. The patch is in: https://patchwork.linuxtv.org/patch/27554/
-> So I want to send this dt patch early for a review.
-> 
-> v1 -> v2:
->   1. add one more patch to change the pin name of ISI_MCK
->   2. rewrite the commit [4/8] ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}.
->   3. move the common chip parts of ISI node to sama5d3.dtsi.
-> 
-> Bo Shen (3):
->   ARM: at91: dts: sama5d3: split isi pinctrl
->   ARM: at91: dts: sama5d3: add missing pins of isi
->   ARM: at91: dts: sama5d3: move the isi mck pin to mb
-> 
-> Josh Wu (5):
->   ARM: at91: dts: sama5d3: add isi clock
->   ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}
->   ARM: at91: dts: sama5d3: change name of pinctrl of ISI_MCK
->   ARM: at91: dts: sama5d3: add ov2640 camera sensor support
->   ARM: at91: sama5: enable atmel-isi and ov2640 in defconfig
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The whole series:
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Results of the daily build of media_tree:
 
-stacked on top of at91-3.20-dt.
-The defconfig update on his side on at91-3.20-defconfig
+date:		Fri Jan  9 04:00:08 CET 2015
+git branch:	test
+git hash:	99f3cd52aee21091ce62442285a68873e3be833f
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
-Bye,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16-i686: ERRORS
+linux-3.17-i686: ERRORS
+linux-3.18-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17-x86_64: ERRORS
+linux-3.18-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
->  arch/arm/boot/dts/sama5d3.dtsi    | 24 ++++++++++++++++++-----
->  arch/arm/boot/dts/sama5d3xmb.dtsi | 40 +++++++++++++++++++++++++++++++++++----
->  arch/arm/configs/sama5_defconfig  |  6 ++++++
->  3 files changed, 61 insertions(+), 9 deletions(-)
-> 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
--- 
-Nicolas Ferre
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
