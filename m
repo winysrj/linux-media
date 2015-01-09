@@ -1,46 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40484 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932412AbbA0Qze (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 11:55:34 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 03E8A2A0092
-	for <linux-media@vger.kernel.org>; Tue, 27 Jan 2015 17:55:03 +0100 (CET)
-Message-ID: <54C7C2E6.9000805@xs4all.nl>
-Date: Tue, 27 Jan 2015 17:55:02 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39302 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750835AbbAIR4o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 12:56:44 -0500
+Date: Fri, 9 Jan 2015 18:56:41 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Chanwoo Choi <cw00.choi@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH/RFC v10 06/19] mfd: max77693: modifications around
+ max77693_led_platform_data
+Message-ID: <20150109175641.GH18076@amd>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-7-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT FIXES for v3.19] vivid: Y offset should depend on quant. range
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1420816989-1808-7-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I discovered this bug today and it explains why vivid behaved so strangely
-when generating full range Y'CbCr patterns. It was introduced in 3.19, so it
-would be really nice if this can be fixed before 3.19 is released.
+On Fri 2015-01-09 16:22:56, Jacek Anaszewski wrote:
+> 1. Rename max77693_led_platform_data to max77693_led_config_data to
+>    avoid making impression that the led driver expects a board file -
+>    it relies on Device Tree data.
+> 2. Remove fleds array, as the DT binding design has changed
+> 3. Add "label" array for Device Tree strings with the name of a LED device
+> 4. Make flash_timeout a two element array, for caching the sub-led
+>    related flash timeout.
+> 5. Remove trigger array as the related data will not be provided
+>    in the DT binding
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
 
-Regards,
+Seems that max77693_led_platform_data is unused at the moment, so it
+should not break bisect.
 
-	Hans
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-The following changes since commit 8d44aeefcd79e9be3b6db4f37efc7544995b619e:
+> index f0b6585..c1ccb13 100644
+> --- a/include/linux/mfd/max77693.h
+> +++ b/include/linux/mfd/max77693.h
+> @@ -87,17 +87,16 @@ enum max77693_led_boost_mode {
+>  	MAX77693_LED_BOOST_FIXED,
+>  };
+>  
+> -struct max77693_led_platform_data {
+> -	u32 fleds[2];
+> +struct max77693_led_config_data {
+> +	const char *label[2];
+>  	u32 iout_torch[2];
+>  	u32 iout_flash[2];
 
-  [media] rtl28xxu: change module unregister order (2015-01-27 10:57:58 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.19c
-
-for you to fetch changes up to 593a7b12b9dfe06ed39d6a22ebf8774992341130:
-
-  vivid: Y offset should depend on quant. range (2015-01-27 17:46:17 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      vivid: Y offset should depend on quant. range
-
- drivers/media/platform/vivid/vivid-tpg.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
