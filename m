@@ -1,121 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:47058 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751818AbbABUeH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jan 2015 15:34:07 -0500
-Received: by mail-we0-f175.google.com with SMTP id k11so4934459wes.20
-        for <linux-media@vger.kernel.org>; Fri, 02 Jan 2015 12:34:05 -0800 (PST)
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:37103 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757761AbbAISeJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 13:34:09 -0500
+MIME-Version: 1.0
+In-Reply-To: <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com> <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
+From: Rob Herring <robherring2@gmail.com>
+Date: Fri, 9 Jan 2015 12:33:47 -0600
+Message-ID: <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
+Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: platform: s5p-jpeg: jpeg-hw-exynos4:  Remove some unused functions
-Date: Fri,  2 Jan 2015 21:37:07 +0100
-Message-Id: <1420231027-2714-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removes some functions that are not used anywhere:
-exynos4_jpeg_set_timer_count() exynos4_jpeg_get_frame_size() exynos4_jpeg_set_sys_int_enable() exynos4_jpeg_get_fifo_status()
+On Fri, Jan 9, 2015 at 9:22 AM, Jacek Anaszewski
+<j.anaszewski@samsung.com> wrote:
+> Add a property for defining the device outputs the LED
+> represented by the DT child node is connected to.
+>
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Pawel Moll <pawel.moll@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+> Cc: Kumar Gala <galak@codeaurora.org>
+> ---
+>  Documentation/devicetree/bindings/leds/common.txt |    5 +++++
+>  1 file changed, 5 insertions(+)
+>
+> diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+> index a2c3f7a..29295bf 100644
+> --- a/Documentation/devicetree/bindings/leds/common.txt
+> +++ b/Documentation/devicetree/bindings/leds/common.txt
+> @@ -1,6 +1,10 @@
+>  Common leds properties.
+>
+>  Optional properties for child nodes:
+> +- led-sources : Array of bits signifying the LED current regulator outputs the
+> +               LED represented by the child node is connected to (1 - the LED
+> +               is connected to the output, 0 - the LED isn't connected to the
+> +               output).
 
-This was partially found by using a static code analysis program called cppcheck.
+Sorry, I just don't understand this.
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
----
- drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c |   35 ---------------------
- drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h |    5 ---
- 2 files changed, 40 deletions(-)
+Rob
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-index ab6d6f4..5685577 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-@@ -163,15 +163,6 @@ unsigned int exynos4_jpeg_get_int_status(void __iomem *base)
- 	return int_status;
- }
- 
--unsigned int exynos4_jpeg_get_fifo_status(void __iomem *base)
--{
--	unsigned int fifo_status;
--
--	fifo_status = readl(base + EXYNOS4_FIFO_STATUS_REG);
--
--	return fifo_status;
--}
--
- void exynos4_jpeg_set_huf_table_enable(void __iomem *base, int value)
- {
- 	unsigned int	reg;
-@@ -186,18 +177,6 @@ void exynos4_jpeg_set_huf_table_enable(void __iomem *base, int value)
- 					base + EXYNOS4_JPEG_CNTL_REG);
- }
- 
--void exynos4_jpeg_set_sys_int_enable(void __iomem *base, int value)
--{
--	unsigned int	reg;
--
--	reg = readl(base + EXYNOS4_JPEG_CNTL_REG) & ~(EXYNOS4_SYS_INT_EN);
--
--	if (value == 1)
--		writel(reg | EXYNOS4_SYS_INT_EN, base + EXYNOS4_JPEG_CNTL_REG);
--	else
--		writel(reg & ~EXYNOS4_SYS_INT_EN, base + EXYNOS4_JPEG_CNTL_REG);
--}
--
- void exynos4_jpeg_set_stream_buf_address(void __iomem *base,
- 					 unsigned int address)
- {
-@@ -255,22 +234,8 @@ void exynos4_jpeg_set_dec_bitstream_size(void __iomem *base, unsigned int size)
- 	writel(size, base + EXYNOS4_BITSTREAM_SIZE_REG);
- }
- 
--void exynos4_jpeg_get_frame_size(void __iomem *base,
--			unsigned int *width, unsigned int *height)
--{
--	*width = (readl(base + EXYNOS4_DECODE_XY_SIZE_REG) &
--				EXYNOS4_DECODED_SIZE_MASK);
--	*height = (readl(base + EXYNOS4_DECODE_XY_SIZE_REG) >> 16) &
--				EXYNOS4_DECODED_SIZE_MASK;
--}
--
- unsigned int exynos4_jpeg_get_frame_fmt(void __iomem *base)
- {
- 	return readl(base + EXYNOS4_DECODE_IMG_FMT_REG) &
- 				EXYNOS4_JPEG_DECODED_IMG_FMT_MASK;
- }
--
--void exynos4_jpeg_set_timer_count(void __iomem *base, unsigned int size)
--{
--	writel(size, base + EXYNOS4_INT_TIMER_COUNT_REG);
--}
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h
-index c228d28..19690e4 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h
-@@ -21,7 +21,6 @@ void exynos4_jpeg_set_enc_tbl(void __iomem *base);
- void exynos4_jpeg_set_interrupt(void __iomem *base);
- unsigned int exynos4_jpeg_get_int_status(void __iomem *base);
- void exynos4_jpeg_set_huf_table_enable(void __iomem *base, int value);
--void exynos4_jpeg_set_sys_int_enable(void __iomem *base, int value);
- void exynos4_jpeg_set_stream_buf_address(void __iomem *base,
- 					 unsigned int address);
- void exynos4_jpeg_set_stream_size(void __iomem *base,
-@@ -33,10 +32,6 @@ void exynos4_jpeg_set_encode_tbl_select(void __iomem *base,
- void exynos4_jpeg_set_encode_hoff_cnt(void __iomem *base, unsigned int fmt);
- void exynos4_jpeg_set_dec_bitstream_size(void __iomem *base, unsigned int size);
- unsigned int exynos4_jpeg_get_stream_size(void __iomem *base);
--void exynos4_jpeg_get_frame_size(void __iomem *base,
--			unsigned int *width, unsigned int *height);
- unsigned int exynos4_jpeg_get_frame_fmt(void __iomem *base);
--unsigned int exynos4_jpeg_get_fifo_status(void __iomem *base);
--void exynos4_jpeg_set_timer_count(void __iomem *base, unsigned int size);
- 
- #endif /* JPEG_HW_EXYNOS4_H_ */
--- 
-1.7.10.4
-
+>  - label : The label for this LED.  If omitted, the label is
+>    taken from the node name (excluding the unit address).
+>
+> @@ -33,6 +37,7 @@ system-status {
+>
+>  camera-flash {
+>         label = "Flash";
+> +       led-sources = <1 0>;
+>         max-microamp = <50000>;
+>         flash-max-microamp = <320000>;
+>         flash-timeout-us = <500000>;
+> --
+> 1.7.9.5
+>
