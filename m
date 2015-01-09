@@ -1,64 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:59311 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754201AbbAZKYt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 05:24:49 -0500
-From: "Baluta, Teodora" <teodora.baluta@intel.com>
-To: "floe@butterbrot.org" <floe@butterbrot.org>
-CC: "s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-	"lars@metafoo.de" <lars@metafoo.de>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"jic23@kernel.org" <jic23@kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"m.chehab@samsung.com" <m.chehab@samsung.com>,
-	"linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 0/3] Introduce IIO interface for fingerprint sensors
-Date: Mon, 26 Jan 2015 10:24:44 +0000
-Message-ID: <1422267881.2662.39.camel@bebop>
-References: <1417698017-13835-1-git-send-email-teodora.baluta@intel.com>
-	 <5481153B.4070609@kernel.org> <1418047828.18463.10.camel@bebop>
-	 <54930604.1020607@metafoo.de> <549D42BD.1050901@kernel.org>
-	 <1421255642.31900.4.camel@bebop> <54B7FAF2.8080207@samsung.com>
-	 <A2E3DE9C026DE6469D89C3A4C6C219390A89FE37@IRSMSX107.ger.corp.intel.com>
-	 <54C27AE4.4020702@butterbrot.org>
-In-Reply-To: <54C27AE4.4020702@butterbrot.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <CA469D584A0FC04AA09A044CD159FCE3@intel.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from mailout1.samsung.com ([203.254.224.24]:24512 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757902AbbAIPXf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 10:23:35 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v10 02/19] Documentation: leds: Add description of LED
+ Flash class extension
+Date: Fri, 09 Jan 2015 16:22:52 +0100
+Message-id: <1420816989-1808-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgRmxvcmlhbiwNCg0KVGhhbmtzIGZvciB0aGUgcmVwbHkhDQoNCk9uIFZpLCAyMDE1LTAxLTIz
-IGF0IDE3OjQ2ICswMTAwLCBGbG9yaWFuIEVjaHRsZXIgd3JvdGU6DQo+IEhlbGxvIFRlb2RvcmEs
-DQo+IA0KPiBPbiAyMy4wMS4yMDE1IDE0OjA1LCBCYWx1dGEsIFRlb2RvcmEgd3JvdGU6DQo+ID4g
-VGhlIGZpbmdlcnByaW50IHNlbnNvciBhY3RzIG1vcmUgbGlrZSBhIHNjYW5uZXIgZGV2aWNlLCBz
-byB0aGUNCj4gPiBjbG9zZXN0IHR5cGUgaXMgdGhlIFY0TDJfQ0FQX1ZJREVPX0NBUFRVUkUuIEhv
-d2V2ZXIsIHRoaXMgaXMgbm90IGENCj4gPiBwZXJmZWN0IG1hdGNoIGJlY2F1c2UgdGhlIGRyaXZl
-ciBvbmx5IHNlbmRzIGFuIGltYWdlLCBvbmNlLCB3aGVuDQo+ID4gdHJpZ2dlcmVkLiBXb3VsZCBp
-dCBiZSBhIGJldHRlciBhbHRlcm5hdGl2ZSB0byBkZWZpbmUgYSBuZXcNCj4gPiBjYXBhYmlsaXR5
-IHR5cGU/IE9yIGl0IHdvdWxkIGJlIGFjY2VwdGFibGUgdG8gc2ltcGx5IGhhdmUgYSB2aWRlbw0K
-PiA+IGRldmljZSB3aXRoIG5vIGZyYW1lIGJ1ZmZlciBvciBmcmFtZSByYXRlIGFuZCB0aGUgdXNl
-ciBzcGFjZQ0KPiA+IGFwcGxpY2F0aW9uIHRvIHJlYWQgZnJvbSB0aGUgY2hhcmFjdGVyIGRldmlj
-ZSAvZGV2L3ZpZGVvWD8NCj4gU29ycnkgaWYgSSBqdW1wIGluIGhlcmUgcmlnaHQgaW4gdGhlIG1p
-ZGRsZSBvZiB0aGlzIGRpc2N1c3Npb24sIGJ1dCBzb21lDQo+IHRpbWUgYWdvLCBJIHdyb3RlIGEg
-ZmluZ2VycHJpbnQgc2Vuc29yIGRyaXZlciBmb3IgdGhlIFNpZW1lbnMgSUQgTW91c2UNCj4gKHN0
-aWxsIHBhcnQgb2YgdGhlIGtlcm5lbCBBRkFJQ1QpIHdoaWNoIGFjdHMgYXMgYSBtaXNjIGRldmlj
-ZSBhbmQganVzdA0KPiBjcmVhdGVzIGEgY2hhcmFjdGVyIGRldmljZSBub2RlIHRoYXQgY2FuIGJl
-IHVzZWQgdG8gZGlyZWN0bHkgcmVhZCBhIFBHTQ0KPiBmaWxlLg0KDQpJIGFncmVlIHRoYXQgaXQg
-d291bGQgYmUgdGhlIHNpbXBsZXN0IGFwcHJvYWNoIGlmIHlvdSB3YW50IGEgVVNCDQpmaW5nZXJw
-cmludCBkcml2ZXIgaW4ga2VybmVsIHNwYWNlLCBidXQgSSB3YXMgbG9va2luZyBmb3IgYSB3YXkg
-dG8NCnN1cHBvcnQgZmluZ2VycHJpbnQgZGV2aWNlcyByZWdhcmRsZXNzIG9mIGJ1cyAodGhlcmUn
-cyBhbHNvIGZpbmdlcnByaW50DQpkZXZpY2VzIHRoYXQgdXNlIFNQSSkgYW5kIHByb3ZpZGUgYSBj
-b21tb24gaW50ZXJmYWNlIGZvciB1c2VyIHNwYWNlDQphcHBsaWNhdGlvbnMuDQoNClRoZSBhY3R1
-YWwgZHJpdmVyIGZvciBVUEVLJ3MgVG91Y2hDaGlwIHNlbnNvciBpcyBqdXN0IGEgcHJvb2Ygb2Yg
-Y29uY2VwdA0Kb24gaG93IHRoZSBpbnRlcmZhY2Ugd291bGQgd29yaywgcmF0aGVyIHRoYW4gdGhl
-IGZpbmFsIGdvYWwuIFRoZXJlJ3MNCmFscmVhZHkgYSBsaWJyYXJ5IHRoYXQgZW5hYmxlcyBVU0It
-b25seSBmaW5nZXJwcmludCBkZXZpY2VzIChsaWJmcHJpbnQpLg0KPiANCj4gTWF5YmUgdGhpcyB3
-b3VsZCBiZSBhIHNsaWdodGx5IHNpbXBsZXIgYXBwcm9hY2ggdGhhbiBwdWxsaW5nIGluIGFsbCB0
-aGUNCj4gc3RyZWFtaW5nLW9wdGltaXplZCBmZWF0dXJlcyBvZiBWNEwyPw0KDQpJIGFncmVlIHRo
-YXQgZm9yIGEgZmluZ2VycHJpbnQgZGV2aWNlLCB0aGUgVjRMMiBzdWJzeXN0ZW0gb2ZmZXJzIHRv
-bw0KbXVjaCAodGhlIGluaXRpYWwgUkZDIGlzIGZvciBJSU8pLg0KDQpUaGFua3MsDQpUZW9kb3Jh
-DQoNCg==
+The documentation being added contains overall description of the
+LED Flash Class and the related sysfs attributes.
+
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ Documentation/leds/leds-class-flash.txt |   57 +++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
+ create mode 100644 Documentation/leds/leds-class-flash.txt
+
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+new file mode 100644
+index 0000000..d80096b
+--- /dev/null
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -0,0 +1,57 @@
++
++Flash LED handling under Linux
++==============================
++
++Some LED devices support two modes - torch and flash. In the LED subsystem
++those modes are supported by LED class (see Documentation/leds/leds-class.txt)
++and LED Flash class respectively. The torch mode related features are enabled
++by default and the flash ones only if a driver declares it by setting
++LED_DEV_CAP_FLASH flag.
++
++In order to enable support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
++must be defined in the kernel config. A flash LED driver must register
++in the LED subsystem with led_classdev_flash_register function to gain flash
++related capabilities.
++
++There are flash LED devices which can control more than one LED and allow for
++strobing the sub-leds synchronously. A LED will be strobed synchronously with
++the one whose identifier is written to the flash_sync_strobe sysfs attribute.
++The list of available sub-led identifiers can be read from the available_sync_leds
++sysfs attribute. In order to enable the related settings the driver must set
++LED_DEV_CAP_SYNC_STROBE flag.
++
++Following sysfs attributes are exposed for controlling flash led devices:
++
++	- flash_brightness - flash LED brightness in microamperes (RW)
++	- max_flash_brightness - maximum available flash LED brightness (RO)
++	- flash_timeout - flash strobe duration in microseconds (RW)
++	- max_flash_timeout - maximum available flash strobe duration (RO)
++	- flash_strobe - flash strobe state (RW)
++	- available_sync_leds - list of sub-leds available for flash strobe
++				synchronization (RO)
++	- flash_sync_strobe - identifier of the sub-led to synchronize the flash
++			      strobe with; 0 stands for no synchronization (RW)
++	- flash_fault - bitmask of flash faults that may have occurred
++			possible flags are:
++		* 0x01 - flash controller voltage to the flash LED has exceeded
++			 the limit specific to the flash controller
++		* 0x02 - the flash strobe was still on when the timeout set by
++			 the user has expired; not all flash controllers may
++			 set this in all such conditions
++		* 0x04 - the flash controller has overheated
++		* 0x08 - the short circuit protection of the flash controller
++			 has been triggered
++		* 0x10 - current in the LED power supply has exceeded the limit
++			 specific to the flash controller
++		* 0x20 - the flash controller has detected a short or open
++			 circuit condition on the indicator LED
++		* 0x40 - flash controller voltage to the flash LED has been
++			 below the minimum limit specific to the flash
++		* 0x80 - the input voltage of the flash controller is below
++			 the limit under which strobing the flash at full
++			 current will not be possible. The condition persists
++			 until this flag is no longer set
++		* 0x100 - the temperature of the LED has exceeded its allowed
++			  upper limit
++
++		Flash faults are cleared, if possible, by reading the attribute.
+-- 
+1.7.9.5
+
