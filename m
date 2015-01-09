@@ -1,66 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:32991 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750939AbbANP7G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2015 10:59:06 -0500
-Received: by mail-la0-f47.google.com with SMTP id hz20so8871254lab.6
-        for <linux-media@vger.kernel.org>; Wed, 14 Jan 2015 07:59:04 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAPx3zdQK+wM1YHfzWfvzQ9ZgWgQb4WEY+6AW=cSb_YOwAKKr4Q@mail.gmail.com>
-References: <CAPx3zdRnHcQOasSjnYZkuE+Hk-L6PVaPVAzBbCMnGdM3ZysxFw@mail.gmail.com>
- <CAEt6MX=f-kkemgmAUNsEdZQzH2tRgtPDacbCn4hwH27uY-upDA@mail.gmail.com>
- <CAPx3zdSLb8gzcGTUcWrktc9icJBCCJ0FbPecxeUJRot3ztHwSA@mail.gmail.com>
- <CAEt6MX=rmPAb798TysHDWHAQxpVxzKiaDNv4P9ZtUNPz2YEwpA@mail.gmail.com> <CAPx3zdQK+wM1YHfzWfvzQ9ZgWgQb4WEY+6AW=cSb_YOwAKKr4Q@mail.gmail.com>
-From: =?UTF-8?Q?Roberto_Alc=C3=A2ntara?= <roberto@eletronica.org>
-Date: Wed, 14 Jan 2015 12:58:43 -0300
-Message-ID: <CAEt6MXkDPcZ47gnH9FFmYGkw1-ZFt8JAN1qKsBGBKXLTdQauzw@mail.gmail.com>
-Subject: Re: Driver/module in kernel fault. Anyone expert to help me? Siano ID 187f:0600
-To: Francesco Other <francesco.other@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout3.samsung.com ([203.254.224.33]:55145 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757855AbbAIPZC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 10:25:02 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: [PATCH/RFC v10 17/19] DT: Add documentation for exynos4-is 'flashes'
+ property
+Date: Fri, 09 Jan 2015 16:23:07 +0100
+Message-id: <1420816989-1808-18-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Francesco,
+This patch adds a description of 'flashes' property
+to the samsung-fimc.txt.
 
-Seems very strange not work once you have lock (1f) and ber 0. not a
-real problem signal report.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+---
+ .../devicetree/bindings/media/samsung-fimc.txt     |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-After tzap -r open another console and:
+diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+index 922d6f8..22a6b2f 100644
+--- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
++++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+@@ -40,6 +40,12 @@ should be inactive. For the "active-a" state the camera port A must be activated
+ and the port B deactivated and for the state "active-b" it should be the other
+ way around.
+ 
++Optional properties:
++
++- flashes - Array of phandles to flash LED devices, or their sub-nodes
++	    representing sub-leds.
++	    (see Documentation/devicetree/bindings/leds/common.txt)
++
+ The 'camera' node must include at least one 'fimc' child node.
+ 
+ 
+@@ -166,6 +172,7 @@ Example:
+ 		clock-output-names = "cam_a_clkout", "cam_b_clkout";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&cam_port_a_clk_active>;
++		flashes = <&camera_flash>, <&system_torch>;
+ 		status = "okay";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+-- 
+1.7.9.5
 
-dd if=/dev/dvb/adapter0/dvr0 of=test.ts
-
-Wait 10 seconds and stop it. Please check file size (try to open on
-vlc too if big enough...).
-
-Cheers,
- - Roberto
-
-On Tue, Jan 13, 2015 at 6:56 PM, Francesco Other
-<francesco.other@gmail.com> wrote:
->
->
-> So, this is the output for tzap with the NOT-working-device:
->
-> $ tzap -r -c ~/.tzap/channels.conf Italia1
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file '/home/ionic/.tzap/channels.conf'
-> Version: 5.10   FE_CAN { DVB-T }
-> tuning to 698000000 Hz
-> video pid 0x0654, audio pid 0x0655
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 0000 | snr 010e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 0000 | snr 010e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-
-
-
-
- - Roberto
