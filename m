@@ -1,55 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58021 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751600AbbAENSr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Jan 2015 08:18:47 -0500
-Message-ID: <54AA8F2F.7050503@redhat.com>
-Date: Mon, 05 Jan 2015 14:18:39 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: John McMaster <johndmcmaster@gmail.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: [PULL patches for 3.20]: New gspca touptek driver and sunxi-cir driver
- improvments
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:24521 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757902AbbAIPXk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 10:23:40 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
+Date: Fri, 09 Jan 2015 16:22:53 +0100
+Message-id: <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Add a property for defining the device outputs the LED
+represented by the DT child node is connected to.
 
-Please pull from my tree for a new gspca touptek driver and some
-sunxi-cir driver improvments.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+---
+ Documentation/devicetree/bindings/leds/common.txt |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-The following changes since commit 99f3cd52aee21091ce62442285a68873e3be833f:
+diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+index a2c3f7a..29295bf 100644
+--- a/Documentation/devicetree/bindings/leds/common.txt
++++ b/Documentation/devicetree/bindings/leds/common.txt
+@@ -1,6 +1,10 @@
+ Common leds properties.
+ 
+ Optional properties for child nodes:
++- led-sources : Array of bits signifying the LED current regulator outputs the
++		LED represented by the child node is connected to (1 - the LED
++		is connected to the output, 0 - the LED isn't connected to the
++		output).
+ - label : The label for this LED.  If omitted, the label is
+   taken from the node name (excluding the unit address).
+ 
+@@ -33,6 +37,7 @@ system-status {
+ 
+ camera-flash {
+ 	label = "Flash";
++	led-sources = <1 0>;
+ 	max-microamp = <50000>;
+ 	flash-max-microamp = <320000>;
+ 	flash-timeout-us = <500000>;
+-- 
+1.7.9.5
 
-   [media] vb2-vmalloc: Protect DMA-specific code by #ifdef CONFIG_HAS_DMA (2014-12-23 16:28:09 -0200)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hgoede/gspca.git media-for_v3.20
-
-for you to fetch changes up to bb729335790614dab96fab6dbed979a711955bdd:
-
-   rc: sunxi-cir: Add support for the larger fifo found on sun5i and sun6i (2015-01-05 13:43:33 +0100)
-
-----------------------------------------------------------------
-Hans de Goede (2):
-       rc: sunxi-cir: Add support for an optional reset controller
-       rc: sunxi-cir: Add support for the larger fifo found on sun5i and sun6i
-
-John McMaster (1):
-       gspca_touptek: Add support for ToupTek UCMOS series USB cameras
-
-  .../devicetree/bindings/media/sunxi-ir.txt         |   4 +-
-  drivers/media/rc/sunxi-cir.c                       |  46 +-
-  drivers/media/usb/gspca/Kconfig                    |  10 +
-  drivers/media/usb/gspca/Makefile                   |   2 +
-  drivers/media/usb/gspca/touptek.c                  | 732 +++++++++++++++++++++
-  5 files changed, 782 insertions(+), 12 deletions(-)
-  create mode 100644 drivers/media/usb/gspca/touptek.c
-
-Thanks & Regards,
-
-Hans
