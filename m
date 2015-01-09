@@ -1,62 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-07v.sys.comcast.net ([96.114.154.166]:42809 "EHLO
-	resqmta-po-07v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753402AbbAMC5H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2015 21:57:07 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: m.chehab@samsung.com, hans.verkuil@cisco.com,
-	dheitmueller@kernellabs.com, prabhakar.csengg@gmail.com,
-	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	ttmesterr@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v3 0/3] au0828 vb2 conversion
-Date: Mon, 12 Jan 2015 19:56:54 -0700
-Message-Id: <cover.1421115389.git.shuahkh@osg.samsung.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:37436 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753337AbbAIRnW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 12:43:22 -0500
+Date: Fri, 9 Jan 2015 18:43:19 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v10 04/19] dt-binding: mfd: max77693: Add DT binding
+ related macros
+Message-ID: <20150109174319.GE18076@amd>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-5-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1420816989-1808-5-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series includes patch v3 of the au0828 vb2 conversion,
-removing video and vbi buffer timeout handling, and a patch to
-fix compile error from au0828_boards initialization which uses a
-a define from videobuf-core.h which is no longer included with the
-vb2 conversion change.
+On Fri 2015-01-09 16:22:54, Jacek Anaszewski wrote:
+> Add macros for max77693 led part related binding.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
 
-The following work is in progress and will be done as separate
-patches:
-- removing users and using v4l2_fh_is_singular_file() instead.
-- Changing dynamic allocation of video device structs to static
-  which will reduce the overhead to allocate at register time and
-  deallocating at unregister.
-- New v4l2-compliance tool showed warnings on try_fmt and s_fmt
-  because the driver doesn't return error in all cases.
-
-Changes from patch v2:
-- Dropped already acked from the v3 series
-  [PATCH v2 2/3] media: au0828 change to not zero out fmt.pix.priv
-- Split compile error fix and vb2 conversion patches
-- Made changes to vb2 conversion patch to address comments on v2
-  patch.
-- Updated commit log for remove video and vbi buffer timeout
-  work-around patch
-- Rebased and tested patches on 3.19-rc4
-
-Shuah Khan (3):
-  media: fix au0828 compile error from au0828_boards initialization
-  media: au0828 - convert to use videobuf2
-  media: au0828 remove video and vbi buffer timeout work-around
-
- drivers/media/usb/au0828/Kconfig        |    2 +-
- drivers/media/usb/au082e/au0828-cards.c |    2 +-
- drivers/media/usb/au0828/au0828-vbi.c   |  122 ++--
- drivers/media/usb/au0828/au0828-video.c | 1005 +++++++++++--------------------
- drivers/media/usb/au0828/au0828.h       |   64 +-
- 5 files changed, 414 insertions(+), 781 deletions(-)
-
+Acked-by: Pavel Machek <pavel@ucw.cz>
 -- 
-2.1.0
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
