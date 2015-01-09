@@ -1,42 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:47430 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751035AbbAWFnE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 00:43:04 -0500
-Received: by mail-ig0-f178.google.com with SMTP id hl2so452385igb.5
-        for <linux-media@vger.kernel.org>; Thu, 22 Jan 2015 21:43:03 -0800 (PST)
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48193 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751172AbbAITGE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 14:06:04 -0500
+Date: Fri, 9 Jan 2015 20:06:00 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com
+Subject: Re: [PATCH/RFC v10 13/19] exynos4-is: Add support for v4l2-flash
+ subdevs
+Message-ID: <20150109190600.GN18076@amd>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-14-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <1421938721.3084.35.camel@pengutronix.de>
-References: <CAOMZO5BgYVQQY4_jJK0h1jMW-Tpb8DHqAkfi2MerhmndMSZr3w@mail.gmail.com>
- <1418308963.2320.14.camel@collabora.com> <5489AE9A.8030204@xs4all.nl> <1421938721.3084.35.camel@pengutronix.de>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Fri, 23 Jan 2015 14:36:30 +0900
-Message-ID: <CAMm-=zCSe0cs4zS6z+dp8fLT-xf1Ug9mZ=E4SW1iW-PAL3QeRg@mail.gmail.com>
-Subject: Re: coda: not generating EOS event
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Fabio Estevam <festevam@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	frederic.sureau@vodalys.com
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1420816989-1808-14-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+On Fri 2015-01-09 16:23:03, Jacek Anaszewski wrote:
+> This patch adds suppport for external v4l2-flash devices.
+> The support includes parsing camera-flash DT property
+> and asynchronous subdevice registration.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-On Thu, Jan 22, 2015 at 11:58 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Hi,
->
-> Are you planning to pour the workshop's codec API document into a V4L2
-> documentation patch?
-
-Yes, definitely, I am a bit delayed, but will do this eventually, this
-is in progress. Sorry for the delay. Please feel free to submit
-anything related to EOS if you decide to work on this.
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
 -- 
-Best regards,
-Pawel
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
