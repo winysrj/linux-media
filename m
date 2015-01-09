@@ -1,78 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f169.google.com ([209.85.213.169]:37849 "EHLO
-	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754407AbbATQlJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 11:41:09 -0500
-Received: by mail-ig0-f169.google.com with SMTP id hl2so9411953igb.0
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 08:41:08 -0800 (PST)
-Date: Tue, 20 Jan 2015 16:41:00 +0000
-From: Lee Jones <lee.jones@linaro.org>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v10 07/19] mfd: max77693: Adjust FLASH_EN_SHIFT and
- TORCH_EN_SHIFT macros
-Message-ID: <20150120164100.GE30656@x1>
+Received: from mailout2.samsung.com ([203.254.224.25]:23439 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932892AbbAIPYo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 10:24:44 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH/RFC v10 14/19] v4l2-ctrls: Add V4L2_CID_FLASH_SYNC_STROBE
+ control
+Date: Fri, 09 Jan 2015 16:23:04 +0100
+Message-id: <1420816989-1808-15-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
 References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-8-git-send-email-j.anaszewski@samsung.com>
- <20150120111719.GF13701@x1>
- <54BE51B2.8040209@samsung.com>
- <54BE6228.5070304@samsung.com>
- <20150120154029.GC13701@x1>
- <20150120160056.GA32144@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20150120160056.GA32144@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 20 Jan 2015, Pavel Machek wrote:
-> On Tue 2015-01-20 15:40:29, Lee Jones wrote:
-> > On Tue, 20 Jan 2015, Jacek Anaszewski wrote:
-> > 
-> > > On 01/20/2015 02:01 PM, Jacek Anaszewski wrote:
-> > > >On 01/20/2015 12:17 PM, Lee Jones wrote:
-> > > >>On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
-> > > >>
-> > > >>>Modify FLASH_EN_SHIFT and TORCH_EN_SHIFT macros to work properly
-> > > >>>when passed enum max77693_fled values (0 for FLED1 and 1 for FLED2)
-> > > >>>from leds-max77693 driver.
-> > > >>
-> > > >>Off-by-one ay?  Wasn't the original code tested?
-> > > >
-> > > >The driver using these macros is a part of LED / flash API integration
-> > > >patch series, which still undergoes modifications and it hasn't
-> > > >reached its final state yet, as there are many things to discuss.
-> > > 
-> > > To be more precise: the original code had been tested and was working
-> > > properly with the header that is in the mainline. Nonetheless, because
-> > > of the modifications in the driver that was requested during code
-> > > review, it turned out that it would be more convenient to redefine the
-> > > macros.
-> > > 
-> > > I'd opt for just agreeing about the mfd related patches and merge
-> > > them no sooner than the leds-max77693 driver is merged.
-> > 
-> > The only way we can guarantee this is to have them go in during
-> > different merge-windows, unless of course they go in via the same tree.
-> 
-> Umm. Maintainers should be able to coordinate that. Delaying patch for
-> one major release seems rather cruel. Perhaps one maintainer should
-> ack the patch and the second one should merge it...
+Add V4L2_CID_FLASH_SYNC_STROBE control for determining
+whether a flash device strobe has to be synchronized
+with other flash leds controller by the same device.
 
-Wow, you're just everywhere today. :)
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |    9 +++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         |    2 ++
+ include/uapi/linux/v4l2-controls.h           |    1 +
+ 3 files changed, 12 insertions(+)
 
-Read the part after the comma again.
-
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index e013e4b..8380b07e 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4563,6 +4563,15 @@ interface and may change in the future.</para>
+     	    after strobe during which another strobe will not be
+     	    possible. This is a read-only control.</entry>
+     	  </row>
++    	  <row>
++            <entry spanname="id"><constant>V4L2_CID_FLASH_SYNC_STROBE</constant></entry>
++            <entry>menu</entry>
++    	  </row>
++    	  <row>
++    	    <entry spanname="descr">Synchronized strobe: whether the flash
++	    should be strobed synchronously with the other one controlled
++	    by the same device.</entry>
++    	  </row>
+     	  <row><entry></entry></row>
+     	</tbody>
+           </tgroup>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 45c5b47..4bc7e00 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -846,6 +846,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FLASH_FAULT:		return "Faults";
+ 	case V4L2_CID_FLASH_CHARGE:		return "Charge";
+ 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
++	case V4L2_CID_FLASH_SYNC_STROBE:	return "Synchronize Strobe";
+ 
+ 	/* JPEG encoder controls */
+ 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+@@ -1041,6 +1042,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_TUNE_DEEMPHASIS:
+ 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
+ 	case V4L2_CID_DETECT_MD_MODE:
++	case V4L2_CID_FLASH_SYNC_STROBE:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_LINK_FREQ:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 661f119..5bce13d 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -833,6 +833,7 @@ enum v4l2_flash_strobe_source {
+ 
+ #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+ #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
++#define V4L2_CID_FLASH_SYNC_STROBE		(V4L2_CID_FLASH_CLASS_BASE + 13)
+ 
+ 
+ /* JPEG-class control IDs */
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+1.7.9.5
+
