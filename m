@@ -1,78 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:58822 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbbAVIrF (ORCPT
+Received: from mail-we0-f180.google.com ([74.125.82.180]:55104 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752481AbbAKXCG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 03:47:05 -0500
-Message-id: <54C0B905.3010002@samsung.com>
-Date: Thu, 22 Jan 2015 09:47:01 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-leds@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH/RFC v10 17/19] DT: Add documentation for exynos4-is
- 'flashes' property
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-18-git-send-email-j.anaszewski@samsung.com>
- <54BFD4B9.8030707@samsung.com>
-In-reply-to: <54BFD4B9.8030707@samsung.com>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
+	Sun, 11 Jan 2015 18:02:06 -0500
+Received: by mail-we0-f180.google.com with SMTP id w62so16316147wes.11
+        for <linux-media@vger.kernel.org>; Sun, 11 Jan 2015 15:02:04 -0800 (PST)
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] usb: as102: as10x_cmd_cfg: Remove unused function
+Date: Mon, 12 Jan 2015 00:05:10 +0100
+Message-Id: <1421017510-26243-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Remove the function as10x_cmd_eLNA_change_mode() that is not used anywhere.
 
-On 01/21/2015 05:32 PM, Sylwester Nawrocki wrote:
-> Hi,
->
-> On 09/01/15 16:23, Jacek Anaszewski wrote:
->> This patch adds a description of 'flashes' property
->> to the samsung-fimc.txt.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->
->> ---
->>   .../devicetree/bindings/media/samsung-fimc.txt     |    7 +++++++
->>   1 file changed, 7 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> index 922d6f8..22a6b2f 100644
->> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> @@ -40,6 +40,12 @@ should be inactive. For the "active-a" state the camera port A must be activated
->>   and the port B deactivated and for the state "active-b" it should be the other
->>   way around.
->>
->> +Optional properties:
->> +
->> +- flashes - Array of phandles to flash LED devices, or their sub-nodes
->> +	    representing sub-leds.
->> +	    (see Documentation/devicetree/bindings/leds/common.txt)
->
-> How about renaming this to "illuminators" or something else more generic?
-> The "torch" LED (for video recording illumination?) is not really a flash.
+This was partially found by using a static code analysis program called cppcheck.
 
-OK, currently I can't think of a better substitute for 'illuminators'.
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+---
+ drivers/media/usb/as102/as10x_cmd.h     |    1 -
+ drivers/media/usb/as102/as10x_cmd_cfg.c |   49 -------------------------------
+ 2 files changed, 50 deletions(-)
 
-Since it has been agreed that a discrete LED component requires a child
-node in a LED device binding, even if there is only one current output
-exposed by the LED device, this description has to be modified as follows:
-
-- illuminators - Array of phandles to the child nodes of a flash LED
-	device related binding.
-	(see Documentation/devicetree/bindings/leds/common.txt).
-
-
+diff --git a/drivers/media/usb/as102/as10x_cmd.h b/drivers/media/usb/as102/as10x_cmd.h
+index e06b84e..d87fc2f 100644
+--- a/drivers/media/usb/as102/as10x_cmd.h
++++ b/drivers/media/usb/as102/as10x_cmd.h
+@@ -518,6 +518,5 @@ int as10x_cmd_get_context(struct as10x_bus_adapter_t *adap,
+ 			  uint16_t tag,
+ 			  uint32_t *pvalue);
+ 
+-int as10x_cmd_eLNA_change_mode(struct as10x_bus_adapter_t *adap, uint8_t mode);
+ int as10x_context_rsp_parse(struct as10x_cmd_t *prsp, uint16_t proc_id);
+ #endif
+diff --git a/drivers/media/usb/as102/as10x_cmd_cfg.c b/drivers/media/usb/as102/as10x_cmd_cfg.c
+index c87f2ca..74def1f 100644
+--- a/drivers/media/usb/as102/as10x_cmd_cfg.c
++++ b/drivers/media/usb/as102/as10x_cmd_cfg.c
+@@ -130,55 +130,6 @@ out:
+ }
+ 
+ /**
+- * as10x_cmd_eLNA_change_mode - send eLNA change mode command to AS10x
+- * @adap:      pointer to AS10x bus adapter
+- * @mode:      mode selected:
+- *	        - ON    : 0x0 => eLNA always ON
+- *	        - OFF   : 0x1 => eLNA always OFF
+- *	        - AUTO  : 0x2 => eLNA follow hysteresis parameters
+- *				 to be ON or OFF
+- *
+- * Return 0 on success or negative value in case of error.
+- */
+-int as10x_cmd_eLNA_change_mode(struct as10x_bus_adapter_t *adap, uint8_t mode)
+-{
+-	int error;
+-	struct as10x_cmd_t *pcmd, *prsp;
+-
+-	pcmd = adap->cmd;
+-	prsp = adap->rsp;
+-
+-	/* prepare command */
+-	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+-			sizeof(pcmd->body.cfg_change_mode.req));
+-
+-	/* fill command */
+-	pcmd->body.cfg_change_mode.req.proc_id =
+-		cpu_to_le16(CONTROL_PROC_ELNA_CHANGE_MODE);
+-	pcmd->body.cfg_change_mode.req.mode = mode;
+-
+-	/* send command */
+-	if (adap->ops->xfer_cmd) {
+-		error  = adap->ops->xfer_cmd(adap, (uint8_t *) pcmd,
+-				sizeof(pcmd->body.cfg_change_mode.req)
+-				+ HEADER_SIZE, (uint8_t *) prsp,
+-				sizeof(prsp->body.cfg_change_mode.rsp)
+-				+ HEADER_SIZE);
+-	} else {
+-		error = AS10X_CMD_ERROR;
+-	}
+-
+-	if (error < 0)
+-		goto out;
+-
+-	/* parse response */
+-	error = as10x_rsp_parse(prsp, CONTROL_PROC_ELNA_CHANGE_MODE_RSP);
+-
+-out:
+-	return error;
+-}
+-
+-/**
+  * as10x_context_rsp_parse - Parse context command response
+  * @prsp:       pointer to AS10x command response buffer
+  * @proc_id:    id of the command
 -- 
-Best Regards,
-Jacek Anaszewski
+1.7.10.4
+
