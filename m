@@ -1,117 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41797 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750796AbbAVDpl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2015 22:45:41 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0D6032A0084
-	for <linux-media@vger.kernel.org>; Thu, 22 Jan 2015 04:45:16 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150122034516.0D6032A0084@tschai.lan>
-Date: Thu, 22 Jan 2015 04:45:16 +0100 (CET)
+Received: from lists.s-osg.org ([54.187.51.154]:43580 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751820AbbAKOek (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Jan 2015 09:34:40 -0500
+Date: Sun, 11 Jan 2015 12:34:35 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCHv2 1/9] media: Fix DVB representation at media controller
+ API
+Message-ID: <20150111123435.46c8619e@recife.lan>
+In-Reply-To: <10692325.J7AeJnuN2d@avalon>
+References: <cover.1420294938.git.mchehab@osg.samsung.com>
+	<2274549.Xm2J2SkQ3y@avalon>
+	<20150111115824.0e4acdf0@recife.lan>
+	<10692325.J7AeJnuN2d@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Sun, 11 Jan 2015 16:05:32 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Results of the daily build of media_tree:
+> Hi Mauro,
+> 
+> On Sunday 11 January 2015 11:58:24 Mauro Carvalho Chehab wrote:
+> > Em Sun, 11 Jan 2015 15:50:04 +0200 Laurent Pinchart escreveu:
+> > > On Saturday 03 January 2015 12:49:03 Mauro Carvalho Chehab wrote:
+> > >> The DVB devices are identified via a (major, minor) tuple,
+> > >> and not by a random id. Fix it, before we start using it.
+> > >> 
+> > >> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > >> 
+> > >> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > >> index e00459185d20..de333cc8261b 100644
+> > >> --- a/include/media/media-entity.h
+> > >> +++ b/include/media/media-entity.h
+> > >> @@ -97,7 +97,10 @@ struct media_entity {
+> > >>  			u32 device;
+> > >>  			u32 subdevice;
+> > >>  		} alsa;
+> > >> -		int dvb;
+> > >> +		struct {
+> > >> +			u32 major;
+> > >> +			u32 minor;
+> > >> +		} dvb;
+> > >> 
+> > >>  		/* Sub-device specifications */
+> > >>  		/* Nothing needed yet */
+> > >> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> > >> index d847c760e8f0..7902e800f019 100644
+> > >> --- a/include/uapi/linux/media.h
+> > >> +++ b/include/uapi/linux/media.h
+> > >> @@ -27,7 +27,7 @@
+> > >>  #include <linux/types.h>
+> > >>  #include <linux/version.h>
+> > >> 
+> > >> -#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 0)
+> > >> +#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 1)
+> > >> 
+> > >>  struct media_device_info {
+> > >>  	char driver[16];
+> > >> @@ -88,7 +88,10 @@ struct media_entity_desc {
+> > >>  			__u32 device;
+> > >>  			__u32 subdevice;
+> > >>  		} alsa;
+> > >> -		int dvb;
+> > >> +		struct {
+> > >> +			__u32 major;
+> > >> +			__u32 minor;
+> > >> +		} dvb;
+> > > 
+> > > Won't this break compilation of existing userspace code ? As DVB is not
+> > > properly supported in MC at the moment we could consider that only
+> > > mediactl will be affected, so it shouldn't be a big issue.
+> > 
+> > Well, media-ctl uses a local copy of the videodev2.h header, so it won't
+> > break.
+> 
+> It's media.h, but you're correct here.
 
-date:		Thu Jan 22 04:00:18 CET 2015
-git branch:	test
-git hash:	1fc77d013ba85a29e2edfaba02fd21e8c8187fae
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-1.slh.1-amd64
+Ah, yes, that's what I meant ;)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18-i686: OK
-linux-3.19-rc4-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18-x86_64: OK
-linux-3.19-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+Btw, I have also the patches adding support for DVB at v4l-utils:
+	http://git.linuxtv.org/cgit.cgi/mchehab/experimental-v4l-utils.git/log/?h=dvb-media-ctl
 
-Detailed results are available here:
+> 
+> > I'm not aware of any other application using MC for DVB.
+> > 
+> > Yet, imagining that such application exists, then, IMHO, it is better
+> > to break compilation for it, as probably such application was written for
+> > some OOT driver that might be using its own version of the media
+> > controller implementation.
+> 
+> OK. I'll remember that argument the next time I want to break a kernel API 
+> though ;-)
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+:)
 
-Full logs are available here:
+Actually, we're not breaking the Kernel API here, as DVB support
+inside the media controller were never added.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Next time, we should be sure to not add provision for an API at
+the Kernel without actually implementing it ;)
 
-The Media Infrastructure API from this daily build is here:
+Btw, eventually we'll end facing the very same issue when we
+merge support for ALSA. IMHO, it is just easier to use major,minor
+for all devnodes than to use anything else.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Yet, you're right: maybe we should do, instead:
+
+
+	union {
+		struct {
+			u32 major;
+			u32 minor;
+		} dev;
+
+		/* DEPRECATED: old node specifications */
+		struct {
+			u32 major;
+			u32 minor;
+		} v4l;
+		struct {
+			u32 major;
+			u32 minor;
+		} fb;
+		struct {
+			u32 card;
+			u32 device;
+			u32 subdevice;
+		} alsa;
+		int dvb;
+
+		/* Sub-device specifications */
+		/* Nothing needed yet */
+	} info;
+
+And change media-ctl to use info.dev for all devnodes. This will
+provide a fix when we add support for alsa devnodes too.
+
+Regards,
+Mauro
