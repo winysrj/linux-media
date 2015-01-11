@@ -1,51 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41431 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753913AbbA2BtK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 20:49:10 -0500
-Date: Wed, 28 Jan 2015 11:23:39 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-arm-kernel@lists.infradead.org, rmk+kernel@arm.linux.org.uk,
-	airlied@linux.ie, kgene@kernel.org, daniel.vetter@intel.com,
-	thierry.reding@gmail.com, pawel@osciak.com,
-	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
-	linaro-kernel@lists.linaro.org, robdclark@gmail.com,
-	daniel@ffwll.ch, intel-gfx@lists.freedesktop.org,
-	linux-tegra@vger.kernel.org, inki.dae@samsung.com
-Subject: Re: [PATCH v3] dma-buf: cleanup dma_buf_export() to make it easily
- extensible
-Message-ID: <20150128112339.164c55fd@recife.lan>
-In-Reply-To: <1422449643-7829-1-git-send-email-sumit.semwal@linaro.org>
-References: <1422449643-7829-1-git-send-email-sumit.semwal@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:32791 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751048AbbAKPfJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Jan 2015 10:35:09 -0500
+Received: by mail-wg0-f43.google.com with SMTP id k14so15477742wgh.2
+        for <linux-media@vger.kernel.org>; Sun, 11 Jan 2015 07:35:07 -0800 (PST)
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+To: Mike Isely <isely@pobox.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] usb: pvrusb2: pvrusb2-hdw: Remove unused function
+Date: Sun, 11 Jan 2015 16:38:14 +0100
+Message-Id: <1420990694-19925-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 28 Jan 2015 18:24:03 +0530
-Sumit Semwal <sumit.semwal@linaro.org> escreveu:
+Remove the function pvr2_hdw_cmd_powerdown() that is not used anywhere.
 
-> +/**
-> + * helper macro for exporters; zeros and fills in most common values
-> + */
-> +#define DEFINE_DMA_BUF_EXPORT_INFO(a)	\
-> +	struct dma_buf_export_info a = { .exp_name = KBUILD_MODNAME }
-> +
+This was partially found by using a static code analysis program called cppcheck.
 
-I suspect that this will let the other fields not initialized.
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c |    5 -----
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.h |    3 ---
+ 2 files changed, 8 deletions(-)
 
-You likely need to do:
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+index 9623b62..972fa23 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+@@ -4035,11 +4035,6 @@ int pvr2_hdw_cmd_powerup(struct pvr2_hdw *hdw)
+ }
+ 
+ 
+-int pvr2_hdw_cmd_powerdown(struct pvr2_hdw *hdw)
+-{
+-	return pvr2_issue_simple_cmd(hdw,FX2CMD_POWER_OFF);
+-}
+-
+ 
+ int pvr2_hdw_cmd_decoder_reset(struct pvr2_hdw *hdw)
+ {
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.h b/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
+index 4184707..b108aaf 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
++++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
+@@ -271,9 +271,6 @@ int pvr2_hdw_cmd_deep_reset(struct pvr2_hdw *);
+ /* Execute simple reset command */
+ int pvr2_hdw_cmd_powerup(struct pvr2_hdw *);
+ 
+-/* suspend */
+-int pvr2_hdw_cmd_powerdown(struct pvr2_hdw *);
+-
+ /* Order decoder to reset */
+ int pvr2_hdw_cmd_decoder_reset(struct pvr2_hdw *);
+ 
+-- 
+1.7.10.4
 
-#define DEFINE_DMA_BUF_EXPORT_INFO(a)	\
-	struct dma_buf_export_info a = { 	\
-	.exp_name = KBUILD_MODNAME;		\
-	.fields = 0;				\
-...
-}
-
-Regards,
-Mauro
