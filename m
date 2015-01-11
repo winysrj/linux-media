@@ -1,110 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50009 "EHLO
-	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754879AbbAPQXF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2015 11:23:05 -0500
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-kernel@codethink.co.uk,
-	William Towle <william.towle@codethink.co.uk>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/2] media: rcar_vin: move buffer management to .stop_streaming handler
-Date: Fri, 16 Jan 2015 16:22:59 +0000
-Message-Id: <1421425379-1858-3-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1421425379-1858-1-git-send-email-william.towle@codethink.co.uk>
-References: <1421425379-1858-1-git-send-email-william.towle@codethink.co.uk>
+Received: from bombadil.infradead.org ([198.137.202.9]:51604 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751040AbbAKPo0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Jan 2015 10:44:26 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v3] Fix ALSA and DVB representation at media controller API
+Date: Sun, 11 Jan 2015 13:44:20 -0200
+Message-Id: <78ac77441901e13e907817d7e8a2ddd68e7afe0d.1420990746.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This commit moves the "buffer in use" logic from the .buf_cleanup
-handler into .stop_streaming, based on advice that this is its
-proper logical home.
+The previous provision for DVB media controller support were to
+define an ID (likely meaning the adapter number) for the DVB
+devnodes.
 
-By ensuring the list of pointers in priv->queue_buf[] is managed
-as soon as possible, we avoid warnings concerning buffers in ACTIVE
-state when the system cleans up after streaming stops. This fixes a
-problem with modification of buffers after their content has been
-cleared for passing to userspace.
+This is just plain wrong. Just like V4L, DVB devices (and ALSA,
+or whatever) are identified via a (major, minor) tuple.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c |   47 +++++++++-----------------
- 1 file changed, 16 insertions(+), 31 deletions(-)
+This is enough to uniquely identify a devnode, no matter what
+API it implements.
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 89c409b..022fa9d 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -485,37 +485,10 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct rcar_vin_priv *priv = ici->priv;
--	unsigned int i;
--	int buf_in_use = 0;
- 
- 	spin_lock_irq(&priv->lock);
- 
--	/* Is the buffer in use by the VIN hardware? */
--	for (i = 0; i < MAX_BUFFER_NUM; i++) {
--		if (priv->queue_buf[i] == vb) {
--			buf_in_use = 1;
--			break;
--		}
--	}
+So, before we go too far, let's mark the old v4l, dvb and alsa
+"devnode" info as deprecated, and just call it as "dev".
+
+As we don't want to break compilation on already existing apps,
+let's just keep the old definitions as-is, adding a note that
+those are deprecated at media-entity.h.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
 -
--	if (buf_in_use) {
--		rcar_vin_wait_stop_streaming(priv);
--
--		/*
--		 * Capturing has now stopped. The buffer we have been asked
--		 * to release could be any of the current buffers in use, so
--		 * release all buffers that are in use by HW
--		 */
--		for (i = 0; i < MAX_BUFFER_NUM; i++) {
--			if (priv->queue_buf[i]) {
--				vb2_buffer_done(priv->queue_buf[i],
--					VB2_BUF_STATE_ERROR);
--				priv->queue_buf[i] = NULL;
--			}
--		}
--	} else {
--		list_del_init(to_buf_list(vb));
--	}
-+	list_del_init(to_buf_list(vb));
+
+Laurent,
+
+If you accept this patch, I'll respin the DVB media controller series
+accordingly, and add the missing bits for DVB media controller at
+at the documentation.
+
+Regards,
+Mauro
+
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index e00459185d20..3c3d9d25eb2f 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -83,7 +83,16 @@ struct media_entity {
+ 	struct media_pipeline *pipe;	/* Pipeline this entity belongs to. */
  
- 	spin_unlock_irq(&priv->lock);
- }
-@@ -532,13 +505,25 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct rcar_vin_priv *priv = ici->priv;
- 	struct list_head *buf_head, *tmp;
-+	int i;
- 
- 	spin_lock_irq(&priv->lock);
--
- 	rcar_vin_wait_stop_streaming(priv);
--	list_for_each_safe(buf_head, tmp, &priv->capture)
--		list_del_init(buf_head);
- 
-+	for (i = 0; i < MAX_BUFFER_NUM; i++) {
-+		if (priv->queue_buf[i]) {
-+			vb2_buffer_done(priv->queue_buf[i],
-+					VB2_BUF_STATE_ERROR);
-+			priv->queue_buf[i] = NULL;
-+		}
-+	}
+ 	union {
+-		/* Node specifications */
++		/* For all devnode types */
++		struct {
++			u32 major;
++			u32 minor;
++		} dev;
 +
-+	list_for_each_safe(buf_head, tmp, &priv->capture) {
-+		vb2_buffer_done(&list_entry(buf_head,
-+					struct rcar_vin_buffer, list)->vb,
-+				VB2_BUF_STATE_ERROR);
-+		list_del_init(buf_head);
-+	}
- 	spin_unlock_irq(&priv->lock);
- }
++		/* Sub-device specifications */
++		/* Nothing needed yet */
++
++		/* DEPRECATED: Old node specifications */
+ 		struct {
+ 			u32 major;
+ 			u32 minor;
+@@ -98,9 +107,6 @@ struct media_entity {
+ 			u32 subdevice;
+ 		} alsa;
+ 		int dvb;
+-
+-		/* Sub-device specifications */
+-		/* Nothing needed yet */
+ 	} info;
+ };
  
 -- 
-1.7.10.4
+2.1.0
 
