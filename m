@@ -1,72 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:51923 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750838AbbARWKK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Jan 2015 17:10:10 -0500
-Date: Sun, 18 Jan 2015 23:10:01 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] soc_camera: avoid potential null-dereference
-In-Reply-To: <Pine.LNX.4.64.1501072043490.16637@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1501182308200.23540@axis700.grange>
-References: <1420597628-317-1-git-send-email-andy.shevchenko@gmail.com>
- <Pine.LNX.4.64.1501072043490.16637@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:54126 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752089AbbALQK2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jan 2015 11:10:28 -0500
+Message-id: <54B3F1EF.4060506@samsung.com>
+Date: Mon, 12 Jan 2015 17:10:23 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Rob Herring <robherring2@gmail.com>
+Cc: linux-leds@vger.kernel.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
+ <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
+ <54B38682.5080605@samsung.com>
+ <CAL_Jsq+UaA41DvawdOMmOib=Fi0hC-nBdKV-+P4DFo+MoOy-bQ@mail.gmail.com>
+In-reply-to: <CAL_Jsq+UaA41DvawdOMmOib=Fi0hC-nBdKV-+P4DFo+MoOy-bQ@mail.gmail.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 7 Jan 2015, Guennadi Liakhovetski wrote:
+On 01/12/2015 02:52 PM, Rob Herring wrote:
+> On Mon, Jan 12, 2015 at 2:32 AM, Jacek Anaszewski
+> <j.anaszewski@samsung.com> wrote:
+>> On 01/09/2015 07:33 PM, Rob Herring wrote:
+>>>
+>>> On Fri, Jan 9, 2015 at 9:22 AM, Jacek Anaszewski
+>>> <j.anaszewski@samsung.com> wrote:
+>>>>
+>>>> Add a property for defining the device outputs the LED
+>>>> represented by the DT child node is connected to.
+>>>>
+>>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>>> Cc: Bryan Wu <cooloney@gmail.com>
+>>>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>>>> Cc: Rob Herring <robh+dt@kernel.org>
+>>>> Cc: Pawel Moll <pawel.moll@arm.com>
+>>>> Cc: Mark Rutland <mark.rutland@arm.com>
+>>>> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+>>>> Cc: Kumar Gala <galak@codeaurora.org>
+>>>> ---
+>>>>    Documentation/devicetree/bindings/leds/common.txt |    5 +++++
+>>>>    1 file changed, 5 insertions(+)
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/leds/common.txt
+>>>> b/Documentation/devicetree/bindings/leds/common.txt
+>>>> index a2c3f7a..29295bf 100644
+>>>> --- a/Documentation/devicetree/bindings/leds/common.txt
+>>>> +++ b/Documentation/devicetree/bindings/leds/common.txt
+>>>> @@ -1,6 +1,10 @@
+>>>>    Common leds properties.
+>>>>
+>>>>    Optional properties for child nodes:
+>>>> +- led-sources : Array of bits signifying the LED current regulator
+>>>> outputs the
+>>>> +               LED represented by the child node is connected to (1 -
+>>>> the LED
+>>>> +               is connected to the output, 0 - the LED isn't connected
+>>>> to the
+>>>> +               output).
+>>>
+>>>
+>>> Sorry, I just don't understand this.
+>>
+>>
+>> In some Flash LED devices one LED can be connected to one or more
+>> electric current outputs, which allows for multiplying the maximum
+>> current allowed for the LED. Each sub-LED is represented by a child
+>> node in the DT binding of the Flash LED device and it needs to declare
+>> which outputs it is connected to. In the example below the led-sources
+>> property is a two element array, which means that the flash LED device
+>> has two current outputs, and the bits signify if the LED is connected
+>> to the output.
+>
+> Sounds like a regulator for which we already have bindings for and we
+> have a driver for regulator based LEDs (but no binding for it).
 
-> Hi Andy,
-> 
-> Thanks for the patch. Will queue for the next pull request.
+Do you think of drivers/leds/leds-regulator.c driver? This driver just
+allows for registering an arbitrary regulator device as a LED subsystem
+device.
 
-Actually no, I won't. I don't think there's currently a but there. the 
-pointer isn't dereferenced before being checked. Only an address of a 
-field in a struct, it's pointing to is calculated. So, if it's NULL just a 
-small offset will be calculated, but no dereferencing will take place.
+There are however devices that don't fall into this category, i.e. they
+have many outputs, that can be connected to a single LED or to many LEDs
+and the driver has to know what is the actual arrangement.
 
-Thanks
-Guennadi
+> Please use the regulator binding.
 
-> Regards
-> Guennadi
-> 
-> On Wed, 7 Jan 2015, Andy Shevchenko wrote:
-> 
-> > We have to check the pointer before dereferencing it.
-> > 
-> > Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> > ---
-> >  drivers/media/platform/soc_camera/soc_camera.c | 4 +++-
-> >  1 file changed, 3 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> > index b3db51c..8c665c4 100644
-> > --- a/drivers/media/platform/soc_camera/soc_camera.c
-> > +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> > @@ -2166,7 +2166,7 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
-> >  static int soc_camera_pdrv_probe(struct platform_device *pdev)
-> >  {
-> >  	struct soc_camera_desc *sdesc = pdev->dev.platform_data;
-> > -	struct soc_camera_subdev_desc *ssdd = &sdesc->subdev_desc;
-> > +	struct soc_camera_subdev_desc *ssdd;
-> >  	struct soc_camera_device *icd;
-> >  	int ret;
-> >  
-> > @@ -2177,6 +2177,8 @@ static int soc_camera_pdrv_probe(struct platform_device *pdev)
-> >  	if (!icd)
-> >  		return -ENOMEM;
-> >  
-> > +	ssdd = &sdesc->subdev_desc;
-> > +
-> >  	/*
-> >  	 * In the asynchronous case ssdd->num_regulators == 0 yet, so, the below
-> >  	 * regulator allocation is a dummy. They are actually requested by the
-> > -- 
-> > 1.8.3.101.g727a46b
-> > 
-> 
+>> Do your doubts stem from the ambiguity of the word "current" or the
+>> form of the description itself is unclear? Probably there should be
+>> explicit explanation added that the size of the array depends on the
+>> number of current outputs of the flash LED device.
+>
+> The size of the array and meaning of array indexes was not clear.
+
+What about this:
+
+led-sources : Array of connection states between all LED current
+	      sources exposed by the device and this LED (1 - this LED
+	      is connected to the current output with index N, 0 -
+	      this LED isn't connected to the current output with
+	      index N); the mapping of N-th element of the array to the
+	      physical device output should be defined in the LED
+	      driver binding.
+
+-- 
+Best Regards,
+Jacek Anaszewski
