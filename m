@@ -1,49 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54267 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750921AbbAMJbi (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:33289 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751879AbbALOT7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 04:31:38 -0500
-Date: Tue, 13 Jan 2015 11:31:35 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: smiapp-core.c error if !defined(CONFIG_OF)
-Message-ID: <20150113093135.GD17565@valkosipuli.retiisi.org.uk>
-References: <54B4DD2D.7030303@xs4all.nl>
+	Mon, 12 Jan 2015 09:19:59 -0500
+Message-ID: <54B3D7FF.2030106@xs4all.nl>
+Date: Mon, 12 Jan 2015 15:19:43 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54B4DD2D.7030303@xs4all.nl>
+To: Shuah Khan <shuahkh@osg.samsung.com>, m.chehab@samsung.com,
+	hans.verkuil@cisco.com, dheitmueller@kernellabs.com,
+	prabhakar.csengg@gmail.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, ttmesterr@gmail.com
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 1/3] media: au0828 - convert to use videobuf2
+References: <cover.1418918401.git.shuahkh@osg.samsung.com> <14b955f13c972a55bcfeaf6734f3487c320260bb.1418918402.git.shuahkh@osg.samsung.com>
+In-Reply-To: <14b955f13c972a55bcfeaf6734f3487c320260bb.1418918402.git.shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Tue, Jan 13, 2015 at 09:54:05AM +0100, Hans Verkuil wrote:
-> Hi Sakari,
+On 12/18/2014 05:20 PM, Shuah Khan wrote:
+> Convert au0828 to use videobuf2. Tested with NTSC.
+> Tested video and vbi devices with xawtv, tvtime,
+> and vlc. Ran v4l2-compliance to ensure there are
+> no new regressions in video and vbi now has 3 fewer
+> failures.
 > 
-> The daily build fails because of this error:
+> video before:
+> test VIDIOC_G_FMT: FAIL 3 failures
+> Total: 72, Succeeded: 69, Failed: 3, Warnings: 0
 > 
-> media_build/v4l/smiapp-core.c: In function 'smiapp_get_pdata':
-> media_build/v4l/smiapp-core.c:3061:3: error: implicit declaration of function 'of_read_number' [-Werror=implicit-function-declaration]
->    pdata->op_sys_clock[i] = of_read_number(val + i * 2, 2);
->    ^
+> Video after:
+> test VIDIOC_G_FMT: FAIL 3 failures
+> Total: 72, Succeeded: 69, Failed: 3, Warnings: 0
 > 
-> Some digging showed that of_read_number is only available if CONFIG_OF
-> is defined. As far as I can see that is actually a bug in linux/of.h, as
-> I see no reason why it should be under CONFIG_OF.
+> vbi before:
+> test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
+> test VIDIOC_EXPBUF: FAIL
+> test USERPTR: FAIL
+> Total: 72, Succeeded: 66, Failed: 6, Warnings: 0
+> 
+> vbi after:
+> test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+> test VIDIOC_EXPBUF: OK (Not Supported)
+> test USERPTR: OK
+> Total: 72, Succeeded: 69, Failed: 3, Warnings: 0
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/usb/au0828/Kconfig        |   2 +-
+>  drivers/media/usb/au0828/au0828-cards.c |   2 +-
+>  drivers/media/usb/au0828/au0828-vbi.c   | 122 ++--
+>  drivers/media/usb/au0828/au0828-video.c | 949 +++++++++++++-------------------
+>  drivers/media/usb/au0828/au0828.h       |  61 +-
+>  5 files changed, 444 insertions(+), 692 deletions(-)
+> 
+> diff --git a/drivers/media/usb/au0828/Kconfig b/drivers/media/usb/au0828/Kconfig
+> index 1d410ac..78b797e 100644
+> --- a/drivers/media/usb/au0828/Kconfig
+> +++ b/drivers/media/usb/au0828/Kconfig
+> @@ -4,7 +4,7 @@ config VIDEO_AU0828
+>  	depends on I2C && INPUT && DVB_CORE && USB
+>  	select I2C_ALGOBIT
+>  	select VIDEO_TVEEPROM
+> -	select VIDEOBUF_VMALLOC
+> +	select VIDEOBUF2_VMALLOC
+>  	select DVB_AU8522_DTV if MEDIA_SUBDRV_AUTOSELECT
+>  	select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
+>  	select MEDIA_TUNER_MXL5007T if MEDIA_SUBDRV_AUTOSELECT
+> diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
+> index 9eb77ac..ae2e563 100644
+> --- a/drivers/media/usb/au0828/au0828-cards.c
+> +++ b/drivers/media/usb/au0828/au0828-cards.c
+> @@ -39,7 +39,7 @@ static void hvr950q_cs5340_audio(void *priv, int enable)
+>  struct au0828_board au0828_boards[] = {
+>  	[AU0828_BOARD_UNKNOWN] = {
+>  		.name	= "Unknown board",
+> -		.tuner_type = UNSET,
+> +		.tuner_type = -1U,
+>  		.tuner_addr = ADDR_UNSET,
+>  	},
+>  	[AU0828_BOARD_HAUPPAUGE_HVR850] = {
 
-Well, it could be defined I guess --- it shouldn't have any use if OF isn't
-in use. I'll submit a patch for that.
+I would split off this au0828-cards.c change into a separate patch. It has nothing to
+do with the vb2 conversion.
 
-The problem in the smiapp driver is better fixed by applying "smiapp: Use
-of_property_read_u64_array() to read a 64-bit number array" instead. Could
-you try that? I'll submit this as a fix then. of_read_number() was just a
-workaround for missing of_property_read_u64_array().
+Regards,
 
--- 
-Kind regards,
+	Hans
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
