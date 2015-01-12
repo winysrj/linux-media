@@ -1,57 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:52951 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751267AbbASN3k (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:23159 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751436AbbALIwl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 08:29:40 -0500
-Received: by mail-la0-f42.google.com with SMTP id ms9so6550644lab.1
-        for <linux-media@vger.kernel.org>; Mon, 19 Jan 2015 05:29:39 -0800 (PST)
-From: Ulf Hansson <ulf.hansson@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH V2 6/8] [media] exynos-gsc: Do full clock gating at runtime PM suspend
-Date: Mon, 19 Jan 2015 14:22:38 +0100
-Message-Id: <1421673760-2600-7-git-send-email-ulf.hansson@linaro.org>
-In-Reply-To: <1421673760-2600-1-git-send-email-ulf.hansson@linaro.org>
-References: <1421673760-2600-1-git-send-email-ulf.hansson@linaro.org>
+	Mon, 12 Jan 2015 03:52:41 -0500
+Message-id: <54B38B55.7080503@samsung.com>
+Date: Mon, 12 Jan 2015 09:52:37 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v10 08/19] leds: Add support for max77693 mfd flash cell
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-9-git-send-email-j.anaszewski@samsung.com>
+ <20150109184606.GJ18076@amd>
+In-reply-to: <20150109184606.GJ18076@amd>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To potentially save more power in runtime PM suspend state, let's also
-prepare/unprepare the clock from the runtime PM callbacks.
+Hi Pavel,
 
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
----
- drivers/media/platform/exynos-gsc/gsc-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thanks for the review.
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 5d3cfe8..0b126eb 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1163,7 +1163,7 @@ static int gsc_runtime_resume(struct device *dev)
- 
- 	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
- 
--	ret = clk_enable(gsc->clock);
-+	ret = clk_prepare_enable(gsc->clock);
- 	if (ret)
- 		return ret;
- 
-@@ -1181,7 +1181,7 @@ static int gsc_runtime_suspend(struct device *dev)
- 
- 	ret = gsc_m2m_suspend(gsc);
- 	if (!ret)
--		clk_disable(gsc->clock);
-+		clk_disable_unprepare(gsc->clock);
- 
- 	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
- 	return ret;
+On 01/09/2015 07:46 PM, Pavel Machek wrote:
+> On Fri 2015-01-09 16:22:58, Jacek Anaszewski wrote:
+>> This patch adds led-flash support to Maxim max77693 chipset.
+>> A device can be exposed to user space through LED subsystem
+>> sysfs interface. Device supports up to two leds which can
+>> work in flash and torch mode. The leds can be triggered
+>> externally or by software.
+>>
+>
+>> +struct max77693_sub_led {
+>> +	/* related FLED output identifier */
+>
+> ->flash LED, about 4x.
+>
+>> +/* split composite current @i into two @iout according to @imax weights */
+>> +static void __max77693_calc_iout(u32 iout[2], u32 i, u32 imax[2])
+>> +{
+>> +	u64 t = i;
+>> +
+>> +	t *= imax[1];
+>> +	do_div(t, imax[0] + imax[1]);
+>> +
+>> +	iout[1] = (u32)t / FLASH_IOUT_STEP * FLASH_IOUT_STEP;
+>> +	iout[0] = i - iout[1];
+>> +}
+>
+> Is 64-bit arithmetics neccessary here? Could we do the FLASH_IOUT_STEP
+> divisons before t *=, so that 64-bit division is not neccessary?
+
+It is required. All these operations allow for splitting the composite
+current into both outputs according to weights given in the imax array.
+
+>> +static int max77693_led_flash_strobe_get(
+>> +				struct led_classdev_flash *fled_cdev,
+>> +				bool *state)
+>> +{
+>> +	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
+>> +	struct max77693_led_device *led = sub_led_to_led(sub_led);
+>> +	int ret;
+>> +
+>> +	if (!state)
+>> +		return -EINVAL;
+>> +
+>> +	mutex_lock(&led->lock);
+>> +
+>> +	ret = max77693_strobe_status_get(led, state);
+>> +
+>> +	*state = !!(*state && (led->strobing_sub_led_id == sub_led->fled_id));
+>> +
+>> +
+>> +	mutex_unlock(&led->lock);
+>> +
+>> +	return ret;
+>> +}
+>
+> Maybe remove some empty lines?
+>
+
+Of course.
+
 -- 
-1.9.1
-
+Best Regards,
+Jacek Anaszewski
