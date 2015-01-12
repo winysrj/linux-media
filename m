@@ -1,93 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56122 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751395AbbACUJv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jan 2015 15:09:51 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 1/7] tuner-core: properly initialize media controller subdev
-Date: Sat,  3 Jan 2015 18:09:33 -0200
-Message-Id: <4ff2de5fce002a6f6f87993440f45e0f198c57cb.1420315245.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420315245.git.mchehab@osg.samsung.com>
-References: <cover.1420315245.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420315245.git.mchehab@osg.samsung.com>
-References: <cover.1420315245.git.mchehab@osg.samsung.com>
+Received: from blu004-omc3s7.hotmail.com ([65.55.116.82]:57234 "EHLO
+	BLU004-OMC3S7.hotmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750783AbbALAdU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Jan 2015 19:33:20 -0500
+Message-ID: <BLU436-SMTP1951CF564474111B59412F0BA430@phx.gbl>
+From: Michael Krufky <mkrufky@hotmail.com>
+To: linux-media@vger.kernel.org
+CC: m.chehab@samsung.com, Michael Ira Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 2/2] lgdt3305: add support for fixed tp clock mode
+Date: Sun, 11 Jan 2015 19:33:09 -0500
+In-Reply-To: <1421022789-5322-1-git-send-email-mkrufky@linuxtv.org>
+References: <1421022789-5322-1-git-send-email-mkrufky@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Properly initialize tuner core subdev at the media controller.
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
 
-That requires a new subtype at the media controller API.
+Add support for controlling TP clock mode for VSB and QAM annex-B/C mode.
+Gated clock mode is the default value, and does not support QAM annex-C.
+The patch enables setting this control to fixed clock mode.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Michael Ira Krufky <mkrufky@linuxtv.org>
+---
+ drivers/media/dvb-frontends/lgdt3305.c | 3 +++
+ drivers/media/dvb-frontends/lgdt3305.h | 6 ++++++
+ 2 files changed, 9 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index 559f8372e2eb..114715ed0110 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -134,6 +134,9 @@ struct tuner {
- 	unsigned int        type; /* chip type id */
- 	void                *config;
- 	const char          *name;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_pad	pad;
-+#endif
+diff --git a/drivers/media/dvb-frontends/lgdt3305.c b/drivers/media/dvb-frontends/lgdt3305.c
+index b42d649..873c63a 100644
+--- a/drivers/media/dvb-frontends/lgdt3305.c
++++ b/drivers/media/dvb-frontends/lgdt3305.c
+@@ -241,6 +241,7 @@ static int lgdt3305_mpeg_mode_polarity(struct lgdt3305_state *state)
+ 	u8 val;
+ 	int ret;
+ 	enum lgdt3305_tp_clock_edge edge = state->cfg->tpclk_edge;
++	enum lgdt3305_tp_clock_mode mode = state->cfg->tpclk_mode;
+ 	enum lgdt3305_tp_valid_polarity valid = state->cfg->tpvalid_polarity;
+ 
+ 	lg_dbg("edge = %d, valid = %d\n", edge, valid);
+@@ -253,6 +254,8 @@ static int lgdt3305_mpeg_mode_polarity(struct lgdt3305_state *state)
+ 
+ 	if (edge)
+ 		val |= 0x08;
++	if (mode)
++		val |= 0x40;
+ 	if (valid)
+ 		val |= 0x01;
+ 
+diff --git a/drivers/media/dvb-frontends/lgdt3305.h b/drivers/media/dvb-frontends/lgdt3305.h
+index d9ab556..9c03e53 100644
+--- a/drivers/media/dvb-frontends/lgdt3305.h
++++ b/drivers/media/dvb-frontends/lgdt3305.h
+@@ -37,6 +37,11 @@ enum lgdt3305_tp_clock_edge {
+ 	LGDT3305_TPCLK_FALLING_EDGE = 1,
  };
  
- /*
-@@ -434,6 +437,8 @@ static void set_type(struct i2c_client *c, unsigned int type,
- 		t->name = analog_ops->info.name;
- 	}
- 
-+	t->sd.entity.name = t->name;
++enum lgdt3305_tp_clock_mode {
++	LGDT3305_TPCLK_GATED = 0,
++	LGDT3305_TPCLK_FIXED = 1,
++};
 +
- 	tuner_dbg("type set to %s\n", t->name);
+ enum lgdt3305_tp_valid_polarity {
+ 	LGDT3305_TP_VALID_LOW = 0,
+ 	LGDT3305_TP_VALID_HIGH = 1,
+@@ -70,6 +75,7 @@ struct lgdt3305_config {
  
- 	t->mode_mask = new_mode_mask;
-@@ -592,6 +597,7 @@ static int tuner_probe(struct i2c_client *client,
- 	struct tuner *t;
- 	struct tuner *radio;
- 	struct tuner *tv;
-+	int ret;
- 
- 	t = kzalloc(sizeof(struct tuner), GFP_KERNEL);
- 	if (NULL == t)
-@@ -696,6 +702,15 @@ register_client:
- 		   t->type,
- 		   t->mode_mask & T_RADIO ? " Radio" : "",
- 		   t->mode_mask & T_ANALOG_TV ? " TV" : "");
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	t->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
-+	t->sd.entity.name = t->name;
-+
-+	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
-+	if (ret < 0)
-+		tuner_err("failed to initialize media entity!\n");
-+#endif
- 	return 0;
- }
- 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 707db275f92b..5ffde035789b 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -66,6 +66,8 @@ struct media_device_info {
- /* A converter of analogue video to its digital representation. */
- #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
- 
-+#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
-+
- #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
- 
- struct media_entity_desc {
+ 	enum lgdt3305_mpeg_mode mpeg_mode;
+ 	enum lgdt3305_tp_clock_edge tpclk_edge;
++	enum lgdt3305_tp_clock_mode tpclk_mode;
+ 	enum lgdt3305_tp_valid_polarity tpvalid_polarity;
+ 	enum lgdt_demod_chip_type demod_chip;
+ };
 -- 
 2.1.0
 
