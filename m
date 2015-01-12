@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <joolzg@btinternet.com>) id 1YCp4U-0004hc-6U
-	for linux-dvb@linuxtv.org; Sun, 18 Jan 2015 13:35:14 +0100
-Received: from nm6-vm3.access.bullet.mail.bf1.yahoo.com ([216.109.114.146])
-	by mail.tu-berlin.de (exim-4.72/mailfrontend-8) with esmtps
+	(envelope-from <suratjebat@gmail.com>) id 1YAbDQ-000392-V6
+	for linux-dvb@linuxtv.org; Mon, 12 Jan 2015 10:23:17 +0100
+Received: from mail-qc0-f196.google.com ([209.85.216.196])
+	by mail.tu-berlin.de (exim-4.72/mailfrontend-5) with esmtps
 	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1YCp4S-0007Z7-jf; Sun, 18 Jan 2015 13:35:13 +0100
-Message-ID: <1421584509.55421.YahooMailNeo@web87803.mail.ir2.yahoo.com>
-Date: Sun, 18 Jan 2015 12:35:09 +0000
-From: JULIAN GARDNER <joolzg@btinternet.com>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+	id 1YAbDP-0003lB-8Y; Mon, 12 Jan 2015 10:23:16 +0100
+Received: by mail-qc0-f196.google.com with SMTP id r5so6256959qcx.3
+	for <linux-dvb@linuxtv.org>; Mon, 12 Jan 2015 01:23:14 -0800 (PST)
 MIME-Version: 1.0
-Subject: [linux-dvb] atsc_epg.c segfaults
-Reply-To: linux-media@vger.kernel.org, JULIAN GARDNER <joolzg@btinternet.com>
+Date: Mon, 12 Jan 2015 01:23:14 -0800
+Message-ID: <CAJke7c+NKGqxAjy2J+j2_Hyym6jSPL_hGYHEvWkEUiN=WLpESw@mail.gmail.com>
+From: Roy Keano <suratjebat@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] w_scan: Country Identifier
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,55 +23,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1823926695=="
+Content-Type: multipart/mixed; boundary="===============0448458722=="
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1823926695==
-Content-Type: multipart/alternative; boundary="-1780992897-866223016-1421584509=:55421"
+--===============0448458722==
+Content-Type: multipart/alternative; boundary=001a11c2d7ec4d65b4050c710ed0
 
----1780992897-866223016-1421584509=:55421
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+--001a11c2d7ec4d65b4050c710ed0
+Content-Type: text/plain; charset=UTF-8
 
-I have a problem which im trying to solve.atsc_epg segfaults=0Aatsc_epc.c=
-=0Aline 683=0A=0Astruct atsc_channel_info *curr_info;=0A=0Aline 763=0Aeit_i=
-nfo =3D &curr_info->eit[index];=0A=0ABUT=0AThere is no code in between thes=
-e 2 lines which sets curr_info, now i changed the code around 712 to=0Afor(=
-k =3D 0; k < guide.num_channels; k++) { if(source_id =3D=3D guide.ch[k].src=
-_id) { curr_info =3D &guide.ch[k]; break; } } =0AThis removes the segfault,=
- BUT i get no data at all, just lots of nice dots=0A=0ASource is OffAir Los=
- Angeles=0Ajoolz=0A
----1780992897-866223016-1421584509=:55421
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Hi All
 
-<html><body><div style=3D"color:#000; background-color:#fff; font-family:ar=
-ial, helvetica, sans-serif;font-size:12pt"><div class=3D"yiv825481949commen=
-t-body yiv825481949markdown-body yiv825481949markdown-format yiv825481949js=
--comment-body">=0A          <div>I have a problem which im trying to solve.=
-atsc_epg segfaults</div><div><br></div>atsc_epc.c<br>line 683<br><div>=0A  =
-  struct atsc_channel_info *curr_info;</div>=0A=0A<div><br></div><div style=
-=3D"color:rgb(0, 0, 0);font-size:16px;font-family:arial, helvetica, sans-se=
-rif;background-color:transparent;font-style:normal;">line 763<br>=0A       =
-     eit_info =3D &amp;curr_info-&gt;eit[index];</div>=0A=0A<div><br></div>=
-<div style=3D"color:rgb(0, 0, 0);font-size:16px;font-family:arial, helvetic=
-a, sans-serif;background-color:transparent;font-style:normal;">BUT</div><di=
-v style=3D"color:rgb(0, 0, 0);font-size:16px;font-family:arial, helvetica, =
-sans-serif;background-color:transparent;font-style:normal;">There is no cod=
-e in between these 2 lines which sets curr_info, now i changed the code aro=
-und 712 to</div>=0A=0A<pre><code>            for(k =3D 0; k &lt; guide.num_=
-channels; k++) {=0A                if(source_id =3D=3D guide.ch[k].src_id) =
-{=0A                    curr_info =3D &amp;guide.ch[k];=0A                 =
-   break;=0A                }=0A            }=0A</code></pre>=0A=0A<div>Thi=
-s removes the segfault, BUT i get no data at all, just lots of nice dots</d=
-iv><div><br></div>=0A=0A<div>Source is OffAir Los Angeles</div>=0A      </d=
-iv>=0A=0A    <br>joolz<br></div></body></html>
----1780992897-866223016-1421584509=:55421--
+I'm learning to use w_scan. The problem I hit:
+
+#w_scan -ft -c SG
+
+Country Identifier SG NOT defined. Using defaults.
+
+After couple of minutes, it reports an error:
+
+ERROR: Sorry - I couldn't get any frequency/ transponder
+
+I am in Singapore by the way.
+
+Best Regards
+Roy
+
+--001a11c2d7ec4d65b4050c710ed0
+Content-Type: text/html; charset=UTF-8
+
+<p dir="ltr">Hi All</p>
+<p dir="ltr">I&#39;m learning to use w_scan. The problem I hit:</p>
+<p dir="ltr">#w_scan -ft -c SG</p>
+<p dir="ltr">Country Identifier SG NOT defined. Using defaults.</p>
+<p dir="ltr">After couple of minutes, it reports an error:</p>
+<p dir="ltr">ERROR: Sorry - I couldn&#39;t get any frequency/ transponder</p>
+<p dir="ltr">I am in Singapore by the way.</p>
+<p dir="ltr">Best Regards<br>
+Roy<br>
+</p>
+
+--001a11c2d7ec4d65b4050c710ed0--
 
 
---===============1823926695==
+--===============0448458722==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -80,4 +79,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1823926695==--
+--===============0448458722==--
