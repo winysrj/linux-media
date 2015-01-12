@@ -1,60 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:49273 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754775AbbAGTon (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Jan 2015 14:44:43 -0500
-Date: Wed, 7 Jan 2015 20:44:26 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] soc_camera: avoid potential null-dereference
-In-Reply-To: <1420597628-317-1-git-send-email-andy.shevchenko@gmail.com>
-Message-ID: <Pine.LNX.4.64.1501072043490.16637@axis700.grange>
-References: <1420597628-317-1-git-send-email-andy.shevchenko@gmail.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36077 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751175AbbALN1f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jan 2015 08:27:35 -0500
+Date: Mon, 12 Jan 2015 14:27:26 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC v10 15/19] media: Add registration helpers for V4L2
+ flash sub-devices
+Message-ID: <20150112132726.GB15838@amd>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-16-git-send-email-j.anaszewski@samsung.com>
+ <20150109205432.GP18076@amd>
+ <54B397F2.6060205@samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <54B397F2.6060205@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+Hi!
 
-Thanks for the patch. Will queue for the next pull request.
-
-Regards
-Guennadi
-
-On Wed, 7 Jan 2015, Andy Shevchenko wrote:
-
-> We have to check the pointer before dereferencing it.
+> >>+	 * the state of V4L2_CID_FLASH_INDICATOR_INTENSITY control only.
+> >>+	 * Therefore it must be possible to set it to 0 level which in
+> >>+	 * the LED subsystem reflects LED_OFF state.
+> >>+	 */
+> >>+	if (cdata_id != INDICATOR_INTENSITY)
+> >>+		++__intensity;
+> >
+> >And normally we'd do i++ instead of ++i, and avoid __ for local
+> >variables...?
 > 
-> Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> ---
->  drivers/media/platform/soc_camera/soc_camera.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+> Pre-incrementation operator is favourable over the post-incrementation
+> one if we don't want to have an access to the value of a variable before
+> incrementation, which is the case here.
+
+That may be some old C++ convention, but I'm pretty sure gcc does not
+care.
+
+> Maybe gcc detects the cases when the value of a variable is not assigned
+> and doesn't copy it before incrementing, however I haven't found any
+> reference. I see that often in the for loops the i++ version
+> is used, but I am not sure if this is done because developers are
+> aware that gcc will optimize it anyway or it is just an omission.
+
+The code is equivalent, and normally the n++ version is used. gcc will
+get it right.
+
+> >>+struct v4l2_flash_ctrl_config {
+> >>+	struct v4l2_ctrl_config intensity;
+> >>+	struct v4l2_ctrl_config flash_intensity;
+> >>+	struct v4l2_ctrl_config flash_timeout;
+> >>+	u32 flash_faults;
+> >>+	bool has_external_strobe:1;
+> >>+	bool indicator_led:1;
+> >>+};
+> >
+> >I don't think you are supposed to do boolean bit arrays.
 > 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index b3db51c..8c665c4 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -2166,7 +2166,7 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
->  static int soc_camera_pdrv_probe(struct platform_device *pdev)
->  {
->  	struct soc_camera_desc *sdesc = pdev->dev.platform_data;
-> -	struct soc_camera_subdev_desc *ssdd = &sdesc->subdev_desc;
-> +	struct soc_camera_subdev_desc *ssdd;
->  	struct soc_camera_device *icd;
->  	int ret;
->  
-> @@ -2177,6 +2177,8 @@ static int soc_camera_pdrv_probe(struct platform_device *pdev)
->  	if (!icd)
->  		return -ENOMEM;
->  
-> +	ssdd = &sdesc->subdev_desc;
-> +
->  	/*
->  	 * In the asynchronous case ssdd->num_regulators == 0 yet, so, the below
->  	 * regulator allocation is a dummy. They are actually requested by the
-> -- 
-> 1.8.3.101.g727a46b
-> 
+> These bit fields allow to reduce memory usage. If they were not bit
+> fields, the address of the next variable would be aligned to the
+> multiply of the CPU word size.
+> Please look e.g. at struct dev_pm_info in the file include/linux/pm.h.
+> It also contains boolean bit fields.
+
+Looks like you are right. I guess I confused bool foo:1 with int
+foo:1.
+
+Thanks,
+									Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
