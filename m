@@ -1,78 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54978 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756785AbbAFVJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv3 11/20] cx231xx: initialize video/vbi pads
-Date: Tue,  6 Jan 2015 19:08:42 -0200
-Message-Id: <a5936ea965f4d7db9f1b37b390dd838882c61990.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:24273 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991AbbALIcG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jan 2015 03:32:06 -0500
+Message-id: <54B38682.5080605@samsung.com>
+Date: Mon, 12 Jan 2015 09:32:02 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Rob Herring <robherring2@gmail.com>
+Cc: linux-leds@vger.kernel.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
+ <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
+In-reply-to: <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both video and vbi are sink pads. Initialize them as such.
+On 01/09/2015 07:33 PM, Rob Herring wrote:
+> On Fri, Jan 9, 2015 at 9:22 AM, Jacek Anaszewski
+> <j.anaszewski@samsung.com> wrote:
+>> Add a property for defining the device outputs the LED
+>> represented by the DT child node is connected to.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Bryan Wu <cooloney@gmail.com>
+>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>> Cc: Rob Herring <robh+dt@kernel.org>
+>> Cc: Pawel Moll <pawel.moll@arm.com>
+>> Cc: Mark Rutland <mark.rutland@arm.com>
+>> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+>> Cc: Kumar Gala <galak@codeaurora.org>
+>> ---
+>>   Documentation/devicetree/bindings/leds/common.txt |    5 +++++
+>>   1 file changed, 5 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+>> index a2c3f7a..29295bf 100644
+>> --- a/Documentation/devicetree/bindings/leds/common.txt
+>> +++ b/Documentation/devicetree/bindings/leds/common.txt
+>> @@ -1,6 +1,10 @@
+>>   Common leds properties.
+>>
+>>   Optional properties for child nodes:
+>> +- led-sources : Array of bits signifying the LED current regulator outputs the
+>> +               LED represented by the child node is connected to (1 - the LED
+>> +               is connected to the output, 0 - the LED isn't connected to the
+>> +               output).
+>
+> Sorry, I just don't understand this.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+In some Flash LED devices one LED can be connected to one or more
+electric current outputs, which allows for multiplying the maximum
+current allowed for the LED. Each sub-LED is represented by a child
+node in the DT binding of the Flash LED device and it needs to declare
+which outputs it is connected to. In the example below the led-sources
+property is a two element array, which means that the flash LED device
+has two current outputs, and the bits signify if the LED is connected
+to the output.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index ecea76fe07f6..f3d1a488dfa7 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -2121,7 +2121,12 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
- 		dev_err(dev->dev, "cannot allocate video_device.\n");
- 		return -ENODEV;
- 	}
--
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_init(&dev->vdev->entity, 1, &dev->video_pad, 0);
-+	if (ret < 0)
-+		dev_err(dev->dev, "failed to initialize video media entity!\n");
-+#endif
- 	dev->vdev->ctrl_handler = &dev->ctrl_handler;
- 	/* register v4l2 video video_device */
- 	ret = video_register_device(dev->vdev, VFL_TYPE_GRABBER,
-@@ -2147,6 +2152,12 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
- 		dev_err(dev->dev, "cannot allocate video_device.\n");
- 		return -ENODEV;
- 	}
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_init(&dev->vbi_dev->entity, 1, &dev->vbi_pad, 0);
-+	if (ret < 0)
-+		dev_err(dev->dev, "failed to initialize vbi media entity!\n");
-+#endif
- 	dev->vbi_dev->ctrl_handler = &dev->ctrl_handler;
- 	/* register v4l2 vbi video_device */
- 	ret = video_register_device(dev->vbi_dev, VFL_TYPE_VBI,
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index af9d6c4041dc..e0d3106f6b44 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -660,6 +660,7 @@ struct cx231xx {
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	struct media_device *media_dev;
-+	struct media_pad video_pad, vbi_pad;
- #endif
- 
- 	unsigned char eedata[256];
+Do your doubts stem from the ambiguity of the word "current" or the
+form of the description itself is unclear? Probably there should be
+explicit explanation added that the size of the array depends on the
+number of current outputs of the flash LED device.
+
+>>   - label : The label for this LED.  If omitted, the label is
+>>     taken from the node name (excluding the unit address).
+>>
+>> @@ -33,6 +37,7 @@ system-status {
+>>
+>>   camera-flash {
+>>          label = "Flash";
+>> +       led-sources = <1 0>;
+>>          max-microamp = <50000>;
+>>          flash-max-microamp = <320000>;
+>>          flash-timeout-us = <500000>;
+>> --
+>> 1.7.9.5
+>>
+>
+
 -- 
-2.1.0
-
+Best Regards,
+Jacek Anaszewski
