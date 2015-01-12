@@ -1,138 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:54412 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201AbbATPiX (ORCPT
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:53370 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750782AbbALRG7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 10:38:23 -0500
-Received: by mail-ie0-f182.google.com with SMTP id ar1so5753346iec.13
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 07:38:22 -0800 (PST)
-Date: Tue, 20 Jan 2015 15:38:15 +0000
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
+	Mon, 12 Jan 2015 12:06:59 -0500
+Date: Mon, 12 Jan 2015 17:06:44 +0000
+From: Mark Brown <broonie@kernel.org>
+To: Rob Herring <robherring2@gmail.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-leds@vger.kernel.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Rob Herring <robh+dt@kernel.org>,
 	Pawel Moll <pawel.moll@arm.com>,
 	Mark Rutland <mark.rutland@arm.com>,
 	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH/RFC v10 09/19] DT: Add documentation for the mfd Maxim
- max77693
-Message-ID: <20150120153815.GB13701@x1>
+	Kumar Gala <galak@codeaurora.org>,
+	Liam Girdwood <lgirdwood@gmail.com>
+Message-ID: <20150112170644.GO4160@sirena.org.uk>
 References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-10-git-send-email-j.anaszewski@samsung.com>
- <20150120112107.GG13701@x1>
- <54BE67EA.2070507@samsung.com>
+ <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
+ <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
+ <54B38682.5080605@samsung.com>
+ <CAL_Jsq+UaA41DvawdOMmOib=Fi0hC-nBdKV-+P4DFo+MoOy-bQ@mail.gmail.com>
+ <54B3F1EF.4060506@samsung.com>
+ <CAL_JsqKpJtUG0G6g1GOuSVpc31oe-dp3qdrKJUE0upG-xRDFhA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="nLMor0SRtNCuLS/8"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <54BE67EA.2070507@samsung.com>
+In-Reply-To: <CAL_JsqKpJtUG0G6g1GOuSVpc31oe-dp3qdrKJUE0upG-xRDFhA@mail.gmail.com>
+Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 20 Jan 2015, Jacek Anaszewski wrote:
 
-> On 01/20/2015 12:21 PM, Lee Jones wrote:
-> >On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
-> >
-> >>This patch adds device tree binding documentation for
-> >>the flash cell of the Maxim max77693 multifunctional device.
-> >>
-> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>Cc: Lee Jones <lee.jones@linaro.org>
-> >>Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> >>Cc: Bryan Wu <cooloney@gmail.com>
-> >>Cc: Richard Purdie <rpurdie@rpsys.net>
-> >>Cc: Rob Herring <robh+dt@kernel.org>
-> >>Cc: Pawel Moll <pawel.moll@arm.com>
-> >>Cc: Mark Rutland <mark.rutland@arm.com>
-> >>Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-> >>Cc: Kumar Gala <galak@codeaurora.org>
-> >>---
-> >>  Documentation/devicetree/bindings/mfd/max77693.txt |   69 ++++++++++++++++++++
-> >>  1 file changed, 69 insertions(+)
-> >>
-> >>diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-> >>index 01e9f30..ef184f0 100644
-> >>--- a/Documentation/devicetree/bindings/mfd/max77693.txt
-> >>+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-> >>@@ -41,7 +41,52 @@ Optional properties:
-> >>  	 To get more informations, please refer to documentaion.
-> >>  	[*] refer Documentation/devicetree/bindings/pwm/pwm.txt
-> >>
-> >>+- led : the LED submodule device node
-> >>+
-> >>+There are two led outputs available - fled1 and fled2. Each of them can
-> >>+control a separate led or they can be connected together to double
-> >>+the maximum current for a single connected led. One led is represented
-> >>+by one child node.
-> >>+
-> >>+Required properties:
-> >>+- compatible : Must be "maxim,max77693-led".
-> >>+
-> >>+Optional properties:
-> >>+- maxim,trigger-type : Flash trigger type.
-> >>+	Possible trigger types:
-> >>+		MAX77693_LED_TRIG_TYPE_EDGE - Rising edge of the signal triggers
-> >>+			the flash,
-> >>+		MAX77693_LED_TRIG_TYPE_LEVEL - Strobe pulse length controls
-> >>+			duration of the flash.
-> >
-> >I think you should represent the proper values here instead of the
-> >defines.
-> 
-> I see both versions in the existing bindings and also a combination of
-> them, e.g.: MAX77693_LED_TRIG_TYPE_EDGE (0). I think that it is
-> reasonable to mention the macros, especially if they are to appear
-> in the DT binding example at the end of the documentation file.
-> 
-> >>+- maxim,boost-mode :
-> >>+	In boost mode the device can produce up to 1.2A of total current
-> >>+	on both outputs. The maximum current on each output is reduced
-> >>+	to 625mA then. If not enabled explicitly, boost setting defaults to
-> >>+	MAX77693_LED_BOOST_FIXED in case both current sources are used.
-> >>+	Possible values:
-> >>+		MAX77693_LED_BOOST_OFF - no boost,
-> >>+		MAX77693_LED_BOOST_ADAPTIVE - adaptive mode,
-> >>+		MAX77693_LED_BOOST_FIXED - fixed mode.
-> >
-> >Same here.
-> 
-> MAX77693_LED_BOOST_OFF (0) - no boost,
-> MAX77693_LED_BOOST_ADAPTIVE (1) - adaptive mode,
-> MAX77693_LED_BOOST_FIXED (2) - fixed mode.
+--nLMor0SRtNCuLS/8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This is fine too.
+On Mon, Jan 12, 2015 at 10:55:29AM -0600, Rob Herring wrote:
+> On Mon, Jan 12, 2015 at 10:10 AM, Jacek Anaszewski
 
-> >>+- maxim,boost-vout : Output voltage of the boost module in millivolts.
-> >
-> >-mvout?
-> >-microvout?
-> 
-> maxim,boost-mvout ?
+> > There are however devices that don't fall into this category, i.e. they
+> > have many outputs, that can be connected to a single LED or to many LEDs
+> > and the driver has to know what is the actual arrangement.
 
-Right.
+> We may need to extend the regulator binding slightly and allow for
+> multiple phandles on a supply property, but wouldn't something like
+> this work:
 
-> >>+- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
-> >>+	if chip estimates that system voltage could drop below this level due
-> >>+	to flash power consumption.
-> >
-> >mvsys?
-> >microvsys?
-> 
-> maxim,mvsys-min ?
+> led-supply = <&led-reg0>, <&led-reg1>, <&led-reg2>, <&led-reg3>;
 
-Looks okay to me.
+> The shared source is already supported by the regulator binding.
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+What is the reasoning for this?  If a single supply is being supplied by
+multiple regulators then in general those regulators will all know about
+each other at a hardware level and so from a functional and software
+point of view will effectively be one regulator.  If they don't/aren't
+then they tend to interfere with each other.
+
+--nLMor0SRtNCuLS/8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJUs/8jAAoJECTWi3JdVIfQsVgH/0EvbSbMMCak7c7Dv9XJ9++9
+C6ln4JD+REd0SaP5HBEZ/LURh2gNJ+GuwlT6VqPLfEQYVjLs5jzYQG3JAfj11954
+PrNWrUuVrOhCpgkKRut0z4OBnJ+mO1AstTNz8WfcyYeuDgNXnWh79VOfYW87p/D7
+m15nqwk0Qs+N05yhqEoHza9oNu8ZptaZm0njfEAyEp4o+3pVa2AQYkReSfvYTmID
+4c5WIpBv7WZx1ztg/D7LxukKIuZ0TxesGGLg/zj4XN0Ln0IUc0vmmydnwvjs09mM
++ow6tIvsSKtojAbJNWUvxuvk/E52+mjGKG+UDKzFfBHPNqK4HJM0Q3H4YtR22wI=
+=B3bS
+-----END PGP SIGNATURE-----
+
+--nLMor0SRtNCuLS/8--
