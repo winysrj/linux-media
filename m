@@ -1,89 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f52.google.com ([209.85.213.52]:40684 "EHLO
-	mail-yh0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751644AbbA0N2c (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:45597 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751578AbbALNrD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 08:28:32 -0500
-Received: by mail-yh0-f52.google.com with SMTP id f10so6015220yha.11
-        for <linux-media@vger.kernel.org>; Tue, 27 Jan 2015 05:28:31 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CADU0Vqxaa8XP+0j+Y5JqGuRRK8=avjQ_N_F2VoXQV1ZF=3PxmA@mail.gmail.com>
-References: <CADU0VqyzEdG=07O=9LufbZAYa0BVzgUbcBeVzUnfH+Mpup5=Fw@mail.gmail.com>
-	<CALzAhNVD3od1WSyi98icqhy4WveoutAoTJzqVV6g4yw+tMAEMg@mail.gmail.com>
-	<CADU0Vqxaa8XP+0j+Y5JqGuRRK8=avjQ_N_F2VoXQV1ZF=3PxmA@mail.gmail.com>
-Date: Tue, 27 Jan 2015 08:28:31 -0500
-Message-ID: <CALzAhNViOw8EY=_WzEa7r92HGgDs1J9GvHcgQrun82GYXjNKpw@mail.gmail.com>
-Subject: Re: PCTV 800i
-From: Steven Toth <stoth@kernellabs.com>
-To: John Klug <ski.brimson@gmail.com>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Mon, 12 Jan 2015 08:47:03 -0500
+Message-id: <54B3D053.4010300@samsung.com>
+Date: Mon, 12 Jan 2015 14:46:59 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v10 08/19] leds: Add support for max77693 mfd flash cell
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-9-git-send-email-j.anaszewski@samsung.com>
+ <20150109184606.GJ18076@amd> <54B38B55.7080503@samsung.com>
+ <20150112132521.GA15838@amd>
+In-reply-to: <20150112132521.GA15838@amd>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 27, 2015 at 12:25 AM, John Klug <ski.brimson@gmail.com> wrote:
-> I moved it to a dual boot system, and it works in windows, and the
-> same error in Linux.
+On 01/12/2015 02:25 PM, Pavel Machek wrote:
+> Hi!
 >
-> The chips are marked:
-> Conexant     CX23880
-> Samsung     S5H1411
-> Cirrus           CS5340CZZ
-> Atmel           ATMLH138
->
-> three out of four are a different part number than the Wiki.
->
-> It is Board T1213044 stamped on back
-> PCTV 800i Rev 1.1
-> Shield over tuner says "pctv systems"
->
-> There are 5 APL1117 on both sides of the board.
->
-> Since the tuner is probably under the shield I don't know a
-> non-destructive method to get the part number.
->
->>From: Steven Toth <stoth@kernellabs.com>
->>Date: Mon, Jan 26, 2015 at 6:44 AM
->>Subject: Re: PCTV 800i
->>To: John Klug <ski.brimson@gmail.com>
->>Cc: Linux-Media <linux-media@vger.kernel.org>
->
->
->>On Mon, Jan 26, 2015 at 12:50 AM, John Klug <ski.brimson@gmail.com> wrote:
->>> I have a new PCTV card with CX23880 (not CX23883 as shown in the picture):
+>>>> +struct max77693_sub_led {
+>>>> +	/* related FLED output identifier */
 >>>
->>> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Card_(800i)
+>>> ->flash LED, about 4x.
 >>>
->>> The description is out of date with respect to my recent card.
+>>>> +/* split composite current @i into two @iout according to @imax weights */
+>>>> +static void __max77693_calc_iout(u32 iout[2], u32 i, u32 imax[2])
+>>>> +{
+>>>> +	u64 t = i;
+>>>> +
+>>>> +	t *= imax[1];
+>>>> +	do_div(t, imax[0] + imax[1]);
+>>>> +
+>>>> +	iout[1] = (u32)t / FLASH_IOUT_STEP * FLASH_IOUT_STEP;
+>>>> +	iout[0] = i - iout[1];
+>>>> +}
 >>>
->>> It did not work in 3.12.20, 3.17.7, and I finally downloaded the
->>> latest GIT of media_build to no avail (I have a 2nd card that is CX18,
->>> which is interspersed in the output).
->
->>The error messages suggest one or more of the components on the board,
->>or their I2C addresses have changed, or that your hardware is bad.
->
->>Other than the Conexant PCI bridge, do the other components listed in
->>the wiki page match the components on your physical device?
+>>> Is 64-bit arithmetics neccessary here? Could we do the FLASH_IOUT_STEP
+>>> divisons before t *=, so that 64-bit division is not neccessary?
 >>
+>> It is required. All these operations allow for splitting the composite
+>> current into both outputs according to weights given in the imax
+>> array.
+>
+> I know.
+>
+> What about this?
+>
+> static void __max77693_calc_iout(u32 iout[2], u32 i, u32 imax[2])
+> {
+> 	u32 t = i;
+>
+> 	t *= imax[1] / FLASH_IOUT_STEP;
 
-John replied off list:
+Let's consider following case:
 
-"http://linux-media.vger.kernel.narkive.com/kAviSkda/chipset-change-for-cx88-board-pinnacle-pctv-hd-800i
+t = 1000000
+imax[1] = 1000000
 
-Wonder if any code was ever integrated?"
+multiplication of the above will give 10^12 - much more than
+it is possible to encode on 32 bits.
 
-It looks like basics of a patch was developed to support the card but
-it was incompatible with the existing cards and nobody took the time
-to understand how to differentiate between the older 800i and the
-newer 800i. So, the problem fell on the floor.
+> 	t = t / (imax[0] + imax[1]);
+> 	t /= FLASH_IOUT_STEP
+>
+> 	iout[1] = (u32)t;
+> 	iout[0] = i - iout[1];
+> }
+>
+> Does it lack precision?
+>
+> Thanks,
+> 									Pavel
+>
 
-I'll look through my card library. If I have an old _AND_ new rev then
-I'll find an hour and see if I can find an acceptable solution.
-
-Summary: PCTV released a new 800i (quite a while ago) changing the
-demodulator, which is why the existing driver doesn't work.
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Best Regards,
+Jacek Anaszewski
