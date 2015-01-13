@@ -1,84 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:62302 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758963AbbA1UhX (ORCPT
+Received: from smtp-out-231.synserver.de ([212.40.185.231]:1062 "EHLO
+	smtp-out-227.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751709AbbAMMB1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 15:37:23 -0500
-Date: Wed, 28 Jan 2015 16:11:22 +0100
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] dvb-usb: fix spaces after commas
-Message-ID: <20150128151122.GA22122@goodgumbo.baconseed.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Tue, 13 Jan 2015 07:01:27 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 02/16] [media] adv7180: Pass correct flags to request_threaded_irq()
+Date: Tue, 13 Jan 2015 13:01:07 +0100
+Message-Id: <1421150481-30230-3-git-send-email-lars@metafoo.de>
+In-Reply-To: <1421150481-30230-1-git-send-email-lars@metafoo.de>
+References: <1421150481-30230-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
----
- drivers/media/usb/dvb-usb/dvb-usb-dvb.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+Most IRQ controllers support different types of interrupts. The adv7180
+generates falling edge interrupts, so make sure to pass IRQF_TRIGGER_FALLING
+to request_threaded_irq() so the IRQ controller is configured for the
+correct mode.
 
-diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-index 719413b..c901d15 100644
---- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-+++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-@@ -84,14 +84,14 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ drivers/media/i2c/adv7180.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 172e4a2..f424a4d 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -632,7 +632,8 @@ static int adv7180_probe(struct i2c_client *client,
  
- static int dvb_usb_start_feed(struct dvb_demux_feed *dvbdmxfeed)
- {
--	deb_ts("start pid: 0x%04x, feedtype: %d\n", dvbdmxfeed->pid,dvbdmxfeed->type);
--	return dvb_usb_ctrl_feed(dvbdmxfeed,1);
-+	deb_ts("start pid: 0x%04x, feedtype: %d\n", dvbdmxfeed->pid, dvbdmxfeed->type);
-+	return dvb_usb_ctrl_feed(dvbdmxfeed, 1);
- }
- 
- static int dvb_usb_stop_feed(struct dvb_demux_feed *dvbdmxfeed)
- {
- 	deb_ts("stop pid: 0x%04x, feedtype: %d\n", dvbdmxfeed->pid, dvbdmxfeed->type);
--	return dvb_usb_ctrl_feed(dvbdmxfeed,0);
-+	return dvb_usb_ctrl_feed(dvbdmxfeed, 0);
- }
- 
- int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
-@@ -108,8 +108,8 @@ int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
- 	adap->dvb_adap.priv = adap;
- 
- 	if (adap->dev->props.read_mac_address) {
--		if (adap->dev->props.read_mac_address(adap->dev,adap->dvb_adap.proposed_mac) == 0)
--			info("MAC address: %pM",adap->dvb_adap.proposed_mac);
-+		if (adap->dev->props.read_mac_address(adap->dev, adap->dvb_adap.proposed_mac) == 0)
-+			info("MAC address: %pM", adap->dvb_adap.proposed_mac);
- 		else
- 			err("MAC address reading failed.");
+ 	if (state->irq) {
+ 		ret = request_threaded_irq(client->irq, NULL, adv7180_irq,
+-					   IRQF_ONESHOT, KBUILD_MODNAME, state);
++					   IRQF_ONESHOT | IRQF_TRIGGER_FALLING,
++					   KBUILD_MODNAME, state);
+ 		if (ret)
+ 			goto err_free_ctrl;
  	}
-@@ -128,7 +128,7 @@ int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
- 	adap->demux.stop_feed        = dvb_usb_stop_feed;
- 	adap->demux.write_to_decoder = NULL;
- 	if ((ret = dvb_dmx_init(&adap->demux)) < 0) {
--		err("dvb_dmx_init failed: error %d",ret);
-+		err("dvb_dmx_init failed: error %d", ret);
- 		goto err_dmx;
- 	}
- 
-@@ -136,13 +136,13 @@ int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
- 	adap->dmxdev.demux           = &adap->demux.dmx;
- 	adap->dmxdev.capabilities    = 0;
- 	if ((ret = dvb_dmxdev_init(&adap->dmxdev, &adap->dvb_adap)) < 0) {
--		err("dvb_dmxdev_init failed: error %d",ret);
-+		err("dvb_dmxdev_init failed: error %d", ret);
- 		goto err_dmx_dev;
- 	}
- 
- 	if ((ret = dvb_net_init(&adap->dvb_adap, &adap->dvb_net,
- 						&adap->demux.dmx)) < 0) {
--		err("dvb_net_init failed: error %d",ret);
-+		err("dvb_net_init failed: error %d", ret);
- 		goto err_net_init;
- 	}
- 
 -- 
-2.1.3
+1.8.0
 
