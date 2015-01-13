@@ -1,81 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48758 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752233AbbAVNhk (ORCPT
+Received: from smtp-out-231.synserver.de ([212.40.185.231]:1059 "EHLO
+	smtp-out-227.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752318AbbAMMBa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 08:37:40 -0500
-Message-ID: <1421933856.2594.0.camel@xs4all.nl>
-Subject: Re: [PATCH] Si2168: increase timeout to fix firmware loading
-From: Jurgen Kramer <gtmkramer@xs4all.nl>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Olli Salonen <olli.salonen@iki.fi>
-Date: Thu, 22 Jan 2015 14:37:36 +0100
-In-Reply-To: <54C0CB1E.2040502@iki.fi>
-References: <1418027444-4718-1-git-send-email-gtmkramer@xs4all.nl>
-	 <5485E572.9010801@iki.fi> <548D747E.6060404@iki.fi>
-	 <54C0CB1E.2040502@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 13 Jan 2015 07:01:30 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 07/16] [media] adv7180: Add media controller support
+Date: Tue, 13 Jan 2015 13:01:12 +0100
+Message-Id: <1421150481-30230-8-git-send-email-lars@metafoo.de>
+In-Reply-To: <1421150481-30230-1-git-send-email-lars@metafoo.de>
+References: <1421150481-30230-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2015-01-22 at 12:04 +0200, Antti Palosaari wrote:
-> I will make pull request for that as that is still on patchwork.... :(
+Add media controller support to the adv7180 driver by registering a media
+entity instance for it as well as implementing pad ops for configuring the
+format.
 
-Thanks, I was about to send in a resend.
+As there currently don't seem to be any users of the video ops format
+operations those are removed as well in this patch.
 
-Jurgen
+Also set the V4L2_SUBDEV_FL_HAS_DEVNODE flag for the subdevice so it is
+possible to create a subdevice device node.
 
-> Antti
-> 
-> On 12/14/2014 01:29 PM, Antti Palosaari wrote:
-> > On 12/08/2014 07:52 PM, Antti Palosaari wrote:
-> >> On 12/08/2014 10:30 AM, Jurgen Kramer wrote:
-> >>> Increase si2168 cmd execute timeout to prevent firmware load failures.
-> >>> Tests
-> >>> shows it takes up to 52ms to load the 'dvb-demod-si2168-a30-01.fw'
-> >>> firmware.
-> >>> Increase timeout to a safe value of 70ms.
-> >>>
-> >>> Signed-off-by: Jurgen Kramer <gtmkramer@xs4all.nl>
-> >> Reviewed-by: Antti Palosaari <crope@iki.fi>
-> >> Cc: <stable@vger.kernel.org> # v3.17+
-> >
-> > Cc: <stable@vger.kernel.org> # v3.16+
-> >
-> > Changed from stable 3.17+ to 3.16+ as I found that PCTV 292e timeouts
-> > too when tuning DVB-T2, not always, but from time to time...
-> >
-> > Antti
-> >
-> >>
-> >> That must go stable 3.17.
-> >>
-> >> Antti
-> >>
-> >>> ---
-> >>>   drivers/media/dvb-frontends/si2168.c | 2 +-
-> >>>   1 file changed, 1 insertion(+), 1 deletion(-)
-> >>>
-> >>> diff --git a/drivers/media/dvb-frontends/si2168.c
-> >>> b/drivers/media/dvb-frontends/si2168.c
-> >>> index ce9ab44..d2f1a3e 100644
-> >>> --- a/drivers/media/dvb-frontends/si2168.c
-> >>> +++ b/drivers/media/dvb-frontends/si2168.c
-> >>> @@ -39,7 +39,7 @@ static int si2168_cmd_execute(struct si2168 *s,
-> >>> struct si2168_cmd *cmd)
-> >>>
-> >>>       if (cmd->rlen) {
-> >>>           /* wait cmd execution terminate */
-> >>> -        #define TIMEOUT 50
-> >>> +        #define TIMEOUT 70
-> >>>           timeout = jiffies + msecs_to_jiffies(TIMEOUT);
-> >>>           while (!time_after(jiffies, timeout)) {
-> >>>               ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
-> >>>
-> >>
-> >
-> 
+Since the driver now depends on VIDEO_V4L2_SUBDEV_API all drivers which
+select the driver need to depend on that symbol as well.
 
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ drivers/media/i2c/Kconfig         |  2 +-
+ drivers/media/i2c/adv7180.c       | 50 +++++++++++++++++++++++++++++++--------
+ drivers/media/pci/sta2x11/Kconfig |  1 +
+ drivers/media/platform/Kconfig    |  2 +-
+ 4 files changed, 43 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index ca84543..f37890a 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -177,7 +177,7 @@ comment "Video decoders"
+ 
+ config VIDEO_ADV7180
+ 	tristate "Analog Devices ADV7180 decoder"
+-	depends on VIDEO_V4L2 && I2C
++	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	---help---
+ 	  Support for the Analog Devices ADV7180 video decoder.
+ 
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index eeb5a4a..349cae3 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -124,6 +124,7 @@
+ struct adv7180_state {
+ 	struct v4l2_ctrl_handler ctrl_hdl;
+ 	struct v4l2_subdev	sd;
++	struct media_pad	pad;
+ 	struct mutex		mutex; /* mutual excl. when accessing chip */
+ 	int			irq;
+ 	v4l2_std_id		curr_norm;
+@@ -442,13 +443,14 @@ static void adv7180_exit_controls(struct adv7180_state *state)
+ 	v4l2_ctrl_handler_free(&state->ctrl_hdl);
+ }
+ 
+-static int adv7180_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
+-				 u32 *code)
++static int adv7180_enum_mbus_code(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	if (index > 0)
++	if (code->index != 0)
+ 		return -EINVAL;
+ 
+-	*code = MEDIA_BUS_FMT_YUYV8_2X8;
++	code->code = MEDIA_BUS_FMT_YUYV8_2X8;
+ 
+ 	return 0;
+ }
+@@ -467,6 +469,20 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
++static int adv7180_get_pad_format(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_format *format)
++{
++	return adv7180_mbus_fmt(sd, &format->format);
++}
++
++static int adv7180_set_pad_format(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_format *format)
++{
++	return adv7180_mbus_fmt(sd, &format->format);
++}
++
+ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
+ 				 struct v4l2_mbus_config *cfg)
+ {
+@@ -486,10 +502,6 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+ 	.querystd = adv7180_querystd,
+ 	.g_input_status = adv7180_g_input_status,
+ 	.s_routing = adv7180_s_routing,
+-	.enum_mbus_fmt = adv7180_enum_mbus_fmt,
+-	.try_mbus_fmt = adv7180_mbus_fmt,
+-	.g_mbus_fmt = adv7180_mbus_fmt,
+-	.s_mbus_fmt = adv7180_mbus_fmt,
+ 	.g_mbus_config = adv7180_g_mbus_config,
+ };
+ 
+@@ -497,9 +509,16 @@ static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+ 	.s_power = adv7180_s_power,
+ };
+ 
++static const struct v4l2_subdev_pad_ops adv7180_pad_ops = {
++	.enum_mbus_code = adv7180_enum_mbus_code,
++	.set_fmt = adv7180_set_pad_format,
++	.get_fmt = adv7180_get_pad_format,
++};
++
+ static const struct v4l2_subdev_ops adv7180_ops = {
+ 	.core = &adv7180_core_ops,
+ 	.video = &adv7180_video_ops,
++	.pad = &adv7180_pad_ops,
+ };
+ 
+ static irqreturn_t adv7180_irq(int irq, void *devid)
+@@ -630,20 +649,28 @@ static int adv7180_probe(struct i2c_client *client,
+ 	state->input = 0;
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
++	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+ 	ret = adv7180_init_controls(state);
+ 	if (ret)
+ 		goto err_unreg_subdev;
+-	ret = init_device(state);
++
++	state->pad.flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
++	ret = media_entity_init(&sd->entity, 1, &state->pad, 0);
+ 	if (ret)
+ 		goto err_free_ctrl;
+ 
++	ret = init_device(state);
++	if (ret)
++		goto err_media_entity_cleanup;
++
+ 	if (state->irq) {
+ 		ret = request_threaded_irq(client->irq, NULL, adv7180_irq,
+ 					   IRQF_ONESHOT | IRQF_TRIGGER_FALLING,
+ 					   KBUILD_MODNAME, state);
+ 		if (ret)
+-			goto err_free_ctrl;
++			goto err_media_entity_cleanup;
+ 	}
+ 
+ 	ret = v4l2_async_register_subdev(sd);
+@@ -655,6 +682,8 @@ static int adv7180_probe(struct i2c_client *client,
+ err_free_irq:
+ 	if (state->irq > 0)
+ 		free_irq(client->irq, state);
++err_media_entity_cleanup:
++	media_entity_cleanup(&sd->entity);
+ err_free_ctrl:
+ 	adv7180_exit_controls(state);
+ err_unreg_subdev:
+@@ -673,6 +702,7 @@ static int adv7180_remove(struct i2c_client *client)
+ 	if (state->irq > 0)
+ 		free_irq(client->irq, state);
+ 
++	media_entity_cleanup(&sd->entity);
+ 	adv7180_exit_controls(state);
+ 	mutex_destroy(&state->mutex);
+ 	return 0;
+diff --git a/drivers/media/pci/sta2x11/Kconfig b/drivers/media/pci/sta2x11/Kconfig
+index f6f30ab..e03587b 100644
+--- a/drivers/media/pci/sta2x11/Kconfig
++++ b/drivers/media/pci/sta2x11/Kconfig
+@@ -5,6 +5,7 @@ config STA2X11_VIP
+ 	select VIDEO_ADV7180 if MEDIA_SUBDRV_AUTOSELECT
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	depends on PCI && VIDEO_V4L2 && VIRT_TO_BUS
++	depends on VIDEO_V4L2_SUBDEV_API
+ 	depends on I2C
+ 	help
+ 	  Say Y for support for STA2X11 VIP (Video Input Port) capture
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 71e8873..d446b66 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -56,7 +56,7 @@ config VIDEO_VIU
+ 
+ config VIDEO_TIMBERDALE
+ 	tristate "Support for timberdale Video In/LogiWIN"
+-	depends on VIDEO_V4L2 && I2C && DMADEVICES
++	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && DMADEVICES
+ 	depends on MFD_TIMBERDALE || COMPILE_TEST
+ 	select DMA_ENGINE
+ 	select TIMB_DMA
+-- 
+1.8.0
 
