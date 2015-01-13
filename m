@@ -1,100 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54998 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756793AbbAFVJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv3 14/20] dvbdev: add a function to create DVB media graph
-Date: Tue,  6 Jan 2015 19:08:45 -0200
-Message-Id: <df385f18a3f0617a2b74e749741141486f38c427.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
+Received: from smtp-out-231.synserver.de ([212.40.185.231]:1087 "EHLO
+	smtp-out-227.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752322AbbAMMBc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jan 2015 07:01:32 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 10/16] [media] adv7180: Add support for the ad7182
+Date: Tue, 13 Jan 2015 13:01:15 +0100
+Message-Id: <1421150481-30230-11-git-send-email-lars@metafoo.de>
+In-Reply-To: <1421150481-30230-1-git-send-email-lars@metafoo.de>
+References: <1421150481-30230-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need to create a DVB graph, linking the several DVB devnodes.
+This patch adds support for the adv7182 to the adv7180 driver. The adv7182
+is similar to the adv7180, the main difference from the driver's point of
+view is how the video input and how the input format are selected.
 
-Add such function. Please notice that this helper function
-doesn't take into account devices with multiple DVB adapters
-and frontends.
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ drivers/media/i2c/adv7180.c | 149 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 149 insertions(+)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 3aaffb319688..30acf97f4e4b 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -380,6 +380,51 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
- }
- EXPORT_SYMBOL(dvb_unregister_device);
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index e3f91d5..4e518d5 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -52,6 +52,8 @@
+ #define ADV7180_REG_INPUT_CONTROL			0x0000
+ #define ADV7180_INPUT_CONTROL_INSEL_MASK		0x0f
  
++#define ADV7182_REG_INPUT_VIDSEL			0x0002
 +
-+void dvb_create_media_graph(struct media_device *mdev)
+ #define ADV7180_REG_EXTENDED_OUTPUT_CONTROL		0x0004
+ #define ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS		0xC5
+ 
+@@ -134,6 +136,25 @@
+ #define ADV7180_INPUT_YPRPB_AIN1_AIN2_AIN3 0x09
+ #define ADV7180_INPUT_YPRPB_AIN4_AIN5_AIN6 0x0a
+ 
++#define ADV7182_INPUT_CVBS_AIN1 0x00
++#define ADV7182_INPUT_CVBS_AIN2 0x01
++#define ADV7182_INPUT_CVBS_AIN3 0x02
++#define ADV7182_INPUT_CVBS_AIN4 0x03
++#define ADV7182_INPUT_CVBS_AIN5 0x04
++#define ADV7182_INPUT_CVBS_AIN6 0x05
++#define ADV7182_INPUT_CVBS_AIN7 0x06
++#define ADV7182_INPUT_CVBS_AIN8 0x07
++#define ADV7182_INPUT_SVIDEO_AIN1_AIN2 0x08
++#define ADV7182_INPUT_SVIDEO_AIN3_AIN4 0x09
++#define ADV7182_INPUT_SVIDEO_AIN5_AIN6 0x0a
++#define ADV7182_INPUT_SVIDEO_AIN7_AIN8 0x0b
++#define ADV7182_INPUT_YPRPB_AIN1_AIN2_AIN3 0x0c
++#define ADV7182_INPUT_YPRPB_AIN4_AIN5_AIN6 0x0d
++#define ADV7182_INPUT_DIFF_CVBS_AIN1_AIN2 0x0e
++#define ADV7182_INPUT_DIFF_CVBS_AIN3_AIN4 0x0f
++#define ADV7182_INPUT_DIFF_CVBS_AIN5_AIN6 0x10
++#define ADV7182_INPUT_DIFF_CVBS_AIN7_AIN8 0x11
++
+ struct adv7180_state;
+ 
+ #define ADV7180_FLAG_RESET_POWERED	BIT(0)
+@@ -615,6 +636,118 @@ static int adv7180_select_input(struct adv7180_state *state, unsigned int input)
+ 	return adv7180_write(state, ADV7180_REG_INPUT_CONTROL, ret);
+ }
+ 
++static int adv7182_init(struct adv7180_state *state)
 +{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_entity *entity, *tuner = NULL, *fe = NULL;
-+	struct media_entity *demux = NULL, *dvr = NULL, *ca = NULL;
++	/* ADI required writes */
++	adv7180_write(state, 0x0003, 0x0c);
++	adv7180_write(state, 0x0004, 0x07);
++	adv7180_write(state, 0x0013, 0x00);
++	adv7180_write(state, 0x001d, 0x40);
 +
-+	if (!mdev)
-+		return;
++	return 0;
++}
 +
-+	media_device_for_each_entity(entity, mdev) {
-+		switch (entity->type) {
-+		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
-+			tuner = entity;
-+			break;
-+		case MEDIA_ENT_T_DEVNODE_DVB_FE:
-+			fe = entity;
-+			break;
-+		case MEDIA_ENT_T_DEVNODE_DVB_DEMUX:
-+			demux = entity;
-+			break;
-+		case MEDIA_ENT_T_DEVNODE_DVB_DVR:
-+			dvr = entity;
-+			break;
-+		case MEDIA_ENT_T_DEVNODE_DVB_CA:
-+			ca = entity;
-+			break;
-+		}
++static int adv7182_set_std(struct adv7180_state *state, unsigned int std)
++{
++	return adv7180_write(state, ADV7182_REG_INPUT_VIDSEL, std << 4);
++}
++
++enum adv7182_input_type {
++	ADV7182_INPUT_TYPE_CVBS,
++	ADV7182_INPUT_TYPE_DIFF_CVBS,
++	ADV7182_INPUT_TYPE_SVIDEO,
++	ADV7182_INPUT_TYPE_YPBPR,
++};
++
++static enum adv7182_input_type adv7182_get_input_type(unsigned int input)
++{
++	switch (input) {
++	case ADV7182_INPUT_CVBS_AIN1:
++	case ADV7182_INPUT_CVBS_AIN2:
++	case ADV7182_INPUT_CVBS_AIN3:
++	case ADV7182_INPUT_CVBS_AIN4:
++	case ADV7182_INPUT_CVBS_AIN5:
++	case ADV7182_INPUT_CVBS_AIN6:
++	case ADV7182_INPUT_CVBS_AIN7:
++	case ADV7182_INPUT_CVBS_AIN8:
++		return ADV7182_INPUT_TYPE_CVBS;
++	case ADV7182_INPUT_SVIDEO_AIN1_AIN2:
++	case ADV7182_INPUT_SVIDEO_AIN3_AIN4:
++	case ADV7182_INPUT_SVIDEO_AIN5_AIN6:
++	case ADV7182_INPUT_SVIDEO_AIN7_AIN8:
++		return ADV7182_INPUT_TYPE_SVIDEO;
++	case ADV7182_INPUT_YPRPB_AIN1_AIN2_AIN3:
++	case ADV7182_INPUT_YPRPB_AIN4_AIN5_AIN6:
++		return ADV7182_INPUT_TYPE_YPBPR;
++	case ADV7182_INPUT_DIFF_CVBS_AIN1_AIN2:
++	case ADV7182_INPUT_DIFF_CVBS_AIN3_AIN4:
++	case ADV7182_INPUT_DIFF_CVBS_AIN5_AIN6:
++	case ADV7182_INPUT_DIFF_CVBS_AIN7_AIN8:
++		return ADV7182_INPUT_TYPE_DIFF_CVBS;
++	default: /* Will never happen */
++		return 0;
++	}
++}
++
++/* ADI recommended writes to registers 0x52, 0x53, 0x54 */
++static unsigned int adv7182_lbias_settings[][3] = {
++	[ADV7182_INPUT_TYPE_CVBS] = { 0xCB, 0x4E, 0x80 },
++	[ADV7182_INPUT_TYPE_DIFF_CVBS] = { 0xC0, 0x4E, 0x80 },
++	[ADV7182_INPUT_TYPE_SVIDEO] = { 0x0B, 0xCE, 0x80 },
++	[ADV7182_INPUT_TYPE_YPBPR] = { 0x0B, 0x4E, 0xC0 },
++};
++
++static int adv7182_select_input(struct adv7180_state *state, unsigned int input)
++{
++	enum adv7182_input_type input_type;
++	unsigned int *lbias;
++	unsigned int i;
++	int ret;
++
++	ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL, input);
++	if (ret)
++		return ret;
++
++	/* Reset clamp circuitry - ADI recommended writes */
++	adv7180_write(state, 0x809c, 0x00);
++	adv7180_write(state, 0x809c, 0xff);
++
++	input_type = adv7182_get_input_type(input);
++
++	switch (input_type) {
++	case ADV7182_INPUT_TYPE_CVBS:
++	case ADV7182_INPUT_TYPE_DIFF_CVBS:
++		/* ADI recommends to use the SH1 filter */
++		adv7180_write(state, 0x0017, 0x41);
++		break;
++	default:
++		adv7180_write(state, 0x0017, 0x01);
++		break;
 +	}
 +
-+	if (tuner && fe)
-+		media_entity_create_link(tuner, 0, fe, 0, 0);
++	lbias = adv7182_lbias_settings[input_type];
 +
-+	if (fe && demux)
-+		media_entity_create_link(fe, 1, demux, 0, 0);
++	for (i = 0; i < ARRAY_SIZE(adv7182_lbias_settings[0]); i++)
++		adv7180_write(state, 0x0052 + i, lbias[i]);
 +
-+	if (demux && dvr)
-+		media_entity_create_link(demux, 1, dvr, 0, 0);
++	if (input_type == ADV7182_INPUT_TYPE_DIFF_CVBS) {
++		/* ADI required writes to make differential CVBS work */
++		adv7180_write(state, 0x005f, 0xa8);
++		adv7180_write(state, 0x005a, 0x90);
++		adv7180_write(state, 0x0060, 0xb0);
++		adv7180_write(state, 0x80b6, 0x08);
++		adv7180_write(state, 0x80c0, 0xa0);
++	} else {
++		adv7180_write(state, 0x005f, 0xf0);
++		adv7180_write(state, 0x005a, 0xd0);
++		adv7180_write(state, 0x0060, 0x10);
++		adv7180_write(state, 0x80b6, 0x9c);
++		adv7180_write(state, 0x80c0, 0x00);
++	}
 +
-+	if (demux && ca)
-+		media_entity_create_link(demux, 1, ca, 0, 0);
-+#endif
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(dvb_create_media_graph);
 +
- static int dvbdev_check_free_adapter_num(int num)
+ static const struct adv7180_chip_info adv7180_info = {
+ 	.flags = ADV7180_FLAG_RESET_POWERED,
+ 	/* We cannot discriminate between LQFP and 40-pin LFCSP, so accept
+@@ -636,6 +769,21 @@ static const struct adv7180_chip_info adv7180_info = {
+ 	.select_input = adv7180_select_input,
+ };
+ 
++static const struct adv7180_chip_info adv7182_info = {
++	.valid_input_mask = BIT(ADV7182_INPUT_CVBS_AIN1) |
++		BIT(ADV7182_INPUT_CVBS_AIN2) |
++		BIT(ADV7182_INPUT_CVBS_AIN3) |
++		BIT(ADV7182_INPUT_CVBS_AIN4) |
++		BIT(ADV7182_INPUT_SVIDEO_AIN1_AIN2) |
++		BIT(ADV7182_INPUT_SVIDEO_AIN3_AIN4) |
++		BIT(ADV7182_INPUT_YPRPB_AIN1_AIN2_AIN3) |
++		BIT(ADV7182_INPUT_DIFF_CVBS_AIN1_AIN2) |
++		BIT(ADV7182_INPUT_DIFF_CVBS_AIN3_AIN4),
++	.init = adv7182_init,
++	.set_std = adv7182_set_std,
++	.select_input = adv7182_select_input,
++};
++
+ static int init_device(struct adv7180_state *state)
  {
- 	struct list_head *entry;
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index c037c2ff9f5a..3ee767449fff 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -122,6 +122,7 @@ extern int dvb_register_device (struct dvb_adapter *adap,
- 				int type);
+ 	int ret;
+@@ -781,6 +929,7 @@ static int adv7180_remove(struct i2c_client *client)
  
- extern void dvb_unregister_device (struct dvb_device *dvbdev);
-+void dvb_create_media_graph(struct media_device *mdev);
- 
- extern int dvb_generic_open (struct inode *inode, struct file *file);
- extern int dvb_generic_release (struct inode *inode, struct file *file);
+ static const struct i2c_device_id adv7180_id[] = {
+ 	{ "adv7180", (kernel_ulong_t)&adv7180_info },
++	{ "adv7182", (kernel_ulong_t)&adv7182_info },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(i2c, adv7180_id);
 -- 
-2.1.0
+1.8.0
 
