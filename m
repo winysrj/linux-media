@@ -1,175 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:47890 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752558AbbAPLYx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2015 06:24:53 -0500
-Received: by mail-pa0-f44.google.com with SMTP id et14so23759508pad.3
-        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 03:24:53 -0800 (PST)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH v3 1/4] dvb: qm1d1c0042: use dvb-core i2c binding model template
-Date: Fri, 16 Jan 2015 20:24:37 +0900
-Message-Id: <1421407480-9122-2-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1421407480-9122-1-git-send-email-tskd08@gmail.com>
-References: <1421407480-9122-1-git-send-email-tskd08@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:40127 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751736AbbAMLJg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jan 2015 06:09:36 -0500
+Message-ID: <54B4FC9C.2050207@ti.com>
+Date: Tue, 13 Jan 2015 13:08:12 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Grant Likely <grant.likely@linaro.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<dri-devel@lists.freedesktop.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	<kernel@pengutronix.de>
+Subject: Re: [PATCH v7 1/3] of: Decrement refcount of previous endpoint in
+ of_graph_get_next_endpoint
+References: <1419340158-20567-1-git-send-email-p.zabel@pengutronix.de> <1419340158-20567-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1419340158-20567-2-git-send-email-p.zabel@pengutronix.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="wnR2XfbTETJWxvR7a7bCjC4m1HjK6iUKh"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+--wnR2XfbTETJWxvR7a7bCjC4m1HjK6iUKh
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
- drivers/media/tuners/qm1d1c0042.c | 60 +++++++++++++--------------------------
- drivers/media/tuners/qm1d1c0042.h |  2 --
- 2 files changed, 19 insertions(+), 43 deletions(-)
+On 23/12/14 15:09, Philipp Zabel wrote:
+> Decrementing the reference count of the previous endpoint node allows t=
+o
+> use the of_graph_get_next_endpoint function in a for_each_... style mac=
+ro.
+> All current users of this function that pass a non-NULL prev parameter
+> (coresight, rcar-du, imx-drm, soc_camera, and omap2-dss) are changed to=
 
-diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
-index 18bc745..b6d637d 100644
---- a/drivers/media/tuners/qm1d1c0042.c
-+++ b/drivers/media/tuners/qm1d1c0042.c
-@@ -29,6 +29,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/math64.h>
-+#include "dvb_i2c.h"
- #include "qm1d1c0042.h"
- 
- #define QM1D1C0042_NUM_REGS 0x20
-@@ -55,11 +56,6 @@ struct qm1d1c0042_state {
- 	u8 regs[QM1D1C0042_NUM_REGS];
- };
- 
--static struct qm1d1c0042_state *cfg_to_state(struct qm1d1c0042_config *c)
--{
--	return container_of(c, struct qm1d1c0042_state, cfg);
--}
--
- static int reg_write(struct qm1d1c0042_state *state, u8 reg, u8 val)
- {
- 	u8 wbuf[2] = { reg, val };
-@@ -106,10 +102,12 @@ static int qm1d1c0042_set_srch_mode(struct qm1d1c0042_state *state, bool fast)
- 	return reg_write(state, 0x03, state->regs[0x03]);
- }
- 
--static int qm1d1c0042_wakeup(struct qm1d1c0042_state *state)
-+static int qm1d1c0042_wakeup(struct dvb_frontend *fe)
- {
-+	struct qm1d1c0042_state *state;
- 	int ret;
- 
-+	state = fe->tuner_priv;
- 	state->regs[0x01] |= 1 << 3;             /* BB_Reg_enable */
- 	state->regs[0x01] &= (~(1 << 0)) & 0xff; /* NORMAL (wake-up) */
- 	state->regs[0x05] &= (~(1 << 3)) & 0xff; /* pfd_rst NORMAL */
-@@ -119,7 +117,7 @@ static int qm1d1c0042_wakeup(struct qm1d1c0042_state *state)
- 
- 	if (ret < 0)
- 		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
--			__func__, state->cfg.fe->dvb->num, state->cfg.fe->id);
-+			__func__, fe->dvb->num, fe->id);
- 	return ret;
- }
- 
-@@ -133,9 +131,6 @@ static int qm1d1c0042_set_config(struct dvb_frontend *fe, void *priv_cfg)
- 	state = fe->tuner_priv;
- 	cfg = priv_cfg;
- 
--	if (cfg->fe)
--		state->cfg.fe = cfg->fe;
--
- 	if (cfg->xtal_freq != QM1D1C0042_CFG_XTAL_DFLT)
- 		dev_warn(&state->i2c->dev,
- 			"(%s) changing xtal_freq not supported. ", __func__);
-@@ -359,7 +354,7 @@ static int qm1d1c0042_init(struct dvb_frontend *fe)
- 			goto failed;
- 	}
- 
--	ret = qm1d1c0042_wakeup(state);
-+	ret = qm1d1c0042_wakeup(fe);
- 	if (ret < 0)
- 		goto failed;
- 
-@@ -395,33 +390,18 @@ static const struct dvb_tuner_ops qm1d1c0042_ops = {
- static int qm1d1c0042_probe(struct i2c_client *client,
- 			    const struct i2c_device_id *id)
- {
--	struct qm1d1c0042_state *state;
--	struct qm1d1c0042_config *cfg;
-+	struct dvb_i2c_tuner_config *cfg;
- 	struct dvb_frontend *fe;
--
--	state = kzalloc(sizeof(*state), GFP_KERNEL);
--	if (!state)
--		return -ENOMEM;
--	state->i2c = client;
-+	struct qm1d1c0042_state *state;
- 
- 	cfg = client->dev.platform_data;
- 	fe = cfg->fe;
--	fe->tuner_priv = state;
--	qm1d1c0042_set_config(fe, cfg);
--	memcpy(&fe->ops.tuner_ops, &qm1d1c0042_ops, sizeof(qm1d1c0042_ops));
-+	state = fe->tuner_priv;
-+	state->i2c = client;
- 
--	i2c_set_clientdata(client, &state->cfg);
--	dev_info(&client->dev, "Sharp QM1D1C0042 attached.\n");
--	return 0;
--}
-+	qm1d1c0042_set_config(fe, (void *)cfg->devcfg.priv_cfg);
- 
--static int qm1d1c0042_remove(struct i2c_client *client)
--{
--	struct qm1d1c0042_state *state;
--
--	state = cfg_to_state(i2c_get_clientdata(client));
--	state->cfg.fe->tuner_priv = NULL;
--	kfree(state);
-+	dev_info(&client->dev, "Sharp QM1D1C0042 attached.\n");
- 	return 0;
- }
- 
-@@ -430,18 +410,16 @@ static const struct i2c_device_id qm1d1c0042_id[] = {
- 	{"qm1d1c0042", 0},
- 	{}
- };
--MODULE_DEVICE_TABLE(i2c, qm1d1c0042_id);
- 
--static struct i2c_driver qm1d1c0042_driver = {
--	.driver = {
--		.name	= "qm1d1c0042",
--	},
--	.probe		= qm1d1c0042_probe,
--	.remove		= qm1d1c0042_remove,
--	.id_table	= qm1d1c0042_id,
-+static const struct dvb_i2c_module_param qm1d1c0042_param = {
-+	.ops.tuner_ops = &qm1d1c0042_ops,
-+	.priv_probe = qm1d1c0042_probe,
-+
-+	.priv_size = sizeof(struct qm1d1c0042_state),
-+	.is_tuner = true,
- };
- 
--module_i2c_driver(qm1d1c0042_driver);
-+DEFINE_DVB_I2C_MODULE(qm1d1c0042, qm1d1c0042_id, qm1d1c0042_param);
- 
- MODULE_DESCRIPTION("Sharp QM1D1C0042 tuner");
- MODULE_AUTHOR("Akihiro TSUKADA");
-diff --git a/drivers/media/tuners/qm1d1c0042.h b/drivers/media/tuners/qm1d1c0042.h
-index 4f5c188..043787e 100644
---- a/drivers/media/tuners/qm1d1c0042.h
-+++ b/drivers/media/tuners/qm1d1c0042.h
-@@ -21,8 +21,6 @@
- 
- 
- struct qm1d1c0042_config {
--	struct dvb_frontend *fe;
--
- 	u32  xtal_freq;    /* [kHz] */ /* currently ignored */
- 	bool lpf;          /* enable LPF */
- 	bool fast_srch;    /* enable fast search mode, no LPF */
--- 
-2.2.2
+> not decrement the passed prev argument's refcount themselves.
+>=20
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+> ---
+> Changes since v6:
+>  - Added omap2-dss.
+>  - Added Mathieu's ack.
+> ---
+>  drivers/coresight/of_coresight.c                  | 13 ++-----------
+>  drivers/gpu/drm/imx/imx-drm-core.c                | 13 ++-----------
+>  drivers/gpu/drm/rcar-du/rcar_du_kms.c             | 15 ++++-----------=
 
+>  drivers/media/platform/soc_camera/soc_camera.c    |  3 ++-
+>  drivers/of/base.c                                 |  9 +--------
+>  drivers/video/fbdev/omap2/dss/omapdss-boot-init.c |  7 +------
+>  6 files changed, 12 insertions(+), 48 deletions(-)
+>=20
+
+For omapdss:
+
+Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+ Tomi
+
+
+
+--wnR2XfbTETJWxvR7a7bCjC4m1HjK6iUKh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUtPycAAoJEPo9qoy8lh71exQQAKqNGfJfjw4sIvbukVuTUPFd
+pCQXUm9CR90RlszlrkdD3VVUGYaxEbbRMHprEDfzxe+hxZbkP63gABo0kGVQhN3F
+TAITYLsCGqU5kNivacUBIGuNLAHwjbkjFySf2NuhCPJ82FttqWB9WDBj42EUlbL9
++pGAKyIm7MweTWHo6IhyEdZbBvmrfwD/j6NENo7dIP1uunrPR+3L/g8VzTzvlf6V
+geHqFbbTKBD2A23BjPgykqLkuEblLaxkS5qRHnX9MIfSDCWK1cO29UyiOnvqwXnN
+nTm9lvsq+RtR0xTmYPVw3P9R1coXPe1fRNgTErb5apI5DB9kdPyWVzSy7D6H5YYr
+QOUohxV2P4EMi29rsj5IKMtSQFR+TVquz13qrPstYbpW2XpcujAGmbOS5bgI+ruh
+9Mfw+8KRym/xP8LTVjdFwiKlnmGaZdzzIQsqm8oINE+Q4SW4o4eaEjj9URa5UQle
+o1JvK9QQTuMwQR/aV8to11GLXyNhx4cNbUW0JyyHG4z/4S8xNUYrVgKfGSLHkrEm
+Nnl64TQRKnk3a84qGLbcEMR1pZ4zSzEjSSDSz6lfLR8lxFmRTRAkpPQ6z80Xzdnj
+pJbxqfDQZRv9bloFjZtLLMnYErEWGX623787tmotD0yeswUk57K8kccBk9ULyrC6
+qXQFulsuc9dX6Ao/rbY8
+=cGFR
+-----END PGP SIGNATURE-----
+
+--wnR2XfbTETJWxvR7a7bCjC4m1HjK6iUKh--
