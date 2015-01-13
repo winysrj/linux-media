@@ -1,64 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-243.synserver.de ([212.40.185.243]:1054 "EHLO
-	smtp-out-239.synserver.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751347AbbAMNPJ (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:33399 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750848AbbAMDjE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 08:15:09 -0500
-Message-ID: <54B51A57.8010905@metafoo.de>
-Date: Tue, 13 Jan 2015 14:15:03 +0100
-From: Lars-Peter Clausen <lars@metafoo.de>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/16] [media] adv7180: Add support for different chip
-References: <1421150481-30230-1-git-send-email-lars@metafoo.de> <54B517C3.3070205@xs4all.nl>
-In-Reply-To: <54B517C3.3070205@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 12 Jan 2015 22:39:04 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7B1D32A0258
+	for <linux-media@vger.kernel.org>; Tue, 13 Jan 2015 04:38:49 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150113033849.7B1D32A0258@tschai.lan>
+Date: Tue, 13 Jan 2015 04:38:49 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/13/2015 02:04 PM, Hans Verkuil wrote:
-> Hi Lars,
->
-> On 01/13/15 13:01, Lars-Peter Clausen wrote:
->> The adv7180 is part of a larger family of chips which all implement
->> different features from a feature superset. This patch series step by step
->> extends the current adv7180 with features from the superset that are
->> currently not supported and gradually adding support for more variations of
->> the chip.
->>
->> The first half of this series contains fixes and cleanups while the second
->> half adds new features and support for new chips.
->
-> For patches 1-7, 9-13 and 16:
->
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->
-> I need a bit more time to review patches 8 and 15. Ping me if you haven't
-> heard from me by Friday.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks.
+Results of the daily build of media_tree:
 
->
-> BTW: is the adv7183 part of the same family? There is a separate i2c driver
-> for it in the kernel, so I was wondering if that could be merged into this
-> driver eventually.
+date:		Tue Jan 13 04:00:14 CET 2015
+git branch:	test
+git hash:	99f3cd52aee21091ce62442285a68873e3be833f
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
-Yea, I had a look at that, and it appears to be related, but it seems to be 
-some early derivative and things weren't fully standardized at that point, 
-so while similar there were a few notable differences. And I think the 
-adv7183 isn't even produced anymore. So I didn't try to integrate it yet, 
-but it might happen at some point.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17-x86_64: ERRORS
+linux-3.18-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
->
-> Did you check with authors of drivers that use the adv7180 to ensure nothing
-> broke? They should be pinged about this at least.
+Detailed results are available here:
 
-I tried to make sure that the register write sequence is still the same for 
-adv7180 as it was before. The only thing new for the adv7180 is support for 
-the new controls.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-I'll include a few more people on Cc for v2.
+Full logs are available here:
 
-- Lars
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
