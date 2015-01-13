@@ -1,54 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fortimail.online.lv ([81.198.164.220]:57182 "EHLO
-	fortimail.online.lv" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750920AbbANGQG (ORCPT
+Received: from smtp-out-231.synserver.de ([212.40.185.231]:1055 "EHLO
+	smtp-out-227.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752304AbbAMMB1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2015 01:16:06 -0500
-Received: from mailo-proxy1.online.lv (smtp.online.lv [81.198.164.193])
-	by fortimail.online.lv  with ESMTP id t0E6G3pL013093-t0E6G3pM013093
-	for <linux-media@vger.kernel.org>; Wed, 14 Jan 2015 08:16:03 +0200
-Message-ID: <54B609A2.2040503@apollo.lv>
-Date: Wed, 14 Jan 2015 08:16:02 +0200
-From: Raimonds Cicans <ray@apollo.lv>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>, gtmkramer@xs4all.nl
-Subject: Re: [PATCH] cx23885/vb2 regression: please test this patch
-References: <54B52548.7010109@xs4all.nl> <54B55C23.1070409@apollo.lv>
-In-Reply-To: <54B55C23.1070409@apollo.lv>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 13 Jan 2015 07:01:27 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 00/16] [media] adv7180: Add support for different chip
+Date: Tue, 13 Jan 2015 13:01:05 +0100
+Message-Id: <1421150481-30230-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13.01.2015 19:55, Raimonds Cicans wrote:
-> On 13.01.2015 16:01, Hans Verkuil wrote:
->> Hi Raimonds, Jurgen,
->>
->> Can you both test this patch? It should (I hope) solve the problems you
->> both had with the cx23885 driver.
->>
->> This patch fixes a race condition in the vb2_thread that occurs when
->> the thread is stopped. The crucial fix is calling kthread_stop much
->> earlier in vb2_thread_stop(). But I also made the vb2_thread more
->> robust.
->
-> With this patch I am unable to get any error except first
-> (AMD-Vi: Event logged [IO_PAGE_FAULT...).
-> But I am not convinced, because before patch I get
-> first error much often and earlier than almost any other error,
-> so it may be just "bad luck" and other errors do not
-> appear because first error appear earlier.
->
-I noticed that if I "initialize" card with commands:
-/usr/bin/dvb-fe-tool -a 4 -d DVBS
-/usr/bin/dvb-fe-tool -a 5 -d DVBS
+The adv7180 is part of a larger family of chips which all implement
+different features from a feature superset. This patch series step by step
+extends the current adv7180 with features from the superset that are
+currently not supported and gradually adding support for more variations of
+the chip.
 
-and then run load which starts on first front-end and
-only after some time on second, then I receive first
-error much later or do not receive at all (for example
-I was able to run VDR whole night without problems)
+The first half of this series contains fixes and cleanups while the second
+half adds new features and support for new chips.
 
+- Lars
 
-Raimonds Cicans
+Lars-Peter Clausen (16):
+  [media] adv7180: Do not request the IRQ again during resume
+  [media] adv7180: Pass correct flags to request_threaded_irq()
+  [media] adv7180: Use inline function instead of macro
+  [media] adv7180: Cleanup register define naming
+  [media] adv7180: Do implicit register paging
+  [media] adv7180: Reset the device before initialization
+  [media] adv7180: Add media controller support
+  [media] adv7180: Consolidate video mode setting
+  [media] adv7180: Prepare for multi-chip support
+  [media] adv7180: Add support for the ad7182
+  [media] adv7180: Add support for the adv7280/adv7281/adv7282
+  [media] adv7180: Add support for the
+    adv7280-m/adv7281-m/adv7281-ma/adv7282-m
+  [media] adv7180: Add I2P support
+  [media] adv7180: Add fast switch support
+  [media] adv7180: Add free run mode controls
+  [media] Add MAINTAINERS entry for the adv7180
+
+ MAINTAINERS                       |    7 +
+ drivers/media/i2c/Kconfig         |    2 +-
+ drivers/media/i2c/adv7180.c       | 1137 ++++++++++++++++++++++++++++++-------
+ drivers/media/pci/sta2x11/Kconfig |    1 +
+ drivers/media/platform/Kconfig    |    2 +-
+ 5 files changed, 947 insertions(+), 202 deletions(-)
+
+-- 
+1.8.0
 
