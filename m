@@ -1,129 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:42227 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119AbbALXXe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2015 18:23:34 -0500
-From: Benjamin Larsson <benjamin@southpole.se>
-To: crope@iki.fi
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] mn88473: calculate the IF register values
-Date: Tue, 13 Jan 2015 00:23:25 +0100
-Message-Id: <1421105006-22437-1-git-send-email-benjamin@southpole.se>
+Received: from lists.s-osg.org ([54.187.51.154]:47932 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752277AbbAMCND (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jan 2015 21:13:03 -0500
+Message-ID: <54B47F2D.9020102@osg.samsung.com>
+Date: Mon, 12 Jan 2015 19:13:01 -0700
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com,
+	hans.verkuil@cisco.com, dheitmueller@kernellabs.com,
+	prabhakar.csengg@gmail.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, ttmesterr@gmail.com
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 2/3] media: au0828 change to not zero out fmt.pix.priv
+References: <cover.1418918401.git.shuahkh@osg.samsung.com> <54b748fa5cb6883d6ce348c38328161409c1f1be.1418918402.git.shuahkh@osg.samsung.com> <54B3D319.2090506@xs4all.nl>
+In-Reply-To: <54B3D319.2090506@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add xtal as a configuration parameter so it can be used
-in the IF register value calculation. If not set in the
-configuration then use a default value.
+On 01/12/2015 06:58 AM, Hans Verkuil wrote:
+> My first code review of the new year, so let's start with a simple one to avoid
+> taxing my brain cells (that are still in vacation mode) too much...
+> 
+> On 12/18/2014 05:20 PM, Shuah Khan wrote:
+>> There is no need to zero out fmt.pix.priv in vidioc_g_fmt_vid_cap()
+>> vidioc_try_fmt_vid_cap(), and vidioc_s_fmt_vid_cap(). Remove it.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/media/dvb-frontends/mn88473.h        |  6 ++++++
- drivers/staging/media/mn88473/mn88473.c      | 26 +++++++++++---------------
- drivers/staging/media/mn88473/mn88473_priv.h |  1 +
- 3 files changed, 18 insertions(+), 15 deletions(-)
+Thanks.
 
-diff --git a/drivers/media/dvb-frontends/mn88473.h b/drivers/media/dvb-frontends/mn88473.h
-index a373ec9..c717ebed 100644
---- a/drivers/media/dvb-frontends/mn88473.h
-+++ b/drivers/media/dvb-frontends/mn88473.h
-@@ -33,6 +33,12 @@ struct mn88473_config {
- 	 * DVB frontend.
- 	 */
- 	struct dvb_frontend **fe;
-+
-+	/*
-+	 * Xtal frequency.
-+	 * Hz
-+	 */
-+	u32 xtal;
- };
- 
- #endif
-diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
-index 1659335..b65e519 100644
---- a/drivers/staging/media/mn88473/mn88473.c
-+++ b/drivers/staging/media/mn88473/mn88473.c
-@@ -30,6 +30,7 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, i;
- 	u32 if_frequency;
-+	u64 tmp;
- 	u8 delivery_system_val, if_val[3], bw_val[7];
- 
- 	dev_dbg(&client->dev,
-@@ -63,15 +64,12 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
- 	case SYS_DVBT2:
- 		if (c->bandwidth_hz <= 6000000) {
- 			/* IF 3570000 Hz, BW 6000000 Hz */
--			memcpy(if_val, "\x24\x8e\x8a", 3);
- 			memcpy(bw_val, "\xe9\x55\x55\x1c\x29\x1c\x29", 7);
- 		} else if (c->bandwidth_hz <= 7000000) {
- 			/* IF 4570000 Hz, BW 7000000 Hz */
--			memcpy(if_val, "\x2e\xcb\xfb", 3);
- 			memcpy(bw_val, "\xc8\x00\x00\x17\x0a\x17\x0a", 7);
- 		} else if (c->bandwidth_hz <= 8000000) {
- 			/* IF 4570000 Hz, BW 8000000 Hz */
--			memcpy(if_val, "\x2e\xcb\xfb", 3);
- 			memcpy(bw_val, "\xaf\x00\x00\x11\xec\x11\xec", 7);
- 		} else {
- 			ret = -EINVAL;
-@@ -80,7 +78,6 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
- 		break;
- 	case SYS_DVBC_ANNEX_A:
- 		/* IF 5070000 Hz, BW 8000000 Hz */
--		memcpy(if_val, "\x33\xea\xb3", 3);
- 		memcpy(bw_val, "\xaf\x00\x00\x11\xec\x11\xec", 7);
- 		break;
- 	default:
-@@ -105,17 +102,12 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
- 		if_frequency = 0;
- 	}
- 
--	switch (if_frequency) {
--	case 3570000:
--	case 4570000:
--	case 5070000:
--		break;
--	default:
--		dev_err(&client->dev, "IF frequency %d not supported\n",
--				if_frequency);
--		ret = -EINVAL;
--		goto err;
--	}
-+	/* Calculate IF registers ( (1<<24)*IF / Xtal ) */
-+	tmp =  div_u64(if_frequency * (u64)(1<<24) + (dev->xtal / 2),
-+				   dev->xtal);
-+	if_val[0] = ((tmp >> 16) & 0xff);
-+	if_val[1] = ((tmp >>  8) & 0xff);
-+	if_val[2] = ((tmp >>  0) & 0xff);
- 
- 	ret = regmap_write(dev->regmap[2], 0x05, 0x00);
- 	ret = regmap_write(dev->regmap[2], 0xfb, 0x13);
-@@ -352,6 +344,10 @@ static int mn88473_probe(struct i2c_client *client,
- 	}
- 
- 	dev->i2c_wr_max = config->i2c_wr_max;
-+	if (!config->xtal)
-+		dev->xtal = 25000000;
-+	else
-+		dev->xtal = config->xtal;
- 	dev->client[0] = client;
- 	dev->regmap[0] = regmap_init_i2c(dev->client[0], &regmap_config);
- 	if (IS_ERR(dev->regmap[0])) {
-diff --git a/drivers/staging/media/mn88473/mn88473_priv.h b/drivers/staging/media/mn88473/mn88473_priv.h
-index 78af112..ef6f013 100644
---- a/drivers/staging/media/mn88473/mn88473_priv.h
-+++ b/drivers/staging/media/mn88473/mn88473_priv.h
-@@ -31,6 +31,7 @@ struct mn88473_dev {
- 	u16 i2c_wr_max;
- 	fe_delivery_system_t delivery_system;
- 	bool warm; /* FW running */
-+	u32 xtal;
- };
- 
- #endif
+-- Shuah
+
+
 -- 
-2.1.0
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
