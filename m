@@ -1,43 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60840 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755752AbbAWQvr (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:51411 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751190AbbAMOCf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 11:51:47 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 20/21] [media] coda: allocate bitstream ringbuffer only for BIT decoder
-Date: Fri, 23 Jan 2015 17:51:34 +0100
-Message-Id: <1422031895-7740-21-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
-References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+	Tue, 13 Jan 2015 09:02:35 -0500
+Message-ID: <54B52548.7010109@xs4all.nl>
+Date: Tue, 13 Jan 2015 15:01:44 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>, gtmkramer@xs4all.nl,
+	ray@apollo.lv
+Subject: [PATCH] cx23885/vb2 regression: please test this patch
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The BIT encoder does not use a per-context bitstream ringbuffer as it encodes
-directly into the videobuf2 capture queue's buffers. Avoid allocation of the
-bitstream ringbuffer for encoder contexts.
+Hi Raimonds, Jurgen,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Can you both test this patch? It should (I hope) solve the problems you
+both had with the cx23885 driver.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 2defa4b..c19f4b7 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1689,7 +1689,8 @@ static int coda_open(struct file *file)
- 			v4l2_err(&dev->v4l2_dev, "failed to allocate parabuf");
- 			goto err_dma_alloc;
+This patch fixes a race condition in the vb2_thread that occurs when
+the thread is stopped. The crucial fix is calling kthread_stop much
+earlier in vb2_thread_stop(). But I also made the vb2_thread more
+robust.
+
+Regards,
+
+	Hans
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index d09a891..bc08a82 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -3146,27 +3146,26 @@ static int vb2_thread(void *data)
+ 			prequeue--;
+ 		} else {
+ 			call_void_qop(q, wait_finish, q);
+-			ret = vb2_internal_dqbuf(q, &fileio->b, 0);
++			if (!threadio->stop)
++				ret = vb2_internal_dqbuf(q, &fileio->b, 0);
+ 			call_void_qop(q, wait_prepare, q);
+ 			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
  		}
--
-+	}
-+	if (ctx->use_bit && ctx->inst_type == CODA_INST_DECODER) {
- 		ctx->bitstream.size = CODA_MAX_FRAME_SIZE;
- 		ctx->bitstream.vaddr = dma_alloc_writecombine(
- 				&dev->plat_dev->dev, ctx->bitstream.size,
--- 
-2.1.4
-
+-		if (threadio->stop)
+-			break;
+-		if (ret)
++		if (ret || threadio->stop)
+ 			break;
+ 		try_to_freeze();
+ 
+ 		vb = q->bufs[fileio->b.index];
+ 		if (!(fileio->b.flags & V4L2_BUF_FLAG_ERROR))
+-			ret = threadio->fnc(vb, threadio->priv);
+-		if (ret)
+-			break;
++			if (threadio->fnc(vb, threadio->priv))
++				break;
+ 		call_void_qop(q, wait_finish, q);
+ 		if (set_timestamp)
+ 			v4l2_get_timestamp(&fileio->b.timestamp);
+-		ret = vb2_internal_qbuf(q, &fileio->b);
++		if (!threadio->stop)
++			ret = vb2_internal_qbuf(q, &fileio->b);
+ 		call_void_qop(q, wait_prepare, q);
+-		if (ret)
++		if (ret || threadio->stop)
+ 			break;
+ 	}
+ 
+@@ -3235,11 +3234,11 @@ int vb2_thread_stop(struct vb2_queue *q)
+ 	threadio->stop = true;
+ 	vb2_internal_streamoff(q, q->type);
+ 	call_void_qop(q, wait_prepare, q);
++	err = kthread_stop(threadio->thread);
+ 	q->fileio = NULL;
+ 	fileio->req.count = 0;
+ 	vb2_reqbufs(q, &fileio->req);
+ 	kfree(fileio);
+-	err = kthread_stop(threadio->thread);
+ 	threadio->thread = NULL;
+ 	kfree(threadio);
+ 	q->fileio = NULL;
