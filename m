@@ -1,110 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44497 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752633AbbAPKzd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2015 05:55:33 -0500
-Message-ID: <54B8EE13.6010508@xs4all.nl>
-Date: Fri, 16 Jan 2015 11:55:15 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:42472 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750976AbbAMQ50 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jan 2015 11:57:26 -0500
+Message-ID: <54B54E74.5010908@iki.fi>
+Date: Tue, 13 Jan 2015 18:57:24 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Ismael Luceno <ismael.luceno@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org,
-	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Subject: Re: [PATCH] media: pci: solo6x10: solo6x10-enc.c:  Remove unused
- function
-References: <1419184727-11224-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-In-Reply-To: <1419184727-11224-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Content-Type: text/plain; charset=windows-1252
+To: Benjamin Larsson <benjamin@southpole.se>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] mn88472: simplify bandwidth registers setting code
+References: <1420246244-6031-1-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1420246244-6031-1-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(resent with correct email address for Ismael)
+On 01/03/2015 02:50 AM, Benjamin Larsson wrote:
+> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 
-Ismael, Andrey,
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Can you take a look at this? Shouldn't solo_s_jpeg_qp() be hooked up to something?
+regards
+Antti
 
-Regards,
-
-	Hans
-
-On 12/21/2014 06:58 PM, Rickard Strandqvist wrote:
-> Remove the function solo_s_jpeg_qp() that is not used anywhere.
-> 
-> This was partially found by using a static code analysis program called cppcheck.
-> 
-> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 > ---
->  drivers/media/pci/solo6x10/solo6x10-enc.c |   35 -----------------------------
->  drivers/media/pci/solo6x10/solo6x10.h     |    2 --
->  2 files changed, 37 deletions(-)
-> 
-> diff --git a/drivers/media/pci/solo6x10/solo6x10-enc.c b/drivers/media/pci/solo6x10/solo6x10-enc.c
-> index d19c0ae..6b589b8 100644
-> --- a/drivers/media/pci/solo6x10/solo6x10-enc.c
-> +++ b/drivers/media/pci/solo6x10/solo6x10-enc.c
-> @@ -175,41 +175,6 @@ out:
->  	return 0;
->  }
->  
-> -/**
-> - * Set channel Quality Profile (0-3).
-> - */
-> -void solo_s_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch,
-> -		    unsigned int qp)
-> -{
-> -	unsigned long flags;
-> -	unsigned int idx, reg;
-> -
-> -	if ((ch > 31) || (qp > 3))
-> -		return;
-> -
-> -	if (solo_dev->type == SOLO_DEV_6010)
-> -		return;
-> -
-> -	if (ch < 16) {
-> -		idx = 0;
-> -		reg = SOLO_VE_JPEG_QP_CH_L;
-> -	} else {
-> -		ch -= 16;
-> -		idx = 1;
-> -		reg = SOLO_VE_JPEG_QP_CH_H;
-> -	}
-> -	ch *= 2;
-> -
-> -	spin_lock_irqsave(&solo_dev->jpeg_qp_lock, flags);
-> -
-> -	solo_dev->jpeg_qp[idx] &= ~(3 << ch);
-> -	solo_dev->jpeg_qp[idx] |= (qp & 3) << ch;
-> -
-> -	solo_reg_write(solo_dev, reg, solo_dev->jpeg_qp[idx]);
-> -
-> -	spin_unlock_irqrestore(&solo_dev->jpeg_qp_lock, flags);
-> -}
-> -
->  int solo_g_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch)
->  {
->  	int idx;
-> diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
-> index 72017b7..ad5afc6 100644
-> --- a/drivers/media/pci/solo6x10/solo6x10.h
-> +++ b/drivers/media/pci/solo6x10/solo6x10.h
-> @@ -399,8 +399,6 @@ int solo_eeprom_write(struct solo_dev *solo_dev, int loc,
->  		      __be16 data);
->  
->  /* JPEG Qp functions */
-> -void solo_s_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch,
-> -		    unsigned int qp);
->  int solo_g_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch);
->  
->  #define CHK_FLAGS(v, flags) (((v) & (flags)) == (flags))
-> 
+>   drivers/staging/media/mn88472/mn88472.c | 41 +++++++++++----------------------
+>   1 file changed, 14 insertions(+), 27 deletions(-)
+>
+> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+> index 33604dc..ee933c3 100644
+> --- a/drivers/staging/media/mn88472/mn88472.c
+> +++ b/drivers/staging/media/mn88472/mn88472.c
+> @@ -58,35 +58,22 @@ static int mn88472_set_frontend(struct dvb_frontend *fe)
+>   		goto err;
+>   	}
+>
+> -	switch (c->delivery_system) {
+> -	case SYS_DVBT:
+> -	case SYS_DVBT2:
+> -		if (c->bandwidth_hz <= 5000000) {
+> -			memcpy(bw_val, "\xe5\x99\x9a\x1b\xa9\x1b\xa9", 7);
+> -			bw_val2 = 0x03;
+> -		} else if (c->bandwidth_hz <= 6000000) {
+> -			/* IF 3570000 Hz, BW 6000000 Hz */
+> -			memcpy(bw_val, "\xbf\x55\x55\x15\x6b\x15\x6b", 7);
+> -			bw_val2 = 0x02;
+> -		} else if (c->bandwidth_hz <= 7000000) {
+> -			/* IF 4570000 Hz, BW 7000000 Hz */
+> -			memcpy(bw_val, "\xa4\x00\x00\x0f\x2c\x0f\x2c", 7);
+> -			bw_val2 = 0x01;
+> -		} else if (c->bandwidth_hz <= 8000000) {
+> -			/* IF 4570000 Hz, BW 8000000 Hz */
+> -			memcpy(bw_val, "\x8f\x80\x00\x08\xee\x08\xee", 7);
+> -			bw_val2 = 0x00;
+> -		} else {
+> -			ret = -EINVAL;
+> -			goto err;
+> -		}
+> -		break;
+> -	case SYS_DVBC_ANNEX_A:
+> -		/* IF 5070000 Hz, BW 8000000 Hz */
+> +	if (c->bandwidth_hz <= 5000000) {
+> +		memcpy(bw_val, "\xe5\x99\x9a\x1b\xa9\x1b\xa9", 7);
+> +		bw_val2 = 0x03;
+> +	} else if (c->bandwidth_hz <= 6000000) {
+> +		/* IF 3570000 Hz, BW 6000000 Hz */
+> +		memcpy(bw_val, "\xbf\x55\x55\x15\x6b\x15\x6b", 7);
+> +		bw_val2 = 0x02;
+> +	} else if (c->bandwidth_hz <= 7000000) {
+> +		/* IF 4570000 Hz, BW 7000000 Hz */
+> +		memcpy(bw_val, "\xa4\x00\x00\x0f\x2c\x0f\x2c", 7);
+> +		bw_val2 = 0x01;
+> +	} else if (c->bandwidth_hz <= 8000000) {
+> +		/* IF 4570000 Hz, BW 8000000 Hz */
+>   		memcpy(bw_val, "\x8f\x80\x00\x08\xee\x08\xee", 7);
+>   		bw_val2 = 0x00;
+> -		break;
+> -	default:
+> +	} else {
+>   		ret = -EINVAL;
+>   		goto err;
+>   	}
+>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+http://palosaari.fi/
