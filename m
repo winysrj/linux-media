@@ -1,80 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:53158 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754642AbbAHMvE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 07:51:04 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NHU005Q6ZVUUH80@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Jan 2015 12:55:06 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
-	linux-media@vger.kernel.org
-Cc: 'Arun Kumar K' <arun.kk@samsung.com>
-References: <1418677859-31440-1-git-send-email-nicolas.dufresne@collabora.com>
- <1418677859-31440-4-git-send-email-nicolas.dufresne@collabora.com>
-In-reply-to: <1418677859-31440-4-git-send-email-nicolas.dufresne@collabora.com>
-Subject: RE: [PATCH 3/3] media-doc: Fix MFC display delay control doc
-Date: Thu, 08 Jan 2015 13:51:01 +0100
-Message-id: <009a01d02b41$c1e281a0$45a784e0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail.kapsi.fi ([217.30.184.167]:49774 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751122AbbAMSyw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jan 2015 13:54:52 -0500
+Message-ID: <54B569F9.2050105@iki.fi>
+Date: Tue, 13 Jan 2015 20:54:49 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: tskd08@gmail.com, linux-media@vger.kernel.org
+CC: m.chehab@samsung.com
+Subject: Re: [RFC/PATCH] dvb-core: add template code for i2c binding model
+References: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Nicolas Dufresne [mailto:nicolas.dufresne@collabora.com]
-> Sent: Monday, December 15, 2014 10:11 PM
-> To: linux-media@vger.kernel.org
-> Cc: Kamil Debski; Arun Kumar K; Nicolas Dufresne
-> Subject: [PATCH 3/3] media-doc: Fix MFC display delay control doc
-> 
-> The V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE control
-> is a boolean but was documented as a integer. The documentation was
-> also slightly miss-leading.
-> 
-> Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-
-Acked-by: Kamil Debski <k.debski@samsung.com>
-
+On 12/05/2014 12:49 PM, tskd08@gmail.com wrote:
+> From: Akihiro Tsukada <tskd08@gmail.com>
+>
+> Define a standard interface for demod/tuner i2c driver modules.
+> A module client calls dvb_i2c_attach_{fe,tuner}(),
+> and a module driver defines struct dvb_i2c_module_param and
+> calls DEFINE_DVB_I2C_MODULE() macro.
+>
+> This template provides implicit module requests and ref-counting,
+> alloc/free's private data structures,
+> fixes the usage of clientdata of i2c devices,
+> and defines the platformdata structures for passing around
+> device specific config/output parameters between drivers and clients.
+> These kinds of code are common to (almost) all dvb i2c drivers/client,
+> but they were scattered over adapter modules and demod/tuner modules.
+>
+> Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
 > ---
->  Documentation/DocBook/media/v4l/controls.xml | 11 +++++------
->  1 file changed, 5 insertions(+), 6 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> b/Documentation/DocBook/media/v4l/controls.xml
-> index e013e4b..4e9462f 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -2692,12 +2692,11 @@ in the S5P family of SoCs by Samsung.
->  	      <row><entry></entry></row>
->  	      <row>
->  		<entry
-> spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_
-> DELAY_ENABLE</constant>&nbsp;</entry>
-> -		<entry>integer</entry>
-> -	      </row><row><entry spanname="descr">If the display delay is
-> enabled then the decoder has to return a
-> -CAPTURE buffer after processing a certain number of OUTPUT buffers. If
-> this number is low, then it may result in -buffers not being dequeued
-> in display order. In addition hardware may still use those buffers as
-> reference, thus -application should not write to those buffers. This
-> feature can be used for example for generating thumbnails of videos.
-> -Applicable to the H264 decoder.
-> +		<entry>boolean</entry>
-> +	      </row><row><entry spanname="descr">If the display delay is
-> +enabled then the decoder is forced to return a CAPTURE buffer (decoded
-> +frame) after processing a certain number of OUTPUT buffers. The delay
-> +can be set through
-> <constant>V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY</constan
-> t>. This feature can be used for example for generating thumbnails of
-> videos. Applicable to the H264 decoder.
->  	      </entry>
->  	      </row>
->  	      <row><entry></entry></row>
-> --
-> 2.1.0
+>   drivers/media/dvb-core/Makefile       |   4 +
+>   drivers/media/dvb-core/dvb_frontend.h |   1 +
+>   drivers/media/dvb-core/dvb_i2c.c      | 219 ++++++++++++++++++++++++++++++++++
+>   drivers/media/dvb-core/dvb_i2c.h      | 110 +++++++++++++++++
+>   4 files changed, 334 insertions(+)
+>   create mode 100644 drivers/media/dvb-core/dvb_i2c.c
+>   create mode 100644 drivers/media/dvb-core/dvb_i2c.h
+>
+> diff --git a/drivers/media/dvb-core/Makefile b/drivers/media/dvb-core/Makefile
+> index 8f22bcd..271648d 100644
+> --- a/drivers/media/dvb-core/Makefile
+> +++ b/drivers/media/dvb-core/Makefile
+> @@ -8,4 +8,8 @@ dvb-core-objs := dvbdev.o dmxdev.o dvb_demux.o dvb_filter.o 	\
+>   		 dvb_ca_en50221.o dvb_frontend.o 		\
+>   		 $(dvb-net-y) dvb_ringbuffer.o dvb_math.o
+>
+> +ifneq ($(CONFIG_I2C)$(CONFIG_I2C_MODULE),)
+> +dvb-core-objs += dvb_i2c.o
+> +endif
+> +
+>   obj-$(CONFIG_DVB_CORE) += dvb-core.o
+> diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+> index 816269e..41aae1b 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.h
+> +++ b/drivers/media/dvb-core/dvb_frontend.h
+> @@ -415,6 +415,7 @@ struct dtv_frontend_properties {
+>   struct dvb_frontend {
+>   	struct dvb_frontend_ops ops;
+>   	struct dvb_adapter *dvb;
+> +	struct i2c_client *fe_cl;
 
+IMHO that is ugly as hell. You should not add any hardware/driver things 
+to DVB frontend, even more bad this adds I2C dependency to DVB frontend, 
+how about some other busses... DVB frontend is *logical* entity 
+representing the DVB device to system. All hardware specific things 
+belongs to drivers - not the frontend at all.
+
+
+>   	void *demodulator_priv;
+>   	void *tuner_priv;
+>   	void *frontend_priv;
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
