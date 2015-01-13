@@ -1,98 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53029 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752282AbbAHV3y (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54267 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750921AbbAMJbi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Jan 2015 16:29:54 -0500
-Message-ID: <54AEF6C7.6080606@xs4all.nl>
-Date: Thu, 08 Jan 2015 22:29:43 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 13 Jan 2015 04:31:38 -0500
+Date: Tue, 13 Jan 2015 11:31:35 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: smiapp-core.c error if !defined(CONFIG_OF)
+Message-ID: <20150113093135.GD17565@valkosipuli.retiisi.org.uk>
+References: <54B4DD2D.7030303@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-CC: Shuah Khan <shuahkhan@gmail.com>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: Media Summit planning for 2015 - was: Re: ELC 2015 - March -
- San Jose
-References: <CALzAhNW+-pEpYFYH3_Zn8xwMXUoWL6j0LvyPGkvG7hna4z4gLQ@mail.gmail.com>	<54AD7B96.209@xs4all.nl>	<CAKocOOOLH9gHpGRCX=6Y3x=-nSj3N9dYpySBH2opdjXbg7w0BA@mail.gmail.com> <20150108171937.228316a7@concha.lan>
-In-Reply-To: <20150108171937.228316a7@concha.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <54B4DD2D.7030303@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/08/2015 08:19 PM, Mauro Carvalho Chehab wrote:
-> Hi all,
-> 
-> I want to do the media planning for 2015. As we've agreed last year, we're
-> planning to do one media summit together with the Kernel Summit. While
-> things may change, this year, KS will likely happen by Oct in Korea.
-> 
-> I think we may do another summit in US. Looking at:
-> 	http://events.linuxfoundation.org/
-> 
-> Some possible events would be to do it together with:
-> 	ELC - end of March - San Jose, CA - US
-> 	LinuxCon - mid of August - Seattle, WA - US
+Hi Hans,
 
-I'll be at the ELC (as mentioned before) but it is highly unlikely I'll be
-at LinuxCon. A LinuxCon is much more cloud/server/network oriented and much
-less embedded systems/graphics/video oriented compared to an ELC or LPC.
+On Tue, Jan 13, 2015 at 09:54:05AM +0100, Hans Verkuil wrote:
+> Hi Sakari,
+> 
+> The daily build fails because of this error:
+> 
+> media_build/v4l/smiapp-core.c: In function 'smiapp_get_pdata':
+> media_build/v4l/smiapp-core.c:3061:3: error: implicit declaration of function 'of_read_number' [-Werror=implicit-function-declaration]
+>    pdata->op_sys_clock[i] = of_read_number(val + i * 2, 2);
+>    ^
+> 
+> Some digging showed that of_read_number is only available if CONFIG_OF
+> is defined. As far as I can see that is actually a bug in linux/of.h, as
+> I see no reason why it should be under CONFIG_OF.
 
-I intend to skip LinuxCons in the future, unless there is some additional
-reason above and beyond the conference itself for being there.
+Well, it could be defined I guess --- it shouldn't have any use if OF isn't
+in use. I'll submit a patch for that.
 
-> 
-> I took a look at https://lwn.net/Calendar/ to see if are there some
-> other event at the first semester, as LinuxCon seems too close to
-> KS, and ELC means about two months to prepare for it, but was unable
-> to find some other interesting event that we could use to merge
-> with the Media Summit.
-> 
-> Of course, nothing prevents us to choose some other event or even
-> do a Media Summit that would be independent. We did one like that
-> already in the past, in Helsinki.
-> 
-> That's said, probably, the best would be to do the first media
-> summit together with ELC, if we have enough people for it and
-> enough subject for discussions.
-> 
-> What do you think?
+The problem in the smiapp driver is better fixed by applying "smiapp: Use
+of_property_read_u64_array() to read a 64-bit number array" instead. Could
+you try that? I'll submit this as a fix then. of_read_number() was just a
+workaround for missing of_property_read_u64_array().
 
-ELC is definitely the right place to do it as far as I am concerned.
+-- 
+Kind regards,
 
-I have booked the hotel, but not yet the flight. If the summit is
-going to be next to as opposed to during the ELC, then I need to know
-soon as I plan to book the flight early February.
-
-Regards,
-
-	Hans
-
-> 
-> From my side, I'd like to do some deeper discussions related to
-> DVB media controller API.
-> 
-> Regards,
-> Mauro
-> 
-> Em Thu, 8 Jan 2015 09:54:17 -0700
-> Shuah Khan <shuahkhan@gmail.com> escreveu:
-> 
->> On Wed, Jan 7, 2015 at 11:31 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On 01/07/2015 05:20 PM, Steven Toth wrote:
->>>> Is anyone planning to attend this year?
->>>
->>> I'm planning to attend.
->>>
->>
->> I am planning to attend as well.
->>
->> -- Shuah
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
