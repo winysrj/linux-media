@@ -1,63 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fortimail.online.lv ([81.198.164.220]:40288 "EHLO
-	fortimail.online.lv" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754506AbbA2LvT (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:51875 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751659AbbAMPGE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 06:51:19 -0500
-Received: from mailo-proxy2.online.lv (smtp.online.lv [81.198.164.193])
-	by fortimail.online.lv  with ESMTP id t0TBpGD9016954-t0TBpGDA016954
-	for <linux-media@vger.kernel.org>; Thu, 29 Jan 2015 13:51:16 +0200
-Message-ID: <54CA1EB4.8000103@apollo.lv>
-Date: Thu, 29 Jan 2015 13:51:16 +0200
-From: Raimonds Cicans <ray@apollo.lv>
+	Tue, 13 Jan 2015 10:06:04 -0500
+Message-ID: <54B53455.9050407@atmel.com>
+Date: Tue, 13 Jan 2015 16:05:57 +0100
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, hans.verkuil@cisco.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
- cx23885: convert to vb2"
-References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>
-In-Reply-To: <54C9E238.9090101@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Josh Wu <josh.wu@atmel.com>, <devicetree@vger.kernel.org>
+CC: <grant.likely@linaro.org>, <galak@codeaurora.org>,
+	<rob@landley.net>, <robh+dt@kernel.org>,
+	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
+	<linux-arm-kernel@lists.infradead.org>, <voice.shen@atmel.com>,
+	<laurent.pinchart@ideasonboard.com>,
+	<alexandre.belloni@free-electrons.com>, <plagnioj@jcrosoft.com>,
+	<boris.brezillon@free-electrons.com>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 0/8] ARM: at91: dts: sama5d3: add dt support for atmel
+ isi and ov2640 sensor
+References: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29.01.2015 09:33, Hans Verkuil wrote:
-> On 01/11/2015 10:33 AM, Raimonds Cicans wrote:
->> I contacted you because I am hit by regression caused by your commit:
->> 453afdd "[media] cx23885: convert to vb2"
->>
->>
->> My system:
->> AMD Athlon(tm) II X2 240e Processor on Asus M5A97 LE R2.0 motherboard
->> TBS6981 card (Dual DVB-S/S2 PCIe receiver, cx23885 in kernel driver)
->>
->> After upgrade from kernel 3.13.10 (do not have commit) to 3.17.7
->> (have commit) I started receiving following IOMMU related messages:
->>
->> 1)
->> AMD-Vi: Event logged [IO_PAGE_FAULT device=0a:00.0 domain=0x001d
->> address=0x000000000637c000 flags=0x0000]
->>
->> where device=0a:00.0 is TBS6981 card
-> As far as I can tell this has nothing to do with the cx23885 driver but is
-> a bug in the amd iommu/BIOS. See e.g.:
->
-> https://bbs.archlinux.org/viewtopic.php?pid=1309055
->
-> I managed to reproduce the Intel equivalent if I enable CONFIG_IOMMU_SUPPORT.
->
-> Most likely due to broken BIOS/ACPI/whatever information that's read by the
-> kernel. I would recommend disabling this kernel option.
->
-Maybe...
+Le 04/01/2015 10:02, Josh Wu a écrit :
+> This patch series add ISI and ov2640 support on dts files.
+> 
+> As the ov2640 driver dt is still in review. The patch is in: https://patchwork.linuxtv.org/patch/27554/
+> So I want to send this dt patch early for a review.
+> 
+> v1 -> v2:
+>   1. add one more patch to change the pin name of ISI_MCK
+>   2. rewrite the commit [4/8] ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}.
+>   3. move the common chip parts of ISI node to sama5d3.dtsi.
+> 
+> Bo Shen (3):
+>   ARM: at91: dts: sama5d3: split isi pinctrl
+>   ARM: at91: dts: sama5d3: add missing pins of isi
+>   ARM: at91: dts: sama5d3: move the isi mck pin to mb
+> 
+> Josh Wu (5):
+>   ARM: at91: dts: sama5d3: add isi clock
+>   ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}
+>   ARM: at91: dts: sama5d3: change name of pinctrl of ISI_MCK
+>   ARM: at91: dts: sama5d3: add ov2640 camera sensor support
+>   ARM: at91: sama5: enable atmel-isi and ov2640 in defconfig
 
-But on other hand this did not happen on old kernel with old driver.
-And when I did bisection on old kernel + media tree I started to
-receive this message only on new driver.
+Josh,
 
-And I can not disable this feature because then USB and LAN
-stop working.
+It seems that this patch doesn't show up in the series: I only received
+up to 6/8 patches (2 missing?). Can you please send it(them?)?
+
+Bye,
+
+>  arch/arm/boot/dts/sama5d3.dtsi    | 24 ++++++++++++++++++-----
+>  arch/arm/boot/dts/sama5d3xmb.dtsi | 40 +++++++++++++++++++++++++++++++++++----
+>  arch/arm/configs/sama5_defconfig  |  6 ++++++
+>  3 files changed, 61 insertions(+), 9 deletions(-)
+> 
 
 
-Ray
+-- 
+Nicolas Ferre
