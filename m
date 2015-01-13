@@ -1,79 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:35559 "EHLO
-	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751618AbbAFK64 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 05:58:56 -0500
-Message-ID: <1420541869.14388.53.camel@hadess.net>
-Subject: Re: Baytrail camera csi / isp support status ?
-From: Bastien Nocera <hadess@hadess.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Tue, 06 Jan 2015 11:57:49 +0100
-In-Reply-To: <2140737.P20K9QBf6L@avalon>
-References: <548ACC7E.5070507@redhat.com>
-	 <1420502814.14388.27.camel@hadess.net> <2140737.P20K9QBf6L@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from resqmta-po-07v.sys.comcast.net ([96.114.154.166]:42809 "EHLO
+	resqmta-po-07v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753402AbbAMC5H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jan 2015 21:57:07 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: m.chehab@samsung.com, hans.verkuil@cisco.com,
+	dheitmueller@kernellabs.com, prabhakar.csengg@gmail.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	ttmesterr@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v3 0/3] au0828 vb2 conversion
+Date: Mon, 12 Jan 2015 19:56:54 -0700
+Message-Id: <cover.1421115389.git.shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2015-01-06 at 09:55 +0200, Laurent Pinchart wrote:
-> Hi Bastien,
-> 
-> On Tuesday 06 January 2015 01:06:54 Bastien Nocera wrote:
-> > On Fri, 2014-12-12 at 12:07 +0100, Hans de Goede wrote:
-> > > Hi All,
-> > > 
-> > > A college of mine has a baytrail bases tablet:
-> > > 
-> > > http://www.onda-tablet.com/onda-v975w-quad-core-win-8-tablet-9-7-inch-reti
-> > > na-screen-ram-2gb-wifi-32gb.html
-> > > 
-> > > And he is trying to get Linux to run on it, he has things mostly
-> > > working, but he would also like to get the cameras to work.
-> > > 
-> > > I've found this:
-> > > 
-> > > http://sourceforge.net/projects/e3845mipi/files/
-> > > 
-> > > Which is some not so pretty code, with the usual problems of using
-> > > custom ioctls to pass info from the statistics block of the isp
-> > > to userspace and then let some userspace thingie (blob?) handle it.
-> > > 
-> > > So I was wondering if anyone is working on proper support
-> > > (targeting upstream) for this ? It would be nice if we could at least
-> > > get the csi bits going, using the sensors or software auto-whitebal, etc.
-> > > for now.
-> > 
-> > As I mentioned to Hans in private, I would be ready to provide the
-> > hardware for somebody with a track record to keep, to allow testing and
-> > hopefully maintaining that code longer term.
-> > 
-> > I would expect that this sort of hardware is already quite common
-> > amongst Windows 8 tablets so it would be very helpful to have working
-> > out-of-the-box on a stock Linux.
-> 
-> $ cat BYT_LSP_3.11_ISP_2013-12-26.patch | diffstat -s
->  302 files changed, 91662 insertions(+), 2 deletions(-)
+This patch series includes patch v3 of the au0828 vb2 conversion,
+removing video and vbi buffer timeout handling, and a patch to
+fix compile error from au0828_boards initialization which uses a
+a define from videobuf-core.h which is no longer included with the
+vb2 conversion change.
 
-That's smaller than the Wi-Fi driver I'm cleaning up ;)
+The following work is in progress and will be done as separate
+patches:
+- removing users and using v4l2_fh_is_singular_file() instead.
+- Changing dynamic allocation of video device structs to static
+  which will reduce the overhead to allocate at register time and
+  deallocating at unregister.
+- New v4l2-compliance tool showed warnings on try_fmt and s_fmt
+  because the driver doesn't return error in all cases.
 
-> There's no interest in upstreaming the code on Intel's side. As far as I 
-> understand their ISP is more like a programmable DSP than a fixed pipeline 
-> ISP. I expect the driver they have published to hardcode the pipeline 
-> programmed in a particular firmware and thus be specific to a limited number 
-> of devices. Given the amount of work required to get the code in shape, and 
-> given that reusability would be very limited if my assumptions are correct, I 
-> don't really see this happening unless you can find a motivated developer with 
-> way too much free time.
+Changes from patch v2:
+- Dropped already acked from the v3 series
+  [PATCH v2 2/3] media: au0828 change to not zero out fmt.pix.priv
+- Split compile error fix and vb2 conversion patches
+- Made changes to vb2 conversion patch to address comments on v2
+  patch.
+- Updated commit log for remove video and vbi buffer timeout
+  work-around patch
+- Rebased and tested patches on 3.19-rc4
 
-Can somebody explain the different parts of this puzzle, or point me to
-a document that would? I understand that there's a piece of silicon on
-the SoC that would filter the data from the camera sensor, but I would
-expect that to be (somewhat) optional to at least get something going.
+Shuah Khan (3):
+  media: fix au0828 compile error from au0828_boards initialization
+  media: au0828 - convert to use videobuf2
+  media: au0828 remove video and vbi buffer timeout work-around
 
-Is that not the case?
+ drivers/media/usb/au0828/Kconfig        |    2 +-
+ drivers/media/usb/au082e/au0828-cards.c |    2 +-
+ drivers/media/usb/au0828/au0828-vbi.c   |  122 ++--
+ drivers/media/usb/au0828/au0828-video.c | 1005 +++++++++++--------------------
+ drivers/media/usb/au0828/au0828.h       |   64 +-
+ 5 files changed, 414 insertions(+), 781 deletions(-)
+
+-- 
+2.1.0
 
