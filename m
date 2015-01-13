@@ -1,55 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:55505 "EHLO
-	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752720AbbA2QTw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 11:19:52 -0500
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 4/8] WmT: m-5mols_core style pad handling for adv7604
-Date: Thu, 29 Jan 2015 16:19:44 +0000
-Message-Id: <1422548388-28861-5-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
+Received: from smtp-out-231.synserver.de ([212.40.185.231]:1036 "EHLO
+	smtp-out-227.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752328AbbAMMBb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jan 2015 07:01:31 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 08/16] [media] adv7180: Consolidate video mode setting
+Date: Tue, 13 Jan 2015 13:01:13 +0100
+Message-Id: <1421150481-30230-9-git-send-email-lars@metafoo.de>
+In-Reply-To: <1421150481-30230-1-git-send-email-lars@metafoo.de>
+References: <1421150481-30230-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- drivers/media/i2c/adv7604.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+We have basically the same code to set the video standard in init_device()
+and adv7180_s_std(). Factor this out into a common helper function.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 30bbd9d..6ed9303 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1976,7 +1976,11 @@ static int adv7604_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
- 		struct v4l2_mbus_framefmt *fmt;
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ drivers/media/i2c/adv7180.c | 67 ++++++++++++++++++++++-----------------------
+ 1 file changed, 32 insertions(+), 35 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 349cae3..4d9bcc8 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -304,37 +304,54 @@ static int adv7180_g_input_status(struct v4l2_subdev *sd, u32 *status)
+ 	return ret;
+ }
  
--		fmt = v4l2_subdev_get_try_format(fh, format->pad);
-+		fmt = (fh == NULL) ? NULL
-+			: v4l2_subdev_get_try_format(fh, format->pad);
-+		if (fmt == NULL)
-+			return EINVAL;
-+
- 		format->format.code = fmt->code;
- 	} else {
- 		format->format.code = state->format->code;
-@@ -2008,7 +2012,11 @@ static int adv7604_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
- 		struct v4l2_mbus_framefmt *fmt;
+-static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
++static int adv7180_program_std(struct adv7180_state *state)
+ {
+-	struct adv7180_state *state = to_state(sd);
+-	int ret = mutex_lock_interruptible(&state->mutex);
+-	if (ret)
+-		return ret;
++	int ret;
  
--		fmt = v4l2_subdev_get_try_format(fh, format->pad);
-+		fmt = (fh == NULL) ? NULL
-+			: v4l2_subdev_get_try_format(fh, format->pad);
-+		if (fmt == NULL)
-+			return -EINVAL;
-+
- 		fmt->code = format->format.code;
+-	/* all standards -> autodetect */
+-	if (std == V4L2_STD_ALL) {
++	if (state->autodetect) {
+ 		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
+ 				    ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM
+ 				    | state->input);
+ 		if (ret < 0)
+-			goto out;
++			return ret;
+ 
+ 		__adv7180_status(state, NULL, &state->curr_norm);
+-		state->autodetect = true;
  	} else {
- 		state->format = info;
+-		ret = v4l2_std_to_adv7180(std);
++		ret = v4l2_std_to_adv7180(state->curr_norm);
+ 		if (ret < 0)
+-			goto out;
++			return ret;
+ 
+ 		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
+ 				    ret | state->input);
+ 		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
++{
++	struct adv7180_state *state = to_state(sd);
++	int ret = mutex_lock_interruptible(&state->mutex);
++
++	if (ret)
++		return ret;
++
++	/* all standards -> autodetect */
++	if (std == V4L2_STD_ALL) {
++		state->autodetect = true;
++	} else {
++		/* Make sure we can support this std */
++		ret = v4l2_std_to_adv7180(std);
++		if (ret < 0)
+ 			goto out;
+ 
+ 		state->curr_norm = std;
+ 		state->autodetect = false;
+ 	}
+-	ret = 0;
++
++	ret = adv7180_program_std(state);
+ out:
+ 	mutex_unlock(&state->mutex);
+ 	return ret;
+@@ -547,30 +564,10 @@ static int init_device(struct adv7180_state *state)
+ 	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
+ 	usleep_range(2000, 10000);
+ 
+-	/* Initialize adv7180 */
+-	/* Enable autodetection */
+-	if (state->autodetect) {
+-		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
+-				ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM
+-					      | state->input);
+-		if (ret < 0)
+-			goto out_unlock;
+-
+-		ret = adv7180_write(state, ADV7180_REG_AUTODETECT_ENABLE,
+-					      ADV7180_AUTODETECT_DEFAULT);
+-		if (ret < 0)
+-			goto out_unlock;
+-	} else {
+-		ret = v4l2_std_to_adv7180(state->curr_norm);
+-		if (ret < 0)
+-			goto out_unlock;
+-
+-		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
+-					      ret | state->input);
+-		if (ret < 0)
+-			goto out_unlock;
++	ret = adv7180_program_std(state);
++	if (ret)
++		goto out_unlock;
+ 
+-	}
+ 	/* ITU-R BT.656-4 compatible */
+ 	ret = adv7180_write(state, ADV7180_REG_EXTENDED_OUTPUT_CONTROL,
+ 			ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS);
 -- 
-1.7.10.4
+1.8.0
 
