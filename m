@@ -1,70 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60274 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761AbbACCE4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jan 2015 21:04:56 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 1/7] media: Fix DVB representation at media controller API
-Date: Sat,  3 Jan 2015 00:04:34 -0200
-Message-Id: <ea1dd8e443b34e2047468866ec423d4334f54eba.1420250453.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420250453.git.mchehab@osg.samsung.com>
-References: <cover.1420250453.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420250453.git.mchehab@osg.samsung.com>
-References: <cover.1420250453.git.mchehab@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:47805 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752089AbbAMCIO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jan 2015 21:08:14 -0500
+Message-ID: <54B47E0C.50500@osg.samsung.com>
+Date: Mon, 12 Jan 2015 19:08:12 -0700
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com,
+	hans.verkuil@cisco.com, dheitmueller@kernellabs.com,
+	prabhakar.csengg@gmail.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, ttmesterr@gmail.com
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] media: au0828 remove video and vbi buffer timeout
+ work-around
+References: <cover.1418918401.git.shuahkh@osg.samsung.com> <7210fb24807adf46f76197a12dab11358f4dcd30.1418918402.git.shuahkh@osg.samsung.com> <54B3D5D5.9060602@xs4all.nl>
+In-Reply-To: <54B3D5D5.9060602@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DVB devices are identified via a (major, minor) tuple,
-and not by a random id. Fix it, before we start using it.
+On 01/12/2015 07:10 AM, Hans Verkuil wrote:
+> On 12/18/2014 05:20 PM, Shuah Khan wrote:
+>> au0828 does video and vbi buffer timeout handling to prevent
+>> applications such as tvtime from hanging by ensuring that the
+>> video frames continue to be delivered even when the ITU-656
+>> input isn't receiving any data. This work-around is complex
+>> as it introduces set and clear tier code paths in start/stop
+>> streaming, and close interfaces. After the vb2 conversion, the
+>> timeout handling is introducing instability as well as feeding
+>> too many blank green screens, resulting in degraded video quality.
+> 
+> Why would this result in degraded video quality? And which instability
+> exactly?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+What I noticed was that I was seeing a few too many green screens
+and I had to re-tune xawtv when the timeout code is in place. My
+thinking was that this timeout handling could be introducing blank
+green frames when there is no need. However, I can't reproduce the
+problem on 3.19-rc4 base which is what I am using to test the changes
+to the patch series. Hence, I am not positive if the timeout code
+indeed was doing anything bad.
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index e00459185d20..de333cc8261b 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -97,7 +97,10 @@ struct media_entity {
- 			u32 device;
- 			u32 subdevice;
- 		} alsa;
--		int dvb;
-+		struct {
-+			u32 major;
-+			u32 minor;
-+		} dvb;
- 
- 		/* Sub-device specifications */
- 		/* Nothing needed yet */
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index d847c760e8f0..7902e800f019 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -27,7 +27,7 @@
- #include <linux/types.h>
- #include <linux/version.h>
- 
--#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 0)
-+#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 1)
- 
- struct media_device_info {
- 	char driver[16];
-@@ -88,7 +88,10 @@ struct media_entity_desc {
- 			__u32 device;
- 			__u32 subdevice;
- 		} alsa;
--		int dvb;
-+		struct {
-+			__u32 major;
-+			__u32 minor;
-+		} dvb;
- 
- 		/* Sub-device specifications */
- 		/* Nothing needed yet */
+> 
+>> Without this timeout handling, both xawtv, and tvtime are working
+>> well with good quality video.
+
+I am seeing tvtime hangs.
+
+> 
+> Erm, tvtime without the recent 'tvtime: don't block indefinitely waiting
+> for frames' patch will not work well with au0828 without the timeout code
+> if there is no valid video data.
+> 
+> This should at minimum be mentioned in the commit log.
+
+I will resend the patch with the updated commit log knowing full well
+that it might not be accepted.
+
+I do have to re-cut the patch after the changes to address your
+comments on the vb2 conversion patch. It applies, with fuzz, so
+I decided to re-cut the patch.
+
+thanks,
+-- Shuah
+
 -- 
-2.1.0
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
