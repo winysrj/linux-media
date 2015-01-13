@@ -1,48 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:44997 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468AbbASKuY (ORCPT
+Received: from smtp-out-243.synserver.de ([212.40.185.243]:1083 "EHLO
+	smtp-out-239.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751093AbbAMNDD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 05:50:24 -0500
-Message-ID: <1421664620.1222.207.camel@xylophone.i.decadent.org.uk>
-Subject: Re: [RFC PATCH 5/5] media: rcar_vin: move buffer management to
- .stop_streaming handler
-From: Ben Hutchings <ben.hutchings@codethink.co.uk>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@codethink.co.uk,
-	William Towle <william.towle@codethink.co.uk>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Tue, 13 Jan 2015 08:03:03 -0500
+Message-ID: <54B5177E.4070801@metafoo.de>
+Date: Tue, 13 Jan 2015 14:02:54 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
+MIME-Version: 1.0
+To: "Mats Randgaard (matrandg)" <matrandg@cisco.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Mon, 19 Jan 2015 10:50:20 +0000
-In-Reply-To: <Pine.LNX.4.64.1501182141400.23540@axis700.grange>
-References: <1418914070.22813.13.camel@xylophone.i.decadent.org.uk>
-	 <1418914215.22813.18.camel@xylophone.i.decadent.org.uk>
-	 <Pine.LNX.4.64.1501182141400.23540@axis700.grange>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 16/16] [media] Add MAINTAINERS entry for the adv7180
+References: <1421150481-30230-1-git-send-email-lars@metafoo.de> <1421150481-30230-17-git-send-email-lars@metafoo.de> <54B515DC.6020701@cisco.com>
+In-Reply-To: <54B515DC.6020701@cisco.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2015-01-18 at 22:23 +0100, Guennadi Liakhovetski wrote:
-> On Thu, 18 Dec 2014, Ben Hutchings wrote:
-> 
-> > From: William Towle <william.towle@codethink.co.uk>
-> > 
-> > Move the buffer state test in the .buf_cleanup handler into
-> > .stop_streaming so that a) the vb2_queue API is not subverted, and
-> > b) tracking of active-state buffers via priv->queue_buf[] is handled
-> > as early as is possible
-> 
-> Huh... Sorry, patches 1, 2, 3, and 5 of this series look like a strange 
-> way to get from the present state to the destination. They all have to be 
-> merged IMHO. 
-[...]
+On 01/13/2015 01:55 PM, Mats Randgaard (matrandg) wrote:
+> On 01/13/2015 01:01 PM, Lars-Peter Clausen wrote:
+>> Add myself as the maintainer  for the adv7180 video subdev driver.
+>  >
+>  > Signed-off-by: Lars-Peter Clausen <lars@metafoo.de> --- MAINTAINERS |
+>  > 7 +++++++ 1 file changed, 7 insertions(+)
+>  >
+>  > diff --git a/MAINTAINERS b/MAINTAINERS index 4318f34..22bb77e 100644
+>  > --- a/MAINTAINERS +++ b/MAINTAINERS @@ -659,6 +659,13 @@ L:
+>  > linux-media@vger.kernel.org S:    Maintained F:
+>  > drivers/media/i2c/ad9389b*
+>  >
+>  > +ANALOG DEVICES INC ADV7180 DRIVER +M:    Lars-Peter Clausen
+>  > <lars@metafoo.de> +L:    linux-media@vger.kernel.org +W:
+>  > http://ez.analog.com/community/linux-device-drivers
+>
+> I think the web address should be http://ez.analog.com/community/video
+>
+> It is written much more about ADV7180 there, and people asking questions
+> about video devices has been directed to the Video forum in the past.
 
-Well, I thought that too.  Will's submission from last week has that
-change:
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/87009
+Well depends on the subject of the question. If you have a question about 
+the Linux device driver the correct section is the Linux device driver 
+section. If you have question about the chip itself it should be in the 
+video section. But this maintainers entry is about the driver not the chip.
 
-Ben.
-
-
+- Lars
