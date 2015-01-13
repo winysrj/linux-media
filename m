@@ -1,60 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34461 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751690AbbAPOW4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2015 09:22:56 -0500
-Message-ID: <54B91EBE.1090206@iki.fi>
-Date: Fri, 16 Jan 2015 16:22:54 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-out-243.synserver.de ([212.40.185.243]:1054 "EHLO
+	smtp-out-239.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751347AbbAMNPJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jan 2015 08:15:09 -0500
+Message-ID: <54B51A57.8010905@metafoo.de>
+Date: Tue, 13 Jan 2015 14:15:03 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] si2168: return error if set_frontend is called with
- invalid parameters
-References: <1421411720-2364-1-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1421411720-2364-1-git-send-email-olli.salonen@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 00/16] [media] adv7180: Add support for different chip
+References: <1421150481-30230-1-git-send-email-lars@metafoo.de> <54B517C3.3070205@xs4all.nl>
+In-Reply-To: <54B517C3.3070205@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/16/2015 02:35 PM, Olli Salonen wrote:
-> This patch should is based on Antti's silabs branch.
+On 01/13/2015 02:04 PM, Hans Verkuil wrote:
+> Hi Lars,
 >
-> According to dvb-frontend.h set_frontend may be called with bandwidth_hz set to 0 if automatic bandwidth is required. Si2168 does not support automatic bandwidth and does not declare FE_CAN_BANDWIDTH_AUTO in caps.
+> On 01/13/15 13:01, Lars-Peter Clausen wrote:
+>> The adv7180 is part of a larger family of chips which all implement
+>> different features from a feature superset. This patch series step by step
+>> extends the current adv7180 with features from the superset that are
+>> currently not supported and gradually adding support for more variations of
+>> the chip.
+>>
+>> The first half of this series contains fixes and cleanups while the second
+>> half adds new features and support for new chips.
 >
-> This patch will change the behaviour in a way that EINVAL is returned if bandwidth_hz is 0.
+> For patches 1-7, 9-13 and 16:
 >
-> Cc-to: Antti Palosaari <crope@iki.fi>
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> I need a bit more time to review patches 8 and 15. Ping me if you haven't
+> heard from me by Friday.
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Thanks.
 
-Antti
-
-
-> ---
->   drivers/media/dvb-frontends/si2168.c | 7 ++++++-
->   1 file changed, 6 insertions(+), 1 deletion(-)
 >
-> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> index 7f966f3..7fef5ab 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -180,7 +180,12 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
->   		goto err;
->   	}
->
-> -	if (c->bandwidth_hz <= 5000000)
-> +	if (c->bandwidth_hz == 0) {
-> +		ret = -EINVAL;
-> +		dev_err(&client->dev, "automatic bandwidth not supported");
-> +		goto err;
-> +	}
-> +	else if (c->bandwidth_hz <= 5000000)
->   		bandwidth = 0x05;
->   	else if (c->bandwidth_hz <= 6000000)
->   		bandwidth = 0x06;
->
+> BTW: is the adv7183 part of the same family? There is a separate i2c driver
+> for it in the kernel, so I was wondering if that could be merged into this
+> driver eventually.
 
--- 
-http://palosaari.fi/
+Yea, I had a look at that, and it appears to be related, but it seems to be 
+some early derivative and things weren't fully standardized at that point, 
+so while similar there were a few notable differences. And I think the 
+adv7183 isn't even produced anymore. So I didn't try to integrate it yet, 
+but it might happen at some point.
+
+>
+> Did you check with authors of drivers that use the adv7180 to ensure nothing
+> broke? They should be pinged about this at least.
+
+I tried to make sure that the register write sequence is still the same for 
+adv7180 as it was before. The only thing new for the adv7180 is support for 
+the new controls.
+
+I'll include a few more people on Cc for v2.
+
+- Lars
