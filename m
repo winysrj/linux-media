@@ -1,117 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:42362 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751170AbbAXDpu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 22:45:50 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6E86A2A008C
-	for <linux-media@vger.kernel.org>; Sat, 24 Jan 2015 04:45:22 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150124034522.6E86A2A008C@tschai.lan>
-Date: Sat, 24 Jan 2015 04:45:22 +0100 (CET)
+Received: from mail.kapsi.fi ([217.30.184.167]:56327 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753091AbbAMPym (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jan 2015 10:54:42 -0500
+Message-ID: <54B53FC0.8090704@iki.fi>
+Date: Tue, 13 Jan 2015 17:54:40 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Benjamin Larsson <benjamin@southpole.se>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] mn88473: simplify bandwidth registers setting code
+References: <1421105006-22437-1-git-send-email-benjamin@southpole.se> <1421105006-22437-2-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1421105006-22437-2-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 01/13/2015 01:23 AM, Benjamin Larsson wrote:
+> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 
-Results of the daily build of media_tree:
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-date:		Sat Jan 24 04:00:19 CET 2015
-git branch:	test
-git hash:	1fc77d013ba85a29e2edfaba02fd21e8c8187fae
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-1.slh.1-amd64
+Antti
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18-i686: OK
-linux-3.19-rc4-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18-x86_64: OK
-linux-3.19-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+> ---
+>   drivers/staging/media/mn88473/mn88473.c | 27 ++++++---------------------
+>   1 file changed, 6 insertions(+), 21 deletions(-)
+>
+> diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
+> index b65e519..994294c 100644
+> --- a/drivers/staging/media/mn88473/mn88473.c
+> +++ b/drivers/staging/media/mn88473/mn88473.c
+> @@ -59,28 +59,13 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
+>   		goto err;
+>   	}
+>
+> -	switch (c->delivery_system) {
+> -	case SYS_DVBT:
+> -	case SYS_DVBT2:
+> -		if (c->bandwidth_hz <= 6000000) {
+> -			/* IF 3570000 Hz, BW 6000000 Hz */
+> -			memcpy(bw_val, "\xe9\x55\x55\x1c\x29\x1c\x29", 7);
+> -		} else if (c->bandwidth_hz <= 7000000) {
+> -			/* IF 4570000 Hz, BW 7000000 Hz */
+> -			memcpy(bw_val, "\xc8\x00\x00\x17\x0a\x17\x0a", 7);
+> -		} else if (c->bandwidth_hz <= 8000000) {
+> -			/* IF 4570000 Hz, BW 8000000 Hz */
+> -			memcpy(bw_val, "\xaf\x00\x00\x11\xec\x11\xec", 7);
+> -		} else {
+> -			ret = -EINVAL;
+> -			goto err;
+> -		}
+> -		break;
+> -	case SYS_DVBC_ANNEX_A:
+> -		/* IF 5070000 Hz, BW 8000000 Hz */
+> +	if (c->bandwidth_hz <= 6000000) {
+> +		memcpy(bw_val, "\xe9\x55\x55\x1c\x29\x1c\x29", 7);
+> +	} else if (c->bandwidth_hz <= 7000000) {
+> +		memcpy(bw_val, "\xc8\x00\x00\x17\x0a\x17\x0a", 7);
+> +	} else if (c->bandwidth_hz <= 8000000) {
+>   		memcpy(bw_val, "\xaf\x00\x00\x11\xec\x11\xec", 7);
+> -		break;
+> -	default:
+> +	} else {
+>   		ret = -EINVAL;
+>   		goto err;
+>   	}
+>
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+http://palosaari.fi/
