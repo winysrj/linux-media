@@ -1,120 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:55502 "EHLO
-	mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751403AbbA2Qza (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 11:55:30 -0500
-Received: by mail-oi0-f47.google.com with SMTP id a141so28699329oig.6
-        for <linux-media@vger.kernel.org>; Thu, 29 Jan 2015 08:55:30 -0800 (PST)
+Received: from mout.gmx.net ([212.227.15.15]:58112 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750848AbbAMV6N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jan 2015 16:58:13 -0500
+Received: from shodan ([217.246.216.149]) by mail.gmx.com (mrgmx002) with
+ ESMTPSA (Nemesis) id 0MHoC5-1YByxS1QZp-003hrj for
+ <linux-media@vger.kernel.org>; Tue, 13 Jan 2015 22:58:11 +0100
+From: Dexter Filmore <Dexter.Filmore@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: compile only specific module, dkms
+Date: Tue, 13 Jan 2015 22:58:06 +0100
 MIME-Version: 1.0
-In-Reply-To: <20150129154718.GB26493@n2100.arm.linux.org.uk>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
- <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
- <20150129143908.GA26493@n2100.arm.linux.org.uk> <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
- <20150129154718.GB26493@n2100.arm.linux.org.uk>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Thu, 29 Jan 2015 22:25:10 +0530
-Message-ID: <CAO_48GFh3spdGJ=0Mt8BJP0D5EYc2X=KSbmNfYmTMTzsCAMz4A@mail.gmail.com>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
- with dma-parms
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Rob Clark <robdclark@gmail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed;
+  boundary="nextPart12468971.MEl3J8pHu3";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Message-Id: <201501132258.09156.Dexter.Filmore@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29 January 2015 at 21:17, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Thu, Jan 29, 2015 at 09:00:11PM +0530, Sumit Semwal wrote:
->> So, short answer is, it is left to the exporter to decide. The dma-buf
->> framework should not even attempt to decide or enforce any of the
->> above.
->>
->> At each dma_buf_attach(), there's a callback to the exporter, where
->> the exporter can decide, if it intends to handle these kind of cases,
->> on the best way forward.
->>
->> The exporter might, for example, decide to migrate backing storage,
->
-> That's a decision which the exporter can not take.  Think about it...
->
-> If subsystem Y has mapped the buffer, it could be accessing the buffer's
-> backing storage at the same time that subsystem Z tries to attach to the
-> buffer.
->
-Well, first up, of course the 'migration of backing storage' is an
-orthogonal problem to what this patchset attempts to do - in this, I
-am only try to make the relevant information available to the
-exporter.
+--nextPart12468971.MEl3J8pHu3
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-With that out of the way, some thoughts on what you mentioned:
+Hi all,
 
-So, IF the exporter needs to support migration of backing storage,
-even when subsystem Y has mapped the buffer, the exporter knows this
-(because of the map_dma_buf() dma_buf_op) - and the attach() also is
-notified to / handled by the exporter. With this information, it could
-either:
-a) not let the subsystem Z attach (the 'simpler' approach), or
-b) hold enough state-information about the Z's attach request
-internally, then migrate the pages on the unmap_attachment() callback
-from the subsystem Y?
+I have a Technotrend TT S2-3600 on my debian 7 media center.=20
+Debians stock 3.2 kernel would cause panics when talking to the device unle=
+ss=20
+I compile the LinuxTV module.=20
+Alas, debian has a *lot* of kernel upgrades and I'd like to have only my=20
+specific module compiled at boot time if it is not there.
 
-(The exact details for this will need to be thought-of by exporters
-actually trying to do migration of pages, or delayed allocation, or
-such, though)
+I thought maybe manually compile via dkms, but I don't know how to compile=
+=20
+only one specific set of modules. The 3600 is identical to the pctv452, but=
+=20
+depends on dvb-usb modules, possibly needs firmware.=20
+Pointers appreciated.
 
-> Once the buffer has been exported to another user, the exporter has
-> effectively lost control over mediating accesses to that buffer.
->
-> All that it can do with the way the dma-buf API is today is to allocate
-> a _different_ scatter list pointing at the same backing storage which
-> satisfies the segment size and number of segments, etc.
->
-> There's also another issue which you haven't addressed.  What if several
-> attachments result in lowering max_segment_size and max_segment_count
-> such that:
->
->         max_segment_size * max_segment_count < dmabuf->size
->
-> but individually, the attachments allow dmabuf->size to be represented
-> as a scatterlist?
->
-> If an exporter were to take notice of the max_segment_size and
-> max_segment_count, the resulting buffer is basically unrepresentable
-> as a scatterlist.
+Dex
 
-Thanks for pointing that out; I guess we'd have to disallow the
-attachment which would make that happen. I can add this as another
-check in calc_constraints().
 
->
->> > Please consider the possible sequences of use (such as the scenario
->> > above) when creating or augmenting an API.
->> >
->>
->> I tried to think of the scenarios I could think of, but If you still
->> feel this approach doesn't help with your concerns, I'll graciously
->> accept advice to improve it.
->
-> See the new one above :)
->
-Another thanks for making me rack my puny brain on these scenarios! :)
-[though I strongly suspect I might not have done enough!]
-> --
-> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-> according to speedtest.net.
+=2D-=20
+=2D----BEGIN GEEK CODE BLOCK-----
+Version: 3.12
+GCS d--(+)@ s-:+ a C++++ UL++ P+>++ L+++>++++ E-- W++ N o? K-
+w--(---) !O M+ V- PS+ PE Y++ PGP t++(---)@ 5 X+(++) R+(++) tv--(+)@=20
+b++(+++) DI+++ D- G++ e* h>++ r* y?
+=2D-----END GEEK CODE BLOCK------
 
-BR,
-~Sumit.
+--nextPart12468971.MEl3J8pHu3
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iEYEABECAAYFAlS1lPEACgkQm6TdMk9WhQ2TTACgyVLOJfPARe5q4ERp6rCujyZq
+GlgAn2OjTYoWgwnBs7r49AHjnUV8Qog/
+=WDI4
+-----END PGP SIGNATURE-----
+
+--nextPart12468971.MEl3J8pHu3--
