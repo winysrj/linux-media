@@ -1,95 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:38342 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753717AbbA0I0P (ORCPT
+Received: from mail-la0-f47.google.com ([209.85.215.47]:32991 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750939AbbANP7G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 03:26:15 -0500
-Received: by mail-pa0-f46.google.com with SMTP id lj1so17098488pab.5
-        for <linux-media@vger.kernel.org>; Tue, 27 Jan 2015 00:26:15 -0800 (PST)
-From: Sumit Semwal <sumit.semwal@linaro.org>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org
-Cc: linaro-kernel@lists.linaro.org, robdclark@gmail.com,
-	daniel@ffwll.ch, m.szyprowski@samsung.com,
-	stanislawski.tomasz@googlemail.com, robin.murphy@arm.com,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [RFCv3 1/2] device: add dma_params->max_segment_count
-Date: Tue, 27 Jan 2015 13:55:53 +0530
-Message-Id: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+	Wed, 14 Jan 2015 10:59:06 -0500
+Received: by mail-la0-f47.google.com with SMTP id hz20so8871254lab.6
+        for <linux-media@vger.kernel.org>; Wed, 14 Jan 2015 07:59:04 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAPx3zdQK+wM1YHfzWfvzQ9ZgWgQb4WEY+6AW=cSb_YOwAKKr4Q@mail.gmail.com>
+References: <CAPx3zdRnHcQOasSjnYZkuE+Hk-L6PVaPVAzBbCMnGdM3ZysxFw@mail.gmail.com>
+ <CAEt6MX=f-kkemgmAUNsEdZQzH2tRgtPDacbCn4hwH27uY-upDA@mail.gmail.com>
+ <CAPx3zdSLb8gzcGTUcWrktc9icJBCCJ0FbPecxeUJRot3ztHwSA@mail.gmail.com>
+ <CAEt6MX=rmPAb798TysHDWHAQxpVxzKiaDNv4P9ZtUNPz2YEwpA@mail.gmail.com> <CAPx3zdQK+wM1YHfzWfvzQ9ZgWgQb4WEY+6AW=cSb_YOwAKKr4Q@mail.gmail.com>
+From: =?UTF-8?Q?Roberto_Alc=C3=A2ntara?= <roberto@eletronica.org>
+Date: Wed, 14 Jan 2015 12:58:43 -0300
+Message-ID: <CAEt6MXkDPcZ47gnH9FFmYGkw1-ZFt8JAN1qKsBGBKXLTdQauzw@mail.gmail.com>
+Subject: Re: Driver/module in kernel fault. Anyone expert to help me? Siano ID 187f:0600
+To: Francesco Other <francesco.other@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rob Clark <robdclark@gmail.com>
+Francesco,
 
-For devices which have constraints about maximum number of segments in
-an sglist.  For example, a device which could only deal with contiguous
-buffers would set max_segment_count to 1.
+Seems very strange not work once you have lock (1f) and ber 0. not a
+real problem signal report.
 
-The initial motivation is for devices sharing buffers via dma-buf,
-to allow the buffer exporter to know the constraints of other
-devices which have attached to the buffer.  The dma_mask and fields
-in 'struct device_dma_parameters' tell the exporter everything else
-that is needed, except whether the importer has constraints about
-maximum number of segments.
+After tzap -r open another console and:
 
-Signed-off-by: Rob Clark <robdclark@gmail.com>
- [sumits: Minor updates wrt comments]
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
----
+dd if=/dev/dvb/adapter0/dvr0 of=test.ts
 
-v3: include Robin Murphy's fix[1] for handling '0' as a value for
-     max_segment_count
-v2: minor updates wrt comments on the first version
+Wait 10 seconds and stop it. Please check file size (try to open on
+vlc too if big enough...).
 
-[1]: http://article.gmane.org/gmane.linux.kernel.iommu/8175/
+Cheers,
+ - Roberto
 
- include/linux/device.h      |  1 +
- include/linux/dma-mapping.h | 19 +++++++++++++++++++
- 2 files changed, 20 insertions(+)
+On Tue, Jan 13, 2015 at 6:56 PM, Francesco Other
+<francesco.other@gmail.com> wrote:
+>
+>
+> So, this is the output for tzap with the NOT-working-device:
+>
+> $ tzap -r -c ~/.tzap/channels.conf Italia1
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> reading channels from file '/home/ionic/.tzap/channels.conf'
+> Version: 5.10   FE_CAN { DVB-T }
+> tuning to 698000000 Hz
+> video pid 0x0654, audio pid 0x0655
+> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal 0000 | snr 010e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal 0000 | snr 010e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
 
-diff --git a/include/linux/device.h b/include/linux/device.h
-index fb506738f7b7..a32f9b67315c 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -647,6 +647,7 @@ struct device_dma_parameters {
- 	 * sg limitations.
- 	 */
- 	unsigned int max_segment_size;
-+	unsigned int max_segment_count;    /* INT_MAX for unlimited */
- 	unsigned long segment_boundary_mask;
- };
- 
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index c3007cb4bfa6..d3351a36d5ec 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -154,6 +154,25 @@ static inline unsigned int dma_set_max_seg_size(struct device *dev,
- 		return -EIO;
- }
- 
-+#define DMA_SEGMENTS_MAX_SEG_COUNT ((unsigned int) INT_MAX)
-+
-+static inline unsigned int dma_get_max_seg_count(struct device *dev)
-+{
-+	if (dev->dma_parms && dev->dma_parms->max_segment_count)
-+		return dev->dma_parms->max_segment_count;
-+	return DMA_SEGMENTS_MAX_SEG_COUNT;
-+}
-+
-+static inline int dma_set_max_seg_count(struct device *dev,
-+						unsigned int count)
-+{
-+	if (dev->dma_parms) {
-+		dev->dma_parms->max_segment_count = count;
-+		return 0;
-+	}
-+	return -EIO;
-+}
-+
- static inline unsigned long dma_get_seg_boundary(struct device *dev)
- {
- 	return dev->dma_parms ?
--- 
-1.9.1
 
+
+
+ - Roberto
