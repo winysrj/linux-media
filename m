@@ -1,67 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58778 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751758AbbATQBA (ORCPT
+Received: from fortimail.online.lv ([81.198.164.220]:57182 "EHLO
+	fortimail.online.lv" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750920AbbANGQG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 11:01:00 -0500
-Date: Tue, 20 Jan 2015 17:00:57 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v10 07/19] mfd: max77693: Adjust FLASH_EN_SHIFT and
- TORCH_EN_SHIFT macros
-Message-ID: <20150120160056.GA32144@amd>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-8-git-send-email-j.anaszewski@samsung.com>
- <20150120111719.GF13701@x1>
- <54BE51B2.8040209@samsung.com>
- <54BE6228.5070304@samsung.com>
- <20150120154029.GC13701@x1>
+	Wed, 14 Jan 2015 01:16:06 -0500
+Received: from mailo-proxy1.online.lv (smtp.online.lv [81.198.164.193])
+	by fortimail.online.lv  with ESMTP id t0E6G3pL013093-t0E6G3pM013093
+	for <linux-media@vger.kernel.org>; Wed, 14 Jan 2015 08:16:03 +0200
+Message-ID: <54B609A2.2040503@apollo.lv>
+Date: Wed, 14 Jan 2015 08:16:02 +0200
+From: Raimonds Cicans <ray@apollo.lv>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150120154029.GC13701@x1>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>, gtmkramer@xs4all.nl
+Subject: Re: [PATCH] cx23885/vb2 regression: please test this patch
+References: <54B52548.7010109@xs4all.nl> <54B55C23.1070409@apollo.lv>
+In-Reply-To: <54B55C23.1070409@apollo.lv>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 2015-01-20 15:40:29, Lee Jones wrote:
-> On Tue, 20 Jan 2015, Jacek Anaszewski wrote:
-> 
-> > On 01/20/2015 02:01 PM, Jacek Anaszewski wrote:
-> > >On 01/20/2015 12:17 PM, Lee Jones wrote:
-> > >>On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
-> > >>
-> > >>>Modify FLASH_EN_SHIFT and TORCH_EN_SHIFT macros to work properly
-> > >>>when passed enum max77693_fled values (0 for FLED1 and 1 for FLED2)
-> > >>>from leds-max77693 driver.
-> > >>
-> > >>Off-by-one ay?  Wasn't the original code tested?
-> > >
-> > >The driver using these macros is a part of LED / flash API integration
-> > >patch series, which still undergoes modifications and it hasn't
-> > >reached its final state yet, as there are many things to discuss.
-> > 
-> > To be more precise: the original code had been tested and was working
-> > properly with the header that is in the mainline. Nonetheless, because
-> > of the modifications in the driver that was requested during code
-> > review, it turned out that it would be more convenient to redefine the
-> > macros.
-> > 
-> > I'd opt for just agreeing about the mfd related patches and merge
-> > them no sooner than the leds-max77693 driver is merged.
-> 
-> The only way we can guarantee this is to have them go in during
-> different merge-windows, unless of course they go in via the same tree.
+On 13.01.2015 19:55, Raimonds Cicans wrote:
+> On 13.01.2015 16:01, Hans Verkuil wrote:
+>> Hi Raimonds, Jurgen,
+>>
+>> Can you both test this patch? It should (I hope) solve the problems you
+>> both had with the cx23885 driver.
+>>
+>> This patch fixes a race condition in the vb2_thread that occurs when
+>> the thread is stopped. The crucial fix is calling kthread_stop much
+>> earlier in vb2_thread_stop(). But I also made the vb2_thread more
+>> robust.
+>
+> With this patch I am unable to get any error except first
+> (AMD-Vi: Event logged [IO_PAGE_FAULT...).
+> But I am not convinced, because before patch I get
+> first error much often and earlier than almost any other error,
+> so it may be just "bad luck" and other errors do not
+> appear because first error appear earlier.
+>
+I noticed that if I "initialize" card with commands:
+/usr/bin/dvb-fe-tool -a 4 -d DVBS
+/usr/bin/dvb-fe-tool -a 5 -d DVBS
 
-Umm. Maintainers should be able to coordinate that. Delaying patch for
-one major release seems rather cruel. Perhaps one maintainer should
-ack the patch and the second one should merge it...
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+and then run load which starts on first front-end and
+only after some time on second, then I receive first
+error much later or do not receive at all (for example
+I was able to run VDR whole night without problems)
+
+
+Raimonds Cicans
+
