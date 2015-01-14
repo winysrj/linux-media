@@ -1,53 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f182.google.com ([209.85.216.182]:56457 "EHLO
-	mail-qc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751244AbbAZOll (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:60109 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750921AbbANLnv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 09:41:41 -0500
-Received: by mail-qc0-f182.google.com with SMTP id l6so7127195qcy.13
-        for <linux-media@vger.kernel.org>; Mon, 26 Jan 2015 06:41:41 -0800 (PST)
+	Wed, 14 Jan 2015 06:43:51 -0500
+Received: by mail-wi0-f180.google.com with SMTP id n3so10236888wiv.1
+        for <linux-media@vger.kernel.org>; Wed, 14 Jan 2015 03:43:49 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20150126123129.2076b9f8@recife.lan>
-References: <cover.1422273497.git.mchehab@osg.samsung.com>
-	<cb0517f150942a2d3657c1f2e55754061bfae2c4.1422273497.git.mchehab@osg.samsung.com>
-	<54C63D16.3070607@xs4all.nl>
-	<20150126113416.311fb376@recife.lan>
-	<CAGoCfixoSxspEzpCB95BVPXBrZr2gpDVWHbaikESsuB1V=WM1g@mail.gmail.com>
-	<20150126123129.2076b9f8@recife.lan>
-Date: Mon, 26 Jan 2015 09:41:41 -0500
-Message-ID: <CAGoCfiwi0nj_9sYNzEFOp5BvedFe+HphJ2bVtx_bnBw3d-Bsyw@mail.gmail.com>
-Subject: Re: [PATCH 1/3] media: Fix ALSA and DVB representation at media
- controller API
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Ricardo Ribalda <ricardo.ribalda@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-api@vger.kernel.org
+Date: Wed, 14 Jan 2015 12:43:49 +0100
+Message-ID: <CAPx3zdRrVspDeHyaS1U1O1MAbJngB7WxDVPgW8QqgbZDrmJgcA@mail.gmail.com>
+Subject: HELP: tzap, signal 1f, FE_HAS_LOCK, no demux on Ubuntu 14.04 LTS,
+ Device Siano ID 187f:0600, DVB-T
+From: Francesco Other <francesco.other@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> It is actually trivial to get the device nodes once you have the
-> major/minor. The media-ctl library does that for you. See:
+Hi to all,
 
-No objection then.
+I have this output from tzap
 
-On a related note, you would be very well served to consider testing
-your dvb changes with a device that has more than one DVB tuner (such
-as the hvr-2200/2250).  That will help you shake out any edge cases
-related to ensuring that the different DVB nodes appear in different
-groups.
+Version: 5.10   FE_CAN { DVB-T }
+tuning to 698000000 Hz
+video pid 0x0654, audio pid 0x0655
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+...
+...
 
-Devin
+and I can't receive the channel (no video, no audio, no service from multiplex).
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Maybe a demux problem?
+
+Ubuntu 14.04 LTS, Device Siano ID 187f:0600, DVB-T
+
+Thanks for any help
+
+Francesco
