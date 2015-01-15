@@ -1,54 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54997 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756791AbbAFVJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv3 16/20] dvbdev: enable DVB-specific links
-Date: Tue,  6 Jan 2015 19:08:47 -0200
-Message-Id: <59ae9d1db280c68e46468ff3057d5e120a0f6e90.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:35225 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751175AbbAODjH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Jan 2015 22:39:07 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B27332A0099
+	for <linux-media@vger.kernel.org>; Thu, 15 Jan 2015 04:38:46 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150115033846.B27332A0099@tschai.lan>
+Date: Thu, 15 Jan 2015 04:38:46 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For now, let's keep the DVB-specific media controller links enabled
-by default. On most devices, this is fixed anyway, so no big issue.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Ok, the demux actually have dynamic links based on the filters, but
-we don't represent them yet, as the media controller currently lacks
-the capability of dynamically create/delete entities.
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+date:		Thu Jan 15 04:00:14 CET 2015
+git branch:	test
+git hash:	99f3cd52aee21091ce62442285a68873e3be833f
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 30acf97f4e4b..1b99cc17836c 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -414,13 +414,13 @@ void dvb_create_media_graph(struct media_device *mdev)
- 		media_entity_create_link(tuner, 0, fe, 0, 0);
- 
- 	if (fe && demux)
--		media_entity_create_link(fe, 1, demux, 0, 0);
-+		media_entity_create_link(fe, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
- 
- 	if (demux && dvr)
--		media_entity_create_link(demux, 1, dvr, 0, 0);
-+		media_entity_create_link(demux, 1, dvr, 0, MEDIA_LNK_FL_ENABLED);
- 
- 	if (demux && ca)
--		media_entity_create_link(demux, 1, ca, 0, 0);
-+		media_entity_create_link(demux, 1, ca, 0, MEDIA_LNK_FL_ENABLED);
- #endif
- }
- EXPORT_SYMBOL_GPL(dvb_create_media_graph);
--- 
-2.1.0
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17-x86_64: ERRORS
+linux-3.18-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
