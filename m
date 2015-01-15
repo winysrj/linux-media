@@ -1,48 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60830 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755691AbbAWQvk (ORCPT
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:34045 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752275AbbAOPxd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 11:51:40 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, Markus Pargmann <mpa@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 11/21] [media] coda: fix width validity check when starting to decode
-Date: Fri, 23 Jan 2015 17:51:25 +0100
-Message-Id: <1422031895-7740-12-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
-References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 15 Jan 2015 10:53:33 -0500
+Date: Thu, 15 Jan 2015 15:53:14 +0000
+From: Mark Brown <broonie@kernel.org>
+To: Rob Herring <robherring2@gmail.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-leds@vger.kernel.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Liam Girdwood <lgirdwood@gmail.com>
+Message-ID: <20150115155314.GZ3043@sirena.org.uk>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
+ <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
+ <54B38682.5080605@samsung.com>
+ <CAL_Jsq+UaA41DvawdOMmOib=Fi0hC-nBdKV-+P4DFo+MoOy-bQ@mail.gmail.com>
+ <54B3F1EF.4060506@samsung.com>
+ <CAL_JsqKpJtUG0G6g1GOuSVpc31oe-dp3qdrKJUE0upG-xRDFhA@mail.gmail.com>
+ <54B4DA81.7060900@samsung.com>
+ <CAL_JsqLYxB5hzLAWXpU=uncM5DEMZU78mP673H9oSSNB-cgcYQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="oRWDw5wXQ3uCJU7V"
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqLYxB5hzLAWXpU=uncM5DEMZU78mP673H9oSSNB-cgcYQ@mail.gmail.com>
+Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Pargmann <mpa@pengutronix.de>
 
-Compare rounded up width to fit into bytesperline.
+--oRWDw5wXQ3uCJU7V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+On Thu, Jan 15, 2015 at 08:24:26AM -0600, Rob Herring wrote:
+> On Tue, Jan 13, 2015 at 2:42 AM, Jacek Anaszewski
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index d81635d..6ecfd29 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1431,9 +1431,10 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
- 		height = val & CODA7_PICHEIGHT_MASK;
- 	}
- 
--	if (width > q_data_dst->width || height > q_data_dst->height) {
-+	if (width > q_data_dst->bytesperline || height > q_data_dst->height) {
- 		v4l2_err(&dev->v4l2_dev, "stream is %dx%d, not %dx%d\n",
--			 width, height, q_data_dst->width, q_data_dst->height);
-+			 width, height, q_data_dst->bytesperline,
-+			 q_data_dst->height);
- 		return -EINVAL;
- 	}
- 
--- 
-2.1.4
+> > I am aware that it may be tempting to treat LED devices as common
+> > regulators, but they have their specific features which gave a
+> > reason for introducing LED class for them. Besides, there is already
+> > drivers/leds/leds-regulator.c driver for LED devices which support only
+> > turning on/off and setting brightness level.
+> >
+> > In your proposition a separate regulator provider binding would have
+> > to be created for each current output and a separate binding for
+> > each discrete LED connected to the LED device. It would create
+> > unnecessary noise in a dts file.
+> >
+> > Moreover, using regulator binding implies that we want to treat it
+> > as a sheer power supply for our device (which would be a discrete LED
+> > element in this case), whereas LED devices provide more features like
+> > blinking pattern and for flash LED devices - flash timeout, external
+> > strobe and flash faults.
 
+> Okay, fair enough. Please include some of this explanation in the
+> binding description.
+
+Right, the other thing here is that these chips are not normally
+designed with the goal that the various components be used separately -
+I've seen devices where the startup and shutdown procedures involve
+interleaved actions to the boost regulator and current sink for example.
+Trying to insert an abstraction layer typically just makes life more
+complex.
+
+--oRWDw5wXQ3uCJU7V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJUt+JpAAoJECTWi3JdVIfQJlAH/14LZlsbUxQleUWSqvUm0Utn
+Beo8Jw4dP9fhDxexIZQsWZx9zi1XTlHhlOWLYBi8G4dDm8XVsLE0o8hf3bX+oFmR
+1GD/3DwNkk7B15ENbnS8dCZec0e1E4v0XOfNOY9ppEc9l7DdvbTgdL1oXUjJOSx9
+s246WxUHhpTuVGYk5ES55YxuBaZeWVrTn8D9S4894REQISEC1c1ILjbyvdS9HiAp
+CArEVXYBFhvGWg7vcom+bg30Ro8m/2THd5gDrxtQjU4L4FVavp/EjfdKVJFvSEj6
+/2dwK7AGJLFywtXsioiwRQsG3B4facZ7DJsZclFOAoGvHSf9zPfv/5I4Sty3V+4=
+=QiRx
+-----END PGP SIGNATURE-----
+
+--oRWDw5wXQ3uCJU7V--
