@@ -1,84 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:42221 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753217AbbAFKFD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 05:05:03 -0500
-Date: Tue, 6 Jan 2015 11:03:57 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>,
-	Lee Jones <lee.jones@linaro.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 12/13] ARM: dts: sun6i: Add sun6i-a31s.dtsi
-Message-ID: <20150106100357.GH7853@lukather>
-References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
- <1418836704-15689-13-git-send-email-hdegoede@redhat.com>
- <20141219183450.GZ4820@lukather>
- <54954E77.4070302@redhat.com>
- <20141221223941.GC4820@lukather>
- <549820A4.9090900@redhat.com>
- <20150105090825.GA31311@lukather>
- <54AA59D9.7030909@redhat.com>
+Received: from eusmtp01.atmel.com ([212.144.249.243]:9815 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751423AbbAOPQ1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Jan 2015 10:16:27 -0500
+Message-ID: <54B7D9C9.5090001@atmel.com>
+Date: Thu, 15 Jan 2015 16:16:25 +0100
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Q6STzHxy03qt/hK9"
-Content-Disposition: inline
-In-Reply-To: <54AA59D9.7030909@redhat.com>
+To: Josh Wu <josh.wu@atmel.com>, <devicetree@vger.kernel.org>
+CC: <grant.likely@linaro.org>, <galak@codeaurora.org>,
+	<rob@landley.net>, <robh+dt@kernel.org>,
+	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
+	<linux-arm-kernel@lists.infradead.org>, <voice.shen@atmel.com>,
+	<laurent.pinchart@ideasonboard.com>,
+	<alexandre.belloni@free-electrons.com>, <plagnioj@jcrosoft.com>,
+	<boris.brezillon@free-electrons.com>,
+	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 0/8] ARM: at91: dts: sama5d3: add dt support for atmel
+ isi and ov2640 sensor
+References: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Le 04/01/2015 10:02, Josh Wu a écrit :
+> This patch series add ISI and ov2640 support on dts files.
+> 
+> As the ov2640 driver dt is still in review. The patch is in: https://patchwork.linuxtv.org/patch/27554/
+> So I want to send this dt patch early for a review.
+> 
+> v1 -> v2:
+>   1. add one more patch to change the pin name of ISI_MCK
+>   2. rewrite the commit [4/8] ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}.
+>   3. move the common chip parts of ISI node to sama5d3.dtsi.
+> 
+> Bo Shen (3):
+>   ARM: at91: dts: sama5d3: split isi pinctrl
+>   ARM: at91: dts: sama5d3: add missing pins of isi
+>   ARM: at91: dts: sama5d3: move the isi mck pin to mb
+> 
+> Josh Wu (5):
+>   ARM: at91: dts: sama5d3: add isi clock
+>   ARM: at91: dts: sama5d3: change name of pinctrl_isi_{power,reset}
+>   ARM: at91: dts: sama5d3: change name of pinctrl of ISI_MCK
+>   ARM: at91: dts: sama5d3: add ov2640 camera sensor support
+>   ARM: at91: sama5: enable atmel-isi and ov2640 in defconfig
 
---Q6STzHxy03qt/hK9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The whole series:
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-Hi,
+stacked on top of at91-3.20-dt.
+The defconfig update on his side on at91-3.20-defconfig
 
-On Mon, Jan 05, 2015 at 10:31:05AM +0100, Hans de Goede wrote:
-> Thanks, while looking at your dt-for-3.20 branch I noticed that you've
-> merged v2 of "ARM: dts: sun6i: Add ir node", I did a v3 adding an ir:
-> label to the node, which I noticed was missing because you asked me to
-> move the a31s dt stuff to moving label references, can you fix this up, or
-> do you want me to do a follow up patch ?
->=20
-> Note that having this fixed is a pre-req for the csq-cs908 dts patch.
+Bye,
 
-Ah, right. I edited your previous patch to add the label.
+>  arch/arm/boot/dts/sama5d3.dtsi    | 24 ++++++++++++++++++-----
+>  arch/arm/boot/dts/sama5d3xmb.dtsi | 40 +++++++++++++++++++++++++++++++++++----
+>  arch/arm/configs/sama5_defconfig  |  6 ++++++
+>  3 files changed, 61 insertions(+), 9 deletions(-)
+> 
 
-Thanks!
-Maxime
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---Q6STzHxy03qt/hK9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUq7MNAAoJEBx+YmzsjxAgQNYP/3Kb1Yt87efeGhLMutwnr6xt
-thfGotDMKxKnnv1eLMzFJQRJFH7cAYTJLZsbt2iCOwpgBW1aktUqDvHohBYoUNY4
-9Fxk5N5Uo2Ysexx/FyMEW7dWvFEja2qWfwwteOR0I84NvUUp+kdrp7WNYQnyA9/3
-qs0nwofkRvfyvpCaCPx9jElYP2BOb8KtIVCBTDELvBtdMF4DZs3EE9W+3Q6zwNZj
-VMVYF72mj6zXnBz7Fc0lzRqKbC63/93ctMns7DeLcmfQfpswwATF/Xo5mPvUGkP5
-Yn8CJm3AEPIKFeeO8/xcFeKTVPtQDM4Q2MHCTU0vWnWjs4gpMmFq8f0aithL4pcQ
-ktSD0vlcw8SZCJt2Ozx0ij1vjpsh7N2v8Pxbz07HBxInKLeHmJfPWZMZAVAyFJco
-4H6qwlowApgkZoY/iHaJcE18f4u8mESqs2pSskuyWSNGPjZFRcKa62Xnhoef3ONv
-Ehafz6rMLfs5FwXMkKTWf6iAPMWQdUnx/pl+gcpB2RTa8XpwcOuC1gACcY3YBbQP
-h5WCbGXzYhlXTKD0xvzcDL4TV1XUvAb3dAptbqdocuXtZjjCcKCSVpImrVY7jvd5
-kpGWQbN/OqfJJvHk76bpSGNPZJkgHZwlS2KS1dwJOTL/OlSGu+nkgS7q5EgJMN6c
-lHm6X7rDRxuC+gD+kWt4
-=Yz3A
------END PGP SIGNATURE-----
-
---Q6STzHxy03qt/hK9--
+-- 
+Nicolas Ferre
