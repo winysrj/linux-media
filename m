@@ -1,67 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:34379 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119AbbAULaB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2015 06:30:01 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:60066 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751737AbbAOK4L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Jan 2015 05:56:11 -0500
+Message-ID: <54B79CC6.1050705@redhat.com>
+Date: Thu, 15 Jan 2015 11:56:06 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHG8p1D4HAbM-JVDa_P81EA1TeSYZ_Wi5=uYH5VvnmLiR+dHeA@mail.gmail.com>
-References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
- <1419072462-3168-6-git-send-email-prabhakar.csengg@gmail.com> <CAHG8p1D4HAbM-JVDa_P81EA1TeSYZ_Wi5=uYH5VvnmLiR+dHeA@mail.gmail.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Wed, 21 Jan 2015 11:29:29 +0000
-Message-ID: <CA+V-a8sAFPabRRUUwfZUG4zW-YYKKj5SfoLJ0ptVn=x4qNrGxw@mail.gmail.com>
-Subject: Re: [PATCH 05/15] media: blackfin: bfin_capture: improve
- queue_setup() callback
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] gspca: underflow in vidioc_s_parm()
+References: <20150107110421.GB14864@mwanda>
+In-Reply-To: <20150107110421.GB14864@mwanda>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 21, 2015 at 10:01 AM, Scott Jiang
-<scott.jiang.linux@gmail.com> wrote:
-> 2014-12-20 18:47 GMT+08:00 Lad, Prabhakar <prabhakar.csengg@gmail.com>:
->> this patch improves the queue_setup() callback.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
->>  drivers/media/platform/blackfin/bfin_capture.c | 10 ++++++----
->>  1 file changed, 6 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
->> index 8bd94a1..76d42bb 100644
->> --- a/drivers/media/platform/blackfin/bfin_capture.c
->> +++ b/drivers/media/platform/blackfin/bfin_capture.c
->> @@ -44,7 +44,6 @@
->>  #include <media/blackfin/ppi.h>
->>
->>  #define CAPTURE_DRV_NAME        "bfin_capture"
->> -#define BCAP_MIN_NUM_BUF        2
->>
->>  struct bcap_format {
->>         char *desc;
->> @@ -292,11 +291,14 @@ static int bcap_queue_setup(struct vb2_queue *vq,
->>  {
->>         struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
->>
->> -       if (*nbuffers < BCAP_MIN_NUM_BUF)
->> -               *nbuffers = BCAP_MIN_NUM_BUF;
->> +       if (fmt && fmt->fmt.pix.sizeimage < bcap_dev->fmt.sizeimage)
->> +               return -EINVAL;
->> +
->> +       if (vq->num_buffers + *nbuffers < 3)
->> +               *nbuffers = 3 - vq->num_buffers;
->
-> It seems it changes the minimum buffers from 2 to 3?
->
-will replace it with,
+Hi,
 
-if (vq->num_buffers + *nbuffers < 2)
-       *nbuffers = 2;
+On 07-01-15 12:04, Dan Carpenter wrote:
+> "n" is a user controlled integer.  The code here doesn't handle the case
+> where "n" is negative and this causes a static checker warning.
+>
+> 	drivers/media/usb/gspca/gspca.c:1571 vidioc_s_parm()
+> 	warn: no lower bound on 'n'
+>
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+> I haven't followed through to see if this is a real problem.
 
-Thanks,
---Prabhakar Lad
+Thanks for the report, it is a real problem, but since
+parm->parm.capture.readbuffers is unsigned I've chosen to fix it
+by making n unsigned too instead.
+
+Regards,
+
+Hans
+
+>
+> diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+> index 43d6505..27f7da1 100644
+> --- a/drivers/media/usb/gspca/gspca.c
+> +++ b/drivers/media/usb/gspca/gspca.c
+> @@ -1565,6 +1565,8 @@ static int vidioc_s_parm(struct file *filp, void *priv,
+>   	int n;
+>
+>   	n = parm->parm.capture.readbuffers;
+> +	if (n < 0)
+> +		return -EINVAL;
+>   	if (n == 0 || n >= GSPCA_MAX_FRAMES)
+>   		parm->parm.capture.readbuffers = gspca_dev->nbufread;
+>   	else
+>
