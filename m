@@ -1,134 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-231.synserver.de ([212.40.185.231]:1047 "EHLO
-	smtp-out-227.synserver.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751709AbbAMMBc (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:15860 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752743AbbAORiB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 07:01:32 -0500
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 11/16] [media] adv7180: Add support for the adv7280/adv7281/adv7282
-Date: Tue, 13 Jan 2015 13:01:16 +0100
-Message-Id: <1421150481-30230-12-git-send-email-lars@metafoo.de>
-In-Reply-To: <1421150481-30230-1-git-send-email-lars@metafoo.de>
-References: <1421150481-30230-1-git-send-email-lars@metafoo.de>
+	Thu, 15 Jan 2015 12:38:01 -0500
+Message-id: <54B7FAF2.8080207@samsung.com>
+Date: Thu, 15 Jan 2015 18:37:54 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: "Baluta, Teodora" <teodora.baluta@intel.com>,
+	Jonathan Cameron <jic23@kernel.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	linux-iio <linux-iio@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 0/3] Introduce IIO interface for fingerprint sensors
+References: <1417698017-13835-1-git-send-email-teodora.baluta@intel.com>
+ <5481153B.4070609@kernel.org> <1418047828.18463.10.camel@bebop>
+ <54930604.1020607@metafoo.de> <549D42BD.1050901@kernel.org>
+ <1421255642.31900.4.camel@bebop>
+In-reply-to: <1421255642.31900.4.camel@bebop>
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for the adv7280/adv7281/adv7282 devices to the
-adv7180 driver. They are very similar to the adv7182, the main difference
-from the drivers point of view are some different tuning constants for
-improved video performance.
+On 14/01/15 18:14, Baluta, Teodora wrote:
+> On Vi, 2014-12-26 at 11:13 +0000, Jonathan Cameron wrote:
+>> On 18/12/14 16:51, Lars-Peter Clausen wrote:
+>>> Adding V4L folks to Cc for more input.
+>>
+>> Thanks Lars - we definitely would need the v4l guys to agree to a driver like
+>> this going in IIO. (not that I'm convinced it should!)
+>>
+>>> On 12/08/2014 03:10 PM, Baluta, Teodora wrote:
+>>>> Hello,
+>>>>
+>>>> On Vi, 2014-12-05 at 02:15 +0000, Jonathan Cameron wrote:
+>>>>> On 04/12/14 13:00, Teodora Baluta wrote:
+>>>>>> This patchset adds support for fingerprint sensors through the IIO interface.
+>>>>>> This way userspace applications collect information in a uniform way. All
+>>>>>> processing would be done in the upper layers as suggested in [0].
+>>>>>>
+>>>>>> In order to test out this proposal, a minimal implementation for UPEK's
+>>>>>> TouchChip Fingerprint Sensor via USB is also available. Although there is an
+>>>>>> existing implementation in userspace for USB fingerprint devices, including this
+>>>>>> particular device, the driver represents a proof of concept of how fingerprint
+>>>>>> sensors could be integrated in the IIO framework regardless of the used bus. For
+>>>>>> lower power requirements, the SPI bus is preferred and a kernel driver
+>>>>>> implementation makes more sense.
+>>>>>
+>>>>> So why not v4l?  These are effectively image sensors..
+>>>>
+>>>> Well, here's why I don't think v4l would be the best option:
+>>>>
+>>>> - an image scanner could be implemented in the v4l subsystem, but it
+>>>> seems far more complicated for a simple fingerprint scanner - it usually
+>>>> has drivers for webcams, TVs or video streaming devices. The v4l
+>>>> subsystem (with all its support for colorspace, decoders, image
+>>>> compression, frame control) seems a bit of an overkill for a very
+>>>> straightforward fingerprint imaging sensor.
+>
+>> Whilst those are there, I would doubt the irrelevant bits would put much
+>> burden on a fingerprint scanning driver.  Been a while since I did
+>> anything in that area though so I could be wrong!
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
----
- drivers/media/i2c/adv7180.c | 56 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 54 insertions(+), 2 deletions(-)
+IMO V4L is much better fit for this kind of devices than IIO. You can use
+just a subset of the API, it shouldn't take much effort to write a simple
+v4l2 capture driver, supporting fixed (probably vendor/chip specific) image
+format.  I'm not sure if it's better to use the v4l2 controls [1], define
+a new v4l2 controls class for the fingerprint scanner processing features,
+rather than trying to pass raw data to user space and interpret it then
+in some library.  I know there has been resistance to allowing passing
+unknown binary blobs to user space, due to possible abuses.
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 4e518d5..ea6695c 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -158,6 +158,7 @@
- struct adv7180_state;
- 
- #define ADV7180_FLAG_RESET_POWERED	BIT(0)
-+#define ADV7180_FLAG_V2			BIT(1)
- 
- struct adv7180_chip_info {
- 	unsigned int flags;
-@@ -638,9 +639,18 @@ static int adv7180_select_input(struct adv7180_state *state, unsigned int input)
- 
- static int adv7182_init(struct adv7180_state *state)
- {
-+	if (state->chip_info->flags & ADV7180_FLAG_V2) {
-+		/* ADI recommended writes for improved video quality */
-+		adv7180_write(state, 0x0080, 0x51);
-+		adv7180_write(state, 0x0081, 0x51);
-+		adv7180_write(state, 0x0082, 0x68);
-+		adv7180_write(state, 0x0004, 0x17);
-+	} else {
-+		adv7180_write(state, 0x0004, 0x07);
-+	}
-+
- 	/* ADI required writes */
- 	adv7180_write(state, 0x0003, 0x0c);
--	adv7180_write(state, 0x0004, 0x07);
- 	adv7180_write(state, 0x0013, 0x00);
- 	adv7180_write(state, 0x001d, 0x40);
- 
-@@ -697,6 +707,13 @@ static unsigned int adv7182_lbias_settings[][3] = {
- 	[ADV7182_INPUT_TYPE_YPBPR] = { 0x0B, 0x4E, 0xC0 },
- };
- 
-+static unsigned int adv7280_lbias_settings[][3] = {
-+	[ADV7182_INPUT_TYPE_CVBS] = { 0xCD, 0x4E, 0x80 },
-+	[ADV7182_INPUT_TYPE_DIFF_CVBS] = { 0xC0, 0x4E, 0x80 },
-+	[ADV7182_INPUT_TYPE_SVIDEO] = { 0x0B, 0xCE, 0x80 },
-+	[ADV7182_INPUT_TYPE_YPBPR] = { 0x0B, 0x4E, 0xC0 },
-+};
-+
- static int adv7182_select_input(struct adv7180_state *state, unsigned int input)
- {
- 	enum adv7182_input_type input_type;
-@@ -725,7 +742,10 @@ static int adv7182_select_input(struct adv7180_state *state, unsigned int input)
- 		break;
- 	}
- 
--	lbias = adv7182_lbias_settings[input_type];
-+	if (state->chip_info->flags & ADV7180_FLAG_V2)
-+		lbias = adv7280_lbias_settings[input_type];
-+	else
-+		lbias = adv7182_lbias_settings[input_type];
- 
- 	for (i = 0; i < ARRAY_SIZE(adv7182_lbias_settings[0]); i++)
- 		adv7180_write(state, 0x0052 + i, lbias[i]);
-@@ -784,6 +804,35 @@ static const struct adv7180_chip_info adv7182_info = {
- 	.select_input = adv7182_select_input,
- };
- 
-+static const struct adv7180_chip_info adv7280_info = {
-+	.flags = ADV7180_FLAG_V2,
-+	.valid_input_mask = BIT(ADV7182_INPUT_CVBS_AIN1) |
-+		BIT(ADV7182_INPUT_CVBS_AIN2) |
-+		BIT(ADV7182_INPUT_CVBS_AIN3) |
-+		BIT(ADV7182_INPUT_CVBS_AIN4) |
-+		BIT(ADV7182_INPUT_SVIDEO_AIN1_AIN2) |
-+		BIT(ADV7182_INPUT_SVIDEO_AIN3_AIN4) |
-+		BIT(ADV7182_INPUT_YPRPB_AIN1_AIN2_AIN3),
-+	.init = adv7182_init,
-+	.set_std = adv7182_set_std,
-+	.select_input = adv7182_select_input,
-+};
-+
-+static const struct adv7180_chip_info adv7281_info = {
-+	.flags = ADV7180_FLAG_V2,
-+	.valid_input_mask = BIT(ADV7182_INPUT_CVBS_AIN1) |
-+		BIT(ADV7182_INPUT_CVBS_AIN2) |
-+		BIT(ADV7182_INPUT_CVBS_AIN7) |
-+		BIT(ADV7182_INPUT_CVBS_AIN8) |
-+		BIT(ADV7182_INPUT_SVIDEO_AIN1_AIN2) |
-+		BIT(ADV7182_INPUT_SVIDEO_AIN7_AIN8) |
-+		BIT(ADV7182_INPUT_DIFF_CVBS_AIN1_AIN2) |
-+		BIT(ADV7182_INPUT_DIFF_CVBS_AIN7_AIN8),
-+	.init = adv7182_init,
-+	.set_std = adv7182_set_std,
-+	.select_input = adv7182_select_input,
-+};
-+
- static int init_device(struct adv7180_state *state)
- {
- 	int ret;
-@@ -930,6 +979,9 @@ static int adv7180_remove(struct i2c_client *client)
- static const struct i2c_device_id adv7180_id[] = {
- 	{ "adv7180", (kernel_ulong_t)&adv7180_info },
- 	{ "adv7182", (kernel_ulong_t)&adv7182_info },
-+	{ "adv7280", (kernel_ulong_t)&adv7280_info },
-+	{ "adv7281", (kernel_ulong_t)&adv7281_info },
-+	{ "adv7282", (kernel_ulong_t)&adv7281_info },
- 	{},
- };
- MODULE_DEVICE_TABLE(i2c, adv7180_id);
--- 
-1.8.0
+[1] Documentation/video4linux/v4l2-controls.txt
+
+>>>> - a fingerprint device could also send out a processed information, not
+>>>> just the image of a fingerprint. This means that the processing is done
+>>>> in hardware - the UPEK TouchStrip chipset in libfprint has this behavior
+>>>> (see [0]). So, the IIO framework would support a uniform way of handling
+>>>> fingerprint devices that either do processing in software or in
+>>>> hardware.
+
+You can use the v4l2 controls API for that, which also supports events.
+The controls could be made read only.
+It would be interesting to list what kind of features these could be.
+
+>> This is more interesting, but does that map well to IIO style
+>> channels anyway?  If not we are going to end up with a whole new
+>> interface which ever subsystem is used for the image side of things.
+>>>>
+>>>> The way I see it now, for processed fingerprint information, an IIO
+>>>> device could have an IIO_FINGERPRINT channel with a modifier and only
+>>>> the sensitivity threshold attribute set. We would also need two
+>>>> triggers: one for enrollment and one for the verification mode to
+>>>> control the device from a userspace application.
+
+This could be all well handled with the v4l2 controls, for instance see
+what features are available in the Camera Flash controls subset
+
+http://linuxtv.org/downloads/v4l-dvb-apis/extended-controls.html#flash-controls
+
+>> Sure - what you proposed would work.  The question is whether it is
+>> the best way to do it.
+> 
+> Any thoughts on this from the v4l community?
+
+I would try it with V4L2, it seems to me most suitable subsystem for such
+devices to me.  The question is what ends up in the kernel and what in user
+space.  Anyway IMO V4L2 API is quite flexible with regards to that, due to
+wide range of devices it needs to cover.
+
+>>>> [0] http://www.freedesktop.org/wiki/Software/fprint/libfprint/upekts/
+>>>>
+>>>>>> A sysfs trigger is enabled and the device starts scanning. As soon as an image
+>>>>>> is available it is written in the character device /dev/iio:deviceX.
+>>>>>>
+>>>>>> Userspace applications will be able to calculate the expected image size using
+>>>>>> the fingerprint attributes height, width and bit depth. Other attributes
+>>>>>> introduced for the fingerprint channel in IIO represent information that aids in
+>>>>>> the fingerprint image processing. Besides these, the proposed interface offers
+>>>>>> userspace a way to read a feedback after a scan (like the swipe was too slow or
+>>>>>> too fast) through a modified fingerprint_status channel.
+>>>>>>
+>>>>>> [0] http://www.spinics.net/lists/linux-iio/msg11463.html
 
