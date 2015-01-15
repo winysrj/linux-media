@@ -1,112 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:33793 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756458AbbA2SwL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 13:52:11 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:41547 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752135AbbAOKwU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Jan 2015 05:52:20 -0500
+Message-ID: <54B79BDE.8090702@redhat.com>
+Date: Thu, 15 Jan 2015 11:52:14 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20150129154718.GB26493@n2100.arm.linux.org.uk>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
-	<1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
-	<20150129143908.GA26493@n2100.arm.linux.org.uk>
-	<CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
-	<20150129154718.GB26493@n2100.arm.linux.org.uk>
-Date: Thu, 29 Jan 2015 13:52:09 -0500
-Message-ID: <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
- with dma-parms
-From: Rob Clark <robdclark@gmail.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: John McMaster <johndmcmaster@gmail.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: [PULL patches for 3.20]: New gspca touptek driver, gspca fixes and
+ sunxi-cir driver improvments
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 29, 2015 at 10:47 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Thu, Jan 29, 2015 at 09:00:11PM +0530, Sumit Semwal wrote:
->> So, short answer is, it is left to the exporter to decide. The dma-buf
->> framework should not even attempt to decide or enforce any of the
->> above.
->>
->> At each dma_buf_attach(), there's a callback to the exporter, where
->> the exporter can decide, if it intends to handle these kind of cases,
->> on the best way forward.
->>
->> The exporter might, for example, decide to migrate backing storage,
->
-> That's a decision which the exporter can not take.  Think about it...
->
-> If subsystem Y has mapped the buffer, it could be accessing the buffer's
-> backing storage at the same time that subsystem Z tries to attach to the
-> buffer.
+Hi Mauro,
 
-The *theory* is that Y is map/unmap'ing the buffer around each use, so
-there will be some point where things could be migrated and remapped..
-in practice, I am not sure that anyone is doing this yet.
+Note this pull-req superseeds my previous pull-req for 3.20 .
 
-Probably it would be reasonable if a more restrictive subsystem tried
-to attach after the buffer was already allocated and mapped in a way
-that don't meet the new constraints, then -EBUSY.
+Please pull from my tree for a new gspca touptek driver, various
+gspca fixes and some sunxi-cir driver improvments.
 
-But from a quick look it seems like there needs to be a slight fixup
-to not return 0 if calc_constraints() fails..
+The following changes since commit 99f3cd52aee21091ce62442285a68873e3be833f:
 
-> Once the buffer has been exported to another user, the exporter has
-> effectively lost control over mediating accesses to that buffer.
->
-> All that it can do with the way the dma-buf API is today is to allocate
-> a _different_ scatter list pointing at the same backing storage which
-> satisfies the segment size and number of segments, etc.
->
-> There's also another issue which you haven't addressed.  What if several
-> attachments result in lowering max_segment_size and max_segment_count
-> such that:
->
->         max_segment_size * max_segment_count < dmabuf->size
->
-> but individually, the attachments allow dmabuf->size to be represented
-> as a scatterlist?
+   [media] vb2-vmalloc: Protect DMA-specific code by #ifdef CONFIG_HAS_DMA (2014-12-23 16:28:09 -0200)
 
-Quite possibly for some of these edge some of cases, some of the
-dma-buf exporters are going to need to get more clever (ie. hand off
-different scatterlists to different clients).  Although I think by far
-the two common cases will be "I can support anything via an iommu/mmu"
-and "I need phys contig".
+are available in the git repository at:
 
-But that isn't an issue w/ dma-buf itself, so much as it is an issue
-w/ drivers.  I guess there would be more interest in fixing up drivers
-when actual hw comes along that needs it..
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.20
 
-BR,
--R
+for you to fetch changes up to e6a734195e2fbd9386aa58fe8931dd30c013f23e:
 
-> If an exporter were to take notice of the max_segment_size and
-> max_segment_count, the resulting buffer is basically unrepresentable
-> as a scatterlist.
->
->> > Please consider the possible sequences of use (such as the scenario
->> > above) when creating or augmenting an API.
->> >
->>
->> I tried to think of the scenarios I could think of, but If you still
->> feel this approach doesn't help with your concerns, I'll graciously
->> accept advice to improve it.
->
-> See the new one above :)
->
-> --
-> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-> according to speedtest.net.
+   gspca: Fix underflow in vidioc_s_parm() (2015-01-15 11:46:17 +0100)
+
+----------------------------------------------------------------
+Antonio Ospite (1):
+       gspca_stv06xx: enable button found on some Quickcam Express variant
+
+Hans Verkuil (1):
+       pwc: fix WARN_ON
+
+Hans de Goede (3):
+       rc: sunxi-cir: Add support for an optional reset controller
+       rc: sunxi-cir: Add support for the larger fifo found on sun5i and sun6i
+       gspca: Fix underflow in vidioc_s_parm()
+
+Joe Howse (1):
+       gspca: Add high-speed modes for PS3 Eye camera
+
+John McMaster (1):
+       gspca_touptek: Add support for ToupTek UCMOS series USB cameras
+
+  .../devicetree/bindings/media/sunxi-ir.txt         |   4 +-
+  drivers/media/rc/sunxi-cir.c                       |  46 +-
+  drivers/media/usb/gspca/Kconfig                    |  10 +
+  drivers/media/usb/gspca/Makefile                   |   2 +
+  drivers/media/usb/gspca/gspca.c                    |   2 +-
+  drivers/media/usb/gspca/ov534.c                    |  10 +-
+  drivers/media/usb/gspca/stv06xx/stv06xx.c          |   4 +-
+  drivers/media/usb/gspca/touptek.c                  | 732 +++++++++++++++++++++
+  drivers/media/usb/pwc/pwc-if.c                     |  12 +-
+  9 files changed, 800 insertions(+), 22 deletions(-)
+  create mode 100644 drivers/media/usb/gspca/touptek.c
+
+Thanks & Regards,
+
+Hans
