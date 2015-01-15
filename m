@@ -1,117 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51413 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764430AbbA2Dme (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:42432 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751482AbbAOJZh convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 22:42:34 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 137FF2A0099
-	for <linux-media@vger.kernel.org>; Thu, 29 Jan 2015 04:42:01 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150129034201.137FF2A0099@tschai.lan>
-Date: Thu, 29 Jan 2015 04:42:01 +0100 (CET)
+	Thu, 15 Jan 2015 04:25:37 -0500
+Received: by mail-wi0-f180.google.com with SMTP id n3so16378228wiv.1
+        for <linux-media@vger.kernel.org>; Thu, 15 Jan 2015 01:25:36 -0800 (PST)
+MIME-Version: 1.0
+Date: Thu, 15 Jan 2015 10:25:36 +0100
+Message-ID: <CAPx3zdQGfJ2EkrR6zcirw3a0nY+y1qG051qzhZs9YDk3DRbr7g@mail.gmail.com>
+Subject: Re: Driver/module in kernel fault. Anyone expert to help me? Siano ID 187f:0600
+From: Francesco Other <francesco.other@gmail.com>
+To: =?UTF-8?Q?Roberto_Alc=C3=A2ntara?= <roberto@eletronica.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Ok, many thanks.
 
-Results of the daily build of media_tree:
+I used this guide:
+http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
 
-date:		Thu Jan 29 04:00:13 CET 2015
-git branch:	test
-git hash:	8d44aeefcd79e9be3b6db4f37efc7544995b619e
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-1.slh.1-amd64
+and Ubuntu 14.04.1 LTS with kernel version 3.13.0-44.generic.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18-i686: OK
-linux-3.19-rc4-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18-x86_64: OK
-linux-3.19-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+I'm not afraid using the terminal if you want to help me :-)
 
-Detailed results are available here:
+Regards
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Francesco
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+2015-01-15 2:27 GMT+01:00 Roberto Alcântara <roberto@eletronica.org>:
+> Ok Francesco, just to confirm that buffer is empty.
+>
+> Well I'm not expert but seems the driver has some bug on state
+> machine. I do not know details about Siano state machine for DVB but
+> MSG_SMS_DAB_CHANNEL seems not be the right message expected. I will
+> try to look deeply on this code.
+>
+> Are you able to test driver last version from linux-media tree? What
+> kernel are you using?
+>
+> As I can't test DVB system here I only can suppose some scenario (some
+> of them just a try) and do some blind patch for your tests.
+>
+> Mauro Chehab surely know a lot more about this, but as he do not sent
+> message on this thread I suppose he is really busy.
+>
+> Cheers,
+>   - Roberto
+>
+>
+>
+>
+>
+>
+>
+>
+>  - Roberto
+>
+>
+> On Wed, Jan 14, 2015 at 4:23 PM, Francesco Other
+> <francesco.other@gmail.com> wrote:
+>> Hi Roberto,
+>>
+>> It doesn't record anything, the file is blank (0 bytes) :-(
+>>
+>> $ dd if=/dev/dvb/adapter0/dvr0 of=test.ts
+>>
+>> 0+0 records in
+>> 0+0 records out
+>> 0 bytes (0 B) copied, 13,4642 s, 0,0 kB/s
+>>
+>> Francesco
+>>
+>>
+>> 2015-01-14 16:58 GMT+01:00 Roberto Alcântara <roberto@eletronica.org>:
+>>> Francesco,
+>>>
+>>> Seems very strange not work once you have lock (1f) and ber 0. not a
+>>> real problem signal report.
+>>>
+>>> After tzap -r open another console and:
+>>>
+>>> dd if=/dev/dvb/adapter0/dvr0 of=test.ts
+>>>
+>>> Wait 10 seconds and stop it. Please check file size (try to open on
+>>> vlc too if big enough...).
+>>>
+>>> Cheers,
+>>>  - Roberto
+>>>
+>>> On Tue, Jan 13, 2015 at 6:56 PM, Francesco Other
+>>> <francesco.other@gmail.com> wrote:
+>>>>
+>>>>
+>>>> So, this is the output for tzap with the NOT-working-device:
+>>>>
+>>>> $ tzap -r -c ~/.tzap/channels.conf Italia1
+>>>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>>>> reading channels from file '/home/ionic/.tzap/channels.conf'
+>>>> Version: 5.10   FE_CAN { DVB-T }
+>>>> tuning to 698000000 Hz
+>>>> video pid 0x0654, audio pid 0x0655
+>>>> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+>>>> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>>> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>>> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>>> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>>> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>>> status 1f | signal 0000 | snr 010e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>>> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>>> status 1f | signal 0000 | snr 010e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>>> status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>>
+>>>
+>>>
+>>>
+>>>  - Roberto
