@@ -1,95 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:23159 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751436AbbALIwl (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:40190 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752424AbbAPJgB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2015 03:52:41 -0500
-Message-id: <54B38B55.7080503@samsung.com>
-Date: Mon, 12 Jan 2015 09:52:37 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v10 08/19] leds: Add support for max77693 mfd flash cell
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-9-git-send-email-j.anaszewski@samsung.com>
- <20150109184606.GJ18076@amd>
-In-reply-to: <20150109184606.GJ18076@amd>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Fri, 16 Jan 2015 04:36:01 -0500
+Message-ID: <54B8DB6E.6090804@xs4all.nl>
+Date: Fri, 16 Jan 2015 10:35:42 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Ondrej Zary <linux@rainbow-software.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/3] bttv: Improve TEA575x support
+References: <1421352647-10383-1-git-send-email-linux@rainbow-software.org> <1421352647-10383-3-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1421352647-10383-3-git-send-email-linux@rainbow-software.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Hi Ondrej,
 
-Thanks for the review.
+Just two small comments:
 
-On 01/09/2015 07:46 PM, Pavel Machek wrote:
-> On Fri 2015-01-09 16:22:58, Jacek Anaszewski wrote:
->> This patch adds led-flash support to Maxim max77693 chipset.
->> A device can be exposed to user space through LED subsystem
->> sysfs interface. Device supports up to two leds which can
->> work in flash and torch mode. The leds can be triggered
->> externally or by software.
->>
->
->> +struct max77693_sub_led {
->> +	/* related FLED output identifier */
->
-> ->flash LED, about 4x.
->
->> +/* split composite current @i into two @iout according to @imax weights */
->> +static void __max77693_calc_iout(u32 iout[2], u32 i, u32 imax[2])
->> +{
->> +	u64 t = i;
->> +
->> +	t *= imax[1];
->> +	do_div(t, imax[0] + imax[1]);
->> +
->> +	iout[1] = (u32)t / FLASH_IOUT_STEP * FLASH_IOUT_STEP;
->> +	iout[0] = i - iout[1];
->> +}
->
-> Is 64-bit arithmetics neccessary here? Could we do the FLASH_IOUT_STEP
-> divisons before t *=, so that 64-bit division is not neccessary?
+On 01/15/2015 09:10 PM, Ondrej Zary wrote:
+> Improve g_tuner and add s_hw_freq_seek and enum_freq_bands support for cards
+> with TEA575x radio.
+> 
+> This allows signal/stereo detection and HW seek to work on these cards.
+> 
+> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> ---
+>  drivers/media/pci/bt8xx/bttv-driver.c |   31 +++++++++++++++++++++++++++++++
+>  1 file changed, 31 insertions(+)
+> 
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> index e7f8ade..5476a7d 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -2515,6 +2515,8 @@ static int bttv_querycap(struct file *file, void  *priv,
+>  		if (btv->has_saa6588)
+>  			cap->device_caps |= V4L2_CAP_READWRITE |
+>  						V4L2_CAP_RDS_CAPTURE;
+> +		if (btv->has_tea575x)
+> +			cap->device_caps |= V4L2_CAP_HW_FREQ_SEEK;
+>  	}
+>  	return 0;
+>  }
+> @@ -3244,6 +3246,9 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+>  	if (btv->audio_mode_gpio)
+>  		btv->audio_mode_gpio(btv, t, 0);
+>  
+> +	if (btv->has_tea575x)
+> +		return snd_tea575x_g_tuner(&btv->tea, t);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -3261,6 +3266,30 @@ static int radio_s_tuner(struct file *file, void *priv,
+>  	return 0;
+>  }
+>  
+> +static int radio_s_hw_freq_seek(struct file *file, void *priv,
+> +					const struct v4l2_hw_freq_seek *a)
+> +{
+> +	struct bttv_fh *fh = priv;
+> +	struct bttv *btv = fh->btv;
+> +
+> +	if (btv->has_tea575x)
+> +		return snd_tea575x_s_hw_freq_seek(file, &btv->tea, a);
+> +	else
+> +		return -ENOTTY;
 
-It is required. All these operations allow for splitting the composite
-current into both outputs according to weights given in the imax array.
+Please drop the superfluous 'else'. I thought checkpatch warned about this these days.
 
->> +static int max77693_led_flash_strobe_get(
->> +				struct led_classdev_flash *fled_cdev,
->> +				bool *state)
->> +{
->> +	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
->> +	struct max77693_led_device *led = sub_led_to_led(sub_led);
->> +	int ret;
->> +
->> +	if (!state)
->> +		return -EINVAL;
->> +
->> +	mutex_lock(&led->lock);
->> +
->> +	ret = max77693_strobe_status_get(led, state);
->> +
->> +	*state = !!(*state && (led->strobing_sub_led_id == sub_led->fled_id));
->> +
->> +
->> +	mutex_unlock(&led->lock);
->> +
->> +	return ret;
->> +}
->
-> Maybe remove some empty lines?
->
+> +}
+> +
+> +static int radio_enum_freq_bands(struct file *file, void *priv,
+> +					 struct v4l2_frequency_band *band)
+> +{
+> +	struct bttv_fh *fh = priv;
+> +	struct bttv *btv = fh->btv;
+> +
+> +	if (btv->has_tea575x)
+> +		return snd_tea575x_enum_freq_bands(&btv->tea, band);
+> +	else
+> +		return -ENOTTY;
 
-Of course.
+Ditto.
 
--- 
-Best Regards,
-Jacek Anaszewski
+> +}
+> +
+>  static ssize_t radio_read(struct file *file, char __user *data,
+>  			 size_t count, loff_t *ppos)
+>  {
+> @@ -3318,6 +3347,8 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+>  	.vidioc_s_tuner         = radio_s_tuner,
+>  	.vidioc_g_frequency     = bttv_g_frequency,
+>  	.vidioc_s_frequency     = bttv_s_frequency,
+> +	.vidioc_s_hw_freq_seek	= radio_s_hw_freq_seek,
+> +	.vidioc_enum_freq_bands	= radio_enum_freq_bands,
+>  	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+>  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+>  };
+> 
+
+Regards,
+
+	Hans
