@@ -1,163 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:63363 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753052AbbAaXVn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jan 2015 18:21:43 -0500
-Date: Sun, 1 Feb 2015 00:21:36 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Josh Wu <josh.wu@atmel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v3 2/2] V4L: add CCF support to the v4l2_clk API
-In-Reply-To: <Pine.LNX.4.64.1502010007180.26661@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1502010019380.26661@axis700.grange>
-References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40372 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751690AbbAPLhS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2015 06:37:18 -0500
+Message-ID: <54B8F7DC.6080401@xs4all.nl>
+Date: Fri, 16 Jan 2015 12:37:00 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Haim Daniel <haimdaniel@gmail.com>
+CC: linux-media@vger.kernel.org, isely@isely.net
+Subject: Re: [PATCH] [media] [pvrusb2]: remove dead retry cmd code
+References: <1420497518-10375-1-git-send-email-haim.daniel@gmail.com>	 <54B8EE91.7020704@xs4all.nl> <1421407773.5847.1.camel@localhost.localdomain>
+In-Reply-To: <1421407773.5847.1.camel@localhost.localdomain>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2 clocks, e.g. used by camera sensors for their master clock, do not
-have to be supplied by a different V4L2 driver, they can also be
-supplied by an independent source. In this case the standart kernel
-clock API should be used to handle such clocks. This patch adds support
-for such cases.
+On 01/16/2015 12:29 PM, Haim Daniel wrote:
+> It looks that "if (try_count < 20) continue" jumps to end of the  do ...
+> while(0) loop and goes out.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Ah, you are right. But that is obviously not what was intended, so just removing
+it is not a proper 'fix'.
 
-v3:
-1. return -EPROBE_DEFER if it's returned by clk_get()
-2. handle the case of disabled CCF in kernel configuration
-3. use clk_prepare_enable() and clk_unprepare_disable()
+Mike, can you take a look at this?
 
- drivers/media/v4l2-core/v4l2-clk.c | 48 +++++++++++++++++++++++++++++++++++---
- include/media/v4l2-clk.h           |  2 ++
- 2 files changed, 47 insertions(+), 3 deletions(-)
+Regards,
 
-diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
-index 3ff0b00..9f8cb20 100644
---- a/drivers/media/v4l2-core/v4l2-clk.c
-+++ b/drivers/media/v4l2-core/v4l2-clk.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include <linux/atomic.h>
-+#include <linux/clk.h>
- #include <linux/device.h>
- #include <linux/errno.h>
- #include <linux/list.h>
-@@ -37,6 +38,21 @@ static struct v4l2_clk *v4l2_clk_find(const char *dev_id)
- struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
- {
- 	struct v4l2_clk *clk;
-+	struct clk *ccf_clk = clk_get(dev, id);
-+
-+	if (PTR_ERR(ccf_clk) == -EPROBE_DEFER)
-+		return ERR_PTR(-EPROBE_DEFER);
-+
-+	if (!IS_ERR_OR_NULL(ccf_clk)) {
-+		clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
-+		if (!clk) {
-+			clk_put(ccf_clk);
-+			return ERR_PTR(-ENOMEM);
-+		}
-+		clk->clk = ccf_clk;
-+
-+		return clk;
-+	}
- 
- 	mutex_lock(&clk_lock);
- 	clk = v4l2_clk_find(dev_name(dev));
-@@ -56,6 +72,12 @@ void v4l2_clk_put(struct v4l2_clk *clk)
- 	if (IS_ERR(clk))
- 		return;
- 
-+	if (clk->clk) {
-+		clk_put(clk->clk);
-+		kfree(clk);
-+		return;
-+	}
-+
- 	mutex_lock(&clk_lock);
- 
- 	list_for_each_entry(tmp, &clk_list, list)
-@@ -93,8 +115,12 @@ static void v4l2_clk_unlock_driver(struct v4l2_clk *clk)
- 
- int v4l2_clk_enable(struct v4l2_clk *clk)
- {
--	int ret = v4l2_clk_lock_driver(clk);
-+	int ret;
- 
-+	if (clk->clk)
-+		return clk_prepare_enable(clk->clk);
-+
-+	ret = v4l2_clk_lock_driver(clk);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -120,6 +146,9 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
- {
- 	int enable;
- 
-+	if (clk->clk)
-+		return clk_disable_unprepare(clk->clk);
-+
- 	mutex_lock(&clk->lock);
- 
- 	enable = --clk->enable;
-@@ -137,8 +166,12 @@ EXPORT_SYMBOL(v4l2_clk_disable);
- 
- unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
- {
--	int ret = v4l2_clk_lock_driver(clk);
-+	int ret;
-+
-+	if (clk->clk)
-+		return clk_get_rate(clk->clk);
- 
-+	ret = v4l2_clk_lock_driver(clk);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -157,7 +190,16 @@ EXPORT_SYMBOL(v4l2_clk_get_rate);
- 
- int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
- {
--	int ret = v4l2_clk_lock_driver(clk);
-+	int ret;
-+
-+	if (clk->clk) {
-+		long r = clk_round_rate(clk->clk, rate);
-+		if (r < 0)
-+			return r;
-+		return clk_set_rate(clk->clk, r);
-+	}
-+
-+	ret = v4l2_clk_lock_driver(clk);
- 
- 	if (ret < 0)
- 		return ret;
-diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-index 928045f..3ef6e3d 100644
---- a/include/media/v4l2-clk.h
-+++ b/include/media/v4l2-clk.h
-@@ -22,6 +22,7 @@
- struct module;
- struct device;
- 
-+struct clk;
- struct v4l2_clk {
- 	struct list_head list;
- 	const struct v4l2_clk_ops *ops;
-@@ -29,6 +30,7 @@ struct v4l2_clk {
- 	int enable;
- 	struct mutex lock; /* Protect the enable count */
- 	atomic_t use_count;
-+	struct clk *clk;
- 	void *priv;
- };
- 
--- 
-1.9.3
+	Hans
+
+> 
+> --hd.
+> On Fri, 2015-01-16 at 11:57 +0100, Hans Verkuil wrote:
+>> On 01/05/2015 11:38 PM, Haim Daniel wrote:
+>>> In case a command is timed out, current flow sets the retry_flag
+>>> and does nothing.
+>>
+>> Really? That's not how I read the code: it retries up to 20 times before
+>> bailing out.
+>>
+>> Perhaps you missed the "if (try_count < 20) continue;" line?
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>> Signed-off-by: Haim Daniel <haim.daniel@gmail.com>
+>>> ---
+>>>  drivers/media/usb/pvrusb2/pvrusb2-encoder.c | 15 +--------------
+>>>  1 file changed, 1 insertion(+), 14 deletions(-)
+>>>
+>>> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+>>> index f7702ae..02028aa 100644
+>>> --- a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+>>> +++ b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+>>> @@ -145,8 +145,6 @@ static int pvr2_encoder_cmd(void *ctxt,
+>>>  			    u32 *argp)
+>>>  {
+>>>  	unsigned int poll_count;
+>>> -	unsigned int try_count = 0;
+>>> -	int retry_flag;
+>>>  	int ret = 0;
+>>>  	unsigned int idx;
+>>>  	/* These sizes look to be limited by the FX2 firmware implementation */
+>>> @@ -213,8 +211,6 @@ static int pvr2_encoder_cmd(void *ctxt,
+>>>  			break;
+>>>  		}
+>>>  
+>>> -		retry_flag = 0;
+>>> -		try_count++;
+>>>  		ret = 0;
+>>>  		wrData[0] = 0;
+>>>  		wrData[1] = cmd;
+>>> @@ -245,11 +241,9 @@ static int pvr2_encoder_cmd(void *ctxt,
+>>>  			}
+>>>  			if (rdData[0] && (poll_count < 1000)) continue;
+>>>  			if (!rdData[0]) {
+>>> -				retry_flag = !0;
+>>>  				pvr2_trace(
+>>>  					PVR2_TRACE_ERROR_LEGS,
+>>> -					"Encoder timed out waiting for us"
+>>> -					"; arranging to retry");
+>>> +					"Encoder timed out waiting for us");
+>>>  			} else {
+>>>  				pvr2_trace(
+>>>  					PVR2_TRACE_ERROR_LEGS,
+>>> @@ -269,13 +263,6 @@ static int pvr2_encoder_cmd(void *ctxt,
+>>>  			ret = -EBUSY;
+>>>  			break;
+>>>  		}
+>>> -		if (retry_flag) {
+>>> -			if (try_count < 20) continue;
+>>> -			pvr2_trace(
+>>> -				PVR2_TRACE_ERROR_LEGS,
+>>> -				"Too many retries...");
+>>> -			ret = -EBUSY;
+>>> -		}
+>>>  		if (ret) {
+>>>  			del_timer_sync(&hdw->encoder_run_timer);
+>>>  			hdw->state_encoder_ok = 0;
+>>>
+>>
+> 
+> 
 
