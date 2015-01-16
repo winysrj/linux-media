@@ -1,65 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f174.google.com ([209.85.213.174]:42005 "EHLO
-	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752197AbbAVBvB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2015 20:51:01 -0500
-Received: by mail-ig0-f174.google.com with SMTP id b16so18851108igk.1
-        for <linux-media@vger.kernel.org>; Wed, 21 Jan 2015 17:51:01 -0800 (PST)
-MIME-Version: 1.0
-From: Nathan Meyer <nate.meyer.2011@gmail.com>
-Date: Wed, 21 Jan 2015 20:50:33 -0500
-Message-ID: <CA+WqcYuan5hDqWcR2VwkOFyNYOqCg=5FOEbMVn3B1cfyjQvjrw@mail.gmail.com>
-Subject: Re: Working on Avermedia Duet A188 (saa716x and lgdt3304)
-To: linux-media@vger.kernel.org
-Cc: richardh68@hotmail.com
-Content-Type: text/plain; charset=UTF-8
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50007 "EHLO
+	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754698AbbAPQXE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2015 11:23:04 -0500
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-kernel@codethink.co.uk,
+	William Towle <william.towle@codethink.co.uk>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 1/2] media: rcar_vin: helper function for streaming stop
+Date: Fri, 16 Jan 2015 16:22:58 +0000
+Message-Id: <1421425379-1858-2-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1421425379-1858-1-git-send-email-william.towle@codethink.co.uk>
+References: <1421425379-1858-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tim <richardh68 <at> hotmail.com> writes:
->
->  I'd like to try this again, as my last working tuner died this week. I've had
-> this card sitting around for over
-> > a year hoping for support, but it doesn't look like anyone else is working on
-> it.
-> >
-> > What kind of information is needed to make the card work? Will I need to find
-> firmware somewhere? It looks
-> > like the basics are there with Manu's work on the SAA716x and Jared and
-> Michael's work on the LGDT3304, but
-> > how do I customize these to work with the A188?
-> >
-> > Any help would be appreciated, thanks!
-> >
-> > Oblib
-> >
-> >
-> >
->
-> I have been playing with this aswell.. I haven't done C since college.
-> I hope someone could help us with this..
->
-> I have done some leg work here..
->
-> 1) I have contacted Avermedia to see if they will release the source to the
-> windows drivers.. Can't hurt to ask.. waiting their response.. it had to be
-> referred to R&D department. So it Wasnt No..
->
-> 2) The actual components on the board are
-> 2x TDA18271hdc2 in what appears to be a master slave setup(maybe.. Only one coax
-> input)
-> 2x LGDT3304
-> 1x 60E
->
-> 3) I have pulled this repository and worked from there..
-> http://linuxtv.org/hg/~endriss/mirror-saa716x/
-> I have edited the SAA71x budget Driver so that it recognizes the card and
-> the cards rom tells us this..
+From: Ian Molton <ian.molton@codethink.co.uk>
 
-Hey Tim,
+The code that tests that capture from a stream has stopped is
+presently insufficient and the potential for a race condition
+exists where frame capture may generate an interrupt between
+requesting the capture process halt and freeing buffers.
 
-Had you made any more progress on this driver?  Did you ever get
-anything more working?
+This patch refactors code out of rcar_vin_videobuf_release() and
+into rcar_vin_wait_stop_streaming(), and ensures there are calls
+in places where we need to know that capturing has finished.
 
--Nate
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c |   41 +++++++++++++++++---------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 8d8438b..89c409b 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -458,6 +458,28 @@ error:
+ 	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
+ }
+ 
++/*
++ * Wait for capture to stop and all in-flight buffers to be finished with by
++ * the video hardware. This must be called under &priv->lock
++ *
++ */
++static void rcar_vin_wait_stop_streaming(struct rcar_vin_priv *priv)
++{
++	while (priv->state != STOPPED) {
++		/* issue stop if running */
++		if (priv->state == RUNNING)
++			rcar_vin_request_capture_stop(priv);
++
++		/* wait until capturing has been stopped */
++		if (priv->state == STOPPING) {
++			priv->request_to_stop = true;
++			spin_unlock_irq(&priv->lock);
++			wait_for_completion(&priv->capture_stop);
++			spin_lock_irq(&priv->lock);
++		}
++	}
++}
++
+ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
+ {
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
+@@ -477,20 +499,8 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
+ 	}
+ 
+ 	if (buf_in_use) {
+-		while (priv->state != STOPPED) {
+-
+-			/* issue stop if running */
+-			if (priv->state == RUNNING)
+-				rcar_vin_request_capture_stop(priv);
+-
+-			/* wait until capturing has been stopped */
+-			if (priv->state == STOPPING) {
+-				priv->request_to_stop = true;
+-				spin_unlock_irq(&priv->lock);
+-				wait_for_completion(&priv->capture_stop);
+-				spin_lock_irq(&priv->lock);
+-			}
+-		}
++		rcar_vin_wait_stop_streaming(priv);
++
+ 		/*
+ 		 * Capturing has now stopped. The buffer we have been asked
+ 		 * to release could be any of the current buffers in use, so
+@@ -524,8 +534,11 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
+ 	struct list_head *buf_head, *tmp;
+ 
+ 	spin_lock_irq(&priv->lock);
++
++	rcar_vin_wait_stop_streaming(priv);
+ 	list_for_each_safe(buf_head, tmp, &priv->capture)
+ 		list_del_init(buf_head);
++
+ 	spin_unlock_irq(&priv->lock);
+ }
+ 
+-- 
+1.7.10.4
+
