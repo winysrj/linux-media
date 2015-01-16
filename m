@@ -1,333 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-190.synserver.de ([212.40.185.190]:1105 "EHLO
-	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755694AbbAWPwl (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:49234 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752910AbbAPPww (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 10:52:41 -0500
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?=
-	<richard.rojfors@mocean-labs.com>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 04/15] [media] adv7180: Cleanup register define naming
-Date: Fri, 23 Jan 2015 16:52:23 +0100
-Message-Id: <1422028354-31891-5-git-send-email-lars@metafoo.de>
-In-Reply-To: <1422028354-31891-1-git-send-email-lars@metafoo.de>
-References: <1422028354-31891-1-git-send-email-lars@metafoo.de>
+	Fri, 16 Jan 2015 10:52:52 -0500
+Message-id: <54B933D0.1090004@samsung.com>
+Date: Fri, 16 Jan 2015 16:52:48 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Rob Herring <robherring2@gmail.com>
+Cc: linux-leds@vger.kernel.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
+ <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
+ <54B38682.5080605@samsung.com>
+ <CAL_Jsq+UaA41DvawdOMmOib=Fi0hC-nBdKV-+P4DFo+MoOy-bQ@mail.gmail.com>
+ <54B3F1EF.4060506@samsung.com>
+ <CAL_JsqKpJtUG0G6g1GOuSVpc31oe-dp3qdrKJUE0upG-xRDFhA@mail.gmail.com>
+ <54B4DA81.7060900@samsung.com>
+ <CAL_JsqLYxB5hzLAWXpU=uncM5DEMZU78mP673H9oSSNB-cgcYQ@mail.gmail.com>
+ <54B8D4D0.3000904@samsung.com>
+ <CAL_Jsq+EFWzs1HP1tVt6P=p=HZn2AtSPjp55YrmMQi_mE+kNfQ@mail.gmail.com>
+In-reply-to: <CAL_Jsq+EFWzs1HP1tVt6P=p=HZn2AtSPjp55YrmMQi_mE+kNfQ@mail.gmail.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Consistently prefix register defines with ADV7180_REG. Also remove the "ADI"
-from register names, the ADV7180 prefix should provide enough of a namespace
-separation.
+On 01/16/2015 02:48 PM, Rob Herring wrote:
+> On Fri, Jan 16, 2015 at 3:07 AM, Jacek Anaszewski
+> <j.anaszewski@samsung.com> wrote:
+>> On 01/15/2015 03:24 PM, Rob Herring wrote:
+>>>
+>>> On Tue, Jan 13, 2015 at 2:42 AM, Jacek Anaszewski
+>>> <j.anaszewski@samsung.com> wrote:
+>>>>
+>>>> On 01/12/2015 05:55 PM, Rob Herring wrote:
+>>>>>
+>>>>>
+>>>>> Adding Mark B and Liam...
+>>>>>
+>>>>> On Mon, Jan 12, 2015 at 10:10 AM, Jacek Anaszewski
+>>>>> <j.anaszewski@samsung.com> wrote:
+>>>>>>
+>>>>>>
+>>>>>> On 01/12/2015 02:52 PM, Rob Herring wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> On Mon, Jan 12, 2015 at 2:32 AM, Jacek Anaszewski
+>>>>>>> <j.anaszewski@samsung.com> wrote:
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> On 01/09/2015 07:33 PM, Rob Herring wrote:
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> On Fri, Jan 9, 2015 at 9:22 AM, Jacek Anaszewski
+>>>>>>>>> <j.anaszewski@samsung.com> wrote:
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> Add a property for defining the device outputs the LED
+>>>>>>>>>> represented by the DT child node is connected to.
+>>>>>
+>>>>>
+>>>>>
+>>>>> [...]
+>>>>>
+>>>>>>>>>> b/Documentation/devicetree/bindings/leds/common.txt
+>>>>>>>>>> index a2c3f7a..29295bf 100644
+>>>>>>>>>> --- a/Documentation/devicetree/bindings/leds/common.txt
+>>>>>>>>>> +++ b/Documentation/devicetree/bindings/leds/common.txt
+>>>>>>>>>> @@ -1,6 +1,10 @@
+>>>>>>>>>>       Common leds properties.
+>>>>>>>>>>
+>>>>>>>>>>       Optional properties for child nodes:
+>>>>>>>>>> +- led-sources : Array of bits signifying the LED current regulator
+>>>>>>>>>> outputs the
+>>>>>>>>>> +               LED represented by the child node is connected to
+>>>>>>>>>> (1
+>>>>>>>>>> -
+>>>>>>>>>> the LED
+>>>>>>>>>> +               is connected to the output, 0 - the LED isn't
+>>>>>>>>>> connected
+>>>>>>>>>> to the
+>>>>>>>>>> +               output).
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> Sorry, I just don't understand this.
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> In some Flash LED devices one LED can be connected to one or more
+>>>>>>>> electric current outputs, which allows for multiplying the maximum
+>>>>>>>> current allowed for the LED. Each sub-LED is represented by a child
+>>>>>>>> node in the DT binding of the Flash LED device and it needs to
+>>>>>>>> declare
+>>>>>>>> which outputs it is connected to. In the example below the
+>>>>>>>> led-sources
+>>>>>>>> property is a two element array, which means that the flash LED
+>>>>>>>> device
+>>>>>>>> has two current outputs, and the bits signify if the LED is connected
+>>>>>>>> to the output.
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> Sounds like a regulator for which we already have bindings for and we
+>>>>>>> have a driver for regulator based LEDs (but no binding for it).
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> Do you think of drivers/leds/leds-regulator.c driver? This driver just
+>>>>>> allows for registering an arbitrary regulator device as a LED subsystem
+>>>>>> device.
+>>>>>>
+>>>>>> There are however devices that don't fall into this category, i.e. they
+>>>>>> have many outputs, that can be connected to a single LED or to many
+>>>>>> LEDs
+>>>>>> and the driver has to know what is the actual arrangement.
+>>>>>
+>>>>>
+>>>>>
+>>>>> We may need to extend the regulator binding slightly and allow for
+>>>>> multiple phandles on a supply property, but wouldn't something like
+>>>>> this work:
+>>>>>
+>>>>> led-supply = <&led-reg0>, <&led-reg1>, <&led-reg2>, <&led-reg3>;
+>>>>>
+>>>>> The shared source is already supported by the regulator binding.
+>>>>
+>>>>
+>>>>
+>>>> I think that we shouldn't split the LED devices into power supply
+>>>> providers and consumers as in case of generic regulators. From this
+>>>> point of view a LED device current output is a provider and a discrete
+>>>> LED element is a consumer. In this approach each discrete LED element
+>>>> should have a related driver which is not how LED devices are being
+>>>> handled in the LED subsystem, where there is a single binding for a LED
+>>>> device and there is a single driver for it which creates separate LED
+>>>> class devices for each LED connected to the LED device output. Each
+>>>> discrete LED is represented by a child node in the LED device binding.
+>>>>
+>>>> I am aware that it may be tempting to treat LED devices as common
+>>>> regulators, but they have their specific features which gave a
+>>>> reason for introducing LED class for them. Besides, there is already
+>>>> drivers/leds/leds-regulator.c driver for LED devices which support only
+>>>> turning on/off and setting brightness level.
+>>>>
+>>>> In your proposition a separate regulator provider binding would have
+>>>> to be created for each current output and a separate binding for
+>>>> each discrete LED connected to the LED device. It would create
+>>>> unnecessary noise in a dts file.
+>>>>
+>>>> Moreover, using regulator binding implies that we want to treat it
+>>>> as a sheer power supply for our device (which would be a discrete LED
+>>>> element in this case), whereas LED devices provide more features like
+>>>> blinking pattern and for flash LED devices - flash timeout, external
+>>>> strobe and flash faults.
+>>>
+>>>
+>>> Okay, fair enough. Please include some of this explanation in the
+>>> binding description.
+>>>
+>>> I do still have some concerns about led-sources and whether it can
+>>> support other scenarios. It is very much tied to the parent node. Are
+>>> there any cases where we don't want the LEDs to be sub nodes? Perhaps
+>>> the LEDs are on a separate daughterboard from the driver/supply and we
+>>> can have different drivers. It's a stretch maybe.
+>>
+>>
+>> I think it is. Such arrangements would introduce problems also to the
+>> other existing bindings. Probably not only LED subsystem related ones.
+>>
+>>> Or are there cases
+>>> where you need more information than just the connection?
+>>
+>>
+>> Currently I can't think of any.
+>>
+>> Modified rough proposal of the description:
+>>
+>>
+>> -Optional properties for child nodes:
+>> +LED and flash LED devices provide the same basic functionality as
+>> +current regulators, but extended with LED and flash LED specific +features
+>> like blinking patterns, flash timeout, flash faults and
+>> +external flash strobe mode.
+>> +
+>> +Many LED devices expose more than one current output that can be
+>> +connected to one or more discrete LED component. Since the arrangement
+>> +of connections can influence the way of the LED device initialization,
+>> +the LED components have to be tightly coupled with the LED device
+>> +binding. They are represented in the form of its child nodes.
+>> +
+>> +Optional properties for child nodes (if a LED device exposes only one
+>> +current output the properties can be placed directly in the LED device
+>> +node):
+>
+> Why special case 1 output case? Just always require a child node.
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7180.c | 105 ++++++++++++++++++++++----------------------
- 1 file changed, 52 insertions(+), 53 deletions(-)
+OK.
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index f2508abe..00ba845 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -31,7 +31,7 @@
- #include <media/v4l2-ctrls.h>
- #include <linux/mutex.h>
- 
--#define ADV7180_INPUT_CONTROL_REG			0x00
-+#define ADV7180_REG_INPUT_CONTROL			0x00
- #define ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM	0x00
- #define ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM_PED 0x10
- #define ADV7180_INPUT_CONTROL_AD_PAL_N_NTSC_J_SECAM	0x20
-@@ -50,36 +50,36 @@
- #define ADV7180_INPUT_CONTROL_PAL_SECAM_PED		0xf0
- #define ADV7180_INPUT_CONTROL_INSEL_MASK		0x0f
- 
--#define ADV7180_EXTENDED_OUTPUT_CONTROL_REG		0x04
-+#define ADV7180_REG_EXTENDED_OUTPUT_CONTROL		0x04
- #define ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS		0xC5
- 
--#define ADV7180_AUTODETECT_ENABLE_REG			0x07
-+#define ADV7180_REG_AUTODETECT_ENABLE			0x07
- #define ADV7180_AUTODETECT_DEFAULT			0x7f
- /* Contrast */
--#define ADV7180_CON_REG		0x08	/*Unsigned */
-+#define ADV7180_REG_CON		0x08	/*Unsigned */
- #define ADV7180_CON_MIN		0
- #define ADV7180_CON_DEF		128
- #define ADV7180_CON_MAX		255
- /* Brightness*/
--#define ADV7180_BRI_REG		0x0a	/*Signed */
-+#define ADV7180_REG_BRI		0x0a	/*Signed */
- #define ADV7180_BRI_MIN		-128
- #define ADV7180_BRI_DEF		0
- #define ADV7180_BRI_MAX		127
- /* Hue */
--#define ADV7180_HUE_REG		0x0b	/*Signed, inverted */
-+#define ADV7180_REG_HUE		0x0b	/*Signed, inverted */
- #define ADV7180_HUE_MIN		-127
- #define ADV7180_HUE_DEF		0
- #define ADV7180_HUE_MAX		128
- 
--#define ADV7180_ADI_CTRL_REG				0x0e
--#define ADV7180_ADI_CTRL_IRQ_SPACE			0x20
-+#define ADV7180_REG_CTRL		0x0e
-+#define ADV7180_CTRL_IRQ_SPACE		0x20
- 
--#define ADV7180_PWR_MAN_REG		0x0f
-+#define ADV7180_REG_PWR_MAN		0x0f
- #define ADV7180_PWR_MAN_ON		0x04
- #define ADV7180_PWR_MAN_OFF		0x24
- #define ADV7180_PWR_MAN_RES		0x80
- 
--#define ADV7180_STATUS1_REG				0x10
-+#define ADV7180_REG_STATUS1		0x10
- #define ADV7180_STATUS1_IN_LOCK		0x01
- #define ADV7180_STATUS1_AUTOD_MASK	0x70
- #define ADV7180_STATUS1_AUTOD_NTSM_M_J	0x00
-@@ -91,33 +91,33 @@
- #define ADV7180_STATUS1_AUTOD_PAL_COMB	0x60
- #define ADV7180_STATUS1_AUTOD_SECAM_525	0x70
- 
--#define ADV7180_IDENT_REG 0x11
-+#define ADV7180_REG_IDENT 0x11
- #define ADV7180_ID_7180 0x18
- 
--#define ADV7180_ICONF1_ADI		0x40
-+#define ADV7180_REG_ICONF1		0x40
- #define ADV7180_ICONF1_ACTIVE_LOW	0x01
- #define ADV7180_ICONF1_PSYNC_ONLY	0x10
- #define ADV7180_ICONF1_ACTIVE_TO_CLR	0xC0
- /* Saturation */
--#define ADV7180_SD_SAT_CB_REG	0xe3	/*Unsigned */
--#define ADV7180_SD_SAT_CR_REG	0xe4	/*Unsigned */
-+#define ADV7180_REG_SD_SAT_CB	0xe3	/*Unsigned */
-+#define ADV7180_REG_SD_SAT_CR	0xe4	/*Unsigned */
- #define ADV7180_SAT_MIN		0
- #define ADV7180_SAT_DEF		128
- #define ADV7180_SAT_MAX		255
- 
- #define ADV7180_IRQ1_LOCK	0x01
- #define ADV7180_IRQ1_UNLOCK	0x02
--#define ADV7180_ISR1_ADI	0x42
--#define ADV7180_ICR1_ADI	0x43
--#define ADV7180_IMR1_ADI	0x44
--#define ADV7180_IMR2_ADI	0x48
-+#define ADV7180_REG_ISR1	0x42
-+#define ADV7180_REG_ICR1	0x43
-+#define ADV7180_REG_IMR1	0x44
-+#define ADV7180_REG_IMR2	0x48
- #define ADV7180_IRQ3_AD_CHANGE	0x08
--#define ADV7180_ISR3_ADI	0x4A
--#define ADV7180_ICR3_ADI	0x4B
--#define ADV7180_IMR3_ADI	0x4C
--#define ADV7180_IMR4_ADI	0x50
-+#define ADV7180_REG_ISR3	0x4A
-+#define ADV7180_REG_ICR3	0x4B
-+#define ADV7180_REG_IMR3	0x4C
-+#define ADV7180_REG_IMR4	0x50
- 
--#define ADV7180_NTSC_V_BIT_END_REG	0xE6
-+#define ADV7180_REG_NTSC_V_BIT_END	0xE6
- #define ADV7180_NTSC_V_BIT_END_MANUAL_NVEND	0x4F
- 
- struct adv7180_state {
-@@ -198,7 +198,7 @@ static u32 adv7180_status_to_v4l2(u8 status1)
- static int __adv7180_status(struct i2c_client *client, u32 *status,
- 			    v4l2_std_id *std)
- {
--	int status1 = i2c_smbus_read_byte_data(client, ADV7180_STATUS1_REG);
-+	int status1 = i2c_smbus_read_byte_data(client, ADV7180_REG_STATUS1);
- 
- 	if (status1 < 0)
- 		return status1;
-@@ -249,14 +249,13 @@ static int adv7180_s_routing(struct v4l2_subdev *sd, u32 input,
- 	if ((input & ADV7180_INPUT_CONTROL_INSEL_MASK) != input)
- 		goto out;
- 
--	ret = i2c_smbus_read_byte_data(client, ADV7180_INPUT_CONTROL_REG);
--
-+	ret = i2c_smbus_read_byte_data(client, ADV7180_REG_INPUT_CONTROL);
- 	if (ret < 0)
- 		goto out;
- 
- 	ret &= ~ADV7180_INPUT_CONTROL_INSEL_MASK;
- 	ret = i2c_smbus_write_byte_data(client,
--					ADV7180_INPUT_CONTROL_REG, ret | input);
-+					ADV7180_REG_INPUT_CONTROL, ret | input);
- 	state->input = input;
- out:
- 	mutex_unlock(&state->mutex);
-@@ -286,7 +285,7 @@ static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
- 	/* all standards -> autodetect */
- 	if (std == V4L2_STD_ALL) {
- 		ret =
--		    i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
-+		    i2c_smbus_write_byte_data(client, ADV7180_REG_INPUT_CONTROL,
- 				ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM
- 					      | state->input);
- 		if (ret < 0)
-@@ -300,7 +299,7 @@ static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
- 			goto out;
- 
- 		ret = i2c_smbus_write_byte_data(client,
--						ADV7180_INPUT_CONTROL_REG,
-+						ADV7180_REG_INPUT_CONTROL,
- 						ret | state->input);
- 		if (ret < 0)
- 			goto out;
-@@ -324,7 +323,7 @@ static int adv7180_set_power(struct adv7180_state *state,
- 	else
- 		val = ADV7180_PWR_MAN_OFF;
- 
--	return i2c_smbus_write_byte_data(client, ADV7180_PWR_MAN_REG, val);
-+	return i2c_smbus_write_byte_data(client, ADV7180_REG_PWR_MAN, val);
- }
- 
- static int adv7180_s_power(struct v4l2_subdev *sd, int on)
-@@ -357,25 +356,25 @@ static int adv7180_s_ctrl(struct v4l2_ctrl *ctrl)
- 	val = ctrl->val;
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		ret = i2c_smbus_write_byte_data(client, ADV7180_BRI_REG, val);
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_BRI, val);
- 		break;
- 	case V4L2_CID_HUE:
- 		/*Hue is inverted according to HSL chart */
--		ret = i2c_smbus_write_byte_data(client, ADV7180_HUE_REG, -val);
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_HUE, -val);
- 		break;
- 	case V4L2_CID_CONTRAST:
--		ret = i2c_smbus_write_byte_data(client, ADV7180_CON_REG, val);
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_CON, val);
- 		break;
- 	case V4L2_CID_SATURATION:
- 		/*
- 		 *This could be V4L2_CID_BLUE_BALANCE/V4L2_CID_RED_BALANCE
- 		 *Let's not confuse the user, everybody understands saturation
- 		 */
--		ret = i2c_smbus_write_byte_data(client, ADV7180_SD_SAT_CB_REG,
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_SD_SAT_CB,
- 						val);
- 		if (ret < 0)
- 			break;
--		ret = i2c_smbus_write_byte_data(client, ADV7180_SD_SAT_CR_REG,
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_SD_SAT_CR,
- 						val);
- 		break;
- 	default:
-@@ -489,12 +488,12 @@ static irqreturn_t adv7180_irq(int irq, void *devid)
- 	u8 isr3;
- 
- 	mutex_lock(&state->mutex);
--	i2c_smbus_write_byte_data(client, ADV7180_ADI_CTRL_REG,
--				  ADV7180_ADI_CTRL_IRQ_SPACE);
--	isr3 = i2c_smbus_read_byte_data(client, ADV7180_ISR3_ADI);
-+	i2c_smbus_write_byte_data(client, ADV7180_REG_CTRL,
-+				  ADV7180_CTRL_IRQ_SPACE);
-+	isr3 = i2c_smbus_read_byte_data(client, ADV7180_REG_ISR3);
- 	/* clear */
--	i2c_smbus_write_byte_data(client, ADV7180_ICR3_ADI, isr3);
--	i2c_smbus_write_byte_data(client, ADV7180_ADI_CTRL_REG, 0);
-+	i2c_smbus_write_byte_data(client, ADV7180_REG_ICR3, isr3);
-+	i2c_smbus_write_byte_data(client, ADV7180_REG_CTRL, 0);
- 
- 	if (isr3 & ADV7180_IRQ3_AD_CHANGE && state->autodetect)
- 		__adv7180_status(client, NULL, &state->curr_norm);
-@@ -511,7 +510,7 @@ static int init_device(struct i2c_client *client, struct adv7180_state *state)
- 	/* Enable autodetection */
- 	if (state->autodetect) {
- 		ret =
--		    i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
-+		    i2c_smbus_write_byte_data(client, ADV7180_REG_INPUT_CONTROL,
- 				ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM
- 					      | state->input);
- 		if (ret < 0)
-@@ -519,7 +518,7 @@ static int init_device(struct i2c_client *client, struct adv7180_state *state)
- 
- 		ret =
- 		    i2c_smbus_write_byte_data(client,
--					      ADV7180_AUTODETECT_ENABLE_REG,
-+					      ADV7180_REG_AUTODETECT_ENABLE,
- 					      ADV7180_AUTODETECT_DEFAULT);
- 		if (ret < 0)
- 			return ret;
-@@ -529,7 +528,7 @@ static int init_device(struct i2c_client *client, struct adv7180_state *state)
- 			return ret;
- 
- 		ret =
--		    i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
-+		    i2c_smbus_write_byte_data(client, ADV7180_REG_INPUT_CONTROL,
- 					      ret | state->input);
- 		if (ret < 0)
- 			return ret;
-@@ -537,14 +536,14 @@ static int init_device(struct i2c_client *client, struct adv7180_state *state)
- 	}
- 	/* ITU-R BT.656-4 compatible */
- 	ret = i2c_smbus_write_byte_data(client,
--			ADV7180_EXTENDED_OUTPUT_CONTROL_REG,
-+			ADV7180_REG_EXTENDED_OUTPUT_CONTROL,
- 			ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS);
- 	if (ret < 0)
- 		return ret;
- 
- 	/* Manually set V bit end position in NTSC mode */
- 	ret = i2c_smbus_write_byte_data(client,
--					ADV7180_NTSC_V_BIT_END_REG,
-+					ADV7180_REG_NTSC_V_BIT_END,
- 					ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
- 	if (ret < 0)
- 		return ret;
-@@ -554,37 +553,37 @@ static int init_device(struct i2c_client *client, struct adv7180_state *state)
- 
- 	/* register for interrupts */
- 	if (state->irq > 0) {
--		ret = i2c_smbus_write_byte_data(client, ADV7180_ADI_CTRL_REG,
--						ADV7180_ADI_CTRL_IRQ_SPACE);
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_CTRL,
-+						ADV7180_CTRL_IRQ_SPACE);
- 		if (ret < 0)
- 			goto err;
- 
- 		/* config the Interrupt pin to be active low */
--		ret = i2c_smbus_write_byte_data(client, ADV7180_ICONF1_ADI,
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_ICONF1,
- 						ADV7180_ICONF1_ACTIVE_LOW |
- 						ADV7180_ICONF1_PSYNC_ONLY);
- 		if (ret < 0)
- 			goto err;
- 
--		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR1_ADI, 0);
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_IMR1, 0);
- 		if (ret < 0)
- 			goto err;
- 
--		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR2_ADI, 0);
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_IMR2, 0);
- 		if (ret < 0)
- 			goto err;
- 
- 		/* enable AD change interrupts interrupts */
--		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR3_ADI,
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_IMR3,
- 						ADV7180_IRQ3_AD_CHANGE);
- 		if (ret < 0)
- 			goto err;
- 
--		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR4_ADI, 0);
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_IMR4, 0);
- 		if (ret < 0)
- 			goto err;
- 
--		ret = i2c_smbus_write_byte_data(client, ADV7180_ADI_CTRL_REG,
-+		ret = i2c_smbus_write_byte_data(client, ADV7180_REG_CTRL,
- 						0);
- 		if (ret < 0)
- 			goto err;
+>> +- led-sources : Array of connection states between all LED current
+>> +               sources exposed by the device and this LED (1 - this LED
+>> +               is connected to the current output with index N, 0 -
+>> +               this LED isn't connected to the current output with
+>> +               index N); the mapping of N-th element of the array to
+>> +               the physical device output should be defined in the LED
+>> +               driver binding.
+>
+> I think this should be a list of connected output numbers rather than
+> effectively a bitmask.
+>
+> You may want to add something like led-output-cnt or led-driver-cnt in
+> the parent so you know the max list size.
+
+Why should we need this? The number of current outputs exposed by the
+device is fixed and can be specified in a LED device bindings
+documentation.
+
 -- 
-1.8.0
-
+Best Regards,
+Jacek Anaszewski
