@@ -1,129 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:59069 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751596AbbASWTO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 17:19:14 -0500
-Date: Mon, 19 Jan 2015 23:19:08 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH] soc-camera: fix device capabilities in multiple camera host
- drivers
-Message-ID: <Pine.LNX.4.64.1501192316550.1903@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:49852 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750831AbbAPLfr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2015 06:35:47 -0500
+Received: by mail-wi0-f177.google.com with SMTP id l15so3213886wiw.4
+        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 03:35:46 -0800 (PST)
+Message-ID: <1421407773.5847.1.camel@localhost.localdomain>
+Subject: Re: [PATCH] [media] [pvrusb2]: remove dead retry cmd code
+From: Haim Daniel <haimdaniel@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Haim Daniel <haim.daniel@gmail.com>
+Date: Fri, 16 Jan 2015 13:29:33 +0200
+In-Reply-To: <54B8EE91.7020704@xs4all.nl>
+References: <1420497518-10375-1-git-send-email-haim.daniel@gmail.com>
+	 <54B8EE91.7020704@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2 API requires both .capabilities and .device_caps fields of
-struct v4l2_capability to be set. Otherwise the compliance checker
-complains and since commit "v4l2-ioctl: WARN_ON if querycap didn't fill
-device_caps" a compile-time warning is issued. Fix this non-compliance
-in several soc-camera camera host drivers.
+It looks that "if (try_count < 20) continue" jumps to end of the  do ...
+while(0) loop and goes out.
 
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+--hd.
+On Fri, 2015-01-16 at 11:57 +0100, Hans Verkuil wrote:
+> On 01/05/2015 11:38 PM, Haim Daniel wrote:
+> > In case a command is timed out, current flow sets the retry_flag
+> > and does nothing.
+> 
+> Really? That's not how I read the code: it retries up to 20 times before
+> bailing out.
+> 
+> Perhaps you missed the "if (try_count < 20) continue;" line?
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Signed-off-by: Haim Daniel <haim.daniel@gmail.com>
+> > ---
+> >  drivers/media/usb/pvrusb2/pvrusb2-encoder.c | 15 +--------------
+> >  1 file changed, 1 insertion(+), 14 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+> > index f7702ae..02028aa 100644
+> > --- a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+> > +++ b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+> > @@ -145,8 +145,6 @@ static int pvr2_encoder_cmd(void *ctxt,
+> >  			    u32 *argp)
+> >  {
+> >  	unsigned int poll_count;
+> > -	unsigned int try_count = 0;
+> > -	int retry_flag;
+> >  	int ret = 0;
+> >  	unsigned int idx;
+> >  	/* These sizes look to be limited by the FX2 firmware implementation */
+> > @@ -213,8 +211,6 @@ static int pvr2_encoder_cmd(void *ctxt,
+> >  			break;
+> >  		}
+> >  
+> > -		retry_flag = 0;
+> > -		try_count++;
+> >  		ret = 0;
+> >  		wrData[0] = 0;
+> >  		wrData[1] = cmd;
+> > @@ -245,11 +241,9 @@ static int pvr2_encoder_cmd(void *ctxt,
+> >  			}
+> >  			if (rdData[0] && (poll_count < 1000)) continue;
+> >  			if (!rdData[0]) {
+> > -				retry_flag = !0;
+> >  				pvr2_trace(
+> >  					PVR2_TRACE_ERROR_LEGS,
+> > -					"Encoder timed out waiting for us"
+> > -					"; arranging to retry");
+> > +					"Encoder timed out waiting for us");
+> >  			} else {
+> >  				pvr2_trace(
+> >  					PVR2_TRACE_ERROR_LEGS,
+> > @@ -269,13 +263,6 @@ static int pvr2_encoder_cmd(void *ctxt,
+> >  			ret = -EBUSY;
+> >  			break;
+> >  		}
+> > -		if (retry_flag) {
+> > -			if (try_count < 20) continue;
+> > -			pvr2_trace(
+> > -				PVR2_TRACE_ERROR_LEGS,
+> > -				"Too many retries...");
+> > -			ret = -EBUSY;
+> > -		}
+> >  		if (ret) {
+> >  			del_timer_sync(&hdw->encoder_run_timer);
+> >  			hdw->state_encoder_ok = 0;
+> > 
+> 
 
-Only compile tested on one platform. Would be nice to have a slightly 
-wider test coverage. I'll try to do some more verification too, then send 
-out as a fix for 3.19 in a day or two.
-
- drivers/media/platform/soc_camera/atmel-isi.c            | 5 +++--
- drivers/media/platform/soc_camera/mx2_camera.c           | 3 ++-
- drivers/media/platform/soc_camera/mx3_camera.c           | 3 ++-
- drivers/media/platform/soc_camera/omap1_camera.c         | 3 ++-
- drivers/media/platform/soc_camera/pxa_camera.c           | 3 ++-
- drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 4 +++-
- 6 files changed, 14 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 8efe403..6d88523 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -760,8 +760,9 @@ static int isi_camera_querycap(struct soc_camera_host *ici,
- {
- 	strcpy(cap->driver, "atmel-isi");
- 	strcpy(cap->card, "Atmel Image Sensor Interface");
--	cap->capabilities = (V4L2_CAP_VIDEO_CAPTURE |
--				V4L2_CAP_STREAMING);
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index ce72bd2..192377f 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -1256,7 +1256,8 @@ static int mx2_camera_querycap(struct soc_camera_host *ici,
- {
- 	/* cap->name is set by the friendly caller:-> */
- 	strlcpy(cap->card, MX2_CAM_DRIVER_DESCRIPTION, sizeof(cap->card));
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-index a60c3bb..0b3299d 100644
---- a/drivers/media/platform/soc_camera/mx3_camera.c
-+++ b/drivers/media/platform/soc_camera/mx3_camera.c
-@@ -967,7 +967,8 @@ static int mx3_camera_querycap(struct soc_camera_host *ici,
- {
- 	/* cap->name is set by the firendly caller:-> */
- 	strlcpy(cap->card, "i.MX3x Camera", sizeof(cap->card));
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/media/platform/soc_camera/omap1_camera.c
-index e6b9328..16f65ec 100644
---- a/drivers/media/platform/soc_camera/omap1_camera.c
-+++ b/drivers/media/platform/soc_camera/omap1_camera.c
-@@ -1427,7 +1427,8 @@ static int omap1_cam_querycap(struct soc_camera_host *ici,
- {
- 	/* cap->name is set by the friendly caller:-> */
- 	strlcpy(cap->card, "OMAP1 Camera", sizeof(cap->card));
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 951226a..8d6e343 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -1576,7 +1576,8 @@ static int pxa_camera_querycap(struct soc_camera_host *ici,
- {
- 	/* cap->name is set by the firendly caller:-> */
- 	strlcpy(cap->card, pxa_cam_driver_description, sizeof(cap->card));
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index 8b27b3e..7178770 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -1652,7 +1652,9 @@ static int sh_mobile_ceu_querycap(struct soc_camera_host *ici,
- 				  struct v4l2_capability *cap)
- {
- 	strlcpy(cap->card, "SuperH_Mobile_CEU", sizeof(cap->card));
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-+
- 	return 0;
- }
- 
--- 
-1.9.3
 
