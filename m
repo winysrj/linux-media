@@ -1,58 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:46605 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754486AbbANVnD (ORCPT
+Received: from fortimail.online.lv ([81.198.164.220]:36527 "EHLO
+	fortimail.online.lv" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752426AbbAPQUg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2015 16:43:03 -0500
-Date: Wed, 14 Jan 2015 23:46:49 +0200
-From: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
-To: devel@driverdev.osuosl.org
-Cc: mchehab@osg.samsung.com, gregkh@linuxfoundation.org,
-	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	boris.brezillon@free-electrons.com, sakari.ailus@linux.intel.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: davinci_vpfe: fix space prohibited before semicolon
- warning
-Message-ID: <20150114214649.GA20302@localhost.localdomain>
+	Fri, 16 Jan 2015 11:20:36 -0500
+Received: from mailo-proxy1.online.lv (smtp.online.lv [81.198.164.193])
+	by fortimail.online.lv  with ESMTP id t0GGKXLt022923-t0GGKXLu022923
+	for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 18:20:33 +0200
+Message-ID: <54B93A49.1010108@apollo.lv>
+Date: Fri, 16 Jan 2015 18:20:25 +0200
+From: Raimonds Cicans <ray@apollo.lv>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>, gtmkramer@xs4all.nl
+Subject: Re: [PATCH] cx23885/vb2 regression: please test this patch
+References: <54B52548.7010109@xs4all.nl> <54B55C23.1070409@apollo.lv>
+ <54B92620.6020408@xs4all.nl>
+In-Reply-To: <54B92620.6020408@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes the following checkpatch.pl warning:
+On 16.01.2015 16:54, Hans Verkuil wrote:
+> On 01/13/2015 06:55 PM, Raimonds Cicans wrote:
+>> On 13.01.2015 16:01, Hans Verkuil wrote:
+>>> Can you both test this patch? It should (I hope) solve the problems you
+>>> both had with the cx23885 driver.
+>>>
+> Can you check that the function cx23885_risc_field in
+> drivers/media/pci/cx23885/cx23885-core.c uses "sg = sg_next(sg);"
+> instead of "sg++;"?
+There is no sg++ in whole drivers/media/pci/cx23885/ directory.
+> To avoid confusion I would prefer that you test with a 3.18 or higher kernel
+> and please state which kernel version you use and whether you used the
+> media_build system or a specific git repo to build the drivers.
+kernel: Gentoo Hardened kernel 3.18.1 (hardened part turned off)
+media_build: pure original media_build
+media tree: https://github.com/ljalves/linux_media (original linux-media 
+plus some
+new out of kernel TBS drivers (from this tree I need TBS6285 driver))
+> I'm also interested if you can reproduce it using just command-line 
+> tools (and let me know what it is you do).
+For tests I use only command line tools: w_scan & dvb-fe-tool
 
-space prohibited before semicolon
+Tests:
+1) w_scan on first front end then after 5-10 seconds w_scan on other
+2) w_scan on second front end then after 5-10 seconds w_scan on first
+3) "dvb-fe-tool -d DVBS" on first front end then after 5-10 seconds 
+w_scan on second front end then after 5-10 seconds w_scan on first
+4) "dvb-fe-tool -d DVBS" on second front end then after 5-10 seconds 
+w_scan on first front end then after 5-10 seconds w_scan on second
 
-Signed-off-by: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
----
-v1: This patch applies to Greg's tree.
+w_scan run on both front ends simultaneously.
 
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-index 704fa20..a425f71 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-@@ -901,7 +901,7 @@ static int ipipe_set_gbce_params(struct vpfe_ipipe_device *ipipe, void *param)
- 	struct device *dev = ipipe->subdev.v4l2_dev->dev;
- 
- 	if (!gbce_param) {
--		memset(gbce, 0 , sizeof(struct vpfe_ipipe_gbce));
-+		memset(gbce, 0, sizeof(struct vpfe_ipipe_gbce));
- 	} else {
- 		memcpy(gbce, gbce_param, sizeof(struct vpfe_ipipe_gbce));
- 		if (ipipe_validate_gbce_params(gbce) < 0) {
-@@ -1086,7 +1086,7 @@ static int ipipe_set_car_params(struct vpfe_ipipe_device *ipipe, void *param)
- 	struct vpfe_ipipe_car *car = &ipipe->config.car;
- 
- 	if (!car_param) {
--		memset(car , 0, sizeof(struct vpfe_ipipe_car));
-+		memset(car, 0, sizeof(struct vpfe_ipipe_car));
- 	} else {
- 		memcpy(car, car_param, sizeof(struct vpfe_ipipe_car));
- 		if (ipipe_validate_car_params(car) < 0) {
--- 
-1.9.3
+ > Use only one DVB adapter, not both.
 
+Do you mean one card or one front end?
+
+
+
+Raimonds Cicans
