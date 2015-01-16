@@ -1,133 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-231.synserver.de ([212.40.185.231]:1036 "EHLO
-	smtp-out-227.synserver.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752328AbbAMMBb (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:59322 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066AbbAPO2W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 07:01:31 -0500
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 08/16] [media] adv7180: Consolidate video mode setting
-Date: Tue, 13 Jan 2015 13:01:13 +0100
-Message-Id: <1421150481-30230-9-git-send-email-lars@metafoo.de>
-In-Reply-To: <1421150481-30230-1-git-send-email-lars@metafoo.de>
-References: <1421150481-30230-1-git-send-email-lars@metafoo.de>
+	Fri, 16 Jan 2015 09:28:22 -0500
+Received: by mail-wg0-f54.google.com with SMTP id z12so20797962wgg.13
+        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 06:28:21 -0800 (PST)
+Received: from [192.168.1.5] (52484E89.cm-4-1b.dynamic.ziggo.nl. [82.72.78.137])
+        by mx.google.com with ESMTPSA id b13sm3224646wiw.13.2015.01.16.06.28.21
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 16 Jan 2015 06:28:21 -0800 (PST)
+Message-ID: <54B92004.1080001@gmail.com>
+Date: Fri, 16 Jan 2015 15:28:20 +0100
+From: =?windows-1252?Q?Tycho_L=FCrsen?= <tycholursen@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] si2168: add support for 1.7MHz bandwidth
+References: <1421411720-2364-1-git-send-email-olli.salonen@iki.fi> <1421411720-2364-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1421411720-2364-2-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We have basically the same code to set the video standard in init_device()
-and adv7180_s_std(). Factor this out into a common helper function.
+Hi Olli,
+did you commit this anywhere?
+Regards,
+Tycho.
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
----
- drivers/media/i2c/adv7180.c | 67 ++++++++++++++++++++++-----------------------
- 1 file changed, 32 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 349cae3..4d9bcc8 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -304,37 +304,54 @@ static int adv7180_g_input_status(struct v4l2_subdev *sd, u32 *status)
- 	return ret;
- }
- 
--static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
-+static int adv7180_program_std(struct adv7180_state *state)
- {
--	struct adv7180_state *state = to_state(sd);
--	int ret = mutex_lock_interruptible(&state->mutex);
--	if (ret)
--		return ret;
-+	int ret;
- 
--	/* all standards -> autodetect */
--	if (std == V4L2_STD_ALL) {
-+	if (state->autodetect) {
- 		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
- 				    ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM
- 				    | state->input);
- 		if (ret < 0)
--			goto out;
-+			return ret;
- 
- 		__adv7180_status(state, NULL, &state->curr_norm);
--		state->autodetect = true;
- 	} else {
--		ret = v4l2_std_to_adv7180(std);
-+		ret = v4l2_std_to_adv7180(state->curr_norm);
- 		if (ret < 0)
--			goto out;
-+			return ret;
- 
- 		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
- 				    ret | state->input);
- 		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
-+{
-+	struct adv7180_state *state = to_state(sd);
-+	int ret = mutex_lock_interruptible(&state->mutex);
-+
-+	if (ret)
-+		return ret;
-+
-+	/* all standards -> autodetect */
-+	if (std == V4L2_STD_ALL) {
-+		state->autodetect = true;
-+	} else {
-+		/* Make sure we can support this std */
-+		ret = v4l2_std_to_adv7180(std);
-+		if (ret < 0)
- 			goto out;
- 
- 		state->curr_norm = std;
- 		state->autodetect = false;
- 	}
--	ret = 0;
-+
-+	ret = adv7180_program_std(state);
- out:
- 	mutex_unlock(&state->mutex);
- 	return ret;
-@@ -547,30 +564,10 @@ static int init_device(struct adv7180_state *state)
- 	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
- 	usleep_range(2000, 10000);
- 
--	/* Initialize adv7180 */
--	/* Enable autodetection */
--	if (state->autodetect) {
--		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
--				ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM
--					      | state->input);
--		if (ret < 0)
--			goto out_unlock;
--
--		ret = adv7180_write(state, ADV7180_REG_AUTODETECT_ENABLE,
--					      ADV7180_AUTODETECT_DEFAULT);
--		if (ret < 0)
--			goto out_unlock;
--	} else {
--		ret = v4l2_std_to_adv7180(state->curr_norm);
--		if (ret < 0)
--			goto out_unlock;
--
--		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
--					      ret | state->input);
--		if (ret < 0)
--			goto out_unlock;
-+	ret = adv7180_program_std(state);
-+	if (ret)
-+		goto out_unlock;
- 
--	}
- 	/* ITU-R BT.656-4 compatible */
- 	ret = adv7180_write(state, ADV7180_REG_EXTENDED_OUTPUT_CONTROL,
- 			ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS);
--- 
-1.8.0
+Op 16-01-15 om 13:35 schreef Olli Salonen:
+> This patch is based on Antti's silabs branch.
+>
+> Add support for 1.7 MHz bandwidth. Supported in all versions of Si2168 according to short data sheets.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/dvb-frontends/si2168.c | 2 ++
+>   1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> index 7fef5ab..ec893ee 100644
+> --- a/drivers/media/dvb-frontends/si2168.c
+> +++ b/drivers/media/dvb-frontends/si2168.c
+> @@ -185,6 +185,8 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+>   		dev_err(&client->dev, "automatic bandwidth not supported");
+>   		goto err;
+>   	}
+> +	else if (c->bandwidth_hz <= 2000000)
+> +		bandwidth = 0x02;
+>   	else if (c->bandwidth_hz <= 5000000)
+>   		bandwidth = 0x05;
+>   	else if (c->bandwidth_hz <= 6000000)
 
