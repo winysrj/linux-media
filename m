@@ -1,41 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:34087 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752061AbbAIU7x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 15:59:53 -0500
-Date: Fri, 9 Jan 2015 21:59:50 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH/RFC v10 19/19] leds: aat1290: add support for V4L2 Flash
- sub-device
-Message-ID: <20150109205950.GT18076@amd>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-20-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1420816989-1808-20-git-send-email-j.anaszewski@samsung.com>
+Received: from ns.gsystem.sk ([62.176.172.50]:48426 "EHLO gsystem.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751519AbbAPJ6q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2015 04:58:46 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 3/3 v2] bttv: Improve TEA575x support
+Date: Fri, 16 Jan 2015 10:58:32 +0100
+Message-Id: <1421402312-7426-1-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <54B8DB6E.6090804@xs4all.nl>
+References: <54B8DB6E.6090804@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 2015-01-09 16:23:09, Jacek Anaszewski wrote:
-> Add support for V4L2 Flash sub-device to the aat1290 LED Flash class
-> driver. The support allows for V4L2 Flash sub-device to take the control
-> of the LED Flash class device.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Improve g_tuner and add s_hw_freq_seek and enum_freq_bands support for cards
+with TEA575x radio.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+This allows signal/stereo detection and HW seek to work on these cards.
 
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index e7f8ade..4ec2a3c 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -2515,6 +2515,8 @@ static int bttv_querycap(struct file *file, void  *priv,
+ 		if (btv->has_saa6588)
+ 			cap->device_caps |= V4L2_CAP_READWRITE |
+ 						V4L2_CAP_RDS_CAPTURE;
++		if (btv->has_tea575x)
++			cap->device_caps |= V4L2_CAP_HW_FREQ_SEEK;
+ 	}
+ 	return 0;
+ }
+@@ -3244,6 +3246,9 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ 	if (btv->audio_mode_gpio)
+ 		btv->audio_mode_gpio(btv, t, 0);
+ 
++	if (btv->has_tea575x)
++		return snd_tea575x_g_tuner(&btv->tea, t);
++
+ 	return 0;
+ }
+ 
+@@ -3261,6 +3266,30 @@ static int radio_s_tuner(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static int radio_s_hw_freq_seek(struct file *file, void *priv,
++					const struct v4l2_hw_freq_seek *a)
++{
++	struct bttv_fh *fh = priv;
++	struct bttv *btv = fh->btv;
++
++	if (btv->has_tea575x)
++		return snd_tea575x_s_hw_freq_seek(file, &btv->tea, a);
++
++	return -ENOTTY;
++}
++
++static int radio_enum_freq_bands(struct file *file, void *priv,
++					 struct v4l2_frequency_band *band)
++{
++	struct bttv_fh *fh = priv;
++	struct bttv *btv = fh->btv;
++
++	if (btv->has_tea575x)
++		return snd_tea575x_enum_freq_bands(&btv->tea, band);
++
++	return -ENOTTY;
++}
++
+ static ssize_t radio_read(struct file *file, char __user *data,
+ 			 size_t count, loff_t *ppos)
+ {
+@@ -3318,6 +3347,8 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+ 	.vidioc_s_tuner         = radio_s_tuner,
+ 	.vidioc_g_frequency     = bttv_g_frequency,
+ 	.vidioc_s_frequency     = bttv_s_frequency,
++	.vidioc_s_hw_freq_seek	= radio_s_hw_freq_seek,
++	.vidioc_enum_freq_bands	= radio_enum_freq_bands,
+ 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Ondrej Zary
+
