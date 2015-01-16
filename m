@@ -1,90 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f45.google.com ([209.85.213.45]:37522 "EHLO
-	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751847AbbAGUO7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 15:14:59 -0500
-Received: by mail-yh0-f45.google.com with SMTP id f10so980520yha.4
-        for <linux-media@vger.kernel.org>; Wed, 07 Jan 2015 12:14:59 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAHp75VfsCDSiviC7-tprXCqDqXmvJs87V8ve4HoPECyVoh4eww@mail.gmail.com>
-References: <1420597628-317-1-git-send-email-andy.shevchenko@gmail.com>
-	<Pine.LNX.4.64.1501072043490.16637@axis700.grange>
-	<CAHp75VfsCDSiviC7-tprXCqDqXmvJs87V8ve4HoPECyVoh4eww@mail.gmail.com>
-Date: Wed, 7 Jan 2015 22:14:58 +0200
-Message-ID: <CAHp75Ve1L=v68moUvTahw_O4HYY9-tTQfWoDdD7KcJv5HPb5Mw@mail.gmail.com>
-Subject: Re: [PATCH] [media] soc_camera: avoid potential null-dereference
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:38791 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752804AbbAPLYu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2015 06:24:50 -0500
+Received: by mail-pa0-f44.google.com with SMTP id et14so23759192pad.3
+        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 03:24:49 -0800 (PST)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH v3 0/4] modify earth-pt3 and its dependees to use i2c template
+Date: Fri, 16 Jan 2015 20:24:36 +0900
+Message-Id: <1421407480-9122-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 7, 2015 at 10:05 PM, Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
-> On Wed, Jan 7, 2015 at 9:44 PM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
->> Hi Andy,
->>
->> Thanks for the patch. Will queue for the next pull request.
->
-> If you didn't do that please wait. It seems it has one more place with
-> similar issue. Moreover, I would like to add a person's name who
-> reported this.
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Okay, the second one is false positive.
-And
-Reported-by: Andrey Karpov <karpov@viva64.com>
+This patch series depends on the previous patch:
+"[PATCH v3]dvb-core: add template code for i2c binding model"
 
->
->>
->> Regards
->> Guennadi
->>
->> On Wed, 7 Jan 2015, Andy Shevchenko wrote:
->>
->>> We have to check the pointer before dereferencing it.
->>>
->>> Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->>> ---
->>>  drivers/media/platform/soc_camera/soc_camera.c | 4 +++-
->>>  1 file changed, 3 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
->>> index b3db51c..8c665c4 100644
->>> --- a/drivers/media/platform/soc_camera/soc_camera.c
->>> +++ b/drivers/media/platform/soc_camera/soc_camera.c
->>> @@ -2166,7 +2166,7 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
->>>  static int soc_camera_pdrv_probe(struct platform_device *pdev)
->>>  {
->>>       struct soc_camera_desc *sdesc = pdev->dev.platform_data;
->>> -     struct soc_camera_subdev_desc *ssdd = &sdesc->subdev_desc;
->>> +     struct soc_camera_subdev_desc *ssdd;
->>>       struct soc_camera_device *icd;
->>>       int ret;
->>>
->>> @@ -2177,6 +2177,8 @@ static int soc_camera_pdrv_probe(struct platform_device *pdev)
->>>       if (!icd)
->>>               return -ENOMEM;
->>>
->>> +     ssdd = &sdesc->subdev_desc;
->>> +
->>>       /*
->>>        * In the asynchronous case ssdd->num_regulators == 0 yet, so, the below
->>>        * regulator allocation is a dummy. They are actually requested by the
->>> --
->>> 1.8.3.101.g727a46b
->>>
->
->
->
-> --
-> With Best Regards,
-> Andy Shevchenko
+The adapter(earth-pt3), its demod (tc90522) and tuners (mxl301rf, qm1d1c0042)
+are ported to dvb-core i2c template.
 
+Changes in v3:
+- tc90522,earth-pt3: adapt to i2c template patch v3,
+     moved fe_i2c_client from dvb_frontend* to state
 
+Akihiro Tsukada (4):
+  dvb: qm1d1c0042: use dvb-core i2c binding model template
+  dvb: mxl301rf: use dvb-core i2c binding model template
+  dvb: tc90522: use dvb-core i2c binding model template
+  dvb: earth-pt3: use dvb-core i2c binding model template
+
+ drivers/media/dvb-frontends/tc90522.c | 64 +++++++++++++-------------
+ drivers/media/dvb-frontends/tc90522.h |  8 ++--
+ drivers/media/pci/pt3/pt3.c           | 85 +++++++++++------------------------
+ drivers/media/pci/pt3/pt3.h           | 11 ++---
+ drivers/media/tuners/mxl301rf.c       | 50 ++++++---------------
+ drivers/media/tuners/mxl301rf.h       |  2 +-
+ drivers/media/tuners/qm1d1c0042.c     | 60 ++++++++-----------------
+ drivers/media/tuners/qm1d1c0042.h     |  2 -
+ 8 files changed, 99 insertions(+), 183 deletions(-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
+2.2.2
+
