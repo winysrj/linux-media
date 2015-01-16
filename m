@@ -1,67 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:56249 "EHLO
-	mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755163AbbA2Bj4 convert rfc822-to-8bit (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:35726 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752386AbbAPDkO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 20:39:56 -0500
-Received: by mail-oi0-f41.google.com with SMTP id z81so22196685oif.0
-        for <linux-media@vger.kernel.org>; Wed, 28 Jan 2015 17:39:55 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <54C8C612.1030701@linaro.org>
-References: <1422424845-14906-1-git-send-email-sumit.semwal@linaro.org> <54C8C612.1030701@linaro.org>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Wed, 28 Jan 2015 17:57:28 +0530
-Message-ID: <CAO_48GF7CQvY4dF4RoXytSkAQPf-AMsO9Co_UvpS4hr4TY_Wig@mail.gmail.com>
-Subject: Re: [PATCH v2] dma-buf: cleanup dma_buf_export() to make it easily extensible
-To: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	rmk+kernel@arm.linux.org.uk, Dave Airlie <airlied@linux.ie>,
-	kgene@kernel.org, daniel.vetter@intel.com,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	intel-gfx@lists.freedesktop.org, linux-tegra@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 15 Jan 2015 22:40:14 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 214652A009D
+	for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 04:39:56 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150116033956.214652A009D@tschai.lan>
+Date: Fri, 16 Jan 2015 04:39:56 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28 January 2015 at 16:50, Daniel Thompson <daniel.thompson@linaro.org> wrote:
-> On 28/01/15 06:00, Sumit Semwal wrote:
-<snip>
->> +/**
->> + * helper macro for exporters; zeros and fills in most common values
->> + */
->> +#define DEFINE_DMA_BUF_EXPORT_INFO(a)                        \
->> +     struct dma_buf_export_info a = {0};             \
->> +     exp_info.exp_name = KBUILD_MODNAME
->> +
->
-> This risks generating C99 warnings unless used with care (and only once
-> per function). Shouldn't this be more like:
->
-> #define DEFINE_DMA_BUF_EXPORT_INFO(a) \
->     struct dma_buf_export_info a = { .exp_name = KBUILD_MODNAME }
->
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Ah! My bad; thanks for catching this, Daniel; I'll send out the
-updated patch in a minute!
-> Daniel.
->
+Results of the daily build of media_tree:
 
+date:		Fri Jan 16 04:00:14 CET 2015
+git branch:	test
+git hash:	99f3cd52aee21091ce62442285a68873e3be833f
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17-x86_64: ERRORS
+linux-3.18-x86_64: ERRORS
+linux-3.19-rc4-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
--- 
-Thanks and regards,
+Detailed results are available here:
 
-Sumit Semwal
-Kernel Team Lead - Linaro Mobile Group
-Linaro.org │ Open source software for ARM SoCs
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
