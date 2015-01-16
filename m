@@ -1,88 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43722 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751984AbbA2Ugz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 15:36:55 -0500
-Date: Thu, 29 Jan 2015 18:36:50 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	John McMaster <johndmcmaster@gmail.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PULL patches for 3.20]: New gspca touptek driver, gspca fixes
- and sunxi-cir driver improvments
-Message-ID: <20150129183650.526d7015@recife.lan>
-In-Reply-To: <54B79BDE.8090702@redhat.com>
-References: <54B79BDE.8090702@redhat.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37669 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751441AbbAPPI6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2015 10:08:58 -0500
+Message-ID: <54B92976.1060501@xs4all.nl>
+Date: Fri, 16 Jan 2015 16:08:38 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 00/15] media: blackfin: bfin_capture enhancements
+References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com> <CAHG8p1DxTmd6QDpmjHSG0+40GaeGV0ox0aZpX_VVxTJUnxhB1A@mail.gmail.com>
+In-Reply-To: <CAHG8p1DxTmd6QDpmjHSG0+40GaeGV0ox0aZpX_VVxTJUnxhB1A@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 15 Jan 2015 11:52:14 +0100
-Hans de Goede <hdegoede@redhat.com> escreveu:
+Hi Scott,
 
-> Hi Mauro,
-> 
-> Note this pull-req superseeds my previous pull-req for 3.20 .
+Any idea when you will have time to test this?
 
-Hmm... I ended by applying the previous pull request. I was unable to see
-what's new on this one. Please check if everything went fine.
+Regards,
 
-Thanks!
-Mauro
+	Hans
 
+On 12/26/2014 08:13 AM, Scott Jiang wrote:
+> Hi Lad,
 > 
-> Please pull from my tree for a new gspca touptek driver, various
-> gspca fixes and some sunxi-cir driver improvments.
+> I'm on holiday these days. I will test these patches later.
 > 
-> The following changes since commit 99f3cd52aee21091ce62442285a68873e3be833f:
+> Thanks,
+> Scott
 > 
->    [media] vb2-vmalloc: Protect DMA-specific code by #ifdef CONFIG_HAS_DMA (2014-12-23 16:28:09 -0200)
-> 
-> are available in the git repository at:
-> 
->    git://linuxtv.org/hgoede/gspca.git media-for_v3.20
-> 
-> for you to fetch changes up to e6a734195e2fbd9386aa58fe8931dd30c013f23e:
-> 
->    gspca: Fix underflow in vidioc_s_parm() (2015-01-15 11:46:17 +0100)
-> 
-> ----------------------------------------------------------------
-> Antonio Ospite (1):
->        gspca_stv06xx: enable button found on some Quickcam Express variant
-> 
-> Hans Verkuil (1):
->        pwc: fix WARN_ON
-> 
-> Hans de Goede (3):
->        rc: sunxi-cir: Add support for an optional reset controller
->        rc: sunxi-cir: Add support for the larger fifo found on sun5i and sun6i
->        gspca: Fix underflow in vidioc_s_parm()
-> 
-> Joe Howse (1):
->        gspca: Add high-speed modes for PS3 Eye camera
-> 
-> John McMaster (1):
->        gspca_touptek: Add support for ToupTek UCMOS series USB cameras
-> 
->   .../devicetree/bindings/media/sunxi-ir.txt         |   4 +-
->   drivers/media/rc/sunxi-cir.c                       |  46 +-
->   drivers/media/usb/gspca/Kconfig                    |  10 +
->   drivers/media/usb/gspca/Makefile                   |   2 +
->   drivers/media/usb/gspca/gspca.c                    |   2 +-
->   drivers/media/usb/gspca/ov534.c                    |  10 +-
->   drivers/media/usb/gspca/stv06xx/stv06xx.c          |   4 +-
->   drivers/media/usb/gspca/touptek.c                  | 732 +++++++++++++++++++++
->   drivers/media/usb/pwc/pwc-if.c                     |  12 +-
->   9 files changed, 800 insertions(+), 22 deletions(-)
->   create mode 100644 drivers/media/usb/gspca/touptek.c
-> 
-> Thanks & Regards,
-> 
-> Hans
+> 2014-12-20 18:47 GMT+08:00 Lad, Prabhakar <prabhakar.csengg@gmail.com>:
+>> Hi Scott,
+>>
+>> Although I was on holiday but couldn't resist myself from working,
+>> since I was away from my hardware I had to choose a different one,
+>> blackfin driver was lucky one. Since I don't have the blackfin
+>> board I haven't tested them on the actual board, but just compile
+>> tested, Can you please test it & ACK.
+>>
+>> Lad, Prabhakar (15):
+>>   media: blackfin: bfin_capture: drop buf_init() callback
+>>   media: blackfin: bfin_capture: release buffers in case
+>>     start_streaming() call back fails
+>>   media: blackfin: bfin_capture: set min_buffers_needed
+>>   media: blackfin: bfin_capture: improve buf_prepare() callback
+>>   media: blackfin: bfin_capture: improve queue_setup() callback
+>>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
+>>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
+>>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
+>>   media: blackfin: bfin_capture: make sure all buffers are returned on
+>>     stop_streaming() callback
+>>   media: blackfin: bfin_capture: return -ENODATA for *std calls
+>>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
+>>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
+>>   media: blackfin: bfin_capture: add support for VB2_DMABUF
+>>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
+>>   media: blackfin: bfin_capture: set v4l2 buffer sequence
+>>
+>>  drivers/media/platform/blackfin/bfin_capture.c | 310 ++++++++-----------------
+>>  1 file changed, 98 insertions(+), 212 deletions(-)
+>>
+>> --
+>> 1.9.1
+>>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
