@@ -1,52 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:59534 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751749AbbAQN1G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2015 08:27:06 -0500
-Received: by mail-ie0-f180.google.com with SMTP id rp18so24989101iec.11
-        for <linux-media@vger.kernel.org>; Sat, 17 Jan 2015 05:27:04 -0800 (PST)
-Received: from mail-ig0-f182.google.com (mail-ig0-f182.google.com. [209.85.213.182])
-        by mx.google.com with ESMTPSA id g20sm3103740igt.14.2015.01.17.05.27.03
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Sat, 17 Jan 2015 05:27:03 -0800 (PST)
-Received: by mail-ig0-f182.google.com with SMTP id hn15so7308363igb.3
-        for <linux-media@vger.kernel.org>; Sat, 17 Jan 2015 05:27:03 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20150117102339.5c224564@pirotess.bf.iodev.co.uk>
-References: <1419184727-11224-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-	<54B8EE13.6010508@xs4all.nl>
-	<20150117102339.5c224564@pirotess.bf.iodev.co.uk>
-Date: Sat, 17 Jan 2015 14:27:03 +0100
-Message-ID: <CAKXHbyNjd2X9A9OZ16oRu-ud3A8373jDOR5dCevD1mp+YFf-yQ@mail.gmail.com>
-Subject: Re: [PATCH] media: pci: solo6x10: solo6x10-enc.c: Remove unused function
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-To: Ismael Luceno <ismael.luceno@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Content-Type: text/plain; charset=UTF-8
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61760 "EHLO
+	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753044AbbAPPdR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2015 10:33:17 -0500
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+Subject: [PATCH 2/2] media: rcar_vin: move buffer management to .stop_streaming handler
+Date: Fri, 16 Jan 2015 15:14:27 +0000
+Message-Id: <1421421267-886-3-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1421421267-886-2-git-send-email-william.towle@codethink.co.uk>
+References: <1421421267-886-2-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2015-01-17 14:23 GMT+01:00 Ismael Luceno <ismael.luceno@gmail.com>:
-> On Fri, 16 Jan 2015 11:55:15 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> (resent with correct email address for Ismael)
->>
->> Ismael, Andrey,
->>
->> Can you take a look at this? Shouldn't solo_s_jpeg_qp() be hooked up
->> to something?
->
-> The feature was never implemented, so yes, and we should keep it around.
+This commit moves the "buffer in use" logic from the .buf_cleanup
+handler into .stop_streaming, based on advice that this is its
+proper logical home.
 
+By ensuring the list of pointers in priv->queue_buf[] is managed
+as soon as possible, we avoid warnings concerning buffers in ACTIVE
+state when the system cleans up after streaming stops. This fixes a
+problem with modification of buffers after their content has been
+cleared for passing to userspace.
 
-Hi
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c |   47 +++++++++-----------------
+ 1 file changed, 16 insertions(+), 31 deletions(-)
 
-But maybe add a comment then?
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 89c409b..022fa9d 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -485,37 +485,10 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct rcar_vin_priv *priv = ici->priv;
+-	unsigned int i;
+-	int buf_in_use = 0;
+ 
+ 	spin_lock_irq(&priv->lock);
+ 
+-	/* Is the buffer in use by the VIN hardware? */
+-	for (i = 0; i < MAX_BUFFER_NUM; i++) {
+-		if (priv->queue_buf[i] == vb) {
+-			buf_in_use = 1;
+-			break;
+-		}
+-	}
+-
+-	if (buf_in_use) {
+-		rcar_vin_wait_stop_streaming(priv);
+-
+-		/*
+-		 * Capturing has now stopped. The buffer we have been asked
+-		 * to release could be any of the current buffers in use, so
+-		 * release all buffers that are in use by HW
+-		 */
+-		for (i = 0; i < MAX_BUFFER_NUM; i++) {
+-			if (priv->queue_buf[i]) {
+-				vb2_buffer_done(priv->queue_buf[i],
+-					VB2_BUF_STATE_ERROR);
+-				priv->queue_buf[i] = NULL;
+-			}
+-		}
+-	} else {
+-		list_del_init(to_buf_list(vb));
+-	}
++	list_del_init(to_buf_list(vb));
+ 
+ 	spin_unlock_irq(&priv->lock);
+ }
+@@ -532,13 +505,25 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct rcar_vin_priv *priv = ici->priv;
+ 	struct list_head *buf_head, *tmp;
++	int i;
+ 
+ 	spin_lock_irq(&priv->lock);
+-
+ 	rcar_vin_wait_stop_streaming(priv);
+-	list_for_each_safe(buf_head, tmp, &priv->capture)
+-		list_del_init(buf_head);
+ 
++	for (i = 0; i < MAX_BUFFER_NUM; i++) {
++		if (priv->queue_buf[i]) {
++			vb2_buffer_done(priv->queue_buf[i],
++					VB2_BUF_STATE_ERROR);
++			priv->queue_buf[i] = NULL;
++		}
++	}
++
++	list_for_each_safe(buf_head, tmp, &priv->capture) {
++		vb2_buffer_done(&list_entry(buf_head,
++					struct rcar_vin_buffer, list)->vb,
++				VB2_BUF_STATE_ERROR);
++		list_del_init(buf_head);
++	}
+ 	spin_unlock_irq(&priv->lock);
+ }
+ 
+-- 
+1.7.10.4
 
-Kind regards
-Rickard Strandqvist
