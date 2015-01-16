@@ -1,59 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:60991 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753726AbbAVWUt (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:47890 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752558AbbAPLYx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 17:20:49 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 01/15] media: blackfin: bfin_capture: drop buf_init() callback
-Date: Thu, 22 Jan 2015 22:18:34 +0000
-Message-Id: <1421965128-10470-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 16 Jan 2015 06:24:53 -0500
+Received: by mail-pa0-f44.google.com with SMTP id et14so23759508pad.3
+        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 03:24:53 -0800 (PST)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH v3 1/4] dvb: qm1d1c0042: use dvb-core i2c binding model template
+Date: Fri, 16 Jan 2015 20:24:37 +0900
+Message-Id: <1421407480-9122-2-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1421407480-9122-1-git-send-email-tskd08@gmail.com>
+References: <1421407480-9122-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch drops the buf_init() callback as init
-of buf list is not required.
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
 ---
- drivers/media/platform/blackfin/bfin_capture.c | 9 ---------
- 1 file changed, 9 deletions(-)
+ drivers/media/tuners/qm1d1c0042.c | 60 +++++++++++++--------------------------
+ drivers/media/tuners/qm1d1c0042.h |  2 --
+ 2 files changed, 19 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 3112844..d4eeae9 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -302,14 +302,6 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
+index 18bc745..b6d637d 100644
+--- a/drivers/media/tuners/qm1d1c0042.c
++++ b/drivers/media/tuners/qm1d1c0042.c
+@@ -29,6 +29,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/math64.h>
++#include "dvb_i2c.h"
+ #include "qm1d1c0042.h"
+ 
+ #define QM1D1C0042_NUM_REGS 0x20
+@@ -55,11 +56,6 @@ struct qm1d1c0042_state {
+ 	u8 regs[QM1D1C0042_NUM_REGS];
+ };
+ 
+-static struct qm1d1c0042_state *cfg_to_state(struct qm1d1c0042_config *c)
+-{
+-	return container_of(c, struct qm1d1c0042_state, cfg);
+-}
+-
+ static int reg_write(struct qm1d1c0042_state *state, u8 reg, u8 val)
+ {
+ 	u8 wbuf[2] = { reg, val };
+@@ -106,10 +102,12 @@ static int qm1d1c0042_set_srch_mode(struct qm1d1c0042_state *state, bool fast)
+ 	return reg_write(state, 0x03, state->regs[0x03]);
+ }
+ 
+-static int qm1d1c0042_wakeup(struct qm1d1c0042_state *state)
++static int qm1d1c0042_wakeup(struct dvb_frontend *fe)
+ {
++	struct qm1d1c0042_state *state;
+ 	int ret;
+ 
++	state = fe->tuner_priv;
+ 	state->regs[0x01] |= 1 << 3;             /* BB_Reg_enable */
+ 	state->regs[0x01] &= (~(1 << 0)) & 0xff; /* NORMAL (wake-up) */
+ 	state->regs[0x05] &= (~(1 << 3)) & 0xff; /* pfd_rst NORMAL */
+@@ -119,7 +117,7 @@ static int qm1d1c0042_wakeup(struct qm1d1c0042_state *state)
+ 
+ 	if (ret < 0)
+ 		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
+-			__func__, state->cfg.fe->dvb->num, state->cfg.fe->id);
++			__func__, fe->dvb->num, fe->id);
+ 	return ret;
+ }
+ 
+@@ -133,9 +131,6 @@ static int qm1d1c0042_set_config(struct dvb_frontend *fe, void *priv_cfg)
+ 	state = fe->tuner_priv;
+ 	cfg = priv_cfg;
+ 
+-	if (cfg->fe)
+-		state->cfg.fe = cfg->fe;
+-
+ 	if (cfg->xtal_freq != QM1D1C0042_CFG_XTAL_DFLT)
+ 		dev_warn(&state->i2c->dev,
+ 			"(%s) changing xtal_freq not supported. ", __func__);
+@@ -359,7 +354,7 @@ static int qm1d1c0042_init(struct dvb_frontend *fe)
+ 			goto failed;
+ 	}
+ 
+-	ret = qm1d1c0042_wakeup(state);
++	ret = qm1d1c0042_wakeup(fe);
+ 	if (ret < 0)
+ 		goto failed;
+ 
+@@ -395,33 +390,18 @@ static const struct dvb_tuner_ops qm1d1c0042_ops = {
+ static int qm1d1c0042_probe(struct i2c_client *client,
+ 			    const struct i2c_device_id *id)
+ {
+-	struct qm1d1c0042_state *state;
+-	struct qm1d1c0042_config *cfg;
++	struct dvb_i2c_tuner_config *cfg;
+ 	struct dvb_frontend *fe;
+-
+-	state = kzalloc(sizeof(*state), GFP_KERNEL);
+-	if (!state)
+-		return -ENOMEM;
+-	state->i2c = client;
++	struct qm1d1c0042_state *state;
+ 
+ 	cfg = client->dev.platform_data;
+ 	fe = cfg->fe;
+-	fe->tuner_priv = state;
+-	qm1d1c0042_set_config(fe, cfg);
+-	memcpy(&fe->ops.tuner_ops, &qm1d1c0042_ops, sizeof(qm1d1c0042_ops));
++	state = fe->tuner_priv;
++	state->i2c = client;
+ 
+-	i2c_set_clientdata(client, &state->cfg);
+-	dev_info(&client->dev, "Sharp QM1D1C0042 attached.\n");
+-	return 0;
+-}
++	qm1d1c0042_set_config(fe, (void *)cfg->devcfg.priv_cfg);
+ 
+-static int qm1d1c0042_remove(struct i2c_client *client)
+-{
+-	struct qm1d1c0042_state *state;
+-
+-	state = cfg_to_state(i2c_get_clientdata(client));
+-	state->cfg.fe->tuner_priv = NULL;
+-	kfree(state);
++	dev_info(&client->dev, "Sharp QM1D1C0042 attached.\n");
  	return 0;
  }
  
--static int bcap_buffer_init(struct vb2_buffer *vb)
--{
--	struct bcap_buffer *buf = to_bcap_vb(vb);
--
--	INIT_LIST_HEAD(&buf->list);
--	return 0;
--}
--
- static int bcap_buffer_prepare(struct vb2_buffer *vb)
- {
- 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
-@@ -441,7 +433,6 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
+@@ -430,18 +410,16 @@ static const struct i2c_device_id qm1d1c0042_id[] = {
+ 	{"qm1d1c0042", 0},
+ 	{}
+ };
+-MODULE_DEVICE_TABLE(i2c, qm1d1c0042_id);
  
- static struct vb2_ops bcap_video_qops = {
- 	.queue_setup            = bcap_queue_setup,
--	.buf_init               = bcap_buffer_init,
- 	.buf_prepare            = bcap_buffer_prepare,
- 	.buf_cleanup            = bcap_buffer_cleanup,
- 	.buf_queue              = bcap_buffer_queue,
+-static struct i2c_driver qm1d1c0042_driver = {
+-	.driver = {
+-		.name	= "qm1d1c0042",
+-	},
+-	.probe		= qm1d1c0042_probe,
+-	.remove		= qm1d1c0042_remove,
+-	.id_table	= qm1d1c0042_id,
++static const struct dvb_i2c_module_param qm1d1c0042_param = {
++	.ops.tuner_ops = &qm1d1c0042_ops,
++	.priv_probe = qm1d1c0042_probe,
++
++	.priv_size = sizeof(struct qm1d1c0042_state),
++	.is_tuner = true,
+ };
+ 
+-module_i2c_driver(qm1d1c0042_driver);
++DEFINE_DVB_I2C_MODULE(qm1d1c0042, qm1d1c0042_id, qm1d1c0042_param);
+ 
+ MODULE_DESCRIPTION("Sharp QM1D1C0042 tuner");
+ MODULE_AUTHOR("Akihiro TSUKADA");
+diff --git a/drivers/media/tuners/qm1d1c0042.h b/drivers/media/tuners/qm1d1c0042.h
+index 4f5c188..043787e 100644
+--- a/drivers/media/tuners/qm1d1c0042.h
++++ b/drivers/media/tuners/qm1d1c0042.h
+@@ -21,8 +21,6 @@
+ 
+ 
+ struct qm1d1c0042_config {
+-	struct dvb_frontend *fe;
+-
+ 	u32  xtal_freq;    /* [kHz] */ /* currently ignored */
+ 	bool lpf;          /* enable LPF */
+ 	bool fast_srch;    /* enable fast search mode, no LPF */
 -- 
-2.1.0
+2.2.2
 
