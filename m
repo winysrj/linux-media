@@ -1,95 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f45.google.com ([209.85.192.45]:45019 "EHLO
-	mail-qg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985AbbATR3h (ORCPT
+Received: from mail-ob0-f177.google.com ([209.85.214.177]:62830 "EHLO
+	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754567AbbAPQsc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 12:29:37 -0500
+	Fri, 16 Jan 2015 11:48:32 -0500
+Received: by mail-ob0-f177.google.com with SMTP id uy5so19320694obc.8
+        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 08:48:31 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <54BE7DAB.80702@samsung.com>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
- <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
- <54B38682.5080605@samsung.com> <CAL_Jsq+UaA41DvawdOMmOib=Fi0hC-nBdKV-+P4DFo+MoOy-bQ@mail.gmail.com>
- <54B3F1EF.4060506@samsung.com> <CAL_JsqKpJtUG0G6g1GOuSVpc31oe-dp3qdrKJUE0upG-xRDFhA@mail.gmail.com>
- <54B4DA81.7060900@samsung.com> <CAL_JsqLYxB5hzLAWXpU=uncM5DEMZU78mP673H9oSSNB-cgcYQ@mail.gmail.com>
- <54B8D4D0.3000904@samsung.com> <CAL_Jsq+EFWzs1HP1tVt6P=p=HZn2AtSPjp55YrmMQi_mE+kNfQ@mail.gmail.com>
- <54B933D0.1090004@samsung.com> <54BE7DAB.80702@samsung.com>
-From: Rob Herring <robherring2@gmail.com>
-Date: Tue, 20 Jan 2015 11:29:16 -0600
-Message-ID: <CAL_JsqKoiaUmVhbQdnNveG=AAYh4-OHGS70L+LAgLLoKChUuYQ@mail.gmail.com>
-Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>
+In-Reply-To: <54B93A49.1010108@apollo.lv>
+References: <54B52548.7010109@xs4all.nl>
+	<54B55C23.1070409@apollo.lv>
+	<54B92620.6020408@xs4all.nl>
+	<54B93A49.1010108@apollo.lv>
+Date: Fri, 16 Jan 2015 16:48:31 +0000
+Message-ID: <CAGj5WxAyS1x+J4WcyBv4GawqUK3DYdFWzStYUbq3CSLjFtByDg@mail.gmail.com>
+Subject: Re: [PATCH] cx23885/vb2 regression: please test this patch
+From: Luis Alves <ljalvs@gmail.com>
+To: Raimonds Cicans <ray@apollo.lv>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>, gtmkramer@xs4all.nl
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 20, 2015 at 10:09 AM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> On 01/16/2015 04:52 PM, Jacek Anaszewski wrote:
+Hans,
+
+There is another guy having issues with TBS8820 card (uses cx88 and cx24116)
+
+His syslog:
+http://paste.ubuntu.com/9284564/
+
+The stackdump makes me believe that the issue also appeared since
+"[media] cx88: convert to vb2"
+(still to confirm)
+
+Regards,
+Luis
+
+
+On Fri, Jan 16, 2015 at 4:20 PM, Raimonds Cicans <ray@apollo.lv> wrote:
+> On 16.01.2015 16:54, Hans Verkuil wrote:
 >>
->> On 01/16/2015 02:48 PM, Rob Herring wrote:
-
-[...]
-
->>> You may want to add something like led-output-cnt or led-driver-cnt in
->>> the parent so you know the max list size.
+>> On 01/13/2015 06:55 PM, Raimonds Cicans wrote:
+>>>
+>>> On 13.01.2015 16:01, Hans Verkuil wrote:
+>>>>
+>>>> Can you both test this patch? It should (I hope) solve the problems you
+>>>> both had with the cx23885 driver.
+>>>>
+>> Can you check that the function cx23885_risc_field in
+>> drivers/media/pci/cx23885/cx23885-core.c uses "sg = sg_next(sg);"
+>> instead of "sg++;"?
+>
+> There is no sg++ in whole drivers/media/pci/cx23885/ directory.
 >>
+>> To avoid confusion I would prefer that you test with a 3.18 or higher
+>> kernel
+>> and please state which kernel version you use and whether you used the
+>> media_build system or a specific git repo to build the drivers.
+>
+> kernel: Gentoo Hardened kernel 3.18.1 (hardened part turned off)
+> media_build: pure original media_build
+> media tree: https://github.com/ljalves/linux_media (original linux-media
+> plus some
+> new out of kernel TBS drivers (from this tree I need TBS6285 driver))
 >>
->> Why should we need this? The number of current outputs exposed by the
->> device is fixed and can be specified in a LED device bindings
->> documentation.
->>
+>> I'm also interested if you can reproduce it using just command-line tools
+>> (and let me know what it is you do).
 >
-> OK. The led-output-cnt property should be put in each sub-node, as the
-> number of the current outputs each LED can be connected to is variable.
-
-Sorry, I meant this for the parent node meaning how many outputs the
-driver IC has. I did say maybe because you may always know this. It
-can make it easier to allocate memory for led-sources knowing the max
-size up front.
-
-Rob
-
+> For tests I use only command line tools: w_scan & dvb-fe-tool
 >
-> New version:
+> Tests:
+> 1) w_scan on first front end then after 5-10 seconds w_scan on other
+> 2) w_scan on second front end then after 5-10 seconds w_scan on first
+> 3) "dvb-fe-tool -d DVBS" on first front end then after 5-10 seconds w_scan
+> on second front end then after 5-10 seconds w_scan on first
+> 4) "dvb-fe-tool -d DVBS" on second front end then after 5-10 seconds w_scan
+> on first front end then after 5-10 seconds w_scan on second
 >
->  Optional properties for child nodes:
-> +led-sources-cnt : Number of device current outputs the LED is connected to.
-> +- led-sources : List of device current outputs the LED is connected to. The
-> +               outputs are identified by the numbers that must be defined
-> +               in the LED device binding documentation.
->  - label : The label for this LED.  If omitted, the label is
->    taken from the node name (excluding the unit address).
+> w_scan run on both front ends simultaneously.
 >
-> @@ -33,7 +47,9 @@ system-status {
 >
->  camera-flash {
->         label = "Flash";
-> +       led-sources-cnt = <2>;
-> +       led-sources = <0>, <1>;
->         max-microamp = <50000>;
->         flash-max-microamp = <320000>;
->         flash-timeout-us = <500000>;
-> -}
-> +};
+>> Use only one DVB adapter, not both.
 >
+> Do you mean one card or one front end?
+>
+>
+>
+> Raimonds Cicans
 >
 > --
-> Best Regards,
-> Jacek Anaszewski
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
