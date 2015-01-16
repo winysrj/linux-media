@@ -1,78 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:36149 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751326AbbA0LdE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 06:33:04 -0500
-Message-id: <54C77762.9090807@samsung.com>
-Date: Tue, 27 Jan 2015 12:32:50 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: "Baluta, Teodora" <teodora.baluta@intel.com>,
-	Jonathan Cameron <jic23@kernel.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-iio <linux-iio@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 0/3] Introduce IIO interface for fingerprint sensors
-References: <1417698017-13835-1-git-send-email-teodora.baluta@intel.com>
- <5481153B.4070609@kernel.org> <1418047828.18463.10.camel@bebop>
- <54930604.1020607@metafoo.de> <549D42BD.1050901@kernel.org>
- <1421255642.31900.4.camel@bebop> <54B7FAF2.8080207@samsung.com>
- <A2E3DE9C026DE6469D89C3A4C6C219390A89FE37@IRSMSX107.ger.corp.intel.com>
-In-reply-to: <A2E3DE9C026DE6469D89C3A4C6C219390A89FE37@IRSMSX107.ger.corp.intel.com>
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 7bit
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61774 "EHLO
+	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753044AbbAPPdT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2015 10:33:19 -0500
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+Subject: [PATCH 1/2] media: rcar_vin: Fix race condition terminating stream
+Date: Fri, 16 Jan 2015 15:14:26 +0000
+Message-Id: <1421421267-886-2-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Ian Molton <ian.molton@codethink.co.uk>
 
-On 23/01/15 14:05, Baluta, Teodora wrote:
-...
->>>>>>> So why not v4l?  These are effectively image sensors..
->>>>>>
->>>>>> Well, here's why I don't think v4l would be the best option:
->>>>>>
->>>>>> - an image scanner could be implemented in the v4l subsystem, but
->>>>>> it seems far more complicated for a simple fingerprint scanner - it
->>>>>> usually has drivers for webcams, TVs or video streaming devices.
->>>>>> The v4l subsystem (with all its support for colorspace, decoders,
->>>>>> image compression, frame control) seems a bit of an overkill for a
->>>>>> very straightforward fingerprint imaging sensor.
->>>
->>>> Whilst those are there, I would doubt the irrelevant bits would put
->>>> much burden on a fingerprint scanning driver.  Been a while since I
->>>> did anything in that area though so I could be wrong!
->>
->> IMO V4L is much better fit for this kind of devices than IIO. You can use just a
->> subset of the API, it shouldn't take much effort to write a simple
->> v4l2 capture driver, supporting fixed (probably vendor/chip specific) image
->> format.  I'm not sure if it's better to use the v4l2 controls [1], define a new
->> v4l2 controls class for the fingerprint scanner processing features, rather than
->> trying to pass raw data to user space and interpret it then in some library.  I
->> know there has been resistance to allowing passing unknown binary blobs to
->> user space, due to possible abuses.
->>
->> [1] Documentation/video4linux/v4l2-controls.txt
->                                                                                                                
-> The fingerprint sensor acts more like a scanner device, so the closest type 
-> is the V4L2_CAP_VIDEO_CAPTURE. However, this is not a perfect match because
-> the driver only sends an image, once, when triggered. Would it be a better
-> alternative to define a new capability type? Or it would be acceptable to
-> simply have a video device with no frame buffer or frame rate and the user
-> space application to read from the character device /dev/videoX?
+The potential for a race condition exists where frame capture may
+generate an interrupt between requesting the capture process halt
+and freeing buffers.
 
-I don't think a new capability is needed for just one buffer capture.
-The capture driver could just support read() and signal it by setting the
-V4L2_CAP_READWRITE capability flag [2], [3].
+Introduce rcar_vin_wait_stop_streaming() and call it in appropriate
+places so we ensure capturing has finished where this is critical.
 
-[2]
-http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-querycap.html#device-capabilities
-[3] http://linuxtv.org/downloads/v4l-dvb-apis/io.html#rw
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c |   41 +++++++++++++++++---------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
 
---
-Regards,
-Sylwester
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 8d8438b..89c409b 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -458,6 +458,28 @@ error:
+ 	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
+ }
+ 
++/*
++ * Wait for capture to stop and all in-flight buffers to be finished with by
++ * the video hardware. This must be called under &priv->lock
++ *
++ */
++static void rcar_vin_wait_stop_streaming(struct rcar_vin_priv *priv)
++{
++	while (priv->state != STOPPED) {
++		/* issue stop if running */
++		if (priv->state == RUNNING)
++			rcar_vin_request_capture_stop(priv);
++
++		/* wait until capturing has been stopped */
++		if (priv->state == STOPPING) {
++			priv->request_to_stop = true;
++			spin_unlock_irq(&priv->lock);
++			wait_for_completion(&priv->capture_stop);
++			spin_lock_irq(&priv->lock);
++		}
++	}
++}
++
+ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
+ {
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
+@@ -477,20 +499,8 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
+ 	}
+ 
+ 	if (buf_in_use) {
+-		while (priv->state != STOPPED) {
+-
+-			/* issue stop if running */
+-			if (priv->state == RUNNING)
+-				rcar_vin_request_capture_stop(priv);
+-
+-			/* wait until capturing has been stopped */
+-			if (priv->state == STOPPING) {
+-				priv->request_to_stop = true;
+-				spin_unlock_irq(&priv->lock);
+-				wait_for_completion(&priv->capture_stop);
+-				spin_lock_irq(&priv->lock);
+-			}
+-		}
++		rcar_vin_wait_stop_streaming(priv);
++
+ 		/*
+ 		 * Capturing has now stopped. The buffer we have been asked
+ 		 * to release could be any of the current buffers in use, so
+@@ -524,8 +534,11 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
+ 	struct list_head *buf_head, *tmp;
+ 
+ 	spin_lock_irq(&priv->lock);
++
++	rcar_vin_wait_stop_streaming(priv);
+ 	list_for_each_safe(buf_head, tmp, &priv->capture)
+ 		list_del_init(buf_head);
++
+ 	spin_unlock_irq(&priv->lock);
+ }
+ 
+-- 
+1.7.10.4
+
