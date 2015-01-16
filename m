@@ -1,50 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41502 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754461AbbAZMr1 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44497 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752633AbbAPKzd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 07:47:27 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 2/3] media: add new types for DVB devnodes
-Date: Mon, 26 Jan 2015 10:47:11 -0200
-Message-Id: <d8d9ba8098e24ee33bd1c16dc6ee7ab3db4e9c61.1422273497.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1422273497.git.mchehab@osg.samsung.com>
-References: <cover.1422273497.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1422273497.git.mchehab@osg.samsung.com>
-References: <cover.1422273497.git.mchehab@osg.samsung.com>
+	Fri, 16 Jan 2015 05:55:33 -0500
+Message-ID: <54B8EE13.6010508@xs4all.nl>
+Date: Fri, 16 Jan 2015 11:55:15 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Ismael Luceno <ismael.luceno@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org,
+	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Subject: Re: [PATCH] media: pci: solo6x10: solo6x10-enc.c:  Remove unused
+ function
+References: <1419184727-11224-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+In-Reply-To: <1419184727-11224-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most of the DVB subdevs have already their own devnode.
+(resent with correct email address for Ismael)
 
-Add support for them at the media controller API.
+Ismael, Andrey,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Can you take a look at this? Shouldn't solo_s_jpeg_qp() be hooked up to something?
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 418f4fec391a..4c8f26243252 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -50,7 +50,14 @@ struct media_device_info {
- #define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
- #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
- #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
--#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
-+#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
-+#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
-+#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
-+#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
-+#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
-+
-+/* Legacy symbol. Use it to avoid userspace compilation breakages */
-+#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
- 
- #define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
- #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
--- 
-2.1.0
+Regards,
 
+	Hans
+
+On 12/21/2014 06:58 PM, Rickard Strandqvist wrote:
+> Remove the function solo_s_jpeg_qp() that is not used anywhere.
+> 
+> This was partially found by using a static code analysis program called cppcheck.
+> 
+> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+> ---
+>  drivers/media/pci/solo6x10/solo6x10-enc.c |   35 -----------------------------
+>  drivers/media/pci/solo6x10/solo6x10.h     |    2 --
+>  2 files changed, 37 deletions(-)
+> 
+> diff --git a/drivers/media/pci/solo6x10/solo6x10-enc.c b/drivers/media/pci/solo6x10/solo6x10-enc.c
+> index d19c0ae..6b589b8 100644
+> --- a/drivers/media/pci/solo6x10/solo6x10-enc.c
+> +++ b/drivers/media/pci/solo6x10/solo6x10-enc.c
+> @@ -175,41 +175,6 @@ out:
+>  	return 0;
+>  }
+>  
+> -/**
+> - * Set channel Quality Profile (0-3).
+> - */
+> -void solo_s_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch,
+> -		    unsigned int qp)
+> -{
+> -	unsigned long flags;
+> -	unsigned int idx, reg;
+> -
+> -	if ((ch > 31) || (qp > 3))
+> -		return;
+> -
+> -	if (solo_dev->type == SOLO_DEV_6010)
+> -		return;
+> -
+> -	if (ch < 16) {
+> -		idx = 0;
+> -		reg = SOLO_VE_JPEG_QP_CH_L;
+> -	} else {
+> -		ch -= 16;
+> -		idx = 1;
+> -		reg = SOLO_VE_JPEG_QP_CH_H;
+> -	}
+> -	ch *= 2;
+> -
+> -	spin_lock_irqsave(&solo_dev->jpeg_qp_lock, flags);
+> -
+> -	solo_dev->jpeg_qp[idx] &= ~(3 << ch);
+> -	solo_dev->jpeg_qp[idx] |= (qp & 3) << ch;
+> -
+> -	solo_reg_write(solo_dev, reg, solo_dev->jpeg_qp[idx]);
+> -
+> -	spin_unlock_irqrestore(&solo_dev->jpeg_qp_lock, flags);
+> -}
+> -
+>  int solo_g_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch)
+>  {
+>  	int idx;
+> diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
+> index 72017b7..ad5afc6 100644
+> --- a/drivers/media/pci/solo6x10/solo6x10.h
+> +++ b/drivers/media/pci/solo6x10/solo6x10.h
+> @@ -399,8 +399,6 @@ int solo_eeprom_write(struct solo_dev *solo_dev, int loc,
+>  		      __be16 data);
+>  
+>  /* JPEG Qp functions */
+> -void solo_s_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch,
+> -		    unsigned int qp);
+>  int solo_g_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch);
+>  
+>  #define CHK_FLAGS(v, flags) (((v) & (flags)) == (flags))
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
