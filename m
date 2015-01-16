@@ -1,442 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54225 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755791AbbAWTRV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 14:17:21 -0500
-Message-ID: <54C29E3E.7010009@osg.samsung.com>
-Date: Fri, 23 Jan 2015 12:17:18 -0700
-From: Shuah Khan <shuahkh@osg.samsung.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35778 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752014AbbAPRix (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2015 12:38:53 -0500
+Message-ID: <54B94C95.6090402@xs4all.nl>
+Date: Fri, 16 Jan 2015 18:38:29 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com,
-	hans.verkuil@cisco.com, dheitmueller@kernellabs.com,
-	prabhakar.csengg@gmail.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com, ttmesterr@gmail.com
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: au0828 - convert to use videobuf2
-References: <1421970125-8169-1-git-send-email-shuahkh@osg.samsung.com> <54C21952.7010602@xs4all.nl> <54C26204.9000106@osg.samsung.com>
-In-Reply-To: <54C26204.9000106@osg.samsung.com>
-Content-Type: multipart/mixed;
- boundary="------------080007060500050000060901"
+To: Luis Alves <ljalvs@gmail.com>, Raimonds Cicans <ray@apollo.lv>
+CC: linux-media <linux-media@vger.kernel.org>, gtmkramer@xs4all.nl
+Subject: Re: [PATCH] cx23885/vb2 regression: please test this patch
+References: <54B52548.7010109@xs4all.nl>	<54B55C23.1070409@apollo.lv>	<54B92620.6020408@xs4all.nl>	<54B93A49.1010108@apollo.lv> <CAGj5WxAyS1x+J4WcyBv4GawqUK3DYdFWzStYUbq3CSLjFtByDg@mail.gmail.com>
+In-Reply-To: <CAGj5WxAyS1x+J4WcyBv4GawqUK3DYdFWzStYUbq3CSLjFtByDg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080007060500050000060901
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-
-On 01/23/2015 08:00 AM, Shuah Khan wrote:
-> On 01/23/2015 02:50 AM, Hans Verkuil wrote:
->> Hi Shuah,
->>
->> On 01/23/2015 12:42 AM, Shuah Khan wrote:
->>> Convert au0828 to use videobuf2. Tested with NTSC.
->>> Tested video and vbi devices with xawtv, tvtime,
->>> and vlc. Ran v4l2-compliance to ensure there are
->>> no regressions. video now has no failures and vbi
->>> has 3 fewer failures.
->>>
->>> video before:
->>> test VIDIOC_G_FMT: FAIL 3 failures
->>> Total: 72, Succeeded: 69, Failed: 3, Warnings: 0
->>>
->>> Video after:
->>> Total: 72, Succeeded: 72, Failed: 0, Warnings: 18
->>>
->>> vbi before:
->>>     test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
->>>     test VIDIOC_EXPBUF: FAIL
->>>     test USERPTR: FAIL
->>>     Total: 72, Succeeded: 66, Failed: 6, Warnings: 0
->>>
->>> vbi after:
->>>     test VIDIOC_QUERYCAP: FAIL
->>>     test MMAP: FAIL
->>>     Total: 78, Succeeded: 75, Failed: 3, Warnings: 0
->>
->> There shouldn't be any fails for VBI. That really needs to be fixed.
->> Esp. the QUERYCAP fail should be easy to fix.
->>
->> BTW, can you paste the full v4l2-compliance output next time? That's
->> more informative than just these summaries.
->>
+On 01/16/2015 05:48 PM, Luis Alves wrote:
+> Hans,
 > 
-> I will re-run the tests and fix it and resend the patch. I think I was
-> seeing querycap compliance failure when run with -V0 option and not when
-> I run it without. I can attach the full log.
+> There is another guy having issues with TBS8820 card (uses cx88 and cx24116)
+> 
+> His syslog:
+> http://paste.ubuntu.com/9284564/
+> 
+> The stackdump makes me believe that the issue also appeared since
+> "[media] cx88: convert to vb2"
+> (still to confirm)
+
+He needs to upgrade to a newer media_build version. This is a cx88 bug that's
+fixed here:
+
+http://www.spinics.net/lists/linux-media/msg84255.html
+
+Regards,
+
+	Hans
+
+> 
+> Regards,
+> Luis
+> 
+> 
+> On Fri, Jan 16, 2015 at 4:20 PM, Raimonds Cicans <ray@apollo.lv> wrote:
+>> On 16.01.2015 16:54, Hans Verkuil wrote:
+>>>
+>>> On 01/13/2015 06:55 PM, Raimonds Cicans wrote:
+>>>>
+>>>> On 13.01.2015 16:01, Hans Verkuil wrote:
+>>>>>
+>>>>> Can you both test this patch? It should (I hope) solve the problems you
+>>>>> both had with the cx23885 driver.
+>>>>>
+>>> Can you check that the function cx23885_risc_field in
+>>> drivers/media/pci/cx23885/cx23885-core.c uses "sg = sg_next(sg);"
+>>> instead of "sg++;"?
+>>
+>> There is no sg++ in whole drivers/media/pci/cx23885/ directory.
+>>>
+>>> To avoid confusion I would prefer that you test with a 3.18 or higher
+>>> kernel
+>>> and please state which kernel version you use and whether you used the
+>>> media_build system or a specific git repo to build the drivers.
+>>
+>> kernel: Gentoo Hardened kernel 3.18.1 (hardened part turned off)
+>> media_build: pure original media_build
+>> media tree: https://github.com/ljalves/linux_media (original linux-media
+>> plus some
+>> new out of kernel TBS drivers (from this tree I need TBS6285 driver))
+>>>
+>>> I'm also interested if you can reproduce it using just command-line tools
+>>> (and let me know what it is you do).
+>>
+>> For tests I use only command line tools: w_scan & dvb-fe-tool
+>>
+>> Tests:
+>> 1) w_scan on first front end then after 5-10 seconds w_scan on other
+>> 2) w_scan on second front end then after 5-10 seconds w_scan on first
+>> 3) "dvb-fe-tool -d DVBS" on first front end then after 5-10 seconds w_scan
+>> on second front end then after 5-10 seconds w_scan on first
+>> 4) "dvb-fe-tool -d DVBS" on second front end then after 5-10 seconds w_scan
+>> on first front end then after 5-10 seconds w_scan on second
+>>
+>> w_scan run on both front ends simultaneously.
+>>
+>>
+>>> Use only one DVB adapter, not both.
+>>
+>> Do you mean one card or one front end?
+>>
+>>
+>>
+>> Raimonds Cicans
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 
-Hi Hans,
-
-Finally some sanity. When I ran the compliance test on vbi device
-with incorrect options, hence it was treated as a video device which
-explains the following fail message:
-fail: v4l2-compliance.cpp(347): node->is_video && !(dcaps & video_caps)
-	test VIDIOC_QUERYCAP: FAIL
-
-This is my bad - I must have did command recall and just changed the
-device file. Sorry for the confusion.
-
-Re-ran the test correctly this time and I don't see any querycap errors.
-Please see attached files for vbi and video. I will resend the patch
-with updated change log with the correct results.
-
-thanks,
--- Shuah
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
-
---------------080007060500050000060901
-Content-Type: text/plain; charset=UTF-8;
- name="vbi_compliance.out"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename="vbi_compliance.out"
-
-Driver Info:
-	Driver name   : au0828
-	Card type     : Hauppauge HVR950Q
-	Bus info      : usb-0000:00:10.1-2
-	Driver version: 3.19.0
-	Capabilities  : 0x85230011
-		Video Capture
-		VBI Capture
-		Tuner
-		Audio
-		Read/Write
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x05230010
-		VBI Capture
-		Tuner
-		Audio
-		Read/Write
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/vbi0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second vbi open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK
-	test VIDIOC_G/S_FREQUENCY: OK
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: OK
-	Inputs: 3 Audio Inputs: 2 Tuners: 1
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 5 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not Supported)
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		test VIDIOC_TRY_FMT: OK
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 1:
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 5 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not Supported)
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		test VIDIOC_TRY_FMT: OK
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 2:
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 5 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not Supported)
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		test VIDIOC_TRY_FMT: OK
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-
-Total: 75, Succeeded: 75, Failed: 0, Warnings: 0
-
---------------080007060500050000060901
-Content-Type: text/plain; charset=UTF-8;
- name="video_compliance.out"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename="video_compliance.out"
-
-Driver Info:
-	Driver name   : au0828
-	Card type     : Hauppauge HVR950Q
-	Bus info      : usb-0000:00:10.1-2
-	Driver version: 3.19.0
-	Capabilities  : 0x85230011
-		Video Capture
-		VBI Capture
-		Tuner
-		Audio
-		Read/Write
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x05230001
-		Video Capture
-		Tuner
-		Audio
-		Read/Write
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video1 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK
-	test VIDIOC_G/S_FREQUENCY: OK
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: OK
-	Inputs: 3 Audio Inputs: 2 Tuners: 1
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 5 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		warn: v4l2-test-formats.cpp(691): TRY_FMT cannot handle an invalid pixe=
-lformat.
-		warn: v4l2-test-formats.cpp(692): This may or may not be a problem. For=
- more information see:
-		warn: v4l2-test-formats.cpp(693): http://www.mail-archive.com/linux-med=
-ia@vger.kernel.org/msg56550.html
-		test VIDIOC_TRY_FMT: OK
-		warn: v4l2-test-formats.cpp(907): S_FMT cannot handle an invalid pixelf=
-ormat.
-		warn: v4l2-test-formats.cpp(908): This may or may not be a problem. For=
- more information see:
-		warn: v4l2-test-formats.cpp(909): http://www.mail-archive.com/linux-med=
-ia@vger.kernel.org/msg56550.html
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 1:
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 5 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		warn: v4l2-test-formats.cpp(691): TRY_FMT cannot handle an invalid pixe=
-lformat.
-		warn: v4l2-test-formats.cpp(692): This may or may not be a problem. For=
- more information see:
-		warn: v4l2-test-formats.cpp(693): http://www.mail-archive.com/linux-med=
-ia@vger.kernel.org/msg56550.html
-		test VIDIOC_TRY_FMT: OK
-		warn: v4l2-test-formats.cpp(907): S_FMT cannot handle an invalid pixelf=
-ormat.
-		warn: v4l2-test-formats.cpp(908): This may or may not be a problem. For=
- more information see:
-		warn: v4l2-test-formats.cpp(909): http://www.mail-archive.com/linux-med=
-ia@vger.kernel.org/msg56550.html
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 2:
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 5 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		warn: v4l2-test-formats.cpp(691): TRY_FMT cannot handle an invalid pixe=
-lformat.
-		warn: v4l2-test-formats.cpp(692): This may or may not be a problem. For=
- more information see:
-		warn: v4l2-test-formats.cpp(693): http://www.mail-archive.com/linux-med=
-ia@vger.kernel.org/msg56550.html
-		test VIDIOC_TRY_FMT: OK
-		warn: v4l2-test-formats.cpp(907): S_FMT cannot handle an invalid pixelf=
-ormat.
-		warn: v4l2-test-formats.cpp(908): This may or may not be a problem. For=
- more information see:
-		warn: v4l2-test-formats.cpp(909): http://www.mail-archive.com/linux-med=
-ia@vger.kernel.org/msg56550.html
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-
-Total: 75, Succeeded: 75, Failed: 0, Warnings: 18
-
---------------080007060500050000060901--
