@@ -1,60 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53255 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932727AbbA2BtC (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:47045 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751554AbbAPO64 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 20:49:02 -0500
-Date: Wed, 28 Jan 2015 09:04:17 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Rob Herring <robherring2@gmail.com>,
-	linux-leds@vger.kernel.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
-Message-ID: <20150128070417.GK17565@valkosipuli.retiisi.org.uk>
-References: <CAL_JsqKpJtUG0G6g1GOuSVpc31oe-dp3qdrKJUE0upG-xRDFhA@mail.gmail.com>
- <54B4DA81.7060900@samsung.com>
- <CAL_JsqLYxB5hzLAWXpU=uncM5DEMZU78mP673H9oSSNB-cgcYQ@mail.gmail.com>
- <54B8D4D0.3000904@samsung.com>
- <CAL_Jsq+EFWzs1HP1tVt6P=p=HZn2AtSPjp55YrmMQi_mE+kNfQ@mail.gmail.com>
- <54B933D0.1090004@samsung.com>
- <54BE7DAB.80702@samsung.com>
- <CAL_JsqKoiaUmVhbQdnNveG=AAYh4-OHGS70L+LAgLLoKChUuYQ@mail.gmail.com>
- <20150120174010.GA2900@amd>
- <54BF73B9.8060402@samsung.com>
+	Fri, 16 Jan 2015 09:58:56 -0500
+Message-ID: <54B9271D.8010703@xs4all.nl>
+Date: Fri, 16 Jan 2015 15:58:37 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54BF73B9.8060402@samsung.com>
+To: Jurgen Kramer <gtmkramer@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>, ray@apollo.lv
+Subject: Re: [PATCH] cx23885/vb2 regression: please test this patch
+References: <54B52548.7010109@xs4all.nl> <1421168382.2615.1.camel@xs4all.nl> <1421339578.2355.2.camel@xs4all.nl>
+In-Reply-To: <1421339578.2355.2.camel@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 21, 2015 at 10:39:05AM +0100, Jacek Anaszewski wrote:
-> I agree. I think that led-sources-cnt is redundant. A list property
-> can be read using of_prop_next_u32 function. I missed that and thus
-> proposed putting led-sources-cnt in each sub-node to be able to read
-> led-sources list with of_property_read_u32_array.
+On 01/15/2015 05:32 PM, Jurgen Kramer wrote:
+> Hi Hans,
 > 
-> Effectively, I propose to avoid adding led-sources-cnt property.
+> On Tue, 2015-01-13 at 17:59 +0100, Jurgen Kramer wrote:
+>> Hi Hans,
+>> On Tue, 2015-01-13 at 15:01 +0100, Hans Verkuil wrote:
+>>> Hi Raimonds, Jurgen,
+>>>
+>>> Can you both test this patch? It should (I hope) solve the problems you
+>>> both had with the cx23885 driver.
+>>>
+>>> This patch fixes a race condition in the vb2_thread that occurs when
+>>> the thread is stopped. The crucial fix is calling kthread_stop much
+>>> earlier in vb2_thread_stop(). But I also made the vb2_thread more
+>>> robust.
+>>
+>> Thanks. Will test your patch and report back.
+> I have tested the patch, unfortunately results are not positive.
+> With the patch MythTV has issues with the tuners. Live TV no longer
+> works and eventually mythbackend hangs. Reverting the patch brings
+> everything back to a working state.
 
-You can also read the array size using of_get_property().
+Which kernel version are you using? Do you use media_build to install
+the drivers or do you use a git repository? Do you see any kernel messages?
 
--- 
+Do you get problems with e.g. mplayer or vlc or another GUI tool as well?
+
+This doesn't really make sense to me why this would fail.
+
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
+
+> 
+> Regards,
+> Jurgen
+> 
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
