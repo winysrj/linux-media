@@ -1,99 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:24512 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757902AbbAIPXf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 10:23:35 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v10 02/19] Documentation: leds: Add description of LED
- Flash class extension
-Date: Fri, 09 Jan 2015 16:22:52 +0100
-Message-id: <1420816989-1808-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:50067 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751978AbbAPKM0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2015 05:12:26 -0500
+Message-ID: <54B8E3F7.9020606@xs4all.nl>
+Date: Fri, 16 Jan 2015 11:12:07 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Lars-Peter Clausen <lars@metafoo.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 08/16] [media] adv7180: Consolidate video mode setting
+References: <1421150481-30230-1-git-send-email-lars@metafoo.de> <1421150481-30230-9-git-send-email-lars@metafoo.de>
+In-Reply-To: <1421150481-30230-9-git-send-email-lars@metafoo.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The documentation being added contains overall description of the
-LED Flash Class and the related sysfs attributes.
+Hi Lars,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- Documentation/leds/leds-class-flash.txt |   57 +++++++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
- create mode 100644 Documentation/leds/leds-class-flash.txt
+On 01/13/2015 01:01 PM, Lars-Peter Clausen wrote:
+> We have basically the same code to set the video standard in init_device()
+> and adv7180_s_std(). Factor this out into a common helper function.
+> 
+> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+> ---
+>  drivers/media/i2c/adv7180.c | 67 ++++++++++++++++++++++-----------------------
+>  1 file changed, 32 insertions(+), 35 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+> index 349cae3..4d9bcc8 100644
+> --- a/drivers/media/i2c/adv7180.c
+> +++ b/drivers/media/i2c/adv7180.c
+> @@ -304,37 +304,54 @@ static int adv7180_g_input_status(struct v4l2_subdev *sd, u32 *status)
+>  	return ret;
+>  }
+>  
+> -static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+> +static int adv7180_program_std(struct adv7180_state *state)
+>  {
+> -	struct adv7180_state *state = to_state(sd);
+> -	int ret = mutex_lock_interruptible(&state->mutex);
+> -	if (ret)
+> -		return ret;
+> +	int ret;
+>  
+> -	/* all standards -> autodetect */
+> -	if (std == V4L2_STD_ALL) {
+> +	if (state->autodetect) {
 
-diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-new file mode 100644
-index 0000000..d80096b
---- /dev/null
-+++ b/Documentation/leds/leds-class-flash.txt
-@@ -0,0 +1,57 @@
-+
-+Flash LED handling under Linux
-+==============================
-+
-+Some LED devices support two modes - torch and flash. In the LED subsystem
-+those modes are supported by LED class (see Documentation/leds/leds-class.txt)
-+and LED Flash class respectively. The torch mode related features are enabled
-+by default and the flash ones only if a driver declares it by setting
-+LED_DEV_CAP_FLASH flag.
-+
-+In order to enable support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
-+must be defined in the kernel config. A flash LED driver must register
-+in the LED subsystem with led_classdev_flash_register function to gain flash
-+related capabilities.
-+
-+There are flash LED devices which can control more than one LED and allow for
-+strobing the sub-leds synchronously. A LED will be strobed synchronously with
-+the one whose identifier is written to the flash_sync_strobe sysfs attribute.
-+The list of available sub-led identifiers can be read from the available_sync_leds
-+sysfs attribute. In order to enable the related settings the driver must set
-+LED_DEV_CAP_SYNC_STROBE flag.
-+
-+Following sysfs attributes are exposed for controlling flash led devices:
-+
-+	- flash_brightness - flash LED brightness in microamperes (RW)
-+	- max_flash_brightness - maximum available flash LED brightness (RO)
-+	- flash_timeout - flash strobe duration in microseconds (RW)
-+	- max_flash_timeout - maximum available flash strobe duration (RO)
-+	- flash_strobe - flash strobe state (RW)
-+	- available_sync_leds - list of sub-leds available for flash strobe
-+				synchronization (RO)
-+	- flash_sync_strobe - identifier of the sub-led to synchronize the flash
-+			      strobe with; 0 stands for no synchronization (RW)
-+	- flash_fault - bitmask of flash faults that may have occurred
-+			possible flags are:
-+		* 0x01 - flash controller voltage to the flash LED has exceeded
-+			 the limit specific to the flash controller
-+		* 0x02 - the flash strobe was still on when the timeout set by
-+			 the user has expired; not all flash controllers may
-+			 set this in all such conditions
-+		* 0x04 - the flash controller has overheated
-+		* 0x08 - the short circuit protection of the flash controller
-+			 has been triggered
-+		* 0x10 - current in the LED power supply has exceeded the limit
-+			 specific to the flash controller
-+		* 0x20 - the flash controller has detected a short or open
-+			 circuit condition on the indicator LED
-+		* 0x40 - flash controller voltage to the flash LED has been
-+			 below the minimum limit specific to the flash
-+		* 0x80 - the input voltage of the flash controller is below
-+			 the limit under which strobing the flash at full
-+			 current will not be possible. The condition persists
-+			 until this flag is no longer set
-+		* 0x100 - the temperature of the LED has exceeded its allowed
-+			  upper limit
-+
-+		Flash faults are cleared, if possible, by reading the attribute.
--- 
-1.7.9.5
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+That said, I am unhappy about this autodetect handling. That isn't something
+that this patch changes, which is why I've Acked it, but I hope you can look
+at this yourself.
+
+The reason I don't like it is because 1) it is non-standard behavior of a video
+receiver to turn on autodetect if STD_ALL is passed in. And 2) there are
+multiple autodetect modes and the one chosen seems to imply that NTSC M is not
+autodetected, only NTSC-J. I have no adv7180 hardware, so I can't test if that
+is indeed what is happening. In any case, every autodetect mode seems to
+autodetect only a subset of all possible standards according to the adv7180
+datasheet, which doesn't really make it a real autodetect IMHO.
+
+The third and last reason is that if the autodetect system switches from NTSC to
+PAL you suddenly get larger frames. Depending on the exact DMA configuration
+of the board this could lead to buffer overflows (e.g. if the DMA configuration
+just DMAs until the end of frame, and yes, such terrible DMA implementations
+exist).
+
+An initial autodetect when the driver is loaded might make sense in order to get
+a reasonable initial standard, but I am skeptical about using it anywhere else.
+
+BTW, if you can easily detect standard changes via an interrupt, then you can
+use that interrupt to send a V4L2_EVENT_SOURCE_CHANGE event. That would allow
+applications to dynamically react to changes in the standard.
+
+As I said, I have no adv718x hardware so I am unable to test this, but if you
+could test this autodetect functionality and think about whether it should be
+kept at all, then that would be useful.
+
+Regards,
+
+	Hans
+
+>  		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
+>  				    ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM
+>  				    | state->input);
+>  		if (ret < 0)
+> -			goto out;
+> +			return ret;
+>  
+>  		__adv7180_status(state, NULL, &state->curr_norm);
+> -		state->autodetect = true;
+>  	} else {
+> -		ret = v4l2_std_to_adv7180(std);
+> +		ret = v4l2_std_to_adv7180(state->curr_norm);
+>  		if (ret < 0)
+> -			goto out;
+> +			return ret;
+>  
+>  		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
+>  				    ret | state->input);
+>  		if (ret < 0)
+> +			return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+> +{
+> +	struct adv7180_state *state = to_state(sd);
+> +	int ret = mutex_lock_interruptible(&state->mutex);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* all standards -> autodetect */
+> +	if (std == V4L2_STD_ALL) {
+> +		state->autodetect = true;
+> +	} else {
+> +		/* Make sure we can support this std */
+> +		ret = v4l2_std_to_adv7180(std);
+> +		if (ret < 0)
+>  			goto out;
+>  
+>  		state->curr_norm = std;
+>  		state->autodetect = false;
+>  	}
+> -	ret = 0;
+> +
+> +	ret = adv7180_program_std(state);
+>  out:
+>  	mutex_unlock(&state->mutex);
+>  	return ret;
+> @@ -547,30 +564,10 @@ static int init_device(struct adv7180_state *state)
+>  	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
+>  	usleep_range(2000, 10000);
+>  
+> -	/* Initialize adv7180 */
+> -	/* Enable autodetection */
+> -	if (state->autodetect) {
+> -		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
+> -				ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM
+> -					      | state->input);
+> -		if (ret < 0)
+> -			goto out_unlock;
+> -
+> -		ret = adv7180_write(state, ADV7180_REG_AUTODETECT_ENABLE,
+> -					      ADV7180_AUTODETECT_DEFAULT);
+> -		if (ret < 0)
+> -			goto out_unlock;
+> -	} else {
+> -		ret = v4l2_std_to_adv7180(state->curr_norm);
+> -		if (ret < 0)
+> -			goto out_unlock;
+> -
+> -		ret = adv7180_write(state, ADV7180_REG_INPUT_CONTROL,
+> -					      ret | state->input);
+> -		if (ret < 0)
+> -			goto out_unlock;
+> +	ret = adv7180_program_std(state);
+> +	if (ret)
+> +		goto out_unlock;
+>  
+> -	}
+>  	/* ITU-R BT.656-4 compatible */
+>  	ret = adv7180_write(state, ADV7180_REG_EXTENDED_OUTPUT_CONTROL,
+>  			ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS);
+> 
 
