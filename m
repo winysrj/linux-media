@@ -1,66 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:32825 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758055AbbA2K0m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 05:26:42 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:38142 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751343AbbAQM56 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Jan 2015 07:57:58 -0500
+Message-ID: <54BA5C53.2000306@iki.fi>
+Date: Sat, 17 Jan 2015 14:57:55 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1422479867-3370921-4-git-send-email-arnd@arndb.de>
-References: <1422479867-3370921-1-git-send-email-arnd@arndb.de> <1422479867-3370921-4-git-send-email-arnd@arndb.de>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Thu, 29 Jan 2015 10:26:08 +0000
-Message-ID: <CA+V-a8tqqvvMb2V=FJ49zC=tdtG4PNhVC-WRX3WnYO_dnrY05w@mail.gmail.com>
-Subject: Re: [PATCH 3/7] [media] staging/davinci/vpfe/dm365: add missing dependencies
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] si2168: return error if set_frontend is called with
+ invalid parameters
+References: <1421433398-1541-1-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1421433398-1541-1-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 28, 2015 at 9:17 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> This driver can only be built when VIDEO_V4L2_SUBDEV_API
-> and VIDEO_DAVINCI_VPBE_DISPLAY are also provided by the
-> kernel.
+On 01/16/2015 08:36 PM, Olli Salonen wrote:
+> This patch is based on Antti's silabs branch.
 >
-> drivers/staging/media/davinci_vpfe/dm365_isif.c: In function '__isif_get_format':
-> drivers/staging/media/davinci_vpfe/dm365_isif.c:1410:3: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
->    return v4l2_subdev_get_try_format(fh, pad);
->    ^
+> According to dvb-frontend.h set_frontend may be called with bandwidth_hz set to
+> 0 if automatic bandwidth is required. Si2168 does not support automatic
+> bandwidth and does not declare FE_CAN_BANDWIDTH_AUTO in caps.
 >
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> This patch will change the behaviour in a way that EINVAL is returned if
+> bandwidth_hz is 0.
+>
+> v2: remove error message, remove line break to comply with coding style.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Regards,
---Prabhakar Lad
+Antti
+
 
 > ---
->  drivers/staging/media/davinci_vpfe/Kconfig | 2 ++
->  1 file changed, 2 insertions(+)
+>   drivers/media/dvb-frontends/si2168.c | 5 ++++-
+>   1 file changed, 4 insertions(+), 1 deletion(-)
 >
-> diff --git a/drivers/staging/media/davinci_vpfe/Kconfig b/drivers/staging/media/davinci_vpfe/Kconfig
-> index 4de2f082491d..f40a06954a92 100644
-> --- a/drivers/staging/media/davinci_vpfe/Kconfig
-> +++ b/drivers/staging/media/davinci_vpfe/Kconfig
-> @@ -2,6 +2,8 @@ config VIDEO_DM365_VPFE
->         tristate "DM365 VPFE Media Controller Capture Driver"
->         depends on VIDEO_V4L2 && ARCH_DAVINCI_DM365 && !VIDEO_DM365_ISIF
->         depends on HAS_DMA
-> +       depends on VIDEO_V4L2_SUBDEV_API
-> +       depends on VIDEO_DAVINCI_VPBE_DISPLAY
->         select VIDEOBUF2_DMA_CONTIG
->         help
->           Support for DM365 VPFE based Media Controller Capture driver.
-> --
-> 2.1.0.rc2
+> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> index 7f966f3..85acc54 100644
+> --- a/drivers/media/dvb-frontends/si2168.c
+> +++ b/drivers/media/dvb-frontends/si2168.c
+> @@ -180,7 +180,10 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+>   		goto err;
+>   	}
 >
+> -	if (c->bandwidth_hz <= 5000000)
+> +	if (c->bandwidth_hz == 0) {
+> +		ret = -EINVAL;
+> +		goto err;
+> +	} else if (c->bandwidth_hz <= 5000000)
+>   		bandwidth = 0x05;
+>   	else if (c->bandwidth_hz <= 6000000)
+>   		bandwidth = 0x06;
 >
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+-- 
+http://palosaari.fi/
