@@ -1,79 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46840 "EHLO
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:56342 "EHLO
 	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751623AbbASOxK (ORCPT
+	by vger.kernel.org with ESMTP id S1751340AbbAQLJV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 09:53:10 -0500
-Message-ID: <54BD1A3D.7010001@xs4all.nl>
-Date: Mon, 19 Jan 2015 15:52:45 +0100
+	Sat, 17 Jan 2015 06:09:21 -0500
+Message-ID: <54BA42CD.3050908@xs4all.nl>
+Date: Sat, 17 Jan 2015 12:09:01 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: William Towle <william.towle@codethink.co.uk>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Ben Hutchings <ben.hutchings@codethink.co.uk>,
-	linux-media@vger.kernel.org, linux-kernel@codethink.co.uk,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [RFC PATCH 5/5] media: rcar_vin: move buffer management to .stop_streaming
- handler
-References: <1418914070.22813.13.camel@xylophone.i.decadent.org.uk>  <1418914215.22813.18.camel@xylophone.i.decadent.org.uk>  <Pine.LNX.4.64.1501182141400.23540@axis700.grange> <1421664620.1222.207.camel@xylophone.i.decadent.org.uk> <Pine.LNX.4.64.1501191208490.27578@axis700.grange> <alpine.DEB.2.02.1501191404570.4586@xk120>
-In-Reply-To: <alpine.DEB.2.02.1501191404570.4586@xk120>
-Content-Type: text/plain; charset=windows-1252
+To: Raimonds Cicans <ray@apollo.lv>,
+	linux-media <linux-media@vger.kernel.org>, gtmkramer@xs4all.nl
+Subject: Re: [PATCH] cx23885/vb2 regression: please test this patch
+References: <54B52548.7010109@xs4all.nl> <54B55C23.1070409@apollo.lv> <54B92620.6020408@xs4all.nl> <54B960EC.7090604@apollo.lv>
+In-Reply-To: <54B960EC.7090604@apollo.lv>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/19/2015 03:11 PM, William Towle wrote:
+On 01/16/2015 08:05 PM, Raimonds Cicans wrote:
+> On 16.01.2015 16:54, Hans Verkuil wrote:
 > 
-> On Mon, 19 Jan 2015, Guennadi Liakhovetski wrote:
+>> If you get the error again with a 3.18 or higher kernel and with my patch,
+>> then please copy-and-paste that message again.
 > 
->>>> On Thu, 18 Dec 2014, Ben Hutchings wrote:
->>> Well, I thought that too.  Will's submission from last week has that
->>> change:
->>> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/87009
-> 
->> Anyway, yes, that looks better! But I would still consider keeping buffers
->> on the list in .buf_clean(), in which case you can remove it. And walk the
->> list instead of the VB2 internal buffer array, as others have pointed out.
-> 
-> Hi Guennadi,
->    Thanks for the clarification. Ian (when he was with us) did say "it
-> was particularly difficult to understand WTH this driver was doing".
-> 
->    Regarding your first point, if it's safe to skip the actions left
-> in rcar_vin_videobuf_release() then I will do a further rework to
-> remove it completely.
+> To be sure, I attached full dmesg.
 
-Yes, that's safe. Just remove it altogether.
+Thanks. This was with one frontend? And what was the exact sequence of commands
+used to replicate this?
 
-The buf_init and buf_release ops are matching ops that are normally only
-used if you have to do per-buffer initialization and/or release. These
-are only called when the buffer memory changes. In most drivers including
-this one it's not needed at all.
+Sorry, but I need precise details of how you reproduce this, especially since I
+can't reproduce it.
 
-The same is true for rcar_vin_videobuf_init: it's pointless since the
-list initialization is done implicitly when you add the buffer to a
-list with list_add_tail(). Just drop the function.
+I'm pretty sure there are multiple issues here, one of them is fixed by my vb2
+patch, but this page fault is almost certainly a separate problem.
+
+Based on past reports there is also a possible problem with multiple frontends,
+but I don't have hardware like that and even if I had I am not sure I would be
+able to test it properly. Besides, that issue seemed to be unrelated to the
+vb2 conversion. It's all pretty vague, though.
 
 Regards,
 
 	Hans
-
-> 
->    Regarding your second, in the patchset Ben linked to above we think
-> we have the appropriate loops: a for loop for queue_buf[], and
-> list_for_each_safe() for anything left in priv->capture; this is
-> consistent with rcar_vin_fill_hw_slot() setting up queue_buf[] with
-> pointers unlinked from priv->capture. This in turn suggests that we
-> are right not to call list_del_init() in both of
-> rcar_vin_stop_streaming()'s loops ... as long as I've correctly
-> interpreted the code and everyone's feedback thus far.
-> 
-> 
-> Cheers,
->    Wills.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
