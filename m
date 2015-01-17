@@ -1,138 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:62719 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751045AbbAOGOA (ORCPT
+Received: from fortimail.online.lv ([81.198.164.220]:53113 "EHLO
+	fortimail.online.lv" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751575AbbAQMCg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2015 01:14:00 -0500
-Received: from epcpsbgx2.samsung.com
- (u162.gpu120.samsung.co.kr [203.254.230.162])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NI700G1HFZAPR90@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Jan 2015 15:13:58 +0900 (KST)
-Message-id: <67.3E.22636.5AA57B45@epcpsbgx2.samsung.com>
-Date: Thu, 15 Jan 2015 06:13:57 +0000 (GMT)
-From: Byeong-ki Shin <bk0121.shin@samsung.com>
-Subject: [PATCH] [media] dvb-core: Fix frontend thread serialization
-To: m.chehab@samsung.com, shuah.kh@samsung.com, olebowle@gmx.com,
-	tskd08@gmail.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Reply-to: bk0121.shin@samsung.com
-MIME-version: 1.0
-Content-type: multipart/mixed;
- boundary="----=SAMSUNG_mySingle_MIME_MULTIPART_BOUNDARY"
+	Sat, 17 Jan 2015 07:02:36 -0500
+Received: from mailo-proxy2.online.lv (smtp.online.lv [81.198.164.193])
+	by fortimail.online.lv  with ESMTP id t0HC2XL4011862-t0HC2XL5011862
+	for <linux-media@vger.kernel.org>; Sat, 17 Jan 2015 14:02:33 +0200
+Message-ID: <54BA4F58.5060809@apollo.lv>
+Date: Sat, 17 Jan 2015 14:02:32 +0200
+From: Raimonds Cicans <ray@apollo.lv>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>, gtmkramer@xs4all.nl
+Subject: Re: [PATCH] cx23885/vb2 regression: please test this patch
+References: <54B52548.7010109@xs4all.nl> <54B55C23.1070409@apollo.lv>
+ <54B92620.6020408@xs4all.nl> <54B960EC.7090604@apollo.lv>
+ <54BA42CD.3050908@xs4all.nl>
+In-Reply-To: <54BA42CD.3050908@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 17.01.2015 13:09, Hans Verkuil wrote:
+> Thanks. This was with one frontend? And what was the exact sequence of commands
+> used to replicate this?
+>
+> Sorry, but I need precise details of how you reproduce this, especially since I
+> can't reproduce it.
+This test was run on first front end.
+I just started "w_scan -fs -s S13E0 -D0c -a 4" (which mean: do satellite 
+channel
+scan using S13E0 initial transponder list on first DiSEqC port on 
+adapter 4) and
+waited until error appeared in "dmesg --follow". It may take some time 
+(for me
+in average 5-15 minutes)
+> I'm pretty sure there are multiple issues here, one of them is fixed by my vb2
+> patch, but this page fault is almost certainly a separate problem.
+>
+> Based on past reports there is also a possible problem with multiple frontends,
+> but I don't have hardware like that and even if I had I am not sure I would be
+> able to test it properly. Besides, that issue seemed to be unrelated to the
+> vb2 conversion. It's all pretty vague, though.
+IMHO: I also think problem is with multiple front ends,
+            because on some usage patterns problem almost go away
 
-------=SAMSUNG_mySingle_MIME_MULTIPART_BOUNDARY
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Message-ID: <1185548648.1075721421302436751.JavaMail.weblogic@epmlwas08d>
+IMHO: page fault problem IS related to the vb2 conversion, because
+1) I did not have this problem on kernel 3.13.10
+2) during bisection this error appeared exactly on conversation commit
 
-RnJvbSAyMzg0YzExOWQwNGI1NGU2ZTZjMjgyYTg2OTMyNDZjNGU3ZDEzNDdlIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQ0KRnJvbTogImJrMDEyMS5zaGluIiA8YmswMTIxLnNoaW5Ac2Ftc3VuZy5j
-b20+DQpEYXRlOiBXZWQsIDE0IEphbiAyMDE1IDIwOjM1OjU3ICswOTAwDQpTdWJqZWN0OiBbUEFU
-Q0hdIFttZWRpYV0gZHZiLWNvcmU6IEZpeCBmcm9udGVuZCB0aHJlYWQgc2VyaWFsaXphdGlvbg0K
-DQpkdmJfZnJvbnRlbmRfdGhyZWFkJ3MgbGlmZSBjeWNsZSBpcyBjb250cm9sbGVkIGJ5IGR2Yl9m
-cm9udGVuZF9zdGFydA0KYW5kIGR2Yl9mcm9udGVuZF9yZWxlYXNlLg0KQnV0LCBpZiB1c2VyIG9w
-ZW5zIGZyb250ZW5kIGRldmljZSBiZWZvcmUgdGhlIHRocmVhZCBleGl0cyBjb21wbGV0ZWx5LA0K
-ZHZiX2Zyb250ZW5kX3N0YXJ0IGRvZXNuJ3QgY3JlYXRlIGEgbmV3IHRocmVhZC4NCg0KV2hlbiBl
-eGl0IGNvbmRpdGlvbiBvZiB0aHJlYWQgdGhhdCBpcyBqaWZmaWVzIGlzIHRyaWdnZXJlZA0KYnkg
-ZHZiX2Zyb250ZW5kX3JlbGVhc2UsIGR2Yl9mcm9udGVuZF90aHJlYWQgd2FrZXMgdXAgYW5kIGNo
-ZWNrcw0KZXhpdCBjb25kaXRpb24gd2l0aG91dCBzZW1hcGhvcmUgYWNxdWlyaW5nLg0KSW4gdGhp
-cyBjYXNlLCBpZiB1c2VyIGNvbnRleHQgY2hlY2tzIGV4aXN0ZW5jZSBvZiB0aHJlYWQoZmVwcml2
-LT50aHJlYWQpLA0KaXQgaXMgdHJ1ZSwgYW5kIGV4aXQgZmxhZ2UgaGFzIERWQl9GRV9OT19FWElU
-Lg0KVGhlcmVmb3JlLCBkdmJfZnJvbnRlbmRfc3RhcnQgZG9lc24ndCBtYWtlIGEgbmV3IHRocmVh
-ZCwNCnByZXZpb3VzIG9sZCB0aHJlYWQgaXMgZ29pbmcgdG8gdGVybWluYXRlLg0KDQpUbyBmaXgg
-dGhpcyBwcm9ibGVtLCBzZW1hcGhvcmUgc2hvdWxkIHByZXNlcnZlIHRocmVhZCBleGl0IGNvbmRp
-dGlvbiBhbmQNCmNoZWNraW5nIGl0LCB3aGljaCBhcmUgZHZiX2Zyb250ZW5kX2lzX2V4aXRpbmcg
-YW5kIGZlLT5leGl0Lg0KDQpTaWduZWQtb2ZmLWJ5OiBiazAxMjEuc2hpbiA8YmswMTIxLnNoaW5A
-c2Ftc3VuZy5jb20+DQotLS0NCiBkcml2ZXJzL21lZGlhL2R2Yi1jb3JlL2R2Yl9mcm9udGVuZC5j
-IHwgMjIgKysrKysrKysrKysrKysrLS0tLS0tLQ0KIDEgZmlsZSBjaGFuZ2VkLCAxNSBpbnNlcnRp
-b25zKCspLCA3IGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9kdmIt
-Y29yZS9kdmJfZnJvbnRlbmQuYyBiL2RyaXZlcnMvbWVkaWEvZHZiLWNvcmUvZHZiX2Zyb250ZW5k
-LmMNCmluZGV4IDJjZjMwNTcuLmE4ZThkNDQgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL21lZGlhL2R2
-Yi1jb3JlL2R2Yl9mcm9udGVuZC5jDQorKysgYi9kcml2ZXJzL21lZGlhL2R2Yi1jb3JlL2R2Yl9m
-cm9udGVuZC5jDQpAQCAtNjIwLDE0ICs2MjAsMTcgQEAgcmVzdGFydDoNCiAJCQkJfHwgZnJlZXpp
-bmcoY3VycmVudCksDQogCQkJZmVwcml2LT5kZWxheSk7DQogDQorCQlpZiAoZG93bl9pbnRlcnJ1
-cHRpYmxlKCZmZXByaXYtPnNlbSkpDQorCQkJYnJlYWs7DQorDQogCQlpZiAoa3RocmVhZF9zaG91
-bGRfc3RvcCgpIHx8IGR2Yl9mcm9udGVuZF9pc19leGl0aW5nKGZlKSkgew0KIAkJCS8qIGdvdCBz
-aWduYWwgb3IgcXVpdHRpbmcgKi8NCi0JCQlpZiAoIWRvd25faW50ZXJydXB0aWJsZSgmZmVwcml2
-LT5zZW0pKQ0KLQkJCQlzZW1oZWxkID0gdHJ1ZTsNCisJCQlzZW1oZWxkID0gdHJ1ZTsNCiAJCQlm
-ZS0+ZXhpdCA9IERWQl9GRV9OT1JNQUxfRVhJVDsNCiAJCQlicmVhazsNCiAJCX0NCiANCisJCXVw
-KCZmZXByaXYtPnNlbSk7DQogCQlpZiAodHJ5X3RvX2ZyZWV6ZSgpKQ0KIAkJCWdvdG8gcmVzdGFy
-dDsNCiANCkBAIC04MjEsMTcgKzgyNCwyMiBAQCBzdGF0aWMgaW50IGR2Yl9mcm9udGVuZF9zdGFy
-dChzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSkNCiANCiAJZGV2X2RiZyhmZS0+ZHZiLT5kZXZpY2Us
-ICIlczpcbiIsIF9fZnVuY19fKTsNCiANCisJaWYgKGRvd25faW50ZXJydXB0aWJsZSgmZmVwcml2
-LT5zZW0pKQ0KKwkJcmV0dXJuIC1FSU5UUjsNCisNCiAJaWYgKGZlcHJpdi0+dGhyZWFkKSB7DQot
-CQlpZiAoZmUtPmV4aXQgPT0gRFZCX0ZFX05PX0VYSVQpDQorCQlpZiAoZmUtPmV4aXQgPT0gRFZC
-X0ZFX05PX0VYSVQpIHsNCisJCQl1cCgmZmVwcml2LT5zZW0pOw0KIAkJCXJldHVybiAwOw0KLQkJ
-ZWxzZQ0KKwkJfSBlbHNlIHsNCiAJCQlkdmJfZnJvbnRlbmRfc3RvcCAoZmUpOw0KKwkJfQ0KIAl9
-DQogDQotCWlmIChzaWduYWxfcGVuZGluZyhjdXJyZW50KSkNCi0JCXJldHVybiAtRUlOVFI7DQot
-CWlmIChkb3duX2ludGVycnVwdGlibGUgKCZmZXByaXYtPnNlbSkpDQorCWlmIChzaWduYWxfcGVu
-ZGluZyhjdXJyZW50KSkgew0KKwkJdXAoJmZlcHJpdi0+c2VtKTsNCiAJCXJldHVybiAtRUlOVFI7
-DQorCX0NCiANCiAJZmVwcml2LT5zdGF0ZSA9IEZFU1RBVEVfSURMRTsNCiAJZmUtPmV4aXQgPSBE
-VkJfRkVfTk9fRVhJVDsNCi0tIA0KMS45LjENCg0KDQoNCg0KDQotLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0NCkJ5ZW9uZ2tpIFNoaW4gDQpTZW5pb3IgRW5naW5lZXIgDQoN
-Ck9mZmljZToNCk1vYmlsZTogKzgyLTEwLTMyNjgtODIwMQ0KRS1NYWlsOiBiazAxMjEuc2hpbkBz
-YW1zdW5nLmNvbQ==
+Can we test multiple front ends version? Because you do not have hardware
+I propose to test it other way around: can you make patch which disables or
+ignores one front end on my hardware (TBS 6981)?
 
 
-------=SAMSUNG_mySingle_MIME_MULTIPART_BOUNDARY
-Content-Type: application/octet-stream;
- name="0001-media-dvb-core-Fix-frontend-thread-serialization.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="0001-media-dvb-core-Fix-frontend-thread-serialization.patch"
 
-
-RnJvbSAyMzg0YzExOWQwNGI1NGU2ZTZjMjgyYTg2OTMyNDZjNGU3ZDEzNDdlIE1vbiBTZXAg
-MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiAiYmswMTIxLnNoaW4iIDxiazAxMjEuc2hpbkBzYW1z
-dW5nLmNvbT4KRGF0ZTogV2VkLCAxNCBKYW4gMjAxNSAyMDozNTo1NyArMDkwMApTdWJqZWN0
-OiBbUEFUQ0hdIFttZWRpYV0gZHZiLWNvcmU6IEZpeCBmcm9udGVuZCB0aHJlYWQgc2VyaWFs
-aXphdGlvbgoKZHZiX2Zyb250ZW5kX3RocmVhZCdzIGxpZmUgY3ljbGUgaXMgY29udHJvbGxl
-ZCBieSBkdmJfZnJvbnRlbmRfc3RhcnQKYW5kIGR2Yl9mcm9udGVuZF9yZWxlYXNlLgpCdXQs
-IGlmIHVzZXIgb3BlbnMgZnJvbnRlbmQgZGV2aWNlIGJlZm9yZSB0aGUgdGhyZWFkIGV4aXRz
-IGNvbXBsZXRlbHksCmR2Yl9mcm9udGVuZF9zdGFydCBkb2Vzbid0IGNyZWF0ZSBhIG5ldyB0
-aHJlYWQuCgpXaGVuIGV4aXQgY29uZGl0aW9uIG9mIHRocmVhZCB0aGF0IGlzIGppZmZpZXMg
-aXMgdHJpZ2dlcmVkCmJ5IGR2Yl9mcm9udGVuZF9yZWxlYXNlLCBkdmJfZnJvbnRlbmRfdGhy
-ZWFkIHdha2VzIHVwIGFuZCBjaGVja3MKZXhpdCBjb25kaXRpb24gd2l0aG91dCBzZW1hcGhv
-cmUgYWNxdWlyaW5nLgpJbiB0aGlzIGNhc2UsIGlmIHVzZXIgY29udGV4dCBjaGVja3MgZXhp
-c3RlbmNlIG9mIHRocmVhZChmZXByaXYtPnRocmVhZCksCml0IGlzIHRydWUsIGFuZCBleGl0
-IGZsYWdlIGhhcyBEVkJfRkVfTk9fRVhJVC4KVGhlcmVmb3JlLCBkdmJfZnJvbnRlbmRfc3Rh
-cnQgZG9lc24ndCBtYWtlIGEgbmV3IHRocmVhZCwKcHJldmlvdXMgb2xkIHRocmVhZCBpcyBn
-b2luZyB0byB0ZXJtaW5hdGUuCgpUbyBmaXggdGhpcyBwcm9ibGVtLCBzZW1hcGhvcmUgc2hv
-dWxkIHByZXNlcnZlIHRocmVhZCBleGl0IGNvbmRpdGlvbiBhbmQKY2hlY2tpbmcgaXQsIHdo
-aWNoIGFyZSBkdmJfZnJvbnRlbmRfaXNfZXhpdGluZyBhbmQgZmUtPmV4aXQuCgpTaWduZWQt
-b2ZmLWJ5OiBiazAxMjEuc2hpbiA8YmswMTIxLnNoaW5Ac2Ftc3VuZy5jb20+Ci0tLQogZHJp
-dmVycy9tZWRpYS9kdmItY29yZS9kdmJfZnJvbnRlbmQuYyB8IDIyICsrKysrKysrKysrKysr
-Ky0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxNSBpbnNlcnRpb25zKCspLCA3IGRlbGV0aW9u
-cygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiLWNvcmUvZHZiX2Zyb250ZW5k
-LmMgYi9kcml2ZXJzL21lZGlhL2R2Yi1jb3JlL2R2Yl9mcm9udGVuZC5jCmluZGV4IDJjZjMw
-NTcuLmE4ZThkNDQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiLWNvcmUvZHZiX2Zy
-b250ZW5kLmMKKysrIGIvZHJpdmVycy9tZWRpYS9kdmItY29yZS9kdmJfZnJvbnRlbmQuYwpA
-QCAtNjIwLDE0ICs2MjAsMTcgQEAgcmVzdGFydDoKIAkJCQl8fCBmcmVlemluZyhjdXJyZW50
-KSwKIAkJCWZlcHJpdi0+ZGVsYXkpOwogCisJCWlmIChkb3duX2ludGVycnVwdGlibGUoJmZl
-cHJpdi0+c2VtKSkKKwkJCWJyZWFrOworCiAJCWlmIChrdGhyZWFkX3Nob3VsZF9zdG9wKCkg
-fHwgZHZiX2Zyb250ZW5kX2lzX2V4aXRpbmcoZmUpKSB7CiAJCQkvKiBnb3Qgc2lnbmFsIG9y
-IHF1aXR0aW5nICovCi0JCQlpZiAoIWRvd25faW50ZXJydXB0aWJsZSgmZmVwcml2LT5zZW0p
-KQotCQkJCXNlbWhlbGQgPSB0cnVlOworCQkJc2VtaGVsZCA9IHRydWU7CiAJCQlmZS0+ZXhp
-dCA9IERWQl9GRV9OT1JNQUxfRVhJVDsKIAkJCWJyZWFrOwogCQl9CiAKKwkJdXAoJmZlcHJp
-di0+c2VtKTsKIAkJaWYgKHRyeV90b19mcmVlemUoKSkKIAkJCWdvdG8gcmVzdGFydDsKIApA
-QCAtODIxLDE3ICs4MjQsMjIgQEAgc3RhdGljIGludCBkdmJfZnJvbnRlbmRfc3RhcnQoc3Ry
-dWN0IGR2Yl9mcm9udGVuZCAqZmUpCiAKIAlkZXZfZGJnKGZlLT5kdmItPmRldmljZSwgIiVz
-OlxuIiwgX19mdW5jX18pOwogCisJaWYgKGRvd25faW50ZXJydXB0aWJsZSgmZmVwcml2LT5z
-ZW0pKQorCQlyZXR1cm4gLUVJTlRSOworCiAJaWYgKGZlcHJpdi0+dGhyZWFkKSB7Ci0JCWlm
-IChmZS0+ZXhpdCA9PSBEVkJfRkVfTk9fRVhJVCkKKwkJaWYgKGZlLT5leGl0ID09IERWQl9G
-RV9OT19FWElUKSB7CisJCQl1cCgmZmVwcml2LT5zZW0pOwogCQkJcmV0dXJuIDA7Ci0JCWVs
-c2UKKwkJfSBlbHNlIHsKIAkJCWR2Yl9mcm9udGVuZF9zdG9wIChmZSk7CisJCX0KIAl9CiAK
-LQlpZiAoc2lnbmFsX3BlbmRpbmcoY3VycmVudCkpCi0JCXJldHVybiAtRUlOVFI7Ci0JaWYg
-KGRvd25faW50ZXJydXB0aWJsZSAoJmZlcHJpdi0+c2VtKSkKKwlpZiAoc2lnbmFsX3BlbmRp
-bmcoY3VycmVudCkpIHsKKwkJdXAoJmZlcHJpdi0+c2VtKTsKIAkJcmV0dXJuIC1FSU5UUjsK
-Kwl9CiAKIAlmZXByaXYtPnN0YXRlID0gRkVTVEFURV9JRExFOwogCWZlLT5leGl0ID0gRFZC
-X0ZFX05PX0VYSVQ7Ci0tIAoxLjkuMQoK
-
-
-------=SAMSUNG_mySingle_MIME_MULTIPART_BOUNDARY--
+Raimonds Cicans
