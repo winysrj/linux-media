@@ -1,42 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41508 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753462AbbAZMr1 (ORCPT
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:59534 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751749AbbAQN1G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 07:47:27 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 3/3] media: add a subdev type for tuner
-Date: Mon, 26 Jan 2015 10:47:12 -0200
-Message-Id: <93d041fb91938618339acebc8fd6023fb4c7c3f4.1422273497.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1422273497.git.mchehab@osg.samsung.com>
-References: <cover.1422273497.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1422273497.git.mchehab@osg.samsung.com>
-References: <cover.1422273497.git.mchehab@osg.samsung.com>
+	Sat, 17 Jan 2015 08:27:06 -0500
+Received: by mail-ie0-f180.google.com with SMTP id rp18so24989101iec.11
+        for <linux-media@vger.kernel.org>; Sat, 17 Jan 2015 05:27:04 -0800 (PST)
+Received: from mail-ig0-f182.google.com (mail-ig0-f182.google.com. [209.85.213.182])
+        by mx.google.com with ESMTPSA id g20sm3103740igt.14.2015.01.17.05.27.03
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Sat, 17 Jan 2015 05:27:03 -0800 (PST)
+Received: by mail-ig0-f182.google.com with SMTP id hn15so7308363igb.3
+        for <linux-media@vger.kernel.org>; Sat, 17 Jan 2015 05:27:03 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20150117102339.5c224564@pirotess.bf.iodev.co.uk>
+References: <1419184727-11224-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+	<54B8EE13.6010508@xs4all.nl>
+	<20150117102339.5c224564@pirotess.bf.iodev.co.uk>
+Date: Sat, 17 Jan 2015 14:27:03 +0100
+Message-ID: <CAKXHbyNjd2X9A9OZ16oRu-ud3A8373jDOR5dCevD1mp+YFf-yQ@mail.gmail.com>
+Subject: Re: [PATCH] media: pci: solo6x10: solo6x10-enc.c: Remove unused function
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+To: Ismael Luceno <ismael.luceno@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add MEDIA_ENT_T_V4L2_SUBDEV_TUNER to represent the V4L2
-(and dvb) tuner subdevices.
+2015-01-17 14:23 GMT+01:00 Ismael Luceno <ismael.luceno@gmail.com>:
+> On Fri, 16 Jan 2015 11:55:15 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> (resent with correct email address for Ismael)
+>>
+>> Ismael, Andrey,
+>>
+>> Can you take a look at this? Shouldn't solo_s_jpeg_qp() be hooked up
+>> to something?
+>
+> The feature was never implemented, so yes, and we should keep it around.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 4c8f26243252..52cc2a6b19b7 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -66,6 +66,8 @@ struct media_device_info {
- /* A converter of analogue video to its digital representation. */
- #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
- 
-+#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
-+
- #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
- 
- struct media_entity_desc {
--- 
-2.1.0
+Hi
 
+But maybe add a comment then?
+
+Kind regards
+Rickard Strandqvist
