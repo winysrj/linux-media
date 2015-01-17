@@ -1,27 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:54337 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752144AbbAMOuQ (ORCPT
+Received: from mail-la0-f48.google.com ([209.85.215.48]:50990 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305AbbAQTym (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 09:50:16 -0500
-Received: by mail-wi0-f170.google.com with SMTP id bs8so20659538wib.1
-        for <linux-media@vger.kernel.org>; Tue, 13 Jan 2015 06:50:15 -0800 (PST)
+	Sat, 17 Jan 2015 14:54:42 -0500
+Received: by mail-la0-f48.google.com with SMTP id gf13so23560013lab.7
+        for <linux-media@vger.kernel.org>; Sat, 17 Jan 2015 11:54:40 -0800 (PST)
 MIME-Version: 1.0
-Date: Tue, 13 Jan 2015 15:50:07 +0100
-Message-ID: <CAPx3zdRnHcQOasSjnYZkuE+Hk-L6PVaPVAzBbCMnGdM3ZysxFw@mail.gmail.com>
-Subject: Driver/module in kernel fault. Anyone expert to help me? Siano ID 187f:0600
-From: Francesco Other <francesco.other@gmail.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <1402178205-22697-43-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+	<1402178205-22697-43-git-send-email-steve_longerbeam@mentor.com>
+Date: Sat, 17 Jan 2015 17:54:40 -0200
+Message-ID: <CAOMZO5BuNY4WE78tELVtk9iVi2fB+mNnBFC3gJ0CSsBUVT8KhQ@mail.gmail.com>
+Subject: Re: [PATCH 42/43] media: imx6: Add support for ADV7180 Video Decoder
+From: Fabio Estevam <festevam@gmail.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Is there a gentleman that can help me with my problem? On linuxtv.org
-they said that someone here sure will help me.
+Hi Steve,
 
-I submitted the problem here:
-http://www.spinics.net/lists/linux-media/msg85432.html
+On Sat, Jun 7, 2014 at 6:56 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> This driver is based on adv7180.c from Freescale imx_3.10.17_1.0.0_beta
+> branch, modified heavily for code cleanup and converted from int-device
+> to subdev.
+>
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  drivers/staging/media/imx6/capture/Kconfig   |    7 +
+>  drivers/staging/media/imx6/capture/Makefile  |    1 +
+>  drivers/staging/media/imx6/capture/adv7180.c | 1298 ++++++++++++++++++++++++++
 
-Regards
-
-Francesco
+We should use drivers/media/i2c/adv7180.c instead, right?
