@@ -1,69 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:51226 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751068AbbAEFM2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jan 2015 00:12:28 -0500
-From: Tony K Nadackal <tony.kn@samsung.com>
-To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: mchehab@osg.samsung.com, j.anaszewski@samsung.com,
-	kgene@kernel.org, k.debski@samsung.com, s.nawrocki@samsung.com,
-	bhushan.r@samsung.com, tony.kn@samsung.com
-References: <1418800881-7428-1-git-send-email-tony.kn@samsung.com>
-In-reply-to: <1418800881-7428-1-git-send-email-tony.kn@samsung.com>
-Subject: RE: [PATCH] [media] s5p-jpeg: Initialize cb and cr to zero.
-Date: Mon, 05 Jan 2015 10:43:08 +0530
-Message-id: <000201d028a6$55a31e20$00e95a60$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-us
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:60762 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751278AbbARDjw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Jan 2015 22:39:52 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id A785C2A0081
+	for <linux-media@vger.kernel.org>; Sun, 18 Jan 2015 04:39:31 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150118033931.A785C2A0081@tschai.lan>
+Date: Sun, 18 Jan 2015 04:39:31 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gentle Reminder.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks,
-Tony
+Results of the daily build of media_tree:
 
-> -----Original Message-----
-> From: Tony K Nadackal [mailto:tony.kn@samsung.com]
-> Sent: Wednesday, December 17, 2014 12:51 PM
-> To: linux-media@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
-> samsung-soc@vger.kernel.org
-> Cc: mchehab@osg.samsung.com; j.anaszewski@samsung.com;
-> kgene@kernel.org; k.debski@samsung.com; s.nawrocki@samsung.com;
-> bhushan.r@samsung.com; Tony K Nadackal
-> Subject: [PATCH] [media] s5p-jpeg: Initialize cb and cr to zero.
-> 
-> To avoid garbage value written into image base address planes, initialize cb
-and cr
-> of structure s5p_jpeg_addr to zero.
-> 
-> Signed-off-by: Tony K Nadackal <tony.kn@samsung.com>
-> ---
-> This patch is created and tested on top of linux-next-20141210.
-> It can be cleanly applied on media-next and kgene/for-next.
-> 
->  drivers/media/platform/s5p-jpeg/jpeg-core.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> index 91bd3e6..54fa5d9 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -1845,6 +1845,9 @@ static void exynos4_jpeg_set_img_addr(struct
-> s5p_jpeg_ctx *ctx)
->  	struct s5p_jpeg_addr jpeg_addr;
->  	u32 pix_size, padding_bytes = 0;
-> 
-> +	jpeg_addr.cb = 0;
-> +	jpeg_addr.cr = 0;
-> +
->  	pix_size = ctx->cap_q.w * ctx->cap_q.h;
-> 
->  	if (ctx->mode == S5P_JPEG_ENCODE) {
-> --
-> 2.2.0
+date:		Sun Jan 18 04:00:12 CET 2015
+git branch:	test
+git hash:	99f3cd52aee21091ce62442285a68873e3be833f
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18-x86_64: ERRORS
+linux-3.19-rc4-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
