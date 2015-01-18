@@ -1,86 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:39358 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753943AbbAVWU6 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46275 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838AbbARWCN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 17:20:58 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 11/15] media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
-Date: Thu, 22 Jan 2015 22:18:44 +0000
-Message-Id: <1421965128-10470-12-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+	Sun, 18 Jan 2015 17:02:13 -0500
+Date: Sun, 18 Jan 2015 23:02:10 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, freemangordon@abv.bg, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	bcousson@baylibre.com, sakari.ailus@iki.fi, m.chehab@samsung.com,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Cc: j.anaszewski@samsung.com
+Subject: Re: [PATCHv3] media: i2c/adp1653: devicetree support for adp1653
+Message-ID: <20150118220210.GA7481@amd>
+References: <20141203214641.GA1390@amd>
+ <20141224223434.GA20669@amd>
+ <20150104094352.GA3790@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150104094352.GA3790@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch adds support to return -ENODATA for *dv_timings calls
-if the current output does not support it.
+On Sun 2015-01-04 10:43:52, Pavel Machek wrote:
+> 
+> We are moving to device tree support on OMAP3, but that currently
+> breaks ADP1653 driver. This adds device tree support, plus required
+> documentation.
+> 
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+Sakari? You are listed as adp1653 maintainer. Did you apply the patch?
+Is it going to be in 3.20?
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 6b38e63..31b5697 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -488,6 +488,11 @@ static int bcap_enum_dv_timings(struct file *file, void *priv,
- 				struct v4l2_enum_dv_timings *timings)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_input input;
-+
-+	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
-+	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
-+		return -ENODATA;
- 
- 	timings->pad = 0;
- 
-@@ -499,6 +504,11 @@ static int bcap_query_dv_timings(struct file *file, void *priv,
- 				struct v4l2_dv_timings *timings)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_input input;
-+
-+	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
-+	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
-+		return -ENODATA;
- 
- 	return v4l2_subdev_call(bcap_dev->sd, video,
- 				query_dv_timings, timings);
-@@ -508,6 +518,11 @@ static int bcap_g_dv_timings(struct file *file, void *priv,
- 				struct v4l2_dv_timings *timings)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_input input;
-+
-+	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
-+	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
-+		return -ENODATA;
- 
- 	*timings = bcap_dev->dv_timings;
- 	return 0;
-@@ -517,7 +532,13 @@ static int bcap_s_dv_timings(struct file *file, void *priv,
- 				struct v4l2_dv_timings *timings)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_input input;
- 	int ret;
-+
-+	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
-+	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
-+		return -ENODATA;
-+
- 	if (vb2_is_busy(&bcap_dev->buffer_queue))
- 		return -EBUSY;
- 
+Thanks,
+								Pavel
+								
+> ---
+> 
+> Please apply,
+> 							Pavel
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/adp1653.txt b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
+> new file mode 100644
+> index 0000000..0fc28a9
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
+> @@ -0,0 +1,37 @@
+> +* Analog Devices ADP1653 flash LED driver
+
 -- 
-2.1.0
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
