@@ -1,206 +1,83 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:54743 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751947AbbABLsm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Jan 2015 06:48:42 -0500
-Date: Fri, 2 Jan 2015 12:48:38 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Josh Wu <josh.wu@atmel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 1/2] V4L: remove clock name from v4l2_clk API
-In-Reply-To: <Pine.LNX.4.64.1501021244580.30761@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1501021247310.30761@axis700.grange>
-References: <Pine.LNX.4.64.1501021244580.30761@axis700.grange>
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.72)
+	(envelope-from <joolzg@btinternet.com>) id 1YCp4U-0004hc-6U
+	for linux-dvb@linuxtv.org; Sun, 18 Jan 2015 13:35:14 +0100
+Received: from nm6-vm3.access.bullet.mail.bf1.yahoo.com ([216.109.114.146])
+	by mail.tu-berlin.de (exim-4.72/mailfrontend-8) with esmtps
+	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
+	id 1YCp4S-0007Z7-jf; Sun, 18 Jan 2015 13:35:13 +0100
+Message-ID: <1421584509.55421.YahooMailNeo@web87803.mail.ir2.yahoo.com>
+Date: Sun, 18 Jan 2015 12:35:09 +0000
+From: JULIAN GARDNER <joolzg@btinternet.com>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Subject: [linux-dvb] atsc_epg.c segfaults
+Reply-To: linux-media@vger.kernel.org, JULIAN GARDNER <joolzg@btinternet.com>
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1823926695=="
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-All uses of the v4l2_clk API so far only register one clock with a fixed
-name. This allows us to get rid of it, which also will make CCF and DT
-integration easier.
+--===============1823926695==
+Content-Type: multipart/alternative; boundary="-1780992897-866223016-1421584509=:55421"
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/soc_camera.c |  6 +++---
- drivers/media/usb/em28xx/em28xx-camera.c       |  2 +-
- drivers/media/v4l2-core/v4l2-clk.c             | 24 +++++++++++-------------
- include/media/v4l2-clk.h                       |  7 +++----
- 4 files changed, 18 insertions(+), 21 deletions(-)
+---1780992897-866223016-1421584509=:55421
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index f4be2a1..ce192b6 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1380,7 +1380,7 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
- 	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
- 		 shd->i2c_adapter_id, shd->board_info->addr);
- 
--	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
-+	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, icd);
- 	if (IS_ERR(icd->clk)) {
- 		ret = PTR_ERR(icd->clk);
- 		goto eclkreg;
-@@ -1561,7 +1561,7 @@ static int scan_async_group(struct soc_camera_host *ici,
- 	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
- 		 sasd->asd.match.i2c.adapter_id, sasd->asd.match.i2c.address);
- 
--	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
-+	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, icd);
- 	if (IS_ERR(icd->clk)) {
- 		ret = PTR_ERR(icd->clk);
- 		goto eclkreg;
-@@ -1666,7 +1666,7 @@ static int soc_of_bind(struct soc_camera_host *ici,
- 		snprintf(clk_name, sizeof(clk_name), "of-%s",
- 			 of_node_full_name(remote));
- 
--	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
-+	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, icd);
- 	if (IS_ERR(icd->clk)) {
- 		ret = PTR_ERR(icd->clk);
- 		goto eclkreg;
-diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-index 7be661f..a4b22c2 100644
---- a/drivers/media/usb/em28xx/em28xx-camera.c
-+++ b/drivers/media/usb/em28xx/em28xx-camera.c
-@@ -330,7 +330,7 @@ int em28xx_init_camera(struct em28xx *dev)
- 
- 	v4l2_clk_name_i2c(clk_name, sizeof(clk_name),
- 			  i2c_adapter_id(adap), client->addr);
--	v4l2->clk = v4l2_clk_register_fixed(clk_name, "mclk", -EINVAL);
-+	v4l2->clk = v4l2_clk_register_fixed(clk_name, -EINVAL);
- 	if (IS_ERR(v4l2->clk))
- 		return PTR_ERR(v4l2->clk);
- 
-diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
-index e18cc04..c210906 100644
---- a/drivers/media/v4l2-core/v4l2-clk.c
-+++ b/drivers/media/v4l2-core/v4l2-clk.c
-@@ -31,7 +31,8 @@ static struct v4l2_clk *v4l2_clk_find(const char *dev_id, const char *id)
- 		if (strcmp(dev_id, clk->dev_id))
- 			continue;
- 
--		if (!id || !clk->id || !strcmp(clk->id, id))
-+		if ((!id && !clk->id) ||
-+		    (id && clk->id && !strcmp(clk->id, id)))
- 			return clk;
- 	}
- 
-@@ -127,8 +128,8 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
- 	mutex_lock(&clk->lock);
- 
- 	enable = --clk->enable;
--	if (WARN(enable < 0, "Unbalanced %s() on %s:%s!\n", __func__,
--		 clk->dev_id, clk->id))
-+	if (WARN(enable < 0, "Unbalanced %s() on %s!\n", __func__,
-+		 clk->dev_id))
- 		clk->enable++;
- 	else if (!enable && clk->ops->disable)
- 		clk->ops->disable(clk);
-@@ -181,7 +182,7 @@ EXPORT_SYMBOL(v4l2_clk_set_rate);
- 
- struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
- 				   const char *dev_id,
--				   const char *id, void *priv)
-+				   void *priv)
- {
- 	struct v4l2_clk *clk;
- 	int ret;
-@@ -193,9 +194,8 @@ struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
- 	if (!clk)
- 		return ERR_PTR(-ENOMEM);
- 
--	clk->id = kstrdup(id, GFP_KERNEL);
- 	clk->dev_id = kstrdup(dev_id, GFP_KERNEL);
--	if ((id && !clk->id) || !clk->dev_id) {
-+	if (!clk->dev_id) {
- 		ret = -ENOMEM;
- 		goto ealloc;
- 	}
-@@ -205,7 +205,7 @@ struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
- 	mutex_init(&clk->lock);
- 
- 	mutex_lock(&clk_lock);
--	if (!IS_ERR(v4l2_clk_find(dev_id, id))) {
-+	if (!IS_ERR(v4l2_clk_find(dev_id, NULL))) {
- 		mutex_unlock(&clk_lock);
- 		ret = -EEXIST;
- 		goto eexist;
-@@ -217,7 +217,6 @@ struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
- 
- eexist:
- ealloc:
--	kfree(clk->id);
- 	kfree(clk->dev_id);
- 	kfree(clk);
- 	return ERR_PTR(ret);
-@@ -227,15 +226,14 @@ EXPORT_SYMBOL(v4l2_clk_register);
- void v4l2_clk_unregister(struct v4l2_clk *clk)
- {
- 	if (WARN(atomic_read(&clk->use_count),
--		 "%s(): Refusing to unregister ref-counted %s:%s clock!\n",
--		 __func__, clk->dev_id, clk->id))
-+		 "%s(): Refusing to unregister ref-counted %s clock!\n",
-+		 __func__, clk->dev_id))
- 		return;
- 
- 	mutex_lock(&clk_lock);
- 	list_del(&clk->list);
- 	mutex_unlock(&clk_lock);
- 
--	kfree(clk->id);
- 	kfree(clk->dev_id);
- 	kfree(clk);
- }
-@@ -253,7 +251,7 @@ static unsigned long fixed_get_rate(struct v4l2_clk *clk)
- }
- 
- struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
--		const char *id, unsigned long rate, struct module *owner)
-+				unsigned long rate, struct module *owner)
- {
- 	struct v4l2_clk *clk;
- 	struct v4l2_clk_fixed *priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-@@ -265,7 +263,7 @@ struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
- 	priv->ops.get_rate = fixed_get_rate;
- 	priv->ops.owner = owner;
- 
--	clk = v4l2_clk_register(&priv->ops, dev_id, id, priv);
-+	clk = v4l2_clk_register(&priv->ops, dev_id, priv);
- 	if (IS_ERR(clk))
- 		kfree(priv);
- 
-diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-index 0b36cc1..8f06967 100644
---- a/include/media/v4l2-clk.h
-+++ b/include/media/v4l2-clk.h
-@@ -43,7 +43,7 @@ struct v4l2_clk_ops {
- 
- struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
- 				   const char *dev_name,
--				   const char *name, void *priv);
-+				   void *priv);
- void v4l2_clk_unregister(struct v4l2_clk *clk);
- struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id);
- void v4l2_clk_put(struct v4l2_clk *clk);
-@@ -55,14 +55,13 @@ int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
- struct module;
- 
- struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
--		const char *id, unsigned long rate, struct module *owner);
-+			unsigned long rate, struct module *owner);
- void v4l2_clk_unregister_fixed(struct v4l2_clk *clk);
- 
- static inline struct v4l2_clk *v4l2_clk_register_fixed(const char *dev_id,
--							const char *id,
- 							unsigned long rate)
- {
--	return __v4l2_clk_register_fixed(dev_id, id, rate, THIS_MODULE);
-+	return __v4l2_clk_register_fixed(dev_id, rate, THIS_MODULE);
- }
- 
- #define v4l2_clk_name_i2c(name, size, adap, client) snprintf(name, size, \
--- 
-1.9.3
+I have a problem which im trying to solve.atsc_epg segfaults=0Aatsc_epc.c=
+=0Aline 683=0A=0Astruct atsc_channel_info *curr_info;=0A=0Aline 763=0Aeit_i=
+nfo =3D &curr_info->eit[index];=0A=0ABUT=0AThere is no code in between thes=
+e 2 lines which sets curr_info, now i changed the code around 712 to=0Afor(=
+k =3D 0; k < guide.num_channels; k++) { if(source_id =3D=3D guide.ch[k].src=
+_id) { curr_info =3D &guide.ch[k]; break; } } =0AThis removes the segfault,=
+ BUT i get no data at all, just lots of nice dots=0A=0ASource is OffAir Los=
+ Angeles=0Ajoolz=0A
+---1780992897-866223016-1421584509=:55421
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
+<html><body><div style=3D"color:#000; background-color:#fff; font-family:ar=
+ial, helvetica, sans-serif;font-size:12pt"><div class=3D"yiv825481949commen=
+t-body yiv825481949markdown-body yiv825481949markdown-format yiv825481949js=
+-comment-body">=0A          <div>I have a problem which im trying to solve.=
+atsc_epg segfaults</div><div><br></div>atsc_epc.c<br>line 683<br><div>=0A  =
+  struct atsc_channel_info *curr_info;</div>=0A=0A<div><br></div><div style=
+=3D"color:rgb(0, 0, 0);font-size:16px;font-family:arial, helvetica, sans-se=
+rif;background-color:transparent;font-style:normal;">line 763<br>=0A       =
+     eit_info =3D &amp;curr_info-&gt;eit[index];</div>=0A=0A<div><br></div>=
+<div style=3D"color:rgb(0, 0, 0);font-size:16px;font-family:arial, helvetic=
+a, sans-serif;background-color:transparent;font-style:normal;">BUT</div><di=
+v style=3D"color:rgb(0, 0, 0);font-size:16px;font-family:arial, helvetica, =
+sans-serif;background-color:transparent;font-style:normal;">There is no cod=
+e in between these 2 lines which sets curr_info, now i changed the code aro=
+und 712 to</div>=0A=0A<pre><code>            for(k =3D 0; k &lt; guide.num_=
+channels; k++) {=0A                if(source_id =3D=3D guide.ch[k].src_id) =
+{=0A                    curr_info =3D &amp;guide.ch[k];=0A                 =
+   break;=0A                }=0A            }=0A</code></pre>=0A=0A<div>Thi=
+s removes the segfault, BUT i get no data at all, just lots of nice dots</d=
+iv><div><br></div>=0A=0A<div>Source is OffAir Los Angeles</div>=0A      </d=
+iv>=0A=0A    <br>joolz<br></div></body></html>
+---1780992897-866223016-1421584509=:55421--
+
+
+--===============1823926695==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1823926695==--
