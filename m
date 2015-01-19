@@ -1,117 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:35295 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751815AbbAWDpb (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46840 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751623AbbASOxK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 22:45:31 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 16EED2A0088
-	for <linux-media@vger.kernel.org>; Fri, 23 Jan 2015 04:45:05 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150123034505.16EED2A0088@tschai.lan>
-Date: Fri, 23 Jan 2015 04:45:05 +0100 (CET)
+	Mon, 19 Jan 2015 09:53:10 -0500
+Message-ID: <54BD1A3D.7010001@xs4all.nl>
+Date: Mon, 19 Jan 2015 15:52:45 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: William Towle <william.towle@codethink.co.uk>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Ben Hutchings <ben.hutchings@codethink.co.uk>,
+	linux-media@vger.kernel.org, linux-kernel@codethink.co.uk,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [RFC PATCH 5/5] media: rcar_vin: move buffer management to .stop_streaming
+ handler
+References: <1418914070.22813.13.camel@xylophone.i.decadent.org.uk>  <1418914215.22813.18.camel@xylophone.i.decadent.org.uk>  <Pine.LNX.4.64.1501182141400.23540@axis700.grange> <1421664620.1222.207.camel@xylophone.i.decadent.org.uk> <Pine.LNX.4.64.1501191208490.27578@axis700.grange> <alpine.DEB.2.02.1501191404570.4586@xk120>
+In-Reply-To: <alpine.DEB.2.02.1501191404570.4586@xk120>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 01/19/2015 03:11 PM, William Towle wrote:
+> 
+> On Mon, 19 Jan 2015, Guennadi Liakhovetski wrote:
+> 
+>>>> On Thu, 18 Dec 2014, Ben Hutchings wrote:
+>>> Well, I thought that too.  Will's submission from last week has that
+>>> change:
+>>> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/87009
+> 
+>> Anyway, yes, that looks better! But I would still consider keeping buffers
+>> on the list in .buf_clean(), in which case you can remove it. And walk the
+>> list instead of the VB2 internal buffer array, as others have pointed out.
+> 
+> Hi Guennadi,
+>    Thanks for the clarification. Ian (when he was with us) did say "it
+> was particularly difficult to understand WTH this driver was doing".
+> 
+>    Regarding your first point, if it's safe to skip the actions left
+> in rcar_vin_videobuf_release() then I will do a further rework to
+> remove it completely.
 
-Results of the daily build of media_tree:
+Yes, that's safe. Just remove it altogether.
 
-date:		Fri Jan 23 04:00:14 CET 2015
-git branch:	test
-git hash:	1fc77d013ba85a29e2edfaba02fd21e8c8187fae
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-1.slh.1-amd64
+The buf_init and buf_release ops are matching ops that are normally only
+used if you have to do per-buffer initialization and/or release. These
+are only called when the buffer memory changes. In most drivers including
+this one it's not needed at all.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18-i686: OK
-linux-3.19-rc4-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18-x86_64: OK
-linux-3.19-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+The same is true for rcar_vin_videobuf_init: it's pointless since the
+list initialization is done implicitly when you add the buffer to a
+list with list_add_tail(). Just drop the function.
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+	Hans
 
-Full logs are available here:
+> 
+>    Regarding your second, in the patchset Ben linked to above we think
+> we have the appropriate loops: a for loop for queue_buf[], and
+> list_for_each_safe() for anything left in priv->capture; this is
+> consistent with rcar_vin_fill_hw_slot() setting up queue_buf[] with
+> pointers unlinked from priv->capture. This in turn suggests that we
+> are right not to call list_del_init() in both of
+> rcar_vin_stop_streaming()'s loops ... as long as I've correctly
+> interpreted the code and everyone's feedback thus far.
+> 
+> 
+> Cheers,
+>    Wills.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
