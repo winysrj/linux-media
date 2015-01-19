@@ -1,50 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56121 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751167AbbAVKMB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 05:12:01 -0500
-Received: from [82.128.187.65] (helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1YEEk3-0007VM-Qx
-	for linux-media@vger.kernel.org; Thu, 22 Jan 2015 12:11:59 +0200
-Message-ID: <54C0CCEF.8080500@iki.fi>
-Date: Thu, 22 Jan 2015 12:11:59 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43002 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751529AbbASNhm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jan 2015 08:37:42 -0500
+Message-ID: <54BD0890.8040606@xs4all.nl>
+Date: Mon, 19 Jan 2015 14:37:20 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL 3.19] si2168 fix
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 01/22] si2168: define symbol rate limits
+References: <1417901696-5517-1-git-send-email-crope@iki.fi> <54BD0573.3020207@xs4all.nl> <54BD06EC.4090209@iki.fi>
+In-Reply-To: <54BD06EC.4090209@iki.fi>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That patch must go also stable v3.16+ as tagged Cc.
+On 01/19/2015 02:30 PM, Antti Palosaari wrote:
+> Moikka!
+> 
+> On 01/19/2015 03:24 PM, Hans Verkuil wrote:
+>> On 12/06/2014 10:34 PM, Antti Palosaari wrote:
+>>> w_scan complains about missing symbol rate limits:
+>>> This dvb driver is *buggy*: the symbol rate limits are undefined - please report to linuxtv.org
+>>>
+>>> Chip supports 1 to 7.2 MSymbol/s on DVB-C.
+>>>
+>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>
+>> Antti,
+>>
+>> Are you planning to make a pull request of this patch series?
+>>
+>> It looks good to me, so for this patch series:
+>>
+>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> BTW, please add a cover letter whenever you post a patch series (git send-email --compose).
+>> It makes it easier to get an overview of what the patch series is all about.
+> 
+> PULL request is here:
+> https://patchwork.linuxtv.org/patch/27416/
+> 
+> I could send new one if needed, there is missing branch name (new Git 
+> version has started blaming it).
 
-regards
-Antti
+It's probably wise to do that (and rebase at the same time).
 
-The following changes since commit 2c0108e1c02f9fc95f465adc4d2ce1ad8688290a:
+> 
+> Are you applying these pull request now? I was expecting Mauro...
 
-   [media] omap3isp: Correctly set QUERYCAP capabilities (2015-01-21 
-21:09:11 -0200)
+I'm cleaning up patchwork, and your (very long) patch series were making it
+hard to work with patchwork.
 
-are available in the git repository at:
+Regards,
 
-   git://linuxtv.org/anttip/media_tree.git si2168_fix
+	Hans
 
-for you to fetch changes up to a85385413c60602b529a1555146c4e81a5935e98:
+> 
+> regards
+> Antti
+> 
 
-   si2168: increase timeout to fix firmware loading (2015-01-22 12:06:20 
-+0200)
-
-----------------------------------------------------------------
-Jurgen Kramer (1):
-       si2168: increase timeout to fix firmware loading
-
-  drivers/media/dvb-frontends/si2168.c | 2 +-
-  1 file changed, 1 insertion(+), 1 deletion(-)
-
--- 
-http://palosaari.fi/
