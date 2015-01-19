@@ -1,77 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f44.google.com ([209.85.218.44]:53812 "EHLO
-	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751654AbbA0HEe convert rfc822-to-8bit (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:51459 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750728AbbASNY0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 02:04:34 -0500
-Received: by mail-oi0-f44.google.com with SMTP id a3so11060957oib.3
-        for <linux-media@vger.kernel.org>; Mon, 26 Jan 2015 23:04:34 -0800 (PST)
+	Mon, 19 Jan 2015 08:24:26 -0500
+Message-ID: <54BD0573.3020207@xs4all.nl>
+Date: Mon, 19 Jan 2015 14:24:03 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20150121173128.GV26493@n2100.arm.linux.org.uk>
-References: <1421813807-9178-1-git-send-email-sumit.semwal@linaro.org>
- <1421813807-9178-3-git-send-email-sumit.semwal@linaro.org> <20150121173128.GV26493@n2100.arm.linux.org.uk>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Tue, 27 Jan 2015 12:34:13 +0530
-Message-ID: <CAO_48GE4XQm+Fd9JUGzyw9fsFDSo6+fRY79vwS=Yjcw5GLZAJg@mail.gmail.com>
-Subject: Re: [RFCv2 2/2] dma-buf: add helpers for sharing attacher constraints
- with dma-parms
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Rob Clark <robdclark@gmail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 01/22] si2168: define symbol rate limits
+References: <1417901696-5517-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1417901696-5517-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell!
+On 12/06/2014 10:34 PM, Antti Palosaari wrote:
+> w_scan complains about missing symbol rate limits:
+> This dvb driver is *buggy*: the symbol rate limits are undefined - please report to linuxtv.org
+> 
+> Chip supports 1 to 7.2 MSymbol/s on DVB-C.
+> 
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
 
-On 21 January 2015 at 23:01, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Wed, Jan 21, 2015 at 09:46:47AM +0530, Sumit Semwal wrote:
->> +static int calc_constraints(struct device *dev,
->> +                         struct dma_buf_constraints *calc_cons)
->> +{
->> +     struct dma_buf_constraints cons = *calc_cons;
->> +
->> +     cons.dma_mask &= dma_get_mask(dev);
->
-> I don't think this makes much sense when you consider that the DMA
-> infrastructure supports buses with offsets.  The DMA mask is th
-> upper limit of the _bus_ specific address, it is not a mask per-se.
->
-> What this means is that &= is not the right operation.  Moreover,
-> simply comparing masks which could be from devices on unrelated
-> buses doesn't make sense either.
->
-> However, that said, I don't have an answer for what you want to
-> achieve here.
+Antti,
 
-Thanks for your comments! I suppose in that case, I will leave out the
-*dma_masks from this constraints information for now; we can re-visit
-it when a specific use case really needs information about the
-dma-masks of the attached devices.
+Are you planning to make a pull request of this patch series?
 
-I will post an updated patch-set soon.
->
-> --
-> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-> according to speedtest.net.
+It looks good to me, so for this patch series:
 
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+BTW, please add a cover letter whenever you post a patch series (git send-email --compose).
+It makes it easier to get an overview of what the patch series is all about.
 
--- 
-Thanks and regards,
+Regards,
 
-Sumit Semwal
-Kernel Team Lead - Linaro Mobile Group
-Linaro.org │ Open source software for ARM SoCs
+	Hans
+
+> ---
+>  drivers/media/dvb-frontends/si2168.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> index ce9ab44..acf0fc3 100644
+> --- a/drivers/media/dvb-frontends/si2168.c
+> +++ b/drivers/media/dvb-frontends/si2168.c
+> @@ -635,6 +635,8 @@ static const struct dvb_frontend_ops si2168_ops = {
+>  	.delsys = {SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A},
+>  	.info = {
+>  		.name = "Silicon Labs Si2168",
+> +		.symbol_rate_min = 1000000,
+> +		.symbol_rate_max = 7200000,
+>  		.caps =	FE_CAN_FEC_1_2 |
+>  			FE_CAN_FEC_2_3 |
+>  			FE_CAN_FEC_3_4 |
+> 
+
