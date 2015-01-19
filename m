@@ -1,146 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:33135 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751170AbbAVPOX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 10:14:23 -0500
-Message-ID: <54C11390.9070803@xs4all.nl>
-Date: Thu, 22 Jan 2015 16:13:20 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.19]:51889 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751477AbbASOZn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jan 2015 09:25:43 -0500
+Date: Mon, 19 Jan 2015 15:25:35 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: William Towle <william.towle@codethink.co.uk>
+cc: Ben Hutchings <ben.hutchings@codethink.co.uk>,
+	linux-media@vger.kernel.org, linux-kernel@codethink.co.uk,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 5/5] media: rcar_vin: move buffer management to
+ .stop_streaming handler
+In-Reply-To: <alpine.DEB.2.02.1501191404570.4586@xk120>
+Message-ID: <Pine.LNX.4.64.1501191522190.27578@axis700.grange>
+References: <1418914070.22813.13.camel@xylophone.i.decadent.org.uk>
+ <1418914215.22813.18.camel@xylophone.i.decadent.org.uk>
+ <Pine.LNX.4.64.1501182141400.23540@axis700.grange>
+ <1421664620.1222.207.camel@xylophone.i.decadent.org.uk>
+ <Pine.LNX.4.64.1501191208490.27578@axis700.grange> <alpine.DEB.2.02.1501191404570.4586@xk120>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: sadegh abbasi <sadegh612000@yahoo.co.uk>
-Subject: Re: [PATCH 4/7] v4l2-ctrls: Export the standard control type operations
-References: <1421938126-17747-1-git-send-email-laurent.pinchart@ideasonboard.com> <1421938126-17747-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1421938126-17747-5-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/22/15 15:48, Laurent Pinchart wrote:
-> Drivers that implement custom control types need to implement the equal,
-> init, log and validate operations. Depending on the control type some of
-> those operations can use the standard control type implementation
-> provided by the v4l2 control framework. Export them to enable their
-> reuse.
+Hi,
+
+On Mon, 19 Jan 2015, William Towle wrote:
+
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 27 ++++++++++++++++-----------
->  include/media/v4l2-ctrls.h           |  9 +++++++++
->  2 files changed, 25 insertions(+), 11 deletions(-)
+> On Mon, 19 Jan 2015, Guennadi Liakhovetski wrote:
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index ba996de..17f10d4 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1233,9 +1233,9 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
->  			v4l2_event_queue_fh(sev->fh, &ev);
->  }
->  
-> -static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
-> -		      union v4l2_ctrl_ptr ptr1,
-> -		      union v4l2_ctrl_ptr ptr2)
-> +bool v4l2_ctrl_type_std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
-> +			      union v4l2_ctrl_ptr ptr1,
-> +			      union v4l2_ctrl_ptr ptr2)
->  {
->  	switch (ctrl->type) {
->  	case V4L2_CTRL_TYPE_BUTTON:
-> @@ -1262,6 +1262,7 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
->  		return !memcmp(ptr1.p + idx, ptr2.p + idx, ctrl->elem_size);
->  	}
->  }
-> +EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_equal);
->  
->  static void std_init_one(const struct v4l2_ctrl *ctrl, u32 idx,
->  			 union v4l2_ctrl_ptr ptr)
-> @@ -1301,7 +1302,8 @@ static void std_init_one(const struct v4l2_ctrl *ctrl, u32 idx,
->  	}
->  }
->  
-> -static void std_init(const struct v4l2_ctrl *ctrl, union v4l2_ctrl_ptr ptr)
-> +void v4l2_ctrl_type_std_init(const struct v4l2_ctrl *ctrl,
-> +			     union v4l2_ctrl_ptr ptr)
->  {
->  	u32 idx;
->  
-> @@ -1329,8 +1331,9 @@ static void std_init(const struct v4l2_ctrl *ctrl, union v4l2_ctrl_ptr ptr)
->  		break;
->  	}
->  }
-> +EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_init);
->  
-> -static void std_log(const struct v4l2_ctrl *ctrl)
-> +void v4l2_ctrl_type_std_log(const struct v4l2_ctrl *ctrl)
->  {
->  	union v4l2_ctrl_ptr ptr = ctrl->p_cur;
->  
-> @@ -1387,6 +1390,7 @@ static void std_log(const struct v4l2_ctrl *ctrl)
->  		break;
->  	}
->  }
-> +EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_log);
->  
->  /*
->   * Round towards the closest legal value. Be careful when we are
-> @@ -1410,8 +1414,8 @@ static void std_log(const struct v4l2_ctrl *ctrl)
->  })
->  
->  /* Validate a new control */
-> -static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
-> -			union v4l2_ctrl_ptr ptr)
-> +int v4l2_ctrl_type_std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
-> +				union v4l2_ctrl_ptr ptr)
->  {
->  	size_t len;
->  	u64 offset;
-> @@ -1485,12 +1489,13 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
->  		return -EINVAL;
->  	}
->  }
-> +EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_validate);
->  
->  static const struct v4l2_ctrl_type_ops std_type_ops = {
-> -	.equal = std_equal,
-> -	.init = std_init,
-> -	.log = std_log,
-> -	.validate = std_validate,
-> +	.equal = v4l2_ctrl_type_std_equal,
-> +	.init = v4l2_ctrl_type_std_init,
-> +	.log = v4l2_ctrl_type_std_log,
-> +	.validate = v4l2_ctrl_type_std_validate,
->  };
->  
->  /* Helper function: copy the given control value back to the caller */
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index a7280e9..71067fb 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -93,6 +93,15 @@ struct v4l2_ctrl_type_ops {
->  			union v4l2_ctrl_ptr ptr);
->  };
->  
-> +bool v4l2_ctrl_type_std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
-> +			      union v4l2_ctrl_ptr ptr1,
-> +			      union v4l2_ctrl_ptr ptr2);
-> +void v4l2_ctrl_type_std_init(const struct v4l2_ctrl *ctrl,
-> +			     union v4l2_ctrl_ptr ptr);
-> +void v4l2_ctrl_type_std_log(const struct v4l2_ctrl *ctrl);
-> +int v4l2_ctrl_type_std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
-> +				union v4l2_ctrl_ptr ptr);
-> +
->  typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
->  
->  /** struct v4l2_ctrl - The control structure.
+> > > > On Thu, 18 Dec 2014, Ben Hutchings wrote:
+> > > Well, I thought that too.  Will's submission from last week has that
+> > > change:
+> > > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/87009
 > 
+> > Anyway, yes, that looks better! But I would still consider keeping buffers
+> > on the list in .buf_clean(), in which case you can remove it. And walk the
+> > list instead of the VB2 internal buffer array, as others have pointed out.
+> 
+> Hi Guennadi,
+>   Thanks for the clarification. Ian (when he was with us) did say "it
+> was particularly difficult to understand WTH this driver was doing".
+> 
+>   Regarding your first point, if it's safe to skip the actions left
+> in rcar_vin_videobuf_release() then I will do a further rework to
+> remove it completely.
+> 
+>   Regarding your second, in the patchset Ben linked to above we think
+> we have the appropriate loops: a for loop for queue_buf[], and
+> list_for_each_safe() for anything left in priv->capture; this is
+> consistent with rcar_vin_fill_hw_slot() setting up queue_buf[] with
+> pointers unlinked from priv->capture. This in turn suggests that we
+> are right not to call list_del_init() in both of
+> rcar_vin_stop_streaming()'s loops ... as long as I've correctly
+> interpreted the code and everyone's feedback thus far.
 
+I'm referring to this comment by Hans Verkuil of 14 August last year:
+
+> I'm assuming all buffers that are queued to the driver via buf_queue() are
+> linked into priv->capture. So you would typically call vb2_buffer_done
+> when you are walking that list:
+> 
+> 	list_for_each_safe(buf_head, tmp, &priv->capture) {
+> 		// usually you go from buf_head to the real buffer struct
+> 		// containing a vb2_buffer struct
+> 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+> 		list_del_init(buf_head);
+> 	}
+> 
+> Please use this rather than looking into internal vb2_queue 
+> datastructures.
+
+I think, that's the right way to implement that clean up loop.
+
+Thanks
+Guennadi
