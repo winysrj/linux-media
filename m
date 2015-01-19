@@ -1,57 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:24608 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757855AbbAIPYz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 10:24:55 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v10 16/19] Documentation: leds: Add description of
- v4l2-flash sub-device
-Date: Fri, 09 Jan 2015 16:23:06 +0100
-Message-id: <1420816989-1808-17-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:46681 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751317AbbASJeJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jan 2015 04:34:09 -0500
+Message-ID: <54BCCF7B.9040305@xs4all.nl>
+Date: Mon, 19 Jan 2015 10:33:47 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	isely@isely.net
+Subject: [PATCH for v3.19] pvrusb2: fix missing device_caps in querycap
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch extends LED Flash class documention by
-the description of interactions with v4l2-flash sub-device.
+The VIDIOC_QUERYCAP function should set device_caps, but this was missing.
+In addition, it set the version field as well, but that should be done by
+the core, not by the driver.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+If a driver doesn't set device_caps the v4l2 core will issue a WARN_ON, so
+it's important that this is set correctly.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/leds/leds-class-flash.txt |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-index d80096b..2f38627 100644
---- a/Documentation/leds/leds-class-flash.txt
-+++ b/Documentation/leds/leds-class-flash.txt
-@@ -55,3 +55,16 @@ Following sysfs attributes are exposed for controlling flash led devices:
- 			  upper limit
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+index 422d79e..35e4ea5 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+@@ -89,16 +89,6 @@ static int vbi_nr[PVR_NUM] = {[0 ... PVR_NUM-1] = -1};
+ module_param_array(vbi_nr, int, NULL, 0444);
+ MODULE_PARM_DESC(vbi_nr, "Offset for device's vbi dev minor");
  
- 		Flash faults are cleared, if possible, by reading the attribute.
-+
-+A LED subsystem driver can be controlled also from the level of VideoForLinux2
-+subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
-+be defined in the kernel config. The driver must call the v4l2_flash_init
-+function to get registered in the V4L2 subsystem. On remove the
-+v4l2_flash_release function has to be called (see <media/v4l2-flash.h>).
-+
-+After proper initialization a V4L2 Flash sub-device is created. The sub-device
-+exposes a number of V4L2 controls, which allow for controlling a LED Flash class
-+device with use of its internal kernel API.
-+Opening the V4L2 Flash sub-device makes the LED subsystem sysfs interface
-+unavailable. The interface is re-enabled after the V4L2 Flash sub-device
-+is closed.
+-static struct v4l2_capability pvr_capability ={
+-	.driver         = "pvrusb2",
+-	.card           = "Hauppauge WinTV pvr-usb2",
+-	.bus_info       = "usb",
+-	.version        = LINUX_VERSION_CODE,
+-	.capabilities   = (V4L2_CAP_VIDEO_CAPTURE |
+-			   V4L2_CAP_TUNER | V4L2_CAP_AUDIO | V4L2_CAP_RADIO |
+-			   V4L2_CAP_READWRITE),
+-};
+-
+ static struct v4l2_fmtdesc pvr_fmtdesc [] = {
+ 	{
+ 		.index          = 0,
+@@ -160,10 +150,22 @@ static int pvr2_querycap(struct file *file, void *priv, struct v4l2_capability *
+ 	struct pvr2_v4l2_fh *fh = file->private_data;
+ 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
+ 
+-	memcpy(cap, &pvr_capability, sizeof(struct v4l2_capability));
++	strlcpy(cap->driver, "pvrusb2", sizeof(cap->driver));
+ 	strlcpy(cap->bus_info, pvr2_hdw_get_bus_info(hdw),
+ 			sizeof(cap->bus_info));
+ 	strlcpy(cap->card, pvr2_hdw_get_desc(hdw), sizeof(cap->card));
++	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
++			    V4L2_CAP_AUDIO | V4L2_CAP_RADIO |
++			    V4L2_CAP_READWRITE | V4L2_CAP_DEVICE_CAPS;
++	switch (fh->pdi->devbase.vfl_type) {
++	case VFL_TYPE_GRABBER:
++		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_AUDIO;
++		break;
++	case VFL_TYPE_RADIO:
++		cap->device_caps = V4L2_CAP_RADIO;
++		break;
++	}
++	cap->device_caps |= V4L2_CAP_TUNER | V4L2_CAP_READWRITE;
+ 	return 0;
+ }
+ 
 -- 
-1.7.9.5
+2.1.4
 
