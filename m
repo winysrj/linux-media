@@ -1,117 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:35726 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752386AbbAPDkO (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:42246 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751520AbbASOLO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2015 22:40:14 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 214652A009D
-	for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 04:39:56 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150116033956.214652A009D@tschai.lan>
-Date: Fri, 16 Jan 2015 04:39:56 +0100 (CET)
+	Mon, 19 Jan 2015 09:11:14 -0500
+MIME-Version: 1.0
+In-Reply-To: <54954D5B.2020904@redhat.com>
+References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
+ <1418836704-15689-5-git-send-email-hdegoede@redhat.com> <CAGb2v65BW7NABQXK877DkMNqDdBeuZ55wQHFkTexbWACFC4zFA@mail.gmail.com>
+ <54929552.8090707@redhat.com> <20141219181708.GQ4820@lukather> <54954D5B.2020904@redhat.com>
+From: Chen-Yu Tsai <wens@csie.org>
+Date: Mon, 19 Jan 2015 22:10:52 +0800
+Message-ID: <CAGb2v676uRnKRNbBLPvcW4oTVzjWnNbVUTtw=DLoDyr2vn3Dgw@mail.gmail.com>
+Subject: Re: [linux-sunxi] [PATCH v2 04/13] rc: sunxi-cir: Add support for an
+ optional reset controller
+To: Hans de Goede <hdegoede@redhat.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	devicetree <devicetree@vger.kernel.org>,
+	linux-sunxi <linux-sunxi@googlegroups.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+On Sat, Dec 20, 2014 at 6:20 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> Hi,
+>
+>
+> On 19-12-14 19:17, Maxime Ripard wrote:
+>>
+>> Hi,
+>>
+>> On Thu, Dec 18, 2014 at 09:50:26AM +0100, Hans de Goede wrote:
+>>>
+>>> Hi,
+>>>
+>>> On 18-12-14 03:48, Chen-Yu Tsai wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> On Thu, Dec 18, 2014 at 1:18 AM, Hans de Goede <hdegoede@redhat.com>
+>>>> wrote:
+>>>>>
+>>>>> On sun6i the cir block is attached to the reset controller, add support
+>>>>> for de-asserting the reset if a reset controller is specified in dt.
+>>>>>
+>>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>>>> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>>> Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+>>>>> ---
+>>>>>   .../devicetree/bindings/media/sunxi-ir.txt         |  2 ++
+>>>>>   drivers/media/rc/sunxi-cir.c                       | 25
+>>>>> ++++++++++++++++++++--
+>>>>>   2 files changed, 25 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt
+>>>>> b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+>>>>> index 23dd5ad..6b70b9b 100644
+>>>>> --- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
+>>>>> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+>>>>> @@ -10,6 +10,7 @@ Required properties:
+>>>>>
+>>>>>   Optional properties:
+>>>>>   - linux,rc-map-name : Remote control map name.
+>>>>> +- resets : phandle + reset specifier pair
+>>>>
+>>>>
+>>>> Should it be optional? Or should we use a sun6i compatible with
+>>>> a mandatory reset phandle? I mean, the driver/hardware is not
+>>>> going to work with the reset missing on sun6i.
+>>>>
+>>>> Seems we are doing it one way for some of our drivers, and
+>>>> the other (optional) way for more generic ones, like USB.
+>>>
+>>>
+>>> I do not believe that we should add a new compatible just because
+>>> the reset line of a block is hooked up differently. It is the
+>>> exact same ip-block. Only now the reset is not controlled
+>>> through the apb-gate, but controlled separately.
+>>
+>>
+>> He has a point though. Your driver might very well probe nicely and
+>> everything, but still wouldn't be functional at all because the reset
+>> line wouldn't have been specified in the DT.
+>
+>
+> Right, just like other drivers we've, see e.g.:
+>
+> Documentation/devicetree/bindings/mmc/sunxi-mmc.txt
+>
+> Which is dealing with this in the same way.
+>
+>> The easiest way to deal with that would be in the bindings doc to
+>> update it with a compatible for the A31, and mentionning that the
+>> reset property is mandatory there.
+>
+>
+> No the easiest way to deal with this is to expect people writing
+> the dts to know what they are doing, just like we do for a lot
+> of the other blocks in sun6i.
+>
+> Maybe put a generic note somewhere that sun6i has a reset controller,
+> and that for all the blocks with optional resets property it should
+> be considered mandatory on sun6i ?
+>
+> I'm sorry but I'm not going to make this change for the ir bindings
+> given that we've the same situation in a lot of other places.
+>
+> Consistency is important. Moreover I believe that having a sun6i
+> specific compatible string is just wrong, since it is the exact
+> same hardware block as on sun5i, just with its reset line routed
+> differently, just like e.g. the mmc controller, the uarts or the gmac
+> all of which also do not have a sun6i specific compatible to enforce
+> reset controller usage.
+>
+> Regards,
+>
+> Hans
+>
+>
+>
+>
+>> Note that the code itself might not change at all though. I'd just
+>> like to avoid any potential breaking of the DT bindings themselves. If
+>> we further want to refine the code, we can do that however we want.
+>>
+>> I have a slight preference for a clean error if reset is missing, but
+>> I won't get in the way just for that.
 
-date:		Fri Jan 16 04:00:14 CET 2015
-git branch:	test
-git hash:	99f3cd52aee21091ce62442285a68873e3be833f
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-1.slh.1-amd64
+Seems this patch and the following patch were overlooked after the
+discussion. Any chance we could get this in? Hans has made a good
+argument, so I take back any doubts I raised.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-i686: OK
-linux-3.19-rc4-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16-x86_64: ERRORS
-linux-3.17-x86_64: ERRORS
-linux-3.18-x86_64: ERRORS
-linux-3.19-rc4-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+ChenYu
