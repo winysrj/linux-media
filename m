@@ -1,38 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60796 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755566AbbAWQvj (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43854 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750728AbbASNPr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 11:51:39 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 02/21] [media] coda: bitrate can only be set in kbps steps
-Date: Fri, 23 Jan 2015 17:51:16 +0100
-Message-Id: <1422031895-7740-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
-References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+	Mon, 19 Jan 2015 08:15:47 -0500
+Message-ID: <54BD036D.8020701@xs4all.nl>
+Date: Mon, 19 Jan 2015 14:15:25 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Benjamin Larsson <benjamin@southpole.se>,
+	Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/3] mn88472: make sure the private data struct is nulled
+ after free
+References: <1417825533-13081-1-git-send-email-benjamin@southpole.se> <1417825533-13081-2-git-send-email-benjamin@southpole.se> <54832EE7.10705@iki.fi> <54834628.50702@southpole.se> <54834CD7.1060709@iki.fi> <54836680.9010404@southpole.se>
+In-Reply-To: <54836680.9010404@southpole.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 12/06/2014 09:26 PM, Benjamin Larsson wrote:
+> On 12/06/2014 07:37 PM, Antti Palosaari wrote:
+>>>
+>>> I do think it is good practice to set pointers to null generally as that
+>>> would have saved me several days of work of whentracking down this bug.
+>>> The current dvb framework contain several other cases where pointers are
+>>> feed'd but not nulled.
+>>
+>> There is kzfree() for that, but still I am very unsure should we start 
+>> zeroing memory upon release driver has allocated, or just relase it 
+>> using kfree.
+>>
+>> regards
+>> Antti 
+> 
+> Well I guess I am biased as I have spent lots of time finding a bug that 
+> probably wouldn't exist if the policy was that drivers always should set 
+> their memory to zero before it is free'd.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 39330a7..1cc4e90 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1407,7 +1407,7 @@ static const struct v4l2_ctrl_ops coda_ctrl_ops = {
- static void coda_encode_ctrls(struct coda_ctx *ctx)
- {
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1, 0);
-+		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1000, 0);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 60, 1, 16);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--- 
-2.1.4
+Just because you zero memory before it is freed doesn't mean it stays zeroed.
+As soon as it is freed some other process might take that memory and fill it
+up again. So zeroing is pointless and in fact will only *hide* bugs.
+
+The only reason I know of for zeroing memory before freeing is if that memory
+contains sensitive information and you want to make sure it is gone from memory.
+
+You can turn on the kmemcheck kernel option when compiling the kernel to test
+for accesses to uninitialized memory if you suspect you have a bug in that
+area.
+
+Anyway:
+
+Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> Maybe we should have a compile 
+> time override so that all free calls zeroes the memory before the actual 
+> free? Maybe there already is this kind of feature?
+> 
+> MvH
+> Benjamin Larsson
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
