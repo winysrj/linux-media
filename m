@@ -1,64 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:42226 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084AbbALXXe (ORCPT
+Received: from mail-la0-f51.google.com ([209.85.215.51]:38926 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751603AbbASNW4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2015 18:23:34 -0500
-From: Benjamin Larsson <benjamin@southpole.se>
-To: crope@iki.fi
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] mn88473: simplify bandwidth registers setting code
-Date: Tue, 13 Jan 2015 00:23:26 +0100
-Message-Id: <1421105006-22437-2-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1421105006-22437-1-git-send-email-benjamin@southpole.se>
-References: <1421105006-22437-1-git-send-email-benjamin@southpole.se>
+	Mon, 19 Jan 2015 08:22:56 -0500
+Received: by mail-la0-f51.google.com with SMTP id ge10so7747115lab.10
+        for <linux-media@vger.kernel.org>; Mon, 19 Jan 2015 05:22:55 -0800 (PST)
+From: Ulf Hansson <ulf.hansson@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH V2 0/8] [media] exynos-gsc: Fixup PM support
+Date: Mon, 19 Jan 2015 14:22:32 +0100
+Message-Id: <1421673760-2600-1-git-send-email-ulf.hansson@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/staging/media/mn88473/mn88473.c | 27 ++++++---------------------
- 1 file changed, 6 insertions(+), 21 deletions(-)
+Changes in v2:
+	- Rebase patches.
+	- Adapt to changes for the PM core. Especially, the Kconfig option for
+	  CONFIG_PM_RUNTIME has been removed and the runtime PM core is now
+	  build for CONFIG_PM.
 
-diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
-index b65e519..994294c 100644
---- a/drivers/staging/media/mn88473/mn88473.c
-+++ b/drivers/staging/media/mn88473/mn88473.c
-@@ -59,28 +59,13 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	switch (c->delivery_system) {
--	case SYS_DVBT:
--	case SYS_DVBT2:
--		if (c->bandwidth_hz <= 6000000) {
--			/* IF 3570000 Hz, BW 6000000 Hz */
--			memcpy(bw_val, "\xe9\x55\x55\x1c\x29\x1c\x29", 7);
--		} else if (c->bandwidth_hz <= 7000000) {
--			/* IF 4570000 Hz, BW 7000000 Hz */
--			memcpy(bw_val, "\xc8\x00\x00\x17\x0a\x17\x0a", 7);
--		} else if (c->bandwidth_hz <= 8000000) {
--			/* IF 4570000 Hz, BW 8000000 Hz */
--			memcpy(bw_val, "\xaf\x00\x00\x11\xec\x11\xec", 7);
--		} else {
--			ret = -EINVAL;
--			goto err;
--		}
--		break;
--	case SYS_DVBC_ANNEX_A:
--		/* IF 5070000 Hz, BW 8000000 Hz */
-+	if (c->bandwidth_hz <= 6000000) {
-+		memcpy(bw_val, "\xe9\x55\x55\x1c\x29\x1c\x29", 7);
-+	} else if (c->bandwidth_hz <= 7000000) {
-+		memcpy(bw_val, "\xc8\x00\x00\x17\x0a\x17\x0a", 7);
-+	} else if (c->bandwidth_hz <= 8000000) {
- 		memcpy(bw_val, "\xaf\x00\x00\x11\xec\x11\xec", 7);
--		break;
--	default:
-+	} else {
- 		ret = -EINVAL;
- 		goto err;
- 	}
+This patchset fixup the PM support and adds some minor improvements to
+potentially save some more power at runtime PM suspend.
+
+
+Ulf Hansson (8):
+  [media] exynos-gsc: Simplify clock management
+  [media] exynos-gsc: Convert gsc_m2m_resume() from int to void
+  [media] exynos-gsc: Make driver functional when CONFIG_PM is unset
+  [media] exynos-gsc: Make runtime PM callbacks available for CONFIG_PM
+  [media] exynos-gsc: Fixup clock management at ->remove()
+  [media] exynos-gsc: Do full clock gating at runtime PM suspend
+  [media] exynos-gsc: Make system PM callbacks available for
+    CONFIG_PM_SLEEP
+  [media] exynos-gsc: Simplify system PM
+
+ drivers/media/platform/exynos-gsc/gsc-core.c | 183 +++++++++++----------------
+ drivers/media/platform/exynos-gsc/gsc-core.h |   3 -
+ 2 files changed, 72 insertions(+), 114 deletions(-)
+
 -- 
-2.1.0
+1.9.1
 
