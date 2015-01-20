@@ -1,91 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:45597 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578AbbALNrD (ORCPT
+Received: from mail-qg0-f45.google.com ([209.85.192.45]:45019 "EHLO
+	mail-qg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751985AbbATR3h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2015 08:47:03 -0500
-Message-id: <54B3D053.4010300@samsung.com>
-Date: Mon, 12 Jan 2015 14:46:59 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v10 08/19] leds: Add support for max77693 mfd flash cell
+	Tue, 20 Jan 2015 12:29:37 -0500
+MIME-Version: 1.0
+In-Reply-To: <54BE7DAB.80702@samsung.com>
 References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-9-git-send-email-j.anaszewski@samsung.com>
- <20150109184606.GJ18076@amd> <54B38B55.7080503@samsung.com>
- <20150112132521.GA15838@amd>
-In-reply-to: <20150112132521.GA15838@amd>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+ <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
+ <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
+ <54B38682.5080605@samsung.com> <CAL_Jsq+UaA41DvawdOMmOib=Fi0hC-nBdKV-+P4DFo+MoOy-bQ@mail.gmail.com>
+ <54B3F1EF.4060506@samsung.com> <CAL_JsqKpJtUG0G6g1GOuSVpc31oe-dp3qdrKJUE0upG-xRDFhA@mail.gmail.com>
+ <54B4DA81.7060900@samsung.com> <CAL_JsqLYxB5hzLAWXpU=uncM5DEMZU78mP673H9oSSNB-cgcYQ@mail.gmail.com>
+ <54B8D4D0.3000904@samsung.com> <CAL_Jsq+EFWzs1HP1tVt6P=p=HZn2AtSPjp55YrmMQi_mE+kNfQ@mail.gmail.com>
+ <54B933D0.1090004@samsung.com> <54BE7DAB.80702@samsung.com>
+From: Rob Herring <robherring2@gmail.com>
+Date: Tue, 20 Jan 2015 11:29:16 -0600
+Message-ID: <CAL_JsqKoiaUmVhbQdnNveG=AAYh4-OHGS70L+LAgLLoKChUuYQ@mail.gmail.com>
+Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/12/2015 02:25 PM, Pavel Machek wrote:
-> Hi!
->
->>>> +struct max77693_sub_led {
->>>> +	/* related FLED output identifier */
->>>
->>> ->flash LED, about 4x.
->>>
->>>> +/* split composite current @i into two @iout according to @imax weights */
->>>> +static void __max77693_calc_iout(u32 iout[2], u32 i, u32 imax[2])
->>>> +{
->>>> +	u64 t = i;
->>>> +
->>>> +	t *= imax[1];
->>>> +	do_div(t, imax[0] + imax[1]);
->>>> +
->>>> +	iout[1] = (u32)t / FLASH_IOUT_STEP * FLASH_IOUT_STEP;
->>>> +	iout[0] = i - iout[1];
->>>> +}
->>>
->>> Is 64-bit arithmetics neccessary here? Could we do the FLASH_IOUT_STEP
->>> divisons before t *=, so that 64-bit division is not neccessary?
+On Tue, Jan 20, 2015 at 10:09 AM, Jacek Anaszewski
+<j.anaszewski@samsung.com> wrote:
+> On 01/16/2015 04:52 PM, Jacek Anaszewski wrote:
 >>
->> It is required. All these operations allow for splitting the composite
->> current into both outputs according to weights given in the imax
->> array.
->
-> I know.
->
-> What about this?
->
-> static void __max77693_calc_iout(u32 iout[2], u32 i, u32 imax[2])
-> {
-> 	u32 t = i;
->
-> 	t *= imax[1] / FLASH_IOUT_STEP;
+>> On 01/16/2015 02:48 PM, Rob Herring wrote:
 
-Let's consider following case:
+[...]
 
-t = 1000000
-imax[1] = 1000000
-
-multiplication of the above will give 10^12 - much more than
-it is possible to encode on 32 bits.
-
-> 	t = t / (imax[0] + imax[1]);
-> 	t /= FLASH_IOUT_STEP
+>>> You may want to add something like led-output-cnt or led-driver-cnt in
+>>> the parent so you know the max list size.
+>>
+>>
+>> Why should we need this? The number of current outputs exposed by the
+>> device is fixed and can be specified in a LED device bindings
+>> documentation.
+>>
 >
-> 	iout[1] = (u32)t;
-> 	iout[0] = i - iout[1];
-> }
->
-> Does it lack precision?
->
-> Thanks,
-> 									Pavel
->
+> OK. The led-output-cnt property should be put in each sub-node, as the
+> number of the current outputs each LED can be connected to is variable.
 
+Sorry, I meant this for the parent node meaning how many outputs the
+driver IC has. I did say maybe because you may always know this. It
+can make it easier to allocate memory for led-sources knowing the max
+size up front.
 
--- 
-Best Regards,
-Jacek Anaszewski
+Rob
+
+>
+> New version:
+>
+>  Optional properties for child nodes:
+> +led-sources-cnt : Number of device current outputs the LED is connected to.
+> +- led-sources : List of device current outputs the LED is connected to. The
+> +               outputs are identified by the numbers that must be defined
+> +               in the LED device binding documentation.
+>  - label : The label for this LED.  If omitted, the label is
+>    taken from the node name (excluding the unit address).
+>
+> @@ -33,7 +47,9 @@ system-status {
+>
+>  camera-flash {
+>         label = "Flash";
+> +       led-sources-cnt = <2>;
+> +       led-sources = <0>, <1>;
+>         max-microamp = <50000>;
+>         flash-max-microamp = <320000>;
+>         flash-timeout-us = <500000>;
+> -}
+> +};
+>
+>
+> --
+> Best Regards,
+> Jacek Anaszewski
