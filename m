@@ -1,65 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f171.google.com ([209.85.213.171]:46989 "EHLO
-	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753248AbbATPkh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 10:40:37 -0500
-Received: by mail-ig0-f171.google.com with SMTP id h15so9594956igd.4
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 07:40:36 -0800 (PST)
-Date: Tue, 20 Jan 2015 15:40:29 +0000
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v10 07/19] mfd: max77693: Adjust FLASH_EN_SHIFT and
- TORCH_EN_SHIFT macros
-Message-ID: <20150120154029.GC13701@x1>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-8-git-send-email-j.anaszewski@samsung.com>
- <20150120111719.GF13701@x1>
- <54BE51B2.8040209@samsung.com>
- <54BE6228.5070304@samsung.com>
+Received: from butterbrot.org ([176.9.106.16]:35218 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752414AbbATJYN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2015 04:24:13 -0500
+Message-ID: <54BE1EBC.2090001@butterbrot.org>
+Date: Tue, 20 Jan 2015 10:24:12 +0100
+From: Florian Echtler <floe@butterbrot.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <54BE6228.5070304@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
+References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <54BCDE91.90807@xs4all.nl>
+In-Reply-To: <54BCDE91.90807@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="w2fbvAh7XVxNVBqiKiK79ku16dUcKQBTv"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 20 Jan 2015, Jacek Anaszewski wrote:
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--w2fbvAh7XVxNVBqiKiK79ku16dUcKQBTv
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-> On 01/20/2015 02:01 PM, Jacek Anaszewski wrote:
-> >On 01/20/2015 12:17 PM, Lee Jones wrote:
-> >>On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
-> >>
-> >>>Modify FLASH_EN_SHIFT and TORCH_EN_SHIFT macros to work properly
-> >>>when passed enum max77693_fled values (0 for FLED1 and 1 for FLED2)
-> >>>from leds-max77693 driver.
-> >>
-> >>Off-by-one ay?  Wasn't the original code tested?
-> >
-> >The driver using these macros is a part of LED / flash API integration
-> >patch series, which still undergoes modifications and it hasn't
-> >reached its final state yet, as there are many things to discuss.
-> 
-> To be more precise: the original code had been tested and was working
-> properly with the header that is in the mainline. Nonetheless, because
-> of the modifications in the driver that was requested during code
-> review, it turned out that it would be more convenient to redefine the
-> macros.
-> 
-> I'd opt for just agreeing about the mfd related patches and merge
-> them no sooner than the leds-max77693 driver is merged.
+Hello Hans,
 
-The only way we can guarantee this is to have them go in during
-different merge-windows, unless of course they go in via the same tree.
+On 19.01.2015 11:38, Hans Verkuil wrote:
+> Sorry for the delay.
+No problem, thanks for your feedback.
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+>> Note: I'm intentionally using dma-contig instead of vmalloc, as the US=
+B
+>> core apparently _will_ try to use DMA for larger bulk transfers.=20
+> As far as I can tell from looking through the usb core code it supports=
+
+> scatter-gather DMA, so you should at least use dma-sg rather than dma-c=
+ontig.
+> Physically contiguous memory should always be avoided.
+OK, will this work transparently (i.e. just switch from *-contig-* to
+*-sg-*)? If not, can you suggest an example driver to use as template?
+
+> I'm also missing a patch for the Kconfig that adds a dependency on MEDI=
+A_USB_SUPPORT
+> and that selects VIDEOBUF2_DMA_SG.
+Good point, will add that.
+
+>> +err_unreg_video:
+>> +	video_unregister_device(&sur40->vdev);
+>> +err_unreg_v4l2:
+>> +	v4l2_device_unregister(&sur40->v4l2);
+>>  err_free_buffer:
+>>  	kfree(sur40->bulk_in_buffer);
+>>  err_free_polldev:
+>> @@ -436,6 +604,10 @@ static void sur40_disconnect(struct usb_interface=
+ *interface)
+> Is this a hardwired device or hotpluggable? If it is hardwired, then th=
+is code is
+> OK, but if it is hotpluggable, then this isn't good enough.
+It's hardwired. Out of curiosity, what would I have to change for a
+hotpluggable one?
+
+>> +	i->type =3D V4L2_INPUT_TYPE_CAMERA;
+>> +	i->std =3D V4L2_STD_UNKNOWN;
+>> +	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
+> Perhaps just say "Sensor" here? I'm not sure what "In-Cell" means.
+In-cell is referring to the concept of integrating sensor pixels
+directly with LCD pixels, I think it's what Samsung calls it.
+
+Thanks & best regards, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
+
+
+--w2fbvAh7XVxNVBqiKiK79ku16dUcKQBTv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlS+HrwACgkQ7CzyshGvatgSBgCgnY6rVYFYDYvbGmccsANwylWg
+daIAoOmkekEYVTsw86kyG+ZtxcECSZVy
+=6Yd2
+-----END PGP SIGNATURE-----
+
+--w2fbvAh7XVxNVBqiKiK79ku16dUcKQBTv--
