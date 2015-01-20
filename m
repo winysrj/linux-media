@@ -1,66 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-190.synserver.de ([212.40.185.190]:1095 "EHLO
-	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755667AbbAWPwk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 10:52:40 -0500
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?=
-	<richard.rojfors@mocean-labs.com>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 03/15] [media] adv7180: Use inline function instead of macro
-Date: Fri, 23 Jan 2015 16:52:22 +0100
-Message-Id: <1422028354-31891-4-git-send-email-lars@metafoo.de>
-In-Reply-To: <1422028354-31891-1-git-send-email-lars@metafoo.de>
-References: <1422028354-31891-1-git-send-email-lars@metafoo.de>
+Received: from [82.211.30.53] ([82.211.30.53]:54021 "EHLO iodev.co.uk"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751938AbbATOuN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2015 09:50:13 -0500
+From: Ismael Luceno <ismael@iodev.co.uk>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ismael Luceno <ismael@iodev.co.uk>
+Subject: [PATCH] MAINTAINERS: Update solo6x10 entry
+Date: Tue, 20 Jan 2015 11:43:50 -0300
+Message-Id: <1421765030-2308-1-git-send-email-ismael@iodev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use a inline function instead of a macro for the container_of helper for
-getting the driver's state struct from a control. A inline function has the
-advantage that it is more typesafe and nicer in general.
+Re-add Ismael Luceno as co-maintainer (with personal email address).
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
 ---
- drivers/media/i2c/adv7180.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index f424a4d..f2508abe 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -130,9 +130,11 @@ struct adv7180_state {
- 	bool			powered;
- 	u8			input;
- };
--#define to_adv7180_sd(_ctrl) (&container_of(_ctrl->handler,		\
--					    struct adv7180_state,	\
--					    ctrl_hdl)->sd)
-+
-+static struct adv7180_state *ctrl_to_adv7180(struct v4l2_ctrl *ctrl)
-+{
-+	return container_of(ctrl->handler, struct adv7180_state, ctrl_hdl);
-+}
- 
- static v4l2_std_id adv7180_std_to_v4l2(u8 status1)
- {
-@@ -345,9 +347,8 @@ static int adv7180_s_power(struct v4l2_subdev *sd, int on)
- 
- static int adv7180_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct v4l2_subdev *sd = to_adv7180_sd(ctrl);
--	struct adv7180_state *state = to_state(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct adv7180_state *state = ctrl_to_adv7180(ctrl);
-+	struct i2c_client *client = v4l2_get_subdevdata(&state->sd);
- 	int ret = mutex_lock_interruptible(&state->mutex);
- 	int val;
- 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ddb9ac8..b012411 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8892,6 +8892,7 @@ SOFTLOGIC 6x10 MPEG CODEC
+ M:	Bluecherry Maintainers <maintainers@bluecherrydvr.com>
+ M:	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+ M:	Andrey Utkin <andrey.krieger.utkin@gmail.com>
++M:	Ismael Luceno <ismael@iodev.co.uk>
+ L:	linux-media@vger.kernel.org
+ S:	Supported
+ F:	drivers/media/pci/solo6x10/
 -- 
-1.8.0
+2.2.1
 
