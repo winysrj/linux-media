@@ -1,98 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f67.google.com ([209.85.192.67]:36167 "EHLO
-	mail-qg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645AbbARDLv (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:59176 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754060AbbATM1z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2015 22:11:51 -0500
-Received: by mail-qg0-f67.google.com with SMTP id i50so682363qgf.2
-        for <linux-media@vger.kernel.org>; Sat, 17 Jan 2015 19:11:50 -0800 (PST)
+	Tue, 20 Jan 2015 07:27:55 -0500
+Date: Tue, 20 Jan 2015 12:27:52 +0000 (GMT)
+From: William Towle <william.towle@codethink.co.uk>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+cc: William Towle <william.towle@codethink.co.uk>,
+	Ben Hutchings <ben.hutchings@codethink.co.uk>,
+	linux-media@vger.kernel.org, linux-kernel@codethink.co.uk,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 5/5] media: rcar_vin: move buffer management to
+ .stop_streaming handler
+In-Reply-To: <Pine.LNX.4.64.1501191522190.27578@axis700.grange>
+Message-ID: <alpine.DEB.2.02.1501201211490.4535@xk120>
+References: <1418914070.22813.13.camel@xylophone.i.decadent.org.uk>  <1418914215.22813.18.camel@xylophone.i.decadent.org.uk>  <Pine.LNX.4.64.1501182141400.23540@axis700.grange> <1421664620.1222.207.camel@xylophone.i.decadent.org.uk>
+ <Pine.LNX.4.64.1501191208490.27578@axis700.grange> <alpine.DEB.2.02.1501191404570.4586@xk120> <Pine.LNX.4.64.1501191522190.27578@axis700.grange>
 MIME-Version: 1.0
-Date: Sun, 18 Jan 2015 11:11:50 +0800
-Message-ID: <CAJke7cKTYsNSE82N+C9Na+J8WWL403wdwMCYAd6cNTpBccGAAw@mail.gmail.com>
-Subject: Latest media_build break Geniatech T230
-From: Roy Keano <suratjebat@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-identification of the device with which you are having difficulty:
-Geniatech T230
-
-the device's subsystem ID, taken from the output of lspci -vnn (for
-PCI/PCIe devices) or lsusb -v (for USB based devices):
-ID 0572:c688
-
-the environment your running it under (e.g. Fedora 10, with kernel
-2.6.27.5, 64-bit), and with what other hardware (e.g. ASUS Core 2 Duo
-motherboard):
-Debian 7.7
-3.2.0-4-amd64 #1 SMP Debian 3.2.63-2+deb7u2 x86_64 GNU/Linux
-
-a note of whether you're using the built in kernel drivers supplied by
-your distro or if you have installed the v4l-dvb driver set, or those
-from one of the LinuxTV developers' repos
-installed the v4l-dvb driver set using media_build
-
-/var/log/message log:
-cite the television standard applicable for your device (e.g. ATSC
-tuner card, PAL capture card)
-
-..................dvb_usb_cxusb: probe of 1-2:1.0 failed with error -22
-...................usbcore: registered new interface driver dvb_usb_cxusb
-
-Exact sequence of actions that causes your problem. If it is possible,
-try to provide a simple reproducible test case, as this makes it much
-easier to track down the actual problem.:
-
-Install using the simple procedure of media_build without any
-indication of error, latest copy of drivers was installed
-
-Copied the 2 firmwares relevant to the tuner from openelec
-
-Reboot the system
-
-Plug in dvb-t stick
-
-/dev/dvb file was MISSING
-
-**************************************************************************
-I googled around and found this post by  Crni Gruja:
-https://tvheadend.org/boards/5/topics/10864?page=8
-
-I downloaded and used his media_build script. (The link to poster's
-media_build can be found at the above link)
-
-The /var/log/message showed:
-
-Jan 18 11:03:34 jebat kernel: [34051.900148] usb 7-1: new high-speed
-USB device number 9 using ehci_hcd
-Jan 18 11:03:34 jebat kernel: [34052.032992] usb 7-1: New USB device
-found, idVendor=0572, idProduct=c688
-Jan 18 11:03:34 jebat kernel: [34052.033001] usb 7-1: New USB device
-strings: Mfr=1, Product=2, SerialNumber=3
-Jan 18 11:03:34 jebat kernel: [34052.033008] usb 7-1: Product: USB Stick
-Jan 18 11:03:34 jebat kernel: [34052.033013] usb 7-1: Manufacturer: Max
-Jan 18 11:03:34 jebat kernel: [34052.033018] usb 7-1: SerialNumber: 080116
-Jan 18 11:03:34 jebat kernel: [34052.033712] dvb-usb: found a 'Mygica
-T230 DVB-T/T2/C' in warm state.
-Jan 18 11:03:34 jebat kernel: [34052.268209] dvb-usb: will pass the
-complete MPEG2 transport stream to the software demuxer.
-Jan 18 11:03:34 jebat kernel: [34052.268402] DVB: registering new
-adapter (Mygica T230 DVB-T/T2/C)
-Jan 18 11:03:34 jebat kernel: [34052.273649] input: IR-receiver inside
-an USB DVB receiver as
-/devices/pci0000:00/0000:00:1d.7/usb7/7-1/input/input11
-Jan 18 11:03:34 jebat kernel: [34052.273806] dvb-usb: schedule remote
-query interval to 100 msecs.
-Jan 18 11:03:34 jebat kernel: [34052.273989] dvb-usb: Mygica T230
-DVB-T/T2/C successfully initialized and connected.
-Jan 18 11:03:34 jebat mtp-probe: checking bus 7, device 9:
-"/sys/devices/pci0000:00/0000:00:1d.7/usb7/7-1"
-Jan 18 11:03:34 jebat mtp-probe: bus: 7, device: 9 was not an MTP device
-
-ls -l /dev/dvd:
-drwxr-xr-x 2 root root 100 Jan 18 11:03 adapter0
 
 
-Best Regards
+On Mon, 19 Jan 2015, Guennadi Liakhovetski wrote:
+> On Mon, 19 Jan 2015, William Towle wrote:
+>>   in the patchset Ben linked to above we think
+>> we have the appropriate loops: a for loop for queue_buf[], and
+>> list_for_each_safe() for anything left in priv->capture; this is
+>> consistent with rcar_vin_fill_hw_slot() setting up queue_buf[] with
+>> pointers unlinked from priv->capture. This in turn suggests that we
+>> are right not to call list_del_init() in both of
+>> rcar_vin_stop_streaming()'s loops ... as long as I've correctly
+>> interpreted the code and everyone's feedback thus far.
+>
+> I'm referring to this comment by Hans Verkuil of 14 August last year:
+>
+>> I'm assuming all buffers that are queued to the driver via buf_queue() are
+>> linked into priv->capture. So you would typically call vb2_buffer_done
+>> when you are walking that list:
+>>
+>> 	list_for_each_safe(buf_head, tmp, &priv->capture) {
+>> 		// usually you go from buf_head to the real buffer struct
+>> 		// containing a vb2_buffer struct
+>> 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+>> 		list_del_init(buf_head);
+>> 	}
+>>
+>> Please use this rather than looking into internal vb2_queue
+>> datastructures.
+>
+> I think, that's the right way to implement that clean up loop.
+
+Hi,
+   I was describing the code in my latest patch; we start with
+rcar_vin_stop_streaming() having a list_for_each_safe() loop like
+that above, and leave that loop in place but add statements to it.
+
+   I add another loop to rcar_vin_stop_streaming() [which you will
+have seen -in the patch Ben published in my absence over Christmas-
+was particularly inelegant initially], but it can't be rewritten in
+the same way.  The new version is undeniably neater, though.
+
+   We believe the latest patches take Hans' comment above into
+account properly, and we are looking into his latest suggestion at
+the moment.
+
+Thanks again,
+   Wills.
