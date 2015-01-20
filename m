@@ -1,149 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46666 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751097AbbACOtZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jan 2015 09:49:25 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 3/9] dvb core: add support for media controller at dvbdev
-Date: Sat,  3 Jan 2015 12:49:05 -0200
-Message-Id: <df3a472288618854cd5ca6b59a4e747164638f3e.1420294938.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420294938.git.mchehab@osg.samsung.com>
-References: <cover.1420294938.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420294938.git.mchehab@osg.samsung.com>
-References: <cover.1420294938.git.mchehab@osg.samsung.com>
+Received: from mail-ig0-f170.google.com ([209.85.213.170]:49289 "EHLO
+	mail-ig0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754701AbbATLNx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2015 06:13:53 -0500
+Received: by mail-ig0-f170.google.com with SMTP id l13so16297086iga.1
+        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 03:13:52 -0800 (PST)
+Date: Tue, 20 Jan 2015 11:13:46 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v10 05/19] mfd: max77693: Modify flash cell name
+ identifiers
+Message-ID: <20150120111346.GD13701@x1>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-6-git-send-email-j.anaszewski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1420816989-1808-6-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Provide a way to register media controller device nodes
-at the DVB core.
+On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
 
-Please notice that the dvbdev callers also require changes
-for the devices to be registered via the media controller.
+> Change flash cell identifiers from max77693-flash to max77693-led
+> to avoid confusion with NOR/NAND Flash.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+This is okay by me, but aren't these ABI yet?
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 983db75de350..28e9d53d0979 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -180,6 +180,58 @@ skip:
- 	return -ENFILE;
- }
- 
-+static void dvb_register_media_device(struct dvb_device *dvbdev,
-+				      int type, int minor)
-+{
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	int ret;
-+
-+	if (!dvbdev->mdev)
-+		return;
-+
-+	dvbdev->entity = kzalloc(sizeof(*dvbdev->entity), GFP_KERNEL);
-+	if (!dvbdev->entity)
-+		return;
-+
-+	dvbdev->entity->info.dvb.major = DVB_MAJOR;
-+	dvbdev->entity->info.dvb.minor = minor;
-+	dvbdev->entity->name = dvbdev->name;
-+	switch(type) {
-+	case DVB_DEVICE_FRONTEND:
-+		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
-+		break;
-+	case DVB_DEVICE_DEMUX:
-+		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
-+		break;
-+	case DVB_DEVICE_DVR:
-+		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
-+		break;
-+	case DVB_DEVICE_CA:
-+		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
-+		break;
-+	case DVB_DEVICE_NET:
-+		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
-+		break;
-+	default:
-+		kfree(dvbdev->entity);
-+		dvbdev->entity = NULL;
-+		return;
-+	}
-+
-+	ret = media_device_register_entity(dvbdev->mdev, dvbdev->entity);
-+	if (ret < 0) {
-+		printk(KERN_ERR
-+			"%s: media_device_register_entity failed for %s\n",
-+			__func__, dvbdev->entity->name);
-+		kfree(dvbdev->entity);
-+		dvbdev->entity = NULL;
-+		return;
-+	}
-+
-+	printk(KERN_DEBUG "%s: media device '%s' registered.\n",
-+		__func__, dvbdev->entity->name);
-+#endif
-+}
- 
- int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
- 			const struct dvb_device *template, void *priv, int type)
-@@ -258,10 +310,11 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
- 		       __func__, adap->num, dnames[type], id, PTR_ERR(clsdev));
- 		return PTR_ERR(clsdev);
- 	}
--
- 	dprintk(KERN_DEBUG "DVB: register adapter%d/%s%d @ minor: %i (0x%02x)\n",
- 		adap->num, dnames[type], id, minor, minor);
- 
-+	dvb_register_media_device(dvbdev, type, minor);
-+
- 	return 0;
- }
- EXPORT_SYMBOL(dvb_register_device);
-@@ -278,6 +331,13 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
- 
- 	device_destroy(dvb_class, MKDEV(DVB_MAJOR, dvbdev->minor));
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	if (dvbdev->entity) {
-+		media_device_unregister_entity(dvbdev->entity);
-+		kfree(dvbdev->entity);
-+	}
-+#endif
-+
- 	list_del (&dvbdev->list_head);
- 	kfree (dvbdev->fops);
- 	kfree (dvbdev);
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index f96b28e7fc95..f58dfef46984 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -27,6 +27,7 @@
- #include <linux/poll.h>
- #include <linux/fs.h>
- #include <linux/list.h>
-+#include <media/media-device.h>
- 
- #define DVB_MAJOR 212
- 
-@@ -92,6 +93,15 @@ struct dvb_device {
- 	/* don't really need those !? -- FIXME: use video_usercopy  */
- 	int (*kernel_ioctl)(struct file *file, unsigned int cmd, void *arg);
- 
-+	/* Needed for media controller register/unregister */
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_device *mdev;
-+	const char *name;
-+
-+	/* Filled inside dvbdev.c */
-+	struct media_entity *entity;
-+#endif
-+
- 	void *priv;
- };
- 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> ---
+>  drivers/mfd/max77693.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
+> index a159593..cb14afa 100644
+> --- a/drivers/mfd/max77693.c
+> +++ b/drivers/mfd/max77693.c
+> @@ -53,8 +53,8 @@ static const struct mfd_cell max77693_devs[] = {
+>  		.of_compatible = "maxim,max77693-haptic",
+>  	},
+>  	{
+> -		.name = "max77693-flash",
+> -		.of_compatible = "maxim,max77693-flash",
+> +		.name = "max77693-led",
+> +		.of_compatible = "maxim,max77693-led",
+>  	},
+>  };
+>  
+
 -- 
-2.1.0
-
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
