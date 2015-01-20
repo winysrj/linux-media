@@ -1,64 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f179.google.com ([209.85.160.179]:38179 "EHLO
-	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974AbbAUKBo (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:40891 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753897AbbATNBl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2015 05:01:44 -0500
-MIME-Version: 1.0
-In-Reply-To: <1419072462-3168-6-git-send-email-prabhakar.csengg@gmail.com>
-References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
-	<1419072462-3168-6-git-send-email-prabhakar.csengg@gmail.com>
-Date: Wed, 21 Jan 2015 18:01:43 +0800
-Message-ID: <CAHG8p1D4HAbM-JVDa_P81EA1TeSYZ_Wi5=uYH5VvnmLiR+dHeA@mail.gmail.com>
-Subject: Re: [PATCH 05/15] media: blackfin: bfin_capture: improve
- queue_setup() callback
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 20 Jan 2015 08:01:41 -0500
+Message-id: <54BE51B2.8040209@samsung.com>
+Date: Tue, 20 Jan 2015 14:01:38 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v10 07/19] mfd: max77693: Adjust FLASH_EN_SHIFT and
+ TORCH_EN_SHIFT macros
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-8-git-send-email-j.anaszewski@samsung.com>
+ <20150120111719.GF13701@x1>
+In-reply-to: <20150120111719.GF13701@x1>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2014-12-20 18:47 GMT+08:00 Lad, Prabhakar <prabhakar.csengg@gmail.com>:
-> this patch improves the queue_setup() callback.
+On 01/20/2015 12:17 PM, Lee Jones wrote:
+> On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
 >
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/platform/blackfin/bfin_capture.c | 10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
+>> Modify FLASH_EN_SHIFT and TORCH_EN_SHIFT macros to work properly
+>> when passed enum max77693_fled values (0 for FLED1 and 1 for FLED2)
+>> from leds-max77693 driver.
 >
-> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-> index 8bd94a1..76d42bb 100644
-> --- a/drivers/media/platform/blackfin/bfin_capture.c
-> +++ b/drivers/media/platform/blackfin/bfin_capture.c
-> @@ -44,7 +44,6 @@
->  #include <media/blackfin/ppi.h>
->
->  #define CAPTURE_DRV_NAME        "bfin_capture"
-> -#define BCAP_MIN_NUM_BUF        2
->
->  struct bcap_format {
->         char *desc;
-> @@ -292,11 +291,14 @@ static int bcap_queue_setup(struct vb2_queue *vq,
->  {
->         struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
->
-> -       if (*nbuffers < BCAP_MIN_NUM_BUF)
-> -               *nbuffers = BCAP_MIN_NUM_BUF;
-> +       if (fmt && fmt->fmt.pix.sizeimage < bcap_dev->fmt.sizeimage)
-> +               return -EINVAL;
-> +
-> +       if (vq->num_buffers + *nbuffers < 3)
-> +               *nbuffers = 3 - vq->num_buffers;
+> Off-by-one ay?  Wasn't the original code tested?
 
-It seems it changes the minimum buffers from 2 to 3?
+The driver using these macros is a part of LED / flash API integration
+patch series, which still undergoes modifications and it hasn't
+reached its final state yet, as there are many things to discuss.
 
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+>> Cc: Lee Jones <lee.jones@linaro.org>
+>> ---
+>>   include/linux/mfd/max77693-private.h |    4 ++--
+>>   1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/include/linux/mfd/max77693-private.h b/include/linux/mfd/max77693-private.h
+>> index 08dae01..01799a9 100644
+>> --- a/include/linux/mfd/max77693-private.h
+>> +++ b/include/linux/mfd/max77693-private.h
+>> @@ -113,8 +113,8 @@ enum max77693_pmic_reg {
+>>   #define FLASH_EN_FLASH		0x1
+>>   #define FLASH_EN_TORCH		0x2
+>>   #define FLASH_EN_ON		0x3
+>> -#define FLASH_EN_SHIFT(x)	(6 - ((x) - 1) * 2)
+>> -#define TORCH_EN_SHIFT(x)	(2 - ((x) - 1) * 2)
+>> +#define FLASH_EN_SHIFT(x)	(6 - (x) * 2)
+>> +#define TORCH_EN_SHIFT(x)	(2 - (x) * 2)
+>>
+>>   /* MAX77693 MAX_FLASH1 register */
+>>   #define MAX_FLASH1_MAX_FL_EN	0x80
 >
->         *nplanes = 1;
-> -       sizes[0] = bcap_dev->fmt.sizeimage;
-> +       sizes[0] = fmt ? fmt->fmt.pix.sizeimage : bcap_dev->fmt.sizeimage;
->         alloc_ctxs[0] = bcap_dev->alloc_ctx;
->
+
+
+-- 
+Best Regards,
+Jacek Anaszewski
