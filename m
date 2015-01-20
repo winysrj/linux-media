@@ -1,84 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46604 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750873AbbAKNto (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39043 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751665AbbATHfe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jan 2015 08:49:44 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCHv2 1/9] media: Fix DVB representation at media controller API
-Date: Sun, 11 Jan 2015 15:50:04 +0200
-Message-ID: <2274549.Xm2J2SkQ3y@avalon>
-In-Reply-To: <ea1dd8e443b34e2047468866ec423d4334f54eba.1420294938.git.mchehab@osg.samsung.com>
-References: <cover.1420294938.git.mchehab@osg.samsung.com> <ea1dd8e443b34e2047468866ec423d4334f54eba.1420294938.git.mchehab@osg.samsung.com>
+	Tue, 20 Jan 2015 02:35:34 -0500
+Message-ID: <54BE052F.6060205@xs4all.nl>
+Date: Tue, 20 Jan 2015 08:35:11 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [media_build] commit 26052b8e1 (SMIAPP needs kernel 3.20 or up.)
+References: <54BD3C56.4070600@xs4all.nl> <54BD55C3.6080201@gmail.com>
+In-Reply-To: <54BD55C3.6080201@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 01/19/2015 08:06 PM, Tycho Lürsen wrote:
+> 
+> Hi Hans,
+> 
+> tested this update in media_build against a Debian 3.16 kernel.
+> It still tries to build SMIAPP. So sadly it still gives the same error.
 
-Thank you for the patch.
+Try again. I missed a duplicate VIDEO_SMIAPP entry in versions.txt that is
+now deleted. I just tried it and it now builds fine for me.
 
-On Saturday 03 January 2015 12:49:03 Mauro Carvalho Chehab wrote:
-> The DVB devices are identified via a (major, minor) tuple,
-> and not by a random id. Fix it, before we start using it.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index e00459185d20..de333cc8261b 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -97,7 +97,10 @@ struct media_entity {
->  			u32 device;
->  			u32 subdevice;
->  		} alsa;
-> -		int dvb;
-> +		struct {
-> +			u32 major;
-> +			u32 minor;
-> +		} dvb;
-> 
->  		/* Sub-device specifications */
->  		/* Nothing needed yet */
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index d847c760e8f0..7902e800f019 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -27,7 +27,7 @@
->  #include <linux/types.h>
->  #include <linux/version.h>
-> 
-> -#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 0)
-> +#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 1)
-> 
->  struct media_device_info {
->  	char driver[16];
-> @@ -88,7 +88,10 @@ struct media_entity_desc {
->  			__u32 device;
->  			__u32 subdevice;
->  		} alsa;
-> -		int dvb;
-> +		struct {
-> +			__u32 major;
-> +			__u32 minor;
-> +		} dvb;
-
-Won't this break compilation of existing userspace code ? As DVB is not 
-properly supported in MC at the moment we could consider that only mediactl 
-will be affected, so it shouldn't be a big issue.
-
-> 
->  		/* Sub-device specifications */
->  		/* Nothing needed yet */
-
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
