@@ -1,65 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43002 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751529AbbASNhm (ORCPT
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:59073 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751691AbbATLVP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 08:37:42 -0500
-Message-ID: <54BD0890.8040606@xs4all.nl>
-Date: Mon, 19 Jan 2015 14:37:20 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 20 Jan 2015 06:21:15 -0500
+Received: by mail-ie0-f172.google.com with SMTP id rd18so7431286iec.3
+        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 03:21:15 -0800 (PST)
+Date: Tue, 20 Jan 2015 11:21:07 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCH/RFC v10 09/19] DT: Add documentation for the mfd Maxim
+ max77693
+Message-ID: <20150120112107.GG13701@x1>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-10-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 01/22] si2168: define symbol rate limits
-References: <1417901696-5517-1-git-send-email-crope@iki.fi> <54BD0573.3020207@xs4all.nl> <54BD06EC.4090209@iki.fi>
-In-Reply-To: <54BD06EC.4090209@iki.fi>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1420816989-1808-10-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/19/2015 02:30 PM, Antti Palosaari wrote:
-> Moikka!
+On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
+
+> This patch adds device tree binding documentation for
+> the flash cell of the Maxim max77693 multifunctional device.
 > 
-> On 01/19/2015 03:24 PM, Hans Verkuil wrote:
->> On 12/06/2014 10:34 PM, Antti Palosaari wrote:
->>> w_scan complains about missing symbol rate limits:
->>> This dvb driver is *buggy*: the symbol rate limits are undefined - please report to linuxtv.org
->>>
->>> Chip supports 1 to 7.2 MSymbol/s on DVB-C.
->>>
->>> Signed-off-by: Antti Palosaari <crope@iki.fi>
->>
->> Antti,
->>
->> Are you planning to make a pull request of this patch series?
->>
->> It looks good to me, so for this patch series:
->>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> BTW, please add a cover letter whenever you post a patch series (git send-email --compose).
->> It makes it easier to get an overview of what the patch series is all about.
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Pawel Moll <pawel.moll@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+> Cc: Kumar Gala <galak@codeaurora.org>
+> ---
+>  Documentation/devicetree/bindings/mfd/max77693.txt |   69 ++++++++++++++++++++
+>  1 file changed, 69 insertions(+)
 > 
-> PULL request is here:
-> https://patchwork.linuxtv.org/patch/27416/
-> 
-> I could send new one if needed, there is missing branch name (new Git 
-> version has started blaming it).
+> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+> index 01e9f30..ef184f0 100644
+> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
+> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+> @@ -41,7 +41,52 @@ Optional properties:
+>  	 To get more informations, please refer to documentaion.
+>  	[*] refer Documentation/devicetree/bindings/pwm/pwm.txt
+>  
+> +- led : the LED submodule device node
+> +
+> +There are two led outputs available - fled1 and fled2. Each of them can
+> +control a separate led or they can be connected together to double
+> +the maximum current for a single connected led. One led is represented
+> +by one child node.
+> +
+> +Required properties:
+> +- compatible : Must be "maxim,max77693-led".
+> +
+> +Optional properties:
+> +- maxim,trigger-type : Flash trigger type.
+> +	Possible trigger types:
+> +		MAX77693_LED_TRIG_TYPE_EDGE - Rising edge of the signal triggers
+> +			the flash,
+> +		MAX77693_LED_TRIG_TYPE_LEVEL - Strobe pulse length controls
+> +			duration of the flash.
 
-It's probably wise to do that (and rebase at the same time).
+I think you should represent the proper values here instead of the
+defines.
 
-> 
-> Are you applying these pull request now? I was expecting Mauro...
+> +- maxim,boost-mode :
+> +	In boost mode the device can produce up to 1.2A of total current
+> +	on both outputs. The maximum current on each output is reduced
+> +	to 625mA then. If not enabled explicitly, boost setting defaults to
+> +	MAX77693_LED_BOOST_FIXED in case both current sources are used.
+> +	Possible values:
+> +		MAX77693_LED_BOOST_OFF - no boost,
+> +		MAX77693_LED_BOOST_ADAPTIVE - adaptive mode,
+> +		MAX77693_LED_BOOST_FIXED - fixed mode.
 
-I'm cleaning up patchwork, and your (very long) patch series were making it
-hard to work with patchwork.
+Same here.
 
-Regards,
+> +- maxim,boost-vout : Output voltage of the boost module in millivolts.
 
-	Hans
+-mvout?
+-microvout?
 
-> 
-> regards
-> Antti
-> 
+> +- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
+> +	if chip estimates that system voltage could drop below this level due
+> +	to flash power consumption.
 
+mvsys?
+microvsys?
+
+> +Required properties of the LED child node:
+> +- label : see Documentation/devicetree/bindings/leds/common.txt
+> +- led-sources : see Documentation/devicetree/bindings/leds/common.txt
+> +
+> +Optional properties of the LED child node:
+> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 15625 - 250000
+> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 15625 - 1000000
+> +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 62500 - 1000000
+> +
+>  Example:
+> +#include <dt-bindings/mfd/max77693.h>
+> +
+>  	max77693@66 {
+>  		compatible = "maxim,max77693";
+>  		reg = <0x66>;
+> @@ -73,4 +118,28 @@ Example:
+>  			pwms = <&pwm 0 40000 0>;
+>  			pwm-names = "haptic";
+>  		};
+> +
+> +		led {
+> +			compatible = "maxim,max77693-led";
+> +			maxim,trigger-type = <MAX77693_LED_TRIG_TYPE_LEVEL>;
+> +			maxim,boost-mode = <MAX77693_LED_BOOST_FIXED>;
+> +			maxim,boost-vout = <5000>;
+> +			maxim,vsys-min = <2400>;
+> +
+> +			camera1_flash: led1 {
+> +				label = "max77693-flash1";
+> +				led-sources = <1 0>;
+> +				max-microamp = <250000>;
+> +				flash-max-microamp = <625000>;
+> +				flash-timeout-us = <1000000>;
+> +			};
+> +
+> +			camera2_flash: led2 {
+> +				label = "max77693-flash2";
+> +				led-sources = <0 1>;
+> +				max-microamp = <250000>;
+> +				flash-max-microamp = <625000>;
+> +				flash-timeout-us = <1000000>;
+> +			};
+> +		};
+>  	};
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
