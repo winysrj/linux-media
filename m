@@ -1,70 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19993 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751771AbbAZNn6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 08:43:58 -0500
-Date: Mon, 26 Jan 2015 21:42:59 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Benoit Parrot <bparrot@ti.com>
-Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, Darren Etheridge <detheridge@ti.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [linuxtv-media:master 66/93]
- drivers/media/platform/am437x/am437x-vpfe.c:2202:57: sparse: incorrect type
- in argument 2 (different address spaces)
-Message-ID: <201501262158.7n6SQC07%fengguang.wu@intel.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54960 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754505AbbATNEB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2015 08:04:01 -0500
+Message-ID: <54BE5204.3020600@xs4all.nl>
+Date: Tue, 20 Jan 2015 14:03:00 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Florian Echtler <floe@butterbrot.org>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
+References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <54BE1EBC.2090001@butterbrot.org> <54BE201F.4060209@xs4all.nl> <64652239.MTTlcOgNK2@avalon>
+In-Reply-To: <64652239.MTTlcOgNK2@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   e32b31ae45c18679c186e67aa41d0e2318cae487
-commit: 417d2e507edcb5cf15eb344f86bd3dd28737f24e [66/93] [media] media: platform: add VPFE capture driver support for AM437X
-reproduce:
-  # apt-get install sparse
-  git checkout 417d2e507edcb5cf15eb344f86bd3dd28737f24e
-  make ARCH=x86_64 allmodconfig
-  make C=1 CF=-D__CHECK_ENDIAN__
+On 01/20/15 13:59, Laurent Pinchart wrote:
+> Hello,
+> 
+> On Tuesday 20 January 2015 10:30:07 Hans Verkuil wrote:
+>> On 01/20/15 10:24, Florian Echtler wrote:
+>>> On 19.01.2015 11:38, Hans Verkuil wrote:
+>>>> Sorry for the delay.
+>>>
+>>> No problem, thanks for your feedback.
+>>>
+>>>>> Note: I'm intentionally using dma-contig instead of vmalloc, as the USB
+>>>>> core apparently _will_ try to use DMA for larger bulk transfers.
+>>>>
+>>>> As far as I can tell from looking through the usb core code it supports
+>>>> scatter-gather DMA, so you should at least use dma-sg rather than
+>>>> dma-contig. Physically contiguous memory should always be avoided.
+>>>
+>>> OK, will this work transparently (i.e. just switch from *-contig-* to
+>>> *-sg-*)? If not, can you suggest an example driver to use as template?
+>>
+>> Yes, that should pretty much be seamless. BTW, the more I think about it,
+>> the more I am convinced that DMA will also be used by the USB core when
+>> you use videobuf2-vmalloc.
+>>
+>> I've CC-ed Laurent, I think he knows a lot more about this than I do.
+>>
+>> Laurent, when does the USB core use DMA? What do you need to do on the
+>> driver side to have USB use DMA when doing bulk transfers?
+> 
+> How USB HCD drivers map buffers for DMA is HCD-specific, but all drivers 
+> exepct ehci-tegra, max3421-hcd and musb use the default implementation 
+> usb_hcd_map_urb_for_dma() (in drivers/usb/core/hcd.c).
+> 
+> Unless the buffer has already been mapped by the USB driver (in which case the 
+> driver will have set the URB_NO_TRANSFER_DMA_MAP flag in urb->transfer_flags 
+> and initialized the urb->transfer_dma field), the function will use 
+> dma_map_sg(), dma_map_page() or dma_map_single() depending on the buffer type 
+> (controlled through urb->sg and urb->num_sgs). DMA will thus always be used 
+> *expect* if the platform uses bounce buffers when the buffer can't be mapped 
+> directly for DMA.
 
+So we can safely use videobuf2-vmalloc, right?
 
-sparse warnings: (new ones prefixed by >>)
+Regards,
 
->> drivers/media/platform/am437x/am437x-vpfe.c:2202:57: sparse: incorrect type in argument 2 (different address spaces)
-   drivers/media/platform/am437x/am437x-vpfe.c:2202:57:    expected void [noderef] <asn:1>*params
-   drivers/media/platform/am437x/am437x-vpfe.c:2202:57:    got void *param
->> include/linux/spinlock.h:364:9: sparse: context imbalance in 'vpfe_start_streaming' - unexpected unlock
+	Hans
 
-vim +2202 drivers/media/platform/am437x/am437x-vpfe.c
+> 
+>>>> I'm also missing a patch for the Kconfig that adds a dependency on
+>>>> MEDIA_USB_SUPPORT and that selects VIDEOBUF2_DMA_SG.
+>>>
+>>> Good point, will add that.
+>>>
+>>>>> +err_unreg_video:
+>>>>> +	video_unregister_device(&sur40->vdev);
+>>>>> +err_unreg_v4l2:
+>>>>> +	v4l2_device_unregister(&sur40->v4l2);
+>>>>>
+>>>>>  err_free_buffer:
+>>>>>  	kfree(sur40->bulk_in_buffer);
+>>>>>  
+>>>>>  err_free_polldev:
+>>>>> @@ -436,6 +604,10 @@ static void sur40_disconnect(struct usb_interface
+>>>>> *interface)>> 
+>>>> Is this a hardwired device or hotpluggable? If it is hardwired, then this
+>>>> code is OK, but if it is hotpluggable, then this isn't good enough.
+>>>
+>>> It's hardwired. Out of curiosity, what would I have to change for a
+>>> hotpluggable one?
+>>
+>> In that case you can't clean everything up since some application might
+>> still have a filehandle open. You have to wait until the very last
+>> filehandle is closed.
+>>
+>>>>> +	i->type = V4L2_INPUT_TYPE_CAMERA;
+>>>>> +	i->std = V4L2_STD_UNKNOWN;
+>>>>> +	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
+>>>>
+>>>> Perhaps just say "Sensor" here? I'm not sure what "In-Cell" means.
+>>>
+>>> In-cell is referring to the concept of integrating sensor pixels
+>>> directly with LCD pixels, I think it's what Samsung calls it.
+> 
 
-  2186	
-  2187		vpfe_dbg(2, vpfe, "vpfe_ioctl_default\n");
-  2188	
-  2189		if (!valid_prio) {
-  2190			vpfe_err(vpfe, "%s device busy\n", __func__);
-  2191			return -EBUSY;
-  2192		}
-  2193	
-  2194		/* If streaming is started, return error */
-  2195		if (vb2_is_busy(&vpfe->buffer_queue)) {
-  2196			vpfe_err(vpfe, "%s device busy\n", __func__);
-  2197			return -EBUSY;
-  2198		}
-  2199	
-  2200		switch (cmd) {
-  2201		case VIDIOC_AM437X_CCDC_CFG:
-> 2202			ret = vpfe_ccdc_set_params(&vpfe->ccdc, param);
-  2203			if (ret) {
-  2204				vpfe_dbg(2, vpfe,
-  2205					"Error setting parameters in CCDC\n");
-  2206				return ret;
-  2207			}
-  2208			ret = vpfe_get_ccdc_image_format(vpfe,
-  2209							 &vpfe->fmt);
-  2210			if (ret < 0) {
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
