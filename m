@@ -1,86 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.topaz.synacor.com ([69.168.108.19]:12268 "EHLO
-	mail.tesco.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752658AbbADPzO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 10:55:14 -0500
-Message-ID: <54A9608F.9000801@tesco.net>
-Date: Sun, 04 Jan 2015 15:47:27 +0000
-From: John Pilkington <J.Pilk@tesco.net>
+Received: from mail-ie0-f182.google.com ([209.85.223.182]:54412 "EHLO
+	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752201AbbATPiX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2015 10:38:23 -0500
+Received: by mail-ie0-f182.google.com with SMTP id ar1so5753346iec.13
+        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 07:38:22 -0800 (PST)
+Date: Tue, 20 Jan 2015 15:38:15 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCH/RFC v10 09/19] DT: Add documentation for the mfd Maxim
+ max77693
+Message-ID: <20150120153815.GB13701@x1>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-10-git-send-email-j.anaszewski@samsung.com>
+ <20150120112107.GG13701@x1>
+ <54BE67EA.2070507@samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: DVB-T regressions in recent kernels for el7
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <54BE67EA.2070507@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi:  It's a long time since I posted to this list.  I'm a long-time user 
-of MythTV, using DVB-T in the UK.
+On Tue, 20 Jan 2015, Jacek Anaszewski wrote:
 
-My current Mythbox is running myth-master under Scientific Linux 7, a 
-near-clone of RHEL7, an x86_64 distro.  I know that long-lived distros 
-like this are not a prime target for linux-media, but they have some 
-attractions.
+> On 01/20/2015 12:21 PM, Lee Jones wrote:
+> >On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
+> >
+> >>This patch adds device tree binding documentation for
+> >>the flash cell of the Maxim max77693 multifunctional device.
+> >>
+> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>Cc: Lee Jones <lee.jones@linaro.org>
+> >>Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> >>Cc: Bryan Wu <cooloney@gmail.com>
+> >>Cc: Richard Purdie <rpurdie@rpsys.net>
+> >>Cc: Rob Herring <robh+dt@kernel.org>
+> >>Cc: Pawel Moll <pawel.moll@arm.com>
+> >>Cc: Mark Rutland <mark.rutland@arm.com>
+> >>Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+> >>Cc: Kumar Gala <galak@codeaurora.org>
+> >>---
+> >>  Documentation/devicetree/bindings/mfd/max77693.txt |   69 ++++++++++++++++++++
+> >>  1 file changed, 69 insertions(+)
+> >>
+> >>diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+> >>index 01e9f30..ef184f0 100644
+> >>--- a/Documentation/devicetree/bindings/mfd/max77693.txt
+> >>+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+> >>@@ -41,7 +41,52 @@ Optional properties:
+> >>  	 To get more informations, please refer to documentaion.
+> >>  	[*] refer Documentation/devicetree/bindings/pwm/pwm.txt
+> >>
+> >>+- led : the LED submodule device node
+> >>+
+> >>+There are two led outputs available - fled1 and fled2. Each of them can
+> >>+control a separate led or they can be connected together to double
+> >>+the maximum current for a single connected led. One led is represented
+> >>+by one child node.
+> >>+
+> >>+Required properties:
+> >>+- compatible : Must be "maxim,max77693-led".
+> >>+
+> >>+Optional properties:
+> >>+- maxim,trigger-type : Flash trigger type.
+> >>+	Possible trigger types:
+> >>+		MAX77693_LED_TRIG_TYPE_EDGE - Rising edge of the signal triggers
+> >>+			the flash,
+> >>+		MAX77693_LED_TRIG_TYPE_LEVEL - Strobe pulse length controls
+> >>+			duration of the flash.
+> >
+> >I think you should represent the proper values here instead of the
+> >defines.
+> 
+> I see both versions in the existing bindings and also a combination of
+> them, e.g.: MAX77693_LED_TRIG_TYPE_EDGE (0). I think that it is
+> reasonable to mention the macros, especially if they are to appear
+> in the DT binding example at the end of the documentation file.
+> 
+> >>+- maxim,boost-mode :
+> >>+	In boost mode the device can produce up to 1.2A of total current
+> >>+	on both outputs. The maximum current on each output is reduced
+> >>+	to 625mA then. If not enabled explicitly, boost setting defaults to
+> >>+	MAX77693_LED_BOOST_FIXED in case both current sources are used.
+> >>+	Possible values:
+> >>+		MAX77693_LED_BOOST_OFF - no boost,
+> >>+		MAX77693_LED_BOOST_ADAPTIVE - adaptive mode,
+> >>+		MAX77693_LED_BOOST_FIXED - fixed mode.
+> >
+> >Same here.
+> 
+> MAX77693_LED_BOOST_OFF (0) - no boost,
+> MAX77693_LED_BOOST_ADAPTIVE (1) - adaptive mode,
+> MAX77693_LED_BOOST_FIXED (2) - fixed mode.
 
-I'm currently running a recent but not current stock kernel; it works 
-for me.  Later stock kernels don't see the Hauppauge pci DVB-T card and 
-don't identify separately the two tuners in the Kworld usb device. I've 
-also tried later kernels from elrepo, with similar lack of success.
+This is fine too.
 
-So, I do have a working box, but updating kernels is broken.  I'd 
-appreciate suggestions.
+> >>+- maxim,boost-vout : Output voltage of the boost module in millivolts.
+> >
+> >-mvout?
+> >-microvout?
+> 
+> maxim,boost-mvout ?
 
-I have posted earlier on the MythTV and SL lists, without getting 
-suggestions leading to a solution.
+Right.
 
-Thanks,
+> >>+- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
+> >>+	if chip estimates that system voltage could drop below this level due
+> >>+	to flash power consumption.
+> >
+> >mvsys?
+> >microvsys?
+> 
+> maxim,mvsys-min ?
 
-John Pilkington
+Looks okay to me.
 
------------------
-This one works:
-
-[john@HP_Box ~]$ uname -r
-3.10.0-123.9.3.el7.x86_64
-[john@HP_Box ~]$ dmesg | grep adapter
-[   12.319211] DVB: registering new adapter (Kworld UB499-2T T09(IT9137))
-[   12.939916] usb 2-2: DVB: registering adapter 0 frontend 0 (Kworld 
-UB499-2T T09(IT9137)_1)...
-[   12.941371] DVB: registering new adapter (Kworld UB499-2T T09(IT9137))
-[   13.584187] usb 2-2: DVB: registering adapter 1 frontend 0 (Kworld 
-UB499-2T T09(IT9137)_2)...
-[   16.764033] DVB: registering new adapter (saa7133[0])
-[   16.764043] saa7134 0000:07:04.0: DVB: registering adapter 2 frontend 
-0 (Philips TDA10046H DVB-T)...
-
------------------
-This one, a later stock el7 kernel, doesn't work.
-
-[john@HP_Box ~]$ uname -r
-3.10.0-123.13.1.el7.x86_64
-john@HP_Box ~]$ dmesg | grep DVB
-[    1.556887] saa7133[0]: subsystem: 0070:6700, board: Hauppauge 
-WinTV-HVR1110 DVB-T/Hybrid [card=104,autodetected]
-[    1.695217] tveeprom 0-0050: TV standards PAL(B/G) NTSC(M) PAL(I) 
-SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xfc)
-[    1.708443] DVB: Unable to find symbol tda10046_attach()  ******
-[    1.736049] usb 2-2: Product: DVB-T TV Stick
-[    1.845944] DVB: registering new adapter (Kworld UB499-2T T09(IT9137))
-[    1.848465] DVB: Unable to find symbol it913x_fe_attach()  ******
-
------------------------
-.. and this, a 'testing' kernel, doesn't see the Hauppauge pci device.
-
-[john@HP_Box ~]$ uname -r
-3.18.0-1.el7.elrepo.x86_64
-[john@HP_Box ~]$ dmesg | grep adapter
-[   11.707221] DVB: registering new adapter (Kworld UB499-2T T09)
-[   12.054409] usb 2-2: DVB: registering adapter 0 frontend 0 (Afatech 
-AF9033 (DVB-T))...
-[   12.343371] DVB: registering new adapter (Kworld UB499-2T T09)
-[   12.352152] usb 2-2: DVB: registering adapter 1 frontend 0 (Afatech 
-AF9033 (DVB-T))...
-
------------------
-End
-
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
