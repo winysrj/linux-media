@@ -1,79 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:51889 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751477AbbASOZn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 09:25:43 -0500
-Date: Mon, 19 Jan 2015 15:25:35 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: William Towle <william.towle@codethink.co.uk>
-cc: Ben Hutchings <ben.hutchings@codethink.co.uk>,
-	linux-media@vger.kernel.org, linux-kernel@codethink.co.uk,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 5/5] media: rcar_vin: move buffer management to
- .stop_streaming handler
-In-Reply-To: <alpine.DEB.2.02.1501191404570.4586@xk120>
-Message-ID: <Pine.LNX.4.64.1501191522190.27578@axis700.grange>
-References: <1418914070.22813.13.camel@xylophone.i.decadent.org.uk>
- <1418914215.22813.18.camel@xylophone.i.decadent.org.uk>
- <Pine.LNX.4.64.1501182141400.23540@axis700.grange>
- <1421664620.1222.207.camel@xylophone.i.decadent.org.uk>
- <Pine.LNX.4.64.1501191208490.27578@axis700.grange> <alpine.DEB.2.02.1501191404570.4586@xk120>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49927 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751474AbbATDkI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jan 2015 22:40:08 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0F5D42A0080
+	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 04:39:44 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150120033944.0F5D42A0080@tschai.lan>
+Date: Tue, 20 Jan 2015 04:39:44 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Mon, 19 Jan 2015, William Towle wrote:
+Results of the daily build of media_tree:
 
-> 
-> On Mon, 19 Jan 2015, Guennadi Liakhovetski wrote:
-> 
-> > > > On Thu, 18 Dec 2014, Ben Hutchings wrote:
-> > > Well, I thought that too.  Will's submission from last week has that
-> > > change:
-> > > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/87009
-> 
-> > Anyway, yes, that looks better! But I would still consider keeping buffers
-> > on the list in .buf_clean(), in which case you can remove it. And walk the
-> > list instead of the VB2 internal buffer array, as others have pointed out.
-> 
-> Hi Guennadi,
->   Thanks for the clarification. Ian (when he was with us) did say "it
-> was particularly difficult to understand WTH this driver was doing".
-> 
->   Regarding your first point, if it's safe to skip the actions left
-> in rcar_vin_videobuf_release() then I will do a further rework to
-> remove it completely.
-> 
->   Regarding your second, in the patchset Ben linked to above we think
-> we have the appropriate loops: a for loop for queue_buf[], and
-> list_for_each_safe() for anything left in priv->capture; this is
-> consistent with rcar_vin_fill_hw_slot() setting up queue_buf[] with
-> pointers unlinked from priv->capture. This in turn suggests that we
-> are right not to call list_del_init() in both of
-> rcar_vin_stop_streaming()'s loops ... as long as I've correctly
-> interpreted the code and everyone's feedback thus far.
+date:		Tue Jan 20 04:00:16 CET 2015
+git branch:	test
+git hash:	99f3cd52aee21091ce62442285a68873e3be833f
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
-I'm referring to this comment by Hans Verkuil of 14 August last year:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18-x86_64: ERRORS
+linux-3.19-rc4-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
-> I'm assuming all buffers that are queued to the driver via buf_queue() are
-> linked into priv->capture. So you would typically call vb2_buffer_done
-> when you are walking that list:
-> 
-> 	list_for_each_safe(buf_head, tmp, &priv->capture) {
-> 		// usually you go from buf_head to the real buffer struct
-> 		// containing a vb2_buffer struct
-> 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-> 		list_del_init(buf_head);
-> 	}
-> 
-> Please use this rather than looking into internal vb2_queue 
-> datastructures.
+Detailed results are available here:
 
-I think, that's the right way to implement that clean up loop.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Thanks
-Guennadi
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
