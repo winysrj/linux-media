@@ -1,51 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dehamd003.servertools24.de ([31.47.254.18]:36168 "EHLO
-	dehamd003.servertools24.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752362AbbAIXMZ (ORCPT
+Received: from mail-ig0-f171.google.com ([209.85.213.171]:46989 "EHLO
+	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753248AbbATPkh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Jan 2015 18:12:25 -0500
-Message-ID: <54B05E05.3090409@ladisch.de>
-Date: Sat, 10 Jan 2015 00:02:29 +0100
-From: Clemens Ladisch <clemens@ladisch.de>
+	Tue, 20 Jan 2015 10:40:37 -0500
+Received: by mail-ig0-f171.google.com with SMTP id h15so9594956igd.4
+        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 07:40:36 -0800 (PST)
+Date: Tue, 20 Jan 2015 15:40:29 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v10 07/19] mfd: max77693: Adjust FLASH_EN_SHIFT and
+ TORCH_EN_SHIFT macros
+Message-ID: <20150120154029.GC13701@x1>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-8-git-send-email-j.anaszewski@samsung.com>
+ <20150120111719.GF13701@x1>
+ <54BE51B2.8040209@samsung.com>
+ <54BE6228.5070304@samsung.com>
 MIME-Version: 1.0
-To: Nicholas Krause <xerofoify@gmail.com>, stefanr@s5r6.in-berlin.de
-CC: linux-media@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-	linux-kernel@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCH] media; firewire: Remove no longer needed fix me comment
-	in firedtv-ci.c for the function,fdtv_ca_ioctl
-References: <1420838221-3957-1-git-send-email-xerofoify@gmail.com>
-In-Reply-To: <1420838221-3957-1-git-send-email-xerofoify@gmail.com>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <54BE6228.5070304@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Nicholas Krause wrote:
-> Removes the no longer fix me comment for if we need to set the tuner status with
-> the line, avc_tuner_status(fdtv, &stat). This line is needed in order to set the
-> tuner status after we have through the switch statement checking what fdtv function
-> we need to call to use to try and setup the hardware successfully.
+On Tue, 20 Jan 2015, Jacek Anaszewski wrote:
 
-You have attempted to describe what fdtv_ca_ioctl() does, but your description
-lacks any understanding of what avc_tuner_status() does, or how it might affect
-the device, or whether it is necessary.
+> On 01/20/2015 02:01 PM, Jacek Anaszewski wrote:
+> >On 01/20/2015 12:17 PM, Lee Jones wrote:
+> >>On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
+> >>
+> >>>Modify FLASH_EN_SHIFT and TORCH_EN_SHIFT macros to work properly
+> >>>when passed enum max77693_fled values (0 for FLED1 and 1 for FLED2)
+> >>>from leds-max77693 driver.
+> >>
+> >>Off-by-one ay?  Wasn't the original code tested?
+> >
+> >The driver using these macros is a part of LED / flash API integration
+> >patch series, which still undergoes modifications and it hasn't
+> >reached its final state yet, as there are many things to discuss.
+> 
+> To be more precise: the original code had been tested and was working
+> properly with the header that is in the mainline. Nonetheless, because
+> of the modifications in the driver that was requested during code
+> review, it turned out that it would be more convenient to redefine the
+> macros.
+> 
+> I'd opt for just agreeing about the mfd related patches and merge
+> them no sooner than the leds-max77693 driver is merged.
 
-Please stop spamming us with useless patches.
+The only way we can guarantee this is to have them go in during
+different merge-windows, unless of course they go in via the same tree.
 
-> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
-> ---
->  drivers/media/firewire/firedtv-ci.c | 1 -
->  1 file changed, 1 deletion(-)
->
-> diff --git a/drivers/media/firewire/firedtv-ci.c b/drivers/media/firewire/firedtv-ci.c
-> index e63f582..9c038ba 100644
-> --- a/drivers/media/firewire/firedtv-ci.c
-> +++ b/drivers/media/firewire/firedtv-ci.c
-> @@ -201,7 +201,6 @@ static int fdtv_ca_ioctl(struct file *file, unsigned int cmd, void *arg)
->  		err = -EOPNOTSUPP;
->  	}
->
-> -	/* FIXME Is this necessary? */
->  	avc_tuner_status(fdtv, &stat);
->
->  	return err;
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
