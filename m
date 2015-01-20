@@ -1,136 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:55078 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932824AbbAIPYS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 10:24:18 -0500
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:49225 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737AbbATQJU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2015 11:09:20 -0500
+Message-id: <54BE7DAB.80702@samsung.com>
+Date: Tue, 20 Jan 2015 17:09:15 +0100
 From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
+MIME-version: 1.0
+To: Rob Herring <robherring2@gmail.com>
+Cc: linux-leds@vger.kernel.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Rob Herring <robh+dt@kernel.org>,
 	Pawel Moll <pawel.moll@arm.com>,
 	Mark Rutland <mark.rutland@arm.com>,
 	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v10 09/19] DT: Add documentation for the mfd Maxim max77693
-Date: Fri, 09 Jan 2015 16:22:59 +0100
-Message-id: <1420816989-1808-10-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+	Kumar Gala <galak@codeaurora.org>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
 References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
+ <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
+ <54B38682.5080605@samsung.com>
+ <CAL_Jsq+UaA41DvawdOMmOib=Fi0hC-nBdKV-+P4DFo+MoOy-bQ@mail.gmail.com>
+ <54B3F1EF.4060506@samsung.com>
+ <CAL_JsqKpJtUG0G6g1GOuSVpc31oe-dp3qdrKJUE0upG-xRDFhA@mail.gmail.com>
+ <54B4DA81.7060900@samsung.com>
+ <CAL_JsqLYxB5hzLAWXpU=uncM5DEMZU78mP673H9oSSNB-cgcYQ@mail.gmail.com>
+ <54B8D4D0.3000904@samsung.com>
+ <CAL_Jsq+EFWzs1HP1tVt6P=p=HZn2AtSPjp55YrmMQi_mE+kNfQ@mail.gmail.com>
+ <54B933D0.1090004@samsung.com>
+In-reply-to: <54B933D0.1090004@samsung.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-the flash cell of the Maxim max77693 multifunctional device.
+On 01/16/2015 04:52 PM, Jacek Anaszewski wrote:
+> On 01/16/2015 02:48 PM, Rob Herring wrote:
+>> On Fri, Jan 16, 2015 at 3:07 AM, Jacek Anaszewski
+>> <j.anaszewski@samsung.com> wrote:
+>>> On 01/15/2015 03:24 PM, Rob Herring wrote:
+>>>>
+>>>> On Tue, Jan 13, 2015 at 2:42 AM, Jacek Anaszewski
+>>>> <j.anaszewski@samsung.com> wrote:
+>>>>>
+>>>>> On 01/12/2015 05:55 PM, Rob Herring wrote:
+>>>>>>
+>>>>>>
+>>>>>> Adding Mark B and Liam...
+>>>>>>
+>>>>>> On Mon, Jan 12, 2015 at 10:10 AM, Jacek Anaszewski
+>>>>>> <j.anaszewski@samsung.com> wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>> On 01/12/2015 02:52 PM, Rob Herring wrote:
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> On Mon, Jan 12, 2015 at 2:32 AM, Jacek Anaszewski
+>>>>>>>> <j.anaszewski@samsung.com> wrote:
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> On 01/09/2015 07:33 PM, Rob Herring wrote:
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> On Fri, Jan 9, 2015 at 9:22 AM, Jacek Anaszewski
+>>>>>>>>>> <j.anaszewski@samsung.com> wrote:
+>>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>> Add a property for defining the device outputs the LED
+>>>>>>>>>>> represented by the DT child node is connected to.
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> [...]
+>>>>>>
+>>>>>>>>>>> b/Documentation/devicetree/bindings/leds/common.txt
+>>>>>>>>>>> index a2c3f7a..29295bf 100644
+>>>>>>>>>>> --- a/Documentation/devicetree/bindings/leds/common.txt
+>>>>>>>>>>> +++ b/Documentation/devicetree/bindings/leds/common.txt
+>>>>>>>>>>> @@ -1,6 +1,10 @@
+>>>>>>>>>>>       Common leds properties.
+>>>>>>>>>>>
+>>>>>>>>>>>       Optional properties for child nodes:
+>>>>>>>>>>> +- led-sources : Array of bits signifying the LED current
+>>>>>>>>>>> regulator
+>>>>>>>>>>> outputs the
+>>>>>>>>>>> +               LED represented by the child node is
+>>>>>>>>>>> connected to
+>>>>>>>>>>> (1
+>>>>>>>>>>> -
+>>>>>>>>>>> the LED
+>>>>>>>>>>> +               is connected to the output, 0 - the LED isn't
+>>>>>>>>>>> connected
+>>>>>>>>>>> to the
+>>>>>>>>>>> +               output).
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> Sorry, I just don't understand this.
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> In some Flash LED devices one LED can be connected to one or more
+>>>>>>>>> electric current outputs, which allows for multiplying the maximum
+>>>>>>>>> current allowed for the LED. Each sub-LED is represented by a
+>>>>>>>>> child
+>>>>>>>>> node in the DT binding of the Flash LED device and it needs to
+>>>>>>>>> declare
+>>>>>>>>> which outputs it is connected to. In the example below the
+>>>>>>>>> led-sources
+>>>>>>>>> property is a two element array, which means that the flash LED
+>>>>>>>>> device
+>>>>>>>>> has two current outputs, and the bits signify if the LED is
+>>>>>>>>> connected
+>>>>>>>>> to the output.
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> Sounds like a regulator for which we already have bindings for
+>>>>>>>> and we
+>>>>>>>> have a driver for regulator based LEDs (but no binding for it).
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> Do you think of drivers/leds/leds-regulator.c driver? This driver
+>>>>>>> just
+>>>>>>> allows for registering an arbitrary regulator device as a LED
+>>>>>>> subsystem
+>>>>>>> device.
+>>>>>>>
+>>>>>>> There are however devices that don't fall into this category,
+>>>>>>> i.e. they
+>>>>>>> have many outputs, that can be connected to a single LED or to many
+>>>>>>> LEDs
+>>>>>>> and the driver has to know what is the actual arrangement.
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> We may need to extend the regulator binding slightly and allow for
+>>>>>> multiple phandles on a supply property, but wouldn't something like
+>>>>>> this work:
+>>>>>>
+>>>>>> led-supply = <&led-reg0>, <&led-reg1>, <&led-reg2>, <&led-reg3>;
+>>>>>>
+>>>>>> The shared source is already supported by the regulator binding.
+>>>>>
+>>>>>
+>>>>>
+>>>>> I think that we shouldn't split the LED devices into power supply
+>>>>> providers and consumers as in case of generic regulators. From this
+>>>>> point of view a LED device current output is a provider and a discrete
+>>>>> LED element is a consumer. In this approach each discrete LED element
+>>>>> should have a related driver which is not how LED devices are being
+>>>>> handled in the LED subsystem, where there is a single binding for a
+>>>>> LED
+>>>>> device and there is a single driver for it which creates separate LED
+>>>>> class devices for each LED connected to the LED device output. Each
+>>>>> discrete LED is represented by a child node in the LED device binding.
+>>>>>
+>>>>> I am aware that it may be tempting to treat LED devices as common
+>>>>> regulators, but they have their specific features which gave a
+>>>>> reason for introducing LED class for them. Besides, there is already
+>>>>> drivers/leds/leds-regulator.c driver for LED devices which support
+>>>>> only
+>>>>> turning on/off and setting brightness level.
+>>>>>
+>>>>> In your proposition a separate regulator provider binding would have
+>>>>> to be created for each current output and a separate binding for
+>>>>> each discrete LED connected to the LED device. It would create
+>>>>> unnecessary noise in a dts file.
+>>>>>
+>>>>> Moreover, using regulator binding implies that we want to treat it
+>>>>> as a sheer power supply for our device (which would be a discrete LED
+>>>>> element in this case), whereas LED devices provide more features like
+>>>>> blinking pattern and for flash LED devices - flash timeout, external
+>>>>> strobe and flash faults.
+>>>>
+>>>>
+>>>> Okay, fair enough. Please include some of this explanation in the
+>>>> binding description.
+>>>>
+>>>> I do still have some concerns about led-sources and whether it can
+>>>> support other scenarios. It is very much tied to the parent node. Are
+>>>> there any cases where we don't want the LEDs to be sub nodes? Perhaps
+>>>> the LEDs are on a separate daughterboard from the driver/supply and we
+>>>> can have different drivers. It's a stretch maybe.
+>>>
+>>>
+>>> I think it is. Such arrangements would introduce problems also to the
+>>> other existing bindings. Probably not only LED subsystem related ones.
+>>>
+>>>> Or are there cases
+>>>> where you need more information than just the connection?
+>>>
+>>>
+>>> Currently I can't think of any.
+>>>
+>>> Modified rough proposal of the description:
+>>>
+>>>
+>>> -Optional properties for child nodes:
+>>> +LED and flash LED devices provide the same basic functionality as
+>>> +current regulators, but extended with LED and flash LED specific
+>>> +features
+>>> like blinking patterns, flash timeout, flash faults and
+>>> +external flash strobe mode.
+>>> +
+>>> +Many LED devices expose more than one current output that can be
+>>> +connected to one or more discrete LED component. Since the arrangement
+>>> +of connections can influence the way of the LED device initialization,
+>>> +the LED components have to be tightly coupled with the LED device
+>>> +binding. They are represented in the form of its child nodes.
+>>> +
+>>> +Optional properties for child nodes (if a LED device exposes only one
+>>> +current output the properties can be placed directly in the LED device
+>>> +node):
+>>
+>> Why special case 1 output case? Just always require a child node.
+>
+> OK.
+>
+>>> +- led-sources : Array of connection states between all LED current
+>>> +               sources exposed by the device and this LED (1 - this LED
+>>> +               is connected to the current output with index N, 0 -
+>>> +               this LED isn't connected to the current output with
+>>> +               index N); the mapping of N-th element of the array to
+>>> +               the physical device output should be defined in the LED
+>>> +               driver binding.
+>>
+>> I think this should be a list of connected output numbers rather than
+>> effectively a bitmask.
+>>
+>> You may want to add something like led-output-cnt or led-driver-cnt in
+>> the parent so you know the max list size.
+>
+> Why should we need this? The number of current outputs exposed by the
+> device is fixed and can be specified in a LED device bindings
+> documentation.
+>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
----
- Documentation/devicetree/bindings/mfd/max77693.txt |   69 ++++++++++++++++++++
- 1 file changed, 69 insertions(+)
+OK. The led-output-cnt property should be put in each sub-node, as the
+number of the current outputs each LED can be connected to is variable.
 
-diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-index 01e9f30..ef184f0 100644
---- a/Documentation/devicetree/bindings/mfd/max77693.txt
-+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-@@ -41,7 +41,52 @@ Optional properties:
- 	 To get more informations, please refer to documentaion.
- 	[*] refer Documentation/devicetree/bindings/pwm/pwm.txt
- 
-+- led : the LED submodule device node
-+
-+There are two led outputs available - fled1 and fled2. Each of them can
-+control a separate led or they can be connected together to double
-+the maximum current for a single connected led. One led is represented
-+by one child node.
-+
-+Required properties:
-+- compatible : Must be "maxim,max77693-led".
-+
-+Optional properties:
-+- maxim,trigger-type : Flash trigger type.
-+	Possible trigger types:
-+		MAX77693_LED_TRIG_TYPE_EDGE - Rising edge of the signal triggers
-+			the flash,
-+		MAX77693_LED_TRIG_TYPE_LEVEL - Strobe pulse length controls
-+			duration of the flash.
-+- maxim,boost-mode :
-+	In boost mode the device can produce up to 1.2A of total current
-+	on both outputs. The maximum current on each output is reduced
-+	to 625mA then. If not enabled explicitly, boost setting defaults to
-+	MAX77693_LED_BOOST_FIXED in case both current sources are used.
-+	Possible values:
-+		MAX77693_LED_BOOST_OFF - no boost,
-+		MAX77693_LED_BOOST_ADAPTIVE - adaptive mode,
-+		MAX77693_LED_BOOST_FIXED - fixed mode.
-+- maxim,boost-vout : Output voltage of the boost module in millivolts.
-+- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
-+	if chip estimates that system voltage could drop below this level due
-+	to flash power consumption.
-+
-+Required properties of the LED child node:
-+- label : see Documentation/devicetree/bindings/leds/common.txt
-+- led-sources : see Documentation/devicetree/bindings/leds/common.txt
-+
-+Optional properties of the LED child node:
-+- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 15625 - 250000
-+- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 15625 - 1000000
-+- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 62500 - 1000000
-+
- Example:
-+#include <dt-bindings/mfd/max77693.h>
-+
- 	max77693@66 {
- 		compatible = "maxim,max77693";
- 		reg = <0x66>;
-@@ -73,4 +118,28 @@ Example:
- 			pwms = <&pwm 0 40000 0>;
- 			pwm-names = "haptic";
- 		};
-+
-+		led {
-+			compatible = "maxim,max77693-led";
-+			maxim,trigger-type = <MAX77693_LED_TRIG_TYPE_LEVEL>;
-+			maxim,boost-mode = <MAX77693_LED_BOOST_FIXED>;
-+			maxim,boost-vout = <5000>;
-+			maxim,vsys-min = <2400>;
-+
-+			camera1_flash: led1 {
-+				label = "max77693-flash1";
-+				led-sources = <1 0>;
-+				max-microamp = <250000>;
-+				flash-max-microamp = <625000>;
-+				flash-timeout-us = <1000000>;
-+			};
-+
-+			camera2_flash: led2 {
-+				label = "max77693-flash2";
-+				led-sources = <0 1>;
-+				max-microamp = <250000>;
-+				flash-max-microamp = <625000>;
-+				flash-timeout-us = <1000000>;
-+			};
-+		};
- 	};
+New version:
+
+  Optional properties for child nodes:
++led-sources-cnt : Number of device current outputs the LED is connected to.
++- led-sources : List of device current outputs the LED is connected to. The
++               outputs are identified by the numbers that must be defined
++               in the LED device binding documentation.
+  - label : The label for this LED.  If omitted, the label is
+    taken from the node name (excluding the unit address).
+
+@@ -33,7 +47,9 @@ system-status {
+
+  camera-flash {
+         label = "Flash";
++       led-sources-cnt = <2>;
++       led-sources = <0>, <1>;
+         max-microamp = <50000>;
+         flash-max-microamp = <320000>;
+         flash-timeout-us = <500000>;
+-}
++};
+
 -- 
-1.7.9.5
-
+Best Regards,
+Jacek Anaszewski
