@@ -1,74 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54005 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755455AbbAWPA3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 10:00:29 -0500
-Message-ID: <54C26204.9000106@osg.samsung.com>
-Date: Fri, 23 Jan 2015 08:00:20 -0700
-From: Shuah Khan <shuahkh@osg.samsung.com>
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:45341 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750777AbbATI7M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2015 03:59:12 -0500
+Received: by mail-wg0-f49.google.com with SMTP id l18so10317878wgh.8
+        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 00:59:10 -0800 (PST)
+Message-ID: <54BE18DE.2050206@gmail.com>
+Date: Tue, 20 Jan 2015 09:59:10 +0100
+From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com,
-	hans.verkuil@cisco.com, dheitmueller@kernellabs.com,
-	prabhakar.csengg@gmail.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com, ttmesterr@gmail.com
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: au0828 - convert to use videobuf2
-References: <1421970125-8169-1-git-send-email-shuahkh@osg.samsung.com> <54C21952.7010602@xs4all.nl>
-In-Reply-To: <54C21952.7010602@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [media_build] commit 26052b8e1 (SMIAPP needs kernel 3.20 or up.)
+References: <54BD3C56.4070600@xs4all.nl> <54BD55C3.6080201@gmail.com> <54BE052F.6060205@xs4all.nl>
+In-Reply-To: <54BE052F.6060205@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/23/2015 02:50 AM, Hans Verkuil wrote:
-> Hi Shuah,
-> 
-> On 01/23/2015 12:42 AM, Shuah Khan wrote:
->> Convert au0828 to use videobuf2. Tested with NTSC.
->> Tested video and vbi devices with xawtv, tvtime,
->> and vlc. Ran v4l2-compliance to ensure there are
->> no regressions. video now has no failures and vbi
->> has 3 fewer failures.
+Tested again, works now.
+Thanks!
+Op 20-01-15 om 08:35 schreef Hans Verkuil:
+> On 01/19/2015 08:06 PM, Tycho Lürsen wrote:
+>> Hi Hans,
 >>
->> video before:
->> test VIDIOC_G_FMT: FAIL 3 failures
->> Total: 72, Succeeded: 69, Failed: 3, Warnings: 0
->>
->> Video after:
->> Total: 72, Succeeded: 72, Failed: 0, Warnings: 18
->>
->> vbi before:
->>     test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
->>     test VIDIOC_EXPBUF: FAIL
->>     test USERPTR: FAIL
->>     Total: 72, Succeeded: 66, Failed: 6, Warnings: 0
->>
->> vbi after:
->>     test VIDIOC_QUERYCAP: FAIL
->>     test MMAP: FAIL
->>     Total: 78, Succeeded: 75, Failed: 3, Warnings: 0
-> 
-> There shouldn't be any fails for VBI. That really needs to be fixed.
-> Esp. the QUERYCAP fail should be easy to fix.
-> 
-> BTW, can you paste the full v4l2-compliance output next time? That's
-> more informative than just these summaries.
-> 
+>> tested this update in media_build against a Debian 3.16 kernel.
+>> It still tries to build SMIAPP. So sadly it still gives the same error.
+> Try again. I missed a duplicate VIDEO_SMIAPP entry in versions.txt that is
+> now deleted. I just tried it and it now builds fine for me.
+>
+> Regards,
+>
+> 	Hans
 
-I will re-run the tests and fix it and resend the patch. I think I was
-seeing querycap compliance failure when run with -V0 option and not when
-I run it without. I can attach the full log.
-
-thanks,
--- Shuah
-
-thanks,
--- Shuah
-
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
