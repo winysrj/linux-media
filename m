@@ -1,86 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:38377 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753235AbbA2S3p (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57375 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753683AbbATM7Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 13:29:45 -0500
-Received: by mail-wi0-f177.google.com with SMTP id r20so28310829wiv.4
-        for <linux-media@vger.kernel.org>; Thu, 29 Jan 2015 10:29:44 -0800 (PST)
+	Tue, 20 Jan 2015 07:59:16 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Florian Echtler <floe@butterbrot.org>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
+Date: Tue, 20 Jan 2015 14:59:49 +0200
+Message-ID: <64652239.MTTlcOgNK2@avalon>
+In-Reply-To: <54BE201F.4060209@xs4all.nl>
+References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <54BE1EBC.2090001@butterbrot.org> <54BE201F.4060209@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1598982.NztnJrsrWo@wuerfel>
-References: <1598982.NztnJrsrWo@wuerfel>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Thu, 29 Jan 2015 18:29:14 +0000
-Message-ID: <CA+V-a8svtf6TdF=3Vg6vqJGxkLGKbNMbc_eQFgpoby2h-+joaA@mail.gmail.com>
-Subject: Re: [PATCH] [media] davinci: add V4L2 dependencies
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 29, 2015 at 4:12 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> The davinci media drivers use videobuf2, which they enable through
-> a 'select' statement. If one of these drivers is built-in, but
-> the v4l2 core is a loadable modules, we end up with a link
-> error:
->
-> drivers/built-in.o: In function `vb2_fop_mmap':
-> :(.text+0x113e84): undefined reference to `video_devdata'
-> drivers/built-in.o: In function `vb2_ioctl_create_bufs':
-> :(.text+0x114710): undefined reference to `video_devdata'
-> drivers/built-in.o: In function `vb2_ioctl_reqbufs':
-> :(.text+0x114ed8): undefined reference to `video_devdata'
-> drivers/built-in.o: In function `vb2_ioctl_querybuf':
-> :(.text+0x115530): undefined reference to `video_devdata'
->
-> To solve this, we need to add a dependency on VIDEO_V4L2,
-> which enforces that the davinci drivers themselves can only
-> be loadable modules if V4L2 is not built-in, and they do
-> not cause the videobuf2 code to be built-in.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hello,
 
+On Tuesday 20 January 2015 10:30:07 Hans Verkuil wrote:
+> On 01/20/15 10:24, Florian Echtler wrote:
+> > On 19.01.2015 11:38, Hans Verkuil wrote:
+> >> Sorry for the delay.
+> > 
+> > No problem, thanks for your feedback.
+> > 
+> >>> Note: I'm intentionally using dma-contig instead of vmalloc, as the USB
+> >>> core apparently _will_ try to use DMA for larger bulk transfers.
+> >> 
+> >> As far as I can tell from looking through the usb core code it supports
+> >> scatter-gather DMA, so you should at least use dma-sg rather than
+> >> dma-contig. Physically contiguous memory should always be avoided.
+> > 
+> > OK, will this work transparently (i.e. just switch from *-contig-* to
+> > *-sg-*)? If not, can you suggest an example driver to use as template?
+> 
+> Yes, that should pretty much be seamless. BTW, the more I think about it,
+> the more I am convinced that DMA will also be used by the USB core when
+> you use videobuf2-vmalloc.
+> 
+> I've CC-ed Laurent, I think he knows a lot more about this than I do.
+> 
+> Laurent, when does the USB core use DMA? What do you need to do on the
+> driver side to have USB use DMA when doing bulk transfers?
+
+How USB HCD drivers map buffers for DMA is HCD-specific, but all drivers 
+exepct ehci-tegra, max3421-hcd and musb use the default implementation 
+usb_hcd_map_urb_for_dma() (in drivers/usb/core/hcd.c).
+
+Unless the buffer has already been mapped by the USB driver (in which case the 
+driver will have set the URB_NO_TRANSFER_DMA_MAP flag in urb->transfer_flags 
+and initialized the urb->transfer_dma field), the function will use 
+dma_map_sg(), dma_map_page() or dma_map_single() depending on the buffer type 
+(controlled through urb->sg and urb->num_sgs). DMA will thus always be used 
+*expect* if the platform uses bounce buffers when the buffer can't be mapped 
+directly for DMA.
+
+> >> I'm also missing a patch for the Kconfig that adds a dependency on
+> >> MEDIA_USB_SUPPORT and that selects VIDEOBUF2_DMA_SG.
+> > 
+> > Good point, will add that.
+> > 
+> >>> +err_unreg_video:
+> >>> +	video_unregister_device(&sur40->vdev);
+> >>> +err_unreg_v4l2:
+> >>> +	v4l2_device_unregister(&sur40->v4l2);
+> >>> 
+> >>>  err_free_buffer:
+> >>>  	kfree(sur40->bulk_in_buffer);
+> >>>  
+> >>>  err_free_polldev:
+> >>> @@ -436,6 +604,10 @@ static void sur40_disconnect(struct usb_interface
+> >>> *interface)>> 
+> >> Is this a hardwired device or hotpluggable? If it is hardwired, then this
+> >> code is OK, but if it is hotpluggable, then this isn't good enough.
+> > 
+> > It's hardwired. Out of curiosity, what would I have to change for a
+> > hotpluggable one?
+> 
+> In that case you can't clean everything up since some application might
+> still have a filehandle open. You have to wait until the very last
+> filehandle is closed.
+> 
+> >>> +	i->type = V4L2_INPUT_TYPE_CAMERA;
+> >>> +	i->std = V4L2_STD_UNKNOWN;
+> >>> +	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
+> >> 
+> >> Perhaps just say "Sensor" here? I'm not sure what "In-Cell" means.
+> > 
+> > In-cell is referring to the concept of integrating sensor pixels
+> > directly with LCD pixels, I think it's what Samsung calls it.
+
+-- 
 Regards,
---Prabhakar Lad
 
-> diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
-> index d9e1ddb586b1..469e9d28cec0 100644
-> --- a/drivers/media/platform/davinci/Kconfig
-> +++ b/drivers/media/platform/davinci/Kconfig
-> @@ -1,6 +1,6 @@
->  config VIDEO_DAVINCI_VPIF_DISPLAY
->         tristate "TI DaVinci VPIF V4L2-Display driver"
-> -       depends on VIDEO_DEV
-> +       depends on VIDEO_V4L2
->         depends on ARCH_DAVINCI || COMPILE_TEST
->         depends on HAS_DMA
->         select VIDEOBUF2_DMA_CONTIG
-> @@ -16,7 +16,7 @@ config VIDEO_DAVINCI_VPIF_DISPLAY
->
->  config VIDEO_DAVINCI_VPIF_CAPTURE
->         tristate "TI DaVinci VPIF video capture driver"
-> -       depends on VIDEO_DEV
-> +       depends on VIDEO_V4L2
->         depends on ARCH_DAVINCI || COMPILE_TEST
->         depends on HAS_DMA
->         select VIDEOBUF2_DMA_CONTIG
-> @@ -75,7 +75,7 @@ config VIDEO_DM365_ISIF
->
->  config VIDEO_DAVINCI_VPBE_DISPLAY
->         tristate "TI DaVinci VPBE V4L2-Display driver"
-> -       depends on ARCH_DAVINCI
-> +       depends on VIDEO_V4L2 && ARCH_DAVINCI
->         depends on HAS_DMA
->         select VIDEOBUF2_DMA_CONTIG
->         help
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Laurent Pinchart
+
