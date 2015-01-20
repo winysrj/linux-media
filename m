@@ -1,65 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:60057 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751568AbbAHQuT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 11:50:19 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NHV00KB5AYP4J60@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Jan 2015 16:54:25 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sean Young' <sean@mess.org>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, 'Hans Verkuil' <hansverk@cisco.com>
-References: <1419345142-3364-1-git-send-email-k.debski@samsung.com>
- <1419345142-3364-2-git-send-email-k.debski@samsung.com>
- <20141230133249.GA1566@gofer.mess.org>
-In-reply-to: <20141230133249.GA1566@gofer.mess.org>
-Subject: RE: [RFC 1/6] cec: add new driver for cec support.
-Date: Thu, 08 Jan 2015 17:50:15 +0100
-Message-id: <00b201d02b63$2e3471d0$8a9d5570$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:53227 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751801AbbATPlX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2015 10:41:23 -0500
+Received: by mail-ie0-f169.google.com with SMTP id rl12so13000002iec.0
+        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 07:41:22 -0800 (PST)
+Date: Tue, 20 Jan 2015 15:41:15 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
+	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
+	s.nawrocki@samsung.com, Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v10 05/19] mfd: max77693: Modify flash cell name
+ identifiers
+Message-ID: <20150120154115.GD13701@x1>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-6-git-send-email-j.anaszewski@samsung.com>
+ <20150120111346.GD13701@x1>
+ <54BE50AD.7080801@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <54BE50AD.7080801@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+On Tue, 20 Jan 2015, Jacek Anaszewski wrote:
 
-> -----Original Message-----
-> From: Sean Young [mailto:sean@mess.org]
-> Sent: Tuesday, December 30, 2014 2:33 PM
-> To: Kamil Debski
-> Cc: dri-devel@lists.freedesktop.org; linux-media@vger.kernel.org;
-> m.szyprowski@samsung.com; mchehab@osg.samsung.com; hverkuil@xs4all.nl;
-> kyungmin.park@samsung.com; Hans Verkuil
-> Subject: Re: [RFC 1/6] cec: add new driver for cec support.
+> On 01/20/2015 12:13 PM, Lee Jones wrote:
+> >On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
+> >
+> >>Change flash cell identifiers from max77693-flash to max77693-led
+> >>to avoid confusion with NOR/NAND Flash.
+> >
+> >This is okay by me, but aren't these ABI yet?
 > 
-> On Tue, Dec 23, 2014 at 03:32:17PM +0100, Kamil Debski wrote:
-> > +There are still a few todo's, the main one being the remote control
-> > +support feature of CEC. I need to research if that should be
-> > +implemented via the standard kernel remote control support.
+> No, the led driver using it hasn't been merged yet.
+
+Very well.
+
+For my on reference:
+
+Acked-by: Lee Jones <lee.jones@linaro.org>
+
+> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> >>Cc: Lee Jones <lee.jones@linaro.org>
+> >>---
+> >>  drivers/mfd/max77693.c |    4 ++--
+> >>  1 file changed, 2 insertions(+), 2 deletions(-)
+> >>
+> >>diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
+> >>index a159593..cb14afa 100644
+> >>--- a/drivers/mfd/max77693.c
+> >>+++ b/drivers/mfd/max77693.c
+> >>@@ -53,8 +53,8 @@ static const struct mfd_cell max77693_devs[] = {
+> >>  		.of_compatible = "maxim,max77693-haptic",
+> >>  	},
+> >>  	{
+> >>-		.name = "max77693-flash",
+> >>-		.of_compatible = "maxim,max77693-flash",
+> >>+		.name = "max77693-led",
+> >>+		.of_compatible = "maxim,max77693-led",
+> >>  	},
+> >>  };
+> >>
+> >
 > 
-> I guess a new rc driver type RC_DRIVER_CEC should be introduced
-> (existing types are RC_DRIVER_IR_RAW and RC_DRIVER_SCANCODE).
-> rc_register_device() should not register the sysfs attributes specific
-> for IR, but register sysfs attributes for cec like a link to the device.
-> 
-> In addition there should be a new rc_type protocol RC_TYPE_CEC; now
-> rc_keydown_notimeout() can be called for each key press.
-> 
-> I guess a new keymap should exist too.
 > 
 
-Thank you for your suggestions. They are surely helpful and I agree with
-them.
-
-Best wishes,
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
-
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
