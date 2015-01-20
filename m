@@ -1,118 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp209.alice.it ([82.57.200.105]:57956 "EHLO smtp209.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752586AbbADPf3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Jan 2015 10:35:29 -0500
-Date: Sun, 4 Jan 2015 16:29:09 +0100
-From: Antonio Ospite <ao2@ao2.it>
-To: Joe Howse <josephhowse@nummist.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/1] gspca: Add high-speed modes for PS3 Eye camera
-Message-Id: <20150104162909.f29952436894222f8074862f@ao2.it>
-In-Reply-To: <1419865203-3967-1-git-send-email-josephhowse@nummist.com>
-References: <1419865203-3967-1-git-send-email-josephhowse@nummist.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40452 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750727AbbATJbH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2015 04:31:07 -0500
+Message-ID: <54BE201F.4060209@xs4all.nl>
+Date: Tue, 20 Jan 2015 10:30:07 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Florian Echtler <floe@butterbrot.org>
+CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
+References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <54BCDE91.90807@xs4all.nl> <54BE1EBC.2090001@butterbrot.org>
+In-Reply-To: <54BE1EBC.2090001@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 29 Dec 2014 11:00:03 -0400
-Joe Howse <josephhowse@nummist.com> wrote:
-
-> Add support in the PS3 Eye driver for QVGA capture at higher
-> frame rates: 187, 150, and 137 FPS. This functionality is valuable
-> because the PS3 Eye is popular for computer vision projects and no
-> other camera in its price range supports such high frame rates.
+On 01/20/15 10:24, Florian Echtler wrote:
+> Hello Hans,
 > 
-> Correct a QVGA mode that was listed as 40 FPS. It is really 37 FPS
-> (half of 75 FPS).
+> On 19.01.2015 11:38, Hans Verkuil wrote:
+>> Sorry for the delay.
+> No problem, thanks for your feedback.
 > 
-> Tests confirm that the nominal frame rates are achieved.
+>>> Note: I'm intentionally using dma-contig instead of vmalloc, as the USB
+>>> core apparently _will_ try to use DMA for larger bulk transfers. 
+>> As far as I can tell from looking through the usb core code it supports
+>> scatter-gather DMA, so you should at least use dma-sg rather than dma-contig.
+>> Physically contiguous memory should always be avoided.
+> OK, will this work transparently (i.e. just switch from *-contig-* to
+> *-sg-*)? If not, can you suggest an example driver to use as template?
+
+Yes, that should pretty much be seamless. BTW, the more I think about it,
+the more I am convinced that DMA will also be used by the USB core when
+you use videobuf2-vmalloc.
+
+I've CC-ed Laurent, I think he knows a lot more about this than I do.
+
+Laurent, when does the USB core use DMA? What do you need to do on the
+driver side to have USB use DMA when doing bulk transfers?
+
 > 
-> Signed-off-by: Joe Howse <josephhowse@nummist.com>
-
-Tested-by: Antonio Ospite <ao2@ao2.it>
-
-Thanks Joe.
-
-I noticed that qv4l2 displays max 60fps even though from the video I can
-perceive the higher framerate, and same happens in guvcview.
-
-gst-inspect-1.0 won't even let me set framerates higher than 75 so
-I didn't test with GStreamer.
-
-I know that the camera is also able to stream raw Bayer data which
-requires less bandwidth than the default YUYV, although the driver does
-not currently expose that; maybe some higher framerates can be achieved
-also at VGA with Bayer output.
-
-In case you wanted to explore that remember to set supported framerates
-appropriately in ov772x_framerates for the 4 combinations of formats and
-resolutions (i.e. Bayer outputs will support more framerates).
-
-Ciao,
-   Antonio
-
-> ---
->  drivers/media/usb/gspca/ov534.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
+>> I'm also missing a patch for the Kconfig that adds a dependency on MEDIA_USB_SUPPORT
+>> and that selects VIDEOBUF2_DMA_SG.
+>
+> Good point, will add that.
 > 
-> diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
-> index 90f0d63..a9c866d 100644
-> --- a/drivers/media/usb/gspca/ov534.c
-> +++ b/drivers/media/usb/gspca/ov534.c
-> @@ -12,6 +12,8 @@
->   * PS3 Eye camera enhanced by Richard Kaswy http://kaswy.free.fr
->   * PS3 Eye camera - brightness, contrast, awb, agc, aec controls
->   *                  added by Max Thrun <bear24rw@gmail.com>
-> + * PS3 Eye camera - FPS range extended by Joseph Howse
-> + *                  <josephhowse@nummist.com> http://nummist.com
->   *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
-> @@ -116,7 +118,7 @@ static const struct v4l2_pix_format ov767x_mode[] = {
->  		.colorspace = V4L2_COLORSPACE_JPEG},
->  };
->  
-> -static const u8 qvga_rates[] = {125, 100, 75, 60, 50, 40, 30};
-> +static const u8 qvga_rates[] = {187, 150, 137, 125, 100, 75, 60, 50, 37, 30};
->  static const u8 vga_rates[] = {60, 50, 40, 30, 15};
->  
->  static const struct framerates ov772x_framerates[] = {
-> @@ -769,12 +771,16 @@ static void set_frame_rate(struct gspca_dev *gspca_dev)
->  		{15, 0x03, 0x41, 0x04},
->  	};
->  	static const struct rate_s rate_1[] = {	/* 320x240 */
-> +/*		{205, 0x01, 0xc1, 0x02},  * 205 FPS: video is partly corrupt */
-> +		{187, 0x01, 0x81, 0x02}, /* 187 FPS or below: video is valid */
-> +		{150, 0x01, 0xc1, 0x04},
-> +		{137, 0x02, 0xc1, 0x02},
->  		{125, 0x02, 0x81, 0x02},
->  		{100, 0x02, 0xc1, 0x04},
->  		{75, 0x03, 0xc1, 0x04},
->  		{60, 0x04, 0xc1, 0x04},
->  		{50, 0x02, 0x41, 0x04},
-> -		{40, 0x03, 0x41, 0x04},
-> +		{37, 0x03, 0x41, 0x04},
->  		{30, 0x04, 0x41, 0x04},
->  	};
->  
-> -- 
-> 1.9.1
+>>> +err_unreg_video:
+>>> +	video_unregister_device(&sur40->vdev);
+>>> +err_unreg_v4l2:
+>>> +	v4l2_device_unregister(&sur40->v4l2);
+>>>  err_free_buffer:
+>>>  	kfree(sur40->bulk_in_buffer);
+>>>  err_free_polldev:
+>>> @@ -436,6 +604,10 @@ static void sur40_disconnect(struct usb_interface *interface)
+>>
+>> Is this a hardwired device or hotpluggable? If it is hardwired, then this code is
+>> OK, but if it is hotpluggable, then this isn't good enough.
+>
+> It's hardwired. Out of curiosity, what would I have to change for a
+> hotpluggable one?
+
+In that case you can't clean everything up since some application might
+still have a filehandle open. You have to wait until the very last filehandle
+is closed.
+
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> +	i->type = V4L2_INPUT_TYPE_CAMERA;
+>>> +	i->std = V4L2_STD_UNKNOWN;
+>>> +	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
+>
+>> Perhaps just say "Sensor" here? I'm not sure what "In-Cell" means.
+>
+> In-cell is referring to the concept of integrating sensor pixels
+> directly with LCD pixels, I think it's what Samsung calls it.
+> 
+> Thanks & best regards, Florian
+> 
 
+Regards,
 
--- 
-Antonio Ospite
-http://ao2.it
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+	Hans
