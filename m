@@ -1,46 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:47932 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752277AbbAMCND (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2015 21:13:03 -0500
-Message-ID: <54B47F2D.9020102@osg.samsung.com>
-Date: Mon, 12 Jan 2015 19:13:01 -0700
-From: Shuah Khan <shuahkh@osg.samsung.com>
+Received: from mail-yk0-f179.google.com ([209.85.160.179]:38179 "EHLO
+	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751974AbbAUKBo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Jan 2015 05:01:44 -0500
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com,
-	hans.verkuil@cisco.com, dheitmueller@kernellabs.com,
-	prabhakar.csengg@gmail.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com, ttmesterr@gmail.com
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 2/3] media: au0828 change to not zero out fmt.pix.priv
-References: <cover.1418918401.git.shuahkh@osg.samsung.com> <54b748fa5cb6883d6ce348c38328161409c1f1be.1418918402.git.shuahkh@osg.samsung.com> <54B3D319.2090506@xs4all.nl>
-In-Reply-To: <54B3D319.2090506@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1419072462-3168-6-git-send-email-prabhakar.csengg@gmail.com>
+References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
+	<1419072462-3168-6-git-send-email-prabhakar.csengg@gmail.com>
+Date: Wed, 21 Jan 2015 18:01:43 +0800
+Message-ID: <CAHG8p1D4HAbM-JVDa_P81EA1TeSYZ_Wi5=uYH5VvnmLiR+dHeA@mail.gmail.com>
+Subject: Re: [PATCH 05/15] media: blackfin: bfin_capture: improve
+ queue_setup() callback
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/12/2015 06:58 AM, Hans Verkuil wrote:
-> My first code review of the new year, so let's start with a simple one to avoid
-> taxing my brain cells (that are still in vacation mode) too much...
-> 
-> On 12/18/2014 05:20 PM, Shuah Khan wrote:
->> There is no need to zero out fmt.pix.priv in vidioc_g_fmt_vid_cap()
->> vidioc_try_fmt_vid_cap(), and vidioc_s_fmt_vid_cap(). Remove it.
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
+2014-12-20 18:47 GMT+08:00 Lad, Prabhakar <prabhakar.csengg@gmail.com>:
+> this patch improves the queue_setup() callback.
+>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  drivers/media/platform/blackfin/bfin_capture.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+> index 8bd94a1..76d42bb 100644
+> --- a/drivers/media/platform/blackfin/bfin_capture.c
+> +++ b/drivers/media/platform/blackfin/bfin_capture.c
+> @@ -44,7 +44,6 @@
+>  #include <media/blackfin/ppi.h>
+>
+>  #define CAPTURE_DRV_NAME        "bfin_capture"
+> -#define BCAP_MIN_NUM_BUF        2
+>
+>  struct bcap_format {
+>         char *desc;
+> @@ -292,11 +291,14 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+>  {
+>         struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
+>
+> -       if (*nbuffers < BCAP_MIN_NUM_BUF)
+> -               *nbuffers = BCAP_MIN_NUM_BUF;
+> +       if (fmt && fmt->fmt.pix.sizeimage < bcap_dev->fmt.sizeimage)
+> +               return -EINVAL;
+> +
+> +       if (vq->num_buffers + *nbuffers < 3)
+> +               *nbuffers = 3 - vq->num_buffers;
 
-Thanks.
+It seems it changes the minimum buffers from 2 to 3?
 
--- Shuah
-
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+>
+>         *nplanes = 1;
+> -       sizes[0] = bcap_dev->fmt.sizeimage;
+> +       sizes[0] = fmt ? fmt->fmt.pix.sizeimage : bcap_dev->fmt.sizeimage;
+>         alloc_ctxs[0] = bcap_dev->alloc_ctx;
+>
