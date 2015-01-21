@@ -1,38 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.246]:45351 "EHLO
-	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750905AbbADKAL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 05:00:11 -0500
-Message-ID: <54A90F17.8020902@atmel.com>
-Date: Sun, 4 Jan 2015 17:59:51 +0800
-From: Josh Wu <josh.wu@atmel.com>
+Received: from mail-we0-f181.google.com ([74.125.82.181]:46019 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752922AbbAUMJy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Jan 2015 07:09:54 -0500
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/2] V4L2: add CCF support to v4l2_clk
-References: <Pine.LNX.4.64.1501021244580.30761@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1501021244580.30761@axis700.grange>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1419072462-3168-1-git-send-email-prabhakar.csengg@gmail.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Wed, 21 Jan 2015 12:09:21 +0000
+Message-ID: <CA+V-a8ur2KV_s5zM9qbQZ+MLvocO9AE0KduWb3R-rUhA9912cw@mail.gmail.com>
+Subject: Re: [PATCH 00/15] media: blackfin: bfin_capture enhancements
+To: LMML <linux-media@vger.kernel.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+Hi Scott,
 
-On 1/2/2015 7:48 PM, Guennadi Liakhovetski wrote:
-> Hi,
+On Sat, Dec 20, 2014 at 10:47 AM, Lad, Prabhakar
+<prabhakar.csengg@gmail.com> wrote:
+> Hi Scott,
 >
-> This is an attempt to implement CCF support for v4l2_clk to be able to use
-> e.g. DT-based clocks. Beware - completely untested! Josh, could you please
-> see, whether you can use this as a starting point?
-
-Thanks for the patches. I will test these patches tomorrow.
-
-Best Regards,
-Josh Wu
-
+> Although I was on holiday but couldn't resist myself from working,
+> since I was away from my hardware I had to choose a different one,
+> blackfin driver was lucky one. Since I don't have the blackfin
+> board I haven't tested them on the actual board, but just compile
+> tested, Can you please test it & ACK.
 >
-> Thanks
-> Guennadi
+> Lad, Prabhakar (15):
+>   media: blackfin: bfin_capture: drop buf_init() callback
+>   media: blackfin: bfin_capture: release buffers in case
+>     start_streaming() call back fails
+>   media: blackfin: bfin_capture: set min_buffers_needed
+>   media: blackfin: bfin_capture: improve buf_prepare() callback
+>   media: blackfin: bfin_capture: improve queue_setup() callback
+>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
+>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
+>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
+>   media: blackfin: bfin_capture: make sure all buffers are returned on
+>     stop_streaming() callback
+>   media: blackfin: bfin_capture: return -ENODATA for *std calls
+>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
+>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
+>   media: blackfin: bfin_capture: add support for VB2_DMABUF
+>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
+>   media: blackfin: bfin_capture: set v4l2 buffer sequence
+>
+>  drivers/media/platform/blackfin/bfin_capture.c | 310 ++++++++-----------------
+>  1 file changed, 98 insertions(+), 212 deletions(-)
+>
+If you are done with the review of all the patches,should I go ahead
+and post a v2 fixing the two issues which you pointed out ?
 
+Thanks,
+--Prabhakar Lad
