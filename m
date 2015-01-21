@@ -1,42 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60811 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755630AbbAWQvj (ORCPT
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:44192 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754199AbbAURbk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 11:51:39 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 10/21] [media] coda: clear RET_DEC_PIC_SUCCESS flag in prepare_decode
-Date: Fri, 23 Jan 2015 17:51:24 +0100
-Message-Id: <1422031895-7740-11-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
-References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 21 Jan 2015 12:31:40 -0500
+Date: Wed, 21 Jan 2015 17:31:28 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
+	t.stanislaws@samsung.com, linaro-kernel@lists.linaro.org,
+	robdclark@gmail.com, daniel@ffwll.ch, m.szyprowski@samsung.com
+Subject: Re: [RFCv2 2/2] dma-buf: add helpers for sharing attacher
+ constraints with dma-parms
+Message-ID: <20150121173128.GV26493@n2100.arm.linux.org.uk>
+References: <1421813807-9178-1-git-send-email-sumit.semwal@linaro.org>
+ <1421813807-9178-3-git-send-email-sumit.semwal@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1421813807-9178-3-git-send-email-sumit.semwal@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To make sure a set RET_DEC_PIC_SUCCESS flag is not a leftover from
-a previous successful run, clear it in prepare_decode.
+On Wed, Jan 21, 2015 at 09:46:47AM +0530, Sumit Semwal wrote:
+> +static int calc_constraints(struct device *dev,
+> +			    struct dma_buf_constraints *calc_cons)
+> +{
+> +	struct dma_buf_constraints cons = *calc_cons;
+> +
+> +	cons.dma_mask &= dma_get_mask(dev);
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c | 3 +++
- 1 file changed, 3 insertions(+)
+I don't think this makes much sense when you consider that the DMA
+infrastructure supports buses with offsets.  The DMA mask is th
+upper limit of the _bus_ specific address, it is not a mask per-se.
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 6b00a45..d81635d 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1666,6 +1666,9 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
- 
- 	coda_kfifo_sync_to_device_full(ctx);
- 
-+	/* Clear decode success flag */
-+	coda_write(dev, 0, CODA_RET_DEC_PIC_SUCCESS);
-+
- 	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
- 
- 	return 0;
+What this means is that &= is not the right operation.  Moreover,
+simply comparing masks which could be from devices on unrelated
+buses doesn't make sense either.
+
+However, that said, I don't have an answer for what you want to
+achieve here.
+
 -- 
-2.1.4
-
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
