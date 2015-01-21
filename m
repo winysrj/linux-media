@@ -1,60 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:32918 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752007AbbAPOcC (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33752 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751856AbbAUDpa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2015 09:32:02 -0500
-Received: by mail-we0-f179.google.com with SMTP id q59so20532802wes.10
-        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 06:31:59 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1421411720-2364-1-git-send-email-olli.salonen@iki.fi>
-References: <1421411720-2364-1-git-send-email-olli.salonen@iki.fi>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 16 Jan 2015 14:31:28 +0000
-Message-ID: <CA+V-a8s6A_xon3MPG7o2tv1sFJ4ndZ5XxFNDD-y6JoboyQX3-A@mail.gmail.com>
-Subject: Re: [PATCH 1/2] si2168: return error if set_frontend is called with
- invalid parameters
-To: Olli Salonen <olli.salonen@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 20 Jan 2015 22:45:30 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2E2182A008D
+	for <linux-media@vger.kernel.org>; Wed, 21 Jan 2015 04:45:06 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150121034506.2E2182A008D@tschai.lan>
+Date: Wed, 21 Jan 2015 04:45:06 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Olli,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the patch.
+Results of the daily build of media_tree:
 
-On Fri, Jan 16, 2015 at 12:35 PM, Olli Salonen <olli.salonen@iki.fi> wrote:
-> This patch should is based on Antti's silabs branch.
->
-> According to dvb-frontend.h set_frontend may be called with bandwidth_hz set to 0 if automatic bandwidth is required. Si2168 does not support automatic bandwidth and does not declare FE_CAN_BANDWIDTH_AUTO in caps.
->
-> This patch will change the behaviour in a way that EINVAL is returned if bandwidth_hz is 0.
->
-> Cc-to: Antti Palosaari <crope@iki.fi>
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-> ---
->  drivers/media/dvb-frontends/si2168.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> index 7f966f3..7fef5ab 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -180,7 +180,12 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
->                 goto err;
->         }
->
-> -       if (c->bandwidth_hz <= 5000000)
-> +       if (c->bandwidth_hz == 0) {
-> +               ret = -EINVAL;
-> +               dev_err(&client->dev, "automatic bandwidth not supported");
-> +               goto err;
-> +       }
-> +       else if (c->bandwidth_hz <= 5000000)
->                 bandwidth = 0x05;
+date:		Wed Jan 21 04:00:16 CET 2015
+git branch:	test
+git hash:	99f3cd52aee21091ce62442285a68873e3be833f
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
-Checkpatch should catch it. did you run checkpatch ?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18-x86_64: OK
+linux-3.19-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
-Thanks,
---Prabhakar Lad
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
