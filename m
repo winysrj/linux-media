@@ -1,79 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:40504 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752130AbbASMtZ (ORCPT
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:40210 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754037AbbAUER3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 07:49:25 -0500
-Message-ID: <54BCFD3F.1090009@xs4all.nl>
-Date: Mon, 19 Jan 2015 13:49:03 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 01/66] dvb-usb-v2: add pointer to 'struct usb_interface'
- for driver usage
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1419367799-14263-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Tue, 20 Jan 2015 23:17:29 -0500
+Received: by mail-pa0-f53.google.com with SMTP id kx10so5877467pab.12
+        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 20:17:29 -0800 (PST)
+From: Sumit Semwal <sumit.semwal@linaro.org>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org
+Cc: linaro-kernel@lists.linaro.org, robdclark@gmail.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>
+Subject: [RFCv2 1/2] device: add dma_params->max_segment_count
+Date: Wed, 21 Jan 2015 09:46:46 +0530
+Message-Id: <1421813807-9178-2-git-send-email-sumit.semwal@linaro.org>
+In-Reply-To: <1421813807-9178-1-git-send-email-sumit.semwal@linaro.org>
+References: <1421813807-9178-1-git-send-email-sumit.semwal@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+From: Rob Clark <robdclark@gmail.com>
 
-I'll mark this whole patch series as 'Accepted' in patchwork. It looks OK
-to me, and that way patchwork is cleaned up with only your pull request
-remaining.
+For devices which have constraints about maximum number of segments in
+an sglist.  For example, a device which could only deal with contiguous
+buffers would set max_segment_count to 1.
 
-For whatever it is worth:
+The initial motivation is for devices sharing buffers via dma-buf,
+to allow the buffer exporter to know the constraints of other
+devices which have attached to the buffer.  The dma_mask and fields
+in 'struct device_dma_parameters' tell the exporter everything else
+that is needed, except whether the importer has constraints about
+maximum number of segments.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rob Clark <robdclark@gmail.com>
+ [sumits: Minor updates wrt comments on the first version]
+Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+---
+ include/linux/device.h      |  1 +
+ include/linux/dma-mapping.h | 19 +++++++++++++++++++
+ 2 files changed, 20 insertions(+)
 
-Regards,
-
-	Hans
-
-On 12/23/2014 09:48 PM, Antti Palosaari wrote:
-> Top level pointer on USB probe is struct usb_interface *. Add that
-> pointer to struct dvb_usb_device that drivers could use it, for
-> dev_* logging and more.
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/usb/dvb-usb-v2/dvb_usb.h      | 2 ++
->  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 1 +
->  2 files changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-> index 14e111e..41c6363 100644
-> --- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-> +++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-> @@ -354,6 +354,7 @@ struct dvb_usb_adapter {
->   * @name: device name
->   * @rc_map: name of rc codes table
->   * @rc_polling_active: set when RC polling is active
-> + * @intf: pointer to the device's struct usb_interface
->   * @udev: pointer to the device's struct usb_device
->   * @rc: remote controller configuration
->   * @powered: indicated whether the device is power or not
-> @@ -370,6 +371,7 @@ struct dvb_usb_device {
->  	const char *name;
->  	const char *rc_map;
->  	bool rc_polling_active;
-> +	struct usb_interface *intf;
->  	struct usb_device *udev;
->  	struct dvb_usb_rc rc;
->  	int powered;
-> diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> index 1950f37..9913e0f 100644
-> --- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> +++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> @@ -868,6 +868,7 @@ int dvb_usbv2_probe(struct usb_interface *intf,
->  		goto err;
->  	}
->  
-> +	d->intf = intf;
->  	d->name = driver_info->name;
->  	d->rc_map = driver_info->rc_map;
->  	d->udev = udev;
-> 
+diff --git a/include/linux/device.h b/include/linux/device.h
+index fb50673..a32f9b6 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -647,6 +647,7 @@ struct device_dma_parameters {
+ 	 * sg limitations.
+ 	 */
+ 	unsigned int max_segment_size;
++	unsigned int max_segment_count;    /* INT_MAX for unlimited */
+ 	unsigned long segment_boundary_mask;
+ };
+ 
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index c3007cb..38e2835 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -154,6 +154,25 @@ static inline unsigned int dma_set_max_seg_size(struct device *dev,
+ 		return -EIO;
+ }
+ 
++#define DMA_SEGMENTS_MAX_SEG_COUNT ((unsigned int) INT_MAX)
++
++static inline unsigned int dma_get_max_seg_count(struct device *dev)
++{
++	return dev->dma_parms ?
++			dev->dma_parms->max_segment_count :
++			DMA_SEGMENTS_MAX_SEG_COUNT;
++}
++
++static inline int dma_set_max_seg_count(struct device *dev,
++						unsigned int count)
++{
++	if (dev->dma_parms) {
++		dev->dma_parms->max_segment_count = count;
++		return 0;
++	} else
++		return -EIO;
++}
++
+ static inline unsigned long dma_get_seg_boundary(struct device *dev)
+ {
+ 	return dev->dma_parms ?
+-- 
+1.9.1
 
