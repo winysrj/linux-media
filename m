@@ -1,67 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:37283 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752235AbbAHUUS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 15:20:18 -0500
-Received: by mail-ie0-f182.google.com with SMTP id x19so11444428ier.13
-        for <linux-media@vger.kernel.org>; Thu, 08 Jan 2015 12:20:17 -0800 (PST)
+Received: from lists.s-osg.org ([54.187.51.154]:53687 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752042AbbAUXEa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Jan 2015 18:04:30 -0500
+Date: Wed, 21 Jan 2015 21:04:25 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT FIXES FOR v3.19] Fixes for 3.19
+Message-ID: <20150121210425.70983828@recife.lan>
+In-Reply-To: <54B902C7.1040507@xs4all.nl>
+References: <54B902C7.1040507@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20150108171937.228316a7@concha.lan>
-References: <CALzAhNW+-pEpYFYH3_Zn8xwMXUoWL6j0LvyPGkvG7hna4z4gLQ@mail.gmail.com>
-	<54AD7B96.209@xs4all.nl>
-	<CAKocOOOLH9gHpGRCX=6Y3x=-nSj3N9dYpySBH2opdjXbg7w0BA@mail.gmail.com>
-	<20150108171937.228316a7@concha.lan>
-Date: Thu, 8 Jan 2015 13:20:17 -0700
-Message-ID: <CAKocOOOUH-sE8g7o4h0Gk7SNKaUAEff3R_Yx+S4cv_VKOTLovw@mail.gmail.com>
-Subject: Re: Media Summit planning for 2015 - was: Re: ELC 2015 - March - San Jose
-From: Shuah Khan <shuahkhan@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux-Media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Steven Toth <stoth@kernellabs.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 8, 2015 at 12:19 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Hi all,
->
-> I want to do the media planning for 2015. As we've agreed last year, we're
-> planning to do one media summit together with the Kernel Summit. While
-> things may change, this year, KS will likely happen by Oct in Korea.
->
-> I think we may do another summit in US. Looking at:
->         http://events.linuxfoundation.org/
->
-> Some possible events would be to do it together with:
->         ELC - end of March - San Jose, CA - US
->         LinuxCon - mid of August - Seattle, WA - US
->
-> I took a look at https://lwn.net/Calendar/ to see if are there some
-> other event at the first semester, as LinuxCon seems too close to
-> KS, and ELC means about two months to prepare for it, but was unable
-> to find some other interesting event that we could use to merge
-> with the Media Summit.
->
-> Of course, nothing prevents us to choose some other event or even
-> do a Media Summit that would be independent. We did one like that
-> already in the past, in Helsinki.
->
-> That's said, probably, the best would be to do the first media
-> summit together with ELC, if we have enough people for it and
-> enough subject for discussions.
->
-> What do you think?
->
-> From my side, I'd like to do some deeper discussions related to
-> DVB media controller API.
->
+Em Fri, 16 Jan 2015 13:23:35 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-I will start with voting yes on media summit at ELC. I missed the last
-one in Europe.
-I am also interested in DVB media controller API and the work in progress media
-tokens.
+> The following changes since commit 99f3cd52aee21091ce62442285a68873e3be833f:
+> 
+>   [media] vb2-vmalloc: Protect DMA-specific code by #ifdef CONFIG_HAS_DMA (2014-12-23 16:28:09 -0200)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git for-v3.19a
+> 
+> for you to fetch changes up to f490fe1a4b4cd0a6454db02e8459d30a2ff02c49:
+> 
+>   Fix Mygica T230 support (2015-01-16 13:07:28 +0100)
+> 
+> ----------------------------------------------------------------
+> Jim Davis (1):
+>       media: tlg2300: disable building the driver
 
-thanks,
--- Shuah
+This one is superseded by:
+	https://patchwork.linuxtv.org/patch/27671/
+
+Instead of marking as Broken, the right fix is to preserve the media
+USB dependency, so I'm replacing this patch by 27671.
+
+> 
+> Jonathan McDowell (1):
+>       Fix Mygica T230 support
+> 
+> Matthias Schwarzott (1):
+>       cx23885: Split Hauppauge WinTV Starburst from HVR4400 card entry
+
+The other two patches are ok.
+> 
+>  drivers/media/pci/cx23885/cx23885-cards.c | 23 +++++++++++++++++------
+>  drivers/media/pci/cx23885/cx23885-dvb.c   | 11 +++++++++++
+>  drivers/media/pci/cx23885/cx23885.h       |  1 +
+>  drivers/media/usb/dvb-usb/cxusb.c         |  2 +-
+>  drivers/staging/media/tlg2300/Kconfig     |  1 +
+>  5 files changed, 31 insertions(+), 7 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
