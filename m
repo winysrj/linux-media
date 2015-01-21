@@ -1,185 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f46.google.com ([209.85.218.46]:38769 "EHLO
-	mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751815AbbA2Pac (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 10:30:32 -0500
-Received: by mail-oi0-f46.google.com with SMTP id a141so27810502oig.5
-        for <linux-media@vger.kernel.org>; Thu, 29 Jan 2015 07:30:32 -0800 (PST)
+Received: from butterbrot.org ([176.9.106.16]:36091 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752380AbbAUN2q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Jan 2015 08:28:46 -0500
+Message-ID: <54BFA989.4090405@butterbrot.org>
+Date: Wed, 21 Jan 2015 14:28:41 +0100
+From: Florian Echtler <floe@butterbrot.org>
 MIME-Version: 1.0
-In-Reply-To: <20150129143908.GA26493@n2100.arm.linux.org.uk>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
- <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org> <20150129143908.GA26493@n2100.arm.linux.org.uk>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Thu, 29 Jan 2015 21:00:11 +0530
-Message-ID: <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
- with dma-parms
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Rob Clark <robdclark@gmail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
+References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <64652239.MTTlcOgNK2@avalon> <54BE5204.3020600@xs4all.nl> <6025823.veVKIskIW2@avalon>
+In-Reply-To: <6025823.veVKIskIW2@avalon>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="eXRoCobq6mIOGh9x9tmUt1AeenIj6qGvx"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell!
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--eXRoCobq6mIOGh9x9tmUt1AeenIj6qGvx
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On 29 January 2015 at 20:09, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Tue, Jan 27, 2015 at 01:55:54PM +0530, Sumit Semwal wrote:
->> +/*
->> + * recalc_constraints - recalculates constraints for all attached devices;
->> + *  useful for detach() recalculation, and for dma_buf_recalc_constraints()
->> + *  helper.
->> + *  Returns recalculated constraints in recalc_cons, or error in the unlikely
->> + *  case when constraints of attached devices might have changed.
->> + */
->
-Thanks for your valuable review comments!
+Hello everyone,
 
-> Please see kerneldoc documentation for the proper format of these comments.
-These are static functions, and as such kerneldoc doesn't enforce
-kernel-doc style comments, so in the dma-buf files, we've not followed
-them for static functions.
-That said, it is certainly a valuable advice, and I could create a
-separate patch-set for updating the documentation for the static
-functions as well.
->
->> +static int recalc_constraints(struct dma_buf *dmabuf,
->> +                           struct device_dma_parameters *recalc_cons)
->> +{
->> +     struct device_dma_parameters calc_cons;
->> +     struct dma_buf_attachment *attach;
->> +     int ret = 0;
->> +
->> +     init_constraints(&calc_cons);
->> +
->> +     list_for_each_entry(attach, &dmabuf->attachments, node) {
->> +             ret = calc_constraints(attach->dev, &calc_cons);
->> +             if (ret)
->> +                     return ret;
->> +     }
->> +     *recalc_cons = calc_cons;
->> +     return 0;
->> +}
->> +
->>  /**
->>   * dma_buf_export_named - Creates a new dma_buf, and associates an anon file
->>   * with this buffer, so it can be exported.
->> @@ -313,6 +373,9 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
->>       dmabuf->ops = ops;
->>       dmabuf->size = size;
->>       dmabuf->exp_name = exp_name;
->> +
->> +     init_constraints(&dmabuf->constraints);
->> +
->>       init_waitqueue_head(&dmabuf->poll);
->>       dmabuf->cb_excl.poll = dmabuf->cb_shared.poll = &dmabuf->poll;
->>       dmabuf->cb_excl.active = dmabuf->cb_shared.active = 0;
->> @@ -422,7 +485,7 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
->>                                         struct device *dev)
->>  {
->>       struct dma_buf_attachment *attach;
->> -     int ret;
->> +     int ret = 0;
+On 20.01.2015 14:06, Laurent Pinchart wrote:
+> On Tuesday 20 January 2015 14:03:00 Hans Verkuil wrote:
+>> On 01/20/15 13:59, Laurent Pinchart wrote:
+>>> On Tuesday 20 January 2015 10:30:07 Hans Verkuil wrote:
+>>>> I've CC-ed Laurent, I think he knows a lot more about this than I do=
+=2E
+>>>>
+>>>> Laurent, when does the USB core use DMA? What do you need to do on t=
+he
+>>>> driver side to have USB use DMA when doing bulk transfers?
+>>>
+>>> How USB HCD drivers map buffers for DMA is HCD-specific, but all driv=
+ers
+>>> exepct ehci-tegra, max3421-hcd and musb use the default implementatio=
+n
+>>> usb_hcd_map_urb_for_dma() (in drivers/usb/core/hcd.c).
+>>>
+>>> Unless the buffer has already been mapped by the USB driver (in which=
+ case
+>>> the driver will have set the URB_NO_TRANSFER_DMA_MAP flag in
+>>> urb->transfer_flags and initialized the urb->transfer_dma field), the=
+
+>>> function will use dma_map_sg(), dma_map_page() or dma_map_single()
+>>> depending on the buffer type (controlled through urb->sg and
+>>> urb->num_sgs). DMA will thus always be used *expect* if the platform =
+uses
+>>> bounce buffers when the buffer can't be mapped directly for DMA.
 >>
->>       if (WARN_ON(!dmabuf || !dev))
->>               return ERR_PTR(-EINVAL);
->> @@ -436,6 +499,9 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
->>
->>       mutex_lock(&dmabuf->lock);
->>
->> +     if (calc_constraints(dev, &dmabuf->constraints))
->> +             goto err_constraints;
->> +
->>       if (dmabuf->ops->attach) {
->>               ret = dmabuf->ops->attach(dmabuf, dev, attach);
->>               if (ret)
->> @@ -448,6 +514,7 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
->>
->>  err_attach:
->>       kfree(attach);
->> +err_constraints:
->>       mutex_unlock(&dmabuf->lock);
->>       return ERR_PTR(ret);
->>  }
->> @@ -470,6 +537,8 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
->>       if (dmabuf->ops->detach)
->>               dmabuf->ops->detach(dmabuf, attach);
->>
->> +     recalc_constraints(dmabuf, &dmabuf->constraints);
->> +
->
-> To me, this whole thing seems horribly racy.
->
-> What happens if subsystem X creates a dmabuf, which is passed to
-> userspace. It's then passed to subsystem Y, which starts making use
-> of it, calling dma_buf_map_attachment() on it.
->
-> The same buffer is also passed (via unix domain sockets) to another
-> program, which then passes it independently into subsystem Z, and
-> subsystem Z has more restrictive DMA constraints.
->
-> What happens at this point?
->
-> Subsystems such as DRM cache the scatter table, and return it for
-> subsequent attach calls, so DRM drivers using the default
-> drm_gem_map_dma_buf() implementation would not see the restrictions
-> placed upon the dmabuf.  Moreover, the returned scatterlist would not
-> be modified for those restrictions either.
->
-> What would other subsystems do?
->
-> This needs more thought before it's merged.
->
-> For example, in the above situation, should we deny the ability to
-> create a new attachment when a dmabuf has already been mapped by an
-> existing attachment?  Should we deny it only when the new attachment
-> has more restrictive DMA constraints?
->
-So, short answer is, it is left to the exporter to decide. The dma-buf
-framework should not even attempt to decide or enforce any of the
-above.
+>> So we can safely use videobuf2-vmalloc, right?
+>=20
+> That depends on the platform and whether it can DMA to vmalloc'ed memor=
+y :-)=20
+> To be totally safe I think vb2-dma-sg would be better, but I'm not sure=
+ it's=20
+> worth the trouble. uvcvideo uses vb2-vmalloc as it performs a memcpy an=
+yway.
 
-At each dma_buf_attach(), there's a callback to the exporter, where
-the exporter can decide, if it intends to handle these kind of cases,
-on the best way forward.
+The SUR40 sends raw video data without any headers over the bulk
+endpoint in blocks of 16k, so I'm assuming that in this specific case,
+vb2-dma-sg would be the most efficient choice?
 
-The exporter might, for example, decide to migrate backing storage,
-should there be a need to do so, or simply deny when the new
-attachment has more restrictive DMA constraints, as you mentioned as a
-possibility.
+On that note, I've seen that vb2_dma_sg_{init|cleanup}_ctx will appear
+only in 3.19. If I want to maintain a backwards-compatible version for
+older kernels, what do I use in that case?
 
-These changes simply allow the exporter, should it wish to, to take
-the DMA constraints into consideration while making those decisions.
-For the current cases, it should not even matter if the DMA
-constraints aren't shared by the devices.
-
-> Please consider the possible sequences of use (such as the scenario
-> above) when creating or augmenting an API.
->
-
-I tried to think of the scenarios I could think of, but If you still
-feel this approach doesn't help with your concerns, I'll graciously
-accept advice to improve it.
-
-Once again, thanks for reviewing these changes!
-
-> --
-> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-> according to speedtest.net.
+Best, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
 
 
-Best regards,
-~Sumit.
+--eXRoCobq6mIOGh9x9tmUt1AeenIj6qGvx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlS/qYkACgkQ7CzyshGvatjIcACfeBiH5gxMqbHhvlr9bFusf0DK
+I9wAoOUk/WXXTMqjv94yaMLvmsQbtEb2
+=G/td
+-----END PGP SIGNATURE-----
+
+--eXRoCobq6mIOGh9x9tmUt1AeenIj6qGvx--
