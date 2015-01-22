@@ -1,162 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:59073 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691AbbATLVP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 06:21:15 -0500
-Received: by mail-ie0-f172.google.com with SMTP id rd18so7431286iec.3
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 03:21:15 -0800 (PST)
-Date: Tue, 20 Jan 2015 11:21:07 +0000
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH/RFC v10 09/19] DT: Add documentation for the mfd Maxim
- max77693
-Message-ID: <20150120112107.GG13701@x1>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-10-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:42740 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750823AbbAVKER (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 05:04:17 -0500
+Message-ID: <54C0CB1E.2040502@iki.fi>
+Date: Thu, 22 Jan 2015 12:04:14 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1420816989-1808-10-git-send-email-j.anaszewski@samsung.com>
+To: Jurgen Kramer <gtmkramer@xs4all.nl>, linux-media@vger.kernel.org
+CC: Olli Salonen <olli.salonen@iki.fi>
+Subject: Re: [PATCH] Si2168: increase timeout to fix firmware loading
+References: <1418027444-4718-1-git-send-email-gtmkramer@xs4all.nl> <5485E572.9010801@iki.fi> <548D747E.6060404@iki.fi>
+In-Reply-To: <548D747E.6060404@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
+I will make pull request for that as that is still on patchwork.... :(
 
-> This patch adds device tree binding documentation for
-> the flash cell of the Maxim max77693 multifunctional device.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Pawel Moll <pawel.moll@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-> Cc: Kumar Gala <galak@codeaurora.org>
-> ---
->  Documentation/devicetree/bindings/mfd/max77693.txt |   69 ++++++++++++++++++++
->  1 file changed, 69 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-> index 01e9f30..ef184f0 100644
-> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
-> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-> @@ -41,7 +41,52 @@ Optional properties:
->  	 To get more informations, please refer to documentaion.
->  	[*] refer Documentation/devicetree/bindings/pwm/pwm.txt
->  
-> +- led : the LED submodule device node
-> +
-> +There are two led outputs available - fled1 and fled2. Each of them can
-> +control a separate led or they can be connected together to double
-> +the maximum current for a single connected led. One led is represented
-> +by one child node.
-> +
-> +Required properties:
-> +- compatible : Must be "maxim,max77693-led".
-> +
-> +Optional properties:
-> +- maxim,trigger-type : Flash trigger type.
-> +	Possible trigger types:
-> +		MAX77693_LED_TRIG_TYPE_EDGE - Rising edge of the signal triggers
-> +			the flash,
-> +		MAX77693_LED_TRIG_TYPE_LEVEL - Strobe pulse length controls
-> +			duration of the flash.
+Antti
 
-I think you should represent the proper values here instead of the
-defines.
-
-> +- maxim,boost-mode :
-> +	In boost mode the device can produce up to 1.2A of total current
-> +	on both outputs. The maximum current on each output is reduced
-> +	to 625mA then. If not enabled explicitly, boost setting defaults to
-> +	MAX77693_LED_BOOST_FIXED in case both current sources are used.
-> +	Possible values:
-> +		MAX77693_LED_BOOST_OFF - no boost,
-> +		MAX77693_LED_BOOST_ADAPTIVE - adaptive mode,
-> +		MAX77693_LED_BOOST_FIXED - fixed mode.
-
-Same here.
-
-> +- maxim,boost-vout : Output voltage of the boost module in millivolts.
-
--mvout?
--microvout?
-
-> +- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
-> +	if chip estimates that system voltage could drop below this level due
-> +	to flash power consumption.
-
-mvsys?
-microvsys?
-
-> +Required properties of the LED child node:
-> +- label : see Documentation/devicetree/bindings/leds/common.txt
-> +- led-sources : see Documentation/devicetree/bindings/leds/common.txt
-> +
-> +Optional properties of the LED child node:
-> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +		Range: 15625 - 250000
-> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +		Range: 15625 - 1000000
-> +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-> +		Range: 62500 - 1000000
-> +
->  Example:
-> +#include <dt-bindings/mfd/max77693.h>
-> +
->  	max77693@66 {
->  		compatible = "maxim,max77693";
->  		reg = <0x66>;
-> @@ -73,4 +118,28 @@ Example:
->  			pwms = <&pwm 0 40000 0>;
->  			pwm-names = "haptic";
->  		};
-> +
-> +		led {
-> +			compatible = "maxim,max77693-led";
-> +			maxim,trigger-type = <MAX77693_LED_TRIG_TYPE_LEVEL>;
-> +			maxim,boost-mode = <MAX77693_LED_BOOST_FIXED>;
-> +			maxim,boost-vout = <5000>;
-> +			maxim,vsys-min = <2400>;
-> +
-> +			camera1_flash: led1 {
-> +				label = "max77693-flash1";
-> +				led-sources = <1 0>;
-> +				max-microamp = <250000>;
-> +				flash-max-microamp = <625000>;
-> +				flash-timeout-us = <1000000>;
-> +			};
-> +
-> +			camera2_flash: led2 {
-> +				label = "max77693-flash2";
-> +				led-sources = <0 1>;
-> +				max-microamp = <250000>;
-> +				flash-max-microamp = <625000>;
-> +				flash-timeout-us = <1000000>;
-> +			};
-> +		};
->  	};
+On 12/14/2014 01:29 PM, Antti Palosaari wrote:
+> On 12/08/2014 07:52 PM, Antti Palosaari wrote:
+>> On 12/08/2014 10:30 AM, Jurgen Kramer wrote:
+>>> Increase si2168 cmd execute timeout to prevent firmware load failures.
+>>> Tests
+>>> shows it takes up to 52ms to load the 'dvb-demod-si2168-a30-01.fw'
+>>> firmware.
+>>> Increase timeout to a safe value of 70ms.
+>>>
+>>> Signed-off-by: Jurgen Kramer <gtmkramer@xs4all.nl>
+>> Reviewed-by: Antti Palosaari <crope@iki.fi>
+>> Cc: <stable@vger.kernel.org> # v3.17+
+>
+> Cc: <stable@vger.kernel.org> # v3.16+
+>
+> Changed from stable 3.17+ to 3.16+ as I found that PCTV 292e timeouts
+> too when tuning DVB-T2, not always, but from time to time...
+>
+> Antti
+>
+>>
+>> That must go stable 3.17.
+>>
+>> Antti
+>>
+>>> ---
+>>>   drivers/media/dvb-frontends/si2168.c | 2 +-
+>>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/dvb-frontends/si2168.c
+>>> b/drivers/media/dvb-frontends/si2168.c
+>>> index ce9ab44..d2f1a3e 100644
+>>> --- a/drivers/media/dvb-frontends/si2168.c
+>>> +++ b/drivers/media/dvb-frontends/si2168.c
+>>> @@ -39,7 +39,7 @@ static int si2168_cmd_execute(struct si2168 *s,
+>>> struct si2168_cmd *cmd)
+>>>
+>>>       if (cmd->rlen) {
+>>>           /* wait cmd execution terminate */
+>>> -        #define TIMEOUT 50
+>>> +        #define TIMEOUT 70
+>>>           timeout = jiffies + msecs_to_jiffies(TIMEOUT);
+>>>           while (!time_after(jiffies, timeout)) {
+>>>               ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
+>>>
+>>
+>
 
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+http://palosaari.fi/
