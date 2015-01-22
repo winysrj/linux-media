@@ -1,39 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47116 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751083AbbAIS5F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 13:57:05 -0500
-Date: Fri, 9 Jan 2015 19:57:02 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH/RFC v10 10/19] leds: Add driver for AAT1290 current
- regulator
-Message-ID: <20150109185702.GK18076@amd>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-11-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1420816989-1808-11-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:39358 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753943AbbAVWU6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 17:20:58 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 11/15] media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
+Date: Thu, 22 Jan 2015 22:18:44 +0000
+Message-Id: <1421965128-10470-12-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 2015-01-09 16:23:00, Jacek Anaszewski wrote:
-> This patch adds a driver for the 1.5A Step-Up Current Regulator
-> for Flash LEDs. The device is programmed through a Skyworks proprietary
-> AS2Cwire serial digital interface.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
+this patch adds support to return -ENODATA for *dv_timings calls
+if the current output does not support it.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 6b38e63..31b5697 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -488,6 +488,11 @@ static int bcap_enum_dv_timings(struct file *file, void *priv,
+ 				struct v4l2_enum_dv_timings *timings)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
++	struct v4l2_input input;
++
++	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
++	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
++		return -ENODATA;
+ 
+ 	timings->pad = 0;
+ 
+@@ -499,6 +504,11 @@ static int bcap_query_dv_timings(struct file *file, void *priv,
+ 				struct v4l2_dv_timings *timings)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
++	struct v4l2_input input;
++
++	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
++	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
++		return -ENODATA;
+ 
+ 	return v4l2_subdev_call(bcap_dev->sd, video,
+ 				query_dv_timings, timings);
+@@ -508,6 +518,11 @@ static int bcap_g_dv_timings(struct file *file, void *priv,
+ 				struct v4l2_dv_timings *timings)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
++	struct v4l2_input input;
++
++	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
++	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
++		return -ENODATA;
+ 
+ 	*timings = bcap_dev->dv_timings;
+ 	return 0;
+@@ -517,7 +532,13 @@ static int bcap_s_dv_timings(struct file *file, void *priv,
+ 				struct v4l2_dv_timings *timings)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
++	struct v4l2_input input;
+ 	int ret;
++
++	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
++	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
++		return -ENODATA;
++
+ 	if (vb2_is_busy(&bcap_dev->buffer_queue))
+ 		return -EBUSY;
+ 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.1.0
+
