@@ -1,59 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:54765 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753186AbbAWJuk (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:60991 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753726AbbAVWUt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 04:50:40 -0500
-Message-ID: <54C21952.7010602@xs4all.nl>
-Date: Fri, 23 Jan 2015 10:50:10 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Shuah Khan <shuahkh@osg.samsung.com>, m.chehab@samsung.com,
-	hans.verkuil@cisco.com, dheitmueller@kernellabs.com,
-	prabhakar.csengg@gmail.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com, ttmesterr@gmail.com
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: au0828 - convert to use videobuf2
-References: <1421970125-8169-1-git-send-email-shuahkh@osg.samsung.com>
-In-Reply-To: <1421970125-8169-1-git-send-email-shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 22 Jan 2015 17:20:49 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 01/15] media: blackfin: bfin_capture: drop buf_init() callback
+Date: Thu, 22 Jan 2015 22:18:34 +0000
+Message-Id: <1421965128-10470-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+this patch drops the buf_init() callback as init
+of buf list is not required.
 
-On 01/23/2015 12:42 AM, Shuah Khan wrote:
-> Convert au0828 to use videobuf2. Tested with NTSC.
-> Tested video and vbi devices with xawtv, tvtime,
-> and vlc. Ran v4l2-compliance to ensure there are
-> no regressions. video now has no failures and vbi
-> has 3 fewer failures.
-> 
-> video before:
-> test VIDIOC_G_FMT: FAIL 3 failures
-> Total: 72, Succeeded: 69, Failed: 3, Warnings: 0
-> 
-> Video after:
-> Total: 72, Succeeded: 72, Failed: 0, Warnings: 18
-> 
-> vbi before:
->     test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
->     test VIDIOC_EXPBUF: FAIL
->     test USERPTR: FAIL
->     Total: 72, Succeeded: 66, Failed: 6, Warnings: 0
-> 
-> vbi after:
->     test VIDIOC_QUERYCAP: FAIL
->     test MMAP: FAIL
->     Total: 78, Succeeded: 75, Failed: 3, Warnings: 0
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-There shouldn't be any fails for VBI. That really needs to be fixed.
-Esp. the QUERYCAP fail should be easy to fix.
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 3112844..d4eeae9 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -302,14 +302,6 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+ 	return 0;
+ }
+ 
+-static int bcap_buffer_init(struct vb2_buffer *vb)
+-{
+-	struct bcap_buffer *buf = to_bcap_vb(vb);
+-
+-	INIT_LIST_HEAD(&buf->list);
+-	return 0;
+-}
+-
+ static int bcap_buffer_prepare(struct vb2_buffer *vb)
+ {
+ 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
+@@ -441,7 +433,6 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
+ 
+ static struct vb2_ops bcap_video_qops = {
+ 	.queue_setup            = bcap_queue_setup,
+-	.buf_init               = bcap_buffer_init,
+ 	.buf_prepare            = bcap_buffer_prepare,
+ 	.buf_cleanup            = bcap_buffer_cleanup,
+ 	.buf_queue              = bcap_buffer_queue,
+-- 
+2.1.0
 
-BTW, can you paste the full v4l2-compliance output next time? That's
-more informative than just these summaries.
-
-Regards,
-
-	Hans
