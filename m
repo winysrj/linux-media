@@ -1,64 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:23333 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757902AbbAIPXq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 10:23:46 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: [PATCH/RFC v10 04/19] dt-binding: mfd: max77693: Add DT binding
- related macros
-Date: Fri, 09 Jan 2015 16:22:54 +0100
-Message-id: <1420816989-1808-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-we0-f176.google.com ([74.125.82.176]:43388 "EHLO
+	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753898AbbAVWUz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 17:20:55 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 08/15] media: blackfin: bfin_capture: use vb2_ioctl_* helpers
+Date: Thu, 22 Jan 2015 22:18:41 +0000
+Message-Id: <1421965128-10470-9-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add macros for max77693 led part related binding.
+this patch adds support to vb2_ioctl_* helpers.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- include/dt-bindings/mfd/max77693.h |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
- create mode 100644 include/dt-bindings/mfd/max77693.h
+ drivers/media/platform/blackfin/bfin_capture.c | 108 ++++++-------------------
+ 1 file changed, 23 insertions(+), 85 deletions(-)
 
-diff --git a/include/dt-bindings/mfd/max77693.h b/include/dt-bindings/mfd/max77693.h
-new file mode 100644
-index 0000000..f53e197
---- /dev/null
-+++ b/include/dt-bindings/mfd/max77693.h
-@@ -0,0 +1,21 @@
-+/*
-+ * This header provides macros for MAX77693 device binding
-+ *
-+ * Copyright (C) 2014, Samsung Electronics Co., Ltd.
-+ *
-+ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ */
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index b2eeace..04b85e3 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -272,15 +272,26 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	struct ppi_if *ppi = bcap_dev->ppi;
+ 	struct bcap_buffer *buf, *tmp;
+ 	struct ppi_params params;
++	dma_addr_t addr;
+ 	int ret;
+ 
+ 	/* enable streamon on the sub device */
+ 	ret = v4l2_subdev_call(bcap_dev->sd, video, s_stream, 1);
+ 	if (ret && (ret != -ENOIOCTLCMD)) {
+ 		v4l2_err(&bcap_dev->v4l2_dev, "stream on failed in subdev\n");
++		bcap_dev->cur_frm = NULL;
+ 		goto err;
+ 	}
+ 
++	/* get the next frame from the dma queue */
++	bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
++					struct bcap_buffer, list);
++	/* remove buffer from the dma queue */
++	list_del_init(&bcap_dev->cur_frm->list);
++	addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
++	/* update DMA address */
++	ppi->ops->update_addr(ppi, (unsigned long)addr);
 +
-+#ifndef __DT_BINDINGS_MAX77693_H__
-+#define __DT_BINDINGS_MAX77693_H
+ 	/* set ppi params */
+ 	params.width = bcap_dev->fmt.width;
+ 	params.height = bcap_dev->fmt.height;
+@@ -320,6 +331,9 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		goto err;
+ 	}
+ 
++	/* enable ppi */
++	ppi->ops->start(ppi);
 +
-+/* External trigger type */
-+#define MAX77693_LED_TRIG_TYPE_EDGE	0
-+#define MAX77693_LED_TRIG_TYPE_LEVEL	1
+ 	/* attach ppi DMA irq handler */
+ 	ret = ppi->ops->attach_irq(ppi, bcap_isr);
+ 	if (ret < 0) {
+@@ -334,6 +348,9 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	return 0;
+ 
+ err:
++	if (bcap_dev->cur_frm)
++		vb2_buffer_done(&bcap_dev->cur_frm->vb, VB2_BUF_STATE_QUEUED);
 +
-+/* Boost modes */
-+#define MAX77693_LED_BOOST_OFF		0
-+#define MAX77693_LED_BOOST_ADAPTIVE	1
-+#define MAX77693_LED_BOOST_FIXED	2
-+
-+#endif /* __DT_BINDINGS_MAX77693_H */
+ 	list_for_each_entry_safe(buf, tmp, &bcap_dev->dma_queue, list) {
+ 		list_del(&buf->list);
+ 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
+@@ -377,40 +394,6 @@ static struct vb2_ops bcap_video_qops = {
+ 	.stop_streaming         = bcap_stop_streaming,
+ };
+ 
+-static int bcap_reqbufs(struct file *file, void *priv,
+-			struct v4l2_requestbuffers *req_buf)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct vb2_queue *vq = &bcap_dev->buffer_queue;
+-
+-	return vb2_reqbufs(vq, req_buf);
+-}
+-
+-static int bcap_querybuf(struct file *file, void *priv,
+-				struct v4l2_buffer *buf)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-
+-	return vb2_querybuf(&bcap_dev->buffer_queue, buf);
+-}
+-
+-static int bcap_qbuf(struct file *file, void *priv,
+-			struct v4l2_buffer *buf)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-
+-	return vb2_qbuf(&bcap_dev->buffer_queue, buf);
+-}
+-
+-static int bcap_dqbuf(struct file *file, void *priv,
+-			struct v4l2_buffer *buf)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-
+-	return vb2_dqbuf(&bcap_dev->buffer_queue,
+-				buf, file->f_flags & O_NONBLOCK);
+-}
+-
+ static irqreturn_t bcap_isr(int irq, void *dev_id)
+ {
+ 	struct ppi_if *ppi = dev_id;
+@@ -452,51 +435,6 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int bcap_streamon(struct file *file, void *priv,
+-				enum v4l2_buf_type buf_type)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct ppi_if *ppi = bcap_dev->ppi;
+-	dma_addr_t addr;
+-	int ret;
+-
+-	/* call streamon to start streaming in videobuf */
+-	ret = vb2_streamon(&bcap_dev->buffer_queue, buf_type);
+-	if (ret)
+-		return ret;
+-
+-	/* if dma queue is empty, return error */
+-	if (list_empty(&bcap_dev->dma_queue)) {
+-		v4l2_err(&bcap_dev->v4l2_dev, "dma queue is empty\n");
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+-	/* get the next frame from the dma queue */
+-	bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
+-					struct bcap_buffer, list);
+-	/* remove buffer from the dma queue */
+-	list_del_init(&bcap_dev->cur_frm->list);
+-	addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
+-	/* update DMA address */
+-	ppi->ops->update_addr(ppi, (unsigned long)addr);
+-	/* enable ppi */
+-	ppi->ops->start(ppi);
+-
+-	return 0;
+-err:
+-	vb2_streamoff(&bcap_dev->buffer_queue, buf_type);
+-	return ret;
+-}
+-
+-static int bcap_streamoff(struct file *file, void *priv,
+-				enum v4l2_buf_type buf_type)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-
+-	return vb2_streamoff(&bcap_dev->buffer_queue, buf_type);
+-}
+-
+ static int bcap_querystd(struct file *file, void *priv, v4l2_std_id *std)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+@@ -782,12 +720,12 @@ static const struct v4l2_ioctl_ops bcap_ioctl_ops = {
+ 	.vidioc_g_dv_timings     = bcap_g_dv_timings,
+ 	.vidioc_query_dv_timings = bcap_query_dv_timings,
+ 	.vidioc_enum_dv_timings  = bcap_enum_dv_timings,
+-	.vidioc_reqbufs          = bcap_reqbufs,
+-	.vidioc_querybuf         = bcap_querybuf,
+-	.vidioc_qbuf             = bcap_qbuf,
+-	.vidioc_dqbuf            = bcap_dqbuf,
+-	.vidioc_streamon         = bcap_streamon,
+-	.vidioc_streamoff        = bcap_streamoff,
++	.vidioc_reqbufs          = vb2_ioctl_reqbufs,
++	.vidioc_querybuf         = vb2_ioctl_querybuf,
++	.vidioc_qbuf             = vb2_ioctl_qbuf,
++	.vidioc_dqbuf            = vb2_ioctl_dqbuf,
++	.vidioc_streamon         = vb2_ioctl_streamon,
++	.vidioc_streamoff        = vb2_ioctl_streamoff,
+ 	.vidioc_g_parm           = bcap_g_parm,
+ 	.vidioc_s_parm           = bcap_s_parm,
+ 	.vidioc_log_status       = bcap_log_status,
 -- 
-1.7.9.5
+2.1.0
 
