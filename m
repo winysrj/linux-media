@@ -1,231 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bl2on0085.outbound.protection.outlook.com ([65.55.169.85]:25792
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755187AbbAZTwI convert rfc822-to-8bit (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48758 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752233AbbAVNhk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 14:52:08 -0500
-From: Chris Kohn <christian.kohn@xilinx.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Michal Simek <michals@xilinx.com>,
-	Hyun Kwon <hyunk@xilinx.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: RE: [PATCH v4 08/10] v4l: xilinx: Add Xilinx Video IP core
-Date: Mon, 26 Jan 2015 19:37:02 +0000
-References: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1417464820-6718-9-git-send-email-laurent.pinchart@ideasonboard.com>
- <2694110.qINIujyFZb@avalon> <54C0C65C.7010702@xs4all.nl>
-In-Reply-To: <54C0C65C.7010702@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
-Message-ID: <6959e7a2c9ad45e9a17c0c5738bce09f@BN1BFFO11FD053.protection.gbl>
+	Thu, 22 Jan 2015 08:37:40 -0500
+Message-ID: <1421933856.2594.0.camel@xs4all.nl>
+Subject: Re: [PATCH] Si2168: increase timeout to fix firmware loading
+From: Jurgen Kramer <gtmkramer@xs4all.nl>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, Olli Salonen <olli.salonen@iki.fi>
+Date: Thu, 22 Jan 2015 14:37:36 +0100
+In-Reply-To: <54C0CB1E.2040502@iki.fi>
+References: <1418027444-4718-1-git-send-email-gtmkramer@xs4all.nl>
+	 <5485E572.9010801@iki.fi> <548D747E.6060404@iki.fi>
+	 <54C0CB1E.2040502@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans and Laurent,
+On Thu, 2015-01-22 at 12:04 +0200, Antti Palosaari wrote:
+> I will make pull request for that as that is still on patchwork.... :(
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Thursday, January 22, 2015 1:44 AM
-> To: Laurent Pinchart; Chris Kohn
-> Cc: linux-media@vger.kernel.org; Michal Simek; Hyun Kwon;
-> devicetree@vger.kernel.org
-> Subject: Re: [PATCH v4 08/10] v4l: xilinx: Add Xilinx Video IP core
->
-> On 01/22/15 04:01, Laurent Pinchart wrote:
-> > Hi Hans and Chris,
+Thanks, I was about to send in a resend.
+
+Jurgen
+
+> Antti
+> 
+> On 12/14/2014 01:29 PM, Antti Palosaari wrote:
+> > On 12/08/2014 07:52 PM, Antti Palosaari wrote:
+> >> On 12/08/2014 10:30 AM, Jurgen Kramer wrote:
+> >>> Increase si2168 cmd execute timeout to prevent firmware load failures.
+> >>> Tests
+> >>> shows it takes up to 52ms to load the 'dvb-demod-si2168-a30-01.fw'
+> >>> firmware.
+> >>> Increase timeout to a safe value of 70ms.
+> >>>
+> >>> Signed-off-by: Jurgen Kramer <gtmkramer@xs4all.nl>
+> >> Reviewed-by: Antti Palosaari <crope@iki.fi>
+> >> Cc: <stable@vger.kernel.org> # v3.17+
 > >
-> > On Monday 01 December 2014 22:13:38 Laurent Pinchart wrote:
-> >> Xilinx platforms have no hardwired video capture or video processing
-> >> interface. Users create capture and memory to memory processing
-> >> pipelines in the FPGA fabric to suit their particular needs, by
-> >> instantiating video IP cores from a large library.
+> > Cc: <stable@vger.kernel.org> # v3.16+
+> >
+> > Changed from stable 3.17+ to 3.16+ as I found that PCTV 292e timeouts
+> > too when tuning DVB-T2, not always, but from time to time...
+> >
+> > Antti
+> >
 > >>
-> >> The Xilinx Video IP core is a framework that models a video pipeline
-> >> described in the device tree and expose the pipeline to userspace
-> >> through the media controller and V4L2 APIs.
+> >> That must go stable 3.17.
 > >>
-> >> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
-> >> Signed-off-by: Radhey Shyam Pandey <radheys@xilinx.com>
-> >> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+> >> Antti
+> >>
+> >>> ---
+> >>>   drivers/media/dvb-frontends/si2168.c | 2 +-
+> >>>   1 file changed, 1 insertion(+), 1 deletion(-)
+> >>>
+> >>> diff --git a/drivers/media/dvb-frontends/si2168.c
+> >>> b/drivers/media/dvb-frontends/si2168.c
+> >>> index ce9ab44..d2f1a3e 100644
+> >>> --- a/drivers/media/dvb-frontends/si2168.c
+> >>> +++ b/drivers/media/dvb-frontends/si2168.c
+> >>> @@ -39,7 +39,7 @@ static int si2168_cmd_execute(struct si2168 *s,
+> >>> struct si2168_cmd *cmd)
+> >>>
+> >>>       if (cmd->rlen) {
+> >>>           /* wait cmd execution terminate */
+> >>> -        #define TIMEOUT 50
+> >>> +        #define TIMEOUT 70
+> >>>           timeout = jiffies + msecs_to_jiffies(TIMEOUT);
+> >>>           while (!time_after(jiffies, timeout)) {
+> >>>               ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
+> >>>
+> >>
 > >
-> > [snip]
-> >
-> >> diff --git a/Documentation/devicetree/bindings/media/xilinx/video.txt
-> >> b/Documentation/devicetree/bindings/media/xilinx/video.txt new file
-> >> mode
-> >> 100644
-> >> index 0000000..15720e4
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/media/xilinx/video.txt
-> >> @@ -0,0 +1,52 @@
-> >> +DT bindings for Xilinx video IP cores
-> >> +-------------------------------------
-> >> +
-> >> +Xilinx video IP cores process video streams by acting as video sinks
-> >> +and/or sources. They are connected by links through their input and
-> >> +output ports, creating a video pipeline.
-> >> +
-> >> +Each video IP core is represented by an AMBA bus child node in the
-> >> +device tree using bindings documented in this directory. Connections
-> >> +between the
-> >> IP
-> >> +cores are represented as defined in ../video-interfaces.txt.
-> >> +
-> >> +The whole  pipeline is represented by an AMBA bus child node in the
-> >> +device tree using bindings documented in ./xlnx,video.txt.
-> >> +
-> >> +Common properties
-> >> +-----------------
-> >> +
-> >> +The following properties are common to all Xilinx video IP cores.
-> >> +
-> >> +- xlnx,video-format: This property represents a video format
-> >> +transmitted on
-> >> an
-> >> +  AXI bus between video IP cores. How the format relates to the IP
-> >> + core is  decribed in the IP core bindings documentation. The
-> >> + following formats are  supported.
-> >> +
-> >> +  rbg
-> >> +  xrgb
-> >> +  yuv422
-> >> +  yuv444
-> >> +  rggb
-> >> +  grbg
-> >> +  gbrg
-> >> +  bggr
-> >> +
-> >> +- xlnx,video-width: This property qualifies the video format with
-> >> +the
-> >> sample
-> >> +  width expressed as a number of bits per pixel component. All
-> >> + components
-> >> must
-> >> +  use the same width.
-> >
-> > Hans, last time we've discussed this on IRC you were not happy with
-> > the format description used in these DT bindings. Your argument was,
-> > if I remember correctly, that as the formats map directly to media bus
-> > codes, it would be better to use the media bus codes (or a string
-> > representation of them) in the bindings instead of creating a new format
-> description. Is that correct ?
->
-> Correct. Where possible I think the names should map to the mediabus names.
-> So uyvy instead of yuv422, srggb instead of rggb, etc.
+> 
 
-A string representation of the mediabus names sounds good to me.
-
-Cheers,
-Chris
-
-> >
-> > Chris, what's your opinion on that ? The RGB and YUV formats in the
-> > table below describe the hardware and come from table 1-4 on page 8 of
-> >
-> http://www.xilinx.com/support/documentation/ip_documentation/axi_videoip/
-> v1_0/ug934_axi_videoIP.pdf.
-> > The Bayer formats are not standardized in the document, and I don't
-> > think we need them at the moment.
-> >
-> >> +The following table lists the supported formats and widths
-> >> +combinations,
-> >> along
-> >> +with the corresponding media bus pixel code.
-> >> +
-> >> +----------------+-------+-------------------------------------------
-> >> +----------------+-------+-------
-> >> +Format            | Width | Media bus code
-> >> +----------------+-------+-------------------------------------------
-> >> +----------------+-------+-------
-> >> +rbg               | 8     | V4L2_MBUS_FMT_RBG888_1X24
-> >> +xrgb              | 8     | V4L2_MBUS_FMT_RGB888_1X32_PADHI
-> >> +yuv422            | 8     | V4L2_MBUS_FMT_UYVY8_1X16
-> >> +yuv444            | 8     | V4L2_MBUS_FMT_VUY888_1X24
-> >> +rggb              | 8     | V4L2_MBUS_FMT_SRGGB8_1X8
-> >> +grbg              | 8     | V4L2_MBUS_FMT_SGRBG8_1X8
-> >> +gbrg              | 8     | V4L2_MBUS_FMT_SGBRG8_1X8
-> >> +bggr              | 8     | V4L2_MBUS_FMT_SBGGR8_1X8
-> >> +----------------+-------+-------------------------------------------
-> >> +----------------+-------+-------
-> >> diff --git
-> >> a/Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt
-> >> b/Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt new
-> >> file mode 100644 index 0000000..5a02270
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt
-> >> @@ -0,0 +1,55 @@
-> >> +Xilinx Video IP Pipeline (VIPP)
-> >> +-------------------------------
-> >> +
-> >> +General concept
-> >> +---------------
-> >> +
-> >> +Xilinx video IP pipeline processes video streams through one or more
-> >> +Xilinx video IP cores. Each video IP core is represented as
-> >> +documented in
-> >> video.txt
-> >> +and IP core specific documentation, xlnx,v-*.txt, in this directory.
-> >> +The DT node of the VIPP represents as a top level node of the
-> >> +pipeline and defines mappings between DMAs and the video IP cores.
-> >> +
-> >> +Required properties:
-> >> +
-> >> +- compatible: Must be "xlnx,video".
-> >> +
-> >> +- dmas, dma-names: List of one DMA specifier and identifier string
-> >> +(as
-> >> defined
-> >> +  in Documentation/devicetree/bindings/dma/dma.txt) per port. Each
-> >> + port  requires a DMA channel with the identifier string set to
-> >> + "port" followed
-> >> by
-> >> +  the port index.
-> >> +
-> >> +- ports: Video port, using the DT bindings defined in
-> >> ../video-interfaces.txt.
-> >> +
-> >> +Required port properties:
-> >> +
-> >> +- direction: should be either "input" or "output" depending on the
-> >> direction
-> >> +  of stream.
-> >> +
-> >> +Example:
-> >> +
-> >> +  video_cap {
-> >> +          compatible = "xlnx,video";
-> >> +          dmas = <&vdma_1 1>, <&vdma_3 1>;
-> >> +          dma-names = "port0", "port1";
-> >> +
-> >> +          ports {
-> >> +                  #address-cells = <1>;
-> >> +                  #size-cells = <0>;
-> >> +
-> >> +                  port@0 {
-> >> +                          reg = <0>;
-> >> +                          direction = "input";
-> >> +                          vcap0_in0: endpoint {
-> >> +                                  remote-endpoint = <&scaler0_out>;
-> >> +                          };
-> >> +                  };
-> >> +                  port@1 {
-> >> +                          reg = <1>;
-> >> +                          direction = "input";
-> >> +                          vcap0_in1: endpoint {
-> >> +                                  remote-endpoint = <&switch_out1>;
-> >> +                          };
-> >> +                  };
-> >> +          };
-> >> +  };
-> >
-
-
-
-This email and any attachments are intended for the sole use of the named recipient(s) and contain(s) confidential information that may be proprietary, privileged or copyrighted under applicable law. If you are not the intended recipient, do not read, copy, or forward this email message or any attachments. Delete this email message and any attachments immediately.
 
