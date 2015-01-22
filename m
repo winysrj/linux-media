@@ -1,59 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:52120 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753231AbbA3Prb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jan 2015 10:47:31 -0500
-MIME-Version: 1.0
-In-Reply-To: <1421365163-29394-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1421365163-29394-1-git-send-email-prabhakar.csengg@gmail.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Fri, 30 Jan 2015 15:46:59 +0000
-Message-ID: <CA+V-a8vYvWygFEfCQsBOMsBamSLFOfmw50MgjNPYraahVN8Y+w@mail.gmail.com>
-Subject: Re: [PATCH] media: i2c: add support for omnivision's ov2659 sensor
-To: LMML <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from www.osadl.org ([62.245.132.105]:42379 "EHLO www.osadl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750717AbbAVKrL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 05:47:11 -0500
+From: Nicholas Mc Guire <der.herr@hofr.at>
+To: Mike Isely <isely@pobox.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Nicholas Mc Guire <der.herr@hofr.at>
+Subject: [PATCH] pvrusb2: use msecs_to_jiffies for conversion
+Date: Thu, 22 Jan 2015 11:39:11 +0100
+Message-Id: <1421923151-24684-1-git-send-email-der.herr@hofr.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This is only an API consolidation and should make things more readable
 
-On Thu, Jan 15, 2015 at 11:39 PM, Lad, Prabhakar
-<prabhakar.csengg@gmail.com> wrote:
-> From: Benoit Parrot <bparrot@ti.com>
->
-> this patch adds support for omnivision's ov2659
-> sensor.
->
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  .../devicetree/bindings/media/i2c/ov2659.txt       |   33 +
->  .../devicetree/bindings/vendor-prefixes.txt        |    1 +
->  MAINTAINERS                                        |   10 +
->  drivers/media/i2c/Kconfig                          |   11 +
->  drivers/media/i2c/Makefile                         |    1 +
->  drivers/media/i2c/ov2659.c                         | 1623 ++++++++++++++++++++
->  include/media/ov2659.h                             |   33 +
->  7 files changed, 1712 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2659.txt
->  create mode 100644 drivers/media/i2c/ov2659.c
->  create mode 100644 include/media/ov2659.h
->
-gentle ping for review comments.
+Signed-off-by: Nicholas Mc Guire <der.herr@hofr.at>
+---
 
-Cheers,
---Prabhakar Lad
+Converting milliseconds to jiffies by val * HZ / 1000 is technically
+not wrong but msecs_to_jiffies(val) is the cleaner solution and handles
+all corner cases correctly. This is a minor API cleanup only.
+
+This patch was only compile tested with x86_64_defconfig + 
+CONFIG_MEDIA_SUPPORT=m, CONFIG_MEDIA_DIGITAL_TV_SUPPORT=y,
+CONFIG_MEDIA_ANALOG_TV_SUPPORT=y, CONFIG_MEDIA_USB_SUPPORT=y,
+CONFIG_VIDEO_PVRUSB2=m, CONFIG_VIDEO_PVRUSB2_DVB=y
+
+Patch is against 3.19.0-rc5 -next-20150119
+
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+index 2fd9b5e..ee187c1 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+@@ -4301,9 +4301,8 @@ static int state_eval_encoder_config(struct pvr2_hdw *hdw)
+ 				   the encoder. */
+ 				if (!hdw->state_encoder_waitok) {
+ 					hdw->encoder_wait_timer.expires =
+-						jiffies +
+-						(HZ * TIME_MSEC_ENCODER_WAIT
+-						 / 1000);
++						jiffies + msecs_to_jiffies(
++						TIME_MSEC_ENCODER_WAIT);
+ 					add_timer(&hdw->encoder_wait_timer);
+ 				}
+ 			}
+@@ -4426,8 +4425,8 @@ static int state_eval_encoder_run(struct pvr2_hdw *hdw)
+ 		if (pvr2_encoder_start(hdw) < 0) return !0;
+ 		hdw->state_encoder_run = !0;
+ 		if (!hdw->state_encoder_runok) {
+-			hdw->encoder_run_timer.expires =
+-				jiffies + (HZ * TIME_MSEC_ENCODER_OK / 1000);
++			hdw->encoder_run_timer.expires = jiffies +
++				 msecs_to_jiffies(TIME_MSEC_ENCODER_OK);
+ 			add_timer(&hdw->encoder_run_timer);
+ 		}
+ 	}
+@@ -4518,9 +4517,8 @@ static int state_eval_decoder_run(struct pvr2_hdw *hdw)
+ 				   but before we did the pending check. */
+ 				if (!hdw->state_decoder_quiescent) {
+ 					hdw->quiescent_timer.expires =
+-						jiffies +
+-						(HZ * TIME_MSEC_DECODER_WAIT
+-						 / 1000);
++						jiffies + msecs_to_jiffies(
++						TIME_MSEC_DECODER_WAIT);
+ 					add_timer(&hdw->quiescent_timer);
+ 				}
+ 			}
+@@ -4544,9 +4542,8 @@ static int state_eval_decoder_run(struct pvr2_hdw *hdw)
+ 		hdw->state_decoder_run = !0;
+ 		if (hdw->decoder_client_id == PVR2_CLIENT_ID_SAA7115) {
+ 			hdw->decoder_stabilization_timer.expires =
+-				jiffies +
+-				(HZ * TIME_MSEC_DECODER_STABILIZATION_WAIT /
+-				 1000);
++				jiffies + msecs_to_jiffies(
++				TIME_MSEC_DECODER_STABILIZATION_WAIT);
+ 			add_timer(&hdw->decoder_stabilization_timer);
+ 		} else {
+ 			hdw->state_decoder_ready = !0;
+-- 
+1.7.10.4
+
