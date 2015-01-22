@@ -1,79 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54032 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751502AbbAOKkL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2015 05:40:11 -0500
-Message-ID: <54B79900.50705@redhat.com>
-Date: Thu, 15 Jan 2015 11:40:00 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Luis Henriques <luis.henriques@canonical.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [3/5, media] pwc-if: fix build warning when !CONFIG_USB_PWC_INPUT_EVDEV
-References: <20141001231000.GA25634@hercules>
-In-Reply-To: <20141001231000.GA25634@hercules>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:55723 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753839AbbAVWUw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 17:20:52 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 06/15] media: blackfin: bfin_capture: use vb2_fop_mmap/poll
+Date: Thu, 22 Jan 2015 22:18:39 +0000
+Message-Id: <1421965128-10470-7-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+No need to reinvent the wheel. Just use the already existing
+functions provided by vb2.
 
-On 02-10-14 01:10, Luis Henriques wrote:
-> Label err_video_unreg in function usb_pwc_probe() is only used when
-> CONFIG_USB_PWC_INPUT_EVDEV is defined.
->
-> drivers/media/usb/pwc/pwc-if.c:1104:1: warning: label 'err_video_unreg' defined but not used [-Wunused-label]
->
-> Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 28 +++-----------------------
+ 1 file changed, 3 insertions(+), 25 deletions(-)
 
-Sorry for the slow reaction, I somehow missed this patch and just found it in my
-patchwork TODO.
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 0d8593b..8ddff32 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -244,18 +244,6 @@ static int bcap_release(struct file *file)
+ 	return 0;
+ }
+ 
+-static int bcap_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&bcap_dev->mutex))
+-		return -ERESTARTSYS;
+-	ret = vb2_mmap(&bcap_dev->buffer_queue, vma);
+-	mutex_unlock(&bcap_dev->mutex);
+-	return ret;
+-}
+-
+ #ifndef CONFIG_MMU
+ static unsigned long bcap_get_unmapped_area(struct file *file,
+ 					    unsigned long addr,
+@@ -273,17 +261,6 @@ static unsigned long bcap_get_unmapped_area(struct file *file,
+ }
+ #endif
+ 
+-static unsigned int bcap_poll(struct file *file, poll_table *wait)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-	unsigned int res;
+-
+-	mutex_lock(&bcap_dev->mutex);
+-	res = vb2_poll(&bcap_dev->buffer_queue, file, wait);
+-	mutex_unlock(&bcap_dev->mutex);
+-	return res;
+-}
+-
+ static int bcap_queue_setup(struct vb2_queue *vq,
+ 				const struct v4l2_format *fmt,
+ 				unsigned int *nbuffers, unsigned int *nplanes,
+@@ -896,11 +873,11 @@ static struct v4l2_file_operations bcap_fops = {
+ 	.open = bcap_open,
+ 	.release = bcap_release,
+ 	.unlocked_ioctl = video_ioctl2,
+-	.mmap = bcap_mmap,
++	.mmap = vb2_fop_mmap,
+ #ifndef CONFIG_MMU
+ 	.get_unmapped_area = bcap_get_unmapped_area,
+ #endif
+-	.poll = bcap_poll
++	.poll = vb2_fop_poll
+ };
+ 
+ static int bcap_probe(struct platform_device *pdev)
+@@ -997,6 +974,7 @@ static int bcap_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&bcap_dev->dma_queue);
+ 
+ 	vfd->lock = &bcap_dev->mutex;
++	vfd->queue = q;
+ 
+ 	/* register video device */
+ 	ret = video_register_device(bcap_dev->video_dev, VFL_TYPE_GRABBER, -1);
+-- 
+2.1.0
 
-I understand what you're trying to achieve here, but NAK to the implementation,
-this is breaking the code flow wrt error handling, making it much harder
-to double check that everything is being cleaned up properly.
-
-Regards,
-
-Hans
-
-
->
-> ---
-> drivers/media/usb/pwc/pwc-if.c | 8 ++++----
->   1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-> index 15b754da4a2c..e6b7e63b0b8e 100644
-> --- a/drivers/media/usb/pwc/pwc-if.c
-> +++ b/drivers/media/usb/pwc/pwc-if.c
-> @@ -1078,7 +1078,8 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
->   	pdev->button_dev = input_allocate_device();
->   	if (!pdev->button_dev) {
->   		rc = -ENOMEM;
-> -		goto err_video_unreg;
-> +		video_unregister_device(&pdev->vdev);
-> +		goto err_unregister_v4l2_dev;
->   	}
->
->   	usb_make_path(udev, pdev->button_phys, sizeof(pdev->button_phys));
-> @@ -1095,14 +1096,13 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
->   	if (rc) {
->   		input_free_device(pdev->button_dev);
->   		pdev->button_dev = NULL;
-> -		goto err_video_unreg;
-> +		video_unregister_device(&pdev->vdev);
-> +		goto err_unregister_v4l2_dev;
->   	}
->   #endif
->
->   	return 0;
->
-> -err_video_unreg:
-> -	video_unregister_device(&pdev->vdev);
->   err_unregister_v4l2_dev:
->   	v4l2_device_unregister(&pdev->v4l2_dev);
->   err_free_controls:
->
