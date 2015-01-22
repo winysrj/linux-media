@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53324 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750824AbbASRH6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 12:07:58 -0500
-Message-ID: <54BD39EC.6050609@osg.samsung.com>
-Date: Mon, 19 Jan 2015 10:07:56 -0700
-From: Shuah Khan <shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com,
-	hans.verkuil@cisco.com, dheitmueller@kernellabs.com,
-	prabhakar.csengg@gmail.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com, ttmesterr@gmail.com
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 2/3] media: au0828 change to not zero out fmt.pix.priv
-References: <cover.1418918401.git.shuahkh@osg.samsung.com> <54b748fa5cb6883d6ce348c38328161409c1f1be.1418918402.git.shuahkh@osg.samsung.com> <54B3D319.2090506@xs4all.nl>
-In-Reply-To: <54B3D319.2090506@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60062 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752521AbbAVOsR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 09:48:17 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	sadegh abbasi <sadegh612000@yahoo.co.uk>
+Subject: [PATCH 2/7] v4l2-ctrls: Don't initialize array tail when setting a control
+Date: Thu, 22 Jan 2015 16:48:41 +0200
+Message-Id: <1421938126-17747-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1421938126-17747-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1421938126-17747-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/12/2015 06:58 AM, Hans Verkuil wrote:
-> My first code review of the new year, so let's start with a simple one to avoid
-> taxing my brain cells (that are still in vacation mode) too much...
-> 
-> On 12/18/2014 05:20 PM, Shuah Khan wrote:
->> There is no need to zero out fmt.pix.priv in vidioc_g_fmt_vid_cap()
->> vidioc_try_fmt_vid_cap(), and vidioc_s_fmt_vid_cap(). Remove it.
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Happy New Year!
+Setting an array control subset isn't allowed by the control framework,
+which returns an error in prepare_ext_ctrls() if the control size
+specified by userspace is smaller than the total size. There is thus no
+need to initialize the array tail to its default value, as the tail will
+always be empty.
 
-Hans,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-Thanks. Just FYI, I dropped this patch from the patch v3
-series since it has been Acked. Please note that that this
-version is what needs to be pulled in.
-
-
-thanks,
--- Shuah
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 301abb7..adac93e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1518,13 +1518,9 @@ static int user_to_ptr(struct v4l2_ext_control *c,
+ 
+ 	ctrl->is_new = 1;
+ 	if (ctrl->is_ptr && !ctrl->is_string) {
+-		unsigned idx;
+-
+ 		ret = copy_from_user(ptr.p, c->ptr, c->size) ? -EFAULT : 0;
+ 		if (ret || !ctrl->is_array)
+ 			return ret;
+-		for (idx = c->size / ctrl->elem_size; idx < ctrl->elems; idx++)
+-			ctrl->type_ops->init(ctrl, idx, ptr);
+ 		return 0;
+ 	}
+ 
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+2.0.5
+
