@@ -1,135 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:45616 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755038AbbAHVPH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 16:15:07 -0500
-Received: by mail-ie0-f177.google.com with SMTP id rd18so11696836iec.8
-        for <linux-media@vger.kernel.org>; Thu, 08 Jan 2015 13:15:06 -0800 (PST)
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38579 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752758AbbAVPJB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 10:09:01 -0500
+Message-ID: <54C1124E.2020104@xs4all.nl>
+Date: Thu, 22 Jan 2015 16:07:58 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <a1fa09af2da026204f2b0d7eebcad14149a0f880.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
-	<a1fa09af2da026204f2b0d7eebcad14149a0f880.1420578087.git.mchehab@osg.samsung.com>
-Date: Thu, 8 Jan 2015 14:15:05 -0700
-Message-ID: <CAKocOOPNg8ft-KZEBKnTxrdfw0qmiUCc7jY78K-4LH9eH_O8wg@mail.gmail.com>
-Subject: Re: [PATCHv3 18/20] cx231xx: enable tuner->decoder link at videobuf start
-From: Shuah Khan <shuahkhan@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: sadegh abbasi <sadegh612000@yahoo.co.uk>
+Subject: Re: [PATCH 2/7] v4l2-ctrls: Don't initialize array tail when setting
+ a control
+References: <1421938126-17747-1-git-send-email-laurent.pinchart@ideasonboard.com> <1421938126-17747-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1421938126-17747-3-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 6, 2015 at 2:08 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> The tuner->decoder needs to be enabled when we're about to
-> start streaming.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-> index f3d1a488dfa7..634763535d60 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-> @@ -703,6 +703,74 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
->         buf->vb.state = VIDEOBUF_NEEDS_INIT;
->  }
->
-> +static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
-> +{
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +       struct media_device *mdev = dev->media_dev;
-> +       struct media_entity  *entity, *decoder = NULL, *source;
-> +       struct media_link *link, *found_link = NULL;
-> +       int i, ret, active_links = 0;
-> +
-> +       if (!mdev)
-> +               return 0;
-> +
-> +/*
-> + * This will find the tuner that it is connected into the decoder.
-> + * Technically, this is not 100% correct, as the device may be using an
-> + * analog input instead of the tuner. However, we can't use the DVB for dvb
-> + * while the DMA engine is being used for V4L2.
-> + */
-> +       media_device_for_each_entity(entity, mdev) {
-> +               if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
-> +                       decoder = entity;
-> +                       break;
-> +               }
-> +       }
-> +       if (!decoder)
-> +               return 0;
-> +
-> +       for (i = 0; i < decoder->num_links; i++) {
-> +               link = &decoder->links[i];
-> +               if (link->sink->entity == decoder) {
-> +                       found_link = link;
-> +                       if (link->flags & MEDIA_LNK_FL_ENABLED)
-> +                               active_links++;
-> +                       break;
-> +               }
-> +       }
+On 01/22/15 15:48, Laurent Pinchart wrote:
+> Setting an array control subset isn't allowed by the control framework,
+> which returns an error in prepare_ext_ctrls() if the control size
+> specified by userspace is smaller than the total size. There is thus no
+> need to initialize the array tail to its default value, as the tail will
+> always be empty.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Does this code path need to be protected?
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> +
-> +       if (active_links == 1 || !found_link)
-> +               return 0;
-> +
-> +       source = found_link->source->entity;
-> +       for (i = 0; i < source->num_links; i++) {
-> +               struct media_entity *sink;
-> +               int flags = 0;
-> +
-> +               link = &source->links[i];
-> +               sink = link->sink->entity;
-> +
-> +               if (sink == entity)
-> +                       flags = MEDIA_LNK_FL_ENABLED;
-> +
-> +               ret = media_entity_setup_link(link, flags);
-> +               if (ret) {
-> +                       dev_err(dev->dev,
-> +                               "Couldn't change link %s->%s to %s. Error %d\n",
-> +                               source->name, sink->name,
-> +                               flags ? "enabled" : "disabled",
-> +                               ret);
-> +                       return ret;
-> +               } else
-> +                       dev_dbg(dev->dev,
-> +                               "link %s->%s was %s\n",
-> +                               source->name, sink->name,
-> +                               flags ? "ENABLED" : "disabled");
-> +       }
-> +#endif
-> +       return 0;
-> +}
-> +
->  static int
->  buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
->                enum v4l2_field field)
-> @@ -756,6 +824,9 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
->         }
->
->         buf->vb.state = VIDEOBUF_PREPARED;
-> +
-> +       cx231xx_enable_analog_tuner(dev);
-> +
->         return 0;
->
->  fail:
-> --
-> 2.1.0
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 4 ----
+>  1 file changed, 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 301abb7..adac93e 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1518,13 +1518,9 @@ static int user_to_ptr(struct v4l2_ext_control *c,
+>  
+>  	ctrl->is_new = 1;
+>  	if (ctrl->is_ptr && !ctrl->is_string) {
+> -		unsigned idx;
+> -
+>  		ret = copy_from_user(ptr.p, c->ptr, c->size) ? -EFAULT : 0;
+>  		if (ret || !ctrl->is_array)
+>  			return ret;
+> -		for (idx = c->size / ctrl->elem_size; idx < ctrl->elems; idx++)
+> -			ctrl->type_ops->init(ctrl, idx, ptr);
+>  		return 0;
+>  	}
+>  
+> 
+
