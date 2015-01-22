@@ -1,61 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:47691 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751557AbbATUDy (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59479 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752362AbbAVDAo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 15:03:54 -0500
-Received: by mail-la0-f47.google.com with SMTP id hz20so3166314lab.6
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 12:03:52 -0800 (PST)
+	Wed, 21 Jan 2015 22:00:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Chris Kohn <christian.kohn@xilinx.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Michal Simek <michal.simek@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>, devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 08/10] v4l: xilinx: Add Xilinx Video IP core
+Date: Thu, 22 Jan 2015 05:01:17 +0200
+Message-ID: <2694110.qINIujyFZb@avalon>
+In-Reply-To: <1417464820-6718-9-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com> <1417464820-6718-9-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Date: Tue, 20 Jan 2015 21:03:52 +0100
-Message-ID: <CANMdSOwCgaY3SORCoy=_y9R_aZyPgBMgBnAqp0E8EjoBnQ8hkw@mail.gmail.com>
-Subject: [stk1160] Audio chip not detected on a Easycap Model 001
-From: Daniel Kamil Kozar <dkk089@gmail.com>
-To: elezegarcia@gmail.com, mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-I'm running Linux 3.18.2. I have a "generic" Easycap device that I
-would like to use, however it appears that my particular revision of
-this device is not supported. The VID/PID of the device is 05e1:0408,
-in fact the whole USB descriptor is the same as the "reference" one
-available on the LinuxTV Wiki page -
-http://www.linuxtv.org/wiki/index.php/Stk1160_based_USB_2.0_video_and_audio_capture_devices
-.
+Hi Hans and Chris,
 
-The stk1160 driver detects the device and I can successfully capture
-video through the device node. However, the AC97 codec available on
-the board does not seem to be initialized at all, with the following
-kernel message :
+On Monday 01 December 2014 22:13:38 Laurent Pinchart wrote:
+> Xilinx platforms have no hardwired video capture or video processing
+> interface. Users create capture and memory to memory processing
+> pipelines in the FPGA fabric to suit their particular needs, by
+> instantiating video IP cores from a large library.
+> 
+> The Xilinx Video IP core is a framework that models a video pipeline
+> described in the device tree and expose the pipeline to userspace
+> through the media controller and V4L2 APIs.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
+> Signed-off-by: Radhey Shyam Pandey <radheys@xilinx.com>
+> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
 
-stk1160 2-1.1.2.4:1.0: AC'97 0 access is not valid [0x0], removing mixer.
+[snip]
 
-Which means that the AC97 vendor ID has been read as either 0 or
-0xff..ff. According to the aforementioned LinuxTV Wiki page, this
-error occurs when the particular Easycap stick uses the 8-bit ADC
-instead of a full AC97 codec. I had a look at the PCB itself, and it
-seems to contain the following chips :
+> diff --git a/Documentation/devicetree/bindings/media/xilinx/video.txt
+> b/Documentation/devicetree/bindings/media/xilinx/video.txt new file mode
+> 100644
+> index 0000000..15720e4
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/xilinx/video.txt
+> @@ -0,0 +1,52 @@
+> +DT bindings for Xilinx video IP cores
+> +-------------------------------------
+> +
+> +Xilinx video IP cores process video streams by acting as video sinks and/or
+> +sources. They are connected by links through their input and output ports,
+> +creating a video pipeline.
+> +
+> +Each video IP core is represented by an AMBA bus child node in the device
+> +tree using bindings documented in this directory. Connections between the
+> IP
+> +cores are represented as defined in ../video-interfaces.txt.
+> +
+> +The whole  pipeline is represented by an AMBA bus child node in the device
+> +tree using bindings documented in ./xlnx,video.txt.
+> +
+> +Common properties
+> +-----------------
+> +
+> +The following properties are common to all Xilinx video IP cores.
+> +
+> +- xlnx,video-format: This property represents a video format transmitted on
+> an
+> +  AXI bus between video IP cores. How the format relates to the IP core is
+> +  decribed in the IP core bindings documentation. The following formats are
+> +  supported.
+> +
+> +	rbg
+> +	xrgb
+> +	yuv422
+> +	yuv444
+> +	rggb
+> +	grbg
+> +	gbrg
+> +	bggr
+> +
+> +- xlnx,video-width: This property qualifies the video format with the
+> sample
+> +  width expressed as a number of bits per pixel component. All components
+> must
+> +  use the same width.
 
- * Syntek STK1160,
- * Philips SAA7113,
- * Realtek ALC655.
+Hans, last time we've discussed this on IRC you were not happy with the format 
+description used in these DT bindings. Your argument was, if I remember 
+correctly, that as the formats map directly to media bus codes, it would be 
+better to use the media bus codes (or a string representation of them) in the 
+bindings instead of creating a new format description. Is that correct ?
 
-For your reference, photos of the PCB are available here :
-http://i.imgur.com/tl6pb3C.jpg , http://i.imgur.com/ONWf5ir.jpg .
+Chris, what's your opinion on that ? The RGB and YUV formats in the table 
+below describe the hardware and come from table 1-4 on page 8 of 
+http://www.xilinx.com/support/documentation/ip_documentation/axi_videoip/v1_0/ug934_axi_videoIP.pdf. 
+The Bayer formats are not standardized in the document, and I don't think we 
+need them at the moment.
 
-I also backported the old easycap driver to run on my kernel, however
-the effect was exactly the same : the video is captured successfully,
-but there is no audio. There is only a short burst of noise at the
-start of the capture, which doesn't even occur with stk1160.
+> +The following table lists the supported formats and widths combinations,
+> along
+> +with the corresponding media bus pixel code.
+> +
+> +----------------+-------+--------------------------------------------------
+> +Format		| Width	| Media bus code
+> +----------------+-------+--------------------------------------------------
+> +rbg		| 8	| V4L2_MBUS_FMT_RBG888_1X24
+> +xrgb		| 8	| V4L2_MBUS_FMT_RGB888_1X32_PADHI
+> +yuv422		| 8	| V4L2_MBUS_FMT_UYVY8_1X16
+> +yuv444		| 8	| V4L2_MBUS_FMT_VUY888_1X24
+> +rggb		| 8	| V4L2_MBUS_FMT_SRGGB8_1X8
+> +grbg		| 8	| V4L2_MBUS_FMT_SGRBG8_1X8
+> +gbrg		| 8	| V4L2_MBUS_FMT_SGBRG8_1X8
+> +bggr		| 8	| V4L2_MBUS_FMT_SBGGR8_1X8
+> +----------------+-------+--------------------------------------------------
+> diff --git
+> a/Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt
+> b/Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt new file
+> mode 100644
+> index 0000000..5a02270
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt
+> @@ -0,0 +1,55 @@
+> +Xilinx Video IP Pipeline (VIPP)
+> +-------------------------------
+> +
+> +General concept
+> +---------------
+> +
+> +Xilinx video IP pipeline processes video streams through one or more Xilinx
+> +video IP cores. Each video IP core is represented as documented in
+> video.txt
+> +and IP core specific documentation, xlnx,v-*.txt, in this directory. The DT
+> +node of the VIPP represents as a top level node of the pipeline and defines
+> +mappings between DMAs and the video IP cores.
+> +
+> +Required properties:
+> +
+> +- compatible: Must be "xlnx,video".
+> +
+> +- dmas, dma-names: List of one DMA specifier and identifier string (as
+> defined
+> +  in Documentation/devicetree/bindings/dma/dma.txt) per port. Each port
+> +  requires a DMA channel with the identifier string set to "port" followed
+> by
+> +  the port index.
+> +
+> +- ports: Video port, using the DT bindings defined in
+> ../video-interfaces.txt.
+> +
+> +Required port properties:
+> +
+> +- direction: should be either "input" or "output" depending on the
+> direction
+> +  of stream.
+> +
+> +Example:
+> +
+> +	video_cap {
+> +		compatible = "xlnx,video";
+> +		dmas = <&vdma_1 1>, <&vdma_3 1>;
+> +		dma-names = "port0", "port1";
+> +
+> +		ports {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +
+> +			port@0 {
+> +				reg = <0>;
+> +				direction = "input";
+> +				vcap0_in0: endpoint {
+> +					remote-endpoint = <&scaler0_out>;
+> +				};
+> +			};
+> +			port@1 {
+> +				reg = <1>;
+> +				direction = "input";
+> +				vcap0_in1: endpoint {
+> +					remote-endpoint = <&switch_out1>;
+> +				};
+> +			};
+> +		};
+> +	};
 
-I'm really curious what may be wrong in this case. Is it possible that
-the initialization of the AC97 codec fails due to another slight
-modification of the hardware, or should I just assume that the
-hardware is simply faulty? What can I do to further track down this
-problem?
+-- 
+Regards,
 
-Thank you very much in advance,
--dkk
+Laurent Pinchart
+
