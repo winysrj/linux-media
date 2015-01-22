@@ -1,152 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:54825 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753706AbbAWNFe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 08:05:34 -0500
-From: "Baluta, Teodora" <teodora.baluta@intel.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Jonathan Cameron <jic23@kernel.org>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-iio <linux-iio@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: RE: [RFC PATCH 0/3] Introduce IIO interface for fingerprint sensors
-Date: Fri, 23 Jan 2015 13:05:28 +0000
-Message-ID: <A2E3DE9C026DE6469D89C3A4C6C219390A89FE37@IRSMSX107.ger.corp.intel.com>
-References: <1417698017-13835-1-git-send-email-teodora.baluta@intel.com>
- <5481153B.4070609@kernel.org> <1418047828.18463.10.camel@bebop>
- <54930604.1020607@metafoo.de> <549D42BD.1050901@kernel.org>
- <1421255642.31900.4.camel@bebop> <54B7FAF2.8080207@samsung.com>
-In-Reply-To: <54B7FAF2.8080207@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60065 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752521AbbAVOsT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 09:48:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	sadegh abbasi <sadegh612000@yahoo.co.uk>
+Subject: [PATCH 5/7] Revert "[media] v4l: omap4iss: Add module debug parameter"
+Date: Thu, 22 Jan 2015 16:48:44 +0200
+Message-Id: <1421938126-17747-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1421938126-17747-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1421938126-17747-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksDQoNClRoYW5rcyBmb3IgdGhlIHJlcGx5LCBTeWx3ZXN0ZXIhIEkgYW0gY29uc2lkZXJpbmcg
-djRsMiBub3cgYW5kIEkgaGF2ZSBzb21lIHF1ZXN0aW9ucy9jb21tZW50cyBiZWxvdy4NCg0KPiAt
-LS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1paW8tb3duZXJAdmdlci5r
-ZXJuZWwub3JnIFttYWlsdG86bGludXgtaWlvLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9u
-IEJlaGFsZiBPZiBTeWx3ZXN0ZXIgTmF3cm9ja2kNCj4gU2VudDogVGh1cnNkYXksIEphbnVhcnkg
-MTUsIDIwMTUgNzozOCBQTQ0KPiBUbzogQmFsdXRhLCBUZW9kb3JhOyBKb25hdGhhbiBDYW1lcm9u
-DQo+IENjOiBNYXVybyBDYXJ2YWxobyBDaGVoYWI7IExhcnMtUGV0ZXIgQ2xhdXNlbjsgTGludXgg
-S2VybmVsIE1haWxpbmcgTGlzdDsNCj4gbGludXgtaWlvOyBMTU1MOyBIYW5zIFZlcmt1aWwNCj4g
-U3ViamVjdDogUmU6IFtSRkMgUEFUQ0ggMC8zXSBJbnRyb2R1Y2UgSUlPIGludGVyZmFjZSBmb3Ig
-ZmluZ2VycHJpbnQgc2Vuc29ycw0KPiANCj4gT24gMTQvMDEvMTUgMTg6MTQsIEJhbHV0YSwgVGVv
-ZG9yYSB3cm90ZToNCj4gPiBPbiBWaSwgMjAxNC0xMi0yNiBhdCAxMToxMyArMDAwMCwgSm9uYXRo
-YW4gQ2FtZXJvbiB3cm90ZToNCj4gPj4gT24gMTgvMTIvMTQgMTY6NTEsIExhcnMtUGV0ZXIgQ2xh
-dXNlbiB3cm90ZToNCj4gPj4+IEFkZGluZyBWNEwgZm9sa3MgdG8gQ2MgZm9yIG1vcmUgaW5wdXQu
-DQo+ID4+DQo+ID4+IFRoYW5rcyBMYXJzIC0gd2UgZGVmaW5pdGVseSB3b3VsZCBuZWVkIHRoZSB2
-NGwgZ3V5cyB0byBhZ3JlZSB0byBhDQo+ID4+IGRyaXZlciBsaWtlIHRoaXMgZ29pbmcgaW4gSUlP
-LiAobm90IHRoYXQgSSdtIGNvbnZpbmNlZCBpdCBzaG91bGQhKQ0KPiA+Pg0KPiA+Pj4gT24gMTIv
-MDgvMjAxNCAwMzoxMCBQTSwgQmFsdXRhLCBUZW9kb3JhIHdyb3RlOg0KPiA+Pj4+IEhlbGxvLA0K
-PiA+Pj4+DQo+ID4+Pj4gT24gVmksIDIwMTQtMTItMDUgYXQgMDI6MTUgKzAwMDAsIEpvbmF0aGFu
-IENhbWVyb24gd3JvdGU6DQo+ID4+Pj4+IE9uIDA0LzEyLzE0IDEzOjAwLCBUZW9kb3JhIEJhbHV0
-YSB3cm90ZToNCj4gPj4+Pj4+IFRoaXMgcGF0Y2hzZXQgYWRkcyBzdXBwb3J0IGZvciBmaW5nZXJw
-cmludCBzZW5zb3JzIHRocm91Z2ggdGhlIElJTw0KPiBpbnRlcmZhY2UuDQo+ID4+Pj4+PiBUaGlz
-IHdheSB1c2Vyc3BhY2UgYXBwbGljYXRpb25zIGNvbGxlY3QgaW5mb3JtYXRpb24gaW4gYSB1bmlm
-b3JtDQo+ID4+Pj4+PiB3YXkuIEFsbCBwcm9jZXNzaW5nIHdvdWxkIGJlIGRvbmUgaW4gdGhlIHVw
-cGVyIGxheWVycyBhcyBzdWdnZXN0ZWQNCj4gaW4gWzBdLg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IElu
-IG9yZGVyIHRvIHRlc3Qgb3V0IHRoaXMgcHJvcG9zYWwsIGEgbWluaW1hbCBpbXBsZW1lbnRhdGlv
-biBmb3INCj4gPj4+Pj4+IFVQRUsncyBUb3VjaENoaXAgRmluZ2VycHJpbnQgU2Vuc29yIHZpYSBV
-U0IgaXMgYWxzbyBhdmFpbGFibGUuDQo+ID4+Pj4+PiBBbHRob3VnaCB0aGVyZSBpcyBhbiBleGlz
-dGluZyBpbXBsZW1lbnRhdGlvbiBpbiB1c2Vyc3BhY2UgZm9yIFVTQg0KPiA+Pj4+Pj4gZmluZ2Vy
-cHJpbnQgZGV2aWNlcywgaW5jbHVkaW5nIHRoaXMgcGFydGljdWxhciBkZXZpY2UsIHRoZSBkcml2
-ZXINCj4gPj4+Pj4+IHJlcHJlc2VudHMgYSBwcm9vZiBvZiBjb25jZXB0IG9mIGhvdyBmaW5nZXJw
-cmludCBzZW5zb3JzIGNvdWxkIGJlDQo+ID4+Pj4+PiBpbnRlZ3JhdGVkIGluIHRoZSBJSU8gZnJh
-bWV3b3JrIHJlZ2FyZGxlc3Mgb2YgdGhlIHVzZWQgYnVzLiBGb3INCj4gPj4+Pj4+IGxvd2VyIHBv
-d2VyIHJlcXVpcmVtZW50cywgdGhlIFNQSSBidXMgaXMgcHJlZmVycmVkIGFuZCBhIGtlcm5lbA0K
-PiBkcml2ZXIgaW1wbGVtZW50YXRpb24gbWFrZXMgbW9yZSBzZW5zZS4NCj4gPj4+Pj4NCj4gPj4+
-Pj4gU28gd2h5IG5vdCB2NGw/ICBUaGVzZSBhcmUgZWZmZWN0aXZlbHkgaW1hZ2Ugc2Vuc29ycy4u
-DQo+ID4+Pj4NCj4gPj4+PiBXZWxsLCBoZXJlJ3Mgd2h5IEkgZG9uJ3QgdGhpbmsgdjRsIHdvdWxk
-IGJlIHRoZSBiZXN0IG9wdGlvbjoNCj4gPj4+Pg0KPiA+Pj4+IC0gYW4gaW1hZ2Ugc2Nhbm5lciBj
-b3VsZCBiZSBpbXBsZW1lbnRlZCBpbiB0aGUgdjRsIHN1YnN5c3RlbSwgYnV0DQo+ID4+Pj4gaXQg
-c2VlbXMgZmFyIG1vcmUgY29tcGxpY2F0ZWQgZm9yIGEgc2ltcGxlIGZpbmdlcnByaW50IHNjYW5u
-ZXIgLSBpdA0KPiA+Pj4+IHVzdWFsbHkgaGFzIGRyaXZlcnMgZm9yIHdlYmNhbXMsIFRWcyBvciB2
-aWRlbyBzdHJlYW1pbmcgZGV2aWNlcy4NCj4gPj4+PiBUaGUgdjRsIHN1YnN5c3RlbSAod2l0aCBh
-bGwgaXRzIHN1cHBvcnQgZm9yIGNvbG9yc3BhY2UsIGRlY29kZXJzLA0KPiA+Pj4+IGltYWdlIGNv
-bXByZXNzaW9uLCBmcmFtZSBjb250cm9sKSBzZWVtcyBhIGJpdCBvZiBhbiBvdmVya2lsbCBmb3Ig
-YQ0KPiA+Pj4+IHZlcnkgc3RyYWlnaHRmb3J3YXJkIGZpbmdlcnByaW50IGltYWdpbmcgc2Vuc29y
-Lg0KPiA+DQo+ID4+IFdoaWxzdCB0aG9zZSBhcmUgdGhlcmUsIEkgd291bGQgZG91YnQgdGhlIGly
-cmVsZXZhbnQgYml0cyB3b3VsZCBwdXQNCj4gPj4gbXVjaCBidXJkZW4gb24gYSBmaW5nZXJwcmlu
-dCBzY2FubmluZyBkcml2ZXIuICBCZWVuIGEgd2hpbGUgc2luY2UgSQ0KPiA+PiBkaWQgYW55dGhp
-bmcgaW4gdGhhdCBhcmVhIHRob3VnaCBzbyBJIGNvdWxkIGJlIHdyb25nIQ0KPiANCj4gSU1PIFY0
-TCBpcyBtdWNoIGJldHRlciBmaXQgZm9yIHRoaXMga2luZCBvZiBkZXZpY2VzIHRoYW4gSUlPLiBZ
-b3UgY2FuIHVzZSBqdXN0IGENCj4gc3Vic2V0IG9mIHRoZSBBUEksIGl0IHNob3VsZG4ndCB0YWtl
-IG11Y2ggZWZmb3J0IHRvIHdyaXRlIGEgc2ltcGxlDQo+IHY0bDIgY2FwdHVyZSBkcml2ZXIsIHN1
-cHBvcnRpbmcgZml4ZWQgKHByb2JhYmx5IHZlbmRvci9jaGlwIHNwZWNpZmljKSBpbWFnZQ0KPiBm
-b3JtYXQuICBJJ20gbm90IHN1cmUgaWYgaXQncyBiZXR0ZXIgdG8gdXNlIHRoZSB2NGwyIGNvbnRy
-b2xzIFsxXSwgZGVmaW5lIGEgbmV3DQo+IHY0bDIgY29udHJvbHMgY2xhc3MgZm9yIHRoZSBmaW5n
-ZXJwcmludCBzY2FubmVyIHByb2Nlc3NpbmcgZmVhdHVyZXMsIHJhdGhlciB0aGFuDQo+IHRyeWlu
-ZyB0byBwYXNzIHJhdyBkYXRhIHRvIHVzZXIgc3BhY2UgYW5kIGludGVycHJldCBpdCB0aGVuIGlu
-IHNvbWUgbGlicmFyeS4gIEkNCj4ga25vdyB0aGVyZSBoYXMgYmVlbiByZXNpc3RhbmNlIHRvIGFs
-bG93aW5nIHBhc3NpbmcgdW5rbm93biBiaW5hcnkgYmxvYnMgdG8NCj4gdXNlciBzcGFjZSwgZHVl
-IHRvIHBvc3NpYmxlIGFidXNlcy4NCj4gDQo+IFsxXSBEb2N1bWVudGF0aW9uL3ZpZGVvNGxpbnV4
-L3Y0bDItY29udHJvbHMudHh0DQo+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICANClRoZSBmaW5nZXJwcmludCBzZW5zb3IgYWN0cyBtb3JlIGxp
-a2UgYSBzY2FubmVyIGRldmljZSwgc28gdGhlIGNsb3Nlc3QgdHlwZSBpcyB0aGUgVjRMMl9DQVBf
-VklERU9fQ0FQVFVSRS4gSG93ZXZlciwgdGhpcyBpcyBub3QgYSBwZXJmZWN0IG1hdGNoIGJlY2F1
-c2UgdGhlIGRyaXZlciBvbmx5IHNlbmRzIGFuIGltYWdlLCBvbmNlLCB3aGVuIHRyaWdnZXJlZC4g
-V291bGQgaXQgYmUgYSBiZXR0ZXIgYWx0ZXJuYXRpdmUgdG8gZGVmaW5lIGEgbmV3IGNhcGFiaWxp
-dHkgdHlwZT8gT3IgaXQgd291bGQgYmUgYWNjZXB0YWJsZSB0byBzaW1wbHkgaGF2ZSBhIHZpZGVv
-IGRldmljZSB3aXRoIG5vIGZyYW1lIGJ1ZmZlciBvciBmcmFtZSByYXRlIGFuZCB0aGUgdXNlciBz
-cGFjZSBhcHBsaWNhdGlvbiB0byByZWFkIGZyb20gdGhlIGNoYXJhY3RlciBkZXZpY2UgL2Rldi92
-aWRlb1g/DQoNCj4gPj4+PiAtIGEgZmluZ2VycHJpbnQgZGV2aWNlIGNvdWxkIGFsc28gc2VuZCBv
-dXQgYSBwcm9jZXNzZWQgaW5mb3JtYXRpb24sDQo+ID4+Pj4gbm90IGp1c3QgdGhlIGltYWdlIG9m
-IGEgZmluZ2VycHJpbnQuIFRoaXMgbWVhbnMgdGhhdCB0aGUgcHJvY2Vzc2luZw0KPiA+Pj4+IGlz
-IGRvbmUgaW4gaGFyZHdhcmUgLSB0aGUgVVBFSyBUb3VjaFN0cmlwIGNoaXBzZXQgaW4gbGliZnBy
-aW50IGhhcw0KPiA+Pj4+IHRoaXMgYmVoYXZpb3IgKHNlZSBbMF0pLiBTbywgdGhlIElJTyBmcmFt
-ZXdvcmsgd291bGQgc3VwcG9ydCBhDQo+ID4+Pj4gdW5pZm9ybSB3YXkgb2YgaGFuZGxpbmcgZmlu
-Z2VycHJpbnQgZGV2aWNlcyB0aGF0IGVpdGhlciBkbw0KPiA+Pj4+IHByb2Nlc3NpbmcgaW4gc29m
-dHdhcmUgb3IgaW4gaGFyZHdhcmUuDQo+IA0KPiBZb3UgY2FuIHVzZSB0aGUgdjRsMiBjb250cm9s
-cyBBUEkgZm9yIHRoYXQsIHdoaWNoIGFsc28gc3VwcG9ydHMgZXZlbnRzLg0KPiBUaGUgY29udHJv
-bHMgY291bGQgYmUgbWFkZSByZWFkIG9ubHkuDQo+IEl0IHdvdWxkIGJlIGludGVyZXN0aW5nIHRv
-IGxpc3Qgd2hhdCBraW5kIG9mIGZlYXR1cmVzIHRoZXNlIGNvdWxkIGJlLg0KDQpMb29raW5nIHRo
-cm91Z2ggdGhlIGNvbnRyb2xzIEFQSSwgdGhleSBzZWVtIHRvIGJlIGEgZ29vZCBmaXQuDQoNCj4g
-DQo+ID4+IFRoaXMgaXMgbW9yZSBpbnRlcmVzdGluZywgYnV0IGRvZXMgdGhhdCBtYXAgd2VsbCB0
-byBJSU8gc3R5bGUNCj4gPj4gY2hhbm5lbHMgYW55d2F5PyAgSWYgbm90IHdlIGFyZSBnb2luZyB0
-byBlbmQgdXAgd2l0aCBhIHdob2xlIG5ldw0KPiA+PiBpbnRlcmZhY2Ugd2hpY2ggZXZlciBzdWJz
-eXN0ZW0gaXMgdXNlZCBmb3IgdGhlIGltYWdlIHNpZGUgb2YgdGhpbmdzLg0KPiA+Pj4+DQo+ID4+
-Pj4gVGhlIHdheSBJIHNlZSBpdCBub3csIGZvciBwcm9jZXNzZWQgZmluZ2VycHJpbnQgaW5mb3Jt
-YXRpb24sIGFuIElJTw0KPiA+Pj4+IGRldmljZSBjb3VsZCBoYXZlIGFuIElJT19GSU5HRVJQUklO
-VCBjaGFubmVsIHdpdGggYSBtb2RpZmllciBhbmQNCj4gPj4+PiBvbmx5IHRoZSBzZW5zaXRpdml0
-eSB0aHJlc2hvbGQgYXR0cmlidXRlIHNldC4gV2Ugd291bGQgYWxzbyBuZWVkDQo+ID4+Pj4gdHdv
-DQo+ID4+Pj4gdHJpZ2dlcnM6IG9uZSBmb3IgZW5yb2xsbWVudCBhbmQgb25lIGZvciB0aGUgdmVy
-aWZpY2F0aW9uIG1vZGUgdG8NCj4gPj4+PiBjb250cm9sIHRoZSBkZXZpY2UgZnJvbSBhIHVzZXJz
-cGFjZSBhcHBsaWNhdGlvbi4NCj4gDQo+IFRoaXMgY291bGQgYmUgYWxsIHdlbGwgaGFuZGxlZCB3
-aXRoIHRoZSB2NGwyIGNvbnRyb2xzLCBmb3IgaW5zdGFuY2Ugc2VlIHdoYXQNCj4gZmVhdHVyZXMg
-YXJlIGF2YWlsYWJsZSBpbiB0aGUgQ2FtZXJhIEZsYXNoIGNvbnRyb2xzIHN1YnNldA0KPiANCj4g
-aHR0cDovL2xpbnV4dHYub3JnL2Rvd25sb2Fkcy92NGwtZHZiLWFwaXMvZXh0ZW5kZWQtY29udHJv
-bHMuaHRtbCNmbGFzaC0NCj4gY29udHJvbHMNCj4gDQo+ID4+IFN1cmUgLSB3aGF0IHlvdSBwcm9w
-b3NlZCB3b3VsZCB3b3JrLiAgVGhlIHF1ZXN0aW9uIGlzIHdoZXRoZXIgaXQgaXMNCj4gPj4gdGhl
-IGJlc3Qgd2F5IHRvIGRvIGl0Lg0KPiA+DQo+ID4gQW55IHRob3VnaHRzIG9uIHRoaXMgZnJvbSB0
-aGUgdjRsIGNvbW11bml0eT8NCj4gDQo+IEkgd291bGQgdHJ5IGl0IHdpdGggVjRMMiwgaXQgc2Vl
-bXMgdG8gbWUgbW9zdCBzdWl0YWJsZSBzdWJzeXN0ZW0gZm9yIHN1Y2gNCj4gZGV2aWNlcyB0byBt
-ZS4gIFRoZSBxdWVzdGlvbiBpcyB3aGF0IGVuZHMgdXAgaW4gdGhlIGtlcm5lbCBhbmQgd2hhdCBp
-biB1c2VyDQo+IHNwYWNlLiAgQW55d2F5IElNTyBWNEwyIEFQSSBpcyBxdWl0ZSBmbGV4aWJsZSB3
-aXRoIHJlZ2FyZHMgdG8gdGhhdCwgZHVlIHRvDQo+IHdpZGUgcmFuZ2Ugb2YgZGV2aWNlcyBpdCBu
-ZWVkcyB0byBjb3Zlci4NCj4gDQo+ID4+Pj4gWzBdDQo+ID4+Pj4gaHR0cDovL3d3dy5mcmVlZGVz
-a3RvcC5vcmcvd2lraS9Tb2Z0d2FyZS9mcHJpbnQvbGliZnByaW50L3VwZWt0cy8NCj4gPj4+Pg0K
-PiA+Pj4+Pj4gQSBzeXNmcyB0cmlnZ2VyIGlzIGVuYWJsZWQgYW5kIHRoZSBkZXZpY2Ugc3RhcnRz
-IHNjYW5uaW5nLiBBcw0KPiA+Pj4+Pj4gc29vbiBhcyBhbiBpbWFnZSBpcyBhdmFpbGFibGUgaXQg
-aXMgd3JpdHRlbiBpbiB0aGUgY2hhcmFjdGVyIGRldmljZQ0KPiAvZGV2L2lpbzpkZXZpY2VYLg0K
-PiA+Pj4+Pj4NCj4gPj4+Pj4+IFVzZXJzcGFjZSBhcHBsaWNhdGlvbnMgd2lsbCBiZSBhYmxlIHRv
-IGNhbGN1bGF0ZSB0aGUgZXhwZWN0ZWQNCj4gPj4+Pj4+IGltYWdlIHNpemUgdXNpbmcgdGhlIGZp
-bmdlcnByaW50IGF0dHJpYnV0ZXMgaGVpZ2h0LCB3aWR0aCBhbmQgYml0DQo+ID4+Pj4+PiBkZXB0
-aC4gT3RoZXIgYXR0cmlidXRlcyBpbnRyb2R1Y2VkIGZvciB0aGUgZmluZ2VycHJpbnQgY2hhbm5l
-bCBpbg0KPiA+Pj4+Pj4gSUlPIHJlcHJlc2VudCBpbmZvcm1hdGlvbiB0aGF0IGFpZHMgaW4gdGhl
-IGZpbmdlcnByaW50IGltYWdlDQo+ID4+Pj4+PiBwcm9jZXNzaW5nLiBCZXNpZGVzIHRoZXNlLCB0
-aGUgcHJvcG9zZWQgaW50ZXJmYWNlIG9mZmVycw0KPiA+Pj4+Pj4gdXNlcnNwYWNlIGEgd2F5IHRv
-IHJlYWQgYSBmZWVkYmFjayBhZnRlciBhIHNjYW4gKGxpa2UgdGhlIHN3aXBlIHdhcw0KPiB0b28g
-c2xvdyBvciB0b28gZmFzdCkgdGhyb3VnaCBhIG1vZGlmaWVkIGZpbmdlcnByaW50X3N0YXR1cyBj
-aGFubmVsLg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IFswXSBodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xp
-c3RzL2xpbnV4LWlpby9tc2cxMTQ2My5odG1sDQo+IA0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBm
-cm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtaWlvIiBpbiB0
-aGUgYm9keQ0KPiBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyBNb3Jl
-IG1ham9yZG9tbyBpbmZvIGF0DQo+IGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWlu
-Zm8uaHRtbA0K
+This reverts commit 186612342500b0af8498d7c8bc6b3ac32ac7a48e.
+
+The video_device debug field has been renamed to dev_debug, resulting in
+a compilation failure. As v4l2 debugging is supposed to be controlled
+through a sysfs attribute created by the v4l2 core, there's no need to
+duplicate debug control through a module parameter. Remove it.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/omap4iss/iss_video.c | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index 2085f69..6955044 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -25,9 +25,6 @@
+ #include "iss_video.h"
+ #include "iss.h"
+ 
+-static unsigned debug;
+-module_param(debug, uint, 0644);
+-MODULE_PARM_DESC(debug, "activates debug info");
+ 
+ /* -----------------------------------------------------------------------------
+  * Helper functions
+@@ -1053,8 +1050,6 @@ static int iss_video_open(struct file *file)
+ 	if (handle == NULL)
+ 		return -ENOMEM;
+ 
+-	video->video.debug = debug;
+-
+ 	v4l2_fh_init(&handle->vfh, &video->video);
+ 	v4l2_fh_add(&handle->vfh);
+ 
+-- 
+2.0.5
+
