@@ -1,80 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:37103 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757761AbbAISeJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 13:34:09 -0500
-MIME-Version: 1.0
-In-Reply-To: <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com> <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
-From: Rob Herring <robherring2@gmail.com>
-Date: Fri, 9 Jan 2015 12:33:47 -0600
-Message-ID: <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
-Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58266 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974AbbAVL2n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 06:28:43 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC PATCH 0/2] Signalling last decoded frame by V4L2_BUF_FLAG_LAST and -EPIPE
+Date: Thu, 22 Jan 2015 12:28:36 +0100
+Message-Id: <1421926118-29535-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 9, 2015 at 9:22 AM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> Add a property for defining the device outputs the LED
-> represented by the DT child node is connected to.
->
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Pawel Moll <pawel.moll@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-> Cc: Kumar Gala <galak@codeaurora.org>
-> ---
->  Documentation/devicetree/bindings/leds/common.txt |    5 +++++
->  1 file changed, 5 insertions(+)
->
-> diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
-> index a2c3f7a..29295bf 100644
-> --- a/Documentation/devicetree/bindings/leds/common.txt
-> +++ b/Documentation/devicetree/bindings/leds/common.txt
-> @@ -1,6 +1,10 @@
->  Common leds properties.
->
->  Optional properties for child nodes:
-> +- led-sources : Array of bits signifying the LED current regulator outputs the
-> +               LED represented by the child node is connected to (1 - the LED
-> +               is connected to the output, 0 - the LED isn't connected to the
-> +               output).
+At the V4L2 codec API session during ELC-E 2014, we agreed that for the decoder
+draining flow, after a V4L2_DEC_CMD_STOP decoder command was issued, the last
+decoded buffer should get dequeued with a V4L2_BUF_FLAG_LAST set. After that,
+poll should immediately return and all following VIDIOC_DQBUF should return
+-EPIPE until the stream is stopped or decoding continued via V4L2_DEC_CMD_START.
+(or STREAMOFF/STREAMON).
 
-Sorry, I just don't understand this.
+regards
+Philipp
 
-Rob
+Peter Seiderer (1):
+  [media] videodev2: Add V4L2_BUF_FLAG_LAST
 
->  - label : The label for this LED.  If omitted, the label is
->    taken from the node name (excluding the unit address).
->
-> @@ -33,6 +37,7 @@ system-status {
->
->  camera-flash {
->         label = "Flash";
-> +       led-sources = <1 0>;
->         max-microamp = <50000>;
->         flash-max-microamp = <320000>;
->         flash-timeout-us = <500000>;
-> --
-> 1.7.9.5
->
+Philipp Zabel (1):
+  [media] videobuf2: return -EPIPE from DQBUF after the last buffer
+
+ drivers/media/v4l2-core/v4l2-mem2mem.c   | 10 +++++++++-
+ drivers/media/v4l2-core/videobuf2-core.c | 18 +++++++++++++++++-
+ include/media/videobuf2-core.h           |  1 +
+ include/uapi/linux/videodev2.h           |  2 ++
+ 4 files changed, 29 insertions(+), 2 deletions(-)
+
+-- 
+2.1.4
+
