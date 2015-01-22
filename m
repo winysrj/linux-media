@@ -1,57 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.provo.novell.com ([137.65.250.81]:33162 "EHLO
-	smtp2.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751138AbbA2LeK (ORCPT
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:40718 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753802AbbAVWUu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 06:34:10 -0500
-Message-ID: <1422530027.4604.32.camel@stgolabs.net>
-Subject: Re: [PATCH v5] media: au0828 - convert to use videobuf2
-From: Davidlohr Bueso <dave@stgolabs.net>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: m.chehab@samsung.com, hans.verkuil@cisco.com,
-	dheitmueller@kernellabs.com, prabhakar.csengg@gmail.com,
-	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	ttmesterr@gmail.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Date: Thu, 29 Jan 2015 03:13:47 -0800
-In-Reply-To: <54C96D4C.6070200@osg.samsung.com>
-References: <1422042075-7320-1-git-send-email-shuahkh@osg.samsung.com>
-	 <54C96D4C.6070200@osg.samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 22 Jan 2015 17:20:50 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 05/15] media: blackfin: bfin_capture: improve queue_setup() callback
+Date: Thu, 22 Jan 2015 22:18:38 +0000
+Message-Id: <1421965128-10470-6-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2015-01-28 at 16:14 -0700, Shuah Khan wrote:
-> On 01/23/2015 12:41 PM, Shuah Khan wrote:
-> > Convert au0828 to use videobuf2. Tested with NTSC.
-> > Tested video and vbi devices with xawtv, tvtime,
-> > and vlc. Ran v4l2-compliance to ensure there are
-> > no failures. 
-> > 
-> > Video compliance test results summary:
-> > Total: 75, Succeeded: 75, Failed: 0, Warnings: 18
-> > 
-> > Vbi compliance test results summary:
-> > Total: 75, Succeeded: 75, Failed: 0, Warnings: 0
-> > 
-> > Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> > ---
-> 
-> Hi Hans,
-> 
-> Please don't pull this in. Found a bug in stop_streaming() when
-> re-tuning that requires re-working this patch.
+this patch improves the queue_setup() callback.
 
-... and also:
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
- drivers/media/usb/au0828/Kconfig        |   2 +-
- drivers/media/usb/au0828/au0828-vbi.c   | 122 ++--
- drivers/media/usb/au0828/au0828-video.c | 962 ++++++++++++--------------------
- drivers/media/usb/au0828/au0828.h       |  61 +-
- 4 files changed, 443 insertions(+), 704 deletions(-)
-
-in a single patch. Lets be nice to reviewers, we can spare a few extra
-hash ids.
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 8bd94a1..0d8593b 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -44,7 +44,6 @@
+ #include <media/blackfin/ppi.h>
+ 
+ #define CAPTURE_DRV_NAME        "bfin_capture"
+-#define BCAP_MIN_NUM_BUF        2
+ 
+ struct bcap_format {
+ 	char *desc;
+@@ -292,11 +291,14 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+ {
+ 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
+ 
+-	if (*nbuffers < BCAP_MIN_NUM_BUF)
+-		*nbuffers = BCAP_MIN_NUM_BUF;
++	if (fmt && fmt->fmt.pix.sizeimage < bcap_dev->fmt.sizeimage)
++		return -EINVAL;
++
++	if (vq->num_buffers + *nbuffers < 2)
++		*nbuffers = 2;
+ 
+ 	*nplanes = 1;
+-	sizes[0] = bcap_dev->fmt.sizeimage;
++	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : bcap_dev->fmt.sizeimage;
+ 	alloc_ctxs[0] = bcap_dev->alloc_ctx;
+ 
+ 	return 0;
+-- 
+2.1.0
 
