@@ -1,106 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:54277 "EHLO
-	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752905AbbAZRIq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 12:08:46 -0500
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 1/2] media: rcar_vin: helper function for streaming stop
-Date: Mon, 26 Jan 2015 17:08:39 +0000
-Message-Id: <1422292120-30496-2-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1422292120-30496-1-git-send-email-william.towle@codethink.co.uk>
-References: <1422292120-30496-1-git-send-email-william.towle@codethink.co.uk>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:65395 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753695AbbAVWVB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 17:21:01 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 14/15] media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
+Date: Thu, 22 Jan 2015 22:18:47 +0000
+Message-Id: <1421965128-10470-15-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ian Molton <ian.molton@codethink.co.uk>
+this patch adds support for VIDIOC_EXPBUF.
 
-The code that tests that capture from a stream has stopped is
-presently insufficient and the potential for a race condition
-exists where frame capture may generate an interrupt between
-requesting the capture process halt and freeing buffers.
-
-This patch refactors code out of rcar_vin_videobuf_release() and
-into rcar_vin_wait_stop_streaming(), and ensures there are calls
-in places where we need to know that capturing has finished.
-
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/platform/soc_camera/rcar_vin.c |   41 +++++++++++++++++---------
- 1 file changed, 27 insertions(+), 14 deletions(-)
+ drivers/media/platform/blackfin/bfin_capture.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 8d8438b..89c409b 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -458,6 +458,28 @@ error:
- 	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
- }
- 
-+/*
-+ * Wait for capture to stop and all in-flight buffers to be finished with by
-+ * the video hardware. This must be called under &priv->lock
-+ *
-+ */
-+static void rcar_vin_wait_stop_streaming(struct rcar_vin_priv *priv)
-+{
-+	while (priv->state != STOPPED) {
-+		/* issue stop if running */
-+		if (priv->state == RUNNING)
-+			rcar_vin_request_capture_stop(priv);
-+
-+		/* wait until capturing has been stopped */
-+		if (priv->state == STOPPING) {
-+			priv->request_to_stop = true;
-+			spin_unlock_irq(&priv->lock);
-+			wait_for_completion(&priv->capture_stop);
-+			spin_lock_irq(&priv->lock);
-+		}
-+	}
-+}
-+
- static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
-@@ -477,20 +499,8 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
- 	}
- 
- 	if (buf_in_use) {
--		while (priv->state != STOPPED) {
--
--			/* issue stop if running */
--			if (priv->state == RUNNING)
--				rcar_vin_request_capture_stop(priv);
--
--			/* wait until capturing has been stopped */
--			if (priv->state == STOPPING) {
--				priv->request_to_stop = true;
--				spin_unlock_irq(&priv->lock);
--				wait_for_completion(&priv->capture_stop);
--				spin_lock_irq(&priv->lock);
--			}
--		}
-+		rcar_vin_wait_stop_streaming(priv);
-+
- 		/*
- 		 * Capturing has now stopped. The buffer we have been asked
- 		 * to release could be any of the current buffers in use, so
-@@ -524,8 +534,11 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
- 	struct list_head *buf_head, *tmp;
- 
- 	spin_lock_irq(&priv->lock);
-+
-+	rcar_vin_wait_stop_streaming(priv);
- 	list_for_each_safe(buf_head, tmp, &priv->capture)
- 		list_del_init(buf_head);
-+
- 	spin_unlock_irq(&priv->lock);
- }
- 
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 876db4b..f154f25 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -764,6 +764,7 @@ static const struct v4l2_ioctl_ops bcap_ioctl_ops = {
+ 	.vidioc_querybuf         = vb2_ioctl_querybuf,
+ 	.vidioc_qbuf             = vb2_ioctl_qbuf,
+ 	.vidioc_dqbuf            = vb2_ioctl_dqbuf,
++	.vidioc_expbuf           = vb2_ioctl_expbuf,
+ 	.vidioc_streamon         = vb2_ioctl_streamon,
+ 	.vidioc_streamoff        = vb2_ioctl_streamoff,
+ 	.vidioc_g_parm           = bcap_g_parm,
 -- 
-1.7.10.4
+2.1.0
 
