@@ -1,140 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49587 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757185AbbA2Bny (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:19846 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751922AbbAVQFn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 20:43:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	sadegh abbasi <sadegh612000@yahoo.co.uk>
-Subject: [PATCH v2 3/6] v4l2-ctrls: Make the control type init op initialize the whole control
-Date: Wed, 28 Jan 2015 11:17:16 +0200
-Message-Id: <1422436639-18292-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1422436639-18292-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1422436639-18292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 22 Jan 2015 11:05:43 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NIL00BQK61HRH70@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 23 Jan 2015 01:05:41 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: [RFC v2 5/7] adv7604: add cec support.
+Date: Thu, 22 Jan 2015 17:04:37 +0100
+Message-id: <1421942679-23609-6-git-send-email-k.debski@samsung.com>
+In-reply-to: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
+References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The control type init operation is called in a loop to initialize all
-elements of a control. Not only is this inefficient for control types
-that could use a memset(), it also complicates the implementation of
-custom control types, for instance when a matrix needs to be initialized
-with different values for its elements.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Make the init operation initialize the whole control instead, and use
-memset() when possible.
+Add CEC support ot the adv7604 driver.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 46 ++++++++++++++++++++++++++----------
- include/media/v4l2-ctrls.h           |  3 +--
- 2 files changed, 34 insertions(+), 15 deletions(-)
+ drivers/media/i2c/adv7604.c |  182 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 182 insertions(+)
 
-Changes since v1:
-
-- Remove support for V4L2_CTRL_TYPE_U8 and V4L2_CTRL_TYPE_S8 from
-  std_init_one(), as those cases are now handled by std_init()
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index adac93e..81b8e66 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1263,8 +1263,8 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
- 	}
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index e43dd2e..f0ea929 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -42,6 +42,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-dv-timings.h>
+ #include <media/v4l2-of.h>
++#include <media/cec.h>
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+@@ -158,6 +159,10 @@ struct adv7604_state {
+ 	u16 spa_port_a[2];
+ 	struct v4l2_fract aspect_ratio;
+ 	u32 rgb_quantization_range;
++	u8   cec_addr[3];
++	u8   cec_valid_addrs;
++	bool cec_enabled_adap;
++
+ 	struct workqueue_struct *work_queues;
+ 	struct delayed_work delayed_work_enable_hotplug;
+ 	bool restart_stdi_once;
+@@ -1935,6 +1940,176 @@ static int adv7604_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	return 0;
  }
  
--static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
--		     union v4l2_ctrl_ptr ptr)
-+static void std_init_one(const struct v4l2_ctrl *ctrl, u32 idx,
-+			 union v4l2_ctrl_ptr ptr)
- {
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
-@@ -1282,10 +1282,6 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
- 	case V4L2_CTRL_TYPE_BOOLEAN:
- 		ptr.p_s32[idx] = ctrl->default_value;
- 		break;
--	case V4L2_CTRL_TYPE_U8:
--	case V4L2_CTRL_TYPE_S8:
--		ptr.p_u8[idx] = ctrl->default_value;
--		break;
- 	case V4L2_CTRL_TYPE_U16:
- 	case V4L2_CTRL_TYPE_S16:
- 		ptr.p_u16[idx] = ctrl->default_value;
-@@ -1295,8 +1291,35 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
- 		ptr.p_u32[idx] = ctrl->default_value;
- 		break;
- 	default:
--		idx *= ctrl->elem_size;
--		memset(ptr.p + idx, 0, ctrl->elem_size);
-+		break;
++static void adv7604_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
++{
++	if ((cec_read(sd, 0x11) & 0x01) == 0) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
++		return;
++	}
++
++	if (tx_raw_status & 0x02) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: arbitration lost\n", __func__);
++		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, (void *)CEC_TX_STATUS_ARB_LOST);
++		return;
++	}
++	if (tx_raw_status & 0x04) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
++		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, (void *)CEC_TX_STATUS_RETRY_TIMEOUT);
++		return;
++	}
++	if (tx_raw_status & 0x01) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
++		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, (void *)CEC_TX_STATUS_OK);
++		return;
 +	}
 +}
 +
-+static void std_init(const struct v4l2_ctrl *ctrl, union v4l2_ctrl_ptr ptr)
++static void adv7604_cec_isr(struct v4l2_subdev *sd, bool *handled)
 +{
-+	u32 idx;
++	struct cec_msg msg;
++	u8 cec_irq;
 +
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_STRING:
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+	case V4L2_CTRL_TYPE_INTEGER:
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_BITMASK:
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+	case V4L2_CTRL_TYPE_U16:
-+	case V4L2_CTRL_TYPE_S16:
-+	case V4L2_CTRL_TYPE_U32:
-+	case V4L2_CTRL_TYPE_S32:
-+		for (idx = 0; idx < ctrl->elems; idx++)
-+			std_init_one(ctrl, idx, ptr);
++	/* cec controller */
++	cec_irq = io_read(sd, 0x4d) & 0x0f;
++	if (!cec_irq)
++		return;
++
++	v4l2_dbg(1, debug, sd, "%s: cec: irq 0x%x\n", __func__, cec_irq);
++	adv7604_cec_tx_raw_status(sd, cec_irq);
++	if (cec_irq & 0x08) {
++		msg.len = cec_read(sd, 0x25) & 0x1f;
++		if (msg.len > 16)
++			msg.len = 16;
++
++		if (msg.len) {
++			u8 i;
++
++			for (i = 0; i < msg.len; i++)
++				msg.msg[i] = cec_read(sd, i + 0x15);
++			cec_write(sd, 0x26, 0x01); /* re-enable rx */
++			v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_RX_MSG, &msg);
++		}
++	}
++
++	/* note: the bit order is swapped between 0x4d and 0x4e */
++	cec_irq = ((cec_irq & 0x08) >> 3) | ((cec_irq & 0x04) >> 1) |
++		  ((cec_irq & 0x02) << 1) | ((cec_irq & 0x01) << 3);
++	io_write(sd, 0x4e, cec_irq);
++
++	if (handled)
++		*handled = true;
++}
++
++static int adv7604_cec_enable(struct v4l2_subdev *sd, bool enable)
++{
++	struct adv7604_state *state = to_state(sd);
++	
++	if (!state->cec_enabled_adap && enable) {
++		cec_write_and_or(sd, 0x2a, 0xfe, 0x01);	/* power up cec */
++		cec_write(sd, 0x2c, 0x01);	/* cec soft reset */
++		cec_write_and_or(sd, 0x11, 0xfe, 0);  /* initially disable tx */
++		/* enabled irqs: */
++		/* tx: ready */
++		/* tx: arbitration lost */
++		/* tx: retry timeout */
++		/* rx: ready */
++		io_write_and_or(sd, 0x50, 0xf0, 0x0f);
++		cec_write(sd, 0x26, 0x01);            /* enable rx */
++	} else if (state->cec_enabled_adap && !enable) {
++		io_write_and_or(sd, 0x50, 0xf0, 0x00);  /* disable cec interrupts */
++		cec_write_and_or(sd, 0x27, 0x8f, 0x70); /* disable address mask 1-3 */
++		cec_write_and_or(sd, 0x2a, 0xfe, 0x00); /* power down cec section */
++		state->cec_valid_addrs = 0;
++	}
++	state->cec_enabled_adap = enable;
++	return 0;
++}
++
++#define ADV7604_MAX_ADDRS (3)
++
++static int adv7604_cec_log_addr(struct v4l2_subdev *sd, u8 addr)
++{
++	struct adv7604_state *state = to_state(sd);
++	unsigned i, free_idx = ADV7604_MAX_ADDRS;
++	
++	if (!state->cec_enabled_adap)
++		return -EIO;
++
++	for (i = 0; i < ADV7604_MAX_ADDRS; i++) {
++		bool is_valid = state->cec_valid_addrs & (1 << i);
++
++		if (free_idx == ADV7604_MAX_ADDRS && !is_valid)
++			free_idx = i;
++		if (is_valid && state->cec_addr[i] == addr)
++			return 0;
++	}
++	if (i == ADV7604_MAX_ADDRS) {
++		i = free_idx;
++		if (i == ADV7604_MAX_ADDRS)
++			return -ENXIO;
++	}
++	state->cec_addr[i] = addr;
++	state->cec_valid_addrs |= 1 << i;
++
++	switch (i) {
++	case 0:
++		/* enable address mask 0 */
++		cec_write_and_or(sd, 0x27, 0xef, 0x10);
++		/* set address for mask 0 */
++		cec_write_and_or(sd, 0x28, 0xf0, addr);
 +		break;
-+	case V4L2_CTRL_TYPE_U8:
-+	case V4L2_CTRL_TYPE_S8:
-+		memset(ptr.p_u8, ctrl->default_value, ctrl->elems);
++	case 1:
++		/* enable address mask 1 */
++		cec_write_and_or(sd, 0x27, 0xdf, 0x20);
++		/* set address for mask 1 */
++		cec_write_and_or(sd, 0x28, 0x0f, addr << 4);
 +		break;
-+	default:
-+		memset(ptr.p, 0, ctrl->elems * ctrl->elem_size);
- 		break;
++	case 2:
++		/* enable address mask 2 */
++		cec_write_and_or(sd, 0x27, 0xbf, 0x40);
++		/* set address for mask 1 */
++		cec_write_and_or(sd, 0x29, 0xf0, addr);
++		break;
++	}
++	return 0;
++}
++
++static int adv7604_cec_transmit(struct v4l2_subdev *sd, struct cec_msg *msg)
++{
++	u8 len = msg->len;
++	unsigned i;
++
++	if (len == 1)
++		cec_write_and_or(sd, 0x12, 0xf8, 1);  /* allow for one retry for polling */
++	else
++		cec_write_and_or(sd, 0x12, 0xf8, 3);  /* allow for three retries */
++
++	if (len > 16) {
++		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
++		return -EINVAL;
++	}
++
++	/* write data */
++	for (i = 0; i < len; i++)
++		cec_write(sd, i, msg->msg[i]);
++
++	/* set length (data + header) */
++	cec_write(sd, 0x10, len);
++	/* start transmit, enable tx */
++	cec_write(sd, 0x11, 0x01);
++	/* For some reason sometimes the
++	 * transmit won't start.
++	 * Doing it twice seems to help ?
++	*/
++	cec_write(sd, 0x11, 0x01);
++	return 0;
++}
++
++static void adv7604_cec_transmit_timed_out(struct v4l2_subdev *sd)
++{
++	cec_write_and_or(sd, 0x11, 0xfe, 0);  /* disable tx */
++}
++
+ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ {
+ 	struct adv7604_state *state = to_state(sd);
+@@ -1980,6 +2155,9 @@ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 			*handled = true;
  	}
- }
-@@ -1929,7 +1952,6 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	unsigned elems = 1;
- 	bool is_array;
- 	unsigned tot_ctrl_size;
--	unsigned idx;
- 	void *data;
- 	int err;
  
-@@ -2049,10 +2071,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->p_new.p = &ctrl->val;
- 		ctrl->p_cur.p = &ctrl->cur.val;
- 	}
--	for (idx = 0; idx < elems; idx++) {
--		ctrl->type_ops->init(ctrl, idx, ctrl->p_cur);
--		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
--	}
-+	ctrl->type_ops->init(ctrl, ctrl->p_cur);
-+	ctrl->type_ops->init(ctrl, ctrl->p_new);
++ 	/* cec */
++ 	adv7604_cec_isr(sd, handled);
++
+ 	/* tx 5v detect */
+ 	tx_5v = io_read(sd, 0x70) & info->cable_det_mask;
+ 	if (tx_5v) {
+@@ -2374,6 +2552,10 @@ static const struct v4l2_subdev_video_ops adv7604_video_ops = {
+ 	.s_dv_timings = adv7604_s_dv_timings,
+ 	.g_dv_timings = adv7604_g_dv_timings,
+ 	.query_dv_timings = adv7604_query_dv_timings,
++	.cec_enable = adv7604_cec_enable,
++	.cec_log_addr = adv7604_cec_log_addr,
++	.cec_transmit = adv7604_cec_transmit,
++	.cec_transmit_timed_out = adv7604_cec_transmit_timed_out,
+ };
  
- 	if (handler_new_ref(hdl, ctrl)) {
- 		kfree(ctrl);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index e1cfb8f..a7280e9 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -87,8 +87,7 @@ struct v4l2_ctrl_type_ops {
- 	bool (*equal)(const struct v4l2_ctrl *ctrl, u32 idx,
- 		      union v4l2_ctrl_ptr ptr1,
- 		      union v4l2_ctrl_ptr ptr2);
--	void (*init)(const struct v4l2_ctrl *ctrl, u32 idx,
--		     union v4l2_ctrl_ptr ptr);
-+	void (*init)(const struct v4l2_ctrl *ctrl, union v4l2_ctrl_ptr ptr);
- 	void (*log)(const struct v4l2_ctrl *ctrl);
- 	int (*validate)(const struct v4l2_ctrl *ctrl, u32 idx,
- 			union v4l2_ctrl_ptr ptr);
+ static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
 -- 
-2.0.5
+1.7.9.5
 
