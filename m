@@ -1,57 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:36693 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756624AbbAZXCX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 18:02:23 -0500
+Received: from darkcity.gna.ch ([195.226.6.51]:60780 "EHLO mail.gna.ch"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753445AbbAVHGd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 02:06:33 -0500
+From: =?UTF-8?q?Michel=20D=C3=A4nzer?= <michel@daenzer.net>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Subject: [PATCH] reservation: Remove shadowing local variable 'ret'
+Date: Thu, 22 Jan 2015 16:00:17 +0900
+Message-Id: <1421910017-14627-1-git-send-email-michel@daenzer.net>
 MIME-Version: 1.0
-In-Reply-To: <20150109173707.GB18076@amd>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-2-git-send-email-j.anaszewski@samsung.com> <20150109173707.GB18076@amd>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Mon, 26 Jan 2015 15:02:02 -0800
-Message-ID: <CAK5ve-JV2EU+bT3yz4cMFLp0k-+Kk1YTQfEOV8cUCSvLUMuYng@mail.gmail.com>
-Subject: Re: [PATCH/RFC v10 01/19] leds: Add LED Flash class extension to the
- LED subsystem
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	lkml <linux-kernel@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	b.zolnierkie@samsung.com, "rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 9, 2015 at 9:37 AM, Pavel Machek <pavel@ucw.cz> wrote:
-> On Fri 2015-01-09 16:22:51, Jacek Anaszewski wrote:
->> Some LED devices support two operation modes - torch and flash.
->> This patch provides support for flash LED devices in the LED subsystem
->> by introducing new sysfs attributes and kernel internal interface.
->> The attributes being introduced are: flash_brightness, flash_strobe,
->> flash_timeout, max_flash_timeout, max_flash_brightness, flash_fault,
->> flash_sync_strobe and available_sync_leds. All the flash related
->> features are placed in a separate module.
->>
->> The modifications aim to be compatible with V4L2 framework requirements
->> related to the flash devices management. The design assumes that V4L2
->> sub-device can take of the LED class device control and communicate
->> with it through the kernel internal interface. When V4L2 Flash sub-device
->> file is opened, the LED class device sysfs interface is made
->> unavailable.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Bryan Wu <cooloney@gmail.com>
->> Cc: Richard Purdie <rpurdie@rpsys.net>
->
-> Acked-by: Pavel Machek <pavel@ucw.cz>
->
+From: Michel Dänzer <michel.daenzer@amd.com>
 
-Applied to my tree. Thanks for pushing this.
+It was causing the return value of fence_is_signaled to be ignored, making
+reservation objects signal too early.
 
--Bryan
+Cc: stable@vger.kernel.org
+Reviewed-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Michel Dänzer <michel.daenzer@amd.com>
+---
+ drivers/dma-buf/reservation.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+index 3c97c8f..8a37af9 100644
+--- a/drivers/dma-buf/reservation.c
++++ b/drivers/dma-buf/reservation.c
+@@ -402,8 +402,6 @@ reservation_object_test_signaled_single(struct fence *passed_fence)
+ 	int ret = 1;
+ 
+ 	if (!test_bit(FENCE_FLAG_SIGNALED_BIT, &lfence->flags)) {
+-		int ret;
+-
+ 		fence = fence_get_rcu(lfence);
+ 		if (!fence)
+ 			return -1;
+-- 
+2.1.4
+
