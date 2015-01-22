@@ -1,55 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34311 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751895AbbA0Kgw (ORCPT
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:60948 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753906AbbAVWU4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 05:36:52 -0500
-Date: Tue, 27 Jan 2015 12:36:49 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [GIT FIXES FOR v3.19] smiapp compile fix for non-OF configuration
-Message-ID: <20150127103649.GI17565@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Thu, 22 Jan 2015 17:20:56 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 09/15] media: blackfin: bfin_capture: make sure all buffers are returned on stop_streaming() callback
+Date: Thu, 22 Jan 2015 22:18:42 +0000
+Message-Id: <1421965128-10470-10-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+In start_streaming() callback the buffer is removed from the
+dma_queue list and assigned to cur_frm, this patch makes sure
+that is returned to vb2 core with VB2_BUF_STATE_ERROR flag.
 
-The recent smiapp OF support patches contained a small issue related to
-reading 64-bit numbers from the device tree, such that the compilation fails
-if CONFIG_OF is undefined.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-This patch provides a temporary fix to the matter. The proper one is to use
-of_property_read_u64_array(), but that's currently not exported. I've
-submitted a patch for that.
-
-Please pull.
-
-
-The following changes since commit e32b31ae45c18679c186e67aa41d0e2318cae487:
-
-  [media] mb86a20s: remove unused debug modprobe parameter (2015-01-26 10:08:29 -0200)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git smiapp-of-compile
-
-for you to fetch changes up to 45fe24236dd638b170a7ca91a3aa0e9b2b153889:
-
-  smiapp: Don't compile of_read_number() if CONFIG_OF isn't defined (2015-01-27 12:18:49 +0200)
-
-----------------------------------------------------------------
-Sakari Ailus (1):
-      smiapp: Don't compile of_read_number() if CONFIG_OF isn't defined
-
- drivers/media/i2c/smiapp/smiapp-core.c |    4 ++++
- 1 file changed, 4 insertions(+)
-
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 04b85e3..57f3b8c 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -375,6 +375,9 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
+ 				"stream off failed in subdev\n");
+ 
+ 	/* release all active buffers */
++	if (bcap_dev->cur_frm)
++		vb2_buffer_done(&bcap_dev->cur_frm->vb, VB2_BUF_STATE_ERROR);
++
+ 	while (!list_empty(&bcap_dev->dma_queue)) {
+ 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
+ 						struct bcap_buffer, list);
 -- 
-Kind regards,
+2.1.0
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
