@@ -1,125 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36472 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753737AbbANVwR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2015 16:52:17 -0500
-Received: from dyn3-82-128-190-202.psoas.suomi.net ([82.128.190.202] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1YBVrL-0000YQ-Lh
-	for linux-media@vger.kernel.org; Wed, 14 Jan 2015 23:52:15 +0200
-Message-ID: <54B6E50F.9050506@iki.fi>
-Date: Wed, 14 Jan 2015 23:52:15 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-we0-f169.google.com ([74.125.82.169]:54961 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188AbbAVPhX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 10:37:23 -0500
+Received: by mail-we0-f169.google.com with SMTP id u56so2499658wes.0
+        for <linux-media@vger.kernel.org>; Thu, 22 Jan 2015 07:37:21 -0800 (PST)
+Message-ID: <54C11931.6010105@gmail.com>
+Date: Thu, 22 Jan 2015 16:37:21 +0100
+From: =?windows-1252?Q?Tycho_L=FCrsen?= <tycholursen@gmail.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] rtl28xxu / rtl2830 / rtl2832 / rtl2832_sdr changes
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: "linux-media@vger.kernel.org >> linux-media"
+	<linux-media@vger.kernel.org>, abraham.manu@gmail.com
+Subject: [saa716x] upstream request
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit cb9564e133f4f790920d715714790512085bb2e3:
+Hello Mr Abraham,
 
-   [media] rc: img-ir: add philips rc6 decoder module (2014-12-23 
-15:17:31 -0200)
+Thank you very much for coding the saa716x driver. It's highly appreciated!
 
-are available in the git repository at:
+I own a couple of TBS DVB-T/T2/C cards that use those chips, so your 
+driver is of great value to me.
+Of course official drivers from TBS suck bigtime, but fortunately Luis 
+Alves thinks so too.
+So he coded support for many TBS cards that use saa716x supported chips. 
+And I thank him very much for doing so too.
 
-   git://linuxtv.org/anttip/media_tree.git rtl28xx
+However, at some point even Luis is likely to stop supporting this 
+development for some reason.
+That brings me to you. You're the original coder and owner of the driver.
+So my questions to you are:
 
-for you to fetch changes up to 6fbbe5eee8bda5642a884180216ef498bc46d18f:
+Would you please please please upstream your driver?
+What will it take you to upstream your driver?
 
-   rtl2832: implement own lock for regmap (2014-12-23 22:48:29 +0200)
+Maybe others can be of some assistance, take some of the workload from 
+your back.
+That is, in the event that you are willing to upstream it. Are you?
 
-----------------------------------------------------------------
-Antti Palosaari (66):
-       dvb-usb-v2: add pointer to 'struct usb_interface' for driver usage
-       rtl2832: convert driver to I2C binding
-       rtl28xxu: switch rtl2832 demod attach to I2C binding
-       rtl28xxu: change module unregister order
-       rtl2830: convert driver to kernel I2C model
-       rtl28xxu: use I2C binding for RTL2830 demod driver
-       rtl2830: get rid of legacy DVB driver binding
-       rtl2830: rename 'priv' to 'dev'
-       rtl2830: carry pointer to I2C client for every function
-       rtl2830: fix logging
-       rtl2830: get rid of internal config data
-       rtl2830: style related changes
-       rtl2830: implement DVBv5 CNR statistic
-       rtl2830: implement DVBv5 signal strength statistics
-       rtl2830: implement DVBv5 BER statistic
-       rtl2830: wrap DVBv5 signal strength to DVBv3
-       rtl2830: wrap DVBv5 BER to DVBv3
-       rtl2830: wrap DVBv5 CNR to DVBv3 SNR
-       rtl2830: implement PID filter
-       rtl28xxu: add support for RTL2831U/RTL2830 PID filter
-       rtl2830: implement own I2C locking
-       rtl2830: convert to regmap API
-       rtl2832: add platform data callbacks for exported resources
-       rtl28xxu: use rtl2832 demod callbacks accessing its resources
-       rtl2832: remove exported resources
-       rtl2832: rename driver state variable from 'priv' to 'dev'
-       rtl2832: enhance / fix logging
-       rtl2832: move all configuration to platform data struct
-       rtl28xxu: use platform data config for rtl2832 demod
-       rtl2832: convert to regmap API
-       rtl2832: implement DVBv5 CNR statistic
-       rtl2832: implement DVBv5 BER statistic
-       rtl2832: wrap DVBv5 CNR to DVBv3 SNR
-       rtl2832: wrap DVBv5 BER to DVBv3
-       rtl2832: implement DVBv5 signal strength statistics
-       rtl28xxu: use demod mux I2C adapter for every tuner
-       rtl2832: drop FE i2c gate control support
-       rtl2832: define more demod lock statuses
-       rtl2832: implement PID filter
-       rtl28xxu: add support for RTL2832U/RTL2832 PID filter
-       rtl2832: use regmap reg cache
-       rtl2832: remove unneeded software reset from init()
-       rtl2832: merge reg page as a part of reg address
-       rtl2832: provide register IO callbacks
-       rtl2832_sdr: rename state variable from 's' to 'dev'
-       rtl2832_sdr: convert to platform driver
-       rtl28xxu: switch SDR module to platform driver
-       rtl28xxu: use master I2C adapter for slave demods
-       rtl2832_sdr: fix logging
-       rtl2832_sdr: cleanups
-       rtl2832: cleanups and minor changes
-       rtl2832: claim copyright and module author
-       rtl2832: implement sleep
-       rtl28xxu: fix DVB FE callback
-       rtl28xxu: simplify FE callback handling
-       rtl28xxu: do not refcount rtl2832_sdr module
-       rtl2832_sdr: refcount to rtl28xxu
-       rtl2832: remove internal mux I2C adapter
-       rtl28xxu: rename state variable 'priv' to 'dev'
-       rtl28xxu: fix logging
-       rtl28xxu: move usb buffers to state
-       rtl28xxu: add heuristic to detect chip type
-       rtl28xxu: merge chip type specific all callbacks
-       rtl28xxu: merge rtl2831u and rtl2832u properties
-       rtl28xxu: correct reg access routine name prefixes
-       rtl2832: implement own lock for regmap
+You realize of course that if you honour my humble request, you will, to 
+say the least, enter into the top level of the Eternal Hall of Fame, 
+that most TBS card owners will send you flowers, burn candles for you 
+and think of you in their prayers?
+And as a bonus: TBS itself will probably be 'not amused', that's nice 
+too, isn't it?
+After all, as you said: they didn't even have the common courtesy to 
+thank you..
 
-  drivers/media/dvb-frontends/Kconfig         |    4 +-
-  drivers/media/dvb-frontends/rtl2830.c       |  944 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------
-  drivers/media/dvb-frontends/rtl2830.h       |   54 ++-----
-  drivers/media/dvb-frontends/rtl2830_priv.h  |   24 +--
-  drivers/media/dvb-frontends/rtl2832.c       | 1341 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------------------------------
-  drivers/media/dvb-frontends/rtl2832.h       |   88 +++--------
-  drivers/media/dvb-frontends/rtl2832_priv.h  |   32 ++--
-  drivers/media/dvb-frontends/rtl2832_sdr.c   | 1189 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------------------------------------------------------------
-  drivers/media/dvb-frontends/rtl2832_sdr.h   |   51 +++---
-  drivers/media/usb/dvb-usb-v2/dvb_usb.h      |    2 +
-  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c |    1 +
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c     |  939 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.h     |   27 +++-
-  13 files changed, 2499 insertions(+), 2197 deletions(-)
+Well, I do! And I do it also on behalf of the vast majority of the 
+(future) owners of saa716x supported chips driven DVB adapters.
 
--- 
-http://palosaari.fi/
+Kind regards,
+
+Tycho Lürsen.
+
