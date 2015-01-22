@@ -1,70 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:57829 "EHLO butterbrot.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752467AbbAWQqc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 11:46:32 -0500
-Message-ID: <54C27AE4.4020702@butterbrot.org>
-Date: Fri, 23 Jan 2015 17:46:28 +0100
-From: Florian Echtler <floe@butterbrot.org>
-MIME-Version: 1.0
-To: "Baluta, Teodora" <teodora.baluta@intel.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Jonathan Cameron <jic23@kernel.org>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-iio <linux-iio@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 0/3] Introduce IIO interface for fingerprint sensors
-References: <1417698017-13835-1-git-send-email-teodora.baluta@intel.com> <5481153B.4070609@kernel.org> <1418047828.18463.10.camel@bebop> <54930604.1020607@metafoo.de> <549D42BD.1050901@kernel.org> <1421255642.31900.4.camel@bebop> <54B7FAF2.8080207@samsung.com> <A2E3DE9C026DE6469D89C3A4C6C219390A89FE37@IRSMSX107.ger.corp.intel.com>
-In-Reply-To: <A2E3DE9C026DE6469D89C3A4C6C219390A89FE37@IRSMSX107.ger.corp.intel.com>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="nS1pCTG5i2HEopfJ57PrmSaElcWIb8gne"
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58270 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751895AbbAVL2n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 06:28:43 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC PATCH 2/2] [media] videobuf2: return -EPIPE from DQBUF after the last buffer
+Date: Thu, 22 Jan 2015 12:28:38 +0100
+Message-Id: <1421926118-29535-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1421926118-29535-1-git-send-email-p.zabel@pengutronix.de>
+References: <1421926118-29535-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---nS1pCTG5i2HEopfJ57PrmSaElcWIb8gne
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+If the last buffer was dequeued from a capture queue, let poll return
+immediately and let DQBUF return -EPIPE to signal there will no more
+buffers to dequeue until STREAMOFF.
 
-Hello Teodora,
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+TODO: (How) should the last_buffer_dequeud flag be cleared in reaction to
+V4L2_DEC_CMD_START?
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c   | 10 +++++++++-
+ drivers/media/v4l2-core/videobuf2-core.c | 18 +++++++++++++++++-
+ include/media/videobuf2-core.h           |  1 +
+ 3 files changed, 27 insertions(+), 2 deletions(-)
 
-On 23.01.2015 14:05, Baluta, Teodora wrote:
-> The fingerprint sensor acts more like a scanner device, so the
-> closest type is the V4L2_CAP_VIDEO_CAPTURE. However, this is not a
-> perfect match because the driver only sends an image, once, when
-> triggered. Would it be a better alternative to define a new
-> capability type? Or it would be acceptable to simply have a video
-> device with no frame buffer or frame rate and the user space
-> application to read from the character device /dev/videoX?
-Sorry if I jump in here right in the middle of this discussion, but some
-time ago, I wrote a fingerprint sensor driver for the Siemens ID Mouse
-(still part of the kernel AFAICT) which acts as a misc device and just
-creates a character device node that can be used to directly read a PGM
-file.
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 80c588f..1b5b432 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -564,8 +564,16 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 
+ 	if (list_empty(&src_q->done_list))
+ 		poll_wait(file, &src_q->done_wq, wait);
+-	if (list_empty(&dst_q->done_list))
++	if (list_empty(&dst_q->done_list)) {
++		/*
++		 * If the last buffer was dequeued from the capture queue,
++		 * return immediately. DQBUF will return -EPIPE.
++		 */
++		if (dst_q->last_buffer_dequeued)
++			return rc | POLLIN | POLLRDNORM;
++
+ 		poll_wait(file, &dst_q->done_wq, wait);
++	}
+ 
+ 	if (m2m_ctx->m2m_dev->m2m_ops->lock)
+ 		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index d09a891..c2c2eac 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2046,6 +2046,10 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 	struct vb2_buffer *vb = NULL;
+ 	int ret;
+ 
++	if (q->last_buffer_dequeued) {
++		dprintk(3, "last buffer dequeued already\n");
++		return -EPIPE;
++	}
+ 	if (b->type != q->type) {
+ 		dprintk(1, "invalid buffer type\n");
+ 		return -EINVAL;
+@@ -2073,6 +2077,9 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 	/* Remove from videobuf queue */
+ 	list_del(&vb->queued_entry);
+ 	q->queued_count--;
++	if (!V4L2_TYPE_IS_OUTPUT(q->type) &&
++	    vb->v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
++		q->last_buffer_dequeued = true;
+ 	/* go back to dequeued state */
+ 	__vb2_dqbuf(vb);
+ 
+@@ -2286,6 +2293,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
+ 	 */
+ 	__vb2_queue_cancel(q);
+ 	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
++	q->last_buffer_dequeued = false;
+ 
+ 	dprintk(3, "successful\n");
+ 	return 0;
+@@ -2628,8 +2636,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	if (V4L2_TYPE_IS_OUTPUT(q->type) && q->queued_count < q->num_buffers)
+ 		return res | POLLOUT | POLLWRNORM;
+ 
+-	if (list_empty(&q->done_list))
++	if (list_empty(&q->done_list)) {
++		/*
++		 * If the last buffer was dequeued from a capture queue,
++		 * return immediately. DQBUF will return -EPIPE.
++		 */
++		if (!V4L2_TYPE_IS_OUTPUT(q->type) && q->last_buffer_dequeued)
++			return res | POLLIN | POLLRDNORM;
++
+ 		poll_wait(file, &q->done_wq, wait);
++	}
+ 
+ 	/*
+ 	 * Take first buffer available for dequeuing.
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index bd2cec2..ca337bf 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -429,6 +429,7 @@ struct vb2_queue {
+ 	unsigned int			start_streaming_called:1;
+ 	unsigned int			error:1;
+ 	unsigned int			waiting_for_buffers:1;
++	unsigned int			last_buffer_dequeued:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
+ 	struct vb2_threadio_data	*threadio;
+-- 
+2.1.4
 
-Maybe this would be a slightly simpler approach than pulling in all the
-streaming-optimized features of V4L2?
-
-Best, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
-
-
---nS1pCTG5i2HEopfJ57PrmSaElcWIb8gne
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlTCeuQACgkQ7CzyshGvatjWsgCdHyNxoUEdkJhMapuv1VzNOWrC
-MPoAoPlq+IDgg2aCbLrxWFpQWI7KQgk1
-=R3Ri
------END PGP SIGNATURE-----
-
---nS1pCTG5i2HEopfJ57PrmSaElcWIb8gne--
