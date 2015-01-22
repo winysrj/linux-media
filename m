@@ -1,110 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:40190 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752424AbbAPJgB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2015 04:36:01 -0500
-Message-ID: <54B8DB6E.6090804@xs4all.nl>
-Date: Fri, 16 Jan 2015 10:35:42 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:53785 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751170AbbAVPFa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2015 10:05:30 -0500
+Message-ID: <54C111AE.9050403@osg.samsung.com>
+Date: Thu, 22 Jan 2015 08:05:18 -0700
+From: Shuah Khan <shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-To: Ondrej Zary <linux@rainbow-software.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] bttv: Improve TEA575x support
-References: <1421352647-10383-1-git-send-email-linux@rainbow-software.org> <1421352647-10383-3-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1421352647-10383-3-git-send-email-linux@rainbow-software.org>
-Content-Type: text/plain; charset=windows-1252
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	laurent pinchart <laurent.pinchart@ideasonboard.com>,
+	ttmesterr <ttmesterr@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v3 2/3] media: au0828 - convert to use videobuf2
+References: <cover.1421115389.git.shuahkh@osg.samsung.com> <9642c73eb38234cd69059c4a64bfde5205d637c2.1421115389.git.shuahkh@osg.samsung.com> <CA+V-a8uzfcyhO0vA2Jxg8YJYrHtk_b0skhN4kGCwO81X9yF--w@mail.gmail.com> <CAGoCfiw4Sehjk0_7KWo3tQZabn1w8nVM+8WTgY2sSkL0FSZWOQ@mail.gmail.com>
+In-Reply-To: <CAGoCfiw4Sehjk0_7KWo3tQZabn1w8nVM+8WTgY2sSkL0FSZWOQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ondrej,
-
-Just two small comments:
-
-On 01/15/2015 09:10 PM, Ondrej Zary wrote:
-> Improve g_tuner and add s_hw_freq_seek and enum_freq_bands support for cards
-> with TEA575x radio.
+On 01/22/2015 08:00 AM, Devin Heitmueller wrote:
+>>> -       fh->type = type;
+>>> -       fh->dev = dev;
+>>> -       v4l2_fh_init(&fh->fh, vdev);
+>>> -       filp->private_data = fh;
+>>> +       dprintk(1,
+>>> +               "%s called std_set %d dev_state %d stream users %d users %d\n",
+>>> +               __func__, dev->std_set_in_tuner_core, dev->dev_state,
+>>> +               dev->streaming_users, dev->users);
+>>>
+>>> -       if (mutex_lock_interruptible(&dev->lock)) {
+>>> -               kfree(fh);
+>>> +       if (mutex_lock_interruptible(&dev->lock))
+>>>                 return -ERESTARTSYS;
+>>> +
+>>> +       ret = v4l2_fh_open(filp);
+>>> +       if (ret) {
+>>> +               au0828_isocdbg("%s: v4l2_fh_open() returned error %d\n",
+>>> +                               __func__, ret);
+>>> +               mutex_unlock(&dev->lock);
+>>> +               return ret;
+>>>         }
+>>> +
+>>>         if (dev->users == 0) {
+>>
+>> you can use v4l2_fh_is_singular_file() and get rid of users member ?
 > 
-> This allows signal/stereo detection and HW seek to work on these cards.
-> 
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-> ---
->  drivers/media/pci/bt8xx/bttv-driver.c |   31 +++++++++++++++++++++++++++++++
->  1 file changed, 31 insertions(+)
-> 
-> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-> index e7f8ade..5476a7d 100644
-> --- a/drivers/media/pci/bt8xx/bttv-driver.c
-> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
-> @@ -2515,6 +2515,8 @@ static int bttv_querycap(struct file *file, void  *priv,
->  		if (btv->has_saa6588)
->  			cap->device_caps |= V4L2_CAP_READWRITE |
->  						V4L2_CAP_RDS_CAPTURE;
-> +		if (btv->has_tea575x)
-> +			cap->device_caps |= V4L2_CAP_HW_FREQ_SEEK;
->  	}
->  	return 0;
->  }
-> @@ -3244,6 +3246,9 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
->  	if (btv->audio_mode_gpio)
->  		btv->audio_mode_gpio(btv, t, 0);
->  
-> +	if (btv->has_tea575x)
-> +		return snd_tea575x_g_tuner(&btv->tea, t);
-> +
->  	return 0;
->  }
->  
-> @@ -3261,6 +3266,30 @@ static int radio_s_tuner(struct file *file, void *priv,
->  	return 0;
->  }
->  
-> +static int radio_s_hw_freq_seek(struct file *file, void *priv,
-> +					const struct v4l2_hw_freq_seek *a)
-> +{
-> +	struct bttv_fh *fh = priv;
-> +	struct bttv *btv = fh->btv;
-> +
-> +	if (btv->has_tea575x)
-> +		return snd_tea575x_s_hw_freq_seek(file, &btv->tea, a);
-> +	else
-> +		return -ENOTTY;
-
-Please drop the superfluous 'else'. I thought checkpatch warned about this these days.
-
-> +}
-> +
-> +static int radio_enum_freq_bands(struct file *file, void *priv,
-> +					 struct v4l2_frequency_band *band)
-> +{
-> +	struct bttv_fh *fh = priv;
-> +	struct bttv *btv = fh->btv;
-> +
-> +	if (btv->has_tea575x)
-> +		return snd_tea575x_enum_freq_bands(&btv->tea, band);
-> +	else
-> +		return -ENOTTY;
-
-Ditto.
-
-> +}
-> +
->  static ssize_t radio_read(struct file *file, char __user *data,
->  			 size_t count, loff_t *ppos)
->  {
-> @@ -3318,6 +3347,8 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
->  	.vidioc_s_tuner         = radio_s_tuner,
->  	.vidioc_g_frequency     = bttv_g_frequency,
->  	.vidioc_s_frequency     = bttv_s_frequency,
-> +	.vidioc_s_hw_freq_seek	= radio_s_hw_freq_seek,
-> +	.vidioc_enum_freq_bands	= radio_enum_freq_bands,
->  	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
->  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
->  };
+> That won't work because the underlying resources are shared between
+> /dev/videoX and /dev/vbiX device nodes.  Hence if you were to move to
+> v4l2_fh_is_singular_file(), the video device would get opened, the
+> stream would get reset, the VBI device would get opened, and that
+> would cause the analog stream to get enabled/reset *again*.
 > 
 
-Regards,
+Thanks Devin for a detailed explanation. I did see this behavior when I
+was removed users and used v4l2_fh_is_singular_file() instead. I didn't
+understand that this is due to resource sharing between /dev/videoX and
+/dev/vbiX .
 
-	Hans
+thanks,
+-- Shuah
+
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
