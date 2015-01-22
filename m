@@ -1,90 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:27437 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754727AbbAIHuO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 02:50:14 -0500
-Message-ID: <54AF8834.1090904@cisco.com>
-Date: Fri, 09 Jan 2015 08:50:12 +0100
-From: "Mats Randgaard (matrandg)" <matrandg@cisco.com>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: linux-media@vger.kernel.org, hansverk@cisco.com
-Subject: Re: [RFC v01] Driver for Toshiba TC358743 CSI-2 to HDMI bridge
-References: <1418667661-21078-1-git-send-email-matrandg@cisco.com> <1420737164.3190.49.camel@pengutronix.de>
-In-Reply-To: <1420737164.3190.49.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41797 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750796AbbAVDpl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Jan 2015 22:45:41 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0D6032A0084
+	for <linux-media@vger.kernel.org>; Thu, 22 Jan 2015 04:45:16 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150122034516.0D6032A0084@tschai.lan>
+Date: Thu, 22 Jan 2015 04:45:16 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for testing the driver!
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 01/08/2015 06:12 PM, Philipp Zabel wrote:
-> Hi Mats,
->
-> Am Montag, den 15.12.2014, 19:21 +0100 schrieb matrandg@cisco.com:
->> From: Mats Randgaard <matrandg@cisco.com>
->>
->> The driver is tested on our hardware and all the implemented features
->> works as expected.
->>
->> Missing features:
->> - CEC support
->> - HDCP repeater support
->> - IR support
->>
->> Signed-off-by: Mats Randgaard <matrandg@cisco.com>
->> ---
->>   MAINTAINERS                        |    6 +
->>   drivers/media/i2c/Kconfig          |   12 +
->>   drivers/media/i2c/Makefile         |    1 +
->>   drivers/media/i2c/tc358743.c       | 1768 ++++++++++++++++++++++++++++++++++++
->>   drivers/media/i2c/tc358743_regs.h  |  670 ++++++++++++++
->>   include/media/tc358743.h           |   89 ++
->>   include/uapi/linux/v4l2-controls.h |    4 +
->>   7 files changed, 2550 insertions(+)
->>   create mode 100644 drivers/media/i2c/tc358743.c
->>   create mode 100644 drivers/media/i2c/tc358743_regs.h
->>   create mode 100644 include/media/tc358743.h
->>
-> [...]
->> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
->> new file mode 100644
->> index 0000000..a86cbe0
->> --- /dev/null
->> +++ b/drivers/media/i2c/tc358743.c
-> [...]
->> +/* --------------- CUSTOM CTRLS --------------- */
->> +
->> +static const struct v4l2_ctrl_config tc358743_ctrl_audio_sampling_rate = {
->> +	.id = TC358743_CID_AUDIO_SAMPLING_RATE,
->> +	.name = "Audio sampling rate",
->> +	.type = V4L2_CTRL_TYPE_INTEGER,
->> +	.min = 0,
->> +	.max = 768000,
->> +	.step = 1,
->> +	.def = 0,
->> +	.flags = V4L2_CTRL_FLAG_READ_ONLY,
->> +};
->> +
->> +static const struct v4l2_ctrl_config tc358743_ctrl_audio_present = {
->> +	.id = TC358743_CID_AUDIO_PRESENT,
->> +	.name = "Audio present",
->> +	.type = V4L2_CTRL_TYPE_BOOLEAN,
-> If I don't add
-> +	.max = 1,
-> +	.step = 1,
-> here, I get -ERANGE from v4l2_ctrl_new_custom for this control.
+Results of the daily build of media_tree:
 
-The product I use for testing of this driver has a really old kernel 
-where this validation of the boolean controls is missing. I'll fix this 
-in the next revision of this driver.
+date:		Thu Jan 22 04:00:18 CET 2015
+git branch:	test
+git hash:	1fc77d013ba85a29e2edfaba02fd21e8c8187fae
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
-Thanks,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18-x86_64: OK
+linux-3.19-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
-Mats Randgaard
+Detailed results are available here:
 
->
-> regards
-> Philipp
->
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
