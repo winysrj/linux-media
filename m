@@ -1,98 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:42836 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751562AbbASMqH (ORCPT
+Received: from smtp-out-190.synserver.de ([212.40.185.190]:1123 "EHLO
+	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755595AbbAWPwn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 07:46:07 -0500
-Message-ID: <54BCFC78.3030303@xs4all.nl>
-Date: Mon, 19 Jan 2015 13:45:44 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: build failure on ubuntu 14.04.1 LTS
-References: <20150119123212.GA33475@shambles.windy>
-In-Reply-To: <20150119123212.GA33475@shambles.windy>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 23 Jan 2015 10:52:43 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	=?UTF-8?q?Richard=20R=C3=B6jfors?=
+	<richard.rojfors@mocean-labs.com>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 06/15] [media] adv7180: Reset the device before initialization
+Date: Fri, 23 Jan 2015 16:52:25 +0100
+Message-Id: <1422028354-31891-7-git-send-email-lars@metafoo.de>
+In-Reply-To: <1422028354-31891-1-git-send-email-lars@metafoo.de>
+References: <1422028354-31891-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/19/2015 01:32 PM, Vincent McIntyre wrote:
-> Hi
-> 
-> I am seeing build failures since 11 January.
-> A build I did on 22 December worked fine.
-> My build procedure and the error are shown below.
+Reset the device when initializing it so it is in a good known state and the
+assumed register settings matche the actual register settings.
 
-I've just updated media_build to stop compiling the smiapp driver for kernels
-< 3.20. So if you do 'git pull' in your media_build directory and try again
-it should work.
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7180.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-Regards,
-
-	Hans
-
-> 
-> $ cat /etc/lsb-release
-> DISTRIB_ID=Ubuntu
-> DISTRIB_RELEASE=14.04
-> DISTRIB_CODENAME=trusty
-> DISTRIB_DESCRIPTION="Ubuntu 14.04.1 LTS"
-> $ uname -a
-> Linux ubuntu 3.13.0-37-generic #64-Ubuntu SMP Mon Sep 22 21:30:01 UTC 2014 i686 i686 i686 GNU/Linux
-> $ make distclean
-> $ rm v4l/.config
-> $ git pull
-> $ git log |head
-> commit de98549b53c938b44f578833fe8440b92f4a8c64
-> Author: Hans Verkuil <hans.verkuil@cisco.com>
-> Date:   Mon Jan 12 10:53:27 2015 +0100
-> 
->     Update v3.11_dev_groups.patch
->     
->     Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> commit 3886d538f89948d49b652465e0d52e6e9a7329ab
-> Author: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> $ ./build --main-git
-> ...
->   CC [M]  /home/me/git/clones/media_build/v4l/smiapp-core.o
-> /home/me/git/clones/media_build/v4l/smiapp-core.c: In function 'smiapp_get_pdata':
-> /home/me/git/clones/media_build/v4l/smiapp-core.c:3061:3: error: implicit declaration of function 'of_read_number' [-Werror=implicit-function-declaration]
->    pdata->op_sys_clock[i] = of_read_number(val + i * 2, 2);
->    ^
-> cc1: some warnings being treated as errors
-> make[3]: *** [/home/me/git/clones/media_build/v4l/smiapp-core.o] Error 1
-> make[2]: *** [_module_/home/me/git/clones/media_build/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-headers-3.13.0-37-generic'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/me/git/clones/media_build/v4l'
-> make: *** [all] Error 2
-> build failed at ./build line 491, <IN> line 4.
-> 
-> $ grep -ilr "implicit-function-declaration" . |grep -v o.cmd
-> ./media/tools/thermal/tmon/Makefile
-> ./media/arch/parisc/math-emu/Makefile
-> ./media/Makefile
-> 
-> It's not clear to me whether this a problem with the media_tree code
-> or the media_build code.
-> 
-> media/Makefile contains this definition
-> 
-> KBUILD_CFLAGS := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
->                  -fno-strict-aliasing -fno-common \
->                  -Werror-implicit-function-declaration \
->                  -Wno-format-security \
->                  -std=gnu89
-> 
-> Regards
-> Vince
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index cc05db9..eeb5a4a 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -30,6 +30,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+ #include <linux/mutex.h>
++#include <linux/delay.h>
+ 
+ #define ADV7180_REG_INPUT_CONTROL			0x0000
+ #define ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM	0x00
+@@ -524,6 +525,9 @@ static int init_device(struct adv7180_state *state)
+ 
+ 	mutex_lock(&state->mutex);
+ 
++	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
++	usleep_range(2000, 10000);
++
+ 	/* Initialize adv7180 */
+ 	/* Enable autodetection */
+ 	if (state->autodetect) {
+@@ -696,14 +700,14 @@ static int adv7180_resume(struct device *dev)
+ 	struct adv7180_state *state = to_state(sd);
+ 	int ret;
+ 
+-	if (state->powered) {
+-		ret = adv7180_set_power(state, true);
+-		if (ret)
+-			return ret;
+-	}
+ 	ret = init_device(state);
+ 	if (ret < 0)
+ 		return ret;
++
++	ret = adv7180_set_power(state, state->powered);
++	if (ret)
++		return ret;
++
+ 	return 0;
+ }
+ 
+-- 
+1.8.0
 
