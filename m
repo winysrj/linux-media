@@ -1,160 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55169 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756803AbbAFVJP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:15 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv3 02/20] dvbdev: add support for media controller
-Date: Tue,  6 Jan 2015 19:08:33 -0200
-Message-Id: <83cec940c94c99c164ccdb7a18e1a5213f18b9ac.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
+Received: from smtp-out-190.synserver.de ([212.40.185.190]:1094 "EHLO
+	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755789AbbAWPwu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jan 2015 10:52:50 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	=?UTF-8?q?Richard=20R=C3=B6jfors?=
+	<richard.rojfors@mocean-labs.com>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 14/15] [media] adv7180: Add fast switch support
+Date: Fri, 23 Jan 2015 16:52:33 +0100
+Message-Id: <1422028354-31891-15-git-send-email-lars@metafoo.de>
+In-Reply-To: <1422028354-31891-1-git-send-email-lars@metafoo.de>
+References: <1422028354-31891-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Provide a way to register media controller device nodes
-at the DVB core.
+In fast switch mode the adv7180 (and similar) can lock onto a new signal
+faster when switching between different inputs. As a downside though it is
+no longer able to auto-detect the incoming format.
 
-Please notice that the dvbdev callers also require changes
-for the devices to be registered via the media controller.
+The fast switch mode is exposed as a boolean v4l control that allows
+userspace applications to either enable or disable fast switch mode.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+--
+Changes since v1:
+	* Reserve private control range and use it for the fast switch control
+	* Changed control name from "Fast switch" to "Fast Switch"
+---
+ drivers/media/i2c/adv7180.c        | 29 +++++++++++++++++++++++++++++
+ include/uapi/linux/v4l2-controls.h |  4 ++++
+ 2 files changed, 33 insertions(+)
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 983db75de350..d975cbb29705 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -180,6 +180,58 @@ skip:
- 	return -ENFILE;
- }
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 4d789c7..ee73b29 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -127,6 +127,9 @@
+ #define ADV7180_REG_VPP_SLAVE_ADDR	0xFD
+ #define ADV7180_REG_CSI_SLAVE_ADDR	0xFE
  
-+static void dvb_register_media_device(struct dvb_device *dvbdev,
-+				      int type, int minor)
-+{
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	int ret;
++#define ADV7180_REG_FLCONTROL 0x40e0
++#define ADV7180_FLCONTROL_FL_ENABLE 0x1
 +
-+	if (!dvbdev->adapter->mdev)
-+		return;
-+
-+	dvbdev->entity = kzalloc(sizeof(*dvbdev->entity), GFP_KERNEL);
-+	if (!dvbdev->entity)
-+		return;
-+
-+	dvbdev->entity->info.dvb.major = DVB_MAJOR;
-+	dvbdev->entity->info.dvb.minor = minor;
-+	dvbdev->entity->name = dvbdev->name;
-+	switch(type) {
-+	case DVB_DEVICE_FRONTEND:
-+		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
-+		break;
-+	case DVB_DEVICE_DEMUX:
-+		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
-+		break;
-+	case DVB_DEVICE_DVR:
-+		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
-+		break;
-+	case DVB_DEVICE_CA:
-+		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
-+		break;
-+	case DVB_DEVICE_NET:
-+		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
-+		break;
-+	default:
-+		kfree(dvbdev->entity);
-+		dvbdev->entity = NULL;
-+		return;
-+	}
-+
-+	ret = media_device_register_entity(dvbdev->adapter->mdev, dvbdev->entity);
-+	if (ret < 0) {
-+		printk(KERN_ERR
-+			"%s: media_device_register_entity failed for %s\n",
-+			__func__, dvbdev->entity->name);
-+		kfree(dvbdev->entity);
-+		dvbdev->entity = NULL;
-+		return;
-+	}
-+
-+	printk(KERN_DEBUG "%s: media device '%s' registered.\n",
-+		__func__, dvbdev->entity->name);
-+#endif
-+}
+ #define ADV7180_CSI_REG_PWRDN	0x00
+ #define ADV7180_CSI_PWRDN	0x80
  
- int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
- 			const struct dvb_device *template, void *priv, int type)
-@@ -258,10 +310,11 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
- 		       __func__, adap->num, dnames[type], id, PTR_ERR(clsdev));
- 		return PTR_ERR(clsdev);
+@@ -164,6 +167,8 @@
+ #define ADV7180_DEFAULT_CSI_I2C_ADDR 0x44
+ #define ADV7180_DEFAULT_VPP_I2C_ADDR 0x42
+ 
++#define V4L2_CID_ADV_FAST_SWITCH	(V4L2_CID_USER_ADV7180_BASE + 0x00)
++
+ struct adv7180_state;
+ 
+ #define ADV7180_FLAG_RESET_POWERED	BIT(0)
+@@ -509,6 +514,18 @@ static int adv7180_s_ctrl(struct v4l2_ctrl *ctrl)
+ 			break;
+ 		ret = adv7180_write(state, ADV7180_REG_SD_SAT_CR, val);
+ 		break;
++	case V4L2_CID_ADV_FAST_SWITCH:
++		if (ctrl->val) {
++			/* ADI required write */
++			adv7180_write(state, 0x80d9, 0x44);
++			adv7180_write(state, ADV7180_REG_FLCONTROL,
++				ADV7180_FLCONTROL_FL_ENABLE);
++		} else {
++			/* ADI required write */
++			adv7180_write(state, 0x80d9, 0xc4);
++			adv7180_write(state, ADV7180_REG_FLCONTROL, 0x00);
++		}
++		break;
+ 	default:
+ 		ret = -EINVAL;
  	}
--
- 	dprintk(KERN_DEBUG "DVB: register adapter%d/%s%d @ minor: %i (0x%02x)\n",
- 		adap->num, dnames[type], id, minor, minor);
- 
-+	dvb_register_media_device(dvbdev, type, minor);
-+
- 	return 0;
- }
- EXPORT_SYMBOL(dvb_register_device);
-@@ -278,6 +331,13 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
- 
- 	device_destroy(dvb_class, MKDEV(DVB_MAJOR, dvbdev->minor));
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	if (dvbdev->entity) {
-+		media_device_unregister_entity(dvbdev->entity);
-+		kfree(dvbdev->entity);
-+	}
-+#endif
-+
- 	list_del (&dvbdev->list_head);
- 	kfree (dvbdev->fops);
- 	kfree (dvbdev);
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index f96b28e7fc95..ace8575975d8 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -27,6 +27,7 @@
- #include <linux/poll.h>
- #include <linux/fs.h>
- #include <linux/list.h>
-+#include <media/media-device.h>
- 
- #define DVB_MAJOR 212
- 
-@@ -71,6 +72,10 @@ struct dvb_adapter {
- 	int mfe_shared;			/* indicates mutually exclusive frontends */
- 	struct dvb_device *mfe_dvbdev;	/* frontend device in use */
- 	struct mutex mfe_lock;		/* access lock for thread creation */
-+
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_device *mdev;
-+#endif
+@@ -521,6 +538,16 @@ static const struct v4l2_ctrl_ops adv7180_ctrl_ops = {
+ 	.s_ctrl = adv7180_s_ctrl,
  };
  
- 
-@@ -92,6 +97,14 @@ struct dvb_device {
- 	/* don't really need those !? -- FIXME: use video_usercopy  */
- 	int (*kernel_ioctl)(struct file *file, unsigned int cmd, void *arg);
- 
-+	/* Needed for media controller register/unregister */
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	const char *name;
++static const struct v4l2_ctrl_config adv7180_ctrl_fast_switch = {
++	.ops = &adv7180_ctrl_ops,
++	.id = V4L2_CID_ADV_FAST_SWITCH,
++	.name = "Fast Switching",
++	.type = V4L2_CTRL_TYPE_BOOLEAN,
++	.min = 0,
++	.max = 1,
++	.step = 1,
++};
 +
-+	/* Filled inside dvbdev.c */
-+	struct media_entity *entity;
-+#endif
+ static int adv7180_init_controls(struct adv7180_state *state)
+ {
+ 	v4l2_ctrl_handler_init(&state->ctrl_hdl, 4);
+@@ -537,6 +564,8 @@ static int adv7180_init_controls(struct adv7180_state *state)
+ 	v4l2_ctrl_new_std(&state->ctrl_hdl, &adv7180_ctrl_ops,
+ 			  V4L2_CID_HUE, ADV7180_HUE_MIN,
+ 			  ADV7180_HUE_MAX, 1, ADV7180_HUE_DEF);
++	v4l2_ctrl_new_custom(&state->ctrl_hdl, &adv7180_ctrl_fast_switch, NULL);
 +
- 	void *priv;
- };
+ 	state->sd.ctrl_handler = &state->ctrl_hdl;
+ 	if (state->ctrl_hdl.error) {
+ 		int err = state->ctrl_hdl.error;
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 661f119..9f6e108 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -170,6 +170,10 @@ enum v4l2_colorfx {
+  * We reserve 16 controls for this driver. */
+ #define V4L2_CID_USER_SAA7134_BASE		(V4L2_CID_USER_BASE + 0x1060)
  
++/* The base for the adv7180 driver controls.
++ * We reserve 16 controls for this driver. */
++#define V4L2_CID_USER_ADV7180_BASE		(V4L2_CID_USER_BASE + 0x1070)
++
+ /* MPEG-class control IDs */
+ /* The MPEG controls are applicable to all codec controls
+  * and the 'MPEG' part of the define is historical */
 -- 
-2.1.0
+1.8.0
 
