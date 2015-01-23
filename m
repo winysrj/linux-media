@@ -1,50 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:16739 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753AbbADJDG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 04:03:06 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <devicetree@vger.kernel.org>, <nicolas.ferre@atmel.com>
-CC: <grant.likely@linaro.org>, <galak@codeaurora.org>,
-	<rob@landley.net>, <robh+dt@kernel.org>,
-	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
-	<linux-arm-kernel@lists.infradead.org>, <voice.shen@atmel.com>,
-	<laurent.pinchart@ideasonboard.com>,
-	<alexandre.belloni@free-electrons.com>, <plagnioj@jcrosoft.com>,
-	<boris.brezillon@free-electrons.com>,
-	<linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v2 1/8] ARM: at91: dts: sama5d3: add isi clock
-Date: Sun, 4 Jan 2015 17:02:26 +0800
-Message-ID: <1420362153-500-2-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
-References: <1420362153-500-1-git-send-email-josh.wu@atmel.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:54765 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753186AbbAWJuk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jan 2015 04:50:40 -0500
+Message-ID: <54C21952.7010602@xs4all.nl>
+Date: Fri, 23 Jan 2015 10:50:10 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Shuah Khan <shuahkh@osg.samsung.com>, m.chehab@samsung.com,
+	hans.verkuil@cisco.com, dheitmueller@kernellabs.com,
+	prabhakar.csengg@gmail.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, ttmesterr@gmail.com
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] media: au0828 - convert to use videobuf2
+References: <1421970125-8169-1-git-send-email-shuahkh@osg.samsung.com>
+In-Reply-To: <1421970125-8169-1-git-send-email-shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add ISI peripheral clock in sama5d3.dtsi.
+Hi Shuah,
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
-Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
----
- arch/arm/boot/dts/sama5d3.dtsi | 2 ++
- 1 file changed, 2 insertions(+)
+On 01/23/2015 12:42 AM, Shuah Khan wrote:
+> Convert au0828 to use videobuf2. Tested with NTSC.
+> Tested video and vbi devices with xawtv, tvtime,
+> and vlc. Ran v4l2-compliance to ensure there are
+> no regressions. video now has no failures and vbi
+> has 3 fewer failures.
+> 
+> video before:
+> test VIDIOC_G_FMT: FAIL 3 failures
+> Total: 72, Succeeded: 69, Failed: 3, Warnings: 0
+> 
+> Video after:
+> Total: 72, Succeeded: 72, Failed: 0, Warnings: 18
+> 
+> vbi before:
+>     test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
+>     test VIDIOC_EXPBUF: FAIL
+>     test USERPTR: FAIL
+>     Total: 72, Succeeded: 66, Failed: 6, Warnings: 0
+> 
+> vbi after:
+>     test VIDIOC_QUERYCAP: FAIL
+>     test MMAP: FAIL
+>     Total: 78, Succeeded: 75, Failed: 3, Warnings: 0
 
-diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
-index 5f4144d..61746ef 100644
---- a/arch/arm/boot/dts/sama5d3.dtsi
-+++ b/arch/arm/boot/dts/sama5d3.dtsi
-@@ -214,6 +214,8 @@
- 				compatible = "atmel,at91sam9g45-isi";
- 				reg = <0xf0034000 0x4000>;
- 				interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
-+				clocks = <&isi_clk>;
-+				clock-names = "isi_clk";
- 				status = "disabled";
- 			};
- 
--- 
-1.9.1
+There shouldn't be any fails for VBI. That really needs to be fixed.
+Esp. the QUERYCAP fail should be easy to fix.
 
+BTW, can you paste the full v4l2-compliance output next time? That's
+more informative than just these summaries.
+
+Regards,
+
+	Hans
