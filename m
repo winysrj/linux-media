@@ -1,51 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60829 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755678AbbAWQvk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 11:51:40 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 21/21] [media] coda: simplify check in coda_buf_queue
-Date: Fri, 23 Jan 2015 17:51:35 +0100
-Message-Id: <1422031895-7740-22-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
-References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+Received: from lists.s-osg.org ([54.187.51.154]:54005 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755455AbbAWPA3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jan 2015 10:00:29 -0500
+Message-ID: <54C26204.9000106@osg.samsung.com>
+Date: Fri, 23 Jan 2015 08:00:20 -0700
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com,
+	hans.verkuil@cisco.com, dheitmueller@kernellabs.com,
+	prabhakar.csengg@gmail.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, ttmesterr@gmail.com
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] media: au0828 - convert to use videobuf2
+References: <1421970125-8169-1-git-send-email-shuahkh@osg.samsung.com> <54C21952.7010602@xs4all.nl>
+In-Reply-To: <54C21952.7010602@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the bitstream buffer is only allocated for the BIT decoder
-case, we can use bitstream.size to check for bitstream ringbuffer
-operation.
+On 01/23/2015 02:50 AM, Hans Verkuil wrote:
+> Hi Shuah,
+> 
+> On 01/23/2015 12:42 AM, Shuah Khan wrote:
+>> Convert au0828 to use videobuf2. Tested with NTSC.
+>> Tested video and vbi devices with xawtv, tvtime,
+>> and vlc. Ran v4l2-compliance to ensure there are
+>> no regressions. video now has no failures and vbi
+>> has 3 fewer failures.
+>>
+>> video before:
+>> test VIDIOC_G_FMT: FAIL 3 failures
+>> Total: 72, Succeeded: 69, Failed: 3, Warnings: 0
+>>
+>> Video after:
+>> Total: 72, Succeeded: 72, Failed: 0, Warnings: 18
+>>
+>> vbi before:
+>>     test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
+>>     test VIDIOC_EXPBUF: FAIL
+>>     test USERPTR: FAIL
+>>     Total: 72, Succeeded: 66, Failed: 6, Warnings: 0
+>>
+>> vbi after:
+>>     test VIDIOC_QUERYCAP: FAIL
+>>     test MMAP: FAIL
+>>     Total: 78, Succeeded: 75, Failed: 3, Warnings: 0
+> 
+> There shouldn't be any fails for VBI. That really needs to be fixed.
+> Esp. the QUERYCAP fail should be easy to fix.
+> 
+> BTW, can you paste the full v4l2-compliance output next time? That's
+> more informative than just these summaries.
+> 
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I will re-run the tests and fix it and resend the patch. I think I was
+seeing querycap compliance failure when run with -V0 option and not when
+I run it without. I can attach the full log.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index c19f4b7..3118076 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1154,6 +1154,7 @@ static int coda_buf_prepare(struct vb2_buffer *vb)
- static void coda_buf_queue(struct vb2_buffer *vb)
- {
- 	struct coda_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-+	struct vb2_queue *vq = vb->vb2_queue;
- 	struct coda_q_data *q_data;
- 
- 	q_data = get_q_data(ctx, vb->vb2_queue->type);
-@@ -1162,8 +1163,7 @@ static void coda_buf_queue(struct vb2_buffer *vb)
- 	 * In the decoder case, immediately try to copy the buffer into the
- 	 * bitstream ringbuffer and mark it as ready to be dequeued.
- 	 */
--	if (ctx->use_bit && ctx->inst_type == CODA_INST_DECODER &&
--	    vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-+	if (ctx->bitstream.size && vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
- 		/*
- 		 * For backwards compatibility, queuing an empty buffer marks
- 		 * the stream end
+thanks,
+-- Shuah
+
+thanks,
+-- Shuah
+
+
 -- 
-2.1.4
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
