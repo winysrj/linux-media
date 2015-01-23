@@ -1,68 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:20210 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752822AbbA2Peh (ORCPT
+Received: from mail-ig0-f178.google.com ([209.85.213.178]:47430 "EHLO
+	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751035AbbAWFnE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 10:34:37 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NIY00KH43G7PZ10@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Jan 2015 15:38:31 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Philipp Zabel' <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org
-References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
- <1422031895-7740-3-git-send-email-p.zabel@pengutronix.de>
-In-reply-to: <1422031895-7740-3-git-send-email-p.zabel@pengutronix.de>
-Subject: RE: [PATCH 02/21] [media] coda: bitrate can only be set in kbps steps
-Date: Thu, 29 Jan 2015 16:34:25 +0100
-Message-id: <029c01d03bd9$10b19580$3214c080$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Fri, 23 Jan 2015 00:43:04 -0500
+Received: by mail-ig0-f178.google.com with SMTP id hl2so452385igb.5
+        for <linux-media@vger.kernel.org>; Thu, 22 Jan 2015 21:43:03 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1421938721.3084.35.camel@pengutronix.de>
+References: <CAOMZO5BgYVQQY4_jJK0h1jMW-Tpb8DHqAkfi2MerhmndMSZr3w@mail.gmail.com>
+ <1418308963.2320.14.camel@collabora.com> <5489AE9A.8030204@xs4all.nl> <1421938721.3084.35.camel@pengutronix.de>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Fri, 23 Jan 2015 14:36:30 +0900
+Message-ID: <CAMm-=zCSe0cs4zS6z+dp8fLT-xf1Ug9mZ=E4SW1iW-PAL3QeRg@mail.gmail.com>
+Subject: Re: coda: not generating EOS event
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Fabio Estevam <festevam@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	frederic.sureau@vodalys.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Philipp,
 
-Could you add a one sentence description for this patch?
-I know that it is really simple, but still the description is still
-necessary.
+On Thu, Jan 22, 2015 at 11:58 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Hi,
+>
+> Are you planning to pour the workshop's codec API document into a V4L2
+> documentation patch?
 
-Best wishes,
+Yes, definitely, I am a bit delayed, but will do this eventually, this
+is in progress. Sorry for the delay. Please feel free to submit
+anything related to EOS if you decide to work on this.
+
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
-
-
-> -----Original Message-----
-> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
-> Sent: Friday, January 23, 2015 5:51 PM
-> To: Kamil Debski
-> Cc: linux-media@vger.kernel.org; Philipp Zabel
-> Subject: [PATCH 02/21] [media] coda: bitrate can only be set in kbps
-> steps
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/platform/coda/coda-common.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/coda/coda-common.c
-> b/drivers/media/platform/coda/coda-common.c
-> index 39330a7..1cc4e90 100644
-> --- a/drivers/media/platform/coda/coda-common.c
-> +++ b/drivers/media/platform/coda/coda-common.c
-> @@ -1407,7 +1407,7 @@ static const struct v4l2_ctrl_ops coda_ctrl_ops =
-> {  static void coda_encode_ctrls(struct coda_ctx *ctx)  {
->  	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-> -		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1, 0);
-> +		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1000, 0);
->  	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
->  		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 60, 1, 16);
->  	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-> --
-> 2.1.4
-
+Best regards,
+Pawel
