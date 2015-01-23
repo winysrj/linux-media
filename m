@@ -1,59 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:48550 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691AbbAUERY (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60798 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755572AbbAWQvj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 23:17:24 -0500
-Received: by mail-pd0-f179.google.com with SMTP id v10so29040367pde.10
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 20:17:23 -0800 (PST)
-From: Sumit Semwal <sumit.semwal@linaro.org>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org
-Cc: linaro-kernel@lists.linaro.org, robdclark@gmail.com,
-	daniel@ffwll.ch, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [RFCv2 0/2] dma-parms, constraints and helpers for dma-buf
-Date: Wed, 21 Jan 2015 09:46:45 +0530
-Message-Id: <1421813807-9178-1-git-send-email-sumit.semwal@linaro.org>
+	Fri, 23 Jan 2015 11:51:39 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 03/21] [media] coda: remove context debugfs entry last
+Date: Fri, 23 Jan 2015 17:51:17 +0100
+Message-Id: <1422031895-7740-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Everyone,
+Do not remove the per-context debugfs directory before the
+per-buffer debugfs entries contained therein.
 
-Based on review comments received, I've split my earlier patchset on
-'dma-buf constraints-enabled allocation' [1] into 2 sets:
-- first one is this one, to use dma_parms and related parameters from
-   struct device to share constraints, and then to use these constraints in
-   dma-buf to help find the least common constraint set that could then be
-   used by exporters to decide on allocation.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-   This is a partial re-write of what Rob Clark proposed some while ago [2];
-   I've tried to take care of review comments on his patchset, but any errors
-   and omissions are, ofcourse, mine.
-
-- Second part, one which I'm working on, and will post soon, aims at adding
-   allocator-helpers in dma-buf framework which could use this constraint
-   information to help choose the right allocator from a list.
-
-While I work on the second part, I thought of sending the RFC for this one,
-to get feedback on whether this mechanism seems ok to everyone.
-
-[1] https://lkml.org/lkml/2014/10/10/340
-[2] https://lkml.org/lkml/2012/7/19/285
-
-Rob Clark (1):
-  device: add dma_params->max_segment_count
-
-Sumit Semwal (1):
-  dma-buf: add helpers for sharing attacher constraints with dma-parms
-
- drivers/dma-buf/dma-buf.c   | 134 +++++++++++++++++++++++++++++++++++++++++++-
- include/linux/device.h      |   1 +
- include/linux/dma-buf.h     |  22 ++++++++
- include/linux/dma-mapping.h |  19 +++++++
- 4 files changed, 175 insertions(+), 1 deletion(-)
-
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 1cc4e90..9a0ee11 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1693,8 +1693,6 @@ static int coda_release(struct file *file)
+ 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Releasing instance %p\n",
+ 		 ctx);
+ 
+-	debugfs_remove_recursive(ctx->debugfs_entry);
+-
+ 	if (ctx->inst_type == CODA_INST_DECODER)
+ 		coda_bit_stream_end_flag(ctx);
+ 
+@@ -1728,6 +1726,7 @@ static int coda_release(struct file *file)
+ 	clear_bit(ctx->idx, &dev->instance_mask);
+ 	if (ctx->ops->release)
+ 		ctx->ops->release(ctx);
++	debugfs_remove_recursive(ctx->debugfs_entry);
+ 	kfree(ctx);
+ 
+ 	return 0;
 -- 
-1.9.1
+2.1.4
 
