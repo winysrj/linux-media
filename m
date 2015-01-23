@@ -1,75 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-190.synserver.de ([212.40.185.190]:1082 "EHLO
-	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755402AbbAWPwi (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60830 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755691AbbAWQvk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 10:52:38 -0500
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?=
-	<richard.rojfors@mocean-labs.com>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 01/15] [media] adv7180: Do not request the IRQ again during resume
-Date: Fri, 23 Jan 2015 16:52:20 +0100
-Message-Id: <1422028354-31891-2-git-send-email-lars@metafoo.de>
-In-Reply-To: <1422028354-31891-1-git-send-email-lars@metafoo.de>
-References: <1422028354-31891-1-git-send-email-lars@metafoo.de>
+	Fri, 23 Jan 2015 11:51:40 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, Markus Pargmann <mpa@pengutronix.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 11/21] [media] coda: fix width validity check when starting to decode
+Date: Fri, 23 Jan 2015 17:51:25 +0100
+Message-Id: <1422031895-7740-12-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the IRQ is requested from within the init_device() function. This
-function is not only called during device probe, but also during resume
-causing the driver to try to request the IRQ again. Move requesting the IRQ
-from init_device() to the probe function to make sure that it is only
-requested once.
+From: Markus Pargmann <mpa@pengutronix.de>
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Compare rounded up width to fit into bytesperline.
+
+Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/i2c/adv7180.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/media/platform/coda/coda-bit.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index bffe6eb..172e4a2 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -553,11 +553,6 @@ static int init_device(struct i2c_client *client, struct adv7180_state *state)
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index d81635d..6ecfd29 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1431,9 +1431,10 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
+ 		height = val & CODA7_PICHEIGHT_MASK;
+ 	}
  
- 	/* register for interrupts */
- 	if (state->irq > 0) {
--		ret = request_threaded_irq(state->irq, NULL, adv7180_irq,
--					   IRQF_ONESHOT, KBUILD_MODNAME, state);
--		if (ret)
--			return ret;
--
- 		ret = i2c_smbus_write_byte_data(client, ADV7180_ADI_CTRL_REG,
- 						ADV7180_ADI_CTRL_IRQ_SPACE);
- 		if (ret < 0)
-@@ -597,7 +592,6 @@ static int init_device(struct i2c_client *client, struct adv7180_state *state)
- 	return 0;
+-	if (width > q_data_dst->width || height > q_data_dst->height) {
++	if (width > q_data_dst->bytesperline || height > q_data_dst->height) {
+ 		v4l2_err(&dev->v4l2_dev, "stream is %dx%d, not %dx%d\n",
+-			 width, height, q_data_dst->width, q_data_dst->height);
++			 width, height, q_data_dst->bytesperline,
++			 q_data_dst->height);
+ 		return -EINVAL;
+ 	}
  
- err:
--	free_irq(state->irq, state);
- 	return ret;
- }
- 
-@@ -636,6 +630,13 @@ static int adv7180_probe(struct i2c_client *client,
- 	if (ret)
- 		goto err_free_ctrl;
- 
-+	if (state->irq) {
-+		ret = request_threaded_irq(client->irq, NULL, adv7180_irq,
-+					   IRQF_ONESHOT, KBUILD_MODNAME, state);
-+		if (ret)
-+			goto err_free_ctrl;
-+	}
-+
- 	ret = v4l2_async_register_subdev(sd);
- 	if (ret)
- 		goto err_free_irq;
 -- 
-1.8.0
+2.1.4
 
