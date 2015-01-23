@@ -1,38 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:35864 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752758AbbA2BKv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 20:10:51 -0500
-Date: Wed, 28 Jan 2015 14:58:43 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 7/7] [media] marvell-ccic needs VIDEOBUF2_DMA_SG
-Message-ID: <20150128145843.16683733@lwn.net>
-In-Reply-To: <1422479867-3370921-8-git-send-email-arnd@arndb.de>
-References: <1422479867-3370921-1-git-send-email-arnd@arndb.de>
-	<1422479867-3370921-8-git-send-email-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from smtp-out-190.synserver.de ([212.40.185.190]:1096 "EHLO
+	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755831AbbAWPwv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jan 2015 10:52:51 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	=?UTF-8?q?Richard=20R=C3=B6jfors?=
+	<richard.rojfors@mocean-labs.com>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 15/15] [media] Add MAINTAINERS entry for the adv7180
+Date: Fri, 23 Jan 2015 16:52:34 +0100
+Message-Id: <1422028354-31891-16-git-send-email-lars@metafoo.de>
+In-Reply-To: <1422028354-31891-1-git-send-email-lars@metafoo.de>
+References: <1422028354-31891-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 28 Jan 2015 22:17:47 +0100
-Arnd Bergmann <arnd@arndb.de> wrote:
+Add myself as the maintainer for the adv7180 video subdev driver.
 
-> The vb2_dma_sg_memops pointer is only valid if VIDEOBUF2_DMA_SG is
-> set, so we should select that to avoid this build error:
-> 
-> drivers/built-in.o: In function `mcam_v4l_open':
-> :(.text+0x388d00): undefined reference to `vb2_dma_sg_memops'
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ MAINTAINERS | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-I acked this one the last time it came around (I forget from who).  I
-still don't know how to create a .config that exposes the problem, but
-others have clearly succeeded in doing it.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4318f34..22bb77e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -659,6 +659,13 @@ L:	linux-media@vger.kernel.org
+ S:	Maintained
+ F:	drivers/media/i2c/ad9389b*
+ 
++ANALOG DEVICES INC ADV7180 DRIVER
++M:	Lars-Peter Clausen <lars@metafoo.de>
++L:	linux-media@vger.kernel.org
++W:	http://ez.analog.com/community/linux-device-drivers
++S:	Supported
++F:	drivers/media/i2c/adv7180.c
++
+ ANALOG DEVICES INC ADV7511 DRIVER
+ M:	Hans Verkuil <hans.verkuil@cisco.com>
+ L:	linux-media@vger.kernel.org
+-- 
+1.8.0
 
-Acked-by: Jonathan Corbet <corbet@lwn.net>
-
-jon
