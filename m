@@ -1,44 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:57450 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753287AbbA2BWI (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60840 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755752AbbAWQvr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 20:22:08 -0500
-Received: by mail-pa0-f48.google.com with SMTP id ey11so32122316pad.7
-        for <linux-media@vger.kernel.org>; Wed, 28 Jan 2015 17:22:08 -0800 (PST)
-From: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
-To: laurent.pinchart+renesas@ideasonboard.com
-Cc: linux-media@vger.kernel.org,
-	Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
-Subject: [PATCH 3/3] [media] v4l: vsp1: Fix VI6_DPR_ROUTE_FXA_MASK macro
-Date: Thu, 29 Jan 2015 09:53:55 +0900
-Message-Id: <1422492835-4398-3-git-send-email-nobuhiro.iwamatsu.yj@renesas.com>
-In-Reply-To: <1422492835-4398-1-git-send-email-nobuhiro.iwamatsu.yj@renesas.com>
-References: <1422492835-4398-1-git-send-email-nobuhiro.iwamatsu.yj@renesas.com>
+	Fri, 23 Jan 2015 11:51:47 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 20/21] [media] coda: allocate bitstream ringbuffer only for BIT decoder
+Date: Fri, 23 Jan 2015 17:51:34 +0100
+Message-Id: <1422031895-7740-21-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-FXA bit of VI6_DPR_mod_ROUTE register starts from 16bit. But VI6_DPR_ROUTE_FXA_MASK
-is set to become start from 8bit. This fixes shift size for VI6_DPR_ROUTE_FXA_MASK.
+The BIT encoder does not use a per-context bitstream ringbuffer as it encodes
+directly into the videobuf2 capture queue's buffers. Avoid allocation of the
+bitstream ringbuffer for encoder contexts.
 
-Signed-off-by: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/vsp1/vsp1_regs.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/coda/coda-common.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-index 4177f98..25b4873 100644
---- a/drivers/media/platform/vsp1/vsp1_regs.h
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -304,7 +304,7 @@
- #define VI6_DPR_HST_ROUTE		0x2044
- #define VI6_DPR_HSI_ROUTE		0x2048
- #define VI6_DPR_BRU_ROUTE		0x204c
--#define VI6_DPR_ROUTE_FXA_MASK		(0xff << 8)
-+#define VI6_DPR_ROUTE_FXA_MASK		(0xff << 16)
- #define VI6_DPR_ROUTE_FXA_SHIFT		16
- #define VI6_DPR_ROUTE_FP_MASK		(0x3f << 8)
- #define VI6_DPR_ROUTE_FP_SHIFT		8
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 2defa4b..c19f4b7 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1689,7 +1689,8 @@ static int coda_open(struct file *file)
+ 			v4l2_err(&dev->v4l2_dev, "failed to allocate parabuf");
+ 			goto err_dma_alloc;
+ 		}
+-
++	}
++	if (ctx->use_bit && ctx->inst_type == CODA_INST_DECODER) {
+ 		ctx->bitstream.size = CODA_MAX_FRAME_SIZE;
+ 		ctx->bitstream.vaddr = dma_alloc_writecombine(
+ 				&dev->plat_dev->dev, ctx->bitstream.size,
 -- 
-2.1.3
+2.1.4
 
