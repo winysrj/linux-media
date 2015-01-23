@@ -1,95 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55794 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750913AbbAXIEy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Jan 2015 03:04:54 -0500
-Date: Sat, 24 Jan 2015 06:04:49 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.19-rc6] media fixes
-Message-ID: <20150124060449.42fca4ff@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-out-190.synserver.de ([212.40.185.190]:1076 "EHLO
+	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755549AbbAWPwi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jan 2015 10:52:38 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	=?UTF-8?q?Richard=20R=C3=B6jfors?=
+	<richard.rojfors@mocean-labs.com>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 00/15] [media] adv7180: Add support for more chip variants
+Date: Fri, 23 Jan 2015 16:52:19 +0100
+Message-Id: <1422028354-31891-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Changes from v1:
+	* Reserved custom user control range for the fast switch control
+	* Dropped the free-run mode control patch for now. The controls should
+	  probably be standardized first, but that is going to be a different
+	  patch series.
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media media/v3.19-4
+Original cover letter below:
 
-For:
-  - Fix some race conditions caused by a regression on videobuf2;
-  - Fix a interrupt release bug on cx23885;
-  - Fix support for Mygica T230 and HVR4400;
-  - Fix compilation breakage when USB is not selected on tlg2300;
-  - Fix capabilities report on ompa3isp, soc-camera, rcar_vin and pvrusb2;
+The adv7180 is part of a larger family of chips which all implement
+different features from a feature superset. This patch series step by step
+extends the current adv7180 with features from the superset that are
+currently not supported and gradually adding support for more variations of
+the chip.
 
-Regards,
-Mauro
+The first half of this series contains fixes and cleanups while the second
+half adds new features and support for new chips
 
-PS.: e-mail resent, as I forgot to push the tag.
 
--
+Lars-Peter Clausen (15):
+  [media] adv7180: Do not request the IRQ again during resume
+  [media] adv7180: Pass correct flags to request_threaded_irq()
+  [media] adv7180: Use inline function instead of macro
+  [media] adv7180: Cleanup register define naming
+  [media] adv7180: Do implicit register paging
+  [media] adv7180: Reset the device before initialization
+  [media] adv7180: Add media controller support
+  [media] adv7180: Consolidate video mode setting
+  [media] adv7180: Prepare for multi-chip support
+  [media] adv7180: Add support for the adv7182
+  [media] adv7180: Add support for the adv7280/adv7281/adv7282
+  [media] adv7180: Add support for the
+    adv7280-m/adv7281-m/adv7281-ma/adv7282-m
+  [media] adv7180: Add I2P support
+  [media] adv7180: Add fast switch support
+  [media] Add MAINTAINERS entry for the adv7180
 
-The following changes since commit 427ae153c65ad7a08288d86baf99000569627d03:
+ MAINTAINERS                        |    7 +
+ drivers/media/i2c/Kconfig          |    2 +-
+ drivers/media/i2c/adv7180.c        | 1016 +++++++++++++++++++++++++++++-------
+ drivers/media/pci/sta2x11/Kconfig  |    1 +
+ drivers/media/platform/Kconfig     |    2 +-
+ include/uapi/linux/v4l2-controls.h |    4 +
+ 6 files changed, 831 insertions(+), 201 deletions(-)
 
-  [media] bq/c-qcam, w9966, pms: move to staging in preparation for removal (2014-12-16 23:21:44 -0200)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media media/v3.19-4
-
-for you to fetch changes up to 2c0108e1c02f9fc95f465adc4d2ce1ad8688290a:
-
-  [media] omap3isp: Correctly set QUERYCAP capabilities (2015-01-21 21:09:11 -0200)
-
-----------------------------------------------------------------
-media fixes for v3.19-rc6
-
-----------------------------------------------------------------
-Guennadi Liakhovetski (1):
-      [media] soc-camera: fix device capabilities in multiple camera host drivers
-
-Hans Verkuil (3):
-      [media] vb2: fix vb2_thread_stop race conditions
-      [media] pvrusb2: fix missing device_caps in querycap
-      [media] cx23885: fix free interrupt bug
-
-Jonathan McDowell (1):
-      [media] Fix Mygica T230 support
-
-Matthias Schwarzott (1):
-      [media] cx23885: Split Hauppauge WinTV Starburst from HVR4400 card entry
-
-Mauro Carvalho Chehab (1):
-      [media] tlg2300: Fix media dependencies
-
-Nobuhiro Iwamatsu (1):
-      [media] rcar_vin: Update device_caps and capabilities in querycap
-
-Sakari Ailus (1):
-      [media] omap3isp: Correctly set QUERYCAP capabilities
-
- drivers/media/pci/cx23885/cx23885-cards.c          | 23 +++++++++++++++------
- drivers/media/pci/cx23885/cx23885-core.c           |  4 ++--
- drivers/media/pci/cx23885/cx23885-dvb.c            | 11 ++++++++++
- drivers/media/pci/cx23885/cx23885.h                |  1 +
- drivers/media/platform/omap3isp/ispvideo.c         |  7 +++++--
- drivers/media/platform/soc_camera/atmel-isi.c      |  5 +++--
- drivers/media/platform/soc_camera/mx2_camera.c     |  3 ++-
- drivers/media/platform/soc_camera/mx3_camera.c     |  3 ++-
- drivers/media/platform/soc_camera/omap1_camera.c   |  3 ++-
- drivers/media/platform/soc_camera/pxa_camera.c     |  3 ++-
- drivers/media/platform/soc_camera/rcar_vin.c       |  4 +++-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |  4 +++-
- drivers/media/usb/dvb-usb/cxusb.c                  |  2 +-
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           | 24 ++++++++++++----------
- drivers/media/v4l2-core/videobuf2-core.c           | 19 ++++++++---------
- drivers/staging/media/tlg2300/Kconfig              |  1 +
- 16 files changed, 77 insertions(+), 40 deletions(-)
+-- 
+1.8.0
 
