@@ -1,117 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49927 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751474AbbATDkI (ORCPT
+Received: from smtp-out-190.synserver.de ([212.40.185.190]:1152 "EHLO
+	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755780AbbAWPwr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 22:40:08 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0F5D42A0080
-	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 04:39:44 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150120033944.0F5D42A0080@tschai.lan>
-Date: Tue, 20 Jan 2015 04:39:44 +0100 (CET)
+	Fri, 23 Jan 2015 10:52:47 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	=?UTF-8?q?Richard=20R=C3=B6jfors?=
+	<richard.rojfors@mocean-labs.com>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 11/15] [media] adv7180: Add support for the adv7280/adv7281/adv7282
+Date: Fri, 23 Jan 2015 16:52:30 +0100
+Message-Id: <1422028354-31891-12-git-send-email-lars@metafoo.de>
+In-Reply-To: <1422028354-31891-1-git-send-email-lars@metafoo.de>
+References: <1422028354-31891-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch adds support for the adv7280/adv7281/adv7282 devices to the
+adv7180 driver. They are very similar to the adv7182, the main difference
+from the drivers point of view are some different tuning constants for
+improved video performance.
 
-Results of the daily build of media_tree:
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7180.c | 56 +++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 54 insertions(+), 2 deletions(-)
 
-date:		Tue Jan 20 04:00:16 CET 2015
-git branch:	test
-git hash:	99f3cd52aee21091ce62442285a68873e3be833f
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-1.slh.1-amd64
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 4e518d5..ea6695c 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -158,6 +158,7 @@
+ struct adv7180_state;
+ 
+ #define ADV7180_FLAG_RESET_POWERED	BIT(0)
++#define ADV7180_FLAG_V2			BIT(1)
+ 
+ struct adv7180_chip_info {
+ 	unsigned int flags;
+@@ -638,9 +639,18 @@ static int adv7180_select_input(struct adv7180_state *state, unsigned int input)
+ 
+ static int adv7182_init(struct adv7180_state *state)
+ {
++	if (state->chip_info->flags & ADV7180_FLAG_V2) {
++		/* ADI recommended writes for improved video quality */
++		adv7180_write(state, 0x0080, 0x51);
++		adv7180_write(state, 0x0081, 0x51);
++		adv7180_write(state, 0x0082, 0x68);
++		adv7180_write(state, 0x0004, 0x17);
++	} else {
++		adv7180_write(state, 0x0004, 0x07);
++	}
++
+ 	/* ADI required writes */
+ 	adv7180_write(state, 0x0003, 0x0c);
+-	adv7180_write(state, 0x0004, 0x07);
+ 	adv7180_write(state, 0x0013, 0x00);
+ 	adv7180_write(state, 0x001d, 0x40);
+ 
+@@ -697,6 +707,13 @@ static unsigned int adv7182_lbias_settings[][3] = {
+ 	[ADV7182_INPUT_TYPE_YPBPR] = { 0x0B, 0x4E, 0xC0 },
+ };
+ 
++static unsigned int adv7280_lbias_settings[][3] = {
++	[ADV7182_INPUT_TYPE_CVBS] = { 0xCD, 0x4E, 0x80 },
++	[ADV7182_INPUT_TYPE_DIFF_CVBS] = { 0xC0, 0x4E, 0x80 },
++	[ADV7182_INPUT_TYPE_SVIDEO] = { 0x0B, 0xCE, 0x80 },
++	[ADV7182_INPUT_TYPE_YPBPR] = { 0x0B, 0x4E, 0xC0 },
++};
++
+ static int adv7182_select_input(struct adv7180_state *state, unsigned int input)
+ {
+ 	enum adv7182_input_type input_type;
+@@ -725,7 +742,10 @@ static int adv7182_select_input(struct adv7180_state *state, unsigned int input)
+ 		break;
+ 	}
+ 
+-	lbias = adv7182_lbias_settings[input_type];
++	if (state->chip_info->flags & ADV7180_FLAG_V2)
++		lbias = adv7280_lbias_settings[input_type];
++	else
++		lbias = adv7182_lbias_settings[input_type];
+ 
+ 	for (i = 0; i < ARRAY_SIZE(adv7182_lbias_settings[0]); i++)
+ 		adv7180_write(state, 0x0052 + i, lbias[i]);
+@@ -784,6 +804,35 @@ static const struct adv7180_chip_info adv7182_info = {
+ 	.select_input = adv7182_select_input,
+ };
+ 
++static const struct adv7180_chip_info adv7280_info = {
++	.flags = ADV7180_FLAG_V2,
++	.valid_input_mask = BIT(ADV7182_INPUT_CVBS_AIN1) |
++		BIT(ADV7182_INPUT_CVBS_AIN2) |
++		BIT(ADV7182_INPUT_CVBS_AIN3) |
++		BIT(ADV7182_INPUT_CVBS_AIN4) |
++		BIT(ADV7182_INPUT_SVIDEO_AIN1_AIN2) |
++		BIT(ADV7182_INPUT_SVIDEO_AIN3_AIN4) |
++		BIT(ADV7182_INPUT_YPRPB_AIN1_AIN2_AIN3),
++	.init = adv7182_init,
++	.set_std = adv7182_set_std,
++	.select_input = adv7182_select_input,
++};
++
++static const struct adv7180_chip_info adv7281_info = {
++	.flags = ADV7180_FLAG_V2,
++	.valid_input_mask = BIT(ADV7182_INPUT_CVBS_AIN1) |
++		BIT(ADV7182_INPUT_CVBS_AIN2) |
++		BIT(ADV7182_INPUT_CVBS_AIN7) |
++		BIT(ADV7182_INPUT_CVBS_AIN8) |
++		BIT(ADV7182_INPUT_SVIDEO_AIN1_AIN2) |
++		BIT(ADV7182_INPUT_SVIDEO_AIN7_AIN8) |
++		BIT(ADV7182_INPUT_DIFF_CVBS_AIN1_AIN2) |
++		BIT(ADV7182_INPUT_DIFF_CVBS_AIN7_AIN8),
++	.init = adv7182_init,
++	.set_std = adv7182_set_std,
++	.select_input = adv7182_select_input,
++};
++
+ static int init_device(struct adv7180_state *state)
+ {
+ 	int ret;
+@@ -930,6 +979,9 @@ static int adv7180_remove(struct i2c_client *client)
+ static const struct i2c_device_id adv7180_id[] = {
+ 	{ "adv7180", (kernel_ulong_t)&adv7180_info },
+ 	{ "adv7182", (kernel_ulong_t)&adv7182_info },
++	{ "adv7280", (kernel_ulong_t)&adv7280_info },
++	{ "adv7281", (kernel_ulong_t)&adv7281_info },
++	{ "adv7282", (kernel_ulong_t)&adv7281_info },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(i2c, adv7180_id);
+-- 
+1.8.0
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18-i686: OK
-linux-3.19-rc4-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18-x86_64: ERRORS
-linux-3.19-rc4-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
