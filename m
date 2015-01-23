@@ -1,99 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61774 "EHLO
-	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753044AbbAPPdT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2015 10:33:19 -0500
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
-Subject: [PATCH 1/2] media: rcar_vin: Fix race condition terminating stream
-Date: Fri, 16 Jan 2015 15:14:26 +0000
-Message-Id: <1421421267-886-2-git-send-email-william.towle@codethink.co.uk>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60829 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755678AbbAWQvk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jan 2015 11:51:40 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 21/21] [media] coda: simplify check in coda_buf_queue
+Date: Fri, 23 Jan 2015 17:51:35 +0100
+Message-Id: <1422031895-7740-22-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ian Molton <ian.molton@codethink.co.uk>
+Now that the bitstream buffer is only allocated for the BIT decoder
+case, we can use bitstream.size to check for bitstream ringbuffer
+operation.
 
-The potential for a race condition exists where frame capture may
-generate an interrupt between requesting the capture process halt
-and freeing buffers.
-
-Introduce rcar_vin_wait_stop_streaming() and call it in appropriate
-places so we ensure capturing has finished where this is critical.
-
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/soc_camera/rcar_vin.c |   41 +++++++++++++++++---------
- 1 file changed, 27 insertions(+), 14 deletions(-)
+ drivers/media/platform/coda/coda-common.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 8d8438b..89c409b 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -458,6 +458,28 @@ error:
- 	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
- }
- 
-+/*
-+ * Wait for capture to stop and all in-flight buffers to be finished with by
-+ * the video hardware. This must be called under &priv->lock
-+ *
-+ */
-+static void rcar_vin_wait_stop_streaming(struct rcar_vin_priv *priv)
-+{
-+	while (priv->state != STOPPED) {
-+		/* issue stop if running */
-+		if (priv->state == RUNNING)
-+			rcar_vin_request_capture_stop(priv);
-+
-+		/* wait until capturing has been stopped */
-+		if (priv->state == STOPPING) {
-+			priv->request_to_stop = true;
-+			spin_unlock_irq(&priv->lock);
-+			wait_for_completion(&priv->capture_stop);
-+			spin_lock_irq(&priv->lock);
-+		}
-+	}
-+}
-+
- static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index c19f4b7..3118076 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1154,6 +1154,7 @@ static int coda_buf_prepare(struct vb2_buffer *vb)
+ static void coda_buf_queue(struct vb2_buffer *vb)
  {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
-@@ -477,20 +499,8 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
- 	}
+ 	struct coda_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	struct vb2_queue *vq = vb->vb2_queue;
+ 	struct coda_q_data *q_data;
  
- 	if (buf_in_use) {
--		while (priv->state != STOPPED) {
--
--			/* issue stop if running */
--			if (priv->state == RUNNING)
--				rcar_vin_request_capture_stop(priv);
--
--			/* wait until capturing has been stopped */
--			if (priv->state == STOPPING) {
--				priv->request_to_stop = true;
--				spin_unlock_irq(&priv->lock);
--				wait_for_completion(&priv->capture_stop);
--				spin_lock_irq(&priv->lock);
--			}
--		}
-+		rcar_vin_wait_stop_streaming(priv);
-+
+ 	q_data = get_q_data(ctx, vb->vb2_queue->type);
+@@ -1162,8 +1163,7 @@ static void coda_buf_queue(struct vb2_buffer *vb)
+ 	 * In the decoder case, immediately try to copy the buffer into the
+ 	 * bitstream ringbuffer and mark it as ready to be dequeued.
+ 	 */
+-	if (ctx->use_bit && ctx->inst_type == CODA_INST_DECODER &&
+-	    vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
++	if (ctx->bitstream.size && vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
  		/*
- 		 * Capturing has now stopped. The buffer we have been asked
- 		 * to release could be any of the current buffers in use, so
-@@ -524,8 +534,11 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
- 	struct list_head *buf_head, *tmp;
- 
- 	spin_lock_irq(&priv->lock);
-+
-+	rcar_vin_wait_stop_streaming(priv);
- 	list_for_each_safe(buf_head, tmp, &priv->capture)
- 		list_del_init(buf_head);
-+
- 	spin_unlock_irq(&priv->lock);
- }
- 
+ 		 * For backwards compatibility, queuing an empty buffer marks
+ 		 * the stream end
 -- 
-1.7.10.4
+2.1.4
 
