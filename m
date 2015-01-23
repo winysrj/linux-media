@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59870 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750814AbbAVMLl (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60801 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755577AbbAWQvj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 07:11:41 -0500
-Received: from avalon.localnet (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id AEB7920AEF
-	for <linux-media@vger.kernel.org>; Thu, 22 Jan 2015 13:07:30 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.20] VSP1 fixes
-Date: Thu, 22 Jan 2015 14:12:15 +0200
-Message-ID: <10158734.57ijZY4TKD@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 23 Jan 2015 11:51:39 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, Lucas Stach <l.stach@pengutronix.de>
+Subject: [PATCH 05/21] [media] coda: adjust sequence offset after unexpected decoded frame
+Date: Fri, 23 Jan 2015 17:51:19 +0100
+Message-Id: <1422031895-7740-6-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Lucas Stach <l.stach@pengutronix.de>
 
-The following changes since commit 1fc77d013ba85a29e2edfaba02fd21e8c8187fae:
+If userspace doesn't properly separate the bitstream input into
+individual frames (which may happen for example on slightly
+corrupted streams) the CODA hardware may decode more frames
+than we expect. We already log an error in this case, but it's
+also necessary to adjust the sequence offset. Otherwise we
+spam the log with a sequence number mismatch on every frame
+frame after the unexpected one.
 
-  [media] cx23885: Hauppauge WinTV-HVR5525 (2014-12-30 10:48:04 -0200)
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git vsp1/next
-
-for you to fetch changes up to 63a9e32eb6862386ac7acd6bd773d57d11a64a78:
-
-  v4l: vsp1: Fix VI6_DISP_IRQ_STA_LNE macro (2015-01-22 14:11:11 +0200)
-
-----------------------------------------------------------------
-Nobuhiro Iwamatsu (2):
-      v4l: vsp1: Fix VI6_DISP_IRQ_ENB_LNEE macro
-      v4l: vsp1: Fix VI6_DISP_IRQ_STA_LNE macro
-
-Takanari Hayama (1):
-      v4l: vsp1: bru: Fix minimum input pixel size
-
- drivers/media/platform/vsp1/vsp1_bru.c  | 2 +-
- drivers/media/platform/vsp1/vsp1_regs.h | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index f6cf337..6b00a45 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1822,6 +1822,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 			memset(&ctx->frame_metas[decoded_idx], 0,
+ 			       sizeof(struct coda_buffer_meta));
+ 			ctx->frame_metas[decoded_idx].sequence = val;
++			ctx->sequence_offset++;
+ 		}
+ 		mutex_unlock(&ctx->bitstream_mutex);
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
