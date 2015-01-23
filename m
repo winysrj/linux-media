@@ -1,44 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:60109 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750921AbbANLnv (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60792 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085AbbAWQvi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2015 06:43:51 -0500
-Received: by mail-wi0-f180.google.com with SMTP id n3so10236888wiv.1
-        for <linux-media@vger.kernel.org>; Wed, 14 Jan 2015 03:43:49 -0800 (PST)
-MIME-Version: 1.0
-Date: Wed, 14 Jan 2015 12:43:49 +0100
-Message-ID: <CAPx3zdRrVspDeHyaS1U1O1MAbJngB7WxDVPgW8QqgbZDrmJgcA@mail.gmail.com>
-Subject: HELP: tzap, signal 1f, FE_HAS_LOCK, no demux on Ubuntu 14.04 LTS,
- Device Siano ID 187f:0600, DVB-T
-From: Francesco Other <francesco.other@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 23 Jan 2015 11:51:38 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 00/21] CODA fixes and vmalloc input
+Date: Fri, 23 Jan 2015 17:51:14 +0100
+Message-Id: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi to all,
+Hi,
 
-I have this output from tzap
+this is a series of various fixes that should increase stability
+in the face of broken streams and just general use of the CODA driver.
+They range from crash fixes to issues uncovered by v4l2-compliance.
+The CODA9 subsampling buffers patch fixes encoder image corruption.
 
-Version: 5.10   FE_CAN { DVB-T }
-tuning to 698000000 Hz
-video pid 0x0654, audio pid 0x0655
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 0000 | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-...
-...
+Also, the BIT decoder input queue is switched to vmalloc memory, and the
+bitstream buffer and sequence end work are made optional for future
+CODA9 JPEG support.
 
-and I can't receive the channel (no video, no audio, no service from multiplex).
+regards
+Philipp
 
-Maybe a demux problem?
+Lucas Stach (1):
+  [media] coda: adjust sequence offset after unexpected decoded frame
 
-Ubuntu 14.04 LTS, Device Siano ID 187f:0600, DVB-T
+Markus Pargmann (1):
+  [media] coda: fix width validity check when starting to decode
 
-Thanks for any help
+Philipp Zabel (19):
+  [media] coda: fix encoder rate control parameter masks
+  [media] coda: bitrate can only be set in kbps steps
+  [media] coda: remove context debugfs entry last
+  [media] coda: move meta out of padding
+  [media] coda: fix job_ready debug reporting for bitstream decoding
+  [media] coda: fix try_fmt_vid_out colorspace setting
+  [media] coda: properly clear f_cap in coda_s_fmt_vid_out
+  [media] coda: initialize SRAM on probe
+  [media] coda: clear RET_DEC_PIC_SUCCESS flag in prepare_decode
+  [media] coda: remove unused isequence, reset qsequence in
+    stop_streaming
+  [media] coda: issue seq_end_work during stop_streaming
+  [media] coda: don't ever use subsampling ping-pong buffers as
+    reconstructed reference buffers
+  [media] coda: add coda_estimate_sizeimage and use it in set_defaults
+  [media] coda: switch BIT decoder source queue to vmalloc
+  [media] coda: make seq_end_work optional
+  [media] coda: free context buffers under buffer mutex
+  [media] coda: add support for contexts that do not use the BIT
+    processor
+  [media] coda: allocate bitstream ringbuffer only for BIT decoder
+  [media] coda: simplify check in coda_buf_queue
 
-Francesco
+ drivers/media/platform/Kconfig            |   1 +
+ drivers/media/platform/coda/coda-bit.c    |  25 +++--
+ drivers/media/platform/coda/coda-common.c | 161 ++++++++++++++++++++----------
+ drivers/media/platform/coda/coda.h        |   2 +-
+ drivers/media/platform/coda/coda_regs.h   |   4 +-
+ 5 files changed, 130 insertions(+), 63 deletions(-)
+
+-- 
+2.1.4
+
