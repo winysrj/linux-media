@@ -1,164 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:59944 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752020AbbAHVLd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 16:11:33 -0500
-Received: by mail-ie0-f182.google.com with SMTP id x19so11682747ier.13
-        for <linux-media@vger.kernel.org>; Thu, 08 Jan 2015 13:11:32 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <c4337c6cc08e1d5bcd4bf234e4f95a0f28ff3374.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
-	<c4337c6cc08e1d5bcd4bf234e4f95a0f28ff3374.1420578087.git.mchehab@osg.samsung.com>
-Date: Thu, 8 Jan 2015 14:11:32 -0700
-Message-ID: <CAKocOONh-o1+N=H_p3V_o4YMg3Mc1_Fg04d=qhH0Qcxj6syK4A@mail.gmail.com>
-Subject: Re: [PATCHv3 17/20] dvb-frontend: enable tuner link when the FE
- thread starts
-From: Shuah Khan <shuahkhan@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
+Received: from lists.s-osg.org ([54.187.51.154]:55794 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750913AbbAXIEy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Jan 2015 03:04:54 -0500
+Date: Sat, 24 Jan 2015 06:04:49 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuah.kh@samsung.com>,
-	Ole Ernst <olebowle@gmx.com>,
-	Akihiro Tsukada <tskd08@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.19-rc6] media fixes
+Message-ID: <20150124060449.42fca4ff@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 6, 2015 at 2:08 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> If the dvb frontend thread starts, the tuner should be switched
-> to the frontend. Add a code that ensures that this will happen,
-> using the media controller.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index c2c559105f64..04e949ad9722 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -590,12 +590,99 @@ static void dvb_frontend_wakeup(struct dvb_frontend *fe)
->         wake_up_interruptible(&fepriv->wait_queue);
->  }
->
-> +/**
-> + * dvb_enable_media_tuner() - tries to enable the DVB tuner
-> + *
-> + * @fe:                struct dvb_frontend pointer
-> + *
-> + * This function ensures that just one media tuner is enabled for a given
-> + * frontend. It has two different behaviors:
-> + * - For trivial devices with just one tuner:
-> + *   it just enables the existing tuner->fe link
-> + * - For devices with more than one tuner:
-> + *   It is up to the driver to implement the logic that will enable one tuner
-> + *   and disable the other ones. However, if more than one tuner is enabled for
-> + *   the same frontend, it will print an error message and return -EINVAL.
-> + *
-> + * At return, it will return the error code returned by media_entity_setup_link,
-> + * or 0 if everything is OK, if no tuner is linked to the frontend or if the
-> + * mdev is NULL.
-> + */
-> +static int dvb_enable_media_tuner(struct dvb_frontend *fe)
-> +{
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +       struct dvb_frontend_private *fepriv = fe->frontend_priv;
-> +       struct dvb_adapter *adapter = fe->dvb;
-> +       struct media_device *mdev = adapter->mdev;
-> +       struct media_entity  *entity, *source;
-> +       struct media_link *link, *found_link = NULL;
-> +       int i, ret, n_links = 0, active_links = 0;
-> +
-> +       if (!mdev)
-> +               return 0;
-> +
-> +       entity = fepriv->dvbdev->entity;
-> +       for (i = 0; i < entity->num_links; i++) {
-> +               link = &entity->links[i];
-> +               if (link->sink->entity == entity) {
-> +                       found_link = link;
-> +                       n_links++;
-> +                       if (link->flags & MEDIA_LNK_FL_ENABLED)
-> +                               active_links++;
-> +               }
-> +       }
+Hi Linus,
 
-Does this code path need to be protected with a mutex?
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media media/v3.19-4
 
-> +
-> +       if (!n_links || active_links == 1 || !found_link)
-> +               return 0;
-> +
-> +       /*
-> +        * If a frontend has more than one tuner linked, it is up to the driver
-> +        * to select with one will be the active one, as the frontend core can't
-> +        * guess. If the driver doesn't do that, it is a bug.
-> +        */
-> +       if (n_links > 1 && active_links != 1) {
-> +               dev_err(fe->dvb->device,
-> +                       "WARNING: there are %d active links among %d tuners. This is a driver's bug!\n",
-> +                       active_links, n_links);
-> +               return -EINVAL;
-> +       }
-> +
-> +       source = found_link->source->entity;
-> +       for (i = 0; i < source->num_links; i++) {
-> +               struct media_entity *sink;
-> +               int flags = 0;
-> +
-> +               link = &source->links[i];
-> +               sink = link->sink->entity;
-> +
-> +               if (sink == entity)
-> +                       flags = MEDIA_LNK_FL_ENABLED;
-> +
-> +               ret = media_entity_setup_link(link, flags);
-> +               if (ret) {
-> +                       dev_err(fe->dvb->device,
-> +                               "Couldn't change link %s->%s to %s. Error %d\n",
-> +                               source->name, sink->name,
-> +                               flags ? "enabled" : "disabled",
-> +                               ret);
-> +                       return ret;
-> +               } else
-> +                       dev_dbg(fe->dvb->device,
-> +                               "link %s->%s was %s\n",
-> +                               source->name, sink->name,
-> +                               flags ? "ENABLED" : "disabled");
-> +       }
-> +#endif
-> +       return 0;
-> +}
-> +
->  static int dvb_frontend_thread(void *data)
->  {
->         struct dvb_frontend *fe = data;
->         struct dvb_frontend_private *fepriv = fe->frontend_priv;
->         fe_status_t s;
->         enum dvbfe_algo algo;
-> +       int ret;
->
->         bool re_tune = false;
->         bool semheld = false;
-> @@ -609,6 +696,13 @@ static int dvb_frontend_thread(void *data)
->         fepriv->wakeup = 0;
->         fepriv->reinitialise = 0;
->
-> +       ret = dvb_enable_media_tuner(fe);
-> +       if (ret) {
-> +               /* FIXME: return an error if it fails */
-> +               dev_info(fe->dvb->device,
-> +                       "proceeding with FE task\n");
-> +       }
-> +
->         dvb_frontend_init(fe);
->
->         set_freezable();
-> --
-> 2.1.0
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For:
+  - Fix some race conditions caused by a regression on videobuf2;
+  - Fix a interrupt release bug on cx23885;
+  - Fix support for Mygica T230 and HVR4400;
+  - Fix compilation breakage when USB is not selected on tlg2300;
+  - Fix capabilities report on ompa3isp, soc-camera, rcar_vin and pvrusb2;
+
+Regards,
+Mauro
+
+PS.: e-mail resent, as I forgot to push the tag.
+
+-
+
+The following changes since commit 427ae153c65ad7a08288d86baf99000569627d03:
+
+  [media] bq/c-qcam, w9966, pms: move to staging in preparation for removal (2014-12-16 23:21:44 -0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media media/v3.19-4
+
+for you to fetch changes up to 2c0108e1c02f9fc95f465adc4d2ce1ad8688290a:
+
+  [media] omap3isp: Correctly set QUERYCAP capabilities (2015-01-21 21:09:11 -0200)
+
+----------------------------------------------------------------
+media fixes for v3.19-rc6
+
+----------------------------------------------------------------
+Guennadi Liakhovetski (1):
+      [media] soc-camera: fix device capabilities in multiple camera host drivers
+
+Hans Verkuil (3):
+      [media] vb2: fix vb2_thread_stop race conditions
+      [media] pvrusb2: fix missing device_caps in querycap
+      [media] cx23885: fix free interrupt bug
+
+Jonathan McDowell (1):
+      [media] Fix Mygica T230 support
+
+Matthias Schwarzott (1):
+      [media] cx23885: Split Hauppauge WinTV Starburst from HVR4400 card entry
+
+Mauro Carvalho Chehab (1):
+      [media] tlg2300: Fix media dependencies
+
+Nobuhiro Iwamatsu (1):
+      [media] rcar_vin: Update device_caps and capabilities in querycap
+
+Sakari Ailus (1):
+      [media] omap3isp: Correctly set QUERYCAP capabilities
+
+ drivers/media/pci/cx23885/cx23885-cards.c          | 23 +++++++++++++++------
+ drivers/media/pci/cx23885/cx23885-core.c           |  4 ++--
+ drivers/media/pci/cx23885/cx23885-dvb.c            | 11 ++++++++++
+ drivers/media/pci/cx23885/cx23885.h                |  1 +
+ drivers/media/platform/omap3isp/ispvideo.c         |  7 +++++--
+ drivers/media/platform/soc_camera/atmel-isi.c      |  5 +++--
+ drivers/media/platform/soc_camera/mx2_camera.c     |  3 ++-
+ drivers/media/platform/soc_camera/mx3_camera.c     |  3 ++-
+ drivers/media/platform/soc_camera/omap1_camera.c   |  3 ++-
+ drivers/media/platform/soc_camera/pxa_camera.c     |  3 ++-
+ drivers/media/platform/soc_camera/rcar_vin.c       |  4 +++-
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  4 +++-
+ drivers/media/usb/dvb-usb/cxusb.c                  |  2 +-
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           | 24 ++++++++++++----------
+ drivers/media/v4l2-core/videobuf2-core.c           | 19 ++++++++---------
+ drivers/staging/media/tlg2300/Kconfig              |  1 +
+ 16 files changed, 77 insertions(+), 40 deletions(-)
+
