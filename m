@@ -1,102 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:20253 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754199AbbAFU7g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Jan 2015 15:59:36 -0500
-Date: Tue, 6 Jan 2015 21:59:25 +0100
-From: Antonio Ospite <ao2@ao2.it>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] gspca_stv06xx: enable button found on some Quickcam
- Express variant
-Message-Id: <20150106215925.03aafecd952a176b3f376a2d@ao2.it>
-In-Reply-To: <20141028153941.8298e540ddf03796246c6f26@ao2.it>
-References: <1405083417-20615-1-git-send-email-ao2@ao2.it>
-	<53C3B0AD.7070001@redhat.com>
-	<20141028153941.8298e540ddf03796246c6f26@ao2.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:42362 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751170AbbAXDpu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jan 2015 22:45:50 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6E86A2A008C
+	for <linux-media@vger.kernel.org>; Sat, 24 Jan 2015 04:45:22 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150124034522.6E86A2A008C@tschai.lan>
+Date: Sat, 24 Jan 2015 04:45:22 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 28 Oct 2014 15:39:41 +0100
-Antonio Ospite <ao2@ao2.it> wrote:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On Mon, 14 Jul 2014 12:27:57 +0200
-> Hans de Goede <hdegoede@redhat.com> wrote:
-> 
-> > Hi,
-> > 
-> > On 07/11/2014 02:56 PM, Antonio Ospite wrote:
-> > > Signed-off-by: Antonio Ospite <ao2@ao2.it>
-> > 
-> > Thanks, I've added this to my tree and send a pull-req for it
-> > to Mauro.
-> >
-> 
-> Hi Hans, I still don't see the change in 3.18-rc2, maybe it got lost.
-> 
-> Here is the patchwork link in case you want to pick the change for 3.19:
-> https://patchwork.linuxtv.org/patch/24732/
-> 
+Results of the daily build of media_tree:
 
-Ping.
+date:		Sat Jan 24 04:00:19 CET 2015
+git branch:	test
+git hash:	1fc77d013ba85a29e2edfaba02fd21e8c8187fae
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
-Still missing in 3.19-rc3.
-Can we have it for 3.20?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18-x86_64: OK
+linux-3.19-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Thanks,
-   Antonio
+Detailed results are available here:
 
-> > Regards,
-> > 
-> > Hans
-> > 
-> > > ---
-> > >  drivers/media/usb/gspca/stv06xx/stv06xx.c | 4 ++--
-> > >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/usb/gspca/stv06xx/stv06xx.c b/drivers/media/usb/gspca/stv06xx/stv06xx.c
-> > > index 49d209b..6ac93d8 100644
-> > > --- a/drivers/media/usb/gspca/stv06xx/stv06xx.c
-> > > +++ b/drivers/media/usb/gspca/stv06xx/stv06xx.c
-> > > @@ -505,13 +505,13 @@ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
-> > >  {
-> > >  	int ret = -EINVAL;
-> > >  
-> > > -	if (len == 1 && data[0] == 0x80) {
-> > > +	if (len == 1 && (data[0] == 0x80 || data[0] == 0x10)) {
-> > >  		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
-> > >  		input_sync(gspca_dev->input_dev);
-> > >  		ret = 0;
-> > >  	}
-> > >  
-> > > -	if (len == 1 && data[0] == 0x88) {
-> > > +	if (len == 1 && (data[0] == 0x88 || data[0] == 0x11)) {
-> > >  		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-> > >  		input_sync(gspca_dev->input_dev);
-> > >  		ret = 0;
-> > > 
-> 
-> 
-> -- 
-> Antonio Ospite
-> http://ao2.it
-> 
-> A: Because it messes up the order in which people normally read text.
->    See http://en.wikipedia.org/wiki/Posting_style
-> Q: Why is top-posting such a bad thing?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
+Full logs are available here:
 
--- 
-Antonio Ospite
-http://ao2.it
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
