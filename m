@@ -1,43 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:65395 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753695AbbAVWVB (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:56842 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753976AbbAYRem (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 17:21:01 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 14/15] media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
-Date: Thu, 22 Jan 2015 22:18:47 +0000
-Message-Id: <1421965128-10470-15-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+	Sun, 25 Jan 2015 12:34:42 -0500
+Received: by mail-wg0-f54.google.com with SMTP id b13so5432740wgh.13
+        for <linux-media@vger.kernel.org>; Sun, 25 Jan 2015 09:34:41 -0800 (PST)
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	Richard =?ISO-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@mocean-labs.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 00/15] [media] adv7180: Add support for more chip variants
+Date: Sun, 25 Jan 2015 18:34:39 +0100
+Message-ID: <1627028.v5bB76TxKR@localhost.localdomain>
+In-Reply-To: <1422028354-31891-1-git-send-email-lars@metafoo.de>
+References: <1422028354-31891-1-git-send-email-lars@metafoo.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch adds support for VIDIOC_EXPBUF.
+On Friday 23 January 2015 16:52:19 Lars-Peter Clausen wrote:
+> Changes from v1:
+> 	* Reserved custom user control range for the fast switch control
+> 	* Dropped the free-run mode control patch for now. The controls
+> should probably be standardized first, but that is going to be a
+> different patch series.
+> 
+> Original cover letter below:
+> 
+> The adv7180 is part of a larger family of chips which all implement
+> different features from a feature superset. This patch series step
+> by step extends the current adv7180 with features from the superset
+> that are currently not supported and gradually adding support for
+> more variations of the chip.
+> 
+> The first half of this series contains fixes and cleanups while the
+> second half adds new features and support for new chips
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 1 +
- 1 file changed, 1 insertion(+)
+I don't have any more the hardware to test the patches but everything 
+seems fine to me. My 2 cents acked-by to the whole set of patches:
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 876db4b..f154f25 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -764,6 +764,7 @@ static const struct v4l2_ioctl_ops bcap_ioctl_ops = {
- 	.vidioc_querybuf         = vb2_ioctl_querybuf,
- 	.vidioc_qbuf             = vb2_ioctl_qbuf,
- 	.vidioc_dqbuf            = vb2_ioctl_dqbuf,
-+	.vidioc_expbuf           = vb2_ioctl_expbuf,
- 	.vidioc_streamon         = vb2_ioctl_streamon,
- 	.vidioc_streamoff        = vb2_ioctl_streamoff,
- 	.vidioc_g_parm           = bcap_g_parm,
+Acked-by: Federico Vaga <federico.vaga@gmail.com>
+
 -- 
-2.1.0
-
+Federico Vaga
