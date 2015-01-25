@@ -1,93 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53993 "EHLO lists.s-osg.org"
+Received: from cnc.isely.net ([75.149.91.89]:38069 "EHLO cnc.isely.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754436AbbAWN0W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 08:26:22 -0500
-Date: Fri, 23 Jan 2015 11:26:17 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.19-rc6] media fixes
-Message-ID: <20150123112617.3a592160@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1751059AbbAYAuJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Jan 2015 19:50:09 -0500
+Date: Sat, 24 Jan 2015 18:45:03 -0600 (CST)
+From: Mike Isely <isely@isely.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Haim Daniel <haimdaniel@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] [pvrusb2]: remove dead retry cmd code
+In-Reply-To: <54B8F7DC.6080401@xs4all.nl>
+Message-ID: <alpine.DEB.2.02.1501241844090.6191@cnc.isely.net>
+References: <1420497518-10375-1-git-send-email-haim.daniel@gmail.com>  <54B8EE91.7020704@xs4all.nl> <1421407773.5847.1.camel@localhost.localdomain> <54B8F7DC.6080401@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media media/v3.19-4
+Sorry been asleep at the wheel here.  I'll take a look.
 
-For:
-  - Fix some race conditions caused by a regression on videobuf2;
-  - Fix a interrupt release bug on cx23885;
-  - Fix support for Mygica T230 and HVR4400;
-  - Fix compilation breakage when USB is not selected on tlg2300;
-  - Fix capabilities report on ompa3isp, soc-camera, rcar_vin and pvrusb2;
+Please realize that the code path being talked about here HAS worked - 
+because the encoder does tend to fail and this is how the driver 
+recovers.
 
-Regards,
-Mauro
+  -Mike
 
--
 
-The following changes since commit 427ae153c65ad7a08288d86baf99000569627d03:
+On Fri, 16 Jan 2015, Hans Verkuil wrote:
 
-  [media] bq/c-qcam, w9966, pms: move to staging in preparation for removal (2014-12-16 23:21:44 -0200)
+> On 01/16/2015 12:29 PM, Haim Daniel wrote:
+> > It looks that "if (try_count < 20) continue" jumps to end of the  do ...
+> > while(0) loop and goes out.
+> 
+> Ah, you are right. But that is obviously not what was intended, so just removing
+> it is not a proper 'fix'.
+> 
+> Mike, can you take a look at this?
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > --hd.
+> > On Fri, 2015-01-16 at 11:57 +0100, Hans Verkuil wrote:
+> >> On 01/05/2015 11:38 PM, Haim Daniel wrote:
+> >>> In case a command is timed out, current flow sets the retry_flag
+> >>> and does nothing.
+> >>
+> >> Really? That's not how I read the code: it retries up to 20 times before
+> >> bailing out.
+> >>
+> >> Perhaps you missed the "if (try_count < 20) continue;" line?
+> >>
+> >> Regards,
+> >>
+> >> 	Hans
+> >>
+> >>>
+> >>> Signed-off-by: Haim Daniel <haim.daniel@gmail.com>
+> >>> ---
+> >>>  drivers/media/usb/pvrusb2/pvrusb2-encoder.c | 15 +--------------
+> >>>  1 file changed, 1 insertion(+), 14 deletions(-)
+> >>>
+> >>> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+> >>> index f7702ae..02028aa 100644
+> >>> --- a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+> >>> +++ b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+> >>> @@ -145,8 +145,6 @@ static int pvr2_encoder_cmd(void *ctxt,
+> >>>  			    u32 *argp)
+> >>>  {
+> >>>  	unsigned int poll_count;
+> >>> -	unsigned int try_count = 0;
+> >>> -	int retry_flag;
+> >>>  	int ret = 0;
+> >>>  	unsigned int idx;
+> >>>  	/* These sizes look to be limited by the FX2 firmware implementation */
+> >>> @@ -213,8 +211,6 @@ static int pvr2_encoder_cmd(void *ctxt,
+> >>>  			break;
+> >>>  		}
+> >>>  
+> >>> -		retry_flag = 0;
+> >>> -		try_count++;
+> >>>  		ret = 0;
+> >>>  		wrData[0] = 0;
+> >>>  		wrData[1] = cmd;
+> >>> @@ -245,11 +241,9 @@ static int pvr2_encoder_cmd(void *ctxt,
+> >>>  			}
+> >>>  			if (rdData[0] && (poll_count < 1000)) continue;
+> >>>  			if (!rdData[0]) {
+> >>> -				retry_flag = !0;
+> >>>  				pvr2_trace(
+> >>>  					PVR2_TRACE_ERROR_LEGS,
+> >>> -					"Encoder timed out waiting for us"
+> >>> -					"; arranging to retry");
+> >>> +					"Encoder timed out waiting for us");
+> >>>  			} else {
+> >>>  				pvr2_trace(
+> >>>  					PVR2_TRACE_ERROR_LEGS,
+> >>> @@ -269,13 +263,6 @@ static int pvr2_encoder_cmd(void *ctxt,
+> >>>  			ret = -EBUSY;
+> >>>  			break;
+> >>>  		}
+> >>> -		if (retry_flag) {
+> >>> -			if (try_count < 20) continue;
+> >>> -			pvr2_trace(
+> >>> -				PVR2_TRACE_ERROR_LEGS,
+> >>> -				"Too many retries...");
+> >>> -			ret = -EBUSY;
+> >>> -		}
+> >>>  		if (ret) {
+> >>>  			del_timer_sync(&hdw->encoder_run_timer);
+> >>>  			hdw->state_encoder_ok = 0;
+> >>>
+> >>
+> > 
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-are available in the git repository at:
+-- 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media media/v3.19-4
-
-for you to fetch changes up to 2c0108e1c02f9fc95f465adc4d2ce1ad8688290a:
-
-  [media] omap3isp: Correctly set QUERYCAP capabilities (2015-01-21 21:09:11 -0200)
-
-----------------------------------------------------------------
-media fixes for v3.19-rc6
-
-----------------------------------------------------------------
-Guennadi Liakhovetski (1):
-      [media] soc-camera: fix device capabilities in multiple camera host drivers
-
-Hans Verkuil (3):
-      [media] vb2: fix vb2_thread_stop race conditions
-      [media] pvrusb2: fix missing device_caps in querycap
-      [media] cx23885: fix free interrupt bug
-
-Jonathan McDowell (1):
-      [media] Fix Mygica T230 support
-
-Matthias Schwarzott (1):
-      [media] cx23885: Split Hauppauge WinTV Starburst from HVR4400 card entry
-
-Mauro Carvalho Chehab (1):
-      [media] tlg2300: Fix media dependencies
-
-Nobuhiro Iwamatsu (1):
-      [media] rcar_vin: Update device_caps and capabilities in querycap
-
-Sakari Ailus (1):
-      [media] omap3isp: Correctly set QUERYCAP capabilities
-
- drivers/media/pci/cx23885/cx23885-cards.c          | 23 +++++++++++++++------
- drivers/media/pci/cx23885/cx23885-core.c           |  4 ++--
- drivers/media/pci/cx23885/cx23885-dvb.c            | 11 ++++++++++
- drivers/media/pci/cx23885/cx23885.h                |  1 +
- drivers/media/platform/omap3isp/ispvideo.c         |  7 +++++--
- drivers/media/platform/soc_camera/atmel-isi.c      |  5 +++--
- drivers/media/platform/soc_camera/mx2_camera.c     |  3 ++-
- drivers/media/platform/soc_camera/mx3_camera.c     |  3 ++-
- drivers/media/platform/soc_camera/omap1_camera.c   |  3 ++-
- drivers/media/platform/soc_camera/pxa_camera.c     |  3 ++-
- drivers/media/platform/soc_camera/rcar_vin.c       |  4 +++-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |  4 +++-
- drivers/media/usb/dvb-usb/cxusb.c                  |  2 +-
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           | 24 ++++++++++++----------
- drivers/media/v4l2-core/videobuf2-core.c           | 19 ++++++++---------
- drivers/staging/media/tlg2300/Kconfig              |  1 +
- 16 files changed, 77 insertions(+), 40 deletions(-)
-
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
