@@ -1,70 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:45193 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753356AbbAOVDP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2015 16:03:15 -0500
-Date: Thu, 15 Jan 2015 22:03:11 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Mark Brown <broonie@kernel.org>,
-	Rob Herring <robherring2@gmail.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-leds@vger.kernel.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Liam Girdwood <lgirdwood@gmail.com>
-Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
-Message-ID: <20150115210310.GB24008@amd>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
- <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
- <54B38682.5080605@samsung.com>
- <CAL_Jsq+UaA41DvawdOMmOib=Fi0hC-nBdKV-+P4DFo+MoOy-bQ@mail.gmail.com>
- <54B3F1EF.4060506@samsung.com>
- <CAL_JsqKpJtUG0G6g1GOuSVpc31oe-dp3qdrKJUE0upG-xRDFhA@mail.gmail.com>
- <20150112170644.GO4160@sirena.org.uk>
- <54B7B39C.7080204@samsung.com>
+Received: from mx02.posteo.de ([89.146.194.165]:39424 "EHLO mx02.posteo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752862AbbAYUh5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Jan 2015 15:37:57 -0500
+Received: from dovecot03.posteo.de (unknown [185.67.36.28])
+	by mx02.posteo.de (Postfix) with ESMTPS id 3703625C00A9
+	for <linux-media@vger.kernel.org>; Sun, 25 Jan 2015 21:37:56 +0100 (CET)
+Received: from mail.posteo.de (localhost [127.0.0.1])
+	by dovecot03.posteo.de (Postfix) with ESMTPSA id 3kVmHS0TzNz5vNH
+	for <linux-media@vger.kernel.org>; Sun, 25 Jan 2015 21:37:56 +0100 (CET)
+Date: Sun, 25 Jan 2015 21:36:36 +0100
+From: Felix Janda <felix.janda@posteo.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 3/4] Wrap LFS64 functions only if __GLIBC__
+Message-ID: <20150125203636.GC11999@euler>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <54B7B39C.7080204@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+The functions open64 and mmap64 are glibc specific.
 
-> Perhaps we could use the 'reg' property to describe actual connections,
-> I'm not sure if it's better than a LED specific property, e.g.
-> 
-> max77387@52 {
->         compatible = "nxp,max77387";
->         #address-cells = <2>;
->         #size-cells = <0>;
->         reg = <0x52>;
-> 
-> 	flash_led {
-> 		reg = <1 1>;	
-> 		...
-> 	};	
-> };
+Signed-off-by: Felix Janda <felix.janda@posteo.de>
+---
+ lib/libv4l1/v4l1compat.c  | 4 ++--
+ lib/libv4l2/v4l2convert.c | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Normally, reg property is <start length>, if I understand things
-correctly? Would that be enough here, or would we be doing list of
-outputs?
-
-Thanks,
-								Pavel
+diff --git a/lib/libv4l1/v4l1compat.c b/lib/libv4l1/v4l1compat.c
+index 282173b..c78adb4 100644
+--- a/lib/libv4l1/v4l1compat.c
++++ b/lib/libv4l1/v4l1compat.c
+@@ -61,7 +61,7 @@ LIBV4L_PUBLIC int open(const char *file, int oflag, ...)
+ 	return fd;
+ }
+ 
+-#ifdef linux
++#ifdef __GLIBC__
+ LIBV4L_PUBLIC int open64(const char *file, int oflag, ...)
+ {
+ 	int fd;
+@@ -120,7 +120,7 @@ LIBV4L_PUBLIC void *mmap(void *start, size_t length, int prot, int flags, int fd
+ 	return v4l1_mmap(start, length, prot, flags, fd, offset);
+ }
+ 
+-#ifdef linux
++#ifdef __GLIBC__
+ LIBV4L_PUBLIC void *mmap64(void *start, size_t length, int prot, int flags, int fd,
+ 		off64_t offset)
+ {
+diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
+index c79f9da..9345641 100644
+--- a/lib/libv4l2/v4l2convert.c
++++ b/lib/libv4l2/v4l2convert.c
+@@ -86,7 +86,7 @@ LIBV4L_PUBLIC int open(const char *file, int oflag, ...)
+ 	return fd;
+ }
+ 
+-#ifdef linux
++#ifdef __GLIBC__
+ LIBV4L_PUBLIC int open64(const char *file, int oflag, ...)
+ {
+ 	int fd;
+@@ -148,7 +148,7 @@ LIBV4L_PUBLIC void *mmap(void *start, size_t length, int prot, int flags, int fd
+ 	return v4l2_mmap(start, length, prot, flags, fd, offset);
+ }
+ 
+-#ifdef linux
++#ifdef __GLIBC__
+ LIBV4L_PUBLIC void *mmap64(void *start, size_t length, int prot, int flags, int fd,
+ 		off64_t offset)
+ {
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.0.5
+
