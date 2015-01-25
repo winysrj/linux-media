@@ -1,73 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx01-fr.bfs.de ([193.174.231.67]:19219 "EHLO mx01-fr.bfs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753151AbbAHLN5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Jan 2015 06:13:57 -0500
-Message-ID: <54AE6434.4070805@bfs.de>
-Date: Thu, 08 Jan 2015 12:04:20 +0100
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
+Received: from mail-ig0-f181.google.com ([209.85.213.181]:41399 "EHLO
+	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752844AbbAYRwK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Jan 2015 12:52:10 -0500
+Received: by mail-ig0-f181.google.com with SMTP id hn18so4993812igb.2
+        for <linux-media@vger.kernel.org>; Sun, 25 Jan 2015 09:52:09 -0800 (PST)
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Philipp Zabel <p.zabel@pengutronix.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] coda: improve safety in coda_register_device()
-References: <20150108100708.GA10597@mwanda>
-In-Reply-To: <20150108100708.GA10597@mwanda>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAOBYczoCeMDjCJthynWyC5OhFCqKKDCSjsj93QkcrDHQMv+S3w@mail.gmail.com>
+References: <CAOBYczptqxkRXVPs3UuKJxEtm7uf9=yF9DgpF+e5mqbj6wZRrQ@mail.gmail.com>
+	<54C4D24D.2000706@iki.fi>
+	<CAOBYczoCeMDjCJthynWyC5OhFCqKKDCSjsj93QkcrDHQMv+S3w@mail.gmail.com>
+Date: Sun, 25 Jan 2015 19:52:09 +0200
+Message-ID: <CAAZRmGzJ6DmP9hb5w+2kgrRW53rvS9ThS0-zX+Z96xf192YAUA@mail.gmail.com>
+Subject: Re: usb3 + 2 x pctv290e issues
+From: Olli Salonen <olli.salonen@iki.fi>
+To: Robin Becker <robin@reportlab.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+It seems I managed to miss the reply-all button, so I thought that in
+case someone else is looking at this I'll post it here on the mailing
+list as well. This is what I wrote:
 
+"I saw this quite a while ago on my Intel NUC (that only has USB 3
+ports, so I've got no choice).
 
-Am 08.01.2015 11:07, schrieb Dan Carpenter:
-> The "i" variable is used as an offset into both the dev->vfd[] and the
-> dev->devtype->vdevs[] arrays.  The second array is smaller so we should
-> use that as a limit instead of ARRAY_SIZE(dev->vfd).  Also the original
-> check was off by one.
-> 
-> We should use a format string as well in case the ->name has any funny
-> characters and also to stop static checkers from complaining.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-> index 39330a7..5dd6cae 100644
-> --- a/drivers/media/platform/coda/coda-common.c
-> +++ b/drivers/media/platform/coda/coda-common.c
-> @@ -1844,10 +1844,11 @@ static int coda_register_device(struct coda_dev *dev, int i)
->  {
->  	struct video_device *vfd = &dev->vfd[i];
->  
-> -	if (i > ARRAY_SIZE(dev->vfd))
-> +	if (i >= dev->devtype->num_vdevs)
->  		return -EINVAL;
+The same issue is reported here:
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1313279
 
-hi,
- just a minor question. if i can not be trusted, i feel you should move the
- array access:
-   struct video_device *vfd = &dev->vfd[i];
- after the check
-   i >= dev->devtype->num_vdevs
-at least that would improve the readability by not trigger my internal alarm
-"check after access"
+In OpenELEC we got rid of the issue by reverting one patch, look here:
+https://github.com/OpenELEC/OpenELEC.tv/commit/b636927dec20652ff020e54ed7838a2e9be51e03
+"
 
-re,
- wh
+Cheers,
+-olli
 
-
-> -	snprintf(vfd->name, sizeof(vfd->name), dev->devtype->vdevs[i]->name);
-> +	snprintf(vfd->name, sizeof(vfd->name), "%s",
-> +		 dev->devtype->vdevs[i]->name);
->  	vfd->fops	= &coda_fops;
->  	vfd->ioctl_ops	= &coda_ioctl_ops;
->  	vfd->release	= video_device_release_empty,
+On 25 January 2015 at 18:08, Robin Becker <robin@reportlab.com> wrote:
+> Thanks to all, I applied the patch suggested by Olli Salonen and I can
+> now run multiple vlc's on my NUC.
+>
+> On 25 January 2015 at 11:23, Antti Palosaari <crope@iki.fi> wrote:
+>> Moikka!
+>>
+>>
+>> On 01/25/2015 11:33 AM, Robin Becker wrote:
+>>>
+>>> Has anyone else her had the problem described in
+>>>
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=65021
+>>>
+>>> ie complete xhci freeze when a second pctv290e is accessed with vlc.
+>>> I'm wondering if this is a problem specific to em28xx or the pctv290e
+>>> or to this kind of device (ie dvb usb).
+>>
+>>
+>> I have seen multiple times USB3 issues and reboot is needed in order to
+>> solve those. USB3 is simply not enough robust yet. Due to that, I will never
+>> use USB3 ports when developing the drivers - I only test it very quickly
+>> when driver is about ready.
+>>
+>> regards
+>> Antti
+>>
+>> --
+>> http://palosaari.fi/
+>
+>
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> Robin Becker
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
