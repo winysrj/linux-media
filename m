@@ -1,77 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr1.cc.vt.edu ([198.82.141.52]:37661 "EHLO omr1.cc.vt.edu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751864AbbA2WNk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 17:13:40 -0500
-To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
-	Gulsah Kose <gulsah.1004@gmail.com>,
-	Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>,
-	Martin Kaiser <martin@kaiser.cx>, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] staging: media: lirc: lirc_zilog: Fix for possible null pointer dereference
-In-Reply-To: Your message of "Thu, 29 Jan 2015 19:48:08 +0100."
-             <1422557288-3617-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-From: Valdis.Kletnieks@vt.edu
-References: <1422557288-3617-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1422569560_1905P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Date: Thu, 29 Jan 2015 17:12:40 -0500
-Message-ID: <21497.1422569560@turing-police.cc.vt.edu>
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:54278 "EHLO
+	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753100AbbAZRIq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jan 2015 12:08:46 -0500
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 2/2] media: rcar_vin: move buffer management to .stop_streaming handler
+Date: Mon, 26 Jan 2015 17:08:40 +0000
+Message-Id: <1422292120-30496-3-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1422292120-30496-1-git-send-email-william.towle@codethink.co.uk>
+References: <1422292120-30496-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---==_Exmh_1422569560_1905P
-Content-Type: text/plain; charset=us-ascii
+This commit moves the "buffer in use" logic from the .buf_cleanup
+handler into .stop_streaming, based on advice that this is its
+proper logical home.
 
-On Thu, 29 Jan 2015 19:48:08 +0100, Rickard Strandqvist said:
-> Fix a possible null pointer dereference, there is
-> otherwise a risk of a possible null pointer dereference.
->
-> This was found using a static code analysis program called cppcheck
->
-> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-> ---
->  drivers/staging/media/lirc/lirc_zilog.c |    4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+By ensuring the list of pointers in priv->queue_buf[] is managed
+as soon as possible, we avoid warnings concerning buffers in ACTIVE
+state when the system cleans up after streaming stops. This fixes a
+problem with modification of buffers after their content has been
+cleared for passing to userspace.
 
->  	/* find our IR struct */
->  	struct IR *ir = filep->private_data;
->
-> -	if (ir == NULL) {
-> -		dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
+After the refactoring, the buf_init and buf_cleanup functions were
+found to contain only initialisation/release steps as are carried out
+elsewhere if omitted; these functions and references were removed.
 
-Yes, the dev_err() call is an obvious thinko.
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c |   62 ++++++--------------------
+ 1 file changed, 13 insertions(+), 49 deletions(-)
 
-However, I'm not sure whether removing it entirely is right either.  If
-there *should* be a struct IR * passed there, maybe some other printk()
-should be issued, or even a WARN_ON(!ir), or something?
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 89c409b..aa25a3b 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -480,72 +480,36 @@ static void rcar_vin_wait_stop_streaming(struct rcar_vin_priv *priv)
+ 	}
+ }
+ 
+-static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
++static void rcar_vin_stop_streaming(struct vb2_queue *vq)
+ {
+-	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
++	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct rcar_vin_priv *priv = ici->priv;
+-	unsigned int i;
+-	int buf_in_use = 0;
++	struct list_head *buf_head, *tmp;
++	int i;
+ 
+ 	spin_lock_irq(&priv->lock);
++	rcar_vin_wait_stop_streaming(priv);
+ 
+-	/* Is the buffer in use by the VIN hardware? */
+ 	for (i = 0; i < MAX_BUFFER_NUM; i++) {
+-		if (priv->queue_buf[i] == vb) {
+-			buf_in_use = 1;
+-			break;
+-		}
+-	}
+-
+-	if (buf_in_use) {
+-		rcar_vin_wait_stop_streaming(priv);
+-
+-		/*
+-		 * Capturing has now stopped. The buffer we have been asked
+-		 * to release could be any of the current buffers in use, so
+-		 * release all buffers that are in use by HW
+-		 */
+-		for (i = 0; i < MAX_BUFFER_NUM; i++) {
+-			if (priv->queue_buf[i]) {
+-				vb2_buffer_done(priv->queue_buf[i],
++		if (priv->queue_buf[i]) {
++			vb2_buffer_done(priv->queue_buf[i],
+ 					VB2_BUF_STATE_ERROR);
+-				priv->queue_buf[i] = NULL;
+-			}
++			priv->queue_buf[i] = NULL;
+ 		}
+-	} else {
+-		list_del_init(to_buf_list(vb));
+ 	}
+ 
+-	spin_unlock_irq(&priv->lock);
+-}
+-
+-static int rcar_vin_videobuf_init(struct vb2_buffer *vb)
+-{
+-	INIT_LIST_HEAD(to_buf_list(vb));
+-	return 0;
+-}
+-
+-static void rcar_vin_stop_streaming(struct vb2_queue *vq)
+-{
+-	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+-	struct rcar_vin_priv *priv = ici->priv;
+-	struct list_head *buf_head, *tmp;
+-
+-	spin_lock_irq(&priv->lock);
+-
+-	rcar_vin_wait_stop_streaming(priv);
+-	list_for_each_safe(buf_head, tmp, &priv->capture)
++	list_for_each_safe(buf_head, tmp, &priv->capture) {
++		vb2_buffer_done(&list_entry(buf_head,
++					struct rcar_vin_buffer, list)->vb,
++				VB2_BUF_STATE_ERROR);
+ 		list_del_init(buf_head);
+-
++	}
+ 	spin_unlock_irq(&priv->lock);
+ }
+ 
+ static struct vb2_ops rcar_vin_vb2_ops = {
+ 	.queue_setup	= rcar_vin_videobuf_setup,
+-	.buf_init	= rcar_vin_videobuf_init,
+-	.buf_cleanup	= rcar_vin_videobuf_release,
+ 	.buf_queue	= rcar_vin_videobuf_queue,
+ 	.stop_streaming	= rcar_vin_stop_streaming,
+ 	.wait_prepare	= soc_camera_unlock,
+-- 
+1.7.10.4
 
---==_Exmh_1422569560_1905P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-Comment: Exmh version 2.5 07/13/2001
-
-iQIVAwUBVMqwVwdmEQWDXROgAQJF6xAAk4DDwh0o3LvfmaI+rLDYmhq4WgJDxH34
-92A/502Xwy3JI5hUc95JqKN/TEUompBMdqTd59RSwef7u1pzcJop9dcucBOjmsFs
-HifPjUyi/ailTUSv0Q/h38s2UUOFygGsMR0ePxQhye5klegiUlEeyjp0mYEpK9pH
-phIPwbqLJaXmU7WK6Teifzl31UD8EeYcTs/IjYeIuFOenaDkp1L0GPEp0KdVvvxc
-pgFnOkxvYKPKgxKhdgOclZE0p4ppjU7bQuXjvMvg8VoRqctKK5i4zZ3kXVzByaPJ
-3XPwlPTadvkn8BtIS2TGy7eSecJ2we5R1FHJAtt+3JmgifSGrA/9KQbL1DrRRJdF
-VBQ2PaJxVn+ghbsM9/+XUYPAQCUam1ccsmAZE6VriRkCufGe3/s7zDtavoDJUJ3n
-hudimChfjQTxnAhu40dwZ2b6kesQOffWGKWTWDPBiAZb1mq1/4pYRSOwc7fKPJ6Y
-cVS1I//OR+dPnPaFmaNf2ikdQ9WFhPXOidcdkGZxY3yHVAIUC8xQsZnrxtHQgk1V
-ZogNwZ27WlF38uJEYI/9oxSTcs49AYmvZOlr7Fe7/TiOPqbrVTa8wGbKZ+bmMNK4
-MxOvNuWVoqgugNfAYbqOXbKgkLScCey0oo0zfPEhlukfoH4qqu7Ftwqa3DPTrgJq
-SmX9TpHVmIU=
-=DXw2
------END PGP SIGNATURE-----
-
---==_Exmh_1422569560_1905P--
