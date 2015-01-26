@@ -1,204 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:34525 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168AbbAPJHl (ORCPT
+Received: from mail-we0-f179.google.com ([74.125.82.179]:57097 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753133AbbAZRLE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2015 04:07:41 -0500
-Message-id: <54B8D4D0.3000904@samsung.com>
-Date: Fri, 16 Jan 2015 10:07:28 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Rob Herring <robherring2@gmail.com>
-Cc: linux-leds@vger.kernel.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>, sakari.ailus@iki.fi,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH/RFC v10 03/19] DT: leds: Add led-sources property
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-4-git-send-email-j.anaszewski@samsung.com>
- <CAL_JsqJKEp6TWaRhJimg3AWBh+MCCr2Bk9+1o7orLLdp5E+n-g@mail.gmail.com>
- <54B38682.5080605@samsung.com>
- <CAL_Jsq+UaA41DvawdOMmOib=Fi0hC-nBdKV-+P4DFo+MoOy-bQ@mail.gmail.com>
- <54B3F1EF.4060506@samsung.com>
- <CAL_JsqKpJtUG0G6g1GOuSVpc31oe-dp3qdrKJUE0upG-xRDFhA@mail.gmail.com>
- <54B4DA81.7060900@samsung.com>
- <CAL_JsqLYxB5hzLAWXpU=uncM5DEMZU78mP673H9oSSNB-cgcYQ@mail.gmail.com>
-In-reply-to: <CAL_JsqLYxB5hzLAWXpU=uncM5DEMZU78mP673H9oSSNB-cgcYQ@mail.gmail.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+	Mon, 26 Jan 2015 12:11:04 -0500
+Received: by mail-we0-f179.google.com with SMTP id q59so10269477wes.10
+        for <linux-media@vger.kernel.org>; Mon, 26 Jan 2015 09:11:02 -0800 (PST)
+Received: from [192.168.1.100] ([217.27.127.160])
+        by mx.google.com with ESMTPSA id k3sm15102548wje.30.2015.01.26.09.11.00
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 26 Jan 2015 09:11:01 -0800 (PST)
+Message-ID: <54C67523.7000707@movia.biz>
+Date: Mon, 26 Jan 2015 18:10:59 +0100
+From: Francesco Marletta <francesco.marletta@movia.biz>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Strange behaviour of sizeof(struct v4l2_queryctrl)
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/15/2015 03:24 PM, Rob Herring wrote:
-> On Tue, Jan 13, 2015 at 2:42 AM, Jacek Anaszewski
-> <j.anaszewski@samsung.com> wrote:
->> On 01/12/2015 05:55 PM, Rob Herring wrote:
->>>
->>> Adding Mark B and Liam...
->>>
->>> On Mon, Jan 12, 2015 at 10:10 AM, Jacek Anaszewski
->>> <j.anaszewski@samsung.com> wrote:
->>>>
->>>> On 01/12/2015 02:52 PM, Rob Herring wrote:
->>>>>
->>>>>
->>>>> On Mon, Jan 12, 2015 at 2:32 AM, Jacek Anaszewski
->>>>> <j.anaszewski@samsung.com> wrote:
->>>>>>
->>>>>> On 01/09/2015 07:33 PM, Rob Herring wrote:
->>>>>>>
->>>>>>> On Fri, Jan 9, 2015 at 9:22 AM, Jacek Anaszewski
->>>>>>> <j.anaszewski@samsung.com> wrote:
->>>>>>>>
->>>>>>>> Add a property for defining the device outputs the LED
->>>>>>>> represented by the DT child node is connected to.
->>>
->>>
->>> [...]
->>>
->>>>>>>> b/Documentation/devicetree/bindings/leds/common.txt
->>>>>>>> index a2c3f7a..29295bf 100644
->>>>>>>> --- a/Documentation/devicetree/bindings/leds/common.txt
->>>>>>>> +++ b/Documentation/devicetree/bindings/leds/common.txt
->>>>>>>> @@ -1,6 +1,10 @@
->>>>>>>>      Common leds properties.
->>>>>>>>
->>>>>>>>      Optional properties for child nodes:
->>>>>>>> +- led-sources : Array of bits signifying the LED current regulator
->>>>>>>> outputs the
->>>>>>>> +               LED represented by the child node is connected to (1
->>>>>>>> -
->>>>>>>> the LED
->>>>>>>> +               is connected to the output, 0 - the LED isn't
->>>>>>>> connected
->>>>>>>> to the
->>>>>>>> +               output).
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> Sorry, I just don't understand this.
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>> In some Flash LED devices one LED can be connected to one or more
->>>>>> electric current outputs, which allows for multiplying the maximum
->>>>>> current allowed for the LED. Each sub-LED is represented by a child
->>>>>> node in the DT binding of the Flash LED device and it needs to declare
->>>>>> which outputs it is connected to. In the example below the led-sources
->>>>>> property is a two element array, which means that the flash LED device
->>>>>> has two current outputs, and the bits signify if the LED is connected
->>>>>> to the output.
->>>>>
->>>>>
->>>>>
->>>>> Sounds like a regulator for which we already have bindings for and we
->>>>> have a driver for regulator based LEDs (but no binding for it).
->>>>
->>>>
->>>>
->>>> Do you think of drivers/leds/leds-regulator.c driver? This driver just
->>>> allows for registering an arbitrary regulator device as a LED subsystem
->>>> device.
->>>>
->>>> There are however devices that don't fall into this category, i.e. they
->>>> have many outputs, that can be connected to a single LED or to many LEDs
->>>> and the driver has to know what is the actual arrangement.
->>>
->>>
->>> We may need to extend the regulator binding slightly and allow for
->>> multiple phandles on a supply property, but wouldn't something like
->>> this work:
->>>
->>> led-supply = <&led-reg0>, <&led-reg1>, <&led-reg2>, <&led-reg3>;
->>>
->>> The shared source is already supported by the regulator binding.
->>
->>
->> I think that we shouldn't split the LED devices into power supply
->> providers and consumers as in case of generic regulators. From this
->> point of view a LED device current output is a provider and a discrete
->> LED element is a consumer. In this approach each discrete LED element
->> should have a related driver which is not how LED devices are being
->> handled in the LED subsystem, where there is a single binding for a LED
->> device and there is a single driver for it which creates separate LED
->> class devices for each LED connected to the LED device output. Each
->> discrete LED is represented by a child node in the LED device binding.
->>
->> I am aware that it may be tempting to treat LED devices as common
->> regulators, but they have their specific features which gave a
->> reason for introducing LED class for them. Besides, there is already
->> drivers/leds/leds-regulator.c driver for LED devices which support only
->> turning on/off and setting brightness level.
->>
->> In your proposition a separate regulator provider binding would have
->> to be created for each current output and a separate binding for
->> each discrete LED connected to the LED device. It would create
->> unnecessary noise in a dts file.
->>
->> Moreover, using regulator binding implies that we want to treat it
->> as a sheer power supply for our device (which would be a discrete LED
->> element in this case), whereas LED devices provide more features like
->> blinking pattern and for flash LED devices - flash timeout, external
->> strobe and flash faults.
->
-> Okay, fair enough. Please include some of this explanation in the
-> binding description.
->
-> I do still have some concerns about led-sources and whether it can
-> support other scenarios. It is very much tied to the parent node. Are
-> there any cases where we don't want the LEDs to be sub nodes? Perhaps
-> the LEDs are on a separate daughterboard from the driver/supply and we
-> can have different drivers. It's a stretch maybe.
+Hello to anyone,
+I'm working on a problem with V4L2 on Linux Kernel 2.6.37.
 
-I think it is. Such arrangements would introduce problems also to the
-other existing bindings. Probably not only LED subsystem related ones.
+The problem arise when I try to query a video device to list the 
+controls it provides.
 
-> Or are there cases
-> where you need more information than just the connection?
+When is call
+     ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl)
 
-Currently I can't think of any.
+the function doesn't return 0 and errno is set to EINVAL
 
-Modified rough proposal of the description:
+This happen for every control, even for the controls that the driver 
+provides (checked in the code) like brightness.
 
+After adding a lot of printk in the videodev.ko module I found that the 
+problem is caused by a wrong value of VIDIOC_QUERYCTRL, that in the 
+kernel module is 0xC0485624 while in userspace application is 0xC0445624.
 
--Optional properties for child nodes:
-+LED and flash LED devices provide the same basic functionality as
-+current regulators, but extended with LED and flash LED specific 
-+features like blinking patterns, flash timeout, flash faults and
-+external flash strobe mode.
-+
-+Many LED devices expose more than one current output that can be
-+connected to one or more discrete LED component. Since the arrangement
-+of connections can influence the way of the LED device initialization,
-+the LED components have to be tightly coupled with the LED device
-+binding. They are represented in the form of its child nodes.
-+
-+Optional properties for child nodes (if a LED device exposes only one
-+current output the properties can be placed directly in the LED device
-+node):
-+- led-sources : Array of connection states between all LED current
-+               sources exposed by the device and this LED (1 - this LED
-+               is connected to the current output with index N, 0 -
-+               this LED isn't connected to the current output with
-+               index N); the mapping of N-th element of the array to
-+               the physical device output should be defined in the LED
-+               driver binding.
+I digged the kernel source to understand what's happening, and 
+discovered the definition of VIDIOC_QUERYCTRL:
+         #define VIDIOC_QUERYCTRL        _IOWR('V', 36, struct 
+v4l2_queryctrl)
 
+dove:
+         #define _IOWR(type,nr,size)     \
+_IOC(_IOC_READ|_IOC_WRITE,(type),(nr),(_IOC_TYPECHECK(size)))
 
--- 
-Best Regards,
-Jacek Anaszewski
+with
+         #define _IOC(dir,type,nr,size) \
+                         (((dir)  << _IOC_DIRSHIFT)  | \
+                         ((type)  << _IOC_TYPESHIFT) | \
+                         ((nr)    << _IOC_NRSHIFT)   | \
+                         ((size)  << _IOC_SIZESHIFT))
+
+and
+         #define _IOC_NRSHIFT    0
+         #define _IOC_TYPESHIFT  (_IOC_NRSHIFT+_IOC_NRBITS)
+         #define _IOC_SIZESHIFT  (_IOC_TYPESHIFT+_IOC_TYPEBITS)
+         #define _IOC_DIRSHIFT   (_IOC_SIZESHIFT+_IOC_SIZEBITS)
+
+         #define _IOC_NRBITS     8
+         #define _IOC_TYPEBITS   8
+         #define _IOC_SIZEBITS   14
+
+         #define _IOC_NONE       0U
+         #define _IOC_WRITE      1U
+         #define _IOC_READ       2U
+
+         #define _IOC_TYPECHECK(t) (sizeof(t))
+
+thus, the _IOC definition means:
+         _IOC(dir,type,nr,size)   <=>   [dir|size|type|nr]
+
+that, for the aftermentioned values means:
+         0xC0445624 <=> [3|044|56|24]  ==> size = 0x44 = 68
+         0xC0485624 <=> [3|048|56|24]  ==> size = 0x48 = 72
+
+To be sure that the number 68 and 72 are correct, I added a printk() in 
+the videodev.ko module and a println() in the userspace application to 
+print "sizeof(struct v4l2_queryctrl)", and the outputs are:
+
+     Kernel module:
+         printk("[DBG] %s() ~ sizeof(struct v4l2_queryctrl): %u\n", 
+__func__, sizeof(struct v4l2_queryctrl));
+             => [DBG] videodev_init() ~ sizeof(struct v4l2_queryctrl): 72
+
+     Userspace application:
+         printf("[dbg] sizeof(struct v4l2_queryctrl): %u\n", 
+sizeof(struct v4l2_queryctrl));
+             => [dbg] sizeof(struct v4l2_queryctrl): 68
+
+In both cases (module and application), there is the inclusion of 
+<linux/videodev2.h>.
+
+When I compiled the application I istructed the compiler to pick the 
+same kernel header of the module, with a proper CFLAGS += -I<PATH> in 
+the Makefile.
+
+Any idea about this strangeness?
+
+Regards
+Francesco
