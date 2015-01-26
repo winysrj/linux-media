@@ -1,335 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:48850 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754572AbbAIEJ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Jan 2015 23:09:26 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Y9QsL-0004vz-8o
-	for linux-media@vger.kernel.org; Fri, 09 Jan 2015 05:08:41 +0100
-Received: from 115-64-180-231.static.tpgi.com.au ([115.64.180.231])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 09 Jan 2015 05:08:41 +0100
-Received: from 0123peter by 115-64-180-231.static.tpgi.com.au with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 09 Jan 2015 05:08:41 +0100
-To: linux-media@vger.kernel.org
-From: blind Pete <0123peter@gmail.com>
-Subject: RE: [BUG] Dual tuner TV card, works using one tuner only, doesn't work if both tuners are used
-Date: Fri, 09 Jan 2015 14:46:04 +1100
-Message-ID: <tgv3ob-i8k.ln1@psd.motzarella.org>
-References: <007d01d02606$87552d70$95ff8850$@net> <01ad01d02a0b$02263690$0672a3b0$@net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7Bit
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:34039 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752232AbbAZNmY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jan 2015 08:42:24 -0500
+Message-ID: <54C64421.1030302@xs4all.nl>
+Date: Mon, 26 Jan 2015 14:41:53 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Ricardo Ribalda <ricardo.ribalda@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH 1/3] media: Fix ALSA and DVB representation at media controller
+ API
+References: <cover.1422273497.git.mchehab@osg.samsung.com>	<cb0517f150942a2d3657c1f2e55754061bfae2c4.1422273497.git.mchehab@osg.samsung.com>	<54C63D16.3070607@xs4all.nl> <20150126113416.311fb376@recife.lan>
+In-Reply-To: <20150126113416.311fb376@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi dCrypt, 
+On 01/26/2015 02:34 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 26 Jan 2015 14:11:50 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 01/26/2015 01:47 PM, Mauro Carvalho Chehab wrote:
+>>> The previous provision for DVB media controller support were to
+>>> define an ID (likely meaning the adapter number) for the DVB
+>>> devnodes.
+>>>
+>>> This is just plain wrong. Just like V4L, DVB devices (and ALSA,
+>>> or whatever) are identified via a (major, minor) tuple.
+>>>
+>>> This is enough to uniquely identify a devnode, no matter what
+>>> API it implements.
+>>>
+>>> So, before we go too far, let's mark the old v4l, dvb and alsa
+>>> "devnode" info as deprecated, and just call it as "dev".
+>>>
+>>> As we don't want to break compilation on already existing apps,
+>>> let's just keep the old definitions as-is, adding a note that
+>>> those are deprecated at media-entity.h.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+>>> index 86bb93fd7db8..d89d5cb465d9 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-dev.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+>>> @@ -943,8 +943,8 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+>>>  	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
+>>>  		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
+>>>  		vdev->entity.name = vdev->name;
+>>> -		vdev->entity.info.v4l.major = VIDEO_MAJOR;
+>>> -		vdev->entity.info.v4l.minor = vdev->minor;
+>>> +		vdev->entity.info.dev.major = VIDEO_MAJOR;
+>>> +		vdev->entity.info.dev.minor = vdev->minor;
+>>>  		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
+>>>  			&vdev->entity);
+>>>  		if (ret < 0)
+>>> diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+>>> index 015f92aab44a..204cc67c84e8 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-device.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-device.c
+>>> @@ -248,8 +248,8 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+>>>  			goto clean_up;
+>>>  		}
+>>>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>>> -		sd->entity.info.v4l.major = VIDEO_MAJOR;
+>>> -		sd->entity.info.v4l.minor = vdev->minor;
+>>> +		sd->entity.info.dev.major = VIDEO_MAJOR;
+>>> +		sd->entity.info.dev.minor = vdev->minor;
+>>>  #endif
+>>>  		sd->devnode = vdev;
+>>>  	}
+>>> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+>>> index e00459185d20..d6d74bcfe183 100644
+>>> --- a/include/media/media-entity.h
+>>> +++ b/include/media/media-entity.h
+>>> @@ -87,17 +87,7 @@ struct media_entity {
+>>>  		struct {
+>>>  			u32 major;
+>>>  			u32 minor;
+>>> -		} v4l;
+>>> -		struct {
+>>> -			u32 major;
+>>> -			u32 minor;
+>>> -		} fb;
+>>> -		struct {
+>>> -			u32 card;
+>>> -			u32 device;
+>>> -			u32 subdevice;
+>>> -		} alsa;
+>>
+>> I don't think the alsa entity information can be replaced by major/minor.
+>> In particular you will loose the subdevice information which you need as
+>> well. In addition, alsa devices are almost never referenced via major and
+>> minor numbers, but always by card/device/subdevice numbers.
+> 
+> For media-ctl, it is easier to handle major/minor, in order to identify
+> the associated devnode name. Btw, media-ctl currently assumes that all
+> devnode devices are specified by v4l.major/v4l.minor.
+> 
+> Ok, maybe for alsa we'll need also card/device/subdevice, but I think this
+> should be mapped elsewhere, if this can't be retrieved via its sysfs/udev
+> interface (with seems to be doubtful).
 
-I'm not a developer at all.  I'm not even sure why I read this list, 
-but can you determine if the problem is associated with a 
-particular kernel version?  i.e. if it works on x.y.z but 
-fails on x.y.(z+1) you have a starting point.  If you use 
-the word "regression" and a kernel version number you might 
-get more attention - but I'm only guessing.  
+The card/device tuple can likely be mapped to major/minor, but not subdevice.
+And since everything inside alsa is based on card/device I wouldn't change
+that.
 
-Good luck, 
-blind Pete
+> 
+>>
+>>> -		int dvb;
+>>> +		} dev;
+>>>  
+>>>  		/* Sub-device specifications */
+>>>  		/* Nothing needed yet */
+>>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+>>> index d847c760e8f0..418f4fec391a 100644
+>>> --- a/include/uapi/linux/media.h
+>>> +++ b/include/uapi/linux/media.h
+>>> @@ -78,6 +78,20 @@ struct media_entity_desc {
+>>>  		struct {
+>>>  			__u32 major;
+>>>  			__u32 minor;
+>>> +		} dev;
+>>> +
+>>> +#if 1
+>>> +		/*
+>>> +		 * DEPRECATED: previous node specifications. Kept just to
+>>> +		 * avoid breaking compilation, but media_entity_desc.dev
+>>> +		 * should be used instead. In particular, alsa and dvb
+>>> +		 * fields below are wrong: for all devnodes, there should
+>>> +		 * be just major/minor inside the struct, as this is enough
+>>> +		 * to represent any devnode, no matter what type.
+>>> +		 */
+>>> +		struct {
+>>> +			__u32 major;
+>>> +			__u32 minor;
+>>>  		} v4l;
+>>>  		struct {
+>>>  			__u32 major;
+>>> @@ -89,6 +103,7 @@ struct media_entity_desc {
+>>>  			__u32 subdevice;
+>>>  		} alsa;
+>>>  		int dvb;
+>>
+>> I wouldn't merge all the v4l/fb/etc. structs into one struct. That will make it
+>> difficult in the future if you need to add a field for e.g. v4l entities.
+> 
+> No. You could just create another union for the API-specific bits, using the
+> reserved bytes.
+> 
+>> So I would keep the v4l, fb and alsa structs, and just add a new struct for
+>> dvb. I wonder if the dvb field can't just be replaced since I doubt anyone is
+>> using it. And even if someone does, then it can't be right since a single
+>> int isn't enough and never worked anyway.
+> 
+> All devnodes have major/minor. Making it standard for all devices makes
+> easy for userspace to properly get the data it requires to work.
 
-dCrypt wrote:
+I think you are making assumptions here that may not be true. I don't see any
+reason to make a 'dev' struct here. The real problem is the dvb int, so that's
+what needs to be addressed. Changing anything else will cause API headaches
+for no good reason.
 
-> Hi again,
-> 
-> I'm sorry if I sound quite rude, but I'm not sure if I am doing it right
-> or not. I subscribed to this mailing list in order to ask for help, or to
-> help with a bug that I've found (as instructed in the wiki
-> http://linuxtv.org/wiki/index.php/Bug_Report), but it seems to me that the
-> mailing list is filled up with developing messages. I don't want to
-> participate in the development, I am a developer but I don't have the
-> skills nor the knowledge.
-> 
-> If this is not the right place to direct my questions, I would appreciate
-> some advice.
-> 
-> Thank you very much, and best regards.
-> 
-> -----Mensaje original-----
-> De: linux-media-owner@vger.kernel.org
-> [mailto:linux-media-owner@vger.kernel.org] En nombre de dCrypt
-> Enviado el: jueves, 01 de enero de 2015 22:04
-> Para: linux-media@vger.kernel.org
-> Asunto: [BUG] Dual tuner TV card, works using one tuner only, doesn't work
-> if both tuners are used
-> 
-> Hi,
-> 
-> I just subscribed to the mailing list to submit information on the bug
-> which is driving me crazy since one month ago.
-> 
-> I have a VDR based PVR at home, installed over an Ubuntu 14.04 LTS.
-> Everything was working perfectly, until beginning of December. It seems to
-> me that something changed that broke my PVR pretty bad.
-> 
-> The problem is the following: tuning (zap) both tuners (it's not needed
-> that both are tuned simultaneously, only one after the other, in no
-> particular order) makes the tuners to enter an state where they can't lock
-> the signal anymore.
-> 
-> Facts:
-> 
-> - My TV card is a Cinergy T PCIe Dual from Terratec
-> (http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_T_PCIe_dual).
-> - The problem arose in the form of "frontend x/0 timed out while tuning to
-> channel ..." in /var/log/syslog. It happened when both tuners are active,
-> during EPG scan. The problem does not happen if VDR is run with -D
-> parameter to limit the number of frontends enabled. Disabling the EPG scan
-> with both frontends enabled minimizes the problem, but doesn't solve it
-> because tuning both frontends without any EPG scan makes the error happen
-> again. - I initially thought about a problem in the DVB-T signal, because
-> it all started the 1st of December, during the transition to a new set of
-> frequencies in Spain.
-> - Everything was working perfectly before the 1st, and the problems
-> started suddenly.
-> - I setup testing board for debugging, different board and processor, less
-> memory, lots of Linux distros tested, Windows tested as well.
-> - Both tuners works in windows without problems. Confirmed.
-> - I have completely discarded problems/errors in hardware (because in
-> Windows I can enable both tuners without problems) and VDR (because I can
-> reproduce the problems at OS level, without even having VDR installed).
-> - I have almost narrowed the problem at the cx23885 driver, because when
-> it happens, I can restart the TV card to working conditions by executing
-> "rmmod cx23885" and "modprobe cx23885"; however, as with "rmmod" several
-> dependencies are unloaded as well, I am stuck and I am unable to go on
-> with debugging to find out where the problem really is.
-> - Tools used to test and confirm the problem are: VDR, MythTV, TVHeadend,
-> dvbscan, dvbv5-scan, dvbv5-zap and others
-> - Linux distros tested: Ubuntu, Fedora, Suse, yaVDR (not sure if the card
-> worked at all), MythBuntu ("dvb-fe-tool -a 1 -c DVBT" was required to
-> force DVB-T mode for the second tuner), and probably others
-> - I have a Sony PlayTV also with dual tuners, which works without any
-> problem.
-> http://www.linuxtv.org/wiki/index.php/Sony_PlayTV_dual_tuner_DVB-T
-> 
-> So, that's why I ask for your help. How can I further debug the problem?
-> Is there something I can do?
-> 
-> BR, and happy new year!
-> 
-> 
-> INFO & TEST:
-> 
-> -------------------------------------------------------------------->
-> 
-> pvr@prueba:~$ sudo lspci -vvv -s 03:00.0 03:00.0 Multimedia video
-> controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder
-> (rev 04)
->         Subsystem: TERRATEC Electronic GmbH Cinergy T PCIe Dual
->         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
->         ParErr-
-> Stepping- SERR- FastB2B- DisINTx-
->         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->         Latency: 0, Cache Line Size: 4 bytes
->         Interrupt: pin A routed to IRQ 16
->         Region 0: Memory at fba00000 (64-bit, non-prefetchable) [size=2M]
->         Capabilities: [40] Express (v1) Endpoint, MSI 00
->                 DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s
-> <64ns, L1 <1us
->                         ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
->                 DevCtl: Report errors: Correctable- Non-Fatal- Fatal-
-> Unsupported-
->                         RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
->                         MaxPayload 128 bytes, MaxReadReq 512 bytes
->                 DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr-
-> TransPend-
->                 LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1,
->                 Exit
-> Latency L0s <2us, L1 <4us
->                         ClockPM- Surprise- LLActRep- BwNot-
->                 LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- CommClk+
->                         ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
->                 LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+
-> DLActive- BWMgmt- ABWMgmt-
->         Capabilities: [80] Power Management version 2
->                 Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA
-> PME(D0+,D1+,D2+,D3hot+,D3cold-)
->                 Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
->         Capabilities: [90] Vital Product Data
->                 Product Name: "
->                 End
->         Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+
->                 Address: 0000000000000000  Data: 0000
->         Capabilities: [100 v1] Advanced Error Reporting
->                 UESta:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt-
-> RxOF- MalfTLP- ECRC- UnsupReq+ ACSViol-
->                 UEMsk:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt-
-> RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
->                 UESvrt: DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt-
-> RxOF+ MalfTLP+ ECRC- UnsupReq- ACSViol-
->                 CESta:  RxErr- BadTLP- BadDLLP- Rollover- Timeout-
-> NonFatalErr-
->                 CEMsk:  RxErr- BadTLP- BadDLLP- Rollover- Timeout-
-> NonFatalErr-
->                 AERCap: First Error Pointer: 14, GenCap- CGenEn- ChkCap-
-> ChkEn-
->         Capabilities: [200 v1] Virtual Channel
->                 Caps:   LPEVC=0 RefClk=100ns PATEntryBits=1
->                 Arb:    Fixed+ WRR32+ WRR64+ WRR128-
->                 Ctrl:   ArbSelect=WRR64
->                 Status: InProgress-
->                 Port Arbitration Table [240] <?>
->                 VC0:    Caps:   PATOffset=00 MaxTimeSlots=1 RejSnoopTrans-
->                         Arb:    Fixed- WRR32- WRR64- WRR128- TWRR128-
-> WRR256-
->                         Ctrl:   Enable+ ID=0 ArbSelect=Fixed TC/VC=ff
->                         Status: NegoPending- InProgress-
->         Kernel driver in use: cx23885
-> 
-> -------------------------------------------------------------------->
-> 
-> pvr@prueba:~$ dmesg | grep cx
-> [   12.812789] cx23885 driver version 0.0.3 loaded
-> [   12.812997] CORE cx23885[0]: subsystem: 153b:117e, board: TerraTec
-> Cinergy T PCIe Dual [card=34,autodetected]
-> [   12.949340] cx25840 11-0044: cx23885 A/V decoder found @ 0x88
-> (cx23885[0])
-> [   13.723953] cx25840 11-0044: loaded v4l-cx23885-avcore-01.fw firmware
-> (16382 bytes)
-> [   13.739701] cx23885_dvb_register() allocating 1 frontend(s)
-> [   13.739704] cx23885[0]: cx23885 based dvb card
-> [   13.852565] DVB: registering new adapter (cx23885[0])
-> [   13.852569] cx23885 0000:03:00.0: DVB: registering adapter 0 frontend 0
-> (DRXK DVB-T)...
-> [   13.852749] cx23885_dvb_register() allocating 1 frontend(s)
-> [   13.852750] cx23885[0]: cx23885 based dvb card
-> [   13.958613] DVB: registering new adapter (cx23885[0])
-> [   13.958618] cx23885 0000:03:00.0: DVB: registering adapter 1 frontend 0
-> (DRXK DVB-C DVB-T)...
-> [   13.958934] cx23885_dev_checkrevision() Hardware revision = 0xa5
-> [   13.958939] cx23885[0]/0: found at 0000:03:00.0, rev: 4, irq: 16,
-> latency: 0, mmio: 0xfba00000
-> 
-> -------------------------------------------------------------------->
-> 
-> pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 0 -x using
-> demux '/dev/dvb/adapter0/demux0'
-> reading channels from file 'channelsv5.conf'
-> service has pid type 05:  115
-> tuning to 770000000 Hz
->        (0x00) Quality= Good Signal= 100,00% C/N= 11,30dB UCB= 2 postBER= 0
-> preBER= 57,9x10^-6 PER= 48,8x10^-6
-> Lock   (0x1f) Quality= Good Signal= 100,00% C/N= 11,80dB UCB= 3 postBER= 0
-> preBER= 55,1x10^-6 PER= 0
-> pvr@prueba:~$
-> pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 0 -x using
-> demux '/dev/dvb/adapter0/demux0'
-> reading channels from file 'channelsv5.conf'
-> service has pid type 05:  115
-> tuning to 770000000 Hz
->        (0x00) Quality= Good Signal= 100,00% C/N= 11,80dB UCB= 3 postBER= 0
-> preBER= 63,6x10^-6 PER= 56,3x10^-6
-> Lock   (0x1f) Quality= Good Signal= 100,00% C/N= 12,20dB UCB= 4 postBER=
-> 5,39x10^-6 preBER= 0 PER= 0
-> pvr@prueba:~$
-> pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 0 -x using
-> demux '/dev/dvb/adapter0/demux0'
-> reading channels from file 'channelsv5.conf'
-> service has pid type 05:  115
-> tuning to 770000000 Hz
->        (0x00) Quality= Good Signal= 100,00% C/N= 12,20dB UCB= 4 postBER=
-> 1,01x10^-6 preBER= 58,6x10^-6 PER= 61,0x10^-6
-> Lock   (0x1f) Quality= Good Signal= 100,00% C/N= 12,10dB UCB= 4 postBER= 0
-> preBER= 55,1x10^-6 PER= 0
-> pvr@prueba:~$
-> pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 1 -x using
-> demux '/dev/dvb/adapter1/demux0'
-> reading channels from file 'channelsv5.conf'
-> service has pid type 05:  115
-> tuning to 770000000 Hz
->        (0x00) Signal= 0,00%
-> Viterbi(0x07) Signal= 100,00% C/N= 10,00dB
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> 
-> ^Cpvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 0 -x using
-> demux '/dev/dvb/adapter0/demux0'
-> reading channels from file 'channelsv5.conf'
-> service has pid type 05:  115
-> tuning to 770000000 Hz
->        (0x00) Quality= Good Signal= 100,00% C/N= 12,10dB UCB= 4 postBER=
-> 850x10^-9 preBER= 58,0x10^-6 PER= 51,4x10^-6
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> Viterbi(0x07) Signal= 100,00% C/N= 8,80dB
-> Viterbi(0x07) Signal= 100,00% C/N= 10,00dB
-> 
-> ^Cpvr@prueba:~$ sudo rmmod cx23885
-> pvr@prueba:~$ sudo modprobe cx23885
-> pvr@prueba:~$
-> pvr@prueba:~$
-> pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 1 -x using
-> demux '/dev/dvb/adapter1/demux0'
-> reading channels from file 'channelsv5.conf'
-> service has pid type 05:  115
-> tuning to 770000000 Hz
->        (0x00) Signal= 0,00%
-> Lock   (0x1f) Quality= Good Signal= 100,00% C/N= 10,40dB UCB= 0 postBER= 0
-> preBER= 55,1x10^-6 PER= 0
-> pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 1 -x using
-> demux '/dev/dvb/adapter1/demux0'
-> reading channels from file 'channelsv5.conf'
-> service has pid type 05:  115
-> tuning to 770000000 Hz
->        (0x00) Quality= Good Signal= 100,00% C/N= 10,40dB UCB= 0 postBER= 0
-> preBER= 36,7x10^-6 PER= 0
-> Lock   (0x1f) Quality= Good Signal= 100,00% C/N= 11,90dB UCB= 1 postBER= 0
-> preBER= 331x10^-6 PER= 0
-> pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 1 -x using
-> demux '/dev/dvb/adapter1/demux0'
-> reading channels from file 'channelsv5.conf'
-> service has pid type 05:  115
-> tuning to 770000000 Hz
->        (0x00) Quality= Good Signal= 100,00% C/N= 11,90dB UCB= 1 postBER= 0
-> preBER= 175x10^-6 PER= 40,7x10^-6
-> Lock   (0x1f) Quality= Good Signal= 100,00% C/N= 12,30dB UCB= 2 postBER= 0
-> preBER= 55,1x10^-6 PER= 0
-> pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 0 -x using
-> demux '/dev/dvb/adapter0/demux0'
-> reading channels from file 'channelsv5.conf'
-> service has pid type 05:  115
-> tuning to 770000000 Hz
->        (0x00) Signal= 0,00%
-> Viterbi(0x07) Signal= 100,00% C/N= 11,60dB
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> 
-> ^Cpvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 1 -x using
-> demux '/dev/dvb/adapter1/demux0'
-> reading channels from file 'channelsv5.conf'
-> service has pid type 05:  115
-> tuning to 770000000 Hz
->        (0x00) Quality= Good Signal= 100,00% C/N= 12,30dB UCB= 2 postBER= 0
-> preBER= 138x10^-6 PER= 54,3x10^-6
-> Viterbi(0x07) Signal= 100,00% C/N= 10,20dB
-> Viterbi(0x07) Signal= 100,00% C/N= 11,70dB
-> Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
-> Viterbi(0x07) Signal= 100,00% C/N= 10,40dB
-> 
-> ^Cpvr@prueba:~$
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
--- 
-blind Pete
-Sig goes here...  
+Regards,
 
+	Hans
