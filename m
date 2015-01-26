@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:56410 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755855AbbA2UUP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 15:20:15 -0500
-Date: Thu, 29 Jan 2015 21:19:56 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-cc: William Towle <william.towle@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 5/8] media: rcar_vin: Add RGB888_1X24 input format support
-In-Reply-To: <54CA7BBF.6070607@cogentembedded.com>
-Message-ID: <Pine.LNX.4.64.1501292118020.7281@axis700.grange>
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
- <1422548388-28861-6-git-send-email-william.towle@codethink.co.uk>
- <54CA6869.9060100@cogentembedded.com> <Pine.LNX.4.64.1501291915100.30602@axis700.grange>
- <54CA7BBF.6070607@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([198.137.202.9]:41504 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754149AbbAZMr1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jan 2015 07:47:27 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/3] Media controller changes to support DVB
+Date: Mon, 26 Jan 2015 10:47:09 -0200
+Message-Id: <cover.1422273497.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 29 Jan 2015, Sergei Shtylyov wrote:
+This patch series change the media controller API to allow adding
+support for DVB media controller support.
 
-> Hello.
-> 
-> On 01/29/2015 09:18 PM, Guennadi Liakhovetski wrote:
-> 
-> > > > This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
-> > > > which is used by the ADV7612 chip.
-> 
-> > > > Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
-> 
-> > >     I wonder why it hasn't been merged still? It's pending since 2013, and
-> > > I'm
-> > > seeing no objections to it...
-> 
-> > Indeed, strange. I'm saving it for me to look at it for the next merge...
-> > and I'll double-check that series. Maybe the series had some objections,
-> 
->    Indeed, I'm now seeing the patch #1 was objected to. Patch #2 has been
-> merged somewhat later.
+I removed the actual implementation from this series, in order to
+better identify the API bits required to add media controller support
+to DVB. They'll be sent o a separate patch series, after we agree
+with the API needs.
 
-Right, and since this RGB888 format support was needed for the ADV761X 
-driver from patch #1, this patch wasn't merged either. Do you need it now 
-for something different?
+If this gets accepted, the other patches will be basically the ones
+already sent at:
+	https://www.mail-archive.com/linux-media@vger.kernel.org/msg83895.html
 
-Thanks
-Guennadi
+With one small change at the patch that adds media controller support
+at dvbdev, replacing "info.dvb" by "info.dev", due to a change at the
+media controller's representation for all devnodes.
+
+As a reference, a typical analog/digital TV hardware looks like:
+	http://linuxtv.org/downloads/presentations/typical_hybrid_hardware.png
+
+And the media controller representation for it is:
+	http://linuxtv.org/downloads/presentations/cx231xx.dot
+	http://linuxtv.org/downloads/presentations/cx231xx.ps
+
+The full patch series with the DVB controller implementation is at:
+	http://git.linuxtv.org/cgit.cgi/mchehab/experimental.git/log/?h=dvb-media-ctl
+
+Mauro Carvalho Chehab (3):
+  media: Fix ALSA and DVB representation at media controller API
+  media: add new types for DVB devnodes
+  media: add a subdev type for tuner
+
+ drivers/media/v4l2-core/v4l2-dev.c    |  4 ++--
+ drivers/media/v4l2-core/v4l2-device.c |  4 ++--
+ include/media/media-entity.h          | 12 +-----------
+ include/uapi/linux/media.h            | 26 +++++++++++++++++++++++++-
+ 4 files changed, 30 insertions(+), 16 deletions(-)
+
+-- 
+2.1.0
+
