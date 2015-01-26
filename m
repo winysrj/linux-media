@@ -1,64 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39302 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750835AbbAIR4o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 12:56:44 -0500
-Date: Fri, 9 Jan 2015 18:56:41 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Chanwoo Choi <cw00.choi@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH/RFC v10 06/19] mfd: max77693: modifications around
- max77693_led_platform_data
-Message-ID: <20150109175641.GH18076@amd>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-7-git-send-email-j.anaszewski@samsung.com>
+Received: from cavendish.fsfeurope.org ([217.69.89.162]:44792 "EHLO
+	cavendish.fsfeurope.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755141AbbAZKpL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jan 2015 05:45:11 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by cavendish.fsfeurope.org (Postfix) with ESMTP id 6A89E63AC0E
+	for <linux-media@vger.kernel.org>; Mon, 26 Jan 2015 11:38:21 +0100 (CET)
+Received: from cavendish.fsfeurope.org ([127.0.0.1])
+	by localhost (cavendish.fsfeurope.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id swmdwrgU0T6y for <linux-media@vger.kernel.org>;
+	Mon, 26 Jan 2015 11:38:19 +0100 (CET)
+Received: from [10.0.0.70] (dynamic-adsl-78-12-229-93.clienti.tiscali.it [78.12.229.93])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	(Authenticated sender: lucabon)
+	by cavendish.fsfeurope.org (Postfix) with ESMTPSA id 10EA563A623
+	for <linux-media@vger.kernel.org>; Mon, 26 Jan 2015 11:38:18 +0100 (CET)
+Message-ID: <54C61919.7050508@scarsita.it>
+Date: Mon, 26 Jan 2015 11:38:17 +0100
+From: Luca Bonissi <lucabon@scarsita.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1420816989-1808-7-git-send-email-j.anaszewski@samsung.com>
+To: Linux Media <linux-media@vger.kernel.org>
+Subject: [PATCH] media: gspca_vc032x - wrong bytesperline
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 2015-01-09 16:22:56, Jacek Anaszewski wrote:
-> 1. Rename max77693_led_platform_data to max77693_led_config_data to
->    avoid making impression that the led driver expects a board file -
->    it relies on Device Tree data.
-> 2. Remove fleds array, as the DT binding design has changed
-> 3. Add "label" array for Device Tree strings with the name of a LED device
-> 4. Make flash_timeout a two element array, for caching the sub-led
->    related flash timeout.
-> 5. Remove trigger array as the related data will not be provided
->    in the DT binding
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
+Hi!
 
-Seems that max77693_led_platform_data is unused at the moment, so it
-should not break bisect.
+I found a problem on vc032x gspca usb webcam subdriver: "bytesperline" 
+property is wrong for YUYV and YVYU formats.
+With recent v4l-utils library (>=0.9.1), that uses "bytesperline" for 
+pixel format conversion, the result is a wrong jerky image.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Patch tested on my laptop (USB webcam Logitech Orbicam 046d:0892).
 
-> index f0b6585..c1ccb13 100644
-> --- a/include/linux/mfd/max77693.h
-> +++ b/include/linux/mfd/max77693.h
-> @@ -87,17 +87,16 @@ enum max77693_led_boost_mode {
->  	MAX77693_LED_BOOST_FIXED,
->  };
->  
-> -struct max77693_led_platform_data {
-> -	u32 fleds[2];
-> +struct max77693_led_config_data {
-> +	const char *label[2];
->  	u32 iout_torch[2];
->  	u32 iout_flash[2];
+--- drivers/media/usb/gspca/vc032x.c.orig       2014-08-04 
+00:25:02.000000000 +0200
++++ drivers/media/usb/gspca/vc032x.c    2015-01-12 00:28:39.423311693 +0100
+@@ -68,12 +68,12 @@
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+  static const struct v4l2_pix_format vc0321_mode[] = {
+         {320, 240, V4L2_PIX_FMT_YVYU, V4L2_FIELD_NONE,
+-               .bytesperline = 320,
++               .bytesperline = 320 * 2,
+                 .sizeimage = 320 * 240 * 2,
+                 .colorspace = V4L2_COLORSPACE_SRGB,
+                 .priv = 1},
+         {640, 480, V4L2_PIX_FMT_YVYU, V4L2_FIELD_NONE,
+-               .bytesperline = 640,
++               .bytesperline = 640 * 2,
+                 .sizeimage = 640 * 480 * 2,
+                 .colorspace = V4L2_COLORSPACE_SRGB,
+                 .priv = 0},
+@@ -97,12 +97,12 @@
+  };
+  static const struct v4l2_pix_format bi_mode[] = {
+         {320, 240, V4L2_PIX_FMT_YUYV, V4L2_FIELD_NONE,
+-               .bytesperline = 320,
++               .bytesperline = 320 * 2,
+                 .sizeimage = 320 * 240 * 2,
+                 .colorspace = V4L2_COLORSPACE_SRGB,
+                 .priv = 2},
+         {640, 480, V4L2_PIX_FMT_YUYV, V4L2_FIELD_NONE,
+-               .bytesperline = 640,
++               .bytesperline = 640 * 2,
+                 .sizeimage = 640 * 480 * 2,
+                 .colorspace = V4L2_COLORSPACE_SRGB,
+                 .priv = 1},
+
