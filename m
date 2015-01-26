@@ -1,91 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49342 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933536AbbA1Udw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 15:33:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	sadegh abbasi <sadegh612000@yahoo.co.uk>
-Subject: Re: [PATCH v2 6/6] staging: media: omap4iss: ipipe: Expose the RGB2RGB blending matrix
-Date: Wed, 28 Jan 2015 14:18:20 +0200
-Message-ID: <109421334.Lm3XXHQ8EE@avalon>
-In-Reply-To: <54C8B976.3090908@xs4all.nl>
-References: <1422436639-18292-1-git-send-email-laurent.pinchart@ideasonboard.com> <1422436639-18292-7-git-send-email-laurent.pinchart@ideasonboard.com> <54C8B976.3090908@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:54277 "EHLO
+	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752905AbbAZRIq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jan 2015 12:08:46 -0500
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 1/2] media: rcar_vin: helper function for streaming stop
+Date: Mon, 26 Jan 2015 17:08:39 +0000
+Message-Id: <1422292120-30496-2-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1422292120-30496-1-git-send-email-william.towle@codethink.co.uk>
+References: <1422292120-30496-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Ian Molton <ian.molton@codethink.co.uk>
 
-Thank you for the review.
+The code that tests that capture from a stream has stopped is
+presently insufficient and the potential for a race condition
+exists where frame capture may generate an interrupt between
+requesting the capture process halt and freeing buffers.
 
-On Wednesday 28 January 2015 11:27:02 Hans Verkuil wrote:
-> On 01/28/15 10:17, Laurent Pinchart wrote:
-> > Expose the module as two controls, one for the 3x3 multiplier matrix and
-> > one for the 3x1 offset vector.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/staging/media/omap4iss/iss_ipipe.c | 129 +++++++++++++++++++++++-
-> >  drivers/staging/media/omap4iss/iss_ipipe.h |  17 ++++
-> >  2 files changed, 144 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c
-> > b/drivers/staging/media/omap4iss/iss_ipipe.c index 73b165e..624c5d2
-> > 100644
-> > --- a/drivers/staging/media/omap4iss/iss_ipipe.c
-> > +++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-> > @@ -119,6 +119,105 @@ static void ipipe_configure(struct iss_ipipe_device
-> > *ipipe)> 
-> >  }
-> >  
-> >  /* ---------------------------------------------------------------------- 
-> > + * V4L2 controls
-> > + */
-> > +
-> > +#define OMAP4ISS_IPIPE_CID_BASE			(V4L2_CID_USER_BASE | 0xf000)
-> 
-> Private control ranges should be reserved in uapi/linux/v4l2-controls.h.
-> 
-> See e.g. V4L2_CID_USER_SAA7134_BASE.
+This patch refactors code out of rcar_vin_videobuf_release() and
+into rcar_vin_wait_stop_streaming(), and ensures there are calls
+in places where we need to know that capturing has finished.
 
-My bad, I'll fix that.
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c |   41 +++++++++++++++++---------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
 
-> > +#define OMAP4ISS_IPIPE_CID_RGB2RGB_MULT		(OMAP4ISS_IPIPE_CID_BASE + 
-0)
-> > +#define OMAP4ISS_IPIPE_CID_RGB2RGB_OFFSET	(OMAP4ISS_IPIPE_CID_BASE + 
-1)
-> 
-> Can you give some information how the values are interpreted? That should
-> be documented anyway, but I would like to see how this compares to the
-> adv drivers. This is something that we might want to make available as
-> standard controls. I will have to think about that a bit more.
-
-Sure.
-
-http://www.ti.com/lit/pdf/swpu235, section 8.3.3.4.6, page 1863.
-
-/       \   /                         \   /      \   /          \
-| R_out |   | gain_RR gain_GR gain_BR |   | R_in |   | offset_R |
-| G_out | = | gain_RG gain_GG gain_BG | x | G_in | + | offset_G |
-| B_out |   | gain_RB gain_GB gain_BB |   | B_in |   | offset_B |
-\       /   \                         /   \      /   \          /
-
-The two controls correspond to the multiplication matrix and offset vector. 
-Coefficients are stored in 16 bits each and expressed as S3.8 (-4 to +3.996) 
-for the gains and S11 (-1024 to 1023) for the offsets.
-
-Note that the ISS IPIPE has two RGB to RGB blending matrices as shown on 
-figure 8-132, page 1859. This patch implements support for the first one only. 
-We should probably consider how to expose the second one as well.
-
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 8d8438b..89c409b 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -458,6 +458,28 @@ error:
+ 	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
+ }
+ 
++/*
++ * Wait for capture to stop and all in-flight buffers to be finished with by
++ * the video hardware. This must be called under &priv->lock
++ *
++ */
++static void rcar_vin_wait_stop_streaming(struct rcar_vin_priv *priv)
++{
++	while (priv->state != STOPPED) {
++		/* issue stop if running */
++		if (priv->state == RUNNING)
++			rcar_vin_request_capture_stop(priv);
++
++		/* wait until capturing has been stopped */
++		if (priv->state == STOPPING) {
++			priv->request_to_stop = true;
++			spin_unlock_irq(&priv->lock);
++			wait_for_completion(&priv->capture_stop);
++			spin_lock_irq(&priv->lock);
++		}
++	}
++}
++
+ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
+ {
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
+@@ -477,20 +499,8 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
+ 	}
+ 
+ 	if (buf_in_use) {
+-		while (priv->state != STOPPED) {
+-
+-			/* issue stop if running */
+-			if (priv->state == RUNNING)
+-				rcar_vin_request_capture_stop(priv);
+-
+-			/* wait until capturing has been stopped */
+-			if (priv->state == STOPPING) {
+-				priv->request_to_stop = true;
+-				spin_unlock_irq(&priv->lock);
+-				wait_for_completion(&priv->capture_stop);
+-				spin_lock_irq(&priv->lock);
+-			}
+-		}
++		rcar_vin_wait_stop_streaming(priv);
++
+ 		/*
+ 		 * Capturing has now stopped. The buffer we have been asked
+ 		 * to release could be any of the current buffers in use, so
+@@ -524,8 +534,11 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
+ 	struct list_head *buf_head, *tmp;
+ 
+ 	spin_lock_irq(&priv->lock);
++
++	rcar_vin_wait_stop_streaming(priv);
+ 	list_for_each_safe(buf_head, tmp, &priv->capture)
+ 		list_del_init(buf_head);
++
+ 	spin_unlock_irq(&priv->lock);
+ }
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
