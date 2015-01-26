@@ -1,90 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55351 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756539AbbAFVJW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:22 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv3 00/20] dvb core: add basic support for the media controller
-Date: Tue,  6 Jan 2015 19:08:31 -0200
-Message-Id: <cover.1420578087.git.mchehab@osg.samsung.com>
+Received: from mga01.intel.com ([192.55.52.88]:19993 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751771AbbAZNn6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jan 2015 08:43:58 -0500
+Date: Mon, 26 Jan 2015 21:42:59 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Benoit Parrot <bparrot@ti.com>
+Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, Darren Etheridge <detheridge@ti.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [linuxtv-media:master 66/93]
+ drivers/media/platform/am437x/am437x-vpfe.c:2202:57: sparse: incorrect type
+ in argument 2 (different address spaces)
+Message-ID: <201501262158.7n6SQC07%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds basic support for the media controller at the
-DVB core: it creates one media entity per DVB devnode, if the media
-device is passed as an argument to the DVB structures.
+tree:   git://linuxtv.org/media_tree.git master
+head:   e32b31ae45c18679c186e67aa41d0e2318cae487
+commit: 417d2e507edcb5cf15eb344f86bd3dd28737f24e [66/93] [media] media: platform: add VPFE capture driver support for AM437X
+reproduce:
+  # apt-get install sparse
+  git checkout 417d2e507edcb5cf15eb344f86bd3dd28737f24e
+  make ARCH=x86_64 allmodconfig
+  make C=1 CF=-D__CHECK_ENDIAN__
 
-The cx231xx driver was modified to pass such argument for DVB NET,
-DVB frontend and DVB demux.
 
--
+sparse warnings: (new ones prefixed by >>)
 
-version 3:
-- Added the second series of patches ("add link graph to cx231xx 
-  using the media controller")
-- tuner-core and cx25840: add proper error handling as suggested by
-  Sakari Ailus and pointed by Joe Perches;
-- dvb core: move the media_dev struct to be inside the DVB adapter. That
-  allowed to simplify the changes for the dvbdev clients;
-- Add logic to setup the pipelines when analog or digital TV stream starts.
-- Renamed some patches to better describe its contents.
+>> drivers/media/platform/am437x/am437x-vpfe.c:2202:57: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/platform/am437x/am437x-vpfe.c:2202:57:    expected void [noderef] <asn:1>*params
+   drivers/media/platform/am437x/am437x-vpfe.c:2202:57:    got void *param
+>> include/linux/spinlock.h:364:9: sparse: context imbalance in 'vpfe_start_streaming' - unexpected unlock
 
-version 2:
-- Now the PADs are created for all nodes
-- Instead of using entity->flags for subtypes, create separate
-  MEDIA_ENT_T_DEVNODE_DVB_foo for each DVB devtype
-- The API change patch was split from the DVB core changes
+vim +2202 drivers/media/platform/am437x/am437x-vpfe.c
 
-TODO:
-- Update media API docbook for the DVB media controller changes
-- Solve the issues pointed by a separate e-mail
+  2186	
+  2187		vpfe_dbg(2, vpfe, "vpfe_ioctl_default\n");
+  2188	
+  2189		if (!valid_prio) {
+  2190			vpfe_err(vpfe, "%s device busy\n", __func__);
+  2191			return -EBUSY;
+  2192		}
+  2193	
+  2194		/* If streaming is started, return error */
+  2195		if (vb2_is_busy(&vpfe->buffer_queue)) {
+  2196			vpfe_err(vpfe, "%s device busy\n", __func__);
+  2197			return -EBUSY;
+  2198		}
+  2199	
+  2200		switch (cmd) {
+  2201		case VIDIOC_AM437X_CCDC_CFG:
+> 2202			ret = vpfe_ccdc_set_params(&vpfe->ccdc, param);
+  2203			if (ret) {
+  2204				vpfe_dbg(2, vpfe,
+  2205					"Error setting parameters in CCDC\n");
+  2206				return ret;
+  2207			}
+  2208			ret = vpfe_get_ccdc_image_format(vpfe,
+  2209							 &vpfe->fmt);
+  2210			if (ret < 0) {
 
-Those patches are also available at my experimental tree:
-	http://git.linuxtv.org/cgit.cgi/mchehab/experimental-v4l-utils.git/log/?h=dvb-media-ctl
-
-Mauro Carvalho Chehab (20):
-  media: add new types for DVB devnodes
-  dvbdev: add support for media controller
-  cx231xx: add media controller support
-  dvb_frontend: add media controller support for DVB frontend
-  dmxdev: add support for demux/dvr nodes at media controller
-  dvb_ca_en50221: add support for CA node at the media controller
-  dvb_net: add support for DVB net node at the media controller
-  dvbdev: add pad for the DVB devnodes
-  tuner-core: properly initialize media controller subdev
-  cx25840: fill the media controller entity
-  cx231xx: initialize video/vbi pads
-  cx231xx: create media links for analog mode
-  dvbdev: represent frontend with two pads
-  dvbdev: add a function to create DVB media graph
-  cx231xx: create DVB graph
-  dvbdev: enable DVB-specific links
-  dvb-frontend: enable tuner link when the FE thread starts
-  cx231xx: enable tuner->decoder link at videobuf start
-  cx231xx: create a streaming pipeline at VB start
-  dvb_frontend: start media pipeline while thread is running
-
- drivers/media/dvb-core/dmxdev.c           |  11 ++-
- drivers/media/dvb-core/dvb_ca_en50221.c   |   6 +-
- drivers/media/dvb-core/dvb_frontend.c     | 121 ++++++++++++++++++++++++-
- drivers/media/dvb-core/dvb_net.c          |   6 +-
- drivers/media/dvb-core/dvbdev.c           | 143 +++++++++++++++++++++++++++++-
- drivers/media/dvb-core/dvbdev.h           |  15 ++++
- drivers/media/i2c/cx25840/cx25840-core.c  |  18 ++++
- drivers/media/i2c/cx25840/cx25840-core.h  |   3 +
- drivers/media/usb/cx231xx/cx231xx-cards.c |  98 ++++++++++++++++++--
- drivers/media/usb/cx231xx/cx231xx-dvb.c   |   4 +
- drivers/media/usb/cx231xx/cx231xx-video.c | 101 ++++++++++++++++++++-
- drivers/media/usb/cx231xx/cx231xx.h       |   7 ++
- drivers/media/v4l2-core/tuner-core.c      |  20 +++++
- include/uapi/linux/media.h                |  11 ++-
- 14 files changed, 547 insertions(+), 17 deletions(-)
-
--- 
-2.1.0
-
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
