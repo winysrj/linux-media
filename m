@@ -1,111 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57392 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755135AbbATNFl (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:41508 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753462AbbAZMr1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 08:05:41 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Florian Echtler <floe@butterbrot.org>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
-Date: Tue, 20 Jan 2015 15:06:11 +0200
-Message-ID: <6025823.veVKIskIW2@avalon>
-In-Reply-To: <54BE5204.3020600@xs4all.nl>
-References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <64652239.MTTlcOgNK2@avalon> <54BE5204.3020600@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 26 Jan 2015 07:47:27 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH 3/3] media: add a subdev type for tuner
+Date: Mon, 26 Jan 2015 10:47:12 -0200
+Message-Id: <93d041fb91938618339acebc8fd6023fb4c7c3f4.1422273497.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1422273497.git.mchehab@osg.samsung.com>
+References: <cover.1422273497.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1422273497.git.mchehab@osg.samsung.com>
+References: <cover.1422273497.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Add MEDIA_ENT_T_V4L2_SUBDEV_TUNER to represent the V4L2
+(and dvb) tuner subdevices.
 
-On Tuesday 20 January 2015 14:03:00 Hans Verkuil wrote:
-> On 01/20/15 13:59, Laurent Pinchart wrote:
-> > On Tuesday 20 January 2015 10:30:07 Hans Verkuil wrote:
-> >> On 01/20/15 10:24, Florian Echtler wrote:
-> >>> On 19.01.2015 11:38, Hans Verkuil wrote:
-> >>>> Sorry for the delay.
-> >>> 
-> >>> No problem, thanks for your feedback.
-> >>> 
-> >>>>> Note: I'm intentionally using dma-contig instead of vmalloc, as the
-> >>>>> USB core apparently _will_ try to use DMA for larger bulk transfers.
-> >>>> 
-> >>>> As far as I can tell from looking through the usb core code it supports
-> >>>> scatter-gather DMA, so you should at least use dma-sg rather than
-> >>>> dma-contig. Physically contiguous memory should always be avoided.
-> >>> 
-> >>> OK, will this work transparently (i.e. just switch from *-contig-* to
-> >>> *-sg-*)? If not, can you suggest an example driver to use as template?
-> >> 
-> >> Yes, that should pretty much be seamless. BTW, the more I think about it,
-> >> the more I am convinced that DMA will also be used by the USB core when
-> >> you use videobuf2-vmalloc.
-> >> 
-> >> I've CC-ed Laurent, I think he knows a lot more about this than I do.
-> >> 
-> >> Laurent, when does the USB core use DMA? What do you need to do on the
-> >> driver side to have USB use DMA when doing bulk transfers?
-> > 
-> > How USB HCD drivers map buffers for DMA is HCD-specific, but all drivers
-> > exepct ehci-tegra, max3421-hcd and musb use the default implementation
-> > usb_hcd_map_urb_for_dma() (in drivers/usb/core/hcd.c).
-> > 
-> > Unless the buffer has already been mapped by the USB driver (in which case
-> > the driver will have set the URB_NO_TRANSFER_DMA_MAP flag in
-> > urb->transfer_flags and initialized the urb->transfer_dma field), the
-> > function will use dma_map_sg(), dma_map_page() or dma_map_single()
-> > depending on the buffer type (controlled through urb->sg and
-> > urb->num_sgs). DMA will thus always be used *expect* if the platform uses
-> > bounce buffers when the buffer can't be mapped directly for DMA.
-> 
-> So we can safely use videobuf2-vmalloc, right?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-That depends on the platform and whether it can DMA to vmalloc'ed memory :-) 
-To be totally safe I think vb2-dma-sg would be better, but I'm not sure it's 
-worth the trouble. uvcvideo uses vb2-vmalloc as it performs a memcpy anyway.
-
-> >>>> I'm also missing a patch for the Kconfig that adds a dependency on
-> >>>> MEDIA_USB_SUPPORT and that selects VIDEOBUF2_DMA_SG.
-> >>> 
-> >>> Good point, will add that.
-> >>> 
-> >>>>> +err_unreg_video:
-> >>>>> +	video_unregister_device(&sur40->vdev);
-> >>>>> +err_unreg_v4l2:
-> >>>>> +	v4l2_device_unregister(&sur40->v4l2);
-> >>>>> 
-> >>>>>  err_free_buffer:
-> >>>>>  	kfree(sur40->bulk_in_buffer);
-> >>>>>  
-> >>>>>  err_free_polldev:
-> >>>>> @@ -436,6 +604,10 @@ static void sur40_disconnect(struct usb_interface
-> >>>>> *interface)>>
-> >>>> 
-> >>>> Is this a hardwired device or hotpluggable? If it is hardwired, then
-> >>>> this code is OK, but if it is hotpluggable, then this isn't good
-> >>>> enough.
-> >>> 
-> >>> It's hardwired. Out of curiosity, what would I have to change for a
-> >>> hotpluggable one?
-> >> 
-> >> In that case you can't clean everything up since some application might
-> >> still have a filehandle open. You have to wait until the very last
-> >> filehandle is closed.
-> >> 
-> >>>>> +	i->type = V4L2_INPUT_TYPE_CAMERA;
-> >>>>> +	i->std = V4L2_STD_UNKNOWN;
-> >>>>> +	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
-> >>>> 
-> >>>> Perhaps just say "Sensor" here? I'm not sure what "In-Cell" means.
-> >>> 
-> >>> In-cell is referring to the concept of integrating sensor pixels
-> >>> directly with LCD pixels, I think it's what Samsung calls it.
-
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 4c8f26243252..52cc2a6b19b7 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -66,6 +66,8 @@ struct media_device_info {
+ /* A converter of analogue video to its digital representation. */
+ #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
+ 
++#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
++
+ #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
+ 
+ struct media_entity_desc {
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.0
 
