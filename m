@@ -1,87 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:33170 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752879AbbAFKXb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Jan 2015 05:23:31 -0500
-Message-ID: <54ABB79D.7010700@xs4all.nl>
-Date: Tue, 06 Jan 2015 11:23:25 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:33857 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751771AbbAZNeY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jan 2015 08:34:24 -0500
+Date: Mon, 26 Jan 2015 11:34:16 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Ricardo Ribalda <ricardo.ribalda@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH 1/3] media: Fix ALSA and DVB representation at media
+ controller API
+Message-ID: <20150126113416.311fb376@recife.lan>
+In-Reply-To: <54C63D16.3070607@xs4all.nl>
+References: <cover.1422273497.git.mchehab@osg.samsung.com>
+	<cb0517f150942a2d3657c1f2e55754061bfae2c4.1422273497.git.mchehab@osg.samsung.com>
+	<54C63D16.3070607@xs4all.nl>
 MIME-Version: 1.0
-To: Florian Echtler <floe@butterbrot.org>
-CC: linux-input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] [Patch] implement video driver for sur40
-References: <5492D7E8.504@butterbrot.org> <5492E091.1060404@xs4all.nl> <54943680.3020007@butterbrot.org> <549437DA.6090601@xs4all.nl> <54943CC2.6040803@butterbrot.org> <549443C9.6090900@xs4all.nl> <alpine.DEB.2.02.1501061018580.3223@butterbrot> <54ABAC8C.6020401@xs4all.nl> <54ABB641.7050002@butterbrot.org>
-In-Reply-To: <54ABB641.7050002@butterbrot.org>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/06/2015 11:17 AM, Florian Echtler wrote:
-> On 06.01.2015 10:36, Hans Verkuil wrote:
->> On 01/06/2015 10:29 AM, Florian Echtler wrote:
->>> There's only one failing test left, which is this one:
->>>
->>> Streaming ioctls:
->>>  	test read/write: OK
->>>  		fail: v4l2-test-buffers.cpp(284): g_field() == V4L2_FIELD_ANY
->>
->> You're not filling in the 'field' field of struct v4l2_buffer when returning a
->> frame. It should most likely be FIELD_NONE in your case.
->>>  		fail: v4l2-test-buffers.cpp(611): buf.check(q, last_seq)
->>>  		fail: v4l2-test-buffers.cpp(884): captureBufs(node, q, m2m_q, frame_count, false)
-> OK, easy to fix. This will also influence the other two warnings, I assume?
+Em Mon, 26 Jan 2015 14:11:50 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Most likely, yes.
+> On 01/26/2015 01:47 PM, Mauro Carvalho Chehab wrote:
+> > The previous provision for DVB media controller support were to
+> > define an ID (likely meaning the adapter number) for the DVB
+> > devnodes.
+> > 
+> > This is just plain wrong. Just like V4L, DVB devices (and ALSA,
+> > or whatever) are identified via a (major, minor) tuple.
+> > 
+> > This is enough to uniquely identify a devnode, no matter what
+> > API it implements.
+> > 
+> > So, before we go too far, let's mark the old v4l, dvb and alsa
+> > "devnode" info as deprecated, and just call it as "dev".
+> > 
+> > As we don't want to break compilation on already existing apps,
+> > let's just keep the old definitions as-is, adding a note that
+> > those are deprecated at media-entity.h.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> > index 86bb93fd7db8..d89d5cb465d9 100644
+> > --- a/drivers/media/v4l2-core/v4l2-dev.c
+> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> > @@ -943,8 +943,8 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+> >  	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
+> >  		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
+> >  		vdev->entity.name = vdev->name;
+> > -		vdev->entity.info.v4l.major = VIDEO_MAJOR;
+> > -		vdev->entity.info.v4l.minor = vdev->minor;
+> > +		vdev->entity.info.dev.major = VIDEO_MAJOR;
+> > +		vdev->entity.info.dev.minor = vdev->minor;
+> >  		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
+> >  			&vdev->entity);
+> >  		if (ret < 0)
+> > diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+> > index 015f92aab44a..204cc67c84e8 100644
+> > --- a/drivers/media/v4l2-core/v4l2-device.c
+> > +++ b/drivers/media/v4l2-core/v4l2-device.c
+> > @@ -248,8 +248,8 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+> >  			goto clean_up;
+> >  		}
+> >  #if defined(CONFIG_MEDIA_CONTROLLER)
+> > -		sd->entity.info.v4l.major = VIDEO_MAJOR;
+> > -		sd->entity.info.v4l.minor = vdev->minor;
+> > +		sd->entity.info.dev.major = VIDEO_MAJOR;
+> > +		sd->entity.info.dev.minor = vdev->minor;
+> >  #endif
+> >  		sd->devnode = vdev;
+> >  	}
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index e00459185d20..d6d74bcfe183 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -87,17 +87,7 @@ struct media_entity {
+> >  		struct {
+> >  			u32 major;
+> >  			u32 minor;
+> > -		} v4l;
+> > -		struct {
+> > -			u32 major;
+> > -			u32 minor;
+> > -		} fb;
+> > -		struct {
+> > -			u32 card;
+> > -			u32 device;
+> > -			u32 subdevice;
+> > -		} alsa;
+> 
+> I don't think the alsa entity information can be replaced by major/minor.
+> In particular you will loose the subdevice information which you need as
+> well. In addition, alsa devices are almost never referenced via major and
+> minor numbers, but always by card/device/subdevice numbers.
+
+For media-ctl, it is easier to handle major/minor, in order to identify
+the associated devnode name. Btw, media-ctl currently assumes that all
+devnode devices are specified by v4l.major/v4l.minor.
+
+Ok, maybe for alsa we'll need also card/device/subdevice, but I think this
+should be mapped elsewhere, if this can't be retrieved via its sysfs/udev
+interface (with seems to be doubtful).
 
 > 
->>> On a different note, I'm getting occasional warnings in syslog when I run 
->>> a regular video streaming application (e.g. cheese):
->>>
->>> ------------[ cut here ]------------
-> ...
->>> ---[ end trace 451ed974170f6e44 ]---
->>>
->>> Does this mean the driver consumes too much CPU resources?
->>
->> No, it means that your driver is not returning all buffers to vb2. Most
->> likely this is missing in the vb2 stop_streaming op. When that is called
->> your driver must return all buffers it has back to vb2 by calling
->> vb2_buffer_done with state ERROR. The same can happen in the start_streaming
->> op if that returns an error for some reason. In that case all buffers owned
->> by the driver should be returned to vb2 with state QUEUED. See also
->> Documentation/video4linux/v4l2-pci-skeleton.c as reference code.
-> I did actually build my driver code based on v4l2-pci-skeleton.c, and
-> I'm calling the exact same return_all_buffers function (see below) with
-> VB2_BUF_STATE_ERROR from my stop_streaming ioctl.
+> > -		int dvb;
+> > +		} dev;
+> >  
+> >  		/* Sub-device specifications */
+> >  		/* Nothing needed yet */
+> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> > index d847c760e8f0..418f4fec391a 100644
+> > --- a/include/uapi/linux/media.h
+> > +++ b/include/uapi/linux/media.h
+> > @@ -78,6 +78,20 @@ struct media_entity_desc {
+> >  		struct {
+> >  			__u32 major;
+> >  			__u32 minor;
+> > +		} dev;
+> > +
+> > +#if 1
+> > +		/*
+> > +		 * DEPRECATED: previous node specifications. Kept just to
+> > +		 * avoid breaking compilation, but media_entity_desc.dev
+> > +		 * should be used instead. In particular, alsa and dvb
+> > +		 * fields below are wrong: for all devnodes, there should
+> > +		 * be just major/minor inside the struct, as this is enough
+> > +		 * to represent any devnode, no matter what type.
+> > +		 */
+> > +		struct {
+> > +			__u32 major;
+> > +			__u32 minor;
+> >  		} v4l;
+> >  		struct {
+> >  			__u32 major;
+> > @@ -89,6 +103,7 @@ struct media_entity_desc {
+> >  			__u32 subdevice;
+> >  		} alsa;
+> >  		int dvb;
 > 
-> static void return_all_buffers(struct sur40_state *sur40,
-> 			       enum vb2_buffer_state state)
-> {
-> 	struct sur40_buffer *buf, *node;
-> 
-> 	spin_lock(&sur40->qlock);
-> 	list_for_each_entry_safe(buf, node, &sur40->buf_list, list) {
-> 		vb2_buffer_done(&buf->vb, state);
-> 		list_del(&buf->list);
-> 	}
-> 	spin_unlock(&sur40->qlock);
-> }
-> 
-> Is there another possible explanation?
+> I wouldn't merge all the v4l/fb/etc. structs into one struct. That will make it
+> difficult in the future if you need to add a field for e.g. v4l entities.
 
-No :-)
+No. You could just create another union for the API-specific bits, using the
+reserved bytes.
 
-You are still missing a buffer somewhere. I'd have to see your latest source code
-to see what's wrong.
+> So I would keep the v4l, fb and alsa structs, and just add a new struct for
+> dvb. I wonder if the dvb field can't just be replaced since I doubt anyone is
+> using it. And even if someone does, then it can't be right since a single
+> int isn't enough and never worked anyway.
 
-Some drivers (esp. USB drivers) use a separate pointer to the active buffer, so that
-buffer is no longer part of the buf_list, but still needs to be returned in stop_streaming.
-Could that be the cause perhaps?
+All devnodes have major/minor. Making it standard for all devices makes
+easy for userspace to properly get the data it requires to work.
 
 Regards,
-
-	Hans
-
+Mauro
