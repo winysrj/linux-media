@@ -1,37 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:45341 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750777AbbATI7M (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:42651 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753164AbbAZNwu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 03:59:12 -0500
-Received: by mail-wg0-f49.google.com with SMTP id l18so10317878wgh.8
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 00:59:10 -0800 (PST)
-Message-ID: <54BE18DE.2050206@gmail.com>
-Date: Tue, 20 Jan 2015 09:59:10 +0100
-From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [media_build] commit 26052b8e1 (SMIAPP needs kernel 3.20 or up.)
-References: <54BD3C56.4070600@xs4all.nl> <54BD55C3.6080201@gmail.com> <54BE052F.6060205@xs4all.nl>
-In-Reply-To: <54BE052F.6060205@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Mon, 26 Jan 2015 08:52:50 -0500
+Received: by mail-we0-f174.google.com with SMTP id w55so3729983wes.5
+        for <linux-media@vger.kernel.org>; Mon, 26 Jan 2015 05:52:49 -0800 (PST)
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, hans.verkuil@cisco.com,
+	m.chehab@samsung.com,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Subject: [PATCH] media: adv7604: CP CSC uses a different register on adv7604 and adv7611
+Date: Mon, 26 Jan 2015 14:52:40 +0100
+Message-Id: <1422280360-20461-1-git-send-email-jean-michel.hautbois@vodalys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tested again, works now.
-Thanks!
-Op 20-01-15 om 08:35 schreef Hans Verkuil:
-> On 01/19/2015 08:06 PM, Tycho Lürsen wrote:
->> Hi Hans,
->>
->> tested this update in media_build against a Debian 3.16 kernel.
->> It still tries to build SMIAPP. So sadly it still gives the same error.
-> Try again. I missed a duplicate VIDEO_SMIAPP entry in versions.txt that is
-> now deleted. I just tried it and it now builds fine for me.
->
-> Regards,
->
-> 	Hans
+The bits are the same, but register is 0xf4 on ADV7611 instead of 0xfc.
+When reading back the value in log_status, differentiate both.
+
+Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+---
+ drivers/media/i2c/adv7604.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index e43dd2e..32e53e0 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2310,8 +2310,12 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 			(reg_io_0x02 & 0x04) ? "(16-235)" : "(0-255)",
+ 			((reg_io_0x02 & 0x04) ^ (reg_io_0x02 & 0x01)) ?
+ 				"enabled" : "disabled");
+-	v4l2_info(sd, "Color space conversion: %s\n",
++	if (state->info->type == ADV7604)
++		v4l2_info(sd, "Color space conversion: %s\n",
+ 			csc_coeff_sel_rb[cp_read(sd, 0xfc) >> 4]);
++	else
++		v4l2_info(sd, "Color space conversion: %s\n",
++			csc_coeff_sel_rb[cp_read(sd, 0xf4) >> 4]);
+ 
+ 	if (!is_digital_input(sd))
+ 		return 0;
+-- 
+2.2.2
 
