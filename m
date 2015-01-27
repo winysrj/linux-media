@@ -1,85 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:34886 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751615AbbA2T0Y (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:50636 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754920AbbA0PnM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 14:26:24 -0500
-Date: Thu, 29 Jan 2015 19:26:11 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Rob Clark <robdclark@gmail.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher
- constraints with dma-parms
-Message-ID: <20150129192610.GE26493@n2100.arm.linux.org.uk>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
- <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
- <20150129143908.GA26493@n2100.arm.linux.org.uk>
- <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
- <20150129154718.GB26493@n2100.arm.linux.org.uk>
- <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
+	Tue, 27 Jan 2015 10:43:12 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NIU009HCEIUF780@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 27 Jan 2015 15:47:18 +0000 (GMT)
+Message-id: <54C7B20D.4000103@samsung.com>
+Date: Tue, 27 Jan 2015 16:43:09 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: setting volatile v4l2-control
+References: <54C79385.2050702@samsung.com> <54C79D47.9090609@xs4all.nl>
+In-reply-to: <54C79D47.9090609@xs4all.nl>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 29, 2015 at 01:52:09PM -0500, Rob Clark wrote:
-> Quite possibly for some of these edge some of cases, some of the
-> dma-buf exporters are going to need to get more clever (ie. hand off
-> different scatterlists to different clients).  Although I think by far
-> the two common cases will be "I can support anything via an iommu/mmu"
-> and "I need phys contig".
-> 
-> But that isn't an issue w/ dma-buf itself, so much as it is an issue
-> w/ drivers.  I guess there would be more interest in fixing up drivers
-> when actual hw comes along that needs it..
+On 01/27/2015 03:14 PM, Hans Verkuil wrote:
+> On 01/27/15 14:32, Jacek Anaszewski wrote:
+>> While testing the LED / flash API integration patches
+>> I noticed that the v4l2-controls marked as volatile with
+>> V4L2_CTRL_FLAG_VOLATILE flag behave differently than I would
+>> expect.
+>>
+>> Let's consider following use case:
+>>
+>> There is a volatile V4L2_CID_FLASH_INTENSITY v4l2 control with
+>> following constraints:
+>>
+>> min: 1
+>> max: 100
+>> step: 1
+>> def: 1
+>>
+>> 1. Set the V4L2_CID_FLASH_INTENSITY control to 100.
+>>      - as a result s_ctrl op is called
+>> 2. Set flash_brightness LED sysfs attribute to 10.
+>> 3. Set the V4L2_CID_FLASH_INTENSITY control to 100.
+>>      - s_ctrl op isn't called
+>>
+>> This way we are unable to write a new value to the device, despite
+>> that the related setting was changed from the LED subsystem level.
+>>
+>> I would expect that if a control is marked volatile, then
+>> the v4l2-control framework should by default call g_volatile_ctrl
+>> op before set and not try to use the cached value.
+>>
+>> Is there some vital reason for not doing this?
+>
+> It's rather strange to have a writable volatile control. The semantics
+> of this are ambiguous and I don't believe we have ever used such controls
+> before.
+>
+> Actually, the commit log of this patch (never merged) gives some
+> background information about this:
+>
+> http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/commit/?h=volatilefix
+>
+> It's never been merged because I have never been certain how to handle
+> such controls. Why do you have such controls in the first place? What
+> is it supposed to do?
 
-However, validating the attachments is the business of dma-buf.  This
-is actual infrastructure, which should ensure some kind of sanity such
-as the issues I've raised.
+In case of integrated LED subsystem and V4L2 Flash API [1] a driver
+can be accessed from the level of either LED subsystem sysfs interface
+or v4l2-flash sub-device. Once the v4l2 sub-device is opened the LED
+subsystem sysfs interface is locked, but it gets released on sub-device
+closing. Since that moment the driver/device state can be changed
+through sysfs interface.
 
-The whole "we can push it onto our users" is really on - what that
-results in is the users ignoring most of the requirements and just doing
-their own thing, which ultimately ends up with the whole thing turning
-into a disgusting mess - one which becomes very difficult to fix later.
+When the sub-device is opened again it cannot be certain that the cached
+state of the controls reflects the actual state of the driver/device.
 
-Now, if we're going to do the "more clever" thing you mention above,
-that rather negates the point of this two-part patch set, which is to
-provide the union of the DMA capabilities of all users.  A union in
-that case is no longer sane as we'd be tailoring the SG lists to each
-user.
+That's why I made the shared settings volatile, maybe abusing the
+intended purpose of the related flags.
 
-If we aren't going to do the "more clever" thing, then yes, we need this
-code to calculate that union, but we _also_ need it to do sanity checking
-right from the start, and refuse conditions which ultimately break the
-ability to make use of that union - in other words, when the union of
-the DMA capabilities means that the dmabuf can't be represented.
-
-Unless we do that, we'll just end up with random drivers interpreting
-what they want from the DMA capabilities, and we'll have some drivers
-exporting (eg) scatterlists which satisfy the maximum byte size of an
-element, but ignoring the maximum number of entries or vice versa, and
-that'll most probably hide the case of "too small a union".
-
-It really doesn't make sense to do both either: that route is even more
-madness, because we'll end up with two classes of drivers - those which
-use the union approach, and those which don't.
-
-The KISS principle applies here.
+[1] http://www.spinics.net/lists/linux-media/msg85351.html
 
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+Best Regards,
+Jacek Anaszewski
