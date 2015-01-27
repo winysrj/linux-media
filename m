@@ -1,49 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb2-g21.free.fr ([212.27.42.10]:54404 "EHLO
-	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750905AbbADMfI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 07:35:08 -0500
-Received: from smtp1-g21.free.fr (smtp1-g21.free.fr [212.27.42.1])
-	by smtpfb2-g21.free.fr (Postfix) with ESMTP id E380BCA94D8
-	for <linux-media@vger.kernel.org>; Sun,  4 Jan 2015 13:27:46 +0100 (CET)
-From: Romain Naour <romain.naour@openwide.fr>
-To: linux-media@vger.kernel.org
-Cc: Romain Naour <romain.naour@openwide.fr>
-Subject: [PATCH 3/3] Make.rules: Handle static/shared only build
-Date: Sun,  4 Jan 2015 13:27:37 +0100
-Message-Id: <1420374457-8633-4-git-send-email-romain.naour@openwide.fr>
-In-Reply-To: <1420374457-8633-1-git-send-email-romain.naour@openwide.fr>
-References: <1420374457-8633-1-git-send-email-romain.naour@openwide.fr>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:36280 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752056AbbA0OPo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2015 09:15:44 -0500
+Message-ID: <54C79D47.9090609@xs4all.nl>
+Date: Tue, 27 Jan 2015 15:14:31 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: setting volatile v4l2-control
+References: <54C79385.2050702@samsung.com>
+In-Reply-To: <54C79385.2050702@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do not build .a library when disable_static is set
-Do not build .so library when disable_shared is set
+On 01/27/15 14:32, Jacek Anaszewski wrote:
+> While testing the LED / flash API integration patches
+> I noticed that the v4l2-controls marked as volatile with
+> V4L2_CTRL_FLAG_VOLATILE flag behave differently than I would
+> expect.
+> 
+> Let's consider following use case:
+> 
+> There is a volatile V4L2_CID_FLASH_INTENSITY v4l2 control with
+> following constraints:
+> 
+> min: 1
+> max: 100
+> step: 1
+> def: 1
+> 
+> 1. Set the V4L2_CID_FLASH_INTENSITY control to 100.
+>     - as a result s_ctrl op is called
+> 2. Set flash_brightness LED sysfs attribute to 10.
+> 3. Set the V4L2_CID_FLASH_INTENSITY control to 100.
+>     - s_ctrl op isn't called
+> 
+> This way we are unable to write a new value to the device, despite
+> that the related setting was changed from the LED subsystem level.
+> 
+> I would expect that if a control is marked volatile, then
+> the v4l2-control framework should by default call g_volatile_ctrl
+> op before set and not try to use the cached value.
+> 
+> Is there some vital reason for not doing this?
 
-Signed-off-by: Romain Naour <romain.naour@openwide.fr>
----
- Make.rules | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+It's rather strange to have a writable volatile control. The semantics
+of this are ambiguous and I don't believe we have ever used such controls
+before.
 
-diff --git a/Make.rules b/Make.rules
-index 3410d7b..4add272 100644
---- a/Make.rules
-+++ b/Make.rules
-@@ -9,7 +9,13 @@ ifneq ($(lib_name),)
- CFLAGS_LIB ?= -fPIC
- CFLAGS += $(CFLAGS_LIB)
- 
--libraries = $(lib_name).so $(lib_name).a
-+ifeq ($(disable_static),)
-+libraries = $(lib_name).a
-+endif
-+
-+ifeq ($(disable_shared),)
-+libraries += $(lib_name).so
-+endif
- 
- .PHONY: library
- 
--- 
-1.9.3
+Actually, the commit log of this patch (never merged) gives some
+background information about this:
 
+http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/commit/?h=volatilefix
+
+It's never been merged because I have never been certain how to handle
+such controls. Why do you have such controls in the first place? What
+is it supposed to do?
+
+Regards,
+
+	Hans
