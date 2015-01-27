@@ -1,67 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-190.synserver.de ([212.40.185.190]:1076 "EHLO
-	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755549AbbAWPwi (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34284 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756078AbbA0Kbo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 10:52:38 -0500
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?=
-	<richard.rojfors@mocean-labs.com>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 00/15] [media] adv7180: Add support for more chip variants
-Date: Fri, 23 Jan 2015 16:52:19 +0100
-Message-Id: <1422028354-31891-1-git-send-email-lars@metafoo.de>
+	Tue, 27 Jan 2015 05:31:44 -0500
+Received: from lanttu.localdomain (unknown [192.168.15.166])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 757D660093
+	for <linux-media@vger.kernel.org>; Tue, 27 Jan 2015 12:31:41 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/1] smiapp: Don't compile of_read_number() if CONFIG_OF isn't defined
+Date: Tue, 27 Jan 2015 12:31:15 +0200
+Message-Id: <1422354675-1184-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes from v1:
-	* Reserved custom user control range for the fast switch control
-	* Dropped the free-run mode control patch for now. The controls should
-	  probably be standardized first, but that is going to be a different
-	  patch series.
+of_read_number() is defined in of.h but does not return an error code, so
+that non-of implementation could simply return an error.
 
-Original cover letter below:
+Temporarily work around this until of_read_number() can be replaced by
+of_property_read_u64_array().
 
-The adv7180 is part of a larger family of chips which all implement
-different features from a feature superset. This patch series step by step
-extends the current adv7180 with features from the superset that are
-currently not supported and gradually adding support for more variations of
-the chip.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-The first half of this series contains fixes and cleanups while the second
-half adds new features and support for new chips
-
-
-Lars-Peter Clausen (15):
-  [media] adv7180: Do not request the IRQ again during resume
-  [media] adv7180: Pass correct flags to request_threaded_irq()
-  [media] adv7180: Use inline function instead of macro
-  [media] adv7180: Cleanup register define naming
-  [media] adv7180: Do implicit register paging
-  [media] adv7180: Reset the device before initialization
-  [media] adv7180: Add media controller support
-  [media] adv7180: Consolidate video mode setting
-  [media] adv7180: Prepare for multi-chip support
-  [media] adv7180: Add support for the adv7182
-  [media] adv7180: Add support for the adv7280/adv7281/adv7282
-  [media] adv7180: Add support for the
-    adv7280-m/adv7281-m/adv7281-ma/adv7282-m
-  [media] adv7180: Add I2P support
-  [media] adv7180: Add fast switch support
-  [media] Add MAINTAINERS entry for the adv7180
-
- MAINTAINERS                        |    7 +
- drivers/media/i2c/Kconfig          |    2 +-
- drivers/media/i2c/adv7180.c        | 1016 +++++++++++++++++++++++++++++-------
- drivers/media/pci/sta2x11/Kconfig  |    1 +
- drivers/media/platform/Kconfig     |    2 +-
- include/uapi/linux/v4l2-controls.h |    4 +
- 6 files changed, 831 insertions(+), 201 deletions(-)
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index b3c8125..d47eff5 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2980,7 +2980,9 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+ 	struct property *prop;
+ 	__be32 *val;
+ 	uint32_t asize;
++#ifdef CONFIG_OF
+ 	unsigned int i;
++#endif
+ 	int rval;
+ 
+ 	if (!dev->of_node)
+@@ -3057,8 +3059,10 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+ 	if (IS_ERR(val))
+ 		goto out_err;
+ 
++#ifdef CONFIG_OF
+ 	for (i = 0; i < asize; i++)
+ 		pdata->op_sys_clock[i] = of_read_number(val + i * 2, 2);
++#endif
+ 
+ 	for (; asize > 0; asize--)
+ 		dev_dbg(dev, "freq %d: %lld\n", asize - 1,
 -- 
-1.8.0
+1.7.10.4
 
