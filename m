@@ -1,89 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:55508 "EHLO
-	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753784AbbA2QTw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 11:19:52 -0500
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:36149 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751326AbbA0LdE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2015 06:33:04 -0500
+Message-id: <54C77762.9090807@samsung.com>
+Date: Tue, 27 Jan 2015 12:32:50 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: "Baluta, Teodora" <teodora.baluta@intel.com>,
+	Jonathan Cameron <jic23@kernel.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	linux-iio <linux-iio@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>,
 	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 5/8] media: rcar_vin: Add RGB888_1X24 input format support
-Date: Thu, 29 Jan 2015 16:19:45 +0000
-Message-Id: <1422548388-28861-6-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
+Subject: Re: [RFC PATCH 0/3] Introduce IIO interface for fingerprint sensors
+References: <1417698017-13835-1-git-send-email-teodora.baluta@intel.com>
+ <5481153B.4070609@kernel.org> <1418047828.18463.10.camel@bebop>
+ <54930604.1020607@metafoo.de> <549D42BD.1050901@kernel.org>
+ <1421255642.31900.4.camel@bebop> <54B7FAF2.8080207@samsung.com>
+ <A2E3DE9C026DE6469D89C3A4C6C219390A89FE37@IRSMSX107.ger.corp.intel.com>
+In-reply-to: <A2E3DE9C026DE6469D89C3A4C6C219390A89FE37@IRSMSX107.ger.corp.intel.com>
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
-which is used by the ADV7612 chip.
+Hi,
 
-Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
----
-URL:    http://marc.info/?l=linux-sh&m=138002993417489&q=raw
-FIXMEs required:
-- "From:" as per URL
-- adapted for lx3.18 by William Towle -> add S-o-b **
----
- drivers/media/platform/soc_camera/rcar_vin.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+On 23/01/15 14:05, Baluta, Teodora wrote:
+...
+>>>>>>> So why not v4l?  These are effectively image sensors..
+>>>>>>
+>>>>>> Well, here's why I don't think v4l would be the best option:
+>>>>>>
+>>>>>> - an image scanner could be implemented in the v4l subsystem, but
+>>>>>> it seems far more complicated for a simple fingerprint scanner - it
+>>>>>> usually has drivers for webcams, TVs or video streaming devices.
+>>>>>> The v4l subsystem (with all its support for colorspace, decoders,
+>>>>>> image compression, frame control) seems a bit of an overkill for a
+>>>>>> very straightforward fingerprint imaging sensor.
+>>>
+>>>> Whilst those are there, I would doubt the irrelevant bits would put
+>>>> much burden on a fingerprint scanning driver.  Been a while since I
+>>>> did anything in that area though so I could be wrong!
+>>
+>> IMO V4L is much better fit for this kind of devices than IIO. You can use just a
+>> subset of the API, it shouldn't take much effort to write a simple
+>> v4l2 capture driver, supporting fixed (probably vendor/chip specific) image
+>> format.  I'm not sure if it's better to use the v4l2 controls [1], define a new
+>> v4l2 controls class for the fingerprint scanner processing features, rather than
+>> trying to pass raw data to user space and interpret it then in some library.  I
+>> know there has been resistance to allowing passing unknown binary blobs to
+>> user space, due to possible abuses.
+>>
+>> [1] Documentation/video4linux/v4l2-controls.txt
+>                                                                                                                
+> The fingerprint sensor acts more like a scanner device, so the closest type 
+> is the V4L2_CAP_VIDEO_CAPTURE. However, this is not a perfect match because
+> the driver only sends an image, once, when triggered. Would it be a better
+> alternative to define a new capability type? Or it would be acceptable to
+> simply have a video device with no frame buffer or frame rate and the user
+> space application to read from the character device /dev/videoX?
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index c4f88c3..e4f60d3 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -74,6 +74,7 @@
- #define VNMC_INF_YUV10_BT656	(2 << 16)
- #define VNMC_INF_YUV10_BT601	(3 << 16)
- #define VNMC_INF_YUV16		(5 << 16)
-+#define VNMC_INF_RGB888		(6 << 16)
- #define VNMC_VUP		(1 << 10)
- #define VNMC_IM_ODD		(0 << 3)
- #define VNMC_IM_ODD_EVEN	(1 << 3)
-@@ -241,7 +242,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	struct soc_camera_device *icd = priv->ici.icd;
- 	struct rcar_vin_cam *cam = icd->host_priv;
- 	u32 vnmc, dmr, interrupts;
--	bool progressive = false, output_is_yuv = false;
-+	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
- 
- 	switch (priv->field) {
- 	case V4L2_FIELD_TOP:
-@@ -275,11 +276,16 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		/* BT.601/BT.1358 16bit YCbCr422 */
- 		vnmc |= VNMC_INF_YUV16;
-+		input_is_yuv = true;
- 		break;
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
- 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
-+		input_is_yuv = true;
-+		break;
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		vnmc |= VNMC_INF_RGB888;
- 		break;
- 	case MEDIA_BUS_FMT_YUYV10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
-@@ -328,7 +334,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	vnmc |= VNMC_VUP;
- 
- 	/* If input and output use the same colorspace, use bypass mode */
--	if (output_is_yuv)
-+	if (input_is_yuv == output_is_yuv)
- 		vnmc |= VNMC_BPS;
- 
- 	/* progressive or interlaced mode */
-@@ -1015,6 +1021,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
- 	case MEDIA_BUS_FMT_YUYV10_2X10:
-+	case MEDIA_BUS_FMT_RGB888_1X24:
- 		if (cam->extra_fmt)
- 			break;
- 
--- 
-1.7.10.4
+I don't think a new capability is needed for just one buffer capture.
+The capture driver could just support read() and signal it by setting the
+V4L2_CAP_READWRITE capability flag [2], [3].
 
+[2]
+http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-querycap.html#device-capabilities
+[3] http://linuxtv.org/downloads/v4l-dvb-apis/io.html#rw
+
+--
+Regards,
+Sylwester
