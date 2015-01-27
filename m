@@ -1,192 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59479 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752362AbbAVDAo (ORCPT
+Received: from mail-we0-f170.google.com ([74.125.82.170]:43723 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751116AbbA0CkI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2015 22:00:44 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Chris Kohn <christian.kohn@xilinx.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Michal Simek <michal.simek@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 08/10] v4l: xilinx: Add Xilinx Video IP core
-Date: Thu, 22 Jan 2015 05:01:17 +0200
-Message-ID: <2694110.qINIujyFZb@avalon>
-In-Reply-To: <1417464820-6718-9-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1417464820-6718-1-git-send-email-laurent.pinchart@ideasonboard.com> <1417464820-6718-9-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 26 Jan 2015 21:40:08 -0500
+Received: by mail-we0-f170.google.com with SMTP id w55so6988651wes.1
+        for <linux-media@vger.kernel.org>; Mon, 26 Jan 2015 18:40:07 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Tue, 27 Jan 2015 10:40:07 +0800
+Message-ID: <CAKwPUoyk=rsKGQNFoqxDHskRCm92nUTKSa90OFdqE-LuLHeejw@mail.gmail.com>
+Subject: [PATCH] [media] V4L: soc-camera: add SPI device support
+From: Kassey <kassey1216@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Kassey Li <kasseyl@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans and Chris,
+This adds support for spi interface sub device for soc_camera.
 
-On Monday 01 December 2014 22:13:38 Laurent Pinchart wrote:
-> Xilinx platforms have no hardwired video capture or video processing
-> interface. Users create capture and memory to memory processing
-> pipelines in the FPGA fabric to suit their particular needs, by
-> instantiating video IP cores from a large library.
-> 
-> The Xilinx Video IP core is a framework that models a video pipeline
-> described in the device tree and expose the pipeline to userspace
-> through the media controller and V4L2 APIs.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
-> Signed-off-by: Radhey Shyam Pandey <radheys@xilinx.com>
-> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+Signed-off-by: Kassey Li <kasseyl@nvidia.com>
+---
+ drivers/media/platform/soc_camera/soc_camera.c |   51 ++++++++++++++++++++++++
+ include/media/soc_camera.h                     |   11 +++++
+ 2 files changed, 62 insertions(+)
 
-[snip]
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c
+b/drivers/media/platform/soc_camera/soc_camera.c
+index b3db51c..6db2d89 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1599,6 +1599,49 @@ static void scan_async_host(struct soc_camera_host *ici)
+ #define soc_camera_i2c_free(icd)       do {} while (0)
+ #define scan_async_host(ici)           do {} while (0)
+ #endif
++static int soc_camera_init_spi(struct soc_camera_device *icd,
++               struct soc_camera_desc *sdesc)
++{
++       struct spi_device   *spi;
++       struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++       struct soc_camera_host_desc *shd = &sdesc->host_desc;
++       struct spi_master *spi_master =
++                       spi_busnum_to_master(shd->spi_bus_id);
++       struct v4l2_subdev *subdev;
++
++       if (!spi_master) {
++               dev_err(icd->pdev, "Cannot get spi master #%d. No driver?\n",
++                               shd->spi_bus_id);
++               goto espind;
++       }
++
++       shd->board_info_spi->platform_data = &sdesc->subdev_desc;
++
++       subdev = v4l2_spi_new_subdev(&ici->v4l2_dev, spi_master,
++                       shd->board_info_spi);
++       if (!subdev)
++               goto espind;
++
++       spi = v4l2_get_subdevdata(subdev);
++
++       /* Use to_i2c_client(dev) to recover the i2c client */
++       icd->control = &spi->dev;
++
++       return 0;
++espind:
++       return -ENODEV;
++}
++
++static void soc_camera_free_spi(struct soc_camera_device *icd) {
++       struct spi_device   *spi;
++       struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++
++       spi = v4l2_get_subdevdata(sd);
++       icd->control = NULL;
++       v4l2_device_unregister_subdev(sd);
++       spi_unregister_device(spi);
++}
 
-> diff --git a/Documentation/devicetree/bindings/media/xilinx/video.txt
-> b/Documentation/devicetree/bindings/media/xilinx/video.txt new file mode
-> 100644
-> index 0000000..15720e4
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/xilinx/video.txt
-> @@ -0,0 +1,52 @@
-> +DT bindings for Xilinx video IP cores
-> +-------------------------------------
-> +
-> +Xilinx video IP cores process video streams by acting as video sinks and/or
-> +sources. They are connected by links through their input and output ports,
-> +creating a video pipeline.
-> +
-> +Each video IP core is represented by an AMBA bus child node in the device
-> +tree using bindings documented in this directory. Connections between the
-> IP
-> +cores are represented as defined in ../video-interfaces.txt.
-> +
-> +The whole  pipeline is represented by an AMBA bus child node in the device
-> +tree using bindings documented in ./xlnx,video.txt.
-> +
-> +Common properties
-> +-----------------
-> +
-> +The following properties are common to all Xilinx video IP cores.
-> +
-> +- xlnx,video-format: This property represents a video format transmitted on
-> an
-> +  AXI bus between video IP cores. How the format relates to the IP core is
-> +  decribed in the IP core bindings documentation. The following formats are
-> +  supported.
-> +
-> +	rbg
-> +	xrgb
-> +	yuv422
-> +	yuv444
-> +	rggb
-> +	grbg
-> +	gbrg
-> +	bggr
-> +
-> +- xlnx,video-width: This property qualifies the video format with the
-> sample
-> +  width expressed as a number of bits per pixel component. All components
-> must
-> +  use the same width.
+ #ifdef CONFIG_OF
 
-Hans, last time we've discussed this on IRC you were not happy with the format 
-description used in these DT bindings. Your argument was, if I remember 
-correctly, that as the formats map directly to media bus codes, it would be 
-better to use the media bus codes (or a string representation of them) in the 
-bindings instead of creating a new format description. Is that correct ?
+@@ -1762,6 +1805,10 @@ static int soc_camera_probe(struct soc_camera_host *ici,
+                ret = soc_camera_i2c_init(icd, sdesc);
+                if (ret < 0 && ret != -EPROBE_DEFER)
+                        goto eadd;
++       } else if (shd->board_info_spi) {
++               ret = soc_camera_init_spi(icd, sdesc);
++               if (ret < 0)
++                       goto eadd;
+        } else if (!shd->add_device || !shd->del_device) {
+                ret = -EINVAL;
+                goto eadd;
+@@ -1803,6 +1850,8 @@ static int soc_camera_probe(struct soc_camera_host *ici,
+ efinish:
+        if (shd->board_info) {
+                soc_camera_i2c_free(icd);
++       } else if (shd->board_info_spi) {
++               soc_camera_free_spi(icd);
+        } else {
+                shd->del_device(icd);
+                module_put(control->driver->owner);
+@@ -1843,6 +1892,8 @@ static int soc_camera_remove(struct
+soc_camera_device *icd)
 
-Chris, what's your opinion on that ? The RGB and YUV formats in the table 
-below describe the hardware and come from table 1-4 on page 8 of 
-http://www.xilinx.com/support/documentation/ip_documentation/axi_videoip/v1_0/ug934_axi_videoIP.pdf. 
-The Bayer formats are not standardized in the document, and I don't think we 
-need them at the moment.
+        if (sdesc->host_desc.board_info) {
+                soc_camera_i2c_free(icd);
++       } else if (sdesc->host_desc.board_info_spi) {
++               soc_camera_free_spi(icd);
+        } else {
+                struct device *dev = to_soc_camera_control(icd);
+                struct device_driver *drv = dev ? dev->driver : NULL;
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 2f6261f..6d495f8 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -180,6 +180,12 @@ struct soc_camera_host_desc {
+        const char *module_name;
 
-> +The following table lists the supported formats and widths combinations,
-> along
-> +with the corresponding media bus pixel code.
-> +
-> +----------------+-------+--------------------------------------------------
-> +Format		| Width	| Media bus code
-> +----------------+-------+--------------------------------------------------
-> +rbg		| 8	| V4L2_MBUS_FMT_RBG888_1X24
-> +xrgb		| 8	| V4L2_MBUS_FMT_RGB888_1X32_PADHI
-> +yuv422		| 8	| V4L2_MBUS_FMT_UYVY8_1X16
-> +yuv444		| 8	| V4L2_MBUS_FMT_VUY888_1X24
-> +rggb		| 8	| V4L2_MBUS_FMT_SRGGB8_1X8
-> +grbg		| 8	| V4L2_MBUS_FMT_SGRBG8_1X8
-> +gbrg		| 8	| V4L2_MBUS_FMT_SGBRG8_1X8
-> +bggr		| 8	| V4L2_MBUS_FMT_SBGGR8_1X8
-> +----------------+-------+--------------------------------------------------
-> diff --git
-> a/Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt
-> b/Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt new file
-> mode 100644
-> index 0000000..5a02270
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt
-> @@ -0,0 +1,55 @@
-> +Xilinx Video IP Pipeline (VIPP)
-> +-------------------------------
-> +
-> +General concept
-> +---------------
-> +
-> +Xilinx video IP pipeline processes video streams through one or more Xilinx
-> +video IP cores. Each video IP core is represented as documented in
-> video.txt
-> +and IP core specific documentation, xlnx,v-*.txt, in this directory. The DT
-> +node of the VIPP represents as a top level node of the pipeline and defines
-> +mappings between DMAs and the video IP cores.
-> +
-> +Required properties:
-> +
-> +- compatible: Must be "xlnx,video".
-> +
-> +- dmas, dma-names: List of one DMA specifier and identifier string (as
-> defined
-> +  in Documentation/devicetree/bindings/dma/dma.txt) per port. Each port
-> +  requires a DMA channel with the identifier string set to "port" followed
-> by
-> +  the port index.
-> +
-> +- ports: Video port, using the DT bindings defined in
-> ../video-interfaces.txt.
-> +
-> +Required port properties:
-> +
-> +- direction: should be either "input" or "output" depending on the
-> direction
-> +  of stream.
-> +
-> +Example:
-> +
-> +	video_cap {
-> +		compatible = "xlnx,video";
-> +		dmas = <&vdma_1 1>, <&vdma_3 1>;
-> +		dma-names = "port0", "port1";
-> +
-> +		ports {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			port@0 {
-> +				reg = <0>;
-> +				direction = "input";
-> +				vcap0_in0: endpoint {
-> +					remote-endpoint = <&scaler0_out>;
-> +				};
-> +			};
-> +			port@1 {
-> +				reg = <1>;
-> +				direction = "input";
-> +				vcap0_in1: endpoint {
-> +					remote-endpoint = <&switch_out1>;
-> +				};
-> +			};
-> +		};
-> +	};
+        /*
++        * Add SPI device support.
++        */
++       struct spi_board_info *board_info_spi;
++       int spi_bus_id;
++
++       /*
+         * For non-I2C devices platform has to provide methods to add a device
+         * to the system and to remove it
+         */
+@@ -243,6 +249,11 @@ struct soc_camera_link {
+        int i2c_adapter_id;
+        struct i2c_board_info *board_info;
+        const char *module_name;
++       /*
++        * Add SPI device support.
++        */
++       struct spi_board_info *board_info_spi;
++       int spi_bus_id;
+
+        /*
+         * For non-I2C devices platform has to provide methods to add a device
+--
+1.7.9.5
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Best regards
+Kassey
