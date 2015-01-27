@@ -1,106 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47586 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752020AbbALKiK (ORCPT
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:63483 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755591AbbA0Klb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2015 05:38:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] V4L: remove clock name from v4l2_clk API
-Date: Mon, 12 Jan 2015 12:38:32 +0200
-Message-ID: <5428436.9dTJhp8MF4@avalon>
-In-Reply-To: <54B39079.9030408@atmel.com>
-References: <Pine.LNX.4.64.1501021244580.30761@axis700.grange> <10297396.jglheYyvzx@avalon> <54B39079.9030408@atmel.com>
+	Tue, 27 Jan 2015 05:41:31 -0500
+Received: by mail-lb0-f182.google.com with SMTP id l4so12304793lbv.13
+        for <linux-media@vger.kernel.org>; Tue, 27 Jan 2015 02:41:29 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Tue, 27 Jan 2015 10:41:29 +0000
+Message-ID: <CADBe_Tv3ijpsaS7Uy0XdAR+vz3mCL-qksuyZGwknrQCV6EAn+Q@mail.gmail.com>
+Subject: cx23885 / DVBSky T9580: mpeg risc op code error
+From: Mark Clarkstone <hello@markclarkstone.co.uk>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+Hey folks,
 
-On Monday 12 January 2015 17:14:33 Josh Wu wrote:
-> On 1/9/2015 6:47 AM, Laurent Pinchart wrote:
-> > On Thursday 08 January 2015 23:37:58 Guennadi Liakhovetski wrote:
-> >> On Wed, 7 Jan 2015, Josh Wu wrote:
-> >>> On 1/7/2015 6:17 AM, Guennadi Liakhovetski wrote:
-> >>>> On Tue, 6 Jan 2015, Josh Wu wrote:
-> >>>>> Hi, Guennadi
-> >>>>> 
-> >>>>> After look deep into this patch, I found you miss one line that should
-> >>>>> be changed as well.
-> >>>>> It's In function v4l2_clk_get(), there still has one line code called
-> >>>>> v4l2_clk_find(dev_id, id).
-> >>>>> You need to change it to v4l2_clk_find(dev_id, NULL) as well.
-> >>>>> Otherwise the code that many sensor used: v4l2_clk_get(&client->dev,
-> >>>>> "mclk") cannot acquired the "mclk" clock.
-> >>>>> 
-> >>>>> After above changes, this patch works for me.
-> >>>> 
-> >>>> I think you're right, in fact, since we now don't store CCF-based
-> >>>> v4l2_clk wrappers on the list, this can be simplified even further,
-> >>>> I'll update the patch. Did you only test this patch or both?
-> >>> 
-> >>> I tested both patches with Atmel-isi driver. For the 2/2 patch I applied
-> >>> the modification Laurent suggested.
-> >>> Those patches works for me.
-> >>> 
-> >>> The only concern is in ov2640 I still need to acquired two v4l2 clocks:
-> >>>     "xvclk"  that will get the xvclk CCF clock directly.
-> >>>     "mclk"  that make ISI driver call his clock_start()/stop() to
-> >>>     enable/disable ISI's peripheral clock.
-> >>> 
-> >>> If I only get xvclk clock, then the camera capture will be failed with a
-> >>> ISI timeout error.
-> >> 
-> >> No, this doesn't look right to me. The camera sensor has only one clock
-> >> input, so, it should only request one clock. Where does the clock signal
-> >> to the camera come from on your system?
-> > 
-> > That's correct, the sensor driver only has one clock input, so it should
-> > just request the xvclk clock.
-> > 
-> >> If it comes from the ISI itself, you don't need to specify the clock in
-> >> the DT, since the ISI doesn't produce a clock from DT. If you do want to
-> >> have your clock consumer (ov2640) and the supplier (ISI) properly
-> >> described in DT, you'll have to teach the ISI to register a CCF clock
-> >> source, which then will be connected to from the ov2640. If you choose
-> >> not to show your clock in the DT, you can just use v4l2_clk_get(dev,
-> >> "xvclk") and it will be handled by v4l2_clk / soc-camera / isi-atmel.
-> >> 
-> >> If the closk to ov2640 is supplied by a separate clock source, then you
-> >> v4l2_clk_get() will connect ov2640 to it directly and soc-camera will
-> >> enable and disable it on power-on / -off as required.
-> > 
-> > The ISI has no way to supply a sensor clock, the clock is supplied by a
-> > separate clock source.
-> > 
-> >> From your above description it looks like the clock to ov2640 is
-> >> supplied by a separate source, but atmel-isi's .clock_start() /
-> >> .clock_stop() functions still need to be called? By looking at those
-> >> functions it looks like they turn on and off clocks, supplying the ISI
-> >> itself... Instead of only turning on and off clocks, provided by the ISI
-> >> to a camera sensor. If my understanding is right, then this is a bug in
-> >> atmel-isi and it has to be fixed.
-> > 
-> > That's correct as well, the ISI driver needs to be fixed.
-> 
-> Thanks both of you for the details. Now I got it.
-> Indeed, I need fix this in atmel-isi driver not in ov2640 driver.
-> So I will send a new patch for this, which should move the ISI
-> peripheral clock enable/disable() from clock_start/stop() to
-> isi_camera_add_device/remove_device().
+I seem to keep getting the this error after a day or two with my DVBSky T9580.
 
-Shouldn't you move it to the start_streaming() and stop_streaming() functions 
-instead ? An even better solution would be to use runtime PM to enable/disable 
-the ISI clock in the runtime PM resume and suspend handlers, and call 
-pm_runtime_get_sync() and pm_runtime_put() when you need the ISI to be 
-operational.
+The card appears to keep working regardless of the error but
+unfortunately whenever this occurs the Sky (UK)+ HD box downstairs
+goes completely bonkers (poor signal, blocking etc) until I tune to a
+service or restart the box. I'm only guessing here but I think
+whenever this happens the card must be sending some weird voltage to
+the dish interfering with the STB.
 
--- 
-Regards,
+dmesg output snip:
 
-Laurent Pinchart
+[  641.339516] cx23885[0]: mpeg risc op code error
+[  641.339573] cx23885[0]: TS2 C - dma channel status dump
+[  641.339580] cx23885[0]:   cmds: init risc lo   : 0xb6b8f000
+[  641.339586] cx23885[0]:   cmds: init risc hi   : 0x00000000
+[  641.339592] cx23885[0]:   cmds: cdt base       : 0x000105e0
+[  641.339597] cx23885[0]:   cmds: cdt size       : 0x0000000a
+[  641.339603] cx23885[0]:   cmds: iq base        : 0x00010440
+[  641.339608] cx23885[0]:   cmds: iq size        : 0x00000010
+[  641.339613] cx23885[0]:   cmds: risc pc lo     : 0xb6b8f008
+[  641.339618] cx23885[0]:   cmds: risc pc hi     : 0x00000000
+[  641.339623] cx23885[0]:   cmds: iq wr ptr      : 0x00004112
+[  641.339629] cx23885[0]:   cmds: iq rd ptr      : 0x00004110
+[  641.339634] cx23885[0]:   cmds: cdt current    : 0x00010618
+[  641.339639] cx23885[0]:   cmds: pci target lo  : 0xb7a51490
+[  641.339644] cx23885[0]:   cmds: pci target hi  : 0x00000000
+[  641.339649] cx23885[0]:   cmds: line / byte    : 0x01070000
+[  641.339654] cx23885[0]:   risc0: 0x1c0002f0 [ write sol eol count=752 ]
+[  641.339664] cx23885[0]:   risc1: 0xb7a51490 [ writerm eol irq2 irq1
+23 21 18 cnt0 12 count=1168 ]
+[  641.339676] cx23885[0]:   risc2: 0x00000000 [ INVALID count=0 ]
+[  641.339682] cx23885[0]:   risc3: 0x1c0002f0 [ write sol eol count=752 ]
+[  641.339690] cx23885[0]:   (0x00010440) iq 0: 0x5d771378 [ writec
+sol eol irq1 22 21 20 18 cnt1 cnt0 12 count=888 ]
+[  641.339703] cx23885[0]:   (0x00010444) iq 1: 0xe09717e2 [ INVALID
+23 20 18 cnt1 cnt0 12 count=2018 ]
+[  641.339713] cx23885[0]:   (0x00010448) iq 2: 0xb7a51780 [ writerm
+eol irq2 irq1 23 21 18 cnt0 12 count=1920 ]
+[  641.339725] cx23885[0]:   iq 3: 0x00000000 [ arg #1 ]
+[  641.339730] cx23885[0]:   iq 4: 0x1c0002f0 [ arg #2 ]
+[  641.339735] cx23885[0]:   (0x00010454) iq 5: 0xb7a51a70 [ writerm
+eol irq2 irq1 23 21 18 cnt0 12 count=2672 ]
+[  641.339747] cx23885[0]:   iq 6: 0x00000000 [ arg #1 ]
+[  641.339752] cx23885[0]:   iq 7: 0x1c0002f0 [ arg #2 ]
+[  641.339757] cx23885[0]:   (0x00010460) iq 8: 0xb7a51d60 [ writerm
+eol irq2 irq1 23 21 18 cnt0 12 count=3424 ]
+[  641.339769] cx23885[0]:   iq 9: 0x00000000 [ arg #1 ]
+[  641.339774] cx23885[0]:   iq a: 0x00000000 [ arg #2 ]
+[  641.339779] cx23885[0]:   (0x0001046c) iq b: 0x1c0002f0 [ write sol
+eol count=752 ]
+[  641.339787] cx23885[0]:   iq c: 0xb7a511a0 [ arg #1 ]
+[  641.339791] cx23885[0]:   iq d: 0x00000000 [ arg #2 ]
+[  641.339796] cx23885[0]:   (0x00010478) iq e: 0x1c0002f0 [ write sol
+eol count=752 ]
+[  641.339804] cx23885[0]:   iq f: 0xb7a51490 [ arg #1 ]
+[  641.339810] cx23885[0]:   iq 10: 0xd8ceeaa3 [ arg #2 ]
+[  641.339813] cx23885[0]: fifo: 0x00006000 -> 0x7000
+[  641.339816] cx23885[0]: ctrl: 0x00010440 -> 0x104a0
+[  641.339821] cx23885[0]:   ptr1_reg: 0x000068d0
+[  641.339826] cx23885[0]:   ptr2_reg: 0x00010618
+[  641.339830] cx23885[0]:   cnt1_reg: 0x00000000
+[  641.339835] cx23885[0]:   cnt2_reg: 0x00000003
+[34157.452715] perf interrupt took too long (2510 > 2500), lowering
+kernel.perf_event_max_sample_rate to 50000
 
+Full log here: http://sprunge.us/KPXS
+
+Any help or assistance would greatly be received!
+
+Cheers.
