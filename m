@@ -1,89 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:40210 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754037AbbAUER3 (ORCPT
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:42332 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753326AbbA0CO3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 23:17:29 -0500
-Received: by mail-pa0-f53.google.com with SMTP id kx10so5877467pab.12
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 20:17:29 -0800 (PST)
-From: Sumit Semwal <sumit.semwal@linaro.org>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org
-Cc: linaro-kernel@lists.linaro.org, robdclark@gmail.com,
-	daniel@ffwll.ch, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [RFCv2 1/2] device: add dma_params->max_segment_count
-Date: Wed, 21 Jan 2015 09:46:46 +0530
-Message-Id: <1421813807-9178-2-git-send-email-sumit.semwal@linaro.org>
-In-Reply-To: <1421813807-9178-1-git-send-email-sumit.semwal@linaro.org>
-References: <1421813807-9178-1-git-send-email-sumit.semwal@linaro.org>
+	Mon, 26 Jan 2015 21:14:29 -0500
+Received: by mail-wg0-f46.google.com with SMTP id l2so12272020wgh.5
+        for <linux-media@vger.kernel.org>; Mon, 26 Jan 2015 18:14:28 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1411062249210.25946@axis700.grange>
+References: <CAKwPUozkONwkRia6issvfO9S99ZTLC63rAJLvXXz-D2oCiT21Q@mail.gmail.com>
+	<Pine.LNX.4.64.1411062249210.25946@axis700.grange>
+Date: Tue, 27 Jan 2015 10:14:28 +0800
+Message-ID: <CAKwPUowp8MEmvAdLgkqPw-ZXSrAyF+a7PqdKcqVsJp4MxXgbRg@mail.gmail.com>
+Subject: Re: SPI interface camera sensor driver for soc_camera framework
+From: Kassey <kassey1216@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: "d.belimov" <d.belimov@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rob Clark <robdclark@gmail.com>
+Guennadi:
+      I am working on a SPI interface camera sensor now, trying to
+work out a patch for soc_camera for you to review.
 
-For devices which have constraints about maximum number of segments in
-an sglist.  For example, a device which could only deal with contiguous
-buffers would set max_segment_count to 1.
+     thanks.
 
-The initial motivation is for devices sharing buffers via dma-buf,
-to allow the buffer exporter to know the constraints of other
-devices which have attached to the buffer.  The dma_mask and fields
-in 'struct device_dma_parameters' tell the exporter everything else
-that is needed, except whether the importer has constraints about
-maximum number of segments.
+Kassey
 
-Signed-off-by: Rob Clark <robdclark@gmail.com>
- [sumits: Minor updates wrt comments on the first version]
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
----
- include/linux/device.h      |  1 +
- include/linux/dma-mapping.h | 19 +++++++++++++++++++
- 2 files changed, 20 insertions(+)
+2014-11-07 5:55 GMT+08:00 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> Hi Kassey,
+>
+> On Mon, 27 Oct 2014, Kassey wrote:
+>
+>> hi, Dmitri:
+>>     is there any sample driver for SPI interface camera sensor driver
+>> base don soc_camera framework, other than the i2c interface ?
+>
+> Currently there are no SPI drivers, used with the soc-camera framework.
+> There is however an example of a non-I2C subdevice driver in soc-camera:
+> the soc_camera_platform.c driver. You'll see handling of non-I2C
+> subdevices in soc_camera_probe() in soc_camera.c. However, that driver
+> hasn't been used since a long time and might well be broken by now. Also,
+> many newer code paths in soc-camera core unfortunately began to assume,
+> that I2C is the only way to access subdevices. So, I suspect fixes might
+> be needed when adding support for SPI subdevices.
+>
+> Thanks
+> Guennadi
 
-diff --git a/include/linux/device.h b/include/linux/device.h
-index fb50673..a32f9b6 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -647,6 +647,7 @@ struct device_dma_parameters {
- 	 * sg limitations.
- 	 */
- 	unsigned int max_segment_size;
-+	unsigned int max_segment_count;    /* INT_MAX for unlimited */
- 	unsigned long segment_boundary_mask;
- };
- 
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index c3007cb..38e2835 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -154,6 +154,25 @@ static inline unsigned int dma_set_max_seg_size(struct device *dev,
- 		return -EIO;
- }
- 
-+#define DMA_SEGMENTS_MAX_SEG_COUNT ((unsigned int) INT_MAX)
-+
-+static inline unsigned int dma_get_max_seg_count(struct device *dev)
-+{
-+	return dev->dma_parms ?
-+			dev->dma_parms->max_segment_count :
-+			DMA_SEGMENTS_MAX_SEG_COUNT;
-+}
-+
-+static inline int dma_set_max_seg_count(struct device *dev,
-+						unsigned int count)
-+{
-+	if (dev->dma_parms) {
-+		dev->dma_parms->max_segment_count = count;
-+		return 0;
-+	} else
-+		return -EIO;
-+}
-+
- static inline unsigned long dma_get_seg_boundary(struct device *dev)
- {
- 	return dev->dma_parms ?
+
+
 -- 
-1.9.1
-
+Best regards
+Kassey
