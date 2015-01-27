@@ -1,104 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:49667 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752630AbbADP3q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 10:29:46 -0500
-Received: by mail-lb0-f179.google.com with SMTP id z11so16450342lbi.24
-        for <linux-media@vger.kernel.org>; Sun, 04 Jan 2015 07:29:44 -0800 (PST)
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Kamil Debski <k.debski@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: s5p-jpeg: Remove some unused functions
-Date: Sun,  4 Jan 2015 16:32:45 +0100
-Message-Id: <1420385565-12091-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40484 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932412AbbA0Qze (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2015 11:55:34 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 03E8A2A0092
+	for <linux-media@vger.kernel.org>; Tue, 27 Jan 2015 17:55:03 +0100 (CET)
+Message-ID: <54C7C2E6.9000805@xs4all.nl>
+Date: Tue, 27 Jan 2015 17:55:02 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT FIXES for v3.19] vivid: Y offset should depend on quant. range
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removes some functions that are not used anywhere:
-s5p_jpeg_input_raw_y16() s5p_jpeg_timer_disable() s5p_jpeg_timer_enable()
+I discovered this bug today and it explains why vivid behaved so strangely
+when generating full range Y'CbCr patterns. It was introduced in 3.19, so it
+would be really nice if this can be fixed before 3.19 is released.
 
-This was partially found by using a static code analysis program called cppcheck.
+Regards,
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
----
- drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c |   32 -------------------------
- drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h |    3 ---
- 2 files changed, 35 deletions(-)
+	Hans
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c
-index e3b8e67..b5f20e7 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c
-@@ -51,18 +51,6 @@ void s5p_jpeg_input_raw_mode(void __iomem *regs, unsigned long mode)
- 	writel(reg, regs + S5P_JPGCMOD);
- }
- 
--void s5p_jpeg_input_raw_y16(void __iomem *regs, bool y16)
--{
--	unsigned long reg;
--
--	reg = readl(regs + S5P_JPGCMOD);
--	if (y16)
--		reg |= S5P_MODE_Y16;
--	else
--		reg &= ~S5P_MODE_Y16_MASK;
--	writel(reg, regs + S5P_JPGCMOD);
--}
--
- void s5p_jpeg_proc_mode(void __iomem *regs, unsigned long mode)
- {
- 	unsigned long reg, m;
-@@ -208,26 +196,6 @@ void s5p_jpeg_final_mcu_num_int_enable(void __iomem *regs, bool enbl)
- 	writel(reg, regs + S5P_JPGINTSE);
- }
- 
--void s5p_jpeg_timer_enable(void __iomem *regs, unsigned long val)
--{
--	unsigned long reg;
--
--	reg = readl(regs + S5P_JPG_TIMER_SE);
--	reg |= S5P_TIMER_INT_EN;
--	reg &= ~S5P_TIMER_INIT_MASK;
--	reg |= val & S5P_TIMER_INIT_MASK;
--	writel(reg, regs + S5P_JPG_TIMER_SE);
--}
--
--void s5p_jpeg_timer_disable(void __iomem *regs)
--{
--	unsigned long reg;
--
--	reg = readl(regs + S5P_JPG_TIMER_SE);
--	reg &= ~S5P_TIMER_INT_EN_MASK;
--	writel(reg, regs + S5P_JPG_TIMER_SE);
--}
--
- int s5p_jpeg_timer_stat(void __iomem *regs)
- {
- 	return (int)((readl(regs + S5P_JPG_TIMER_ST) & S5P_TIMER_INT_STAT_MASK)
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h b/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h
-index c11ebe8..f208fa3 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h
-@@ -29,7 +29,6 @@
- void s5p_jpeg_reset(void __iomem *regs);
- void s5p_jpeg_poweron(void __iomem *regs);
- void s5p_jpeg_input_raw_mode(void __iomem *regs, unsigned long mode);
--void s5p_jpeg_input_raw_y16(void __iomem *regs, bool y16);
- void s5p_jpeg_proc_mode(void __iomem *regs, unsigned long mode);
- void s5p_jpeg_subsampling_mode(void __iomem *regs, unsigned int mode);
- unsigned int s5p_jpeg_get_subsampling_mode(void __iomem *regs);
-@@ -42,8 +41,6 @@ void s5p_jpeg_x(void __iomem *regs, unsigned int x);
- void s5p_jpeg_rst_int_enable(void __iomem *regs, bool enable);
- void s5p_jpeg_data_num_int_enable(void __iomem *regs, bool enable);
- void s5p_jpeg_final_mcu_num_int_enable(void __iomem *regs, bool enbl);
--void s5p_jpeg_timer_enable(void __iomem *regs, unsigned long val);
--void s5p_jpeg_timer_disable(void __iomem *regs);
- int s5p_jpeg_timer_stat(void __iomem *regs);
- void s5p_jpeg_clear_timer_stat(void __iomem *regs);
- void s5p_jpeg_enc_stream_int(void __iomem *regs, unsigned long size);
--- 
-1.7.10.4
+The following changes since commit 8d44aeefcd79e9be3b6db4f37efc7544995b619e:
 
+  [media] rtl28xxu: change module unregister order (2015-01-27 10:57:58 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.19c
+
+for you to fetch changes up to 593a7b12b9dfe06ed39d6a22ebf8774992341130:
+
+  vivid: Y offset should depend on quant. range (2015-01-27 17:46:17 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      vivid: Y offset should depend on quant. range
+
+ drivers/media/platform/vivid/vivid-tpg.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
