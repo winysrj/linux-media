@@ -1,67 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:33910 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751963AbbASNXA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 08:23:00 -0500
-Received: by mail-la0-f46.google.com with SMTP id s18so7851917lam.5
-        for <linux-media@vger.kernel.org>; Mon, 19 Jan 2015 05:22:59 -0800 (PST)
-From: Ulf Hansson <ulf.hansson@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH V2 2/8] [media] exynos-gsc: Convert gsc_m2m_resume() from int to void
-Date: Mon, 19 Jan 2015 14:22:34 +0100
-Message-Id: <1421673760-2600-3-git-send-email-ulf.hansson@linaro.org>
-In-Reply-To: <1421673760-2600-1-git-send-email-ulf.hansson@linaro.org>
-References: <1421673760-2600-1-git-send-email-ulf.hansson@linaro.org>
+Received: from lists.s-osg.org ([54.187.51.154]:37363 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755486AbbA0RuR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2015 12:50:17 -0500
+Date: Tue, 27 Jan 2015 15:50:12 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] SiLabs improvements
+Message-ID: <20150127155012.21f0ea26@recife.lan>
+In-Reply-To: <54C7CA9A.1010508@iki.fi>
+References: <54881B2A.5070700@iki.fi>
+	<20150127110148.16be794f@recife.lan>
+	<54C7CA9A.1010508@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since gsc_m2m_resume() always returns 0, convert it to a void instead.
+Em Tue, 27 Jan 2015 19:27:54 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
----
- drivers/media/platform/exynos-gsc/gsc-core.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+> It is not pulled, try again.
+> 
+> 
+> The following changes since commit 71947828caef0c83d4245f7d1eaddc799b4ff1d1:
+> 
+>    [media] mn88473: One function call less in mn88473_init() after error 
+> (2014-12-04 16:00:47 -0200)
+> 
+> are available in the git repository at:
+> 
+>    git://linuxtv.org/anttip/media_tree.git silabs
+                                             ======
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index bd769d4..1865738 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1025,7 +1025,7 @@ static int gsc_m2m_suspend(struct gsc_dev *gsc)
- 	return timeout == 0 ? -EAGAIN : 0;
- }
- 
--static int gsc_m2m_resume(struct gsc_dev *gsc)
-+static void gsc_m2m_resume(struct gsc_dev *gsc)
- {
- 	struct gsc_ctx *ctx;
- 	unsigned long flags;
-@@ -1038,8 +1038,6 @@ static int gsc_m2m_resume(struct gsc_dev *gsc)
- 
- 	if (test_and_clear_bit(ST_M2M_SUSPENDED, &gsc->state))
- 		gsc_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
--
--	return 0;
- }
- 
- static int gsc_probe(struct platform_device *pdev)
-@@ -1168,8 +1166,9 @@ static int gsc_runtime_resume(struct device *dev)
- 
- 	gsc_hw_set_sw_reset(gsc);
- 	gsc_wait_reset(gsc);
-+	gsc_m2m_resume(gsc);
- 
--	return gsc_m2m_resume(gsc);
-+	return 0;
- }
- 
- static int gsc_runtime_suspend(struct device *dev)
--- 
-1.9.1
+Ah, that pull request have a branch name ;) On the previous one, there
+was just the tree, without specifying any branch.
 
+
+I'll try to pull it latter today or tomorrow.
+
+Thanks,
+Mauro
