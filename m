@@ -1,36 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34326 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751390AbbAMIyy (ORCPT
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:47801 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752117AbbA0FZf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 03:54:54 -0500
-Message-ID: <54B4DD2D.7030303@xs4all.nl>
-Date: Tue, 13 Jan 2015 09:54:05 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 27 Jan 2015 00:25:35 -0500
+Received: by mail-lb0-f179.google.com with SMTP id 10so11210327lbg.10
+        for <linux-media@vger.kernel.org>; Mon, 26 Jan 2015 21:25:34 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: smiapp-core.c error if !defined(CONFIG_OF)
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CALzAhNVD3od1WSyi98icqhy4WveoutAoTJzqVV6g4yw+tMAEMg@mail.gmail.com>
+References: <CADU0VqyzEdG=07O=9LufbZAYa0BVzgUbcBeVzUnfH+Mpup5=Fw@mail.gmail.com>
+	<CALzAhNVD3od1WSyi98icqhy4WveoutAoTJzqVV6g4yw+tMAEMg@mail.gmail.com>
+Date: Mon, 26 Jan 2015 23:25:34 -0600
+Message-ID: <CADU0Vqxaa8XP+0j+Y5JqGuRRK8=avjQ_N_F2VoXQV1ZF=3PxmA@mail.gmail.com>
+Subject: Fwd: PCTV 800i
+From: John Klug <ski.brimson@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+I moved it to a dual boot system, and it works in windows, and the
+same error in Linux.
 
-The daily build fails because of this error:
+The chips are marked:
+Conexant     CX23880
+Samsung     S5H1411
+Cirrus           CS5340CZZ
+Atmel           ATMLH138
 
-media_build/v4l/smiapp-core.c: In function 'smiapp_get_pdata':
-media_build/v4l/smiapp-core.c:3061:3: error: implicit declaration of function 'of_read_number' [-Werror=implicit-function-declaration]
-   pdata->op_sys_clock[i] = of_read_number(val + i * 2, 2);
-   ^
+three out of four are a different part number than the Wiki.
 
-Some digging showed that of_read_number is only available if CONFIG_OF
-is defined. As far as I can see that is actually a bug in linux/of.h, as
-I see no reason why it should be under CONFIG_OF.
+It is Board T1213044 stamped on back
+PCTV 800i Rev 1.1
+Shield over tuner says "pctv systems"
 
-Can you look at this?
+There are 5 APL1117 on both sides of the board.
 
-Regards,
+Since the tuner is probably under the shield I don't know a
+non-destructive method to get the part number.
 
-	Hans
+>From: Steven Toth <stoth@kernellabs.com>
+>Date: Mon, Jan 26, 2015 at 6:44 AM
+>Subject: Re: PCTV 800i
+>To: John Klug <ski.brimson@gmail.com>
+>Cc: Linux-Media <linux-media@vger.kernel.org>
+
+
+>On Mon, Jan 26, 2015 at 12:50 AM, John Klug <ski.brimson@gmail.com> wrote:
+>> I have a new PCTV card with CX23880 (not CX23883 as shown in the picture):
+>>
+>> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Card_(800i)
+>>
+>> The description is out of date with respect to my recent card.
+>>
+>> It did not work in 3.12.20, 3.17.7, and I finally downloaded the
+>> latest GIT of media_build to no avail (I have a 2nd card that is CX18,
+>> which is interspersed in the output).
+
+>The error messages suggest one or more of the components on the board,
+>or their I2C addresses have changed, or that your hardware is bad.
+
+>Other than the Conexant PCI bridge, do the other components listed in
+>the wiki page match the components on your physical device?
+>
+>--
+>Steven Toth - Kernel Labs
+>http://www.kernellabs.com
