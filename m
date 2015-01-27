@@ -1,41 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:63580 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752094AbbA2VLr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2015 16:11:47 -0500
-Date: Thu, 29 Jan 2015 22:11:29 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-cc: William Towle <william.towle@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 5/8] media: rcar_vin: Add RGB888_1X24 input format support
-In-Reply-To: <Pine.LNX.4.64.1501292146310.7281@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1501292209300.7281@axis700.grange>
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
- <1422548388-28861-6-git-send-email-william.towle@codethink.co.uk>
- <54CA6869.9060100@cogentembedded.com> <Pine.LNX.4.64.1501291915100.30602@axis700.grange>
- <54CA7BBF.6070607@cogentembedded.com> <Pine.LNX.4.64.1501292118020.7281@axis700.grange>
- <54CA99D9.4020901@cogentembedded.com> <Pine.LNX.4.64.1501292146310.7281@axis700.grange>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:48389 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752243AbbA0Qxa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2015 11:53:30 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 3655F2A0092
+	for <linux-media@vger.kernel.org>; Tue, 27 Jan 2015 17:52:58 +0100 (CET)
+Message-ID: <54C7C26A.2050004@xs4all.nl>
+Date: Tue, 27 Jan 2015 17:52:58 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH for v3.19] vivid: Y offset should depend on quant. range
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 29 Jan 2015, Guennadi Liakhovetski wrote:
+When converting to or from Y'CbCr and R'G'B' the Y offset depends
+on the quantization range: it's 0 for full and 16 for limited range.
+But in the code it was hardcoded to 16. This messed up the brightness
+of the generated pattern.
 
-> Right, I see now. [OT] The problem is - this is not the first time this is 
-> happening - I didn't get that thread in my INBOX, only in the mailing list 
-> folder. I subscribe the mailing list from a different email address, than 
-> the one I'm CC'ed at. So, I anyway should be getting 2 copies of all these 
-> mails. I received 2 copies of Sergei's mails, but the rest only once... 
-> Not in spam, not in logs - they just disappear. A day or two ago another 
-> similar thread also missed my INBOX... Investigating...
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-tpg.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Ok, I see now. Only Wills' emails aren't hitting my mailbox. Looks like 
-his mail-provider is blocking gmx.de in both directions, so, I'm hoping 
-he'll read this mail here...
+diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
+index fc9c653..34493f4 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.c
++++ b/drivers/media/platform/vivid/vivid-tpg.c
+@@ -352,13 +352,14 @@ static void color_to_ycbcr(struct tpg_data *tpg, int r, int g, int b,
+ 		{ COEFF(0.5, 224),     COEFF(-0.4629, 224), COEFF(-0.0405, 224) },
+ 	};
+ 	bool full = tpg->real_quantization == V4L2_QUANTIZATION_FULL_RANGE;
++	unsigned y_offset = full ? 0 : 16;
+ 	int lin_y, yc;
+ 
+ 	switch (tpg->real_ycbcr_enc) {
+ 	case V4L2_YCBCR_ENC_601:
+ 	case V4L2_YCBCR_ENC_XV601:
+ 	case V4L2_YCBCR_ENC_SYCC:
+-		rgb2ycbcr(full ? bt601_full : bt601, r, g, b, 16, y, cb, cr);
++		rgb2ycbcr(full ? bt601_full : bt601, r, g, b, y_offset, y, cb, cr);
+ 		break;
+ 	case V4L2_YCBCR_ENC_BT2020:
+ 		rgb2ycbcr(bt2020, r, g, b, 16, y, cb, cr);
+@@ -384,7 +385,7 @@ static void color_to_ycbcr(struct tpg_data *tpg, int r, int g, int b,
+ 	case V4L2_YCBCR_ENC_709:
+ 	case V4L2_YCBCR_ENC_XV709:
+ 	default:
+-		rgb2ycbcr(full ? rec709_full : rec709, r, g, b, 0, y, cb, cr);
++		rgb2ycbcr(full ? rec709_full : rec709, r, g, b, y_offset, y, cb, cr);
+ 		break;
+ 	}
+ }
+@@ -439,13 +440,14 @@ static void ycbcr_to_color(struct tpg_data *tpg, int y, int cb, int cr,
+ 		{ COEFF(1, 219), COEFF(1.8814, 224),  COEFF(0, 224)       },
+ 	};
+ 	bool full = tpg->real_quantization == V4L2_QUANTIZATION_FULL_RANGE;
++	unsigned y_offset = full ? 0 : 16;
+ 	int lin_r, lin_g, lin_b, lin_y;
+ 
+ 	switch (tpg->real_ycbcr_enc) {
+ 	case V4L2_YCBCR_ENC_601:
+ 	case V4L2_YCBCR_ENC_XV601:
+ 	case V4L2_YCBCR_ENC_SYCC:
+-		ycbcr2rgb(full ? bt601_full : bt601, y, cb, cr, 16, r, g, b);
++		ycbcr2rgb(full ? bt601_full : bt601, y, cb, cr, y_offset, r, g, b);
+ 		break;
+ 	case V4L2_YCBCR_ENC_BT2020:
+ 		ycbcr2rgb(bt2020, y, cb, cr, 16, r, g, b);
+@@ -480,7 +482,7 @@ static void ycbcr_to_color(struct tpg_data *tpg, int y, int cb, int cr,
+ 	case V4L2_YCBCR_ENC_709:
+ 	case V4L2_YCBCR_ENC_XV709:
+ 	default:
+-		ycbcr2rgb(full ? rec709_full : rec709, y, cb, cr, 16, r, g, b);
++		ycbcr2rgb(full ? rec709_full : rec709, y, cb, cr, y_offset, r, g, b);
+ 		break;
+ 	}
+ }
+-- 
+2.1.4
 
-Thanks
-Guennadi
