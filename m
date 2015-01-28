@@ -1,47 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:47559 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751064AbbANAzN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 19:55:13 -0500
-Received: by mail-pa0-f44.google.com with SMTP id et14so6931101pad.3
-        for <linux-media@vger.kernel.org>; Tue, 13 Jan 2015 16:55:12 -0800 (PST)
-From: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de,
-	Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
-Subject: [PATCH] [media] rcar_vin: Update device_caps and capabilities in querycap
-Date: Wed, 14 Jan 2015 09:55:02 +0900
-Message-Id: <1421196902-24155-1-git-send-email-nobuhiro.iwamatsu.yj@renesas.com>
+Received: from lists.s-osg.org ([54.187.51.154]:40728 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755601AbbA1UjK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 15:39:10 -0500
+Date: Wed, 28 Jan 2015 17:21:42 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Buda Servantes <budaservantes@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: HW seek and TDA8290
+Message-ID: <20150128172142.64ea30b0@recife.lan>
+In-Reply-To: <CAC8wCFDC3FFaUCiN=+k0rfhednORi3OP_0mv5wAextBPYK_OVg@mail.gmail.com>
+References: <CAC8wCFDC3FFaUCiN=+k0rfhednORi3OP_0mv5wAextBPYK_OVg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-device_caps in v4l2_capability structure must have been set value like
-capabilities. This set the value to device_caps, and set V4L2_CAP_DEVICE_CAPS
-to capabilities.
-This fixes check by commit 454a4e728dd5 ("[media] v4l2-ioctl: WARN_ON if
-querycap didn't fill device_caps").
+Em Wed, 28 Jan 2015 04:07:44 +0000
+Buda Servantes <budaservantes@gmail.com> escreveu:
 
-Signed-off-by: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
----
- drivers/media/platform/soc_camera/rcar_vin.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+> It is possible to have HW seek support in TDA8290 cards as in recent TEA575x?
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 0c1f556..9f1473c 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1799,7 +1799,9 @@ static int rcar_vin_querycap(struct soc_camera_host *ici,
- 			     struct v4l2_capability *cap)
- {
- 	strlcpy(cap->card, "R_Car_VIN", sizeof(cap->card));
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-+
- 	return 0;
- }
- 
--- 
-2.1.3
+Yes, if tda8290 provides such feature and someone with its datasheet can
+implement the code and submit us.
 
+Regards,
+Mauro
