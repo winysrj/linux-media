@@ -1,56 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb2-g21.free.fr ([212.27.42.10]:54230 "EHLO
-	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750905AbbADMfA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Jan 2015 07:35:00 -0500
-Received: from smtp1-g21.free.fr (smtp1-g21.free.fr [212.27.42.1])
-	by smtpfb2-g21.free.fr (Postfix) with ESMTP id 667F8CA94A2
-	for <linux-media@vger.kernel.org>; Sun,  4 Jan 2015 13:27:46 +0100 (CET)
-From: Romain Naour <romain.naour@openwide.fr>
-To: linux-media@vger.kernel.org
-Cc: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
-Subject: [PATCH 1/3] Fix generate-keynames.sh script for cross-compilation
-Date: Sun,  4 Jan 2015 13:27:35 +0100
-Message-Id: <1420374457-8633-2-git-send-email-romain.naour@openwide.fr>
-In-Reply-To: <1420374457-8633-1-git-send-email-romain.naour@openwide.fr>
-References: <1420374457-8633-1-git-send-email-romain.naour@openwide.fr>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49752 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756491AbbA1Ui6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 15:38:58 -0500
+Date: Wed, 28 Jan 2015 10:52:53 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Lee Jones <lee.jones@linaro.org>, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v10 04/19] dt-binding: mfd: max77693: Add DT binding
+ related macros
+Message-ID: <20150128085253.GL17565@valkosipuli.retiisi.org.uk>
+References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+ <1420816989-1808-5-git-send-email-j.anaszewski@samsung.com>
+ <20150120111243.GC13701@x1>
+ <54BE4FB1.3030209@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <54BE4FB1.3030209@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
+Hi Jacek,
 
-generate-keynames.sh reads /usr/include/linux to find the keyname
-symbols. However, when cross-compiling, the include path points
-somewhere else. Allow the user to pass CROSS_ROOT to point to the
-root of the cross-compilation environment.
+On Tue, Jan 20, 2015 at 01:53:05PM +0100, Jacek Anaszewski wrote:
+> On 01/20/2015 12:12 PM, Lee Jones wrote:
+> >On Fri, 09 Jan 2015, Jacek Anaszewski wrote:
+> >
+> >>Add macros for max77693 led part related binding.
+> >>
+> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>Cc: Lee Jones <lee.jones@linaro.org>
+> >>Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> >>---
+> >>  include/dt-bindings/mfd/max77693.h |   21 +++++++++++++++++++++
+> >>  1 file changed, 21 insertions(+)
+> >>  create mode 100644 include/dt-bindings/mfd/max77693.h
+> >>
+> >>diff --git a/include/dt-bindings/mfd/max77693.h b/include/dt-bindings/mfd/max77693.h
+> >>new file mode 100644
+> >>index 0000000..f53e197
+> >>--- /dev/null
+> >>+++ b/include/dt-bindings/mfd/max77693.h
+> >>@@ -0,0 +1,21 @@
+> >>+/*
+> >>+ * This header provides macros for MAX77693 device binding
+> >>+ *
+> >>+ * Copyright (C) 2014, Samsung Electronics Co., Ltd.
+> >>+ *
+> >>+ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>+ */
+> >>+
+> >>+#ifndef __DT_BINDINGS_MAX77693_H__
+> >>+#define __DT_BINDINGS_MAX77693_H
+> >>+
+> >>+/* External trigger type */
+> >>+#define MAX77693_LED_TRIG_TYPE_EDGE	0
+> >>+#define MAX77693_LED_TRIG_TYPE_LEVEL	1
+> >>+
+> >>+/* Boost modes */
+> >>+#define MAX77693_LED_BOOST_OFF		0
+> >>+#define MAX77693_LED_BOOST_ADAPTIVE	1
+> >>+#define MAX77693_LED_BOOST_FIXED	2
+> >>+
+> >>+#endif /* __DT_BINDINGS_MAX77693_H */
+> >
+> >These look fairly generic.  Do generic LED defines already exist?  If
+> >not, can they?
+> 
+> I am not entirely sure that they are generic. Different devices
+> may define different trigger types for low current LEDs and flash
+> LEDs. Boost modes could also have different semantics.
+> 
+> Regardless of the above we can consider renaming the file to
+> include/dt-bindings/leds/max77693.h
+> 
+> Bryan - what is your opinion?
 
-Signed-off-by: Arnout Vandecappelle (Essensium/Mind) <arnout@mind.be>
----
- util/av7110_loadkeys/generate-keynames.sh | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+At least trigger type can be chosen for lm3555 (as3645a) as well. I'm not
+sure about boost mode.
 
-diff --git a/util/av7110_loadkeys/generate-keynames.sh b/util/av7110_loadkeys/generate-keynames.sh
-index 49d2b71..cb8f5c5 100644
---- a/util/av7110_loadkeys/generate-keynames.sh
-+++ b/util/av7110_loadkeys/generate-keynames.sh
-@@ -18,7 +18,7 @@ echo "};" >> $1
- echo >> $1
- echo >> $1
- echo "static struct input_key_name key_name [] = {" >> $1
--for x in $(cat /usr/include/linux/input.h input_fake.h | \
-+for x in $(cat ${CROSS_ROOT}/usr/include/linux/input.h input_fake.h | \
-            egrep "#define[ \t]+KEY_" | grep -v KEY_MAX | \
-            cut -f 1 | cut -f 2 -d " " | sort -u) ; do
-     echo "        { \"$(echo $x | cut -b 5-)\", $x }," >> $1
-@@ -26,7 +26,7 @@ done
- echo "};" >> $1
- echo >> $1
- echo "static struct input_key_name btn_name [] = {" >> $1
--for x in $(cat /usr/include/linux/input.h input_fake.h | \
-+for x in $(cat ${CROSS_ROOT}/usr/include/linux/input.h input_fake.h | \
-            egrep "#define[ \t]+BTN_" | \
-            cut -f 1 | cut -f 2 -d " " | sort -u) ; do
-      echo "        { \"$(echo $x | cut -b 5-)\", $x }," >> $1
 -- 
-1.9.3
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
