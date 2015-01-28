@@ -1,44 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:64110 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752585AbbAGNVA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jan 2015 08:21:00 -0500
-Received: by mail-pd0-f179.google.com with SMTP id fp1so4626651pdb.10
-        for <linux-media@vger.kernel.org>; Wed, 07 Jan 2015 05:21:00 -0800 (PST)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH v2 0/4] modify earth-pt3 and its dependees to use i2c template
-Date: Wed,  7 Jan 2015 22:20:40 +0900
-Message-Id: <1420636844-32553-1-git-send-email-tskd08@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:41431 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753913AbbA2BtK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 20:49:10 -0500
+Date: Wed, 28 Jan 2015 11:23:39 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-arm-kernel@lists.infradead.org, rmk+kernel@arm.linux.org.uk,
+	airlied@linux.ie, kgene@kernel.org, daniel.vetter@intel.com,
+	thierry.reding@gmail.com, pawel@osciak.com,
+	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
+	linaro-kernel@lists.linaro.org, robdclark@gmail.com,
+	daniel@ffwll.ch, intel-gfx@lists.freedesktop.org,
+	linux-tegra@vger.kernel.org, inki.dae@samsung.com
+Subject: Re: [PATCH v3] dma-buf: cleanup dma_buf_export() to make it easily
+ extensible
+Message-ID: <20150128112339.164c55fd@recife.lan>
+In-Reply-To: <1422449643-7829-1-git-send-email-sumit.semwal@linaro.org>
+References: <1422449643-7829-1-git-send-email-sumit.semwal@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Em Wed, 28 Jan 2015 18:24:03 +0530
+Sumit Semwal <sumit.semwal@linaro.org> escreveu:
 
-This patch series depends on the previous patch:
-"[PATCH v2]dvb-core: add template code for i2c binding model"
-<1420635900-32221-1-git-send-email-tskd08@gmail.com>
+> +/**
+> + * helper macro for exporters; zeros and fills in most common values
+> + */
+> +#define DEFINE_DMA_BUF_EXPORT_INFO(a)	\
+> +	struct dma_buf_export_info a = { .exp_name = KBUILD_MODNAME }
+> +
 
-The adapter(earth-pt3), its demod (tc90522) and tuners (mxl301rf, qm1d1c0042)
-are ported to dvb-core i2c template.
+I suspect that this will let the other fields not initialized.
 
-Akihiro Tsukada (4):
-  dvb: qm1d1c0042: use dvb-core i2c binding model template
-  dvb: mxl301rf: use dvb-core i2c binding model template
-  dvb: tc90522: use dvb-core i2c binding model template
-  dvb: earth-pt3: use dvb-core i2c binding model template
+You likely need to do:
 
- drivers/media/dvb-frontends/tc90522.c | 143 ++++++++++++++--------------------
- drivers/media/dvb-frontends/tc90522.h |   8 +-
- drivers/media/pci/pt3/pt3.c           |  89 +++++++--------------
- drivers/media/pci/pt3/pt3.h           |  12 +--
- drivers/media/tuners/mxl301rf.c       |  50 ++++--------
- drivers/media/tuners/mxl301rf.h       |   2 +-
- drivers/media/tuners/qm1d1c0042.c     |  60 +++++---------
- drivers/media/tuners/qm1d1c0042.h     |   2 -
- 8 files changed, 129 insertions(+), 237 deletions(-)
+#define DEFINE_DMA_BUF_EXPORT_INFO(a)	\
+	struct dma_buf_export_info a = { 	\
+	.exp_name = KBUILD_MODNAME;		\
+	.fields = 0;				\
+...
+}
 
--- 
-2.2.1
-
+Regards,
+Mauro
