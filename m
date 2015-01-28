@@ -1,95 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:55723 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753839AbbAVWUw (ORCPT
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:38281 "EHLO
+	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759361AbbA1Uta convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 17:20:52 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net
+	Wed, 28 Jan 2015 15:49:30 -0500
+Received: by mail-oi0-f50.google.com with SMTP id h136so19983663oig.9
+        for <linux-media@vger.kernel.org>; Wed, 28 Jan 2015 12:49:30 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20150128112339.164c55fd@recife.lan>
+References: <1422449643-7829-1-git-send-email-sumit.semwal@linaro.org> <20150128112339.164c55fd@recife.lan>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Wed, 28 Jan 2015 19:00:46 +0530
+Message-ID: <CAO_48GH3CVPeGUfDTuOgGfYmBnc1CvwVc5GYS6O3=275o0SwCw@mail.gmail.com>
+Subject: Re: [PATCH v3] dma-buf: cleanup dma_buf_export() to make it easily extensible
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 06/15] media: blackfin: bfin_capture: use vb2_fop_mmap/poll
-Date: Thu, 22 Jan 2015 22:18:39 +0000
-Message-Id: <1421965128-10470-7-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	rmk+kernel@arm.linux.org.uk, Dave Airlie <airlied@linux.ie>,
+	kgene@kernel.org, daniel.vetter@intel.com,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Rob Clark <robdclark@gmail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	intel-gfx@lists.freedesktop.org, linux-tegra@vger.kernel.org,
+	inki.dae@samsung.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No need to reinvent the wheel. Just use the already existing
-functions provided by vb2.
+Hi Mauro,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 28 +++-----------------------
- 1 file changed, 3 insertions(+), 25 deletions(-)
+On 28 January 2015 at 18:53, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Em Wed, 28 Jan 2015 18:24:03 +0530
+> Sumit Semwal <sumit.semwal@linaro.org> escreveu:
+>
+>> +/**
+>> + * helper macro for exporters; zeros and fills in most common values
+>> + */
+>> +#define DEFINE_DMA_BUF_EXPORT_INFO(a)        \
+>> +     struct dma_buf_export_info a = { .exp_name = KBUILD_MODNAME }
+>> +
+>
+> I suspect that this will let the other fields not initialized.
+>
+> You likely need to do:
+>
+> #define DEFINE_DMA_BUF_EXPORT_INFO(a)   \
+>         struct dma_buf_export_info a = {        \
+>         .exp_name = KBUILD_MODNAME;             \
+>         .fields = 0;                            \
+> ...
+> }
+I suspected the same, but Daniel kindly referred to the C99 standard,
+which states:
+" If there are fewer initializers in a brace-enclosed list than there
+are elements or members
+of an aggregate, or fewer characters in a string literal used to
+initialize an array of known
+size than there are elements in the array, the remainder of the
+aggregate shall be
+initialized implicitly the same as objects that have static storage duration."
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 0d8593b..8ddff32 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -244,18 +244,6 @@ static int bcap_release(struct file *file)
- 	return 0;
- }
- 
--static int bcap_mmap(struct file *file, struct vm_area_struct *vma)
--{
--	struct bcap_device *bcap_dev = video_drvdata(file);
--	int ret;
--
--	if (mutex_lock_interruptible(&bcap_dev->mutex))
--		return -ERESTARTSYS;
--	ret = vb2_mmap(&bcap_dev->buffer_queue, vma);
--	mutex_unlock(&bcap_dev->mutex);
--	return ret;
--}
--
- #ifndef CONFIG_MMU
- static unsigned long bcap_get_unmapped_area(struct file *file,
- 					    unsigned long addr,
-@@ -273,17 +261,6 @@ static unsigned long bcap_get_unmapped_area(struct file *file,
- }
- #endif
- 
--static unsigned int bcap_poll(struct file *file, poll_table *wait)
--{
--	struct bcap_device *bcap_dev = video_drvdata(file);
--	unsigned int res;
--
--	mutex_lock(&bcap_dev->mutex);
--	res = vb2_poll(&bcap_dev->buffer_queue, file, wait);
--	mutex_unlock(&bcap_dev->mutex);
--	return res;
--}
--
- static int bcap_queue_setup(struct vb2_queue *vq,
- 				const struct v4l2_format *fmt,
- 				unsigned int *nbuffers, unsigned int *nplanes,
-@@ -896,11 +873,11 @@ static struct v4l2_file_operations bcap_fops = {
- 	.open = bcap_open,
- 	.release = bcap_release,
- 	.unlocked_ioctl = video_ioctl2,
--	.mmap = bcap_mmap,
-+	.mmap = vb2_fop_mmap,
- #ifndef CONFIG_MMU
- 	.get_unmapped_area = bcap_get_unmapped_area,
- #endif
--	.poll = bcap_poll
-+	.poll = vb2_fop_poll
- };
- 
- static int bcap_probe(struct platform_device *pdev)
-@@ -997,6 +974,7 @@ static int bcap_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&bcap_dev->dma_queue);
- 
- 	vfd->lock = &bcap_dev->mutex;
-+	vfd->queue = q;
- 
- 	/* register video device */
- 	ret = video_register_device(bcap_dev->video_dev, VFL_TYPE_GRABBER, -1);
+So I think we're well covered there?
+>
+> Regards,
+> Mauro
+
+
+
 -- 
-2.1.0
+Thanks and regards,
 
+Sumit Semwal
+Kernel Team Lead - Linaro Mobile Group
+Linaro.org │ Open source software for ARM SoCs
