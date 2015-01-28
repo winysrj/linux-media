@@ -1,92 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.gsystem.sk ([62.176.172.50]:48426 "EHLO gsystem.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751519AbbAPJ6q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2015 04:58:46 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 3/3 v2] bttv: Improve TEA575x support
-Date: Fri, 16 Jan 2015 10:58:32 +0100
-Message-Id: <1421402312-7426-1-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <54B8DB6E.6090804@xs4all.nl>
-References: <54B8DB6E.6090804@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49588 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757199AbbA2Bn4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 20:43:56 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	sadegh abbasi <sadegh612000@yahoo.co.uk>
+Subject: [PATCH v2 0/6] omap4iss: Add RGB2RGB blending matrix support
+Date: Wed, 28 Jan 2015 11:17:13 +0200
+Message-Id: <1422436639-18292-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Improve g_tuner and add s_hw_freq_seek and enum_freq_bands support for cards
-with TEA575x radio.
+Hello,
 
-This allows signal/stereo detection and HW seek to work on these cards.
+This patch set adds support for exposing the OMAP4 ISS IPIPE RGB2RGB blending
+matrix through V4L2 controls, using the compound controls support.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- drivers/media/pci/bt8xx/bttv-driver.c |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+Patches 1 to 4 add new signed compound control types and simplify the control
+type init operation. Patches 5 then fixes an issue with the omap4iss driver,
+and patch 6 finally adds RGB2RGB blending matrix support.
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index e7f8ade..4ec2a3c 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -2515,6 +2515,8 @@ static int bttv_querycap(struct file *file, void  *priv,
- 		if (btv->has_saa6588)
- 			cap->device_caps |= V4L2_CAP_READWRITE |
- 						V4L2_CAP_RDS_CAPTURE;
-+		if (btv->has_tea575x)
-+			cap->device_caps |= V4L2_CAP_HW_FREQ_SEEK;
- 	}
- 	return 0;
- }
-@@ -3244,6 +3246,9 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- 	if (btv->audio_mode_gpio)
- 		btv->audio_mode_gpio(btv, t, 0);
- 
-+	if (btv->has_tea575x)
-+		return snd_tea575x_g_tuner(&btv->tea, t);
-+
- 	return 0;
- }
- 
-@@ -3261,6 +3266,30 @@ static int radio_s_tuner(struct file *file, void *priv,
- 	return 0;
- }
- 
-+static int radio_s_hw_freq_seek(struct file *file, void *priv,
-+					const struct v4l2_hw_freq_seek *a)
-+{
-+	struct bttv_fh *fh = priv;
-+	struct bttv *btv = fh->btv;
-+
-+	if (btv->has_tea575x)
-+		return snd_tea575x_s_hw_freq_seek(file, &btv->tea, a);
-+
-+	return -ENOTTY;
-+}
-+
-+static int radio_enum_freq_bands(struct file *file, void *priv,
-+					 struct v4l2_frequency_band *band)
-+{
-+	struct bttv_fh *fh = priv;
-+	struct bttv *btv = fh->btv;
-+
-+	if (btv->has_tea575x)
-+		return snd_tea575x_enum_freq_bands(&btv->tea, band);
-+
-+	return -ENOTTY;
-+}
-+
- static ssize_t radio_read(struct file *file, char __user *data,
- 			 size_t count, loff_t *ppos)
- {
-@@ -3318,6 +3347,8 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
- 	.vidioc_s_tuner         = radio_s_tuner,
- 	.vidioc_g_frequency     = bttv_g_frequency,
- 	.vidioc_s_frequency     = bttv_s_frequency,
-+	.vidioc_s_hw_freq_seek	= radio_s_hw_freq_seek,
-+	.vidioc_enum_freq_bands	= radio_enum_freq_bands,
- 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
+Please see individual patches for changes since v1.
+
+Laurent Pinchart (6):
+  v4l2-ctrls: Add new S8, S16 and S32 compound control types
+  v4l2-ctrls: Don't initialize array tail when setting a control
+  v4l2-ctrls: Make the control type init op initialize the whole control
+  v4l2-ctrls: Export the standard control type operations
+  staging: media: omap4iss: Cleanup media entities after unregistration
+  staging: media: omap4iss: ipipe: Expose the RGB2RGB blending matrix
+
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |  21 ++++
+ .../DocBook/media/v4l/vidioc-queryctrl.xml         |  30 +++++
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 103 ++++++++++++----
+ drivers/staging/media/omap4iss/iss_ipipe.c         | 135 ++++++++++++++++++++-
+ drivers/staging/media/omap4iss/iss_ipipe.h         |  17 +++
+ drivers/staging/media/omap4iss/iss_ipipeif.c       |   6 +-
+ drivers/staging/media/omap4iss/iss_resizer.c       |   6 +-
+ include/media/v4l2-ctrls.h                         |  16 ++-
+ include/uapi/linux/videodev2.h                     |   6 +
+ 9 files changed, 301 insertions(+), 39 deletions(-)
+
 -- 
-Ondrej Zary
+Regards,
+
+Laurent Pinchart
 
