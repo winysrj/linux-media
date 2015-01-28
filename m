@@ -1,44 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bruce.bmat.com ([176.9.54.181]:49832 "EHLO bruce.bmat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752601AbbAHPMf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 10:12:35 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by bruce.bmat.com (Postfix) with ESMTP id BD9A7C14328
-	for <linux-media@vger.kernel.org>; Thu,  8 Jan 2015 16:12:34 +0100 (CET)
-Received: from bruce.bmat.com ([127.0.0.1])
-	by localhost (bruce.bmat.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id da70kofj0cEk for <linux-media@vger.kernel.org>;
-	Thu,  8 Jan 2015 16:12:33 +0100 (CET)
-Received: from jbrines.bmat.office (164.red-80-28-250.adsl.static.ccgg.telefonica.net [80.28.250.164])
-	(Authenticated sender: jbrines@bmat.es)
-	by bruce.bmat.com (Postfix) with ESMTPSA id E55AEC14325
-	for <linux-media@vger.kernel.org>; Thu,  8 Jan 2015 16:12:32 +0100 (CET)
-From: Javier Brines Garcia <jbrines@bmat.es>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Subject: HDMI recording signals
-Message-Id: <60337A00-448B-43E0-A002-1E3E6EA9CF14@bmat.es>
-Date: Thu, 8 Jan 2015 16:12:31 +0100
-To: linux-media@vger.kernel.org
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:57701 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754804AbbA2BZR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 20:25:17 -0500
+Received: by mail-wi0-f174.google.com with SMTP id n3so18276150wiv.1
+        for <linux-media@vger.kernel.org>; Wed, 28 Jan 2015 17:25:16 -0800 (PST)
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] staging: media: vino: vino: Removed variables that is never used
+Date: Wed, 28 Jan 2015 23:47:45 +0100
+Message-Id: <1422485265-11231-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Variable ar assigned a value that is never used.
+I have also removed all the code that thereby serves no purpose.
 
-Sorry I'm newbie into this. Can anyone help me to record HDMI signal with the DeckLink Mini Recorder via command line? In the SDK there's a program called Capture and I've also tried with a GIT repo from the bmdcapture soft that comes with other cards.
+This was found using a static code analysis program called cppcheck
 
-When I type this command
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+---
+ drivers/staging/media/vino/vino.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-bmdcapture -m 13 -F nut -A 2 -V 3 -f test.raw
+diff --git a/drivers/staging/media/vino/vino.c b/drivers/staging/media/vino/vino.c
+index 2c85357..f43c1ea 100644
+--- a/drivers/staging/media/vino/vino.c
++++ b/drivers/staging/media/vino/vino.c
+@@ -2375,7 +2375,6 @@ static irqreturn_t vino_interrupt(int irq, void *dev_id)
+ 		next_4_desc = vino->a.next_4_desc;
+ 	unsigned int line_count_2,
+ 		page_index_2,
+-		field_counter_2,
+ 		start_desc_tbl_2,
+ 		next_4_desc_2;
+ #endif
+@@ -2421,7 +2420,6 @@ static irqreturn_t vino_interrupt(int irq, void *dev_id)
+ #ifdef VINO_DEBUG_INT
+ 			line_count_2 = vino->a.line_count;
+ 			page_index_2 = vino->a.page_index;
+-			field_counter_2 = vino->a.field_counter;
+ 			start_desc_tbl_2 = vino->a.start_desc_tbl;
+ 			next_4_desc_2 = vino->a.next_4_desc;
+ 
+-- 
+1.7.10.4
 
-I get first time a file with the typical color bars. And second time and so, it generates 0 size files. Same problem testing different inputs with different video formats...
-
-Now I've got connected a Raspberry P (B Model), with a Game of Thrones chapter looped, and I can't get any signal. If I install the GUI I can't see anything with the visual soft. I've tried different DeckLink MiniRecorder cards (in case card was broken/not working good), and spoke to the technician support from Blackmagic and it seems that this card is difficult to make it work with Debian.
-
-I need to make it work with the command-line. Can somebody help me?
-
-Many thanks in advance, 
-
-Javier
