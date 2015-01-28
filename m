@@ -1,100 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:50191 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751267AbbAKKkT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jan 2015 05:40:19 -0500
-Message-ID: <54B250C2.9050705@schinagl.nl>
-Date: Sun, 11 Jan 2015 11:30:26 +0100
-From: Olliver Schinagl <oliver@schinagl.nl>
-MIME-Version: 1.0
-To: Brian Burch <brian@pingtoo.com>,
-	Jonathan McCrohan <jmccrohan@gmail.com>,
-	Adam Laurie <adam@algroup.co.uk>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: dvb-t scan tables
-References: <54ADCBBC.4050400@algroup.co.uk> <54AE4333.9070301@schinagl.nl> <54AE4A6D.6080602@pingtoo.com> <54AE4DE6.1040602@schinagl.nl> <92F63096-11DC-434E-81C0-673263E56459@gmail.com> <54AF1143.3090308@pingtoo.com>
-In-Reply-To: <54AF1143.3090308@pingtoo.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49588 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757199AbbA2Bn6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 20:43:58 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	sadegh abbasi <sadegh612000@yahoo.co.uk>
+Subject: [PATCH v2 4/6] v4l2-ctrls: Export the standard control type operations
+Date: Wed, 28 Jan 2015 11:17:17 +0200
+Message-Id: <1422436639-18292-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1422436639-18292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1422436639-18292-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Brian,
+Drivers that implement custom control types need to implement the equal,
+init, log and validate operations. Depending on the control type some of
+those operations can use the standard control type implementation
+provided by the v4l2 control framework. Export them to enable their
+reuse.
 
-On 01/09/2015 12:22 AM, Brian Burch wrote:
-> On 08/01/15 13:16, Jonathan McCrohan wrote:
->> Hi Olliver/Brian/Adam,
->>
->> On 8 January 2015 09:29:10 GMT+00:00, Olliver Schinagl <oliver@schinagl.nl> wrote:
->>> <snip>
->>>> Because I am basically an ubuntu user, I took the source from the
->>>> latest debian unstable repository to generate my patch. I submitted
->>> it
->>>> as an ubuntu "bug" so it would be documented and distributed
->>>> throughout that particular distribution tree. I felt (perhaps
->>> wrongly)
->>>> that submitting directly to the original developers would a) miss the
->>>> documentation cascade, and b) might not be committed to the ubuntu
->>>> repositories as quickly.
->>> While this might be the fastest way to get a seperated patch into
->>> ubuntu, ideally we'd like to have it as quickly as possible in the main
->>>
->>> tree. I'm not sure how quickly or _if at all_ ubuntu sends their table
->>> patches upstream! I would imagine the ubuntu devs keeping the patch
->>> until the patch fails, indicating that it has landed upstream ...
->>>
->>> So while faster in ubuntu, it wlll be slower, or not at all everywhere
->>> else :(.
->   >
->> Submitting a bug against dtv-scan-tables to the Debian/Ubuntu bug tracker isn't the worst thing in the world; I maintain the package in Debian and keep it up to date. Ubuntu then syncs the package from Debian. I monitor both bug trackers for bug reports and send any upstream.
-> There are a LOT of distros that branch off this particular tree. I use
-> four of them, for example.
->
-> In the past I've submitted fixes to the original developers of other
-> packages, but it has taken months or years to get them pulled into the
-> distros that matter to me. It is very frustrating to have a fix accepted
-> but /still/ having to manually patch my own systems to maintain
-> synchronisation with the main repositories.
-Yes, that's the reason why we split off the dtv-scan-tables from the 
-dvb-utils repository, as some of those changes where lingering for ages.
->
-> I've been advised by the ubuntu maintenance people that the best way to
-> close the loop is to start at their end. If the report and the patch are
-> credible, they usually push it upstream using the best path quite quickly.
-While it's an extra step and takes a bit longer, it certainly works ;)
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 27 ++++++++++++++++-----------
+ include/media/v4l2-ctrls.h           |  9 +++++++++
+ 2 files changed, 25 insertions(+), 11 deletions(-)
 
-cc-ing me and the linux-media list with dtv-scan-tables in the subject 
-does both ;)
-
-The big difference with normal code patches, and dvb patches is, we more 
-or less rely on the persons in the area to verify the data, there's only 
-very little that can get 'reviewed' as we don't know if the data is 
-right or wrong.
->
-> I hope to have a change to au_SunshineCoast quite soon, so I am very
-> pleased to know that Jonathan will be looking after any changes that
-> flow along my chosen path.
-cc me + ml and it'll happen faster.
->
-> I don't think there is a "perfect" solution, but ubuntu/debian bugs
-> often turn up high on general searches. If a fix exists, it is much
-> easier to get maintainers of non-debian distros to accept a bug report,
-> easy for them to pull down the source and then quickly release an update.
-also true, I like how tv-headend handles this, they pull the latest git 
-periodically I think.
->
-> (Thinks... it is a pity this thread didn't take place on the appropriate
-> mailing list).
-CC-ed the list :)
->
-> Best wishes, and thanks for the very useful software!
-Technically, it's not software ;)
-olliver
->
-> Brian
->
->> Best to send them directly upstream to linux-media@vger.kernel.org if you can manage it though :-)
->>
->> Jon
->>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 81b8e66..cbc83b6 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1233,9 +1233,9 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+ 			v4l2_event_queue_fh(sev->fh, &ev);
+ }
+ 
+-static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
+-		      union v4l2_ctrl_ptr ptr1,
+-		      union v4l2_ctrl_ptr ptr2)
++bool v4l2_ctrl_type_std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
++			      union v4l2_ctrl_ptr ptr1,
++			      union v4l2_ctrl_ptr ptr2)
+ {
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_BUTTON:
+@@ -1262,6 +1262,7 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		return !memcmp(ptr1.p + idx, ptr2.p + idx, ctrl->elem_size);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_equal);
+ 
+ static void std_init_one(const struct v4l2_ctrl *ctrl, u32 idx,
+ 			 union v4l2_ctrl_ptr ptr)
+@@ -1295,7 +1296,8 @@ static void std_init_one(const struct v4l2_ctrl *ctrl, u32 idx,
+ 	}
+ }
+ 
+-static void std_init(const struct v4l2_ctrl *ctrl, union v4l2_ctrl_ptr ptr)
++void v4l2_ctrl_type_std_init(const struct v4l2_ctrl *ctrl,
++			     union v4l2_ctrl_ptr ptr)
+ {
+ 	u32 idx;
+ 
+@@ -1323,8 +1325,9 @@ static void std_init(const struct v4l2_ctrl *ctrl, union v4l2_ctrl_ptr ptr)
+ 		break;
+ 	}
+ }
++EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_init);
+ 
+-static void std_log(const struct v4l2_ctrl *ctrl)
++void v4l2_ctrl_type_std_log(const struct v4l2_ctrl *ctrl)
+ {
+ 	union v4l2_ctrl_ptr ptr = ctrl->p_cur;
+ 
+@@ -1381,6 +1384,7 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+ 		break;
+ 	}
+ }
++EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_log);
+ 
+ /*
+  * Round towards the closest legal value. Be careful when we are
+@@ -1404,8 +1408,8 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+ })
+ 
+ /* Validate a new control */
+-static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+-			union v4l2_ctrl_ptr ptr)
++int v4l2_ctrl_type_std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
++				union v4l2_ctrl_ptr ptr)
+ {
+ 	size_t len;
+ 	u64 offset;
+@@ -1479,12 +1483,13 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		return -EINVAL;
+ 	}
+ }
++EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_validate);
+ 
+ static const struct v4l2_ctrl_type_ops std_type_ops = {
+-	.equal = std_equal,
+-	.init = std_init,
+-	.log = std_log,
+-	.validate = std_validate,
++	.equal = v4l2_ctrl_type_std_equal,
++	.init = v4l2_ctrl_type_std_init,
++	.log = v4l2_ctrl_type_std_log,
++	.validate = v4l2_ctrl_type_std_validate,
+ };
+ 
+ /* Helper function: copy the given control value back to the caller */
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index a7280e9..71067fb 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -93,6 +93,15 @@ struct v4l2_ctrl_type_ops {
+ 			union v4l2_ctrl_ptr ptr);
+ };
+ 
++bool v4l2_ctrl_type_std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
++			      union v4l2_ctrl_ptr ptr1,
++			      union v4l2_ctrl_ptr ptr2);
++void v4l2_ctrl_type_std_init(const struct v4l2_ctrl *ctrl,
++			     union v4l2_ctrl_ptr ptr);
++void v4l2_ctrl_type_std_log(const struct v4l2_ctrl *ctrl);
++int v4l2_ctrl_type_std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
++				union v4l2_ctrl_ptr ptr);
++
+ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+ 
+ /** struct v4l2_ctrl - The control structure.
+-- 
+2.0.5
 
