@@ -1,176 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:60729 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753861AbbAVWUx (ORCPT
+Received: from smtprelay0226.hostedemail.com ([216.40.44.226]:45738 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932889AbbA1U0Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 17:20:53 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 07/15] media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
-Date: Thu, 22 Jan 2015 22:18:40 +0000
-Message-Id: <1421965128-10470-8-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 28 Jan 2015 15:26:25 -0500
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 2/3] dvb_net: Use standard debugging facilities
+Date: Wed, 28 Jan 2015 10:05:51 -0800
+Message-Id: <1cdb444dd553279f1369bc9059f775425b5df791.1422468185.git.joe@perches.com>
+In-Reply-To: <cover.1422468185.git.joe@perches.com>
+References: <cover.1422468185.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch adds support to use v4l2_fh_open() and vb2_fop_release,
-which allows to drop driver specific struct bcap_fh, as this is handled
-by core.
+Convert dprintk to netdev_dbg where appropriate.
+Remove dvb_net_debug module_param.
+Remove __func__ from output as that can be added by dynamic_debug.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/media/platform/blackfin/bfin_capture.c | 79 +-------------------------
- 1 file changed, 2 insertions(+), 77 deletions(-)
+ drivers/media/dvb-core/dvb_net.c | 57 +++++++++++++++++-----------------------
+ 1 file changed, 24 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 8ddff32..b2eeace 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -105,12 +105,6 @@ struct bcap_device {
- 	bool stop;
- };
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index ff79b0b..0b0f97a 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -68,13 +68,6 @@
+ #include "dvb_demux.h"
+ #include "dvb_net.h"
  
--struct bcap_fh {
--	struct v4l2_fh fh;
--	/* indicates whether this file handle is doing IO */
--	bool io_allowed;
--};
+-static int dvb_net_debug;
+-module_param(dvb_net_debug, int, 0444);
+-MODULE_PARM_DESC(dvb_net_debug, "enable debug messages");
 -
- static const struct bcap_format bcap_formats[] = {
- 	{
- 		.desc        = "YCbCr 4:2:2 Interleaved UYVY",
-@@ -200,50 +194,6 @@ static void bcap_free_sensor_formats(struct bcap_device *bcap_dev)
- 	bcap_dev->sensor_formats = NULL;
+-#define dprintk(x...) do { if (dvb_net_debug) printk(x); } while (0)
+-
+-
+ static inline __u32 iov_crc32( __u32 c, struct kvec *iov, unsigned int cnt )
+ {
+ 	unsigned int j;
+@@ -312,9 +305,9 @@ static int handle_ule_extensions( struct dvb_net_priv *p )
+ 			return l;	/* Stop extension header processing and discard SNDU. */
+ 		total_ext_len += l;
+ #ifdef ULE_DEBUG
+-		dprintk("handle_ule_extensions: ule_next_hdr=%p, ule_sndu_type=%i, "
+-			"l=%i, total_ext_len=%i\n", p->ule_next_hdr,
+-			(int) p->ule_sndu_type, l, total_ext_len);
++		pr_debug("ule_next_hdr=%p, ule_sndu_type=%i, l=%i, total_ext_len=%i\n",
++			 p->ule_next_hdr, (int)p->ule_sndu_type,
++			 l, total_ext_len);
+ #endif
+ 
+ 	} while (p->ule_sndu_type < ETH_P_802_3_MIN);
+@@ -697,8 +690,8 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 
+ 					if (drop) {
+ #ifdef ULE_DEBUG
+-						dprintk("Dropping SNDU: MAC destination address does not match: dest addr: %pM, dev addr: %pM\n",
+-							priv->ule_skb->data, dev->dev_addr);
++						netdev_dbg(dev, "Dropping SNDU: MAC destination address does not match: dest addr: %pM, dev addr: %pM\n",
++							   priv->ule_skb->data, dev->dev_addr);
+ #endif
+ 						dev_kfree_skb(priv->ule_skb);
+ 						goto sndu_done;
+@@ -961,8 +954,7 @@ static int dvb_net_filter_sec_set(struct net_device *dev,
+ 	(*secfilter)->filter_mask[10] = mac_mask[1];
+ 	(*secfilter)->filter_mask[11]=mac_mask[0];
+ 
+-	dprintk("%s: filter mac=%pM\n", dev->name, mac);
+-	dprintk("%s: filter mask=%pM\n", dev->name, mac_mask);
++	netdev_dbg(dev, "filter mac=%pM mask=%pM\n", mac, mac_mask);
+ 
+ 	return 0;
  }
+@@ -974,7 +966,7 @@ static int dvb_net_feed_start(struct net_device *dev)
+ 	struct dmx_demux *demux = priv->demux;
+ 	unsigned char *mac = (unsigned char *) dev->dev_addr;
  
--static int bcap_open(struct file *file)
--{
--	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct video_device *vfd = bcap_dev->video_dev;
--	struct bcap_fh *bcap_fh;
--
--	if (!bcap_dev->sd) {
--		v4l2_err(&bcap_dev->v4l2_dev, "No sub device registered\n");
--		return -ENODEV;
--	}
--
--	bcap_fh = kzalloc(sizeof(*bcap_fh), GFP_KERNEL);
--	if (!bcap_fh) {
--		v4l2_err(&bcap_dev->v4l2_dev,
--			 "unable to allocate memory for file handle object\n");
--		return -ENOMEM;
--	}
--
--	v4l2_fh_init(&bcap_fh->fh, vfd);
--
--	/* store pointer to v4l2_fh in private_data member of file */
--	file->private_data = &bcap_fh->fh;
--	v4l2_fh_add(&bcap_fh->fh);
--	bcap_fh->io_allowed = false;
--	return 0;
--}
--
--static int bcap_release(struct file *file)
--{
--	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct v4l2_fh *fh = file->private_data;
--	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
--
--	/* if this instance is doing IO */
--	if (bcap_fh->io_allowed)
--		vb2_queue_release(&bcap_dev->buffer_queue);
--
--	file->private_data = NULL;
--	v4l2_fh_del(&bcap_fh->fh);
--	v4l2_fh_exit(&bcap_fh->fh);
--	kfree(bcap_fh);
--	return 0;
--}
--
- #ifndef CONFIG_MMU
- static unsigned long bcap_get_unmapped_area(struct file *file,
- 					    unsigned long addr,
-@@ -432,13 +382,6 @@ static int bcap_reqbufs(struct file *file, void *priv,
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
- 	struct vb2_queue *vq = &bcap_dev->buffer_queue;
--	struct v4l2_fh *fh = file->private_data;
--	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
--
--	if (vb2_is_busy(vq))
--		return -EBUSY;
--
--	bcap_fh->io_allowed = true;
+-	dprintk("%s: rx_mode %i\n", __func__, priv->rx_mode);
++	netdev_dbg(dev, "rx_mode %i\n", priv->rx_mode);
+ 	mutex_lock(&priv->mutex);
+ 	if (priv->tsfeed || priv->secfeed || priv->secfilter || priv->multi_secfilter[0])
+ 		printk("%s: BUG %d\n", __func__, __LINE__);
+@@ -984,7 +976,7 @@ static int dvb_net_feed_start(struct net_device *dev)
+ 	priv->tsfeed = NULL;
  
- 	return vb2_reqbufs(vq, req_buf);
- }
-@@ -455,11 +398,6 @@ static int bcap_qbuf(struct file *file, void *priv,
- 			struct v4l2_buffer *buf)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct v4l2_fh *fh = file->private_data;
--	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
--
--	if (!bcap_fh->io_allowed)
--		return -EBUSY;
+ 	if (priv->feedtype == DVB_NET_FEEDTYPE_MPE) {
+-		dprintk("%s: alloc secfeed\n", __func__);
++		netdev_dbg(dev, "alloc secfeed\n");
+ 		ret=demux->allocate_section_feed(demux, &priv->secfeed,
+ 					 dvb_net_sec_callback);
+ 		if (ret<0) {
+@@ -1002,38 +994,38 @@ static int dvb_net_feed_start(struct net_device *dev)
+ 		}
  
- 	return vb2_qbuf(&bcap_dev->buffer_queue, buf);
- }
-@@ -468,11 +406,6 @@ static int bcap_dqbuf(struct file *file, void *priv,
- 			struct v4l2_buffer *buf)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct v4l2_fh *fh = file->private_data;
--	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
--
--	if (!bcap_fh->io_allowed)
--		return -EBUSY;
+ 		if (priv->rx_mode != RX_MODE_PROMISC) {
+-			dprintk("%s: set secfilter\n", __func__);
++			netdev_dbg(dev, "set secfilter\n");
+ 			dvb_net_filter_sec_set(dev, &priv->secfilter, mac, mask_normal);
+ 		}
  
- 	return vb2_dqbuf(&bcap_dev->buffer_queue,
- 				buf, file->f_flags & O_NONBLOCK);
-@@ -523,14 +456,10 @@ static int bcap_streamon(struct file *file, void *priv,
- 				enum v4l2_buf_type buf_type)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct bcap_fh *fh = file->private_data;
- 	struct ppi_if *ppi = bcap_dev->ppi;
- 	dma_addr_t addr;
- 	int ret;
+ 		switch (priv->rx_mode) {
+ 		case RX_MODE_MULTI:
+ 			for (i = 0; i < priv->multi_num; i++) {
+-				dprintk("%s: set multi_secfilter[%d]\n", __func__, i);
++				netdev_dbg(dev, "set multi_secfilter[%d]\n", i);
+ 				dvb_net_filter_sec_set(dev, &priv->multi_secfilter[i],
+ 						       priv->multi_macs[i], mask_normal);
+ 			}
+ 			break;
+ 		case RX_MODE_ALL_MULTI:
+ 			priv->multi_num=1;
+-			dprintk("%s: set multi_secfilter[0]\n", __func__);
++			netdev_dbg(dev, "set multi_secfilter[0]\n");
+ 			dvb_net_filter_sec_set(dev, &priv->multi_secfilter[0],
+ 					       mac_allmulti, mask_allmulti);
+ 			break;
+ 		case RX_MODE_PROMISC:
+ 			priv->multi_num=0;
+-			dprintk("%s: set secfilter\n", __func__);
++			netdev_dbg(dev, "set secfilter\n");
+ 			dvb_net_filter_sec_set(dev, &priv->secfilter, mac, mask_promisc);
+ 			break;
+ 		}
  
--	if (!fh->io_allowed)
--		return -EBUSY;
--
- 	/* call streamon to start streaming in videobuf */
- 	ret = vb2_streamon(&bcap_dev->buffer_queue, buf_type);
- 	if (ret)
-@@ -564,10 +493,6 @@ static int bcap_streamoff(struct file *file, void *priv,
- 				enum v4l2_buf_type buf_type)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct bcap_fh *fh = file->private_data;
--
--	if (!fh->io_allowed)
--		return -EBUSY;
+-		dprintk("%s: start filtering\n", __func__);
++		netdev_dbg(dev, "start filtering\n");
+ 		priv->secfeed->start_filtering(priv->secfeed);
+ 	} else if (priv->feedtype == DVB_NET_FEEDTYPE_ULE) {
+ 		struct timespec timeout = { 0, 10000000 }; // 10 msec
  
- 	return vb2_streamoff(&bcap_dev->buffer_queue, buf_type);
- }
-@@ -870,8 +795,8 @@ static const struct v4l2_ioctl_ops bcap_ioctl_ops = {
+ 		/* we have payloads encapsulated in TS */
+-		dprintk("%s: alloc tsfeed\n", __func__);
++		netdev_dbg(dev, "alloc tsfeed\n");
+ 		ret = demux->allocate_ts_feed(demux, &priv->tsfeed, dvb_net_ts_callback);
+ 		if (ret < 0) {
+ 			printk("%s: could not allocate ts feed\n", dev->name);
+@@ -1057,7 +1049,7 @@ static int dvb_net_feed_start(struct net_device *dev)
+ 			goto error;
+ 		}
  
- static struct v4l2_file_operations bcap_fops = {
- 	.owner = THIS_MODULE,
--	.open = bcap_open,
--	.release = bcap_release,
-+	.open = v4l2_fh_open,
-+	.release = vb2_fop_release,
- 	.unlocked_ioctl = video_ioctl2,
- 	.mmap = vb2_fop_mmap,
- #ifndef CONFIG_MMU
+-		dprintk("%s: start filtering\n", __func__);
++		netdev_dbg(dev, "start filtering\n");
+ 		priv->tsfeed->start_filtering(priv->tsfeed);
+ 	} else
+ 		ret = -EINVAL;
+@@ -1072,17 +1064,16 @@ static int dvb_net_feed_stop(struct net_device *dev)
+ 	struct dvb_net_priv *priv = netdev_priv(dev);
+ 	int i, ret = 0;
+ 
+-	dprintk("%s\n", __func__);
+ 	mutex_lock(&priv->mutex);
+ 	if (priv->feedtype == DVB_NET_FEEDTYPE_MPE) {
+ 		if (priv->secfeed) {
+ 			if (priv->secfeed->is_filtering) {
+-				dprintk("%s: stop secfeed\n", __func__);
++				netdev_dbg(dev, "stop secfeed\n");
+ 				priv->secfeed->stop_filtering(priv->secfeed);
+ 			}
+ 
+ 			if (priv->secfilter) {
+-				dprintk("%s: release secfilter\n", __func__);
++				netdev_dbg(dev, "release secfilter\n");
+ 				priv->secfeed->release_filter(priv->secfeed,
+ 							      priv->secfilter);
+ 				priv->secfilter=NULL;
+@@ -1090,8 +1081,8 @@ static int dvb_net_feed_stop(struct net_device *dev)
+ 
+ 			for (i=0; i<priv->multi_num; i++) {
+ 				if (priv->multi_secfilter[i]) {
+-					dprintk("%s: release multi_filter[%d]\n",
+-						__func__, i);
++					netdev_dbg(dev, "release multi_filter[%d]\n",
++						   i);
+ 					priv->secfeed->release_filter(priv->secfeed,
+ 								      priv->multi_secfilter[i]);
+ 					priv->multi_secfilter[i] = NULL;
+@@ -1105,7 +1096,7 @@ static int dvb_net_feed_stop(struct net_device *dev)
+ 	} else if (priv->feedtype == DVB_NET_FEEDTYPE_ULE) {
+ 		if (priv->tsfeed) {
+ 			if (priv->tsfeed->is_filtering) {
+-				dprintk("%s: stop tsfeed\n", __func__);
++				netdev_dbg(dev, "stop tsfeed\n");
+ 				priv->tsfeed->stop_filtering(priv->tsfeed);
+ 			}
+ 			priv->demux->release_ts_feed(priv->demux, priv->tsfeed);
+@@ -1145,16 +1136,16 @@ static void wq_set_multicast_list (struct work_struct *work)
+ 	netif_addr_lock_bh(dev);
+ 
+ 	if (dev->flags & IFF_PROMISC) {
+-		dprintk("%s: promiscuous mode\n", dev->name);
++		netdev_dbg(dev, "promiscuous mode\n");
+ 		priv->rx_mode = RX_MODE_PROMISC;
+ 	} else if ((dev->flags & IFF_ALLMULTI)) {
+-		dprintk("%s: allmulti mode\n", dev->name);
++		netdev_dbg(dev, "allmulti mode\n");
+ 		priv->rx_mode = RX_MODE_ALL_MULTI;
+ 	} else if (!netdev_mc_empty(dev)) {
+ 		struct netdev_hw_addr *ha;
+ 
+-		dprintk("%s: set_mc_list, %d entries\n",
+-			dev->name, netdev_mc_count(dev));
++		netdev_dbg(dev, "set_mc_list, %d entries\n",
++			   netdev_mc_count(dev));
+ 
+ 		priv->rx_mode = RX_MODE_MULTI;
+ 		priv->multi_num = 0;
 -- 
-2.1.0
+2.1.2
 
