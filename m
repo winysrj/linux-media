@@ -1,76 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:50758 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753432AbbAEWio (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jan 2015 17:38:44 -0500
-Received: by mail-wi0-f172.google.com with SMTP id n3so4256236wiv.11
-        for <linux-media@vger.kernel.org>; Mon, 05 Jan 2015 14:38:43 -0800 (PST)
-From: Haim Daniel <haimdaniel@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Haim Daniel <haim.daniel@gmail.com>
-Subject: [PATCH] [media] [pvrusb2]: remove dead retry cmd code
-Date: Tue,  6 Jan 2015 00:38:38 +0200
-Message-Id: <1420497518-10375-1-git-send-email-haim.daniel@gmail.com>
+Received: from mout.kundenserver.de ([212.227.17.13]:60871 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755762AbbA2BzE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 20:55:04 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 3/7] [media] staging/davinci/vpfe/dm365: add missing dependencies
+Date: Wed, 28 Jan 2015 22:17:43 +0100
+Message-Id: <1422479867-3370921-4-git-send-email-arnd@arndb.de>
+In-Reply-To: <1422479867-3370921-1-git-send-email-arnd@arndb.de>
+References: <1422479867-3370921-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In case a command is timed out, current flow sets the retry_flag
-and does nothing.
+This driver can only be built when VIDEO_V4L2_SUBDEV_API
+and VIDEO_DAVINCI_VPBE_DISPLAY are also provided by the
+kernel.
 
-Signed-off-by: Haim Daniel <haim.daniel@gmail.com>
+drivers/staging/media/davinci_vpfe/dm365_isif.c: In function '__isif_get_format':
+drivers/staging/media/davinci_vpfe/dm365_isif.c:1410:3: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
+   return v4l2_subdev_get_try_format(fh, pad);
+   ^
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/media/usb/pvrusb2/pvrusb2-encoder.c | 15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ drivers/staging/media/davinci_vpfe/Kconfig | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
-index f7702ae..02028aa 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
-@@ -145,8 +145,6 @@ static int pvr2_encoder_cmd(void *ctxt,
- 			    u32 *argp)
- {
- 	unsigned int poll_count;
--	unsigned int try_count = 0;
--	int retry_flag;
- 	int ret = 0;
- 	unsigned int idx;
- 	/* These sizes look to be limited by the FX2 firmware implementation */
-@@ -213,8 +211,6 @@ static int pvr2_encoder_cmd(void *ctxt,
- 			break;
- 		}
- 
--		retry_flag = 0;
--		try_count++;
- 		ret = 0;
- 		wrData[0] = 0;
- 		wrData[1] = cmd;
-@@ -245,11 +241,9 @@ static int pvr2_encoder_cmd(void *ctxt,
- 			}
- 			if (rdData[0] && (poll_count < 1000)) continue;
- 			if (!rdData[0]) {
--				retry_flag = !0;
- 				pvr2_trace(
- 					PVR2_TRACE_ERROR_LEGS,
--					"Encoder timed out waiting for us"
--					"; arranging to retry");
-+					"Encoder timed out waiting for us");
- 			} else {
- 				pvr2_trace(
- 					PVR2_TRACE_ERROR_LEGS,
-@@ -269,13 +263,6 @@ static int pvr2_encoder_cmd(void *ctxt,
- 			ret = -EBUSY;
- 			break;
- 		}
--		if (retry_flag) {
--			if (try_count < 20) continue;
--			pvr2_trace(
--				PVR2_TRACE_ERROR_LEGS,
--				"Too many retries...");
--			ret = -EBUSY;
--		}
- 		if (ret) {
- 			del_timer_sync(&hdw->encoder_run_timer);
- 			hdw->state_encoder_ok = 0;
+diff --git a/drivers/staging/media/davinci_vpfe/Kconfig b/drivers/staging/media/davinci_vpfe/Kconfig
+index 4de2f082491d..f40a06954a92 100644
+--- a/drivers/staging/media/davinci_vpfe/Kconfig
++++ b/drivers/staging/media/davinci_vpfe/Kconfig
+@@ -2,6 +2,8 @@ config VIDEO_DM365_VPFE
+ 	tristate "DM365 VPFE Media Controller Capture Driver"
+ 	depends on VIDEO_V4L2 && ARCH_DAVINCI_DM365 && !VIDEO_DM365_ISIF
+ 	depends on HAS_DMA
++	depends on VIDEO_V4L2_SUBDEV_API
++	depends on VIDEO_DAVINCI_VPBE_DISPLAY
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	help
+ 	  Support for DM365 VPFE based Media Controller Capture driver.
 -- 
-1.9.3
+2.1.0.rc2
 
