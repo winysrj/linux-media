@@ -1,81 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:59798 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925AbbASMc0 (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.13]:59706 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752768AbbA2BKx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 07:32:26 -0500
-Received: by mail-pd0-f178.google.com with SMTP id r10so36309849pdi.9
-        for <linux-media@vger.kernel.org>; Mon, 19 Jan 2015 04:32:26 -0800 (PST)
-Date: Mon, 19 Jan 2015 23:32:14 +1100
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: build failure on ubuntu 14.04.1 LTS
-Message-ID: <20150119123212.GA33475@shambles.windy>
+	Wed, 28 Jan 2015 20:10:53 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: [PATCH v2 6/7] [media] marvell-ccic: MMP_CAMERA no longer builds
+Date: Wed, 28 Jan 2015 23:11:20 +0100
+Message-ID: <1683657.95n8fCPCvc@wuerfel>
+In-Reply-To: <1422479867-3370921-7-git-send-email-arnd@arndb.de>
+References: <1422479867-3370921-1-git-send-email-arnd@arndb.de> <1422479867-3370921-7-git-send-email-arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+The mmp ccic driver expects a platform_data structure that does not exist
+in the mainline kernel and presumably was changed in a kernel fork, which
+leads to build errors now:
 
-I am seeing build failures since 11 January.
-A build I did on 22 December worked fine.
-My build procedure and the error are shown below.
+media/platform/marvell-ccic/mmp-driver.c: In function 'mmpcam_calc_dphy':
+media/platform/marvell-ccic/mmp-driver.c:252:15: error: 'struct mmp_camera_platform_data' has no member named 'dphy3_algo'
+  switch (pdata->dphy3_algo) {
+               ^
+media/platform/marvell-ccic/mmp-driver.c:253:7: error: 'DPHY3_ALGO_PXA910' undeclared (first use in this function)
+  case DPHY3_ALGO_PXA910:
+       ^
+media/platform/marvell-ccic/mmp-driver.c:253:7: note: each undeclared identifier is reported only once for each function it appears in
+media/platform/marvell-ccic/mmp-driver.c:257:8: error: 'struct mmp_camera_platform_data' has no member named 'dphy'
 
-$ cat /etc/lsb-release
-DISTRIB_ID=Ubuntu
-DISTRIB_RELEASE=14.04
-DISTRIB_CODENAME=trusty
-DISTRIB_DESCRIPTION="Ubuntu 14.04.1 LTS"
-$ uname -a
-Linux ubuntu 3.13.0-37-generic #64-Ubuntu SMP Mon Sep 22 21:30:01 UTC 2014 i686 i686 i686 GNU/Linux
-$ make distclean
-$ rm v4l/.config
-$ git pull
-$ git log |head
-commit de98549b53c938b44f578833fe8440b92f4a8c64
-Author: Hans Verkuil <hans.verkuil@cisco.com>
-Date:   Mon Jan 12 10:53:27 2015 +0100
+This marks the driver as 'BROKEN' but keeps the code around.
+Alternatively it could be removed entirely.
 
-    Update v3.11_dev_groups.patch
-    
-    Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+Cc: Libin Yang <lbyang@marvell.com>
+Fixes: 05fed81625bf75 ("[media] marvell-ccic: add MIPI support for marvell-ccic driver")
+----
+> This driver most assuredly did work on XO 1.75 machines, and the
+> platform_data structure does exist; it's the stuff added by Libin
+> afterward that apparently broke things.  Strange that it only came out now,
+> though, nearly two years later. Libin, any thoughts on this?
 
-commit 3886d538f89948d49b652465e0d52e6e9a7329ab
-Author: Hans Verkuil <hans.verkuil@cisco.com>
+I've carried this workaround in a private git tree that has hundreds of
+randconfig fixes, just started flushing out some of the patches again.
+The configuration in which the driver gets selected is relatively rare,
+and it is not enabled in any of the defconfigs obviously.
 
-$ ./build --main-git
-...
-  CC [M]  /home/me/git/clones/media_build/v4l/smiapp-core.o
-/home/me/git/clones/media_build/v4l/smiapp-core.c: In function 'smiapp_get_pdata':
-/home/me/git/clones/media_build/v4l/smiapp-core.c:3061:3: error: implicit declaration of function 'of_read_number' [-Werror=implicit-function-declaration]
-   pdata->op_sys_clock[i] = of_read_number(val + i * 2, 2);
-   ^
-cc1: some warnings being treated as errors
-make[3]: *** [/home/me/git/clones/media_build/v4l/smiapp-core.o] Error 1
-make[2]: *** [_module_/home/me/git/clones/media_build/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-3.13.0-37-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/me/git/clones/media_build/v4l'
-make: *** [all] Error 2
-build failed at ./build line 491, <IN> line 4.
+When I originally wrote the patch description, I must have missed the
+fact that the driver was moved from a different directory and I only
+saw that it was broken at the point when it showed up in
+drivers/media/platform/marvell-ccic/.
 
-$ grep -ilr "implicit-function-declaration" . |grep -v o.cmd
-./media/tools/thermal/tmon/Makefile
-./media/arch/parisc/math-emu/Makefile
-./media/Makefile
+> Meanwhile, it is clearly broken, and I don't have an immediate fix, so,
+>
+> Acked-by: Jonathan Corbet <corbet@lwn.net>
 
-It's not clear to me whether this a problem with the media_tree code
-or the media_build code.
+Thanks
 
-media/Makefile contains this definition
+> (Though I would like a different patch subject, since the current one is
+> wrong).
 
-KBUILD_CFLAGS := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
-                 -fno-strict-aliasing -fno-common \
-                 -Werror-implicit-function-declaration \
-                 -Wno-format-security \
-                 -std=gnu89
+Done.
 
-Regards
-Vince
+diff --git a/drivers/media/platform/marvell-ccic/Kconfig b/drivers/media/platform/marvell-ccic/Kconfig
+index 6265d36adceb..7ac0f13c98be 100644
+--- a/drivers/media/platform/marvell-ccic/Kconfig
++++ b/drivers/media/platform/marvell-ccic/Kconfig
+@@ -13,7 +13,7 @@ config VIDEO_CAFE_CCIC
+ config VIDEO_MMP_CAMERA
+ 	tristate "Marvell Armada 610 integrated camera controller support"
+ 	depends on ARCH_MMP && I2C && VIDEO_V4L2
+-	depends on HAS_DMA
++	depends on HAS_DMA && BROKEN
+ 	select VIDEO_OV7670
+ 	select I2C_GPIO
+ 	select VIDEOBUF2_DMA_SG
+
