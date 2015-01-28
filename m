@@ -1,57 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60819 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755660AbbAWQvj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 11:51:39 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 14/21] [media] coda: don't ever use subsampling ping-pong buffers as reconstructed reference buffers
-Date: Fri, 23 Jan 2015 17:51:28 +0100
-Message-Id: <1422031895-7740-15-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
-References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+Received: from lists.s-osg.org ([54.187.51.154]:41414 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757225AbbA2BoL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 20:44:11 -0500
+Message-ID: <54C96D4C.6070200@osg.samsung.com>
+Date: Wed, 28 Jan 2015 16:14:20 -0700
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: m.chehab@samsung.com, hans.verkuil@cisco.com,
+	dheitmueller@kernellabs.com, prabhakar.csengg@gmail.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	ttmesterr@gmail.com
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5] media: au0828 - convert to use videobuf2
+References: <1422042075-7320-1-git-send-email-shuahkh@osg.samsung.com>
+In-Reply-To: <1422042075-7320-1-git-send-email-shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On i.MX6, two subsampling ping-pong buffers are used for motion estimation and
-deblocking They should not be counted as framebuffers, or they will be also used
-to store reconstructed frames, causing visible artifacts in P-frames.
+On 01/23/2015 12:41 PM, Shuah Khan wrote:
+> Convert au0828 to use videobuf2. Tested with NTSC.
+> Tested video and vbi devices with xawtv, tvtime,
+> and vlc. Ran v4l2-compliance to ensure there are
+> no failures. 
+> 
+> Video compliance test results summary:
+> Total: 75, Succeeded: 75, Failed: 0, Warnings: 18
+> 
+> Vbi compliance test results summary:
+> Total: 75, Succeeded: 75, Failed: 0, Warnings: 0
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Hi Hans,
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 6ecfd29..7cdddd5 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -718,6 +718,7 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 	struct vb2_buffer *buf;
- 	int gamma, ret, value;
- 	u32 dst_fourcc;
-+	int num_fb;
- 	u32 stride;
- 
- 	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-@@ -983,12 +984,14 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 			v4l2_err(v4l2_dev, "failed to allocate framebuffers\n");
- 			goto out;
- 		}
-+		num_fb = 2;
- 		stride = q_data_src->bytesperline;
- 	} else {
- 		ctx->num_internal_frames = 0;
-+		num_fb = 0;
- 		stride = 0;
- 	}
--	coda_write(dev, ctx->num_internal_frames, CODA_CMD_SET_FRAME_BUF_NUM);
-+	coda_write(dev, num_fb, CODA_CMD_SET_FRAME_BUF_NUM);
- 	coda_write(dev, stride, CODA_CMD_SET_FRAME_BUF_STRIDE);
- 
- 	if (dev->devtype->product == CODA_7541) {
+Please don't pull this in. Found a bug in stop_streaming() when
+re-tuning that requires re-working this patch.
+
+stop_streaming() calls is doing more than it should while
+holding slock triggering lock warning.
+
+It shouldn't call
+v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
+
+while holding slock triggering lock warning.
+
+I will send patch v6.
+
+thanks,
+-- Shuah
+
 -- 
-2.1.4
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
