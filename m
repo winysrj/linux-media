@@ -1,44 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60824 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755667AbbAWQvk (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.10]:52143 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759157AbbA2Bx6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2015 11:51:40 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 18/21] [media] coda: free context buffers under buffer mutex
-Date: Fri, 23 Jan 2015 17:51:32 +0100
-Message-Id: <1422031895-7740-19-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
-References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 28 Jan 2015 20:53:58 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 5/7] [media] gspca: add INPUT dependency
+Date: Wed, 28 Jan 2015 22:17:45 +0100
+Message-Id: <1422479867-3370921-6-git-send-email-arnd@arndb.de>
+In-Reply-To: <1422479867-3370921-1-git-send-email-arnd@arndb.de>
+References: <1422479867-3370921-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure the buffer_mutex lock is taken in coda_bit_release
-while coda_free_framebuffers and coda_free_context_buffers
-are called.
+The gspca  driver uses the input_event infrastructure and fails
+to link if that is not available:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+drivers/built-in.o: In function `gspca_disconnect':
+media/usb/gspca/gspca.c:2171: undefined reference to `input_unregister_device'
+drivers/built-in.o: In function `gspca_dev_probe2':
+media/usb/gspca/gspca.c:2112: undefined reference to `input_allocate_device'
+media/usb/gspca/gspca.c:2112: undefined reference to `input_register_device'
+media/usb/gspca/gspca.c:2112: undefined reference to `input_unregister_device'
+media/usb/gspca/gspca.c:2112: undefined reference to `input_free_device'
+drivers/built-in.o: In function `sd_int_pkt_scan':
+media/usb/gspca/pac207.c:428: undefined reference to `input_event'
+drivers/built-in.o: In function `sd_int_pkt_scan':
+media/usb/gspca/pac7302.c:879: undefined reference to `input_event'
+drivers/built-in.o: In function `sd_int_pkt_scan':
+media/usb/gspca/se401.c:612: undefined reference to `input_event'
+drivers/built-in.o: In function `sd_stop0':
+media/usb/gspca/xirlink_cit.c:2742: undefined reference to `input_event'
+drivers/built-in.o: In function `cit_check_button':
+media/usb/gspca/xirlink_cit.c:2935: undefined reference to `input_event'
+drivers/built-in.o:/git/arm-soc/include/linux/input.h:414: more undefined references to `input_event' follow
+
+This adds an explicit dependency.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/platform/coda/coda-bit.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/usb/gspca/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 7cdddd5..856b542 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1319,8 +1319,10 @@ static void coda_seq_end_work(struct work_struct *work)
- 
- static void coda_bit_release(struct coda_ctx *ctx)
- {
-+	mutex_lock(&ctx->buffer_mutex);
- 	coda_free_framebuffers(ctx);
- 	coda_free_context_buffers(ctx);
-+	mutex_unlock(&ctx->buffer_mutex);
- }
- 
- const struct coda_context_ops coda_bit_encode_ops = {
+diff --git a/drivers/media/usb/gspca/Kconfig b/drivers/media/usb/gspca/Kconfig
+index eed10d782535..2b23aad5a9f2 100644
+--- a/drivers/media/usb/gspca/Kconfig
++++ b/drivers/media/usb/gspca/Kconfig
+@@ -1,6 +1,7 @@
+ menuconfig USB_GSPCA
+ 	tristate "GSPCA based webcams"
+ 	depends on VIDEO_V4L2
++	depends on INPUT
+ 	default m
+ 	---help---
+ 	  Say Y here if you want to enable selecting webcams based
 -- 
-2.1.4
+2.1.0.rc2
 
