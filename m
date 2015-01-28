@@ -1,57 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34874 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751737AbbAOKy1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2015 05:54:27 -0500
-Message-ID: <54B79C60.3050309@redhat.com>
-Date: Thu, 15 Jan 2015 11:54:24 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49342 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933536AbbA1Udw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 15:33:52 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	sadegh abbasi <sadegh612000@yahoo.co.uk>
+Subject: Re: [PATCH v2 6/6] staging: media: omap4iss: ipipe: Expose the RGB2RGB blending matrix
+Date: Wed, 28 Jan 2015 14:18:20 +0200
+Message-ID: <109421334.Lm3XXHQ8EE@avalon>
+In-Reply-To: <54C8B976.3090908@xs4all.nl>
+References: <1422436639-18292-1-git-send-email-laurent.pinchart@ideasonboard.com> <1422436639-18292-7-git-send-email-laurent.pinchart@ideasonboard.com> <54C8B976.3090908@xs4all.nl>
 MIME-Version: 1.0
-To: Antonio Ospite <ao2@ao2.it>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] gspca_stv06xx: enable button found on some Quickcam Express
- variant
-References: <1405083417-20615-1-git-send-email-ao2@ao2.it>	<53C3B0AD.7070001@redhat.com>	<20141028153941.8298e540ddf03796246c6f26@ao2.it> <20150106215925.03aafecd952a176b3f376a2d@ao2.it>
-In-Reply-To: <20150106215925.03aafecd952a176b3f376a2d@ao2.it>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Hans,
 
-On 06-01-15 21:59, Antonio Ospite wrote:
-> On Tue, 28 Oct 2014 15:39:41 +0100
-> Antonio Ospite <ao2@ao2.it> wrote:
->
->> On Mon, 14 Jul 2014 12:27:57 +0200
->> Hans de Goede <hdegoede@redhat.com> wrote:
->>
->>> Hi,
->>>
->>> On 07/11/2014 02:56 PM, Antonio Ospite wrote:
->>>> Signed-off-by: Antonio Ospite <ao2@ao2.it>
->>>
->>> Thanks, I've added this to my tree and send a pull-req for it
->>> to Mauro.
->>>
->>
->> Hi Hans, I still don't see the change in 3.18-rc2, maybe it got lost.
->>
->> Here is the patchwork link in case you want to pick the change for 3.19:
->> https://patchwork.linuxtv.org/patch/24732/
->>
->
-> Ping.
->
-> Still missing in 3.19-rc3.
+Thank you for the review.
 
-Yes, weird, I had it in a pull-req for 3.17:
+On Wednesday 28 January 2015 11:27:02 Hans Verkuil wrote:
+> On 01/28/15 10:17, Laurent Pinchart wrote:
+> > Expose the module as two controls, one for the 3x3 multiplier matrix and
+> > one for the 3x1 offset vector.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/staging/media/omap4iss/iss_ipipe.c | 129 +++++++++++++++++++++++-
+> >  drivers/staging/media/omap4iss/iss_ipipe.h |  17 ++++
+> >  2 files changed, 144 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c
+> > b/drivers/staging/media/omap4iss/iss_ipipe.c index 73b165e..624c5d2
+> > 100644
+> > --- a/drivers/staging/media/omap4iss/iss_ipipe.c
+> > +++ b/drivers/staging/media/omap4iss/iss_ipipe.c
+> > @@ -119,6 +119,105 @@ static void ipipe_configure(struct iss_ipipe_device
+> > *ipipe)> 
+> >  }
+> >  
+> >  /* ---------------------------------------------------------------------- 
+> > + * V4L2 controls
+> > + */
+> > +
+> > +#define OMAP4ISS_IPIPE_CID_BASE			(V4L2_CID_USER_BASE | 0xf000)
+> 
+> Private control ranges should be reserved in uapi/linux/v4l2-controls.h.
+> 
+> See e.g. V4L2_CID_USER_SAA7134_BASE.
 
-http://git.linuxtv.org/cgit.cgi/hgoede/gspca.git/log/?h=media-for_v3.17
+My bad, I'll fix that.
 
-Anyways I've queued it up for 3.20 now.
+> > +#define OMAP4ISS_IPIPE_CID_RGB2RGB_MULT		(OMAP4ISS_IPIPE_CID_BASE + 
+0)
+> > +#define OMAP4ISS_IPIPE_CID_RGB2RGB_OFFSET	(OMAP4ISS_IPIPE_CID_BASE + 
+1)
+> 
+> Can you give some information how the values are interpreted? That should
+> be documented anyway, but I would like to see how this compares to the
+> adv drivers. This is something that we might want to make available as
+> standard controls. I will have to think about that a bit more.
 
+Sure.
+
+http://www.ti.com/lit/pdf/swpu235, section 8.3.3.4.6, page 1863.
+
+/       \   /                         \   /      \   /          \
+| R_out |   | gain_RR gain_GR gain_BR |   | R_in |   | offset_R |
+| G_out | = | gain_RG gain_GG gain_BG | x | G_in | + | offset_G |
+| B_out |   | gain_RB gain_GB gain_BB |   | B_in |   | offset_B |
+\       /   \                         /   \      /   \          /
+
+The two controls correspond to the multiplication matrix and offset vector. 
+Coefficients are stored in 16 bits each and expressed as S3.8 (-4 to +3.996) 
+for the gains and S11 (-1024 to 1023) for the offsets.
+
+Note that the ISS IPIPE has two RGB to RGB blending matrices as shown on 
+figure 8-132, page 1859. This patch implements support for the first one only. 
+We should probably consider how to expose the second one as well.
+
+-- 
 Regards,
 
-Hans
+Laurent Pinchart
+
