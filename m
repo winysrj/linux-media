@@ -1,42 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from or-71-0-52-80.sta.embarqhsd.net ([71.0.52.80]:53990 "EHLO
-	asgard.dharty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752674AbbA2Evq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 23:51:46 -0500
-Received: from [192.168.0.4] (buri.dharty.com [192.168.0.4])
-	(using TLSv1.2 with cipher DHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	(Authenticated sender: catchall@dharty.com)
-	by asgard.dharty.com (Postfix) with ESMTPSA id 41FDD235D1
-	for <linux-media@vger.kernel.org>; Wed, 28 Jan 2015 20:43:45 -0800 (PST)
-Message-ID: <54C9BA7E.90907@dharty.com>
-Date: Wed, 28 Jan 2015 20:43:42 -0800
-From: catchall <catchall@dharty.com>
-Reply-To: v4l@dharty.com
+Received: from lists.s-osg.org ([54.187.51.154]:41430 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753927AbbA2BtK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 20:49:10 -0500
+Message-ID: <54C9769C.1090502@osg.samsung.com>
+Date: Wed, 28 Jan 2015 16:54:04 -0700
+From: Shuah Khan <shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Haupage 2250 / saa7164 kernel errors
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	sakari.ailus@linux.intel.com, prabhakar.csengg@gmail.com,
+	laurent.pinchart@ideasonboard.com
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: au0828 analog_register error path fixes to do
+ proper cleanup
+References: <1419985334-6155-1-git-send-email-shuahkh@osg.samsung.com>
+In-Reply-To: <1419985334-6155-1-git-send-email-shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-About once a day, my tuner stops working and my logs fill up with the 
-following messages:
+On 12/30/2014 05:22 PM, Shuah Khan wrote:
+> au0828_analog_register() doesn't release video and vbi queues
+> created by vb2_queue_init(). In addition, it doesn't unregister
+> vdev when vbi register fails. Add vb2_queue_release() calls to
+> release video and vbi queues to the failure path to be called
+> when vdev register fails. Add video_unregister_device() for
+> vdev when vbi register fails.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+> Please note that this patch is dependent on the au0828 vb2
+> conversion patch.
 
-2015-01-28T20:40:23.736478-08:00 mediapc kernel: [169020.845484] 
-saa7164_cmd_send() No free sequences
-2015-01-28T20:40:23.736480-08:00 mediapc kernel: [169020.845486] 
-saa7164_api_i2c_read() error, ret(1) = 0xc
-2015-01-28T20:40:23.736483-08:00 mediapc kernel: [169020.845489] 
-s5h1411_readreg: readreg error (ret == -5)
+I have to fold this patch into the vb2 conversion patch as
+it no longer applies after the recent changes to address
+comments on patch v3. I will fold it into vb2 convert patch v6.
+It makes sense since vb2_queue_release() should be part of the
+conversion work anyway.
 
-I've seen a couple other posts about it in this mailing list with no 
-responses yet.  Does anybody have an idea of why this could be 
-happening, or any suggestions on what I could try to debug this issue?
+thanks,
+-- Shuah
+> 
+>  drivers/media/usb/au0828/au0828-video.c | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+> index 94b65b8..17450eb 100644
+> --- a/drivers/media/usb/au0828/au0828-video.c
+> +++ b/drivers/media/usb/au0828/au0828-video.c
+> @@ -1785,7 +1785,7 @@ int au0828_analog_register(struct au0828_dev *dev,
+>  		dprintk(1, "unable to register video device (error = %d).\n",
+>  			retval);
+>  		ret = -ENODEV;
+> -		goto err_vbi_dev;
+> +		goto err_reg_vdev;
+>  	}
+>  
+>  	/* Register the vbi device */
+> @@ -1795,14 +1795,18 @@ int au0828_analog_register(struct au0828_dev *dev,
+>  		dprintk(1, "unable to register vbi device (error = %d).\n",
+>  			retval);
+>  		ret = -ENODEV;
+> -		goto err_vbi_dev;
+> +		goto err_reg_vbi_dev;
+>  	}
+>  
+> -
+>  	dprintk(1, "%s completed!\n", __func__);
+>  
+>  	return 0;
+>  
+> +err_reg_vbi_dev:
+> +	video_unregister_device(dev->vdev);
+> +err_reg_vdev:
+> +	vb2_queue_release(&dev->vb_vidq);
+> +	vb2_queue_release(&dev->vb_vbiq);
+>  err_vbi_dev:
+>  	video_device_release(dev->vbi_dev);
+>  err_vdev:
+> 
 
-Thanks,
 
-David
-
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
