@@ -1,130 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:15860 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752743AbbAORiB (ORCPT
+Received: from haggis.mythic-beasts.com ([93.93.131.56]:33170 "EHLO
+	haggis.mythic-beasts.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758606AbbA1A4a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2015 12:38:01 -0500
-Message-id: <54B7FAF2.8080207@samsung.com>
-Date: Thu, 15 Jan 2015 18:37:54 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: "Baluta, Teodora" <teodora.baluta@intel.com>,
-	Jonathan Cameron <jic23@kernel.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-iio <linux-iio@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 0/3] Introduce IIO interface for fingerprint sensors
-References: <1417698017-13835-1-git-send-email-teodora.baluta@intel.com>
- <5481153B.4070609@kernel.org> <1418047828.18463.10.camel@bebop>
- <54930604.1020607@metafoo.de> <549D42BD.1050901@kernel.org>
- <1421255642.31900.4.camel@bebop>
-In-reply-to: <1421255642.31900.4.camel@bebop>
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 7bit
+	Tue, 27 Jan 2015 19:56:30 -0500
+Received: from [60.241.150.231] (port=54107 helo=[10.1.252.25])
+	by haggis.mythic-beasts.com with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <brian@pingtoo.com>)
+	id 1YGGYX-00043X-BU
+	for linux-media@vger.kernel.org; Wed, 28 Jan 2015 00:32:30 +0000
+Message-ID: <54C82E18.3060804@pingtoo.com>
+Date: Wed, 28 Jan 2015 00:32:24 +0000
+From: Brian Burch <brian@pingtoo.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: dvt--scan-tables au-SunshineCoast corrections
+Content-Type: multipart/mixed;
+ boundary="------------080709080606080808030106"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14/01/15 18:14, Baluta, Teodora wrote:
-> On Vi, 2014-12-26 at 11:13 +0000, Jonathan Cameron wrote:
->> On 18/12/14 16:51, Lars-Peter Clausen wrote:
->>> Adding V4L folks to Cc for more input.
->>
->> Thanks Lars - we definitely would need the v4l guys to agree to a driver like
->> this going in IIO. (not that I'm convinced it should!)
->>
->>> On 12/08/2014 03:10 PM, Baluta, Teodora wrote:
->>>> Hello,
->>>>
->>>> On Vi, 2014-12-05 at 02:15 +0000, Jonathan Cameron wrote:
->>>>> On 04/12/14 13:00, Teodora Baluta wrote:
->>>>>> This patchset adds support for fingerprint sensors through the IIO interface.
->>>>>> This way userspace applications collect information in a uniform way. All
->>>>>> processing would be done in the upper layers as suggested in [0].
->>>>>>
->>>>>> In order to test out this proposal, a minimal implementation for UPEK's
->>>>>> TouchChip Fingerprint Sensor via USB is also available. Although there is an
->>>>>> existing implementation in userspace for USB fingerprint devices, including this
->>>>>> particular device, the driver represents a proof of concept of how fingerprint
->>>>>> sensors could be integrated in the IIO framework regardless of the used bus. For
->>>>>> lower power requirements, the SPI bus is preferred and a kernel driver
->>>>>> implementation makes more sense.
->>>>>
->>>>> So why not v4l?  These are effectively image sensors..
->>>>
->>>> Well, here's why I don't think v4l would be the best option:
->>>>
->>>> - an image scanner could be implemented in the v4l subsystem, but it
->>>> seems far more complicated for a simple fingerprint scanner - it usually
->>>> has drivers for webcams, TVs or video streaming devices. The v4l
->>>> subsystem (with all its support for colorspace, decoders, image
->>>> compression, frame control) seems a bit of an overkill for a very
->>>> straightforward fingerprint imaging sensor.
->
->> Whilst those are there, I would doubt the irrelevant bits would put much
->> burden on a fingerprint scanning driver.  Been a while since I did
->> anything in that area though so I could be wrong!
+This is a multi-part message in MIME format.
+--------------080709080606080808030106
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-IMO V4L is much better fit for this kind of devices than IIO. You can use
-just a subset of the API, it shouldn't take much effort to write a simple
-v4l2 capture driver, supporting fixed (probably vendor/chip specific) image
-format.  I'm not sure if it's better to use the v4l2 controls [1], define
-a new v4l2 controls class for the fingerprint scanner processing features,
-rather than trying to pass raw data to user space and interpret it then
-in some library.  I know there has been resistance to allowing passing
-unknown binary blobs to user space, due to possible abuses.
+Attn: Jonathon McCrohan,
 
-[1] Documentation/video4linux/v4l2-controls.txt
+I expect you have already received an automated notification from ubuntu 
+launchpad. I have just reported a new bug against this file to bring the 
+multiplex frequencies up to date.
 
->>>> - a fingerprint device could also send out a processed information, not
->>>> just the image of a fingerprint. This means that the processing is done
->>>> in hardware - the UPEK TouchStrip chipset in libfprint has this behavior
->>>> (see [0]). So, the IIO framework would support a uniform way of handling
->>>> fingerprint devices that either do processing in software or in
->>>> hardware.
+I apologise for wimping out of your advice to patch against the original 
+source! I have attached the same patch file as submitted to ubuntu. The 
+change is very simple, so I hope my version doesn't inconvenience you 
+too much.
 
-You can use the v4l2 controls API for that, which also supports events.
-The controls could be made read only.
-It would be interesting to list what kind of features these could be.
+Best wishes,
 
->> This is more interesting, but does that map well to IIO style
->> channels anyway?  If not we are going to end up with a whole new
->> interface which ever subsystem is used for the image side of things.
->>>>
->>>> The way I see it now, for processed fingerprint information, an IIO
->>>> device could have an IIO_FINGERPRINT channel with a modifier and only
->>>> the sensitivity threshold attribute set. We would also need two
->>>> triggers: one for enrollment and one for the verification mode to
->>>> control the device from a userspace application.
+Brian
 
-This could be all well handled with the v4l2 controls, for instance see
-what features are available in the Camera Flash controls subset
+--------------080709080606080808030106
+Content-Type: text/plain; charset=UTF-8;
+ name="au-SunshineCoast-patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="au-SunshineCoast-patch"
 
-http://linuxtv.org/downloads/v4l-dvb-apis/extended-controls.html#flash-controls
-
->> Sure - what you proposed would work.  The question is whether it is
->> the best way to do it.
-> 
-> Any thoughts on this from the v4l community?
-
-I would try it with V4L2, it seems to me most suitable subsystem for such
-devices to me.  The question is what ends up in the kernel and what in user
-space.  Anyway IMO V4L2 API is quite flexible with regards to that, due to
-wide range of devices it needs to cover.
-
->>>> [0] http://www.freedesktop.org/wiki/Software/fprint/libfprint/upekts/
->>>>
->>>>>> A sysfs trigger is enabled and the device starts scanning. As soon as an image
->>>>>> is available it is written in the character device /dev/iio:deviceX.
->>>>>>
->>>>>> Userspace applications will be able to calculate the expected image size using
->>>>>> the fingerprint attributes height, width and bit depth. Other attributes
->>>>>> introduced for the fingerprint channel in IIO represent information that aids in
->>>>>> the fingerprint image processing. Besides these, the proposed interface offers
->>>>>> userspace a way to read a feedback after a scan (like the swipe was too slow or
->>>>>> too fast) through a modified fingerprint_status channel.
->>>>>>
->>>>>> [0] http://www.spinics.net/lists/linux-iio/msg11463.html
-
+LS0tIGF1LVN1bnNoaW5lQ29hc3QtMjAxNS0wMS0xMi1kZWJpYW5VbnN0YWJsZQkyMDE1LTAx
+LTEyIDAxOjQwOjA3LjI5MzM1MzAwMSArMDAwMAorKysgYXUtU3Vuc2hpbmVDb2FzdC0yMDE1
+LTAxLTEyLWJyaWFuCTIwMTUtMDEtMTIgMDE6NDU6NDQuNzg4MzYyNDE0ICswMDAwCkBAIC0x
+LDggKzEsOCBAQAogIyBBdXN0cmFsaWEgLyBTdW5zaGluZSBDb2FzdAotIyBTQlMzNiBTQlMg
+KioqCisjIFNCUzQwIFNCUyAqKioKIFtDSEFOTkVMXQogCURFTElWRVJZX1NZU1RFTSA9IERW
+QlQKLQlGUkVRVUVOQ1kgPSA1ODU2MjUwMDAKKwlGUkVRVUVOQ1kgPSA2MTM1MDAwMDAKIAlC
+QU5EV0lEVEhfSFogPSA3MDAwMDAwCiAJQ09ERV9SQVRFX0hQID0gMi8zCiAJQ09ERV9SQVRF
+X0xQID0gTk9ORQpAQCAtMTIsMTAgKzEyLDEwIEBACiAJSElFUkFSQ0hZID0gTk9ORQogCUlO
+VkVSU0lPTiA9IEFVVE8KIAotIyBUTlE0NyAxMCAqKioKKyMgVE5RNDQgMTAgKioqCiBbQ0hB
+Tk5FTF0KIAlERUxJVkVSWV9TWVNURU0gPSBEVkJUCi0JRlJFUVVFTkNZID0gNjYyNjI1MDAw
+CisJRlJFUVVFTkNZID0gNjQxNTAwMDAwCiAJQkFORFdJRFRIX0haID0gNzAwMDAwMAogCUNP
+REVfUkFURV9IUCA9IDMvNAogCUNPREVfUkFURV9MUCA9IE5PTkUKQEAgLTI1LDEwICsyNSwx
+MCBAQAogCUhJRVJBUkNIWSA9IE5PTkUKIAlJTlZFUlNJT04gPSBBVVRPCiAKLSMgQUJRNjIg
+QUJDICoqKgorIyBBQkM0MSBBQkMgKioqCiBbQ0hBTk5FTF0KIAlERUxJVkVSWV9TWVNURU0g
+PSBEVkJUCi0JRlJFUVVFTkNZID0gNzY3NjI1MDAwCisJRlJFUVVFTkNZID0gNjIwNTAwMDAw
+CiAJQkFORFdJRFRIX0haID0gNzAwMDAwMAogCUNPREVfUkFURV9IUCA9IDMvNAogCUNPREVf
+UkFURV9MUCA9IE5PTkUKQEAgLTM4LDEwICszOCwxMCBAQAogCUhJRVJBUkNIWSA9IE5PTkUK
+IAlJTlZFUlNJT04gPSBBVVRPCiAKLSMgU1RRNjUgNyAqKioKKyMgU1RRNDIgNyAqKioKIFtD
+SEFOTkVMXQogCURFTElWRVJZX1NZU1RFTSA9IERWQlQKLQlGUkVRVUVOQ1kgPSA3ODg2MjUw
+MDAKKwlGUkVRVUVOQ1kgPSA2Mjc1MDAwMDAKIAlCQU5EV0lEVEhfSFogPSA3MDAwMDAwCiAJ
+Q09ERV9SQVRFX0hQID0gMy80CiAJQ09ERV9SQVRFX0xQID0gTk9ORQpAQCAtNTEsMTAgKzUx
+LDEwIEBACiAJSElFUkFSQ0hZID0gTk9ORQogCUlOVkVSU0lPTiA9IEFVVE8KIAotIyBTVFE2
+OCBXSU4gKioqCisjIFJUUTQzIFdJTiAqKioKIFtDSEFOTkVMXQogCURFTElWRVJZX1NZU1RF
+TSA9IERWQlQKLQlGUkVRVUVOQ1kgPSA4MDk1MDAwMDAKKwlGUkVRVUVOQ1kgPSA2MzQ1MDAw
+MDAKIAlCQU5EV0lEVEhfSFogPSA3MDAwMDAwCiAJQ09ERV9SQVRFX0hQID0gMy80CiAJQ09E
+RV9SQVRFX0xQID0gTk9ORQo=
+--------------080709080606080808030106--
