@@ -1,169 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:34372 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750995AbbALVuc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2015 16:50:32 -0500
-Received: by mail-wi0-f173.google.com with SMTP id em10so1628233wid.0
-        for <linux-media@vger.kernel.org>; Mon, 12 Jan 2015 13:50:31 -0800 (PST)
+Received: from mout.gmx.net ([212.227.17.21]:54029 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964965AbbA1UuF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 15:50:05 -0500
+Date: Wed, 28 Jan 2015 21:49:55 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] media: v4l2-image-sizes.h: add SVGA, XGA and UXGA
+ size definitions
+In-Reply-To: <54C844D2.9040905@atmel.com>
+Message-ID: <Pine.LNX.4.64.1501282148370.24956@axis700.grange>
+References: <1416905668-23029-1-git-send-email-josh.wu@atmel.com>
+ <Pine.LNX.4.64.1411252318330.17362@axis700.grange> <547698A6.3090703@atmel.com>
+ <Pine.LNX.4.64.1411272112320.5267@axis700.grange> <54C844D2.9040905@atmel.com>
 MIME-Version: 1.0
-Date: Mon, 12 Jan 2015 22:50:30 +0100
-Message-ID: <CAPx3zdTPbk41wfKwHt7UNKv_u6wCXdzUS=ogzbtTH6maFwbzSg@mail.gmail.com>
-Subject: Terratec Cinergy DVB-T Stick, Siano ID 187f:0600, no data from NIT(actual)
-From: Francesco Other <francesco.other@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My USB dongle is recognized by the system but I have a problem with
-the channels. Please read all my post for any help ;-)
+Hi Josh,
 
-At first, I used this guide:
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+On Wed, 28 Jan 2015, Josh Wu wrote:
 
-After that "dmesg" showed that system was searching for
-"isdbt_rio.inp" firmware. If I use that firmware from linuxtv.org,
-"w_scan" shows me an error, it says that my dongle can't search for
-TERRESTRIAL.
+> Hi, Guennadi
+> 
+> On 11/28/2014 4:13 AM, Guennadi Liakhovetski wrote:
+> > Hi Josh,
+> > 
+> > On Thu, 27 Nov 2014, Josh Wu wrote:
+> > 
+> > > Hi, Guennadi
+> > > 
+> > > On 11/26/2014 6:23 AM, Guennadi Liakhovetski wrote:
+> > > > Hi Josh,
+> > > > 
+> > > > On Tue, 25 Nov 2014, Josh Wu wrote:
+> > > > 
+> > > > > Add SVGA, UXGA and XGA size definitions to v4l2-image-sizes.h.
+> > > > > The definitions are sorted by alphabet order.
+> > > > > 
+> > > > > Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> > > > Thanks for your patches. I'm ok with these two, but the second of them
+> > > > depends on the first one, and the first one wouldn't (normally) be going
+> > > > via the soc-camera tree. Mauro, how would you prefer to handle this?
+> > > > Should I pick up and push to you both of them or postpone #2 until the
+> > > > next merge window?
+> > > The first patch is already merged in the media_tree. If the soc-camera
+> > > tree
+> > > will be merged to the media_tree, then there should have no dependency
+> > > issue.
+> > > Am I understanding correct?
+> > Yes, then it should be ok!
+> 
+> Just checking the status of this patch. I don't found this patch in media's
+> tree or soc_camera's tree.
+> Could you take this patch in your tree?
 
-So, for using smsmdtv mode "DVB-T" as the default option, I forced the
-kernel module in this way:
+uhm, yes, sorry, I'll try to make sure not to miss it with my next pull 
+request. Thanks for a reminder!
 
-echo "options smsmdtv default_mode=0" | sudo tee /etc/modprobe.d/smsmdtv.conf
+Regards
+Guennadi
 
-After that system searches for "dvb_rio.inp", good ;-)
-
-dmesg:
-
-[ 1327.312795] usb 1-3: new high-speed USB device number 4 using ehci-pci
-[ 1327.446103] usb 1-3: New USB device found, idVendor=187f, idProduct=0600
-[ 1327.446121] usb 1-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-[ 1327.446130] usb 1-3: Product: MDTV Receiver
-[ 1327.446138] usb 1-3: Manufacturer: MDTV Receiver
-[ 1327.451833] usb 1-3: Direct firmware load failed with error -2
-[ 1327.451849] usb 1-3: Falling back to user helper
-[ 1327.456026] smscore_load_firmware_from_file: line: 1168: failed to
-open firmware file "dvb_rio.inp"
-[ 1327.456535] DVB: registering new adapter (Siano Rio Digital Receiver)
-[ 1327.457351] usb 1-3: DVB: registering adapter 0 frontend 0 (Siano
-Mobile Digital MDTV Receiver)...
-
-I used "dvb_rio.inp" from my Windows installation (md5:
-146156b55ce6fc586470f28194add5a7, sha1:
-48907a4749ba5fd5b4b947195c0d484e55a4c169). Now I have this output form
-"lsusb":
-
-Bus 002 Device 002: ID 0402:7675 ALi Corp.
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 004 Device 003: ID 0489:e03c Foxconn / Hon Hai
-Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 001 Device 003: ID 187f:0600 Siano Mobile Silicon
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-
-dmesg:
-
-[ 1390.167433] usb 1-3: new high-speed USB device number 5 using ehci-pci
-[ 1390.300895] usb 1-3: New USB device found, idVendor=187f, idProduct=0600
-[ 1390.300913] usb 1-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-[ 1390.300922] usb 1-3: Product: MDTV Receiver
-[ 1390.300930] usb 1-3: Manufacturer: MDTV Receiver
-[ 1390.776240] DVB: registering new adapter (Siano Rio Digital Receiver)
-[ 1390.777275] usb 1-3: DVB: registering adapter 0 frontend 0 (Siano
-Mobile Digital MDTV Receiver)...
-
-lsmod | grep sms:
-
-smsdvb 27513 0
-dvb_core 125880 1 smsdvb
-smsusb 17819 0
-smsmdtv 53748 2 smsdvb,smsusb
-rc_core 27389 1 smsmdtv
-
-Finally I can scan and tune with a specific frequency but I can't
-obtain services from multiplexes.
-
-"w_scan -c IT" output:
-
-w_scan version 20130331 (compiled for DVB API 5.10)
-using settings for ITALY
-DVB aerial
-DVB-T Europe
-scan type TERRESTRIAL, channellist 4
-output format vdr-2.0
-WARNING: could not guess your codepage. Falling back to 'UTF-8'
-output charset 'UTF-8', use -C to override
-Info: using DVB adapter auto detection.
-/dev/dvb/adapter0/frontend0 -> TERRESTRIAL "Siano Mobile Digital MDTV
-Receiver": good :-)
-Using TERRESTRIAL frontend (adapter /dev/dvb/adapter0/frontend0)
----- Getting frontend capabilities----
-Using DVB API 5.a
-frontend 'Siano Mobile Digital MDTV Receiver' supports
-INVERSION_AUTO
-QAM_AUTO
-TRANSMISSION_MODE_AUTO
-GUARD_INTERVAL_AUTO
-HIERARCHY_AUTO
-FEC_AUTO
-FREQ (44.25MHz ... 867.25MHz)
------------------------_
-Scanning 7MHz frequencies...
-177500: (time: 00:00) (time: 00:01) signal ok:
-QAM_AUTO f = 177500 kHz I999B7C999D999T999G999Y999
-Info: no data from NIT(actual)
-184500: (time: 00:15)
-191500: (time: 00:18) (time: 00:19) signal ok:
-QAM_AUTO f = 191500 kHz I999B7C999D999T999G999Y999
-Info: no data from NIT(actual)
-198500: (time: 00:33)
-205500: (time: 00:36)
-...
-...
-
-I created a file named "frequency" with this content for doing a test:
-
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-
-T 177500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE # MUX-B Rai
-T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE # Mediaset 1
-
-and when I launch "dvbscan frequency" I obtain:
-
-Unable to query frontend status.
-
-With the utility "scan" I obtain:
-
-scanning frequency
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 177500000 1 2 9 3 1 2 0
-initial transponder 698000000 0 2 9 3 1 2 0
->>> tune to: 177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
->>> tune to: 698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
-dumping lists (0 services)
-Done.
-
-WIth "dvbv5-scan frequency":
-
-ERROR key/value without a channel group while parsing line 3 of frequency.
-
-I tried to insert these options in /etc/modprobe.d/options:
-
-options smsdvb force_lna_activation=1
-options smsusb force_lna_activation=1
-options dvb_rio force_lna_activation=1
-
-to force Low Noise Amplifier but nothing changed.
-
-Kaffeine is tuned with many frequency (Light green led) but can't
-receive channels. The same with TvHeadend that doesn't obtain services
-for multiplexes (but the signal is ok).
-
-Do you have any advice? Thanks ;-)
+> Best Regards,
+> Josh Wu
+> 
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> > > Best Regards,
+> > > Josh Wu
+> > > 
+> > > > Thanks
+> > > > Guennadi
+> > > > 
+> > > > > ---
+> > > > >    include/media/v4l2-image-sizes.h | 9 +++++++++
+> > > > >    1 file changed, 9 insertions(+)
+> > > > > 
+> > > > > diff --git a/include/media/v4l2-image-sizes.h
+> > > > > b/include/media/v4l2-image-sizes.h
+> > > > > index 10daf92..c70c917 100644
+> > > > > --- a/include/media/v4l2-image-sizes.h
+> > > > > +++ b/include/media/v4l2-image-sizes.h
+> > > > > @@ -25,10 +25,19 @@
+> > > > >    #define QVGA_WIDTH	320
+> > > > >    #define QVGA_HEIGHT	240
+> > > > >    +#define SVGA_WIDTH	800
+> > > > > +#define SVGA_HEIGHT	680
+> > > > > +
+> > > > >    #define SXGA_WIDTH	1280
+> > > > >    #define SXGA_HEIGHT	1024
+> > > > >      #define VGA_WIDTH	640
+> > > > >    #define VGA_HEIGHT	480
+> > > > >    +#define UXGA_WIDTH	1600
+> > > > > +#define UXGA_HEIGHT	1200
+> > > > > +
+> > > > > +#define XGA_WIDTH	1024
+> > > > > +#define XGA_HEIGHT	768
+> > > > > +
+> > > > >    #endif /* _IMAGE_SIZES_H */
+> > > > > -- 
+> > > > > 1.9.1
+> > > > > 
+> 
