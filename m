@@ -1,40 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bonissi.it ([185.12.14.237]:39448 "EHLO mail.bonissi.it"
+Received: from tex.lwn.net ([70.33.254.29]:35862 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758776AbbA1A2a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 19:28:30 -0500
-Received: from [10.0.0.70] (dynamic-adsl-94-36-253-42.clienti.tiscali.it [94.36.253.42])
-	(authenticated bits=0)
-	by vps.bonissi.it (8.14.4/8.14.4) with ESMTP id t0RNYV1e000452
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 28 Jan 2015 00:34:32 +0100
-Message-ID: <54C82130.4070005@scarsita.it>
-Date: Wed, 28 Jan 2015 00:37:20 +0100
-From: Luca Bonissi <lucabon@scarsita.it>
+	id S1752750AbbA2BKv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2015 20:10:51 -0500
+Date: Wed, 28 Jan 2015 14:57:41 -0700
+From: Jonathan Corbet <corbet@lwn.net>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH 6/7] [media] marvell-ccic: MMP_CAMERA never worked
+Message-ID: <20150128145741.02812a8f@lwn.net>
+In-Reply-To: <1422479867-3370921-7-git-send-email-arnd@arndb.de>
+References: <1422479867-3370921-1-git-send-email-arnd@arndb.de>
+	<1422479867-3370921-7-git-send-email-arnd@arndb.de>
 MIME-Version: 1.0
-To: Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: gspca_vc032x - wrong bytesperline
-References: <54C61919.7050508@scarsita.it>
-In-Reply-To: <54C61919.7050508@scarsita.it>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry, forgot to include related link to kernel bugzilla:
+On Wed, 28 Jan 2015 22:17:46 +0100
+Arnd Bergmann <arnd@arndb.de> wrote:
 
-https://bugzilla.kernel.org/show_bug.cgi?id=91181
+> The mmp ccic driver uses a platform_data structure that has never
+> existed in an upstream kernel and always fails to build:
 
-Ciao!
-  Luca
+This driver most assuredly did work on XO 1.75 machines, and the
+platform_data structure does exist; it's the stuff added by Libin
+afterward that apparently broke things.  Strange that it only came out now,
+though, nearly two years later. Libin, any thoughts on this?
 
-On 26/01/2015 11:38, Luca Bonissi wrote:
-> Hi!
-> 
-> I found a problem on vc032x gspca usb webcam subdriver: "bytesperline"
-> property is wrong for YUYV and YVYU formats.
-> With recent v4l-utils library (>=0.9.1), that uses "bytesperline" for
-> pixel format conversion, the result is a wrong jerky image.
-> 
-> Patch tested on my laptop (USB webcam Logitech Orbicam 046d:0892).
-> 
+Meanwhile, it is clearly broken, and I don't have an immediate fix, so,
+
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+
+(Though I would like a different patch subject, since the current one is
+wrong).
+
+I think the right thing to do, alas, might be to back out all of Libin's
+changes.  They clearly are not being used by anybody and do not seem to be
+getting any further development attention.  It would like to keep this
+driver working for XO systems for a while yet...but I won't get to it
+right away.
+
+Thanks,
+
+jon
