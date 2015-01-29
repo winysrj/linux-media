@@ -1,72 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45420 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755805AbbA1U6f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2015 15:58:35 -0500
-Message-ID: <54C899CB.4050705@redhat.com>
-Date: Wed, 28 Jan 2015 09:11:55 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:38377 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753235AbbA2S3p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 13:29:45 -0500
+Received: by mail-wi0-f177.google.com with SMTP id r20so28310829wiv.4
+        for <linux-media@vger.kernel.org>; Thu, 29 Jan 2015 10:29:44 -0800 (PST)
 MIME-Version: 1.0
-To: Luca Bonissi <lucabon@scarsita.it>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: gspca_vc032x - wrong bytesperline
-References: <54C61919.7050508@scarsita.it>
-In-Reply-To: <54C61919.7050508@scarsita.it>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1598982.NztnJrsrWo@wuerfel>
+References: <1598982.NztnJrsrWo@wuerfel>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Thu, 29 Jan 2015 18:29:14 +0000
+Message-ID: <CA+V-a8svtf6TdF=3Vg6vqJGxkLGKbNMbc_eQFgpoby2h-+joaA@mail.gmail.com>
+Subject: Re: [PATCH] [media] davinci: add V4L2 dependencies
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Sekhar Nori <nsekhar@ti.com>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On 26-01-15 11:38, Luca Bonissi wrote:
-> Hi!
+On Thu, Jan 29, 2015 at 4:12 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> The davinci media drivers use videobuf2, which they enable through
+> a 'select' statement. If one of these drivers is built-in, but
+> the v4l2 core is a loadable modules, we end up with a link
+> error:
 >
-> I found a problem on vc032x gspca usb webcam subdriver: "bytesperline" property is wrong for YUYV and YVYU formats.
-> With recent v4l-utils library (>=0.9.1), that uses "bytesperline" for pixel format conversion, the result is a wrong jerky image.
+> drivers/built-in.o: In function `vb2_fop_mmap':
+> :(.text+0x113e84): undefined reference to `video_devdata'
+> drivers/built-in.o: In function `vb2_ioctl_create_bufs':
+> :(.text+0x114710): undefined reference to `video_devdata'
+> drivers/built-in.o: In function `vb2_ioctl_reqbufs':
+> :(.text+0x114ed8): undefined reference to `video_devdata'
+> drivers/built-in.o: In function `vb2_ioctl_querybuf':
+> :(.text+0x115530): undefined reference to `video_devdata'
 >
-> Patch tested on my laptop (USB webcam Logitech Orbicam 046d:0892).
-
-Thanks, I've added this patch to my gspca tree, and send a pull-req to
-Mauro to get it added to 3.20 .
+> To solve this, we need to add a dependency on VIDEO_V4L2,
+> which enforces that the davinci drivers themselves can only
+> be loadable modules if V4L2 is not built-in, and they do
+> not cause the videobuf2 code to be built-in.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
 Regards,
+--Prabhakar Lad
 
-Hans
-
+> diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
+> index d9e1ddb586b1..469e9d28cec0 100644
+> --- a/drivers/media/platform/davinci/Kconfig
+> +++ b/drivers/media/platform/davinci/Kconfig
+> @@ -1,6 +1,6 @@
+>  config VIDEO_DAVINCI_VPIF_DISPLAY
+>         tristate "TI DaVinci VPIF V4L2-Display driver"
+> -       depends on VIDEO_DEV
+> +       depends on VIDEO_V4L2
+>         depends on ARCH_DAVINCI || COMPILE_TEST
+>         depends on HAS_DMA
+>         select VIDEOBUF2_DMA_CONTIG
+> @@ -16,7 +16,7 @@ config VIDEO_DAVINCI_VPIF_DISPLAY
 >
-> --- drivers/media/usb/gspca/vc032x.c.orig       2014-08-04 00:25:02.000000000 +0200
-> +++ drivers/media/usb/gspca/vc032x.c    2015-01-12 00:28:39.423311693 +0100
-> @@ -68,12 +68,12 @@
+>  config VIDEO_DAVINCI_VPIF_CAPTURE
+>         tristate "TI DaVinci VPIF video capture driver"
+> -       depends on VIDEO_DEV
+> +       depends on VIDEO_V4L2
+>         depends on ARCH_DAVINCI || COMPILE_TEST
+>         depends on HAS_DMA
+>         select VIDEOBUF2_DMA_CONTIG
+> @@ -75,7 +75,7 @@ config VIDEO_DM365_ISIF
 >
->   static const struct v4l2_pix_format vc0321_mode[] = {
->          {320, 240, V4L2_PIX_FMT_YVYU, V4L2_FIELD_NONE,
-> -               .bytesperline = 320,
-> +               .bytesperline = 320 * 2,
->                  .sizeimage = 320 * 240 * 2,
->                  .colorspace = V4L2_COLORSPACE_SRGB,
->                  .priv = 1},
->          {640, 480, V4L2_PIX_FMT_YVYU, V4L2_FIELD_NONE,
-> -               .bytesperline = 640,
-> +               .bytesperline = 640 * 2,
->                  .sizeimage = 640 * 480 * 2,
->                  .colorspace = V4L2_COLORSPACE_SRGB,
->                  .priv = 0},
-> @@ -97,12 +97,12 @@
->   };
->   static const struct v4l2_pix_format bi_mode[] = {
->          {320, 240, V4L2_PIX_FMT_YUYV, V4L2_FIELD_NONE,
-> -               .bytesperline = 320,
-> +               .bytesperline = 320 * 2,
->                  .sizeimage = 320 * 240 * 2,
->                  .colorspace = V4L2_COLORSPACE_SRGB,
->                  .priv = 2},
->          {640, 480, V4L2_PIX_FMT_YUYV, V4L2_FIELD_NONE,
-> -               .bytesperline = 640,
-> +               .bytesperline = 640 * 2,
->                  .sizeimage = 640 * 480 * 2,
->                  .colorspace = V4L2_COLORSPACE_SRGB,
->                  .priv = 1},
+>  config VIDEO_DAVINCI_VPBE_DISPLAY
+>         tristate "TI DaVinci VPBE V4L2-Display driver"
+> -       depends on ARCH_DAVINCI
+> +       depends on VIDEO_V4L2 && ARCH_DAVINCI
+>         depends on HAS_DMA
+>         select VIDEOBUF2_DMA_CONTIG
+>         help
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
