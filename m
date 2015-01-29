@@ -1,141 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59099 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753243AbbA0R16 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 12:27:58 -0500
-Message-ID: <54C7CA9A.1010508@iki.fi>
-Date: Tue, 27 Jan 2015 19:27:54 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:47979 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750780AbbA2WSe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 17:18:34 -0500
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL] SiLabs improvements
-References: <54881B2A.5070700@iki.fi> <20150127110148.16be794f@recife.lan>
-In-Reply-To: <20150127110148.16be794f@recife.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20150129192610.GE26493@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+	<1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+	<20150129143908.GA26493@n2100.arm.linux.org.uk>
+	<CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
+	<20150129154718.GB26493@n2100.arm.linux.org.uk>
+	<CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
+	<20150129192610.GE26493@n2100.arm.linux.org.uk>
+Date: Thu, 29 Jan 2015 17:18:33 -0500
+Message-ID: <CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
+ with dma-parms
+From: Rob Clark <robdclark@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is not pulled, try again.
-
-
-The following changes since commit 71947828caef0c83d4245f7d1eaddc799b4ff1d1:
-
-   [media] mn88473: One function call less in mn88473_init() after error 
-(2014-12-04 16:00:47 -0200)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git silabs
-
-for you to fetch changes up to ade964f4a620194de8ae5c6f0719dd2ae7681b96:
-
-   si2157: change firmware variable name and type (2014-12-06 23:32:14 
-+0200)
-
-----------------------------------------------------------------
-Antti Palosaari (22):
-       si2168: define symbol rate limits
-       si2168: rename device state variable from 's' to 'dev'
-       si2168: carry pointer to client instead of state
-       si2168: get rid of own struct i2c_client pointer
-       si2168: simplify si2168_cmd_execute() error path
-       si2168: rename few things
-       si2168: change firmware version print from debug to info
-       si2168: change stream id debug log formatter
-       si2168: add own goto label for kzalloc failure
-       si2168: enhance firmware download routine
-       si2168: remove unneeded fw variable initialization
-       si2168: print chip version
-       si2168: change firmware variable name and type
-       si2157: rename device state variable from 's' to 'dev'
-       si2157: simplify si2157_cmd_execute() error path
-       si2157: carry pointer to client instead of state in tuner_priv
-       si2157: change firmware download error handling
-       si2157: trivial ID table changes
-       si2157: add own goto label for kfree() on probe error
-       si2157: print firmware version
-       si2157: print chip version
-       si2157: change firmware variable name and type
-
-  drivers/media/dvb-frontends/si2168.c      | 308 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------------------------------------
-  drivers/media/dvb-frontends/si2168.h      |   6 ++--
-  drivers/media/dvb-frontends/si2168_priv.h |   3 +-
-  drivers/media/tuners/si2157.c             | 189 
-+++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------
-  drivers/media/tuners/si2157_priv.h        |   3 +-
-  5 files changed, 247 insertions(+), 262 deletions(-)
-
-
-Antti
-
-
-On 01/27/2015 03:01 PM, Mauro Carvalho Chehab wrote:
-> Em Wed, 10 Dec 2014 12:06:34 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
+On Thu, Jan 29, 2015 at 2:26 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Thu, Jan 29, 2015 at 01:52:09PM -0500, Rob Clark wrote:
+>> Quite possibly for some of these edge some of cases, some of the
+>> dma-buf exporters are going to need to get more clever (ie. hand off
+>> different scatterlists to different clients).  Although I think by far
+>> the two common cases will be "I can support anything via an iommu/mmu"
+>> and "I need phys contig".
+>>
+>> But that isn't an issue w/ dma-buf itself, so much as it is an issue
+>> w/ drivers.  I guess there would be more interest in fixing up drivers
+>> when actual hw comes along that needs it..
 >
->> These are mostly small improvements, having very small functionality
->> changes.
+> However, validating the attachments is the business of dma-buf.  This
+> is actual infrastructure, which should ensure some kind of sanity such
+> as the issues I've raised.
 >
-> Hmm... I was unable to pull it. Maybe this got already applied?
->
-> Regards,
-> Mauro
->
->>
->> regards
->> Antti
->>
->> The following changes since commit 71947828caef0c83d4245f7d1eaddc799b4ff1d1:
->>
->>     [media] mn88473: One function call less in mn88473_init() after error
->> (2014-12-04 16:00:47 -0200)
->>
->> are available in the git repository at:
->>
->>     git://linuxtv.org/anttip/media_tree.git
->>
->> for you to fetch changes up to ade964f4a620194de8ae5c6f0719dd2ae7681b96:
->>
->>     si2157: change firmware variable name and type (2014-12-06 23:32:14
->> +0200)
->>
->> ----------------------------------------------------------------
->> Antti Palosaari (22):
->>         si2168: define symbol rate limits
->>         si2168: rename device state variable from 's' to 'dev'
->>         si2168: carry pointer to client instead of state
->>         si2168: get rid of own struct i2c_client pointer
->>         si2168: simplify si2168_cmd_execute() error path
->>         si2168: rename few things
->>         si2168: change firmware version print from debug to info
->>         si2168: change stream id debug log formatter
->>         si2168: add own goto label for kzalloc failure
->>         si2168: enhance firmware download routine
->>         si2168: remove unneeded fw variable initialization
->>         si2168: print chip version
->>         si2168: change firmware variable name and type
->>         si2157: rename device state variable from 's' to 'dev'
->>         si2157: simplify si2157_cmd_execute() error path
->>         si2157: carry pointer to client instead of state in tuner_priv
->>         si2157: change firmware download error handling
->>         si2157: trivial ID table changes
->>         si2157: add own goto label for kfree() on probe error
->>         si2157: print firmware version
->>         si2157: print chip version
->>         si2157: change firmware variable name and type
->>
->>    drivers/media/dvb-frontends/si2168.c      | 308
->> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------------------------------------
->>    drivers/media/dvb-frontends/si2168.h      |   6 ++--
->>    drivers/media/dvb-frontends/si2168_priv.h |   3 +-
->>    drivers/media/tuners/si2157.c             | 189
->> +++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------
->>    drivers/media/tuners/si2157_priv.h        |   3 +-
->>    5 files changed, 247 insertions(+), 262 deletions(-)
->>
 
--- 
-http://palosaari.fi/
+My initial thought is for dma-buf to not try to prevent something than
+an exporter can actually do.. I think the scenario you describe could
+be handled by two sg-lists, if the exporter was clever enough.
+
+That all said, I think probably all the existing exporters cache the
+sg-list.  And I can't think of any actual hw which would hit this
+problem that can be solved by multiple sg-lists for the same physical
+memory.  (And the constraint calculation kind of assumes the end
+result will be a single sg-list.)  So it seems reasonable to me to
+check that max_segment_count * max_segment_size is not smaller than
+the buffer.
+
+If it was a less theoretical problem, I think I'd more inclined for a
+way that the exporter could override the checks, or something along
+those lines.
+
+otoh, if the attachment is just not possible because the buffer has
+been already allocated and mapped by someone with more relaxed
+constraints.. then I think the driver should be the one returning the
+error since dma-buf doesn't know this.
+
+> The whole "we can push it onto our users" is really on - what that
+> results in is the users ignoring most of the requirements and just doing
+> their own thing, which ultimately ends up with the whole thing turning
+> into a disgusting mess - one which becomes very difficult to fix later.
+
+Ideally at some point, dma-mapping or some helpers would support
+allocations matching constraints..  I think only actual gpu drivers
+want to do crazy enough things that they'd want to bypass dma-mapping.
+If everyone else can use dma-mapping and/or helpers then we make it
+harder for drivers to do the wrong thing than to do the right thing.
+
+> Now, if we're going to do the "more clever" thing you mention above,
+> that rather negates the point of this two-part patch set, which is to
+> provide the union of the DMA capabilities of all users.  A union in
+> that case is no longer sane as we'd be tailoring the SG lists to each
+> user.
+
+It doesn't really negate.. a different sg list representing the same
+physical memory cannot suddenly make the buffer physically contiguous
+(from the perspective of memory)..
+
+(unless we are not on the same page here, so to speak)
+
+BR,
+-R
+
+> If we aren't going to do the "more clever" thing, then yes, we need this
+> code to calculate that union, but we _also_ need it to do sanity checking
+> right from the start, and refuse conditions which ultimately break the
+> ability to make use of that union - in other words, when the union of
+> the DMA capabilities means that the dmabuf can't be represented.
+>
+> Unless we do that, we'll just end up with random drivers interpreting
+> what they want from the DMA capabilities, and we'll have some drivers
+> exporting (eg) scatterlists which satisfy the maximum byte size of an
+> element, but ignoring the maximum number of entries or vice versa, and
+> that'll most probably hide the case of "too small a union".
+>
+> It really doesn't make sense to do both either: that route is even more
+> madness, because we'll end up with two classes of drivers - those which
+> use the union approach, and those which don't.
+>
+> The KISS principle applies here.
+>
+> --
+> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+> according to speedtest.net.
