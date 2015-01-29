@@ -1,89 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.osadl.org ([62.245.132.105]:42379 "EHLO www.osadl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750717AbbAVKrL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 05:47:11 -0500
-From: Nicholas Mc Guire <der.herr@hofr.at>
-To: Mike Isely <isely@pobox.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Nicholas Mc Guire <der.herr@hofr.at>
-Subject: [PATCH] pvrusb2: use msecs_to_jiffies for conversion
-Date: Thu, 22 Jan 2015 11:39:11 +0100
-Message-Id: <1421923151-24684-1-git-send-email-der.herr@hofr.at>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:34439 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752955AbbA2Prd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 10:47:33 -0500
+Date: Thu, 29 Jan 2015 15:47:18 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	Rob Clark <robdclark@gmail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher
+ constraints with dma-parms
+Message-ID: <20150129154718.GB26493@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+ <20150129143908.GA26493@n2100.arm.linux.org.uk>
+ <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is only an API consolidation and should make things more readable
+On Thu, Jan 29, 2015 at 09:00:11PM +0530, Sumit Semwal wrote:
+> So, short answer is, it is left to the exporter to decide. The dma-buf
+> framework should not even attempt to decide or enforce any of the
+> above.
+> 
+> At each dma_buf_attach(), there's a callback to the exporter, where
+> the exporter can decide, if it intends to handle these kind of cases,
+> on the best way forward.
+> 
+> The exporter might, for example, decide to migrate backing storage,
 
-Signed-off-by: Nicholas Mc Guire <der.herr@hofr.at>
----
+That's a decision which the exporter can not take.  Think about it...
 
-Converting milliseconds to jiffies by val * HZ / 1000 is technically
-not wrong but msecs_to_jiffies(val) is the cleaner solution and handles
-all corner cases correctly. This is a minor API cleanup only.
+If subsystem Y has mapped the buffer, it could be accessing the buffer's
+backing storage at the same time that subsystem Z tries to attach to the
+buffer.
 
-This patch was only compile tested with x86_64_defconfig + 
-CONFIG_MEDIA_SUPPORT=m, CONFIG_MEDIA_DIGITAL_TV_SUPPORT=y,
-CONFIG_MEDIA_ANALOG_TV_SUPPORT=y, CONFIG_MEDIA_USB_SUPPORT=y,
-CONFIG_VIDEO_PVRUSB2=m, CONFIG_VIDEO_PVRUSB2_DVB=y
+Once the buffer has been exported to another user, the exporter has
+effectively lost control over mediating accesses to that buffer.
 
-Patch is against 3.19.0-rc5 -next-20150119
+All that it can do with the way the dma-buf API is today is to allocate
+a _different_ scatter list pointing at the same backing storage which
+satisfies the segment size and number of segments, etc.
 
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+There's also another issue which you haven't addressed.  What if several
+attachments result in lowering max_segment_size and max_segment_count
+such that:
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-index 2fd9b5e..ee187c1 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-@@ -4301,9 +4301,8 @@ static int state_eval_encoder_config(struct pvr2_hdw *hdw)
- 				   the encoder. */
- 				if (!hdw->state_encoder_waitok) {
- 					hdw->encoder_wait_timer.expires =
--						jiffies +
--						(HZ * TIME_MSEC_ENCODER_WAIT
--						 / 1000);
-+						jiffies + msecs_to_jiffies(
-+						TIME_MSEC_ENCODER_WAIT);
- 					add_timer(&hdw->encoder_wait_timer);
- 				}
- 			}
-@@ -4426,8 +4425,8 @@ static int state_eval_encoder_run(struct pvr2_hdw *hdw)
- 		if (pvr2_encoder_start(hdw) < 0) return !0;
- 		hdw->state_encoder_run = !0;
- 		if (!hdw->state_encoder_runok) {
--			hdw->encoder_run_timer.expires =
--				jiffies + (HZ * TIME_MSEC_ENCODER_OK / 1000);
-+			hdw->encoder_run_timer.expires = jiffies +
-+				 msecs_to_jiffies(TIME_MSEC_ENCODER_OK);
- 			add_timer(&hdw->encoder_run_timer);
- 		}
- 	}
-@@ -4518,9 +4517,8 @@ static int state_eval_decoder_run(struct pvr2_hdw *hdw)
- 				   but before we did the pending check. */
- 				if (!hdw->state_decoder_quiescent) {
- 					hdw->quiescent_timer.expires =
--						jiffies +
--						(HZ * TIME_MSEC_DECODER_WAIT
--						 / 1000);
-+						jiffies + msecs_to_jiffies(
-+						TIME_MSEC_DECODER_WAIT);
- 					add_timer(&hdw->quiescent_timer);
- 				}
- 			}
-@@ -4544,9 +4542,8 @@ static int state_eval_decoder_run(struct pvr2_hdw *hdw)
- 		hdw->state_decoder_run = !0;
- 		if (hdw->decoder_client_id == PVR2_CLIENT_ID_SAA7115) {
- 			hdw->decoder_stabilization_timer.expires =
--				jiffies +
--				(HZ * TIME_MSEC_DECODER_STABILIZATION_WAIT /
--				 1000);
-+				jiffies + msecs_to_jiffies(
-+				TIME_MSEC_DECODER_STABILIZATION_WAIT);
- 			add_timer(&hdw->decoder_stabilization_timer);
- 		} else {
- 			hdw->state_decoder_ready = !0;
+	max_segment_size * max_segment_count < dmabuf->size
+
+but individually, the attachments allow dmabuf->size to be represented
+as a scatterlist?
+
+If an exporter were to take notice of the max_segment_size and
+max_segment_count, the resulting buffer is basically unrepresentable
+as a scatterlist.
+
+> > Please consider the possible sequences of use (such as the scenario
+> > above) when creating or augmenting an API.
+> >
+> 
+> I tried to think of the scenarios I could think of, but If you still
+> feel this approach doesn't help with your concerns, I'll graciously
+> accept advice to improve it.
+
+See the new one above :)
+
 -- 
-1.7.10.4
-
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
