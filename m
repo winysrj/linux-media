@@ -1,115 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33992 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752867AbbAZObg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 09:31:36 -0500
-Date: Mon, 26 Jan 2015 12:31:29 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Ricardo Ribalda <ricardo.ribalda@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH 1/3] media: Fix ALSA and DVB representation at media
- controller API
-Message-ID: <20150126123129.2076b9f8@recife.lan>
-In-Reply-To: <CAGoCfixoSxspEzpCB95BVPXBrZr2gpDVWHbaikESsuB1V=WM1g@mail.gmail.com>
-References: <cover.1422273497.git.mchehab@osg.samsung.com>
-	<cb0517f150942a2d3657c1f2e55754061bfae2c4.1422273497.git.mchehab@osg.samsung.com>
-	<54C63D16.3070607@xs4all.nl>
-	<20150126113416.311fb376@recife.lan>
-	<CAGoCfixoSxspEzpCB95BVPXBrZr2gpDVWHbaikESsuB1V=WM1g@mail.gmail.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:49665 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754345AbbA2MMw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 07:12:52 -0500
+Message-ID: <54CA23BE.7050609@xs4all.nl>
+Date: Thu, 29 Jan 2015 13:12:46 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Raimonds Cicans <ray@apollo.lv>, hans.verkuil@cisco.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
+ cx23885: convert to vb2"
+References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl> <54CA1EB4.8000103@apollo.lv>
+In-Reply-To: <54CA1EB4.8000103@apollo.lv>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 26 Jan 2015 09:00:46 -0500
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
-
-> > For media-ctl, it is easier to handle major/minor, in order to identify
-> > the associated devnode name. Btw, media-ctl currently assumes that all
-> > devnode devices are specified by v4l.major/v4l.minor.
+On 01/29/15 12:51, Raimonds Cicans wrote:
+> On 29.01.2015 09:33, Hans Verkuil wrote:
+>> On 01/11/2015 10:33 AM, Raimonds Cicans wrote:
+>>> I contacted you because I am hit by regression caused by your commit:
+>>> 453afdd "[media] cx23885: convert to vb2"
+>>>
+>>>
+>>> My system:
+>>> AMD Athlon(tm) II X2 240e Processor on Asus M5A97 LE R2.0 motherboard
+>>> TBS6981 card (Dual DVB-S/S2 PCIe receiver, cx23885 in kernel driver)
+>>>
+>>> After upgrade from kernel 3.13.10 (do not have commit) to 3.17.7
+>>> (have commit) I started receiving following IOMMU related messages:
+>>>
+>>> 1)
+>>> AMD-Vi: Event logged [IO_PAGE_FAULT device=0a:00.0 domain=0x001d
+>>> address=0x000000000637c000 flags=0x0000]
+>>>
+>>> where device=0a:00.0 is TBS6981 card
+>> As far as I can tell this has nothing to do with the cx23885 driver but is
+>> a bug in the amd iommu/BIOS. See e.g.:
+>>
+>> https://bbs.archlinux.org/viewtopic.php?pid=1309055
+>>
+>> I managed to reproduce the Intel equivalent if I enable CONFIG_IOMMU_SUPPORT.
+>>
+>> Most likely due to broken BIOS/ACPI/whatever information that's read by the
+>> kernel. I would recommend disabling this kernel option.
+>>
+> Maybe...
 > 
-> I suspect part of the motivation for the "id" that corresponds to the
-> adapter field was to make it easier to find the actual underlying
-> device node. 
+> But on other hand this did not happen on old kernel with old driver.
+> And when I did bisection on old kernel + media tree I started to
+> receive this message only on new driver.
 
-Yes, that was the reason why, back in 2007, we believed that just id
-would be enough. Yet, we never tried to implement it, until the end
-of the last year.
-
-> While it's trivial to convert a V4L device node from
-> major/minor to the device node (since for major number is constant and
-> the minor corresponds to the X in /dev/videoX), that's tougher with
-> DVB adapters because of the hierarchical nature of the DVB device
-> nodes.  Having the adapter number makes it trivial to open
-> /dev/dvb/adapterX.
-> 
-> Perhaps my POSIX is rusty -- is there a way to identify the device
-> node based on major minor without having to traverse the entire /dev
-> tree?
-
-It is actually trivial to get the device nodes once you have the
-major/minor. The media-ctl library does that for you. See:
-
-$ media-ctl --print-dot
-digraph board {
-	rankdir=TB
-	n00000001 [label="{{<port0> 0} | cx25840 19-0044 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000001:port1 -> n00000003
-	n00000001:port2 -> n00000004
-	n00000002 [label="{{} | NXP TDA18271HD | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000002:port0 -> n00000005 [style=dashed]
-	n00000002:port0 -> n00000001:port0
-	n00000003 [label="cx231xx #0 video\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
-	n00000004 [label="cx231xx #0 vbi\n/dev/vbi0", shape=box, style=filled, fillcolor=yellow]
-	n00000005 [label="Fujitsu mb86A20s\n/dev/dvb/adapter0/frontend0", shape=box, style=filled, fillcolor=yellow]
-	n00000005 -> n00000006
-	n00000006 [label="demux\n/dev/dvb/adapter0/demux0", shape=box, style=filled, fillcolor=yellow]
-	n00000006 -> n00000007
-	n00000007 [label="dvr\n/dev/dvb/adapter0/dvr0", shape=box, style=filled, fillcolor=yellow]
-	n00000008 [label="dvb net\n/dev/dvb/adapter0/net0", shape=box, style=filled, fillcolor=yellow]
-}
-
-There are two routines inside the media-ctl libraries to convert from
-major/minor into a devnode name like: /dev/dvb/adapter0/demux0.
-
-The first one uses sysfs:
-
- $ ls -la /sys/dev/char|grep dvb
-lrwxrwxrwx. 1 root root 0 Jan 26 10:32 212:0 -> ../../devices/pci0000:00/0000:00:14.0/usb1/1-2/1-2:1.1/dvb/dvb0.frontend0
-lrwxrwxrwx. 1 root root 0 Jan 26 10:32 212:1 -> ../../devices/pci0000:00/0000:00:14.0/usb1/1-2/1-2:1.1/dvb/dvb0.demux0
-lrwxrwxrwx. 1 root root 0 Jan 26 10:32 212:2 -> ../../devices/pci0000:00/0000:00:14.0/usb1/1-2/1-2:1.1/dvb/dvb0.dvr0
-lrwxrwxrwx. 1 root root 0 Jan 26 10:32 212:3 -> ../../devices/pci0000:00/0000:00:14.0/usb1/1-2/1-2:1.1/dvb/dvb0.net0
-
-Unfortunately, the sysfs nodes are "dvb0" for adapter0, so a patch is needed 
-to fix it:
-	http://git.linuxtv.org/cgit.cgi/mchehab/experimental-v4l-utils.git/commit/?h=dvb-media-ctl&id=d854a9bb24706dbfc878484e4538d79b1ac52aae
-
-The second (and better) approach is to require udev to return the name of the
-devnode. The logic, implemented at utils/media-ctl/libmediactl.c, inside
-v4l-utils, is:
-
-	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
-	media_dbg(entity->media, "looking up device: %u:%u\n",
-		  major(devnum), minor(devnum));
-	device = udev_device_new_from_devnum(udev, 'c', devnum);
-
-Right now, by default, media-ctl will use the sysfs approach, except
-if an extra option is called at ./configure, in order to enable it to
-use the udev library.
-
-IMHO, we should make udev the default behavior, if libudev-dev(el) is 
-there at compilation time.
+Was CONFIG_IOMMU_SUPPORT enabled in the old kernel?
 
 Regards,
-Mauro
+
+	Hans
+
+> And I can not disable this feature because then USB and LAN
+> stop working.
+
+
