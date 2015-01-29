@@ -1,78 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54979 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756770AbbAFVJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jan 2015 16:09:08 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv3 13/20] dvbdev: represent frontend with two pads
-Date: Tue,  6 Jan 2015 19:08:44 -0200
-Message-Id: <f400202de0d2110f21469852e31e864e7fa77328.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420578087.git.mchehab@osg.samsung.com>
-References: <cover.1420578087.git.mchehab@osg.samsung.com>
+Received: from mail-oi0-f47.google.com ([209.85.218.47]:55502 "EHLO
+	mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751403AbbA2Qza (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 11:55:30 -0500
+Received: by mail-oi0-f47.google.com with SMTP id a141so28699329oig.6
+        for <linux-media@vger.kernel.org>; Thu, 29 Jan 2015 08:55:30 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20150129154718.GB26493@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+ <20150129143908.GA26493@n2100.arm.linux.org.uk> <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
+ <20150129154718.GB26493@n2100.arm.linux.org.uk>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Thu, 29 Jan 2015 22:25:10 +0530
+Message-ID: <CAO_48GFh3spdGJ=0Mt8BJP0D5EYc2X=KSbmNfYmTMTzsCAMz4A@mail.gmail.com>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
+ with dma-parms
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	Rob Clark <robdclark@gmail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While on some devices the tuner is bound inside the frontend,
-other devices use a separate subdevice for it.
+On 29 January 2015 at 21:17, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Thu, Jan 29, 2015 at 09:00:11PM +0530, Sumit Semwal wrote:
+>> So, short answer is, it is left to the exporter to decide. The dma-buf
+>> framework should not even attempt to decide or enforce any of the
+>> above.
+>>
+>> At each dma_buf_attach(), there's a callback to the exporter, where
+>> the exporter can decide, if it intends to handle these kind of cases,
+>> on the best way forward.
+>>
+>> The exporter might, for example, decide to migrate backing storage,
+>
+> That's a decision which the exporter can not take.  Think about it...
+>
+> If subsystem Y has mapped the buffer, it could be accessing the buffer's
+> backing storage at the same time that subsystem Z tries to attach to the
+> buffer.
+>
+Well, first up, of course the 'migration of backing storage' is an
+orthogonal problem to what this patchset attempts to do - in this, I
+am only try to make the relevant information available to the
+exporter.
 
-So, in order to be more generic, better to map it with two
-pads.
+With that out of the way, some thoughts on what you mentioned:
 
-That will allows to use the media controller to lock the tuner
-between the DVB and the V4L2 sub-drivers, on hybrid devices.
+So, IF the exporter needs to support migration of backing storage,
+even when subsystem Y has mapped the buffer, the exporter knows this
+(because of the map_dma_buf() dma_buf_op) - and the attach() also is
+notified to / handled by the exporter. With this information, it could
+either:
+a) not let the subsystem Z attach (the 'simpler' approach), or
+b) hold enough state-information about the Z's attach request
+internally, then migrate the pages on the unmap_attachment() callback
+from the subsystem Y?
 
-While here, change the logic to use pad 0 as sink for devices
-with both sink and source pads.
+(The exact details for this will need to be thought-of by exporters
+actually trying to do migration of pages, or delayed allocation, or
+such, though)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Once the buffer has been exported to another user, the exporter has
+> effectively lost control over mediating accesses to that buffer.
+>
+> All that it can do with the way the dma-buf API is today is to allocate
+> a _different_ scatter list pointing at the same backing storage which
+> satisfies the segment size and number of segments, etc.
+>
+> There's also another issue which you haven't addressed.  What if several
+> attachments result in lowering max_segment_size and max_segment_count
+> such that:
+>
+>         max_segment_size * max_segment_count < dmabuf->size
+>
+> but individually, the attachments allow dmabuf->size to be represented
+> as a scatterlist?
+>
+> If an exporter were to take notice of the max_segment_size and
+> max_segment_count, the resulting buffer is basically unrepresentable
+> as a scatterlist.
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 1071d31b7f1d..3aaffb319688 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -200,6 +200,7 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 	switch(type) {
- 	case DVB_DEVICE_CA:
- 	case DVB_DEVICE_DEMUX:
-+	case DVB_DEVICE_FRONTEND:
- 		npads = 2;
- 		break;
- 	case DVB_DEVICE_NET:
-@@ -221,12 +222,13 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 	switch(type) {
- 	case DVB_DEVICE_FRONTEND:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
--		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
-+		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_DEMUX:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
--		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
--		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
-+		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_DVR:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
-@@ -234,8 +236,8 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 		break;
- 	case DVB_DEVICE_CA:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
--		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
--		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
-+		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_NET:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
--- 
-2.1.0
+Thanks for pointing that out; I guess we'd have to disallow the
+attachment which would make that happen. I can add this as another
+check in calc_constraints().
 
+>
+>> > Please consider the possible sequences of use (such as the scenario
+>> > above) when creating or augmenting an API.
+>> >
+>>
+>> I tried to think of the scenarios I could think of, but If you still
+>> feel this approach doesn't help with your concerns, I'll graciously
+>> accept advice to improve it.
+>
+> See the new one above :)
+>
+Another thanks for making me rack my puny brain on these scenarios! :)
+[though I strongly suspect I might not have done enough!]
+> --
+> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+> according to speedtest.net.
+
+BR,
+~Sumit.
