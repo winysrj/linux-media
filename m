@@ -1,136 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41510 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754138AbbAZMr1 (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:50010 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753216AbbA2ORA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2015 07:47:27 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Ricardo Ribalda <ricardo.ribalda@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 1/3] media: Fix ALSA and DVB representation at media controller API
-Date: Mon, 26 Jan 2015 10:47:10 -0200
-Message-Id: <cb0517f150942a2d3657c1f2e55754061bfae2c4.1422273497.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1422273497.git.mchehab@osg.samsung.com>
-References: <cover.1422273497.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1422273497.git.mchehab@osg.samsung.com>
-References: <cover.1422273497.git.mchehab@osg.samsung.com>
+	Thu, 29 Jan 2015 09:17:00 -0500
+Message-ID: <54CA40D1.4000701@canonical.com>
+Date: Thu, 29 Jan 2015 15:16:49 +0100
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+MIME-Version: 1.0
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org
+CC: linaro-kernel@lists.linaro.org, stanislawski.tomasz@googlemail.com,
+	robin.murphy@arm.com, m.szyprowski@samsung.com
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
+ with dma-parms
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org> <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+In-Reply-To: <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The previous provision for DVB media controller support were to
-define an ID (likely meaning the adapter number) for the DVB
-devnodes.
+Op 27-01-15 om 09:25 schreef Sumit Semwal:
+> Add some helpers to share the constraints of devices while attaching
+> to the dmabuf buffer.
+>
+> At each attach, the constraints are calculated based on the following:
+> - max_segment_size, max_segment_count, segment_boundary_mask from
+>    device_dma_parameters.
+>
+> In case the attaching device's constraints don't match up, attach() fails.
+>
+> At detach, the constraints are recalculated based on the remaining
+> attached devices.
+>
+> Two helpers are added:
+> - dma_buf_get_constraints - which gives the current constraints as calculated
+>       during each attach on the buffer till the time,
+> - dma_buf_recalc_constraints - which recalculates the constraints for all
+>       currently attached devices for the 'paranoid' ones amongst us.
+>
+> The idea of this patch is largely taken from Rob Clark's RFC at
+> https://lkml.org/lkml/2012/7/19/285, and the comments received on it.
+>
+> Cc: Rob Clark <robdclark@gmail.com>
+> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+> ---
+> v3: 
+> - Thanks to Russell's comment, remove dma_mask and coherent_dma_mask from
+>   constraints' calculation; has a nice side effect of letting us use
+>   device_dma_parameters directly to list constraints.
+> - update the debugfs output to show constraint info as well.
+>   
+> v2: split constraints-sharing and allocation helpers
+>
+>  drivers/dma-buf/dma-buf.c | 126 +++++++++++++++++++++++++++++++++++++++++++++-
+>  include/linux/dma-buf.h   |   7 +++
+>  2 files changed, 132 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index 5be225c2ba98..f363f1440803 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -264,6 +264,66 @@ static inline int is_dma_buf_file(struct file *file)
+>  	return file->f_op == &dma_buf_fops;
+>  }
+>  
+> +static inline void init_constraints(struct device_dma_parameters *cons)
+> +{
+> +	cons->max_segment_count = (unsigned int)-1;
+> +	cons->max_segment_size = (unsigned int)-1;
+> +	cons->segment_boundary_mask = (unsigned long)-1;
+> +}
+Use DMA_SEGMENTS_MAX_SEG_COUNT or UINT/ULONG_MAX here instead?
 
-This is just plain wrong. Just like V4L, DVB devices (and ALSA,
-or whatever) are identified via a (major, minor) tuple.
-
-This is enough to uniquely identify a devnode, no matter what
-API it implements.
-
-So, before we go too far, let's mark the old v4l, dvb and alsa
-"devnode" info as deprecated, and just call it as "dev".
-
-As we don't want to break compilation on already existing apps,
-let's just keep the old definitions as-is, adding a note that
-those are deprecated at media-entity.h.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 86bb93fd7db8..d89d5cb465d9 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -943,8 +943,8 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
- 		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
- 		vdev->entity.name = vdev->name;
--		vdev->entity.info.v4l.major = VIDEO_MAJOR;
--		vdev->entity.info.v4l.minor = vdev->minor;
-+		vdev->entity.info.dev.major = VIDEO_MAJOR;
-+		vdev->entity.info.dev.minor = vdev->minor;
- 		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
- 			&vdev->entity);
- 		if (ret < 0)
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 015f92aab44a..204cc67c84e8 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -248,8 +248,8 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
- 			goto clean_up;
- 		}
- #if defined(CONFIG_MEDIA_CONTROLLER)
--		sd->entity.info.v4l.major = VIDEO_MAJOR;
--		sd->entity.info.v4l.minor = vdev->minor;
-+		sd->entity.info.dev.major = VIDEO_MAJOR;
-+		sd->entity.info.dev.minor = vdev->minor;
- #endif
- 		sd->devnode = vdev;
- 	}
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index e00459185d20..d6d74bcfe183 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -87,17 +87,7 @@ struct media_entity {
- 		struct {
- 			u32 major;
- 			u32 minor;
--		} v4l;
--		struct {
--			u32 major;
--			u32 minor;
--		} fb;
--		struct {
--			u32 card;
--			u32 device;
--			u32 subdevice;
--		} alsa;
--		int dvb;
-+		} dev;
- 
- 		/* Sub-device specifications */
- 		/* Nothing needed yet */
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index d847c760e8f0..418f4fec391a 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -78,6 +78,20 @@ struct media_entity_desc {
- 		struct {
- 			__u32 major;
- 			__u32 minor;
-+		} dev;
-+
-+#if 1
-+		/*
-+		 * DEPRECATED: previous node specifications. Kept just to
-+		 * avoid breaking compilation, but media_entity_desc.dev
-+		 * should be used instead. In particular, alsa and dvb
-+		 * fields below are wrong: for all devnodes, there should
-+		 * be just major/minor inside the struct, as this is enough
-+		 * to represent any devnode, no matter what type.
-+		 */
-+		struct {
-+			__u32 major;
-+			__u32 minor;
- 		} v4l;
- 		struct {
- 			__u32 major;
-@@ -89,6 +103,7 @@ struct media_entity_desc {
- 			__u32 subdevice;
- 		} alsa;
- 		int dvb;
-+#endif
- 
- 		/* Sub-device specifications */
- 		/* Nothing needed yet */
--- 
-2.1.0
+Patches look sane,
+Reviewed-By: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+> +/*
+> + * calc_constraints - calculates if the new attaching device's constraints
+> + * match, with the constraints of already attached devices; if yes, returns
+> + * the constraints; else return ERR_PTR(-EINVAL)
+> + */
+> +static int calc_constraints(struct device *dev,
+> +			    struct device_dma_parameters *calc_cons)
+> +{
+> +	struct device_dma_parameters cons = *calc_cons;
+> +
+> +	cons.max_segment_count = min(cons.max_segment_count,
+> +					dma_get_max_seg_count(dev));
+> +	cons.max_segment_size = min(cons.max_segment_size,
+> +					dma_get_max_seg_size(dev));
+> +	cons.segment_boundary_mask &= dma_get_seg_boundary(dev);
+> +
+> +	if (!cons.max_segment_count ||
+> +	    !cons.max_segment_size ||
+> +	    !cons.segment_boundary_mask) {
+> +		pr_err("Dev: %s's constraints don't match\n", dev_name(dev));
+> +		return -EINVAL;
+> +	}
+> +
+> +	*calc_cons = cons;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * recalc_constraints - recalculates constraints for all attached devices;
+> + *  useful for detach() recalculation, and for dma_buf_recalc_constraints()
+> + *  helper.
+> + *  Returns recalculated constraints in recalc_cons, or error in the unlikely
+> + *  case when constraints of attached devices might have changed.
+> + */
+> +static int recalc_constraints(struct dma_buf *dmabuf,
+> +			      struct device_dma_parameters *recalc_cons)
+> +{
+> +	struct device_dma_parameters calc_cons;
+> +	struct dma_buf_attachment *attach;
+> +	int ret = 0;
+> +
+> +	init_constraints(&calc_cons);
+> +
+> +	list_for_each_entry(attach, &dmabuf->attachments, node) {
+> +		ret = calc_constraints(attach->dev, &calc_cons);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +	*recalc_cons = calc_cons;
+> +	return 0;
+> +}
+> +
+>  /**
+>   * dma_buf_export_named - Creates a new dma_buf, and associates an anon file
+>   * with this buffer, so it can be exported.
+> @@ -313,6 +373,9 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
+>  	dmabuf->ops = ops;
+>  	dmabuf->size = size;
+>  	dmabuf->exp_name = exp_name;
+> +
+> +	init_constraints(&dmabuf->constraints);
+> +
+>  	init_waitqueue_head(&dmabuf->poll);
+>  	dmabuf->cb_excl.poll = dmabuf->cb_shared.poll = &dmabuf->poll;
+>  	dmabuf->cb_excl.active = dmabuf->cb_shared.active = 0;
+> @@ -422,7 +485,7 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+>  					  struct device *dev)
+>  {
+>  	struct dma_buf_attachment *attach;
+> -	int ret;
+> +	int ret = 0;
+>  
+>  	if (WARN_ON(!dmabuf || !dev))
+>  		return ERR_PTR(-EINVAL);
+> @@ -436,6 +499,9 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+>  
+>  	mutex_lock(&dmabuf->lock);
+>  
+> +	if (calc_constraints(dev, &dmabuf->constraints))
+> +		goto err_constraints;
+> +
+>  	if (dmabuf->ops->attach) {
+>  		ret = dmabuf->ops->attach(dmabuf, dev, attach);
+>  		if (ret)
+> @@ -448,6 +514,7 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+>  
+>  err_attach:
+>  	kfree(attach);
+> +err_constraints:
+>  	mutex_unlock(&dmabuf->lock);
+>  	return ERR_PTR(ret);
+>  }
+> @@ -470,6 +537,8 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
+>  	if (dmabuf->ops->detach)
+>  		dmabuf->ops->detach(dmabuf, attach);
+>  
+> +	recalc_constraints(dmabuf, &dmabuf->constraints);
+> +
+>  	mutex_unlock(&dmabuf->lock);
+>  	kfree(attach);
+>  }
+> @@ -770,6 +839,56 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+>  }
+>  EXPORT_SYMBOL_GPL(dma_buf_vunmap);
+>  
+> +/**
+> + * dma_buf_get_constraints - get the *current* constraints of the dmabuf,
+> + *  as calculated during each attach(); returns error on invalid inputs
+> + *
+> + * @dmabuf:		[in]	buffer to get constraints of
+> + * @constraints:	[out]	current constraints are returned in this
+> + */
+> +int dma_buf_get_constraints(struct dma_buf *dmabuf,
+> +			    struct device_dma_parameters *constraints)
+> +{
+> +	if (WARN_ON(!dmabuf || !constraints))
+> +		return -EINVAL;
+> +
+> +	mutex_lock(&dmabuf->lock);
+> +	*constraints = dmabuf->constraints;
+> +	mutex_unlock(&dmabuf->lock);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_get_constraints);
+> +
+> +/**
+> + * dma_buf_recalc_constraints - *recalculate* the constraints for the buffer
+> + *  afresh, from the list of currently attached devices; this could be useful
+> + *  cross-check the current constraints, for exporters that might want to be
+> + *  'paranoid' about the device constraints.
+> + *
+> + *  returns error on invalid inputs
+> + *
+> + * @dmabuf:		[in]	buffer to get constraints of
+> + * @constraints:	[out]	recalculated constraints are returned in this
+> + */
+> +int dma_buf_recalc_constraints(struct dma_buf *dmabuf,
+> +			    struct device_dma_parameters *constraints)
+> +{
+> +	struct device_dma_parameters calc_cons;
+> +	int ret = 0;
+> +
+> +	if (WARN_ON(!dmabuf || !constraints))
+> +		return -EINVAL;
+> +
+> +	mutex_lock(&dmabuf->lock);
+> +	ret = recalc_constraints(dmabuf, &calc_cons);
+> +	if (!ret)
+> +		*constraints = calc_cons;
+> +
+> +	mutex_unlock(&dmabuf->lock);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_recalc_constraints);
+> +
+>  #ifdef CONFIG_DEBUG_FS
+>  static int dma_buf_describe(struct seq_file *s)
+>  {
+> @@ -801,6 +920,11 @@ static int dma_buf_describe(struct seq_file *s)
+>  				buf_obj->file->f_flags, buf_obj->file->f_mode,
+>  				file_count(buf_obj->file),
+>  				buf_obj->exp_name);
+> +		seq_printf(s, "\tConstraints: Seg Count: %08u, Seg Size: %08u",
+> +				buf_obj->constraints.max_segment_count,
+> +				buf_obj->constraints.max_segment_size);
+> +		seq_printf(s, " seg boundary mask: %08lx\n",
+> +				buf_obj->constraints.segment_boundary_mask);
+>  
+>  		seq_puts(s, "\tAttached Devices:\n");
+>  		attach_count = 0;
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> index 694e1fe1c4b4..489ad9b2e5ae 100644
+> --- a/include/linux/dma-buf.h
+> +++ b/include/linux/dma-buf.h
+> @@ -34,6 +34,7 @@
+>  #include <linux/wait.h>
+>  
+>  struct device;
+> +struct device_dma_parameters;
+>  struct dma_buf;
+>  struct dma_buf_attachment;
+>  
+> @@ -116,6 +117,7 @@ struct dma_buf_ops {
+>   * @ops: dma_buf_ops associated with this buffer object.
+>   * @exp_name: name of the exporter; useful for debugging.
+>   * @list_node: node for dma_buf accounting and debugging.
+> + * @constraints: calculated constraints of attached devices.
+>   * @priv: exporter specific private data for this buffer object.
+>   * @resv: reservation object linked to this dma-buf
+>   */
+> @@ -130,6 +132,7 @@ struct dma_buf {
+>  	void *vmap_ptr;
+>  	const char *exp_name;
+>  	struct list_head list_node;
+> +	struct device_dma_parameters constraints;
+>  	void *priv;
+>  	struct reservation_object *resv;
+>  
+> @@ -211,4 +214,8 @@ void *dma_buf_vmap(struct dma_buf *);
+>  void dma_buf_vunmap(struct dma_buf *, void *vaddr);
+>  int dma_buf_debugfs_create_file(const char *name,
+>  				int (*write)(struct seq_file *));
+> +
+> +int dma_buf_get_constraints(struct dma_buf *, struct device_dma_parameters *);
+> +int dma_buf_recalc_constraints(struct dma_buf *,
+> +					struct device_dma_parameters *);
+>  #endif /* __DMA_BUF_H__ */
 
