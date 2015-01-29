@@ -1,64 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43273 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754900AbbAHWYc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jan 2015 17:24:32 -0500
-Date: Thu, 8 Jan 2015 20:24:25 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux-Media <linux-media@vger.kernel.org>,
-	Shuah Khan <shuahkhan@gmail.com>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: Media Summit planning for 2015 - was: Re: ELC 2015 - March -
- San Jose
-Message-ID: <20150108202425.7cfaf6e1@concha.lan>
-In-Reply-To: <54AEF6C7.6080606@xs4all.nl>
-References: <CALzAhNW+-pEpYFYH3_Zn8xwMXUoWL6j0LvyPGkvG7hna4z4gLQ@mail.gmail.com>
-	<54AD7B96.209@xs4all.nl>
-	<CAKocOOOLH9gHpGRCX=6Y3x=-nSj3N9dYpySBH2opdjXbg7w0BA@mail.gmail.com>
-	<20150108171937.228316a7@concha.lan>
-	<54AEF6C7.6080606@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:55510 "EHLO
+	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754031AbbA2QTw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 11:19:52 -0500
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: RFC: supporting adv7604.c under soc_camera/rcar_vin
+Date: Thu, 29 Jan 2015 16:19:40 +0000
+Message-Id: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 08 Jan 2015 22:29:43 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+  The following constitutes parts of our rcar_vin development branch
+beyond the update to our hotfixes published earlier this month.
+Similarly, these patches are intended to the mainline 3.18 kernel.
+Further development is required, but we would like to highlight the
+following issues and discuss them before completing the work.
 
-> On 01/08/2015 08:19 PM, Mauro Carvalho Chehab wrote:
-> > Hi all,
-> > 
-> > I want to do the media planning for 2015. As we've agreed last year, we're
-> > planning to do one media summit together with the Kernel Summit. While
-> > things may change, this year, KS will likely happen by Oct in Korea.
-> > 
-> > I think we may do another summit in US. Looking at:
-> > 	http://events.linuxfoundation.org/
-> > 
-> > Some possible events would be to do it together with:
-> > 	ELC - end of March - San Jose, CA - US
-> > 	LinuxCon - mid of August - Seattle, WA - US
-> 
-> I'll be at the ELC (as mentioned before)
-...
+1. Our internal review has noted that our use of v4l2_subdev_has_op()
+is not yet ideal (but but does suffice for the purposes of generating
+images as-is). These tests are intended to detect whether or not a
+camera whose driver is aware of the pad API is present or not, and
+ensure we interact with subdevices accordingly. We think we should be
+iterating around all camera(s), and testing each subdevice link in
+turn. Is this sound, or is there a better way?
 
-Ok, I added a request today in order to do it together with ELC, as it seems
-we'll have enough people there for some discussions.
+2. Our second problem regards the supported formats list in adv7604.c,
+which needs further attention. We believe that having entries that go
+on to be rejected by rcar_vin_get_formats() may trigger a failure to
+initialise cleanly. Workaround code is marked "Ian Hack"; we intend to
+remove this and the list entries that cause this issue.
 
->From what I got, we'll have:
-	Hans V.
-	Steven
-	Shuah
-	Mauro
+3. Our third problem concerns detecting the resolution of the stream.
+Our code works with the obsoleted driver (adv761x.c) in place, but with
+our modifications to adv7604.c we have seen a) recovery of a 640x480
+image which is cropped rather than scaled, and/or b) recovery of a
+2048x2048 image with the stream content in the top left corner. We
+think we understand the former problem, but the latter seems to be
+caused by full initialisation of the 'struct v4l2_subdev_format
+sd_format' variable, and we only have a partial solution [included
+as patch 4/8] so far. Of particular concern here is that potential
+consequences of changes in this particular patch are not clear.
 
-Who else?
 
-I requested for one day (March, 26), as I'm not sure if we have enough
-stuff for 2 days.
+  Any advice would be appreciated, particularly regarding the first and
+last point above.
 
-As usual, let's start collecting themes for discussions ;)
+Cheers,
+  Wills.
 
-Regards,
-Mauro
+  Associated patches:
+	[PATCH 1/8] Add ability to read default input port from DT
+	[PATCH 2/8] adv7604.c: formats, default colourspace, and IRQs
+	[PATCH 3/8] WmT: document "adi,adv7612"
+	[PATCH 4/8] WmT: m-5mols_core style pad handling for adv7604
+	[PATCH 5/8] media: rcar_vin: Add RGB888_1X24 input format support
+	[PATCH 6/8] WmT: adv7604 driver compatibility
+	[PATCH 7/8] WmT: rcar_vin new ADV7612 support
+	[PATCH 8/8] WmT: dts/i vin0/adv7612 (HDMI)
