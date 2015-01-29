@@ -1,135 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.gsystem.sk ([62.176.172.50]:44300 "EHLO gsystem.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755440AbbAOULA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2015 15:11:00 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/3] tea575x: split and export functions
-Date: Thu, 15 Jan 2015 21:10:46 +0100
-Message-Id: <1421352647-10383-2-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1421352647-10383-1-git-send-email-linux@rainbow-software.org>
-References: <1421352647-10383-1-git-send-email-linux@rainbow-software.org>
+Received: from smtp21.acens.net ([86.109.99.145]:42034 "EHLO smtp.movistar.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753221AbbA2NDN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 08:03:13 -0500
+Message-ID: <54430CAB033428B2@smtp.movistar.es> (added by
+	    postmaster@movistar.es)
+Date: Thu, 29 Jan 2015 14:03:03 +0100
+Subject: RE: [possible BUG, cx23885] Dual tuner TV card, works using one
+ tuner only, doesn't work if both tuners are used
+From: dCrypt <dcrypt@telefonica.net>
+To: James Harper <james@ejbdigital.com.au>
+Cc: linux-media@vger.kernel.org,
+	" hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Split ioctl interface from enum_freq_bands, g_tuner and s_hw_freq_seek
-functions and export them to be used in other drivers like bttv.
-
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- drivers/media/radio/tea575x.c |   41 ++++++++++++++++++++++++++++++++---------
- include/media/tea575x.h       |    5 +++++
- 2 files changed, 37 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/radio/tea575x.c b/drivers/media/radio/tea575x.c
-index f1a0867..43d1ea5 100644
---- a/drivers/media/radio/tea575x.c
-+++ b/drivers/media/radio/tea575x.c
-@@ -247,10 +247,9 @@ static int vidioc_querycap(struct file *file, void  *priv,
- 	return 0;
- }
- 
--static int vidioc_enum_freq_bands(struct file *file, void *priv,
--					 struct v4l2_frequency_band *band)
-+int snd_tea575x_enum_freq_bands(struct snd_tea575x *tea,
-+					struct v4l2_frequency_band *band)
- {
--	struct snd_tea575x *tea = video_drvdata(file);
- 	int index;
- 
- 	if (band->tuner != 0)
-@@ -279,18 +278,25 @@ static int vidioc_enum_freq_bands(struct file *file, void *priv,
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(snd_tea575x_enum_freq_bands);
- 
--static int vidioc_g_tuner(struct file *file, void *priv,
--					struct v4l2_tuner *v)
-+static int vidioc_enum_freq_bands(struct file *file, void *priv,
-+					 struct v4l2_frequency_band *band)
- {
- 	struct snd_tea575x *tea = video_drvdata(file);
-+
-+	return snd_tea575x_enum_freq_bands(tea, band);
-+}
-+
-+int snd_tea575x_g_tuner(struct snd_tea575x *tea, struct v4l2_tuner *v)
-+{
- 	struct v4l2_frequency_band band_fm = { 0, };
- 
- 	if (v->index > 0)
- 		return -EINVAL;
- 
- 	snd_tea575x_read(tea);
--	vidioc_enum_freq_bands(file, priv, &band_fm);
-+	snd_tea575x_enum_freq_bands(tea, &band_fm);
- 
- 	memset(v, 0, sizeof(*v));
- 	strlcpy(v->name, tea->has_am ? "FM/AM" : "FM", sizeof(v->name));
-@@ -304,6 +310,15 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- 	v->signal = tea->tuned ? 0xffff : 0;
- 	return 0;
- }
-+EXPORT_SYMBOL(snd_tea575x_g_tuner);
-+
-+static int vidioc_g_tuner(struct file *file, void *priv,
-+					struct v4l2_tuner *v)
-+{
-+	struct snd_tea575x *tea = video_drvdata(file);
-+
-+	return snd_tea575x_g_tuner(tea, v);
-+}
- 
- static int vidioc_s_tuner(struct file *file, void *priv,
- 					const struct v4l2_tuner *v)
-@@ -356,10 +371,9 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
--					const struct v4l2_hw_freq_seek *a)
-+int snd_tea575x_s_hw_freq_seek(struct file *file, struct snd_tea575x *tea,
-+				const struct v4l2_hw_freq_seek *a)
- {
--	struct snd_tea575x *tea = video_drvdata(file);
- 	unsigned long timeout;
- 	int i, spacing;
- 
-@@ -442,6 +456,15 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
- 	snd_tea575x_set_freq(tea);
- 	return -ENODATA;
- }
-+EXPORT_SYMBOL(snd_tea575x_s_hw_freq_seek);
-+
-+static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
-+					const struct v4l2_hw_freq_seek *a)
-+{
-+	struct snd_tea575x *tea = video_drvdata(file);
-+
-+	return snd_tea575x_s_hw_freq_seek(file, tea, a);
-+}
- 
- static int tea575x_s_ctrl(struct v4l2_ctrl *ctrl)
- {
-diff --git a/include/media/tea575x.h b/include/media/tea575x.h
-index 2d4fa59..5d09657 100644
---- a/include/media/tea575x.h
-+++ b/include/media/tea575x.h
-@@ -71,6 +71,11 @@ struct snd_tea575x {
- 	int (*ext_init)(struct snd_tea575x *tea);
- };
- 
-+int snd_tea575x_enum_freq_bands(struct snd_tea575x *tea,
-+					struct v4l2_frequency_band *band);
-+int snd_tea575x_g_tuner(struct snd_tea575x *tea, struct v4l2_tuner *v);
-+int snd_tea575x_s_hw_freq_seek(struct file *file, struct snd_tea575x *tea,
-+				const struct v4l2_hw_freq_seek *a);
- int snd_tea575x_hw_init(struct snd_tea575x *tea);
- int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner);
- void snd_tea575x_exit(struct snd_tea575x *tea);
--- 
-Ondrej Zary
+VGhhbmsgeW91IGZvciB5b3VyIGNvbW1lbnRzLCBKYW1lcy4gSSdtIHN1cmUgaXQncyBub3QgYSBo
+dyBmYXVsdCBiZWNhdXNlIG1pbmUgd29ya3MgaW4gV2luZG93cyBwZXJmZWN0bHksIGFuZCBib3Ro
+IHR1bmVycyB1c2VkIGluZGVwZW5kZW50bHkgYWxzbyB3b3JrZWQgaW4gTGludXguIAoKQlJFbCAy
+OS8xLzIwMTUgMjozNCwgSmFtZXMgSGFycGVyIDxqYW1lc0BlamJkaWdpdGFsLmNvbS5hdT4gZXNj
+cmliacOzOgo+Cj4gPiAKPiA+IEhpLCBKYW1lcy4gCj4gPiAKPiA+IEFmdGVyIHNlYXJjaGluZyBm
+b3Igc29tZWJvZHkgcG9zdGluZyBzb21lIGlzc3VlcyBzaW1pbGFyIHRvIG1pbmUsIEkgdGhpbmsg
+dGhpcyAKPiA+IG9uZSB5b3UgcG9zdGVkIHRvIHRoZSBtYWlsaW5nIGxpc3QgY2FuIGJlIHJlbGF0
+ZWQ6IAo+ID4gCj4gPiBodHRwczovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LSAKPiA+IG1l
+ZGlhJTQwdmdlci5rZXJuZWwub3JnL21zZzgwMDc4Lmh0bWwgCj4gPiAKPiA+IEknbSBoYXZpbmcg
+cHJvYmxlbXMgdXNpbmcgYm90aCB0dW5lcnMgaW4gYSBkdWFsIHR1bmVyIGNhcmQgKFRlcnJhdGVj
+IENpbmVyZ3kgVCAKPiA+IFBDSWUgRHVhbCksIGFsc28gYmFzZWQgb24gY3gyMzg4NSwgYnV0IGl0
+IHVzZXMgZGlmZmVyZW50IGZyb250ZW5kcy90dW5lcnMgCj4gPiB0aGFuIHlvdXJzLiAKPiA+IAo+
+Cj4gSSdtIHByZXR0eSBzdXJlIG1pbmUgd2FzIGFuIGFjdHVhbCBoYXJkd2FyZSBmYXVsdC4gQXQg
+Zmlyc3QgaXQgd29ya2VkIHBlcmZlY3RseS4gVGhlbiBhZnRlciBhIGJpdCB0aGUgc2VydmVyIHdv
+dWxkIG9jY2FzaW9uYWxseSBsb2NrIHVwIGhhcmQgb3IgcmVib290LCB0aGVuIG1vcmUgb2Z0ZW4s
+IHRoZW4gZXZlcnkgdGltZS4gSSBzcGVudCBhZ2VzIHRoaW5raW5nIGl0IHdhcyBhIGRyaXZlciBw
+cm9ibGVtIGFuZCBkaWQgYWxsIHNvcnRzIG9mIHRyYWNlcyBldGMgYW5kIGZvdW5kIG5vdGhpbmcu
+IEluIHRoZSBlbmQgSSBqdXN0IGdvdCBteXRodHYgdG8gbm90IHVzZSB0aGUgc2Vjb25kIHR1bmVy
+IChvciB0aGUgZmlyc3QgdHVuZXIgLSBhcyBsb25nIGFzIG9ubHkgb25lIHdhcyB1c2VkIGl0IHdh
+cyBmaW5lKS4gCj4KPiBUaGVuIGFib3V0IGEgbW9udGggYWdvIGl0IHN0YXJ0ZWQgbG9ja2luZyB1
+cCBhZ2FpbiBvY2Nhc2lvbmFsbHksIHRoZW4gbW9yZSBvZnRlbiwgdGhlbiBldmVyeSB0aW1lLCBv
+bmx5IHVzaW5nIHRoZSBvbmUgdHVuZXIuIFN0cmFuZ2UgdGhvdWdoIHRoYXQgaWYgaXQgYm9vdGVk
+IHVwIHdpdGhvdXQgbG9ja2luZyB1cCBpdCB3b3VsZCBiZSBva2F5LiAKPgo+IEkgYm91Z2h0IGEg
+dXNiIHR1bmVyIGFuZCBoYXZlbid0IHVzZWQgdGhlIGN4MjM4ODUgY2FyZCBzaW5jZS4gCj4KPiBJ
+IHdpbGwgYmUgc2Vla2luZyBhIHJlcGxhY2VtZW50IHVuZGVyIHdhcnJhbnR5IHRob3VnaCwgYXMg
+dGhlIHNpZ25hbCBxdWFsaXR5IGlzIHF1aXRlIGEgYml0IGJldHRlci4gCj4KPiBHb29kIGx1Y2sg
+aW4geW91ciBxdWVzdCB0aG91Z2ghIAo+Cj4gSmFtZXMgCj4K
 
