@@ -1,38 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35710 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752526AbbAMQ7r (ORCPT
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:35196 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757554AbbA2WcM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 11:59:47 -0500
-Message-ID: <1421168382.2615.1.camel@xs4all.nl>
-Subject: Re: [PATCH] cx23885/vb2 regression: please test this patch
-From: Jurgen Kramer <gtmkramer@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>, ray@apollo.lv
-Date: Tue, 13 Jan 2015 17:59:42 +0100
-In-Reply-To: <54B52548.7010109@xs4all.nl>
-References: <54B52548.7010109@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 29 Jan 2015 17:32:12 -0500
+Date: Thu, 29 Jan 2015 22:31:58 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher
+ constraints with dma-parms
+Message-ID: <20150129223158.GF26493@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+ <20150129143908.GA26493@n2100.arm.linux.org.uk>
+ <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
+ <20150129154718.GB26493@n2100.arm.linux.org.uk>
+ <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
+ <20150129192610.GE26493@n2100.arm.linux.org.uk>
+ <CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-On Tue, 2015-01-13 at 15:01 +0100, Hans Verkuil wrote:
-> Hi Raimonds, Jurgen,
+On Thu, Jan 29, 2015 at 05:18:33PM -0500, Rob Clark wrote:
+> On Thu, Jan 29, 2015 at 2:26 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > Now, if we're going to do the "more clever" thing you mention above,
+> > that rather negates the point of this two-part patch set, which is to
+> > provide the union of the DMA capabilities of all users.  A union in
+> > that case is no longer sane as we'd be tailoring the SG lists to each
+> > user.
 > 
-> Can you both test this patch? It should (I hope) solve the problems you
-> both had with the cx23885 driver.
+> It doesn't really negate.. a different sg list representing the same
+> physical memory cannot suddenly make the buffer physically contiguous
+> (from the perspective of memory)..
 > 
-> This patch fixes a race condition in the vb2_thread that occurs when
-> the thread is stopped. The crucial fix is calling kthread_stop much
-> earlier in vb2_thread_stop(). But I also made the vb2_thread more
-> robust.
+> (unless we are not on the same page here, so to speak)
 
-Thanks. Will test your patch and report back.
+If we are really only interested in the "physically contiguous" vs
+"scattered" differentiation, why can't this be just a simple flag?
 
-Regards,
-Jurgen
+I think I know where you're coming from on that distinction - most
+GPUs can cope with their buffers being discontiguous in memory, but
+scanout and capture hardware tends to need contiguous buffers.
 
+My guess is that you're looking for some way that a GPU driver could
+allocate a buffer, which can then be imported into the scanout
+hardware - and when it is, the underlying backing store is converted
+to a contiguous buffer.  Is that the usage scenario you're thinking
+of?
 
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
