@@ -1,41 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39691 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757947AbbAIR7u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 12:59:50 -0500
-Date: Fri, 9 Jan 2015 18:59:47 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com, Chanwoo Choi <cw00.choi@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH/RFC v10 07/19] mfd: max77693: Adjust FLASH_EN_SHIFT and
- TORCH_EN_SHIFT macros
-Message-ID: <20150109175947.GI18076@amd>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-8-git-send-email-j.anaszewski@samsung.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42589 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751554AbbA2Hds (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 02:33:48 -0500
+Message-ID: <54C9E238.9090101@xs4all.nl>
+Date: Thu, 29 Jan 2015 08:33:12 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1420816989-1808-8-git-send-email-j.anaszewski@samsung.com>
+To: Raimonds Cicans <ray@apollo.lv>, hans.verkuil@cisco.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
+ cx23885: convert to vb2"
+References: <54B24370.6010004@apollo.lv>
+In-Reply-To: <54B24370.6010004@apollo.lv>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 2015-01-09 16:22:57, Jacek Anaszewski wrote:
-> Modify FLASH_EN_SHIFT and TORCH_EN_SHIFT macros to work properly
-> when passed enum max77693_fled values (0 for FLED1 and 1 for FLED2)
-> from leds-max77693 driver.
+Hi Raimonds,
+
+On 01/11/2015 10:33 AM, Raimonds Cicans wrote:
+> Hello.
 > 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
+> I contacted you because I am hit by regression caused by your commit:
+> 453afdd "[media] cx23885: convert to vb2"
+> 
+> 
+> My system:
+> AMD Athlon(tm) II X2 240e Processor on Asus M5A97 LE R2.0 motherboard
+> TBS6981 card (Dual DVB-S/S2 PCIe receiver, cx23885 in kernel driver)
+> 
+> After upgrade from kernel 3.13.10 (do not have commit) to 3.17.7
+> (have commit) I started receiving following IOMMU related messages:
+> 
+> 1)
+> AMD-Vi: Event logged [IO_PAGE_FAULT device=0a:00.0 domain=0x001d 
+> address=0x000000000637c000 flags=0x0000]
+> 
+> where device=0a:00.0 is TBS6981 card
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+As far as I can tell this has nothing to do with the cx23885 driver but is
+a bug in the amd iommu/BIOS. See e.g.:
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+https://bbs.archlinux.org/viewtopic.php?pid=1309055
+
+I managed to reproduce the Intel equivalent if I enable CONFIG_IOMMU_SUPPORT.
+
+Most likely due to broken BIOS/ACPI/whatever information that's read by the
+kernel. I would recommend disabling this kernel option.
+
+Regards,
+
+	Hans
+
+> 
+> sometimes this message was followed by storm of following messages:
+> cx23885[0]: mpeg risc op code error
+> ...
+
