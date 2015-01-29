@@ -1,105 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54960 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754505AbbATNEB (ORCPT
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:43496 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751265AbbA2XTw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 08:04:01 -0500
-Message-ID: <54BE5204.3020600@xs4all.nl>
-Date: Tue, 20 Jan 2015 14:03:00 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 29 Jan 2015 18:19:52 -0500
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Florian Echtler <floe@butterbrot.org>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
-References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <54BE1EBC.2090001@butterbrot.org> <54BE201F.4060209@xs4all.nl> <64652239.MTTlcOgNK2@avalon>
-In-Reply-To: <64652239.MTTlcOgNK2@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20150129223158.GF26493@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+	<1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+	<20150129143908.GA26493@n2100.arm.linux.org.uk>
+	<CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
+	<20150129154718.GB26493@n2100.arm.linux.org.uk>
+	<CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
+	<20150129192610.GE26493@n2100.arm.linux.org.uk>
+	<CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
+	<20150129223158.GF26493@n2100.arm.linux.org.uk>
+Date: Thu, 29 Jan 2015 18:19:51 -0500
+Message-ID: <CAF6AEGuF8j7CpPmKpPhqmc_Rc8qDDSMPSpPfvACsGShnaCRAxQ@mail.gmail.com>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
+ with dma-parms
+From: Rob Clark <robdclark@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/20/15 13:59, Laurent Pinchart wrote:
-> Hello,
-> 
-> On Tuesday 20 January 2015 10:30:07 Hans Verkuil wrote:
->> On 01/20/15 10:24, Florian Echtler wrote:
->>> On 19.01.2015 11:38, Hans Verkuil wrote:
->>>> Sorry for the delay.
->>>
->>> No problem, thanks for your feedback.
->>>
->>>>> Note: I'm intentionally using dma-contig instead of vmalloc, as the USB
->>>>> core apparently _will_ try to use DMA for larger bulk transfers.
->>>>
->>>> As far as I can tell from looking through the usb core code it supports
->>>> scatter-gather DMA, so you should at least use dma-sg rather than
->>>> dma-contig. Physically contiguous memory should always be avoided.
->>>
->>> OK, will this work transparently (i.e. just switch from *-contig-* to
->>> *-sg-*)? If not, can you suggest an example driver to use as template?
+On Thu, Jan 29, 2015 at 5:31 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Thu, Jan 29, 2015 at 05:18:33PM -0500, Rob Clark wrote:
+>> On Thu, Jan 29, 2015 at 2:26 PM, Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> wrote:
+>> > Now, if we're going to do the "more clever" thing you mention above,
+>> > that rather negates the point of this two-part patch set, which is to
+>> > provide the union of the DMA capabilities of all users.  A union in
+>> > that case is no longer sane as we'd be tailoring the SG lists to each
+>> > user.
 >>
->> Yes, that should pretty much be seamless. BTW, the more I think about it,
->> the more I am convinced that DMA will also be used by the USB core when
->> you use videobuf2-vmalloc.
+>> It doesn't really negate.. a different sg list representing the same
+>> physical memory cannot suddenly make the buffer physically contiguous
+>> (from the perspective of memory)..
 >>
->> I've CC-ed Laurent, I think he knows a lot more about this than I do.
->>
->> Laurent, when does the USB core use DMA? What do you need to do on the
->> driver side to have USB use DMA when doing bulk transfers?
-> 
-> How USB HCD drivers map buffers for DMA is HCD-specific, but all drivers 
-> exepct ehci-tegra, max3421-hcd and musb use the default implementation 
-> usb_hcd_map_urb_for_dma() (in drivers/usb/core/hcd.c).
-> 
-> Unless the buffer has already been mapped by the USB driver (in which case the 
-> driver will have set the URB_NO_TRANSFER_DMA_MAP flag in urb->transfer_flags 
-> and initialized the urb->transfer_dma field), the function will use 
-> dma_map_sg(), dma_map_page() or dma_map_single() depending on the buffer type 
-> (controlled through urb->sg and urb->num_sgs). DMA will thus always be used 
-> *expect* if the platform uses bounce buffers when the buffer can't be mapped 
-> directly for DMA.
+>> (unless we are not on the same page here, so to speak)
+>
+> If we are really only interested in the "physically contiguous" vs
+> "scattered" differentiation, why can't this be just a simple flag?
 
-So we can safely use videobuf2-vmalloc, right?
+I'd be fine with that..  I was trying to make it a bit less of a point
+solution, but maybe trying to be too generic is not worth it..
 
-Regards,
+There is apparently some hw which has iommu's but small # of tlb
+entries, and would prefer partially contiguous buffers.  But that
+isn't a hard constraint, and maybe shouldn't be solved w/
+max_segment_count.  And I'm not sure how common that is.
 
-	Hans
+> I think I know where you're coming from on that distinction - most
+> GPUs can cope with their buffers being discontiguous in memory, but
+> scanout and capture hardware tends to need contiguous buffers.
+>
+> My guess is that you're looking for some way that a GPU driver could
+> allocate a buffer, which can then be imported into the scanout
+> hardware - and when it is, the underlying backing store is converted
+> to a contiguous buffer.  Is that the usage scenario you're thinking
+> of?
 
-> 
->>>> I'm also missing a patch for the Kconfig that adds a dependency on
->>>> MEDIA_USB_SUPPORT and that selects VIDEOBUF2_DMA_SG.
->>>
->>> Good point, will add that.
->>>
->>>>> +err_unreg_video:
->>>>> +	video_unregister_device(&sur40->vdev);
->>>>> +err_unreg_v4l2:
->>>>> +	v4l2_device_unregister(&sur40->v4l2);
->>>>>
->>>>>  err_free_buffer:
->>>>>  	kfree(sur40->bulk_in_buffer);
->>>>>  
->>>>>  err_free_polldev:
->>>>> @@ -436,6 +604,10 @@ static void sur40_disconnect(struct usb_interface
->>>>> *interface)>> 
->>>> Is this a hardwired device or hotpluggable? If it is hardwired, then this
->>>> code is OK, but if it is hotpluggable, then this isn't good enough.
->>>
->>> It's hardwired. Out of curiosity, what would I have to change for a
->>> hotpluggable one?
->>
->> In that case you can't clean everything up since some application might
->> still have a filehandle open. You have to wait until the very last
->> filehandle is closed.
->>
->>>>> +	i->type = V4L2_INPUT_TYPE_CAMERA;
->>>>> +	i->std = V4L2_STD_UNKNOWN;
->>>>> +	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
->>>>
->>>> Perhaps just say "Sensor" here? I'm not sure what "In-Cell" means.
->>>
->>> In-cell is referring to the concept of integrating sensor pixels
->>> directly with LCD pixels, I think it's what Samsung calls it.
-> 
+Pretty much..  and maybe a few slight permutations on that involving
+cameras / video codecs / etc.  But the really-really common case is
+gpu (with mmu/iommu) + display (without).  Just solving this problem
+would be a really good first step.
 
+BR,
+-R
+
+>
+> --
+> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+> according to speedtest.net.
