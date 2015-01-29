@@ -1,77 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from haggis.mythic-beasts.com ([93.93.131.56]:33170 "EHLO
-	haggis.mythic-beasts.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758606AbbA1A4a (ORCPT
+Received: from mail-oi0-f46.google.com ([209.85.218.46]:38769 "EHLO
+	mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751815AbbA2Pac (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2015 19:56:30 -0500
-Received: from [60.241.150.231] (port=54107 helo=[10.1.252.25])
-	by haggis.mythic-beasts.com with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.80)
-	(envelope-from <brian@pingtoo.com>)
-	id 1YGGYX-00043X-BU
-	for linux-media@vger.kernel.org; Wed, 28 Jan 2015 00:32:30 +0000
-Message-ID: <54C82E18.3060804@pingtoo.com>
-Date: Wed, 28 Jan 2015 00:32:24 +0000
-From: Brian Burch <brian@pingtoo.com>
+	Thu, 29 Jan 2015 10:30:32 -0500
+Received: by mail-oi0-f46.google.com with SMTP id a141so27810502oig.5
+        for <linux-media@vger.kernel.org>; Thu, 29 Jan 2015 07:30:32 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: dvt--scan-tables au-SunshineCoast corrections
-Content-Type: multipart/mixed;
- boundary="------------080709080606080808030106"
+In-Reply-To: <20150129143908.GA26493@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org> <20150129143908.GA26493@n2100.arm.linux.org.uk>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Thu, 29 Jan 2015 21:00:11 +0530
+Message-ID: <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
+ with dma-parms
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	Rob Clark <robdclark@gmail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080709080606080808030106
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Russell!
 
-Attn: Jonathon McCrohan,
+On 29 January 2015 at 20:09, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Tue, Jan 27, 2015 at 01:55:54PM +0530, Sumit Semwal wrote:
+>> +/*
+>> + * recalc_constraints - recalculates constraints for all attached devices;
+>> + *  useful for detach() recalculation, and for dma_buf_recalc_constraints()
+>> + *  helper.
+>> + *  Returns recalculated constraints in recalc_cons, or error in the unlikely
+>> + *  case when constraints of attached devices might have changed.
+>> + */
+>
+Thanks for your valuable review comments!
 
-I expect you have already received an automated notification from ubuntu 
-launchpad. I have just reported a new bug against this file to bring the 
-multiplex frequencies up to date.
+> Please see kerneldoc documentation for the proper format of these comments.
+These are static functions, and as such kerneldoc doesn't enforce
+kernel-doc style comments, so in the dma-buf files, we've not followed
+them for static functions.
+That said, it is certainly a valuable advice, and I could create a
+separate patch-set for updating the documentation for the static
+functions as well.
+>
+>> +static int recalc_constraints(struct dma_buf *dmabuf,
+>> +                           struct device_dma_parameters *recalc_cons)
+>> +{
+>> +     struct device_dma_parameters calc_cons;
+>> +     struct dma_buf_attachment *attach;
+>> +     int ret = 0;
+>> +
+>> +     init_constraints(&calc_cons);
+>> +
+>> +     list_for_each_entry(attach, &dmabuf->attachments, node) {
+>> +             ret = calc_constraints(attach->dev, &calc_cons);
+>> +             if (ret)
+>> +                     return ret;
+>> +     }
+>> +     *recalc_cons = calc_cons;
+>> +     return 0;
+>> +}
+>> +
+>>  /**
+>>   * dma_buf_export_named - Creates a new dma_buf, and associates an anon file
+>>   * with this buffer, so it can be exported.
+>> @@ -313,6 +373,9 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
+>>       dmabuf->ops = ops;
+>>       dmabuf->size = size;
+>>       dmabuf->exp_name = exp_name;
+>> +
+>> +     init_constraints(&dmabuf->constraints);
+>> +
+>>       init_waitqueue_head(&dmabuf->poll);
+>>       dmabuf->cb_excl.poll = dmabuf->cb_shared.poll = &dmabuf->poll;
+>>       dmabuf->cb_excl.active = dmabuf->cb_shared.active = 0;
+>> @@ -422,7 +485,7 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+>>                                         struct device *dev)
+>>  {
+>>       struct dma_buf_attachment *attach;
+>> -     int ret;
+>> +     int ret = 0;
+>>
+>>       if (WARN_ON(!dmabuf || !dev))
+>>               return ERR_PTR(-EINVAL);
+>> @@ -436,6 +499,9 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+>>
+>>       mutex_lock(&dmabuf->lock);
+>>
+>> +     if (calc_constraints(dev, &dmabuf->constraints))
+>> +             goto err_constraints;
+>> +
+>>       if (dmabuf->ops->attach) {
+>>               ret = dmabuf->ops->attach(dmabuf, dev, attach);
+>>               if (ret)
+>> @@ -448,6 +514,7 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+>>
+>>  err_attach:
+>>       kfree(attach);
+>> +err_constraints:
+>>       mutex_unlock(&dmabuf->lock);
+>>       return ERR_PTR(ret);
+>>  }
+>> @@ -470,6 +537,8 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
+>>       if (dmabuf->ops->detach)
+>>               dmabuf->ops->detach(dmabuf, attach);
+>>
+>> +     recalc_constraints(dmabuf, &dmabuf->constraints);
+>> +
+>
+> To me, this whole thing seems horribly racy.
+>
+> What happens if subsystem X creates a dmabuf, which is passed to
+> userspace. It's then passed to subsystem Y, which starts making use
+> of it, calling dma_buf_map_attachment() on it.
+>
+> The same buffer is also passed (via unix domain sockets) to another
+> program, which then passes it independently into subsystem Z, and
+> subsystem Z has more restrictive DMA constraints.
+>
+> What happens at this point?
+>
+> Subsystems such as DRM cache the scatter table, and return it for
+> subsequent attach calls, so DRM drivers using the default
+> drm_gem_map_dma_buf() implementation would not see the restrictions
+> placed upon the dmabuf.  Moreover, the returned scatterlist would not
+> be modified for those restrictions either.
+>
+> What would other subsystems do?
+>
+> This needs more thought before it's merged.
+>
+> For example, in the above situation, should we deny the ability to
+> create a new attachment when a dmabuf has already been mapped by an
+> existing attachment?  Should we deny it only when the new attachment
+> has more restrictive DMA constraints?
+>
+So, short answer is, it is left to the exporter to decide. The dma-buf
+framework should not even attempt to decide or enforce any of the
+above.
 
-I apologise for wimping out of your advice to patch against the original 
-source! I have attached the same patch file as submitted to ubuntu. The 
-change is very simple, so I hope my version doesn't inconvenience you 
-too much.
+At each dma_buf_attach(), there's a callback to the exporter, where
+the exporter can decide, if it intends to handle these kind of cases,
+on the best way forward.
 
-Best wishes,
+The exporter might, for example, decide to migrate backing storage,
+should there be a need to do so, or simply deny when the new
+attachment has more restrictive DMA constraints, as you mentioned as a
+possibility.
 
-Brian
+These changes simply allow the exporter, should it wish to, to take
+the DMA constraints into consideration while making those decisions.
+For the current cases, it should not even matter if the DMA
+constraints aren't shared by the devices.
 
---------------080709080606080808030106
-Content-Type: text/plain; charset=UTF-8;
- name="au-SunshineCoast-patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="au-SunshineCoast-patch"
+> Please consider the possible sequences of use (such as the scenario
+> above) when creating or augmenting an API.
+>
 
-LS0tIGF1LVN1bnNoaW5lQ29hc3QtMjAxNS0wMS0xMi1kZWJpYW5VbnN0YWJsZQkyMDE1LTAx
-LTEyIDAxOjQwOjA3LjI5MzM1MzAwMSArMDAwMAorKysgYXUtU3Vuc2hpbmVDb2FzdC0yMDE1
-LTAxLTEyLWJyaWFuCTIwMTUtMDEtMTIgMDE6NDU6NDQuNzg4MzYyNDE0ICswMDAwCkBAIC0x
-LDggKzEsOCBAQAogIyBBdXN0cmFsaWEgLyBTdW5zaGluZSBDb2FzdAotIyBTQlMzNiBTQlMg
-KioqCisjIFNCUzQwIFNCUyAqKioKIFtDSEFOTkVMXQogCURFTElWRVJZX1NZU1RFTSA9IERW
-QlQKLQlGUkVRVUVOQ1kgPSA1ODU2MjUwMDAKKwlGUkVRVUVOQ1kgPSA2MTM1MDAwMDAKIAlC
-QU5EV0lEVEhfSFogPSA3MDAwMDAwCiAJQ09ERV9SQVRFX0hQID0gMi8zCiAJQ09ERV9SQVRF
-X0xQID0gTk9ORQpAQCAtMTIsMTAgKzEyLDEwIEBACiAJSElFUkFSQ0hZID0gTk9ORQogCUlO
-VkVSU0lPTiA9IEFVVE8KIAotIyBUTlE0NyAxMCAqKioKKyMgVE5RNDQgMTAgKioqCiBbQ0hB
-Tk5FTF0KIAlERUxJVkVSWV9TWVNURU0gPSBEVkJUCi0JRlJFUVVFTkNZID0gNjYyNjI1MDAw
-CisJRlJFUVVFTkNZID0gNjQxNTAwMDAwCiAJQkFORFdJRFRIX0haID0gNzAwMDAwMAogCUNP
-REVfUkFURV9IUCA9IDMvNAogCUNPREVfUkFURV9MUCA9IE5PTkUKQEAgLTI1LDEwICsyNSwx
-MCBAQAogCUhJRVJBUkNIWSA9IE5PTkUKIAlJTlZFUlNJT04gPSBBVVRPCiAKLSMgQUJRNjIg
-QUJDICoqKgorIyBBQkM0MSBBQkMgKioqCiBbQ0hBTk5FTF0KIAlERUxJVkVSWV9TWVNURU0g
-PSBEVkJUCi0JRlJFUVVFTkNZID0gNzY3NjI1MDAwCisJRlJFUVVFTkNZID0gNjIwNTAwMDAw
-CiAJQkFORFdJRFRIX0haID0gNzAwMDAwMAogCUNPREVfUkFURV9IUCA9IDMvNAogCUNPREVf
-UkFURV9MUCA9IE5PTkUKQEAgLTM4LDEwICszOCwxMCBAQAogCUhJRVJBUkNIWSA9IE5PTkUK
-IAlJTlZFUlNJT04gPSBBVVRPCiAKLSMgU1RRNjUgNyAqKioKKyMgU1RRNDIgNyAqKioKIFtD
-SEFOTkVMXQogCURFTElWRVJZX1NZU1RFTSA9IERWQlQKLQlGUkVRVUVOQ1kgPSA3ODg2MjUw
-MDAKKwlGUkVRVUVOQ1kgPSA2Mjc1MDAwMDAKIAlCQU5EV0lEVEhfSFogPSA3MDAwMDAwCiAJ
-Q09ERV9SQVRFX0hQID0gMy80CiAJQ09ERV9SQVRFX0xQID0gTk9ORQpAQCAtNTEsMTAgKzUx
-LDEwIEBACiAJSElFUkFSQ0hZID0gTk9ORQogCUlOVkVSU0lPTiA9IEFVVE8KIAotIyBTVFE2
-OCBXSU4gKioqCisjIFJUUTQzIFdJTiAqKioKIFtDSEFOTkVMXQogCURFTElWRVJZX1NZU1RF
-TSA9IERWQlQKLQlGUkVRVUVOQ1kgPSA4MDk1MDAwMDAKKwlGUkVRVUVOQ1kgPSA2MzQ1MDAw
-MDAKIAlCQU5EV0lEVEhfSFogPSA3MDAwMDAwCiAJQ09ERV9SQVRFX0hQID0gMy80CiAJQ09E
-RV9SQVRFX0xQID0gTk9ORQo=
---------------080709080606080808030106--
+I tried to think of the scenarios I could think of, but If you still
+feel this approach doesn't help with your concerns, I'll graciously
+accept advice to improve it.
+
+Once again, thanks for reviewing these changes!
+
+> --
+> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+> according to speedtest.net.
+
+
+Best regards,
+~Sumit.
