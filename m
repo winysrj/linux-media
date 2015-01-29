@@ -1,38 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:42159 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753238AbbATKGW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2015 05:06:22 -0500
-Received: by mail-pd0-f173.google.com with SMTP id fp1so17212442pdb.4
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2015 02:06:21 -0800 (PST)
-Date: Tue, 20 Jan 2015 21:06:07 +1100
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: build failure on ubuntu 14.04.1 LTS
-Message-ID: <20150120100605.GA33970@shambles.windy>
-References: <20150119123212.GA33475@shambles.windy>
- <54BCFC78.3030303@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54BCFC78.3030303@xs4all.nl>
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:55507 "EHLO
+	xk120" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752830AbbA2QTw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 11:19:52 -0500
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 3/8] WmT: document "adi,adv7612"
+Date: Thu, 29 Jan 2015 16:19:43 +0000
+Message-Id: <1422548388-28861-4-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
+References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 19, 2015 at 01:45:44PM +0100, Hans Verkuil wrote:
-> On 01/19/2015 01:32 PM, Vincent McIntyre wrote:
-> > Hi
-> > 
-> > I am seeing build failures since 11 January.
-> > A build I did on 22 December worked fine.
-> > My build procedure and the error are shown below.
-> 
-> I've just updated media_build to stop compiling the smiapp driver for kernels
-> < 3.20. So if you do 'git pull' in your media_build directory and try again
-> it should work.
+---
+ Documentation/devicetree/bindings/media/i2c/adv7604.txt |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-I can confirm that it does work now.
-Thanks for the quick turnaround, much appreciated.
-Vince
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+index bc50da2..1ca6e5a 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -1,4 +1,4 @@
+-* Analog Devices ADV7604/11 video decoder with HDMI receiver
++* Analog Devices ADV7604/11/12 video decoder with HDMI receiver
+ 
+ The ADV7604 and ADV7611 are multiformat video decoders with an integrated HDMI
+ receiver. The ADV7604 has four multiplexed HDMI inputs and one analog input,
+@@ -10,6 +10,7 @@ Required Properties:
+ 
+   - compatible: Must contain one of the following
+     - "adi,adv7611" for the ADV7611
++    - "adi,adv7612" for the ADV7612
+ 
+   - reg: I2C slave address
+ 
+-- 
+1.7.10.4
+
