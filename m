@@ -1,136 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60062 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752679AbbAVOsS (ORCPT
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:34886 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751615AbbA2T0Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 09:48:18 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	sadegh abbasi <sadegh612000@yahoo.co.uk>
-Subject: [PATCH 4/7] v4l2-ctrls: Export the standard control type operations
-Date: Thu, 22 Jan 2015 16:48:43 +0200
-Message-Id: <1421938126-17747-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1421938126-17747-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1421938126-17747-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 29 Jan 2015 14:26:24 -0500
+Date: Thu, 29 Jan 2015 19:26:11 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher
+ constraints with dma-parms
+Message-ID: <20150129192610.GE26493@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+ <20150129143908.GA26493@n2100.arm.linux.org.uk>
+ <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
+ <20150129154718.GB26493@n2100.arm.linux.org.uk>
+ <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Drivers that implement custom control types need to implement the equal,
-init, log and validate operations. Depending on the control type some of
-those operations can use the standard control type implementation
-provided by the v4l2 control framework. Export them to enable their
-reuse.
+On Thu, Jan 29, 2015 at 01:52:09PM -0500, Rob Clark wrote:
+> Quite possibly for some of these edge some of cases, some of the
+> dma-buf exporters are going to need to get more clever (ie. hand off
+> different scatterlists to different clients).  Although I think by far
+> the two common cases will be "I can support anything via an iommu/mmu"
+> and "I need phys contig".
+> 
+> But that isn't an issue w/ dma-buf itself, so much as it is an issue
+> w/ drivers.  I guess there would be more interest in fixing up drivers
+> when actual hw comes along that needs it..
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 27 ++++++++++++++++-----------
- include/media/v4l2-ctrls.h           |  9 +++++++++
- 2 files changed, 25 insertions(+), 11 deletions(-)
+However, validating the attachments is the business of dma-buf.  This
+is actual infrastructure, which should ensure some kind of sanity such
+as the issues I've raised.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index ba996de..17f10d4 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1233,9 +1233,9 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
- 			v4l2_event_queue_fh(sev->fh, &ev);
- }
- 
--static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
--		      union v4l2_ctrl_ptr ptr1,
--		      union v4l2_ctrl_ptr ptr2)
-+bool v4l2_ctrl_type_std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
-+			      union v4l2_ctrl_ptr ptr1,
-+			      union v4l2_ctrl_ptr ptr2)
- {
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_BUTTON:
-@@ -1262,6 +1262,7 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
- 		return !memcmp(ptr1.p + idx, ptr2.p + idx, ctrl->elem_size);
- 	}
- }
-+EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_equal);
- 
- static void std_init_one(const struct v4l2_ctrl *ctrl, u32 idx,
- 			 union v4l2_ctrl_ptr ptr)
-@@ -1301,7 +1302,8 @@ static void std_init_one(const struct v4l2_ctrl *ctrl, u32 idx,
- 	}
- }
- 
--static void std_init(const struct v4l2_ctrl *ctrl, union v4l2_ctrl_ptr ptr)
-+void v4l2_ctrl_type_std_init(const struct v4l2_ctrl *ctrl,
-+			     union v4l2_ctrl_ptr ptr)
- {
- 	u32 idx;
- 
-@@ -1329,8 +1331,9 @@ static void std_init(const struct v4l2_ctrl *ctrl, union v4l2_ctrl_ptr ptr)
- 		break;
- 	}
- }
-+EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_init);
- 
--static void std_log(const struct v4l2_ctrl *ctrl)
-+void v4l2_ctrl_type_std_log(const struct v4l2_ctrl *ctrl)
- {
- 	union v4l2_ctrl_ptr ptr = ctrl->p_cur;
- 
-@@ -1387,6 +1390,7 @@ static void std_log(const struct v4l2_ctrl *ctrl)
- 		break;
- 	}
- }
-+EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_log);
- 
- /*
-  * Round towards the closest legal value. Be careful when we are
-@@ -1410,8 +1414,8 @@ static void std_log(const struct v4l2_ctrl *ctrl)
- })
- 
- /* Validate a new control */
--static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
--			union v4l2_ctrl_ptr ptr)
-+int v4l2_ctrl_type_std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
-+				union v4l2_ctrl_ptr ptr)
- {
- 	size_t len;
- 	u64 offset;
-@@ -1485,12 +1489,13 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 		return -EINVAL;
- 	}
- }
-+EXPORT_SYMBOL_GPL(v4l2_ctrl_type_std_validate);
- 
- static const struct v4l2_ctrl_type_ops std_type_ops = {
--	.equal = std_equal,
--	.init = std_init,
--	.log = std_log,
--	.validate = std_validate,
-+	.equal = v4l2_ctrl_type_std_equal,
-+	.init = v4l2_ctrl_type_std_init,
-+	.log = v4l2_ctrl_type_std_log,
-+	.validate = v4l2_ctrl_type_std_validate,
- };
- 
- /* Helper function: copy the given control value back to the caller */
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index a7280e9..71067fb 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -93,6 +93,15 @@ struct v4l2_ctrl_type_ops {
- 			union v4l2_ctrl_ptr ptr);
- };
- 
-+bool v4l2_ctrl_type_std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
-+			      union v4l2_ctrl_ptr ptr1,
-+			      union v4l2_ctrl_ptr ptr2);
-+void v4l2_ctrl_type_std_init(const struct v4l2_ctrl *ctrl,
-+			     union v4l2_ctrl_ptr ptr);
-+void v4l2_ctrl_type_std_log(const struct v4l2_ctrl *ctrl);
-+int v4l2_ctrl_type_std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
-+				union v4l2_ctrl_ptr ptr);
-+
- typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
- 
- /** struct v4l2_ctrl - The control structure.
+The whole "we can push it onto our users" is really on - what that
+results in is the users ignoring most of the requirements and just doing
+their own thing, which ultimately ends up with the whole thing turning
+into a disgusting mess - one which becomes very difficult to fix later.
+
+Now, if we're going to do the "more clever" thing you mention above,
+that rather negates the point of this two-part patch set, which is to
+provide the union of the DMA capabilities of all users.  A union in
+that case is no longer sane as we'd be tailoring the SG lists to each
+user.
+
+If we aren't going to do the "more clever" thing, then yes, we need this
+code to calculate that union, but we _also_ need it to do sanity checking
+right from the start, and refuse conditions which ultimately break the
+ability to make use of that union - in other words, when the union of
+the DMA capabilities means that the dmabuf can't be represented.
+
+Unless we do that, we'll just end up with random drivers interpreting
+what they want from the DMA capabilities, and we'll have some drivers
+exporting (eg) scatterlists which satisfy the maximum byte size of an
+element, but ignoring the maximum number of entries or vice versa, and
+that'll most probably hide the case of "too small a union".
+
+It really doesn't make sense to do both either: that route is even more
+madness, because we'll end up with two classes of drivers - those which
+use the union approach, and those which don't.
+
+The KISS principle applies here.
+
 -- 
-2.0.5
-
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
