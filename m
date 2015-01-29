@@ -1,64 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:44340 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755363AbaLVUGz (ORCPT
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:38036 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756151AbbA2S2V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Dec 2014 15:06:55 -0500
-Date: Mon, 22 Dec 2014 20:06:27 +0000
-From: Mark Brown <broonie@kernel.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <20141222200627.GN17800@sirena.org.uk>
-References: <1419114892-4550-1-git-send-email-crope@iki.fi>
+	Thu, 29 Jan 2015 13:28:21 -0500
+Received: by mail-lb0-f170.google.com with SMTP id w7so31227129lbi.1
+        for <linux-media@vger.kernel.org>; Thu, 29 Jan 2015 10:28:19 -0800 (PST)
+Message-ID: <54CA7BBF.6070607@cogentembedded.com>
+Date: Thu, 29 Jan 2015 21:28:15 +0300
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="z7bbLlDR+qKEHzO8"
-Content-Disposition: inline
-In-Reply-To: <1419114892-4550-1-git-send-email-crope@iki.fi>
-Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: William Towle <william.towle@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 5/8] media: rcar_vin: Add RGB888_1X24 input format support
+References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <1422548388-28861-6-git-send-email-william.towle@codethink.co.uk> <54CA6869.9060100@cogentembedded.com> <Pine.LNX.4.64.1501291915100.30602@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1501291915100.30602@axis700.grange>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello.
 
---z7bbLlDR+qKEHzO8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 01/29/2015 09:18 PM, Guennadi Liakhovetski wrote:
 
-On Sun, Dec 21, 2014 at 12:34:51AM +0200, Antti Palosaari wrote:
+>>> This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
+>>> which is used by the ADV7612 chip.
 
-> + * @lock_class_key: Custom lock class key for lockdep validator. Use that when
-> + *                regmap in question is used for bus master IO in order to avoid
-> + *                false lockdep nested locking warning. Valid only when regmap
-> + *                default mutex locking is used.
+>>> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
 
-Thinking about this further this comment definitely isn't accurate, it's
-not just bus masters that are potentially affected but also things like
-clock controllers that might need to be interacted with in order to do
-I/O.  Thinking about those I'm even unsure that a per driver class
-(which seems to be the idea here) will be enough, it's at least in
-theory possible that two different instances of the same clock IP (or
-generic regmap clock controller) will both need to be turned on for this
-to work.
+>>     I wonder why it hasn't been merged still? It's pending since 2013, and I'm
+>> seeing no objections to it...
 
-If it was just bus controllers it looks like we can probably just have
-the clients set a flag saying that's what they are and then define the
-class in the regmap core but I don't think that's all that's going on
-here.
+> Indeed, strange. I'm saving it for me to look at it for the next merge...
+> and I'll double-check that series. Maybe the series had some objections,
 
---z7bbLlDR+qKEHzO8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+    Indeed, I'm now seeing the patch #1 was objected to. Patch #2 has been 
+merged somewhat later.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+> Thanks
+> Guennadi
 
-iQEcBAEBAgAGBQJUmHnCAAoJECTWi3JdVIfQk50H/RGS2wUXfa/aWuGNK/lZGSRo
-2lgKusMBw2ddm5X0uZwsvV3RPraRQKUqiaToFbs/3gC2n71k+o/mi7ybhj9LGyal
-i66TIKrkw2kTYnCCtpwc2+LodxME/hJpO5vf6vhe/F0ikWtNsJb4cS1pOYFSZ8rn
-YFdn/TGQmhL5T402ozTa7xxGNtxCERoBcNOPJrxNsQERkBdYyp3y2cX1O/O9PdL9
-Ml7BgPVSGKZhKlsXttKogwyJZbJsWK8/6ZiopGyfYR1THEQ0eMy11F9Edguw8kfa
-RerT9csU0+AqZEEdSaotkgqkOM6hPFTYp4OAq/OALSWKwGqbfpPeqYi6Sj7E3Pw=
-=XPvQ
------END PGP SIGNATURE-----
+WBR, Sergei
 
---z7bbLlDR+qKEHzO8--
