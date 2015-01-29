@@ -1,81 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:42700 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751252AbbAEMYx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Jan 2015 07:24:53 -0500
-Date: Mon, 5 Jan 2015 10:24:45 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Akihiro TSUKADA <tskd08@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [RFC/PATCH] dvb-core: add template code for i2c binding model
-Message-ID: <20150105102445.671d5c1e@concha.lan>
-In-Reply-To: <54AA8032.30307@gmail.com>
-References: <1417776573-16182-1-git-send-email-tskd08@gmail.com>
-	<20141230111051.7aeff58a@concha.lan>
-	<20141230180126.0b0b333d@concha.lan>
-	<54AA8032.30307@gmail.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:34773 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750944AbbA2VYm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 16:24:42 -0500
+Date: Thu, 29 Jan 2015 22:24:40 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	lkml <linux-kernel@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	b.zolnierkie@samsung.com, "rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC v8 02/14] Documentation: leds: Add description of LED
+ Flash class extension
+Message-ID: <20150129212440.GB21140@amd>
+References: <547C539A.4010500@samsung.com>
+ <20141201130437.GB24737@amd>
+ <547C7420.4080801@samsung.com>
+ <CAK5ve-KMNszyz6br_Q_dOhvk=_8ev6Uz-ZhPnYBn-ZvuohQpVA@mail.gmail.com>
+ <20141206124310.GB3411@amd>
+ <5485D7F8.10807@samsung.com>
+ <20141208201855.GA16648@amd>
+ <5486B8AE.5000408@samsung.com>
+ <20141209155033.GB21422@amd>
+ <20141210231431.GP15559@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20141210231431.GP15559@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 05 Jan 2015 21:14:42 +0900
-Akihiro TSUKADA <tskd08@gmail.com> escreveu:
+Hi!
 
-> > The only thing I noticed is that it is causing some warnings at
-> > dmesg about trying to create already created sysfs nodes, when the
-> > driver is removed/reinserted.
+> > > This approach would require implementing additional mechanisms on
+> > > both sides: LED Flash class core and a LED Flash class driver.
+> > > In the former the sysfs attribute write permissions would have
+> > > to be decided in the runtime and in the latter caching mechanism
 > > 
-> > Probably, the remove callback is called too soon or too late.
+> > Write attributes at runtime? Why? We can emulate sane and consistent
+> > behaviour for all the controllers: read gives you list of faults,
+> > write clears it. We can do it for all the controllers.
+> > 
+> > Only cost is few lines of code in the drivers where hardware clears
+> > faults at read.
 > 
-> I don't have any warnings in syslog when reinserting earth-pt3 + tc90522,
-> but I'll look into it.
-
-This seems to be an already existing bug at cx231xx, as I'm also getting
-those without those patches.
-
+> Please take the time to read this, and consider it.
 > 
-> > -struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config,
-> > -				    struct i2c_adapter *i2c)
-> > +static int mb86a20s_probe(struct i2c_client *i2c,
-> > +			  const struct i2c_device_id *id)
-> >  {
-> > +	struct dvb_frontend *fe;
-> >  	struct mb86a20s_state *state;
-> >  	u8	rev;
-> >  
-> >  	dev_dbg(&i2c->dev, "%s called.\n", __func__);
-> >  
-> > -	/* allocate memory for the internal state */
-> > -	state = kzalloc(sizeof(struct mb86a20s_state), GFP_KERNEL);
-> > -	if (state == NULL) {
-> > -		dev_err(&i2c->dev,
-> > -			"%s: unable to allocate memory for state\n", __func__);
-> > -		goto error;
-> > -	}
-> > +	fe = i2c_get_clientdata(i2c);
-> > +	state = fe->demodulator_priv;
-> >  
-> >  	/* setup the state */
-> > -	state->config = config;
-> > +	memcpy(&state->config, i2c->dev.platform_data, sizeof(state->config));
-> >  	state->i2c = i2c;
-> >  
-> >  	/* create dvb_frontend */
-> > -	memcpy(&state->frontend.ops, &mb86a20s_ops,
-> > +	memcpy(&fe->ops, &mb86a20s_ops,
-> >  		sizeof(struct dvb_frontend_ops));
+> I'd say the cost is I2C register access, not so much a few lines added to
+> the drivers. The functionality and behaviour between the flash controllers
+> varies. They have different faults, presence of (some) faults may prevent
+> strobing, some support reading the flash status and some don't.
 > 
-> btw,
-> we can go with "mb86a20s_param = { .ops.fe_ops = &mb86a20s_ops,}" insead.
+> Some of the flash faults are mostly relevant in production testing, some can
+> be used to find hardware issues during use (rare) and some are produced in
+> common use (timeout, for instance).
 > 
-> --
-> regards,
-> akihiro
+> The V4L2 flash API defines that reading the faults clears them, but does not
+> state whether presence of faults would prevent further use of the flash.
+> This is flash controller chip specific.
 
+Yeah, but we are discussing sysfs reads. V4L2 API can just behave differently.
 
+> I think you *could* force a policy on the level of kernel API, for instance
+> require that the user clears the faults before strobing again rather than
+> relying on the chip requiring this instead.
+
+Yes, we could do that.
+
+> Most of the time there are no faults. When there are, they may appear at
+> some point of time after the strobing, but how long? Probably roughly after
+> the timeout period the flash should have faults available if there were any
+> --- except if the strobe is external such as a sensor timed strobe. In that
+> case the software running on the CPU has no knowledge when the flash is
+> strobed nor when the faults should be read. So the requirement of checking
+> the faults would probably have to be limited to software strobe only. The
+> user would still have to be able to check the faults for externally strobed
+> pulses. Would it be acceptable that the interface was different
+> there?
+
+Should the user just read the faults before scheduling next strobe?
+
+> So, after the user has strobed, when the user should check the flash faults?
+> After the timeout period has passed? Right before strobing again? If this
+> was a requirement, it adds an additional I2C access to potentially the place
+> which should absolutely have no extra delay --- the flash strobe time. This
+> would be highly unwanted.
+
+I'd do it before strobing again. Not neccessarily "just" before
+strobing again (you claim it is slow ... is it really so slow it matters)?
+
+> Finally, should the LED flash class enforce such a policy, would the V4L2
+> flash API which is provided to the same devices be changed as well? I'm not
+> against that if we have
+> 
+> 	1) can come up with a good policy that is understood to be
+> 	   meaningful for all thinkable flash controller implementations and
+> 
+> 	2) agreement the behaviour can be changed.
+
+I am saying that reading from /sys should not have side effects. For
+V4L2, existing behaviour might be ok.
+
+Each driver should have two operations: read_faults() and
+clear_faults().
+
+On devices where i2c read clears faults, operations will be:
+
+int my_faults
+
+read_faults()
+	my_faults |= read_i2c_faults()
+	return my_faults
+
+clear_faults()
+	my_faults = 0
+
+Best regards,
+									Pavel
 -- 
-
-Cheers,
-Mauro
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
