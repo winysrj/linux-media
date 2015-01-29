@@ -1,133 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46661 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960AbbACOtZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jan 2015 09:49:25 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+Received: from mail-oi0-f53.google.com ([209.85.218.53]:37421 "EHLO
+	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755855AbbA2UXg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 15:23:36 -0500
+Received: by mail-oi0-f53.google.com with SMTP id i138so30707244oig.12
+        for <linux-media@vger.kernel.org>; Thu, 29 Jan 2015 12:23:35 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1422548388-28861-5-git-send-email-william.towle@codethink.co.uk>
+References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <1422548388-28861-5-git-send-email-william.towle@codethink.co.uk>
+From: Jean-Michel Hautbois <jhautbois@gmail.com>
+Date: Thu, 29 Jan 2015 21:23:20 +0100
+Message-ID: <CAL8zT=gQF+OeRqTU0X+eeKA1UmyNNyAfmyr5cmj6h6ALHuSF1A@mail.gmail.com>
+Subject: Re: [PATCH 4/8] WmT: m-5mols_core style pad handling for adv7604
+To: William Towle <william.towle@codethink.co.uk>
+Cc: linux-kernel@lists.codethink.co.uk,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 9/9] dvbdev: add pad for the DVB devnodes
-Date: Sat,  3 Jan 2015 12:49:11 -0200
-Message-Id: <7535eb2087c6d888d59b82ecea4aa399ef5d285e.1420294938.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420294938.git.mchehab@osg.samsung.com>
-References: <cover.1420294938.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1420294938.git.mchehab@osg.samsung.com>
-References: <cover.1420294938.git.mchehab@osg.samsung.com>
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We want to represent the links between the several DVB devnodes,
-so let's create PADs for them.
+First of all, this subject puzzles me... What means WmT ??
 
-The DVB net devnode is a different matter, as it is not related
-to the media stream, but with network. So, at least for now, let's
-not add any pad for it.
+2015-01-29 17:19 GMT+01:00 William Towle <william.towle@codethink.co.uk>:
+> ---
+>  drivers/media/i2c/adv7604.c |   12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Again, it it passing checkpatch without signed-off-by ? And a little
+description does not hurt :).
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 28e9d53d0979..202c15582fa3 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -184,7 +184,7 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 				      int type, int minor)
- {
- #if defined(CONFIG_MEDIA_CONTROLLER)
--	int ret;
-+	int ret = 0, npads;
- 
- 	if (!dvbdev->mdev)
- 		return;
-@@ -196,18 +196,46 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 	dvbdev->entity->info.dvb.major = DVB_MAJOR;
- 	dvbdev->entity->info.dvb.minor = minor;
- 	dvbdev->entity->name = dvbdev->name;
-+
-+	switch(type) {
-+	case DVB_DEVICE_CA:
-+	case DVB_DEVICE_DEMUX:
-+		npads = 2;
-+		break;
-+	case DVB_DEVICE_NET:
-+		npads = 0;
-+		break;
-+	default:
-+		npads = 1;
-+	}
-+
-+	if (npads) {
-+		dvbdev->pads = kcalloc(npads, sizeof(*dvbdev->pads),
-+				       GFP_KERNEL);
-+		if (!dvbdev->pads) {
-+			kfree(dvbdev->entity);
-+			return;
-+		}
-+	}
-+
- 	switch(type) {
- 	case DVB_DEVICE_FRONTEND:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_DEMUX:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
-+		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
- 		break;
- 	case DVB_DEVICE_DVR:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		break;
- 	case DVB_DEVICE_CA:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
-+		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
- 		break;
- 	case DVB_DEVICE_NET:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
-@@ -218,11 +246,16 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 		return;
- 	}
- 
--	ret = media_device_register_entity(dvbdev->mdev, dvbdev->entity);
-+	if (npads)
-+		ret = media_entity_init(dvbdev->entity, npads, dvbdev->pads, 0);
-+	if (!ret)
-+		ret = media_device_register_entity(dvbdev->mdev,
-+						   dvbdev->entity);
- 	if (ret < 0) {
- 		printk(KERN_ERR
- 			"%s: media_device_register_entity failed for %s\n",
- 			__func__, dvbdev->entity->name);
-+		kfree(dvbdev->pads);
- 		kfree(dvbdev->entity);
- 		dvbdev->entity = NULL;
- 		return;
-@@ -335,6 +368,7 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
- 	if (dvbdev->entity) {
- 		media_device_unregister_entity(dvbdev->entity);
- 		kfree(dvbdev->entity);
-+		kfree(dvbdev->pads);
- 	}
- #endif
- 
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index f58dfef46984..513ca92028dd 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -98,8 +98,9 @@ struct dvb_device {
- 	struct media_device *mdev;
- 	const char *name;
- 
--	/* Filled inside dvbdev.c */
-+	/* Allocated and filled inside dvbdev.c */
- 	struct media_entity *entity;
-+	struct media_pad *pads;
- #endif
- 
- 	void *priv;
--- 
-2.1.0
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 30bbd9d..6ed9303 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -1976,7 +1976,11 @@ static int adv7604_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>         if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+>                 struct v4l2_mbus_framefmt *fmt;
+>
+> -               fmt = v4l2_subdev_get_try_format(fh, format->pad);
+> +               fmt = (fh == NULL) ? NULL
+> +                       : v4l2_subdev_get_try_format(fh, format->pad);
+> +               if (fmt == NULL)
+> +                       return EINVAL;
+> +
 
+Mmmh, Hans probably has an explanation on this, I just don't get a use
+case where fh can be NULL... So can't see the point of this patch ?
+
+>                 format->format.code = fmt->code;
+>         } else {
+>                 format->format.code = state->format->code;
+> @@ -2008,7 +2012,11 @@ static int adv7604_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>         if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+>                 struct v4l2_mbus_framefmt *fmt;
+>
+> -               fmt = v4l2_subdev_get_try_format(fh, format->pad);
+> +               fmt = (fh == NULL) ? NULL
+> +                       : v4l2_subdev_get_try_format(fh, format->pad);
+> +               if (fmt == NULL)
+> +                       return -EINVAL;
+> +
+>                 fmt->code = format->format.code;
+>         } else {
+>                 state->format = info;
+
+Same comment as above.
+Thanks,
+JM
