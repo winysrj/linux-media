@@ -1,50 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:65257 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072AbbAPMff (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:20210 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752822AbbA2Peh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2015 07:35:35 -0500
-Received: by mail-lb0-f179.google.com with SMTP id z11so18212553lbi.10
-        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2015 04:35:34 -0800 (PST)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 1/2] si2168: return error if set_frontend is called with invalid parameters
-Date: Fri, 16 Jan 2015 14:35:19 +0200
-Message-Id: <1421411720-2364-1-git-send-email-olli.salonen@iki.fi>
+	Thu, 29 Jan 2015 10:34:37 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NIY00KH43G7PZ10@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Jan 2015 15:38:31 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Philipp Zabel' <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org
+References: <1422031895-7740-1-git-send-email-p.zabel@pengutronix.de>
+ <1422031895-7740-3-git-send-email-p.zabel@pengutronix.de>
+In-reply-to: <1422031895-7740-3-git-send-email-p.zabel@pengutronix.de>
+Subject: RE: [PATCH 02/21] [media] coda: bitrate can only be set in kbps steps
+Date: Thu, 29 Jan 2015 16:34:25 +0100
+Message-id: <029c01d03bd9$10b19580$3214c080$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch should is based on Antti's silabs branch.
+Hi Philipp,
 
-According to dvb-frontend.h set_frontend may be called with bandwidth_hz set to 0 if automatic bandwidth is required. Si2168 does not support automatic bandwidth and does not declare FE_CAN_BANDWIDTH_AUTO in caps.
+Could you add a one sentence description for this patch?
+I know that it is really simple, but still the description is still
+necessary.
 
-This patch will change the behaviour in a way that EINVAL is returned if bandwidth_hz is 0.
-
-Cc-to: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 7f966f3..7fef5ab 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -180,7 +180,12 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	if (c->bandwidth_hz <= 5000000)
-+	if (c->bandwidth_hz == 0) {
-+		ret = -EINVAL;
-+		dev_err(&client->dev, "automatic bandwidth not supported");
-+		goto err;
-+	}
-+	else if (c->bandwidth_hz <= 5000000)
- 		bandwidth = 0x05;
- 	else if (c->bandwidth_hz <= 6000000)
- 		bandwidth = 0x06;
+Best wishes,
 -- 
-1.9.1
+Kamil Debski
+Samsung R&D Institute Poland
+
+
+> -----Original Message-----
+> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
+> Sent: Friday, January 23, 2015 5:51 PM
+> To: Kamil Debski
+> Cc: linux-media@vger.kernel.org; Philipp Zabel
+> Subject: [PATCH 02/21] [media] coda: bitrate can only be set in kbps
+> steps
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/coda/coda-common.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/coda/coda-common.c
+> b/drivers/media/platform/coda/coda-common.c
+> index 39330a7..1cc4e90 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -1407,7 +1407,7 @@ static const struct v4l2_ctrl_ops coda_ctrl_ops =
+> {  static void coda_encode_ctrls(struct coda_ctx *ctx)  {
+>  	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+> -		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1, 0);
+> +		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1000, 0);
+>  	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+>  		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 60, 1, 16);
+>  	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+> --
+> 2.1.4
 
