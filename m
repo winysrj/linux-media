@@ -1,115 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:39153 "EHLO mx02.posteo.de"
+Received: from omr1.cc.vt.edu ([198.82.141.52]:37661 "EHLO omr1.cc.vt.edu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752862AbbAYUhg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2015 15:37:36 -0500
-Received: from dovecot03.posteo.de (unknown [185.67.36.28])
-	by mx02.posteo.de (Postfix) with ESMTPS id 231A225B8E02
-	for <linux-media@vger.kernel.org>; Sun, 25 Jan 2015 21:37:34 +0100 (CET)
-Received: from mail.posteo.de (localhost [127.0.0.1])
-	by dovecot03.posteo.de (Postfix) with ESMTPSA id 3kVmH25mXGz5vMp
-	for <linux-media@vger.kernel.org>; Sun, 25 Jan 2015 21:37:34 +0100 (CET)
-Date: Sun, 25 Jan 2015 21:36:15 +0100
-From: Felix Janda <felix.janda@posteo.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/4] Use off_t and off64_t instead of __off_t and __off64_t
-Message-ID: <20150125203557.GA11999@euler>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	id S1751864AbbA2WNk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 17:13:40 -0500
+To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	Gulsah Kose <gulsah.1004@gmail.com>,
+	Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>,
+	Martin Kaiser <martin@kaiser.cx>, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] staging: media: lirc: lirc_zilog: Fix for possible null pointer dereference
+In-Reply-To: Your message of "Thu, 29 Jan 2015 19:48:08 +0100."
+             <1422557288-3617-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+From: Valdis.Kletnieks@vt.edu
+References: <1422557288-3617-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Mime-Version: 1.0
+Content-Type: multipart/signed; boundary="==_Exmh_1422569560_1905P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
+Date: Thu, 29 Jan 2015 17:12:40 -0500
+Message-ID: <21497.1422569560@turing-police.cc.vt.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since _LARGEFILE64_SOURCE is 1, these types coincide if defined.
+--==_Exmh_1422569560_1905P
+Content-Type: text/plain; charset=us-ascii
 
-Signed-off-by: Felix Janda <felix.janda@posteo.de>
----
- lib/libv4l1/v4l1compat.c               | 5 ++---
- lib/libv4l2/v4l2convert.c              | 4 ++--
- lib/libv4lconvert/libv4lsyscall-priv.h | 7 +++----
- 3 files changed, 7 insertions(+), 9 deletions(-)
+On Thu, 29 Jan 2015 19:48:08 +0100, Rickard Strandqvist said:
+> Fix a possible null pointer dereference, there is
+> otherwise a risk of a possible null pointer dereference.
+>
+> This was found using a static code analysis program called cppcheck
+>
+> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+> ---
+>  drivers/staging/media/lirc/lirc_zilog.c |    4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/lib/libv4l1/v4l1compat.c b/lib/libv4l1/v4l1compat.c
-index e328288..07240c1 100644
---- a/lib/libv4l1/v4l1compat.c
-+++ b/lib/libv4l1/v4l1compat.c
-@@ -26,7 +26,6 @@
- #include <stdarg.h>
- #include <fcntl.h>
- #include <libv4l1.h>
--#include "../libv4lconvert/libv4lsyscall-priv.h" /* for __off_t */
- 
- #include <sys/ioctl.h>
- #include <sys/mman.h>
-@@ -112,14 +111,14 @@ LIBV4L_PUBLIC ssize_t read(int fd, void *buffer, size_t n)
- }
- 
- LIBV4L_PUBLIC void *mmap(void *start, size_t length, int prot, int flags, int fd,
--		__off_t offset)
-+		off_t offset)
- {
- 	return v4l1_mmap(start, length, prot, flags, fd, offset);
- }
- 
- #ifdef linux
- LIBV4L_PUBLIC void *mmap64(void *start, size_t length, int prot, int flags, int fd,
--		__off64_t offset)
-+		off64_t offset)
- {
- 	return v4l1_mmap(start, length, prot, flags, fd, offset);
- }
-diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
-index 9b46ab8..b65da5e 100644
---- a/lib/libv4l2/v4l2convert.c
-+++ b/lib/libv4l2/v4l2convert.c
-@@ -139,14 +139,14 @@ LIBV4L_PUBLIC ssize_t read(int fd, void *buffer, size_t n)
- }
- 
- LIBV4L_PUBLIC void *mmap(void *start, size_t length, int prot, int flags, int fd,
--		__off_t offset)
-+		off_t offset)
- {
- 	return v4l2_mmap(start, length, prot, flags, fd, offset);
- }
- 
- #ifdef linux
- LIBV4L_PUBLIC void *mmap64(void *start, size_t length, int prot, int flags, int fd,
--		__off64_t offset)
-+		off64_t offset)
- {
- 	return v4l2_mmap(start, length, prot, flags, fd, offset);
- }
-diff --git a/lib/libv4lconvert/libv4lsyscall-priv.h b/lib/libv4lconvert/libv4lsyscall-priv.h
-index cdd38bc..ce89073 100644
---- a/lib/libv4lconvert/libv4lsyscall-priv.h
-+++ b/lib/libv4lconvert/libv4lsyscall-priv.h
-@@ -59,7 +59,6 @@
- #define	_IOC_SIZE(cmd) IOCPARM_LEN(cmd)
- #define	MAP_ANONYMOUS MAP_ANON
- #define	MMAP2_PAGE_SHIFT 0
--typedef off_t __off_t;
- #endif
- 
- #undef SYS_OPEN
-@@ -91,15 +90,15 @@ typedef off_t __off_t;
- #if defined(__FreeBSD__)
- #define SYS_MMAP(addr, len, prot, flags, fd, off) \
- 	__syscall(SYS_mmap, (void *)(addr), (size_t)(len), \
--			(int)(prot), (int)(flags), (int)(fd), (__off_t)(off))
-+			(int)(prot), (int)(flags), (int)(fd), (off_t)(off))
- #elif defined(__FreeBSD_kernel__)
- #define SYS_MMAP(addr, len, prot, flags, fd, off) \
- 	syscall(SYS_mmap, (void *)(addr), (size_t)(len), \
--			(int)(prot), (int)(flags), (int)(fd), (__off_t)(off))
-+			(int)(prot), (int)(flags), (int)(fd), (off_t)(off))
- #else
- #define SYS_MMAP(addr, len, prot, flags, fd, off) \
- 	syscall(SYS_mmap2, (void *)(addr), (size_t)(len), \
--			(int)(prot), (int)(flags), (int)(fd), (__off_t)((off) >> MMAP2_PAGE_SHIFT))
-+			(int)(prot), (int)(flags), (int)(fd), (off_t)((off) >> MMAP2_PAGE_SHIFT))
- #endif
- 
- #define SYS_MUNMAP(addr, len) \
--- 
-2.0.5
+>  	/* find our IR struct */
+>  	struct IR *ir = filep->private_data;
+>
+> -	if (ir == NULL) {
+> -		dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
 
+Yes, the dev_err() call is an obvious thinko.
+
+However, I'm not sure whether removing it entirely is right either.  If
+there *should* be a struct IR * passed there, maybe some other printk()
+should be issued, or even a WARN_ON(!ir), or something?
+
+--==_Exmh_1422569560_1905P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+Comment: Exmh version 2.5 07/13/2001
+
+iQIVAwUBVMqwVwdmEQWDXROgAQJF6xAAk4DDwh0o3LvfmaI+rLDYmhq4WgJDxH34
+92A/502Xwy3JI5hUc95JqKN/TEUompBMdqTd59RSwef7u1pzcJop9dcucBOjmsFs
+HifPjUyi/ailTUSv0Q/h38s2UUOFygGsMR0ePxQhye5klegiUlEeyjp0mYEpK9pH
+phIPwbqLJaXmU7WK6Teifzl31UD8EeYcTs/IjYeIuFOenaDkp1L0GPEp0KdVvvxc
+pgFnOkxvYKPKgxKhdgOclZE0p4ppjU7bQuXjvMvg8VoRqctKK5i4zZ3kXVzByaPJ
+3XPwlPTadvkn8BtIS2TGy7eSecJ2we5R1FHJAtt+3JmgifSGrA/9KQbL1DrRRJdF
+VBQ2PaJxVn+ghbsM9/+XUYPAQCUam1ccsmAZE6VriRkCufGe3/s7zDtavoDJUJ3n
+hudimChfjQTxnAhu40dwZ2b6kesQOffWGKWTWDPBiAZb1mq1/4pYRSOwc7fKPJ6Y
+cVS1I//OR+dPnPaFmaNf2ikdQ9WFhPXOidcdkGZxY3yHVAIUC8xQsZnrxtHQgk1V
+ZogNwZ27WlF38uJEYI/9oxSTcs49AYmvZOlr7Fe7/TiOPqbrVTa8wGbKZ+bmMNK4
+MxOvNuWVoqgugNfAYbqOXbKgkLScCey0oo0zfPEhlukfoH4qqu7Ftwqa3DPTrgJq
+SmX9TpHVmIU=
+=DXw2
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1422569560_1905P--
