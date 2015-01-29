@@ -1,158 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:23490 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932480AbbAIPZO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2015 10:25:14 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+Received: from smtp2.provo.novell.com ([137.65.250.81]:33162 "EHLO
+	smtp2.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751138AbbA2LeK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2015 06:34:10 -0500
+Message-ID: <1422530027.4604.32.camel@stgolabs.net>
+Subject: Re: [PATCH v5] media: au0828 - convert to use videobuf2
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: m.chehab@samsung.com, hans.verkuil@cisco.com,
+	dheitmueller@kernellabs.com, prabhakar.csengg@gmail.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	ttmesterr@gmail.com, linux-media@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH/RFC v10 19/19] leds: aat1290: add support for V4L2 Flash
- sub-device
-Date: Fri, 09 Jan 2015 16:23:09 +0100
-Message-id: <1420816989-1808-20-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
+Date: Thu, 29 Jan 2015 03:13:47 -0800
+In-Reply-To: <54C96D4C.6070200@osg.samsung.com>
+References: <1422042075-7320-1-git-send-email-shuahkh@osg.samsung.com>
+	 <54C96D4C.6070200@osg.samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for V4L2 Flash sub-device to the aat1290 LED Flash class
-driver. The support allows for V4L2 Flash sub-device to take the control
-of the LED Flash class device.
+On Wed, 2015-01-28 at 16:14 -0700, Shuah Khan wrote:
+> On 01/23/2015 12:41 PM, Shuah Khan wrote:
+> > Convert au0828 to use videobuf2. Tested with NTSC.
+> > Tested video and vbi devices with xawtv, tvtime,
+> > and vlc. Ran v4l2-compliance to ensure there are
+> > no failures. 
+> > 
+> > Video compliance test results summary:
+> > Total: 75, Succeeded: 75, Failed: 0, Warnings: 18
+> > 
+> > Vbi compliance test results summary:
+> > Total: 75, Succeeded: 75, Failed: 0, Warnings: 0
+> > 
+> > Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> > ---
+> 
+> Hi Hans,
+> 
+> Please don't pull this in. Found a bug in stop_streaming() when
+> re-tuning that requires re-working this patch.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/leds/leds-aat1290.c |   62 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 62 insertions(+)
+... and also:
 
-diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
-index 0a3c9b4..0974868 100644
---- a/drivers/leds/leds-aat1290.c
-+++ b/drivers/leds/leds-aat1290.c
-@@ -20,6 +20,7 @@
- #include <linux/of_gpio.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
-+#include <media/v4l2-flash.h>
- #include <linux/workqueue.h>
- 
- #define AAT1290_MOVIE_MODE_CURRENT_ADDR	17
-@@ -67,6 +68,7 @@ struct aat1290_led {
- 	struct mutex lock;
- 
- 	struct led_classdev_flash fled_cdev;
-+	struct v4l2_flash *v4l2_flash;
- 
- 	int flen_gpio;
- 	int en_set_gpio;
-@@ -280,11 +282,44 @@ static void aat1290_init_flash_settings(struct aat1290_led *led,
- 	setting->val = setting->max;
- }
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+static void aat1290_init_v4l2_ctrl_config(struct aat1290_led_settings *s,
-+					struct v4l2_flash_ctrl_config *config)
-+{
-+	struct led_flash_setting *setting;
-+	struct v4l2_ctrl_config *c;
-+
-+	c = &config->intensity;
-+	setting = &s->torch_brightness;
-+	c->min = setting->min;
-+	c->max = setting->max;
-+	c->step = setting->step;
-+	c->def = setting->val;
-+
-+	c = &config->flash_timeout;
-+	setting = &s->flash_timeout;
-+	c->min = setting->min;
-+	c->max = setting->max;
-+	c->step = setting->step;
-+	c->def = setting->val;
-+
-+	config->has_external_strobe = false;
-+}
-+#else
-+#define aat1290_init_v4l2_ctrl_config(s, config)
-+#endif
-+
- static const struct led_flash_ops flash_ops = {
- 	.strobe_set = aat1290_led_flash_strobe_set,
- 	.timeout_set = aat1290_led_flash_timeout_set,
- };
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+static const struct v4l2_flash_ops v4l2_flash_ops = {
-+	.external_strobe_set = NULL,
-+};
-+#endif
-+
- static int aat1290_led_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-@@ -292,6 +327,9 @@ static int aat1290_led_probe(struct platform_device *pdev)
- 	struct aat1290_led *led;
- 	struct led_classdev *led_cdev;
- 	struct led_classdev_flash *fled_cdev;
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	struct v4l2_flash_ctrl_config v4l2_flash_config;
-+#endif
- 	struct aat1290_led_settings settings;
- 	int flen_gpio, enset_gpio, ret;
- 
-@@ -342,6 +380,9 @@ static int aat1290_led_probe(struct platform_device *pdev)
- 
- 	fled_cdev->timeout = settings.flash_timeout;
- 
-+	/* Init V4L2 Flash controls basing on initialized settings */
-+	aat1290_init_v4l2_ctrl_config(&settings, &v4l2_flash_config);
-+
- 	/* Init led class */
- 	led_cdev = &fled_cdev->led_cdev;
- 	led_cdev->name = led->label;
-@@ -361,13 +402,34 @@ static int aat1290_led_probe(struct platform_device *pdev)
- 
- 	mutex_init(&led->lock);
- 
-+	of_node_get(dev_node);
-+	led_cdev->dev->of_node = dev_node;
-+
-+	/* Create V4L2 Flash subdev. */
-+	led->v4l2_flash = v4l2_flash_init(fled_cdev,
-+					  &v4l2_flash_ops,
-+					  &v4l2_flash_config);
-+	if (IS_ERR(led->v4l2_flash)) {
-+		ret = PTR_ERR(led->v4l2_flash);
-+		goto error_v4l2_flash_init;
-+	}
-+
- 	return 0;
-+
-+error_v4l2_flash_init:
-+	of_node_put(dev_node);
-+	led_classdev_flash_unregister(fled_cdev);
-+	mutex_destroy(&led->lock);
-+
-+	return ret;
- }
- 
- static int aat1290_led_remove(struct platform_device *pdev)
- {
- 	struct aat1290_led *led = platform_get_drvdata(pdev);
- 
-+	v4l2_flash_release(led->v4l2_flash);
-+	of_node_put(led->fled_cdev.led_cdev.dev->of_node);
- 	led_classdev_flash_unregister(&led->fled_cdev);
- 	cancel_work_sync(&led->work_brightness_set);
- 
--- 
-1.7.9.5
+ drivers/media/usb/au0828/Kconfig        |   2 +-
+ drivers/media/usb/au0828/au0828-vbi.c   | 122 ++--
+ drivers/media/usb/au0828/au0828-video.c | 962 ++++++++++++--------------------
+ drivers/media/usb/au0828/au0828.h       |  61 +-
+ 4 files changed, 443 insertions(+), 704 deletions(-)
+
+in a single patch. Lets be nice to reviewers, we can spare a few extra
+hash ids.
 
