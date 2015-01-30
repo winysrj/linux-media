@@ -1,51 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f169.google.com ([209.85.213.169]:54443 "EHLO
-	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752063AbbAMObi (ORCPT
+Received: from mail-we0-f173.google.com ([74.125.82.173]:52120 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753231AbbA3Prb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2015 09:31:38 -0500
-Received: by mail-ig0-f169.google.com with SMTP id z20so16596209igj.0
-        for <linux-media@vger.kernel.org>; Tue, 13 Jan 2015 06:31:38 -0800 (PST)
+	Fri, 30 Jan 2015 10:47:31 -0500
 MIME-Version: 1.0
-In-Reply-To: <1418836704-15689-3-git-send-email-hdegoede@redhat.com>
-References: <1418836704-15689-1-git-send-email-hdegoede@redhat.com>
-	<1418836704-15689-3-git-send-email-hdegoede@redhat.com>
-Date: Tue, 13 Jan 2015 15:31:37 +0100
-Message-ID: <CACRpkdb8wzjAc+14tK=d7coi6H8gts7TrvwELqo0e0RHLsB6Rw@mail.gmail.com>
-Subject: Re: [PATCH v2 02/13] pinctrl: sun6i: Add A31s pinctrl support
-From: Linus Walleij <linus.walleij@linaro.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi <linux-sunxi@googlegroups.com>
+In-Reply-To: <1421365163-29394-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1421365163-29394-1-git-send-email-prabhakar.csengg@gmail.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Fri, 30 Jan 2015 15:46:59 +0000
+Message-ID: <CA+V-a8vYvWygFEfCQsBOMsBamSLFOfmw50MgjNPYraahVN8Y+w@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: add support for omnivision's ov2659 sensor
+To: LMML <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 17, 2014 at 6:18 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+Hello,
 
-> The A31s is a stripped down version of the A31, as such it is missing some
-> pins and some functions on some pins.
+On Thu, Jan 15, 2015 at 11:39 PM, Lad, Prabhakar
+<prabhakar.csengg@gmail.com> wrote:
+> From: Benoit Parrot <bparrot@ti.com>
 >
-> The new pinctrl-sun6i-a31s.c this commit adds is a copy of pinctrl-sun6i-a31s.c
-> with the missing pins and functions removed.
+> this patch adds support for omnivision's ov2659
+> sensor.
 >
-> Note there is no a31s specific version of pinctrl-sun6i-a31-r.c, as the
-> prcm pins are identical between the A31 and the A31s.
->
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 > ---
-> Changes in v2:
-> -Sync i2c3 muxing with v2 of "pinctrl: sun6i: Add some missing functions"
-> -Add myself to the copyright header
+>  .../devicetree/bindings/media/i2c/ov2659.txt       |   33 +
+>  .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+>  MAINTAINERS                                        |   10 +
+>  drivers/media/i2c/Kconfig                          |   11 +
+>  drivers/media/i2c/Makefile                         |    1 +
+>  drivers/media/i2c/ov2659.c                         | 1623 ++++++++++++++++++++
+>  include/media/ov2659.h                             |   33 +
+>  7 files changed, 1712 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2659.txt
+>  create mode 100644 drivers/media/i2c/ov2659.c
+>  create mode 100644 include/media/ov2659.h
+>
+gentle ping for review comments.
 
-Patch applied with Maxime's ACK.
-
-Yours,
-Linus Walleij
+Cheers,
+--Prabhakar Lad
