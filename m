@@ -1,115 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:35225 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751175AbbAODjH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2015 22:39:07 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B27332A0099
-	for <linux-media@vger.kernel.org>; Thu, 15 Jan 2015 04:38:46 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150115033846.B27332A0099@tschai.lan>
-Date: Thu, 15 Jan 2015 04:38:46 +0100 (CET)
+Received: from omr1.cc.vt.edu ([198.82.141.52]:38972 "EHLO omr1.cc.vt.edu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760838AbbA3NKY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jan 2015 08:10:24 -0500
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	devel@driverdev.osuosl.org, Gulsah Kose <gulsah.1004@gmail.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org,
+	Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>,
+	Martin Kaiser <martin@kaiser.cx>, linux-media@vger.kernel.org,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
+Subject: Re: [PATCH] staging: media: lirc: lirc_zilog: Fix for possible null pointer dereference
+In-Reply-To: Your message of "Fri, 30 Jan 2015 16:00:02 +0300."
+             <20150130130001.GZ6456@mwanda>
+From: Valdis.Kletnieks@vt.edu
+References: <1422557288-3617-1-git-send-email-rickard_strandqvist@spectrumdigital.se> <21497.1422569560@turing-police.cc.vt.edu>
+            <20150130130001.GZ6456@mwanda>
+Mime-Version: 1.0
+Content-Type: multipart/signed; boundary="==_Exmh_1422623364_1906P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
+Date: Fri, 30 Jan 2015 08:09:24 -0500
+Message-ID: <32395.1422623364@turing-police.cc.vt.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+--==_Exmh_1422623364_1906P
+Content-Type: text/plain; charset=us-ascii
 
-Results of the daily build of media_tree:
+On Fri, 30 Jan 2015 16:00:02 +0300, Dan Carpenter said:
 
-date:		Thu Jan 15 04:00:14 CET 2015
-git branch:	test
-git hash:	99f3cd52aee21091ce62442285a68873e3be833f
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-1.slh.1-amd64
+> > > -	if (ir == NULL) {
+> > > -		dev_err(ir->l.dev, "close: no private_data attached to the file
+!\n");
+> >
+> > Yes, the dev_err() call is an obvious thinko.
+> >
+> > However, I'm not sure whether removing it entirely is right either.  If
+> > there *should* be a struct IR * passed there, maybe some other printk()
+> > should be issued, or even a WARN_ON(!ir), or something?
+>
+> We set filep->private_data to non-NULL in open() so I don't think it can
+> be NULL here.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16-x86_64: ERRORS
-linux-3.17-x86_64: ERRORS
-linux-3.18-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+Then probably the *right* fix is to remove the *entire* if statement, as
+we can't end up doing the 'return -ENODEV'....
 
-Detailed results are available here:
+--==_Exmh_1422623364_1906P
+Content-Type: application/pgp-signature
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+Comment: Exmh version 2.5 07/13/2001
 
-Full logs are available here:
+iQIVAwUBVMuChAdmEQWDXROgAQLlFA/9EjTHM5w7jzsl683BZuipm+9dzLp4uqHG
+Gsgu1qgvEcl4Gwqw2lCP6hA42+MUucBWoUjSosoKKav7UzUn+MQcoLKRouaf7ClZ
+ntsldkADMuXQvIdPion2ZTbDKUgtYkvrY1QidcBGtdd0DKy4B5J8Sgkr7UJ4n+jC
+T37KG/u1ZEoS+AvcJ0F1sDSB/ApwLI7jIjBL5CA4b6e03q3wASTPJad29pc6Z37f
+Ttal/OO+WpHLckdXIIf64443WAeWVEJCkDGUZgYzWwCbqUrVhvrbXRwUtEOARhRw
+WowZ2YmYRBRaptExgYMJ6IbsGUsiUoYNS/Kj/TVzKDgHv68mYYOtGLb1smmSkRak
+ZvbYEu98XwgsNAHVR+WDXEEpopGvQjkZDKjlENckIWDL/GvovNlj5Qj1knC0tEU6
+cg0HL+n4BuDC6j+vNOnXXFdWZzhah/JCy9MbGWOliBobvfAVGgsaP5vOCllObu48
+qe4cx+I4M9g11oPg7sRBq//R5IwUZMTvsVxbxk3GbLcRYH8Drv3FOWK5KHzOO3Z8
+T91aT2WFE3uq48zog7R17yMZ5cKAIezROZ6dk9foJJ4VHsjL82I6Ujoj3890SYpJ
+SWbyOqSMVEaQDbK2Wb6C6Ep4FeZdacPH31vlGpsSvSiTh56o6HWeu8No7YZe5DQf
+U4sg8GZ6kWA=
+=BgYl
+-----END PGP SIGNATURE-----
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+--==_Exmh_1422623364_1906P--
