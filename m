@@ -1,262 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60065 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752202AbbAVOsU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2015 09:48:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	sadegh abbasi <sadegh612000@yahoo.co.uk>
-Subject: [PATCH 7/7] staging: media: omap4iss: ipipe: Expose the RGB2RGB blending matrix
-Date: Thu, 22 Jan 2015 16:48:46 +0200
-Message-Id: <1421938126-17747-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1421938126-17747-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1421938126-17747-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mout.gmx.net ([212.227.15.15]:54856 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753052AbbAaXVh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Jan 2015 18:21:37 -0500
+Date: Sun, 1 Feb 2015 00:21:32 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Josh Wu <josh.wu@atmel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v3 1/2] V4L: remove clock name from v4l2_clk API
+In-Reply-To: <Pine.LNX.4.64.1502010007180.26661@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1502010009410.26661@axis700.grange>
+References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Expose the module as two controls, one for the 3x3 multiplier matrix and
-one for the 3x1 offset vector.
+All uses of the v4l2_clk API so far only register one clock with a fixed
+name. This allows us to get rid of it, which also will make CCF and DT
+integration easier.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/staging/media/omap4iss/iss_ipipe.c | 129 ++++++++++++++++++++++++++++-
- drivers/staging/media/omap4iss/iss_ipipe.h |  17 ++++
- 2 files changed, 144 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
-index 73b165e..624c5d2 100644
---- a/drivers/staging/media/omap4iss/iss_ipipe.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-@@ -119,6 +119,105 @@ static void ipipe_configure(struct iss_ipipe_device *ipipe)
- }
+v3: .id field removed from the struct. Since CCF clocks won't be added to 
+the V4L2 clock list at all in patch 2 in this series, no clock ID 
+comparison is needed in v4l2_clk_find() either.
+
+ drivers/media/platform/soc_camera/soc_camera.c |  6 ++---
+ drivers/media/usb/em28xx/em28xx-camera.c       |  2 +-
+ drivers/media/v4l2-core/v4l2-clk.c             | 33 ++++++++++----------------
+ include/media/v4l2-clk.h                       |  8 +++----
+ 4 files changed, 20 insertions(+), 29 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index f4be2a1..ce192b6 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1380,7 +1380,7 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+ 	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
+ 		 shd->i2c_adapter_id, shd->board_info->addr);
  
- /* -----------------------------------------------------------------------------
-+ * V4L2 controls
-+ */
-+
-+#define OMAP4ISS_IPIPE_CID_BASE			(V4L2_CID_USER_BASE | 0xf000)
-+#define OMAP4ISS_IPIPE_CID_RGB2RGB_MULT		(OMAP4ISS_IPIPE_CID_BASE + 0)
-+#define OMAP4ISS_IPIPE_CID_RGB2RGB_OFFSET	(OMAP4ISS_IPIPE_CID_BASE + 1)
-+
-+/*
-+ * ipipe_s_ctrl - Handle set control subdev method
-+ * @ctrl: pointer to v4l2 control structure
-+ */
-+static int ipipe_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct iss_ipipe_device *ipipe =
-+		container_of(ctrl->handler, struct iss_ipipe_device, ctrls);
-+	struct iss_device *iss = to_iss_device(ipipe);
-+	unsigned int i;
-+
-+	mutex_lock(&ipipe->lock);
-+
-+	if (ipipe->state == ISS_PIPELINE_STREAM_STOPPED)
-+		goto done;
-+
-+	switch (ctrl->id) {
-+	case OMAP4ISS_IPIPE_CID_RGB2RGB_MULT:
-+	case OMAP4ISS_IPIPE_CID_RGB2RGB_OFFSET:
-+		ctrl = ipipe->rgb2rgb_mult;
-+		for (i = 0; i < ctrl->elems; ++i)
-+			iss_reg_write(iss, OMAP4_ISS_MEM_ISP_IPIPE,
-+				      IPIPE_RGB1_MUL_RR + 4 * i,
-+				      ctrl->p_new.p_s16[i]);
-+
-+		ctrl = ipipe->rgb2rgb_offset;
-+		for (i = 0; i < ctrl->elems; ++i)
-+			iss_reg_write(iss, OMAP4_ISS_MEM_ISP_IPIPE,
-+				      IPIPE_RGB1_OFT_OR + 4 * i,
-+				      ctrl->p_new.p_s16[i]);
-+		break;
-+	}
-+
-+done:
-+	mutex_unlock(&ipipe->lock);
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops ipipe_ctrl_ops = {
-+	.s_ctrl = ipipe_s_ctrl,
-+};
-+
-+static void ipipe_ctrl_type_init(const struct v4l2_ctrl *ctrl,
-+				 union v4l2_ctrl_ptr ptr)
-+{
-+	unsigned int i;
-+
-+	switch (ctrl->id) {
-+	case OMAP4ISS_IPIPE_CID_RGB2RGB_MULT:
-+		/*
-+		 * Initialize the diagonal to 1.0 and all other elements to
-+		 * 0.0.
-+		 */
-+		for (i = 0; i < ctrl->elems; ++i)
-+			ptr.p_s16[i] = (i % 4) ? 0 : 256;
-+		break;
-+	}
-+}
-+
-+static const struct v4l2_ctrl_type_ops ipipe_ctrl_type_ops = {
-+	.equal = v4l2_ctrl_type_std_equal,
-+	.init = ipipe_ctrl_type_init,
-+	.log = v4l2_ctrl_type_std_log,
-+	.validate = v4l2_ctrl_type_std_validate,
-+};
-+
-+static const struct v4l2_ctrl_config ipipe_ctrls[] = {
-+	{
-+		.ops = &ipipe_ctrl_ops,
-+		.type_ops = &ipipe_ctrl_type_ops,
-+		.id = OMAP4ISS_IPIPE_CID_RGB2RGB_MULT,
-+		.name = "RGB2RGB Multiplier",
-+		.type = V4L2_CTRL_TYPE_S16,
-+		.def = 0,
-+		.min = -2048,
-+		.max = 2047,
-+		.step = 1,
-+		.dims = { 3, 3 },
-+	}, {
-+		.ops = &ipipe_ctrl_ops,
-+		.id = OMAP4ISS_IPIPE_CID_RGB2RGB_OFFSET,
-+		.name = "RGB2RGB Offset",
-+		.type = V4L2_CTRL_TYPE_S16,
-+		.def = 0,
-+		.min = -4096,
-+		.max = 4095,
-+		.step = 1,
-+		.dims = { 3 },
-+	},
-+};
-+
-+/* -----------------------------------------------------------------------------
-  * V4L2 subdev operations
-  */
+-	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
++	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, icd);
+ 	if (IS_ERR(icd->clk)) {
+ 		ret = PTR_ERR(icd->clk);
+ 		goto eclkreg;
+@@ -1561,7 +1561,7 @@ static int scan_async_group(struct soc_camera_host *ici,
+ 	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
+ 		 sasd->asd.match.i2c.adapter_id, sasd->asd.match.i2c.address);
  
-@@ -133,9 +232,11 @@ static int ipipe_set_stream(struct v4l2_subdev *sd, int enable)
- 	struct iss_device *iss = to_iss_device(ipipe);
- 	int ret = 0;
+-	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
++	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, icd);
+ 	if (IS_ERR(icd->clk)) {
+ 		ret = PTR_ERR(icd->clk);
+ 		goto eclkreg;
+@@ -1666,7 +1666,7 @@ static int soc_of_bind(struct soc_camera_host *ici,
+ 		snprintf(clk_name, sizeof(clk_name), "of-%s",
+ 			 of_node_full_name(remote));
  
-+	mutex_lock(&ipipe->lock);
-+
- 	if (ipipe->state == ISS_PIPELINE_STREAM_STOPPED) {
- 		if (enable == ISS_PIPELINE_STREAM_STOPPED)
--			return 0;
-+			goto done;
+-	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
++	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, icd);
+ 	if (IS_ERR(icd->clk)) {
+ 		ret = PTR_ERR(icd->clk);
+ 		goto eclkreg;
+diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+index 7be661f..a4b22c2 100644
+--- a/drivers/media/usb/em28xx/em28xx-camera.c
++++ b/drivers/media/usb/em28xx/em28xx-camera.c
+@@ -330,7 +330,7 @@ int em28xx_init_camera(struct em28xx *dev)
  
- 		omap4iss_isp_subclk_enable(iss, OMAP4_ISS_ISP_SUBCLK_IPIPE);
+ 	v4l2_clk_name_i2c(clk_name, sizeof(clk_name),
+ 			  i2c_adapter_id(adap), client->addr);
+-	v4l2->clk = v4l2_clk_register_fixed(clk_name, "mclk", -EINVAL);
++	v4l2->clk = v4l2_clk_register_fixed(clk_name, -EINVAL);
+ 	if (IS_ERR(v4l2->clk))
+ 		return PTR_ERR(v4l2->clk);
  
-@@ -161,7 +262,7 @@ static int ipipe_set_stream(struct v4l2_subdev *sd, int enable)
+diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
+index e18cc04..3ff0b00 100644
+--- a/drivers/media/v4l2-core/v4l2-clk.c
++++ b/drivers/media/v4l2-core/v4l2-clk.c
+@@ -23,17 +23,13 @@
+ static DEFINE_MUTEX(clk_lock);
+ static LIST_HEAD(clk_list);
  
- 	case ISS_PIPELINE_STREAM_STOPPED:
- 		if (ipipe->state == ISS_PIPELINE_STREAM_STOPPED)
--			return 0;
-+			goto done;
- 		if (omap4iss_module_sync_idle(&sd->entity, &ipipe->wait,
- 					      &ipipe->stopping))
- 			ret = -ETIMEDOUT;
-@@ -172,6 +273,13 @@ static int ipipe_set_stream(struct v4l2_subdev *sd, int enable)
- 	}
- 
- 	ipipe->state = enable;
-+
-+done:
-+	mutex_unlock(&ipipe->lock);
-+
-+	if (enable == ISS_PIPELINE_STREAM_CONTINUOUS)
-+		v4l2_ctrl_handler_setup(ipipe->subdev.ctrl_handler);
-+
- 	return ret;
- }
- 
-@@ -501,6 +609,20 @@ static int ipipe_init_entities(struct iss_ipipe_device *ipipe)
- 	v4l2_set_subdevdata(sd, ipipe);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-+	v4l2_ctrl_handler_init(&ipipe->ctrls, 2);
-+
-+	ipipe->rgb2rgb_mult = v4l2_ctrl_new_custom(&ipipe->ctrls,
-+						   &ipipe_ctrls[0], NULL);
-+	ipipe->rgb2rgb_offset = v4l2_ctrl_new_custom(&ipipe->ctrls,
-+						     &ipipe_ctrls[1], NULL);
-+
-+	if (ipipe->ctrls.error)
-+		return ipipe->ctrls.error;
-+
-+	v4l2_ctrl_cluster(2, &ipipe->rgb2rgb_mult);
-+
-+	sd->ctrl_handler = &ipipe->ctrls;
-+
- 	pads[IPIPE_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
- 	pads[IPIPE_PAD_SOURCE_VP].flags = MEDIA_PAD_FL_SOURCE;
- 
-@@ -554,6 +676,7 @@ int omap4iss_ipipe_init(struct iss_device *iss)
- 
- 	ipipe->state = ISS_PIPELINE_STREAM_STOPPED;
- 	init_waitqueue_head(&ipipe->wait);
-+	mutex_init(&ipipe->lock);
- 
- 	return ipipe_init_entities(ipipe);
- }
-@@ -566,5 +689,7 @@ void omap4iss_ipipe_cleanup(struct iss_device *iss)
+-static struct v4l2_clk *v4l2_clk_find(const char *dev_id, const char *id)
++static struct v4l2_clk *v4l2_clk_find(const char *dev_id)
  {
- 	struct iss_ipipe_device *ipipe = &iss->ipipe;
+ 	struct v4l2_clk *clk;
  
-+	v4l2_ctrl_handler_free(&ipipe->ctrls);
- 	media_entity_cleanup(&ipipe->subdev.entity);
-+	mutex_destroy(&ipipe->lock);
+-	list_for_each_entry(clk, &clk_list, list) {
+-		if (strcmp(dev_id, clk->dev_id))
+-			continue;
+-
+-		if (!id || !clk->id || !strcmp(clk->id, id))
++	list_for_each_entry(clk, &clk_list, list)
++		if (!strcmp(dev_id, clk->dev_id))
+ 			return clk;
+-	}
+ 
+ 	return ERR_PTR(-ENODEV);
  }
-diff --git a/drivers/staging/media/omap4iss/iss_ipipe.h b/drivers/staging/media/omap4iss/iss_ipipe.h
-index c22d904..7684271 100644
---- a/drivers/staging/media/omap4iss/iss_ipipe.h
-+++ b/drivers/staging/media/omap4iss/iss_ipipe.h
-@@ -14,6 +14,10 @@
- #ifndef OMAP4_ISS_IPIPE_H
- #define OMAP4_ISS_IPIPE_H
+@@ -43,7 +39,7 @@ struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
+ 	struct v4l2_clk *clk;
  
-+#include <linux/mutex.h>
-+
-+#include <media/v4l2-ctrls.h>
-+
- #include "iss_video.h"
+ 	mutex_lock(&clk_lock);
+-	clk = v4l2_clk_find(dev_name(dev), id);
++	clk = v4l2_clk_find(dev_name(dev));
  
- enum ipipe_input_entity {
-@@ -34,9 +38,13 @@ enum ipipe_input_entity {
-  * @subdev: V4L2 subdevice
-  * @pads: Sink and source media entity pads
-  * @formats: Active video formats
-+ * @ctrls: Control handler
-+ * @rgb2rgb_mult: RGB to RGB matrix multiplier control
-+ * @rgb2rgb_offset: RGB to RGB matrix offset control
-  * @input: Active input
-  * @output: Active outputs
-  * @error: A hardware error occurred during capture
-+ * @lock: Protects the state field
-  * @state: Streaming state
-  * @wait: Wait queue used to stop the module
-  * @stopping: Stopping state
-@@ -46,10 +54,19 @@ struct iss_ipipe_device {
- 	struct media_pad pads[IPIPE_PADS_NUM];
- 	struct v4l2_mbus_framefmt formats[IPIPE_PADS_NUM];
+ 	if (!IS_ERR(clk))
+ 		atomic_inc(&clk->use_count);
+@@ -127,8 +123,8 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
+ 	mutex_lock(&clk->lock);
  
-+	struct v4l2_ctrl_handler ctrls;
-+	struct {
-+		/* RGB2RGB cluster */
-+		struct v4l2_ctrl *rgb2rgb_mult;
-+		struct v4l2_ctrl *rgb2rgb_offset;
-+	};
-+
- 	enum ipipe_input_entity input;
- 	unsigned int output;
- 	unsigned int error;
+ 	enable = --clk->enable;
+-	if (WARN(enable < 0, "Unbalanced %s() on %s:%s!\n", __func__,
+-		 clk->dev_id, clk->id))
++	if (WARN(enable < 0, "Unbalanced %s() on %s!\n", __func__,
++		 clk->dev_id))
+ 		clk->enable++;
+ 	else if (!enable && clk->ops->disable)
+ 		clk->ops->disable(clk);
+@@ -181,7 +177,7 @@ EXPORT_SYMBOL(v4l2_clk_set_rate);
  
-+	struct mutex lock;
-+	bool streaming;
- 	enum iss_pipeline_stream_state state;
- 	wait_queue_head_t wait;
- 	atomic_t stopping;
+ struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
+ 				   const char *dev_id,
+-				   const char *id, void *priv)
++				   void *priv)
+ {
+ 	struct v4l2_clk *clk;
+ 	int ret;
+@@ -193,9 +189,8 @@ struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
+ 	if (!clk)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	clk->id = kstrdup(id, GFP_KERNEL);
+ 	clk->dev_id = kstrdup(dev_id, GFP_KERNEL);
+-	if ((id && !clk->id) || !clk->dev_id) {
++	if (!clk->dev_id) {
+ 		ret = -ENOMEM;
+ 		goto ealloc;
+ 	}
+@@ -205,7 +200,7 @@ struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
+ 	mutex_init(&clk->lock);
+ 
+ 	mutex_lock(&clk_lock);
+-	if (!IS_ERR(v4l2_clk_find(dev_id, id))) {
++	if (!IS_ERR(v4l2_clk_find(dev_id))) {
+ 		mutex_unlock(&clk_lock);
+ 		ret = -EEXIST;
+ 		goto eexist;
+@@ -217,7 +212,6 @@ struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
+ 
+ eexist:
+ ealloc:
+-	kfree(clk->id);
+ 	kfree(clk->dev_id);
+ 	kfree(clk);
+ 	return ERR_PTR(ret);
+@@ -227,15 +221,14 @@ EXPORT_SYMBOL(v4l2_clk_register);
+ void v4l2_clk_unregister(struct v4l2_clk *clk)
+ {
+ 	if (WARN(atomic_read(&clk->use_count),
+-		 "%s(): Refusing to unregister ref-counted %s:%s clock!\n",
+-		 __func__, clk->dev_id, clk->id))
++		 "%s(): Refusing to unregister ref-counted %s clock!\n",
++		 __func__, clk->dev_id))
+ 		return;
+ 
+ 	mutex_lock(&clk_lock);
+ 	list_del(&clk->list);
+ 	mutex_unlock(&clk_lock);
+ 
+-	kfree(clk->id);
+ 	kfree(clk->dev_id);
+ 	kfree(clk);
+ }
+@@ -253,7 +246,7 @@ static unsigned long fixed_get_rate(struct v4l2_clk *clk)
+ }
+ 
+ struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
+-		const char *id, unsigned long rate, struct module *owner)
++				unsigned long rate, struct module *owner)
+ {
+ 	struct v4l2_clk *clk;
+ 	struct v4l2_clk_fixed *priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+@@ -265,7 +258,7 @@ struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
+ 	priv->ops.get_rate = fixed_get_rate;
+ 	priv->ops.owner = owner;
+ 
+-	clk = v4l2_clk_register(&priv->ops, dev_id, id, priv);
++	clk = v4l2_clk_register(&priv->ops, dev_id, priv);
+ 	if (IS_ERR(clk))
+ 		kfree(priv);
+ 
+diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+index 0b36cc1..928045f 100644
+--- a/include/media/v4l2-clk.h
++++ b/include/media/v4l2-clk.h
+@@ -26,7 +26,6 @@ struct v4l2_clk {
+ 	struct list_head list;
+ 	const struct v4l2_clk_ops *ops;
+ 	const char *dev_id;
+-	const char *id;
+ 	int enable;
+ 	struct mutex lock; /* Protect the enable count */
+ 	atomic_t use_count;
+@@ -43,7 +42,7 @@ struct v4l2_clk_ops {
+ 
+ struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
+ 				   const char *dev_name,
+-				   const char *name, void *priv);
++				   void *priv);
+ void v4l2_clk_unregister(struct v4l2_clk *clk);
+ struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id);
+ void v4l2_clk_put(struct v4l2_clk *clk);
+@@ -55,14 +54,13 @@ int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
+ struct module;
+ 
+ struct v4l2_clk *__v4l2_clk_register_fixed(const char *dev_id,
+-		const char *id, unsigned long rate, struct module *owner);
++			unsigned long rate, struct module *owner);
+ void v4l2_clk_unregister_fixed(struct v4l2_clk *clk);
+ 
+ static inline struct v4l2_clk *v4l2_clk_register_fixed(const char *dev_id,
+-							const char *id,
+ 							unsigned long rate)
+ {
+-	return __v4l2_clk_register_fixed(dev_id, id, rate, THIS_MODULE);
++	return __v4l2_clk_register_fixed(dev_id, rate, THIS_MODULE);
+ }
+ 
+ #define v4l2_clk_name_i2c(name, size, adap, client) snprintf(name, size, \
 -- 
-2.0.5
+1.9.3
 
