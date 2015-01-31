@@ -1,90 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:22633 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751891AbbALIEf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2015 03:04:35 -0500
-Message-id: <54B3800C.2000704@samsung.com>
-Date: Mon, 12 Jan 2015 09:04:28 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, sakari.ailus@iki.fi,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH/RFC v10 02/19] Documentation: leds: Add description of LED
- Flash class extension
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-3-git-send-email-j.anaszewski@samsung.com>
- <20150109174058.GC18076@amd>
-In-reply-to: <20150109174058.GC18076@amd>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:38560 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751221AbbAaQdX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Jan 2015 11:33:23 -0500
+Message-ID: <54CD03A9.3060408@redhat.com>
+Date: Sat, 31 Jan 2015 17:32:41 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	John McMaster <johndmcmaster@gmail.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: [PULL patches for 3.20]: New gspca touptek driver, gspca fixes
+ and sunxi-cir driver improvments
+References: <54B79BDE.8090702@redhat.com> <20150129183650.526d7015@recife.lan>
+In-Reply-To: <20150129183650.526d7015@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Hi,
 
-Thanks for the review.
-
-On 01/09/2015 06:40 PM, Pavel Machek wrote:
-> Hi!
->
->> The documentation being added contains overall description of the
->> LED Flash Class and the related sysfs attributes.
+On 01/29/2015 09:36 PM, Mauro Carvalho Chehab wrote:
+> Em Thu, 15 Jan 2015 11:52:14 +0100
+> Hans de Goede <hdegoede@redhat.com> escreveu:
+> 
+>> Hi Mauro,
 >>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Bryan Wu <cooloney@gmail.com>
->> Cc: Richard Purdie <rpurdie@rpsys.net>
->
->> +In order to enable support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
->> +must be defined in the kernel config. A flash LED driver must register
->> +in the LED subsystem with led_classdev_flash_register function to gain flash
->> +related capabilities.
->> +
->> +There are flash LED devices which can control more than one LED and allow for
->> +strobing the sub-leds synchronously. A LED will be strobed synchronously with
->> +the one whose identifier is written to the flash_sync_strobe sysfs attribute.
->> +The list of available sub-led identifiers can be read from the
->
-> sub-LED?
+>> Note this pull-req superseeds my previous pull-req for 3.20 .
+> 
+> Hmm... I ended by applying the previous pull request. I was unable to see
+> what's new on this one. Please check if everything went fine.
 
-Indeed, this naming will be more consistent.
+I used the same branch for both, so everything went fine.
 
->> +	- flash_fault - bitmask of flash faults that may have occurred
->> +			possible flags are:
->> +		* 0x01 - flash controller voltage to the flash LED has exceeded
->> +			 the limit specific to the flash controller
->> +		* 0x02 - the flash strobe was still on when the timeout set by
->> +			 the user has expired; not all flash controllers may
->> +			 set this in all such conditions
->> +		* 0x04 - the flash controller has overheated
->> +		* 0x08 - the short circuit protection of the flash controller
->> +			 has been triggered
->> +		* 0x10 - current in the LED power supply has exceeded the limit
->> +			 specific to the flash controller
->> +		* 0x20 - the flash controller has detected a short or open
->> +			 circuit condition on the indicator LED
->> +		* 0x40 - flash controller voltage to the flash LED has been
->> +			 below the minimum limit specific to the flash
->> +		* 0x80 - the input voltage of the flash controller is below
->> +			 the limit under which strobing the flash at full
->> +			 current will not be possible. The condition persists
->> +			 until this flag is no longer set
->> +		* 0x100 - the temperature of the LED has exceeded its allowed
->> +			  upper limit
->
-> Did not everyone agree that text strings are preferable to bitmasks?
->
-> 									Pavel
->
+Thanks,
 
-I just forgot to update the flash_fault documentation. Will fix in the
-next version.
+Hans
 
--- 
-Best Regards,
-Jacek Anaszewski
+> 
+> Thanks!
+> Mauro
+> 
+>>
+>> Please pull from my tree for a new gspca touptek driver, various
+>> gspca fixes and some sunxi-cir driver improvments.
+>>
+>> The following changes since commit 99f3cd52aee21091ce62442285a68873e3be833f:
+>>
+>>    [media] vb2-vmalloc: Protect DMA-specific code by #ifdef CONFIG_HAS_DMA (2014-12-23 16:28:09 -0200)
+>>
+>> are available in the git repository at:
+>>
+>>    git://linuxtv.org/hgoede/gspca.git media-for_v3.20
+>>
+>> for you to fetch changes up to e6a734195e2fbd9386aa58fe8931dd30c013f23e:
+>>
+>>    gspca: Fix underflow in vidioc_s_parm() (2015-01-15 11:46:17 +0100)
+>>
+>> ----------------------------------------------------------------
+>> Antonio Ospite (1):
+>>        gspca_stv06xx: enable button found on some Quickcam Express variant
+>>
+>> Hans Verkuil (1):
+>>        pwc: fix WARN_ON
+>>
+>> Hans de Goede (3):
+>>        rc: sunxi-cir: Add support for an optional reset controller
+>>        rc: sunxi-cir: Add support for the larger fifo found on sun5i and sun6i
+>>        gspca: Fix underflow in vidioc_s_parm()
+>>
+>> Joe Howse (1):
+>>        gspca: Add high-speed modes for PS3 Eye camera
+>>
+>> John McMaster (1):
+>>        gspca_touptek: Add support for ToupTek UCMOS series USB cameras
+>>
+>>   .../devicetree/bindings/media/sunxi-ir.txt         |   4 +-
+>>   drivers/media/rc/sunxi-cir.c                       |  46 +-
+>>   drivers/media/usb/gspca/Kconfig                    |  10 +
+>>   drivers/media/usb/gspca/Makefile                   |   2 +
+>>   drivers/media/usb/gspca/gspca.c                    |   2 +-
+>>   drivers/media/usb/gspca/ov534.c                    |  10 +-
+>>   drivers/media/usb/gspca/stv06xx/stv06xx.c          |   4 +-
+>>   drivers/media/usb/gspca/touptek.c                  | 732 +++++++++++++++++++++
+>>   drivers/media/usb/pwc/pwc-if.c                     |  12 +-
+>>   9 files changed, 800 insertions(+), 22 deletions(-)
+>>   create mode 100644 drivers/media/usb/gspca/touptek.c
+>>
+>> Thanks & Regards,
+>>
+>> Hans
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
