@@ -1,59 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:44648 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751659AbbASNbT (ORCPT
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:43760 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753560AbbAaJ3y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2015 08:31:19 -0500
-Received: by mail-lb0-f172.google.com with SMTP id l4so15442828lbv.3
-        for <linux-media@vger.kernel.org>; Mon, 19 Jan 2015 05:31:18 -0800 (PST)
-From: Ulf Hansson <ulf.hansson@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH V2 5/8] [media] exynos-gsc: Fixup clock management at ->remove()
-Date: Mon, 19 Jan 2015 14:22:37 +0100
-Message-Id: <1421673760-2600-6-git-send-email-ulf.hansson@linaro.org>
-In-Reply-To: <1421673760-2600-1-git-send-email-ulf.hansson@linaro.org>
-References: <1421673760-2600-1-git-send-email-ulf.hansson@linaro.org>
+	Sat, 31 Jan 2015 04:29:54 -0500
+Received: by mail-pa0-f48.google.com with SMTP id ey11so62051042pad.7
+        for <linux-media@vger.kernel.org>; Sat, 31 Jan 2015 01:29:53 -0800 (PST)
+From: Zhangfei Gao <zhangfei.gao@linaro.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	Zhangfei Gao <zhangfei.gao@linaro.org>
+Subject: [PATCH] [media] ir-hix5hd2: remove writel/readl_relaxed define
+Date: Sat, 31 Jan 2015 17:29:46 +0800
+Message-Id: <1422696586-27411-1-git-send-email-zhangfei.gao@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To make sure the clock is fully gated in ->remove(), we first need to
-to bring the device into full power by invoking pm_runtime_get_sync().
+Commit 9439eb3ab9d1ec ("asm-generic: io: implement relaxed
+accessor macros as conditional wrappers") has added
+{read,write}{b,w,l,q}_relaxed to include/asm-generic/io.h
 
-Then, let's both unprepare and disable the clock.
-
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+Signed-off-by: Zhangfei Gao <zhangfei.gao@linaro.org>
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/media/rc/ir-hix5hd2.c | 8 --------
+ 1 file changed, 8 deletions(-)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index e84bc35..5d3cfe8 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1104,12 +1104,15 @@ static int gsc_remove(struct platform_device *pdev)
- {
- 	struct gsc_dev *gsc = platform_get_drvdata(pdev);
+diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
+index b0df62961c14..58ec5986274e 100644
+--- a/drivers/media/rc/ir-hix5hd2.c
++++ b/drivers/media/rc/ir-hix5hd2.c
+@@ -16,14 +16,6 @@
+ #include <linux/regmap.h>
+ #include <media/rc-core.h>
  
-+	pm_runtime_get_sync(&pdev->dev);
-+
- 	gsc_unregister_m2m_device(gsc);
- 	v4l2_device_unregister(&gsc->v4l2_dev);
+-/* Allow the driver to compile on all architectures */
+-#ifndef writel_relaxed
+-# define writel_relaxed writel
+-#endif
+-#ifndef readl_relaxed
+-# define readl_relaxed readl
+-#endif
 -
- 	vb2_dma_contig_cleanup_ctx(gsc->alloc_ctx);
-+	clk_disable_unprepare(gsc->clock);
-+
- 	pm_runtime_disable(&pdev->dev);
--	clk_unprepare(gsc->clock);
-+	pm_runtime_put_noidle(&pdev->dev);
- 
- 	dev_dbg(&pdev->dev, "%s driver unloaded\n", pdev->name);
- 	return 0;
+ #define IR_ENABLE		0x00
+ #define IR_CONFIG		0x04
+ #define CNT_LEADS		0x08
 -- 
 1.9.1
 
