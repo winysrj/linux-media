@@ -1,177 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49259 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165AbbBWQnh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 11:43:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 5/7] v4l2-subdev: add support for the new enum_frame_size 'which' field.
-Date: Mon, 23 Feb 2015 18:44:39 +0200
-Message-ID: <1477074.hT2BHRMHFc@avalon>
-In-Reply-To: <1423827006-32878-6-git-send-email-hverkuil@xs4all.nl>
-References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl> <1423827006-32878-6-git-send-email-hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.20]:53783 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753884AbbBAS32 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Feb 2015 13:29:28 -0500
+Date: Sun, 1 Feb 2015 19:29:19 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: William Towle <william.towle@codethink.co.uk>
+cc: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 5/8] media: rcar_vin: Add RGB888_1X24 input format support
+In-Reply-To: <1422548388-28861-6-git-send-email-william.towle@codethink.co.uk>
+Message-ID: <Pine.LNX.4.64.1502011926420.18447@axis700.grange>
+References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
+ <1422548388-28861-6-git-send-email-william.towle@codethink.co.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Wills,
 
-Thank you for the patch.
+On Thu, 29 Jan 2015, William Towle wrote:
 
-On Friday 13 February 2015 12:30:04 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
+> which is used by the ADV7612 chip.
 > 
-> Support the new 'which' field in the enum_frame_size ops. Most drivers do
-> not need to be changed since they always returns the same enumeration
-> regardless of the 'which' field.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
+> ---
+> URL:    http://marc.info/?l=linux-sh&m=138002993417489&q=raw
+> FIXMEs required:
+> - "From:" as per URL
+> - adapted for lx3.18 by William Towle -> add S-o-b **
 
-For everything except s5c73m3, 
+Yes, please, add your Sob and the original authorship. Which, btw, isn't 
+this patch a modified version of 
+http://lists.kde.org/?l=linux-sh&m=141476801629391&w=4 ? I.e. shouldn't it 
+be
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-Please see below for a small note.
+? And yes, I like this version better, because it sets the VNMC_BPS bit in 
+one step instead of two.
+
+Thanks
+Guennadi
 
 > ---
->  drivers/media/i2c/s5c73m3/s5c73m3-core.c           | 23 +++++++++++++++----
->  drivers/media/platform/omap3isp/ispccdc.c          |  4 ++--
->  drivers/media/platform/omap3isp/ispccp2.c          |  4 ++--
->  drivers/media/platform/omap3isp/ispcsi2.c          |  4 ++--
->  drivers/media/platform/omap3isp/isppreview.c       |  4 ++--
->  drivers/media/platform/omap3isp/ispresizer.c       |  4 ++--
->  drivers/media/platform/vsp1/vsp1_hsit.c            |  4 +++-
->  drivers/media/platform/vsp1/vsp1_lif.c             |  4 +++-
->  drivers/media/platform/vsp1/vsp1_lut.c             |  4 +++-
->  drivers/media/platform/vsp1/vsp1_rwpf.c            |  3 ++-
->  drivers/media/platform/vsp1/vsp1_sru.c             |  4 +++-
->  drivers/media/platform/vsp1/vsp1_uds.c             |  4 +++-
->  drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |  6 ++----
->  drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |  6 ++----
->  drivers/staging/media/davinci_vpfe/dm365_isif.c    |  4 ++--
->  drivers/staging/media/davinci_vpfe/dm365_resizer.c |  6 ++----
->  drivers/staging/media/omap4iss/iss_csi2.c          |  4 ++--
->  drivers/staging/media/omap4iss/iss_ipipe.c         |  4 ++--
->  drivers/staging/media/omap4iss/iss_ipipeif.c       |  6 ++----
->  drivers/staging/media/omap4iss/iss_resizer.c       |  6 ++----
->  20 files changed, 62 insertions(+), 46 deletions(-)
-
-[snip]
-
-> diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c
-> b/drivers/media/platform/vsp1/vsp1_hsit.c index d226b3f..8ffb817 100644
-> --- a/drivers/media/platform/vsp1/vsp1_hsit.c
-> +++ b/drivers/media/platform/vsp1/vsp1_hsit.c
-> @@ -76,9 +76,11 @@ static int hsit_enum_frame_size(struct v4l2_subdev
-> *subdev, struct v4l2_subdev_pad_config *cfg,
->  				struct v4l2_subdev_frame_size_enum *fse)
->  {
-> +	struct vsp1_hsit *hsit = to_hsit(subdev);
->  	struct v4l2_mbus_framefmt *format;
+>  drivers/media/platform/soc_camera/rcar_vin.c |   11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
 > 
-> -	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
-> +	format = vsp1_entity_get_pad_format(&hsit->entity, cfg, fse->pad,
-> +					    fse->which);
-
-You could also have used to_vsp1_entity(subdev) to cast to an entity pointer 
-directly, but both are fine with me. Same comment for the rest of the driver.
-
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index c4f88c3..e4f60d3 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -74,6 +74,7 @@
+>  #define VNMC_INF_YUV10_BT656	(2 << 16)
+>  #define VNMC_INF_YUV10_BT601	(3 << 16)
+>  #define VNMC_INF_YUV16		(5 << 16)
+> +#define VNMC_INF_RGB888		(6 << 16)
+>  #define VNMC_VUP		(1 << 10)
+>  #define VNMC_IM_ODD		(0 << 3)
+>  #define VNMC_IM_ODD_EVEN	(1 << 3)
+> @@ -241,7 +242,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  	struct soc_camera_device *icd = priv->ici.icd;
+>  	struct rcar_vin_cam *cam = icd->host_priv;
+>  	u32 vnmc, dmr, interrupts;
+> -	bool progressive = false, output_is_yuv = false;
+> +	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+>  
+>  	switch (priv->field) {
+>  	case V4L2_FIELD_TOP:
+> @@ -275,11 +276,16 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  	case MEDIA_BUS_FMT_YUYV8_1X16:
+>  		/* BT.601/BT.1358 16bit YCbCr422 */
+>  		vnmc |= VNMC_INF_YUV16;
+> +		input_is_yuv = true;
+>  		break;
+>  	case MEDIA_BUS_FMT_YUYV8_2X8:
+>  		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+>  		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+>  			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+> +		input_is_yuv = true;
+> +		break;
+> +	case MEDIA_BUS_FMT_RGB888_1X24:
+> +		vnmc |= VNMC_INF_RGB888;
+>  		break;
+>  	case MEDIA_BUS_FMT_YUYV10_2X10:
+>  		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+> @@ -328,7 +334,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  	vnmc |= VNMC_VUP;
+>  
+>  	/* If input and output use the same colorspace, use bypass mode */
+> -	if (output_is_yuv)
+> +	if (input_is_yuv == output_is_yuv)
+>  		vnmc |= VNMC_BPS;
+>  
+>  	/* progressive or interlaced mode */
+> @@ -1015,6 +1021,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+>  	case MEDIA_BUS_FMT_YUYV8_1X16:
+>  	case MEDIA_BUS_FMT_YUYV8_2X8:
+>  	case MEDIA_BUS_FMT_YUYV10_2X10:
+> +	case MEDIA_BUS_FMT_RGB888_1X24:
+>  		if (cam->extra_fmt)
+>  			break;
+>  
+> -- 
+> 1.7.10.4
 > 
->  	if (fse->index || fse->code != format->code)
->  		return -EINVAL;
-> diff --git a/drivers/media/platform/vsp1/vsp1_lif.c
-> b/drivers/media/platform/vsp1/vsp1_lif.c index 60f1bd8..39fa5ef 100644
-> --- a/drivers/media/platform/vsp1/vsp1_lif.c
-> +++ b/drivers/media/platform/vsp1/vsp1_lif.c
-> @@ -109,9 +109,11 @@ static int lif_enum_frame_size(struct v4l2_subdev
-> *subdev, struct v4l2_subdev_pad_config *cfg,
->  			       struct v4l2_subdev_frame_size_enum *fse)
->  {
-> +	struct vsp1_lif *lif = to_lif(subdev);
->  	struct v4l2_mbus_framefmt *format;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> -	format = v4l2_subdev_get_try_format(subdev, cfg, LIF_PAD_SINK);
-> +	format = vsp1_entity_get_pad_format(&lif->entity, cfg, LIF_PAD_SINK,
-> +					    fse->which);
-> 
->  	if (fse->index || fse->code != format->code)
->  		return -EINVAL;
-> diff --git a/drivers/media/platform/vsp1/vsp1_lut.c
-> b/drivers/media/platform/vsp1/vsp1_lut.c index 8aa8c11..656ec27 100644
-> --- a/drivers/media/platform/vsp1/vsp1_lut.c
-> +++ b/drivers/media/platform/vsp1/vsp1_lut.c
-> @@ -117,9 +117,11 @@ static int lut_enum_frame_size(struct v4l2_subdev
-> *subdev, struct v4l2_subdev_pad_config *cfg,
->  			       struct v4l2_subdev_frame_size_enum *fse)
->  {
-> +	struct vsp1_lut *lut = to_lut(subdev);
->  	struct v4l2_mbus_framefmt *format;
-> 
-> -	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
-> +	format = vsp1_entity_get_pad_format(&lut->entity, cfg,
-> +					    fse->pad, fse->which);
-> 
->  	if (fse->index || fse->code != format->code)
->  		return -EINVAL;
-> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c
-> b/drivers/media/platform/vsp1/vsp1_rwpf.c index a083d85..fa71f46 100644
-> --- a/drivers/media/platform/vsp1/vsp1_rwpf.c
-> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
-> @@ -48,7 +48,8 @@ int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
->  	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
->  	struct v4l2_mbus_framefmt *format;
-> 
-> -	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
-> +	format = vsp1_entity_get_pad_format(&rwpf->entity, cfg, fse->pad,
-> +					    fse->which);
-> 
->  	if (fse->index || fse->code != format->code)
->  		return -EINVAL;
-> diff --git a/drivers/media/platform/vsp1/vsp1_sru.c
-> b/drivers/media/platform/vsp1/vsp1_sru.c index 554340d..6310aca 100644
-> --- a/drivers/media/platform/vsp1/vsp1_sru.c
-> +++ b/drivers/media/platform/vsp1/vsp1_sru.c
-> @@ -200,9 +200,11 @@ static int sru_enum_frame_size(struct v4l2_subdev
-> *subdev, struct v4l2_subdev_pad_config *cfg,
->  			       struct v4l2_subdev_frame_size_enum *fse)
->  {
-> +	struct vsp1_sru *sru = to_sru(subdev);
->  	struct v4l2_mbus_framefmt *format;
-> 
-> -	format = v4l2_subdev_get_try_format(subdev, cfg, SRU_PAD_SINK);
-> +	format = vsp1_entity_get_pad_format(&sru->entity, cfg,
-> +					    SRU_PAD_SINK, fse->which);
-> 
->  	if (fse->index || fse->code != format->code)
->  		return -EINVAL;
-> diff --git a/drivers/media/platform/vsp1/vsp1_uds.c
-> b/drivers/media/platform/vsp1/vsp1_uds.c index ef4d307..ccc8243 100644
-> --- a/drivers/media/platform/vsp1/vsp1_uds.c
-> +++ b/drivers/media/platform/vsp1/vsp1_uds.c
-> @@ -204,9 +204,11 @@ static int uds_enum_frame_size(struct v4l2_subdev
-> *subdev, struct v4l2_subdev_pad_config *cfg,
->  			       struct v4l2_subdev_frame_size_enum *fse)
->  {
-> +	struct vsp1_uds *uds = to_uds(subdev);
->  	struct v4l2_mbus_framefmt *format;
-> 
-> -	format = v4l2_subdev_get_try_format(subdev, cfg, UDS_PAD_SINK);
-> +	format = vsp1_entity_get_pad_format(&uds->entity, cfg,
-> +					    UDS_PAD_SINK, fse->which);
-> 
->  	if (fse->index || fse->code != format->code)
->  		return -EINVAL;
-
--- 
-Regards,
-
-Laurent Pinchart
-
