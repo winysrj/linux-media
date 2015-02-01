@@ -1,93 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:60337 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933618AbbBCHpX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 02:45:23 -0500
-Received: by mail-we0-f172.google.com with SMTP id q59so43253668wes.3
-        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2015 23:45:22 -0800 (PST)
-Date: Tue, 3 Feb 2015 08:46:43 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Clark <robdclark@gmail.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher
- constraints with dma-parms
-Message-ID: <20150203074643.GE14009@phenom.ffwll.local>
-References: <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
- <20150129143908.GA26493@n2100.arm.linux.org.uk>
- <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
- <20150129154718.GB26493@n2100.arm.linux.org.uk>
- <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
- <20150129192610.GE26493@n2100.arm.linux.org.uk>
- <CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
- <20150202165405.GX14009@phenom.ffwll.local>
- <CAF6AEGuESM+e3HSRGM6zLqrp8kqRLGUYvA3KKECdm7m-nt0M=Q@mail.gmail.com>
- <20150202214616.GI8656@n2100.arm.linux.org.uk>
+Received: from fortimail.online.lv ([81.198.164.220]:33225 "EHLO
+	fortimail.online.lv" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752944AbbBANHE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Feb 2015 08:07:04 -0500
+Received: from mailo-proxy2.online.lv (smtp.online.lv [81.198.164.193])
+	by fortimail.online.lv  with ESMTP id t11D70CV025209-t11D70CW025209
+	for <linux-media@vger.kernel.org>; Sun, 1 Feb 2015 15:07:00 +0200
+Message-ID: <54CE24F2.7090400@apollo.lv>
+Date: Sun, 01 Feb 2015 15:06:58 +0200
+From: Raimonds Cicans <ray@apollo.lv>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150202214616.GI8656@n2100.arm.linux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>, hans.verkuil@cisco.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
+ cx23885: convert to vb2"
+References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>
+ <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>
+In-Reply-To: <54CA23BE.7050609@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 02, 2015 at 09:46:16PM +0000, Russell King - ARM Linux wrote:
-> On Mon, Feb 02, 2015 at 03:30:21PM -0500, Rob Clark wrote:
-> > On Mon, Feb 2, 2015 at 11:54 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> > >> My initial thought is for dma-buf to not try to prevent something than
-> > >> an exporter can actually do.. I think the scenario you describe could
-> > >> be handled by two sg-lists, if the exporter was clever enough.
-> > >
-> > > That's already needed, each attachment has it's own sg-list. After all
-> > > there's no array of dma_addr_t in the sg tables, so you can't use one sg
-> > > for more than one mapping. And due to different iommu different devices
-> > > can easily end up with different addresses.
-> > 
-> > 
-> > Well, to be fair it may not be explicitly stated, but currently one
-> > should assume the dma_addr_t's in the dmabuf sglist are bogus.  With
-> > gpu's that implement per-process/context page tables, I'm not really
-> > sure that there is a sane way to actually do anything else..
-> 
-> That's incorrect - and goes dead against the design of scatterlists.
-> 
-> Not only that, but it is entirely possible that you may get handed
-> memory via dmabufs for which there are no struct page's associated
-> with that memory - think about display systems which have their own
-> video memory which is accessible to the GPU, but it isn't system
-> memory.
-> 
-> In those circumstances, you have to use the dma_addr_t's and not the
-> pages.
+On 29.01.2015 14:12, Hans Verkuil wrote:
+> On 01/29/15 12:51, Raimonds Cicans wrote:
+>> On 29.01.2015 09:33, Hans Verkuil wrote:
+>>> On 01/11/2015 10:33 AM, Raimonds Cicans wrote:
+>>>> I contacted you because I am hit by regression caused by your commit:
+>>>> 453afdd "[media] cx23885: convert to vb2"
+>>>>
+>>>>
+>>>> My system:
+>>>> AMD Athlon(tm) II X2 240e Processor on Asus M5A97 LE R2.0 motherboard
+>>>> TBS6981 card (Dual DVB-S/S2 PCIe receiver, cx23885 in kernel driver)
+>>>>
+>>>> After upgrade from kernel 3.13.10 (do not have commit) to 3.17.7
+>>>> (have commit) I started receiving following IOMMU related messages:
+>>>>
+>>>> 1)
+>>>> AMD-Vi: Event logged [IO_PAGE_FAULT device=0a:00.0 domain=0x001d
+>>>> address=0x000000000637c000 flags=0x0000]
+>>>>
+>>>> where device=0a:00.0 is TBS6981 card
+>>> As far as I can tell this has nothing to do with the cx23885 driver but is
+>>> a bug in the amd iommu/BIOS. See e.g.:
+>>>
+>>> https://bbs.archlinux.org/viewtopic.php?pid=1309055
+>>>
+>>> I managed to reproduce the Intel equivalent if I enable CONFIG_IOMMU_SUPPORT.
+>>>
+>>> Most likely due to broken BIOS/ACPI/whatever information that's read by the
+>>> kernel. I would recommend disabling this kernel option.
+>>>
+>> Maybe...
+>>
+>> But on other hand this did not happen on old kernel with old driver.
+>> And when I did bisection on old kernel + media tree I started to
+>> receive this message only on new driver.
+> Was CONFIG_IOMMU_SUPPORT enabled in the old kernel?
 
-Yeah exactly. At least with i915 we'd really want to be able to share
-stolen memory in some cases, and since that's stolen there's no struct
-pages for them. On top of that any cpu access is also blocked to that
-range in the memory controller, so the dma_addr_t is really the _only_
-thing you can use to get at those memory ranges. And afaik the camera pipe
-on intel soc can get there - unfortunately that one doesn't have an
-upstream driver :(
+zgrep CONFIG_IOMMU_SUPPORT /proc/config.gz
+CONFIG_IOMMU_SUPPORT=y
 
-And just to clarify: All current dma-buf exporter that I've seen implement
-the sg mapping correctly and _do_ map the sg table into device address
-space with dma_map_sg. In other words: The dma_addr_t are all valid, it's
-just that e.g. with ttm no one has bothered to teach ttm a dma-buf
-correctly. The internal abstraction is all there, ttm-internal buffer
-object interface match what dma-buf exposes fairly closes (hey I didn't do
-shit when designing those interfaces ;-)
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+
+Raimonds Cicans
+
