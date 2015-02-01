@@ -1,86 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f42.google.com ([209.85.192.42]:64364 "EHLO
-	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755973AbbBPQBT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 11:01:19 -0500
-Received: by mail-qg0-f42.google.com with SMTP id z107so23960384qgd.1
-        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2015 08:01:18 -0800 (PST)
-Message-ID: <54E2144C.7030206@gmail.com>
-Date: Mon, 16 Feb 2015 11:01:16 -0500
-From: Michael Hall <mhall119@gmail.com>
+Received: from mout.gmx.net ([212.227.15.19]:54744 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752284AbbBATiW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Feb 2015 14:38:22 -0500
+Received: from axis700.grange ([87.78.204.142]) by mail.gmx.com (mrgmx001)
+ with ESMTPSA (Nemesis) id 0Le64S-1XsdHM0k8K-00ptAn for
+ <linux-media@vger.kernel.org>; Sun, 01 Feb 2015 20:38:20 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id CCA4140BD9
+	for <linux-media@vger.kernel.org>; Sun,  1 Feb 2015 20:38:18 +0100 (CET)
+Date: Sun, 1 Feb 2015 20:38:18 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera for 3.20 #1
+Message-ID: <Pine.LNX.4.64.1502012035590.18447@axis700.grange>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Steven Zakulec <spzakulec@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Can the patch adding support for the Tasco USB microscope be
- queued up?
-References: <CAOraNAbMn227Doegfx-o=-edLCwaL3so-6019jHf+ydChuoiCQ@mail.gmail.com> <54E20D3E.9020308@gmail.com> <54E20F64.5060506@xs4all.nl>
-In-Reply-To: <54E20F64.5060506@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My apologies, the other emails were sent to linux-uvc-devel, not
-linux-media.
+Hi Mauro,
 
-Do you want an attached patch file, or simply a diff in the body of the
-email? I'm also not clear on what you mean by "correct Signed-off-by
-line", I have very little experience with git, I've mostly used bzr.
+These are the simpler patches for soc-camera of those, recently submitted. 
+A few more are in work, don't know how many of them will be reworked 
+quickly enough for 3.20.
 
-Michael Hall
-mhall119@gmail.com
+The following changes since commit 7640c108d5912b5da0a9c795aa5b98bbf2a12118:
 
-On 02/16/2015 10:40 AM, Hans Verkuil wrote:
-> On 02/16/2015 04:31 PM, Michael Hall wrote:
->> This is now the 3rd or 4th email to this list requesting that this patch
->> be merged in. If there is something wrong with the patch that needs
->> fixing, please let me know and I will work on the fix. Otherwise I've
->> lost interest in pushing to get it into upstream.
-> 
-> I can't remember ever seeing a patch for that posted to the linux-media
-> mailinglist.
-> 
-> The best way is just to post the patch to this mailinglist, check that it
-> appears in patchwork (https://patchwork.linuxtv.org/project/linux-media/list/),
-> make sure you keep the author and correct Signed-off-by line and it's
-> *guaranteed* that someone will look at it, and merge it or reply to it
-> if there are problems.
-> 
-> Mails like 'please pick up a patch from some other git repo' are very
-> likely to be forgotten due to volume of other postings. Patchwork won't
-> pick them up and that's what we all rely on.
-> 
-> So if either of you can just post this as a properly formatted patch,
-> then it will be taken care of.
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> Michael Hall
->> mhall119@gmail.com
->>
->> On 02/16/2015 10:08 AM, Steven Zakulec wrote:
->>> Hi, as an owner of a Tasco/Aveo USB microscope detected but not
->>> working under Linux, I'd really like to see the patch adding this
->>> variant added to the kernel.  I've copied the patch's author on the
->>> email.
->>> The people on the linux-uvc-devel list directed me over here.
->>>
->>> The patch here:
->>> http://sourceforge.net/p/linux-uvc/mailman/message/32434617/ , itself
->>> an update of an earlier patch:
->>> http://sourceforge.net/p/linux-uvc/mailman/message/29835445/ works.
->>> The patch does make the USB microscope work where it didn't work at all before.
->>>
->>> Thank you!
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
+  Merge branch 'patchwork' into to_next (2015-01-29 19:25:59 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.20-1
+
+for you to fetch changes up to 9955c8587391e346d7e5fc51160a1a84685085c2:
+
+  rcar_vin: move buffer management to .stop_streaming handler (2015-02-01 19:32:37 +0100)
+
+----------------------------------------------------------------
+Guennadi Liakhovetski (1):
+      soc-camera: remove redundant code
+
+Ian Molton (1):
+      rcar_vin: helper function for streaming stop
+
+Josh Wu (1):
+      ov2640: use the v4l2 size definitions
+
+Lad, Prabhakar (1):
+      soc_camera: use vb2_ops_wait_prepare/finish helper
+
+William Towle (1):
+      rcar_vin: move buffer management to .stop_streaming handler
+
+ drivers/media/i2c/soc_camera/ov2640.c              | 82 +++++++------------
+ drivers/media/platform/soc_camera/atmel-isi.c      |  7 +-
+ drivers/media/platform/soc_camera/mx3_camera.c     |  7 +-
+ drivers/media/platform/soc_camera/rcar_vin.c       | 94 +++++++++-------------
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  7 +-
+ drivers/media/platform/soc_camera/soc_camera.c     | 18 -----
+ 6 files changed, 82 insertions(+), 133 deletions(-)
+
+Thanks
+Guennadi
