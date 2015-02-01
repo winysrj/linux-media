@@ -1,134 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49407 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753877AbbBMW6T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 17:58:19 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv4 14/25] [media] dvbdev: add pad for the DVB devnodes
-Date: Fri, 13 Feb 2015 20:57:57 -0200
-Message-Id: <ae0d3cd4580a18176edce68fd57288eda217c436.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
+Received: from mout.gmx.net ([212.227.17.20]:51287 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752605AbbBALor (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Feb 2015 06:44:47 -0500
+Date: Sun, 1 Feb 2015 12:44:29 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: William Towle <william.towle@codethink.co.uk>
+cc: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 7/8] WmT: rcar_vin new ADV7612 support
+In-Reply-To: <1422548388-28861-8-git-send-email-william.towle@codethink.co.uk>
+Message-ID: <Pine.LNX.4.64.1502011241450.9534@axis700.grange>
+References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
+ <1422548388-28861-8-git-send-email-william.towle@codethink.co.uk>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We want to represent the links between the several DVB devnodes,
-so let's create PADs for them.
+Hi Wills,
 
-The DVB net devnode is a different matter, as it is not related
-to the media stream, but with network. So, at least for now, let's
-not add any pad for it.
+Same proposed wrappers could be used here.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Thanks
+Guennadi
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index f98fd3b29afe..79c96edf71ef 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -184,7 +184,7 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 				      int type, int minor)
- {
- #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
--	int ret;
-+	int ret = 0, npads;
- 
- 	if (!dvbdev->adapter->mdev)
- 		return;
-@@ -196,18 +196,46 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 	dvbdev->entity->info.dev.major = DVB_MAJOR;
- 	dvbdev->entity->info.dev.minor = minor;
- 	dvbdev->entity->name = dvbdev->name;
-+
-+	switch (type) {
-+	case DVB_DEVICE_CA:
-+	case DVB_DEVICE_DEMUX:
-+		npads = 2;
-+		break;
-+	case DVB_DEVICE_NET:
-+		npads = 0;
-+		break;
-+	default:
-+		npads = 1;
-+	}
-+
-+	if (npads) {
-+		dvbdev->pads = kcalloc(npads, sizeof(*dvbdev->pads),
-+				       GFP_KERNEL);
-+		if (!dvbdev->pads) {
-+			kfree(dvbdev->entity);
-+			return;
-+		}
-+	}
-+
- 	switch (type) {
- 	case DVB_DEVICE_FRONTEND:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_DEMUX:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
-+		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
- 		break;
- 	case DVB_DEVICE_DVR:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		break;
- 	case DVB_DEVICE_CA:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
-+		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
- 		break;
- 	case DVB_DEVICE_NET:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
-@@ -218,12 +246,16 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 		return;
- 	}
- 
--	ret = media_device_register_entity(dvbdev->adapter->mdev,
--					   dvbdev->entity);
-+	if (npads)
-+		ret = media_entity_init(dvbdev->entity, npads, dvbdev->pads, 0);
-+	if (!ret)
-+		ret = media_device_register_entity(dvbdev->adapter->mdev,
-+						   dvbdev->entity);
- 	if (ret < 0) {
- 		printk(KERN_ERR
- 			"%s: media_device_register_entity failed for %s\n",
- 			__func__, dvbdev->entity->name);
-+		kfree(dvbdev->pads);
- 		kfree(dvbdev->entity);
- 		dvbdev->entity = NULL;
- 		return;
-@@ -336,6 +368,7 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
- 	if (dvbdev->entity) {
- 		media_device_unregister_entity(dvbdev->entity);
- 		kfree(dvbdev->entity);
-+		kfree(dvbdev->pads);
- 	}
- #endif
- 
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index 485d8e660aea..464067c43a35 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -101,8 +101,9 @@ struct dvb_device {
- #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
- 	const char *name;
- 
--	/* Filled inside dvbdev.c */
-+	/* Allocated and filled inside dvbdev.c */
- 	struct media_entity *entity;
-+	struct media_pad *pads;
- #endif
- 
- 	void *priv;
--- 
-2.1.0
+On Thu, 29 Jan 2015, William Towle wrote:
 
+> Add 'struct media_pad pad' member and suitable glue code, so that
+> soc_camera/rcar_vin can become agnostic to whether an old or new-
+> style driver (wrt pad API use) can sit underneath
+> 
+> This version has been reworked to include appropriate constant and
+> datatype names for kernel v3.18
+> 
+> ---
+> 
+> ** this version for kernel 3.18.x+ (v4l2 constant names) **
+> ** now including: **
+> | WmT: assume max resolution at init
+> |
+> | Make rcar_vin agnostic to the driver beneath having a smaller
+> | resolution as its default size. Previously, the logic for calculating
+> | cropping region size -which depends on going from larger to smaller
+> | values- would have been confused by this.
+> ---
+>  drivers/media/platform/soc_camera/rcar_vin.c |  112 +++++++++++++++++++++++---
+>  1 file changed, 101 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index e4f60d3..046fcc1 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -932,9 +932,27 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+>  	u32 code;
+>  	const struct soc_mbus_pixelfmt *fmt;
+>  
+> -	ret = v4l2_subdev_call(sd, video, enum_mbus_fmt, idx, &code);
+> -	if (ret < 0)
+> -		return 0;
+> +	// subdev_has_op -> enum_mbus_code vs enum_mbus_fmt
+> +	if (v4l2_subdev_has_op(sd, pad, enum_mbus_code)) {
+> +		struct v4l2_subdev_mbus_code_enum c;
+> +
+> +		c.index = idx;
+> +
+> +		ret = v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &c);
+> +		if (ret < 0)
+> +			return 0;
+> +
+> +#if 1	/*  ideal  */
+> +		code = c.code;
+> +#else	/*  Ian HACK - required with full(er) formats table  */
+> +		code = MEDIA_BUS_FMT_RGB888_1X24; //HACK
+> +#endif
+> +	}
+> +	else {
+> +		ret = v4l2_subdev_call(sd, video, enum_mbus_fmt, idx, &code);
+> +		if (ret < 0)
+> +			return 0;
+> +	}
+>  
+>  	fmt = soc_mbus_get_fmtdesc(code);
+>  	if (!fmt) {
+> @@ -948,11 +966,28 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+>  
+>  	if (!icd->host_priv) {
+>  		struct v4l2_mbus_framefmt mf;
+> +		struct v4l2_subdev_format sd_format;
+>  		struct v4l2_rect rect;
+>  		struct device *dev = icd->parent;
+>  		int shift;
+>  
+> -		ret = v4l2_subdev_call(sd, video, g_mbus_fmt, &mf);
+> +		// subdev_has_op -> get_fmt vs g_mbus_fmt
+> +		if (v4l2_subdev_has_op(sd, pad, get_fmt)) {
+> +			struct media_pad *remote_pad;
+> +
+> +			remote_pad= media_entity_remote_pad(&icd->vdev->entity.pads[0]);
+> +			sd_format.pad= remote_pad->index;
+> +			sd_format.which=V4L2_SUBDEV_FORMAT_ACTIVE;
+> +
+> +			ret = v4l2_subdev_call(sd, pad, get_fmt, NULL,
+> +						&sd_format);
+> +			mf= sd_format.format;
+> +			mf.width= VIN_MAX_WIDTH;
+> +			mf.height= VIN_MAX_HEIGHT;
+> +		}
+> +		else {
+> +			ret = v4l2_subdev_call(sd, video, g_mbus_fmt, &mf);
+> +		}
+>  		if (ret < 0)
+>  			return ret;
+>  
+> @@ -979,10 +1014,18 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+>  
+>  			mf.width = 1280 >> shift;
+>  			mf.height = 960 >> shift;
+> -			ret = v4l2_device_call_until_err(sd->v4l2_dev,
+> -							 soc_camera_grp_id(icd),
+> -							 video, s_mbus_fmt,
+> -							 &mf);
+> +			// subdev_has_op -> set_fmt vs s_mbus_fmt
+> +			if (v4l2_subdev_has_op(sd, pad, set_fmt)) {
+> +				ret = v4l2_device_call_until_err(sd->v4l2_dev,
+> +						 soc_camera_grp_id(icd),
+> +						 pad, set_fmt, NULL,
+> +						 &sd_format);
+> +			} else {
+> +				ret = v4l2_device_call_until_err(sd->v4l2_dev,
+> +						 soc_camera_grp_id(icd),
+> +						 video, s_mbus_fmt,
+> +						 &mf);
+> +			}
+>  			if (ret < 0)
+>  				return ret;
+>  		}
+> @@ -1099,7 +1142,22 @@ static int rcar_vin_set_crop(struct soc_camera_device *icd,
+>  	/* On success cam_crop contains current camera crop */
+>  
+>  	/* Retrieve camera output window */
+> -	ret = v4l2_subdev_call(sd, video, g_mbus_fmt, &mf);
+> +	// subdev_has_op -> get_fmt vs g_mbus_fmt
+> +	if (v4l2_subdev_has_op(sd, pad, get_fmt))
+> +	{
+> +		struct v4l2_subdev_format sd_format;
+> +		struct media_pad *remote_pad;
+> +
+> +		remote_pad= media_entity_remote_pad(&icd->vdev->entity.pads[0]);
+> +		sd_format.pad= remote_pad->index;
+> +		sd_format.which= V4L2_SUBDEV_FORMAT_ACTIVE;
+> +		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &sd_format);
+> +
+> +		mf.width= sd_format.format.width;
+> +		mf.height= sd_format.format.height;
+> +	} else {
+> +		ret = v4l2_subdev_call(sd, video, g_mbus_fmt, &mf);
+> +	}
+>  	if (ret < 0)
+>  		return ret;
+>  
+> @@ -1314,8 +1372,22 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+>  	mf.code = xlate->code;
+>  	mf.colorspace = pix->colorspace;
+>  
+> -	ret = v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
+> +	// subdev_has_op -> get_fmt vs try_mbus_fmt
+> +	if (v4l2_subdev_has_op(sd, pad, get_fmt)) {
+> +		struct v4l2_subdev_format sd_format;
+> +		struct media_pad *remote_pad;
+> +
+> +		remote_pad= media_entity_remote_pad(
+> +					&icd->vdev->entity.pads[0]);
+> +		sd_format.pad= remote_pad->index;
+> +		sd_format.format= mf;
+> +		ret= v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
+> +                                        pad, get_fmt, NULL, &sd_format);
+> +		mf= sd_format.format;
+> +	} else {
+> +		ret = v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
+>  					 video, try_mbus_fmt, &mf);
+> +	}
+>  	if (ret < 0)
+>  		return ret;
+>  
+> @@ -1335,10 +1407,28 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+>  			 */
+>  			mf.width = VIN_MAX_WIDTH;
+>  			mf.height = VIN_MAX_HEIGHT;
+> -			ret = v4l2_device_call_until_err(sd->v4l2_dev,
+> +			// subdev_has_op -> get_fmt vs try_mbus_fmt
+> +			if (v4l2_subdev_has_op(sd, pad, get_fmt)) {
+> +				struct v4l2_subdev_format sd_format;
+> +				struct media_pad *remote_pad;
+> +
+> +				remote_pad= media_entity_remote_pad(
+> +					&icd->vdev->entity.pads[0]);
+> +				sd_format.pad = remote_pad->index;
+> +				sd_format.which= V4L2_SUBDEV_FORMAT_TRY;
+> +				sd_format.format= mf;
+> +				ret = v4l2_device_call_until_err(sd->v4l2_dev,
+> +							 soc_camera_grp_id(icd),
+> +							 pad, get_fmt,
+> +							 NULL, &sd_format);
+> +				mf= sd_format.format;
+> +			} else {
+> +				ret = v4l2_device_call_until_err(sd->v4l2_dev,
+>  							 soc_camera_grp_id(icd),
+>  							 video, try_mbus_fmt,
+>  							 &mf);
+> +			}
+> +
+>  			if (ret < 0) {
+>  				dev_err(icd->parent,
+>  					"client try_fmt() = %d\n", ret);
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
