@@ -1,110 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:47900 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966015AbbBCTT2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 14:19:28 -0500
-Date: Tue, 3 Feb 2015 17:19:21 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Malcolm Priestley <tvboxspy@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/5] lmedm04: add read snr, signal strength and ber call
- backs
-Message-ID: <20150203171921.2afa629c@recife.lan>
-In-Reply-To: <1420206991-3939-5-git-send-email-tvboxspy@gmail.com>
-References: <1420206991-3939-1-git-send-email-tvboxspy@gmail.com>
-	<1420206991-3939-5-git-send-email-tvboxspy@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53294 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752082AbbBAK0y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Feb 2015 05:26:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: Re: [PATCH v3 2/2] V4L: add CCF support to the v4l2_clk API
+Date: Sun, 01 Feb 2015 12:27:37 +0200
+Message-ID: <8420980.1Z1tGTCX4O@avalon>
+In-Reply-To: <Pine.LNX.4.64.1502010019380.26661@axis700.grange>
+References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange> <Pine.LNX.4.64.1502010019380.26661@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri,  2 Jan 2015 13:56:31 +0000
-Malcolm Priestley <tvboxspy@gmail.com> escreveu:
+Hi Guennadi,
 
-> This allows calling the original functions providing the streaming is off.
+Thank you for the patch.
 
-Malcolm,
-
-I'm applying this patch series, as the driver has already some support for
-the legacy DVBv3 stats, but please port it to use DVBv5.
-
-Thanks,
-Mauro
-
+On Sunday 01 February 2015 00:21:36 Guennadi Liakhovetski wrote:
+> V4L2 clocks, e.g. used by camera sensors for their master clock, do not
+> have to be supplied by a different V4L2 driver, they can also be
+> supplied by an independent source. In this case the standart kernel
+> clock API should be used to handle such clocks. This patch adds support
+> for such cases.
 > 
-> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > ---
->  drivers/media/usb/dvb-usb-v2/lmedm04.c | 24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
 > 
-> diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-> index a9c7fd0..5de6f7c 100644
-> --- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-> +++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-> @@ -145,6 +145,10 @@ struct lme2510_state {
->  	void *usb_buffer;
->  	/* Frontend original calls */
->  	int (*fe_read_status)(struct dvb_frontend *, fe_status_t *);
-> +	int (*fe_read_signal_strength)(struct dvb_frontend *, u16 *);
-> +	int (*fe_read_snr)(struct dvb_frontend *, u16 *);
-> +	int (*fe_read_ber)(struct dvb_frontend *, u32 *);
-> +	int (*fe_read_ucblocks)(struct dvb_frontend *, u32 *);
->  	int (*fe_set_voltage)(struct dvb_frontend *, fe_sec_voltage_t);
->  	u8 dvb_usb_lme2510_firmware;
+> v3:
+> 1. return -EPROBE_DEFER if it's returned by clk_get()
+> 2. handle the case of disabled CCF in kernel configuration
+> 3. use clk_prepare_enable() and clk_unprepare_disable()
+> 
+>  drivers/media/v4l2-core/v4l2-clk.c | 48 ++++++++++++++++++++++++++++++++---
+>  include/media/v4l2-clk.h           |  2 ++
+>  2 files changed, 47 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-clk.c
+> b/drivers/media/v4l2-core/v4l2-clk.c index 3ff0b00..9f8cb20 100644
+> --- a/drivers/media/v4l2-core/v4l2-clk.c
+> +++ b/drivers/media/v4l2-core/v4l2-clk.c
+> @@ -9,6 +9,7 @@
+>   */
+> 
+>  #include <linux/atomic.h>
+> +#include <linux/clk.h>
+>  #include <linux/device.h>
+>  #include <linux/errno.h>
+>  #include <linux/list.h>
+> @@ -37,6 +38,21 @@ static struct v4l2_clk *v4l2_clk_find(const char *dev_id)
+> struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id) {
+>  	struct v4l2_clk *clk;
+> +	struct clk *ccf_clk = clk_get(dev, id);
+> +
+> +	if (PTR_ERR(ccf_clk) == -EPROBE_DEFER)
+> +		return ERR_PTR(-EPROBE_DEFER);
+> +
+> +	if (!IS_ERR_OR_NULL(ccf_clk)) {
+> +		clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
+
+Doesn't the kernel tend to favour sizeof(*clk) instead of sizeof(struct 
+v4l2_clk) ?
+
+Apart from that,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +		if (!clk) {
+> +			clk_put(ccf_clk);
+> +			return ERR_PTR(-ENOMEM);
+> +		}
+> +		clk->clk = ccf_clk;
+> +
+> +		return clk;
+> +	}
+> 
+>  	mutex_lock(&clk_lock);
+>  	clk = v4l2_clk_find(dev_name(dev));
+> @@ -56,6 +72,12 @@ void v4l2_clk_put(struct v4l2_clk *clk)
+>  	if (IS_ERR(clk))
+>  		return;
+> 
+> +	if (clk->clk) {
+> +		clk_put(clk->clk);
+> +		kfree(clk);
+> +		return;
+> +	}
+> +
+>  	mutex_lock(&clk_lock);
+> 
+>  	list_for_each_entry(tmp, &clk_list, list)
+> @@ -93,8 +115,12 @@ static void v4l2_clk_unlock_driver(struct v4l2_clk *clk)
+> 
+>  int v4l2_clk_enable(struct v4l2_clk *clk)
+>  {
+> -	int ret = v4l2_clk_lock_driver(clk);
+> +	int ret;
+> 
+> +	if (clk->clk)
+> +		return clk_prepare_enable(clk->clk);
+> +
+> +	ret = v4l2_clk_lock_driver(clk);
+>  	if (ret < 0)
+>  		return ret;
+> 
+> @@ -120,6 +146,9 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
+>  {
+>  	int enable;
+> 
+> +	if (clk->clk)
+> +		return clk_disable_unprepare(clk->clk);
+> +
+>  	mutex_lock(&clk->lock);
+> 
+>  	enable = --clk->enable;
+> @@ -137,8 +166,12 @@ EXPORT_SYMBOL(v4l2_clk_disable);
+> 
+>  unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
+>  {
+> -	int ret = v4l2_clk_lock_driver(clk);
+> +	int ret;
+> +
+> +	if (clk->clk)
+> +		return clk_get_rate(clk->clk);
+> 
+> +	ret = v4l2_clk_lock_driver(clk);
+>  	if (ret < 0)
+>  		return ret;
+> 
+> @@ -157,7 +190,16 @@ EXPORT_SYMBOL(v4l2_clk_get_rate);
+> 
+>  int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
+>  {
+> -	int ret = v4l2_clk_lock_driver(clk);
+> +	int ret;
+> +
+> +	if (clk->clk) {
+> +		long r = clk_round_rate(clk->clk, rate);
+> +		if (r < 0)
+> +			return r;
+> +		return clk_set_rate(clk->clk, r);
+> +	}
+> +
+> +	ret = v4l2_clk_lock_driver(clk);
+> 
+>  	if (ret < 0)
+>  		return ret;
+> diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+> index 928045f..3ef6e3d 100644
+> --- a/include/media/v4l2-clk.h
+> +++ b/include/media/v4l2-clk.h
+> @@ -22,6 +22,7 @@
+>  struct module;
+>  struct device;
+> 
+> +struct clk;
+>  struct v4l2_clk {
+>  	struct list_head list;
+>  	const struct v4l2_clk_ops *ops;
+> @@ -29,6 +30,7 @@ struct v4l2_clk {
+>  	int enable;
+>  	struct mutex lock; /* Protect the enable count */
+>  	atomic_t use_count;
+> +	struct clk *clk;
+>  	void *priv;
 >  };
-> @@ -877,6 +881,9 @@ static int dm04_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
->  {
->  	struct lme2510_state *st = fe_to_priv(fe);
->  
-> +	if (st->fe_read_signal_strength && !st->stream_on)
-> +		return st->fe_read_signal_strength(fe, strength);
-> +
->  	switch (st->tuner_config) {
->  	case TUNER_LG:
->  		*strength = 0xff - st->signal_level;
-> @@ -898,6 +905,9 @@ static int dm04_read_snr(struct dvb_frontend *fe, u16 *snr)
->  {
->  	struct lme2510_state *st = fe_to_priv(fe);
->  
-> +	if (st->fe_read_snr && !st->stream_on)
-> +		return st->fe_read_snr(fe, snr);
-> +
->  	switch (st->tuner_config) {
->  	case TUNER_LG:
->  		*snr = 0xff - st->signal_sn;
-> @@ -917,6 +927,11 @@ static int dm04_read_snr(struct dvb_frontend *fe, u16 *snr)
->  
->  static int dm04_read_ber(struct dvb_frontend *fe, u32 *ber)
->  {
-> +	struct lme2510_state *st = fe_to_priv(fe);
-> +
-> +	if (st->fe_read_ber && !st->stream_on)
-> +		return st->fe_read_ber(fe, ber);
-> +
->  	*ber = 0;
->  
->  	return 0;
-> @@ -924,6 +939,11 @@ static int dm04_read_ber(struct dvb_frontend *fe, u32 *ber)
->  
->  static int dm04_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
->  {
-> +	struct lme2510_state *st = fe_to_priv(fe);
-> +
-> +	if (st->fe_read_ucblocks && !st->stream_on)
-> +		return st->fe_read_ucblocks(fe, ucblocks);
-> +
->  	*ucblocks = 0;
->  
->  	return 0;
-> @@ -1036,6 +1056,10 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
->  	}
->  
->  	st->fe_read_status = adap->fe[0]->ops.read_status;
-> +	st->fe_read_signal_strength = adap->fe[0]->ops.read_signal_strength;
-> +	st->fe_read_snr = adap->fe[0]->ops.read_snr;
-> +	st->fe_read_ber = adap->fe[0]->ops.read_ber;
-> +	st->fe_read_ucblocks = adap->fe[0]->ops.read_ucblocks;
->  
->  	adap->fe[0]->ops.read_status = dm04_read_status;
->  	adap->fe[0]->ops.read_signal_strength = dm04_read_signal_strength;
+
+-- 
+Regards,
+
+Laurent Pinchart
+
