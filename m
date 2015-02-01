@@ -1,72 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:45261 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751548AbbBCRff (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 12:35:35 -0500
+Received: from mout.gmx.net ([212.227.15.19]:56407 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752605AbbBALMh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Feb 2015 06:12:37 -0500
+Date: Sun, 1 Feb 2015 12:12:33 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v4 2/2] V4L: add CCF support to the v4l2_clk API
+In-Reply-To: <8420980.1Z1tGTCX4O@avalon>
+Message-ID: <Pine.LNX.4.64.1502011211160.9534@axis700.grange>
+References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange>
+ <Pine.LNX.4.64.1502010019380.26661@axis700.grange> <8420980.1Z1tGTCX4O@avalon>
 MIME-Version: 1.0
-In-Reply-To: <20150203165829.GW8656@n2100.arm.linux.org.uk>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
-	<3783167.LiVXgA35gN@wuerfel>
-	<20150203155404.GV8656@n2100.arm.linux.org.uk>
-	<6906596.JU5vQoa1jV@wuerfel>
-	<20150203165829.GW8656@n2100.arm.linux.org.uk>
-Date: Tue, 3 Feb 2015 12:35:34 -0500
-Message-ID: <CAF6AEGuf6XBe3YOjhtbBcSyqJrkZ7sNMfc83hZdnKsE3P=vSuw@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
- attacher constraints with dma-parms
-From: Rob Clark <robdclark@gmail.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 3, 2015 at 11:58 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
->
-> Okay, but switching contexts is not something which the DMA API has
-> any knowledge of (so it can't know which context to associate with
-> which mapping.)  While it knows which device, it has no knowledge
-> (nor is there any way for it to gain knowledge) about contexts.
->
-> My personal view is that extending the DMA API in this way feels quite
-> dirty - it's a violation of the DMA API design, which is to (a) demark
-> the buffer ownership between CPU and DMA agent, and (b) to translate
-> buffer locations into a cookie which device drivers can use to instruct
-> their device to access that memory.  To see why, consider... that you
-> map a buffer to a device in context A, and then you switch to context B,
-> which means the dma_addr_t given previously is no longer valid.  You
-> then try to unmap it... which is normally done using the (now no longer
-> valid) dma_addr_t.
->
-> It seems to me that to support this at DMA API level, we would need to
-> completely revamp the DMA API, which IMHO isn't going to be nice.  (It
-> would mean that we end up with three APIs - the original PCI DMA API,
-> the existing DMA API, and some new DMA API.)
->
-> Do we have any views on how common this feature is?
->
+V4L2 clocks, e.g. used by camera sensors for their master clock, do not
+have to be supplied by a different V4L2 driver, they can also be
+supplied by an independent source. In this case the standart kernel
+clock API should be used to handle such clocks. This patch adds support
+for such cases.
 
-I can't think of cases outside of GPU's..  if it were more common I'd
-be in favor of teaching dma api about multiple contexts, but right now
-I think that would just amount to forcing a lot of churn on everyone
-else for the benefit of GPU's.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
 
-IMHO it makes more sense for GPU drivers to bypass the dma api if they
-need to.  Plus, sooner or later, someone will discover that with some
-trick or optimization they can get moar fps, but the extra layer of
-abstraction will just be getting in the way.
+v4: sizeof(*clk) :)
 
-BR,
--R
+ drivers/media/v4l2-core/v4l2-clk.c | 48 +++++++++++++++++++++++++++++++++++---
+ include/media/v4l2-clk.h           |  2 ++
+ 2 files changed, 47 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
+index 3ff0b00..9f8cb20 100644
+--- a/drivers/media/v4l2-core/v4l2-clk.c
++++ b/drivers/media/v4l2-core/v4l2-clk.c
+@@ -9,6 +9,7 @@
+  */
+ 
+ #include <linux/atomic.h>
++#include <linux/clk.h>
+ #include <linux/device.h>
+ #include <linux/errno.h>
+ #include <linux/list.h>
+@@ -37,6 +38,21 @@ static struct v4l2_clk *v4l2_clk_find(const char *dev_id)
+ struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
+ {
+ 	struct v4l2_clk *clk;
++	struct clk *ccf_clk = clk_get(dev, id);
++
++	if (PTR_ERR(ccf_clk) == -EPROBE_DEFER)
++		return ERR_PTR(-EPROBE_DEFER);
++
++	if (!IS_ERR_OR_NULL(ccf_clk)) {
++		clk = kzalloc(sizeof(*clk), GFP_KERNEL);
++		if (!clk) {
++			clk_put(ccf_clk);
++			return ERR_PTR(-ENOMEM);
++		}
++		clk->clk = ccf_clk;
++
++		return clk;
++	}
+ 
+ 	mutex_lock(&clk_lock);
+ 	clk = v4l2_clk_find(dev_name(dev));
+@@ -56,6 +72,12 @@ void v4l2_clk_put(struct v4l2_clk *clk)
+ 	if (IS_ERR(clk))
+ 		return;
+ 
++	if (clk->clk) {
++		clk_put(clk->clk);
++		kfree(clk);
++		return;
++	}
++
+ 	mutex_lock(&clk_lock);
+ 
+ 	list_for_each_entry(tmp, &clk_list, list)
+@@ -93,8 +115,12 @@ static void v4l2_clk_unlock_driver(struct v4l2_clk *clk)
+ 
+ int v4l2_clk_enable(struct v4l2_clk *clk)
+ {
+-	int ret = v4l2_clk_lock_driver(clk);
++	int ret;
+ 
++	if (clk->clk)
++		return clk_prepare_enable(clk->clk);
++
++	ret = v4l2_clk_lock_driver(clk);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -120,6 +146,9 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
+ {
+ 	int enable;
+ 
++	if (clk->clk)
++		return clk_disable_unprepare(clk->clk);
++
+ 	mutex_lock(&clk->lock);
+ 
+ 	enable = --clk->enable;
+@@ -137,8 +166,12 @@ EXPORT_SYMBOL(v4l2_clk_disable);
+ 
+ unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
+ {
+-	int ret = v4l2_clk_lock_driver(clk);
++	int ret;
++
++	if (clk->clk)
++		return clk_get_rate(clk->clk);
+ 
++	ret = v4l2_clk_lock_driver(clk);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -157,7 +190,16 @@ EXPORT_SYMBOL(v4l2_clk_get_rate);
+ 
+ int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
+ {
+-	int ret = v4l2_clk_lock_driver(clk);
++	int ret;
++
++	if (clk->clk) {
++		long r = clk_round_rate(clk->clk, rate);
++		if (r < 0)
++			return r;
++		return clk_set_rate(clk->clk, r);
++	}
++
++	ret = v4l2_clk_lock_driver(clk);
+ 
+ 	if (ret < 0)
+ 		return ret;
+diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+index 928045f..3ef6e3d 100644
+--- a/include/media/v4l2-clk.h
++++ b/include/media/v4l2-clk.h
+@@ -22,6 +22,7 @@
+ struct module;
+ struct device;
+ 
++struct clk;
+ struct v4l2_clk {
+ 	struct list_head list;
+ 	const struct v4l2_clk_ops *ops;
+@@ -29,6 +30,7 @@ struct v4l2_clk {
+ 	int enable;
+ 	struct mutex lock; /* Protect the enable count */
+ 	atomic_t use_count;
++	struct clk *clk;
+ 	void *priv;
+ };
+ 
+-- 
+1.9.3
+
