@@ -1,116 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45568 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754670AbbBCPy2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 10:54:28 -0500
-Date: Tue, 3 Feb 2015 15:54:04 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linaro-mm-sig@lists.linaro.org,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Rob Clark <robdclark@gmail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	linux-arm-kernel@lists.infradead.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
- attacher constraints with dma-parms
-Message-ID: <20150203155404.GV8656@n2100.arm.linux.org.uk>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
- <4830208.H6zxrGlT1D@wuerfel>
- <20150203152204.GU8656@n2100.arm.linux.org.uk>
- <3783167.LiVXgA35gN@wuerfel>
+Received: from mail-qc0-f171.google.com ([209.85.216.171]:43211 "EHLO
+	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752905AbbBAN0g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Feb 2015 08:26:36 -0500
+Received: by mail-qc0-f171.google.com with SMTP id s11so26833534qcv.2
+        for <linux-media@vger.kernel.org>; Sun, 01 Feb 2015 05:26:36 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3783167.LiVXgA35gN@wuerfel>
+In-Reply-To: <54CDFC13.6040908@web.de>
+References: <54CDFC13.6040908@web.de>
+Date: Sun, 1 Feb 2015 14:26:36 +0100
+Message-ID: <CA+O4pCJBg6ggcKqddeRK6AVkz3HPUgMoKjfx1a-5K6fTNrO5Rg@mail.gmail.com>
+Subject: Re: Sundtek Media Pro III Europe switching off
+From: Markus Rechberger <mrechberger@gmail.com>
+To: steigerungs faktor <steigerungsfaktor@web.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 03, 2015 at 04:31:13PM +0100, Arnd Bergmann wrote:
-> On Tuesday 03 February 2015 15:22:05 Russell King - ARM Linux wrote:
-> > Don't we already have those in the DMA API?  dma_sync_*() ?
-> >
-> > dma_map_sg() - sets up the system MMU and deals with initial cache
-> > coherency handling.  Device IOMMU being the responsibility of the
-> > GPU driver.
-> 
-> dma_sync_*() works with whatever comes out of dma_map_*(), true,
-> but this is not what they want to do here.
->  
-> > The GPU can then do dma_sync_*() on the scatterlist as is necessary
-> > to synchronise the cache coherency (while respecting the ownership
-> > rules - which are very important on ARM to follow as some sync()s are
-> > destructive to any dirty data in the CPU cache.)
-> > 
-> > dma_unmap_sg() tears down the system MMU and deals with the final cache
-> > handling.
-> > 
-> > Why do we need more DMA API interfaces?
-> 
-> The dma_map_* interfaces assign the virtual addresses internally,
-> using typically either a global address space for all devices, or one
-> address space per device.
+You'd need to show us some logfiles.
 
-We shouldn't be doing one address space per device for precisely this
-reason.  We should be doing one address space per *bus*.  I did have
-a nice diagram to illustrate the point in my previous email, but I
-deleted it, I wish I hadn't... briefly:
+echo loglevel=min > /etc/sundtek.conf
+(and reboot)
+or
+/opt/bin/mediaclient --loglevel=min (this will turn on the logfile immediately).
 
-Fig. 1.
-                                                 +------------------+
-                                                 |+-----+  device   |
-CPU--L1cache--L2cache--Memory--SysMMU---<iobus>----IOMMU-->         |
-                                                 |+-----+           |
-                                                 +------------------+
+Is the tuner attached to a USB 3.0 port?
 
-Fig.1 represents what I'd call the "GPU" issue that we're talking about
-in this thread.
+What does tvheadend say?
 
-Fig. 2.
-CPU--L1cache--L2cache--Memory--SysMMU---<iobus>--IOMMU--device
+The tuner and drivers are 100% stable and proven with tvheadend, so in
+case tvheadend is blocked something else must be wrong.
 
-The DMA API should be responsible (at the very least) for everything on
-the left of "<iobus>" in and should be providing a dma_addr_t which is
-representative of what the device (in Fig.1) as a whole sees.  That's
-the "system" part.  
+Best Regards,
+Markus
 
-I believe this is the approach which is taken by x86 and similar platforms,
-simply because they tend not to have an IOMMU on individual devices (and
-if they did, eg, on a PCI card, it's clearly the responsibility of the
-device driver.)
-
-Whether the DMA API also handles the IOMMU in Fig.1 or 2 is questionable.
-For fig.2, it is entirely possible that the same device could appear
-without an IOMMU, and in that scenario, you would want the IOMMU to be
-handled transparently.
-
-However, by doing so for everything, you run into exactly the problem
-which is being discussed here - the need to separate out the cache
-coherency from the IOMMU aspects.  You probably also have a setup very
-similar to fig.1 (which is certainly true of Vivante GPUs.)
-
-If you have the need to separately control both, then using the DMA API
-to encapsulate both does not make sense - at which point, the DMA API
-should be responsible for the minimum only - in other words, everything
-to the left of <iobus> (so including the system MMU.)  The control of
-the device IOMMU should be the responsibility of device driver in this
-case.
-
-So, dma_map_sg() would be responsible for dealing with the CPU cache
-coherency issues, and setting up the system MMU.  dma_sync_*() would
-be responsible for the CPU cache coherency issues, and dma_unmap_sg()
-would (again) deal with the CPU cache and tear down the system MMU
-mappings.
-
-Meanwhile, the device driver has ultimate control over its IOMMU, the
-creation and destruction of mappings and context switches at the
-appropriate times.
-
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+On Sun, Feb 1, 2015 at 11:12 AM, steigerungs faktor
+<steigerungsfaktor@web.de> wrote:
+> Hi.
+> New to the list, so maybe topic "Sundtek Media Pro III" has been treatet
+> allready.
+> If so, please just send "archives".
+>
+> If not:
+> Setup is the the above Stick, newest driver, Linux (Fedora 20), Kodi
+> with TVHeadend.
+> All fine when initially starting. Shows TV and records shows.
+> Then Timer is set, and stick 'stops working'. I.e.: the timed show is
+> not recorded.
+> Instead Kodi tells me that connection to tvheadend is lost.
+> To gain stick back, reboot is necessary.
+>
+> Any ideas?
+>
+> Gunter
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
