@@ -1,144 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:40880 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755347AbbBPJ1f (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47999 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751722AbbBADpl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 04:27:35 -0500
-Message-ID: <54E1B7F3.60504@xs4all.nl>
-Date: Mon, 16 Feb 2015 10:27:15 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCHv4 24/25] [media] cx231xx: enable tuner->decoder link at
- videobuf start
-References: <cover.1423867976.git.mchehab@osg.samsung.com> <f27ba253fe46ff3e8bd592e77657191a33f1a39d.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <f27ba253fe46ff3e8bd592e77657191a33f1a39d.1423867976.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sat, 31 Jan 2015 22:45:41 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 49E8A2A0081
+	for <linux-media@vger.kernel.org>; Sun,  1 Feb 2015 04:45:04 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150201034504.49E8A2A0081@tschai.lan>
+Date: Sun,  1 Feb 2015 04:45:04 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/13/2015 11:58 PM, Mauro Carvalho Chehab wrote:
-> The tuner->decoder needs to be enabled when we're about to
-> start streaming.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-> index f3d1a488dfa7..634763535d60 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-> @@ -703,6 +703,74 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
->  	buf->vb.state = VIDEOBUF_NEEDS_INIT;
->  }
->  
-> +static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
-> +{
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct media_device *mdev = dev->media_dev;
-> +	struct media_entity  *entity, *decoder = NULL, *source;
-> +	struct media_link *link, *found_link = NULL;
-> +	int i, ret, active_links = 0;
-> +
-> +	if (!mdev)
-> +		return 0;
-> +
-> +/*
-> + * This will find the tuner that it is connected into the decoder.
-> + * Technically, this is not 100% correct, as the device may be using an
-> + * analog input instead of the tuner. However, we can't use the DVB for dvb
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-'we can't use the DVB for dvb'?? You probably mean 'can't use the DVB API'.
+Results of the daily build of media_tree:
 
-> + * while the DMA engine is being used for V4L2.
-> + */
+date:		Sun Feb  1 04:00:15 CET 2015
+git branch:	test
+git hash:	a5f43c18fceb2b96ec9fddb4348f5282a71cf2b0
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
-Weird indentation, should be one to the right.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18-x86_64: OK
+linux-3.19-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-> +	media_device_for_each_entity(entity, mdev) {
-> +		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
-> +			decoder = entity;
-> +			break;
-> +		}
-> +	}
-> +	if (!decoder)
-> +		return 0;
-> +
-> +	for (i = 0; i < decoder->num_links; i++) {
-> +		link = &decoder->links[i];
-> +		if (link->sink->entity == decoder) {
-> +			found_link = link;
-> +			if (link->flags & MEDIA_LNK_FL_ENABLED)
-> +				active_links++;
-> +			break;
-> +		}
-> +	}
-> +
-> +	if (active_links == 1 || !found_link)
-> +		return 0;
-> +
-> +	source = found_link->source->entity;
-> +	for (i = 0; i < source->num_links; i++) {
-> +		struct media_entity *sink;
-> +		int flags = 0;
-> +
-> +		link = &source->links[i];
-> +		sink = link->sink->entity;
-> +
-> +		if (sink == entity)
-> +			flags = MEDIA_LNK_FL_ENABLED;
-> +
-> +		ret = media_entity_setup_link(link, flags);
-> +		if (ret) {
-> +			dev_err(dev->dev,
-> +				"Couldn't change link %s->%s to %s. Error %d\n",
-> +				source->name, sink->name,
-> +				flags ? "enabled" : "disabled",
-> +				ret);
-> +			return ret;
-> +		} else
-> +			dev_dbg(dev->dev,
-> +				"link %s->%s was %s\n",
-> +				source->name, sink->name,
-> +				flags ? "ENABLED" : "disabled");
-> +	}
-> +#endif
-> +	return 0;
-> +}
-> +
->  static int
->  buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
->  	       enum v4l2_field field)
-> @@ -756,6 +824,9 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
->  	}
->  
->  	buf->vb.state = VIDEOBUF_PREPARED;
-> +
-> +	cx231xx_enable_analog_tuner(dev);
+Detailed results are available here:
 
-Is this the right place? Isn't this now called for every QBUF? I would expect this
-to happen when you start streaming.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-In vb2 it would be in start_streaming(), of course.
+Full logs are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-	Hans
+The Media Infrastructure API from this daily build is here:
 
-> +
->  	return 0;
->  
->  fail:
-> 
-
-Regards,
-
-	Hans
+http://www.xs4all.nl/~hverkuil/spec/media.html
