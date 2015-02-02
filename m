@@ -1,105 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:37906 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965381AbbBCN2s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 08:28:48 -0500
-MIME-Version: 1.0
-In-Reply-To: <20150203122813.GN8656@n2100.arm.linux.org.uk>
-References: <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
- <20150129143908.GA26493@n2100.arm.linux.org.uk> <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
- <20150129154718.GB26493@n2100.arm.linux.org.uk> <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
- <20150129192610.GE26493@n2100.arm.linux.org.uk> <CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
- <20150202165405.GX14009@phenom.ffwll.local> <CAF6AEGuESM+e3HSRGM6zLqrp8kqRLGUYvA3KKECdm7m-nt0M=Q@mail.gmail.com>
- <20150203074856.GF14009@phenom.ffwll.local> <20150203122813.GN8656@n2100.arm.linux.org.uk>
-From: Christian Gmeiner <christian.gmeiner@gmail.com>
-Date: Tue, 3 Feb 2015 14:28:26 +0100
-Message-ID: <CAH9NwWcJRtNz1zAOmdjPN15UHPGiqGg9wNC9z3fMe-qn5ymdpA@mail.gmail.com>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
- with dma-parms
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:36415 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752797AbbBBPkr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 10:40:47 -0500
+Date: Mon, 02 Feb 2015 13:40:39 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	linux-kernel@vger.kernel.org,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Dave Airlie <airlied@linux.ie>
+Subject: Re: [RESEND PATCH v2] [media] Add RGB444_1X12 and RGB565_1X16 media
+ bus formats
+Message-id: <20150202134039.2257bc68.m.chehab@samsung.com>
+In-reply-to: <20150202163207.6111bc5d@bbrezillon>
+References: <1420544615-18788-1-git-send-email-boris.brezillon@free-electrons.com>
+ <20150202125755.5bf5ecc9.m.chehab@samsung.com>
+ <20150202163207.6111bc5d@bbrezillon>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2015-02-03 13:28 GMT+01:00 Russell King - ARM Linux <linux@arm.linux.org.uk>:
-> On Tue, Feb 03, 2015 at 08:48:56AM +0100, Daniel Vetter wrote:
->> On Mon, Feb 02, 2015 at 03:30:21PM -0500, Rob Clark wrote:
->> > On Mon, Feb 2, 2015 at 11:54 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
->> > >> My initial thought is for dma-buf to not try to prevent something than
->> > >> an exporter can actually do.. I think the scenario you describe could
->> > >> be handled by two sg-lists, if the exporter was clever enough.
->> > >
->> > > That's already needed, each attachment has it's own sg-list. After all
->> > > there's no array of dma_addr_t in the sg tables, so you can't use one sg
->> > > for more than one mapping. And due to different iommu different devices
->> > > can easily end up with different addresses.
->> >
->> >
->> > Well, to be fair it may not be explicitly stated, but currently one
->> > should assume the dma_addr_t's in the dmabuf sglist are bogus.  With
->> > gpu's that implement per-process/context page tables, I'm not really
->> > sure that there is a sane way to actually do anything else..
->>
->> Hm, what does per-process/context page tables have to do here? At least on
->> i915 we have a two levels of page tables:
->> - first level for vm/device isolation, used through dma api
->> - 2nd level for per-gpu-context isolation and context switching, handled
->>   internally.
->>
->> Since atm the dma api doesn't have any context of contexts or different
->> pagetables, I don't see who you could use that at all.
->
-> What I've found with *my* etnaviv drm implementation (not Christian's - I
-> found it impossible to work with Christian, especially with the endless
-> "msm doesn't do it that way, so we shouldn't" responses and his attitude
-> towards cherry-picking my development work [*]) is that it's much easier to
-> keep the GPU MMU local to the GPU and under the control of the DRM MM code,
-> rather than attaching the IOMMU to the DMA API and handling it that way.
->
+Em Mon, 02 Feb 2015 16:32:07 +0100
+Boris Brezillon <boris.brezillon@free-electrons.com> escreveu:
 
-Keep in mind that I tried to reach you several times via mail and irc
-and you simply
-ignored me. Did you know that took almost all of your patches (with
-small changes)?
-And I needed to cherry pick you patches as they were a) wrong, b) solved in a
-different way or c) had "hack" in the subject. I am quite sorry that I
-ended that
-way, but it is not only my fault!
+> Hi Mauro,
+> 
+> On Mon, 02 Feb 2015 12:57:55 -0200
+> Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
+> 
+> > Em Tue,  6 Jan 2015 12:43:35 +0100
+> > Boris Brezillon <boris.brezillon@free-electrons.com> escreveu:
+> > 
+> > > Add RGB444_1X12 and RGB565_1X16 format definitions and update the
+> > > documentation.
+> > > 
+> > > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> > > Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > ---
+> > > Hi Mauro, Sakari,
+> > > 
+> > > This patch has been rejected as 'Not Applicable'.
+> > > Is there anyting wrong in it ?
+> > 
+> > I was expecting that this patch would be merged together with the
+> > remaining series, via the DRM tree. That's basically why I gave
+> > my ack:
+> > 	https://lkml.org/lkml/2014/11/3/661
+> > 
+> > HINT: when a subsystem maintainer gives an ack, that likely means that
+> > he expects that the patch will be applied via some other tree.
+> 
+> My bad, I thought this would go into the media tree since this single
+> patch is not exactly related to a DRM feature (except the fact that I
+> was planning to use it in my DRM driver).
+> Actually, I didn't send it to the DRM maintainer or dri-devel ML in the
+> first place :-(.
+> Can you reconsider taking it in the media tree ?
+> I you can't, I'll ask Dave (just added him in Cc) to take it into the
+> DRM tree.
 
-> There are several reasons for that:
->
-> 1. DRM has a better idea about when the memory needs to be mapped to the
->    GPU, and it can more effectively manage the GPU MMU.
->
-> 2. The GPU MMU may have TLBs which can only be flushed via a command in
->    the GPU command stream, so it's fundamentally necessary for the MMU to
->    be managed by the GPU driver so that it knows when (and how) to insert
->    the flushes.
->
->
-> * - as a direct result of that, I've stopped all further development of
-> etnaviv drm, and I'm intending to strip it out from my Xorg DDX driver
-> as the etnaviv drm API which Christian wants is completely incompatible
-> with the non-etnaviv drm, and that just creates far too much pain in the
-> DDX driver.
->
+I really prefer if you submit this together with the DRM series.
 
-That is bad, but life moves on.
+We don't apply API changes at media, except if the API change is
+needed by some driver that it is also submitted in the same series.
 
-greets
---
-Christian Gmeiner, MSc
+I don't mind applying it via media, but in this case, I'll apply
+together with the remaining DRM drivers, and will require DRM
+maintainer's ack. So, it is probably easier to just apply this 
+change via the DRM subtree than the reverse.
 
-https://soundcloud.com/christian-gmeiner
+Regards,
+Mauro
