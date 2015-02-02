@@ -1,210 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41609 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932927AbbBBUXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 15:23:46 -0500
-Message-ID: <54CFDCCC.3030006@iki.fi>
-Date: Mon, 02 Feb 2015 22:23:40 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mark Brown <broonie@kernel.org>,
-	Lars-Peter Clausen <lars@metafoo.de>, linux-i2c@vger.kernel.org
-CC: linux-media@vger.kernel.org, Jean Delvare <jdelvare@suse.de>
-Subject: Re: [PATCH 21/66] rtl2830: implement own I2C locking
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>	<1419367799-14263-21-git-send-email-crope@iki.fi> <20150202180726.454dc878@recife.lan>
-In-Reply-To: <20150202180726.454dc878@recife.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46966 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754751AbbBBDqR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Feb 2015 22:46:17 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4A9332A0083
+	for <linux-media@vger.kernel.org>; Mon,  2 Feb 2015 04:45:38 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150202034538.4A9332A0083@tschai.lan>
+Date: Mon,  2 Feb 2015 04:45:38 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/02/2015 10:07 PM, Mauro Carvalho Chehab wrote:
-> Em Tue, 23 Dec 2014 22:49:14 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> Own I2C locking is needed due to two special reasons:
->> 1) Chips uses multiple register pages/banks on single I2C slave.
->> Page is changed via I2C register access.
->> 2) Chip offers muxed/gated I2C adapter for tuner. Gate/mux is
->> controlled by I2C register access.
->>
->> Due to these reasons, I2C locking did not fit very well.
->
-> I don't like the idea of calling __i2c_transfer() without calling first
-> i2c_lock_adapter(). This can be dangerous, as the I2C core itself uses
-> the lock for its own usage.
->
-> Ok, this may eventually work ok for now, but a further change at the I2C
-> core could easily break it. So, we need to double check about such
-> patch with the I2C maintainer.
->
-> Jean,
->
-> Are you ok with such patch? If so, please ack.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Basic problem here is that I2C-mux itself is controlled by same I2C 
-device which implements I2C adapter for tuner.
+Results of the daily build of media_tree:
 
-Here is what connections looks like:
-  ___________         ____________         ____________
-|  USB IF   |       |   demod    |       |    tuner   |
-|-----------|       |------------|       |------------|
-|           |--I2C--|-----/ -----|--I2C--|            |
-|I2C master |       |  I2C mux   |       | I2C slave  |
-|___________|       |____________|       |____________|
+date:		Mon Feb  2 04:00:16 CET 2015
+git branch:	test
+git hash:	a5f43c18fceb2b96ec9fddb4348f5282a71cf2b0
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18-x86_64: OK
+linux-3.19-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-So when tuner is called via I2C, it needs recursively call same I2C 
-adapter which is already locked. More elegant solution would be indeed nice.
+Detailed results are available here:
 
-regards
-Antti
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
+Full logs are available here:
 
->
-> Regards,
-> Mauro
->>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
->> ---
->>   drivers/media/dvb-frontends/rtl2830.c      | 45 +++++++++++++++++++++++++-----
->>   drivers/media/dvb-frontends/rtl2830_priv.h |  1 +
->>   2 files changed, 39 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
->> index 8abaca6..3a9e4e9 100644
->> --- a/drivers/media/dvb-frontends/rtl2830.c
->> +++ b/drivers/media/dvb-frontends/rtl2830.c
->> @@ -43,7 +43,7 @@ static int rtl2830_wr(struct i2c_client *client, u8 reg, const u8 *val, int len)
->>   	buf[0] = reg;
->>   	memcpy(&buf[1], val, len);
->>
->> -	ret = i2c_transfer(client->adapter, msg, 1);
->> +	ret = __i2c_transfer(client->adapter, msg, 1);
->>   	if (ret == 1) {
->>   		ret = 0;
->>   	} else {
->> @@ -73,7 +73,7 @@ static int rtl2830_rd(struct i2c_client *client, u8 reg, u8 *val, int len)
->>   		}
->>   	};
->>
->> -	ret = i2c_transfer(client->adapter, msg, 2);
->> +	ret = __i2c_transfer(client->adapter, msg, 2);
->>   	if (ret == 2) {
->>   		ret = 0;
->>   	} else {
->> @@ -93,16 +93,23 @@ static int rtl2830_wr_regs(struct i2c_client *client, u16 reg, const u8 *val, in
->>   	u8 reg2 = (reg >> 0) & 0xff;
->>   	u8 page = (reg >> 8) & 0xff;
->>
->> +	mutex_lock(&dev->i2c_mutex);
->> +
->>   	/* switch bank if needed */
->>   	if (page != dev->page) {
->>   		ret = rtl2830_wr(client, 0x00, &page, 1);
->>   		if (ret)
->> -			return ret;
->> +			goto err_mutex_unlock;
->>
->>   		dev->page = page;
->>   	}
->>
->> -	return rtl2830_wr(client, reg2, val, len);
->> +	ret = rtl2830_wr(client, reg2, val, len);
->> +
->> +err_mutex_unlock:
->> +	mutex_unlock(&dev->i2c_mutex);
->> +
->> +	return ret;
->>   }
->>
->>   /* read multiple registers */
->> @@ -113,16 +120,23 @@ static int rtl2830_rd_regs(struct i2c_client *client, u16 reg, u8 *val, int len)
->>   	u8 reg2 = (reg >> 0) & 0xff;
->>   	u8 page = (reg >> 8) & 0xff;
->>
->> +	mutex_lock(&dev->i2c_mutex);
->> +
->>   	/* switch bank if needed */
->>   	if (page != dev->page) {
->>   		ret = rtl2830_wr(client, 0x00, &page, 1);
->>   		if (ret)
->> -			return ret;
->> +			goto err_mutex_unlock;
->>
->>   		dev->page = page;
->>   	}
->>
->> -	return rtl2830_rd(client, reg2, val, len);
->> +	ret = rtl2830_rd(client, reg2, val, len);
->> +
->> +err_mutex_unlock:
->> +	mutex_unlock(&dev->i2c_mutex);
->> +
->> +	return ret;
->>   }
->>
->>   /* read single register */
->> @@ -815,6 +829,10 @@ static int rtl2830_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
->>   	};
->>   	int ret;
->>
->> +	dev_dbg(&client->dev, "\n");
->> +
->> +	mutex_lock(&dev->i2c_mutex);
->> +
->>   	/* select register page */
->>   	ret = __i2c_transfer(client->adapter, select_reg_page_msg, 1);
->>   	if (ret != 1) {
->> @@ -841,6 +859,18 @@ err:
->>   	return ret;
->>   }
->>
->> +static int rtl2830_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
->> +{
->> +	struct i2c_client *client = mux_priv;
->> +	struct rtl2830_dev *dev = i2c_get_clientdata(client);
->> +
->> +	dev_dbg(&client->dev, "\n");
->> +
->> +	mutex_unlock(&dev->i2c_mutex);
->> +
->> +	return 0;
->> +}
->> +
->>   static struct dvb_frontend *rtl2830_get_dvb_frontend(struct i2c_client *client)
->>   {
->>   	struct rtl2830_dev *dev = i2c_get_clientdata(client);
->> @@ -886,6 +916,7 @@ static int rtl2830_probe(struct i2c_client *client,
->>   	dev->client = client;
->>   	dev->pdata = client->dev.platform_data;
->>   	dev->sleeping = true;
->> +	mutex_init(&dev->i2c_mutex);
->>   	INIT_DELAYED_WORK(&dev->stat_work, rtl2830_stat_work);
->>
->>   	/* check if the demod is there */
->> @@ -895,7 +926,7 @@ static int rtl2830_probe(struct i2c_client *client,
->>
->>   	/* create muxed i2c adapter for tuner */
->>   	dev->adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
->> -			client, 0, 0, 0, rtl2830_select, NULL);
->> +			client, 0, 0, 0, rtl2830_select, rtl2830_deselect);
->>   	if (dev->adapter == NULL) {
->>   		ret = -ENODEV;
->>   		goto err_kfree;
->> diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
->> index 2931889..517758a 100644
->> --- a/drivers/media/dvb-frontends/rtl2830_priv.h
->> +++ b/drivers/media/dvb-frontends/rtl2830_priv.h
->> @@ -30,6 +30,7 @@ struct rtl2830_dev {
->>   	struct i2c_adapter *adapter;
->>   	struct dvb_frontend fe;
->>   	bool sleeping;
->> +	struct mutex i2c_mutex;
->>   	u8 page; /* active register page */
->>   	unsigned long filters;
->>   	struct delayed_work stat_work;
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
--- 
-http://palosaari.fi/
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
