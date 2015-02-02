@@ -1,214 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51524 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752245AbbBYMdo (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56052 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755287AbbBBMs0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2015 07:33:44 -0500
-Received: from valkosipuli.retiisi.org.uk (vihersipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::84:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 4E7C8600A0
-	for <linux-media@vger.kernel.org>; Wed, 25 Feb 2015 14:33:38 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [REVIEW PATCH 2/3] smiapp: Correctly serialise stream start / stop
-Date: Wed, 25 Feb 2015 14:33:26 +0200
-Message-Id: <1424867607-4082-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1424867607-4082-1-git-send-email-sakari.ailus@iki.fi>
-References: <1424867607-4082-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 2 Feb 2015 07:48:26 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1A1352A0080
+	for <linux-media@vger.kernel.org>; Mon,  2 Feb 2015 13:47:47 +0100 (CET)
+Message-ID: <54CF71F2.1060704@xs4all.nl>
+Date: Mon, 02 Feb 2015 13:47:46 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.20] au0828: fixes and vb2 conversion
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+The following changes since commit a5f43c18fceb2b96ec9fddb4348f5282a71cf2b0:
 
-The stream state was stored in sensor->streaming, but access to it was not
-serialised properly. Fix this by moving the mutex to smiapp_set_stream().
+  [media] Documentation/video4linux: remove obsolete text files (2015-01-29 19:16:30 -0200)
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c |   54 ++++++++++++++------------------
- 1 file changed, 24 insertions(+), 30 deletions(-)
+are available in the git repository at:
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index d47eff5..e534f1b 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -1391,28 +1391,26 @@ static int smiapp_start_streaming(struct smiapp_sensor *sensor)
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
- 	int rval;
- 
--	mutex_lock(&sensor->mutex);
--
- 	rval = smiapp_write(sensor, SMIAPP_REG_U16_CSI_DATA_FORMAT,
- 			    (sensor->csi_format->width << 8) |
- 			    sensor->csi_format->compressed);
- 	if (rval)
--		goto out;
-+		return rval;
- 
- 	rval = smiapp_pll_configure(sensor);
- 	if (rval)
--		goto out;
-+		return rval;
- 
- 	/* Analog crop start coordinates */
- 	rval = smiapp_write(sensor, SMIAPP_REG_U16_X_ADDR_START,
- 			    sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].left);
- 	if (rval < 0)
--		goto out;
-+		return rval;
- 
- 	rval = smiapp_write(sensor, SMIAPP_REG_U16_Y_ADDR_START,
- 			    sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].top);
- 	if (rval < 0)
--		goto out;
-+		return rval;
- 
- 	/* Analog crop end coordinates */
- 	rval = smiapp_write(
-@@ -1420,14 +1418,14 @@ static int smiapp_start_streaming(struct smiapp_sensor *sensor)
- 		sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].left
- 		+ sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].width - 1);
- 	if (rval < 0)
--		goto out;
-+		return rval;
- 
- 	rval = smiapp_write(
- 		sensor, SMIAPP_REG_U16_Y_ADDR_END,
- 		sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].top
- 		+ sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].height - 1);
- 	if (rval < 0)
--		goto out;
-+		return rval;
- 
- 	/*
- 	 * Output from pixel array, including blanking, is set using
-@@ -1441,25 +1439,25 @@ static int smiapp_start_streaming(struct smiapp_sensor *sensor)
- 			sensor, SMIAPP_REG_U16_DIGITAL_CROP_X_OFFSET,
- 			sensor->scaler->crop[SMIAPP_PAD_SINK].left);
- 		if (rval < 0)
--			goto out;
-+			return rval;
- 
- 		rval = smiapp_write(
- 			sensor, SMIAPP_REG_U16_DIGITAL_CROP_Y_OFFSET,
- 			sensor->scaler->crop[SMIAPP_PAD_SINK].top);
- 		if (rval < 0)
--			goto out;
-+			return rval;
- 
- 		rval = smiapp_write(
- 			sensor, SMIAPP_REG_U16_DIGITAL_CROP_IMAGE_WIDTH,
- 			sensor->scaler->crop[SMIAPP_PAD_SINK].width);
- 		if (rval < 0)
--			goto out;
-+			return rval;
- 
- 		rval = smiapp_write(
- 			sensor, SMIAPP_REG_U16_DIGITAL_CROP_IMAGE_HEIGHT,
- 			sensor->scaler->crop[SMIAPP_PAD_SINK].height);
- 		if (rval < 0)
--			goto out;
-+			return rval;
- 	}
- 
- 	/* Scaling */
-@@ -1468,23 +1466,23 @@ static int smiapp_start_streaming(struct smiapp_sensor *sensor)
- 		rval = smiapp_write(sensor, SMIAPP_REG_U16_SCALING_MODE,
- 				    sensor->scaling_mode);
- 		if (rval < 0)
--			goto out;
-+			return rval;
- 
- 		rval = smiapp_write(sensor, SMIAPP_REG_U16_SCALE_M,
- 				    sensor->scale_m);
- 		if (rval < 0)
--			goto out;
-+			return rval;
- 	}
- 
- 	/* Output size from sensor */
- 	rval = smiapp_write(sensor, SMIAPP_REG_U16_X_OUTPUT_SIZE,
- 			    sensor->src->crop[SMIAPP_PAD_SRC].width);
- 	if (rval < 0)
--		goto out;
-+		return rval;
- 	rval = smiapp_write(sensor, SMIAPP_REG_U16_Y_OUTPUT_SIZE,
- 			    sensor->src->crop[SMIAPP_PAD_SRC].height);
- 	if (rval < 0)
--		goto out;
-+		return rval;
- 
- 	if ((sensor->limits[SMIAPP_LIMIT_FLASH_MODE_CAPABILITY] &
- 	     (SMIAPP_FLASH_MODE_CAPABILITY_SINGLE_STROBE |
-@@ -1493,22 +1491,17 @@ static int smiapp_start_streaming(struct smiapp_sensor *sensor)
- 	    sensor->platform_data->strobe_setup->trigger != 0) {
- 		rval = smiapp_setup_flash_strobe(sensor);
- 		if (rval)
--			goto out;
-+			return rval;
- 	}
- 
- 	rval = smiapp_call_quirk(sensor, pre_streamon);
- 	if (rval) {
- 		dev_err(&client->dev, "pre_streamon quirks failed\n");
--		goto out;
-+		return rval;
- 	}
- 
--	rval = smiapp_write(sensor, SMIAPP_REG_U8_MODE_SELECT,
-+	return smiapp_write(sensor, SMIAPP_REG_U8_MODE_SELECT,
- 			    SMIAPP_MODE_SELECT_STREAMING);
--
--out:
--	mutex_unlock(&sensor->mutex);
--
--	return rval;
- }
- 
- static int smiapp_stop_streaming(struct smiapp_sensor *sensor)
-@@ -1516,18 +1509,15 @@ static int smiapp_stop_streaming(struct smiapp_sensor *sensor)
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
- 	int rval;
- 
--	mutex_lock(&sensor->mutex);
- 	rval = smiapp_write(sensor, SMIAPP_REG_U8_MODE_SELECT,
- 			    SMIAPP_MODE_SELECT_SOFTWARE_STANDBY);
- 	if (rval)
--		goto out;
-+		return rval;
- 
- 	rval = smiapp_call_quirk(sensor, post_streamoff);
- 	if (rval)
- 		dev_err(&client->dev, "post_streamoff quirks failed\n");
- 
--out:
--	mutex_unlock(&sensor->mutex);
- 	return rval;
- }
- 
-@@ -1538,10 +1528,12 @@ out:
- static int smiapp_set_stream(struct v4l2_subdev *subdev, int enable)
- {
- 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
--	int rval;
-+	int rval = 0;
-+
-+	mutex_lock(&sensor->mutex);
- 
- 	if (sensor->streaming == enable)
--		return 0;
-+		goto out;
- 
- 	if (enable) {
- 		sensor->streaming = true;
-@@ -1553,6 +1545,8 @@ static int smiapp_set_stream(struct v4l2_subdev *subdev, int enable)
- 		sensor->streaming = false;
- 	}
- 
-+out:
-+	mutex_unlock(&sensor->mutex);
- 	return rval;
- }
- 
--- 
-1.7.10.4
+  git://linuxtv.org/hverkuil/media_tree.git au0828
 
+for you to fetch changes up to bdf9b69416a114cd8a6eaa96384535b2e0275653:
+
+  media: au0828 - convert to use videobuf2 (2015-02-02 13:08:02 +0100)
+
+----------------------------------------------------------------
+Shuah Khan (3):
+      media: fix au0828_analog_register() to not free au0828_dev
+      media: fix au0828 compile error from au0828_boards initialization
+      media: au0828 - convert to use videobuf2
+
+ drivers/media/usb/au0828/Kconfig        |   2 +-
+ drivers/media/usb/au0828/au0828-cards.c |   2 +-
+ drivers/media/usb/au0828/au0828-vbi.c   | 122 ++++-------
+ drivers/media/usb/au0828/au0828-video.c | 964 ++++++++++++++++++++++++++++++++----------------------------------------------------
+ drivers/media/usb/au0828/au0828.h       |  61 +++---
+ 5 files changed, 443 insertions(+), 708 deletions(-)
