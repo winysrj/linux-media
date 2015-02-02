@@ -1,58 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.59.15.196]:11583 "EHLO
-	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752683AbbBJKkY (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:57507 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932871AbbBBLOF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2015 05:40:24 -0500
-From: Sifan Naeem <sifan.naeem@imgtec.com>
-To: <james.hogan@imgtec.com>, <mchehab@osg.samsung.com>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	Sifan Naeem <sifan.naeem@imgtec.com>
-Subject: [PATCH] rc: img-ir: fix error in parameters passed to irq_free()
-Date: Tue, 10 Feb 2015 10:41:56 +0000
-Message-ID: <1423564916-29805-1-git-send-email-sifan.naeem@imgtec.com>
+	Mon, 2 Feb 2015 06:14:05 -0500
+Message-ID: <54CF5BC9.3040501@xs4all.nl>
+Date: Mon, 02 Feb 2015 12:13:13 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Miguel Casas-Sanchez <mcasas@chromium.org>,
+	linux-media@vger.kernel.org
+Subject: Re: Vivid test device: adding YU12
+References: <CAKoAQ7=kQyJLP62iAA43aDGGnnwVS8LAQBUK-FrwWWLFF2Tm6w@mail.gmail.com>
+In-Reply-To: <CAKoAQ7=kQyJLP62iAA43aDGGnnwVS8LAQBUK-FrwWWLFF2Tm6w@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-img_ir_remove() passes a pointer to the ISR function as the 2nd
-parameter to irq_free() instead of a pointer to the device data
-structure.
-This issue causes unloading img-ir module to fail with the below
-warning after building and loading img-ir as a module.
+On 01/29/2015 03:44 AM, Miguel Casas-Sanchez wrote:
+> Hi folks, I've been trying to add a triplanar format to those that vivid
+> can generate, and didn't quite manage :(
+> 
+> So, I tried adding code for it like in the patch (with some dprintk() as
+> well) to clarify what I wanted to do. Module is insmod'ed like "insmod
+> vivid.ko n_devs=1 node_types=0x1 multiplanar=2 vivid_debug=1"
 
-WARNING: CPU: 2 PID: 155 at ../kernel/irq/manage.c:1278
-__free_irq+0xb4/0x214() Trying to free already-free IRQ 58
-Modules linked in: img_ir(-)
-CPU: 2 PID: 155 Comm: rmmod Not tainted 3.14.0 #55 ...
-Call Trace:
-...
-[<8048d420>] __free_irq+0xb4/0x214
-[<8048d6b4>] free_irq+0xac/0xf4
-[<c009b130>] img_ir_remove+0x54/0xd4 [img_ir] [<8073ded0>]
-platform_drv_remove+0x30/0x54 ...
+You are confusing something: PIX_FMT_YUV420 is single-planar, not multi-planar.
+That is, all image data is contained in one buffer. PIX_FMT_YUV420M is multi-planar,
+however. So you need to think which one you actually want to support.
 
-Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
-Fixes: 160a8f8aec4d ("[media] rc: img-ir: add base driver")
-Cc: <stable@vger.kernel.org> # 3.15+
----
- drivers/media/rc/img-ir/img-ir-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Another problem is that for the chroma part you need to average the values over
+four pixels. So the TPG needs to be aware of the previous line. This makes the TPG
+more complicated, and of course it is the reason why I didn't implement 4:2:0
+formats :-)
 
-diff --git a/drivers/media/rc/img-ir/img-ir-core.c b/drivers/media/rc/img-ir/img-ir-core.c
-index 77c78de..7020659 100644
---- a/drivers/media/rc/img-ir/img-ir-core.c
-+++ b/drivers/media/rc/img-ir/img-ir-core.c
-@@ -146,7 +146,7 @@ static int img_ir_remove(struct platform_device *pdev)
- {
- 	struct img_ir_priv *priv = platform_get_drvdata(pdev);
- 
--	free_irq(priv->irq, img_ir_isr);
-+	free_irq(priv->irq, priv);
- 	img_ir_remove_hw(priv);
- 	img_ir_remove_raw(priv);
- 
--- 
-1.7.9.5
+I would implement YUV420 first, and (if needed) YUV420M and/or NV12 can easily be
+added later.
+
+Regards,
+
+	Hans
+
+> With the patch, vivid:
+> - seems to enumerate the new triplanar format all right
+> - vid_s_fmt_vid_cap() works as intended too, apparently
+> - when arriving to vid_cap_queue_setup(), the size of the different
+> sub-arrays does not look quite ok.
+> - Generated video is, visually, all green.
+> 
+> I added as well a capture output dmesgs. Not much of interest here, the
+> first few lines configure the queue -- with my few added dprintk it can be
+> seen that the queue sizes are seemingly incorrect.
+> 
+> If and when this part is up and running, I wanted to use Vivid to test
+> dma-buf based capture.
+> 
+> Big thanks!
+> 
 
