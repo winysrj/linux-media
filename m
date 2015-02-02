@@ -1,79 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:63365 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933069AbbBBKXM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 05:23:12 -0500
-Date: Mon, 2 Feb 2015 11:22:56 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	linux-arm-kernel@lists.infradead.org, voice.shen@atmel.com,
-	nicolas.ferre@atmel.com
-Subject: Re: [PATCH] media: atmel-isi: increase the burst length to improve
- the performance
-In-Reply-To: <54CF4E52.6020901@atmel.com>
-Message-ID: <Pine.LNX.4.64.1502021122140.31366@axis700.grange>
-References: <1416907825-23826-1-git-send-email-josh.wu@atmel.com>
- <54CF4E52.6020901@atmel.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50006 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754024AbbBBPet (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 10:34:49 -0500
+Message-ID: <1422891282.6112.15.camel@pengutronix.de>
+Subject: Re: [PATCH v2 1/3] Add BGR888_1X24 and GBR888_1X24 media bus formats
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	kernel@pengutronix.de, linux-media@vger.kernel.org
+Date: Mon, 02 Feb 2015 16:34:42 +0100
+In-Reply-To: <20150202132421.6f2ecbd3.m.chehab@samsung.com>
+References: <1417614811-15634-1-git-send-email-p.zabel@pengutronix.de>
+	 <54CF92DD.6020308@xs4all.nl> <1422890460.6112.9.camel@pengutronix.de>
+	 <20150202132421.6f2ecbd3.m.chehab@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
-
-On Mon, 2 Feb 2015, Josh Wu wrote:
-
-> Hi, Guennadi
+Am Montag, den 02.02.2015, 13:24 -0200 schrieb Mauro Carvalho Chehab:
+> Em Mon, 02 Feb 2015 16:21:00 +0100
+> Philipp Zabel <p.zabel@pengutronix.de> escreveu:
 > 
-> Ping? what about the status of this patch?
-
-Right, got lost, sorry... Added to the queue now.
-
-Thanks
-Guennadi
-
-> Best Regards,
-> Josh Wu
+> > Am Montag, den 02.02.2015, 16:08 +0100 schrieb Hans Verkuil:
+> > > On 12/03/2014 02:53 PM, Philipp Zabel wrote:
+> > > > This patch adds two more 24-bit RGB formats. BGR888 is more or less common,
+> > > > GBR888 is used on the internal connection between the IPU display interface
+> > > > and the TVE (VGA DAC) on i.MX53 SoCs.
+> > > > 
+> > > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > 
+> > > This three-part patch series doesn't apply. Is it on top of another patch
+> > > series?
+> > 
+> > It is on top of "Add RGB444_1X12 and RGB565_1X16 media bus formats" and
+> > "Add LVDS RGB media bus formats".
+> > 
+> > > Anyway, it can't be merged unless it is actually used in a driver.
+> > 
+> > I'd like to use these in the imx-drm driver, so this is kind of a
+> > chicken and egg situation. Shall I submit a patch that uses the defines
+> > to dri-devel and reference it here?
 > 
-> On 11/25/2014 5:30 PM, Josh Wu wrote:
-> > The burst length could be BEATS_4/8/16. Before this patch, isi use default
-> > value BEATS_4. To imporve the performance we could set it to BEATS_16.
-> > 
-> > Otherwise sometime it would cause the ISI overflow error.
-> > 
-> > Reported-by: Bo Shen <voice.shen@atmel.com>
-> > Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> > ---
-> >   drivers/media/platform/soc_camera/atmel-isi.c | 2 ++
-> >   include/media/atmel-isi.h                     | 4 ++++
-> >   2 files changed, 6 insertions(+)
-> > 
-> > diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> > b/drivers/media/platform/soc_camera/atmel-isi.c
-> > index ee5650f..fda587b 100644
-> > --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> > +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> > @@ -839,6 +839,8 @@ static int isi_camera_set_bus_param(struct
-> > soc_camera_device *icd)
-> >   	if (isi->pdata.full_mode)
-> >   		cfg1 |= ISI_CFG1_FULL_MODE;
-> >   +	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
-> > +
-> >   	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-> >   	isi_writel(isi, ISI_CFG1, cfg1);
-> >   diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
-> > index c2e5703..6008b09 100644
-> > --- a/include/media/atmel-isi.h
-> > +++ b/include/media/atmel-isi.h
-> > @@ -59,6 +59,10 @@
-> >   #define		ISI_CFG1_FRATE_DIV_MASK		(7 << 8)
-> >   #define ISI_CFG1_DISCR				(1 << 11)
-> >   #define ISI_CFG1_FULL_MODE			(1 << 12)
-> > +/* Definition for THMASK(ISI_V2) */
-> > +#define		ISI_CFG1_THMASK_BEATS_4		(0 << 13)
-> > +#define		ISI_CFG1_THMASK_BEATS_8		(1 << 13)
-> > +#define		ISI_CFG1_THMASK_BEATS_16	(2 << 13)
-> >     /* Bitfields in CFG2 */
-> >   #define ISI_CFG2_GRAYSCALE			(1 << 13)
-> 
+> Submit the full patch series with the imx-drm driver, mentioning at the
+> V4L2 patch that it will be applied via the DRM tree. We'll review
+> and give our ack for it to be applied via DRM tree.
+
+I'll do that, thanks.
+
+regards
+Philipp
+
