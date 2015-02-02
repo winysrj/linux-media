@@ -1,54 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:24578 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755213AbbBTQiX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2015 11:38:23 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NK2004TLWVYHQ80@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Sat, 21 Feb 2015 01:38:22 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
+Received: from mail.openmailbox.org ([62.4.1.34]:39247 "EHLO
+	mail.openmailbox.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932146AbbBBSCo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 13:02:44 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by mail.openmailbox.org (Postfix) with ESMTP id 0D1CC2E01C0
+	for <linux-media@vger.kernel.org>; Mon,  2 Feb 2015 18:55:31 +0100 (CET)
+Received: from mail.openmailbox.org ([62.4.1.34])
+	by localhost (mail.openmailbox.org [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id K7xeU7Y8Dfej for <linux-media@vger.kernel.org>;
+	Mon,  2 Feb 2015 18:55:29 +0100 (CET)
+Message-ID: <54CFBA0E.205@openmailbox.org>
+Date: Mon, 02 Feb 2015 17:55:26 +0000
+From: Kyle Dominguez <kpd@openmailbox.org>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl
-Subject: [PATCH v5 3/4] coda: set allow_zero_bytesused flag for vb2_queue_init
-Date: Fri, 20 Feb 2015 17:38:07 +0100
-Message-id: <1424450288-26444-3-git-send-email-k.debski@samsung.com>
-In-reply-to: <1424450288-26444-1-git-send-email-k.debski@samsung.com>
-References: <1424450288-26444-1-git-send-email-k.debski@samsung.com>
+Subject: libv4l
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The coda driver interprets a buffer with bytesused equal to 0 as a special
-case indicating end-of-stream. After vb2: fix bytesused == 0 handling
-(8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
-The allow_zero_bytesused flag was added to videobuf2 to keep
-backward compatibility.
+Hello,
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- drivers/media/platform/coda/coda-common.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+When trying to build libv4l, it fails because I don't have the 
+dependencies for v4l1. Is it possibe to make libv4l without having 
+videodev.h? I only want the v4l2 parts, to which I have videodev2.h.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 6f32e6d..2d23f9a 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1541,6 +1541,13 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
- 	vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	vq->lock = &ctx->dev->dev_mutex;
-+	/* One of means to indicate end-of-stream for coda is to set the
-+	 * bytesused == 0. However by default videobuf2 handles videobuf
-+	 * equal to 0 as a special case and changes its value to the size
-+	 * of the buffer. Set the allow_zero_bytesused flag, so
-+	 * that videobuf2 will keep the value of bytesused intact.
-+	 */
-+	vq->allow_zero_bytesused = 1;
- 
- 	return vb2_queue_init(vq);
- }
--- 
-1.7.9.5
+Thanks,
 
+kpd
