@@ -1,54 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:24121 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559AbbBSPlG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 10:41:06 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NK0007Q8ZKH4Z80@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 20 Feb 2015 00:41:05 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl
-Subject: [PATCH v4 3/4] coda: set allow_zero_bytesused flag for vb2_queue_init
-Date: Thu, 19 Feb 2015 16:40:49 +0100
-Message-id: <1424360450-13048-3-git-send-email-k.debski@samsung.com>
-In-reply-to: <1424360450-13048-1-git-send-email-k.debski@samsung.com>
-References: <1424360450-13048-1-git-send-email-k.debski@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:36505 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964952AbbBBM41 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 07:56:27 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] cx231xx: don't use dev it not allocated
+Date: Mon,  2 Feb 2015 10:56:09 -0200
+Message-Id: <8e827a2b8a8c1f4178360c92e5f662a65bbef97d.1422881740.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The coda driver interprets a buffer with bytesused equal to 0 as a special
-case indicating end-of-stream. After vb2: fix bytesused == 0 handling
-(8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
-The allow_zero_bytesused flag was added to videobuf2 to keep
-backward compatibility.
+changeset 5eeb3014827f added a fixup at the error check
+code. However, it introduced a new error:
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- drivers/media/platform/coda/coda-common.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+	drivers/media/usb/cx231xx/cx231xx-cards.c:1586 cx231xx_usb_probe() error: we previously assumed 'dev' could be null (see line 1430)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 6f32e6d..2d23f9a 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1541,6 +1541,13 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
- 	vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	vq->lock = &ctx->dev->dev_mutex;
-+	/* One of means to indicate end-of-stream for coda is to set the
-+	 * bytesused == 0. However by default videobuf2 handles videobuf
-+	 * equal to 0 as a special case and changes its value to the size
-+	 * of the buffer. Set the allow_zero_bytesused flag, so
-+	 * that videobuf2 will keep the value of bytesused intact.
-+	 */
-+	vq->allow_zero_bytesused = 1;
- 
- 	return vb2_queue_init(vq);
+This happens when dev = kmalloc() fails. So, instead of relying
+on it to succeed, just change the parameter of clear_bit() from
+'dev->devno' to 'nr'.
+
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 33c2fa2e7596..da03733690bd 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1583,7 +1583,7 @@ err_v4l2:
+ 	usb_set_intfdata(interface, NULL);
+ err_if:
+ 	usb_put_dev(udev);
+-	clear_bit(dev->devno, &cx231xx_devused);
++	clear_bit(nr, &cx231xx_devused);
+ 	return retval;
  }
+ 
 -- 
-1.7.9.5
+2.1.0
 
