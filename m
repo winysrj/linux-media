@@ -1,150 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49454 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753855AbbBMW6V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 17:58:21 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuah.kh@samsung.com>,
-	Ole Ernst <olebowle@gmx.com>,
-	Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCHv4 23/25] [media] dvb-frontend: enable tuner link when the FE thread starts
-Date: Fri, 13 Feb 2015 20:58:06 -0200
-Message-Id: <fe73db581ca5aa8a2bc84009c3d9f88c5c26c5dc.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54113 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932416AbbBBQvx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 11:51:53 -0500
+Message-ID: <1422895907.6112.19.camel@pengutronix.de>
+Subject: Re: [PATCH v2 1/3] Add BGR888_1X24 and GBR888_1X24 media bus formats
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	kernel@pengutronix.de,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Date: Mon, 02 Feb 2015 17:51:47 +0100
+In-Reply-To: <20150202164809.459eaf26@bbrezillon>
+References: <1417614811-15634-1-git-send-email-p.zabel@pengutronix.de>
+	 <54CF92DD.6020308@xs4all.nl> <1422890460.6112.9.camel@pengutronix.de>
+	 <20150202132421.6f2ecbd3.m.chehab@samsung.com>
+	 <1422891282.6112.15.camel@pengutronix.de>
+	 <20150202164809.459eaf26@bbrezillon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the dvb frontend thread starts, the tuner should be switched
-to the frontend. Add a code that ensures that this will happen,
-using the media controller.
+Hi Boris,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Am Montag, den 02.02.2015, 16:48 +0100 schrieb Boris Brezillon:
+> Hi Philip,
+> 
+> On Mon, 02 Feb 2015 16:34:42 +0100
+> Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> 
+> > Am Montag, den 02.02.2015, 13:24 -0200 schrieb Mauro Carvalho Chehab:
+> > > Em Mon, 02 Feb 2015 16:21:00 +0100
+> > > Philipp Zabel <p.zabel@pengutronix.de> escreveu:
+> > > 
+> > > > Am Montag, den 02.02.2015, 16:08 +0100 schrieb Hans Verkuil:
+> > > > > On 12/03/2014 02:53 PM, Philipp Zabel wrote:
+> > > > > > This patch adds two more 24-bit RGB formats. BGR888 is more or less common,
+> > > > > > GBR888 is used on the internal connection between the IPU display interface
+> > > > > > and the TVE (VGA DAC) on i.MX53 SoCs.
+> > > > > > 
+> > > > > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > > > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > > 
+> > > > > This three-part patch series doesn't apply. Is it on top of another patch
+> > > > > series?
+> > > > 
+> > > > It is on top of "Add RGB444_1X12 and RGB565_1X16 media bus formats" and
+> > > > "Add LVDS RGB media bus formats".
+> > > > 
+> > > > > Anyway, it can't be merged unless it is actually used in a driver.
+> > > > 
+> > > > I'd like to use these in the imx-drm driver, so this is kind of a
+> > > > chicken and egg situation. Shall I submit a patch that uses the defines
+> > > > to dri-devel and reference it here?
+> > > 
+> > > Submit the full patch series with the imx-drm driver, mentioning at the
+> > > V4L2 patch that it will be applied via the DRM tree. We'll review
+> > > and give our ack for it to be applied via DRM tree.
+> > 
+> > I'll do that, thanks.
+> 
+> Don't know if you plan to keep the dependency on my RGB444 and RGB565
+> addition, but if you do, I guess you don't want to wait for my
+> atmel-hlcdc changes, so the best solution is to include my patch in
+> your series ;-).
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 2564422278df..50bc6056e914 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -590,12 +590,99 @@ static void dvb_frontend_wakeup(struct dvb_frontend *fe)
- 	wake_up_interruptible(&fepriv->wait_queue);
- }
- 
-+/**
-+ * dvb_enable_media_tuner() - tries to enable the DVB tuner
-+ *
-+ * @fe:		struct dvb_frontend pointer
-+ *
-+ * This function ensures that just one media tuner is enabled for a given
-+ * frontend. It has two different behaviors:
-+ * - For trivial devices with just one tuner:
-+ *   it just enables the existing tuner->fe link
-+ * - For devices with more than one tuner:
-+ *   It is up to the driver to implement the logic that will enable one tuner
-+ *   and disable the other ones. However, if more than one tuner is enabled for
-+ *   the same frontend, it will print an error message and return -EINVAL.
-+ *
-+ * At return, it will return the error code returned by media_entity_setup_link,
-+ * or 0 if everything is OK, if no tuner is linked to the frontend or if the
-+ * mdev is NULL.
-+ */
-+static int dvb_enable_media_tuner(struct dvb_frontend *fe)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-+	struct dvb_adapter *adapter = fe->dvb;
-+	struct media_device *mdev = adapter->mdev;
-+	struct media_entity  *entity, *source;
-+	struct media_link *link, *found_link = NULL;
-+	int i, ret, n_links = 0, active_links = 0;
-+
-+	if (!mdev)
-+		return 0;
-+
-+	entity = fepriv->dvbdev->entity;
-+	for (i = 0; i < entity->num_links; i++) {
-+		link = &entity->links[i];
-+		if (link->sink->entity == entity) {
-+			found_link = link;
-+			n_links++;
-+			if (link->flags & MEDIA_LNK_FL_ENABLED)
-+				active_links++;
-+		}
-+	}
-+
-+	if (!n_links || active_links == 1 || !found_link)
-+		return 0;
-+
-+	/*
-+	 * If a frontend has more than one tuner linked, it is up to the driver
-+	 * to select with one will be the active one, as the frontend core can't
-+	 * guess. If the driver doesn't do that, it is a bug.
-+	 */
-+	if (n_links > 1 && active_links != 1) {
-+		dev_err(fe->dvb->device,
-+			"WARNING: there are %d active links among %d tuners. This is a driver's bug!\n",
-+			active_links, n_links);
-+		return -EINVAL;
-+	}
-+
-+	source = found_link->source->entity;
-+	for (i = 0; i < source->num_links; i++) {
-+		struct media_entity *sink;
-+		int flags = 0;
-+
-+		link = &source->links[i];
-+		sink = link->sink->entity;
-+
-+		if (sink == entity)
-+			flags = MEDIA_LNK_FL_ENABLED;
-+
-+		ret = media_entity_setup_link(link, flags);
-+		if (ret) {
-+			dev_err(fe->dvb->device,
-+				"Couldn't change link %s->%s to %s. Error %d\n",
-+				source->name, sink->name,
-+				flags ? "enabled" : "disabled",
-+				ret);
-+			return ret;
-+		} else
-+			dev_dbg(fe->dvb->device,
-+				"link %s->%s was %s\n",
-+				source->name, sink->name,
-+				flags ? "ENABLED" : "disabled");
-+	}
-+#endif
-+	return 0;
-+}
-+
- static int dvb_frontend_thread(void *data)
- {
- 	struct dvb_frontend *fe = data;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	fe_status_t s;
- 	enum dvbfe_algo algo;
-+	int ret;
- 
- 	bool re_tune = false;
- 	bool semheld = false;
-@@ -609,6 +696,13 @@ static int dvb_frontend_thread(void *data)
- 	fepriv->wakeup = 0;
- 	fepriv->reinitialise = 0;
- 
-+	ret = dvb_enable_media_tuner(fe);
-+	if (ret) {
-+		/* FIXME: return an error if it fails */
-+		dev_info(fe->dvb->device,
-+			"proceeding with FE task\n");
-+	}
-+
- 	dvb_frontend_init(fe);
- 
- 	set_freezable();
--- 
-2.1.0
+Ok, I'll include your patch since I need the RGB565 format description
+as well.
+
+regards
+Philipp
 
