@@ -1,111 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:32180 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754526AbbBZQAL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 11:00:11 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NKD00A60Z4A5I40@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Feb 2015 01:00:10 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com,
-	kyungmin.park@samsung.com
-Subject: [v4l-utils PATCH/RFC v5 03/14] mediactl: Separate entity and pad
- parsing
-Date: Thu, 26 Feb 2015 16:59:13 +0100
-Message-id: <1424966364-3647-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
-References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:48110 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750780AbbBBOkq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Feb 2015 09:40:46 -0500
+Message-ID: <54CF8C6B.5080308@iki.fi>
+Date: Mon, 02 Feb 2015 16:40:43 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Nicholas Krause <xerofoify@gmail.com>
+CC: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media:dvb-frontends:Change setting of dtv_frontend_properties
+ modulation to the correct value in the function,hd29l2_get_frontend
+References: <1422887642-15590-1-git-send-email-xerofoify@gmail.com>
+In-Reply-To: <1422887642-15590-1-git-send-email-xerofoify@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Moikka!
+That patch is not correct and will not even compile. Problem is that 
+QAM_4NR and QAM_4 are not defined (OK, QPSK is QAM-4).
 
-Sometimes it's useful to be able to parse the entity independent of the pad.
-Separate entity parsing into media_parse_entity().
+regards
+Antti
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- utils/media-ctl/libmediactl.c |   28 ++++++++++++++++++++++++----
- utils/media-ctl/mediactl.h    |   14 ++++++++++++++
- 2 files changed, 38 insertions(+), 4 deletions(-)
+On 02/02/2015 04:34 PM, Nicholas Krause wrote:
+> Changes the values in the switch statement of the function,d29l2_get_frontend
+> to use the proper value for the dtv_frontend_properties modulation value. Further
+> more this changes the values of case 0 and case 1 to use the correct values of
+> QAM_4NR and QAM_4 respectfully.
+>
+> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+> ---
+>   drivers/media/dvb-frontends/hd29l2.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/hd29l2.c b/drivers/media/dvb-frontends/hd29l2.c
+> index d7b9d54..48cafc9 100644
+> --- a/drivers/media/dvb-frontends/hd29l2.c
+> +++ b/drivers/media/dvb-frontends/hd29l2.c
+> @@ -579,11 +579,11 @@ static int hd29l2_get_frontend(struct dvb_frontend *fe)
+>   	switch ((buf[0] >> 0) & 0x07) {
+>   	case 0: /* QAM4NR */
+>   		str_constellation = "QAM4NR";
+> -		c->modulation = QAM_AUTO; /* FIXME */
+> +		c->modulation = QAM_4NR;
+>   		break;
+>   	case 1: /* QAM4 */
+>   		str_constellation = "QAM4";
+> -		c->modulation = QPSK; /* FIXME */
+> +		c->modulation = QAM_4;
+>   		break;
+>   	case 2:
+>   		str_constellation = "QAM16";
+>
 
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index 4bb955f..bbaf387 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -766,10 +766,10 @@ int media_device_add_entity(struct media_device *media,
- 	return 0;
- }
- 
--struct media_pad *media_parse_pad(struct media_device *media,
--				  const char *p, char **endp)
-+struct media_entity *media_parse_entity(struct media_device *media,
-+					const char *p, char **endp)
- {
--	unsigned int entity_id, pad;
-+	unsigned int entity_id;
- 	struct media_entity *entity;
- 	char *end;
- 
-@@ -806,7 +806,27 @@ struct media_pad *media_parse_pad(struct media_device *media,
- 			return NULL;
- 		}
- 	}
--	for (; isspace(*end); ++end);
-+	for (p = end; isspace(*p); ++p);
-+
-+	*endp = (char *)p;
-+
-+	return entity;
-+}
-+
-+struct media_pad *media_parse_pad(struct media_device *media,
-+				  const char *p, char **endp)
-+{
-+	unsigned int pad;
-+	struct media_entity *entity;
-+	char *end;
-+
-+	if (endp == NULL)
-+		endp = &end;
-+
-+	entity = media_parse_entity(media, p, &end);
-+	if (!entity)
-+		return NULL;
-+	*endp = end;
- 
- 	if (*end != ':') {
- 		media_dbg(media, "Expected ':'\n", *end);
-diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
-index 77ac182..3faee71 100644
---- a/utils/media-ctl/mediactl.h
-+++ b/utils/media-ctl/mediactl.h
-@@ -368,6 +368,20 @@ int media_setup_link(struct media_device *media,
- int media_reset_links(struct media_device *media);
- 
- /**
-+ * @brief Parse string to an entity on the media device.
-+ * @param media - media device.
-+ * @param p - input string
-+ * @param endp - pointer to string where parsing ended
-+ *
-+ * Parse NULL terminated string describing an entity and return its
-+ * struct media_entity instance.
-+ *
-+ * @return Pointer to struct media_entity on success, NULL on failure.
-+ */
-+struct media_entity *media_parse_entity(struct media_device *media,
-+					const char *p, char **endp);
-+
-+/**
-  * @brief Parse string to a pad on the media device.
-  * @param media - media device.
-  * @param p - input string
 -- 
-1.7.9.5
-
+http://palosaari.fi/
