@@ -1,82 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:49750 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750931AbbBPUqy (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:59376 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752061AbbBBPIw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 15:46:54 -0500
-Received: by mail-ob0-f170.google.com with SMTP id va2so46090835obc.1
-        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2015 12:46:53 -0800 (PST)
+	Mon, 2 Feb 2015 10:08:52 -0500
+Message-ID: <54CF92DD.6020308@xs4all.nl>
+Date: Mon, 02 Feb 2015 16:08:13 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <54E24C83.7090309@iki.fi>
-References: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>
-	<54E24C83.7090309@iki.fi>
-Date: Mon, 16 Feb 2015 20:46:53 +0000
-Message-ID: <CAE6wzSKCaMnP-NVJQSfkzVxjds0GDuXAfLQtscM6BMtGg-0vdQ@mail.gmail.com>
-Subject: Re: [RFC PATCH 0/1] [media] pci: Add support for DVB PCIe cards from
- Prospero Technologies Ltd.
-From: Philip Downer <pdowner@prospero-tech.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH v2 1/3] Add BGR888_1X24 and GBR888_1X24 media bus formats
+References: <1417614811-15634-1-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1417614811-15634-1-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+On 12/03/2014 02:53 PM, Philipp Zabel wrote:
+> This patch adds two more 24-bit RGB formats. BGR888 is more or less common,
+> GBR888 is used on the internal connection between the IPU display interface
+> and the TVE (VGA DAC) on i.MX53 SoCs.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-On Mon, Feb 16, 2015 at 8:01 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Moikka!
->
->
-> On 02/16/2015 09:48 PM, Philip Downer wrote:
->>
->> The Vortex PCIe card by Prospero Technologies Ltd is a modular DVB card
->> with a hardware demux, the card can support up to 8 modules which are
->> fixed to the board at assembly time. Currently we only offer one
->> configuration, 8 x Dibcom 7090p DVB-t tuners, but we will soon be
->> releasing
->> other configurations. There is also a connector for an infra-red receiver
->> dongle on the board which supports RAW IR.
->>
->> The driver has been in testing on our systems (ARM Cortex-A9, Marvell
->> Sheva,
->> x86, x86-64) for longer than 6 months, so I'm confident that it works.
->> However as this is the first Linux driver I've written, I'm sure there are
->> some things that I've got wrong. One thing in particular which has been
->> raised by one of our early testers is that we currently register all of
->> our frontends as being attached to one adapter. This means the device is
->> enumerated in /dev like this:
->>
->> /dev/dvb/adapter0/frontend0
->> /dev/dvb/adapter0/dvr0
->> /dev/dvb/adapter0/demux0
->>
->> /dev/dvb/adapter0/frontend1
->> /dev/dvb/adapter0/dvr1
->> /dev/dvb/adapter0/demux1
->>
->> /dev/dvb/adapter0/frontend2
->> /dev/dvb/adapter0/dvr2
->> /dev/dvb/adapter0/demux2
->>
->> etc.
->>
->> Whilst I think this is ok according to the spec, our tester has complained
->> that it's incompatible with their software which expects to find just one
->> frontend per adapter. So I'm wondering if someone could confirm if what
->> I've done with regards to this is correct.
->
->
-> As I understand all those tuners are independent (could be used same time)
-> you should register those as a 8 adapters, each having single frontend, dvr
-> and demux.
+This three-part patch series doesn't apply. Is it on top of another patch
+series?
 
-Yes, all those tuners can be operated independently. So would I be
-correct in saying that in Linux an adapter is an independent tuner?
+Anyway, it can't be merged unless it is actually used in a driver.
 
-In that case the only time you would have frontend0, frontend1 etc is
-when there is a single dvb source that is switched between tuners?
+I'm changing this to 'Changes Requested' in patchwork.
 
--- 
-Philip Downer
-+44 (0)7879 470 969
-pdowner@prospero-tech.com
+Regards,
+
+	Hans
+
+> ---
+> Changes since v1:
+>  - Reordered 24-bit RGB formats alphabetically
+> ---
+>  Documentation/DocBook/media/v4l/subdev-formats.xml | 60 ++++++++++++++++++++++
+>  include/uapi/linux/media-bus-format.h              |  4 +-
+>  2 files changed, 63 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> index 52d7f04..a8da9d3 100644
+> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> @@ -469,6 +469,66 @@
+>  	      <entry>b<subscript>1</subscript></entry>
+>  	      <entry>b<subscript>0</subscript></entry>
+>  	    </row>
+> +	    <row id="MEDIA-BUS-FMT-BGR888-1X24">
+> +	      <entry>MEDIA_BUS_FMT_BGR888_1X24</entry>
+> +	      <entry>0x1013</entry>
+> +	      <entry></entry>
+> +	      &dash-ent-8;
+> +	      <entry>b<subscript>7</subscript></entry>
+> +	      <entry>b<subscript>6</subscript></entry>
+> +	      <entry>b<subscript>5</subscript></entry>
+> +	      <entry>b<subscript>4</subscript></entry>
+> +	      <entry>b<subscript>3</subscript></entry>
+> +	      <entry>b<subscript>2</subscript></entry>
+> +	      <entry>b<subscript>1</subscript></entry>
+> +	      <entry>b<subscript>0</subscript></entry>
+> +	      <entry>g<subscript>7</subscript></entry>
+> +	      <entry>g<subscript>6</subscript></entry>
+> +	      <entry>g<subscript>5</subscript></entry>
+> +	      <entry>g<subscript>4</subscript></entry>
+> +	      <entry>g<subscript>3</subscript></entry>
+> +	      <entry>g<subscript>2</subscript></entry>
+> +	      <entry>g<subscript>1</subscript></entry>
+> +	      <entry>g<subscript>0</subscript></entry>
+> +	      <entry>r<subscript>7</subscript></entry>
+> +	      <entry>r<subscript>6</subscript></entry>
+> +	      <entry>r<subscript>5</subscript></entry>
+> +	      <entry>r<subscript>4</subscript></entry>
+> +	      <entry>r<subscript>3</subscript></entry>
+> +	      <entry>r<subscript>2</subscript></entry>
+> +	      <entry>r<subscript>1</subscript></entry>
+> +	      <entry>r<subscript>0</subscript></entry>
+> +	    </row>
+> +	    <row id="MEDIA-BUS-FMT-GBR888-1X24">
+> +	      <entry>MEDIA_BUS_FMT_GBR888_1X24</entry>
+> +	      <entry>0x1014</entry>
+> +	      <entry></entry>
+> +	      &dash-ent-8;
+> +	      <entry>g<subscript>7</subscript></entry>
+> +	      <entry>g<subscript>6</subscript></entry>
+> +	      <entry>g<subscript>5</subscript></entry>
+> +	      <entry>g<subscript>4</subscript></entry>
+> +	      <entry>g<subscript>3</subscript></entry>
+> +	      <entry>g<subscript>2</subscript></entry>
+> +	      <entry>g<subscript>1</subscript></entry>
+> +	      <entry>g<subscript>0</subscript></entry>
+> +	      <entry>b<subscript>7</subscript></entry>
+> +	      <entry>b<subscript>6</subscript></entry>
+> +	      <entry>b<subscript>5</subscript></entry>
+> +	      <entry>b<subscript>4</subscript></entry>
+> +	      <entry>b<subscript>3</subscript></entry>
+> +	      <entry>b<subscript>2</subscript></entry>
+> +	      <entry>b<subscript>1</subscript></entry>
+> +	      <entry>b<subscript>0</subscript></entry>
+> +	      <entry>r<subscript>7</subscript></entry>
+> +	      <entry>r<subscript>6</subscript></entry>
+> +	      <entry>r<subscript>5</subscript></entry>
+> +	      <entry>r<subscript>4</subscript></entry>
+> +	      <entry>r<subscript>3</subscript></entry>
+> +	      <entry>r<subscript>2</subscript></entry>
+> +	      <entry>r<subscript>1</subscript></entry>
+> +	      <entry>r<subscript>0</subscript></entry>
+> +	    </row>
+>  	    <row id="MEDIA-BUS-FMT-RGB888-1X24">
+>  	      <entry>MEDIA_BUS_FMT_RGB888_1X24</entry>
+>  	      <entry>0x100a</entry>
+> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+> index 7f8b1e2..10b40dd 100644
+> --- a/include/uapi/linux/media-bus-format.h
+> +++ b/include/uapi/linux/media-bus-format.h
+> @@ -33,7 +33,7 @@
+>  
+>  #define MEDIA_BUS_FMT_FIXED			0x0001
+>  
+> -/* RGB - next is	0x1013 */
+> +/* RGB - next is	0x1015 */
+>  #define MEDIA_BUS_FMT_RGB444_1X12		0x100e
+>  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+>  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+> @@ -46,6 +46,8 @@
+>  #define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
+>  #define MEDIA_BUS_FMT_RGB666_1X18		0x1009
+>  #define MEDIA_BUS_FMT_RGB666_LVDS_SPWG		0x1010
+> +#define MEDIA_BUS_FMT_BGR888_1X24		0x1013
+> +#define MEDIA_BUS_FMT_GBR888_1X24		0x1014
+>  #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
+>  #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
+>  #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
+> 
+
