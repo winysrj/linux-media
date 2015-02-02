@@ -1,37 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from or-71-0-52-80.sta.embarqhsd.net ([71.0.52.80]:56692 "EHLO
-	asgard.dharty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871AbbBSEEY (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40081 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751148AbbBBLpc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 23:04:24 -0500
-Message-ID: <54E560C3.20308@dharty.com>
-Date: Wed, 18 Feb 2015 20:04:19 -0800
-From: David Harty <dwh@dharty.com>
-Reply-To: v4l@dharty.com
+	Mon, 2 Feb 2015 06:45:32 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 270EF2A0080
+	for <linux-media@vger.kernel.org>; Mon,  2 Feb 2015 12:44:54 +0100 (CET)
+Message-ID: <54CF6336.1080103@xs4all.nl>
+Date: Mon, 02 Feb 2015 12:44:54 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: dCrypt <dcrypt@telefonica.net>, stoth@kernellabs.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [BUG, workaround] HVR-2200/saa7164 problem with C7 power state
-References: <14641294.293916.1422889477503.JavaMail.defaultUser@defaultHost>	<1842309.294410.1422891194529.JavaMail.defaultUser@defaultHost> <CALzAhNXPne4_0vs80Y26Yia8=jYh8EqA0phJm31UzATdAvPvDg@mail.gmail.com> <8039614.312436.1422971964080.JavaMail.defaultUser@defaultHost> <54DD3986.3010707@dharty.com> <54E2BC31.7000809@dharty.com> <004501d04aaf$e9fe6540$bdfb2fc0$@net>
-In-Reply-To: <004501d04aaf$e9fe6540$bdfb2fc0$@net>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.20] Various fixes
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/17/2015 04:47 AM, dCrypt wrote:
-> So the PCI Express change hasn't seemed to help either. Any other 
-> ideas? David --
+The following changes since commit a5f43c18fceb2b96ec9fddb4348f5282a71cf2b0:
 
-My system stops working at least once a day.  Does anyone have any 
-suggestions to try? latest module builds? other firmwares?  I notice 
-there are several up on the http://www.steventoth.net/linux/hvr22xx/ 
-site, would any of those work better?
+  [media] Documentation/video4linux: remove obsolete text files (2015-01-29 19:16:30 -0200)
 
-Is there a better card to use?  the HVR-2200 and saa7164 are effectively 
-unusable at this point.
+are available in the git repository at:
 
-Thanks,
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.20c
 
-David
+for you to fetch changes up to 533ab6434b8d57778bd764bcae2e9ec8fdf068a5:
 
+  davinci: add V4L2 dependencies (2015-02-02 11:49:28 +0100)
+
+----------------------------------------------------------------
+Alexey Khoroshilov (1):
+      cx231xx: fix usbdev leak on failure paths in cx231xx_usb_probe()
+
+Arnd Bergmann (4):
+      timberdale: do not select TIMB_DMA
+      radio/aimslab: use mdelay instead of udelay
+      siano: fix Kconfig dependencies
+      davinci: add V4L2 dependencies
+
+Hans Verkuil (1):
+      vivid: use consistent colorspace/Y'CbCr Encoding strings
+
+Ismael Luceno (1):
+      MAINTAINERS: Update solo6x10 entry
+
+Nicholas Mc Guire (1):
+      pvrusb2: use msecs_to_jiffies for conversion
+
+Prabhakar Lad (1):
+      media: am437x: fix sparse warnings
+
+ MAINTAINERS                                 |  1 +
+ drivers/media/mmc/siano/Kconfig             |  2 ++
+ drivers/media/platform/Kconfig              |  6 ++----
+ drivers/media/platform/am437x/am437x-vpfe.c |  5 ++---
+ drivers/media/platform/davinci/Kconfig      |  6 +++---
+ drivers/media/platform/vivid/vivid-ctrls.c  |  4 ++--
+ drivers/media/radio/radio-aimslab.c         |  4 ++--
+ drivers/media/usb/cx231xx/cx231xx-cards.c   |  7 ++++---
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c     | 19 ++++++++-----------
+ drivers/media/usb/siano/Kconfig             |  2 ++
+ 10 files changed, 28 insertions(+), 28 deletions(-)
