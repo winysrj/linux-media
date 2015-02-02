@@ -1,50 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.southpole.se ([37.247.8.11]:60805 "EHLO mail.southpole.se"
+Received: from cantor2.suse.de ([195.135.220.15]:44522 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752157AbbBSJoU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 04:44:20 -0500
-Received: from [10.10.1.135] (assp.southpole.se [37.247.8.10])
-	by mail.southpole.se (Postfix) with ESMTPSA id E1AC0440648
-	for <linux-media@vger.kernel.org>; Thu, 19 Feb 2015 10:44:18 +0100 (CET)
-Message-ID: <54E5B071.2050608@southpole.se>
-Date: Thu, 19 Feb 2015 10:44:17 +0100
-From: Benjamin Larsson <benjamin@southpole.se>
+	id S1753588AbbBBU43 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Feb 2015 15:56:29 -0500
+Date: Mon, 2 Feb 2015 21:56:23 +0100
+From: Jean Delvare <jdelvare@suse.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Antti Palosaari <crope@iki.fi>, Mark Brown <broonie@kernel.org>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 21/66] rtl2830: implement own I2C locking
+Message-ID: <20150202215623.5e289f24@endymion.delvare>
+In-Reply-To: <20150202180726.454dc878@recife.lan>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+	<1419367799-14263-21-git-send-email-crope@iki.fi>
+	<20150202180726.454dc878@recife.lan>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/3] rtl28xxu: lower the rc poll time to mitigate i2c
- transfer errors
-References: <1417825533-13081-1-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1417825533-13081-1-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-12-06 01:25, Benjamin Larsson wrote:
-> The Astrometa device has issues with i2c transfers. Lowering the
-> poll time somehow makes these errors disappear.
->
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
-> ---
->   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index 705c6c3..9ec4223 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -1567,7 +1567,7 @@ static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
->   	rc->allowed_protos = RC_BIT_ALL;
->   	rc->driver_type = RC_DRIVER_IR_RAW;
->   	rc->query = rtl2832u_rc_query;
-> -	rc->interval = 400;
-> +	rc->interval = 200;
->
->   	return 0;
->   }
->
+Hi Mauro, Antti,
 
-Ping, can I get an ack or nack on this ?
+On Mon, 2 Feb 2015 18:07:26 -0200, Mauro Carvalho Chehab wrote:
+> Em Tue, 23 Dec 2014 22:49:14 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+> 
+> > Own I2C locking is needed due to two special reasons:
+> > 1) Chips uses multiple register pages/banks on single I2C slave.
+> > Page is changed via I2C register access.
 
-MvH
-Benjamin Larsson
+This is no good reason to implement your own i2c bus locking. Lots of
+i2c slave device work that way, and the way to handle it is through a
+dedicated lock at the i2c slave device level. This is in addition to
+the standard i2c bus locking and not a replacement.
+
+> > 2) Chip offers muxed/gated I2C adapter for tuner. Gate/mux is
+> > controlled by I2C register access.
+
+This, OTOH, is a valid reason for calling __i2c_transfer, and as a
+matter of fact a number of dvb frontend drivers already do so.
+
+> > Due to these reasons, I2C locking did not fit very well.
+> 
+> I don't like the idea of calling __i2c_transfer() without calling first
+> i2c_lock_adapter(). This can be dangerous, as the I2C core itself uses
+> the lock for its own usage.
+
+I think the idea is that the i2c bus lock is already held at the time
+the muxing code is called. This happens each time the I2C muxing chip
+is an I2C chip itself.
+
+> Ok, this may eventually work ok for now, but a further change at the I2C
+> core could easily break it. So, we need to double check about such
+> patch with the I2C maintainer.
+
+If it breaks than it'll break a dozen drivers which are already doing
+that, not just this one. But it's OK, I don't see this happening soon.
+
+> Jean,
+> 
+> Are you ok with such patch? If so, please ack.
+
+First of all: I am no longer the maintainer of the I2C subsystem. That
+being said...
+
+The changes look OK to me. I think it's how they are presented which
+make them look suspect. As I understand it, the extra locking at device
+level is unrelated with calling unlocked i2c transfer functions. The
+former change is to address the multi-page/bank register mapping, while
+the latter is to solve the deadlock due to the i2c bus topology and
+i2c-based muxing. If I am correct then it would be clearer to make that
+two separate patches with better descriptions.
+
+And if I'm wrong then the patch needs a better description too ;-)
+
+-- 
+Jean Delvare
+SUSE L3 Support
