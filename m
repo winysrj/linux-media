@@ -1,80 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48097 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751707AbbBVQLw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2015 11:11:52 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 05/10] [media] siano: replace sms_log() by pr_debug()
-Date: Sun, 22 Feb 2015 13:11:36 -0300
-Message-Id: <1424621501-17466-6-git-send-email-mchehab@osg.samsung.com>
-In-Reply-To: <1424621501-17466-1-git-send-email-mchehab@osg.samsung.com>
-References: <1424621501-17466-1-git-send-email-mchehab@osg.samsung.com>
+Received: from mout.web.de ([212.227.17.11]:59721 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754233AbbBBMoY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Feb 2015 07:44:24 -0500
+Message-ID: <54CF711B.5030507@users.sourceforge.net>
+Date: Mon, 02 Feb 2015 13:44:11 +0100
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+MIME-Version: 1.0
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
+CC: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: [media] staging: bcm2048: Delete an unnecessary check before the
+ function call "video_unregister_device"
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Despite its name, those functions are acutally debug
-prints for the IR part of the driver. So, properly
-map them using pr_debug()
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 2 Feb 2015 13:20:23 +0100
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+The video_unregister_device() function tests whether its argument is NULL
+and then returns immediately. Thus the test around the call is not needed.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/common/siano/smscoreapi.h | 1 -
- drivers/media/common/siano/smsir.c      | 8 ++++----
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/media/common/siano/smscoreapi.h b/drivers/media/common/siano/smscoreapi.h
-index 9ea6a10757d5..ab6506fd65c8 100644
---- a/drivers/media/common/siano/smscoreapi.h
-+++ b/drivers/media/common/siano/smscoreapi.h
-@@ -1179,7 +1179,6 @@ int smscore_led_state(struct smscore_device_t *core, int led);
- #define DBG_INFO 1
- #define DBG_ADV  2
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index 60a57b2..f308078 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -2684,9 +2684,7 @@ static int __exit bcm2048_i2c_driver_remove(struct i2c_client *client)
+ 		vd = bdev->videodev;
  
--#define sms_log(fmt, arg...) pr_info(fmt "\n", ##arg)
- #define sms_info(fmt, arg...) do {\
- 	if (sms_dbg & DBG_INFO) \
- 		pr_info(fmt "\n", ##arg); \
-diff --git a/drivers/media/common/siano/smsir.c b/drivers/media/common/siano/smsir.c
-index 2e0f96ff5594..825e1ca0f9d8 100644
---- a/drivers/media/common/siano/smsir.c
-+++ b/drivers/media/common/siano/smsir.c
-@@ -57,14 +57,14 @@ int sms_ir_init(struct smscore_device_t *coredev)
- 	int board_id = smscore_get_board_id(coredev);
- 	struct rc_dev *dev;
+ 		bcm2048_sysfs_unregister_properties(bdev, ARRAY_SIZE(attrs));
+-
+-		if (vd)
+-			video_unregister_device(vd);
++		video_unregister_device(vd);
  
--	sms_log("Allocating rc device");
-+	pr_debug("Allocating rc device\n");
- 	dev = rc_allocate_device();
- 	if (!dev)
- 		return -ENOMEM;
- 
- 	coredev->ir.controller = 0;	/* Todo: vega/nova SPI number */
- 	coredev->ir.timeout = IR_DEFAULT_TIMEOUT;
--	sms_log("IR port %d, timeout %d ms",
-+	pr_debug("IR port %d, timeout %d ms\n",
- 			coredev->ir.controller, coredev->ir.timeout);
- 
- 	snprintf(coredev->ir.name, sizeof(coredev->ir.name),
-@@ -91,7 +91,7 @@ int sms_ir_init(struct smscore_device_t *coredev)
- 	dev->map_name = sms_get_board(board_id)->rc_codes;
- 	dev->driver_name = MODULE_NAME;
- 
--	sms_log("Input device (IR) %s is set for key events", dev->input_name);
-+	pr_debug("Input device (IR) %s is set for key events\n", dev->input_name);
- 
- 	err = rc_register_device(dev);
- 	if (err < 0) {
-@@ -108,5 +108,5 @@ void sms_ir_exit(struct smscore_device_t *coredev)
- {
- 	rc_unregister_device(coredev->ir.dev);
- 
--	sms_log("");
-+	pr_debug("\n");
- }
+ 		if (bdev->power_state)
+ 			bcm2048_set_power_state(bdev, BCM2048_POWER_OFF);
 -- 
-2.1.0
+2.2.2
 
