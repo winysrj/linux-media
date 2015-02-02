@@ -1,87 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:53224 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932203AbbBDHVP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Feb 2015 02:21:15 -0500
-Message-ID: <54D1C841.5090108@xs4all.nl>
-Date: Wed, 04 Feb 2015 08:20:33 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:38611 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752352AbbBBObn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Feb 2015 09:31:43 -0500
+Date: Mon, 2 Feb 2015 12:31:38 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Mark Brown <broonie@kernel.org>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for
+ lockdep
+Message-ID: <20150202123138.2b2a2fa4@recife.lan>
+In-Reply-To: <20141222150515.GV17800@sirena.org.uk>
+References: <1419114892-4550-1-git-send-email-crope@iki.fi>
+	<20141222124411.GK17800@sirena.org.uk>
+	<549814BB.3040808@iki.fi>
+	<20141222133142.GM17800@sirena.org.uk>
+	<54982246.20300@iki.fi>
+	<20141222150515.GV17800@sirena.org.uk>
 MIME-Version: 1.0
-To: Miguel Casas-Sanchez <mcasas@chromium.org>,
-	linux-media@vger.kernel.org
-Subject: Re: Vivid test device: adding YU12
-References: <CAKoAQ7=MmJZcyGZkJwUFHL=yHZfG0AbNcZV+Ho0d6EhB5WV7nw@mail.gmail.com>
-In-Reply-To: <CAKoAQ7=MmJZcyGZkJwUFHL=yHZfG0AbNcZV+Ho0d6EhB5WV7nw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/04/2015 01:42 AM, Miguel Casas-Sanchez wrote:
->     On 02/02/15 23:32, Miguel Casas-Sanchez wrote:
->     >> On 01/29/2015 03:44 AM, Miguel Casas-Sanchez wrote:
->     >>> Hi folks, I've been trying to add a triplanar format to those that vivid
->     >>> can generate, and didn't quite manage :(
->     >>>
->     >>> So, I tried adding code for it like in the patch (with some dprintk() as
->     >>> well) to clarify what I wanted to do. Module is insmod'ed like "insmod
->     >>> vivid.ko n_devs=1 node_types=0x1 multiplanar=2 vivid_debug=1"
->     >>
->     >> You are confusing something: PIX_FMT_YUV420 is single-planar, not multi-planar.
->     >> That is, all image data is contained in one buffer. PIX_FMT_YUV420M is multi-planar,
->     >> however. So you need to think which one you actually want to support.
->     >> Another problem is that for the chroma part you need to average the values over
->     >> four pixels. So the TPG needs to be aware of the previous line. This makes the TPG
->     >> more complicated, and of course it is the reason why I didn't implement 4:2:0
->     >> formats :-)
->     >> I would implement YUV420 first, and (if needed) YUV420M and/or NV12 can easily be
->     >> added later.
->     >> Regards,
->     >>         Hans
->     >>
->     >
->     > So, we could call YUV420 (YU12) a tightly packed planar format :)
->     > because it has several planes, rigurously speaking, but they are
->     > laid out back-to-back in memory. Correct?
->     Correct.
->     > I was interested here precisely in using the MPLANE API, so I'd
->     > rather go for YUV420M directly; perhaps cheating a bit on the
->     > TPG calculation in the first implementation: I/we could just simplify
->     > the Chroma calculation to grabbing the upper-left pixel value,
->     > ignoring the other three. Not perfect, but for a first patch of a test
->     > device it should do.
->     >
->     > WDYT?
->     I would actually pick YUV420 or NV12 as the initial implementation, since
->     you can test that with qv4l2 (it uses libv4lconvert which understands
->     those two formats). That way you can develop on any linux PC. Also there
->     is no need initially to add support for 3-plane formats, which simplifies
->     things. But that's just my preference.
-> 
-> 
-> I'll follow your advice then.
->  
-> 
->     Note that I won't accept patches that do not implement 4:2:0 correctly
->     (averaging four pixels). The goal of the vivid driver is to emulate
->     hardware as well as possible, so shortcuts with that are a no-go.
-> 
-> 
-> Yeah sure, I meant: there were two to-do's"
-> a) add NV12 (YUV420) non-multiplanar, making sure the chromas are rightly calculated
-> b) add mplanar version of the previous.
-> What we "argued" for a second was about the order of those two, not
-> their existence :)
-> 
-> I think we're on to doing a) then b). Would it be ok to prepare-review-land
-> them separately or rather have a single patch?
+Antti/Mark,
 
-I'd keep them separately. The first patch adds support for, say, NV12, the next
-for NV21, then YUV420, YVU420, YUV240M, YVU420M, NV12M, NV21M. Perhaps I'm too
-optimistic here, but it should be easy to add support for all these variants
-once the first is done.
+Any news with regards to this?
 
 Regards,
+Mauro
 
-	Hans
+Em Mon, 22 Dec 2014 15:05:15 +0000
+Mark Brown <broonie@kernel.org> escreveu:
+
+> On Mon, Dec 22, 2014 at 03:53:10PM +0200, Antti Palosaari wrote:
+> > On 12/22/2014 03:31 PM, Mark Brown wrote:
+> 
+> > >>>Why is this configurable, how would a device know if the system it is in
+> > >>>needs a custom locking class and can safely use one?
+> 
+> > >>If RegMap instance is bus master, eg. I2C adapter, then you should define
+> > >>own custom key. If you don't define own key and there will be slave on that
+> > >>bus which uses RegMap too, there will be recursive locking from a lockdep
+> > >>point of view.
+> 
+> > >That doesn't really explain to me why this is configurable, why should
+> > >drivers have to worry about this?
+> 
+> > Did you read the lockdep documentation I pointed previous mail?
+> 
+> No, quite apart from the fact that you pasted a good chunk of it into
+> your mail I don't think it's a good idea to require people to have to
+> reverse engineer everything to figure out if they're supposed to use
+> this, or expect people reviewing code using this feature to do that in
+> order to figure out if it's being used correctly or not.
+> 
+> Suggesting that I'm not thinking hard enough isn't helping here; this
+> stuff needs to be clear and easy so that people naturally get it right
+> when they need to and don't break things as a result of confusion or
+> error, requiring people to directly work with infrequently used things
+> like lock classes with minimal explanation doesn't achieve that goal.
+> 
+> > One possibility is to disable lockdep checking from that driver totally,
+> > then drivers do not need to care it about. But I don't think it is proper
+> > way. One solution is to use custom regmap locking available already, but
+> > Mauro nor me didn't like that hack:
+> 
+> You don't seem to be answering any of my questions here...  for example,
+> you keep saying that this is something bus masters should do.  Why does
+> it make sense for people writing such drivers to have to figure out that
+> they need to do this and how to do it?  Are there some bus masters that
+> shouldn't be doing so?  Should anything that isn't a bus master have to
+> do it?
+> 
+> > >Please also write technical terms like regmap normally.
+> 
+> > Lower-case letters?
+> 
+> Yes, the way it's written in every place it's used in the kernel except
+> a few I see you've added.
