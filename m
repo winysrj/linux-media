@@ -1,80 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45476 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933996AbbBCPW1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 10:22:27 -0500
-Date: Tue, 3 Feb 2015 15:22:05 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Rob Clark <robdclark@gmail.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher
- constraints with dma-parms
-Message-ID: <20150203152204.GU8656@n2100.arm.linux.org.uk>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
- <4689826.8DDCrX2ZhK@wuerfel>
- <20150203144109.GR8656@n2100.arm.linux.org.uk>
- <4830208.H6zxrGlT1D@wuerfel>
+Received: from mail.kapsi.fi ([217.30.184.167]:34589 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932452AbbBBRvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Feb 2015 12:51:00 -0500
+Message-ID: <54CFB901.3080306@iki.fi>
+Date: Mon, 02 Feb 2015 19:50:57 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4830208.H6zxrGlT1D@wuerfel>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 05/66] rtl2830: convert driver to kernel I2C model
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>	<1419367799-14263-5-git-send-email-crope@iki.fi> <20150127111004.795c40ca@recife.lan>
+In-Reply-To: <20150127111004.795c40ca@recife.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 03, 2015 at 03:52:48PM +0100, Arnd Bergmann wrote:
-> On Tuesday 03 February 2015 14:41:09 Russell King - ARM Linux wrote:
-> > I'd go as far as saying that the "DMA API on top of IOMMU" is more
-> > intended to be for a system IOMMU for the bus in question, rather
-> > than a device-level IOMMU.
-> > 
-> > If an IOMMU is part of a device, then the device should handle it
-> > (maybe via an abstraction) and not via the DMA API.  The DMA API should
-> > be handing the bus addresses to the device driver which the device's
-> > IOMMU would need to generate.  (In other words, in this circumstance,
-> > the DMA API shouldn't give you the device internal address.)
-> 
-> Exactly. And the abstraction that people choose at the moment is the
-> iommu API, for better or worse. It makes a lot of sense to use this
-> API if the same iommu is used for other devices as well (which is
-> the case on Tegra and probably a lot of others). Unfortunately the
-> iommu API lacks support for cache management, and probably other things
-> as well, because this was not an issue for the original use case
-> (device assignment on KVM/x86).
-> 
-> This could be done by adding explicit or implied cache management
-> to the IOMMU mapping interfaces, or by extending the dma-mapping
-> interfaces in a way that covers the use case of the device managing
-> its own address space, in addition to the existing coherent and
-> streaming interfaces.
+On 01/27/2015 03:10 PM, Mauro Carvalho Chehab wrote:
+> Em Tue, 23 Dec 2014 22:48:58 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> Convert driver to kernel I2C model. Old DVB proprietary model is
+>> still left there also.
+>>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
 
-Don't we already have those in the DMA API?  dma_sync_*() ?
+>> +struct rtl2830_platform_data {
+>> +	/*
+>> +	 * Clock frequency.
+>> +	 * Hz
+>> +	 * 4000000, 16000000, 25000000, 28800000
+>> +	 */
+>> +	u32 clk;
+>> +
+>> +	/*
+>> +	 * Spectrum inversion.
+>> +	 */
+>> +	bool spec_inv;
+>> +
+>> +	/*
+>> +	 */
+>> +	u8 vtop;
+>> +
+>> +	/*
+>> +	 */
+>> +	u8 krf;
+>> +
+>> +	/*
+>> +	 */
+>> +	u8 agc_targ_val;
+>> +
+>> +	/*
+>> +	 */
+>> +	struct dvb_frontend* (*get_dvb_frontend)(struct i2c_client *);
+>> +	struct i2c_adapter* (*get_i2c_adapter)(struct i2c_client *);
+>> +};
+>
+> Please fix this to follow the Kernel CodingStyle for struct/function/...
+> documentation:
+> 	Documentation/kernel-doc-nano-HOWTO.txt
+>
+> Sometimes, I just leave things like that to pass, but the above one is too
+> ugly, with empty multiple line comments, uncommented arguments, etc.
 
-dma_map_sg() - sets up the system MMU and deals with initial cache
-coherency handling.  Device IOMMU being the responsibility of the
-GPU driver.
+I added kernel-doc comments for rtl2830, rtl2832 and rtl2832_sdr driver 
+platform data. PULL request is already updated.
 
-The GPU can then do dma_sync_*() on the scatterlist as is necessary
-to synchronise the cache coherency (while respecting the ownership
-rules - which are very important on ARM to follow as some sync()s are
-destructive to any dirty data in the CPU cache.)
+And next time please start keep noise earlier - I have written tens of 
+these drivers and that was first time you ask kernel-doc format comments 
+for driver configurations structures. I see those should be as 
+kernel-doc-nano-HOWTO.txt says, but it was first time I hear about that 
+rule.
 
-dma_unmap_sg() tears down the system MMU and deals with the final cache
-handling.
-
-Why do we need more DMA API interfaces?
+regards
+Antti
 
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+http://palosaari.fi/
