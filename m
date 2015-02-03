@@ -1,45 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40011 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753963AbbBCMsk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 07:48:40 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, isely@isely.net,
-	pali.rohar@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 4/5] uvc gadget: set device_caps in querycap.
-Date: Tue,  3 Feb 2015 13:47:25 +0100
-Message-Id: <1422967646-12223-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1422967646-12223-1-git-send-email-hverkuil@xs4all.nl>
-References: <1422967646-12223-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:58554 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161027AbbBCUDP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 15:03:15 -0500
+Received: by mail-wi0-f175.google.com with SMTP id fb4so27155713wid.2
+        for <linux-media@vger.kernel.org>; Tue, 03 Feb 2015 12:03:13 -0800 (PST)
+Date: Tue, 3 Feb 2015 21:04:35 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-kernel@lists.linaro.org, Rob Clark <robdclark@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Robin Murphy <robin.murphy@arm.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
+ attacher constraints with dma-parms
+Message-ID: <20150203200435.GX14009@phenom.ffwll.local>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <6906596.JU5vQoa1jV@wuerfel>
+ <CAF6AEGsttiufoqPbDiZfUX2ndbv2XfeZzcfyaf-AcUJgJpgLkA@mail.gmail.com>
+ <7233574.nKiRa7HnXU@wuerfel>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7233574.nKiRa7HnXU@wuerfel>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, Feb 03, 2015 at 05:36:59PM +0100, Arnd Bergmann wrote:
+> On Tuesday 03 February 2015 11:22:01 Rob Clark wrote:
+> > On Tue, Feb 3, 2015 at 11:12 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > > I agree for the case you are describing here. From what I understood
+> > > from Rob was that he is looking at something more like:
+> > >
+> > > Fig 3
+> > > CPU--L1cache--L2cache--Memory--IOMMU---<iobus>--device
+> > >
+> > > where the IOMMU controls one or more contexts per device, and is
+> > > shared across GPU and non-GPU devices. Here, we need to use the
+> > > dmap-mapping interface to set up the IO page table for any device
+> > > that is unable to address all of system RAM, and we can use it
+> > > for purposes like isolation of the devices. There are also cases
+> > > where using the IOMMU is not optional.
+> > 
+> > 
+> > Actually, just to clarify, the IOMMU instance is specific to the GPU..
+> > not shared with other devices.  Otherwise managing multiple contexts
+> > would go quite badly..
+> > 
+> > But other devices have their own instance of the same IOMMU.. so same
+> > driver could be used.
+> 
+> I think from the driver perspective, I'd view those two cases as
+> identical. Not sure if Russell agrees with that.
 
-The V4L2 core will warn if this is not done. Unfortunately this driver
-wasn't updated.
+Imo whether the iommu is private to the device and required for gpu
+functionality like context switching or shared across a bunch of devices
+is fairly important. Assuming I understand this discussion correctly we
+have two different things pulling in opposite directions:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/usb/gadget/function/uvc_v4l2.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+- From a gpu functionality perspective we want to give the gpu driver full
+  control over the device-private iommu, pushing it out of the control of
+  the dma api. dma_map_sg would just map to whatever bus addresses that
+  iommu would need to use for generating access cycles.
 
-diff --git a/drivers/usb/gadget/function/uvc_v4l2.c b/drivers/usb/gadget/function/uvc_v4l2.c
-index 67f084f..3207b3e 100644
---- a/drivers/usb/gadget/function/uvc_v4l2.c
-+++ b/drivers/usb/gadget/function/uvc_v4l2.c
-@@ -76,7 +76,8 @@ uvc_v4l2_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
- 	strlcpy(cap->bus_info, dev_name(&cdev->gadget->dev),
- 		sizeof(cap->bus_info));
- 
--	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
- 	return 0;
- }
+  This is the design used by every gpu driver we have in upstream thus far
+  (where you always have some on-gpu iommu/pagetable walker thing), on top
+  of whatever system iommu that might be there or not (which is then
+  managed by the dma apis).
+
+- On many soc people love to reuse iommus with the same or similar
+  interface all over the place. The solution thus far adopted on arm
+  platforms is to write an iommu driver for those and then implement the
+  dma-api on top of this iommu.
+
+  But if we unconditionally do this then we rob the gpu driver's ability
+  to control its private iommu like it wants to, because a lot of the
+  functionality is lost behind the dma api abstraction.
+
+Again assuming I'm not confused can't we just solve this by pushing the
+dma api abstraction down one layer for just the gpu, and let it use its
+private iommmu directly? Steps for binding a buffer would be:
+1. dma_map_sg
+2. Noodle the dma_addr_t out of the sg table and feed those into a 2nd
+level mapping set up through the iommu api for the gpu-private mmu.
+
+Again, this is what i915 and all the ttm based drivers already do, except
+that we don't use the generic iommu interfaces but have our own (i915 has
+its interface in i915_gem_gtt.c, ttm just calls them tt for translation
+tables ...).
+
+Cheers, Daniel
 -- 
-2.1.4
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
