@@ -1,50 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:35522 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752158AbbBUSkn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2015 13:40:43 -0500
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	adi-buildroot-devel@lists.sourceforge.net
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 09/15] media: blackfin: bfin_capture: make sure all buffers are returned on stop_streaming() callback
-Date: Sat, 21 Feb 2015 18:39:55 +0000
-Message-Id: <1424544001-19045-10-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from smtp-out-017.synserver.de ([212.40.185.17]:1076 "EHLO
+	smtp-out-017.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751365AbbBCJvu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 04:51:50 -0500
+Message-ID: <54D09A35.1000500@metafoo.de>
+Date: Tue, 03 Feb 2015 10:51:49 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
+MIME-Version: 1.0
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	hans.verkuil@cisco.com, linux-media@vger.kernel.org
+CC: linux-kernel@vger.kernel.org, m.chehab@samsung.com,
+	Pablo Anton <pablo.anton@vodalys-labs.com>
+Subject: Re: [PATCH] media: i2c: ADV7604: Migrate to regmap
+References: <1422785339-2699-1-git-send-email-jean-michel.hautbois@vodalys.com>
+In-Reply-To: <1422785339-2699-1-git-send-email-jean-michel.hautbois@vodalys.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On 02/01/2015 11:08 AM, Jean-Michel Hautbois wrote:
 
-In start_streaming() callback the buffer is removed from the
-dma_queue list and assigned to cur_frm, this patch makes sure
-that is returned to vb2 core with VB2_BUF_STATE_ERROR flag.
+Looks mostly good, some things in addition to what Hans already said.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 3 +++
- 1 file changed, 3 insertions(+)
+[...]
+> -
+> -static s32 adv_smbus_write_byte_data(struct adv7604_state *state,
+> -				     enum adv7604_page page, u8 command,
+> -				     u8 value)
+> +static int regmap_read_check(struct adv7604_state *state,
+> +			     int client_page, u8 reg)
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 012c271..3311d59 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -370,6 +370,9 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
- 				"stream off failed in subdev\n");
- 
- 	/* release all active buffers */
-+	if (bcap_dev->cur_frm)
-+		vb2_buffer_done(&bcap_dev->cur_frm->vb, VB2_BUF_STATE_ERROR);
-+
- 	while (!list_empty(&bcap_dev->dma_queue)) {
- 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
- 						struct bcap_buffer, list);
--- 
-2.1.0
+This should have adv rather than regmap prefix.
 
+
+[...]
+> +static int configure_regmap(struct adv7604_state *state, int region)
+> +{
+> +	int err;
+> +
+> +	if (!state->i2c_clients[region])
+> +		return -ENODEV;
+> +
+> +	if (!state->regmap[region]) {
+
+Given that this function is only called once for each regmap this check 
+seems unnecessary,
+
+> +
+> +		state->regmap[region] =
+> +			devm_regmap_init_i2c(state->i2c_clients[region],
+> +					     &adv76xx_regmap[region]);
+> +
+> +		if (IS_ERR(state->regmap[region])) {
+> +			err = PTR_ERR(state->regmap[region]);
+> +			v4l_err(state->i2c_clients[region],
+> +					"Error initializing regmap %d with error %d\n",
+> +					region, err);
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+[...]
