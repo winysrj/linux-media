@@ -1,137 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49458 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753900AbbBMW6V (ORCPT
+Received: from smtp-out-020.synserver.de ([212.40.185.20]:1068 "EHLO
+	smtp-out-017.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S965989AbbBCP35 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 17:58:21 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-api@vger.kernel.org
-Subject: [PATCHv4 02/25] [media] media: Fix DVB devnode representation at media controller
-Date: Fri, 13 Feb 2015 20:57:45 -0200
-Message-Id: <99b6d823156f85e3c55d3f500e1ac8c426bb6a35.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
+	Tue, 3 Feb 2015 10:29:57 -0500
+Message-ID: <54D0E975.8060205@metafoo.de>
+Date: Tue, 03 Feb 2015 16:29:57 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	William Towle <william.towle@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 6/8] WmT: adv7604 driver compatibility
+References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <2552213.h99FiuUI04@avalon> <54CF4CD7.2060901@xs4all.nl> <7877033.djOMQDpcA0@avalon> <54D0E823.2070803@xs4all.nl>
+In-Reply-To: <54D0E823.2070803@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The previous provision for DVB media controller support were to
-define an ID (likely meaning the adapter number) for the DVB
-devnodes.
+On 02/03/2015 04:24 PM, Hans Verkuil wrote:
+> On 02/03/15 16:22, Laurent Pinchart wrote:
+>> Hi Hans,
+>>
+>> On Monday 02 February 2015 11:09:27 Hans Verkuil wrote:
+>>> On 02/02/2015 11:01 AM, Laurent Pinchart wrote:
+>>>> On Sunday 01 February 2015 12:26:11 Guennadi Liakhovetski wrote:
+>>>>> On a second thought:
+>>>>>
+>>>>> On Sun, 1 Feb 2015, Guennadi Liakhovetski wrote:
+>>>>>> Hi Wills,
+>>>>>>
+>>>>>> Thanks for the patch. First and foremost, the title of the patch is
+>>>>>> wrong. This patch does more than just adding some "adv7604
+>>>>>> compatibility." It's adding pad-level API to soc-camera.
+>>>>>>
+>>>>>> This is just a rough review. I'm not an expert in media-controller /
+>>>>>> pad-level API, I hope someone with a better knowledge of those areas
+>>>>>> will help me reviewing this.
+>>>>>>
+>>>>>> Another general comment: it has been discussed since a long time,
+>>>>>> whether a wrapper wouldn't be desired to enable a seamless use of both
+>>>>>> subdev drivers using and not using the pad-level API. Maybe it's the
+>>>>>> right time now?..
+>>>>>
+>>>>> This would be a considerable change and would most probably take a rather
+>>>>> long time, given how busy everyone is.
+>>>>
+>>>> If I understood correctly Hans Verkuil told me over the weekend that he
+>>>> wanted to address this problem in the near future. Hans, could you detail
+>>>> your plans ?
+>>>
+>>> That's correct. This patch series makes all the necessary changes.
+>>>
+>>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg83415.html
+>>>
+>>> Patches 1-4 have been merged already, but I need to do more testing for the
+>>> remainder. The Renesas SH7724 board is ideal for that, but unfortunately I
+>>> can't get it to work with the current kernel.
+>>
+>> I can't help you much with that, but I could test changes using the rcar-vin
+>> driver with the adv7180 if needed (does the adv7180 generate an image if no
+>> analog source is connected ?).
+>
+> I expect so, most SDTV receivers do that.
 
-This is just plain wrong. Just like V4L, DVB devices (and any other
-device node)) are uniquely identified via a (major, minor) tuple.
+It has a freerun mode, in which it can output various kinds of patterns, see 
+https://patchwork.linuxtv.org/patch/27894/
 
-This is enough to uniquely identify a devnode, no matter what
-API it implements.
-
-So, before we go too far, let's mark the old v4l, fb, dvb and alsa
-"devnode" info as deprecated, and just call it as "dev".
-
-We can latter add fields specific to each API if needed.
-
-As we don't want to break compilation on already existing apps,
-let's just keep the old definitions as-is, adding a note that
-those are deprecated at media-entity.h.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 86bb93fd7db8..d89d5cb465d9 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -943,8 +943,8 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
- 		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
- 		vdev->entity.name = vdev->name;
--		vdev->entity.info.v4l.major = VIDEO_MAJOR;
--		vdev->entity.info.v4l.minor = vdev->minor;
-+		vdev->entity.info.dev.major = VIDEO_MAJOR;
-+		vdev->entity.info.dev.minor = vdev->minor;
- 		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
- 			&vdev->entity);
- 		if (ret < 0)
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 015f92aab44a..204cc67c84e8 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -248,8 +248,8 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
- 			goto clean_up;
- 		}
- #if defined(CONFIG_MEDIA_CONTROLLER)
--		sd->entity.info.v4l.major = VIDEO_MAJOR;
--		sd->entity.info.v4l.minor = vdev->minor;
-+		sd->entity.info.dev.major = VIDEO_MAJOR;
-+		sd->entity.info.dev.minor = vdev->minor;
- #endif
- 		sd->devnode = vdev;
- 	}
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index e00459185d20..d6d74bcfe183 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -87,17 +87,7 @@ struct media_entity {
- 		struct {
- 			u32 major;
- 			u32 minor;
--		} v4l;
--		struct {
--			u32 major;
--			u32 minor;
--		} fb;
--		struct {
--			u32 card;
--			u32 device;
--			u32 subdevice;
--		} alsa;
--		int dvb;
-+		} dev;
- 
- 		/* Sub-device specifications */
- 		/* Nothing needed yet */
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index d847c760e8f0..418f4fec391a 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -78,6 +78,20 @@ struct media_entity_desc {
- 		struct {
- 			__u32 major;
- 			__u32 minor;
-+		} dev;
-+
-+#if 1
-+		/*
-+		 * DEPRECATED: previous node specifications. Kept just to
-+		 * avoid breaking compilation, but media_entity_desc.dev
-+		 * should be used instead. In particular, alsa and dvb
-+		 * fields below are wrong: for all devnodes, there should
-+		 * be just major/minor inside the struct, as this is enough
-+		 * to represent any devnode, no matter what type.
-+		 */
-+		struct {
-+			__u32 major;
-+			__u32 minor;
- 		} v4l;
- 		struct {
- 			__u32 major;
-@@ -89,6 +103,7 @@ struct media_entity_desc {
- 			__u32 subdevice;
- 		} alsa;
- 		int dvb;
-+#endif
- 
- 		/* Sub-device specifications */
- 		/* Nothing needed yet */
--- 
-2.1.0
+- Lars
 
