@@ -1,76 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43388 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755888AbbBPOcG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 09:32:06 -0500
-Message-ID: <54E1FF50.9030803@xs4all.nl>
-Date: Mon, 16 Feb 2015 15:31:44 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.web.de ([212.227.17.12]:58586 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753473AbbBCObN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Feb 2015 09:31:13 -0500
+Message-ID: <54D0DBAA.7040607@users.sourceforge.net>
+Date: Tue, 03 Feb 2015 15:31:06 +0100
+From: SF Markus Elfring <elfring@users.sourceforge.net>
 MIME-Version: 1.0
-To: Miguel Casas-Sanchez <mcasas@chromium.org>,
-	linux-media@vger.kernel.org, pawel@osciak.com
-Subject: Re: [PATCH] media: vivid test device: Add NV{12,21} and Y{U,V}12
- pixel format.
-References: <CAPUS084EM0QMVapYxt8pDOn7=M+JK0BQMwufXsH94vD+bMDMgw@mail.gmail.com> <54E1FAAE.2000307@xs4all.nl>
-In-Reply-To: <54E1FAAE.2000307@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+CC: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: [PATCH] [media] V4L2: Delete an unnecessary check before the function
+ call "media_entity_put"
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/16/2015 03:11 PM, Hans Verkuil wrote:
-> Hi Miguel,
-> 
-> On 02/11/2015 07:39 PM, Miguel Casas-Sanchez wrote:
->> Add support for vertical + horizontal subsampled formats to vivid and use it to
->> generate YU12, YV12, NV12, NV21 as defined in [1,2]. These formats are tightly
->> packed N planar, because they provide chroma(s) as a separate array, but they
->> are not mplanar yet, as discussed in the list.
->>
->> The modus operandi is to let tpg_fillbuffer() create a YUYV packed format per
->> pattern line as usual and apply downsampling if needed immediately afterwards,
->> in a new function called tpg_apply_downsampling(). This one will unpack as
->> needed, and average the chroma samples (note that luma samples are never
->> downsampled). (Some provisions for horizontal downsampling are made, so it can
->> be followed up with e.g. YUV410 etc formats, please understand in this context).
->> Writing the text information on top of the produced pattern also needs a bit of
->> a retouch.
->>
->> [1] http://linuxtv.org/downloads/v4l-dvb-apis/re30.html
->> [2] http://linuxtv.org/downloads/v4l-dvb-apis/re24.html
->>
->> Signed-off-by: Miguel Casas-Sanchez <mcasas@chromium.org>
-> 
-> I'm afraid there are a number of issues with this patch that prevent it from being
-> merged. First of all, your mailer wraps around long lines, making it impossible to
-> apply this patch. Instead, I've used your earlier post that attached the patch. I'm
-> assuming the two are identical.
-> 
-> Secondly, I noticed various spurious whitespace changes that made the patch longer
-> than necessary. Thirdly, you didn't check the patch with checkpatch.pl.
-> 
-> Also note that the ENUM_FMT descriptions are too long: the string is cut off. Easy
-> to see with qv4l2.
-> 
-> Much more serious is that you break the pattern movements, the border, the square
-> and the vertical flip support for these new pixel formats. That really must remain
-> functional. The 'Insert SAV/EAV Code' controls are also not working, but in all
-> fairness, I don't think those make sense for these subsampled formats.
-> 
-> Cropping and scaling is also broken.
-> 
-> I noticed that when printing the text you only fill in the luma and not the chroma,
-> effectively making that transparent. Which may not be a bad idea. However, note that
-> the 'Noise' test pattern is broken with the new formats.
-> 
-> Conclusion: there is a lot more work to be done here...
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 3 Feb 2015 15:27:38 +0100
 
-For the record, I really hope you'll continue with this as it is a very nice
-and useful addition, but I did think you were overly optimistic about how easy
-it would be to add this feature. There was a reason after all why I decided not
-to add it and leave it for the future...
+The media_entity_put() function tests whether its argument is NULL and then
+returns immediately. Thus the test around the call is not needed.
 
-Regards,
+This issue was detected by using the Coccinelle software.
 
-	Hans
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 543631c..b9ff7fd 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -93,8 +93,7 @@ static int subdev_open(struct file *file)
+ 
+ err:
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	if (entity)
+-		media_entity_put(entity);
++	media_entity_put(entity);
+ #endif
+ 	v4l2_fh_del(&subdev_fh->vfh);
+ 	v4l2_fh_exit(&subdev_fh->vfh);
+-- 
+2.2.2
+
