@@ -1,96 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47825 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755776AbbBCNry (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51680 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932111AbbBCKK2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 08:47:54 -0500
+	Tue, 3 Feb 2015 05:10:28 -0500
+Message-ID: <54D09E86.2020400@xs4all.nl>
+Date: Tue, 03 Feb 2015 11:10:14 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: isely@isely.net, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] v4l2-core: drop g/s_priority ops
-Date: Tue,  3 Feb 2015 14:46:56 +0100
-Message-Id: <1422971216-47871-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1422971216-47871-1-git-send-email-hverkuil@xs4all.nl>
-References: <1422971216-47871-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Miguel Casas-Sanchez <mcasas@chromium.org>,
+	linux-media@vger.kernel.org
+Subject: Re: Vivid test device: adding YU12
+References: <CAKoAQ7=4wzPbahK7RnrCG1XJgdqon2ZBphNS_krM51+p7KT3PQ@mail.gmail.com>
+In-Reply-To: <CAKoAQ7=4wzPbahK7RnrCG1XJgdqon2ZBphNS_krM51+p7KT3PQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 02/02/15 23:32, Miguel Casas-Sanchez wrote:
+>> On 01/29/2015 03:44 AM, Miguel Casas-Sanchez wrote:
+>>> Hi folks, I've been trying to add a triplanar format to those that vivid
+>>> can generate, and didn't quite manage :(
+>>>
+>>> So, I tried adding code for it like in the patch (with some dprintk() as
+>>> well) to clarify what I wanted to do. Module is insmod'ed like "insmod
+>>> vivid.ko n_devs=1 node_types=0x1 multiplanar=2 vivid_debug=1"
+>>
+>> You are confusing something: PIX_FMT_YUV420 is single-planar, not multi-planar.
+>> That is, all image data is contained in one buffer. PIX_FMT_YUV420M is multi-planar,
+>> however. So you need to think which one you actually want to support.
+>> Another problem is that for the chroma part you need to average the values over
+>> four pixels. So the TPG needs to be aware of the previous line. This makes the TPG
+>> more complicated, and of course it is the reason why I didn't implement 4:2:0
+>> formats :-)
+>> I would implement YUV420 first, and (if needed) YUV420M and/or NV12 can easily be
+>> added later.
+>> Regards,
+>>         Hans
+>>
+> 
+> So, we could call YUV420 (YU12) a tightly packed planar format :)
+> because it has several planes, rigurously speaking, but they are
+> laid out back-to-back in memory. Correct?
 
-The handling of VIDIOC_G/S_PRIORITY is now entirely done by the V4L2
-core, so we can drop the g/s_priority ioctl ops.
+Correct.
 
-We do have to make sure though that when S_PRIORITY is called we check
-that the driver used struct v4l2_fh. This check can be removed once all
-drivers are converted to that structure.
+> I was interested here precisely in using the MPLANE API, so I'd
+> rather go for YUV420M directly; perhaps cheating a bit on the
+> TPG calculation in the first implementation: I/we could just simplify
+> the Chroma calculation to grabbing the upper-left pixel value,
+> ignoring the other three. Not perfect, but for a first patch of a test
+> device it should do.
+> 
+> WDYT?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dev.c   | 7 +++----
- drivers/media/v4l2-core/v4l2-ioctl.c | 6 ++----
- include/media/v4l2-ioctl.h           | 6 ------
- 3 files changed, 5 insertions(+), 14 deletions(-)
+I would actually pick YUV420 or NV12 as the initial implementation, since
+you can test that with qv4l2 (it uses libv4lconvert which understands
+those two formats). That way you can develop on any linux PC. Also there
+is no need initially to add support for 3-plane formats, which simplifies
+things. But that's just my preference.
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 276a0d8..ebf4645 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -532,10 +532,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	/* vfl_type and vfl_dir independent ioctls */
- 
- 	SET_VALID_IOCTL(ops, VIDIOC_QUERYCAP, vidioc_querycap);
--	if (ops->vidioc_g_priority)
--		set_bit(_IOC_NR(VIDIOC_G_PRIORITY), valid_ioctls);
--	if (ops->vidioc_s_priority)
--		set_bit(_IOC_NR(VIDIOC_S_PRIORITY), valid_ioctls);
-+	set_bit(_IOC_NR(VIDIOC_G_PRIORITY), valid_ioctls);
-+	set_bit(_IOC_NR(VIDIOC_S_PRIORITY), valid_ioctls);
-+
- 	/* Note: the control handler can also be passed through the filehandle,
- 	   and that can't be tested here. If the bit for these control ioctls
- 	   is set, then the ioctl is valid. But if it is 0, then it can still
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index b084072..09ad8dd 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1046,8 +1046,6 @@ static int v4l_g_priority(const struct v4l2_ioctl_ops *ops,
- 	struct video_device *vfd;
- 	u32 *p = arg;
- 
--	if (ops->vidioc_g_priority)
--		return ops->vidioc_g_priority(file, fh, arg);
- 	vfd = video_devdata(file);
- 	*p = v4l2_prio_max(vfd->prio);
- 	return 0;
-@@ -1060,9 +1058,9 @@ static int v4l_s_priority(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_fh *vfh;
- 	u32 *p = arg;
- 
--	if (ops->vidioc_s_priority)
--		return ops->vidioc_s_priority(file, fh, *p);
- 	vfd = video_devdata(file);
-+	if (!test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
-+		return -ENOTTY;
- 	vfh = file->private_data;
- 	return v4l2_prio_change(vfd->prio, &vfh->prio, *p);
- }
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 8537983..8fbbd76 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -23,12 +23,6 @@ struct v4l2_ioctl_ops {
- 	/* VIDIOC_QUERYCAP handler */
- 	int (*vidioc_querycap)(struct file *file, void *fh, struct v4l2_capability *cap);
- 
--	/* Priority handling */
--	int (*vidioc_g_priority)   (struct file *file, void *fh,
--				    enum v4l2_priority *p);
--	int (*vidioc_s_priority)   (struct file *file, void *fh,
--				    enum v4l2_priority p);
--
- 	/* VIDIOC_ENUM_FMT handlers */
- 	int (*vidioc_enum_fmt_vid_cap)     (struct file *file, void *fh,
- 					    struct v4l2_fmtdesc *f);
--- 
-2.1.4
+Note that I won't accept patches that do not implement 4:2:0 correctly
+(averaging four pixels). The goal of the vivid driver is to emulate
+hardware as well as possible, so shortcuts with that are a no-go.
+
+Regards,
+
+	Hans
+
+> 
+>>
+>>
+>>> With the patch, vivid:
+>>> - seems to enumerate the new triplanar format all right
+>>> - vid_s_fmt_vid_cap() works as intended too, apparently
+>>> - when arriving to vid_cap_queue_setup(), the size of the different
+>>> sub-arrays does not look quite ok.
+>>> - Generated video is, visually, all green.
+>>>
+>>> I added as well a capture output dmesgs. Not much of interest here, the
+>>> first few lines configure the queue -- with my few added dprintk it can be
+>>> seen that the queue sizes are seemingly incorrect.
+>>>
+>>> If and when this part is up and running, I wanted to use Vivid to test
+>>> dma-buf based capture.
+>>>
+>>> Big thanks!
+>>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
