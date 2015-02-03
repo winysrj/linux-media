@@ -1,56 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56564 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752723AbbBKNHL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2015 08:07:11 -0500
-Message-ID: <54DB53F9.9070704@iki.fi>
-Date: Wed, 11 Feb 2015 15:07:05 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:37906 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965381AbbBCN2s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 08:28:48 -0500
 MIME-Version: 1.0
-To: Luis de Bethencourt <luis@debethencourt.com>,
-	linux-media@vger.kernel.org
-CC: mchehab@osg.samsung.com, crop@iki.fi, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] rtl2832: remove compiler warning
-References: <20150211110851.GA30505@biggie>
-In-Reply-To: <20150211110851.GA30505@biggie>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20150203122813.GN8656@n2100.arm.linux.org.uk>
+References: <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+ <20150129143908.GA26493@n2100.arm.linux.org.uk> <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
+ <20150129154718.GB26493@n2100.arm.linux.org.uk> <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
+ <20150129192610.GE26493@n2100.arm.linux.org.uk> <CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
+ <20150202165405.GX14009@phenom.ffwll.local> <CAF6AEGuESM+e3HSRGM6zLqrp8kqRLGUYvA3KKECdm7m-nt0M=Q@mail.gmail.com>
+ <20150203074856.GF14009@phenom.ffwll.local> <20150203122813.GN8656@n2100.arm.linux.org.uk>
+From: Christian Gmeiner <christian.gmeiner@gmail.com>
+Date: Tue, 3 Feb 2015 14:28:26 +0100
+Message-ID: <CAH9NwWcJRtNz1zAOmdjPN15UHPGiqGg9wNC9z3fMe-qn5ymdpA@mail.gmail.com>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
+ with dma-parms
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/11/2015 01:08 PM, Luis de Bethencourt wrote:
-> Cleaning up the following compiler warning:
-> rtl2832.c:703:12: warning: 'tmp' may be used uninitialized in this function
+2015-02-03 13:28 GMT+01:00 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+> On Tue, Feb 03, 2015 at 08:48:56AM +0100, Daniel Vetter wrote:
+>> On Mon, Feb 02, 2015 at 03:30:21PM -0500, Rob Clark wrote:
+>> > On Mon, Feb 2, 2015 at 11:54 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
+>> > >> My initial thought is for dma-buf to not try to prevent something than
+>> > >> an exporter can actually do.. I think the scenario you describe could
+>> > >> be handled by two sg-lists, if the exporter was clever enough.
+>> > >
+>> > > That's already needed, each attachment has it's own sg-list. After all
+>> > > there's no array of dma_addr_t in the sg tables, so you can't use one sg
+>> > > for more than one mapping. And due to different iommu different devices
+>> > > can easily end up with different addresses.
+>> >
+>> >
+>> > Well, to be fair it may not be explicitly stated, but currently one
+>> > should assume the dma_addr_t's in the dmabuf sglist are bogus.  With
+>> > gpu's that implement per-process/context page tables, I'm not really
+>> > sure that there is a sane way to actually do anything else..
+>>
+>> Hm, what does per-process/context page tables have to do here? At least on
+>> i915 we have a two levels of page tables:
+>> - first level for vm/device isolation, used through dma api
+>> - 2nd level for per-gpu-context isolation and context switching, handled
+>>   internally.
+>>
+>> Since atm the dma api doesn't have any context of contexts or different
+>> pagetables, I don't see who you could use that at all.
 >
-> Even though it could never happen since if rtl2832_rd_demod_reg () doesn't set
-> tmp, this line would never run because we go to err. It is still nice to avoid
-> compiler warnings.
+> What I've found with *my* etnaviv drm implementation (not Christian's - I
+> found it impossible to work with Christian, especially with the endless
+> "msm doesn't do it that way, so we shouldn't" responses and his attitude
+> towards cherry-picking my development work [*]) is that it's much easier to
+> keep the GPU MMU local to the GPU and under the control of the DRM MM code,
+> rather than attaching the IOMMU to the DMA API and handling it that way.
 >
-> Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
 
+Keep in mind that I tried to reach you several times via mail and irc
+and you simply
+ignored me. Did you know that took almost all of your patches (with
+small changes)?
+And I needed to cherry pick you patches as they were a) wrong, b) solved in a
+different way or c) had "hack" in the subject. I am quite sorry that I
+ended that
+way, but it is not only my fault!
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-
-Antti
-
-> ---
->   drivers/media/dvb-frontends/rtl2832.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+> There are several reasons for that:
 >
-> diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-> index 5d2d8f4..20fa245 100644
-> --- a/drivers/media/dvb-frontends/rtl2832.c
-> +++ b/drivers/media/dvb-frontends/rtl2832.c
-> @@ -685,7 +685,7 @@ static int rtl2832_read_status(struct dvb_frontend *fe, fe_status_t *status)
->   	struct rtl2832_dev *dev = fe->demodulator_priv;
->   	struct i2c_client *client = dev->client;
->   	int ret;
-> -	u32 tmp;
-> +	u32 uninitialized_var(tmp);
+> 1. DRM has a better idea about when the memory needs to be mapped to the
+>    GPU, and it can more effectively manage the GPU MMU.
 >
->   	dev_dbg(&client->dev, "\n");
+> 2. The GPU MMU may have TLBs which can only be flushed via a command in
+>    the GPU command stream, so it's fundamentally necessary for the MMU to
+>    be managed by the GPU driver so that it knows when (and how) to insert
+>    the flushes.
 >
 >
+> * - as a direct result of that, I've stopped all further development of
+> etnaviv drm, and I'm intending to strip it out from my Xorg DDX driver
+> as the etnaviv drm API which Christian wants is completely incompatible
+> with the non-etnaviv drm, and that just creates far too much pain in the
+> DDX driver.
+>
 
--- 
-http://palosaari.fi/
+That is bad, but life moves on.
+
+greets
+--
+Christian Gmeiner, MSc
+
+https://soundcloud.com/christian-gmeiner
