@@ -1,102 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42227 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752069AbbBVWLV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2015 17:11:21 -0500
-Message-ID: <54EA5405.1080906@iki.fi>
-Date: Mon, 23 Feb 2015 00:11:17 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:44773 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161089AbbBCUH3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 15:07:29 -0500
+Received: by mail-wi0-f174.google.com with SMTP id n3so27194409wiv.1
+        for <linux-media@vger.kernel.org>; Tue, 03 Feb 2015 12:07:27 -0800 (PST)
+Date: Tue, 3 Feb 2015 21:08:49 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Arnd Bergmann <arnd@arndb.de>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
+ attacher constraints with dma-parms
+Message-ID: <20150203200849.GY14009@phenom.ffwll.local>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <3783167.LiVXgA35gN@wuerfel>
+ <20150203155404.GV8656@n2100.arm.linux.org.uk>
+ <6906596.JU5vQoa1jV@wuerfel>
+ <20150203165829.GW8656@n2100.arm.linux.org.uk>
+ <CAF6AEGuf6XBe3YOjhtbBcSyqJrkZ7sNMfc83hZdnKsE3P=vSuw@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Gert-Jan van der Stroom <gjstroom@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Mygica T230 DVB-T/T2/C Ubuntu 14.04 (kernel 3.13.0-45) using
- media_build
-References: <002401d04ea1$e5cf1780$b16d4680$@gmail.com>	<54EA4BB8.2080106@iki.fi> <20150222185503.41cbcb1a@recife.lan>
-In-Reply-To: <20150222185503.41cbcb1a@recife.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGuf6XBe3YOjhtbBcSyqJrkZ7sNMfc83hZdnKsE3P=vSuw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/22/2015 11:55 PM, Mauro Carvalho Chehab wrote:
-> Em Sun, 22 Feb 2015 23:35:52 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> Mauro,
->> could you fix your media controller stuff ASAP as I think almost all DVB
->> devices are currently broken. I have got multiple bug reports....
->
-> That looks weird... I think the patch adding media controller support
-> for the dvb-usb was not merged yet.
+On Tue, Feb 03, 2015 at 12:35:34PM -0500, Rob Clark wrote:
+> On Tue, Feb 3, 2015 at 11:58 AM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> >
+> > Okay, but switching contexts is not something which the DMA API has
+> > any knowledge of (so it can't know which context to associate with
+> > which mapping.)  While it knows which device, it has no knowledge
+> > (nor is there any way for it to gain knowledge) about contexts.
+> >
+> > My personal view is that extending the DMA API in this way feels quite
+> > dirty - it's a violation of the DMA API design, which is to (a) demark
+> > the buffer ownership between CPU and DMA agent, and (b) to translate
+> > buffer locations into a cookie which device drivers can use to instruct
+> > their device to access that memory.  To see why, consider... that you
+> > map a buffer to a device in context A, and then you switch to context B,
+> > which means the dma_addr_t given previously is no longer valid.  You
+> > then try to unmap it... which is normally done using the (now no longer
+> > valid) dma_addr_t.
+> >
+> > It seems to me that to support this at DMA API level, we would need to
+> > completely revamp the DMA API, which IMHO isn't going to be nice.  (It
+> > would mean that we end up with three APIs - the original PCI DMA API,
+> > the existing DMA API, and some new DMA API.)
+> >
+> > Do we have any views on how common this feature is?
+> >
+> 
+> I can't think of cases outside of GPU's..  if it were more common I'd
+> be in favor of teaching dma api about multiple contexts, but right now
+> I think that would just amount to forcing a lot of churn on everyone
+> else for the benefit of GPU's.
+> 
+> IMHO it makes more sense for GPU drivers to bypass the dma api if they
+> need to.  Plus, sooner or later, someone will discover that with some
+> trick or optimization they can get moar fps, but the extra layer of
+> abstraction will just be getting in the way.
 
-hmm, OK. But I have got at least one such report for rtl28xxu driver on 
-my mail and there is another report on my blog, which is likely same, 
-though there was no log, only report saying it crash when latest media 
-build used.
+See my other reply, but all existing full-blown drivers don't bypass the
+dma api. Instead it's just a two-level scheme:
+1. First level is dma api. Might or might not contain a system iommu.
+2. 2nd level is the gpu-private iommu which is also used for per context
+address spaces. Thus far all drivers just rolled their own drivers for
+this (it's kinda fused to the chips on x86 hw anyway), but it looks like
+using the iommu api gives us a somewhat suitable abstraction for code
+sharing.
 
-
->> On 02/22/2015 03:17 PM, Gert-Jan van der Stroom wrote:
->>> Can someone help me to get a Mygica T230 DVB-T/T2/C working on Ubuntu 14.04
->>> (kernel 3.13.0-45) using media_build.
->>> I succeed doing a build of the media_build, the drivers also load when I
->>> attach the Mygica, but when I try to use it (tvheadend) it crashes:
->>>
->>> [   61.592114] dvb-usb: found a 'Mygica T230 DVB-T/T2/C' in warm state.
->>> [   61.828138] dvb-usb: will pass the complete MPEG2 transport stream to the
->>> software demuxer.
->>> [   61.828279] DVB: registering new adapter (Mygica T230 DVB-T/T2/C)
->>> [   61.847369] i2c i2c-7: Added multiplexed i2c bus 8
->>> [   61.847372] si2168 7-0064: Silicon Labs Si2168 successfully attached
->>> [   61.857024] si2157 8-0060: Silicon Labs Si2147/2148/2157/2158
->>> successfully attached
->>> [   61.857034] usb 1-5: DVB: registering adapter 0 frontend 0 (Silicon Labs
->>> Si2168)...
->>> [   61.857488] input: IR-receiver inside an USB DVB receiver as
->>> /devices/pci0000:00/0000:00:1a.7/usb1/1-5/input/input11
->>> [   61.857541] dvb-usb: schedule remote query interval to 100 msecs.
->>> [   61.857709] dvb-usb: Mygica T230 DVB-T/T2/C successfully initialized and
->>> connected.
->>> [   61.857773] usbcore: registered new interface driver dvb_usb_cxusb
->>>
->>> Tvheadend start:
->>> [  314.356162] BUG: unable to handle kernel NULL pointer dereference at
->>> 0000000000000010
->>> [  314.356202] IP: [<ffffffffa02ef74c>]
->>> media_entity_pipeline_start+0x1c/0x390 [media]
->>
->>
->> ^^^^^^^^^^^^ problem is that I think
->>
->>
->>> [  314.356236] PGD 76c6c067 PUD 766b0067 PMD 0
->>> [  314.356260] Oops: 0000 [#1] SMP
->>> [  314.356279] Modules linked in: si2157(OX) si2168(OX) i2c_mux
->>> dvb_usb_cxusb(OX) dib0070(OX) dvb_usb(OX) dvb_core(OX) rc_core(OX) media(OX)
->>> snd_hda_codec_analog gpio_ich hp_wmi sparse_keymap coretemp kvm_intel kvm
->>> serio_raw snd_hda_intel i915 lpc_ich snd_hda_codec shpchp drm_kms_helper
->>> snd_hwdep snd_pcm snd_page_alloc snd_timer pl2303 video wmi tpm_infineon drm
->>> mac_hid mei_me snd soundcore i2c_algo_bit usbserial mei lp parport psmouse
->>> e1000e floppy ptp pps_core pata_acpi
->>> [  314.356541] CPU: 1 PID: 1053 Comm: kdvb-ad-0-fe-0 Tainted: G        W  OX
->>> 3.13.0-45-generic #74-Ubuntu
->
-> Gert-Jan,
->
-> Could you please post the stack dump? It would help to know what's calling
-> media_entity_pipeline_start.
->
-> Regards,
-> Mauro
->
->>>
->>> What is wrong, or do I miss something ?
->>> I also added the firmware described at:
->>> http://www.linuxtv.org/wiki/index.php/Geniatech_T230
->>
->> regards
->> Antti
->>
-
+Imo you need both, otherwise we start leaking stuff like cpu cache
+flushing all over the place. Looking at i915 (where the dma api assumes
+that everything is coherent, which is kinda not the case) that won't be
+pretty. And there's still the issue that you might nest a system iommu
+and a 2nd level iommu for per-context pagetables (this is real and what's
+going on right now on intel hw).
+-Daniel
 -- 
-http://palosaari.fi/
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
