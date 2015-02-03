@@ -1,79 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47030 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753275AbbBCPYf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 10:24:35 -0500
-Message-ID: <54D0E823.2070803@xs4all.nl>
-Date: Tue, 03 Feb 2015 16:24:19 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.kundenserver.de ([212.227.126.131]:54035 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161270AbbBCVpk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 16:45:40 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linaro-kernel@lists.linaro.org
+Cc: Rob Clark <robdclark@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Robin Murphy <robin.murphy@arm.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints with dma-parms
+Date: Tue, 03 Feb 2015 22:44:53 +0100
+Message-ID: <19028710.jGRCggLuRk@wuerfel>
+In-Reply-To: <CAF6AEGuf6XBe3YOjhtbBcSyqJrkZ7sNMfc83hZdnKsE3P=vSuw@mail.gmail.com>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org> <20150203165829.GW8656@n2100.arm.linux.org.uk> <CAF6AEGuf6XBe3YOjhtbBcSyqJrkZ7sNMfc83hZdnKsE3P=vSuw@mail.gmail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	William Towle <william.towle@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 6/8] WmT: adv7604 driver compatibility
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <2552213.h99FiuUI04@avalon> <54CF4CD7.2060901@xs4all.nl> <7877033.djOMQDpcA0@avalon>
-In-Reply-To: <7877033.djOMQDpcA0@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/03/15 16:22, Laurent Pinchart wrote:
-> Hi Hans,
+On Tuesday 03 February 2015 12:35:34 Rob Clark wrote:
 > 
-> On Monday 02 February 2015 11:09:27 Hans Verkuil wrote:
->> On 02/02/2015 11:01 AM, Laurent Pinchart wrote:
->>> On Sunday 01 February 2015 12:26:11 Guennadi Liakhovetski wrote:
->>>> On a second thought:
->>>>
->>>> On Sun, 1 Feb 2015, Guennadi Liakhovetski wrote:
->>>>> Hi Wills,
->>>>>
->>>>> Thanks for the patch. First and foremost, the title of the patch is
->>>>> wrong. This patch does more than just adding some "adv7604
->>>>> compatibility." It's adding pad-level API to soc-camera.
->>>>>
->>>>> This is just a rough review. I'm not an expert in media-controller /
->>>>> pad-level API, I hope someone with a better knowledge of those areas
->>>>> will help me reviewing this.
->>>>>
->>>>> Another general comment: it has been discussed since a long time,
->>>>> whether a wrapper wouldn't be desired to enable a seamless use of both
->>>>> subdev drivers using and not using the pad-level API. Maybe it's the
->>>>> right time now?..
->>>>
->>>> This would be a considerable change and would most probably take a rather
->>>> long time, given how busy everyone is.
->>>
->>> If I understood correctly Hans Verkuil told me over the weekend that he
->>> wanted to address this problem in the near future. Hans, could you detail
->>> your plans ?
->>
->> That's correct. This patch series makes all the necessary changes.
->>
->> https://www.mail-archive.com/linux-media@vger.kernel.org/msg83415.html
->>
->> Patches 1-4 have been merged already, but I need to do more testing for the
->> remainder. The Renesas SH7724 board is ideal for that, but unfortunately I
->> can't get it to work with the current kernel.
-> 
-> I can't help you much with that, but I could test changes using the rcar-vin 
-> driver with the adv7180 if needed (does the adv7180 generate an image if no 
-> analog source is connected ?). 
+> I can't think of cases outside of GPU's..  if it were more common I'd
+> be in favor of teaching dma api about multiple contexts, but right now
+> I think that would just amount to forcing a lot of churn on everyone
+> else for the benefit of GPU's.
 
-I expect so, most SDTV receivers do that.
+We have a couple of users of the iommu API at the moment outside of
+GPUs:
 
-> That will need to wait for two weeks though as 
-> I don't have access to the hardware right now.
-> 
+* drivers/media/platform/omap3isp/isp.c
+* drivers/remoteproc/remoteproc_core.c
+* drivers/infiniband/hw/usnic/usnic_uiom.c
+* drivers/vfio/
 
-It's certainly appreciated (I'll see if I can rebase it), but I am not
-worried about that driver. It's soc_camera that is affected the most.
+I assume we will see a few more over time. The vfio case is the most
+important one here, since that is what the iommu API was designed for.
 
-Regards,
-
-	Hans
+	Arnd
