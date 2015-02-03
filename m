@@ -1,66 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:48269 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752027AbbBVUEI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2015 15:04:08 -0500
-Message-ID: <54EA3633.3030805@southpole.se>
-Date: Sun, 22 Feb 2015 21:04:03 +0100
-From: Benjamin Larsson <benjamin@southpole.se>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55814 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751684AbbBCNnX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 08:43:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, isely@isely.net, pali.rohar@gmail.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 4/5] uvc gadget: set device_caps in querycap.
+Date: Tue, 03 Feb 2015 15:44:06 +0200
+Message-ID: <14375558.lMHDtzMOar@avalon>
+In-Reply-To: <1422967646-12223-5-git-send-email-hverkuil@xs4all.nl>
+References: <1422967646-12223-1-git-send-email-hverkuil@xs4all.nl> <1422967646-12223-5-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Gilles Risch <gilles.risch@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-CC: Olli Salonen <olli.salonen@iki.fi>
-Subject: Re: Linux TV support Elgato EyeTV hybrid
-References: <CALnjqVkteEsFGQXRdh3exzGrqdC=Qw4guSGRT_pCF50WjGqy1g@mail.gmail.com> <CAAZRmGwmNhczjXNXdKkotS0YZ8Tc+kKb4b+SyNN_8KVj2H8xuQ@mail.gmail.com> <54E9DDFE.4010507@gmail.com>
-In-Reply-To: <54E9DDFE.4010507@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/22/2015 02:47 PM, Gilles Risch wrote:
-> Hi,
->
-> most of the used components are identified:
-> - USB Controller: Empia EM2884
-> - Stereo A/V Decoder: Micronas AVF 49x0B
-> - Hybrid Channel Decoder: Micronas DRX-K DRX3926K:A3 0.9.0
-> The only ambiguity is the tuner, but I think it could be a Xceive XC5000
+Hi Hans,
 
-This sounds like the Hauppauge WinTV HVR-930C:
+Thank you for the patch.
 
-http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-930C
+On Tuesday 03 February 2015 13:47:25 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The V4L2 core will warn if this is not done. Unfortunately this driver
+> wasn't updated.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> because the windows driver comprises the xc5000 firmware and it is 100%
-> identical:
->      $ mkdir extract-xc5000-fw
->      $ cd extract-xc5000-fw
->      $ wget http://linuxtv.org/downloads/firmware/dvb-fe-xc5000-1.6.114.fw
->      $ wget
-> http://elgatoweb.s3.amazonaws.com/Documents/Support/EyeTV_Hybrid/EyeTV_Hybrid_2008_509081301_W8.exe
->
->      $ 7z -y e EyeTV_Hybrid_2008_509081301_W8.exe
->      $ dd if=emBDA.sys of=dvb-fe-xc5000-test.fw bs=1 skip=518800
-> count=12401 >/dev/null 2>&1
->      $ md5sum dvb-fe-xc5000-1.6.114.fw dvb-fe-xc5000-test.fw
->      b1ac8f759020523ebaaeff3fdf4789ed  dvb-fe-xc5000-1.6.114.fw
->      b1ac8f759020523ebaaeff3fdf4789ed  dvb-fe-xc5000-test.fw
->
-> The Elgato_EyeTV_Hybrid.inf file contains a comment with "TerraTec H5",
-> which components are assembled on that USB stick?
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-The TerraTec H5 has a TDA18271 tuner.
+> ---
+>  drivers/usb/gadget/function/uvc_v4l2.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/usb/gadget/function/uvc_v4l2.c
+> b/drivers/usb/gadget/function/uvc_v4l2.c index 67f084f..3207b3e 100644
+> --- a/drivers/usb/gadget/function/uvc_v4l2.c
+> +++ b/drivers/usb/gadget/function/uvc_v4l2.c
+> @@ -76,7 +76,8 @@ uvc_v4l2_querycap(struct file *file, void *fh, struct
+> v4l2_capability *cap) strlcpy(cap->bus_info, dev_name(&cdev->gadget->dev),
+>  		sizeof(cap->bus_info));
+> 
+> -	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+> +	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> 
+>  	return 0;
+>  }
 
->
->
-> Regards,
-> Gilles
+-- 
+Regards,
 
+Laurent Pinchart
 
-So most likely the Elgato EyeTV hybrid is one of these combinations. And 
-it should quite feasible to add support for someone who knows the Empia 
-EM2884.
-
-MvH
-Benjamin Larsson
