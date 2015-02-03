@@ -1,117 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50533 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751935AbbBMDpc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Feb 2015 22:45:32 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 28C9B2A009D
-	for <linux-media@vger.kernel.org>; Fri, 13 Feb 2015 04:45:17 +0100 (CET)
-Date: Fri, 13 Feb 2015 04:45:17 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150213034517.28C9B2A009D@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:47568 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751548AbbBCRxP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Feb 2015 12:53:15 -0500
+Date: Tue, 3 Feb 2015 15:53:01 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Antti Palosaari <crope@iki.fi>, Mark Brown <broonie@kernel.org>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
+	Jean Delvare <jdelvare@suse.de>
+Subject: Re: [PATCH 21/66] rtl2830: implement own I2C locking
+Message-ID: <20150203155301.7ba63776@recife.lan>
+In-Reply-To: <20150202203324.GA11486@katana>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+	<1419367799-14263-21-git-send-email-crope@iki.fi>
+	<20150202180726.454dc878@recife.lan>
+	<54CFDCCC.3030006@iki.fi>
+	<20150202203324.GA11486@katana>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/vlc4iJA=hRPVu/H5BVxFEdq"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+--Sig_/vlc4iJA=hRPVu/H5BVxFEdq
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Results of the daily build of media_tree:
+Em Mon, 02 Feb 2015 21:33:24 +0100
+Wolfram Sang <wsa@the-dreams.de> escreveu:
 
-date:		Fri Feb 13 04:00:19 CET 2015
-git branch:	test
-git hash:	d6d4c0e00fe559ef54b414e2e6266beaa50b4d8e
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-5.slh.1-amd64
+>=20
+> > >Ok, this may eventually work ok for now, but a further change at the I=
+2C
+> > >core could easily break it. So, we need to double check about such
+> > >patch with the I2C maintainer.
+> > >
+> > >Jean,
+> > >
+> > >Are you ok with such patch? If so, please ack.
+>=20
+> Jean handed over I2C to me in late 2012 :)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18-i686: OK
-linux-3.19-rc4-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18-x86_64: OK
-linux-3.19-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Sorry for the mess... I mis-read MAINTAINERS.
 
-Detailed results are available here:
+> > Basic problem here is that I2C-mux itself is controlled by same I2C dev=
+ice
+> > which implements I2C adapter for tuner.
+> >=20
+> > Here is what connections looks like:
+> >  ___________         ____________         ____________
+> > |  USB IF   |       |   demod    |       |    tuner   |
+> > |-----------|       |------------|       |------------|
+> > |           |--I2C--|-----/ -----|--I2C--|            |
+> > |I2C master |       |  I2C mux   |       | I2C slave  |
+> > |___________|       |____________|       |____________|
+> >=20
+> >=20
+> > So when tuner is called via I2C, it needs recursively call same I2C ada=
+pter
+> > which is already locked. More elegant solution would be indeed nice.
+>=20
+> So, AFAIU this is the same problem that I2C based mux devices have (like
+> drivers/i2c/muxes/i2c-mux-pca954x.c)? They also use the unlocked
+> transfers...
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+If I understood your comment correct, you're ok with this approach,
+right? I'll then merge the remaining of this 66-patch series.
 
-Full logs are available here:
+If latter a better way to lock the I2C mux appears, we can reverse
+this change.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+Regards,
+Mauro
+>=20
 
-The Media Infrastructure API from this daily build is here:
+--Sig_/vlc4iJA=hRPVu/H5BVxFEdq
+Content-Type: application/pgp-signature
+Content-Description: Assinatura digital OpenPGP
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJU0QsFAAoJEAhfPr2O5OEVQWoP/3pSoFGkdT+Cq8m9sv0iHul/
+V4V+vIn7DVqTRc98oM6Ehtu+BubBR6pAKQiN6XQNQJBg+acB4nVO/nukjbbZmIRh
+M335nepmqaMFUAPS1+43vVqgN+w9hqBmlTSUn0SUGw76z2h5jWP2DlMxAlnBayvs
+XochsQNkjPAD9dfNRAiU+wE0PysfE5RBAuZC767S69X2+dLUyKuo+UzdIN2ZczyK
+E7DJIfyTCEUP9qyuwk3rudLoxVNCVnjnz5gbBZAvHRqlotE1cC4UY5GY13tmKUIp
+lnYv1fDjWDtR8w0n00UNnq6fT+xz2ANyPgTbBVxQCIC9Eq5D2237LTPRiFr/Ke1n
+hhuH69geST8GxquBOnc3G3lNHES2lj72v+msg6eKcwfTC7S5dPBHcMV6DMvKV+Qw
+LzrPfh5bG4cJqz5t8bM80IXjxPJhk2TFihPwBwxmaQ3lGFwozgqvmEs65etiGZJP
+6vx16qUK0Goz8kvxTXwa9j5Ea4VuYRPT2Fiz4VDqoPNCiKGw0RBaCy/bKpJXsyKE
+ZvShe0E/cSgWHfAKo/NwWV6+RlVTeeg93+9kGlhd641/Jkmy6rW1zKSMb8HRgSho
+sn4pIUZ5JYb+GxFgpvzIGvniKTs1e/ZHByRGuXbXMVUxrcvyH3wq0oag2xsQFlOg
+0x5HOZGlM9cQTqjyyaHY
+=1fer
+-----END PGP SIGNATURE-----
+
+--Sig_/vlc4iJA=hRPVu/H5BVxFEdq--
