@@ -1,115 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45044 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755183AbbBPMXA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 07:23:00 -0500
-Message-ID: <54E1E110.2010903@xs4all.nl>
-Date: Mon, 16 Feb 2015 13:22:40 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55938 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752632AbbBCPVz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 10:21:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	William Towle <william.towle@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 6/8] WmT: adv7604 driver compatibility
+Date: Tue, 03 Feb 2015 17:22:39 +0200
+Message-ID: <7877033.djOMQDpcA0@avalon>
+In-Reply-To: <54CF4CD7.2060901@xs4all.nl>
+References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <2552213.h99FiuUI04@avalon> <54CF4CD7.2060901@xs4all.nl>
 MIME-Version: 1.0
-To: Miguel Casas-Sanchez <mcasas@chromium.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: docs: Correct NV{12,21}/M pixel formats, chroma
- samples used.
-References: <CAPUS087-jTACBQbH=Kqby3S52Ff4kKoswRuubUoC6Y=OoNz2yQ@mail.gmail.com>
-In-Reply-To: <CAPUS087-jTACBQbH=Kqby3S52Ff4kKoswRuubUoC6Y=OoNz2yQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/11/2015 08:32 PM, Miguel Casas-Sanchez wrote:
-> Docos says for these pixel formats:
-> 
-> start... : Cb00 Cr00 Cb01 Cr01
-> start... : Cb10 Cr10 Cb11 Cr11
-> 
-> whereas it should read:
-> 
-> start... : Cb00 Cr00 Cb11 Cr11
-> start... : Cb20 Cr20 Cb21 Cr21
-> 
-> where ... depends on the exact multi/single planar format.
-> 
-> See e.g. http://linuxtv.org/downloads/v4l-dvb-apis/re30.html
-> and http://linuxtv.org/downloads/v4l-dvb-apis/re31.html
-> 
-> 
-> Signed-off-by: Miguel Casas-Sanchez <mcasas@chromium.org>
+Hi Hans,
 
-Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Monday 02 February 2015 11:09:27 Hans Verkuil wrote:
+> On 02/02/2015 11:01 AM, Laurent Pinchart wrote:
+> > On Sunday 01 February 2015 12:26:11 Guennadi Liakhovetski wrote:
+> >> On a second thought:
+> >> 
+> >> On Sun, 1 Feb 2015, Guennadi Liakhovetski wrote:
+> >>> Hi Wills,
+> >>> 
+> >>> Thanks for the patch. First and foremost, the title of the patch is
+> >>> wrong. This patch does more than just adding some "adv7604
+> >>> compatibility." It's adding pad-level API to soc-camera.
+> >>> 
+> >>> This is just a rough review. I'm not an expert in media-controller /
+> >>> pad-level API, I hope someone with a better knowledge of those areas
+> >>> will help me reviewing this.
+> >>> 
+> >>> Another general comment: it has been discussed since a long time,
+> >>> whether a wrapper wouldn't be desired to enable a seamless use of both
+> >>> subdev drivers using and not using the pad-level API. Maybe it's the
+> >>> right time now?..
+> >> 
+> >> This would be a considerable change and would most probably take a rather
+> >> long time, given how busy everyone is.
+> > 
+> > If I understood correctly Hans Verkuil told me over the weekend that he
+> > wanted to address this problem in the near future. Hans, could you detail
+> > your plans ?
+> 
+> That's correct. This patch series makes all the necessary changes.
+> 
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg83415.html
+> 
+> Patches 1-4 have been merged already, but I need to do more testing for the
+> remainder. The Renesas SH7724 board is ideal for that, but unfortunately I
+> can't get it to work with the current kernel.
 
-The Chroma coordinates are those of the CbCr plane, not the luma
-plane. This is true for all other YCbCr format descriptions as well.
+I can't help you much with that, but I could test changes using the rcar-vin 
+driver with the adv7180 if needed (does the adv7180 generate an image if no 
+analog source is connected ?). That will need to wait for two weeks though as 
+I don't have access to the hardware right now.
 
+-- 
 Regards,
 
-	Hans
-
-> ---
->  Documentation/DocBook/media/v4l/pixfmt-nv12.xml  |  8 ++++----
->  Documentation/DocBook/media/v4l/pixfmt-nv12m.xml | 12 ++++++------
->  2 files changed, 10 insertions(+), 10 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv12.xml
-> b/Documentation/DocBook/media/v4l/pixfmt-nv12.xml
-> index 84dd4fd..4148696 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt-nv12.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-nv12.xml
-> @@ -73,15 +73,15 @@ pixel image</title>
->                       <entry>start&nbsp;+&nbsp;16:</entry>
->                       <entry>Cb<subscript>00</subscript></entry>
->                       <entry>Cr<subscript>00</subscript></entry>
-> -                     <entry>Cb<subscript>01</subscript></entry>
-> -                     <entry>Cr<subscript>01</subscript></entry>
-> +                     <entry>Cb<subscript>02</subscript></entry>
-> +                     <entry>Cr<subscript>02</subscript></entry>
->                     </row>
->                     <row>
->                       <entry>start&nbsp;+&nbsp;20:</entry>
->                       <entry>Cb<subscript>10</subscript></entry>
->                       <entry>Cr<subscript>10</subscript></entry>
-> -                     <entry>Cb<subscript>11</subscript></entry>
-> -                     <entry>Cr<subscript>11</subscript></entry>
-> +                     <entry>Cb<subscript>22</subscript></entry>
-> +                     <entry>Cr<subscript>22</subscript></entry>
->                     </row>
->                   </tbody>
->                 </tgroup>
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv12m.xml
-> b/Documentation/DocBook/media/v4l/pixfmt-nv12m.xml
-> index f3a3d45..e0a35ea 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt-nv12m.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-nv12m.xml
-> @@ -83,15 +83,15 @@ CbCr plane has as many pad bytes after its rows.</para>
->                       <entry>start1&nbsp;+&nbsp;0:</entry>
->                       <entry>Cb<subscript>00</subscript></entry>
->                       <entry>Cr<subscript>00</subscript></entry>
-> -                     <entry>Cb<subscript>01</subscript></entry>
-> -                     <entry>Cr<subscript>01</subscript></entry>
-> +                     <entry>Cb<subscript>02</subscript></entry>
-> +                     <entry>Cr<subscript>02</subscript></entry>
->                     </row>
->                     <row>
->                       <entry>start1&nbsp;+&nbsp;4:</entry>
-> -                     <entry>Cb<subscript>10</subscript></entry>
-> -                     <entry>Cr<subscript>10</subscript></entry>
-> -                     <entry>Cb<subscript>11</subscript></entry>
-> -                     <entry>Cr<subscript>11</subscript></entry>
-> +                     <entry>Cb<subscript>20</subscript></entry>
-> +                     <entry>Cr<subscript>20</subscript></entry>
-> +                     <entry>Cb<subscript>22</subscript></entry>
-> +                     <entry>Cr<subscript>22</subscript></entry>
->                     </row>
->                   </tbody>
->                 </tgroup>
-> 
-> --
-> 2.2.0.rc0.207.ga3a616c
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Laurent Pinchart
