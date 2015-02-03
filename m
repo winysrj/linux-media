@@ -1,89 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:41109 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752155AbbBUSka (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2015 13:40:30 -0500
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	adi-buildroot-devel@lists.sourceforge.net
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
+Received: from mout.kundenserver.de ([212.227.126.131]:60216 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752353AbbBCOx0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 09:53:26 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Rob Clark <robdclark@gmail.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
 	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 02/15] media: blackfin: bfin_capture: release buffers in case start_streaming() call back fails
-Date: Sat, 21 Feb 2015 18:39:48 +0000
-Message-Id: <1424544001-19045-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints with dma-parms
+Date: Tue, 03 Feb 2015 15:52:48 +0100
+Message-ID: <4830208.H6zxrGlT1D@wuerfel>
+In-Reply-To: <20150203144109.GR8656@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org> <4689826.8DDCrX2ZhK@wuerfel> <20150203144109.GR8656@n2100.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On Tuesday 03 February 2015 14:41:09 Russell King - ARM Linux wrote:
+> On Tue, Feb 03, 2015 at 03:17:27PM +0100, Arnd Bergmann wrote:
+> > On Tuesday 03 February 2015 09:04:03 Rob Clark wrote:
+> > > Since I'm stuck w/ an iommu, instead of built in mmu, my plan was to
+> > > drop use of dma-mapping entirely (incl the current call to dma_map_sg,
+> > > which I just need until we can use drm_cflush on arm), and
+> > > attach/detach iommu domains directly to implement context switches.
+> > > At that point, dma_addr_t really has no sensible meaning for me.
+> > 
+> > I think what you see here is a quite common hardware setup and we really
+> > lack the right abstraction for it at the moment. Everybody seems to
+> > work around it with a mix of the dma-mapping API and the iommu API.
+> > These are doing different things, and even though the dma-mapping API
+> > can be implemented on top of the iommu API, they are not really compatible.
+> 
+> I'd go as far as saying that the "DMA API on top of IOMMU" is more
+> intended to be for a system IOMMU for the bus in question, rather
+> than a device-level IOMMU.
+> 
+> If an IOMMU is part of a device, then the device should handle it
+> (maybe via an abstraction) and not via the DMA API.  The DMA API should
+> be handing the bus addresses to the device driver which the device's
+> IOMMU would need to generate.  (In other words, in this circumstance,
+> the DMA API shouldn't give you the device internal address.)
 
-this patch adds support to release the buffer by calling
-vb2_buffer_done(), with state marked as VB2_BUF_STATE_QUEUED
-if start_streaming() call back fails.
+Exactly. And the abstraction that people choose at the moment is the
+iommu API, for better or worse. It makes a lot of sense to use this
+API if the same iommu is used for other devices as well (which is
+the case on Tegra and probably a lot of others). Unfortunately the
+iommu API lacks support for cache management, and probably other things
+as well, because this was not an issue for the original use case
+(device assignment on KVM/x86).
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+This could be done by adding explicit or implied cache management
+to the IOMMU mapping interfaces, or by extending the dma-mapping
+interfaces in a way that covers the use case of the device managing
+its own address space, in addition to the existing coherent and
+streaming interfaces.
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index c6d8b95..2c720bc 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -345,6 +345,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
- 	struct ppi_if *ppi = bcap_dev->ppi;
-+	struct bcap_buffer *buf, *tmp;
- 	struct ppi_params params;
- 	int ret;
- 
-@@ -352,7 +353,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	ret = v4l2_subdev_call(bcap_dev->sd, video, s_stream, 1);
- 	if (ret && (ret != -ENOIOCTLCMD)) {
- 		v4l2_err(&bcap_dev->v4l2_dev, "stream on failed in subdev\n");
--		return ret;
-+		goto err;
- 	}
- 
- 	/* set ppi params */
-@@ -391,7 +392,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (ret < 0) {
- 		v4l2_err(&bcap_dev->v4l2_dev,
- 				"Error in setting ppi params\n");
--		return ret;
-+		goto err;
- 	}
- 
- 	/* attach ppi DMA irq handler */
-@@ -399,12 +400,21 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (ret < 0) {
- 		v4l2_err(&bcap_dev->v4l2_dev,
- 				"Error in attaching interrupt handler\n");
--		return ret;
-+		goto err;
- 	}
- 
- 	reinit_completion(&bcap_dev->comp);
- 	bcap_dev->stop = false;
-+
- 	return 0;
-+
-+err:
-+	list_for_each_entry_safe(buf, tmp, &bcap_dev->dma_queue, list) {
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+	}
-+
-+	return ret;
- }
- 
- static void bcap_stop_streaming(struct vb2_queue *vq)
--- 
-2.1.0
-
+	Arnd
