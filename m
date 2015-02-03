@@ -1,58 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57291 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932952AbbBDOFU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 09:05:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Florian Echtler <floe@butterbrot.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
-Date: Wed, 04 Feb 2015 16:06:05 +0200
-Message-ID: <1606232.uUWpMankZz@avalon>
-In-Reply-To: <54D21CEB.1090506@butterbrot.org>
-References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <54D204F2.3040006@xs4all.nl> <54D21CEB.1090506@butterbrot.org>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45307 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751725AbbBCOhY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 09:37:24 -0500
+Date: Tue, 3 Feb 2015 14:37:15 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher
+ constraints with dma-parms
+Message-ID: <20150203143715.GQ8656@n2100.arm.linux.org.uk>
+References: <20150129143908.GA26493@n2100.arm.linux.org.uk>
+ <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
+ <20150129154718.GB26493@n2100.arm.linux.org.uk>
+ <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
+ <20150129192610.GE26493@n2100.arm.linux.org.uk>
+ <CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
+ <20150202165405.GX14009@phenom.ffwll.local>
+ <CAF6AEGuESM+e3HSRGM6zLqrp8kqRLGUYvA3KKECdm7m-nt0M=Q@mail.gmail.com>
+ <20150203074856.GF14009@phenom.ffwll.local>
+ <CAF6AEGu0-TgyE4BjiaSWXQCSk31VU7dogq=6xDRUhi79rGgbxg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGu0-TgyE4BjiaSWXQCSk31VU7dogq=6xDRUhi79rGgbxg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Florian,
+On Tue, Feb 03, 2015 at 09:04:03AM -0500, Rob Clark wrote:
+> Since I'm stuck w/ an iommu, instead of built in mmu, my plan was to
+> drop use of dma-mapping entirely (incl the current call to dma_map_sg,
+> which I just need until we can use drm_cflush on arm), and
+> attach/detach iommu domains directly to implement context switches.
+> At that point, dma_addr_t really has no sensible meaning for me.
 
-On Wednesday 04 February 2015 14:21:47 Florian Echtler wrote:
-> On 04.02.2015 12:39, Hans Verkuil wrote:
-> > On 02/04/15 12:34, Laurent Pinchart wrote:
-> >> On Wednesday 04 February 2015 11:56:58 Florian Echtler wrote:
-> >>> That's what I assumed, however, I'm running into the same problem as
-> >>> with dma-sg when I switch to vmalloc...?
-> >> 
-> >> I don't expect vmalloc to work, as you can't DMA to vmalloc memory
-> >> directly without any IOMMU in the general case (the allocated memory
-> >> being physically fragmented).
-> >> 
-> >> dma-sg should work though, but you won't be able to use usb_bulk_msg().
-> >> You need to create the URBs manually, set their sg and num_sgs fields and
-> >> submit them.
-> 
-> Can I also use usb_sg_init/_wait for this? I can't find any other driver
-> which uses USB in conjunction with dma-sg, can you suggest one I could
-> use as an example?
+So how do you intend to import from a subsystem which only gives you
+the dma_addr_t?
 
-usb_sg_init() is an interesting abstraction that transparently splits SG lists 
-into several URBs if the USB host controller can't support SG lists directly. 
-Unfortunately the API is blocking. It shouldn't be too difficult to add an 
-asynchronous option with a complete callback.
-
-> > Anyway Florian, based on Laurent's explanation I think trying to make
-> > dma-sg work seems to be the best solution. And I've learned something
-> > new :-)
-> 
-> Thanks for the clarification, please ignore the v2 patch submission for
-> now :-)
+If you aren't passing system memory, you have no struct page.  You can't
+fake up a struct page.  What this means is that struct scatterlist can't
+represent it any other way.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
