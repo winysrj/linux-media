@@ -1,117 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41334 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761504AbbBJDpP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Feb 2015 22:45:15 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 83AA82A0258
-	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2015 04:45:04 +0100 (CET)
-Date: Tue, 10 Feb 2015 04:45:04 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150210034504.83AA82A0258@tschai.lan>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45695 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753949AbbBCQ6n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 11:58:43 -0500
+Date: Tue, 3 Feb 2015 16:58:29 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-mm-sig@lists.linaro.org,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Rob Clark <robdclark@gmail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	linux-arm-kernel@lists.infradead.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
+ attacher constraints with dma-parms
+Message-ID: <20150203165829.GW8656@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <3783167.LiVXgA35gN@wuerfel>
+ <20150203155404.GV8656@n2100.arm.linux.org.uk>
+ <6906596.JU5vQoa1jV@wuerfel>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6906596.JU5vQoa1jV@wuerfel>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tue, Feb 03, 2015 at 05:12:40PM +0100, Arnd Bergmann wrote:
+> On Tuesday 03 February 2015 15:54:04 Russell King - ARM Linux wrote:
+> > On Tue, Feb 03, 2015 at 04:31:13PM +0100, Arnd Bergmann wrote:
+> > > The dma_map_* interfaces assign the virtual addresses internally,
+> > > using typically either a global address space for all devices, or one
+> > > address space per device.
+> > 
+> > We shouldn't be doing one address space per device for precisely this
+> > reason.  We should be doing one address space per *bus*.  I did have
+> > a nice diagram to illustrate the point in my previous email, but I
+> > deleted it, I wish I hadn't... briefly:
+> > 
+> > Fig. 1.
+> >                                                  +------------------+
+> >                                                  |+-----+  device   |
+> > CPU--L1cache--L2cache--Memory--SysMMU---<iobus>----IOMMU-->         |
+> >                                                  |+-----+           |
+> >                                                  +------------------+
+> > 
+> > Fig.1 represents what I'd call the "GPU" issue that we're talking about
+> > in this thread.
+> > 
+> > Fig. 2.
+> > CPU--L1cache--L2cache--Memory--SysMMU---<iobus>--IOMMU--device
+> > 
+> > The DMA API should be responsible (at the very least) for everything on
+> > the left of "<iobus>" in and should be providing a dma_addr_t which is
+> > representative of what the device (in Fig.1) as a whole sees.  That's
+> > the "system" part.  
+> > 
+> > I believe this is the approach which is taken by x86 and similar platforms,
+> > simply because they tend not to have an IOMMU on individual devices (and
+> > if they did, eg, on a PCI card, it's clearly the responsibility of the
+> > device driver.)
+> > 
+> > Whether the DMA API also handles the IOMMU in Fig.1 or 2 is questionable.
+> > For fig.2, it is entirely possible that the same device could appear
+> > without an IOMMU, and in that scenario, you would want the IOMMU to be
+> > handled transparently.
+> > 
+> > However, by doing so for everything, you run into exactly the problem
+> > which is being discussed here - the need to separate out the cache
+> > coherency from the IOMMU aspects.  You probably also have a setup very
+> > similar to fig.1 (which is certainly true of Vivante GPUs.)
+> > 
+> > If you have the need to separately control both, then using the DMA API
+> > to encapsulate both does not make sense - at which point, the DMA API
+> > should be responsible for the minimum only - in other words, everything
+> > to the left of <iobus> (so including the system MMU.)  The control of
+> > the device IOMMU should be the responsibility of device driver in this
+> > case.
+> > 
+> > So, dma_map_sg() would be responsible for dealing with the CPU cache
+> > coherency issues, and setting up the system MMU.  dma_sync_*() would
+> > be responsible for the CPU cache coherency issues, and dma_unmap_sg()
+> > would (again) deal with the CPU cache and tear down the system MMU
+> > mappings.
+> > 
+> > Meanwhile, the device driver has ultimate control over its IOMMU, the
+> > creation and destruction of mappings and context switches at the
+> > appropriate times.
+> 
+> I agree for the case you are describing here. From what I understood
+> from Rob was that he is looking at something more like:
+> 
+> Fig 3
+> CPU--L1cache--L2cache--Memory--IOMMU---<iobus>--device
+> 
+> where the IOMMU controls one or more contexts per device, and is
+> shared across GPU and non-GPU devices. Here, we need to use the
+> dmap-mapping interface to set up the IO page table for any device
+> that is unable to address all of system RAM, and we can use it
+> for purposes like isolation of the devices. There are also cases
+> where using the IOMMU is not optional.
 
-Results of the daily build of media_tree:
+Okay, but switching contexts is not something which the DMA API has
+any knowledge of (so it can't know which context to associate with
+which mapping.)  While it knows which device, it has no knowledge
+(nor is there any way for it to gain knowledge) about contexts.
 
-date:		Tue Feb 10 04:00:22 CET 2015
-git branch:	test
-git hash:	4bad5d2d25099a42e146d7b18d2b98950ed287f5
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-5.slh.1-amd64
+My personal view is that extending the DMA API in this way feels quite
+dirty - it's a violation of the DMA API design, which is to (a) demark
+the buffer ownership between CPU and DMA agent, and (b) to translate
+buffer locations into a cookie which device drivers can use to instruct
+their device to access that memory.  To see why, consider... that you
+map a buffer to a device in context A, and then you switch to context B,
+which means the dma_addr_t given previously is no longer valid.  You
+then try to unmap it... which is normally done using the (now no longer
+valid) dma_addr_t.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18-i686: OK
-linux-3.19-rc4-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18-x86_64: OK
-linux-3.19-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+It seems to me that to support this at DMA API level, we would need to
+completely revamp the DMA API, which IMHO isn't going to be nice.  (It
+would mean that we end up with three APIs - the original PCI DMA API,
+the existing DMA API, and some new DMA API.)
 
-Detailed results are available here:
+Do we have any views on how common this feature is?
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
