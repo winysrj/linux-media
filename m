@@ -1,194 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49524 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:50784 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753951AbbBMW6X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 17:58:23 -0500
+	with ESMTP id S965698AbbBCSlC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 13:41:02 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 09/25] [media] cx231xx: add media controller support
-Date: Fri, 13 Feb 2015 20:57:52 -0200
-Message-Id: <23a0642d141c8cfbbde0e20b671dd9e3946d53bc.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/3] [media] rtl2832: declare functions as static
+Date: Tue,  3 Feb 2015 16:40:50 -0200
+Message-Id: <bda977b7318a4ec10648fe5f80b6ecb42edea7bb.1422988845.git.mchehab@osg.samsung.com>
+In-Reply-To: <d858b0e787a8eef66457bcbbd9a758a327102b94.1422988845.git.mchehab@osg.samsung.com>
+References: <d858b0e787a8eef66457bcbbd9a758a327102b94.1422988845.git.mchehab@osg.samsung.com>
+In-Reply-To: <d858b0e787a8eef66457bcbbd9a758a327102b94.1422988845.git.mchehab@osg.samsung.com>
+References: <d858b0e787a8eef66457bcbbd9a758a327102b94.1422988845.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let's add media controller support for this driver and register it
-for both V4L and DVB.
+drivers/media/dvb-frontends/rtl2832.c:157:5: warning: no previous prototype for ‘rtl2832_bulk_write’ [-Wmissing-prototypes]
+ int rtl2832_bulk_write(struct i2c_client *client, unsigned int reg,
+     ^
+drivers/media/dvb-frontends/rtl2832.c:169:5: warning: no previous prototype for ‘rtl2832_update_bits’ [-Wmissing-prototypes]
+ int rtl2832_update_bits(struct i2c_client *client, unsigned int reg,
+     ^
+drivers/media/dvb-frontends/rtl2832.c:181:5: warning: no previous prototype for ‘rtl2832_bulk_read’ [-Wmissing-prototypes]
+ int rtl2832_bulk_read(struct i2c_client *client, unsigned int reg, void *val,
 
-The media controller on this driver is not mandatory, as it can fully
-work without it. So, if the media controller register fails, just print
-an error message, but proceed with device registering.
-
+Cc: Antti Palosaari <crope@iki.fi>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index da03733690bd..d357e8c0c485 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -912,9 +912,6 @@ static inline void cx231xx_set_model(struct cx231xx *dev)
-  */
- void cx231xx_pre_card_setup(struct cx231xx *dev)
- {
--
--	cx231xx_set_model(dev);
--
- 	dev_info(dev->dev, "Identified as %s (card=%d)\n",
- 		dev->board.name, dev->model);
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 0f2a743bb195..5d2d8f45b4b6 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -154,8 +154,8 @@ static const struct rtl2832_reg_entry registers[] = {
+ };
  
-@@ -1092,6 +1089,17 @@ void cx231xx_config_i2c(struct cx231xx *dev)
- 	call_all(dev, video, s_stream, 1);
+ /* Our regmap is bypassing I2C adapter lock, thus we do it! */
+-int rtl2832_bulk_write(struct i2c_client *client, unsigned int reg,
+-		       const void *val, size_t val_count)
++static int rtl2832_bulk_write(struct i2c_client *client, unsigned int reg,
++			      const void *val, size_t val_count)
+ {
+ 	struct rtl2832_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+@@ -166,8 +166,8 @@ int rtl2832_bulk_write(struct i2c_client *client, unsigned int reg,
+ 	return ret;
  }
  
-+static void cx231xx_unregister_media_device(struct cx231xx *dev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	if (dev->media_dev) {
-+		media_device_unregister(dev->media_dev);
-+		kfree(dev->media_dev);
-+		dev->media_dev = NULL;
-+	}
-+#endif
-+}
-+
- /*
-  * cx231xx_realease_resources()
-  * unregisters the v4l2,i2c and usb devices
-@@ -1099,6 +1107,8 @@ void cx231xx_config_i2c(struct cx231xx *dev)
- */
- void cx231xx_release_resources(struct cx231xx *dev)
+-int rtl2832_update_bits(struct i2c_client *client, unsigned int reg,
+-			unsigned int mask, unsigned int val)
++static int rtl2832_update_bits(struct i2c_client *client, unsigned int reg,
++			       unsigned int mask, unsigned int val)
  {
-+	cx231xx_unregister_media_device(dev);
-+
- 	cx231xx_release_analog_resources(dev);
- 
- 	cx231xx_remove_from_devlist(dev);
-@@ -1117,6 +1127,38 @@ void cx231xx_release_resources(struct cx231xx *dev)
- 	clear_bit(dev->devno, &cx231xx_devused);
+ 	struct rtl2832_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+@@ -178,8 +178,8 @@ int rtl2832_update_bits(struct i2c_client *client, unsigned int reg,
+ 	return ret;
  }
  
-+static void cx231xx_media_device_register(struct cx231xx *dev,
-+					  struct usb_device *udev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device *mdev;
-+	int ret;
-+
-+	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-+	if (!mdev)
-+		return;
-+
-+	mdev->dev = dev->dev;
-+	strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
-+	if (udev->serial)
-+		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
-+	strcpy(mdev->bus_info, udev->devpath);
-+	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
-+	mdev->driver_version = LINUX_VERSION_CODE;
-+
-+	ret = media_device_register(mdev);
-+	if (ret) {
-+		dev_err(dev->dev,
-+			"Couldn't create a media device. Error: %d\n",
-+			ret);
-+		kfree(mdev);
-+		return;
-+	}
-+
-+	dev->media_dev = mdev;
-+#endif
-+}
-+
- /*
-  * cx231xx_init_dev()
-  * allocates and inits the device structs, registers i2c bus and v4l device
-@@ -1225,10 +1267,8 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
- 	}
- 
- 	retval = cx231xx_register_analog_devices(dev);
--	if (retval) {
--		cx231xx_release_analog_resources(dev);
-+	if (retval)
- 		goto err_analog;
--	}
- 
- 	cx231xx_ir_init(dev);
- 
-@@ -1236,6 +1276,8 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
- 
- 	return 0;
- err_analog:
-+	cx231xx_unregister_media_device(dev);
-+	cx231xx_release_analog_resources(dev);
- 	cx231xx_remove_from_devlist(dev);
- err_dev_init:
- 	cx231xx_dev_uninit(dev);
-@@ -1438,6 +1480,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 	dev->video_mode.alt = -1;
- 	dev->dev = d;
- 
-+	cx231xx_set_model(dev);
-+
- 	dev->interface_count++;
- 	/* reset gpio dir and value */
- 	dev->gpio_dir = 0;
-@@ -1502,7 +1546,11 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 	/* save our data pointer in this interface device */
- 	usb_set_intfdata(interface, dev);
- 
-+	/* Register the media controller */
-+	cx231xx_media_device_register(dev, udev);
-+
- 	/* Create v4l2 device */
-+	dev->v4l2_dev.mdev = dev->media_dev;
- 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
- 	if (retval) {
- 		dev_err(d, "v4l2_device_register failed\n");
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index dd600b994e69..bb7e766cd30c 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -455,6 +455,7 @@ static int register_dvb(struct cx231xx_dvb *dvb,
- 
- 	mutex_init(&dvb->lock);
- 
-+
- 	/* register adapter */
- 	result = dvb_register_adapter(&dvb->adapter, dev->name, module, device,
- 				      adapter_nr);
-@@ -464,6 +465,9 @@ static int register_dvb(struct cx231xx_dvb *dvb,
- 		       dev->name, result);
- 		goto fail_adapter;
- 	}
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+	dvb->adapter.mdev = dev->media_dev;
-+#endif
- 
- 	/* Ensure all frontends negotiate bus access */
- 	dvb->frontend->ops.ts_bus_ctrl = cx231xx_dvb_bus_ctrl;
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 6d6f3ee812f6..af9d6c4041dc 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -658,6 +658,10 @@ struct cx231xx {
- 	struct video_device *vbi_dev;
- 	struct video_device *radio_dev;
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_device *media_dev;
-+#endif
-+
- 	unsigned char eedata[256];
- 
- 	struct cx231xx_video_mode video_mode;
+-int rtl2832_bulk_read(struct i2c_client *client, unsigned int reg, void *val,
+-		      size_t val_count)
++static int rtl2832_bulk_read(struct i2c_client *client, unsigned int reg,
++			     void *val, size_t val_count)
+ {
+ 	struct rtl2832_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
 -- 
 2.1.0
 
