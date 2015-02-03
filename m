@@ -1,138 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:49280 "EHLO hardeman.nu"
+Received: from lists.s-osg.org ([54.187.51.154]:47900 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752593AbbBYWaz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2015 17:30:55 -0500
-Subject: [PATCH] rc-core: fix dib0700 scancode generation for RC5
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: david.cimburek@gmail.com
+	id S966015AbbBCTT2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Feb 2015 14:19:28 -0500
+Date: Tue, 3 Feb 2015 17:19:21 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>
 Cc: linux-media@vger.kernel.org
-Date: Wed, 25 Feb 2015 23:30:36 +0100
-Message-ID: <20150225223036.23353.77716.stgit@zeus.muc.hardeman.nu>
+Subject: Re: [PATCH 5/5] lmedm04: add read snr, signal strength and ber call
+ backs
+Message-ID: <20150203171921.2afa629c@recife.lan>
+In-Reply-To: <1420206991-3939-5-git-send-email-tvboxspy@gmail.com>
+References: <1420206991-3939-1-git-send-email-tvboxspy@gmail.com>
+	<1420206991-3939-5-git-send-email-tvboxspy@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-David, could you please test this patch?
----
- drivers/media/usb/dvb-usb/dib0700_core.c |   70 +++++++++++++++++-------------
- 1 file changed, 40 insertions(+), 30 deletions(-)
+Em Fri,  2 Jan 2015 13:56:31 +0000
+Malcolm Priestley <tvboxspy@gmail.com> escreveu:
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
-index 50856db..605b090 100644
---- a/drivers/media/usb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_core.c
-@@ -658,10 +658,20 @@ out:
- struct dib0700_rc_response {
- 	u8 report_id;
- 	u8 data_state;
--	u8 system;
--	u8 not_system;
--	u8 data;
--	u8 not_data;
-+	union {
-+		struct {
-+			u8 system;
-+			u8 not_system;
-+			u8 data;
-+			u8 not_data;
-+		} nec;
-+		struct {
-+			u8 not_used;
-+			u8 system;
-+			u8 data;
-+			u8 not_data;
-+		} rc5;
-+	};
- };
- #define RC_MSG_SIZE_V1_20 6
- 
-@@ -697,8 +707,8 @@ static void dib0700_rc_urb_completion(struct urb *purb)
- 
- 	deb_data("IR ID = %02X state = %02X System = %02X %02X Cmd = %02X %02X (len %d)\n",
- 		 poll_reply->report_id, poll_reply->data_state,
--		 poll_reply->system, poll_reply->not_system,
--		 poll_reply->data, poll_reply->not_data,
-+		 poll_reply->nec.system, poll_reply->nec.not_system,
-+		 poll_reply->nec.data, poll_reply->nec.not_data,
- 		 purb->actual_length);
- 
- 	switch (d->props.rc.core.protocol) {
-@@ -707,30 +717,30 @@ static void dib0700_rc_urb_completion(struct urb *purb)
- 		toggle = 0;
- 
- 		/* NEC protocol sends repeat code as 0 0 0 FF */
--		if (poll_reply->system     == 0x00 &&
--		    poll_reply->not_system == 0x00 &&
--		    poll_reply->data       == 0x00 &&
--		    poll_reply->not_data   == 0xff) {
-+		if (poll_reply->nec.system     == 0x00 &&
-+		    poll_reply->nec.not_system == 0x00 &&
-+		    poll_reply->nec.data       == 0x00 &&
-+		    poll_reply->nec.not_data   == 0xff) {
- 			poll_reply->data_state = 2;
- 			break;
- 		}
- 
--		if ((poll_reply->data ^ poll_reply->not_data) != 0xff) {
-+		if ((poll_reply->nec.data ^ poll_reply->nec.not_data) != 0xff) {
- 			deb_data("NEC32 protocol\n");
--			keycode = RC_SCANCODE_NEC32(poll_reply->system     << 24 |
--						     poll_reply->not_system << 16 |
--						     poll_reply->data       << 8  |
--						     poll_reply->not_data);
--		} else if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
-+			keycode = RC_SCANCODE_NEC32(poll_reply->nec.system     << 24 |
-+						     poll_reply->nec.not_system << 16 |
-+						     poll_reply->nec.data       << 8  |
-+						     poll_reply->nec.not_data);
-+		} else if ((poll_reply->nec.system ^ poll_reply->nec.not_system) != 0xff) {
- 			deb_data("NEC extended protocol\n");
--			keycode = RC_SCANCODE_NECX(poll_reply->system << 8 |
--						    poll_reply->not_system,
--						    poll_reply->data);
-+			keycode = RC_SCANCODE_NECX(poll_reply->nec.system << 8 |
-+						    poll_reply->nec.not_system,
-+						    poll_reply->nec.data);
- 
- 		} else {
- 			deb_data("NEC normal protocol\n");
--			keycode = RC_SCANCODE_NEC(poll_reply->system,
--						   poll_reply->data);
-+			keycode = RC_SCANCODE_NEC(poll_reply->nec.system,
-+						   poll_reply->nec.data);
- 		}
- 
- 		break;
-@@ -738,19 +748,19 @@ static void dib0700_rc_urb_completion(struct urb *purb)
- 		deb_data("RC5 protocol\n");
- 		protocol = RC_TYPE_RC5;
- 		toggle = poll_reply->report_id;
--		keycode = RC_SCANCODE_RC5(poll_reply->system, poll_reply->data);
-+		keycode = RC_SCANCODE_RC5(poll_reply->rc5.system, poll_reply->rc5.data);
-+
-+		if ((poll_reply->rc5.data ^ poll_reply->rc5.not_data) != 0xff) {
-+			/* Key failed integrity check */
-+			err("key failed integrity check: %02x %02x %02x %02x",
-+			    poll_reply->rc5.not_used, poll_reply->rc5.system,
-+			    poll_reply->rc5.data, poll_reply->rc5.not_data);
-+			goto resubmit;
-+		}
- 
- 		break;
- 	}
- 
--	if ((poll_reply->data + poll_reply->not_data) != 0xff) {
--		/* Key failed integrity check */
--		err("key failed integrity check: %02x %02x %02x %02x",
--		    poll_reply->system,  poll_reply->not_system,
--		    poll_reply->data, poll_reply->not_data);
--		goto resubmit;
--	}
--
- 	rc_keydown(d->rc_dev, protocol, keycode, toggle);
- 
- resubmit:
+> This allows calling the original functions providing the streaming is off.
 
+Malcolm,
+
+I'm applying this patch series, as the driver has already some support for
+the legacy DVBv3 stats, but please port it to use DVBv5.
+
+Thanks,
+Mauro
+
+> 
+> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> ---
+>  drivers/media/usb/dvb-usb-v2/lmedm04.c | 24 ++++++++++++++++++++++++
+>  1 file changed, 24 insertions(+)
+> 
+> diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+> index a9c7fd0..5de6f7c 100644
+> --- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
+> +++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+> @@ -145,6 +145,10 @@ struct lme2510_state {
+>  	void *usb_buffer;
+>  	/* Frontend original calls */
+>  	int (*fe_read_status)(struct dvb_frontend *, fe_status_t *);
+> +	int (*fe_read_signal_strength)(struct dvb_frontend *, u16 *);
+> +	int (*fe_read_snr)(struct dvb_frontend *, u16 *);
+> +	int (*fe_read_ber)(struct dvb_frontend *, u32 *);
+> +	int (*fe_read_ucblocks)(struct dvb_frontend *, u32 *);
+>  	int (*fe_set_voltage)(struct dvb_frontend *, fe_sec_voltage_t);
+>  	u8 dvb_usb_lme2510_firmware;
+>  };
+> @@ -877,6 +881,9 @@ static int dm04_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+>  {
+>  	struct lme2510_state *st = fe_to_priv(fe);
+>  
+> +	if (st->fe_read_signal_strength && !st->stream_on)
+> +		return st->fe_read_signal_strength(fe, strength);
+> +
+>  	switch (st->tuner_config) {
+>  	case TUNER_LG:
+>  		*strength = 0xff - st->signal_level;
+> @@ -898,6 +905,9 @@ static int dm04_read_snr(struct dvb_frontend *fe, u16 *snr)
+>  {
+>  	struct lme2510_state *st = fe_to_priv(fe);
+>  
+> +	if (st->fe_read_snr && !st->stream_on)
+> +		return st->fe_read_snr(fe, snr);
+> +
+>  	switch (st->tuner_config) {
+>  	case TUNER_LG:
+>  		*snr = 0xff - st->signal_sn;
+> @@ -917,6 +927,11 @@ static int dm04_read_snr(struct dvb_frontend *fe, u16 *snr)
+>  
+>  static int dm04_read_ber(struct dvb_frontend *fe, u32 *ber)
+>  {
+> +	struct lme2510_state *st = fe_to_priv(fe);
+> +
+> +	if (st->fe_read_ber && !st->stream_on)
+> +		return st->fe_read_ber(fe, ber);
+> +
+>  	*ber = 0;
+>  
+>  	return 0;
+> @@ -924,6 +939,11 @@ static int dm04_read_ber(struct dvb_frontend *fe, u32 *ber)
+>  
+>  static int dm04_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+>  {
+> +	struct lme2510_state *st = fe_to_priv(fe);
+> +
+> +	if (st->fe_read_ucblocks && !st->stream_on)
+> +		return st->fe_read_ucblocks(fe, ucblocks);
+> +
+>  	*ucblocks = 0;
+>  
+>  	return 0;
+> @@ -1036,6 +1056,10 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
+>  	}
+>  
+>  	st->fe_read_status = adap->fe[0]->ops.read_status;
+> +	st->fe_read_signal_strength = adap->fe[0]->ops.read_signal_strength;
+> +	st->fe_read_snr = adap->fe[0]->ops.read_snr;
+> +	st->fe_read_ber = adap->fe[0]->ops.read_ber;
+> +	st->fe_read_ucblocks = adap->fe[0]->ops.read_ucblocks;
+>  
+>  	adap->fe[0]->ops.read_status = dm04_read_status;
+>  	adap->fe[0]->ops.read_signal_strength = dm04_read_signal_strength;
