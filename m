@@ -1,44 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f179.google.com ([209.85.214.179]:58464 "EHLO
-	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752304AbbBSXdd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 18:33:33 -0500
-Received: by mail-ob0-f179.google.com with SMTP id wp4so20819115obc.10
-        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2015 15:33:32 -0800 (PST)
+Received: from mail-we0-f181.google.com ([74.125.82.181]:53627 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966332AbbBCTxW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 14:53:22 -0500
+Received: by mail-we0-f181.google.com with SMTP id k48so47054021wev.12
+        for <linux-media@vger.kernel.org>; Tue, 03 Feb 2015 11:53:21 -0800 (PST)
+Message-ID: <54D12722.5080507@gmail.com>
+Date: Tue, 03 Feb 2015 19:53:06 +0000
+From: Malcolm Priestley <tvboxspy@gmail.com>
 MIME-Version: 1.0
-Date: Thu, 19 Feb 2015 23:33:32 +0000
-Message-ID: <CAJ+AEyMT6etRK6cj6s2iwNHW3QG4mh7TVdPeNvVKKSBAJU9ztA@mail.gmail.com>
-Subject: DVBSky T982 (Si2168) Questions/Issues/Request
-From: Eponymous - <the.epon@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/5] lmedm04: add read snr, signal strength and ber call
+ backs
+References: <1420206991-3939-1-git-send-email-tvboxspy@gmail.com>	<1420206991-3939-5-git-send-email-tvboxspy@gmail.com>	<20150203171921.2afa629c@recife.lan>	<54D12204.4030403@gmail.com> <20150203174438.3832d42d@recife.lan>
+In-Reply-To: <20150203174438.3832d42d@recife.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
 
-I have a couple of issues with the si2168.c dvb-frontend in kernel v
-3.19.0. To get the firnware to load I've had to increase the #define
-TIMEOUT to 150 from 50. I read another post
-(http://www.spinics.net/lists/linux-media/msg84198.html) where another
-user had to do the same modification.
 
-@ Antti Palosaari: Since the 50ms value you came up with was just
-based on some "trail and error", would it be possible to submit a
-change upstream to increase this timeout since it's likely others are
-going to encounter this issue?
+On 03/02/15 19:44, Mauro Carvalho Chehab wrote:
+> Em Tue, 03 Feb 2015 19:31:16 +0000
+> Malcolm Priestley <tvboxspy@gmail.com> escreveu:
+>
+>>
+>>
+>> On 03/02/15 19:19, Mauro Carvalho Chehab wrote:
+>>> Em Fri,  2 Jan 2015 13:56:31 +0000
+>>> Malcolm Priestley <tvboxspy@gmail.com> escreveu:
+>>>
+>>>> This allows calling the original functions providing the streaming is off.
+>>>
+>>> Malcolm,
+>>>
+>>> I'm applying this patch series, as the driver has already some support for
+>>> the legacy DVBv3 stats, but please port it to use DVBv5.
+>> Hi Mauro,
+>>
+>> I am not sure what you mean by this?
+>
+> The DVB API version 3 has some issues with stats. The main one is that
+> they don't provide any glue to userspace about what scale they use.
+> Due to that, we've added a new API at DVB. We're gradually adding
+> support for that on the already existing drivers.
+>
+>> Are there any examples?
+>
+> Yes. You can see, for example:
 
-The second issue I have is that where I am based (UK) we have both
-DVB-T and DVB-T2 muxes and I can't get a single tuner to be able to
-tune to both transports, but looking through the Si2168.c code, I'm
-having trouble working out how (if at all) this is achieved?
+Thanks
 
-It's not the case where we can only tune to DVB-T OR DVB-T2 is it? If
-so, that's far from ideal...
-
-Are there any workarounds if true?
-
-Best regards.
-
-Sean.
+Malcolm
+>
+> $ git lg drivers/media/dvb-frontends/ |grep stats
+> 906aaf5a195b [media] dvb:tc90522: fix stats report
+> 1d0ceae4a19d [media] af9033: wrap DVBv3 UCB to DVBv5 UCB stats
+> 041ad449683b [media] dib7000p: Add DVBv5 stats support
+> d591590e1b5b [media] drx-j: enable DVBv5 stats
+> 6983257813dc [media] drx-j: properly handle bit counts on stats
+> 03fdfbfd3b59 [media] drx-j: Prepare to use DVBv5 stats
+> 704f01bbc7e4 [media] dib8000: be sure that stats are available before reading them
+> 7a9d85d5559f [media] dib8000: Fix UCB measure with DVBv5 stats
+> 6ef06e78c74c [media] dib8000: add DVBv5 stats
+> 8f3741e02831 [media] drxk: Add pre/post BER and PER/UCB stats
+> 8b8e444a2711 [media] mb86a20s: Don't reset strength with the other stats
+> 15b1c5a068e7 [media] mb86a20s: provide CNR stats before FE_HAS_SYNC
