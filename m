@@ -1,65 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40081 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751148AbbBBLpc (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47825 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755776AbbBCNry (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 06:45:32 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 270EF2A0080
-	for <linux-media@vger.kernel.org>; Mon,  2 Feb 2015 12:44:54 +0100 (CET)
-Message-ID: <54CF6336.1080103@xs4all.nl>
-Date: Mon, 02 Feb 2015 12:44:54 +0100
+	Tue, 3 Feb 2015 08:47:54 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.20] Various fixes
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: isely@isely.net, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/2] v4l2-core: drop g/s_priority ops
+Date: Tue,  3 Feb 2015 14:46:56 +0100
+Message-Id: <1422971216-47871-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1422971216-47871-1-git-send-email-hverkuil@xs4all.nl>
+References: <1422971216-47871-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit a5f43c18fceb2b96ec9fddb4348f5282a71cf2b0:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-  [media] Documentation/video4linux: remove obsolete text files (2015-01-29 19:16:30 -0200)
+The handling of VIDIOC_G/S_PRIORITY is now entirely done by the V4L2
+core, so we can drop the g/s_priority ioctl ops.
 
-are available in the git repository at:
+We do have to make sure though that when S_PRIORITY is called we check
+that the driver used struct v4l2_fh. This check can be removed once all
+drivers are converted to that structure.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.20c
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c   | 7 +++----
+ drivers/media/v4l2-core/v4l2-ioctl.c | 6 ++----
+ include/media/v4l2-ioctl.h           | 6 ------
+ 3 files changed, 5 insertions(+), 14 deletions(-)
 
-for you to fetch changes up to 533ab6434b8d57778bd764bcae2e9ec8fdf068a5:
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 276a0d8..ebf4645 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -532,10 +532,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	/* vfl_type and vfl_dir independent ioctls */
+ 
+ 	SET_VALID_IOCTL(ops, VIDIOC_QUERYCAP, vidioc_querycap);
+-	if (ops->vidioc_g_priority)
+-		set_bit(_IOC_NR(VIDIOC_G_PRIORITY), valid_ioctls);
+-	if (ops->vidioc_s_priority)
+-		set_bit(_IOC_NR(VIDIOC_S_PRIORITY), valid_ioctls);
++	set_bit(_IOC_NR(VIDIOC_G_PRIORITY), valid_ioctls);
++	set_bit(_IOC_NR(VIDIOC_S_PRIORITY), valid_ioctls);
++
+ 	/* Note: the control handler can also be passed through the filehandle,
+ 	   and that can't be tested here. If the bit for these control ioctls
+ 	   is set, then the ioctl is valid. But if it is 0, then it can still
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index b084072..09ad8dd 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1046,8 +1046,6 @@ static int v4l_g_priority(const struct v4l2_ioctl_ops *ops,
+ 	struct video_device *vfd;
+ 	u32 *p = arg;
+ 
+-	if (ops->vidioc_g_priority)
+-		return ops->vidioc_g_priority(file, fh, arg);
+ 	vfd = video_devdata(file);
+ 	*p = v4l2_prio_max(vfd->prio);
+ 	return 0;
+@@ -1060,9 +1058,9 @@ static int v4l_s_priority(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_fh *vfh;
+ 	u32 *p = arg;
+ 
+-	if (ops->vidioc_s_priority)
+-		return ops->vidioc_s_priority(file, fh, *p);
+ 	vfd = video_devdata(file);
++	if (!test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
++		return -ENOTTY;
+ 	vfh = file->private_data;
+ 	return v4l2_prio_change(vfd->prio, &vfh->prio, *p);
+ }
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 8537983..8fbbd76 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -23,12 +23,6 @@ struct v4l2_ioctl_ops {
+ 	/* VIDIOC_QUERYCAP handler */
+ 	int (*vidioc_querycap)(struct file *file, void *fh, struct v4l2_capability *cap);
+ 
+-	/* Priority handling */
+-	int (*vidioc_g_priority)   (struct file *file, void *fh,
+-				    enum v4l2_priority *p);
+-	int (*vidioc_s_priority)   (struct file *file, void *fh,
+-				    enum v4l2_priority p);
+-
+ 	/* VIDIOC_ENUM_FMT handlers */
+ 	int (*vidioc_enum_fmt_vid_cap)     (struct file *file, void *fh,
+ 					    struct v4l2_fmtdesc *f);
+-- 
+2.1.4
 
-  davinci: add V4L2 dependencies (2015-02-02 11:49:28 +0100)
-
-----------------------------------------------------------------
-Alexey Khoroshilov (1):
-      cx231xx: fix usbdev leak on failure paths in cx231xx_usb_probe()
-
-Arnd Bergmann (4):
-      timberdale: do not select TIMB_DMA
-      radio/aimslab: use mdelay instead of udelay
-      siano: fix Kconfig dependencies
-      davinci: add V4L2 dependencies
-
-Hans Verkuil (1):
-      vivid: use consistent colorspace/Y'CbCr Encoding strings
-
-Ismael Luceno (1):
-      MAINTAINERS: Update solo6x10 entry
-
-Nicholas Mc Guire (1):
-      pvrusb2: use msecs_to_jiffies for conversion
-
-Prabhakar Lad (1):
-      media: am437x: fix sparse warnings
-
- MAINTAINERS                                 |  1 +
- drivers/media/mmc/siano/Kconfig             |  2 ++
- drivers/media/platform/Kconfig              |  6 ++----
- drivers/media/platform/am437x/am437x-vpfe.c |  5 ++---
- drivers/media/platform/davinci/Kconfig      |  6 +++---
- drivers/media/platform/vivid/vivid-ctrls.c  |  4 ++--
- drivers/media/radio/radio-aimslab.c         |  4 ++--
- drivers/media/usb/cx231xx/cx231xx-cards.c   |  7 ++++---
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c     | 19 ++++++++-----------
- drivers/media/usb/siano/Kconfig             |  2 ++
- 10 files changed, 28 insertions(+), 28 deletions(-)
