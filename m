@@ -1,74 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f169.google.com ([209.85.214.169]:35831 "EHLO
-	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351AbbBVIxp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2015 03:53:45 -0500
-Received: by mail-ob0-f169.google.com with SMTP id wp4so31691347obc.0
-        for <linux-media@vger.kernel.org>; Sun, 22 Feb 2015 00:53:44 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CA+55aFxAcq9a+Q6evyPXUf_BOkSUW6oajaz-g+DCDpaaE2wc4w@mail.gmail.com>
-References: <CAO_48GGT6C8-7gnKMcQ+rAQfvkEmyNzUmJAB=uJUJrFZSNo5sg@mail.gmail.com>
- <CA+55aFxAcq9a+Q6evyPXUf_BOkSUW6oajaz-g+DCDpaaE2wc4w@mail.gmail.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Sun, 22 Feb 2015 14:23:24 +0530
-Message-ID: <CAO_48GF_evt5x1QN_L4NJLMVKx__5-eZCcWFAXCj44+RZtBxUw@mail.gmail.com>
-Subject: Re: [GIT PULL]: few dma-buf updates for 3.20-rc1
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45713 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965602AbbBCRCA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 12:02:00 -0500
+Date: Tue, 3 Feb 2015 17:01:46 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	LKML <linux-kernel@vger.kernel.org>,
 	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Tom Gall <tom.gall@linaro.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
+ attacher constraints with dma-parms
+Message-ID: <20150203170146.GX8656@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <3783167.LiVXgA35gN@wuerfel>
+ <20150203155404.GV8656@n2100.arm.linux.org.uk>
+ <6906596.JU5vQoa1jV@wuerfel>
+ <CAF6AEGsttiufoqPbDiZfUX2ndbv2XfeZzcfyaf-AcUJgJpgLkA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGsttiufoqPbDiZfUX2ndbv2XfeZzcfyaf-AcUJgJpgLkA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+On Tue, Feb 03, 2015 at 11:22:01AM -0500, Rob Clark wrote:
+> On Tue, Feb 3, 2015 at 11:12 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > I agree for the case you are describing here. From what I understood
+> > from Rob was that he is looking at something more like:
+> >
+> > Fig 3
+> > CPU--L1cache--L2cache--Memory--IOMMU---<iobus>--device
+> >
+> > where the IOMMU controls one or more contexts per device, and is
+> > shared across GPU and non-GPU devices. Here, we need to use the
+> > dmap-mapping interface to set up the IO page table for any device
+> > that is unable to address all of system RAM, and we can use it
+> > for purposes like isolation of the devices. There are also cases
+> > where using the IOMMU is not optional.
+> 
+> 
+> Actually, just to clarify, the IOMMU instance is specific to the GPU..
+> not shared with other devices.  Otherwise managing multiple contexts
+> would go quite badly..
+> 
+> But other devices have their own instance of the same IOMMU.. so same
+> driver could be used.
 
-On 22 February 2015 at 01:42, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Fri, Feb 20, 2015 at 8:27 AM, Sumit Semwal <sumit.semwal@linaro.org> wrote:
->>
->> Could you please pull a few dma-buf changes for 3.20-rc1? Nothing
->> fancy, minor cleanups.
->
-> No.
->
-> I pulled, and immediately unpulled again.
->
-> This is complete shit, and the compiler even tells you so:
->
->     drivers/staging/android/ion/ion.c: In function ‘ion_share_dma_buf’:
->     drivers/staging/android/ion/ion.c:1112:24: warning: ‘buffer’ is
-> used uninitialized in this function [-Wuninitialized]
->      exp_info.size = buffer->size;
->                             ^
->
-> Introduced by "dma-buf: cleanup dma_buf_export() to make it easily extensible".
->
-> I'm not taking "cleanups" like this.  And I certainly don't appreciate
-> being sent completely bogus shit pull requests at the end of the merge
-> cycle.
+Okay, so that is my Fig.2 case, and we don't have to worry about Fig.3.
 
-I apologize sincerely; I shouldn't have missed it before sending you
-the pull request. (stupid copy-paste across files is certainly no
-excuse for this).
+One thing I forgot in Fig.1/2 which my original did have were to mark
+the system MMU as optional.  (Think an ARM64 with SMMU into a 32-bit
+peripheral bus.)  Do we support stacked MMUs in the DMA API?  We may
+need to if we keep IOMMUs in the DMA API.
 
-This got caught in for-next too, but right after I sent the pull-request :(.
-
-I also shouldn't have sent it so late in the merge cycle - this could
-certainly wait till -rc2, which would've helped me correct it before
-the request to you. Serves me right to try and meet the merge-cycle
-deadline in a jet-lagged state!
-
-I will definitely take extra precautions next time onward, so you
-don't see negligence like this in my requests to you.
-
-Apologies again!
->
->                            Linus
-
-Best regards,
-Sumit.
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
