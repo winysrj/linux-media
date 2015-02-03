@@ -1,74 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34726 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:48208 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755154AbbBPMb5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 07:31:57 -0500
-Message-ID: <54E1E337.4060405@iki.fi>
-Date: Mon, 16 Feb 2015 14:31:51 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1752213AbbBCUU7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Feb 2015 15:20:59 -0500
+Date: Tue, 3 Feb 2015 18:20:54 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Luis de Bethencourt <luis@debethencourt.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] dvb-usb: fix spaces after commas
+Message-ID: <20150203182054.39e647f4@recife.lan>
+In-Reply-To: <20150128151122.GA22122@goodgumbo.baconseed.org>
+References: <20150128151122.GA22122@goodgumbo.baconseed.org>
 MIME-Version: 1.0
-To: Dimitris Lampridis <dlampridis@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Dimitris Lampridis <dlampridis@logikonlabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] rtl28xxu: add support for Turbo-X DTT2000
-References: <1423923094-5289-1-git-send-email-dlampridis@logikonlabs.com>
-In-Reply-To: <1423923094-5289-1-git-send-email-dlampridis@logikonlabs.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/14/2015 04:11 PM, Dimitris Lampridis wrote:
-> ID 1b80:d3a4 Afatech
->
-> Simply added the PID (0xd3a4) of this DVB-T USB device to the list of rtl2832u-supported devices. VID (0x1b80) is same as KWORLD2.
->
-> Tested and verified to work in amd64 with kernels 3.13.0 and 3.16.0.
->
-> Signed-off-by: Dimitris Lampridis <dlampridis@logikonlabs.com>
+Em Wed, 28 Jan 2015 16:11:22 +0100
+Luis de Bethencourt <luis@debethencourt.com> escreveu:
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Please provide some description
 
+> Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
 
-PS. Could someone correct that USB ID vendor name for database? It is 
-not Afatech, but MaxMedia in my understanding...
+Also, if you're touching on those printks, you should be fixing the
+scripts/checkpatch.pl warnings for that too:
 
-http://www.maxmediatek.com/pd-page/DVB-T.htm
+WARNING: line over 80 characters
+#28: FILE: drivers/media/usb/dvb-usb/dvb-usb-dvb.c:87:
++	deb_ts("start pid: 0x%04x, feedtype: %d\n", dvbdmxfeed->pid, dvbdmxfeed->type);
 
+WARNING: line over 80 characters
+#46: FILE: drivers/media/usb/dvb-usb/dvb-usb-dvb.c:111:
++		if (adap->dev->props.read_mac_address(adap->dev, adap->dvb_adap.proposed_mac) == 0)
 
-Antti
+total: 0 errors, 2 warnings, 50 lines checked
+
+Regards,
+Mauro
 
 > ---
->   drivers/media/dvb-core/dvb-usb-ids.h    | 1 +
->   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 ++
->   2 files changed, 3 insertions(+)
->
-> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-> index 80ab8d0..a9d601d 100644
-> --- a/drivers/media/dvb-core/dvb-usb-ids.h
-> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
-> @@ -385,4 +385,5 @@
->   #define USB_PID_PCTV_2002E                              0x025c
->   #define USB_PID_PCTV_2002E_SE                           0x025d
->   #define USB_PID_SVEON_STV27                             0xd3af
-> +#define USB_PID_TURBOX_DTT_2000                         0xd3a4
->   #endif
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index 77dcfdf..b11380d 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -1756,6 +1756,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
->   		&rtl28xxu_props, "Sveon STV21", NULL) },
->   	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV27,
->   		&rtl28xxu_props, "Sveon STV27", NULL) },
-> +	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_TURBOX_DTT_2000,
-> +		&rtl28xxu_props, "TURBO-X Pure TV Tuner DTT-2000", NULL) },
->
->   	/* RTL2832P devices: */
->   	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
->
-
--- 
-http://palosaari.fi/
+>  drivers/media/usb/dvb-usb/dvb-usb-dvb.c | 16 ++++++++--------
+>  1 file changed, 8 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+> index 719413b..c901d15 100644
+> --- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+> +++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+> @@ -84,14 +84,14 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
+>  
+>  static int dvb_usb_start_feed(struct dvb_demux_feed *dvbdmxfeed)
+>  {
+> -	deb_ts("start pid: 0x%04x, feedtype: %d\n", dvbdmxfeed->pid,dvbdmxfeed->type);
+> -	return dvb_usb_ctrl_feed(dvbdmxfeed,1);
+> +	deb_ts("start pid: 0x%04x, feedtype: %d\n", dvbdmxfeed->pid, dvbdmxfeed->type);
+> +	return dvb_usb_ctrl_feed(dvbdmxfeed, 1);
+>  }
+>  
+>  static int dvb_usb_stop_feed(struct dvb_demux_feed *dvbdmxfeed)
+>  {
+>  	deb_ts("stop pid: 0x%04x, feedtype: %d\n", dvbdmxfeed->pid, dvbdmxfeed->type);
+> -	return dvb_usb_ctrl_feed(dvbdmxfeed,0);
+> +	return dvb_usb_ctrl_feed(dvbdmxfeed, 0);
+>  }
+>  
+>  int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
+> @@ -108,8 +108,8 @@ int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
+>  	adap->dvb_adap.priv = adap;
+>  
+>  	if (adap->dev->props.read_mac_address) {
+> -		if (adap->dev->props.read_mac_address(adap->dev,adap->dvb_adap.proposed_mac) == 0)
+> -			info("MAC address: %pM",adap->dvb_adap.proposed_mac);
+> +		if (adap->dev->props.read_mac_address(adap->dev, adap->dvb_adap.proposed_mac) == 0)
+> +			info("MAC address: %pM", adap->dvb_adap.proposed_mac);
+>  		else
+>  			err("MAC address reading failed.");
+>  	}
+> @@ -128,7 +128,7 @@ int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
+>  	adap->demux.stop_feed        = dvb_usb_stop_feed;
+>  	adap->demux.write_to_decoder = NULL;
+>  	if ((ret = dvb_dmx_init(&adap->demux)) < 0) {
+> -		err("dvb_dmx_init failed: error %d",ret);
+> +		err("dvb_dmx_init failed: error %d", ret);
+>  		goto err_dmx;
+>  	}
+>  
+> @@ -136,13 +136,13 @@ int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
+>  	adap->dmxdev.demux           = &adap->demux.dmx;
+>  	adap->dmxdev.capabilities    = 0;
+>  	if ((ret = dvb_dmxdev_init(&adap->dmxdev, &adap->dvb_adap)) < 0) {
+> -		err("dvb_dmxdev_init failed: error %d",ret);
+> +		err("dvb_dmxdev_init failed: error %d", ret);
+>  		goto err_dmx_dev;
+>  	}
+>  
+>  	if ((ret = dvb_net_init(&adap->dvb_adap, &adap->dvb_net,
+>  						&adap->demux.dmx)) < 0) {
+> -		err("dvb_net_init failed: error %d",ret);
+> +		err("dvb_net_init failed: error %d", ret);
+>  		goto err_net_init;
+>  	}
+>  
