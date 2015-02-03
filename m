@@ -1,107 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47360 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932216AbbBCIbt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 03:31:49 -0500
-Message-ID: <54D08766.3090808@xs4all.nl>
-Date: Tue, 03 Feb 2015 09:31:34 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from butterbrot.org ([176.9.106.16]:41294 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754862AbbBCUp5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Feb 2015 15:45:57 -0500
+Message-ID: <54D13383.7010603@butterbrot.org>
+Date: Tue, 03 Feb 2015 21:45:55 +0100
+From: Florian Echtler <floe@butterbrot.org>
 MIME-Version: 1.0
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v2 08/15] media: blackfin: bfin_capture: use vb2_ioctl_*
- helpers
-References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>	<1421965128-10470-9-git-send-email-prabhakar.csengg@gmail.com> <CAHG8p1CrBaD_Rk8tkzXg6HucQQQQNmJ-_rvEa8nUOX3QhKKGxQ@mail.gmail.com>
-In-Reply-To: <CAHG8p1CrBaD_Rk8tkzXg6HucQQQQNmJ-_rvEa8nUOX3QhKKGxQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
+References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <64652239.MTTlcOgNK2@avalon> <54BE5204.3020600@xs4all.nl> <6025823.veVKIskIW2@avalon> <54BFA989.4090405@butterbrot.org> <54BFA9D6.1040201@xs4all.nl> <54CAA786.2040908@butterbrot.org>
+In-Reply-To: <54CAA786.2040908@butterbrot.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="uvVgu0CLjXT3t8NTKhCWsMC5X3qJPP73s"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/03/15 09:27, Scott Jiang wrote:
-> Hi Lad,
-> 
-> 2015-01-23 6:18 GMT+08:00 Lad, Prabhakar <prabhakar.csengg@gmail.com>:
->> this patch adds support to vb2_ioctl_* helpers.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
->>  drivers/media/platform/blackfin/bfin_capture.c | 108 ++++++-------------------
->>  1 file changed, 23 insertions(+), 85 deletions(-)
->>
->> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
->> index b2eeace..04b85e3 100644
->> --- a/drivers/media/platform/blackfin/bfin_capture.c
->> +++ b/drivers/media/platform/blackfin/bfin_capture.c
->> @@ -272,15 +272,26 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
->>         struct ppi_if *ppi = bcap_dev->ppi;
->>         struct bcap_buffer *buf, *tmp;
->>         struct ppi_params params;
->> +       dma_addr_t addr;
->>         int ret;
->>
->>         /* enable streamon on the sub device */
->>         ret = v4l2_subdev_call(bcap_dev->sd, video, s_stream, 1);
->>         if (ret && (ret != -ENOIOCTLCMD)) {
->>                 v4l2_err(&bcap_dev->v4l2_dev, "stream on failed in subdev\n");
->> +               bcap_dev->cur_frm = NULL;
->>                 goto err;
->>         }
->>
->> +       /* get the next frame from the dma queue */
->> +       bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
->> +                                       struct bcap_buffer, list);
->> +       /* remove buffer from the dma queue */
->> +       list_del_init(&bcap_dev->cur_frm->list);
->> +       addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
->> +       /* update DMA address */
->> +       ppi->ops->update_addr(ppi, (unsigned long)addr);
->> +
->>         /* set ppi params */
->>         params.width = bcap_dev->fmt.width;
->>         params.height = bcap_dev->fmt.height;
->> @@ -320,6 +331,9 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
->>                 goto err;
->>         }
->>
->> +       /* enable ppi */
->> +       ppi->ops->start(ppi);
->> +
-> Still wrong here. You can't start ppi before request dma and irq. Also
-> it's not good to update dma address before request dma. Please
-> strictly follow the initial sequence in bcap_streamon() because the
-> order is important. That means you should put all functions in
-> bcap_start_streaming() before those in bcap_streamon().
-> And it seems you removed dma buffer check in bcap_streamon(). Yes, in
-> vb2_internal_streamon() it will check q->queued_count >=
-> q->min_buffers_needed to start streaming. But if the user doesn't
-> queue enough buffer, it will return success and set q->streaming = 1.
-> Is it really right here?
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--uvVgu0CLjXT3t8NTKhCWsMC5X3qJPP73s
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Yes, that's really right. The V4L2 state is set to streaming after calling
-VIDIOC_STREAMON, even if the DMA engine hasn't started yet. That's set
-with the start_streaming_called bitfield.
+Sorry to bring this up again, but would it be acceptable to simply use
+dma-contig after all? Since the GFP_DMA flag is gone, this shouldn't be
+too big of an issue IMHO, and I was kind of hoping the patch could still
+be part of 3.20.
 
-Regards,
+Best, Florian
 
-	Hans
+On 29.01.2015 22:35, Florian Echtler wrote:
+> I'm still having a couple of issues sorting out the correct way to
+> provide DMA access for my driver. I've integrated most of your
+> suggestions, but I still can't switch from dma-contig to dma-sg.
+> As far as I understood it, there is no further initialization required
+> besides using vb2_dma_sg_memops, vb2_dma_sg_init_ctx and
+> vb2_dma_sg_cleanup_ctx instead of the respective -contig- calls, correc=
+t?
+> However, as soon as I swap the relevant function calls, the video image=
 
-> 
->>         /* attach ppi DMA irq handler */
->>         ret = ppi->ops->attach_irq(ppi, bcap_isr);
->>         if (ret < 0) {
->> @@ -334,6 +348,9 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
->>         return 0;
->>
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> stays black and in dmesg, I get the following warning:
+>
+> Call Trace:
+> [<ffffffff817c4584>] dump_stack+0x45/0x57
+> [<ffffffff81076df7>] warn_slowpath_common+0x97/0xe0
+> [<ffffffff81076ef6>] warn_slowpath_fmt+0x46/0x50
+> [<ffffffff815aff0b>] usb_hcd_map_urb_for_dma+0x4eb/0x500
+> [<ffffffff817d03b4>] ? schedule_timeout+0x124/0x210
+> [<ffffffff815b0bd5>] usb_hcd_submit_urb+0x135/0x1c0
+> [<ffffffff815b20a6>] usb_submit_urb.part.8+0x1f6/0x580
+> [<ffffffff811bb542>] ? vmap_pud_range+0x122/0x1c0
+> [<ffffffff815b2465>] usb_submit_urb+0x35/0x80
+> [<ffffffff815b339a>] usb_start_wait_urb+0x6a/0x170
+> [<ffffffff815b1cce>] ? usb_alloc_urb+0x1e/0x50
+> [<ffffffff815b1cce>] ? usb_alloc_urb+0x1e/0x50
+> [<ffffffff815b3570>] usb_bulk_msg+0xd0/0x1a0
+> [<ffffffffc059a841>] sur40_poll+0x561/0x5e0 [sur40]
+>
+> Moreover, I'm getting the following test failure from v4l2-compliance:
+>=20
+> Streaming ioctls:
+> 	test read/write: OK
+> 	test MMAP: OK
+> 		fail: v4l2-test-buffers.cpp(951): buf.qbuf(node)
+> 		fail: v4l2-test-buffers.cpp(994): setupUserPtr(node, q)
+> 	test USERPTR: FAIL
+> 	test DMABUF: Cannot test, specify --expbuf-device
+>=20
+> Total: 45, Succeeded: 44, Failed: 1, Warnings: 0
 
+
+--=20
+SENT FROM MY DEC VT50 TERMINAL
+
+
+--uvVgu0CLjXT3t8NTKhCWsMC5X3qJPP73s
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlTRM4MACgkQ7CzyshGvathu7gCgvPpZ95r5KXEXa1oGBgOmeG7N
+vvIAn1OVn2LcyFy/xDPEXfw7HYoclvCK
+=NCb6
+-----END PGP SIGNATURE-----
+
+--uvVgu0CLjXT3t8NTKhCWsMC5X3qJPP73s--
