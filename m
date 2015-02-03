@@ -1,65 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f179.google.com ([209.85.160.179]:52524 "EHLO
-	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752027AbbBSQZS (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47030 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753275AbbBCPYf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 11:25:18 -0500
-Received: by mail-yk0-f179.google.com with SMTP id 9so4490370ykp.10
-        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2015 08:25:17 -0800 (PST)
+	Tue, 3 Feb 2015 10:24:35 -0500
+Message-ID: <54D0E823.2070803@xs4all.nl>
+Date: Tue, 03 Feb 2015 16:24:19 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <54E60BFD.6090409@iki.fi>
-References: <1424337200-6446-1-git-send-email-a.seppala@gmail.com>
-	<54E5B028.5080900@southpole.se>
-	<CAKv9HNaSqgFpC+TmMm86Y7mrgXvZ9U+wqdgjM4n=hf80p2W1jg@mail.gmail.com>
-	<54E60378.6030604@iki.fi>
-	<CAKv9HNZPLws9=dpigcVtL7zedWYRit=yK_dw9EkdzH2VD55qMQ@mail.gmail.com>
-	<54E60BFD.6090409@iki.fi>
-Date: Thu, 19 Feb 2015 11:25:17 -0500
-Message-ID: <CALzAhNUYQeSDeZ5RFqaRm__a6UDXj7EGZi51vACG2injgBeeRA@mail.gmail.com>
-Subject: Re: [RFC PATCH] mn88472: reduce firmware download chunk size
-From: Steven Toth <stoth@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: =?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>,
-	Benjamin Larsson <benjamin@southpole.se>,
-	Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	William Towle <william.towle@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 6/8] WmT: adv7604 driver compatibility
+References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <2552213.h99FiuUI04@avalon> <54CF4CD7.2060901@xs4all.nl> <7877033.djOMQDpcA0@avalon>
+In-Reply-To: <7877033.djOMQDpcA0@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> I tried loading the driver with polling disabled and it fails completely:
+On 02/03/15 16:22, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 02 February 2015 11:09:27 Hans Verkuil wrote:
+>> On 02/02/2015 11:01 AM, Laurent Pinchart wrote:
+>>> On Sunday 01 February 2015 12:26:11 Guennadi Liakhovetski wrote:
+>>>> On a second thought:
+>>>>
+>>>> On Sun, 1 Feb 2015, Guennadi Liakhovetski wrote:
+>>>>> Hi Wills,
+>>>>>
+>>>>> Thanks for the patch. First and foremost, the title of the patch is
+>>>>> wrong. This patch does more than just adding some "adv7604
+>>>>> compatibility." It's adding pad-level API to soc-camera.
+>>>>>
+>>>>> This is just a rough review. I'm not an expert in media-controller /
+>>>>> pad-level API, I hope someone with a better knowledge of those areas
+>>>>> will help me reviewing this.
+>>>>>
+>>>>> Another general comment: it has been discussed since a long time,
+>>>>> whether a wrapper wouldn't be desired to enable a seamless use of both
+>>>>> subdev drivers using and not using the pad-level API. Maybe it's the
+>>>>> right time now?..
+>>>>
+>>>> This would be a considerable change and would most probably take a rather
+>>>> long time, given how busy everyone is.
+>>>
+>>> If I understood correctly Hans Verkuil told me over the weekend that he
+>>> wanted to address this problem in the near future. Hans, could you detail
+>>> your plans ?
 >>
->> [ 5526.693563] mn88472 7-0018: downloading firmware from file
->> 'dvb-demod-mn88472-02.fw'
->> [ 5527.032209] mn88472 7-0018: firmware download failed=-32
->> [ 5527.033864] rtl2832 7-0010: i2c reg write failed -32
->> [ 5527.033874] r820t 8-003a: r820t_write: i2c wr failed=-32 reg=05 len=1:
->> 83
->> [ 5527.036014] rtl2832 7-0010: i2c reg write failed -32
+>> That's correct. This patch series makes all the necessary changes.
 >>
->> I have no idea why the device behaves so counter-intuitively. Is there
->> maybe some sorf of internal power-save mode the device enters when
->> there is no i2c traffic for a while or something?
->
->
-> IR polling does not use I2C but some own commands. Could you make more
-> tests. Use rtl28xxu module parameter to disable IR and test. It will disable
-> both IR interrupts and polling. Then make some tests with different IR
-> polling intervals to see how it behaves.
->
-> I have 3 mn88472 and 1 mn88473 device and all those seems to work fine for
-> me. I don't care to buy anymore devices to find out one which does not work.
-> Somehow root of cause should be find - it is not proper fix to repeat or
-> break I2C messages to multiple smaller ones.
+>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg83415.html
+>>
+>> Patches 1-4 have been merged already, but I need to do more testing for the
+>> remainder. The Renesas SH7724 board is ideal for that, but unfortunately I
+>> can't get it to work with the current kernel.
+> 
+> I can't help you much with that, but I could test changes using the rcar-vin 
+> driver with the adv7180 if needed (does the adv7180 generate an image if no 
+> analog source is connected ?). 
 
-Ack.
+I expect so, most SDTV receivers do that.
 
-Its the job of the I2C controller to manage the I2C bus
-implementation, including any fragmentation needs, not the
-tuner/demod/other driver.
+> That will need to wait for two weeks though as 
+> I don't have access to the hardware right now.
+> 
 
-Find and fix the resource contention bug in the bridge and the mn88472
-will work as is. I suspect something is broken with I2C locking.
+It's certainly appreciated (I'll see if I can rebase it), but I am not
+worried about that driver. It's soc_camera that is affected the most.
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+	Hans
