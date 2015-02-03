@@ -1,85 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49456 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753898AbbBMW6V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 17:58:21 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCHv4 15/25] [media] tuner-core: properly initialize media controller subdev
-Date: Fri, 13 Feb 2015 20:57:58 -0200
-Message-Id: <5c8a3752af88ba4c349d9d2416cad937f96a0423.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:48742 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933528AbbBCMHB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 07:07:01 -0500
+Date: Tue, 3 Feb 2015 12:06:44 +0000
+From: Mark Brown <broonie@kernel.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	Lars-Peter Clausen <lars@metafoo.de>
+Message-ID: <20150203120644.GH21293@sirena.org.uk>
+References: <1419114892-4550-1-git-send-email-crope@iki.fi>
+ <20141222124411.GK17800@sirena.org.uk>
+ <549814BB.3040808@iki.fi>
+ <20141222133142.GM17800@sirena.org.uk>
+ <54982246.20300@iki.fi>
+ <20141222150515.GV17800@sirena.org.uk>
+ <20150202123138.2b2a2fa4@recife.lan>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="rSzVoqZYYAmX/8Rt"
+Content-Disposition: inline
+In-Reply-To: <20150202123138.2b2a2fa4@recife.lan>
+Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Properly initialize tuner core subdev at the media controller.
 
-That requires a new subtype at the media controller API.
+--rSzVoqZYYAmX/8Rt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On Mon, Feb 02, 2015 at 12:31:38PM -0200, Mauro Carvalho Chehab wrote:
+> Antti/Mark,
+>=20
+> Any news with regards to this?
 
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index 559f8372e2eb..9a83b27a7e8f 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -134,6 +134,9 @@ struct tuner {
- 	unsigned int        type; /* chip type id */
- 	void                *config;
- 	const char          *name;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_pad	pad;
-+#endif
- };
- 
- /*
-@@ -434,6 +437,8 @@ static void set_type(struct i2c_client *c, unsigned int type,
- 		t->name = analog_ops->info.name;
- 	}
- 
-+	t->sd.entity.name = t->name;
-+
- 	tuner_dbg("type set to %s\n", t->name);
- 
- 	t->mode_mask = new_mode_mask;
-@@ -592,6 +597,9 @@ static int tuner_probe(struct i2c_client *client,
- 	struct tuner *t;
- 	struct tuner *radio;
- 	struct tuner *tv;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	int ret;
-+#endif
- 
- 	t = kzalloc(sizeof(struct tuner), GFP_KERNEL);
- 	if (NULL == t)
-@@ -684,6 +692,18 @@ static int tuner_probe(struct i2c_client *client,
- 
- 	/* Should be just before return */
- register_client:
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	t->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
-+	t->sd.entity.name = t->name;
-+
-+	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
-+	if (ret < 0) {
-+		tuner_err("failed to initialize media entity!\n");
-+		kfree(t);
-+		return -ENODEV;
-+	}
-+#endif
- 	/* Sets a default mode */
- 	if (t->mode_mask & T_ANALOG_TV)
- 		t->mode = V4L2_TUNER_ANALOG_TV;
--- 
-2.1.0
+Please don't top post or send content free nags.  I can't really
+remember what this is about but I don't think my review comments were
+ever addressed.
 
+--rSzVoqZYYAmX/8Rt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJU0LnTAAoJECTWi3JdVIfQuyQH/20F6/GB/BOrJHAXb3VWFFJY
+y4jD9aNhLZEEvHQgOj+V/qhtS6HfzpLynK6y/L0eP+9k/AUdYjOv/2MerAC8uJfD
+iFvnKGLjCiykRKk1jUCjtsPmHRQ3AEkCIl9z1PWqd506FwoFHpcYViEYBlcsUWzt
+gPl08FSyaVH40ylIf/bgrizMN8yDlu5xkonouIcP+G9JqB+L4wlgqWtEv/MydM/2
+KajgAL1+WRAh5isyhlviCabo6nDhsqkkHQBifhB+kUU8fFx88JV5yphCCIH0F4aO
+L2i08q+ACCXzvFBgQPUwh2kCdyJW4wlAiIVcR5uiS1G8lwosT8o2hYQskwXwYas=
+=8MQz
+-----END PGP SIGNATURE-----
+
+--rSzVoqZYYAmX/8Rt--
