@@ -1,106 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49421 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753855AbbBMW6T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 17:58:19 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv4 00/25] dvb core: add basic support for the media controller
-Date: Fri, 13 Feb 2015 20:57:43 -0200
-Message-Id: <cover.1423867976.git.mchehab@osg.samsung.com>
+Received: from mail-ig0-f172.google.com ([209.85.213.172]:44130 "EHLO
+	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751725AbbBCOo6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 09:44:58 -0500
+MIME-Version: 1.0
+In-Reply-To: <20150203143715.GQ8656@n2100.arm.linux.org.uk>
+References: <20150129143908.GA26493@n2100.arm.linux.org.uk>
+	<CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
+	<20150129154718.GB26493@n2100.arm.linux.org.uk>
+	<CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
+	<20150129192610.GE26493@n2100.arm.linux.org.uk>
+	<CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
+	<20150202165405.GX14009@phenom.ffwll.local>
+	<CAF6AEGuESM+e3HSRGM6zLqrp8kqRLGUYvA3KKECdm7m-nt0M=Q@mail.gmail.com>
+	<20150203074856.GF14009@phenom.ffwll.local>
+	<CAF6AEGu0-TgyE4BjiaSWXQCSk31VU7dogq=6xDRUhi79rGgbxg@mail.gmail.com>
+	<20150203143715.GQ8656@n2100.arm.linux.org.uk>
+Date: Tue, 3 Feb 2015 09:44:57 -0500
+Message-ID: <CAF6AEGtBfr3fGEoFjFFpy1KrMJMZ-13VPPJX73fAkwiaLk+XGQ@mail.gmail.com>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
+ with dma-parms
+From: Rob Clark <robdclark@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Daniel Vetter <daniel@ffwll.ch>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, Feb 3, 2015 at 9:37 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Tue, Feb 03, 2015 at 09:04:03AM -0500, Rob Clark wrote:
+>> Since I'm stuck w/ an iommu, instead of built in mmu, my plan was to
+>> drop use of dma-mapping entirely (incl the current call to dma_map_sg,
+>> which I just need until we can use drm_cflush on arm), and
+>> attach/detach iommu domains directly to implement context switches.
+>> At that point, dma_addr_t really has no sensible meaning for me.
+>
+> So how do you intend to import from a subsystem which only gives you
+> the dma_addr_t?
+>
+> If you aren't passing system memory, you have no struct page.  You can't
+> fake up a struct page.  What this means is that struct scatterlist can't
+> represent it any other way.
 
-This patch series adds basic support for the media controller at the
-DVB core: it creates one media entity per DVB devnode, if the media
-device is passed as an argument to the DVB structures.
+Tell the exporter to stop using carveouts, and give me proper memory
+instead.. ;-)
 
-The cx231xx driver was modified to pass such argument for DVB NET,
-DVB frontend and DVB demux.
+Well, at least on these SoC's, I think the only valid use for carveout
+memory is the bootloader splashscreen.  And I was planning on just
+hanging on to that for myself for fbdev scanout buffer or other
+internal (non shared) usage..
 
--
+BR,
+-R
 
-version 4:
-
-- Addressed the issues pointed via e-mail
-- Added a separate Kconfig option to enable media controller DVB
-  experimental support
-- Fixed some CodingStyle issues
-- Added documentation for the API changes at the DocBook
-
-version 3:
-- Added the second series of patches ("add link graph to cx231xx 
-  using the media controller")
-- tuner-core and cx25840: add proper error handling as suggested by
-  Sakari Ailus and pointed by Joe Perches;
-- dvb core: move the media_dev struct to be inside the DVB adapter. That
-  allowed to simplify the changes for the dvbdev clients;
-- Add logic to setup the pipelines when analog or digital TV stream starts.
-- Renamed some patches to better describe its contents.
-
-version 2:
-- Now the PADs are created for all nodes
-- Instead of using entity->flags for subtypes, create separate
-  MEDIA_ENT_T_DEVNODE_DVB_foo for each DVB devtype
-- The API change patch was split from the DVB core changes
-
-Mauro Carvalho Chehab (24):
-  [media] media: Fix DVB devnode representation at media controller
-  [media] Docbook: Fix documentation for media controller devnodes
-  [media] media: add new types for DVB devnodes
-  [media] DocBook: Document the DVB API devnodes at the media controller
-  [media] media: add a subdev type for tuner
-  [media] DocBook: Add tuner subdev at documentation
-  [media] dvbdev: add support for media controller
-  [media] cx231xx: add media controller support
-  [media] dvb_frontend: add media controller support for DVB frontend
-  [media] dmxdev: add support for demux/dvr nodes at media controller
-  [media] dvb_ca_en50221: add support for CA node at the media
-    controller
-  [media] dvb_net: add support for DVB net node at the media controller
-  [media] dvbdev: add pad for the DVB devnodes
-  [media] tuner-core: properly initialize media controller subdev
-  [media] cx25840: fill the media controller entity
-  [media] cx231xx: initialize video/vbi pads
-  [media] cx231xx: create media links for analog mode
-  [media] dvbdev: represent frontend with two pads
-  [media] dvbdev: add a function to create DVB media graph
-  [media] cx231xx: create DVB graph
-  [media] dvbdev: enable DVB-specific links
-  [media] dvb-frontend: enable tuner link when the FE thread starts
-  [media] cx231xx: enable tuner->decoder link at videobuf start
-  [media] dvb_frontend: start media pipeline while thread is running
-
-Zhangfei Gao (1):
-  [media] ir-hix5hd2: remove writel/readl_relaxed define
-
- .../DocBook/media/v4l/media-ioc-enum-entities.xml  | 102 ++++-----------
- Documentation/DocBook/media/v4l/v4l2.xml           |   9 ++
- drivers/media/Kconfig                              |  10 +-
- drivers/media/dvb-core/dmxdev.c                    |  11 +-
- drivers/media/dvb-core/dvb_ca_en50221.c            |   6 +-
- drivers/media/dvb-core/dvb_frontend.c              | 121 ++++++++++++++++-
- drivers/media/dvb-core/dvb_net.c                   |   6 +-
- drivers/media/dvb-core/dvbdev.c                    | 143 ++++++++++++++++++++-
- drivers/media/dvb-core/dvbdev.h                    |  15 +++
- drivers/media/i2c/cx25840/cx25840-core.c           |  18 +++
- drivers/media/i2c/cx25840/cx25840-core.h           |   3 +
- drivers/media/rc/ir-hix5hd2.c                      |   8 --
- drivers/media/usb/cx231xx/cx231xx-cards.c          |  98 +++++++++++++-
- drivers/media/usb/cx231xx/cx231xx-dvb.c            |   5 +
- drivers/media/usb/cx231xx/cx231xx-video.c          |  84 +++++++++++-
- drivers/media/usb/cx231xx/cx231xx.h                |   5 +
- drivers/media/v4l2-core/tuner-core.c               |  20 +++
- drivers/media/v4l2-core/v4l2-dev.c                 |   4 +-
- drivers/media/v4l2-core/v4l2-device.c              |   4 +-
- include/media/media-entity.h                       |  12 +-
- include/uapi/linux/media.h                         |  26 +++-
- 21 files changed, 592 insertions(+), 118 deletions(-)
-
--- 
-2.1.0
-
+> --
+> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+> according to speedtest.net.
