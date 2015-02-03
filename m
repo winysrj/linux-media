@@ -1,69 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:39516 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755100AbbBBWcH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 17:32:07 -0500
-Received: by mail-ie0-f172.google.com with SMTP id at20so20965668iec.3
-        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2015 14:32:06 -0800 (PST)
-MIME-Version: 1.0
-Date: Mon, 2 Feb 2015 14:32:06 -0800
-Message-ID: <CAKoAQ7=4wzPbahK7RnrCG1XJgdqon2ZBphNS_krM51+p7KT3PQ@mail.gmail.com>
-Subject: Re: Re: Vivid test device: adding YU12
-From: Miguel Casas-Sanchez <mcasas@chromium.org>
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59957 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933862AbbBCMsu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Feb 2015 07:48:50 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, isely@isely.net,
+	pali.rohar@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/5] v4l2-core: remove the old .ioctl BKL replacement
+Date: Tue,  3 Feb 2015 13:47:26 +0100
+Message-Id: <1422967646-12223-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1422967646-12223-1-git-send-email-hverkuil@xs4all.nl>
+References: <1422967646-12223-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On 01/29/2015 03:44 AM, Miguel Casas-Sanchez wrote:
-> > Hi folks, I've been trying to add a triplanar format to those that vivid
-> > can generate, and didn't quite manage :(
-> >
-> > So, I tried adding code for it like in the patch (with some dprintk() as
-> > well) to clarify what I wanted to do. Module is insmod'ed like "insmod
-> > vivid.ko n_devs=1 node_types=0x1 multiplanar=2 vivid_debug=1"
->
-> You are confusing something: PIX_FMT_YUV420 is single-planar, not multi-planar.
-> That is, all image data is contained in one buffer. PIX_FMT_YUV420M is multi-planar,
-> however. So you need to think which one you actually want to support.
-> Another problem is that for the chroma part you need to average the values over
-> four pixels. So the TPG needs to be aware of the previous line. This makes the TPG
-> more complicated, and of course it is the reason why I didn't implement 4:2:0
-> formats :-)
-> I would implement YUV420 first, and (if needed) YUV420M and/or NV12 can easily be
-> added later.
-> Regards,
->         Hans
->
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-So, we could call YUV420 (YU12) a tightly packed planar format :)
-because it has several planes, rigurously speaking, but they are
-laid out back-to-back in memory. Correct?
+To keep V4L2 drivers that did not yet convert to unlocked_ioctl happy,
+the v4l2 core had a .ioctl file operation that took a V4L2 lock.
 
-I was interested here precisely in using the MPLANE API, so I'd
-rather go for YUV420M directly; perhaps cheating a bit on the
-TPG calculation in the first implementation: I/we could just simplify
-the Chroma calculation to grabbing the upper-left pixel value,
-ignoring the other three. Not perfect, but for a first patch of a test
-device it should do.
+The last drivers are now converted to unlocked_ioctl, so all this
+old code can now be removed.
 
-WDYT?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c    | 28 ----------------------------
+ drivers/media/v4l2-core/v4l2-device.c |  1 -
+ include/media/v4l2-dev.h              |  1 -
+ include/media/v4l2-device.h           |  2 --
+ 4 files changed, 32 deletions(-)
 
->
->
-> > With the patch, vivid:
-> > - seems to enumerate the new triplanar format all right
-> > - vid_s_fmt_vid_cap() works as intended too, apparently
-> > - when arriving to vid_cap_queue_setup(), the size of the different
-> > sub-arrays does not look quite ok.
-> > - Generated video is, visually, all green.
-> >
-> > I added as well a capture output dmesgs. Not much of interest here, the
-> > first few lines configure the queue -- with my few added dprintk it can be
-> > seen that the queue sizes are seemingly incorrect.
-> >
-> > If and when this part is up and running, I wanted to use Vivid to test
-> > dma-buf based capture.
-> >
-> > Big thanks!
-> >
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 86bb93f..276a0d8 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -357,34 +357,6 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+ 		if (lock)
+ 			mutex_unlock(lock);
+-	} else if (vdev->fops->ioctl) {
+-		/* This code path is a replacement for the BKL. It is a major
+-		 * hack but it will have to do for those drivers that are not
+-		 * yet converted to use unlocked_ioctl.
+-		 *
+-		 * All drivers implement struct v4l2_device, so we use the
+-		 * lock defined there to serialize the ioctls.
+-		 *
+-		 * However, if the driver sleeps, then it blocks all ioctls
+-		 * since the lock is still held. This is very common for
+-		 * VIDIOC_DQBUF since that normally waits for a frame to arrive.
+-		 * As a result any other ioctl calls will proceed very, very
+-		 * slowly since each call will have to wait for the VIDIOC_QBUF
+-		 * to finish. Things that should take 0.01s may now take 10-20
+-		 * seconds.
+-		 *
+-		 * The workaround is to *not* take the lock for VIDIOC_DQBUF.
+-		 * This actually works OK for videobuf-based drivers, since
+-		 * videobuf will take its own internal lock.
+-		 */
+-		struct mutex *m = &vdev->v4l2_dev->ioctl_lock;
+-
+-		if (cmd != VIDIOC_DQBUF && mutex_lock_interruptible(m))
+-			return -ERESTARTSYS;
+-		if (video_is_registered(vdev))
+-			ret = vdev->fops->ioctl(filp, cmd, arg);
+-		if (cmd != VIDIOC_DQBUF)
+-			mutex_unlock(m);
+ 	} else
+ 		ret = -ENOTTY;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index 015f92a..e4d40cf 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -37,7 +37,6 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
+ 
+ 	INIT_LIST_HEAD(&v4l2_dev->subdevs);
+ 	spin_lock_init(&v4l2_dev->lock);
+-	mutex_init(&v4l2_dev->ioctl_lock);
+ 	v4l2_prio_init(&v4l2_dev->prio);
+ 	kref_init(&v4l2_dev->ref);
+ 	get_device(dev);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 3e4fddf..acbcd2f 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -65,7 +65,6 @@ struct v4l2_file_operations {
+ 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+ 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+ 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+-	long (*ioctl) (struct file *, unsigned int, unsigned long);
+ 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+ #ifdef CONFIG_COMPAT
+ 	long (*compat_ioctl32) (struct file *, unsigned int, unsigned long);
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index ffb69da..9c58157 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -58,8 +58,6 @@ struct v4l2_device {
+ 	struct v4l2_ctrl_handler *ctrl_handler;
+ 	/* Device's priority state */
+ 	struct v4l2_prio_state prio;
+-	/* BKL replacement mutex. Temporary solution only. */
+-	struct mutex ioctl_lock;
+ 	/* Keep track of the references to this struct. */
+ 	struct kref ref;
+ 	/* Release function that is called when the ref count goes to 0. */
+-- 
+2.1.4
+
