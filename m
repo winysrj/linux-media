@@ -1,50 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:36905 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758588AbbBFS3b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2015 13:29:31 -0500
-Date: Fri, 6 Feb 2015 18:27:34 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] DocBook: grammatical correction on DVB Overview
-Message-ID: <20150206182734.GA25312@biggie>
-References: <20150206181752.GA25234@biggie>
- <20150206132315.724460b0@lwn.net>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38424 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932933AbbBCMAy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Feb 2015 07:00:54 -0500
+Date: Tue, 3 Feb 2015 14:00:20 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [GIT FIXES FOR v3.19] smiapp compile fix for non-OF configuration
+Message-ID: <20150203120020.GB32575@valkosipuli.retiisi.org.uk>
+References: <20150127103649.GI17565@valkosipuli.retiisi.org.uk>
+ <20150129180055.4823e1fd@recife.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20150206132315.724460b0@lwn.net>
+In-Reply-To: <20150129180055.4823e1fd@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 06, 2015 at 01:23:15PM -0500, Jonathan Corbet wrote:
-> On Fri, 6 Feb 2015 18:17:52 +0000
-> Luis de Bethencourt <luis@debethencourt.com> wrote:
+Hi Mauro,
+
+On Thu, Jan 29, 2015 at 06:00:55PM -0200, Mauro Carvalho Chehab wrote:
+> Em Tue, 27 Jan 2015 12:36:49 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 > 
-> > -video streams. Besides usually several of such audio and video streams
-> > -it also contains data streams with information about the programs
-> > +video streams. As well as several of such audio and video streams, it
-> > +usually also contains data streams with information about the programs
+> > Hi Mauro,
+> > 
+> > The recent smiapp OF support patches contained a small issue related to
+> > reading 64-bit numbers from the device tree, such that the compilation fails
+> > if CONFIG_OF is undefined.
+> > 
+> > This patch provides a temporary fix to the matter. The proper one is to use
+> > of_property_read_u64_array(), but that's currently not exported. I've
+> > submitted a patch for that.
 > 
-> Not sure if I see this as an improvement or not; you've changed the
-> meaning of the sentence a bit.  It also lacks changelog and signoff...
+> Didn't apply at fixes, so I applied it at the master development branch.
 > 
-> Thanks,
-> 
-> jon
+> If this is really needed for 3.19, please backport against 3.19-rc6.
 
-Hi Jon,
+Indeed; the master branch is where it belongs to. Thanks!
 
-The original sentence is hard to read, I had to go a few times before I think
-I understood what it meant. Which might be different from your interpretation.
+v3.19 will not have OF support yet so it's fine.
 
-How about?:
-"Besides several of such audio and video stream, it usually also contains data
-streams with information about the programs [...]"
+-- 
+Kind regards,
 
-If this isn't worth it and it is just nitpicking, feel free to drop.
-
-Thanks for taking the time to look into this,
-Luis
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
