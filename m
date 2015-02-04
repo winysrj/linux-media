@@ -1,47 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:54351 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751105AbbB1ROU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Feb 2015 12:14:20 -0500
-Received: from axis700.grange ([87.78.139.61]) by mail.gmx.com (mrgmx103) with
- ESMTPSA (Nemesis) id 0LtZfc-1XT1241rs4-010y8p for
- <linux-media@vger.kernel.org>; Sat, 28 Feb 2015 18:14:16 +0100
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id D56A440BD9
-	for <linux-media@vger.kernel.org>; Sat, 28 Feb 2015 18:14:11 +0100 (CET)
-Date: Sat, 28 Feb 2015 18:14:11 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL] a fix for 4.0-rc1 + stable
-Message-ID: <Pine.LNX.4.64.1502281811140.27769@axis700.grange>
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:36028 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932587AbbBDOOP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 09:14:15 -0500
+Date: Wed, 4 Feb 2015 14:14:02 +0000 (GMT)
+From: William Towle <william.towle@codethink.co.uk>
+To: Jean-Michel Hautbois <jhautbois@gmail.com>
+cc: William Towle <william.towle@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 4/8] WmT: m-5mols_core style pad handling for adv7604
+In-Reply-To: <CAL8zT=gQF+OeRqTU0X+eeKA1UmyNNyAfmyr5cmj6h6ALHuSF1A@mail.gmail.com>
+Message-ID: <alpine.DEB.2.02.1502041352230.4720@xk120.dyn.ducie.codethink.co.uk>
+References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <1422548388-28861-5-git-send-email-william.towle@codethink.co.uk> <CAL8zT=gQF+OeRqTU0X+eeKA1UmyNNyAfmyr5cmj6h6ALHuSF1A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-Please pull and forward this fix.
+Hi Jean-Michel and others,
 
-The following changes since commit 895c8b7b4623d4f55e260e5dee2574b4f7113105:
+On Thu, 29 Jan 2015, Jean-Michel Hautbois wrote:
+> First of all, this subject puzzles me... What means WmT ??
 
-  Merge tag 'fixes-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc (2015-02-27 16:18:33 -0800)
+   That's just my initialism, to differentiate my work from that of
+colleagues'. I'll submit without those in due course (and SOBs).
 
-are available in the git repository at:
 
+>> -               fmt = v4l2_subdev_get_try_format(fh, format->pad);
+>> +               fmt = (fh == NULL) ? NULL
+>> +                       : v4l2_subdev_get_try_format(fh, format->pad);
+>> +               if (fmt == NULL)
+>> +                       return EINVAL;
+>> +
+>
+> Mmmh, Hans probably has an explanation on this, I just don't get a use
+> case where fh can be NULL... So can't see the point of this patch ?
 
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git 4.0-rc1-fixes
+   There isn't currently a case where fh can be NULL, but we do
+introduce them into rcar_vin_try_fmt() in the places where we add
+v4l2_subdev_has_op() tests, which I am hoping to clarify.
 
-for you to fetch changes up to ec7ed0078935780c54a4bb683b68e713e08b6037:
+   I have seen Guennadi's suggestion regarding wrapper functions, and am
+also looking at the patchset Hans mentioned. In particular, the
+description of "v4l2-subdev: replace v4l2_subdev_fh by
+v4l2_subdev_pad_config" stands out as relevant.
 
-  soc-camera: Fix devm_kfree() in soc_of_bind() (2015-02-28 18:04:26 +0100)
+   ...Thanks all, I will let you know how I get on.
 
-----------------------------------------------------------------
-Geert Uytterhoeven (1):
-      soc-camera: Fix devm_kfree() in soc_of_bind()
-
- drivers/media/platform/soc_camera/soc_camera.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-Thanks
-Guennadi
+Cheers,
+   Wills.
