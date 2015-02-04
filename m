@@ -1,70 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55938 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632AbbBCPVz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 10:21:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	William Towle <william.towle@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 6/8] WmT: adv7604 driver compatibility
-Date: Tue, 03 Feb 2015 17:22:39 +0200
-Message-ID: <7877033.djOMQDpcA0@avalon>
-In-Reply-To: <54CF4CD7.2060901@xs4all.nl>
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <2552213.h99FiuUI04@avalon> <54CF4CD7.2060901@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45391 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965805AbbBDNOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 08:14:52 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 5/5] [media] DocBooc: mention mem2mem codecs for encoder/decoder commands
+Date: Wed,  4 Feb 2015 14:14:37 +0100
+Message-Id: <1423055677-13161-6-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
+References: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This patch mentions mem2mem codecs and the mem2mem draining flow signals in the
+VIDIOC_DECODER_CMD V4L2_DEC_CMD_STOP and VIDIOC_ENCODER_CMD V4L2_ENC_CMD_STOP
+documentation.
 
-On Monday 02 February 2015 11:09:27 Hans Verkuil wrote:
-> On 02/02/2015 11:01 AM, Laurent Pinchart wrote:
-> > On Sunday 01 February 2015 12:26:11 Guennadi Liakhovetski wrote:
-> >> On a second thought:
-> >> 
-> >> On Sun, 1 Feb 2015, Guennadi Liakhovetski wrote:
-> >>> Hi Wills,
-> >>> 
-> >>> Thanks for the patch. First and foremost, the title of the patch is
-> >>> wrong. This patch does more than just adding some "adv7604
-> >>> compatibility." It's adding pad-level API to soc-camera.
-> >>> 
-> >>> This is just a rough review. I'm not an expert in media-controller /
-> >>> pad-level API, I hope someone with a better knowledge of those areas
-> >>> will help me reviewing this.
-> >>> 
-> >>> Another general comment: it has been discussed since a long time,
-> >>> whether a wrapper wouldn't be desired to enable a seamless use of both
-> >>> subdev drivers using and not using the pad-level API. Maybe it's the
-> >>> right time now?..
-> >> 
-> >> This would be a considerable change and would most probably take a rather
-> >> long time, given how busy everyone is.
-> > 
-> > If I understood correctly Hans Verkuil told me over the weekend that he
-> > wanted to address this problem in the near future. Hans, could you detail
-> > your plans ?
-> 
-> That's correct. This patch series makes all the necessary changes.
-> 
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg83415.html
-> 
-> Patches 1-4 have been merged already, but I need to do more testing for the
-> remainder. The Renesas SH7724 board is ideal for that, but unfortunately I
-> can't get it to work with the current kernel.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml | 6 +++++-
+ Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml | 5 ++++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-I can't help you much with that, but I could test changes using the rcar-vin 
-driver with the adv7180 if needed (does the adv7180 generate an image if no 
-analog source is connected ?). That will need to wait for two weeks though as 
-I don't have access to the hardware right now.
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+index 9215627..6a30493 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+@@ -197,7 +197,11 @@ be muted when playing back at a non-standard speed.
+ this command does nothing. This command has two flags:
+ if <constant>V4L2_DEC_CMD_STOP_TO_BLACK</constant> is set, then the decoder will
+ set the picture to black after it stopped decoding. Otherwise the last image will
+-repeat. If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
++repeat. mem2mem decoders will stop producing new frames altogether. They will send
++a <constant>V4L2_EVENT_EOS</constant> event after the last frame was decoded and
++will set the <constant>V4L2_BUF_FLAG_LAST</constant> buffer flag when there will
++be no new buffers produced to dequeue.
++If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
+ stops immediately (ignoring the <structfield>pts</structfield> value), otherwise it
+ will keep decoding until timestamp >= pts or until the last of the pending data from
+ its internal buffers was decoded.
+diff --git a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
+index 0619ca5..e9cf601 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
+@@ -129,7 +129,10 @@ this command.</entry>
+ encoding will continue until the end of the current <wordasword>Group
+ Of Pictures</wordasword>, otherwise encoding will stop immediately.
+ When the encoder is already stopped, this command does
+-nothing.</entry>
++nothing. mem2mem encoders will send a <constant>V4L2_EVENT_EOS</constant> event
++after the last frame was encoded and will set the
++<constant>V4L2_BUF_FLAG_LAST</constant> buffer flag on the capture queue when
++there will be no new buffers produced to dequeue</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_ENC_CMD_PAUSE</constant></entry>
 -- 
-Regards,
+2.1.4
 
-Laurent Pinchart
