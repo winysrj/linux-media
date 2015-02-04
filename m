@@ -1,47 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:51497 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754390AbbBOAxD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Feb 2015 19:53:03 -0500
-From: Benjamin Larsson <benjamin@southpole.se>
-To: mchehab@osg.samsung.com
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] r820t: add DVBC profile in sysfreq_sel
-Date: Sun, 15 Feb 2015 01:52:56 +0100
-Message-Id: <1423961576-15038-1-git-send-email-benjamin@southpole.se>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45388 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965802AbbBDNOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 08:14:52 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 4/5] [media] s5p-mfc: Set last buffer flag
+Date: Wed,  4 Feb 2015 14:14:36 +0100
+Message-Id: <1423055677-13161-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
+References: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/media/tuners/r820t.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+Setting the last buffer flag causes the videobuf2 core to return -EPIPE from
+DQBUF calls on the capture queue after the last buffer is dequeued.
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index 8e040cf..639c220 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -775,6 +775,19 @@ static int r820t_sysfreq_sel(struct r820t_priv *priv, u32 freq,
- 		div_buf_cur = 0x30;	/* 11, 150u */
- 		filter_cur = 0x40;	/* 10, low */
- 		break;
-+	case SYS_DVBC_ANNEX_A:
-+		mixer_top = 0x24;       /* mixer top:13 , top-1, low-discharge */
-+		lna_top = 0xe5;
-+		lna_vth_l = 0x62;
-+		mixer_vth_l = 0x75;
-+		air_cable1_in = 0x60;
-+		cable2_in = 0x00;
-+		pre_dect = 0x40;
-+		lna_discharge = 14;
-+		cp_cur = 0x38;          /* 111, auto */
-+		div_buf_cur = 0x30;     /* 11, 150u */
-+		filter_cur = 0x40;      /* 10, low */
-+		break;
- 	default: /* DVB-T 8M */
- 		mixer_top = 0x24;	/* mixer top:13 , top-1, low-discharge */
- 		lna_top = 0xe5;		/* detect bw 3, lna top:4, predet top:2 */
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 8e44a59..f08d639 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -211,6 +211,7 @@ static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
+ 			dst_buf->b->v4l2_buf.field = V4L2_FIELD_NONE;
+ 		else
+ 			dst_buf->b->v4l2_buf.field = V4L2_FIELD_INTERLACED;
++		dst_buf->b->v4l2_buf.flags |= V4L2_BUF_FLAG_LAST;
+ 
+ 		ctx->dec_dst_flag &= ~(1 << dst_buf->b->v4l2_buf.index);
+ 		vb2_buffer_done(dst_buf->b, VB2_BUF_STATE_DONE);
 -- 
-2.1.0
+2.1.4
 
