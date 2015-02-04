@@ -1,67 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34003 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752094AbbBRRA6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 12:00:58 -0500
-Message-ID: <1424278854.3727.47.camel@pengutronix.de>
-Subject: Re: [RFC v01] Driver for Toshiba TC358743 CSI-2 to HDMI bridge
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: "Mats Randgaard (matrandg)" <matrandg@cisco.com>
-Cc: linux-media@vger.kernel.org, hansverk@cisco.com
-Date: Wed, 18 Feb 2015 18:00:54 +0100
-In-Reply-To: <54E363F8.5050608@cisco.com>
-References: <1418667661-21078-1-git-send-email-matrandg@cisco.com>
-	 <1424163029.3841.15.camel@pengutronix.de> <54E363F8.5050608@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from butterbrot.org ([176.9.106.16]:46987 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752060AbbBDKIT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Feb 2015 05:08:19 -0500
+Message-ID: <54D1EF91.8070805@butterbrot.org>
+Date: Wed, 04 Feb 2015 11:08:17 +0100
+From: Florian Echtler <floe@butterbrot.org>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
+References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <64652239.MTTlcOgNK2@avalon> <54BE5204.3020600@xs4all.nl> <6025823.veVKIskIW2@avalon> <54BFA989.4090405@butterbrot.org> <54BFA9D6.1040201@xs4all.nl> <54CAA786.2040908@butterbrot.org> <54D13383.7010603@butterbrot.org> <54D1D37C.20701@xs4all.nl>
+In-Reply-To: <54D1D37C.20701@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="LtoVp3brI7i091GdNUFhQkAfMoOVB2dJ3"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mats,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--LtoVp3brI7i091GdNUFhQkAfMoOVB2dJ3
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Am Dienstag, den 17.02.2015, 16:53 +0100 schrieb Mats Randgaard
-(matrandg):
-> > I think this calculation should include the blanking intervals.
-> 
-> As far as I understand is only the active video from the HDMI interface 
-> transferred on the CSI interface, so I think this calculation is 
-> correct. We transfer 1080p60 video on four lanes with 823.5 Mbps/lane, 
-> which would not have been possible if the blanking should have been 
-> transferred as well ((2200 * 1125 * 60 * 24) bps / 823.5 Mbps/lane  = 
-> 4.33 lanes.
+Hello Hans,
 
-You are right, I confused the "reference" and "minimum" suitable CSI
-lane speed fields in REF_02. There ought to be _some_ overhead though?
-(1920 * 1080 * 60 * 24) bps = 746.496 Mbps, but REF_02 suggests a
-minimum of 820.92 Mbps per lane (reference is 891 Mbps as expected).
+On 04.02.2015 09:08, Hans Verkuil wrote:
+> I remain very skeptical about the use of dma-contig (or dma-sg for that=
 
-[...]
-> >> +	i2c_wr32(sd, HSTXVREGEN,
-> >> +			((lanes > 0) ? MASK_CLM_HSTXVREGEN : 0x0) |
-> >> +			((lanes > 0) ? MASK_D0M_HSTXVREGEN : 0x0) |
-> >> +			((lanes > 1) ? MASK_D1M_HSTXVREGEN : 0x0) |
-> >> +			((lanes > 2) ? MASK_D2M_HSTXVREGEN : 0x0) |
-> >> +			((lanes > 3) ? MASK_D3M_HSTXVREGEN : 0x0));
-> >> +
-> >> +	i2c_wr32(sd, TXOPTIONCNTRL, MASK_CONTCLKMODE);
-> > Since anything below can't be undone without pulling CTXRST, I propose
-> > to split tc358743_set_csi into tc358743_set_csi (above) and
-> > tc358743_start_csi (below).
-> >
-> > To make this driver work with the Synopsys DesignWare MIPI CSI-2 Host
-> > Controller, there needs to be a time when the lanes are in stop state
-> > first, so the host can synchronize. I'd then like to call start_csi in
-> > s_stream only.
-> 
-> With help from Toshiba we have now implemented start and stop of the CSI 
-> interface without pulling CTXRST. You can see our solution in the next 
-> RFC, and I would appreciate if you could test if that works fine for you 
-> as well!
+> matter). Have you tried using vmalloc and check if the USB core isn't
+> automatically using DMA transfers for that?
+>=20
+> Basically I would like to see proof that vmalloc is not an option befor=
+e
+> allowing dma-contig (or dma-sg if you can figure out why that isn't
+> working).
+>=20
+> You can also make a version with vmalloc and I'll merge that, and then
+> you can look more into the DMA issues. That way the driver is merged,
+> even if it is perhaps not yet optimal, and you can address that part la=
+ter.
+OK, that sounds sensible, I will try that route. When using
+videobuf2-vmalloc, what do I pass back for alloc_ctxs in queue_setup?
 
-I'm looking forward to it.
+Best, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
 
-regards
-Philipp
 
+--LtoVp3brI7i091GdNUFhQkAfMoOVB2dJ3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlTR75IACgkQ7CzyshGvatjYVwCfZ4ieGe97jqGjIM+hVdYriQd2
+xCsAoPNwqbfdLiEf3RENdW6XqmSBRNu9
+=jhpz
+-----END PGP SIGNATURE-----
+
+--LtoVp3brI7i091GdNUFhQkAfMoOVB2dJ3--
