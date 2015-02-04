@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:11191 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752000AbbBRQZZ (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:37724 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932516AbbBDHyo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 11:25:25 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v11 12/20] of: Add Skyworks Solutions, Inc. vendor prefix
-Date: Wed, 18 Feb 2015 17:20:33 +0100
-Message-id: <1424276441-3969-13-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
-References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+	Wed, 4 Feb 2015 02:54:44 -0500
+Message-ID: <54D1D01B.30201@xs4all.nl>
+Date: Wed, 04 Feb 2015 08:54:03 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>, dCrypt <dcrypt@telefonica.net>
+CC: Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [possible BUG, cx23885] Dual tuner TV card, works using one tuner
+ only, doesn't work if both tuners are used
+References: <54472CB702988260@smtp.movistar.es>	<02ee01d031ec$283a80f0$78af82d0$@net>	<006301d03b58$0181a9a0$0484fce0$@net>	<006e01d03fe7$4cf3dd70$e6db9850$@net> <CALzAhNVjZh7nm5_3hGpSh4ZMsstja+M_2GLh2-15F0yp8QDOVw@mail.gmail.com>
+In-Reply-To: <CALzAhNVjZh7nm5_3hGpSh4ZMsstja+M_2GLh2-15F0yp8QDOVw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use "skyworks" as the vendor prefix for the Skyworks Solutions, Inc.
+On 02/03/2015 08:32 PM, Steven Toth wrote:
+> While I am the maintainer of the cx23885 driver, its currently
+> undergoing a significant amount of churn related to Han's recent VB2
+> and other changes. I consider the current driver broken until the
+> feedback on the mailing list dies down. I'm reluctant to work on the
+> driver while its considered unstable.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
----
- .../devicetree/bindings/vendor-prefixes.txt        |    1 +
- 1 file changed, 1 insertion(+)
+Any issues in the driver are all related to streaming. Tuning has not
+been touched at all and there is some anecdotal evidence that if there
+are tuning issues they were there already before the vb2 conversion.
 
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-index 389ca13..9276e7f 100644
---- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-+++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-@@ -153,6 +153,7 @@ ricoh	Ricoh Co. Ltd.
- rockchip	Fuzhou Rockchip Electronics Co., Ltd
- samsung	Samsung Semiconductor
- sandisk	Sandisk Corporation
-+skyworks	Skyworks Solutions, Inc.
- sbs	Smart Battery System
- schindler	Schindler
- seagate	Seagate Technology PLC
--- 
-1.7.9.5
+To my knowledge the driver is now stable. There is still the occasional
+kernel message that shouldn't be there which I am trying to track down,
+but the driver crashes due to a vb2 race condition have been fixed.
+
+Regards,
+
+	Hans
+
+> 
+> If you want to send me a Terratec card then I'll try to fund an hour
+> to investigate in the coming weeks.
+> 
+> Best,
+> 
+> - Steve
+> 
 
