@@ -1,70 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:32902 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755127AbbBDPCP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 10:02:15 -0500
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:50251 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965274AbbBDKrl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 05:47:41 -0500
+Date: Wed, 4 Feb 2015 10:47:20 +0000
+From: Mark Brown <broonie@kernel.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
+	Jean Delvare <jdelvare@suse.de>
+Message-ID: <20150204104720.GU21293@sirena.org.uk>
+References: <1419367799-14263-1-git-send-email-crope@iki.fi>
+ <1419367799-14263-21-git-send-email-crope@iki.fi>
+ <20150202180726.454dc878@recife.lan>
+ <54CFDCCC.3030006@iki.fi>
+ <20150202203324.GA11486@katana>
+ <20150203155301.7ba63776@recife.lan>
+ <54D11499.6080800@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAL_Jsq+Yk1sDT+KfxRfR3ue74KtKxDB3Aj0BS2=sfYwzMcQtDw@mail.gmail.com>
-References: <1421365163-29394-1-git-send-email-prabhakar.csengg@gmail.com> <CAL_Jsq+Yk1sDT+KfxRfR3ue74KtKxDB3Aj0BS2=sfYwzMcQtDw@mail.gmail.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Wed, 4 Feb 2015 15:01:43 +0000
-Message-ID: <CA+V-a8u4Zp8Ab4xkrG=+=fQkV8_RtGMiTuYbizyEAL8qbmafgQ@mail.gmail.com>
-Subject: Re: [PATCH] media: i2c: add support for omnivision's ov2659 sensor
-To: Rob Herring <robherring2@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="m4Bb2ZHVQIF8uI6I"
+Content-Disposition: inline
+In-Reply-To: <54D11499.6080800@iki.fi>
+Subject: Re: [PATCH 21/66] rtl2830: implement own I2C locking
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
 
-Thanks for the review.
+--m4Bb2ZHVQIF8uI6I
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Wed, Feb 4, 2015 at 2:55 PM, Rob Herring <robherring2@gmail.com> wrote:
-> On Thu, Jan 15, 2015 at 5:39 PM, Lad, Prabhakar
-> <prabhakar.csengg@gmail.com> wrote:
->> From: Benoit Parrot <bparrot@ti.com>
->>
->> this patch adds support for omnivision's ov2659
->> sensor.
->>
->> Signed-off-by: Benoit Parrot <bparrot@ti.com>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
->
-> [...]
->
->> diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
->> index b1df0ad..153cd92 100644
->> --- a/Documentation/devicetree/bindings/vendor-prefixes.txt
->> +++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
->> @@ -118,6 +118,7 @@ nvidia      NVIDIA
->>  nxp    NXP Semiconductors
->>  onnn   ON Semiconductor Corp.
->>  opencores      OpenCores.org
->> +ovt    OmniVision Technologies
->
-> I'm surprised there are not already compatible strings with
-> OmniVision. There are some examples using "omnivision", but no dts
-> files and examples don't count.
->
-> The stock ticker is ovti, so please use that.
->
-OK will update in the v2 version, I went with website which was ovt [1].
+On Tue, Feb 03, 2015 at 08:34:01PM +0200, Antti Palosaari wrote:
+> On 02/03/2015 07:53 PM, Mauro Carvalho Chehab wrote:
 
-[1] http://www.ovt.com/
+> >If latter a better way to lock the I2C mux appears, we can reverse
+> >this change.
 
-Regards,
---Prabhakar Lad
+> More I am worried about next patch in a serie, which converts all that to
+> regmap API... Same recursive mux register access comes to problem there,
+> which I work-arounded by defining own I2C IO... And in that case I used
+> i2c_lock_adapter/i2c_unlock_adapter so adapter is locked properly.
+
+Opne coding the register I/O is a terrible solution, we should allow
+people to keep this code factored out.
+
+--m4Bb2ZHVQIF8uI6I
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJU0fi4AAoJECTWi3JdVIfQAj4H/jPrWZCtmodKYxGoNzixT1Ha
+o2vcHt7CLOBNhBF+LusOXdCcuz83maG1azHpuMLiM4xQiYb/q26WcD1571jOSiMy
+7IpR9SBdeTXjhX927o620ZfJ8PsKSuH3Bn3+3WcaicyUxGzSq1tmsyVJjLt1BsgS
+7+20zY8d/XVADx8JJMjac05urMbD95fhSM1M4a0TcUI/ACFr3H3mzNu43vr9h9xZ
+lEMy1fxYI4MjpCCU7SytiwH6qRdHWwgZePIr1S1VzMrvU+xjqpYRZiP8KxZYGHVS
+mGW+TPQGRPjRSXc5oBJJAQGcvi6fQ+hHazJQ4lCAY6x3olIPvlo9PcKSpMB3C9s=
+=zjl4
+-----END PGP SIGNATURE-----
+
+--m4Bb2ZHVQIF8uI6I--
