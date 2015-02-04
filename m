@@ -1,184 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:56717 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932416AbbBBQwp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 11:52:45 -0500
-Received: by mail-wg0-f51.google.com with SMTP id k14so39807592wgh.10
-        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2015 08:52:44 -0800 (PST)
-Date: Mon, 2 Feb 2015 17:54:05 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Rob Clark <robdclark@gmail.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher
- constraints with dma-parms
-Message-ID: <20150202165405.GX14009@phenom.ffwll.local>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
- <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
- <20150129143908.GA26493@n2100.arm.linux.org.uk>
- <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
- <20150129154718.GB26493@n2100.arm.linux.org.uk>
- <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
- <20150129192610.GE26493@n2100.arm.linux.org.uk>
- <CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:48240 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751693AbbBDDcE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Feb 2015 22:32:04 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 28AAA2A008D
+	for <linux-media@vger.kernel.org>; Wed,  4 Feb 2015 04:31:24 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150204033124.28AAA2A008D@tschai.lan>
+Date: Wed,  4 Feb 2015 04:31:24 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 29, 2015 at 05:18:33PM -0500, Rob Clark wrote:
-> On Thu, Jan 29, 2015 at 2:26 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Thu, Jan 29, 2015 at 01:52:09PM -0500, Rob Clark wrote:
-> >> Quite possibly for some of these edge some of cases, some of the
-> >> dma-buf exporters are going to need to get more clever (ie. hand off
-> >> different scatterlists to different clients).  Although I think by far
-> >> the two common cases will be "I can support anything via an iommu/mmu"
-> >> and "I need phys contig".
-> >>
-> >> But that isn't an issue w/ dma-buf itself, so much as it is an issue
-> >> w/ drivers.  I guess there would be more interest in fixing up drivers
-> >> when actual hw comes along that needs it..
-> >
-> > However, validating the attachments is the business of dma-buf.  This
-> > is actual infrastructure, which should ensure some kind of sanity such
-> > as the issues I've raised.
-> >
-> 
-> My initial thought is for dma-buf to not try to prevent something than
-> an exporter can actually do.. I think the scenario you describe could
-> be handled by two sg-lists, if the exporter was clever enough.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-That's already needed, each attachment has it's own sg-list. After all
-there's no array of dma_addr_t in the sg tables, so you can't use one sg
-for more than one mapping. And due to different iommu different devices
-can easily end up with different addresses.
+Results of the daily build of media_tree:
 
-> That all said, I think probably all the existing exporters cache the
-> sg-list.  And I can't think of any actual hw which would hit this
-> problem that can be solved by multiple sg-lists for the same physical
-> memory.  (And the constraint calculation kind of assumes the end
-> result will be a single sg-list.)  So it seems reasonable to me to
-> check that max_segment_count * max_segment_size is not smaller than
-> the buffer.
->
-> If it was a less theoretical problem, I think I'd more inclined for a
-> way that the exporter could override the checks, or something along
-> those lines.
-> 
-> otoh, if the attachment is just not possible because the buffer has
-> been already allocated and mapped by someone with more relaxed
-> constraints.. then I think the driver should be the one returning the
-> error since dma-buf doesn't know this.
+date:		Wed Feb  4 04:00:17 CET 2015
+git branch:	test
+git hash:	4bad5d2d25099a42e146d7b18d2b98950ed287f5
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
-Importers currently cache the mapped sg list aggressively (i915) or
-outright pin it for as long as possible (everyone else). So any kind of
-moving stuff around is pretty much impossible with current drivers.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18-x86_64: OK
+linux-3.19-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-The even worse violation of the dma-buf spec is that all the ttm drivers
-don't use the sg table correctly at all. They assume that each physical
-page has exactly one sg table entry, and then fish out the struct page *
-pointer from that to build up their own bo management stuff and ignore
-everything else.
+Detailed results are available here:
 
-> > The whole "we can push it onto our users" is really on - what that
-> > results in is the users ignoring most of the requirements and just doing
-> > their own thing, which ultimately ends up with the whole thing turning
-> > into a disgusting mess - one which becomes very difficult to fix later.
-> 
-> Ideally at some point, dma-mapping or some helpers would support
-> allocations matching constraints..  I think only actual gpu drivers
-> want to do crazy enough things that they'd want to bypass dma-mapping.
-> If everyone else can use dma-mapping and/or helpers then we make it
-> harder for drivers to do the wrong thing than to do the right thing.
-> 
-> > Now, if we're going to do the "more clever" thing you mention above,
-> > that rather negates the point of this two-part patch set, which is to
-> > provide the union of the DMA capabilities of all users.  A union in
-> > that case is no longer sane as we'd be tailoring the SG lists to each
-> > user.
-> 
-> It doesn't really negate.. a different sg list representing the same
-> physical memory cannot suddenly make the buffer physically contiguous
-> (from the perspective of memory)..
-> 
-> (unless we are not on the same page here, so to speak)
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Or someone was not chip and put a decent iommu in front of the same IP
-block. E.g. the raspi gpu needs contiguous memory for rendering, but the
-same block is used elsewhere but then with an iommu.
+Full logs are available here:
 
-But thinking about all this I wonder whether we really should start with
-some kind of constraint solving. It feels fairly leaky compared to the
-encapsulation the dma api provides, and so isn't really better for
-upstream than just using ion (which completely gives up on this problem
-and relies on userspace allocating correct buffers).
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-And if we step away for a bit there's already a bunch of things that the
-current dma api fails at, and which is just a bit a worse problem with
-dma-buf sharing: There's not really a generic way to map an sg table
-zero-copy, i.e. there's no generic way to avoid bounce buffers. And that's
-already hurting all the existing gpu drivers: ttm essentially does
-page-sized allocs for everything and then has it's own dma allocator on
-top of that page-cache. i915 has some other hacks to at least not fail the
-bounce buffer allocator too badly. Grepping for SWIOTLB in drm is fairly
-interesting.
+The Media Infrastructure API from this daily build is here:
 
-So imo if our goal is to keep the abstraction provided by the dma api
-somewhat intact we should first figure out to map an sg table without
-copying any data. If we have that any exporter can then easily check
-whether an attachment works out by test-mapping stuff. A bit inefficient,
-but at least possible (and exporters could cache the mapped sg table if so
-desired). And we could rip out a pile of hacks from drm drivers.
-
-The other problem is is coherency management. Even in the single-device
-usecase current dma-buf isn't up to things since on many socs the same
-device can use both coherent and non-coherent transactions. And if you map
-the same memory multiple times we don't really want to flush cpu caches
-multiple times (ppl alreay have massive caches and stuff to avoid the
-cpu cache flush when there's just one device using the buffer object).
-Again this probably needs some core dma api extensions. And again we could
-probably throw away a bunch of driver code (at least in i915,
-unfortunately there's no intel v4l driver to test non-coherent sharing on
-x86).
-
-With all that resolved somehow (and all these issues already affect
-single-device dma api usage by gpu drivers) the bit left would be figuring
-out where to allocate things. And I'm not even sure whether we should
-really bother to implement this in the kernel (no matter how I slice it it
-always looks like we're leaking the dma api abstractions) but just with a
-few tries in userspace:
-
-- Allocate shared buffers from the scanout engine (or v4l, though that
-  doesn't yet support exporting).
-
-- If you can't import, try it the other way round. This isn't perfect for
-  cross-process + cross-device bo sharing, but then pretty much all
-  compositors have a gpu rendering fallback anyway because this problem is
-  a bit too complex to solve perfectly. Of course for the next frame
-  compositor can provide a new buffer which hopefully works out better.
-
-- Userspace just knows where to allocate. Imo that's not actually
-  unreasonable since if you really have that tricky requirements you
-  probably also have insane buffer layouts and then all bets for generic
-  code are off anyway.
-
-Cheers, Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+http://www.xs4all.nl/~hverkuil/spec/media.html
