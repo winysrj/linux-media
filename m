@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:46387 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752654AbbBYLyP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2015 06:54:15 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NKB00FZCT2D7Q20@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 Feb 2015 20:54:13 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from mail.cvg.de ([62.153.82.30]:59094 "EHLO mail.cvg.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161028AbbBDRvX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Feb 2015 12:51:23 -0500
+From: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
 To: linux-media@vger.kernel.org
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH] s5p-jpeg: exynos3250: fix erroneous reset procedure
-Date: Wed, 25 Feb 2015 12:53:49 +0100
-Message-id: <1424865229-31634-1-git-send-email-j.anaszewski@samsung.com>
+Cc: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2] [media] mt9p031: fixed calculation of clk_div
+Date: Wed,  4 Feb 2015 18:51:10 +0100
+Message-Id: <1423072270-20078-1-git-send-email-enrico.scholz@sigma-chemnitz.de>
+In-Reply-To: <1423061612-12623-1-git-send-email-enrico.scholz@sigma-chemnitz.de>
+References: <1423061612-12623-1-git-send-email-enrico.scholz@sigma-chemnitz.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The first while loop in the function exynos3250_jpeg_reset had no chance
-to be executed because the reg variable was initialized to 0.
-Initialize reg variable to 1 to fix the issue.
+There must be used 'min_t', not 'max_t' for calculating the divider.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Reported-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Signed-off-by: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.c   |    2 +-
+ drivers/media/i2c/mt9p031.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
-index e8c2cad..0974b9a 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
-@@ -20,7 +20,7 @@
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index 0cabf91..43ee299 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -254,7 +254,7 @@ static int mt9p031_clk_setup(struct mt9p031 *mt9p031)
+ 		div = DIV_ROUND_UP(ext_freq, pdata->target_freq);
+ 		div = roundup_pow_of_two(div) / 2;
  
- void exynos3250_jpeg_reset(void __iomem *regs)
- {
--	u32 reg = 0;
-+	u32 reg = 1;
- 	int count = 1000;
+-		mt9p031->clk_div = max_t(unsigned int, div, 64);
++		mt9p031->clk_div = min_t(unsigned int, div, 64);
+ 		mt9p031->use_pll = false;
  
- 	writel(1, regs + EXYNOS3250_SW_RESET);
+ 		return 0;
 -- 
-1.7.9.5
+2.1.0
 
