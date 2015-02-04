@@ -1,64 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:59489 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470AbbBUSkz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2015 13:40:55 -0500
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	adi-buildroot-devel@lists.sourceforge.net
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 15/15] media: blackfin: bfin_capture: set v4l2 buffer sequence
-Date: Sat, 21 Feb 2015 18:40:01 +0000
-Message-Id: <1424544001-19045-16-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:56030 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934021AbbBDUKP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 15:10:15 -0500
+Received: by mail-wi0-f171.google.com with SMTP id l15so34369377wiw.4
+        for <linux-media@vger.kernel.org>; Wed, 04 Feb 2015 12:10:14 -0800 (PST)
+Message-ID: <54D27CA4.20009@gmail.com>
+Date: Wed, 04 Feb 2015 21:10:12 +0100
+From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>,
+	Steven Toth <stoth@kernellabs.com>,
+	dCrypt <dcrypt@telefonica.net>
+CC: Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [possible BUG, cx23885] Dual tuner TV card, works using one tuner
+ only, doesn't work if both tuners are used
+References: <54472CB702988260@smtp.movistar.es>	<02ee01d031ec$283a80f0$78af82d0$@net>	<006301d03b58$0181a9a0$0484fce0$@net>	<006e01d03fe7$4cf3dd70$e6db9850$@net> <CALzAhNVjZh7nm5_3hGpSh4ZMsstja+M_2GLh2-15F0yp8QDOVw@mail.gmail.com> <54D1D01B.30201@xs4all.nl> <54D23766.3050402@iki.fi>
+In-Reply-To: <54D23766.3050402@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Tested with a couple of DVBSky T982 adapters against latest media 
+master. No problems detected.
+Moreover: even with earlier versions of the media tree (starting with 
+the version in witch support for DVBSky t982 was added), I never 
+encountered any problems.
 
-this patch adds support to set the v4l2 buffer sequence.
+Regards,
+Tycho.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 1fc4dbb1..46a8cd3 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -103,6 +103,8 @@ struct bcap_device {
- 	struct completion comp;
- 	/* prepare to stop */
- 	bool stop;
-+	/* vb2 buffer sequence counter */
-+	unsigned sequence;
- };
- 
- static const struct bcap_format bcap_formats[] = {
-@@ -329,6 +331,8 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- 		goto err;
- 	}
- 
-+	bcap_dev->sequence = 0;
-+
- 	reinit_completion(&bcap_dev->comp);
- 	bcap_dev->stop = false;
- 
-@@ -407,6 +411,7 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
- 			vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
- 			ppi->err = false;
- 		} else {
-+			vb->v4l2_buf.sequence = bcap_dev->sequence++;
- 			vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
- 		}
- 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
--- 
-2.1.0
+Op 04-02-15 om 16:14 schreef Antti Palosaari:
+> On 02/04/2015 09:54 AM, Hans Verkuil wrote:
+>> On 02/03/2015 08:32 PM, Steven Toth wrote:
+>>> While I am the maintainer of the cx23885 driver, its currently
+>>> undergoing a significant amount of churn related to Han's recent VB2
+>>> and other changes. I consider the current driver broken until the
+>>> feedback on the mailing list dies down. I'm reluctant to work on the
+>>> driver while its considered unstable.
+>>
+>> Any issues in the driver are all related to streaming. Tuning has not
+>> been touched at all and there is some anecdotal evidence that if there
+>> are tuning issues they were there already before the vb2 conversion.
+>>
+>> To my knowledge the driver is now stable. There is still the occasional
+>> kernel message that shouldn't be there which I am trying to track down,
+>> but the driver crashes due to a vb2 race condition have been fixed.
+>
+> Tested with Hauppauge WinTV-HVR5525 against latest media master and 
+> seems to work now. Earlier there was 2 problems:
+> 1) lockdep splash
+> 2) hangs when both adapters were streaming
+>
+> regards
+> Antti
+>
 
