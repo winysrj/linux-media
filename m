@@ -1,631 +1,644 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f48.google.com ([209.85.213.48]:36390 "EHLO
-	mail-yh0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161039AbbBCVkx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 16:40:53 -0500
-Received: by mail-yh0-f48.google.com with SMTP id a41so19676998yho.7
-        for <linux-media@vger.kernel.org>; Tue, 03 Feb 2015 13:40:52 -0800 (PST)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57520 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966371AbbBDRDO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 12:03:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>, devicetree@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] media: i2c: add support for omnivision's ov2659 sensor
+Date: Wed, 04 Feb 2015 19:03:56 +0200
+Message-ID: <2517945.eGhlRo2yDj@avalon>
+In-Reply-To: <1421365163-29394-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1421365163-29394-1-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <009201d03ff9$d66da1a0$8348e4e0$@net>
-References: <54472CB702988260@smtp.movistar.es>
-	<02ee01d031ec$283a80f0$78af82d0$@net>
-	<006301d03b58$0181a9a0$0484fce0$@net>
-	<006e01d03fe7$4cf3dd70$e6db9850$@net>
-	<CALzAhNVjZh7nm5_3hGpSh4ZMsstja+M_2GLh2-15F0yp8QDOVw@mail.gmail.com>
-	<009201d03ff9$d66da1a0$8348e4e0$@net>
-Date: Tue, 3 Feb 2015 16:40:52 -0500
-Message-ID: <CALzAhNUFyZ-Y3crf2ZBLLEo=XR__xDKtZZod7TFCfXPPcsC5FQ@mail.gmail.com>
-Subject: Re: [possible BUG, cx23885] Dual tuner TV card, works using one tuner
- only, doesn't work if both tuners are used
-From: Steven Toth <stoth@kernellabs.com>
-To: dCrypt <dcrypt@telefonica.net>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Prabhakar,
 
-I'm based in the US :(
+Thank you for the patch. Here's a partial review.
 
-- Steve
+On Thursday 15 January 2015 23:39:23 Lad, Prabhakar wrote:
+> From: Benoit Parrot <bparrot@ti.com>
+> 
+> this patch adds support for omnivision's ov2659
+> sensor.
+> 
+> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov2659.txt       |   33 +
+>  .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+>  MAINTAINERS                                        |   10 +
+>  drivers/media/i2c/Kconfig                          |   11 +
+>  drivers/media/i2c/Makefile                         |    1 +
+>  drivers/media/i2c/ov2659.c                         | 1623 +++++++++++++++++
+>  include/media/ov2659.h                             |   33 +
+>  7 files changed, 1712 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2659.txt
+>  create mode 100644 drivers/media/i2c/ov2659.c
+>  create mode 100644 include/media/ov2659.h
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov2659.txt
+> b/Documentation/devicetree/bindings/media/i2c/ov2659.txt new file mode
+> 100644
+> index 0000000..fc49f44
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov2659.txt
+> @@ -0,0 +1,33 @@
+> +* OV2659 1/5-Inch 2Mp SOC Camera
+> +
+> +The OV2659 is a 1/5-inch SOC camera, with an active array size of 1632H x
+> 1212V.
+> +It is programmable through a SCCB.
+> +
+> +Required Properties:
+> +- compatible: Must be "ovt,ov2659"
+> +
+> +- reg: I2C slave address
+> +
+> +- clock-frequency: Input clock frequency.
+> +
+> +For further reading on port node refer to
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Example:
+> +
+> +	i2c0@1c22000 {
+> +		...
+> +		...
+> +		 ov2659@30 {
+> +			compatible = "ovt,ov2659";
+> +			reg = <0x30>;
+> +
+> +			port {
+> +				ov2659_0: endpoint {
+> +					clock-frequency = <12000000>;
+> +					remote-endpoint = <&vpfe_ep>;
+> +				};
+> +			};
+> +		};
+> +		...
+> +	};
+
+[snip]
+
+> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
+> new file mode 100644
+> index 0000000..ce8ec8d
+> --- /dev/null
+> +++ b/drivers/media/i2c/ov2659.c
+> @@ -0,0 +1,1623 @@
+
+[snip]
+
+> +static int debug;
+> +module_param(debug, int, 0644);
+> +MODULE_PARM_DESC(debug, "Debug level (0-2)");
+
+The debug parameter is printed in the probe function and then unused. You can 
+remove it.
+
+[snip]
+
+> +struct ov2659 {
+> +	struct v4l2_subdev sd;
+> +	struct media_pad pad;
+> +	enum v4l2_mbus_type bus_type;
+> +	const struct ov2659_platform_data *pdata;
+> +
+> +	/* Protects the struct fields below */
+> +	struct mutex lock;
+> +
+> +	struct i2c_client *client;
+> +
+> +	unsigned short id;
+
+The id field is only used at probe time, you can make it a local variable.
+
+> +	const struct ov2659_framesize *frame_size;
+> +	/* Current Output format Register Value (REG_FORMAT_CTRL00) */
+> +	struct sensor_register *format_ctrl_regs;
+> +
+> +	struct v4l2_mbus_framefmt format;
+> +
+> +	/* Sensor specific feq/pll config */
+> +	struct ov2659_pll_ctrl pll;
+> +
+> +	int streaming;
+> +	int power;
+> +};
+
+[snip]
+
+> +static const struct ov2659_framesize ov2659_framesizes[] = {
+> +	{ /* QVGA */
+> +		.width		= 320,
+> +		.height		= 240,
+> +		.regs		= ov2659_qvga,
+> +		.max_exp_lines	= 248,
+> +	}, { /* VGA */
+> +		.width		= 640,
+> +		.height		= 480,
+> +		.regs		= ov2659_vga,
+> +		.max_exp_lines	= 498,
+> +	}, { /* SVGA */
+> +		.width		= 800,
+> +		.height		= 600,
+> +		.regs		= ov2659_svga,
+> +		.max_exp_lines	= 498,
+> +	}, { /* XGA */
+> +		.width		= 1024,
+> +		.height		= 768,
+> +		.regs		= ov2659_xga,
+> +		.max_exp_lines	= 498,
+> +	}, { /* 720P */
+> +		.width		= 1280,
+> +		.height		= 720,
+> +		.regs		= ov2659_720p,
+> +		.max_exp_lines	= 498,
+> +	}, { /* SXGA */
+> +		.width		= 1280,
+> +		.height		= 1024,
+> +		.regs		= ov2659_sxga,
+> +		.max_exp_lines	= 1048,
+> +	}, { /* UXGA */
+> +		.width		= 1600,
+> +		.height		= 1200,
+> +		.regs		= ov2659_uxga,
+> +		.max_exp_lines	= 498,
+> +	},
+> +};
+
+That's what bothers me the most about drivers for Omnivision sensors. For some 
+reason (I'd bet on lack of proper documentation) they list a couple of 
+supported resolutions with corresponding register values, instead of computing 
+the register values from the format configured by userspace. That's not the 
+way we want to go. Prabhakar, do you have enough documentation to fix that ?
+
+[snip]
+
+> +/* sensor register write */
+> +static int ov2659_write(struct i2c_client *client, u16 reg, u8 val)
+> +{
+> +	struct i2c_msg msg[1];
+> +	int ret, i;
+> +	u8 buf[3];
+> +
+> +	buf[0] = reg >> 8;
+> +	buf[1] = reg & 0xFF;
+> +	buf[2] = val;
+> +
+> +	msg->addr = client->addr;
+> +	msg->flags = client->flags;
+> +	msg->buf = buf;
+> +	msg->len = sizeof(buf);
+> +
+> +	for (i = 0; i < 5; i++) {
+
+Is the loop really needed, or just copied from a different driver ?
+
+> +		ret = i2c_transfer(client->adapter, msg, 1);
+> +		if (ret >= 0)
+> +			return 0;
+> +
+> +		dev_dbg(&client->dev,
+> +			"ov2659 write reg(0x%x val:0x%x) failed !\n", reg, val);
+> +		udelay(10);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +/* sensor register read */
+> +static int ov2659_read(struct i2c_client *client, u16 reg, u8 *val)
+> +{
+> +	struct i2c_msg msg[2];
+> +	int ret, i;
+> +	u8 buf[2];
+> +
+> +	buf[0] = reg >> 8;
+> +	buf[1] = reg & 0xFF;
+> +
+> +	msg[0].addr = client->addr;
+> +	msg[0].flags = client->flags;
+> +	msg[0].buf = buf;
+> +	msg[0].len = sizeof(buf);
+> +
+> +	msg[1].addr = client->addr;
+> +	msg[1].flags = client->flags|I2C_M_RD;
+
+checkpatch.pl should have warned about this. Could you please fix checkpatch 
+errors and warnings ?
+
+> +	msg[1].buf = buf;
+> +	msg[1].len = 1;
+> +
+> +	for (i = 0; i < 5; i++) {
+> +		ret = i2c_transfer(client->adapter, msg, 2);
+> +		if (ret >= 0) {
+> +			*val = buf[0];
+> +			return 0;
+> +		}
+> +
+> +		dev_dbg(&client->dev,
+> +			"ov2659 read reg(0x%x val:0x%x) failed !\n", reg, *val);
+> +		udelay(10);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +static int ov2659_write_array(struct i2c_client *client,
+> +			      const struct sensor_register *regs)
+> +{
+> +	int i, ret = 0;
+> +
+> +	for (i = 0; ret == 0 && regs[i].addr; i++) {
+> +		ret = ov2659_write(client, regs[i].addr, regs[i].value);
+> +		usleep_range(5000, 6000);
+
+That will result in a large delay when the array grows. Is it really needed ? 
+Waiting might be needed after writing some of the registers, but most probably 
+not most of them.
+
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +static int dump_reg(struct i2c_client *client, u16 reg)
+> +{
+> +	u8 val = 0;
+> +	int ret;
+> +
+> +	ret = ov2659_read(client, reg, &val);
+> +	dev_dbg(&client->dev, "%s: 0x%04x: 0x%02x\n",
+> +				__func__, reg, val);
+> +	return ret;
+> +}
+> +
+> +static void ov2659_reg_dump(struct i2c_client *client)
+> +{
+> +	int i;
+> +
+> +	dump_reg(client, REG_SOFTWARE_STANDBY);
+> +	dump_reg(client, REG_SOFTWARE_RESET);
+> +
+> +	for (i = 0x3000; i <= 0x302f; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x3400; i <= 0x3406; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x3500; i <= 0x3513; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x3600; i <= 0x3640; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x3800; i <= 0x3821; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x3a00; i <= 0x3a26; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x4000; i <= 0x4009; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x4201; i <= 0x4202; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x4300; i <= 0x4301; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x4600; i <= 0x4609; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x4700; i <= 0x4709; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x5000; i <= 0x50a0; i++)
+> +		dump_reg(client, i);
+> +
+> +	for (i = 0x5600; i <= 0x5606; i++)
+> +		dump_reg(client, i);
+
+That's pretty rough. I'm not sure such a detailed level of debugging is 
+needed. You should at least return at the beginning of the function if DEBUG 
+isn't defined, to avoid reading all registers without printing their value.
+
+> +}
+
+[snip]
+
+> +static void __ov2659_set_power(struct ov2659 *ov2659, int on)
+> +{
+> +	struct i2c_client *client = ov2659->client;
+> +
+> +	on = !!on;
+> +
+> +	dev_dbg(&client->dev, "%s: on: %d\n", __func__, on);
+> +
+> +	if (ov2659->power == on)
+> +		return;
+> +
+> +	ov2659->power = on;
+
+This seems to be a no-op. I would either remove this function, or, better, add 
+regulators support to the driver.
+
+> +}
+> +
+> +static int ov2659_s_power(struct v4l2_subdev *sd, int on)
+> +{
+> +	struct ov2659 *ov2659 = to_ov2659(sd);
+> +	struct i2c_client *client = ov2659->client;
+> +
+> +	dev_dbg(&client->dev, "%s: on: %d\n", __func__, on);
+> +
+> +	mutex_lock(&ov2659->lock);
+> +	__ov2659_set_power(ov2659, on);
+> +	mutex_unlock(&ov2659->lock);
+> +
+> +	return 0;
+> +}
+
+[snip]
+
+> +static int ov2659_s_stream(struct v4l2_subdev *sd, int on)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	struct ov2659 *ov2659 = to_ov2659(sd);
+> +	int ret;
+> +
+> +	on = !!on;
+> +
+> +	dev_dbg(&client->dev, "%s: on: %d\n", __func__, on);
+> +
+> +	if (ov2659->streaming == on)
+> +		return 0;
+> +
+> +	mutex_lock(&ov2659->lock);
+
+Shouldn't you protect the above check as well ?
+
+> +
+> +	if (!on) {
+> +		/* Stop Streaming Sequence */
+> +		ov2659_set_streaming(ov2659, 0);
+> +		ov2659->streaming = on;
+> +		__ov2659_set_power(ov2659, 0);
+> +		mutex_unlock(&ov2659->lock);
+> +
+> +		return 0;
+> +	}
+> +
+> +	/* Start Streaming Sequence */
+> +	__ov2659_set_power(ov2659, 1);
+> +
+> +	ret = ov2659_write_array(client, ov2659_init_regs);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ov2659_set_pixel_clock(ov2659);
+> +	ov2659_set_frame_size(ov2659);
+> +	ov2659_set_format(ov2659);
+> +
+> +	ov2659_set_streaming(ov2659, 1);
+> +
+> +	ov2659_reg_dump(client);
+> +	ov2659->streaming = on;
+> +	mutex_unlock(&ov2659->lock);
+> +
+> +	return 0;
+> +}
+
+[snip]
+
+> +static int ov2659_detect_sensor(struct v4l2_subdev *sd)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	struct ov2659 *ov2659 = to_ov2659(sd);
+> +	u8 pid, ver;
+> +	int ret;
+> +
+> +	dev_dbg(&client->dev, "%s:\n", __func__);
+> +
+> +	mutex_lock(&ov2659->lock);
+
+As sensor detection is only performed from the probe function before 
+registering the subdev I don't think locking is needed here.
+
+> +	 __ov2659_set_power(ov2659, 1);
+> +	usleep_range(25000, 26000);
+> +
+> +	/* soft reset */
+> +	ret = ov2659_write(client, REG_SOFTWARE_RESET, 0x01);
+> +	if (ret != 0) {
+> +		dev_err(&client->dev, "Sensor soft reset failed\n");
+> +		ret = -ENODEV;
+
+ret is then ignored.
+
+> +	}
+> +	mdelay(5);
+
+Don't delay, please sleep.
+
+> +
+> +	/* Check sensor revision */
+> +	ret = ov2659_read(client, REG_SC_CHIP_ID_H, &pid);
+> +	if (!ret)
+> +		ret = ov2659_read(client, REG_SC_CHIP_ID_L, &ver);
+> +
+> +	__ov2659_set_power(ov2659, 0);
+> +
+> +	if (!ret) {
+> +		ov2659->id = OV265X_ID(pid, ver);
+> +		if (ov2659->id != OV2659_ID) {
+> +			dev_err(&client->dev,
+> +				"Sensor detection failed (%04X, %d)\n",
+> +				ov2659->id, ret);
+> +			ret = -ENODEV;
+> +		} else {
+> +			dev_info(&client->dev, "Found OV%04X sensor\n",
+> +				ov2659->id);
+> +		}
+> +	}
+> +	mutex_unlock(&ov2659->lock);
+> +
+> +	return ret;
+> +}
+> +
+> +static struct ov2659_platform_data *
+> +ov2659_get_pdata(struct i2c_client *client)
+> +{
+> +	struct ov2659_platform_data *pdata;
+> +	struct device_node *endpoint;
+> +	int ret;
+> +
+> +	dev_dbg(&client->dev, "ov2659_get_pdata invoked\n");
+> +
+> +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
+> +		return client->dev.platform_data;
+> +
+> +	dev_dbg(&client->dev, "ov2659_get_pdata: DT Node found\n");
+> +
+> +	endpoint = of_graph_get_next_endpoint(client->dev.of_node, NULL);
+> +	if (!endpoint)
+> +		return NULL;
+> +
+> +	dev_dbg(&client->dev, "ov2659_get_pdata: endpoint found\n");
+> +
+> +	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+> +	if (!pdata)
+> +		goto done;
+> +
+> +	ret = of_property_read_u32(endpoint, "clock-frequency",
+> +				   &pdata->mclk_frequency);
+> +	if (ret < 0) {
+> +		pdata->mclk_frequency = OV2659_DEFAULT_MCLK_FREQ;
+> +		dev_info(&client->dev, "using default %u Hz clock frequency\n",
+> +			 pdata->mclk_frequency);
+> +	}
+
+The clock-frequency property is defined as mandatory, a default case is thus 
+not needed.
+
+I would add CCF support to the driver and request the input clock (which is 
+called xvclk and not mclk) at probe time. You could then set the clock 
+frequency to the value specified in DT, and read it back to get the exact 
+frequency provided by the clock source.
+
+> +done:
+> +	of_node_put(endpoint);
+> +	return pdata;
+> +}
+> +
+> +static int ov2659_probe(struct i2c_client *client,
+> +			const struct i2c_device_id *id)
+> +{
+> +	const struct ov2659_platform_data *pdata = ov2659_get_pdata(client);
+> +	struct v4l2_subdev *sd;
+> +	struct ov2659 *ov2659;
+> +	int ret;
+> +
+> +	dev_info(&client->dev, "ov2659_probe: debug: %d\n", debug);
+> +
+> +	if (!pdata) {
+> +		dev_err(&client->dev, "platform data not specified\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	ov2659 = devm_kzalloc(&client->dev, sizeof(*ov2659), GFP_KERNEL);
+> +	if (!ov2659)
+> +		return -ENOMEM;
+> +
+> +	ov2659->pdata = pdata;
+> +	mutex_init(&ov2659->lock);
+> +	ov2659->client = client;
+> +
+> +	sd = &ov2659->sd;
+> +	client->flags |= I2C_CLIENT_SCCB;
+> +	v4l2_i2c_subdev_init(sd, client, &ov2659_subdev_ops);
+> +	strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
+> +
+> +	sd->internal_ops = &ov2659_subdev_internal_ops;
+> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
+> +		     V4L2_SUBDEV_FL_HAS_EVENTS;
+> +
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	ov2659->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> +	ret = media_entity_init(&sd->entity, 1, &ov2659->pad, 0);
+> +	if (ret < 0)
+> +		return ret;
+> +#endif
+> +
+> +	ov2659_get_default_format(&ov2659->format);
+> +	ov2659->frame_size = &ov2659_framesizes[2];
+> +	ov2659->format_ctrl_regs = ov2659_formats[0].format_ctrl_regs;
+> +
+> +	ret = ov2659_detect_sensor(sd);
+> +	if (ret < 0)
+> +		goto error;
+> +
+> +	/* Calculate the PLL register value needed */
+> +	ov2659_pll_calc_params(ov2659);
+> +
+> +	ret = v4l2_async_register_subdev(&ov2659->sd);
+> +	if (ret)
+> +		goto error;
+> +
+> +	dev_info(&client->dev, "%s sensor driver registered !!\n", sd->name);
+> +
+> +	return 0;
+> +
+> +error:
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	media_entity_cleanup(&sd->entity);
+> +#endif
+> +	return ret;
+> +}
+> +
+> +static int ov2659_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +
+> +	v4l2_device_unregister_subdev(sd);
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	media_entity_cleanup(&sd->entity);
+> +#endif
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id ov2659_id[] = {
+> +	{ "ov2659", 0 },
+> +	{ /* sentinel */ },
+> +};
+> +MODULE_DEVICE_TABLE(i2c, ov2659_id);
+> +
+> +#if IS_ENABLED(CONFIG_OF)
+> +static const struct of_device_id ov2659_of_match[] = {
+> +	{ .compatible = "ovt,ov2659", },
+> +	{ /* sentinel */ },
+> +};
+> +MODULE_DEVICE_TABLE(of, ov2659_of_match);
+> +#endif
+> +
+> +static struct i2c_driver ov2659_i2c_driver = {
+> +	.driver = {
+> +		.owner = THIS_MODULE,
+> +		.name	= DRIVER_NAME,
+> +		.of_match_table = of_match_ptr(ov2659_of_match),
+> +	},
+> +	.probe		= ov2659_probe,
+> +	.remove		= ov2659_remove,
+> +	.id_table	= ov2659_id,
+> +};
+> +
+> +module_i2c_driver(ov2659_i2c_driver);
+> +
+> +MODULE_AUTHOR("Benoit Parrot <bparrot@ti.com>");
+> +MODULE_DESCRIPTION("OV2659 CMOS Image Sensor driver");
+> +MODULE_LICENSE("GPL");
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Regards,
 
-On Tue, Feb 3, 2015 at 4:39 PM, dCrypt <dcrypt@telefonica.net> wrote:
-> Thanks Steve.
->
-> If sending it really helps you in your development, I will gladly pay for the postage forth and back if you live in Europe.
->
-> When my recently purchased HVR-2200 is stable in my PVR (I could still use the Terratec disabling one tuner), I will consider donating the Terratec.
->
-> BR
->
->
->> -----Mensaje original-----
->> De: Steven Toth [mailto:stoth@kernellabs.com]
->> Enviado el: martes, 03 de febrero de 2015 20:32
->> Para: dCrypt
->> CC: Linux-Media
->> Asunto: Re: [possible BUG, cx23885] Dual tuner TV card, works using one
->> tuner only, doesn't work if both tuners are used
->>
->> While I am the maintainer of the cx23885 driver, its currently
->> undergoing a significant amount of churn related to Han's recent VB2
->> and other changes. I consider the current driver broken until the
->> feedback on the mailing list dies down. I'm reluctant to work on the
->> driver while its considered unstable.
->>
->> If you want to send me a Terratec card then I'll try to fund an hour to
->> investigate in the coming weeks.
->>
->> Best,
->>
->> - Steve
->>
->> --
->> Steven Toth - Kernel Labs
->> http://www.kernellabs.com
->>
->>
->> On Tue, Feb 3, 2015 at 2:26 PM, dCrypt <dcrypt@telefonica.net> wrote:
->> > Steve,
->> >
->> > Maybe you can help me tracking down my other card's problem, as I saw
->> you were owner of the (c) in the cx23885 source code.
->> >
->> > BR
->> >
->> >> -----Mensaje original-----
->> >> De: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> >> owner@vger.kernel.org] En nombre de dCrypt
->> >> Enviado el: jueves, 29 de enero de 2015 1:11
->> >> Para: linux-media@vger.kernel.org
->> >> CC: stoth@linuxtv.org
->> >> Asunto: RE: [possible BUG, cx23885] Dual tuner TV card, works using
->> one
->> >> tuner only, doesn't work if both tuners are used
->> >>
->> >> Hi,
->> >>
->> >> I have attached four excerpts from /var/log/kern.log with debug=9
->> >> option for module cx23885. The test flow is the following:
->> >>
->> >> 0) Ubuntu 14.04/kernel 3.13 just installed, latest V4L source code
->> >> compiled and installed Test 1.1)
->> >>       - Reboot
->> >>       - sudo tzap -a 0 -x -H -c channelsv3.conf "La 1 HD.", using
->> first
->> >> tuner, it locks and works
->> >>       - log excerpt extracted -> test1.1-adap0-ok.log
->> >>
->> >> Test 1.2)
->> >>       - sudo tzap -a 1 -x -H -c channelsv3.conf "La 1 HD.", using
->> >> second tuner after first tuner lock, it doesn't lock and doesn't
->> work
->> >>       - log excerpt extracted -> test1.2-adap1-ko.log
->> >>
->> >> Test 2.1)
->> >>       - Reboot
->> >>       - sudo tzap -a 1 -x -H -c channelsv3.conf "La 1 HD.", using
->> >> second tuner, it locks and works
->> >>       - log excerpt extracted -> test2.1-adap1-ok.log
->> >>
->> >> Test 2.2)
->> >>       - sudo tzap -a 0 -x -H -c channelsv3.conf "La 1 HD.", using
->> first
->> >> tuner after second tuner lock, it doesn't lock and doesn't work
->> >>       - log excerpt extracted -> test2.2-adap0-ko.log
->> >>
->> >> From the logs, I interpret that, after one tuner is used and locked
->> the
->> >> signal, trying to use the other tuner no IRQs are fired after
->> >> cx23885_start_dma(), so the driver immediately cancels buffers and
->> >> stops dma. However, I am not an expert and I can't follow the full
->> >> workflow, so I could be wrong.
->> >>
->> >> I would like to help as much as I can, but I'm afraid I need some
->> >> guidance.
->> >>
->> >> BR
->> >>
->> >> -----Mensaje original-----
->> >> De: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> >> owner@vger.kernel.org] En nombre de dCrypt Enviado el: sábado, 17 de
->> >> enero de 2015 1:26
->> >> Para: james@ejbdigital.com.au
->> >> CC: linux-media@vger.kernel.org; hverkuil@xs4all.nl
->> >> Asunto: RE: [possible BUG, cx23885] Dual tuner TV card, works using
->> one
->> >> tuner only, doesn't work if both tuners are used
->> >>
->> >> Hi, James.
->> >>
->> >> After searching for somebody posting some issues similar to mine, I
->> >> think this one you posted to the mailing list can be related:
->> >>
->> >> https://www.mail-archive.com/linux-
->> >> media%40vger.kernel.org/msg80078.html
->> >>
->> >> I'm having problems using both tuners in a dual tuner card (Terratec
->> >> Cinergy T PCIe Dual), also based on cx23885, but it uses different
->> >> frontends/tuners than yours.
->> >>
->> >> In summary, my problem is that I started getting signal/locking
->> errors
->> >> in VDR if I tuned one frontend, and VDR scanned EIT/EPG using the
->> >> second tuner in the background; by disabling the second tuner it
->> works.
->> >> I managed to reproduce the problem by simply using dvbzap/dvbv5-zap
->> in
->> >> command line. And it suddenly started failing on the 1st of Dec 2014
->> >> (after a frequency change in DVB-T in Spain). I tested different
->> Ubuntu
->> >> distros wich previously worked, but I can't manage to make it work
->> now
->> >> using the default kernel included in the Ubuntu ISO image that I had
->> >> installed.
->> >>
->> >> I am testing now with Ubuntu 15.04 nightly, kernel 3.18, in a
->> separate
->> >> hw platform. I also tested with MythTV and TVHedaend, but as I
->> managed
->> >> to reproduce it with the dvb command line tools, I don't test any
->> GUI
->> >> anymore. I've also tested it in Windows 7, and it works tuning both
->> >> tuners simultaneously, so I discarded a hardware problem. I've also
->> >> tested with the latest git from the v4l repo by following this guide
->> >> ("basic" approach):
->> >>
->> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-
->> >> DVB_Device_Drivers with the same result.
->> >>
->> >> My guess is that something in the cx23885 driver does not like the
->> >> current DVB-T signal in Spain. Is it possible that something similar
->> >> happened where you live?
->> >>
->> >> The problem is that I don't know how to proceed to debug the issue,
->> so
->> >> any advice is welcome.
->> >>
->> >> BR
->> >>
->> >> -----Mensaje original-----
->> >> De: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> >> owner@vger.kernel.org] En nombre de dCrypt Enviado el: viernes, 09
->> de
->> >> enero de 2015 8:16
->> >> Para: blind Pete
->> >> CC: linux-media@vger.kernel.org
->> >> Asunto: RE: [BUG] Dual tuner TV card, works using one tuner only,
->> >> doesn't work if both tuners are used
->> >>
->> >> Hi, blind Pete.
->> >>
->> >> Thank you for taking your time to answer.
->> >>
->> >> Yes, I tried different kernels focusing con Ubuntu distro. I don't
->> >> remember the exact kernel version, but at least those included by
->> >> default in the Ubuntu 12.04 lts and 14.04 lts ISO image, which
->> worked
->> >> for me. The latest Ubuntu version I tested was the nightly 15.04
->> from
->> >> the 7th of January.
->> >>
->> >> BREl 9/1/2015 4:46, blind Pete <0123peter@gmail.com> escribió:
->> >> >
->> >> > Hi dCrypt,
->> >> >
->> >> > I'm not a developer at all.  I'm not even sure why I read this
->> list,
->> >> > but can you determine if the problem is associated with a
->> particular
->> >> > kernel version?  i.e. if it works on x.y.z but fails on x.y.(z+1)
->> you
->> >> > have a starting point.  If you use the word "regression" and a
->> kernel
->> >> > version number you might get more attention - but I'm only
->> guessing.
->> >> >
->> >> > Good luck,
->> >> > blind Pete
->> >> >
->> >> > dCrypt wrote:
->> >> >
->> >> > > Hi again,
->> >> > >
->> >> > > I'm sorry if I sound quite rude, but I'm not sure if I am doing
->> it
->> >> > > right or not. I subscribed to this mailing list in order to ask
->> for
->> >> > > help, or to help with a bug that I've found (as instructed in
->> the
->> >> > > wiki http://linuxtv.org/wiki/index.php/Bug_Report), but it seems
->> to
->> >> > > me that the mailing list is filled up with developing messages.
->> I
->> >> > > don't want to participate in the development, I am a developer
->> but
->> >> I
->> >> > > don't have the skills nor the knowledge.
->> >> > >
->> >> > > If this is not the right place to direct my questions, I would
->> >> > > appreciate some advice.
->> >> > >
->> >> > > Thank you very much, and best regards.
->> >> > >
->> >> > > -----Mensaje original-----
->> >> > > De: linux-media-owner@vger.kernel.org
->> >> > > [mailto:linux-media-owner@vger.kernel.org] En nombre de dCrypt
->> >> > > Enviado el: jueves, 01 de enero de 2015 22:04
->> >> > > Para: linux-media@vger.kernel.org
->> >> > > Asunto: [BUG] Dual tuner TV card, works using one tuner only,
->> >> > > doesn't work if both tuners are used
->> >> > >
->> >> > > Hi,
->> >> > >
->> >> > > I just subscribed to the mailing list to submit information on
->> the
->> >> > > bug which is driving me crazy since one month ago.
->> >> > >
->> >> > > I have a VDR based PVR at home, installed over an Ubuntu 14.04
->> LTS.
->> >> > > Everything was working perfectly, until beginning of December.
->> It
->> >> > > seems to me that something changed that broke my PVR pretty bad.
->> >> > >
->> >> > > The problem is the following: tuning (zap) both tuners (it's not
->> >> > > needed that both are tuned simultaneously, only one after the
->> >> other,
->> >> > > in no particular order) makes the tuners to enter an state where
->> >> > > they can't lock the signal anymore.
->> >> > >
->> >> > > Facts:
->> >> > >
->> >> > > - My TV card is a Cinergy T PCIe Dual from Terratec
->> >> > >
->> >>
->> (http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_T_PCIe_dual).
->> >> > > - The problem arose in the form of "frontend x/0 timed out while
->> >> > > tuning to channel ..." in /var/log/syslog. It happened when both
->> >> > > tuners are active, during EPG scan. The problem does not happen
->> if
->> >> > > VDR is run with -D parameter to limit the number of frontends
->> >> > > enabled. Disabling the EPG scan with both frontends enabled
->> >> > > minimizes the problem, but doesn't solve it because tuning both
->> >> > > frontends without any EPG scan makes the error happen again. - I
->> >> > > initially thought about a problem in the DVB-T signal, because
->> it
->> >> > > all started the 1st of December, during the transition to a new
->> set
->> >> of frequencies in Spain.
->> >> > > - Everything was working perfectly before the 1st, and the
->> problems
->> >> > > started suddenly.
->> >> > > - I setup testing board for debugging, different board and
->> >> > > processor, less memory, lots of Linux distros tested, Windows
->> >> tested as well.
->> >> > > - Both tuners works in windows without problems. Confirmed.
->> >> > > - I have completely discarded problems/errors in hardware
->> (because
->> >> > > in Windows I can enable both tuners without problems) and VDR
->> >> > > (because I can reproduce the problems at OS level, without even
->> >> having VDR installed).
->> >> > > - I have almost narrowed the problem at the cx23885 driver,
->> because
->> >> > > when it happens, I can restart the TV card to working conditions
->> by
->> >> > > executing "rmmod cx23885" and "modprobe cx23885"; however, as
->> with
->> >> > > "rmmod" several dependencies are unloaded as well, I am stuck
->> and I
->> >> > > am unable to go on with debugging to find out where the problem
->> >> really is.
->> >> > > - Tools used to test and confirm the problem are: VDR, MythTV,
->> >> > > TVHeadend, dvbscan, dvbv5-scan, dvbv5-zap and others
->> >> > > - Linux distros tested: Ubuntu, Fedora, Suse, yaVDR (not sure if
->> >> the
->> >> > > card worked at all), MythBuntu ("dvb-fe-tool -a 1 -c DVBT" was
->> >> > > required to force DVB-T mode for the second tuner), and probably
->> >> > > others
->> >> > > - I have a Sony PlayTV also with dual tuners, which works
->> without
->> >> > > any problem.
->> >> > >
->> http://www.linuxtv.org/wiki/index.php/Sony_PlayTV_dual_tuner_DVB-T
->> >> > >
->> >> > > So, that's why I ask for your help. How can I further debug the
->> >> problem?
->> >> > > Is there something I can do?
->> >> > >
->> >> > > BR, and happy new year!
->> >> > >
->> >> > >
->> >> > > INFO & TEST:
->> >> > >
->> >> > > ----------------------------------------------------------------
->> ---
->> >> ->
->> >> > >
->> >> > > pvr@prueba:~$ sudo lspci -vvv -s 03:00.0 03:00.0 Multimedia
->> video
->> >> > > controller: Conexant Systems, Inc. CX23885 PCI Video and Audio
->> >> > >Decoder  (rev 04)
->> >> > >         Subsystem: TERRATEC Electronic GmbH Cinergy T PCIe Dual
->> >> > >         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV-
->> VGASnoop-
->> >> > >         ParErr-
->> >> > > Stepping- SERR- FastB2B- DisINTx-
->> >> > >         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast
->> >> > >>TAbort-
->> >> > > <TAbort- <MAbort- >SERR- <PERR- INTx-
->> >> > >         Latency: 0, Cache Line Size: 4 bytes
->> >> > >         Interrupt: pin A routed to IRQ 16
->> >> > >         Region 0: Memory at fba00000 (64-bit, non-prefetchable)
->> >> > >[size=2M]
->> >> > >         Capabilities: [40] Express (v1) Endpoint, MSI 00
->> >> > >                 DevCap: MaxPayload 128 bytes, PhantFunc 0,
->> Latency
->> >> > >L0s  <64ns, L1 <1us
->> >> > >                         ExtTag- AttnBtn- AttnInd- PwrInd- RBE-
->> >> > >FLReset-
->> >> > >                 DevCtl: Report errors: Correctable- Non-Fatal-
->> >> > >Fatal-
->> >> > > Unsupported-
->> >> > >                         RlxdOrd+ ExtTag- PhantFunc- AuxPwr-
->> >> NoSnoop+
->> >> > >                         MaxPayload 128 bytes, MaxReadReq 512
->> bytes
->> >> > >                 DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+
->> >> > >AuxPwr-
->> >> > > TransPend-
->> >> > >                 LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM
->> L0s
->> >> > >L1,
->> >> > >                 Exit
->> >> > > Latency L0s <2us, L1 <4us
->> >> > >                         ClockPM- Surprise- LLActRep- BwNot-
->> >> > >                 LnkCtl: ASPM Disabled; RCB 64 bytes Disabled-
->> >> > >CommClk+
->> >> > >                         ExtSynch- ClockPM- AutWidDis- BWInt-
->> >> > >AutBWInt-
->> >> > >                 LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train-
->> >> > >SlotClk+
->> >> > > DLActive- BWMgmt- ABWMgmt-
->> >> > >         Capabilities: [80] Power Management version 2
->> >> > >                 Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA
->> >> > > PME(D0+,D1+,D2+,D3hot+,D3cold-)
->> >> > >                 Status: D0 NoSoftRst- PME-Enable- DSel=0
->> DScale=0
->> >> > >PME-
->> >> > >         Capabilities: [90] Vital Product Data
->> >> > >                 Product Name: "
->> >> > >                 End
->> >> > >         Capabilities: [a0] MSI: Enable- Count=1/1 Maskable-
->> 64bit+
->> >> > >                 Address: 0000000000000000  Data: 0000
->> >> > >         Capabilities: [100 v1] Advanced Error Reporting
->> >> > >                 UESta:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
->> >> > >UnxCmplt-
->> >> > > RxOF- MalfTLP- ECRC- UnsupReq+ ACSViol-
->> >> > >                 UEMsk:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
->> >> > >UnxCmplt-
->> >> > > RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
->> >> > >                 UESvrt: DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt-
->> >> > >UnxCmplt-
->> >> > > RxOF+ MalfTLP+ ECRC- UnsupReq- ACSViol-
->> >> > >                 CESta:  RxErr- BadTLP- BadDLLP- Rollover-
->> Timeout-
->> >> > > NonFatalErr-
->> >> > >                 CEMsk:  RxErr- BadTLP- BadDLLP- Rollover-
->> Timeout-
->> >> > > NonFatalErr-
->> >> > >                 AERCap: First Error Pointer: 14, GenCap- CGenEn-
->> >> > >ChkCap-
->> >> > > ChkEn-
->> >> > >         Capabilities: [200 v1] Virtual Channel
->> >> > >                 Caps:   LPEVC=0 RefClk=100ns PATEntryBits=1
->> >> > >                 Arb:    Fixed+ WRR32+ WRR64+ WRR128-
->> >> > >                 Ctrl:   ArbSelect=WRR64
->> >> > >                 Status: InProgress-
->> >> > >                 Port Arbitration Table [240] <?>
->> >> > >                 VC0:    Caps:   PATOffset=00 MaxTimeSlots=1
->> >> > >RejSnoopTrans-
->> >> > >                         Arb:    Fixed- WRR32- WRR64- WRR128-
->> >> > >TWRR128-
->> >> > > WRR256-
->> >> > >                         Ctrl:   Enable+ ID=0 ArbSelect=Fixed
->> >> > >TC/VC=ff
->> >> > >                         Status: NegoPending- InProgress-
->> >> > >         Kernel driver in use: cx23885
->> >> > >
->> >> > > ----------------------------------------------------------------
->> ---
->> >> ->
->> >> > >
->> >> > > pvr@prueba:~$ dmesg | grep cx
->> >> > > [   12.812789] cx23885 driver version 0.0.3 loaded [
->> 12.812997]
->> >> > > CORE cx23885[0]: subsystem: 153b:117e, board: TerraTec Cinergy T
->> >> > > PCIe Dual [card=34,autodetected] [   12.949340] cx25840 11-0044:
->> >> > > cx23885 A/V decoder found @ 0x88
->> >> > > (cx23885[0])
->> >> > > [   13.723953] cx25840 11-0044: loaded v4l-cx23885-avcore-01.fw
->> >> > > firmware
->> >> > > (16382 bytes)
->> >> > > [   13.739701] cx23885_dvb_register() allocating 1 frontend(s) [
->> >> > > 13.739704] cx23885[0]: cx23885 based dvb card [   13.852565]
->> DVB:
->> >> > > registering new adapter (cx23885[0]) [   13.852569] cx23885
->> >> > > 0000:03:00.0: DVB: registering adapter 0 frontend 0 (DRXK DVB-
->> T)...
->> >> > > [   13.852749] cx23885_dvb_register() allocating 1 frontend(s) [
->> >> > > 13.852750] cx23885[0]: cx23885 based dvb card [   13.958613]
->> DVB:
->> >> > > registering new adapter (cx23885[0]) [   13.958618] cx23885
->> >> > > 0000:03:00.0: DVB: registering adapter 1 frontend 0 (DRXK DVB-C
->> >> > > DVB-T)...
->> >> > > [   13.958934] cx23885_dev_checkrevision() Hardware revision =
->> 0xa5
->> >> > > [   13.958939] cx23885[0]/0: found at 0000:03:00.0, rev: 4, irq:
->> >> 16,
->> >> > > latency: 0, mmio: 0xfba00000
->> >> > >
->> >> > > ----------------------------------------------------------------
->> ---
->> >> ->
->> >> > >
->> >> > > pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 0
->> -x
->> >> > >using  demux '/dev/dvb/adapter0/demux0'
->> >> > > reading channels from file 'channelsv5.conf'
->> >> > > service has pid type 05:  115
->> >> > > tuning to 770000000 Hz
->> >> > >        (0x00) Quality= Good Signal= 100,00% C/N= 11,30dB UCB= 2
->> >> > >postBER= 0  preBER= 57,9x10^-6 PER= 48,8x10^-6  Lock   (0x1f)
->> >> > >Quality= Good Signal= 100,00% C/N= 11,80dB UCB= 3 postBER= 0
->> >> preBER=
->> >> > >55,1x10^-6 PER= 0  pvr@prueba:~$  pvr@prueba:~$ sudo dvbv5-zap
->> "La 1
->> >> > >HD." -c channelsv5.conf -a 0 -x using  demux
->> >> > >'/dev/dvb/adapter0/demux0'
->> >> > > reading channels from file 'channelsv5.conf'
->> >> > > service has pid type 05:  115
->> >> > > tuning to 770000000 Hz
->> >> > >        (0x00) Quality= Good Signal= 100,00% C/N= 11,80dB UCB= 3
->> >> > >postBER= 0  preBER= 63,6x10^-6 PER= 56,3x10^-6  Lock   (0x1f)
->> >> > >Quality= Good Signal= 100,00% C/N= 12,20dB UCB= 4 postBER=
->> >> > > 5,39x10^-6 preBER= 0 PER= 0
->> >> > > pvr@prueba:~$
->> >> > > pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 0
->> -x
->> >> > >using  demux '/dev/dvb/adapter0/demux0'
->> >> > > reading channels from file 'channelsv5.conf'
->> >> > > service has pid type 05:  115
->> >> > > tuning to 770000000 Hz
->> >> > >        (0x00) Quality= Good Signal= 100,00% C/N= 12,20dB UCB= 4
->> >> > >postBER=
->> >> > > 1,01x10^-6 preBER= 58,6x10^-6 PER= 61,0x10^-6  Lock   (0x1f)
->> >> > >Quality= Good Signal= 100,00% C/N= 12,10dB UCB= 4 postBER= 0
->> >> preBER=
->> >> > >55,1x10^-6 PER= 0  pvr@prueba:~$  pvr@prueba:~$ sudo dvbv5-zap
->> "La 1
->> >> > >HD." -c channelsv5.conf -a 1 -x using  demux
->> >> > >'/dev/dvb/adapter1/demux0'
->> >> > > reading channels from file 'channelsv5.conf'
->> >> > > service has pid type 05:  115
->> >> > > tuning to 770000000 Hz
->> >> > >        (0x00) Signal= 0,00%
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 10,00dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > >
->> >> > > ^Cpvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a
->> 0 -
->> >> x
->> >> > >using  demux '/dev/dvb/adapter0/demux0'
->> >> > > reading channels from file 'channelsv5.conf'
->> >> > > service has pid type 05:  115
->> >> > > tuning to 770000000 Hz
->> >> > >        (0x00) Quality= Good Signal= 100,00% C/N= 12,10dB UCB= 4
->> >> > >postBER=
->> >> > > 850x10^-9 preBER= 58,0x10^-6 PER= 51,4x10^-6
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 8,80dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 10,00dB
->> >> > >
->> >> > > ^Cpvr@prueba:~$ sudo rmmod cx23885
->> >> > > pvr@prueba:~$ sudo modprobe cx23885  pvr@prueba:~$
->> pvr@prueba:~$
->> >> > >pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a 1 -
->> x
->> >> > >using  demux '/dev/dvb/adapter1/demux0'
->> >> > > reading channels from file 'channelsv5.conf'
->> >> > > service has pid type 05:  115
->> >> > > tuning to 770000000 Hz
->> >> > >        (0x00) Signal= 0,00%
->> >> > > Lock   (0x1f) Quality= Good Signal= 100,00% C/N= 10,40dB UCB= 0
->> >> > >postBER= 0  preBER= 55,1x10^-6 PER= 0  pvr@prueba:~$ sudo dvbv5-
->> zap
->> >> > >"La 1 HD." -c channelsv5.conf -a 1 -x using  demux
->> >> > >'/dev/dvb/adapter1/demux0'
->> >> > > reading channels from file 'channelsv5.conf'
->> >> > > service has pid type 05:  115
->> >> > > tuning to 770000000 Hz
->> >> > >        (0x00) Quality= Good Signal= 100,00% C/N= 10,40dB UCB= 0
->> >> > >postBER= 0  preBER= 36,7x10^-6 PER= 0  Lock   (0x1f) Quality=
->> Good
->> >> > >Signal= 100,00% C/N= 11,90dB UCB= 1 postBER= 0  preBER= 331x10^-6
->> >> > >PER= 0  pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c
->> channelsv5.conf -
->> >> a
->> >> > >1 -x using  demux '/dev/dvb/adapter1/demux0'
->> >> > > reading channels from file 'channelsv5.conf'
->> >> > > service has pid type 05:  115
->> >> > > tuning to 770000000 Hz
->> >> > >        (0x00) Quality= Good Signal= 100,00% C/N= 11,90dB UCB= 1
->> >> > >postBER= 0  preBER= 175x10^-6 PER= 40,7x10^-6  Lock   (0x1f)
->> >> Quality=
->> >> > >Good Signal= 100,00% C/N= 12,30dB UCB= 2 postBER= 0  preBER=
->> >> > >55,1x10^-6 PER= 0  pvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c
->> >> > >channelsv5.conf -a 0 -x using  demux '/dev/dvb/adapter0/demux0'
->> >> > > reading channels from file 'channelsv5.conf'
->> >> > > service has pid type 05:  115
->> >> > > tuning to 770000000 Hz
->> >> > >        (0x00) Signal= 0,00%
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 11,60dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > >
->> >> > > ^Cpvr@prueba:~$ sudo dvbv5-zap "La 1 HD." -c channelsv5.conf -a
->> 1 -
->> >> x
->> >> > >using  demux '/dev/dvb/adapter1/demux0'
->> >> > > reading channels from file 'channelsv5.conf'
->> >> > > service has pid type 05:  115
->> >> > > tuning to 770000000 Hz
->> >> > >        (0x00) Quality= Good Signal= 100,00% C/N= 12,30dB UCB= 2
->> >> > >postBER= 0  preBER= 138x10^-6 PER= 54,3x10^-6
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 10,20dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 11,70dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 0,00dB
->> >> > > Viterbi(0x07) Signal= 100,00% C/N= 10,40dB
->> >> > >
->> >> > > ^Cpvr@prueba:~$
->> >> > >
->> >> > >
->> >> > > --
->> >> > > To unsubscribe from this list: send the line "unsubscribe
->> >> > > linux-media" in the body of a message to
->> majordomo@vger.kernel.org
->> >> > > More majordomo info at http://vger.kernel.org/majordomo-
->> info.html
->> >> > --
->> >> > blind Pete
->> >> > Sig goes here...
->> >> >
->> >> > --
->> >> > To unsubscribe from this list: send the line "unsubscribe linux-
->> >> media"
->> >> > in the body of a message to majordomo@vger.kernel.org More
->> majordomo
->> >> > info at  http://vger.kernel.org/majordomo-info.html
->> >> N     r  y   b X  ǧv ^ )޺{.n +    {   bj)   w*jg         ݢj/   z ޖ
->> 2 ޙ
->> >> & )ߡ a       G   h   j:+v   w ٥
->> >>
->> >> --
->> >> To unsubscribe from this list: send the line "unsubscribe linux-
->> media"
->> >> in the body of a message to majordomo@vger.kernel.org More majordomo
->> >> info at  http://vger.kernel.org/majordomo-info.html
->
+Laurent Pinchart
+
