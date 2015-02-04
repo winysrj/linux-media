@@ -1,100 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:52763 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932872AbbBBT60 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 14:58:26 -0500
-Date: Mon, 2 Feb 2015 14:58:25 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Jonas Jonsson <jonas.jonsson@hornstull.net>
-cc: USB list <linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>
-Subject: Re: HP EC372S (Yuan DVB ExpressCard) crash in 3.18.3
-In-Reply-To: <54CF4294.4030905@hornstull.net>
-Message-ID: <Pine.LNX.4.44L0.1502021457070.1065-100000@iolanthe.rowland.org>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:53224 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932203AbbBDHVP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Feb 2015 02:21:15 -0500
+Message-ID: <54D1C841.5090108@xs4all.nl>
+Date: Wed, 04 Feb 2015 08:20:33 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+To: Miguel Casas-Sanchez <mcasas@chromium.org>,
+	linux-media@vger.kernel.org
+Subject: Re: Vivid test device: adding YU12
+References: <CAKoAQ7=MmJZcyGZkJwUFHL=yHZfG0AbNcZV+Ho0d6EhB5WV7nw@mail.gmail.com>
+In-Reply-To: <CAKoAQ7=MmJZcyGZkJwUFHL=yHZfG0AbNcZV+Ho0d6EhB5WV7nw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2 Feb 2015, Jonas Jonsson wrote:
-
-> Hi,
-> 
-> I posted a bug on kernel.org 
-> (https://bugzilla.kernel.org/show_bug.cgi?id=92301 ) and was asked to 
-> sent it to this mail-address.
-
-Since this bug involves the dvb-usb driver, it should also be posted to 
-the linux-media mailing list (CC-ed).
-
-Alan Stern
-
-> Jan 29 21:26:51 plattpcn kernel: [   17.322493] input: UVC Camera (05ca:1812) as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/2-4:1.0/input/input10
-> Jan 29 21:26:51 plattpcn kernel: [   17.322621] usbcore: registered new interface driver uvcvideo
-> Jan 29 21:26:51 plattpcn kernel: [   17.322623] USB Video Class driver (1.1.1)
-> Jan 29 21:26:51 plattpcn kernel: [   17.583002] input: HP WMI hotkeys as /devices/virtual/input/input11
-> Jan 29 21:26:51 plattpcn kernel: [   18.108106] iwl4965 0000:02:00.0: loaded firmware version 228.61.2.24
-> Jan 29 21:26:51 plattpcn kernel: [   18.360154] ieee80211 phy0: Selected rate control algorithm 'iwl-4965-rs'
-> Jan 29 21:26:51 plattpcn kernel: [   18.620404] dvb-usb: found a 'Yuan EC372S' in cold state, will try to load a firmware
-> Jan 29 21:26:51 plattpcn kernel: [   18.993039] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-> Jan 29 21:26:51 plattpcn kernel: [   19.194634] dib0700: firmware started successfully.
-> Jan 29 21:26:51 plattpcn kernel: [   19.695174] dvb-usb: found a 'Yuan EC372S' in warm state.
-> Jan 29 21:26:51 plattpcn kernel: [   19.695448] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> Jan 29 21:26:51 plattpcn kernel: [   19.695527] DVB: registering new adapter (Yuan EC372S)
-> Jan 29 21:26:51 plattpcn kernel: [   20.090809] BUG: unable to handle kernel NULL pointer dereference at 0000000000000080
-> Jan 29 21:26:51 plattpcn kernel: [   20.090987] IP: [<ffffffffa057b061>] dib7000p_attach+0x11/0xa0 [dib7000p]
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] PGD 36893067 PUD b95b0067 PMD 0
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] Oops: 0002 [#1] SMP
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] Modules linked in: dib7000p(E) dvb_usb_dib0700(E+) dib7000m(E) arc4(E) dib0090(E) dib0070(E) dib3000mc(E) dibx000_common(E) dvb_usb(E) dvb_core(E) coretemp(E) hp_wmi(E) rc_core(E) sparse_keymap(E) uvcvideo(E) iwl4965(E) videobuf2_vmalloc(E) snd_hda_codec_si3054(E) kvm(E) iwlegacy(E) snd_hda_codec_realtek(E) videobuf2_memops(E) mac80211(E) videobuf2_core(E) snd_hda_codec_generic(E) v4l2_common(E) videodev(E) snd_hda_intel(E) joydev(E) snd_hda_controller(E) serio_raw(E) snd_hda_codec(E) snd_hwdep(E) r852(E) cfg80211(E) snd_pcm(E) sm_common(E) btusb(E) nand(E) snd_seq_midi(E) nand_ecc(E) snd_seq_midi_event(E) bluetooth(E) snd_rawmidi(E) nand_bch(E) snd_seq(E) bch(E) r592(E) snd_seq_device(E) nand_ids(E) snd_timer(E) mtd(E) memstick(E) drm(E) snd(E) soundcore(E) lpc_ich(E) wmi(E) video(E) mac_hid(E) parport_pc(E) ppdev(E) lp(E) parport(E) psmouse(E) ahci(E) libahci(E) firewire_ohci(E) firewire_core(E) sdhci_pci(E) crc_itu_t(E) sdhci(E) r8169(E) mii(E)
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] CPU: 0 PID: 442 Comm: systemd-udevd Tainted: G            E  3.18.3jonas #1
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] Hardware name: Hewlett-Packard HP Pavilion dv9700 Notebook PC    /30CB, BIOS F.59      11/25/2008
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] task: ffff8800b8f68000 ti: ffff8800b9148000 task.ti: ffff8800b9148000
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] RIP: 0010:[<ffffffffa057b061>]  [<ffffffffa057b061>] dib7000p_attach+0x11/0xa0 [dib7000p]
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] RSP: 0018:ffff8800b914ba88  EFLAGS: 00010202
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] RAX: 0000000000000010 RBX: ffff8800ba9d1278 RCX: ffffffffa0581040
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] RDX: ffffffffa0581040 RSI: ffffffffa0581c2b RDI: 0000000000000010
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] RBP: ffff8800b914ba88 R08: ffffffff810e47a0 R09: 00000001802a0029
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] R10: ffffea0002ed9fc0 R11: ffffffff8107cf84 R12: 0000000000000000
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] R13: 0000000000000010 R14: ffff8800ba9d1278 R15: ffff8800ba9d1398
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] FS:  00007fd441492880(0000) GS:ffff88013fc00000(0000) knlGS:0000000000000000
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] CR2: 0000000000000080 CR3: 0000000036892000 CR4: 00000000000007f0
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] Stack:
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  ffff8800b914bab8 ffffffffa055adab ffff8800ba9d1278 ffff8800ba9d1278
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  ffff8800ba9d1278 0000000000000000 ffff8800b914baf8 ffffffffa04776b8
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  ffff8800ba9d0000 0000000000000000 ffff8800ba9d1278 ffff8800ba9d0000
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] Call Trace:
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffffa055adab>] stk7700P2_frontend_attach+0x3b/0x1f0 [dvb_usb_dib0700]
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffffa04776b8>] dvb_usb_adapter_frontend_init+0xf8/0x1b0 [dvb_usb]
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffffa047694c>] dvb_usb_device_init+0x45c/0x610 [dvb_usb]
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffffa055731a>] dib0700_probe+0x6a/0x100 [dvb_usb_dib0700]
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff8175deb6>] ? mutex_lock+0x16/0x37
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff8156d12f>] usb_probe_interface+0x1df/0x330
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff814afead>] driver_probe_device+0x12d/0x3e0
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff814b023b>] __driver_attach+0x9b/0xa0
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff814b01a0>] ? __device_attach+0x40/0x40
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff814addc3>] bus_for_each_dev+0x63/0xa0
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff814af88e>] driver_attach+0x1e/0x20
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff814af490>] bus_add_driver+0x180/0x240
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff814b0a24>] driver_register+0x64/0xf0
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff8156b792>] usb_register_driver+0x82/0x160
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffffa04bc000>] ? 0xffffffffa04bc000
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffffa04bc01e>] dib0700_driver_init+0x1e/0x1000 [dvb_usb_dib0700]
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff8100212c>] do_one_initcall+0xbc/0x1f0
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff8119bf42>] ? __vunmap+0xc2/0x110
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff810e9245>] load_module+0x1d35/0x27d0
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff810e4f90>] ? store_uevent+0x40/0x40
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff810e9e56>] SyS_finit_module+0x86/0xb0
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  [<ffffffff817603ed>] system_call_fastpath+0x16/0x1b
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] Code: 8b 87 18 03 00 00 55 48 89 e5 5d 48 05 68 16 00 00 c3 0f 1f 84 00 00 00 00 00 66 66 66 66 90 55 48 85 ff 48 89 f8 48 89 e5 74 7f <48> c7 47 70 90 c9 57 a0 48 c7 47 68 00 ba 57 a0 48 c7 47 30 80
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] RIP  [<ffffffffa057b061>] dib7000p_attach+0x11/0xa0 [dib7000p]
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007]  RSP <ffff8800b914ba88>
-> Jan 29 21:26:51 plattpcn kernel: [   20.091007] CR2: 0000000000000080
-> Jan 29 21:26:51 plattpcn kernel: [   20.102621] ---[ end trace 11794293bad0bfef ]---
+On 02/04/2015 01:42 AM, Miguel Casas-Sanchez wrote:
+>     On 02/02/15 23:32, Miguel Casas-Sanchez wrote:
+>     >> On 01/29/2015 03:44 AM, Miguel Casas-Sanchez wrote:
+>     >>> Hi folks, I've been trying to add a triplanar format to those that vivid
+>     >>> can generate, and didn't quite manage :(
+>     >>>
+>     >>> So, I tried adding code for it like in the patch (with some dprintk() as
+>     >>> well) to clarify what I wanted to do. Module is insmod'ed like "insmod
+>     >>> vivid.ko n_devs=1 node_types=0x1 multiplanar=2 vivid_debug=1"
+>     >>
+>     >> You are confusing something: PIX_FMT_YUV420 is single-planar, not multi-planar.
+>     >> That is, all image data is contained in one buffer. PIX_FMT_YUV420M is multi-planar,
+>     >> however. So you need to think which one you actually want to support.
+>     >> Another problem is that for the chroma part you need to average the values over
+>     >> four pixels. So the TPG needs to be aware of the previous line. This makes the TPG
+>     >> more complicated, and of course it is the reason why I didn't implement 4:2:0
+>     >> formats :-)
+>     >> I would implement YUV420 first, and (if needed) YUV420M and/or NV12 can easily be
+>     >> added later.
+>     >> Regards,
+>     >>         Hans
+>     >>
+>     >
+>     > So, we could call YUV420 (YU12) a tightly packed planar format :)
+>     > because it has several planes, rigurously speaking, but they are
+>     > laid out back-to-back in memory. Correct?
+>     Correct.
+>     > I was interested here precisely in using the MPLANE API, so I'd
+>     > rather go for YUV420M directly; perhaps cheating a bit on the
+>     > TPG calculation in the first implementation: I/we could just simplify
+>     > the Chroma calculation to grabbing the upper-left pixel value,
+>     > ignoring the other three. Not perfect, but for a first patch of a test
+>     > device it should do.
+>     >
+>     > WDYT?
+>     I would actually pick YUV420 or NV12 as the initial implementation, since
+>     you can test that with qv4l2 (it uses libv4lconvert which understands
+>     those two formats). That way you can develop on any linux PC. Also there
+>     is no need initially to add support for 3-plane formats, which simplifies
+>     things. But that's just my preference.
 > 
 > 
+> I'll follow your advice then.
+>  
 > 
-> Regards,
+>     Note that I won't accept patches that do not implement 4:2:0 correctly
+>     (averaging four pixels). The goal of the vivid driver is to emulate
+>     hardware as well as possible, so shortcuts with that are a no-go.
 > 
-> Jonas
+> 
+> Yeah sure, I meant: there were two to-do's"
+> a) add NV12 (YUV420) non-multiplanar, making sure the chromas are rightly calculated
+> b) add mplanar version of the previous.
+> What we "argued" for a second was about the order of those two, not
+> their existence :)
+> 
+> I think we're on to doing a) then b). Would it be ok to prepare-review-land
+> them separately or rather have a single patch?
 
+I'd keep them separately. The first patch adds support for, say, NV12, the next
+for NV21, then YUV420, YVU420, YUV240M, YVU420M, NV12M, NV21M. Perhaps I'm too
+optimistic here, but it should be easy to add support for all these variants
+once the first is done.
+
+Regards,
+
+	Hans
