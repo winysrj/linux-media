@@ -1,90 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:33308 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754297AbbBTPgS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2015 10:36:18 -0500
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-	by mailout.nyi.internal (Postfix) with ESMTP id 83CB3209F7
-	for <linux-media@vger.kernel.org>; Fri, 20 Feb 2015 10:36:17 -0500 (EST)
-Date: Fri, 20 Feb 2015 07:36:16 -0800
-From: Greg KH <greg@kroah.com>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, Pavel Machek <pavel@ucw.cz>,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, s.nawrocki@samsung.com
-Subject: Re: 0.led_name 2.other.led.name in /sysfs Re: [PATCH/RFC v11 01/20]
- leds: flash: document sysfs interface
-Message-ID: <20150220153616.GB18111@kroah.com>
-References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
- <1424276441-3969-2-git-send-email-j.anaszewski@samsung.com>
- <20150218224747.GA3999@amd>
- <20150219090204.GI3915@valkosipuli.retiisi.org.uk>
- <20150219214043.GB29875@kroah.com>
- <54E6E89B.4050404@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54E6E89B.4050404@samsung.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45386 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965799AbbBDNOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 08:14:52 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 3/5] [media] coda: Set last buffer flag and fix EOS event
+Date: Wed,  4 Feb 2015 14:14:35 +0100
+Message-Id: <1423055677-13161-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
+References: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 20, 2015 at 08:56:11AM +0100, Jacek Anaszewski wrote:
-> On 02/19/2015 10:40 PM, Greg KH wrote:
-> >On Thu, Feb 19, 2015 at 11:02:04AM +0200, Sakari Ailus wrote:
-> >>On Wed, Feb 18, 2015 at 11:47:47PM +0100, Pavel Machek wrote:
-> >>>
-> >>>On Wed 2015-02-18 17:20:22, Jacek Anaszewski wrote:
-> >>>>Add a documentation of LED Flash class specific sysfs attributes.
-> >>>>
-> >>>>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>>>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>>>Cc: Bryan Wu <cooloney@gmail.com>
-> >>>>Cc: Richard Purdie <rpurdie@rpsys.net>
-> >>>
-> >>>NAK-ed-by: Pavel Machek
-> >>>
-> >>>>+What:		/sys/class/leds/<led>/available_sync_leds
-> >>>>+Date:		February 2015
-> >>>>+KernelVersion:	3.20
-> >>>>+Contact:	Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>>>+Description:	read/write
-> >>>>+		Space separated list of LEDs available for flash strobe
-> >>>>+		synchronization, displayed in the format:
-> >>>>+
-> >>>>+		led1_id.led1_name led2_id.led2_name led3_id.led3_name etc.
-> >>>
-> >>>Multiple values per file, with all the problems we had in /proc. I
-> >>>assume led_id is an integer? What prevents space or dot in led name?
-> >>
-> >>Very good point. How about using a newline instead? That'd be a little bit
-> >>easier to parse, too.
-> >
-> >No, please make it one value per-file, which is what sysfs requires.
-> 
-> The purpose of this attribute is only to provide an information about
-> the range of valid identifiers that can be written to the
-> flash_sync_strobe attribute. Wouldn't splitting this to many attributes
-> be an unnecessary inflation of sysfs files?
+Setting the last buffer flag causes the videobuf2 core to return -EPIPE from
+DQBUF calls on the capture queue after the last buffer is dequeued.
+This patch also fixes the EOS event to conform to the specification. It now is
+sent right after the last buffer has been decoded instead of when the last
+buffer is dequeued.
 
-Ok a list of allowed values to write is acceptable, as long as it is not
-hard to parse and always is space separated.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c    |  4 ++--
+ drivers/media/platform/coda/coda-common.c | 27 +++++++++++----------------
+ drivers/media/platform/coda/coda.h        |  3 +++
+ 3 files changed, 16 insertions(+), 18 deletions(-)
 
-> Apart from it, we have also flash_faults attribute, that currently
-> provides a space separated list of flash faults that have occurred.
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 856b542..9ae0bfa 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1278,7 +1278,7 @@ static void coda_finish_encode(struct coda_ctx *ctx)
+ 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+ 
+ 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+-	v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
++	coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_DONE);
+ 
+ 	ctx->gopcounter--;
+ 	if (ctx->gopcounter < 0)
+@@ -1887,7 +1887,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		}
+ 		vb2_set_plane_payload(dst_buf, 0, payload);
+ 
+-		v4l2_m2m_buf_done(dst_buf, ctx->frame_errors[display_idx] ?
++		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[display_idx] ?
+ 				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 
+ 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 6f32e6d..f178ad3 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -705,35 +705,30 @@ static int coda_qbuf(struct file *file, void *priv,
+ }
+ 
+ static bool coda_buf_is_end_of_stream(struct coda_ctx *ctx,
+-				      struct v4l2_buffer *buf)
++				      struct vb2_buffer *buf)
+ {
+ 	struct vb2_queue *src_vq;
+ 
+ 	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 
+ 	return ((ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG) &&
+-		(buf->sequence == (ctx->qsequence - 1)));
++		(buf->v4l2_buf.sequence == (ctx->qsequence - 1)));
+ }
+ 
+-static int coda_dqbuf(struct file *file, void *priv,
+-		      struct v4l2_buffer *buf)
++void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_buffer *buf,
++		       enum vb2_buffer_state state)
+ {
+-	struct coda_ctx *ctx = fh_to_ctx(priv);
+-	int ret;
++	const struct v4l2_event eos_event = {
++		.type = V4L2_EVENT_EOS
++	};
+ 
+-	ret = v4l2_m2m_dqbuf(file, ctx->fh.m2m_ctx, buf);
+-
+-	/* If this is the last capture buffer, emit an end-of-stream event */
+-	if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+-	    coda_buf_is_end_of_stream(ctx, buf)) {
+-		const struct v4l2_event eos_event = {
+-			.type = V4L2_EVENT_EOS
+-		};
++	if (coda_buf_is_end_of_stream(ctx, buf)) {
++		buf->v4l2_buf.flags |= V4L2_BUF_FLAG_LAST;
+ 
+ 		v4l2_event_queue_fh(&ctx->fh, &eos_event);
+ 	}
+ 
+-	return ret;
++	v4l2_m2m_buf_done(buf, state);
+ }
+ 
+ static int coda_g_selection(struct file *file, void *fh,
+@@ -846,7 +841,7 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+ 
+ 	.vidioc_qbuf		= coda_qbuf,
+ 	.vidioc_expbuf		= v4l2_m2m_ioctl_expbuf,
+-	.vidioc_dqbuf		= coda_dqbuf,
++	.vidioc_dqbuf		= v4l2_m2m_ioctl_dqbuf,
+ 	.vidioc_create_bufs	= v4l2_m2m_ioctl_create_bufs,
+ 
+ 	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 0c35cd5..420de18 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -291,6 +291,9 @@ static inline int coda_get_bitstream_payload(struct coda_ctx *ctx)
+ 
+ void coda_bit_stream_end_flag(struct coda_ctx *ctx);
+ 
++void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_buffer *buf,
++		       enum vb2_buffer_state state);
++
+ int coda_h264_padding(int size, char *p);
+ 
+ bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_buffer *vb);
+-- 
+2.1.4
 
-That's crazy, what's to keep it from growing and growing to be larger
-than is allowed to be read?
-
-> If we are to stick tightly to the one-value-per-file rule, then how
-> we should approach flash_faults case? Should the separate file be
-> dynamically created for each reported fault?
-
-I think you need to use something other than sysfs here, sorry.
-
-uevents for your faults?
-
-thanks,
-
-greg k-h
