@@ -1,65 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41145 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752617AbbBYOOX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2015 09:14:23 -0500
-Message-ID: <54EDD8B8.1030608@xs4all.nl>
-Date: Wed, 25 Feb 2015 15:14:16 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 3/3] smiapp: Use __v4l2_ctrl_grab() to grab controls
-References: <1424867607-4082-1-git-send-email-sakari.ailus@iki.fi> <1424867607-4082-4-git-send-email-sakari.ailus@iki.fi> <54EDD216.9030806@xs4all.nl> <20150225135711.GK6539@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20150225135711.GK6539@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45382 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965653AbbBDNOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 08:14:52 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Peter Seiderer <ps.report@gmx.net>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 1/5] [media] videodev2: Add V4L2_BUF_FLAG_LAST
+Date: Wed,  4 Feb 2015 14:14:33 +0100
+Message-Id: <1423055677-13161-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
+References: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/25/15 14:57, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Wed, Feb 25, 2015 at 02:45:58PM +0100, Hans Verkuil wrote:
-> ...
->>> @@ -1535,15 +1529,15 @@ static int smiapp_set_stream(struct v4l2_subdev *subdev, int enable)
->>>  	if (sensor->streaming == enable)
->>>  		goto out;
->>>  
->>> -	if (enable) {
->>> -		sensor->streaming = true;
->>> +	if (enable)
->>>  		rval = smiapp_start_streaming(sensor);
->>> -		if (rval < 0)
->>> -			sensor->streaming = false;
->>> -	} else {
->>> +	else
->>>  		rval = smiapp_stop_streaming(sensor);
->>> -		sensor->streaming = false;
->>> -	}
->>> +
->>> +	sensor->streaming = enable;
->>> +	__v4l2_ctrl_grab(sensor->hflip, enable);
->>> +	__v4l2_ctrl_grab(sensor->vflip, enable);
->>> +	__v4l2_ctrl_grab(sensor->link_freq, enable);
->>
->> Just checking: is it really not possible to change these controls
->> while streaming? Most devices I know of allow changing this on the fly.
->>
->> If it is really not possible, then you can add my Ack for this series:
-> 
-> I'm not sure what the sensors would do in practice, but the problem is that
-> changing the values of these control affect the pixel order. That's why
-> changing them has been prevented while streaming.
+From: Peter Seiderer <ps.report@gmx.net>
 
-Ah, OK.
+This v4l2_buffer flag can be used by drivers to mark a capture buffer
+as the last generated buffer, for example after a V4L2_DEC_CMD_STOP
+command was issued.
 
-Can you add a comment explaining why this is done?
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v1:
+ - Added documentation
+---
+ Documentation/DocBook/media/v4l/io.xml | 10 ++++++++++
+ include/uapi/linux/videodev2.h         |  2 ++
+ 2 files changed, 12 insertions(+)
 
-BTW, I understand that HFLIP will cause changes in the pixel order,
-but VFLIP and link_freq should be OK, I would expect.
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 1c17f80..f3b8bc0 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -1129,6 +1129,16 @@ in this buffer has not been created by the CPU but by some DMA-capable unit,
+ in which case caches have not been used.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_LAST</constant></entry>
++	    <entry>0x00100000</entry>
++	    <entry>Last buffer produced by the hardware. mem2mem codec drivers
++set this flag on the capture queue for the last buffer when the
++<link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link> or
++<link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called. After the
++queue is drained, the <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl will
++not block anymore, but return an &EPIPE;.</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
+ 	    <entry>0x0000e000</entry>
+ 	    <entry>Mask for timestamp types below. To test the
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index fbdc360..c642c10 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -809,6 +809,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
++/* mem2mem encoder/decoder */
++#define V4L2_BUF_FLAG_LAST			0x00100000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+-- 
+2.1.4
 
-Regards,
-
-	Hans
