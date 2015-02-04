@@ -1,79 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45139 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752027AbbBVVf5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2015 16:35:57 -0500
-Message-ID: <54EA4BB8.2080106@iki.fi>
-Date: Sun, 22 Feb 2015 23:35:52 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57100 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752997AbbBDLdU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 06:33:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Florian Echtler <floe@butterbrot.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
+Date: Wed, 04 Feb 2015 13:34:06 +0200
+Message-ID: <10701805.dDfTQCs2MO@avalon>
+In-Reply-To: <54D1FAFA.3070506@butterbrot.org>
+References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <54D1F2CA.9020201@xs4all.nl> <54D1FAFA.3070506@butterbrot.org>
 MIME-Version: 1.0
-To: Gert-Jan van der Stroom <gjstroom@gmail.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: Mygica T230 DVB-T/T2/C Ubuntu 14.04 (kernel 3.13.0-45) using
- media_build
-References: <002401d04ea1$e5cf1780$b16d4680$@gmail.com>
-In-Reply-To: <002401d04ea1$e5cf1780$b16d4680$@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
-could you fix your media controller stuff ASAP as I think almost all DVB 
-devices are currently broken. I have got multiple bug reports....
+Hi Florian,
 
-On 02/22/2015 03:17 PM, Gert-Jan van der Stroom wrote:
-> Can someone help me to get a Mygica T230 DVB-T/T2/C working on Ubuntu 14.04
-> (kernel 3.13.0-45) using media_build.
-> I succeed doing a build of the media_build, the drivers also load when I
-> attach the Mygica, but when I try to use it (tvheadend) it crashes:
+On Wednesday 04 February 2015 11:56:58 Florian Echtler wrote:
+> On 04.02.2015 11:22, Hans Verkuil wrote:
+> > On 02/04/15 11:08, Florian Echtler wrote:
+> >> On 04.02.2015 09:08, Hans Verkuil wrote:
+> >>> You can also make a version with vmalloc and I'll merge that, and then
+> >>> you can look more into the DMA issues. That way the driver is merged,
+> >>> even if it is perhaps not yet optimal, and you can address that part
+> >>> later.
+> >> 
+> >> OK, that sounds sensible, I will try that route. When using
+> >> videobuf2-vmalloc, what do I pass back for alloc_ctxs in queue_setup?
+> > 
+> > vmalloc doesn't need those, so you can just drop any alloc_ctx related
+> > code.
 >
-> [   61.592114] dvb-usb: found a 'Mygica T230 DVB-T/T2/C' in warm state.
-> [   61.828138] dvb-usb: will pass the complete MPEG2 transport stream to the
-> software demuxer.
-> [   61.828279] DVB: registering new adapter (Mygica T230 DVB-T/T2/C)
-> [   61.847369] i2c i2c-7: Added multiplexed i2c bus 8
-> [   61.847372] si2168 7-0064: Silicon Labs Si2168 successfully attached
-> [   61.857024] si2157 8-0060: Silicon Labs Si2147/2148/2157/2158
-> successfully attached
-> [   61.857034] usb 1-5: DVB: registering adapter 0 frontend 0 (Silicon Labs
-> Si2168)...
-> [   61.857488] input: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1a.7/usb1/1-5/input/input11
-> [   61.857541] dvb-usb: schedule remote query interval to 100 msecs.
-> [   61.857709] dvb-usb: Mygica T230 DVB-T/T2/C successfully initialized and
-> connected.
-> [   61.857773] usbcore: registered new interface driver dvb_usb_cxusb
->
-> Tvheadend start:
-> [  314.356162] BUG: unable to handle kernel NULL pointer dereference at
-> 0000000000000010
-> [  314.356202] IP: [<ffffffffa02ef74c>]
-> media_entity_pipeline_start+0x1c/0x390 [media]
+> That's what I assumed, however, I'm running into the same problem as
+> with dma-sg when I switch to vmalloc...?
 
+I don't expect vmalloc to work, as you can't DMA to vmalloc memory directly 
+without any IOMMU in the general case (the allocated memory being physically 
+fragmented).
 
-^^^^^^^^^^^^ problem is that I think
+dma-sg should work though, but you won't be able to use usb_bulk_msg(). You 
+need to create the URBs manually, set their sg and num_sgs fields and submit 
+them.
 
-
-> [  314.356236] PGD 76c6c067 PUD 766b0067 PMD 0
-> [  314.356260] Oops: 0000 [#1] SMP
-> [  314.356279] Modules linked in: si2157(OX) si2168(OX) i2c_mux
-> dvb_usb_cxusb(OX) dib0070(OX) dvb_usb(OX) dvb_core(OX) rc_core(OX) media(OX)
-> snd_hda_codec_analog gpio_ich hp_wmi sparse_keymap coretemp kvm_intel kvm
-> serio_raw snd_hda_intel i915 lpc_ich snd_hda_codec shpchp drm_kms_helper
-> snd_hwdep snd_pcm snd_page_alloc snd_timer pl2303 video wmi tpm_infineon drm
-> mac_hid mei_me snd soundcore i2c_algo_bit usbserial mei lp parport psmouse
-> e1000e floppy ptp pps_core pata_acpi
-> [  314.356541] CPU: 1 PID: 1053 Comm: kdvb-ad-0-fe-0 Tainted: G        W  OX
-> 3.13.0-45-generic #74-Ubuntu
->
-> What is wrong, or do I miss something ?
-> I also added the firmware described at:
-> http://www.linuxtv.org/wiki/index.php/Geniatech_T230
-
-regards
-Antti
+> I've sent a "proper" patch submission again, which has all the other
+> issues from the previous submission fixed. I'm hoping you can maybe have
+> a closer look and see if I'm doing anything subtly wrong which causes
+> both vmalloc and dma-sg to fail while dma-contig works.
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
