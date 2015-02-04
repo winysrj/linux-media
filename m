@@ -1,55 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:60642 "EHLO
-	mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752728AbbBYTkS (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35536 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751149AbbBDLjq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2015 14:40:18 -0500
-Received: by mail-oi0-f47.google.com with SMTP id i138so5281262oig.6
-        for <linux-media@vger.kernel.org>; Wed, 25 Feb 2015 11:40:17 -0800 (PST)
+	Wed, 4 Feb 2015 06:39:46 -0500
+Message-ID: <54D204F2.3040006@xs4all.nl>
+Date: Wed, 04 Feb 2015 12:39:30 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <54EE0C55.2020501@gmail.com>
-References: <CAL8zT=g2uUDQYgfNW5017YCKjfxBz7Oj+9FSvdo4PXZgiOAKWQ@mail.gmail.com>
- <54EE086B.9020904@gmail.com> <54EE0C55.2020501@gmail.com>
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Date: Wed, 25 Feb 2015 20:40:02 +0100
-Message-ID: <CAL8zT=jNnHp-ngX01Se8cc+LUtRmr4+-NwVbFAY4hZpuKuB4Rg@mail.gmail.com>
-Subject: Re: i.MX6 Video combiner
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Florian Echtler <floe@butterbrot.org>
+CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
+References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <54D1F2CA.9020201@xs4all.nl> <54D1FAFA.3070506@butterbrot.org> <10701805.dDfTQCs2MO@avalon>
+In-Reply-To: <10701805.dDfTQCs2MO@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
-
-2015-02-25 18:54 GMT+01:00 Steve Longerbeam <slongerbeam@gmail.com>:
-> On 02/25/2015 09:37 AM, Steve Longerbeam wrote:
->> On 02/25/2015 02:57 AM, Jean-Michel Hautbois wrote:
->>> Hi all,
+On 02/04/15 12:34, Laurent Pinchart wrote:
+> Hi Florian,
+> 
+> On Wednesday 04 February 2015 11:56:58 Florian Echtler wrote:
+>> On 04.02.2015 11:22, Hans Verkuil wrote:
+>>> On 02/04/15 11:08, Florian Echtler wrote:
+>>>> On 04.02.2015 09:08, Hans Verkuil wrote:
+>>>>> You can also make a version with vmalloc and I'll merge that, and then
+>>>>> you can look more into the DMA issues. That way the driver is merged,
+>>>>> even if it is perhaps not yet optimal, and you can address that part
+>>>>> later.
+>>>>
+>>>> OK, that sounds sensible, I will try that route. When using
+>>>> videobuf2-vmalloc, what do I pass back for alloc_ctxs in queue_setup?
 >>>
->>> I read in the i.MX6 TRM that it can do combining or deinterlacing with VDIC.
->>> Has it been tested by anyone ?
->>> Could it be a driver, which would allow to do some simple compositing
->>> of souces ?
->>>
->>> Thanks,
->>> JM
->> I've added VDIC support (deinterlace with motion compensation) to the
->> capture driver, it's in the my media tree clone:
+>>> vmalloc doesn't need those, so you can just drop any alloc_ctx related
+>>> code.
 >>
->> git@github.com:slongerbeam/mediatree.git, mx6-media-staging
->
-> it is activated if user sets the motion compensation control to
-> 1 (low motion), 2 (medium motion), or 3 (high motion), for
-> example:
->
-> # v4l2-ctl --set-ctrl=motion_compensation=2
+>> That's what I assumed, however, I'm running into the same problem as
+>> with dma-sg when I switch to vmalloc...?
+> 
+> I don't expect vmalloc to work, as you can't DMA to vmalloc memory directly 
+> without any IOMMU in the general case (the allocated memory being physically 
+> fragmented).
+> 
+> dma-sg should work though, but you won't be able to use usb_bulk_msg(). You 
+> need to create the URBs manually, set their sg and num_sgs fields and submit 
+> them.
 
-Thx for the tip :).
-And in fact, it is "only" deinterlacing, not combining two planes with
-background as specified in the TRM (or did I miss something ?).
+So it works for other usb media drivers because they allocate memory
+using kmalloc (and presumably the usb core can DMA to that), and then memcpy
+it to the vmalloc-ed buffers?
 
-JM
+Anyway Florian, based on Laurent's explanation I think trying to make
+dma-sg work seems to be the best solution. And I've learned something
+new :-)
+
+Regards,
+
+	Hans
+
+> 
+>> I've sent a "proper" patch submission again, which has all the other
+>> issues from the previous submission fixed. I'm hoping you can maybe have
+>> a closer look and see if I'm doing anything subtly wrong which causes
+>> both vmalloc and dma-sg to fail while dma-contig works.
+> 
+
