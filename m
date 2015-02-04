@@ -1,59 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43197 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751402AbbBQUuI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 15:50:08 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 3/6] uvc gadget: switch to v4l2 core locking
-Date: Tue, 17 Feb 2015 22:51:02 +0200
-Message-ID: <1478373.Z0MeTcWs1H@avalon>
-In-Reply-To: <1424162649-17249-4-git-send-email-hverkuil@xs4all.nl>
-References: <1424162649-17249-1-git-send-email-hverkuil@xs4all.nl> <1424162649-17249-4-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.cvg.de ([62.153.82.30]:59098 "EHLO mail.cvg.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161032AbbBDRyZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Feb 2015 12:54:25 -0500
+From: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] mt9p031: fixed calculation of clk_div
+References: <1423061612-12623-1-git-send-email-enrico.scholz@sigma-chemnitz.de>
+	<2403470.jYcXEMRiZi@avalon>
+Date: Wed, 04 Feb 2015 18:54:08 +0100
+In-Reply-To: <2403470.jYcXEMRiZi@avalon> (Laurent Pinchart's message of "Wed,
+	04 Feb 2015 19:19:45 +0200")
+Message-ID: <lya90ty33z.fsf@ensc-virt.intern.sigma-chemnitz.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> writes:
 
-Thank you for the patch.
+>> and the upper limit is '63' (value uses 6:0 register bits).
+>
+> And this I don't. You can encode numbers from 0 to 127 on 7 bits.
 
-On Tuesday 17 February 2015 09:44:06 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Switch this driver over to the V4L2 core locking mechanism in preparation
-> for switching to unlocked_ioctl. Suggested by Laurent Pinchart.
-> 
-> This patch introduces a new mutex at the struct uvc_video level and
-> drops the old mutex at the queue level. The new lock is now used for all
-> ioctl locking and in the release file operation (the driver always has
-> to take care of locking in file operations, the core only serializes
-> ioctls).
+yes; you are right (original '64' was correct because sensor allows only
+dividers of a power-of-two).
 
-The patch also drops locking in the mmap and get_unmapped_area functions, 
-shouldn't you mention it in the commit message ? Or possibly split that change 
-to a separate patch, as that's a bugfix by itself (taking the queue lock there 
-creates a possible AB-BA deadlock).
+>> -		mt9p031->clk_div = max_t(unsigned int, div, 64);
+>> +		mt9p031->clk_div = min_t(unsigned int, div, 63);
 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/usb/gadget/function/f_uvc.c     |  2 +
->  drivers/usb/gadget/function/uvc.h       |  1 +
->  drivers/usb/gadget/function/uvc_queue.c | 79 +++++-------------------------
->  drivers/usb/gadget/function/uvc_queue.h |  4 +-
->  drivers/usb/gadget/function/uvc_v4l2.c  |  3 +-
->  drivers/usb/gadget/function/uvc_video.c |  3 +-
->  6 files changed, 22 insertions(+), 70 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Enrico
