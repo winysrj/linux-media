@@ -1,48 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56673 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755315AbbBDPOu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Feb 2015 10:14:50 -0500
-Message-ID: <54D23766.3050402@iki.fi>
-Date: Wed, 04 Feb 2015 17:14:46 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:46511 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751955AbbBDAOy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 19:14:54 -0500
+Date: Wed, 4 Feb 2015 00:14:39 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-mm-sig@lists.linaro.org, Daniel Vetter <daniel@ffwll.ch>,
+	linaro-kernel@lists.linaro.org,
+	Robin Murphy <robin.murphy@arm.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Rob Clark <robdclark@gmail.com>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
+ attacher constraints with dma-parms
+Message-ID: <20150204001439.GB8656@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <7233574.nKiRa7HnXU@wuerfel>
+ <20150203200435.GX14009@phenom.ffwll.local>
+ <3327782.QV7DJfvifL@wuerfel>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Steven Toth <stoth@kernellabs.com>,
-	dCrypt <dcrypt@telefonica.net>
-CC: Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: [possible BUG, cx23885] Dual tuner TV card, works using one tuner
- only, doesn't work if both tuners are used
-References: <54472CB702988260@smtp.movistar.es>	<02ee01d031ec$283a80f0$78af82d0$@net>	<006301d03b58$0181a9a0$0484fce0$@net>	<006e01d03fe7$4cf3dd70$e6db9850$@net> <CALzAhNVjZh7nm5_3hGpSh4ZMsstja+M_2GLh2-15F0yp8QDOVw@mail.gmail.com> <54D1D01B.30201@xs4all.nl>
-In-Reply-To: <54D1D01B.30201@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3327782.QV7DJfvifL@wuerfel>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/04/2015 09:54 AM, Hans Verkuil wrote:
-> On 02/03/2015 08:32 PM, Steven Toth wrote:
->> While I am the maintainer of the cx23885 driver, its currently
->> undergoing a significant amount of churn related to Han's recent VB2
->> and other changes. I consider the current driver broken until the
->> feedback on the mailing list dies down. I'm reluctant to work on the
->> driver while its considered unstable.
->
-> Any issues in the driver are all related to streaming. Tuning has not
-> been touched at all and there is some anecdotal evidence that if there
-> are tuning issues they were there already before the vb2 conversion.
->
-> To my knowledge the driver is now stable. There is still the occasional
-> kernel message that shouldn't be there which I am trying to track down,
-> but the driver crashes due to a vb2 race condition have been fixed.
+On Tue, Feb 03, 2015 at 10:42:26PM +0100, Arnd Bergmann wrote:
+> Right, if you have a private iommu, there is no problem. The tricky part
+> is using a single driver for the system-level translation and the gpu
+> private mappings when there is only one type of iommu in the system.
 
-Tested with Hauppauge WinTV-HVR5525 against latest media master and 
-seems to work now. Earlier there was 2 problems:
-1) lockdep splash
-2) hangs when both adapters were streaming
+You've got a problem anyway with this approach.  If you look at my
+figure 2 and apply it to this scenario, you have two MMUs stacked
+on top of each other.  That's something that (afaik) we don't support,
+but it's entirely possible that will come along with ARM64.
 
-regards
-Antti
+It may not be nice to have to treat GPUs specially, but I think we
+really do need to, and forget the idea that the GPU's IOMMU (as
+opposed to a system MMU) should appear in a generic form in DT.
 
 -- 
-http://palosaari.fi/
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
