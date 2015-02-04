@@ -1,42 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:35120 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851AbbBRNe5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 08:34:57 -0500
-Message-ID: <54E494F3.6030302@collabora.com>
-Date: Wed, 18 Feb 2015 08:34:43 -0500
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57291 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932952AbbBDOFU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 09:05:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Florian Echtler <floe@butterbrot.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
+Date: Wed, 04 Feb 2015 16:06:05 +0200
+Message-ID: <1606232.uUWpMankZz@avalon>
+In-Reply-To: <54D21CEB.1090506@butterbrot.org>
+References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <54D204F2.3040006@xs4all.nl> <54D21CEB.1090506@butterbrot.org>
 MIME-Version: 1.0
-To: Zahari Doychev <zahari.doychev@linux.com>,
-	Fabio Estevam <festevam@gmail.com>
-CC: Robert Schwebel <r.schwebel@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Jean-Michel Hautbois <jhautbois@gmail.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: Using the coda driver with Gstreamer
-References: <CAOMZO5AX0R-s94-5m0G=SKkNb38u+jZo=7Toa+LDOkiJLAh=Tg@mail.gmail.com> <20141117185554.GW25554@pengutronix.de> <CAOMZO5DGR=Y1MVAc46OG6f26s9kEAoT+XCXgyezFOefM6H_NQg@mail.gmail.com> <CAOMZO5CtXEzBw2_McwTpn3S4FB_8wRE-HYTghv=ceBo_AAuMqA@mail.gmail.com> <546B92E3.30105@collabora.com> <CAOMZO5AkyqNt5g8+AVhoLdLiKv20_q9YRQidNv+2JuOO4BBzSg@mail.gmail.com> <20150218084245.GB30358@riot.fritz.box>
-In-Reply-To: <20150218084245.GB30358@riot.fritz.box>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Florian,
 
-Le 2015-02-18 03:42, Zahari Doychev a écrit :
->> gst-launch-1.0 filesrc
->> >location=/home/H264_test1_Talkinghead_mp4_480x360.mp4 ! qtdemux !
->> >h264parse ! v4l2video1dec ! videoconvert ! fbdevsink
-> I am using this pipeline with gstreamer 1.4.5 and current media branch but I am
-> getting very poor performance 1-2 fps when playing 800x400 video. Is it possible
-> that fbdevsink is too slow for that? Does anyone know what is going wrong?
-In this context, you most likely have a conversion happening in 
-videoconvert followed by a copy at fbdevsink. Framebuffer device is not 
-a very good solution if performance matter (no possible zero-copy). 
-Specially if the selected framebuffer color format does not match the 
-decoded format.
+On Wednesday 04 February 2015 14:21:47 Florian Echtler wrote:
+> On 04.02.2015 12:39, Hans Verkuil wrote:
+> > On 02/04/15 12:34, Laurent Pinchart wrote:
+> >> On Wednesday 04 February 2015 11:56:58 Florian Echtler wrote:
+> >>> That's what I assumed, however, I'm running into the same problem as
+> >>> with dma-sg when I switch to vmalloc...?
+> >> 
+> >> I don't expect vmalloc to work, as you can't DMA to vmalloc memory
+> >> directly without any IOMMU in the general case (the allocated memory
+> >> being physically fragmented).
+> >> 
+> >> dma-sg should work though, but you won't be able to use usb_bulk_msg().
+> >> You need to create the URBs manually, set their sg and num_sgs fields and
+> >> submit them.
+> 
+> Can I also use usb_sg_init/_wait for this? I can't find any other driver
+> which uses USB in conjunction with dma-sg, can you suggest one I could
+> use as an example?
 
-Nicolas
+usb_sg_init() is an interesting abstraction that transparently splits SG lists 
+into several URBs if the USB host controller can't support SG lists directly. 
+Unfortunately the API is blocking. It shouldn't be too difficult to add an 
+asynchronous option with a complete callback.
+
+> > Anyway Florian, based on Laurent's explanation I think trying to make
+> > dma-sg work seems to be the best solution. And I've learned something
+> > new :-)
+> 
+> Thanks for the clarification, please ignore the v2 patch submission for
+> now :-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
