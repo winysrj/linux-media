@@ -1,94 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:34806 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752360AbbBRWsg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 17:48:36 -0500
-Received: by mail-wg0-f52.google.com with SMTP id x12so3964704wgg.11
-        for <linux-media@vger.kernel.org>; Wed, 18 Feb 2015 14:48:35 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <6e028daf7da0bb15af4ff03290a2a67b7b35515c.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com> <6e028daf7da0bb15af4ff03290a2a67b7b35515c.1423867976.git.mchehab@osg.samsung.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Wed, 18 Feb 2015 22:48:04 +0000
-Message-ID: <CA+V-a8tiGyPMfUgdknC=3q2mZUjCsTvfcaP_O7HwCVucA_xYNA@mail.gmail.com>
-Subject: Re: [PATCHv4 16/25] [media] cx25840: fill the media controller entity
+Received: from www.osadl.org ([62.245.132.105]:44502 "EHLO www.osadl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965309AbbBDNIO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Feb 2015 08:08:14 -0500
+From: Nicholas Mc Guire <hofrat@osadl.org>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
+Cc: Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Joe Perches <joe@perches.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>
-Content-Type: text/plain; charset=UTF-8
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Nicholas Mc Guire <hofrat@osadl.org>
+Subject: [PATCH] [media] cx231xx: drop condition with no effect
+Date: Wed,  4 Feb 2015 08:03:11 -0500
+Message-Id: <1423054991-1414-1-git-send-email-hofrat@osadl.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The if and the else code are identical - so the condition has no effect
+on the effective code.
+This patch removes the condition and the duplicated code.
 
-Thanks for the patch.
+Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+---
 
-On Fri, Feb 13, 2015 at 10:57 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Instead of keeping the media controller entity not initialized,
-> fill it and create the pads for cx25840.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-> index 573e08826b9b..bdb5bb6b58da 100644
-> --- a/drivers/media/i2c/cx25840/cx25840-core.c
-> +++ b/drivers/media/i2c/cx25840/cx25840-core.c
-> @@ -5137,6 +5137,9 @@ static int cx25840_probe(struct i2c_client *client,
->         int default_volume;
->         u32 id;
->         u16 device_id;
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +       int ret;
-> +#endif
->
->         /* Check if the adapter supports the needed features */
->         if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> @@ -5178,6 +5181,21 @@ static int cx25840_probe(struct i2c_client *client,
->
->         sd = &state->sd;
->         v4l2_i2c_subdev_init(sd, client, &cx25840_ops);
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +       /* TODO: need to represent analog inputs too */
-> +       state->pads[0].flags = MEDIA_PAD_FL_SINK;       /* Tuner or input */
-> +       state->pads[1].flags = MEDIA_PAD_FL_SOURCE;     /* Video */
-> +       state->pads[2].flags = MEDIA_PAD_FL_SOURCE;     /* VBI */
-Macros for 0,1,2 would make it more readable.
+The if and the else code are identical - so the condition has no effect.
+The value of the assignment was placed into () for readability as other long 
+bit-wise constructs in this file also do so.
 
-> +       sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-> +
-> +       ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
-> +                               state->pads, 0);
-> +       if (ret < 0) {
-> +               v4l_info(client, "failed to initialize media entity!\n");
-> +               kfree(state);
-not needed as state is allocated using devm_kzalloc()
+Patch was only compile tested with imx_v6_v7_defconfig
+CONFIG_MEDIA_ANALOG_TV_SUPPORT=y, CONFIG_MEDIA_DIGITAL_TV_SUPPORT=y,
+CONFIG_VIDEO_CX231XX=m
 
-> +               return -ENODEV;
-return ret instead ?
+Patch is against 3.19.0-rc7 (localversion-next is -next-20150204)
 
-> +       }
-> +#endif
->
->         switch (id) {
->         case CX23885_AV:
-> diff --git a/drivers/media/i2c/cx25840/cx25840-core.h b/drivers/media/i2c/cx25840/cx25840-core.h
-> index 37bc04217c44..17b409f55445 100644
-> --- a/drivers/media/i2c/cx25840/cx25840-core.h
-> +++ b/drivers/media/i2c/cx25840/cx25840-core.h
-> @@ -64,6 +64,9 @@ struct cx25840_state {
->         wait_queue_head_t fw_wait;    /* wake up when the fw load is finished */
->         struct work_struct fw_work;   /* work entry for fw load */
->         struct cx25840_ir_state *ir_state;
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +       struct media_pad        pads[3];
-Macro for 3 ?
+ drivers/media/usb/cx231xx/cx231xx-core.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-Cheers,
---Prabhakar Lad
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index 4a3f28c..832ba99 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -176,16 +176,9 @@ int cx231xx_send_usb_command(struct cx231xx_i2c *i2c_bus,
+ 	saddr_len = req_data->saddr_len;
+ 
+ 	/* Set wValue */
+-	if (saddr_len == 1)	/* need check saddr_len == 0  */
+-		ven_req.wValue =
+-		    req_data->
+-		    dev_addr << 9 | _i2c_period << 4 | saddr_len << 2 |
+-		    _i2c_nostop << 1 | I2C_SYNC | _i2c_reserve << 6;
+-	else
+-		ven_req.wValue =
+-		    req_data->
+-		    dev_addr << 9 | _i2c_period << 4 | saddr_len << 2 |
+-		    _i2c_nostop << 1 | I2C_SYNC | _i2c_reserve << 6;
++	ven_req.wValue = (req_data->dev_addr << 9 | _i2c_period << 4 |
++			  saddr_len << 2 | _i2c_nostop << 1 | I2C_SYNC |
++			  _i2c_reserve << 6);
+ 
+ 	/* set channel number */
+ 	if (req_data->direction & I2C_M_RD) {
+-- 
+1.7.10.4
+
