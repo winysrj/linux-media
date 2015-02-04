@@ -1,104 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:55219 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751723AbbBLV5G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Feb 2015 16:57:06 -0500
-Received: by mail-wi0-f181.google.com with SMTP id r20so7880267wiv.2
-        for <linux-media@vger.kernel.org>; Thu, 12 Feb 2015 13:57:04 -0800 (PST)
-Date: Thu, 12 Feb 2015 21:57:00 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: David =?utf-8?B?Q2ltYsWvcmVr?= <david.cimburek@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working
- since kernel 3.17
-Message-ID: <20150212215700.GA4882@turing>
-References: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
- <54D9E14A.5090200@iki.fi>
- <e65f6b905eae37f11e697ad20b97c37c@hardeman.nu>
- <CAEmZozPN2xDQMyao8GAYB1KqKxvgznn6CNc+LgPGhE=TJfDbFQ@mail.gmail.com>
- <32c10d8cd2303ed9476db1b68924170a@hardeman.nu>
- <CAEmZozP5jrJnWAF6ZbXtvkRveZE29BnSg+hO2x9KDSyPmjBBaQ@mail.gmail.com>
- <20150212095029.018f63df@recife.lan>
- <CAEmZozOTuigxavH_5M4mw5kDHS_mxgwLS53HipG2o4uvm_09OQ@mail.gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57269 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964854AbbBDNuy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 08:50:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Florian Echtler <floe@butterbrot.org>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
+Date: Wed, 04 Feb 2015 15:51:39 +0200
+Message-ID: <6748039.PVCT6ajhMk@avalon>
+In-Reply-To: <54D204F2.3040006@xs4all.nl>
+References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <10701805.dDfTQCs2MO@avalon> <54D204F2.3040006@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAEmZozOTuigxavH_5M4mw5kDHS_mxgwLS53HipG2o4uvm_09OQ@mail.gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 12, 2015 at 06:34:40PM +0100, David Cimbůrek wrote:
-> 2015-02-12 12:50 GMT+01:00 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
-> > Em Wed, 11 Feb 2015 17:41:01 +0100
-> > David Cimbůrek <david.cimburek@gmail.com> escreveu:
-> >
-> > Please don't top post. I reordered the messages below in order to get some
-> > sanity.
-> >
-> >>
-> >> 2015-02-11 15:40 GMT+01:00 David Härdeman <david@hardeman.nu>:
-> >> > Can you generate some scancodes before and after commit
-> >> > af3a4a9bbeb00df3e42e77240b4cdac5479812f9?
-> >>
-> >> Let me know what exactly do you want me to do (which commands, which
-> >> traces etc.). I'm not very familiar with the Linux media stuff...
-> >
-> > As root, you should run:
-> >
-> >         # ir-keytable -r
-> >
-> > This will print the scancodes and their key associations.
-> >
-> > Also, on what architecture are you testing?
-> >
-> > Regards,
-> > Mauro
-> 
-> Output of the "ir-keytable -r" is available here:
-> http://pastebin.com/eEDu1Bmn. It is the same before and after the
-> patch.
-> 
-> Architecture is x86_64.
->
->
+Hi Hans,
 
->From the top-posted thread. Merging it here to not confuse people.
-
-> I'll try to describe my thoughts.
+On Wednesday 04 February 2015 12:39:30 Hans Verkuil wrote:
+> On 02/04/15 12:34, Laurent Pinchart wrote:
+> > On Wednesday 04 February 2015 11:56:58 Florian Echtler wrote:
+> >> On 04.02.2015 11:22, Hans Verkuil wrote:
+> >>> On 02/04/15 11:08, Florian Echtler wrote:
+> >>>> On 04.02.2015 09:08, Hans Verkuil wrote:
+> >>>>> You can also make a version with vmalloc and I'll merge that, and then
+> >>>>> you can look more into the DMA issues. That way the driver is merged,
+> >>>>> even if it is perhaps not yet optimal, and you can address that part
+> >>>>> later.
+> >>>> 
+> >>>> OK, that sounds sensible, I will try that route. When using
+> >>>> videobuf2-vmalloc, what do I pass back for alloc_ctxs in queue_setup?
+> >>> 
+> >>> vmalloc doesn't need those, so you can just drop any alloc_ctx related
+> >>> code.
+> >> 
+> >> That's what I assumed, however, I'm running into the same problem as
+> >> with dma-sg when I switch to vmalloc...?
+> > 
+> > I don't expect vmalloc to work, as you can't DMA to vmalloc memory
+> > directly without any IOMMU in the general case (the allocated memory being
+> > physically fragmented).
+> > 
+> > dma-sg should work though, but you won't be able to use usb_bulk_msg().
+> > You need to create the URBs manually, set their sg and num_sgs fields and
+> > submit them.
 > 
-> The changed structure "dib0700_rc_response" is used in
-> dib0700_core.c:dib0700_rc_urb_completion(struct urb *purb) function:
-> 
-> struct dib0700_rc_response *poll_reply;
-> ...
-> poll_reply = purb->transfer_buffer;
-> 
-> dib0700_rc_urb_completion() is then used in
-> dib0700_core.c:dib0700_rc_setup() in macros usb_fill_bulk_urb and
-> usb_fill_int_urb. These macros are defined in header file usb.h. Here
-> I have found in macro description this:
-> 
->  * @transfer_buffer: pointer to the transfer buffer
-> 
-> I suppose that it means that the struct dib0700_rc_response is being
-> filled from this transfer buffer. Therefore I suppose that the order
-> of structure members IS important.
-> 
-> Of course it's only my guess but my patch is really working for me :-)
+> So it works for other usb media drivers because they allocate memory
+> using kmalloc (and presumably the usb core can DMA to that), and then memcpy
+> it to the vmalloc-ed buffers?
 
-Hi,
+Correct. In the uvcvideo case that's unavoidable as headers need to be removed 
+from the packets.
 
-I looked at this again and I still don't see why the order is important.
-Plus the code looks like it does what it should be doing when using
-RC_SCANCODE_NEC, RC_SCANCODE_NEC32, RC_SCANCODE_NECX and RC_SCANCODE_RC5.
+> Anyway Florian, based on Laurent's explanation I think trying to make
+> dma-sg work seems to be the best solution. And I've learned something
+> new :-)
 
-Unfortunately I can't review this if I am not sure about it, and I don't
-have the device to be able to properly test your patch.
+-- 
+Regards,
 
-Hopefully your print of the scancodes helps.
+Laurent Pinchart
 
-Luis
