@@ -1,167 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:54683 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754359AbbBZQAI (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:38213 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965937AbbBDQT7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 11:00:08 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NKD00E64Z46UDC0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Feb 2015 01:00:06 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [v4l-utils PATCH/RFC v5 02/14] mediactl: Add support for
- v4l2-ctrl-redir config
-Date: Thu, 26 Feb 2015 16:59:12 +0100
-Message-id: <1424966364-3647-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
-References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
+	Wed, 4 Feb 2015 11:19:59 -0500
+Message-ID: <54D24685.1000708@xs4all.nl>
+Date: Wed, 04 Feb 2015 17:19:17 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Jurgen Kramer <gtmkramer@xs4all.nl>
+CC: Raimonds Cicans <ray@apollo.lv>, linux-media@vger.kernel.org
+Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
+ cx23885: convert to vb2"
+References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>	 <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>	 <54CE24F2.7090400@apollo.lv> <54CF4508.9070305@xs4all.nl> <1423065972.2650.1.camel@xs4all.nl>
+In-Reply-To: <1423065972.2650.1.camel@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make struct v4l2_subdev capable of aggregating v4l2-ctrl-redir
-media device configuration entries. Added are also functions for
-validating the config and checking whether a v4l2 sub-device
-expects to receive ioctls related to the v4l2-control with given id.
+On 02/04/2015 05:06 PM, Jurgen Kramer wrote:
+> Hi Hans,
+> 
+> On Mon, 2015-02-02 at 10:36 +0100, Hans Verkuil wrote:
+>> Raimonds and Jurgen,
+>>
+>> Can you both test with the following patch applied to the driver:
+>
+> Unfortunately the mpeg error is not (completely) gone:
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- utils/media-ctl/libv4l2subdev.c |   49 ++++++++++++++++++++++++++++++++++++++-
- utils/media-ctl/v4l2subdev.h    |   33 ++++++++++++++++++++++++++
- 2 files changed, 81 insertions(+), 1 deletion(-)
+OK, I suspected that might be the case. Is the UNBALANCED warning
+gone with my vb2 patch? When you see this risc error, does anything
+break (broken up video) or crash, or does it just keep on streaming?
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 68404d4..5b9d908 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -26,7 +26,6 @@
- #include <ctype.h>
- #include <errno.h>
- #include <fcntl.h>
--#include <stdbool.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-@@ -50,7 +49,15 @@ int v4l2_subdev_create(struct media_entity *entity)
- 
- 	entity->sd->fd = -1;
- 
-+	entity->sd->v4l2_control_redir = malloc(sizeof(__u32));
-+	if (entity->sd->v4l2_control_redir == NULL)
-+		goto err_v4l2_control_redir_alloc;
-+
- 	return 0;
-+
-+err_v4l2_control_redir_alloc:
-+	free(entity->sd);
-+	return -ENOMEM;
- }
- 
- int v4l2_subdev_create_with_fd(struct media_entity *entity, int fd)
-@@ -803,3 +810,43 @@ enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
- 
- 	return mbus_formats[i].code;
- }
-+
-+int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
-+				   struct media_entity *entity,
-+				   __u32 ctrl_id)
-+{
-+	struct v4l2_queryctrl queryctrl = {};
-+	int ret;
-+
-+	ret = v4l2_subdev_open(entity);
-+	if (ret < 0)
-+		return ret;
-+
-+	queryctrl.id = ctrl_id;
-+
-+	ret = ioctl(entity->sd->fd, VIDIOC_QUERYCTRL, &queryctrl);
-+	if (ret < 0)
-+		return ret;
-+
-+	media_dbg(media, "Validated control \"%s\" (0x%8.8x) on entity %s\n",
-+		  queryctrl.name, queryctrl.id, entity->info.name);
-+
-+	return 0;
-+}
-+
-+bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
-+				  struct media_entity *entity,
-+				  int ctrl_id)
-+{
-+	struct v4l2_subdev *sd = entity->sd;
-+	int i;
-+
-+	if (!sd)
-+		return false;
-+
-+	for (i = 0; i < sd->v4l2_control_redir_num; ++i)
-+		if (sd->v4l2_control_redir[i] == ctrl_id)
-+			return true;
-+
-+	return false;
-+}
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index b386294..07f9697 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -23,11 +23,16 @@
- #define __SUBDEV_H__
- 
- #include <linux/v4l2-subdev.h>
-+#include <stdbool.h>
- 
- struct media_entity;
-+struct media_device;
- 
- struct v4l2_subdev {
- 	int fd;
-+
-+	__u32 *v4l2_control_redir;
-+	unsigned int v4l2_control_redir_num;
- };
- 
- /**
-@@ -293,4 +298,32 @@ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code);
-  */
- enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
- 							 unsigned int length);
-+
-+/**
-+ * @brief Validate v4l2 control for a sub-device
-+ * @param media - media device.
-+ * @param entity - subdev-device media entity.
-+ * @param ctrl_id - id of the v4l2 control to validate.
-+ *
-+ * Verify if the entity supports v4l2-control with given ctrl_id.
-+ *
-+ * @return 1 if the control is supported, 0 otherwise.
-+ */
-+int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
-+				   struct media_entity *entity,
-+				   __u32 ctrl_id);
-+
-+/**
-+ * @brief Check if there was a v4l2_control redirection defined for the entity
-+ * @param media - media device.
-+ * @param entity - subdev-device media entity.
-+ * @param ctrl_id - v4l2 control identifier.
-+ *
-+ * Check if there was a v4l2-ctrl-redir entry defined for the entity.
-+ *
-+ * @return true if the entry exists, false otherwise
-+ */
-+bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
-+	struct media_entity *entity, int ctrl_id);
-+
- #endif
--- 
-1.7.9.5
+Raimond, do you still see the AMD iommu faults with this patch?
+
+Regards,
+
+	Hans
+
+> 
+> [  172.946876] dvb_ca adapter 0: DVB CAM detected and initialised
+> successfully
+> [  276.938186] dvb_ca adapter 1: DVB CAM detected and initialised
+> successfully
+> [  405.007902] dvb_ca adapter 2: DVB CAM detected and initialised
+> successfully
+> [ 8031.928944] traps: polkitd[1017] general protection ip:7f8754445022
+> sp:7fff3ef612d0 error:0 in libmozjs-17.0.so[7f8754306000+3b3000]
+> [18977.465763] perf interrupt took too long (2510 > 2500), lowering
+> kernel.perf_event_max_sample_rate to 50000
+> [60407.000404] cx23885[1]: mpeg risc op code error
+> [60407.000409] cx23885[1]: TS1 B - dma channel status dump
+> [60407.000411] cx23885[1]:   cmds: init risc lo   : 0xb8869000
+> [60407.000414] cx23885[1]:   cmds: init risc hi   : 0x00000000
+> [60407.000417] cx23885[1]:   cmds: cdt base       : 0x00010580
+> [60407.000420] cx23885[1]:   cmds: cdt size       : 0x0000000a
+> [60407.000422] cx23885[1]:   cmds: iq base        : 0x00010400
+> [60407.000425] cx23885[1]:   cmds: iq size        : 0x00000010
+> [60407.000427] cx23885[1]:   cmds: risc pc lo     : 0xc9601048
+> [60407.000430] cx23885[1]:   cmds: risc pc hi     : 0x00000000
+> [60407.000433] cx23885[1]:   cmds: iq wr ptr      : 0x00004105
+> [60407.000435] cx23885[1]:   cmds: iq rd ptr      : 0x00004109
+> [60407.000438] cx23885[1]:   cmds: cdt current    : 0x000105a8
+> [60407.000441] cx23885[1]:   cmds: pci target lo  : 0xb8988000
+> [60407.000443] cx23885[1]:   cmds: pci target hi  : 0x00000000
+> [60407.000445] cx23885[1]:   cmds: line / byte    : 0x00200000
+> [60407.000448] cx23885[1]:   risc0: 0x1c0002f0 [ write sol eol count=752
+> ]
+> [60407.000452] cx23885[1]:   risc1: 0xb8988000 [ writerm sol 23 20 19
+> resync count=0 ]
+> [60407.000455] cx23885[1]:   risc2: 0x00000000 [ INVALID count=0 ]
+> [60407.000457] cx23885[1]:   risc3: 0x1c0002f0 [ write sol eol count=752
+> ]
+> [60407.000460] cx23885[1]:   (0x00010400) iq 0: 0xb89888d0 [ writerm sol
+> 23 20 19 resync count=2256 ]
+> [60407.000464] cx23885[1]:   iq 1: 0x00000000 [ arg #1 ]
+> [60407.000466] cx23885[1]:   iq 2: 0x1c0002f0 [ arg #2 ]
+> [60407.000468] cx23885[1]:   (0x0001040c) iq 3: 0xb8988bc0 [ writerm sol
+> 23 20 19 resync count=3008 ]
+> [60407.000472] cx23885[1]:   iq 4: 0x00000000 [ arg #1 ]
+> [60407.000474] cx23885[1]:   iq 5: 0x71000000 [ arg #2 ]
+> [60407.000476] cx23885[1]:   (0x00010418) iq 6: 0x1c0002f0 [ write sol
+> eol count=752 ]
+> [60407.000479] cx23885[1]:   iq 7: 0xb8988000 [ arg #1 ]
+> [60407.000481] cx23885[1]:   iq 8: 0x00000000 [ arg #2 ]
+> [60407.000483] cx23885[1]:   (0x00010424) iq 9: 0x1c0002f0 [ write sol
+> eol count=752 ]
+> [60407.000486] cx23885[1]:   iq a: 0xb89882f0 [ arg #1 ]
+> [60407.000488] cx23885[1]:   iq b: 0x00000000 [ arg #2 ]
+> [60407.000490] cx23885[1]:   (0x00010430) iq c: 0x1c0002f0 [ write sol
+> eol count=752 ]
+> [60407.000493] cx23885[1]:   iq d: 0xb89885e0 [ arg #1 ]
+> [60407.000495] cx23885[1]:   iq e: 0x00000000 [ arg #2 ]
+> [60407.000497] cx23885[1]:   (0x0001043c) iq f: 0x1c0002f0 [ write sol
+> eol count=752 ]
+> [60407.000500] cx23885[1]:   iq 10: 0x6a76032d [ arg #1 ]
+> [60407.000502] cx23885[1]:   iq 11: 0x3a68baa3 [ arg #2 ]
+> [60407.000503] cx23885[1]: fifo: 0x00005000 -> 0x6000
+> [60407.000504] cx23885[1]: ctrl: 0x00010400 -> 0x10460
+> [60407.000506] cx23885[1]:   ptr1_reg: 0x00005860
+> [60407.000508] cx23885[1]:   ptr2_reg: 0x000105a8
+> [60407.000511] cx23885[1]:   cnt1_reg: 0x00000028
+> [60407.000513] cx23885[1]:   cnt2_reg: 0x00000005
+> [63048.983736] dvb_ca adapter 2: DVB CAM detected and initialised
+> successfully
+> [97553.449010] dvb_ca adapter 0: DVB CAM detected and initialised
+> successfully
+> 
+> Regards,
+> Jurgen
+> 
 
