@@ -1,877 +1,582 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:62603 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753042AbbBRQ0G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 11:26:06 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH/RFC v11 16/20] media: Add registration helpers for V4L2 flash
- sub-devices
-Date: Wed, 18 Feb 2015 17:20:37 +0100
-Message-id: <1424276441-3969-17-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
-References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+Received: from butterbrot.org ([176.9.106.16]:58414 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161210AbbBDPar (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Feb 2015 10:30:47 -0500
+From: Florian Echtler <floe@butterbrot.org>
+To: hverkuil@xs4all.nl
+Cc: laurent.pinchart@ideasonboard.com, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org, Florian Echtler <floe@butterbrot.org>
+Subject: [PATCH v3][RFC] add raw video stream support for Samsung SUR40
+Date: Wed,  4 Feb 2015 16:30:42 +0100
+Message-Id: <1423063842-6902-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds helper functions for registering/unregistering
-LED Flash class devices as V4L2 sub-devices. The functions should
-be called from the LED subsystem device driver. In case the
-support for V4L2 Flash sub-devices is disabled in the kernel
-config the functions' empty versions will be used.
+This patch adds raw video support for the Samsung SUR40, now finally using
+videobuf2-dma-sg and the usb_sg_init/_wait helper functions. Further comments
+regarding buffer handling are invited, as v4l2-compliance -s still fails the
+USERPTR test.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
 ---
- drivers/media/v4l2-core/Kconfig      |   11 +
- drivers/media/v4l2-core/Makefile     |    2 +
- drivers/media/v4l2-core/v4l2-flash.c |  640 ++++++++++++++++++++++++++++++++++
- include/media/v4l2-flash.h           |  146 ++++++++
- 4 files changed, 799 insertions(+)
- create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
- create mode 100644 include/media/v4l2-flash.h
+ drivers/input/touchscreen/sur40.c | 424 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 412 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index ba7e21a..f034f1a 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -44,6 +44,17 @@ config V4L2_MEM2MEM_DEV
-         tristate
-         depends on VIDEOBUF2_CORE
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index f1cb051..33bc1b8 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -1,7 +1,7 @@
+ /*
+  * Surface2.0/SUR40/PixelSense input driver
+  *
+- * Copyright (c) 2013 by Florian 'floe' Echtler <floe@butterbrot.org>
++ * Copyright (c) 2014 by Florian 'floe' Echtler <floe@butterbrot.org>
+  *
+  * Derived from the USB Skeleton driver 1.1,
+  * Copyright (c) 2003 Greg Kroah-Hartman (greg@kroah.com)
+@@ -12,6 +12,9 @@
+  * and from the generic hid-multitouch driver,
+  * Copyright (c) 2010-2012 Stephane Chatty <chatty@enac.fr>
+  *
++ * and from the v4l2-pci-skeleton driver,
++ * Copyright (c) Copyright 2014 Cisco Systems, Inc.
++ *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License as
+  * published by the Free Software Foundation; either version 2 of
+@@ -31,6 +34,11 @@
+ #include <linux/input-polldev.h>
+ #include <linux/input/mt.h>
+ #include <linux/usb/input.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-sg.h>
  
-+# Used by LED subsystem flash drivers
-+config V4L2_FLASH_LED_CLASS
-+	tristate "Enable support for Flash sub-devices"
-+	depends on VIDEO_V4L2_SUBDEV_API
-+	depends on LEDS_CLASS_FLASH
-+	---help---
-+	  Say Y here to enable support for Flash sub-devices, which allow
-+	  to control LED class devices with use of V4L2 Flash controls.
-+
-+	  When in doubt, say N.
-+
- # Used by drivers that need Videobuf modules
- config VIDEOBUF_GEN
- 	tristate
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index 63d29f2..44e858c 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -22,6 +22,8 @@ obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+ /* read 512 bytes from endpoint 0x86 -> get header + blobs */
+ struct sur40_header {
+@@ -82,9 +90,19 @@ struct sur40_data {
+ 	struct sur40_blob   blobs[];
+ } __packed;
  
- obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
++/* read 512 bytes from endpoint 0x82 -> get header below
++ * continue reading 16k blocks until header.size bytes read */
++struct sur40_image_header {
++	__le32 magic;     /* "SUBF" */
++	__le32 packet_id;
++	__le32 size;      /* always 0x0007e900 = 960x540 */
++	__le32 timestamp; /* milliseconds (increases by 16 or 17 each frame) */
++	__le32 unknown;   /* "epoch?" always 02/03 00 00 00 */
++} __packed;
  
-+obj-$(CONFIG_V4L2_FLASH_LED_CLASS) += v4l2-flash.o
+ /* version information */
+ #define DRIVER_SHORT   "sur40"
++#define DRIVER_LONG    "Samsung SUR40"
+ #define DRIVER_AUTHOR  "Florian 'floe' Echtler <floe@butterbrot.org>"
+ #define DRIVER_DESC    "Surface2.0/SUR40/PixelSense input driver"
+ 
+@@ -99,6 +117,13 @@ struct sur40_data {
+ /* touch data endpoint */
+ #define TOUCH_ENDPOINT 0x86
+ 
++/* video data endpoint */
++#define VIDEO_ENDPOINT 0x82
 +
- obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
- obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
- obj-$(CONFIG_VIDEOBUF_DMA_CONTIG) += videobuf-dma-contig.o
-diff --git a/drivers/media/v4l2-core/v4l2-flash.c b/drivers/media/v4l2-core/v4l2-flash.c
-new file mode 100644
-index 0000000..bb38216
---- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-flash.c
-@@ -0,0 +1,640 @@
++/* video header fields */
++#define VIDEO_HEADER_MAGIC 0x46425553
++#define VIDEO_PACKET_SIZE  16384
++
+ /* polling interval (ms) */
+ #define POLL_INTERVAL 10
+ 
+@@ -113,21 +138,23 @@ struct sur40_data {
+ #define SUR40_GET_STATE   0xc5 /*  4 bytes state (?) */
+ #define SUR40_GET_SENSORS 0xb1 /*  8 bytes sensors   */
+ 
+-/*
+- * Note: an earlier, non-public version of this driver used USB_RECIP_ENDPOINT
+- * here by mistake which is very likely to have corrupted the firmware EEPROM
+- * on two separate SUR40 devices. Thanks to Alan Stern who spotted this bug.
+- * Should you ever run into a similar problem, the background story to this
+- * incident and instructions on how to fix the corrupted EEPROM are available
+- * at https://floe.butterbrot.org/matrix/hacking/surface/brick.html
+-*/
+-
++/* master device state */
+ struct sur40_state {
+ 
+ 	struct usb_device *usbdev;
+ 	struct device *dev;
+ 	struct input_polled_dev *input;
+ 
++	struct v4l2_device v4l2;
++	struct video_device vdev;
++	struct mutex lock;
++
++	struct vb2_queue queue;
++	struct vb2_alloc_ctx *alloc_ctx;
++	struct list_head buf_list;
++	spinlock_t qlock;
++	int sequence;
++
+ 	struct sur40_data *bulk_in_buffer;
+ 	size_t bulk_in_size;
+ 	u8 bulk_in_epaddr;
+@@ -135,6 +162,27 @@ struct sur40_state {
+ 	char phys[64];
+ };
+ 
++struct sur40_buffer {
++	struct vb2_buffer vb;
++	struct list_head list;
++};
++
++/* forward declarations */
++static const struct video_device sur40_video_device;
++static const struct v4l2_pix_format sur40_video_format;
++static const struct vb2_queue sur40_queue;
++static void sur40_process_video(struct sur40_state *sur40);
++
 +/*
-+ * V4L2 Flash LED sub-device registration helpers.
-+ *
-+ *	Copyright (C) 2015 Samsung Electronics Co., Ltd
-+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++ * Note: an earlier, non-public version of this driver used USB_RECIP_ENDPOINT
++ * here by mistake which is very likely to have corrupted the firmware EEPROM
++ * on two separate SUR40 devices. Thanks to Alan Stern who spotted this bug.
++ * Should you ever run into a similar problem, the background story to this
++ * incident and instructions on how to fix the corrupted EEPROM are available
++ * at https://floe.butterbrot.org/matrix/hacking/surface/brick.html
++*/
 +
-+#include <linux/led-class-flash.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/slab.h>
-+#include <linux/types.h>
-+#include <media/v4l2-flash.h>
++/* command wrapper */
+ static int sur40_command(struct sur40_state *dev,
+ 			 u8 command, u16 index, void *buffer, u16 size)
+ {
+@@ -247,7 +295,6 @@ static void sur40_report_blob(struct sur40_blob *blob, struct input_dev *input)
+ /* core function: poll for new input data */
+ static void sur40_poll(struct input_polled_dev *polldev)
+ {
+-
+ 	struct sur40_state *sur40 = polldev->private;
+ 	struct input_dev *input = polldev->input;
+ 	int result, bulk_read, need_blobs, packet_blobs, i;
+@@ -314,6 +361,81 @@ static void sur40_poll(struct input_polled_dev *polldev)
+ 
+ 	input_mt_sync_frame(input);
+ 	input_sync(input);
 +
-+#define has_flash_op(v4l2_flash, op)				\
-+	(v4l2_flash && v4l2_flash->ops->op)
-+
-+#define call_flash_op(v4l2_flash, op, arg)			\
-+		(has_flash_op(v4l2_flash, op) ?			\
-+			v4l2_flash->ops->op(v4l2_flash, arg) :	\
-+			-EINVAL)
-+
-+static enum led_brightness __intensity_to_led_brightness(
-+					struct v4l2_ctrl *ctrl,
-+					s32 intensity)
-+{
-+	s64 intensity64 = intensity - ctrl->minimum;
-+
-+	do_div(intensity64, ctrl->step);
-+
-+	/*
-+	 * Indicator LEDs, unlike torch LEDs, are turned on/off basing on
-+	 * the state of V4L2_CID_FLASH_INDICATOR_INTENSITY control only.
-+	 * Therefore it must be possible to set it to 0 level which in
-+	 * the LED subsystem reflects LED_OFF state.
-+	 */
-+	if (ctrl->id != V4L2_CID_FLASH_INDICATOR_INTENSITY)
-+		++intensity64;
-+
-+	return intensity64;
++	sur40_process_video(sur40);
 +}
 +
-+static s32 __led_brightness_to_intensity(struct v4l2_ctrl *ctrl,
-+					 enum led_brightness brightness)
++/* deal with video data */
++static void sur40_process_video(struct sur40_state *sur40)
 +{
-+	/*
-+	 * Indicator LEDs, unlike torch LEDs, are turned on/off basing on
-+	 * the state of V4L2_CID_FLASH_INDICATOR_INTENSITY control only.
-+	 * Do not decrement brightness read from the LED subsystem for
-+	 * indicator LED as it may equal 0. For torch LEDs this function
-+	 * is called only when V4L2_FLASH_LED_MODE_TORCH is set and the
-+	 * brightness read is guaranteed to be greater than 0. In the mode
-+	 * V4L2_FLASH_LED_MODE_NONE the cached torch intensity value is used.
-+	 */
-+	if (ctrl->id != V4L2_CID_FLASH_INDICATOR_INTENSITY)
-+		--brightness;
 +
-+	return (brightness * ctrl->step) + ctrl->minimum;
-+}
++	struct sur40_image_header *img = (void *)(sur40->bulk_in_buffer);
++	struct sur40_buffer *new_buf;
++	struct usb_sg_request sgr;
++	struct sg_table *sgt;
++	int result, bulk_read;
 +
-+static void v4l2_flash_set_led_brightness(struct v4l2_flash *v4l2_flash,
-+					struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_ctrl **ctrls = v4l2_flash->ctrls;
-+	enum led_brightness brightness;
-+
-+	if (has_flash_op(v4l2_flash, intensity_to_led_brightness))
-+		brightness = call_flash_op(v4l2_flash,
-+					intensity_to_led_brightness,
-+					ctrl->val);
-+	else
-+		brightness = __intensity_to_led_brightness(ctrl, ctrl->val);
-+	/*
-+	 * In case a LED Flash class driver provides ops for custom
-+	 * brightness <-> intensity conversion, it also must have defined
-+	 * related v4l2 control step == 1. In such a case a backward conversion
-+	 * from led brightness to v4l2 intensity is required to find out the
-+	 * the aligned intensity value.
-+	 */
-+	if (has_flash_op(v4l2_flash, led_brightness_to_intensity))
-+		ctrl->val = call_flash_op(v4l2_flash,
-+					led_brightness_to_intensity,
-+					brightness);
-+
-+	if (ctrl == ctrls[TORCH_INTENSITY] &&
-+	    ctrls[LED_MODE]->val != V4L2_FLASH_LED_MODE_TORCH)
++	if (list_empty(&sur40->buf_list))
 +		return;
 +
-+	led_set_brightness(&v4l2_flash->fled_cdev->led_cdev, brightness);
-+}
++	/* get a new buffer from the list */
++	spin_lock(&sur40->qlock);
++	new_buf = list_entry(sur40->buf_list.next, struct sur40_buffer, list);
++	list_del(&new_buf->list);
++	spin_unlock(&sur40->qlock);
 +
-+static int v4l2_flash_update_led_brightness(struct v4l2_flash *v4l2_flash,
-+					struct v4l2_ctrl *ctrl)
++	/* retrieve data via bulk read */
++	result = usb_bulk_msg(sur40->usbdev,
++			usb_rcvbulkpipe(sur40->usbdev, VIDEO_ENDPOINT),
++			sur40->bulk_in_buffer, sur40->bulk_in_size,
++			&bulk_read, 1000);
++
++	if (result < 0) {
++		dev_err(sur40->dev, "error in usb_bulk_read\n");
++		goto err_poll;
++	}
++
++	if (bulk_read != sizeof(struct sur40_image_header)) {
++		dev_err(sur40->dev, "received %d bytes (%ld expected)\n",
++			bulk_read, sizeof(struct sur40_image_header));
++		goto err_poll;
++	}
++
++	if (le32_to_cpu(img->magic) != VIDEO_HEADER_MAGIC) {
++		dev_err(sur40->dev, "image magic mismatch\n");
++		goto err_poll;
++	}
++
++	if (le32_to_cpu(img->size) != sur40_video_format.sizeimage) {
++		dev_err(sur40->dev, "image size mismatch\n");
++		goto err_poll;
++	}
++
++	sgt = vb2_dma_sg_plane_desc(&new_buf->vb, 0);
++
++	result = usb_sg_init(&sgr, sur40->usbdev,
++		usb_rcvbulkpipe(sur40->usbdev, VIDEO_ENDPOINT), 0,
++		sgt->sgl, sgt->nents, sur40_video_format.sizeimage, 0);
++	if (result < 0) {
++		dev_err(sur40->dev, "error in usb_sg_init\n");
++		goto err_poll;
++	}
++
++	usb_sg_wait(&sgr);
++	if (sgr.status < 0) {
++		dev_err(sur40->dev, "error in usb_sg_wait\n");
++		goto err_poll;
++	}
++
++	/* mark as finished */
++	v4l2_get_timestamp(&new_buf->vb.v4l2_buf.timestamp);
++	new_buf->vb.v4l2_buf.sequence = sur40->sequence++;
++	new_buf->vb.v4l2_buf.field = V4L2_FIELD_NONE;
++	vb2_buffer_done(&new_buf->vb, VB2_BUF_STATE_DONE);
++	return;
++
++err_poll:
++	vb2_buffer_done(&new_buf->vb, VB2_BUF_STATE_ERROR);
+ }
+ 
+ /* Initialize input device parameters. */
+@@ -377,6 +499,11 @@ static int sur40_probe(struct usb_interface *interface,
+ 		goto err_free_dev;
+ 	}
+ 
++	/* initialize locks/lists */
++	INIT_LIST_HEAD(&sur40->buf_list);
++	spin_lock_init(&sur40->qlock);
++	mutex_init(&sur40->lock);
++
+ 	/* Set up polled input device control structure */
+ 	poll_dev->private = sur40;
+ 	poll_dev->poll_interval = POLL_INTERVAL;
+@@ -387,7 +514,7 @@ static int sur40_probe(struct usb_interface *interface,
+ 	/* Set up regular input device structure */
+ 	sur40_input_setup(poll_dev->input);
+ 
+-	poll_dev->input->name = "Samsung SUR40";
++	poll_dev->input->name = DRIVER_LONG;
+ 	usb_to_input_id(usbdev, &poll_dev->input->id);
+ 	usb_make_path(usbdev, sur40->phys, sizeof(sur40->phys));
+ 	strlcat(sur40->phys, "/input0", sizeof(sur40->phys));
+@@ -408,6 +535,7 @@ static int sur40_probe(struct usb_interface *interface,
+ 		goto err_free_polldev;
+ 	}
+ 
++	/* register the polled input device */
+ 	error = input_register_polled_device(poll_dev);
+ 	if (error) {
+ 		dev_err(&interface->dev,
+@@ -415,12 +543,54 @@ static int sur40_probe(struct usb_interface *interface,
+ 		goto err_free_buffer;
+ 	}
+ 
++	/* register the video master device */
++	snprintf(sur40->v4l2.name, sizeof(sur40->v4l2.name), "%s", DRIVER_LONG);
++	error = v4l2_device_register(sur40->dev, &sur40->v4l2);
++	if (error) {
++		dev_err(&interface->dev,
++			"Unable to register video master device.");
++		goto err_unreg_v4l2;
++	}
++
++	/* initialize the lock and subdevice */
++	sur40->queue = sur40_queue;
++	sur40->queue.drv_priv = sur40;
++	sur40->queue.lock = &sur40->lock;
++
++	/* initialize the queue */
++	error = vb2_queue_init(&sur40->queue);
++	if (error)
++		goto err_unreg_v4l2;
++
++	sur40->alloc_ctx = vb2_dma_sg_init_ctx(sur40->dev);
++	if (IS_ERR(sur40->alloc_ctx)) {
++		dev_err(sur40->dev, "Can't allocate buffer context");
++		goto err_unreg_v4l2;
++	}
++
++	sur40->vdev = sur40_video_device;
++	sur40->vdev.v4l2_dev = &sur40->v4l2;
++	sur40->vdev.lock = &sur40->lock;
++	sur40->vdev.queue = &sur40->queue;
++	video_set_drvdata(&sur40->vdev, sur40);
++
++	error = video_register_device(&sur40->vdev, VFL_TYPE_GRABBER, -1);
++	if (error) {
++		dev_err(&interface->dev,
++			"Unable to register video subdevice.");
++		goto err_unreg_video;
++	}
++
+ 	/* we can register the device now, as it is ready */
+ 	usb_set_intfdata(interface, sur40);
+ 	dev_dbg(&interface->dev, "%s is now attached\n", DRIVER_DESC);
+ 
+ 	return 0;
+ 
++err_unreg_video:
++	video_unregister_device(&sur40->vdev);
++err_unreg_v4l2:
++	v4l2_device_unregister(&sur40->v4l2);
+ err_free_buffer:
+ 	kfree(sur40->bulk_in_buffer);
+ err_free_polldev:
+@@ -436,6 +606,10 @@ static void sur40_disconnect(struct usb_interface *interface)
+ {
+ 	struct sur40_state *sur40 = usb_get_intfdata(interface);
+ 
++	video_unregister_device(&sur40->vdev);
++	v4l2_device_unregister(&sur40->v4l2);
++	vb2_dma_sg_cleanup_ctx(sur40->alloc_ctx);
++
+ 	input_unregister_polled_device(sur40->input);
+ 	input_free_polled_device(sur40->input);
+ 	kfree(sur40->bulk_in_buffer);
+@@ -445,12 +619,238 @@ static void sur40_disconnect(struct usb_interface *interface)
+ 	dev_dbg(&interface->dev, "%s is now disconnected\n", DRIVER_DESC);
+ }
+ 
++/*
++ * Setup the constraints of the queue: besides setting the number of planes
++ * per buffer and the size and allocation context of each plane, it also
++ * checks if sufficient buffers have been allocated. Usually 3 is a good
++ * minimum number: many DMA engines need a minimum of 2 buffers in the
++ * queue and you need to have another available for userspace processing.
++ */
++static int sur40_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
++		       unsigned int *nbuffers, unsigned int *nplanes,
++		       unsigned int sizes[], void *alloc_ctxs[])
 +{
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-+	struct v4l2_ctrl **ctrls = v4l2_flash->ctrls;
-+	int ret;
++	struct sur40_state *sur40 = vb2_get_drv_priv(q);
 +
-+	/*
-+	 * Update torch brightness only if in TORCH_MODE. In other modes torch
-+	 * led is turned off, which would spuriously inform the user space that
-+	 * V4L2_CID_FLASH_TORCH_INTENSITY control value has changed to 0.
-+	 */
-+	if (ctrl == ctrls[TORCH_INTENSITY] &&
-+	    ctrls[LED_MODE]->val != V4L2_FLASH_LED_MODE_TORCH)
-+		return 0;
++	if (q->num_buffers + *nbuffers < 3)
++		*nbuffers = 3 - q->num_buffers;
 +
-+	ret = led_update_brightness(led_cdev);
-+	if (ret < 0)
-+		return ret;
++	if (fmt && fmt->fmt.pix.sizeimage < sur40_video_format.sizeimage)
++		return -EINVAL;
 +
-+	if (has_flash_op(v4l2_flash, led_brightness_to_intensity))
-+		ctrl->val = call_flash_op(v4l2_flash,
-+						led_brightness_to_intensity,
-+						led_cdev->brightness);
-+	else
-+		ctrl->val = __led_brightness_to_intensity(ctrl,
-+						led_cdev->brightness);
++	*nplanes = 1;
++	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : sur40_video_format.sizeimage;
++	alloc_ctxs[0] = sur40->alloc_ctx;
 +
 +	return 0;
 +}
 +
-+static int v4l2_flash_g_volatile_ctrl(struct v4l2_ctrl *c)
++/*
++ * Prepare the buffer for queueing to the DMA engine: check and set the
++ * payload size.
++ */
++static int sur40_buffer_prepare(struct vb2_buffer *vb)
 +{
-+	struct v4l2_flash *v4l2_flash = v4l2_ctrl_to_v4l2_flash(c);
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	bool is_strobing;
-+	int ret;
++	struct sur40_state *sur40 = vb2_get_drv_priv(vb->vb2_queue);
++	unsigned long size = sur40_video_format.sizeimage;
 +
-+	switch (c->id) {
-+	case V4L2_CID_FLASH_TORCH_INTENSITY:
-+	case V4L2_CID_FLASH_INDICATOR_INTENSITY:
-+		return v4l2_flash_update_led_brightness(v4l2_flash, c);
-+	case V4L2_CID_FLASH_INTENSITY:
-+		ret = led_update_flash_brightness(fled_cdev);
-+		if (ret < 0)
-+			return ret;
-+		/* no conversion is needed */
-+		c->val = fled_cdev->brightness.val;
-+		return 0;
-+	case V4L2_CID_FLASH_STROBE_STATUS:
-+		ret = led_get_flash_strobe(fled_cdev, &is_strobing);
-+		if (ret < 0)
-+			return ret;
-+		c->val = is_strobing;
-+		return 0;
-+	case V4L2_CID_FLASH_FAULT:
-+		/* LED faults map directly to V4L2 flash faults */
-+		return led_get_flash_fault(fled_cdev, &c->val);
-+	default:
++	if (vb2_plane_size(vb, 0) < size) {
++		dev_err(&sur40->usbdev->dev, "buffer too small (%lu < %lu)\n",
++			 vb2_plane_size(vb, 0), size);
 +		return -EINVAL;
 +	}
-+}
 +
-+static bool __software_strobe_mode_inactive(struct v4l2_ctrl **ctrls)
-+{
-+	return ((ctrls[LED_MODE]->val != V4L2_FLASH_LED_MODE_FLASH) ||
-+		(ctrls[STROBE_SOURCE] && (ctrls[STROBE_SOURCE]->val !=
-+				V4L2_FLASH_STROBE_SOURCE_SOFTWARE)));
-+}
-+
-+static int v4l2_flash_s_ctrl(struct v4l2_ctrl *c)
-+{
-+	struct v4l2_flash *v4l2_flash = v4l2_ctrl_to_v4l2_flash(c);
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-+	struct v4l2_ctrl **ctrls = v4l2_flash->ctrls;
-+	bool external_strobe;
-+	int ret = 0;
-+
-+	switch (c->id) {
-+	case V4L2_CID_FLASH_LED_MODE:
-+		switch (c->val) {
-+		case V4L2_FLASH_LED_MODE_NONE:
-+			led_set_brightness(led_cdev, LED_OFF);
-+			return led_set_flash_strobe(fled_cdev, false);
-+		case V4L2_FLASH_LED_MODE_FLASH:
-+			/* Turn the torch LED off */
-+			led_set_brightness(led_cdev, LED_OFF);
-+			if (ctrls[STROBE_SOURCE]) {
-+				external_strobe = (ctrls[STROBE_SOURCE]->val ==
-+					V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
-+
-+				ret = call_flash_op(v4l2_flash,
-+						external_strobe_set,
-+						external_strobe);
-+			}
-+			return ret;
-+		case V4L2_FLASH_LED_MODE_TORCH:
-+			if (ctrls[STROBE_SOURCE]) {
-+				ret = call_flash_op(v4l2_flash,
-+						external_strobe_set,
-+						false);
-+				if (ret < 0)
-+					return ret;
-+			}
-+			/* Stop flash strobing */
-+			ret = led_set_flash_strobe(fled_cdev, false);
-+			if (ret < 0)
-+				return ret;
-+
-+			v4l2_flash_set_led_brightness(v4l2_flash,
-+							ctrls[TORCH_INTENSITY]);
-+			return 0;
-+		}
-+		break;
-+	case V4L2_CID_FLASH_STROBE_SOURCE:
-+		external_strobe = (c->val == V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
-+		/*
-+		 * For some hardware arrangements setting external flash strobe
-+		 * may spuriously turn the torch mode off. Therefore cache only
-+		 * this settting in such a case and apply it while switching to
-+		 * the torch mode.
-+		 */
-+		if ((ctrls[LED_MODE]->val != V4L2_FLASH_LED_MODE_FLASH) &&
-+		    external_strobe)
-+			return 0;
-+
-+		return call_flash_op(v4l2_flash, external_strobe_set,
-+					external_strobe);
-+	case V4L2_CID_FLASH_STROBE:
-+		if (__software_strobe_mode_inactive(ctrls))
-+			return -EBUSY;
-+		return led_set_flash_strobe(fled_cdev, true);
-+	case V4L2_CID_FLASH_STROBE_STOP:
-+		if (__software_strobe_mode_inactive(ctrls))
-+			return -EBUSY;
-+		return led_set_flash_strobe(fled_cdev, false);
-+	case V4L2_CID_FLASH_TIMEOUT:
-+		/* no conversion is needed */
-+		return led_set_flash_timeout(fled_cdev, c->val);
-+	case V4L2_CID_FLASH_INTENSITY:
-+		/* no conversion is needed */
-+		return led_set_flash_brightness(fled_cdev, c->val);
-+	case V4L2_CID_FLASH_TORCH_INTENSITY:
-+	case V4L2_CID_FLASH_INDICATOR_INTENSITY:
-+		v4l2_flash_set_led_brightness(v4l2_flash, c);
-+		return 0;
-+	case V4L2_CID_FLASH_SYNC_STROBE:
-+		fled_cdev->sync_led_id = c->val;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static const struct v4l2_ctrl_ops v4l2_flash_ctrl_ops = {
-+	.g_volatile_ctrl = v4l2_flash_g_volatile_ctrl,
-+	.s_ctrl = v4l2_flash_s_ctrl,
-+};
-+
-+static void fill_ctrl_init_data(struct v4l2_flash *v4l2_flash,
-+			  struct v4l2_flash_ctrl_config *flash_ctrl_cfg,
-+			  struct v4l2_flash_ctrl_data *ctrl_init_data)
-+{
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	const struct led_flash_ops *fled_cdev_ops = fled_cdev->ops;
-+	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-+	struct v4l2_ctrl_config *ctrl_cfg;
-+	u32 mask;
-+
-+	/* Init FLASH_FAULT ctrl data */
-+	if (flash_ctrl_cfg->flash_faults) {
-+		ctrl_init_data[FLASH_FAULT].cid = V4L2_CID_FLASH_FAULT;
-+		ctrl_cfg = &ctrl_init_data[FLASH_FAULT].config;
-+		ctrl_cfg->id = V4L2_CID_FLASH_FAULT;
-+		ctrl_cfg->max = flash_ctrl_cfg->flash_faults;
-+		ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE |
-+				  V4L2_CTRL_FLAG_READ_ONLY;
-+	}
-+
-+	/* Init INDICATOR_INTENSITY ctrl data */
-+	if (flash_ctrl_cfg->indicator_led) {
-+		ctrl_init_data[INDICATOR_INTENSITY].cid =
-+					V4L2_CID_FLASH_INDICATOR_INTENSITY;
-+		ctrl_init_data[INDICATOR_INTENSITY].config =
-+						flash_ctrl_cfg->intensity;
-+		ctrl_cfg = &ctrl_init_data[INDICATOR_INTENSITY].config;
-+		ctrl_cfg->id = V4L2_CID_FLASH_INDICATOR_INTENSITY;
-+		ctrl_cfg->min = 0;
-+		ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE;
-+
-+		/* Indicator LED can have only faults and intensity controls. */
-+		return;
-+	}
-+
-+	/* Init FLASH_LED_MODE ctrl data */
-+	mask = 1 << V4L2_FLASH_LED_MODE_NONE |
-+	       1 << V4L2_FLASH_LED_MODE_TORCH;
-+	if (led_cdev->flags & LED_DEV_CAP_FLASH)
-+		mask |= 1 << V4L2_FLASH_LED_MODE_FLASH;
-+
-+	ctrl_init_data[LED_MODE].cid = V4L2_CID_FLASH_LED_MODE;
-+	ctrl_cfg = &ctrl_init_data[LED_MODE].config;
-+	ctrl_cfg->id = V4L2_CID_FLASH_LED_MODE;
-+	ctrl_cfg->max = V4L2_FLASH_LED_MODE_TORCH;
-+	ctrl_cfg->menu_skip_mask = ~mask;
-+	ctrl_cfg->def = V4L2_FLASH_LED_MODE_NONE;
-+	ctrl_cfg->flags = 0;
-+
-+	/* Init TORCH_INTENSITY ctrl data */
-+	ctrl_init_data[TORCH_INTENSITY].cid = V4L2_CID_FLASH_TORCH_INTENSITY;
-+	ctrl_init_data[TORCH_INTENSITY].config = flash_ctrl_cfg->intensity;
-+	ctrl_cfg = &ctrl_init_data[TORCH_INTENSITY].config;
-+	ctrl_cfg->id = V4L2_CID_FLASH_TORCH_INTENSITY;
-+	ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE;
-+
-+	if (!(led_cdev->flags & LED_DEV_CAP_FLASH))
-+		return;
-+
-+	/* Init FLASH_STROBE ctrl data */
-+	ctrl_init_data[FLASH_STROBE].cid = V4L2_CID_FLASH_STROBE;
-+	ctrl_cfg = &ctrl_init_data[FLASH_STROBE].config;
-+	ctrl_cfg->id = V4L2_CID_FLASH_STROBE;
-+
-+	/* Init STROBE_STOP ctrl data */
-+	ctrl_init_data[STROBE_STOP].cid = V4L2_CID_FLASH_STROBE_STOP;
-+	ctrl_cfg = &ctrl_init_data[STROBE_STOP].config;
-+	ctrl_cfg->id = V4L2_CID_FLASH_STROBE_STOP;
-+
-+	/* Init FLASH_STROBE_SOURCE ctrl data */
-+	if (flash_ctrl_cfg->has_external_strobe) {
-+		mask = (1 << V4L2_FLASH_STROBE_SOURCE_SOFTWARE) |
-+		       (1 << V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
-+		ctrl_init_data[STROBE_SOURCE].cid =
-+					V4L2_CID_FLASH_STROBE_SOURCE;
-+		ctrl_cfg = &ctrl_init_data[STROBE_SOURCE].config;
-+		ctrl_cfg->id = V4L2_CID_FLASH_STROBE_SOURCE;
-+		ctrl_cfg->max = V4L2_FLASH_STROBE_SOURCE_EXTERNAL;
-+		ctrl_cfg->menu_skip_mask = ~mask;
-+		ctrl_cfg->def = V4L2_FLASH_STROBE_SOURCE_SOFTWARE;
-+	}
-+
-+	/* Init STROBE_STATUS ctrl data */
-+	if (fled_cdev_ops->strobe_get) {
-+		ctrl_init_data[STROBE_STATUS].cid =
-+					V4L2_CID_FLASH_STROBE_STATUS;
-+		ctrl_cfg = &ctrl_init_data[STROBE_STATUS].config;
-+		ctrl_cfg->id = V4L2_CID_FLASH_STROBE_STATUS;
-+		ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE |
-+				  V4L2_CTRL_FLAG_READ_ONLY;
-+	}
-+
-+	/* Init FLASH_TIMEOUT ctrl data */
-+	if (fled_cdev_ops->timeout_set) {
-+		ctrl_init_data[FLASH_TIMEOUT].cid = V4L2_CID_FLASH_TIMEOUT;
-+		ctrl_init_data[FLASH_TIMEOUT].config =
-+					flash_ctrl_cfg->flash_timeout;
-+		ctrl_cfg = &ctrl_init_data[FLASH_TIMEOUT].config;
-+		ctrl_cfg->id = V4L2_CID_FLASH_TIMEOUT;
-+		ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE;
-+	}
-+
-+	/* Init FLASH_INTENSITY ctrl data */
-+	if (fled_cdev_ops->flash_brightness_set) {
-+		ctrl_init_data[FLASH_INTENSITY].cid = V4L2_CID_FLASH_INTENSITY;
-+		ctrl_init_data[FLASH_INTENSITY].config =
-+					flash_ctrl_cfg->flash_intensity;
-+		ctrl_cfg = &ctrl_init_data[FLASH_INTENSITY].config;
-+		ctrl_cfg->id = V4L2_CID_FLASH_INTENSITY;
-+		ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE;
-+	}
-+}
-+
-+static int v4l2_flash_init_sync_strobe_menu(struct v4l2_flash *v4l2_flash)
-+{
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct v4l2_ctrl *ctrl;
-+	int i = 0;
-+
-+	v4l2_flash->sync_strobe_menu =
-+			devm_kcalloc(fled_cdev->led_cdev.dev->parent,
-+					fled_cdev->num_sync_leds + 1,
-+					sizeof(char *),
-+					GFP_KERNEL);
-+
-+	if (!v4l2_flash->sync_strobe_menu)
-+		return -ENOMEM;
-+
-+	v4l2_flash->sync_strobe_menu[0] = "none";
-+
-+	for (i = 0; i < fled_cdev->num_sync_leds; ++i)
-+		v4l2_flash->sync_strobe_menu[i + 1] =
-+				(char *) fled_cdev->sync_leds[i]->led_cdev.name;
-+
-+	ctrl = v4l2_ctrl_new_std_menu_items(
-+		&v4l2_flash->hdl, &v4l2_flash_ctrl_ops,
-+		V4L2_CID_FLASH_SYNC_STROBE,
-+		fled_cdev->num_sync_leds,
-+		0, 0,
-+		(const char * const *) v4l2_flash->sync_strobe_menu);
-+
++	vb2_set_plane_payload(vb, 0, size);
 +	return 0;
 +}
 +
-+static int v4l2_flash_init_controls(struct v4l2_flash *v4l2_flash,
-+				struct v4l2_flash_ctrl_config *flash_ctrl_cfg)
-+
++/*
++ * Queue this buffer to the DMA engine.
++ */
++static void sur40_buffer_queue(struct vb2_buffer *vb)
 +{
-+	struct led_classdev *led_cdev = &v4l2_flash->fled_cdev->led_cdev;
-+	struct v4l2_flash_ctrl_data *ctrl_init_data;
-+	struct v4l2_ctrl *ctrl;
-+	struct v4l2_ctrl_config *ctrl_cfg;
-+	int i, ret, num_ctrls = 0;
++	struct sur40_state *sur40 = vb2_get_drv_priv(vb->vb2_queue);
++	struct sur40_buffer *buf = (struct sur40_buffer *)vb;
 +
-+	/* allocate memory dynamically so as not to exceed stack frame size */
-+	ctrl_init_data = kcalloc(NUM_FLASH_CTRLS, sizeof(*ctrl_init_data),
-+					GFP_KERNEL);
-+	if (!ctrl_init_data)
-+		return -ENOMEM;
++	spin_lock(&sur40->qlock);
++	list_add_tail(&buf->list, &sur40->buf_list);
++	spin_unlock(&sur40->qlock);
++}
 +
-+	fill_ctrl_init_data(v4l2_flash, flash_ctrl_cfg, ctrl_init_data);
++static void return_all_buffers(struct sur40_state *sur40,
++			       enum vb2_buffer_state state)
++{
++	struct sur40_buffer *buf, *node;
 +
-+	for (i = 0; i < NUM_FLASH_CTRLS; ++i)
-+		if (ctrl_init_data[i].cid)
-+			++num_ctrls;
-+
-+	v4l2_ctrl_handler_init(&v4l2_flash->hdl, num_ctrls);
-+
-+	for (i = 0; i < NUM_FLASH_CTRLS; ++i) {
-+		ctrl_cfg = &ctrl_init_data[i].config;
-+		if (!ctrl_init_data[i].cid)
-+			continue;
-+
-+		if (ctrl_cfg->id == V4L2_CID_FLASH_LED_MODE ||
-+		    ctrl_cfg->id == V4L2_CID_FLASH_STROBE_SOURCE)
-+			ctrl = v4l2_ctrl_new_std_menu(&v4l2_flash->hdl,
-+						&v4l2_flash_ctrl_ops,
-+						ctrl_cfg->id,
-+						ctrl_cfg->max,
-+						ctrl_cfg->menu_skip_mask,
-+						ctrl_cfg->def);
-+		else
-+			ctrl = v4l2_ctrl_new_std(&v4l2_flash->hdl,
-+						&v4l2_flash_ctrl_ops,
-+						ctrl_cfg->id,
-+						ctrl_cfg->min,
-+						ctrl_cfg->max,
-+						ctrl_cfg->step,
-+						ctrl_cfg->def);
-+
-+		if (ctrl)
-+			ctrl->flags |= ctrl_cfg->flags;
-+
-+		if (i <= SYNC_STROBE)
-+			v4l2_flash->ctrls[i] = ctrl;
++	spin_lock(&sur40->qlock);
++	list_for_each_entry_safe(buf, node, &sur40->buf_list, list) {
++		vb2_buffer_done(&buf->vb, state);
++		list_del(&buf->list);
 +	}
++	spin_unlock(&sur40->qlock);
++}
 +
-+	kfree(ctrl_init_data);
++/*
++ * Start streaming. First check if the minimum number of buffers have been
++ * queued. If not, then return -ENOBUFS and the vb2 framework will call
++ * this function again the next time a buffer has been queued until enough
++ * buffers are available to actually start the DMA engine.
++ */
++static int sur40_start_streaming(struct vb2_queue *vq, unsigned int count)
++{
++	struct sur40_state *sur40 = vb2_get_drv_priv(vq);
 +
-+	if (led_cdev->flags & LED_DEV_CAP_SYNC_STROBE) {
-+		ret = v4l2_flash_init_sync_strobe_menu(v4l2_flash);
-+		if (ret < 0)
-+			goto error_free_handler;
-+	}
-+
-+	if (v4l2_flash->hdl.error) {
-+		ret = v4l2_flash->hdl.error;
-+		goto error_free_handler;
-+	}
-+
-+	v4l2_ctrl_handler_setup(&v4l2_flash->hdl);
-+
-+	v4l2_flash->sd.ctrl_handler = &v4l2_flash->hdl;
-+
++	sur40->sequence = 0;
 +	return 0;
-+
-+error_free_handler:
-+	v4l2_ctrl_handler_free(&v4l2_flash->hdl);
-+	return ret;
-+}
-+
-+static int __sync_device_with_v4l2_controls(struct v4l2_flash *v4l2_flash)
-+{
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct v4l2_ctrl **ctrls = v4l2_flash->ctrls;
-+	int ret = 0;
-+
-+	if (ctrls[SYNC_STROBE])
-+		fled_cdev->sync_led_id = ctrls[SYNC_STROBE]->val;
-+
-+	if (ctrls[FLASH_TIMEOUT]) {
-+		ret = led_set_flash_timeout(fled_cdev,
-+					ctrls[FLASH_TIMEOUT]->val);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	if (ctrls[FLASH_INTENSITY]) {
-+		ret = led_set_flash_brightness(fled_cdev,
-+					ctrls[FLASH_INTENSITY]->val);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	if (ctrls[STROBE_SOURCE])
-+		ret = call_flash_op(v4l2_flash, external_strobe_set, false);
-+
-+	if (ctrls[INDICATOR_INTENSITY])
-+		v4l2_flash_set_led_brightness(v4l2_flash,
-+						ctrls[INDICATOR_INTENSITY]);
-+	else
-+		v4l2_flash_set_led_brightness(v4l2_flash,
-+						ctrls[TORCH_INTENSITY]);
-+
-+	return ret;
 +}
 +
 +/*
-+ * V4L2 subdev internal operations
++ * Stop the DMA engine. Any remaining buffers in the DMA queue are dequeued
++ * and passed on to the vb2 framework marked as STATE_ERROR.
 + */
-+
-+static int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++static void sur40_stop_streaming(struct vb2_queue *vq)
 +{
-+	struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-+	int ret = 0;
++	struct sur40_state *sur40 = vb2_get_drv_priv(vq);
 +
-+	mutex_lock(&led_cdev->led_access);
-+
-+	if (!v4l2_fh_is_singular(&fh->vfh)) {
-+		ret = -EBUSY;
-+		goto unlock;
-+	}
-+
-+	led_sysfs_disable(led_cdev);
-+
-+	ret = __sync_device_with_v4l2_controls(v4l2_flash);
-+
-+unlock:
-+	mutex_unlock(&led_cdev->led_access);
-+	return ret;
++	/* Release all active buffers */
++	return_all_buffers(sur40, VB2_BUF_STATE_ERROR);
 +}
 +
-+static int v4l2_flash_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++/* V4L ioctl */
++static int sur40_vidioc_querycap(struct file *file, void *priv,
++				 struct v4l2_capability *cap)
 +{
-+	struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-+	int ret = 0;
++	struct sur40_state *sur40 = video_drvdata(file);
 +
-+	mutex_lock(&led_cdev->led_access);
-+
-+	if (v4l2_flash->ctrls[STROBE_SOURCE])
-+		v4l2_ctrl_s_ctrl(v4l2_flash->ctrls[STROBE_SOURCE],
-+				V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
-+
-+	led_sysfs_enable(led_cdev);
-+
-+	mutex_unlock(&led_cdev->led_access);
-+
-+	return ret;
++	strlcpy(cap->driver, DRIVER_SHORT, sizeof(cap->driver));
++	strlcpy(cap->card, DRIVER_LONG, sizeof(cap->card));
++	usb_make_path(sur40->usbdev, cap->bus_info, sizeof(cap->bus_info));
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
++		V4L2_CAP_READWRITE |
++		V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	return 0;
 +}
 +
-+static const struct v4l2_subdev_internal_ops v4l2_flash_subdev_internal_ops = {
-+	.open = v4l2_flash_open,
-+	.close = v4l2_flash_close,
-+};
-+
-+static const struct v4l2_subdev_core_ops v4l2_flash_core_ops = {
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
-+};
-+
-+static const struct v4l2_subdev_ops v4l2_flash_subdev_ops = {
-+	.core = &v4l2_flash_core_ops,
-+};
-+
-+struct v4l2_flash *v4l2_flash_init(struct led_classdev_flash *fled_cdev,
-+				   const struct v4l2_flash_ops *ops,
-+				   struct v4l2_flash_ctrl_config *config)
++static int sur40_vidioc_enum_input(struct file *file, void *priv,
++				   struct v4l2_input *i)
 +{
-+	struct v4l2_flash *v4l2_flash;
-+	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-+	struct v4l2_subdev *sd;
-+	int ret;
-+
-+	if (!fled_cdev || !ops || !config)
-+		return ERR_PTR(-EINVAL);
-+
-+	v4l2_flash = devm_kzalloc(led_cdev->dev, sizeof(*v4l2_flash),
-+					GFP_KERNEL);
-+	if (!v4l2_flash)
-+		return ERR_PTR(-ENOMEM);
-+
-+	sd = &v4l2_flash->sd;
-+	v4l2_flash->fled_cdev = fled_cdev;
-+	v4l2_flash->ops = ops;
-+	sd->dev = led_cdev->dev;
-+	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
-+	sd->internal_ops = &v4l2_flash_subdev_internal_ops;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	strlcpy(sd->name, led_cdev->name, sizeof(sd->name));
-+
-+	ret = media_entity_init(&sd->entity, 0, NULL, 0);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-+
-+	ret = v4l2_flash_init_controls(v4l2_flash, config);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	ret = v4l2_async_register_subdev(sd);
-+	if (ret < 0)
-+		goto err_async_register_sd;
-+
-+	return v4l2_flash;
-+
-+err_async_register_sd:
-+	media_entity_cleanup(&sd->entity);
-+	v4l2_ctrl_handler_free(sd->ctrl_handler);
-+
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_flash_init);
-+
-+void v4l2_flash_release(struct v4l2_flash *v4l2_flash)
-+{
-+	struct v4l2_subdev *sd = &v4l2_flash->sd;
-+
-+	if (!v4l2_flash)
-+		return;
-+
-+	v4l2_async_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(sd->ctrl_handler);
-+	media_entity_cleanup(&sd->entity);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_flash_release);
-+
-+MODULE_AUTHOR("Jacek Anaszewski <j.anaszewski@samsung.com>");
-+MODULE_DESCRIPTION("V4L2 Flash sub-device helpers");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/media/v4l2-flash.h b/include/media/v4l2-flash.h
-new file mode 100644
-index 0000000..e0d58cf
---- /dev/null
-+++ b/include/media/v4l2-flash.h
-@@ -0,0 +1,146 @@
-+/*
-+ * V4L2 Flash LED sub-device registration helpers.
-+ *
-+ *	Copyright (C) 2015 Samsung Electronics Co., Ltd
-+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef _V4L2_FLASH_H
-+#define _V4L2_FLASH_H
-+
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-subdev.h>
-+
-+struct led_classdev_flash;
-+struct led_classdev;
-+struct v4l2_flash;
-+enum led_brightness;
-+
-+enum ctrl_init_data_id {
-+	LED_MODE,
-+	TORCH_INTENSITY,
-+	FLASH_INTENSITY,
-+	INDICATOR_INTENSITY,
-+	FLASH_TIMEOUT,
-+	STROBE_SOURCE,
-+	SYNC_STROBE,
-+	/*
-+	 * Only above values are applicable to
-+	 * the 'ctrls' array in the struct v4l2_flash.
-+	 */
-+	FLASH_STROBE,
-+	STROBE_STOP,
-+	STROBE_STATUS,
-+	FLASH_FAULT,
-+	NUM_FLASH_CTRLS,
-+};
-+
-+/*
-+ * struct v4l2_flash_ctrl_data - flash control initialization data, filled
-+ *				basing on the features declared by the LED Flash
-+ *				class driver in the v4l2_flash_ctrl_config
-+ * @config:	initialization data for a control
-+ * @cid:	contains v4l2 flash control id if the config
-+ *		field was initialized, 0 otherwise
-+ */
-+struct v4l2_flash_ctrl_data {
-+	struct v4l2_ctrl_config config;
-+	u32 cid;
-+};
-+
-+struct v4l2_flash_ops {
-+	/* setup strobing the flash by hardware pin state assertion */
-+	int (*external_strobe_set)(struct v4l2_flash *v4l2_flash,
-+					bool enable);
-+	/* convert intensity to brightness in a device specific manner */
-+	enum led_brightness (*intensity_to_led_brightness)
-+		(struct v4l2_flash *v4l2_flash, s32 intensity);
-+	/* convert brightness to intensity in a device specific manner */
-+	s32 (*led_brightness_to_intensity)
-+		(struct v4l2_flash *v4l2_flash, enum led_brightness);
-+};
-+
-+/**
-+ * struct v4l2_flash_ctrl_config - V4L2 Flash controls initialization data
-+ * @intensity:			constraints for the led in a non-flash mode
-+ * @flash_intensity:		V4L2_CID_FLASH_INTENSITY settings constraints
-+ * @flash_timeout:		V4L2_CID_FLASH_TIMEOUT constraints
-+ * @flash_faults:		possible flash faults
-+ * @has_external_strobe:	external strobe capability
-+ * @indicator_led:		signifies that a led is of indicator type
-+ */
-+struct v4l2_flash_ctrl_config {
-+	struct v4l2_ctrl_config intensity;
-+	struct v4l2_ctrl_config flash_intensity;
-+	struct v4l2_ctrl_config flash_timeout;
-+	u32 flash_faults;
-+	bool has_external_strobe:1;
-+	bool indicator_led:1;
-+};
-+
-+/**
-+ * struct v4l2_flash - Flash sub-device context
-+ * @fled_cdev:		LED Flash class device controlled by this sub-device
-+ * @ops:		V4L2 specific flash ops
-+ * @sd:			V4L2 sub-device
-+ * @hdl:		flash controls handler
-+ * @ctrls:		array of pointers to controls, whose values define
-+ *			the sub-device state
-+ * @sync_strobe_menu	leds available for flash strobe synchronization
-+ */
-+struct v4l2_flash {
-+	struct led_classdev_flash *fled_cdev;
-+	const struct v4l2_flash_ops *ops;
-+
-+	struct v4l2_subdev sd;
-+	struct v4l2_ctrl_handler hdl;
-+	struct v4l2_ctrl *ctrls[SYNC_STROBE + 1];
-+	char **sync_strobe_menu;
-+};
-+
-+static inline struct v4l2_flash *v4l2_subdev_to_v4l2_flash(
-+							struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct v4l2_flash, sd);
++	if (i->index != 0)
++		return -EINVAL;
++	i->type = V4L2_INPUT_TYPE_CAMERA;
++	i->std = V4L2_STD_UNKNOWN;
++	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
++	i->capabilities = 0;
++	return 0;
 +}
 +
-+static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
++static int sur40_vidioc_s_input(struct file *file, void *priv, unsigned int i)
 +{
-+	return container_of(c->handler, struct v4l2_flash, hdl);
++	return (i == 0) ? 0 : -EINVAL;
 +}
 +
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+/**
-+ * v4l2_flash_init - initialize V4L2 flash led sub-device
-+ * @fled_cdev:	the LED Flash class device to wrap
-+ * @flash_ops:	V4L2 Flash device ops
-+ * @config:	initialization data for V4L2 Flash controls
-+ *
-+ * Create V4L2 Flash sub-device wrapping given LED subsystem device.
-+ *
-+ * Returns: A valid pointer, or, when an error occurs, the return
-+ * value is encoded using ERR_PTR(). Use IS_ERR() to check and
-+ * PTR_ERR() to obtain the numeric return value.
-+ */
-+struct v4l2_flash *v4l2_flash_init(struct led_classdev_flash *fled_cdev,
-+				   const struct v4l2_flash_ops *ops,
-+				   struct v4l2_flash_ctrl_config *config);
++static int sur40_vidioc_g_input(struct file *file, void *priv, unsigned int *i)
++{
++	*i = 0;
++	return 0;
++}
 +
-+/**
-+ * v4l2_flash_release - release V4L2 Flash sub-device
-+ * @flash: the V4L2 Flash sub-device to release
-+ *
-+ * Release V4L2 Flash sub-device.
-+ */
-+void v4l2_flash_release(struct v4l2_flash *v4l2_flash);
++static int sur40_vidioc_fmt(struct file *file, void *priv,
++			    struct v4l2_format *f)
++{
++	f->fmt.pix = sur40_video_format;
++	return 0;
++}
 +
-+#else
-+#define v4l2_flash_init(fled_cdev, ops, config) (NULL)
-+#define v4l2_flash_release(v4l2_flash)
-+#endif /* CONFIG_V4L2_FLASH_LED_CLASS */
++static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
++				 struct v4l2_fmtdesc *f)
++{
++	if (f->index != 0)
++		return -EINVAL;
++	strlcpy(f->description, "8-bit greyscale", sizeof(f->description));
++	f->pixelformat = V4L2_PIX_FMT_GREY;
++	f->flags = 0;
++	return 0;
++}
 +
-+#endif /* _V4L2_FLASH_H */
+ static const struct usb_device_id sur40_table[] = {
+ 	{ USB_DEVICE(ID_MICROSOFT, ID_SUR40) },  /* Samsung SUR40 */
+ 	{ }                                      /* terminating null entry */
+ };
+ MODULE_DEVICE_TABLE(usb, sur40_table);
+ 
++/* V4L2 structures */
++static const struct vb2_ops sur40_queue_ops = {
++	.queue_setup		= sur40_queue_setup,
++	.buf_prepare		= sur40_buffer_prepare,
++	.buf_queue		= sur40_buffer_queue,
++	.start_streaming	= sur40_start_streaming,
++	.stop_streaming		= sur40_stop_streaming,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
++};
++
++static const struct vb2_queue sur40_queue = {
++	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
++	.io_modes = VB2_MMAP | VB2_READ | VB2_DMABUF | VB2_USERPTR,
++	.buf_struct_size = sizeof(struct sur40_buffer),
++	.ops = &sur40_queue_ops,
++	.mem_ops = &vb2_dma_sg_memops,
++	.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC,
++	.min_buffers_needed = 3,
++};
++
++static const struct v4l2_file_operations sur40_video_fops = {
++	.owner = THIS_MODULE,
++	.open = v4l2_fh_open,
++	.release = vb2_fop_release,
++	.unlocked_ioctl = video_ioctl2,
++	.read = vb2_fop_read,
++	.mmap = vb2_fop_mmap,
++	.poll = vb2_fop_poll,
++};
++
++static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
++
++	.vidioc_querycap	= sur40_vidioc_querycap,
++
++	.vidioc_enum_fmt_vid_cap = sur40_vidioc_enum_fmt,
++	.vidioc_try_fmt_vid_cap	= sur40_vidioc_fmt,
++	.vidioc_s_fmt_vid_cap	= sur40_vidioc_fmt,
++	.vidioc_g_fmt_vid_cap	= sur40_vidioc_fmt,
++
++	.vidioc_enum_input	= sur40_vidioc_enum_input,
++	.vidioc_g_input		= sur40_vidioc_g_input,
++	.vidioc_s_input		= sur40_vidioc_s_input,
++
++	.vidioc_reqbufs		= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs	= vb2_ioctl_create_bufs,
++	.vidioc_querybuf	= vb2_ioctl_querybuf,
++	.vidioc_qbuf		= vb2_ioctl_qbuf,
++	.vidioc_dqbuf		= vb2_ioctl_dqbuf,
++	.vidioc_expbuf		= vb2_ioctl_expbuf,
++
++	.vidioc_streamon	= vb2_ioctl_streamon,
++	.vidioc_streamoff	= vb2_ioctl_streamoff,
++};
++
++static const struct video_device sur40_video_device = {
++	.name = DRIVER_LONG,
++	.fops = &sur40_video_fops,
++	.ioctl_ops = &sur40_video_ioctl_ops,
++	.release = video_device_release_empty,
++};
++
++static const struct v4l2_pix_format sur40_video_format = {
++	.pixelformat = V4L2_PIX_FMT_GREY,
++	.width  = SENSOR_RES_X / 2,
++	.height = SENSOR_RES_Y / 2,
++	.field = V4L2_FIELD_NONE,
++	.colorspace = V4L2_COLORSPACE_SRGB,
++	.bytesperline = SENSOR_RES_X / 2,
++	.sizeimage = (SENSOR_RES_X/2) * (SENSOR_RES_Y/2),
++};
++
+ /* USB-specific object needed to register this driver with the USB subsystem. */
+ static struct usb_driver sur40_driver = {
+ 	.name = DRIVER_SHORT,
 -- 
-1.7.9.5
+1.9.1
 
