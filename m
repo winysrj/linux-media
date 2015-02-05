@@ -1,54 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40502 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751951AbbBWPVS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 10:21:18 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuah.kh@samsung.com>,
-	Akihiro Tsukada <tskd08@gmail.com>,
-	Ole Ernst <olebowle@gmx.com>
-Subject: [PATCH v2] [media] dvb core: only start media entity if not NULL
-Date: Mon, 23 Feb 2015 12:21:06 -0300
-Message-Id: <2b8b4fd77adde4a1284ffe72dd47e0eec95c364f.1424704848.git.mchehab@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58411 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757241AbbBEMAc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Feb 2015 07:00:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] [media] mt9p031: fixed calculation of clk_div
+Date: Thu, 05 Feb 2015 14:01:17 +0200
+Message-ID: <5787881.fq9SL5Zs8d@avalon>
+In-Reply-To: <1423072270-20078-1-git-send-email-enrico.scholz@sigma-chemnitz.de>
+References: <1423061612-12623-1-git-send-email-enrico.scholz@sigma-chemnitz.de> <1423072270-20078-1-git-send-email-enrico.scholz@sigma-chemnitz.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic there tries to start the media entity even if it
-doesn't exist, causing this bug:
+Hi Enrico,
 
-	[  314.356162] BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
-	[  314.356202] IP: [<ffffffffa02ef74c>] media_entity_pipeline_start+0x1c/0x390 [media]
+Thank you for the patch.
 
-Reported-by: Gert-Jan van der Stroom <gjstroom@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On Wednesday 04 February 2015 18:51:10 Enrico Scholz wrote:
+> There must be used 'min_t', not 'max_t' for calculating the divider.
+> 
+> Signed-off-by: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index d7d390c5c7c3..882ca417f328 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -714,7 +714,7 @@ static int dvb_frontend_thread(void *data)
- 		/* FIXME: return an error if it fails */
- 		dev_info(fe->dvb->device,
- 			"proceeding with FE task\n");
--	} else {
-+	} else if (fepriv->pipe_start_entity) {
- 		ret = media_entity_pipeline_start(fepriv->pipe_start_entity,
- 						  &fepriv->pipe);
- 		if (ret)
-@@ -832,7 +832,8 @@ restart:
- 	}
- 
- #ifdef CONFIG_MEDIA_CONTROLLER_DVB
--	media_entity_pipeline_stop(fepriv->pipe_start_entity);
-+	if (fepriv->pipe_start_entity)
-+		media_entity_pipeline_stop(fepriv->pipe_start_entity);
- 	fepriv->pipe_start_entity = NULL;
- #endif
- 
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree. I'll send a pull request for v3.21.
+
+> ---
+>  drivers/media/i2c/mt9p031.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+> index 0cabf91..43ee299 100644
+> --- a/drivers/media/i2c/mt9p031.c
+> +++ b/drivers/media/i2c/mt9p031.c
+> @@ -254,7 +254,7 @@ static int mt9p031_clk_setup(struct mt9p031 *mt9p031)
+>  		div = DIV_ROUND_UP(ext_freq, pdata->target_freq);
+>  		div = roundup_pow_of_two(div) / 2;
+> 
+> -		mt9p031->clk_div = max_t(unsigned int, div, 64);
+> +		mt9p031->clk_div = min_t(unsigned int, div, 64);
+>  		mt9p031->use_pll = false;
+> 
+>  		return 0;
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
