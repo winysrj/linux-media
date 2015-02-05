@@ -1,51 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49766 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58594 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751959AbbBXAea (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 19:34:30 -0500
+	with ESMTP id S1757595AbbBEO5Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Feb 2015 09:57:16 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 2/3] media: omap3isp: ispvideo: drop driver specific isp_video_fh
-Date: Tue, 24 Feb 2015 02:35:31 +0200
-Message-ID: <7125910.hm5qgSJ3zA@avalon>
-In-Reply-To: <1424722773-20131-3-git-send-email-prabhakar.csengg@gmail.com>
-References: <1424722773-20131-1-git-send-email-prabhakar.csengg@gmail.com> <1424722773-20131-3-git-send-email-prabhakar.csengg@gmail.com>
+To: Francesco Marletta <francesco.marletta@movia.biz>
+Cc: Francesco Marletta <fmarletta@movia.biz>,
+	Carlos =?ISO-8859-1?Q?Sanmart=EDn?= Bustos <carsanbu@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: Help required for TVP5151 on Overo
+Date: Thu, 05 Feb 2015 16:57:57 +0200
+Message-ID: <8229059.JSIBoG9XF0@avalon>
+In-Reply-To: <54D37E67.6030103@movia.biz>
+References: <20141119094656.5459258b@crow> <5213550.zrY0P2Gc9u@avalon> <54D37E67.6030103@movia.biz>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hi Francesco,
 
-Thank you for the patch.
+On Thursday 05 February 2015 15:29:59 Francesco Marletta wrote:
+> Hi Laurent,
+> I'm trying to use the kernel of the linuxtv repository, omap3isp/tvp5151
+> branch,but the kernel don't starts... can you, please, send me the
+> kernel command line that you have used?
 
-On Monday 23 February 2015 20:19:32 Lad Prabhakar wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> this patch drops driver specific isp_video_fh, as this
-> can be handled by core.
+I'm afraid I haven't kept the .config file around. I might also have rebased 
+the working branch without testing the result, so it might just not work on 
+3.18-rc4. I'm sorry not to be able to help you for now.
 
-I'm afraid it's not that simple.
+> Also, have you used device tree ?
 
-The omap3isp driver stores video queues per file handle for a reason. This was 
-design to permit creating a high-resolution still image capture queue and 
-prepare buffers ahead of time, to avoid the large delay due to cache 
-management as prepare time when taking the snapshot.
-
-Now this use case has been partially solved by VIDIOC_CREATE_BUFS, but we're 
-still missing a VIDIOC_DESTROY_BUFS to make it work completely. That needs to 
-be solved first.
-
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/platform/omap3isp/ispvideo.c | 128  ++++++++++---------------
->  drivers/media/platform/omap3isp/ispvideo.h |  13 +--
->  2 files changed, 49 insertions(+), 92 deletions(-)
+No, I was using legacy boot. The OMAP3 ISP driver doesn't support DT yet.
 
 -- 
 Regards,
