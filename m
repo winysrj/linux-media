@@ -1,58 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55814 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751684AbbBCNnX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 08:43:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, isely@isely.net, pali.rohar@gmail.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 4/5] uvc gadget: set device_caps in querycap.
-Date: Tue, 03 Feb 2015 15:44:06 +0200
-Message-ID: <14375558.lMHDtzMOar@avalon>
-In-Reply-To: <1422967646-12223-5-git-send-email-hverkuil@xs4all.nl>
-References: <1422967646-12223-1-git-send-email-hverkuil@xs4all.nl> <1422967646-12223-5-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp66.ord1c.emailsrvr.com ([108.166.43.66]:53097 "EHLO
+	smtp66.ord1c.emailsrvr.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756990AbbBEKWH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Feb 2015 05:22:07 -0500
+From: Kiran Padwal <kiran.padwal@smartplayin.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kiran.padwal21@gmail.com,
+	Kiran Padwal <kiran.padwal@smartplayin.com>
+Subject: [PATCH] [media] s5k5baf: Add missing error check for devm_kzalloc
+Date: Thu,  5 Feb 2015 15:39:10 +0530
+Message-Id: <1423130950-3922-1-git-send-email-kiran.padwal@smartplayin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This patch add a missing a check on the return value of devm_kzalloc,
+which would cause a NULL pointer dereference in a OOM situation.
 
-Thank you for the patch.
+Signed-off-by: Kiran Padwal <kiran.padwal@smartplayin.com>
+---
+ drivers/media/i2c/s5k5baf.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-On Tuesday 03 February 2015 13:47:25 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The V4L2 core will warn if this is not done. Unfortunately this driver
-> wasn't updated.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/usb/gadget/function/uvc_v4l2.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/gadget/function/uvc_v4l2.c
-> b/drivers/usb/gadget/function/uvc_v4l2.c index 67f084f..3207b3e 100644
-> --- a/drivers/usb/gadget/function/uvc_v4l2.c
-> +++ b/drivers/usb/gadget/function/uvc_v4l2.c
-> @@ -76,7 +76,8 @@ uvc_v4l2_querycap(struct file *file, void *fh, struct
-> v4l2_capability *cap) strlcpy(cap->bus_info, dev_name(&cdev->gadget->dev),
->  		sizeof(cap->bus_info));
-> 
-> -	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-> +	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> 
->  	return 0;
->  }
-
+diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+index 60a74d8..156b975 100644
+--- a/drivers/media/i2c/s5k5baf.c
++++ b/drivers/media/i2c/s5k5baf.c
+@@ -374,6 +374,8 @@ static int s5k5baf_fw_parse(struct device *dev, struct s5k5baf_fw **fw,
+ 	count -= S5K5BAG_FW_TAG_LEN;
+ 
+ 	d = devm_kzalloc(dev, count * sizeof(u16), GFP_KERNEL);
++	if (!d)
++		return -ENOMEM;
+ 
+ 	for (i = 0; i < count; ++i)
+ 		d[i] = le16_to_cpu(data[i]);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
