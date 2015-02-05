@@ -1,61 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39862 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752292AbbBMI5P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 03:57:15 -0500
-Message-ID: <54DDBC5A.8020905@xs4all.nl>
-Date: Fri, 13 Feb 2015 09:56:58 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-CC: mchehab@osg.samsung.com
-Subject: Re: [REVIEW PATCH FOR v3.19 1/1] vb2: Fix dma_dir setting for dma-contig
- mem type
-References: <1423813357-31446-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1423813357-31446-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:61908 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756648AbbBELK0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Feb 2015 06:10:26 -0500
+Message-id: <54D34F93.8050809@samsung.com>
+Date: Thu, 05 Feb 2015 12:10:11 +0100
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Kiran Padwal <kiran.padwal@smartplayin.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kiran.padwal21@gmail.com
+Subject: Re: [PATCH] [media] s5k5baf: Add missing error check for devm_kzalloc
+References: <1423130950-3922-1-git-send-email-kiran.padwal@smartplayin.com>
+In-reply-to: <1423130950-3922-1-git-send-email-kiran.padwal@smartplayin.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/13/2015 08:42 AM, Sakari Ailus wrote:
-> The last argument of vb2_dc_get_user_pages() is of type enum
-> dma_data_direction, but the caller, vb2_dc_get_userptr() passes a value
-> which is the result of comparison dma_dir == DMA_FROM_DEVICE. This results
-> in the write parameter to get_user_pages() being zero in all cases, i.e.
-> that the caller has no intent to write there.
-> 
-> This was broken by patch "vb2: replace 'write' by 'dma_dir'".
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hi Kiran,
 
-Yuck.
+Thanks for spotting it.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
+On 02/05/2015 11:09 AM, Kiran Padwal wrote:
+> This patch add a missing a check on the return value of devm_kzalloc,
+> which would cause a NULL pointer dereference in a OOM situation.
+>
+> Signed-off-by: Kiran Padwal <kiran.padwal@smartplayin.com>
 > ---
->  drivers/media/v4l2-core/videobuf2-dma-contig.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index b481d20..69e0483 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -632,8 +632,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
->  	}
+>  drivers/media/i2c/s5k5baf.c |    2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+> index 60a74d8..156b975 100644
+> --- a/drivers/media/i2c/s5k5baf.c
+> +++ b/drivers/media/i2c/s5k5baf.c
+> @@ -374,6 +374,8 @@ static int s5k5baf_fw_parse(struct device *dev, struct s5k5baf_fw **fw,
+>  	count -= S5K5BAG_FW_TAG_LEN;
 >  
->  	/* extract page list from userspace mapping */
-> -	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma,
-> -				    dma_dir == DMA_FROM_DEVICE);
-> +	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, dma_dir);
->  	if (ret) {
->  		unsigned long pfn;
->  		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
-> 
+>  	d = devm_kzalloc(dev, count * sizeof(u16), GFP_KERNEL);
+> +	if (!d)
+> +		return -ENOMEM;
+>  
+>  	for (i = 0; i < count; ++i)
+>  		d[i] = le16_to_cpu(data[i]);
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
 
+Regards
+Andrzej
