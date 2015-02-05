@@ -1,80 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44971 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751232AbbBDLiW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 06:38:22 -0500
-Message-ID: <1423049893.3726.21.camel@pengutronix.de>
-Subject: Re: [RFC PATCH 2/2] [media] videobuf2: return -EPIPE from DQBUF
- after the last buffer
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Kamil Debski <k.debski@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, kernel@pengutronix.de,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	linux-media@vger.kernel.org
-Date: Wed, 04 Feb 2015 12:38:13 +0100
-In-Reply-To: <4994964.UYaXg1ctzs@avalon>
-References: <1421926118-29535-1-git-send-email-p.zabel@pengutronix.de>
-	 <1421926118-29535-3-git-send-email-p.zabel@pengutronix.de>
-	 <54CF8313.5020207@xs4all.nl> <4994964.UYaXg1ctzs@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:21418 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142AbbBEFwo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Feb 2015 00:52:44 -0500
+Date: Thu, 05 Feb 2015 14:52:42 +0900
+From: Cho KyongHo <pullip.cho@samsung.com>
+To: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	linux-kernel@vger.kernel.org
+Cc: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com
+Subject: [PATCH] [media] v4l: vb2-memops: use vma slab when vma allocation
+Message-id: <20150205145242.ebb07029fa8664144d687697@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The slab for vm_area_struct which is vm_area_cachep is already prepared
+for the general use. Instead of kmalloc() for the vma copy for userptr,
+allocation from vm_area_cachep is more beneficial.
 
-Am Dienstag, den 03.02.2015, 13:20 +0200 schrieb Laurent Pinchart:
-> On Monday 02 February 2015 15:00:51 Hans Verkuil wrote:
-> > On 01/22/2015 12:28 PM, Philipp Zabel wrote:
-> > > If the last buffer was dequeued from a capture queue, let poll return
-> > > immediately and let DQBUF return -EPIPE to signal there will no more
-> > > buffers to dequeue until STREAMOFF.
-> > 
-> > This looks OK to me, although I would like to see comments from others as
-> > well. Of course, this needs to be documented in the spec as well.
-> 
-> I haven't followed the V4L2 codec API discussion during ELC-E. Could someone 
-> briefly expose the rationale for this and the codec draining flow ? The 
-> explanation should probably included in the documentation.
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Hans Verkuil <hans.verkuil@cisco.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Cho KyongHo <pullip.cho@samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-memops.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-This is the draining flow as written down in the notes:
-
-  The decoder draining flow starts with the application making the
-  driver aware of its intentions by calling VIDIOC_DECODER_CMD with
-  V4L2_DEC_CMD_STOP.
-
-  The driver processes the remaining buffers on the OUTPUT queue.
-  Once all CAPTURE buffers produced from those are ready to dequeue, it 
-  sends a V4L2_EVENT_EOS.
-
-  The application then dequeues buffers from the CAPTURE queue until it
-  encounters a buffer with V4L2_BUF_FLAG_LAST set. This buffer may
-  already be empty due to hardware limitations.
-  Alternatively, the application may simply continue to dequeue
-  (possibly empty) buffers until the VIDIOC_DQBUF ioctl returns -EPIPE.
-
-  To resume decoding, the application can call VIDIOC_DECODER_CMD with
-  V4L2_CMD_START without the need to stop streaming.
-
-This should work the same for encoding.
-The rationale for using -EPIPE was IIRC that it allows for simpler code
-(DQBUF loop until error). Also it works without the newest kernel
-headers that #define V4L2_BUF_FLAG_LAST.
-
-I don't remember if we talked about what should happen to new buffers
-queued via QBUF on the OUTPUT queue while in draining mode, but I
-suppose the driver should just hold them until V4L2_CMD_START is called.
-
-> Existing applications will receive -EPIPE from DQBUF now. Have potential 
-> breakages been taken into account ?
-
-We can continue to produce empty frames this way, which are currently
-used to signal the last frame in s5p-mfc. I am not aware of other
-unspecified mechanisms in use.
-
-regards
-Philipp
+diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
+index 81c1ad8..dd06efa 100644
+--- a/drivers/media/v4l2-core/videobuf2-memops.c
++++ b/drivers/media/v4l2-core/videobuf2-memops.c
+@@ -37,7 +37,7 @@ struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma)
+ {
+ 	struct vm_area_struct *vma_copy;
+ 
+-	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
++	vma_copy = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+ 	if (vma_copy == NULL)
+ 		return NULL;
+ 
+@@ -75,7 +75,7 @@ void vb2_put_vma(struct vm_area_struct *vma)
+ 	if (vma->vm_file)
+ 		fput(vma->vm_file);
+ 
+-	kfree(vma);
++	kmem_cache_free(vm_area_cachep, vma);
+ }
+ EXPORT_SYMBOL_GPL(vb2_put_vma);
+ 
+-- 
+1.7.9.5
 
