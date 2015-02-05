@@ -1,167 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:45103 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754069AbbBZSP0 convert rfc822-to-8bit (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:41175 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753134AbbBEDpq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 13:15:26 -0500
-Received: by lbjb6 with SMTP id b6so12501714lbj.12
-        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2015 10:15:24 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20150225223036.23353.77716.stgit@zeus.muc.hardeman.nu>
-References: <20150225223036.23353.77716.stgit@zeus.muc.hardeman.nu>
-From: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>
-Date: Thu, 26 Feb 2015 19:14:54 +0100
-Message-ID: <CAEmZozNLC_2pUD9h2vQeVMUQvt0apHdWas=SEpeuftp4PYiRNw@mail.gmail.com>
-Subject: Re: [PATCH] rc-core: fix dib0700 scancode generation for RC5
-To: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 4 Feb 2015 22:45:46 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 04BC72A0084
+	for <linux-media@vger.kernel.org>; Thu,  5 Feb 2015 04:45:04 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150205034504.04BC72A0084@tschai.lan>
+Date: Thu,  5 Feb 2015 04:45:04 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2015-02-25 23:30 GMT+01:00 David Härdeman <david@hardeman.nu>:
-> David, could you please test this patch?
-> ---
->  drivers/media/usb/dvb-usb/dib0700_core.c |   70 +++++++++++++++++-------------
->  1 file changed, 40 insertions(+), 30 deletions(-)
->
-> diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
-> index 50856db..605b090 100644
-> --- a/drivers/media/usb/dvb-usb/dib0700_core.c
-> +++ b/drivers/media/usb/dvb-usb/dib0700_core.c
-> @@ -658,10 +658,20 @@ out:
->  struct dib0700_rc_response {
->         u8 report_id;
->         u8 data_state;
-> -       u8 system;
-> -       u8 not_system;
-> -       u8 data;
-> -       u8 not_data;
-> +       union {
-> +               struct {
-> +                       u8 system;
-> +                       u8 not_system;
-> +                       u8 data;
-> +                       u8 not_data;
-> +               } nec;
-> +               struct {
-> +                       u8 not_used;
-> +                       u8 system;
-> +                       u8 data;
-> +                       u8 not_data;
-> +               } rc5;
-> +       };
->  };
->  #define RC_MSG_SIZE_V1_20 6
->
-> @@ -697,8 +707,8 @@ static void dib0700_rc_urb_completion(struct urb *purb)
->
->         deb_data("IR ID = %02X state = %02X System = %02X %02X Cmd = %02X %02X (len %d)\n",
->                  poll_reply->report_id, poll_reply->data_state,
-> -                poll_reply->system, poll_reply->not_system,
-> -                poll_reply->data, poll_reply->not_data,
-> +                poll_reply->nec.system, poll_reply->nec.not_system,
-> +                poll_reply->nec.data, poll_reply->nec.not_data,
->                  purb->actual_length);
->
->         switch (d->props.rc.core.protocol) {
-> @@ -707,30 +717,30 @@ static void dib0700_rc_urb_completion(struct urb *purb)
->                 toggle = 0;
->
->                 /* NEC protocol sends repeat code as 0 0 0 FF */
-> -               if (poll_reply->system     == 0x00 &&
-> -                   poll_reply->not_system == 0x00 &&
-> -                   poll_reply->data       == 0x00 &&
-> -                   poll_reply->not_data   == 0xff) {
-> +               if (poll_reply->nec.system     == 0x00 &&
-> +                   poll_reply->nec.not_system == 0x00 &&
-> +                   poll_reply->nec.data       == 0x00 &&
-> +                   poll_reply->nec.not_data   == 0xff) {
->                         poll_reply->data_state = 2;
->                         break;
->                 }
->
-> -               if ((poll_reply->data ^ poll_reply->not_data) != 0xff) {
-> +               if ((poll_reply->nec.data ^ poll_reply->nec.not_data) != 0xff) {
->                         deb_data("NEC32 protocol\n");
-> -                       keycode = RC_SCANCODE_NEC32(poll_reply->system     << 24 |
-> -                                                    poll_reply->not_system << 16 |
-> -                                                    poll_reply->data       << 8  |
-> -                                                    poll_reply->not_data);
-> -               } else if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
-> +                       keycode = RC_SCANCODE_NEC32(poll_reply->nec.system     << 24 |
-> +                                                    poll_reply->nec.not_system << 16 |
-> +                                                    poll_reply->nec.data       << 8  |
-> +                                                    poll_reply->nec.not_data);
-> +               } else if ((poll_reply->nec.system ^ poll_reply->nec.not_system) != 0xff) {
->                         deb_data("NEC extended protocol\n");
-> -                       keycode = RC_SCANCODE_NECX(poll_reply->system << 8 |
-> -                                                   poll_reply->not_system,
-> -                                                   poll_reply->data);
-> +                       keycode = RC_SCANCODE_NECX(poll_reply->nec.system << 8 |
-> +                                                   poll_reply->nec.not_system,
-> +                                                   poll_reply->nec.data);
->
->                 } else {
->                         deb_data("NEC normal protocol\n");
-> -                       keycode = RC_SCANCODE_NEC(poll_reply->system,
-> -                                                  poll_reply->data);
-> +                       keycode = RC_SCANCODE_NEC(poll_reply->nec.system,
-> +                                                  poll_reply->nec.data);
->                 }
->
->                 break;
-> @@ -738,19 +748,19 @@ static void dib0700_rc_urb_completion(struct urb *purb)
->                 deb_data("RC5 protocol\n");
->                 protocol = RC_TYPE_RC5;
->                 toggle = poll_reply->report_id;
-> -               keycode = RC_SCANCODE_RC5(poll_reply->system, poll_reply->data);
-> +               keycode = RC_SCANCODE_RC5(poll_reply->rc5.system, poll_reply->rc5.data);
-> +
-> +               if ((poll_reply->rc5.data ^ poll_reply->rc5.not_data) != 0xff) {
-> +                       /* Key failed integrity check */
-> +                       err("key failed integrity check: %02x %02x %02x %02x",
-> +                           poll_reply->rc5.not_used, poll_reply->rc5.system,
-> +                           poll_reply->rc5.data, poll_reply->rc5.not_data);
-> +                       goto resubmit;
-> +               }
->
->                 break;
->         }
->
-> -       if ((poll_reply->data + poll_reply->not_data) != 0xff) {
-> -               /* Key failed integrity check */
-> -               err("key failed integrity check: %02x %02x %02x %02x",
-> -                   poll_reply->system,  poll_reply->not_system,
-> -                   poll_reply->data, poll_reply->not_data);
-> -               goto resubmit;
-> -       }
-> -
->         rc_keydown(d->rc_dev, protocol, keycode, toggle);
->
->  resubmit:
->
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Hi David,
+Results of the daily build of media_tree:
 
-yes! Your patch seems to work fine on my side, my remote is working again!
+date:		Thu Feb  5 04:00:16 CET 2015
+git branch:	test
+git hash:	4bad5d2d25099a42e146d7b18d2b98950ed287f5
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-1.slh.1-amd64
 
-Here is the relevant debug log (press and release of the "1" key):
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18-x86_64: OK
+linux-3.19-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-[ 4131.099573] IR ID = 01 state = 01 System = 00 07 Cmd = 0F F0 (len 6)
-[ 4131.099579] RC5 protocol
-[ 4131.099581] protocol = 03 keycode = 070F toggle = 01
-[ 4131.212813] IR ID = 01 state = 02 System = 00 07 Cmd = 0F F0 (len 6)
-[ 4131.212819] RC5 protocol
+Detailed results are available here:
 
-This is the output of debug output which I added in
-dib0700_core.c:dib0700_rc_urb_completion() before the call of
-rc_keydown() function:
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-deb_data("protocol = %02X keycode = %04X toggle = %02X\n", protocol,
-keycode, toggle);
-[ 4131.212821] protocol = 03 keycode = 070F toggle = 01
+Full logs are available here:
 
-Regards,
-David
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
