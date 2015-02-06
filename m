@@ -1,41 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.netup.ru ([77.72.80.15]:46729 "EHLO imap.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753109AbbBPQMl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 11:12:41 -0500
-Received: from mail-la0-f48.google.com (mail-la0-f48.google.com [209.85.215.48])
-	by imap.netup.ru (Postfix) with ESMTPA id 4D4D06CDF6E
-	for <linux-media@vger.kernel.org>; Mon, 16 Feb 2015 19:04:48 +0300 (MSK)
-Received: by lamq1 with SMTP id q1so30103382lam.5
-        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2015 08:04:47 -0800 (PST)
+Received: from fortimail.online.lv ([81.198.164.220]:55129 "EHLO
+	fortimail.online.lv" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757039AbbBFQC7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2015 11:02:59 -0500
+Received: from mailo-proxy2.online.lv (smtp.online.lv [81.198.164.193])
+	by fortimail.online.lv  with ESMTP id t16G2p7i017726-t16G2p7k017726
+	(version=TLSv1.2 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 6 Feb 2015 18:02:51 +0200
+Message-ID: <54D4E5AA.9050606@apollo.lv>
+Date: Fri, 06 Feb 2015 18:02:50 +0200
+From: Raimonds Cicans <ray@apollo.lv>
 MIME-Version: 1.0
-Date: Mon, 16 Feb 2015 11:04:47 -0500
-Message-ID: <CAK3bHNUaC=XoqREJMTWAAP=i+nPjcsQQPehS0--rk12Yhhn16g@mail.gmail.com>
-Subject: Opening firmware source code (vhdl)
-From: Abylay Ospan <aospan@netup.ru>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jurgen Kramer <gtmkramer@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
+ cx23885: convert to vb2"
+References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>
+	 <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>
+	 <54CE24F2.7090400@apollo.lv> <54CF4508.9070305@xs4all.nl>
+ <1423065972.2650.1.camel@xs4all.nl> <54D24685.1000708@xs4all.nl>
+ <54D278CF.9010605@apollo.lv>
+In-Reply-To: <54D278CF.9010605@apollo.lv>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 04.02.2015 21:53, Raimonds Cicans wrote:
+> On 04.02.2015 18:19, Hans Verkuil wrote:
+>> On 02/04/2015 05:06 PM, Jurgen Kramer wrote:
+>>> Hi Hans,
+>>>
+>>> On Mon, 2015-02-02 at 10:36 +0100, Hans Verkuil wrote:
+>>>> Raimonds and Jurgen,
+>>>>
+>>>> Can you both test with the following patch applied to the driver:
+>> Raimond, do you still see the AMD iommu faults with this patch?
+>
+> I have limited access to this box at workdays. I will try to test
+> your patch tomorrow.
+>
+>
+Unfortunately I still see AMD iommu faults.
 
-We're fully opening firmware sources for our new card - NetUP Dual
-Universal DVB CI. License is GPLv3. Sources is VHDL for Altera FPGA
-EP4CGX22CF19C8
-and can be compiled with Altera Quartus II (free edition). Hope this
-will help for enthusiasts and developers to deeply understand hardware
-part of DVB card.
+Test environment:
+kernel: 3.18.1 (I was unable to compile drivers on kernel 3.13.10)
+media tree: pure main media tree + your patch
+test: 1) warm reboot
+         2) run command "w_scan -fs -s S13E0 -D0c -a X"
+             where X - receiver's number
+             Tests were run on single receiver
 
-Source code:
-https://github.com/aospan/NetUP_Dual_Universal_CI-fpga
+Observations:
+1) Tests were run three times on first receiver and three times on second.
+     Only one test from three failed on first receiver.
+     All tests failed on second receiver.
 
-Here is a description for building and uploading fw into DVB card:
-http://linuxtv.org/wiki/index.php/FPGA_fw_for_NetUP_Dual_Universal_CI
+2) I have feeling that with your patch faults on first receiver appear 
+less often
+     but this may be pure luck or placebo.
 
-Feel free to contact me for any questions or comments.
 
--- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+Raimonds Cicans
+
