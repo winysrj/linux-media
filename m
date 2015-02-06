@@ -1,68 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:34822 "EHLO
-	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932293AbbBYVtK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2015 16:49:10 -0500
-Received: by mail-oi0-f53.google.com with SMTP id u20so5863452oif.12
-        for <linux-media@vger.kernel.org>; Wed, 25 Feb 2015 13:49:09 -0800 (PST)
+Received: from mail-we0-f172.google.com ([74.125.82.172]:33415 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754578AbbBFJUL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2015 04:20:11 -0500
+Received: by mail-we0-f172.google.com with SMTP id x3so6896392wes.3
+        for <linux-media@vger.kernel.org>; Fri, 06 Feb 2015 01:20:10 -0800 (PST)
+Message-ID: <54D48746.20201@movia.biz>
+Date: Fri, 06 Feb 2015 10:20:06 +0100
+From: Francesco Marletta <francesco.marletta@movia.biz>
 MIME-Version: 1.0
-In-Reply-To: <54EE422A.8050408@gmail.com>
-References: <CAL8zT=g2uUDQYgfNW5017YCKjfxBz7Oj+9FSvdo4PXZgiOAKWQ@mail.gmail.com>
- <54EE086B.9020904@gmail.com> <54EE0C55.2020501@gmail.com> <CAL8zT=jNnHp-ngX01Se8cc+LUtRmr4+-NwVbFAY4hZpuKuB4Rg@mail.gmail.com>
- <54EE422A.8050408@gmail.com>
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Date: Wed, 25 Feb 2015 22:48:54 +0100
-Message-ID: <CAL8zT=jC=8vx=ZY9AuoNu_V-cvQRoJB--ui-0702+LAth4kFWw@mail.gmail.com>
-Subject: Re: i.MX6 Video combiner
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Francesco Marletta <fmarletta@movia.biz>,
+	=?ISO-8859-15?Q?Carlos_Sa?= =?ISO-8859-15?Q?nmart=EDn_Bustos?=
+	<carsanbu@gmail.com>, Linux Media <linux-media@vger.kernel.org>
+Subject: Re: Help required for TVP5151 on Overo
+References: <20141119094656.5459258b@crow> <5213550.zrY0P2Gc9u@avalon> <54D37E67.6030103@movia.biz> <8229059.JSIBoG9XF0@avalon>
+In-Reply-To: <8229059.JSIBoG9XF0@avalon>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2015-02-25 22:44 GMT+01:00 Steve Longerbeam <slongerbeam@gmail.com>:
-> On 02/25/2015 11:40 AM, Jean-Michel Hautbois wrote:
->> Hi Steve,
->>
->> 2015-02-25 18:54 GMT+01:00 Steve Longerbeam <slongerbeam@gmail.com>:
->>> On 02/25/2015 09:37 AM, Steve Longerbeam wrote:
->>>> On 02/25/2015 02:57 AM, Jean-Michel Hautbois wrote:
->>>>> Hi all,
->>>>>
->>>>> I read in the i.MX6 TRM that it can do combining or deinterlacing with VDIC.
->>>>> Has it been tested by anyone ?
->>>>> Could it be a driver, which would allow to do some simple compositing
->>>>> of souces ?
->>>>>
->>>>> Thanks,
->>>>> JM
->>>> I've added VDIC support (deinterlace with motion compensation) to the
->>>> capture driver, it's in the my media tree clone:
->>>>
->>>> git@github.com:slongerbeam/mediatree.git, mx6-media-staging
->>> it is activated if user sets the motion compensation control to
->>> 1 (low motion), 2 (medium motion), or 3 (high motion), for
->>> example:
->>>
->>> # v4l2-ctl --set-ctrl=motion_compensation=2
->> Thx for the tip :).
->> And in fact, it is "only" deinterlacing, not combining two planes with
->> background as specified in the TRM (or did I miss something ?).
+Hi Laurent,
+thanks for your reply... I'll disable device tree usage.
+
+Also, I'll try to use a previous kernel (3.17) hoping it works.
+
+Regards
+Francesco
+
+Il 05/02/2015 15:57, Laurent Pinchart ha scritto:
+> Hi Francesco,
 >
-> Hi JM, yes it is deinterlace only, the combiner in the VDIC is not
-> being used.
+> On Thursday 05 February 2015 15:29:59 Francesco Marletta wrote:
+>> Hi Laurent,
+>> I'm trying to use the kernel of the linuxtv repository, omap3isp/tvp5151
+>> branch,but the kernel don't starts... can you, please, send me the
+>> kernel command line that you have used?
+> I'm afraid I haven't kept the .config file around. I might also have rebased
+> the working branch without testing the result, so it might just not work on
+> 3.18-rc4. I'm sorry not to be able to help you for now.
+>
+>> Also, have you used device tree ?
+> No, I was using legacy boot. The OMAP3 ISP driver doesn't support DT yet.
+>
 
-Well, I don't really know if it would be possible to have it too, and
-how difficult it is. Maybe as a m2m device, as it could be driven by
-gstreamer for instance and would replace pure software composition
-element...
-I may need to take some time and look further into this, but if anyone
-has tested it, or can give me advices on how it should be done, it can
-help (a lot)... :).
-
-Thanks,
-JM
