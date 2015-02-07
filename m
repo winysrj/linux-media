@@ -1,77 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:40870 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752695AbbBSMLL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 07:11:11 -0500
-Date: Thu, 19 Feb 2015 13:11:07 +0100
-From: Michal Marek <mmarek@suse.cz>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Antti Palosaari <crope@iki.fi>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org,
-	"Yann E. MORIN" <yann.morin.1998@free.fr>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] [kbuild] Add and use IS_REACHABLE macro
-Message-ID: <20150219121107.GA19684@sepie.suse.cz>
-References: <6116702.rrbrOqQ26P@wuerfel>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6116702.rrbrOqQ26P@wuerfel>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54659 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755385AbbBGDoh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Feb 2015 22:44:37 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1AA102A009F
+	for <linux-media@vger.kernel.org>; Sat,  7 Feb 2015 04:44:30 +0100 (CET)
+Date: Sat, 07 Feb 2015 04:44:30 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150207034430.1AA102A009F@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2015-02-18 18:12, Arnd Bergmann wrote:
-> In the media drivers, the v4l2 core knows about all submodules
-> and calls into them from a common function. However this cannot
-> work if the modules that get called are loadable and the
-> core is built-in. In that case we get
-> 
-> drivers/built-in.o: In function `set_type':
-> drivers/media/v4l2-core/tuner-core.c:301: undefined reference to `tea5767_attach'
-> drivers/media/v4l2-core/tuner-core.c:307: undefined reference to `tea5761_attach'
-> drivers/media/v4l2-core/tuner-core.c:349: undefined reference to `tda9887_attach'
-> drivers/media/v4l2-core/tuner-core.c:405: undefined reference to `xc4000_attach'
-> [...]
-> Ideally Kconfig would be used to avoid the case of a broken dependency,
-> or the code restructured in a way to turn around the dependency, but either
-> way would require much larger changes here.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-What can be done without extending kbuild is to accept
-CONFIG_VIDEO_TUNER=y and CONFIG_MEDIA_TUNER_FOO=m, but build both into
-the kernel, e.g.
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index 42e5a01..d2c7e89 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -71,6 +71,11 @@ config MEDIA_TUNER_TEA5767
- 	help
- 	  Say Y here to include support for the Philips TEA5767 radio tuner.
- 
-+config MEDIA_TUNER_TEA5767_BUILD
-+	tristate
-+	default VIDEO_TUNER || MEDIA_TUNER_TEA5767
-+	depends on MEDIA_TUNER_TEA5767!=n
-+
- config MEDIA_TUNER_MSI001
- 	tristate "Mirics MSi001"
- 	depends on MEDIA_SUPPORT && SPI && VIDEO_V4L2
+date:		Sat Feb  7 04:00:14 CET 2015
+git branch:	test
+git hash:	4bad5d2d25099a42e146d7b18d2b98950ed287f5
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-5.slh.1-amd64
 
-Actually, I have hard time coming up with a kconfig syntactic sugar to
-express such dependency. If I understand it correctly, the valid
-configurations in this case are
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18-x86_64: OK
+linux-3.19-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-MEDIA_TUNER_TEA5767	n	m	y
-VIDEO_TUNER	n	x	x	x
-		m	x	x	x
-		y	x		x
+Detailed results are available here:
 
-I.e. only VIDEO_TUNER=y and MEDIA_TUNER_TEA5767=m is incorrect, isn't
-it?
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Thanks,
-Michal
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
