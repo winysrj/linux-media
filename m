@@ -1,70 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0131.hostedemail.com ([216.40.44.131]:48785 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751812AbbBXEyp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 23:54:45 -0500
-Message-ID: <1424753682.5342.9.camel@perches.com>
-Subject: Re: [PATCH] drivers: media: i2c : s5c73m3: Replace dev_err with
- pr_err
-From: Joe Perches <joe@perches.com>
-To: Tapasweni Pathak <tapaswenipathak@gmail.com>
-Cc: kyungmin.park@samsung.com, a.hajda@samsung.com,
-	mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Date: Mon, 23 Feb 2015 20:54:42 -0800
-In-Reply-To: <20150224044731.GA5804@kt-Inspiron-3542>
-References: <20150224044731.GA5804@kt-Inspiron-3542>
-Content-Type: text/plain; charset="ISO-8859-1"
+Received: from einhorn.in-berlin.de ([192.109.42.8]:47207 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759078AbbBHXzp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Feb 2015 18:55:45 -0500
+Date: Mon, 9 Feb 2015 00:55:00 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Nicholas Krause <xerofoify@gmail.com>
+Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media:firewire:Remove unneeded function
+ definition,avc_tuner_host2ca in firedtv-avc.c
+Message-ID: <20150209005500.104d20a6@kant>
+In-Reply-To: <1423423437-31949-1-git-send-email-xerofoify@gmail.com>
+References: <1423423437-31949-1-git-send-email-xerofoify@gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2015-02-24 at 10:17 +0530, Tapasweni Pathak wrote:
-> Replace dev_err statement with pr_err to fix null dereference.
+On Feb 08 Nicholas Krause wrote:
+> Removes the unneeded function defintion,avc_tuner_host2ca in the file, firedtv-avc. This
+> function should have been removed during the refactoring of the firetv code base during
+> commit id,154907957f939 due to us removing unneeded definitions of functions not called
+> when moving private function defintions from firedtv-avc.h to the file,firedtv-avc.c
+> for the driver supporting firedtv enabled hardware respectfully.
 > 
-> Found by Coccinelle.
-> 
-> Signed-off-by: Tapasweni Pathak <tapaswenipathak@gmail.com>
+> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+
+I still am missing research on the question whether or not the Common
+Interface serving part of the driver needs to send Host2CA commands.  If
+yes, we implement it and use the function.  If not, we remove the
+function.  As long as we are not sure, I prefer to leave the #if-0'd code
+where it is.  It documents how the command is formed, and we don't have
+any other documentation (except perhaps the git history).
+
+On a more general note, as others told you before, please stop sending
+patches that were created without any research on your part.  Thank you.
+
 > ---
->  drivers/media/i2c/s5c73m3/s5c73m3-spi.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/media/firewire/firedtv-avc.c | 31 -------------------------------
+>  1 file changed, 31 deletions(-)
 > 
-> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-> index f60b265..63eb190 100644
-> --- a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-> @@ -52,7 +52,7 @@ static int spi_xmit(struct spi_device *spi_dev, void *addr, const int len,
->  		xfer.rx_buf = addr;
-> 
->  	if (spi_dev == NULL) {
-> -		dev_err(&spi_dev->dev, "SPI device is uninitialized\n");
-> +		pr_err("SPI device is uninitialized\n");
->  		return -ENODEV;
->  	}
+> diff --git a/drivers/media/firewire/firedtv-avc.c b/drivers/media/firewire/firedtv-avc.c
+> index 251a556..a7f2617 100644
+> --- a/drivers/media/firewire/firedtv-avc.c
+> +++ b/drivers/media/firewire/firedtv-avc.c
+> @@ -912,37 +912,6 @@ void avc_remote_ctrl_work(struct work_struct *work)
+>  	avc_register_remote_control(fdtv);
+>  }
+>  
+> -#if 0 /* FIXME: unused */
+> -int avc_tuner_host2ca(struct firedtv *fdtv)
+> -{
+> -	struct avc_command_frame *c = (void *)fdtv->avc_data;
+> -	int ret;
+> -
+> -	mutex_lock(&fdtv->avc_mutex);
+> -
+> -	c->ctype   = AVC_CTYPE_CONTROL;
+> -	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+> -	c->opcode  = AVC_OPCODE_VENDOR;
+> -
+> -	c->operand[0] = SFE_VENDOR_DE_COMPANYID_0;
+> -	c->operand[1] = SFE_VENDOR_DE_COMPANYID_1;
+> -	c->operand[2] = SFE_VENDOR_DE_COMPANYID_2;
+> -	c->operand[3] = SFE_VENDOR_OPCODE_HOST2CA;
+> -	c->operand[4] = 0; /* slot */
+> -	c->operand[5] = SFE_VENDOR_TAG_CA_APPLICATION_INFO; /* ca tag */
+> -	clear_operands(c, 6, 8);
+> -
+> -	fdtv->avc_data_length = 12;
+> -	ret = avc_write(fdtv);
+> -
+> -	/* FIXME: check response code? */
+> -
+> -	mutex_unlock(&fdtv->avc_mutex);
+> -
+> -	return ret;
+> -}
+> -#endif
+> -
+>  static int get_ca_object_pos(struct avc_response_frame *r)
+>  {
+>  	int length = 1;
 
-It'd be better to move this above the if (dir...) block
-and use ratelimit/once it too
 
-static int spi_xmit(struct spi_device *spi_dev, void *addr, const int len,
-		    enum spi_direction dir)
-{
-	struct spi_message msg;
-	int r;
-	struct spi_transfer xfer = {
-		.len	= len,
-	};
 
-	if (!spi_dev) {
-		pr_err_once("SPI device is uninitialized\n");
-		return -ENODEV;
-	}
-
-	if (dir == SPI_DIR_TX)
-		xfer.tx_buf = addr;
-	else
-		xfer.rx_buf = addr;
-
-	...
-
+-- 
+Stefan Richter
+-=====-===== --=- -=--=
+http://arcgraph.de/sr/
