@@ -1,38 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:55243 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965698AbbBCQTI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 11:19:08 -0500
-Message-ID: <54D0F4F3.1040405@users.sourceforge.net>
-Date: Tue, 03 Feb 2015 17:18:59 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH 0/2] DVB: Deletion of a few unnecessary checks
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
+Received: from einhorn.in-berlin.de ([192.109.42.8]:40072 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752465AbbBHLn4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Feb 2015 06:43:56 -0500
+Date: Sun, 8 Feb 2015 12:36:24 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Nicholas Krause <xerofoify@gmail.com>
+Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media:firewire:Remove unneeded function
+ definition,avc_tuner_host2ca
+Message-ID: <20150208123624.21bf9c53@kant>
+In-Reply-To: <1423371875-11662-1-git-send-email-xerofoify@gmail.com>
+References: <1423371875-11662-1-git-send-email-xerofoify@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 3 Feb 2015 16:50:07 +0100
+On Feb 08 Nicholas Krause wrote:
+> Removes the function,avc_tuner_host2ca and the ifdef marco statements
+> around this function as there are no more callers of this function
+> and therefor no need for it's definition anymore.
+> 
+> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
 
-Another update suggestion was taken into account after a patch was applied
-from static source code analysis.
+Your changelog is incorrect.  If you had checked the history, you would
+have learned that the function was added without callers in the first
+place and never gained any callers since then.
 
-Markus Elfring (2):
-  Delete an unnecessary check before the function call "dvb_unregister_device"
-  Less function calls in dvb_ca_en50221_init() after error detection
+How about first checking what the Host2CA AV/C command is for, and then
+deciding on whether to add proper usage of it or to drop its implementation
+from the source for good.
 
- drivers/media/dvb-core/dvb_ca_en50221.c | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+> ---
+>  drivers/media/firewire/firedtv-avc.c | 31 -------------------------------
+>  1 file changed, 31 deletions(-)
+> 
+> diff --git a/drivers/media/firewire/firedtv-avc.c b/drivers/media/firewire/firedtv-avc.c
+> index 251a556..a7f2617 100644
+> --- a/drivers/media/firewire/firedtv-avc.c
+> +++ b/drivers/media/firewire/firedtv-avc.c
+> @@ -912,37 +912,6 @@ void avc_remote_ctrl_work(struct work_struct *work)
+>  	avc_register_remote_control(fdtv);
+>  }
+>  
+> -#if 0 /* FIXME: unused */
+> -int avc_tuner_host2ca(struct firedtv *fdtv)
+> -{
+> -	struct avc_command_frame *c = (void *)fdtv->avc_data;
+> -	int ret;
+> -
+> -	mutex_lock(&fdtv->avc_mutex);
+> -
+> -	c->ctype   = AVC_CTYPE_CONTROL;
+> -	c->subunit = AVC_SUBUNIT_TYPE_TUNER | fdtv->subunit;
+> -	c->opcode  = AVC_OPCODE_VENDOR;
+> -
+> -	c->operand[0] = SFE_VENDOR_DE_COMPANYID_0;
+> -	c->operand[1] = SFE_VENDOR_DE_COMPANYID_1;
+> -	c->operand[2] = SFE_VENDOR_DE_COMPANYID_2;
+> -	c->operand[3] = SFE_VENDOR_OPCODE_HOST2CA;
+> -	c->operand[4] = 0; /* slot */
+> -	c->operand[5] = SFE_VENDOR_TAG_CA_APPLICATION_INFO; /* ca tag */
+> -	clear_operands(c, 6, 8);
+> -
+> -	fdtv->avc_data_length = 12;
+> -	ret = avc_write(fdtv);
+> -
+> -	/* FIXME: check response code? */
+> -
+> -	mutex_unlock(&fdtv->avc_mutex);
+> -
+> -	return ret;
+> -}
+> -#endif
+> -
+>  static int get_ca_object_pos(struct avc_response_frame *r)
+>  {
+>  	int length = 1;
+
+
 
 -- 
-2.2.2
-
+Stefan Richter
+-=====-===== --=- -=---
+http://arcgraph.de/sr/
