@@ -1,90 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.netup.ru ([77.72.80.15]:50185 "EHLO imap.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932937AbbBBJhs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 04:37:48 -0500
-From: Kozlov Sergey <serjk@netup.ru>
-Date: Mon, 02 Feb 2015 12:22:32 +0300
-Subject: [PATCH 0/5] [media] NetUP Universal DVB PCIe card support
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38878 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752484AbbBHDpR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Feb 2015 22:45:17 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 442292A008E
+	for <linux-media@vger.kernel.org>; Sun,  8 Feb 2015 04:45:08 +0100 (CET)
+Date: Sun, 08 Feb 2015 04:45:08 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, aospan1@gmail.com
-Message-Id: <20150202092738.7CF0D1BC32CD@debian>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150208034508.442292A008E@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This patch adds support for NetUP Universal Dual DVB-CI PCIe board.
-The board has:
+Results of the daily build of media_tree:
 
-    - two CI slots
+date:		Sun Feb  8 04:00:15 CET 2015
+git branch:	test
+git hash:	4bad5d2d25099a42e146d7b18d2b98950ed287f5
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-5.slh.1-amd64
 
-    - Altera FPGA-based PCIe bridge
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18-x86_64: OK
+linux-3.19-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-    - two independent multistandard DTV demodulators based on
-      Sony CXD2841ER chip
+Detailed results are available here:
 
-    - two Sony Horus3a DVB-S/S2 tuner chips
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-    - two Sony Ascot2e DVB-T/T2/C/C2 tuner chips
+Full logs are available here:
 
-    - two LNBH25 SEC controller chips
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-DVB-C2 is supported by hardware but not yet implemented in the driver.
-Product webpages are
-http://www.netup.tv/en-EN/netup-universal-dual-dvb-ci (official)
-http://linuxtv.org/wiki/index.php/NetUP_Dual_Universal_CI (LinuxTV WIKI)
+The Media Infrastructure API from this daily build is here:
 
-Also we have a copy of http://git.linuxtv.org/cgit.cgi/linux.git/
-repository with our patches at http://git.netup.tv/linux-netup-unidvb.git
-
-
-Kozlov Sergey (5):
-  [media] horus3a: Sony Horus3A DVB-S/S2 tuner driver
-  [media] ascot2e: Sony Ascot2e DVB-C/T/T2 tuner driver
-  [media] lnbh25: LNBH25 SEC controller driver
-  [media] cxd2841er: Sony CXD2841ER DVB-S/S2/T/T2/C demodulator driver
-  [media] netup_unidvb: NetUP Universal DVB-S/S2/T/T2/C PCI-E card
-    driver
-
- MAINTAINERS                                  |   45 +
- drivers/media/dvb-frontends/Kconfig          |   29 +
- drivers/media/dvb-frontends/Makefile         |    4 +
- drivers/media/dvb-frontends/ascot2e.c        |  551 +++++
- drivers/media/dvb-frontends/ascot2e.h        |   53 +
- drivers/media/dvb-frontends/cxd2841er.c      | 2778 ++++++++++++++++++++++++++
- drivers/media/dvb-frontends/cxd2841er.h      |   64 +
- drivers/media/dvb-frontends/cxd2841er_priv.h |   44 +
- drivers/media/dvb-frontends/horus3a.c        |  429 ++++
- drivers/media/dvb-frontends/horus3a.h        |   53 +
- drivers/media/dvb-frontends/lnbh25.c         |  182 ++
- drivers/media/dvb-frontends/lnbh25.h         |   56 +
- drivers/media/pci/Kconfig                    |    1 +
- drivers/media/pci/Makefile                   |    3 +-
- drivers/media/pci/netup/Kconfig              |   12 +
- drivers/media/pci/netup/Makefile             |    9 +
- drivers/media/pci/netup/netup_unidvb.h       |  232 +++
- drivers/media/pci/netup/netup_unidvb_ci.c    |  248 +++
- drivers/media/pci/netup/netup_unidvb_core.c  |  919 +++++++++
- drivers/media/pci/netup/netup_unidvb_i2c.c   |  350 ++++
- drivers/media/pci/netup/netup_unidvb_spi.c   |  272 +++
- 21 files changed, 6333 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/dvb-frontends/ascot2e.c
- create mode 100644 drivers/media/dvb-frontends/ascot2e.h
- create mode 100644 drivers/media/dvb-frontends/cxd2841er.c
- create mode 100644 drivers/media/dvb-frontends/cxd2841er.h
- create mode 100644 drivers/media/dvb-frontends/cxd2841er_priv.h
- create mode 100644 drivers/media/dvb-frontends/horus3a.c
- create mode 100644 drivers/media/dvb-frontends/horus3a.h
- create mode 100644 drivers/media/dvb-frontends/lnbh25.c
- create mode 100644 drivers/media/dvb-frontends/lnbh25.h
- create mode 100644 drivers/media/pci/netup/Kconfig
- create mode 100644 drivers/media/pci/netup/Makefile
- create mode 100644 drivers/media/pci/netup/netup_unidvb.h
- create mode 100644 drivers/media/pci/netup/netup_unidvb_ci.c
- create mode 100644 drivers/media/pci/netup/netup_unidvb_core.c
- create mode 100644 drivers/media/pci/netup/netup_unidvb_i2c.c
- create mode 100644 drivers/media/pci/netup/netup_unidvb_spi.c
-
--- 
-1.7.10.4
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
