@@ -1,83 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:33655 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754028AbbBBLZM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 06:25:12 -0500
-Message-ID: <54CF5E70.3000302@xs4all.nl>
-Date: Mon, 02 Feb 2015 12:24:32 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.19]:57898 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758987AbbBHURl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Feb 2015 15:17:41 -0500
 MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net
-CC: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v2 00/15] media: blackfin: bfin_capture enhancements
-References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com> <CA+V-a8uVRZr3cYNsq5yehxjWoZMp6HMzm486KktKOXYkzJyFbA@mail.gmail.com>
-In-Reply-To: <CA+V-a8uVRZr3cYNsq5yehxjWoZMp6HMzm486KktKOXYkzJyFbA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Message-ID: <trinity-50c1b2fb-3f4b-43e8-9eae-85e905ff7834-1423426659156@3capp-gmx-bs34>
+From: =?UTF-8?Q?=22Sebastian_S=C3=BCsens=22?= <S.Suesens@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: TechnoTrend TT-TVStick CT2-4400v2 no firmware load
+Content-Type: text/plain; charset=UTF-8
+Date: Sun, 8 Feb 2015 21:17:39 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/30/2015 04:49 PM, Lad, Prabhakar wrote:
-> Hello Scott,
-> 
-> On Thu, Jan 22, 2015 at 10:18 PM, Lad, Prabhakar
-> <prabhakar.csengg@gmail.com> wrote:
->> This patch series, enhances blackfin capture driver with
->> vb2 helpers.
->>
->> Changes for v2:
->> --------------
->> Only patches 5/15 and 8/15 as per Scott's suggestions.
->>
->> Lad, Prabhakar (15):
->>   media: blackfin: bfin_capture: drop buf_init() callback
->>   media: blackfin: bfin_capture: release buffers in case
->>     start_streaming() call back fails
->>   media: blackfin: bfin_capture: set min_buffers_needed
->>   media: blackfin: bfin_capture: improve buf_prepare() callback
->>   media: blackfin: bfin_capture: improve queue_setup() callback
->>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
->>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
->>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
->>   media: blackfin: bfin_capture: make sure all buffers are returned on
->>     stop_streaming() callback
->>   media: blackfin: bfin_capture: return -ENODATA for *std calls
->>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
->>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
->>   media: blackfin: bfin_capture: add support for VB2_DMABUF
->>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
->>   media: blackfin: bfin_capture: set v4l2 buffer sequence
->>
->>  drivers/media/platform/blackfin/bfin_capture.c | 311 ++++++++-----------------
->>  1 file changed, 99 insertions(+), 212 deletions(-)
->>
-> Can you ACK the series ? so that its easier for Hans to pick it up.
+Hello,
+I use kernel 3.13.0 and the media_build "4e1a67e4a6c8ab71f416ea32059c92171407ba5d".
 
-ping!
+I get following messages by dmesg:
 
-Scott, I can't take it unless you Ack it. Actually, I'd like to see a
-'Tested-by' tag.
+[ 1543.444128] usb 2-4: new high-speed USB device number 4 using ehci-pci
+[ 1543.577069] usb 2-4: New USB device found, idVendor=0b48, idProduct=3014
+[ 1543.577088] usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 1543.577098] usb 2-4: Product: TechnoTrend USB-Stick
+[ 1543.577106] usb 2-4: Manufacturer: CityCom GmbH
+[ 1543.577114] usb 2-4: SerialNumber: 20131128
+[ 1543.764126] usb 2-4: dvb_usb_v2: found a 'TechnoTrend TVStick CT2-4400' in warm state
+[ 1543.764317] usb 2-4: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+[ 1543.764387] DVB: registering new adapter (TechnoTrend TVStick CT2-4400)
+[ 1543.765811] usb 2-4: dvb_usb_v2: MAC address: bc:ea:2b:44:02:7c
+[ 1543.772724] i2c i2c-2: Added multiplexed i2c bus 3
+[ 1543.772734] si2168 2-0064: Silicon Labs Si2168 successfully attached
+[ 1543.777532] si2157 3-0060: Silicon Labs Si2147/2148/2157/2158 successfully attached
+[ 1543.777579] usb 2-4: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
+[ 1543.777824] Registered IR keymap rc-tt-1500
+[ 1543.778051] input: TechnoTrend TVStick CT2-4400 as /devices/pci0000:00/0000:00:13.2/usb2/2-4/rc/rc0/input18
+[ 1543.778368] rc0: TechnoTrend TVStick CT2-4400 as /devices/pci0000:00/0000:00:13.2/usb2/2-4/rc/rc0
+[ 1543.778382] usb 2-4: dvb_usb_v2: schedule remote query interval to 300 msecs
+[ 1543.778396] usb 2-4: dvb_usb_v2: 'TechnoTrend TVStick CT2-4400' successfully initialized and connected
 
-And if you are testing anyway, then I would really like to see the output
-of 'v4l2-compliance -s', using the v4l2-compliance from the latest v4l-utils.git.
-
-I'm curious to see the results of that.
-
-Regards,
-
-	Hans
-
-> 
-> Cheers,
-> --Prabhakar Lad
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+I see no message about the firmware loading is this correct?
