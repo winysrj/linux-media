@@ -1,85 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:27329 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933831AbbBQLSU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 06:18:20 -0500
-Message-ID: <54E32358.8010303@cisco.com>
-Date: Tue, 17 Feb 2015 12:17:44 +0100
-From: Hans Verkuil <hansverk@cisco.com>
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:53518 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752943AbbBHWrB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Feb 2015 17:47:01 -0500
+Date: Sun, 8 Feb 2015 22:46:57 +0000
+From: Luis de Bethencourt <luis@debethencourt.com>
+To: linux-media@vger.kernel.org
+Cc: crope@iki.fi, mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] rtl2832: remove compiler warning
+Message-ID: <20150208224657.GA22793@turing>
+References: <20150208224422.GA22749@turing>
 MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
-References: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150208224422.GA22749@turing>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
-
-On 02/17/15 12:02, Ricardo Ribalda Delgado wrote:
-> Volatile controls can change their value outside the v4l-ctrl framework.
+On Sun, Feb 08, 2015 at 10:44:22PM +0000, Luis de Bethencourt wrote:
+> Cleaning the following compiler warning:
+> rtl2832.c:703:12: warning: 'tmp' may be used uninitialized in this function
 > 
-> We should ignore the cached written value of the ctrl when evaluating if
-> we should run s_ctrl.
+> Even though it could never happen since if rtl2832_rd_demod_reg () doesn't set
+> tmp, this line would never run because we go to err. It is still nice to avoid
+> compiler warnings.
 > 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
 > ---
-> 
-> I have a control that tells the user when there has been a external trigger
-> overrun. (Trigger while processing old image). This is a volatile control.
-
-Does the application just read the control to check whether the trigger happened?
-Or is the control perhaps changed by an interrupt handler?
-
-> The user writes 0 to the control, to ack the error condition, and clear the
-> hardware flag.
-
-Would it be an idea to automatically ack the error condition when reading the
-control?
-
-Or, alternatively, have a separate button control to clear the condition.
-
-> 
-> Unfortunately, it only works one time, because the next time the user writes
-> a zero to the control cluster_changed returns false.
-> 
-> I think on volatile controls it is safer to run s_ctrl twice than missing a
-> valid s_ctrl.
-> 
-> I know I am abusing a bit the API for this :P, but I also believe that the
-> semantic here is a bit confusing.
-
-The reason for that is that I have yet to see a convincing argument for
-allowing s_ctrl for a volatile control.
-
-Regards,
-
-	Hans
-
-> 
->  drivers/media/v4l2-core/v4l2-ctrls.c | 2 +-
+>  drivers/media/dvb-frontends/rtl2832.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 45c5b47..3d0c7f4 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1605,7 +1605,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
+> diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+> index 5d2d8f4..ad36d1c 100644
+> --- a/drivers/media/dvb-frontends/rtl2832.c
+> +++ b/drivers/media/dvb-frontends/rtl2832.c
+> @@ -685,7 +685,7 @@ static int rtl2832_read_status(struct dvb_frontend *fe, fe_status_t *status)
+>  	struct rtl2832_dev *dev = fe->demodulator_priv;
+>  	struct i2c_client *client = dev->client;
+>  	int ret;
+> -	u32 tmp;
+> +	u32 tmp = 0;
 >  
->  	for (i = 0; i < master->ncontrols; i++) {
->  		struct v4l2_ctrl *ctrl = master->cluster[i];
-> -		bool ctrl_changed = false;
-> +		bool ctrl_changed = ctrl->flags & V4L2_CTRL_FLAG_VOLATILE;
+>  	dev_dbg(&client->dev, "\n");
 >  
->  		if (ctrl == NULL)
->  			continue;
+> -- 
+> 2.1.0
 > 
+
+Hello all :)
+
+This warning can be seen in:
+http://hverkuil.home.xs4all.nl/logs/Saturday.log
+
+Thank you Hans for the daily build and logs.
+
+Luis
