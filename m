@@ -1,63 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:55291 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755703AbbBPMvv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 07:51:51 -0500
-Date: Mon, 16 Feb 2015 12:49:42 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: Recent commit introduces compiler Error in some platforms
-Message-ID: <20150216124942.GB23673@biggie>
-References: <20150216121829.GA23673@biggie>
- <54E1E45B.2040602@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54E1E45B.2040602@xs4all.nl>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:52423 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933400AbbBIQOe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2015 11:14:34 -0500
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 3/3] media/videobuf2-dma-vmalloc: Save output from dma_map_sg
+Date: Mon,  9 Feb 2015 17:14:26 +0100
+Message-Id: <1423498466-16718-3-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1423498466-16718-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1423498466-16718-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 16, 2015 at 01:36:43PM +0100, Hans Verkuil wrote:
-> On 02/16/2015 01:18 PM, Luis de Bethencourt wrote:
-> > Hi all,
-> > 
-> > As can be seen in Han's build log:
-> > http://hverkuil.home.xs4all.nl/logs/Saturday.log
-> > 
-> > The recent commit bc0c5aa35ac88342831933ca7758ead62d9bae2b introduces a
-> > compiler error in some platforms.
-> > 
-> > /home/hans/work/build/media_build/v4l/ir-hix5hd2.c: In function 'hix5hd2_ir_config':
-> > /home/hans/work/build/media_build/v4l/ir-hix5hd2.c:95:2: error: implicit declaration of function 'writel_relaxed' [-Werror=implicit-function-declaration]
-> >   writel_relaxed(0x01, priv->base + IR_ENABLE);
-> >   ^
-> > 
-> > Better than reverting, what would be a good solution for this problem?
-> > I am happy to implment it once I know what is the right direction.
-> > 
-> > From what I see that commit mentions that the function is now available from
-> > include/asm-generic/io.h, but this isn't included.
-> 
-> I've just fixed the media_build repository to handle this. Do a git pull and
-> it should compile again (only tested against kernel 3.18).
-> 
-> Regards,
-> 
-> 	Hans
-> 
+dma_map_sg returns the actual number of areas mapped. Save it on nents.
 
-Great! Nice to know this is already fixed.
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-vmalloc.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Thanks,
-Luis
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index bcde885..fe18e79 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -312,6 +312,7 @@ static struct sg_table *vb2_vmalloc_dmabuf_ops_map(
+ 		mutex_unlock(lock);
+ 		return ERR_PTR(-EIO);
+ 	}
++	sgt->nents = ret;
+ 
+ 	attach->dma_dir = dma_dir;
+ 
+-- 
+2.1.4
 
-> > Thanks,
-> > Luis
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
