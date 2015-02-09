@@ -1,137 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57314 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932599AbbBDORO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 09:17:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pablo Anton <pablo.anton@vodalys-labs.com>, hans.verkuil@cisco.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	mchehab@osg.samsung.com, lars@metafoo.de,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Subject: Re: [PATCH] media: i2c: ADV7604: Rename adv7604 prefixes.
-Date: Wed, 04 Feb 2015 16:17:59 +0200
-Message-ID: <3313129.aSJuHsSGG3@avalon>
-In-Reply-To: <54D20406.9000300@xs4all.nl>
-References: <1422983598-9189-1-git-send-email-pablo.anton@vodalys-labs.com> <9008824.dHMd7MRA5e@avalon> <54D20406.9000300@xs4all.nl>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:65069 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932604AbbBIQIb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2015 11:08:31 -0500
+Received: by mail-wi0-f170.google.com with SMTP id hm9so6766963wib.1
+        for <linux-media@vger.kernel.org>; Mon, 09 Feb 2015 08:08:30 -0800 (PST)
+Date: Mon, 9 Feb 2015 16:06:30 +0000
+From: Luis de Bethencourt <luis@debethencourt.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: divide error: 0000 in the gspca_topro
+Message-ID: <20150209160630.GA5332@biggie>
+References: <54D7E0B8.30503@reflexion.tv>
+ <CA+55aFxB4Wq-Bob_+q0c3oS1hUf_BLGqqyoepGRDvm9-X2Y+og@mail.gmail.com>
+ <20150209102348.GB28420@biggie>
+ <20150209135656.11cc85e6@recife.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20150209135656.11cc85e6@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Wednesday 04 February 2015 12:35:34 Hans Verkuil wrote:
-> On 02/04/15 12:27, Laurent Pinchart wrote:
-> > On Wednesday 04 February 2015 10:55:21 Hans Verkuil wrote:
-> >> On 02/03/15 18:13, Pablo Anton wrote:
-> >>> It is confusing which parts of the driver are adv7604 specific, adv7611
-> >>> specific or common for both. This patch renames any adv7604 prefixes
-> >>> (both for functions and defines) to adv76xx whenever they are common.
-> >>> 
-> >>> Signed-off-by: Pablo Anton <pablo.anton@vodalys-labs.com>
-> >>> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-> >> 
-> >> I'm happy with this, except for three small changes:
-> >> 
-> >> - I had to rebase
-> >> - ADV76xx_fsc should be ADV76XX_FSC
-> >> - The driver name should stay the same to keep in sync with the module
-> >> name. Besides, we might have a future driver for the adv7622/3, so
-> >> adv76xx as the driver name is potentially confusing.
-> >> 
-> >> I've applied these changes and the updated patch is below. If possible I
-> >> would like to get this in 3.20 so future patches for 3.21 can all be
-> >> based on these renamed functions/defines.
-> >> 
-> >> Acks from Lars and Laurent would be welcome, though.
-> >> 
-> >> Regards,
-> >> 
-> >> 	Hans
-> >> 
-> >> From bff6f026de4fe276f99be6ca38206720659938dc Mon Sep 17 00:00:00 2001
-> >> From: Pablo Anton <pablo.anton@vodalys-labs.com>
-> >> Date: Tue, 3 Feb 2015 18:13:18 +0100
-> >> Subject: [PATCH] media: i2c: ADV7604: Rename adv7604 prefixes.
-> >> 
-> >> It is confusing which parts of the driver are adv7604 specific, adv7611
-> >> specific or common for both. This patch renames any adv7604 prefixes
-> >> (both for functions and defines) to adv76xx whenever they are common.
-> >> 
-> >> Signed-off-by: Pablo Anton <pablo.anton@vodalys-labs.com>
-> >> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-> >> [hans.verkuil@cisco.com: rebased and renamed ADV76xx_fsc to ADV76XX_FSC]
-> >> [hans.verkuil@cisco.com: kept the existing adv7604 driver name]
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >> 
-> >>  drivers/media/i2c/adv7604.c | 898  ++++++++++++++++++-------------------
-> >>  include/media/adv7604.h     |  83 ++--
-> >>  2 files changed, 491 insertions(+), 490 deletions(-)
-> > 
-> > [snip]
-> > 
-> >> diff --git a/include/media/adv7604.h b/include/media/adv7604.h
-> >> index aa1c447..9ecf353 100644
-> >> --- a/include/media/adv7604.h
-> >> +++ b/include/media/adv7604.h
-> >> @@ -47,16 +47,16 @@ enum adv7604_bus_order {
-> > 
-> > [snip]
-> > 
-> >> -enum adv7604_page {
-> >> -	ADV7604_PAGE_IO,
-> >> +enum adv76xx_page {
-> >> +	ADV76XX_PAGE_IO,
-> >>  	ADV7604_PAGE_AVLINK,
-> >> -	ADV7604_PAGE_CEC,
-> >> -	ADV7604_PAGE_INFOFRAME,
-> >> +	ADV76XX_PAGE_CEC,
-> >> +	ADV76XX_PAGE_INFOFRAME,
-> >>  	ADV7604_PAGE_ESDP,
-> >>  	ADV7604_PAGE_DPP,
-> >> -	ADV7604_PAGE_AFE,
-> >> -	ADV7604_PAGE_REP,
-> >> -	ADV7604_PAGE_EDID,
-> >> -	ADV7604_PAGE_HDMI,
-> >> -	ADV7604_PAGE_TEST,
-> >> -	ADV7604_PAGE_CP,
-> >> +	ADV76XX_PAGE_AFE,
-> >> +	ADV76XX_PAGE_REP,
-> >> +	ADV76XX_PAGE_EDID,
-> >> +	ADV76XX_PAGE_HDMI,
-> >> +	ADV76XX_PAGE_TEST,
-> >> +	ADV76XX_PAGE_CP,
-> >>  	ADV7604_PAGE_VDP,
-> >> -	ADV7604_PAGE_MAX,
-> >> +	ADV76XX_PAGE_MAX,
-> >>  };
-> > 
-> > (Taking the above chunk as one particular example, the comment applies to
-> > the rest of the driver.)
-> > 
-> > I'm fine with the change in general, but I wonder how we will handle it
-> > going forward. Here the ADV7604-specific pages keep their ADV7604_
-> > prefix, while the pages common to all supported chips now use an ADV76XX_
-> > prefix. If a new chip comes out tomorrow with support, let's say, for
-> > AVLINK, how will you name ADV7604_PAGE_AVLINK ? Renaming it to
-> > ADV76XX_PAGE_AVLINK would imply that it's supported on all chips, which
-> > wouldn't be true, and keeping the existing name would imply that it's
-> > only supported on the ADV7604, which wouldn't be true either.
+On Mon, Feb 09, 2015 at 01:56:56PM -0200, Mauro Carvalho Chehab wrote:
+> Em Mon, 09 Feb 2015 10:23:48 +0000
+> Luis de Bethencourt <luis@debethencourt.com> escreveu:
 > 
-> I'd probably choose something like: ADV7604_12_PAGE_AVLINK if this was
-> supported for e.g. the ADV7604 and ADV7612, but not ADV7611.
+> > On Sun, Feb 08, 2015 at 06:07:45PM -0800, Linus Torvalds wrote:
+> > > I got this, and it certainly seems relevant,.
+> > > 
+> > > It would seem that that whole 'quality' thing needs some range
+> > > checking, it should presumably be in the range [1..100] in order to
+> > > avoid negative 'sc' values or the divide-by-zero.
+> > > 
+> > > Hans, Mauro?
+> > > 
+> > >                       Linus
+> > 
+> > Hello Linus,
+> > 
+> > The case of quality being set to 0 is correctly handled in
+> > drivers/media/usb/gspca/jpeg.h [0], so I have sent a patch to do the same
+> > in topro.c.
 > 
-> More likely would be scenarios where registers are supported for the adv761x
-> but not for the adv7604, and in that case it would be ADV761X of course.
+> Patch looks good to me.
+> 
+> I'll double check if some other driver has the same bad handling for
+> quality set and give a couple days for Hans to take a look.
+> 
+> If he's fine with this approach, I'll add it on a separate pull request.
+> 
+> Regards,
+> Mauro
+> 
 
-I guess it will be a wait-and-see kind of situation. I'm fine with the patch 
-if you believe it improves readability.
+Hi Mauro,
 
--- 
-Regards,
+Thanks for taking the time to look at this.
 
-Laurent Pinchart
+After sending the patch I searched around for any similar cases, only
+finding coda/coda-jpeg.c [0], but in this case the quality is clipped to 5 if
+it is < 5.
 
+I might have missed some other case though. Just letting you know to help you
+save some time.
+
+Cheers,
+Luis
+
+[0] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/media/platform/coda/coda-jpeg.c#n216
+
+> > 
+> > Thanks,
+> > Luis
+> > 
+> > [0] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/media/usb/gspca/jpeg.h#n157
+> > 
+> > > 
+> > > ---------- Forwarded message ----------
+> > > From: Peter Kovář <peter.kovar@reflexion.tv>
+> > > Date: Sun, Feb 8, 2015 at 2:18 PM
+> > > Subject: divide error: 0000 in the gspca_topro
+> > > To: Linus Torvalds <torvalds@linux-foundation.org>
+> > > 
+> > > 
+> > > Hi++ Linus!
+> > > 
+> > > There is a trivial bug in the gspca_topro webcam driver.
+> > > 
+> > > /* set the JPEG quality for sensor soi763a */
+> > > static void jpeg_set_qual(u8 *jpeg_hdr,
+> > >                           int quality)
+> > > {
+> > >         int i, sc;
+> > > 
+> > >         if (quality < 50)
+> > >                 sc = 5000 / quality;
+> > >         else
+> > >                 sc = 200 - quality * 2;
+> > > 
+> > > 
+> > > 
+> > > Crash can be reproduced by setting JPEG quality to zero in the guvcview
+> > > application.
+> > > 
+> > > Cheers,
+> > > 
+> > > Peter Kovář
+> > > 50 65 74 65 72 20 4B 6F 76 C3 A1 C5 99
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
