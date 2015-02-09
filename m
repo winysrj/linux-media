@@ -1,119 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:33025 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752120AbbBYDqI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2015 22:46:08 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 7B70D2A0092
-	for <linux-media@vger.kernel.org>; Wed, 25 Feb 2015 04:46:00 +0100 (CET)
-Date: Wed, 25 Feb 2015 04:46:00 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150225034600.7B70D2A0092@tschai.lan>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:42474 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760092AbbBIKZs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2015 05:25:48 -0500
+Received: by mail-wg0-f45.google.com with SMTP id x12so25721273wgg.4
+        for <linux-media@vger.kernel.org>; Mon, 09 Feb 2015 02:25:47 -0800 (PST)
+Date: Mon, 9 Feb 2015 10:23:48 +0000
+From: Luis de Bethencourt <luis@debethencourt.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Fwd: divide error: 0000 in the gspca_topro
+Message-ID: <20150209102348.GB28420@biggie>
+References: <54D7E0B8.30503@reflexion.tv>
+ <CA+55aFxB4Wq-Bob_+q0c3oS1hUf_BLGqqyoepGRDvm9-X2Y+og@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CA+55aFxB4Wq-Bob_+q0c3oS1hUf_BLGqqyoepGRDvm9-X2Y+og@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Sun, Feb 08, 2015 at 06:07:45PM -0800, Linus Torvalds wrote:
+> I got this, and it certainly seems relevant,.
+> 
+> It would seem that that whole 'quality' thing needs some range
+> checking, it should presumably be in the range [1..100] in order to
+> avoid negative 'sc' values or the divide-by-zero.
+> 
+> Hans, Mauro?
+> 
+>                       Linus
 
-Results of the daily build of media_tree:
+Hello Linus,
 
-date:		Wed Feb 25 04:00:22 CET 2015
-git branch:	test
-git hash:	8a26a258bdb82db241cdc35f332f88dd67bdb9c9
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-5.slh.1-amd64
+The case of quality being set to 0 is correctly handled in
+drivers/media/usb/gspca/jpeg.h [0], so I have sent a patch to do the same
+in topro.c.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+Thanks,
+Luis
 
-Detailed results are available here:
+[0] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/media/usb/gspca/jpeg.h#n157
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 
+> ---------- Forwarded message ----------
+> From: Peter Kovář <peter.kovar@reflexion.tv>
+> Date: Sun, Feb 8, 2015 at 2:18 PM
+> Subject: divide error: 0000 in the gspca_topro
+> To: Linus Torvalds <torvalds@linux-foundation.org>
+> 
+> 
+> Hi++ Linus!
+> 
+> There is a trivial bug in the gspca_topro webcam driver.
+> 
+> /* set the JPEG quality for sensor soi763a */
+> static void jpeg_set_qual(u8 *jpeg_hdr,
+>                           int quality)
+> {
+>         int i, sc;
+> 
+>         if (quality < 50)
+>                 sc = 5000 / quality;
+>         else
+>                 sc = 200 - quality * 2;
+> 
+> 
+> 
+> Crash can be reproduced by setting JPEG quality to zero in the guvcview
+> application.
+> 
+> Cheers,
+> 
+> Peter Kovář
+> 50 65 74 65 72 20 4B 6F 76 C3 A1 C5 99
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
