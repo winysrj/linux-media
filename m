@@ -1,64 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52584 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751623AbbBSPif (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 10:38:35 -0500
-Message-ID: <54E60378.6030604@iki.fi>
-Date: Thu, 19 Feb 2015 17:38:32 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ig0-f182.google.com ([209.85.213.182]:60046 "EHLO
+	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759079AbbBICHq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Feb 2015 21:07:46 -0500
+Received: by mail-ig0-f182.google.com with SMTP id h15so13506199igd.3
+        for <linux-media@vger.kernel.org>; Sun, 08 Feb 2015 18:07:45 -0800 (PST)
 MIME-Version: 1.0
-To: =?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>,
-	Benjamin Larsson <benjamin@southpole.se>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] mn88472: reduce firmware download chunk size
-References: <1424337200-6446-1-git-send-email-a.seppala@gmail.com>	<54E5B028.5080900@southpole.se> <CAKv9HNaSqgFpC+TmMm86Y7mrgXvZ9U+wqdgjM4n=hf80p2W1jg@mail.gmail.com>
-In-Reply-To: <CAKv9HNaSqgFpC+TmMm86Y7mrgXvZ9U+wqdgjM4n=hf80p2W1jg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <54D7E0B8.30503@reflexion.tv>
+References: <54D7E0B8.30503@reflexion.tv>
+Date: Sun, 8 Feb 2015 18:07:45 -0800
+Message-ID: <CA+55aFxB4Wq-Bob_+q0c3oS1hUf_BLGqqyoepGRDvm9-X2Y+og@mail.gmail.com>
+Subject: Fwd: divide error: 0000 in the gspca_topro
+From: Linus Torvalds <torvalds@linux-foundation.org>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+I got this, and it certainly seems relevant,.
+
+It would seem that that whole 'quality' thing needs some range
+checking, it should presumably be in the range [1..100] in order to
+avoid negative 'sc' values or the divide-by-zero.
+
+Hans, Mauro?
+
+                      Linus
+
+---------- Forwarded message ----------
+From: Peter Kovář <peter.kovar@reflexion.tv>
+Date: Sun, Feb 8, 2015 at 2:18 PM
+Subject: divide error: 0000 in the gspca_topro
+To: Linus Torvalds <torvalds@linux-foundation.org>
 
 
-On 02/19/2015 12:21 PM, Antti Seppälä wrote:
-> On 19 February 2015 at 11:43, Benjamin Larsson <benjamin@southpole.se> wrote:
->> On 2015-02-19 10:13, Antti Seppälä wrote:
->>>
->>> It seems that currently the firmware download on the mn88472 is
->>> somehow wrong for my Astrometa HD-901T2.
->>>
->>> Reducing the download chunk size (mn88472_config.i2c_wr_max) to 2
->>> makes the firmware download consistently succeed.
->>>
->>
->>
->> Hi, try adding the workaround patch I sent for this.
->>
->> [PATCH 1/3] rtl28xxu: lower the rc poll time to mitigate i2c transfer errors
->>
->> I now see that it hasn't been merged. But I have been running with this
->> patch for a few months now without any major issues.
->>
->
-> The patch really did improve firmware loading. Weird...
->
-> Even with it I still get occasional i2c errors from r820t:
->
-> [   15.874402] r820t 8-003a: r820t_write: i2c wr failed=-32 reg=0a len=1: da
-> [   81.455517] r820t 8-003a: r820t_read: i2c rd failed=-32 reg=00
-> len=4: 69 74 e6 df
-> [   99.949702] r820t 8-003a: r820t_read: i2c rd failed=-32 reg=00
-> len=4: 69 74 e6 df
->
-> These errors seem to appear more often if I'm reading the signal
-> strength values using e.g. femon.
+Hi++ Linus!
 
-Could you disable whole IR polling and test
-modprobe dvb_usb_v2 disable_rc_polling=1
+There is a trivial bug in the gspca_topro webcam driver.
 
-It is funny that *increasing* RC polling makes things better, though...
+/* set the JPEG quality for sensor soi763a */
+static void jpeg_set_qual(u8 *jpeg_hdr,
+                          int quality)
+{
+        int i, sc;
 
-regards
-Antti
--- 
-http://palosaari.fi/
+        if (quality < 50)
+                sc = 5000 / quality;
+        else
+                sc = 200 - quality * 2;
+
+
+
+Crash can be reproduced by setting JPEG quality to zero in the guvcview
+application.
+
+Cheers,
+
+Peter Kovář
+50 65 74 65 72 20 4B 6F 76 C3 A1 C5 99
