@@ -1,225 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38794 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751568AbbBRPnL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 10:43:11 -0500
-Message-ID: <54E4B2F8.5090104@xs4all.nl>
-Date: Wed, 18 Feb 2015 16:42:48 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH 7/7] [media] cx231xx: enable the analog tuner at buffer
- setup
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com> <8a2bc3b2e5bd4978d1c5252a88c950fa6029047f.1424273378.git.mchehab@osg.samsung.com>
-In-Reply-To: <8a2bc3b2e5bd4978d1c5252a88c950fa6029047f.1424273378.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:37228 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759816AbbBIQOc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2015 11:14:32 -0500
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 1/3] media/videobuf2-dma-sg: Fix handling of sg_table structure
+Date: Mon,  9 Feb 2015 17:14:24 +0100
+Message-Id: <1423498466-16718-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/18/2015 04:30 PM, Mauro Carvalho Chehab wrote:
-> buf_prepare callback is called for every queued buffer. This is
-> an overkill. Call it at buf_setup, as this should be enough.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-> index 87c9e27505f4..f9e885fa153f 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-> @@ -100,6 +100,75 @@ static struct cx231xx_fmt format[] = {
->  };
->  
->  
-> +static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
-> +{
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct media_device *mdev = dev->media_dev;
-> +	struct media_entity  *entity, *decoder = NULL, *source;
-> +	struct media_link *link, *found_link = NULL;
-> +	int i, ret, active_links = 0;
-> +
-> +	if (!mdev)
-> +		return 0;
-> +
-> +	/*
-> +	 * This will find the tuner that it is connected into the decoder.
+when sg_alloc_table_from_pages() does not fail it returns a sg_table
+structure with nents and nents_orig initialized to the same value.
 
-s/that it is/that is/
+dma_map_sg returns the dma_map_sg returns the number of areas mapped
+by the hardware, which could be different than the areas given as an input.
+The output must be saved to nent.
+Unfortunately nent differs in sign to the output of dma_map_sg, so an
+intermediate value must be used.
 
-> +	 * Technically, this is not 100% correct, as the device may be
-> +	 * using an analog input instead of the tuner. However, as we can't
-> +	 * do DVB streaming  while the DMA engine is being used for V4L2,
+The output of dma_map, should be used to transverse the scatter list.
 
-s/streaming  while/streaming while/
+dma_unmap_sg needs the value passed to dma_map_sg (nents_orig).
 
-With those changes:
+sg_free_tables uses also orig_nent.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+This patch fix the file to follow this paradigm.
 
-Regards,
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
-	Hans
-
-> +	 * this should be enough for the actual needs.
-> +	 */
-> +	media_device_for_each_entity(entity, mdev) {
-> +		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
-> +			decoder = entity;
-> +			break;
-> +		}
-> +	}
-> +	if (!decoder)
-> +		return 0;
-> +
-> +	for (i = 0; i < decoder->num_links; i++) {
-> +		link = &decoder->links[i];
-> +		if (link->sink->entity == decoder) {
-> +			found_link = link;
-> +			if (link->flags & MEDIA_LNK_FL_ENABLED)
-> +				active_links++;
-> +			break;
-> +		}
-> +	}
-> +
-> +	if (active_links == 1 || !found_link)
-> +		return 0;
-> +
-> +	source = found_link->source->entity;
-> +	for (i = 0; i < source->num_links; i++) {
-> +		struct media_entity *sink;
-> +		int flags = 0;
-> +
-> +		link = &source->links[i];
-> +		sink = link->sink->entity;
-> +
-> +		if (sink == entity)
-> +			flags = MEDIA_LNK_FL_ENABLED;
-> +
-> +		ret = media_entity_setup_link(link, flags);
-> +		if (ret) {
-> +			dev_err(dev->dev,
-> +				"Couldn't change link %s->%s to %s. Error %d\n",
-> +				source->name, sink->name,
-> +				flags ? "enabled" : "disabled",
-> +				ret);
-> +			return ret;
-> +		} else
-> +			dev_dbg(dev->dev,
-> +				"link %s->%s was %s\n",
-> +				source->name, sink->name,
-> +				flags ? "ENABLED" : "disabled");
-> +	}
-> +#endif
-> +	return 0;
-> +}
-> +
->  /* ------------------------------------------------------------------
->  	Video buffer and parser functions
->     ------------------------------------------------------------------*/
-> @@ -667,6 +736,9 @@ buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned int *size)
->  	if (*count < CX231XX_MIN_BUF)
->  		*count = CX231XX_MIN_BUF;
->  
-> +
-> +	cx231xx_enable_analog_tuner(dev);
-> +
->  	return 0;
->  }
->  
-> @@ -703,75 +775,6 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
->  	buf->vb.state = VIDEOBUF_NEEDS_INIT;
->  }
->  
-> -static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
-> -{
-> -#ifdef CONFIG_MEDIA_CONTROLLER
-> -	struct media_device *mdev = dev->media_dev;
-> -	struct media_entity  *entity, *decoder = NULL, *source;
-> -	struct media_link *link, *found_link = NULL;
-> -	int i, ret, active_links = 0;
-> -
-> -	if (!mdev)
-> -		return 0;
-> -
-> -	/*
-> -	 * This will find the tuner that it is connected into the decoder.
-> -	 * Technically, this is not 100% correct, as the device may be
-> -	 * using an analog input instead of the tuner. However, as we can't
-> -	 * do DVB streaming  while the DMA engine is being used for V4L2,
-> -	 * this should be enough for the actual needs.
-> -	 */
-> -	media_device_for_each_entity(entity, mdev) {
-> -		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
-> -			decoder = entity;
-> -			break;
-> -		}
-> -	}
-> -	if (!decoder)
-> -		return 0;
-> -
-> -	for (i = 0; i < decoder->num_links; i++) {
-> -		link = &decoder->links[i];
-> -		if (link->sink->entity == decoder) {
-> -			found_link = link;
-> -			if (link->flags & MEDIA_LNK_FL_ENABLED)
-> -				active_links++;
-> -			break;
-> -		}
-> -	}
-> -
-> -	if (active_links == 1 || !found_link)
-> -		return 0;
-> -
-> -	source = found_link->source->entity;
-> -	for (i = 0; i < source->num_links; i++) {
-> -		struct media_entity *sink;
-> -		int flags = 0;
-> -
-> -		link = &source->links[i];
-> -		sink = link->sink->entity;
-> -
-> -		if (sink == entity)
-> -			flags = MEDIA_LNK_FL_ENABLED;
-> -
-> -		ret = media_entity_setup_link(link, flags);
-> -		if (ret) {
-> -			dev_err(dev->dev,
-> -				"Couldn't change link %s->%s to %s. Error %d\n",
-> -				source->name, sink->name,
-> -				flags ? "enabled" : "disabled",
-> -				ret);
-> -			return ret;
-> -		} else
-> -			dev_dbg(dev->dev,
-> -				"link %s->%s was %s\n",
-> -				source->name, sink->name,
-> -				flags ? "ENABLED" : "disabled");
-> -	}
-> -#endif
-> -	return 0;
-> -}
-> -
->  static int
->  buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
->  	       enum v4l2_field field)
-> @@ -826,8 +829,6 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
->  
->  	buf->vb.state = VIDEOBUF_PREPARED;
->  
-> -	cx231xx_enable_analog_tuner(dev);
-> -
->  	return 0;
->  
->  fail:
-> 
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index b1838ab..30bac99 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -147,9 +147,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
+ 	 * No need to sync to the device, this will happen later when the
+ 	 * prepare() memop is called.
+ 	 */
+-	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
+-			     buf->dma_dir, &attrs) == 0)
++	ret = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
++			buf->dma_dir, &attrs);
++	if (ret <= 0)
+ 		goto fail_map;
++	sgt->nents = ret;
+ 
+ 	buf->handler.refcount = &buf->refcount;
+ 	buf->handler.put = vb2_dma_sg_put;
+@@ -187,7 +189,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
+ 			buf->num_pages);
+-		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
++		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+ 				   buf->dma_dir, &attrs);
+ 		if (buf->vaddr)
+ 			vm_unmap_ram(buf->vaddr, buf->num_pages);
+@@ -240,6 +242,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	struct vm_area_struct *vma;
+ 	struct sg_table *sgt;
+ 	DEFINE_DMA_ATTRS(attrs);
++	int ret;
+ 
+ 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 
+@@ -314,9 +317,12 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	 * No need to sync to the device, this will happen later when the
+ 	 * prepare() memop is called.
+ 	 */
+-	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
+-			     buf->dma_dir, &attrs) == 0)
++	ret = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
++			     buf->dma_dir, &attrs);
++	if (ret <= 0)
+ 		goto userptr_fail_map;
++	sgt->nents = ret;
++
+ 	return buf;
+ 
+ userptr_fail_map:
+@@ -351,7 +357,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 
+ 	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
+ 	       __func__, buf->num_pages);
+-	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir, &attrs);
++	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir,
++			&attrs);
+ 	if (buf->vaddr)
+ 		vm_unmap_ram(buf->vaddr, buf->num_pages);
+ 	sg_free_table(buf->dma_sgt);
+@@ -463,7 +470,7 @@ static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev
+ 
+ 	rd = buf->dma_sgt->sgl;
+ 	wr = sgt->sgl;
+-	for (i = 0; i < sgt->orig_nents; ++i) {
++	for (i = 0; i < sgt->nents; ++i) {
+ 		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
+ 		rd = sg_next(rd);
+ 		wr = sg_next(wr);
+@@ -527,6 +534,7 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+ 		mutex_unlock(lock);
+ 		return ERR_PTR(-EIO);
+ 	}
++	sgt->nents = ret;
+ 
+ 	attach->dma_dir = dma_dir;
+ 
+-- 
+2.1.4
 
