@@ -1,83 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33757 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752150AbbBRPaN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 10:30:13 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Changbing Xiong <cb.xiong@samsung.com>,
-	Joe Perches <joe@perches.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	David Herrmann <dh.herrmann@gmail.com>,
-	Tom Gundersen <teg@jklm.no>
-Subject: [PATCH 4/7] [media] dvb core: rename the media controller entities
-Date: Wed, 18 Feb 2015 13:29:58 -0200
-Message-Id: <56874b07885afd9d58dd3d3985d6167eb9a3deea.1424273378.git.mchehab@osg.samsung.com>
-In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:52689 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752624AbbBIGnq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2015 01:43:46 -0500
+Date: Mon, 9 Feb 2015 07:43:02 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: nick <xerofoify@gmail.com>
+Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media:firewire:Remove unneeded function
+ definition,avc_tuner_host2ca in firedtv-avc.c
+Message-ID: <20150209074302.79876412@kant>
+In-Reply-To: <54D80CCC.5030700@gmail.com>
+References: <1423423437-31949-1-git-send-email-xerofoify@gmail.com>
+	<20150209005500.104d20a6@kant>
+	<54D80CCC.5030700@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prefix all DVB media controller entities with "dvb-" and use dash
-instead of underline at the names.
+On Feb 08 nick wrote:
+> On 2015-02-08 06:55 PM, Stefan Richter wrote:
+> > I still am missing research on the question whether or not the Common
+> > Interface serving part of the driver needs to send Host2CA commands.  If
+> > yes, we implement it and use the function.  If not, we remove the
+> > function.  As long as we are not sure, I prefer to leave the #if-0'd code
+> > where it is.  It documents how the command is formed, and we don't have
+> > any other documentation (except perhaps the git history).
+[...]
+> Stefan,
+> I looked in the history with git log -p 154907957f939 and all I got 
+> for this function was 
+>  Wed Feb 11 21:21:04 CET 2009
+>     firedtv: avc: header file cleanup
+>     
+>         Remove unused constants and declarations.
+>         Move privately used constants into .c files.
 
-Requested-by: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+The function was added a few commits before this one, by "firesat: update
+isochronous interface, add CI support".
 
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index 2835924955a4..d0e3f9d85f34 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -1141,7 +1141,7 @@ static const struct dvb_device dvbdev_demux = {
- 	.users = 1,
- 	.writers = 1,
- #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
--	.name = "demux",
-+	.name = "dvb-demux",
- #endif
- 	.fops = &dvb_demux_fops
- };
-@@ -1217,7 +1217,7 @@ static const struct dvb_device dvbdev_dvr = {
- 	.readers = 1,
- 	.users = 1,
- #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
--	.name = "dvr",
-+	.name = "dvb-dvr",
- #endif
- 	.fops = &dvb_dvr_fops
- };
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index 2bf28eb97a64..55a217f0ad0e 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -1644,7 +1644,7 @@ static const struct dvb_device dvbdev_ca = {
- 	.readers = 1,
- 	.writers = 1,
- #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
--	.name = "ca_en50221",
-+	.name = "dvb-ca-en50221",
- #endif
- 	.fops = &dvb_ca_fops,
- };
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index 40990058b4bc..1508d918205d 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -1467,7 +1467,7 @@ static const struct dvb_device dvbdev_net = {
- 	.users = 1,
- 	.writers = 1,
- #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
--	.name = "dvb net",
-+	.name = "dvb-net",
- #endif
- 	.fops = &dvb_net_fops,
- };
+> Clearly this states to remove unused declarations and avc_tuner_host2ca is unused.
+> Can you explain to me then why it's still needed to be around if there no callers
+> of it?
+
+See above; in this instance
+
+	#if 0
+	dead code
+	#endif
+
+stands in for
+
+	/*
+	 * pseudo code
+	 */
 -- 
-2.1.0
-
+Stefan Richter
+-=====-===== --=- -=--=
+http://arcgraph.de/sr/
