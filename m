@@ -1,54 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42790 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752326AbbBWPUY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 10:20:24 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 11/12] [media] coda: call SEQ_END when the first queue is stopped
-Date: Mon, 23 Feb 2015 16:20:12 +0100
-Message-Id: <1424704813-20792-12-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
-References: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:46920 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755538AbbBIHtX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2015 02:49:23 -0500
+Received: by iecar1 with SMTP id ar1so14561772iec.13
+        for <linux-media@vger.kernel.org>; Sun, 08 Feb 2015 23:49:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <trinity-50c1b2fb-3f4b-43e8-9eae-85e905ff7834-1423426659156@3capp-gmx-bs34>
+References: <trinity-50c1b2fb-3f4b-43e8-9eae-85e905ff7834-1423426659156@3capp-gmx-bs34>
+Date: Mon, 9 Feb 2015 09:49:21 +0200
+Message-ID: <CAAZRmGxWq21ygcUQu6WSMNnNHD_3vjS-=U687y_VbUOxfaysuA@mail.gmail.com>
+Subject: Re: TechnoTrend TT-TVStick CT2-4400v2 no firmware load
+From: Olli Salonen <olli.salonen@iki.fi>
+To: =?UTF-8?Q?Sebastian_S=C3=BCsens?= <S.Suesens@gmx.de>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This allows to stop and restart the output queue to start a new sequence
-while keeping the capture queue running. Before, sequence end would only
-be issued if both output and capture queue were stopped and the sequence
-start issued when reenabling the output queue would fail.
+The si2168 and si2157 firmware is loaded when you try to use the tuner
+for the first time, not at the time of module load or device plugin.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Cheers,
+-olli
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 4441179..54c972f 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1339,6 +1339,9 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
- 	struct coda_dev *dev = ctx->dev;
- 	struct vb2_buffer *buf;
-+	bool stop;
-+
-+	stop = ctx->streamon_out && ctx->streamon_cap;
- 
- 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
- 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
-@@ -1363,7 +1366,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_ERROR);
- 	}
- 
--	if (!ctx->streamon_out && !ctx->streamon_cap) {
-+	if (stop) {
- 		struct coda_buffer_meta *meta;
- 
- 		if (ctx->ops->seq_end_work) {
--- 
-2.1.4
-
+On 8 February 2015 at 22:17, "Sebastian Süsens" <S.Suesens@gmx.de> wrote:
+> Hello,
+> I use kernel 3.13.0 and the media_build "4e1a67e4a6c8ab71f416ea32059c92171407ba5d".
+>
+> I get following messages by dmesg:
+>
+> [ 1543.444128] usb 2-4: new high-speed USB device number 4 using ehci-pci
+> [ 1543.577069] usb 2-4: New USB device found, idVendor=0b48, idProduct=3014
+> [ 1543.577088] usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> [ 1543.577098] usb 2-4: Product: TechnoTrend USB-Stick
+> [ 1543.577106] usb 2-4: Manufacturer: CityCom GmbH
+> [ 1543.577114] usb 2-4: SerialNumber: 20131128
+> [ 1543.764126] usb 2-4: dvb_usb_v2: found a 'TechnoTrend TVStick CT2-4400' in warm state
+> [ 1543.764317] usb 2-4: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+> [ 1543.764387] DVB: registering new adapter (TechnoTrend TVStick CT2-4400)
+> [ 1543.765811] usb 2-4: dvb_usb_v2: MAC address: bc:ea:2b:44:02:7c
+> [ 1543.772724] i2c i2c-2: Added multiplexed i2c bus 3
+> [ 1543.772734] si2168 2-0064: Silicon Labs Si2168 successfully attached
+> [ 1543.777532] si2157 3-0060: Silicon Labs Si2147/2148/2157/2158 successfully attached
+> [ 1543.777579] usb 2-4: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
+> [ 1543.777824] Registered IR keymap rc-tt-1500
+> [ 1543.778051] input: TechnoTrend TVStick CT2-4400 as /devices/pci0000:00/0000:00:13.2/usb2/2-4/rc/rc0/input18
+> [ 1543.778368] rc0: TechnoTrend TVStick CT2-4400 as /devices/pci0000:00/0000:00:13.2/usb2/2-4/rc/rc0
+> [ 1543.778382] usb 2-4: dvb_usb_v2: schedule remote query interval to 300 msecs
+> [ 1543.778396] usb 2-4: dvb_usb_v2: 'TechnoTrend TVStick CT2-4400' successfully initialized and connected
+>
+> I see no message about the firmware loading is this correct?
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
