@@ -1,22 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailhost.4u.com.gh ([80.87.78.15]:35081 "HELO
-	mailhost.vodafone.com.gh" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753206AbbBEUkE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Feb 2015 15:40:04 -0500
-Date: Thu, 5 Feb 2015 14:30:17 +0000 (GMT)
-From: Finance Department <zaferagts@vodafone.com.gh>
-Reply-To: Finance Department <defnce@qq.com>
-Message-ID: <133511794.2231393.1423146617163.JavaMail.zimbra@vodafone.com.gh>
-Subject: Payment
+Received: from lists.s-osg.org ([54.187.51.154]:50510 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759515AbbBIP5D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2015 10:57:03 -0500
+Date: Mon, 9 Feb 2015 13:56:56 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Luis de Bethencourt <luis@debethencourt.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: divide error: 0000 in the gspca_topro
+Message-ID: <20150209135656.11cc85e6@recife.lan>
+In-Reply-To: <20150209102348.GB28420@biggie>
+References: <54D7E0B8.30503@reflexion.tv>
+	<CA+55aFxB4Wq-Bob_+q0c3oS1hUf_BLGqqyoepGRDvm9-X2Y+og@mail.gmail.com>
+	<20150209102348.GB28420@biggie>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Recipient,
+Em Mon, 09 Feb 2015 10:23:48 +0000
+Luis de Bethencourt <luis@debethencourt.com> escreveu:
 
-You have been awarded the sum of  8,000,000.00 (Eight Million Pounds sterling) with reference number 77100146 by office of the ministry of finance UK.Send us your personal details to deliver your funds.
+> On Sun, Feb 08, 2015 at 06:07:45PM -0800, Linus Torvalds wrote:
+> > I got this, and it certainly seems relevant,.
+> > 
+> > It would seem that that whole 'quality' thing needs some range
+> > checking, it should presumably be in the range [1..100] in order to
+> > avoid negative 'sc' values or the divide-by-zero.
+> > 
+> > Hans, Mauro?
+> > 
+> >                       Linus
+> 
+> Hello Linus,
+> 
+> The case of quality being set to 0 is correctly handled in
+> drivers/media/usb/gspca/jpeg.h [0], so I have sent a patch to do the same
+> in topro.c.
 
-Gloria Peter
+Patch looks good to me.
+
+I'll double check if some other driver has the same bad handling for
+quality set and give a couple days for Hans to take a look.
+
+If he's fine with this approach, I'll add it on a separate pull request.
+
+Regards,
+Mauro
+
+> 
+> Thanks,
+> Luis
+> 
+> [0] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/media/usb/gspca/jpeg.h#n157
+> 
+> > 
+> > ---------- Forwarded message ----------
+> > From: Peter Kovář <peter.kovar@reflexion.tv>
+> > Date: Sun, Feb 8, 2015 at 2:18 PM
+> > Subject: divide error: 0000 in the gspca_topro
+> > To: Linus Torvalds <torvalds@linux-foundation.org>
+> > 
+> > 
+> > Hi++ Linus!
+> > 
+> > There is a trivial bug in the gspca_topro webcam driver.
+> > 
+> > /* set the JPEG quality for sensor soi763a */
+> > static void jpeg_set_qual(u8 *jpeg_hdr,
+> >                           int quality)
+> > {
+> >         int i, sc;
+> > 
+> >         if (quality < 50)
+> >                 sc = 5000 / quality;
+> >         else
+> >                 sc = 200 - quality * 2;
+> > 
+> > 
+> > 
+> > Crash can be reproduced by setting JPEG quality to zero in the guvcview
+> > application.
+> > 
+> > Cheers,
+> > 
+> > Peter Kovář
+> > 50 65 74 65 72 20 4B 6F 76 C3 A1 C5 99
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
