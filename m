@@ -1,105 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.osadl.org ([62.245.132.105]:46916 "EHLO www.osadl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751784AbbBEJB3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Feb 2015 04:01:29 -0500
-From: Nicholas Mc Guire <hofrat@osadl.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Wolfram Sang <wsa@the-dreams.de>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH RFC] media: radio: handle timeouts
-Date: Thu,  5 Feb 2015 03:56:42 -0500
-Message-Id: <1423126602-6639-1-git-send-email-hofrat@osadl.org>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:49402 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753420AbbBJJc4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Feb 2015 04:32:56 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: <linux-arm-kernel@lists.infradead.org>,
+	<devicetree@vger.kernel.org>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v5 2/4] media: ov2640: add async probe function
+Date: Tue, 10 Feb 2015 17:31:34 +0800
+Message-ID: <1423560696-12304-3-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1423560696-12304-1-git-send-email-josh.wu@atmel.com>
+References: <1423560696-12304-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add handling for timeout case.
+In async probe, there is a case that ov2640 is probed before the
+host device which provided 'mclk'.
+To support this async probe, we will get 'mclk' at first in the probe(),
+if failed it will return -EPROBE_DEFER. That will let ov2640 wait for
+the host device probed.
 
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
-Some error state/error information seems be get lost int the current code.
-(line-numbers are from 3.19.0-rc7.
 
-Assume that on line 827 core->write succeeds but the following 
-wait_for_completion_timeout times out and the radio->irq_received condition 
-is not satisfied resulting in   goto out;
+Changes in v5:
+- don't change the ov2640_s_power() code.
+- will get 'mclk' at the beginning of ov2640_probe().
 
-827       r = core->write(core, WL1273_TUNER_MODE_SET, TUNER_MODE_AUTO_SEEK);
-828       if (r)
-829               goto out;
-830
-831       wait_for_completion_timeout(&radio->busy, msecs_to_jiffies(1000));
-832       if (!(radio->irq_received & WL1273_BL_EVENT))
-833               goto out;
+Changes in v4: None
+Changes in v3: None
+Changes in v2: None
 
+ drivers/media/i2c/soc_camera/ov2640.c | 29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
-A similar situation is at line 955 - 859 where a tiemout could occure
-and the reported value would be the success value from core->write.
-
-852       reinit_completion(&radio->busy);
-853       dev_dbg(radio->dev, "%s: BUSY\n", __func__);
-854
-855       r = core->write(core, WL1273_TUNER_MODE_SET, TUNER_MODE_AUTO_SEEK);
-856       if (r)
-857               goto out;
-858
-859       wait_for_completion_timeout(&radio->busy, msecs_to_jiffies(1000)
-
-the problem is that the value of r now is the "success" value from core->write
-and any timeout and/or failure to detect the expected interrupt is not 
-reported in 
-
-860 out:
-861       dev_dbg(radio->dev, "%s: Err: %d\n", __func__, r);
-862       return r;
-
-Should the wait_for_completion_timeout not report the timeout event by setting 
-r to -ETIMEOUT ? respectively use if (!(radio->irq_received & WL1273_BL_EVENT))
-to check and set -ETIMEOUT there ?
-
-Comparing this with wl1273_fm_set_tx_freq - the below patch might be suitable 
-way to handle timeout - but this needs a review by someone who knows the 
-details of the driver - so this is really just a guess.
-
-Patch was only compile tested with x86_64_defconfig + CONFIG_MEDIA_SUPPORT=m
-CONFIG_MEDIA_CAMERA_SUPPORT=y, CONFIG_V4L_PLATFORM_DRIVERS=y,
-CONFIG_MEDIA_RADIO_SUPPORT=y, RADIO_ADAPTER=y, CONFIG_RADIO_WL1273=m
-
-Patch is against 3.19.0-rc7 (localversion-next is -next-20150204)
-
- drivers/media/radio/radio-wl1273.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index 571c7f6..6830523 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -828,9 +828,12 @@ static int wl1273_fm_set_seek(struct wl1273_device *radio,
- 	if (r)
- 		goto out;
+diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+index 1fdce2f..057dd49 100644
+--- a/drivers/media/i2c/soc_camera/ov2640.c
++++ b/drivers/media/i2c/soc_camera/ov2640.c
+@@ -1068,6 +1068,10 @@ static int ov2640_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 	}
  
-+	/* wait for the FR IRQ */
- 	wait_for_completion_timeout(&radio->busy, msecs_to_jiffies(1000));
--	if (!(radio->irq_received & WL1273_BL_EVENT))
-+	if (!(radio->irq_received & WL1273_BL_EVENT)) {
-+		r = -ETIMEDOUT;
- 		goto out;
-+	}
++	priv->clk = v4l2_clk_get(&client->dev, "mclk");
++	if (IS_ERR(priv->clk))
++		return -EPROBE_DEFER;
++
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+ 	v4l2_ctrl_handler_init(&priv->hdl, 2);
+ 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+@@ -1075,24 +1079,28 @@ static int ov2640_probe(struct i2c_client *client,
+ 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+ 			V4L2_CID_HFLIP, 0, 1, 1, 0);
+ 	priv->subdev.ctrl_handler = &priv->hdl;
+-	if (priv->hdl.error)
+-		return priv->hdl.error;
+-
+-	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+-	if (IS_ERR(priv->clk)) {
+-		ret = PTR_ERR(priv->clk);
+-		goto eclkget;
++	if (priv->hdl.error) {
++		ret = priv->hdl.error;
++		goto err_clk;
+ 	}
  
- 	radio->irq_received &= ~WL1273_BL_EVENT;
+ 	ret = ov2640_video_probe(client);
+ 	if (ret) {
+-		v4l2_clk_put(priv->clk);
+-eclkget:
+-		v4l2_ctrl_handler_free(&priv->hdl);
++		goto err_videoprobe;
+ 	} else {
+ 		dev_info(&adapter->dev, "OV2640 Probed\n");
+ 	}
  
-@@ -856,7 +859,9 @@ static int wl1273_fm_set_seek(struct wl1273_device *radio,
- 	if (r)
- 		goto out;
++	ret = v4l2_async_register_subdev(&priv->subdev);
++	if (ret < 0)
++		goto err_videoprobe;
++
++	return 0;
++
++err_videoprobe:
++	v4l2_ctrl_handler_free(&priv->hdl);
++err_clk:
++	v4l2_clk_put(priv->clk);
+ 	return ret;
+ }
  
--	wait_for_completion_timeout(&radio->busy, msecs_to_jiffies(1000));
-+	/* wait for the FR IRQ */
-+	if (!wait_for_completion_timeout(&radio->busy, msecs_to_jiffies(1000)))
-+		r = -ETIMEDOUT;
- out:
- 	dev_dbg(radio->dev, "%s: Err: %d\n", __func__, r);
- 	return r;
+@@ -1100,6 +1108,7 @@ static int ov2640_remove(struct i2c_client *client)
+ {
+ 	struct ov2640_priv       *priv = to_ov2640(client);
+ 
++	v4l2_async_unregister_subdev(&priv->subdev);
+ 	v4l2_clk_put(priv->clk);
+ 	v4l2_device_unregister_subdev(&priv->subdev);
+ 	v4l2_ctrl_handler_free(&priv->hdl);
 -- 
-1.7.10.4
+1.9.1
 
