@@ -1,101 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:62890 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752160AbbBWPHK (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.246]:28585 "EHLO
+	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752191AbbBJJ3e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 10:07:10 -0500
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: au0828: drop vbi_buffer_filled() and re-use buffer_filled()
-Date: Mon, 23 Feb 2015 15:06:52 +0000
-Message-Id: <1424704012-15993-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 10 Feb 2015 04:29:34 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: <linux-arm-kernel@lists.infradead.org>,
+	<devicetree@vger.kernel.org>, "Josh Wu" <josh.wu@atmel.com>
+Subject: [PATCH v5 0/4] media: ov2640: add device tree support
+Date: Tue, 10 Feb 2015 17:31:32 +0800
+Message-ID: <1423560696-12304-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+This patch series add device tree support for ov2640. And also add
+the document for the devicetree properties.
+v4->v5:
+  1. based on soc-camera v4l2-clk changes.
+  2. remove the master_clk related (one commit), we only have one clk.
 
-The vbi_buffer_filled() and buffer_filled() did the same functionality
-except for incrementing the buffer sequence, this patch drops the
-vbi_buffer_filled() and re-uses buffer_filled() for vbi buffers
-aswell by adding the check for vb2-queue type while incrementing
-the sequence numbers. Along side this patch aligns the code.
+v3->v4:
+  1. refined the dt document.
+  2. Add Laurent's acked-by.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/usb/au0828/au0828-video.c | 36 +++++++++++++--------------------
- 1 file changed, 14 insertions(+), 22 deletions(-)
+v2->v3:
+  1. fix the gpiod_xxx api usage as we use reset pin as ACTIVE_LOW.
+  2. update the devicetree binding document.
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index a27cb5f..60012ec 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -299,29 +299,23 @@ static int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
-  * Announces that a buffer were filled and request the next
-  */
- static inline void buffer_filled(struct au0828_dev *dev,
--				  struct au0828_dmaqueue *dma_q,
--				  struct au0828_buffer *buf)
-+				 struct au0828_dmaqueue *dma_q,
-+				 struct au0828_buffer *buf)
- {
--	/* Advice that buffer was filled */
--	au0828_isocdbg("[%p/%d] wakeup\n", buf, buf->top_field);
--
--	buf->vb.v4l2_buf.sequence = dev->frame_count++;
--	buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
--	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
--	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
--}
-+	struct vb2_buffer vb = buf->vb;
-+	struct vb2_queue *q = vb.vb2_queue;
- 
--static inline void vbi_buffer_filled(struct au0828_dev *dev,
--				     struct au0828_dmaqueue *dma_q,
--				     struct au0828_buffer *buf)
--{
- 	/* Advice that buffer was filled */
- 	au0828_isocdbg("[%p/%d] wakeup\n", buf, buf->top_field);
- 
--	buf->vb.v4l2_buf.sequence = dev->vbi_frame_count++;
--	buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
--	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
--	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
-+	if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		vb.v4l2_buf.sequence = dev->frame_count++;
-+	else
-+		vb.v4l2_buf.sequence = dev->vbi_frame_count++;
-+
-+	vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
-+	v4l2_get_timestamp(&vb.v4l2_buf.timestamp);
-+	vb2_buffer_done(&vb, VB2_BUF_STATE_DONE);
- }
- 
- /*
-@@ -574,9 +568,7 @@ static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
- 			if (fbyte & 0x40) {
- 				/* VBI */
- 				if (vbi_buf != NULL)
--					vbi_buffer_filled(dev,
--							  vbi_dma_q,
--							  vbi_buf);
-+					buffer_filled(dev, vbi_dma_q, vbi_buf);
- 				vbi_get_next_buf(vbi_dma_q, &vbi_buf);
- 				if (vbi_buf == NULL)
- 					vbioutp = NULL;
-@@ -949,7 +941,7 @@ static void au0828_vbi_buffer_timeout(unsigned long data)
- 	if (buf != NULL) {
- 		vbi_data = vb2_plane_vaddr(&buf->vb, 0);
- 		memset(vbi_data, 0x00, buf->length);
--		vbi_buffer_filled(dev, dma_q, buf);
-+		buffer_filled(dev, dma_q, buf);
- 	}
- 	vbi_get_next_buf(dma_q, &buf);
- 
+v1 -> v2:
+  1.  modified the dt bindings according to Laurent's suggestion.
+  2. add a fix patch for soc_camera. Otherwise the .reset() function
+won't work.
+
+Josh Wu (4):
+  media: soc-camera: use icd->control instead of icd->pdev for reset()
+  media: ov2640: add async probe function
+  media: ov2640: add primary dt support
+  media: ov2640: dt: add the device tree binding document
+
+ .../devicetree/bindings/media/i2c/ov2640.txt       |  46 ++++++++
+ drivers/media/i2c/soc_camera/ov2640.c              | 117 ++++++++++++++++++---
+ drivers/media/platform/soc_camera/soc_camera.c     |   8 +-
+ 3 files changed, 152 insertions(+), 19 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+
 -- 
 1.9.1
 
