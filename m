@@ -1,107 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:49402 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753420AbbBJJc4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2015 04:32:56 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	<devicetree@vger.kernel.org>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v5 2/4] media: ov2640: add async probe function
-Date: Tue, 10 Feb 2015 17:31:34 +0800
-Message-ID: <1423560696-12304-3-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1423560696-12304-1-git-send-email-josh.wu@atmel.com>
-References: <1423560696-12304-1-git-send-email-josh.wu@atmel.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:39127 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752916AbbBJKpe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Feb 2015 05:45:34 -0500
+Message-ID: <54D9E14A.5090200@iki.fi>
+Date: Tue, 10 Feb 2015 12:45:30 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: =?UTF-8?B?RGF2aWQgQ2ltYsWvcmVr?= <david.cimburek@gmail.com>,
+	linux-media@vger.kernel.org,
+	=?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
+Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working
+ since kernel 3.17
+References: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
+In-Reply-To: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In async probe, there is a case that ov2640 is probed before the
-host device which provided 'mclk'.
-To support this async probe, we will get 'mclk' at first in the probe(),
-if failed it will return -EPROBE_DEFER. That will let ov2640 wait for
-the host device probed.
+David Härdeman,
+Could you look that as it is your patch which has broken it
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
+commit af3a4a9bbeb00df3e42e77240b4cdac5479812f9
+Author: David Härdeman <david@hardeman.nu>
+Date:   Thu Apr 3 20:31:51 2014 -0300
 
-Changes in v5:
-- don't change the ov2640_s_power() code.
-- will get 'mclk' at the beginning of ov2640_probe().
+     [media] dib0700: NEC scancode cleanup
 
-Changes in v4: None
-Changes in v3: None
-Changes in v2: None
 
- drivers/media/i2c/soc_camera/ov2640.c | 29 +++++++++++++++++++----------
- 1 file changed, 19 insertions(+), 10 deletions(-)
+Antti
 
-diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-index 1fdce2f..057dd49 100644
---- a/drivers/media/i2c/soc_camera/ov2640.c
-+++ b/drivers/media/i2c/soc_camera/ov2640.c
-@@ -1068,6 +1068,10 @@ static int ov2640_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	}
- 
-+	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-+	if (IS_ERR(priv->clk))
-+		return -EPROBE_DEFER;
-+
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 2);
- 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
-@@ -1075,24 +1079,28 @@ static int ov2640_probe(struct i2c_client *client,
- 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
- 			V4L2_CID_HFLIP, 0, 1, 1, 0);
- 	priv->subdev.ctrl_handler = &priv->hdl;
--	if (priv->hdl.error)
--		return priv->hdl.error;
--
--	priv->clk = v4l2_clk_get(&client->dev, "mclk");
--	if (IS_ERR(priv->clk)) {
--		ret = PTR_ERR(priv->clk);
--		goto eclkget;
-+	if (priv->hdl.error) {
-+		ret = priv->hdl.error;
-+		goto err_clk;
- 	}
- 
- 	ret = ov2640_video_probe(client);
- 	if (ret) {
--		v4l2_clk_put(priv->clk);
--eclkget:
--		v4l2_ctrl_handler_free(&priv->hdl);
-+		goto err_videoprobe;
- 	} else {
- 		dev_info(&adapter->dev, "OV2640 Probed\n");
- 	}
- 
-+	ret = v4l2_async_register_subdev(&priv->subdev);
-+	if (ret < 0)
-+		goto err_videoprobe;
-+
-+	return 0;
-+
-+err_videoprobe:
-+	v4l2_ctrl_handler_free(&priv->hdl);
-+err_clk:
-+	v4l2_clk_put(priv->clk);
- 	return ret;
- }
- 
-@@ -1100,6 +1108,7 @@ static int ov2640_remove(struct i2c_client *client)
- {
- 	struct ov2640_priv       *priv = to_ov2640(client);
- 
-+	v4l2_async_unregister_subdev(&priv->subdev);
- 	v4l2_clk_put(priv->clk);
- 	v4l2_device_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
+On 02/10/2015 12:38 PM, David Cimbůrek wrote:
+> Please include this patch to kernel! It takes too much time for such a
+> simple fix!
+>
+>
+> 2015-01-07 13:51 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
+>> No one is interested? I'd like to get this patch to kernel to fix the
+>> issue. Can someone here do it please?
+>>
+>>
+>> 2014-12-20 14:36 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
+>>> Hi,
+>>>
+>>> with kernel 3.17 remote control for Pinnacle 73e (ID 2304:0237
+>>> Pinnacle Systems, Inc. PCTV 73e [DiBcom DiB7000PC]) does not work
+>>> anymore.
+>>>
+>>> I checked the changes and found out the problem in commit
+>>> af3a4a9bbeb00df3e42e77240b4cdac5479812f9.
+>>>
+>>> In dib0700_core.c in struct dib0700_rc_response the following union:
+>>>
+>>> union {
+>>>      u16 system16;
+>>>      struct {
+>>>          u8 not_system;
+>>>          u8 system;
+>>>      };
+>>> };
+>>>
+>>> has been replaced by simple variables:
+>>>
+>>> u8 system;
+>>> u8 not_system;
+>>>
+>>> But these variables are in reverse order! When I switch the order
+>>> back, the remote works fine again! Here is the patch:
+>>>
+>>>
+>>> --- a/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
+>>> 14:27:15.000000000 +0100
+>>> +++ b/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
+>>> 14:27:36.000000000 +0100
+>>> @@ -658,8 +658,8 @@
+>>>   struct dib0700_rc_response {
+>>>       u8 report_id;
+>>>       u8 data_state;
+>>> -    u8 system;
+>>>       u8 not_system;
+>>> +    u8 system;
+>>>       u8 data;
+>>>       u8 not_data;
+>>>   };
+>>>
+>>>
+>>> Regards,
+>>> David
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
 -- 
-1.9.1
-
+http://palosaari.fi/
