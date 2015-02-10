@@ -1,90 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f179.google.com ([209.85.213.179]:63883 "EHLO
-	mail-ig0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965550AbbBCPZv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 10:25:51 -0500
+Received: from lists.s-osg.org ([54.187.51.154]:34908 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750791AbbBJXf6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Feb 2015 18:35:58 -0500
+Date: Tue, 10 Feb 2015 21:35:52 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Luis de Bethencourt <luis@debethencourt.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] rtl2832: remove compiler warning
+Message-ID: <20150210213552.54d9cb17@recife.lan>
+In-Reply-To: <54D9E414.7040003@iki.fi>
+References: <20150208224422.GA22749@turing>
+	<54D9E414.7040003@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4830208.H6zxrGlT1D@wuerfel>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
-	<4689826.8DDCrX2ZhK@wuerfel>
-	<20150203144109.GR8656@n2100.arm.linux.org.uk>
-	<4830208.H6zxrGlT1D@wuerfel>
-Date: Tue, 3 Feb 2015 10:25:50 -0500
-Message-ID: <CAF6AEGt5TcpdTFv+2GJ1GMzyr52BEkSBffZTW5C1ytg9G6N7Qw@mail.gmail.com>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
- with dma-parms
-From: Rob Clark <robdclark@gmail.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Daniel Vetter <daniel@ffwll.ch>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 3, 2015 at 9:52 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Tuesday 03 February 2015 14:41:09 Russell King - ARM Linux wrote:
->> On Tue, Feb 03, 2015 at 03:17:27PM +0100, Arnd Bergmann wrote:
->> > On Tuesday 03 February 2015 09:04:03 Rob Clark wrote:
->> > > Since I'm stuck w/ an iommu, instead of built in mmu, my plan was to
->> > > drop use of dma-mapping entirely (incl the current call to dma_map_sg,
->> > > which I just need until we can use drm_cflush on arm), and
->> > > attach/detach iommu domains directly to implement context switches.
->> > > At that point, dma_addr_t really has no sensible meaning for me.
->> >
->> > I think what you see here is a quite common hardware setup and we really
->> > lack the right abstraction for it at the moment. Everybody seems to
->> > work around it with a mix of the dma-mapping API and the iommu API.
->> > These are doing different things, and even though the dma-mapping API
->> > can be implemented on top of the iommu API, they are not really compatible.
->>
->> I'd go as far as saying that the "DMA API on top of IOMMU" is more
->> intended to be for a system IOMMU for the bus in question, rather
->> than a device-level IOMMU.
->>
->> If an IOMMU is part of a device, then the device should handle it
->> (maybe via an abstraction) and not via the DMA API.  The DMA API should
->> be handing the bus addresses to the device driver which the device's
->> IOMMU would need to generate.  (In other words, in this circumstance,
->> the DMA API shouldn't give you the device internal address.)
->
-> Exactly. And the abstraction that people choose at the moment is the
-> iommu API, for better or worse. It makes a lot of sense to use this
-> API if the same iommu is used for other devices as well (which is
-> the case on Tegra and probably a lot of others). Unfortunately the
-> iommu API lacks support for cache management, and probably other things
-> as well, because this was not an issue for the original use case
-> (device assignment on KVM/x86).
->
-> This could be done by adding explicit or implied cache management
-> to the IOMMU mapping interfaces, or by extending the dma-mapping
-> interfaces in a way that covers the use case of the device managing
-> its own address space, in addition to the existing coherent and
-> streaming interfaces.
+Em Tue, 10 Feb 2015 12:57:24 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-I think for gpu's, we'd prefer explicit and less abstraction..  which
-is probably opposite of what every other driver would want
+> On 02/09/2015 12:44 AM, Luis de Bethencourt wrote:
+> > Cleaning the following compiler warning:
+> > rtl2832.c:703:12: warning: 'tmp' may be used uninitialized in this function
+> >
+> > Even though it could never happen since if rtl2832_rd_demod_reg () doesn't set
+> > tmp, this line would never run because we go to err. It is still nice to avoid
+> > compiler warnings.
+> >
+> > Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
+> > ---
+> >   drivers/media/dvb-frontends/rtl2832.c | 2 +-
+> >   1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+> > index 5d2d8f4..ad36d1c 100644
+> > --- a/drivers/media/dvb-frontends/rtl2832.c
+> > +++ b/drivers/media/dvb-frontends/rtl2832.c
+> > @@ -685,7 +685,7 @@ static int rtl2832_read_status(struct dvb_frontend *fe, fe_status_t *status)
+> >   	struct rtl2832_dev *dev = fe->demodulator_priv;
+> >   	struct i2c_client *client = dev->client;
+> >   	int ret;
+> > -	u32 tmp;
+> > +	u32 tmp = 0;
+> >
+> >   	dev_dbg(&client->dev, "\n");
+> 
+> I looked the code and I cannot see how it could used as uninitialized. 
+> Dunno how it could be fixed properly.
+> 
+> Also, I think idiom to say compiler that variable could be uninitialized 
+> is to store its own value. But I am fine with zero initialization too.
+> 
+> u32 tmp = tmp;
 
-In the end, my eventual goal is explicit control of tlb flush, and
-control of my address space.  And in fact in some cases we are going
-to want to use the gpu to bang on iommu registers to do context
-switches and tlb flushes.  (Which is obviously not the first step..
-and something that is fairly difficult to get right/secure.. but the
-performance win seems significant so I'm not sure we can avoid it.)
+Actually, the right way is to declare it as:
 
-BR,
--R
+	u32 uninitialized_var(tmp)
 
->
->         Arnd
+The syntax to suppress compiler warnings depends on the compiler:
+
+include/linux/compiler-clang.h:#define uninitialized_var(x) x = *(&(x))
+include/linux/compiler-gcc.h:#define uninitialized_var(x) x = x
+
+Also, using uninitialized_var() better documents it.
+
+Regards,
+Mauro
