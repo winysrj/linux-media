@@ -1,82 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38611 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752352AbbBBObn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 09:31:43 -0500
-Date: Mon, 2 Feb 2015 12:31:38 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Mark Brown <broonie@kernel.org>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for
- lockdep
-Message-ID: <20150202123138.2b2a2fa4@recife.lan>
-In-Reply-To: <20141222150515.GV17800@sirena.org.uk>
-References: <1419114892-4550-1-git-send-email-crope@iki.fi>
-	<20141222124411.GK17800@sirena.org.uk>
-	<549814BB.3040808@iki.fi>
-	<20141222133142.GM17800@sirena.org.uk>
-	<54982246.20300@iki.fi>
-	<20141222150515.GV17800@sirena.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41334 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761504AbbBJDpP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Feb 2015 22:45:15 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 83AA82A0258
+	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2015 04:45:04 +0100 (CET)
+Date: Tue, 10 Feb 2015 04:45:04 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150210034504.83AA82A0258@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antti/Mark,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Any news with regards to this?
+Results of the daily build of media_tree:
 
-Regards,
-Mauro
+date:		Tue Feb 10 04:00:22 CET 2015
+git branch:	test
+git hash:	4bad5d2d25099a42e146d7b18d2b98950ed287f5
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-5.slh.1-amd64
 
-Em Mon, 22 Dec 2014 15:05:15 +0000
-Mark Brown <broonie@kernel.org> escreveu:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18-i686: OK
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18-x86_64: OK
+linux-3.19-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-> On Mon, Dec 22, 2014 at 03:53:10PM +0200, Antti Palosaari wrote:
-> > On 12/22/2014 03:31 PM, Mark Brown wrote:
-> 
-> > >>>Why is this configurable, how would a device know if the system it is in
-> > >>>needs a custom locking class and can safely use one?
-> 
-> > >>If RegMap instance is bus master, eg. I2C adapter, then you should define
-> > >>own custom key. If you don't define own key and there will be slave on that
-> > >>bus which uses RegMap too, there will be recursive locking from a lockdep
-> > >>point of view.
-> 
-> > >That doesn't really explain to me why this is configurable, why should
-> > >drivers have to worry about this?
-> 
-> > Did you read the lockdep documentation I pointed previous mail?
-> 
-> No, quite apart from the fact that you pasted a good chunk of it into
-> your mail I don't think it's a good idea to require people to have to
-> reverse engineer everything to figure out if they're supposed to use
-> this, or expect people reviewing code using this feature to do that in
-> order to figure out if it's being used correctly or not.
-> 
-> Suggesting that I'm not thinking hard enough isn't helping here; this
-> stuff needs to be clear and easy so that people naturally get it right
-> when they need to and don't break things as a result of confusion or
-> error, requiring people to directly work with infrequently used things
-> like lock classes with minimal explanation doesn't achieve that goal.
-> 
-> > One possibility is to disable lockdep checking from that driver totally,
-> > then drivers do not need to care it about. But I don't think it is proper
-> > way. One solution is to use custom regmap locking available already, but
-> > Mauro nor me didn't like that hack:
-> 
-> You don't seem to be answering any of my questions here...  for example,
-> you keep saying that this is something bus masters should do.  Why does
-> it make sense for people writing such drivers to have to figure out that
-> they need to do this and how to do it?  Are there some bus masters that
-> shouldn't be doing so?  Should anything that isn't a bus master have to
-> do it?
-> 
-> > >Please also write technical terms like regmap normally.
-> 
-> > Lower-case letters?
-> 
-> Yes, the way it's written in every place it's used in the kernel except
-> a few I see you've added.
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
