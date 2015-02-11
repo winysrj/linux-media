@@ -1,65 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:53363 "EHLO mail.ispras.ru"
+Received: from www.osadl.org ([62.245.132.105]:33023 "EHLO www.osadl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752758AbbBMWjV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 17:39:21 -0500
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	id S1752500AbbBKOXo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Feb 2015 09:23:44 -0500
+From: Nicholas Mc Guire <hofrat@osadl.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@linuxtesting.org
-Subject: [PATCH] sh_vou: fix memory leak on error paths in sh_vou_open()
-Date: Sat, 14 Feb 2015 01:39:03 +0300
-Message-Id: <1423867143-8332-1-git-send-email-khoroshilov@ispras.ru>
+	Nicholas Mc Guire <hofrat@osadl.org>
+Subject: [PATCH] [media] si470x: fixup wait_for_completion_timeout return handling
+Date: Wed, 11 Feb 2015 09:19:01 -0500
+Message-Id: <1423664341-7327-1-git-send-email-hofrat@osadl.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Memory allocated for sh_vou_file is not deallocated
-on error paths in sh_vou_open().
+return type of wait_for_completion_timeout is unsigned long not int. A
+appropriately named variable of type unsigned long is added and the
+assignments fixed up.
 
-Found by Linux Driver Verification project (linuxtesting.org).
-
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
 ---
- drivers/media/platform/sh_vou.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 261f1195b49f..6d1959d1ad02 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -1168,10 +1168,10 @@ static int sh_vou_open(struct file *file)
+Patch was only compile tested with 
+
+Patch is against 3.19.0 (localversion-next is -next-20150211)
+
+ drivers/media/radio/si470x/radio-si470x-common.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+index 909c3f9..1d827ad 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -208,6 +208,7 @@ static int si470x_set_band(struct si470x_device *radio, int band)
+ static int si470x_set_chan(struct si470x_device *radio, unsigned short chan)
+ {
+ 	int retval;
++	unsigned long time_left;
+ 	bool timed_out = false;
  
- 	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
+ 	/* start tuning */
+@@ -219,9 +220,9 @@ static int si470x_set_chan(struct si470x_device *radio, unsigned short chan)
  
--	file->private_data = vou_file;
--
--	if (mutex_lock_interruptible(&vou_dev->fop_lock))
-+	if (mutex_lock_interruptible(&vou_dev->fop_lock)) {
-+		kfree(vou_file);
- 		return -ERESTARTSYS;
-+	}
- 	if (atomic_inc_return(&vou_dev->use_count) == 1) {
- 		int ret;
- 		/* First open */
-@@ -1183,6 +1183,7 @@ static int sh_vou_open(struct file *file)
- 			pm_runtime_put(vou_dev->v4l2_dev.dev);
- 			vou_dev->status = SH_VOU_IDLE;
- 			mutex_unlock(&vou_dev->fop_lock);
-+			kfree(vou_file);
- 			return ret;
- 		}
- 	}
-@@ -1195,6 +1196,8 @@ static int sh_vou_open(struct file *file)
- 				       vou_dev->vdev, &vou_dev->fop_lock);
- 	mutex_unlock(&vou_dev->fop_lock);
+ 	/* wait till tune operation has completed */
+ 	reinit_completion(&radio->completion);
+-	retval = wait_for_completion_timeout(&radio->completion,
+-			msecs_to_jiffies(tune_timeout));
+-	if (!retval)
++	time_left = wait_for_completion_timeout(&radio->completion,
++						msecs_to_jiffies(tune_timeout));
++	if (time_left == 0)
+ 		timed_out = true;
  
-+	file->private_data = vou_file;
-+
- 	return 0;
- }
+ 	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
+@@ -301,6 +302,7 @@ static int si470x_set_seek(struct si470x_device *radio,
+ 	int band, retval;
+ 	unsigned int freq;
+ 	bool timed_out = false;
++	unsigned long time_left;
  
+ 	/* set band */
+ 	if (seek->rangelow || seek->rangehigh) {
+@@ -342,9 +344,9 @@ static int si470x_set_seek(struct si470x_device *radio,
+ 
+ 	/* wait till tune operation has completed */
+ 	reinit_completion(&radio->completion);
+-	retval = wait_for_completion_timeout(&radio->completion,
+-			msecs_to_jiffies(seek_timeout));
+-	if (!retval)
++	time_left = wait_for_completion_timeout(&radio->completion,
++						msecs_to_jiffies(seek_timeout));
++	if (time_left == 0)
+ 		timed_out = true;
+ 
+ 	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
 -- 
-1.9.1
+1.7.10.4
 
