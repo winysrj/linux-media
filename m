@@ -1,127 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpq2.tb.mail.iss.as9143.net ([212.54.42.165]:56720 "EHLO
-	smtpq2.tb.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752862AbbBWPvl (ORCPT
+Received: from mail-la0-f45.google.com ([209.85.215.45]:43655 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751418AbbBKKdw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 10:51:41 -0500
-Message-ID: <54EB4C85.1050003@grumpydevil.homelinux.org>
-Date: Mon, 23 Feb 2015 16:51:33 +0100
-From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
-MIME-Version: 1.0
-To: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>,
-	=?UTF-8?B?SG9uemEgUGV0cm91xaE=?= <jpetrous@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: DVB Simulcrypt
-References: <54E8F8F4.1010601@grumpydevil.homelinux.org>	<54E9F59A.4070407@grumpydevil.homelinux.org>	<CAJbz7-2efvftG4=UAphyLFjjuFpLZQKCFDzqXrwb-mfDg4A7SQ@mail.gmail.com>	<54EB016D.8040105@grumpydevil.homelinux.org> <CAJbz7-0U-s543mQ+a+sNt1V2m8T23X=ST5VYJ7LF0tk-n_yd8g@mail.gmail.com> <54EB2099.5040103@grumpydevil.homelinux.org> <54EB3784.4090908@gmail.com>
-In-Reply-To: <54EB3784.4090908@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Wed, 11 Feb 2015 05:33:52 -0500
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2 1/3] media/videobuf2-dma-sg: Fix handling of sg_table structure
+Date: Wed, 11 Feb 2015 11:33:45 +0100
+Message-Id: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23-02-15 15:21, Tycho Lürsen wrote:
->
-> Op 23-02-15 om 13:44 schreef Rudy Zijlstra:
->> On 23-02-15 12:21, Honza Petrouš wrote:
->>> 2015-02-23 11:31 GMT+01:00 Rudy Zijlstra 
->>> <rudy@grumpydevil.homelinux.org>:
->>>> On 23-02-15 08:44, Honza Petrouš wrote:
->>>>
->>>> Hi Rudy.
->>>>
->>>> 2015-02-22 16:28 GMT+01:00 Rudy Zijlstra 
->>>> <rudy@grumpydevil.homelinux.org>:
->>>>> Some more info
->>>>>
->>>>> On 21-02-15 22:30, Rudy Zijlstra wrote:
->>>>>> Dears (Hans?)
->>>>>>
->>>>>> My setup, where the cable operator was using only irdeto, was 
->>>>>> working
->>>>>> good. Then the cable operator merged with another, and now the 
->>>>>> networks are
->>>>>> being merged. As a result, the encryption has moved from irdeto 
->>>>>> only to
->>>>>> simulcyrpt with Irdeto and Nagra.
->>>>>>
->>>>>> Current status:
->>>>>> - when i put the CA card in a STB, it works
->>>>>> - when trying to record an encrypted channel from PC, it no 
->>>>>> longer works.
->>>>> Recording system has 3 tuners. All equal, all with same 
->>>>> permissions on the
->>>>> smartcard. On cards 0 and 2 does not work, but card 1 does work, 
->>>>> on all
->>>>> channels tested.
->>>>>
->>>> Does it mean that descrambling is not working for you? If so,
->>>> how do you manage descrambling? By CI-CAM module
->>>> or by some "softcam" like oscam?
->>>>
->>>> Or do you record ENCRYPTED stream and decrypt the recordings
->>>> later on?
->>>>
->>>>
->>>> Each tuner has its own legal CI-CAM module. And yes, except for the 
->>>> second
->>>> tuner descrambling no longer works
->>>>
->>> I'm not much familiar with MythTV, so I'm guessing from the mux 
->>> setup changes,
->>> but did you check to descramble the same channel on different tuners?
->>> To eliminate
->>> the particular change inside one service only.
->>>
->>> Of course there can be also software issue in CI-CAM module itself
->>> (fail in parsing
->>> PMT CA descriptors etc).
->>>
->>> TBH, I think it must be application layer issue, not kernel one.
->>>
->> See above:
->>
->> Recording system has 3 tuners. All equal, all with same permissions 
->> on the
->> smartcard. On cards 0 and 2 does not work, but card 1 does work, on all
->> channels tested.
->>
->> additional finfo: i tested the same channel(s) on all 3 tuners. For 
->> now i have re-configured mythtv to use only the second tuner for 
->> encrypted channels.
->> This does reduce scheduling flexibility though.
->>
->> Would to understand what makes the difference, so i can ask the right 
->> questions to MythTV developers.
->>
->>
->> As the decryption does work with 1 tuner, i see 2 options:
->> - depending on tuner id the default CA descriptor used is different, 
->> and this selection is not expoerted on API level (kernel issue)
->> - application needs to select which CA to use (and currently does not 
->> do this)
->>
-> It should be the latter one. I'm also having  Ziggo for provider, but 
-> always used FFdecsawrapper/Oscam for decryption (also legal in The 
-> Netherlands, providing you have a paid subscription)
-> ECM CA system id's 0x604 or 0x602 (depending on your region) gets you 
-> Irdeto, while ECM CA system id's 0x1850 or 0x1801 get you Nagra.
-> Correctly configured FFdecsa/Oscam can deal with it, MythTV probably 
-> cannot.
-> Check it out at: 
-> http://www.dtvmonitor.com/nl/?guid=0BE90D25-BA46-7B93-FDCD-20EFC79691E0
-> That's a snapshot from today, monitored from Groningen.
->
-Tycho,
+When sg_alloc_table_from_pages() does not fail it returns a sg_table
+structure with nents and nents_orig initialized to the same value.
 
-thanks. looking at http://www.dtvmonitor.com/nl/ziggo-limburg the CA id 
-for Iredeto are same in Limburg as in Groningen.
+dma_map_sg returns the number of areas mapped by the hardware,
+which could be different than the areas given as an input.
+The output must be saved to nent.
 
-And yes, my CAM's are for Irdeto and do not support Nagra. To my 
-knowledge no valid Nagra CAM do exist for DVB-C
+The output of dma_map, should be used to transverse the scatter list.
 
-Can FFdecsawrapper/Oscam be used in combination with MythTV?
+dma_unmap_sg needs the value passed to dma_map_sg (nents_orig).
 
-Cheers
+sg_free_tables uses also orig_nent.
 
+This patch fix the file to follow this paradigm.
 
-Rudy
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index b1838ab..40c330f 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -147,8 +147,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
+ 	 * No need to sync to the device, this will happen later when the
+ 	 * prepare() memop is called.
+ 	 */
+-	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
+-			     buf->dma_dir, &attrs) == 0)
++	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
++				      buf->dma_dir, &attrs);
++	if (!sgt->nents)
+ 		goto fail_map;
+ 
+ 	buf->handler.refcount = &buf->refcount;
+@@ -187,7 +188,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
+ 			buf->num_pages);
+-		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
++		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+ 				   buf->dma_dir, &attrs);
+ 		if (buf->vaddr)
+ 			vm_unmap_ram(buf->vaddr, buf->num_pages);
+@@ -314,9 +315,11 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	 * No need to sync to the device, this will happen later when the
+ 	 * prepare() memop is called.
+ 	 */
+-	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
+-			     buf->dma_dir, &attrs) == 0)
++	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
++				      buf->dma_dir, &attrs);
++	if (!sgt->nents)
+ 		goto userptr_fail_map;
++
+ 	return buf;
+ 
+ userptr_fail_map:
+@@ -351,7 +354,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 
+ 	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
+ 	       __func__, buf->num_pages);
+-	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir, &attrs);
++	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir,
++			   &attrs);
+ 	if (buf->vaddr)
+ 		vm_unmap_ram(buf->vaddr, buf->num_pages);
+ 	sg_free_table(buf->dma_sgt);
+@@ -502,7 +506,6 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+ 	/* stealing dmabuf mutex to serialize map/unmap operations */
+ 	struct mutex *lock = &db_attach->dmabuf->lock;
+ 	struct sg_table *sgt;
+-	int ret;
+ 
+ 	mutex_lock(lock);
+ 
+@@ -521,8 +524,9 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+ 	}
+ 
+ 	/* mapping to the client with new direction */
+-	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
+-	if (ret <= 0) {
++	sgt->nents = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++				dma_dir);
++	if (!sgt->nents) {
+ 		pr_err("failed to map scatterlist\n");
+ 		mutex_unlock(lock);
+ 		return ERR_PTR(-EIO);
+-- 
+2.1.4
+
