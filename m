@@ -1,62 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45331 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751725AbbBCOl0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 09:41:26 -0500
-Date: Tue, 3 Feb 2015 14:41:09 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Rob Clark <robdclark@gmail.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher
- constraints with dma-parms
-Message-ID: <20150203144109.GR8656@n2100.arm.linux.org.uk>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
- <20150203074856.GF14009@phenom.ffwll.local>
- <CAF6AEGu0-TgyE4BjiaSWXQCSk31VU7dogq=6xDRUhi79rGgbxg@mail.gmail.com>
- <4689826.8DDCrX2ZhK@wuerfel>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4689826.8DDCrX2ZhK@wuerfel>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:10056 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751264AbbBKKnD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Feb 2015 05:43:03 -0500
+Message-id: <54DB3232.40000@samsung.com>
+Date: Wed, 11 Feb 2015 11:42:58 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 1/3] media/videobuf2-dma-sg: Fix handling of sg_table
+ structure
+References: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 03, 2015 at 03:17:27PM +0100, Arnd Bergmann wrote:
-> On Tuesday 03 February 2015 09:04:03 Rob Clark wrote:
-> > Since I'm stuck w/ an iommu, instead of built in mmu, my plan was to
-> > drop use of dma-mapping entirely (incl the current call to dma_map_sg,
-> > which I just need until we can use drm_cflush on arm), and
-> > attach/detach iommu domains directly to implement context switches.
-> > At that point, dma_addr_t really has no sensible meaning for me.
-> 
-> I think what you see here is a quite common hardware setup and we really
-> lack the right abstraction for it at the moment. Everybody seems to
-> work around it with a mix of the dma-mapping API and the iommu API.
-> These are doing different things, and even though the dma-mapping API
-> can be implemented on top of the iommu API, they are not really compatible.
+Hello,
 
-I'd go as far as saying that the "DMA API on top of IOMMU" is more
-intended to be for a system IOMMU for the bus in question, rather
-than a device-level IOMMU.
+On 2015-02-11 11:33, Ricardo Ribalda Delgado wrote:
+> When sg_alloc_table_from_pages() does not fail it returns a sg_table
+> structure with nents and nents_orig initialized to the same value.
+>
+> dma_map_sg returns the number of areas mapped by the hardware,
+> which could be different than the areas given as an input.
+> The output must be saved to nent.
+>
+> The output of dma_map, should be used to transverse the scatter list.
+>
+> dma_unmap_sg needs the value passed to dma_map_sg (nents_orig).
+>
+> sg_free_tables uses also orig_nent.
+>
+> This patch fix the file to follow this paradigm.
+>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-If an IOMMU is part of a device, then the device should handle it
-(maybe via an abstraction) and not via the DMA API.  The DMA API should
-be handing the bus addresses to the device driver which the device's
-IOMMU would need to generate.  (In other words, in this circumstance,
-the DMA API shouldn't give you the device internal address.)
+Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
+I would also consider sending it to stable.
+
+> ---
+>   drivers/media/v4l2-core/videobuf2-dma-sg.c | 22 +++++++++++++---------
+>   1 file changed, 13 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> index b1838ab..40c330f 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -147,8 +147,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
+>   	 * No need to sync to the device, this will happen later when the
+>   	 * prepare() memop is called.
+>   	 */
+> -	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
+> -			     buf->dma_dir, &attrs) == 0)
+> +	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+> +				      buf->dma_dir, &attrs);
+> +	if (!sgt->nents)
+>   		goto fail_map;
+>   
+>   	buf->handler.refcount = &buf->refcount;
+> @@ -187,7 +188,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+>   		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+>   		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
+>   			buf->num_pages);
+> -		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
+> +		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+>   				   buf->dma_dir, &attrs);
+>   		if (buf->vaddr)
+>   			vm_unmap_ram(buf->vaddr, buf->num_pages);
+> @@ -314,9 +315,11 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+>   	 * No need to sync to the device, this will happen later when the
+>   	 * prepare() memop is called.
+>   	 */
+> -	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
+> -			     buf->dma_dir, &attrs) == 0)
+> +	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+> +				      buf->dma_dir, &attrs);
+> +	if (!sgt->nents)
+>   		goto userptr_fail_map;
+> +
+>   	return buf;
+>   
+>   userptr_fail_map:
+> @@ -351,7 +354,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+>   
+>   	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
+>   	       __func__, buf->num_pages);
+> -	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir, &attrs);
+> +	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir,
+> +			   &attrs);
+>   	if (buf->vaddr)
+>   		vm_unmap_ram(buf->vaddr, buf->num_pages);
+>   	sg_free_table(buf->dma_sgt);
+> @@ -502,7 +506,6 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+>   	/* stealing dmabuf mutex to serialize map/unmap operations */
+>   	struct mutex *lock = &db_attach->dmabuf->lock;
+>   	struct sg_table *sgt;
+> -	int ret;
+>   
+>   	mutex_lock(lock);
+>   
+> @@ -521,8 +524,9 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+>   	}
+>   
+>   	/* mapping to the client with new direction */
+> -	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
+> -	if (ret <= 0) {
+> +	sgt->nents = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+> +				dma_dir);
+> +	if (!sgt->nents) {
+>   		pr_err("failed to map scatterlist\n");
+>   		mutex_unlock(lock);
+>   		return ERR_PTR(-EIO);
+
+Best regards
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
+
