@@ -1,71 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:16579 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752260AbbBKKnb (ORCPT
+Received: from mail-we0-f178.google.com ([74.125.82.178]:38744 "EHLO
+	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751584AbbBKLKz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2015 05:43:31 -0500
-Message-id: <54DB324F.5060704@samsung.com>
-Date: Wed, 11 Feb 2015 11:43:27 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2 2/3] media/videobuf2-dma-contig: Save output from
- dma_map_sg
-References: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com>
- <1423650827-16232-2-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1423650827-16232-2-git-send-email-ricardo.ribalda@gmail.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+	Wed, 11 Feb 2015 06:10:55 -0500
+From: Luis de Bethencourt <luis@debethencourt.com>
+Date: Wed, 11 Feb 2015 11:08:51 +0000
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, crop@iki.fi, linux-kernel@vger.kernel.org
+Subject: [PATCH v2] rtl2832: remove compiler warning
+Message-ID: <20150211110851.GA30505@biggie>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Cleaning up the following compiler warning:
+rtl2832.c:703:12: warning: 'tmp' may be used uninitialized in this function
 
-On 2015-02-11 11:33, Ricardo Ribalda Delgado wrote:
-> dma_map_sg returns the number of areas mapped by the hardware,
-> which could be different than the areas given as an input.
-> The output must be saved to nent.
->
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Even though it could never happen since if rtl2832_rd_demod_reg () doesn't set
+tmp, this line would never run because we go to err. It is still nice to avoid
+compiler warnings.
 
-Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
+---
+ drivers/media/dvb-frontends/rtl2832.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> ---
->   drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 +++---
->   1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index b481d20..bfb5917 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -299,7 +299,6 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
->   	/* stealing dmabuf mutex to serialize map/unmap operations */
->   	struct mutex *lock = &db_attach->dmabuf->lock;
->   	struct sg_table *sgt;
-> -	int ret;
->   
->   	mutex_lock(lock);
->   
-> @@ -318,8 +317,9 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
->   	}
->   
->   	/* mapping to the client with new direction */
-> -	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
-> -	if (ret <= 0) {
-> +	sgt->nents = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-> +				dma_dir);
-> +	if (!sgt->nents) {
->   		pr_err("failed to map scatterlist\n");
->   		mutex_unlock(lock);
->   		return ERR_PTR(-EIO);
-
-Best regards
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 5d2d8f4..20fa245 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -685,7 +685,7 @@ static int rtl2832_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	struct rtl2832_dev *dev = fe->demodulator_priv;
+ 	struct i2c_client *client = dev->client;
+ 	int ret;
+-	u32 tmp;
++	u32 uninitialized_var(tmp);
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+2.1.3
 
