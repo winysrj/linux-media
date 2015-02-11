@@ -1,60 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47646 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754267AbbBBRjf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 12:39:35 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/3] rtl2832_sdr: add kernel-doc comments for platform_data
-Date: Mon,  2 Feb 2015 19:39:19 +0200
-Message-Id: <1422898759-25513-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1422898759-25513-1-git-send-email-crope@iki.fi>
-References: <1422898759-25513-1-git-send-email-crope@iki.fi>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:16579 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752260AbbBKKnb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Feb 2015 05:43:31 -0500
+Message-id: <54DB324F.5060704@samsung.com>
+Date: Wed, 11 Feb 2015 11:43:27 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 2/3] media/videobuf2-dma-contig: Save output from
+ dma_map_sg
+References: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1423650827-16232-2-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1423650827-16232-2-git-send-email-ricardo.ribalda@gmail.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add kernel-doc comments for platform_data configuration structure.
+Hello,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832_sdr.h | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+On 2015-02-11 11:33, Ricardo Ribalda Delgado wrote:
+> dma_map_sg returns the number of areas mapped by the hardware,
+> which could be different than the areas given as an input.
+> The output must be saved to nent.
+>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.h b/drivers/media/dvb-frontends/rtl2832_sdr.h
-index dd22e42..d259476 100644
---- a/drivers/media/dvb-frontends/rtl2832_sdr.h
-+++ b/drivers/media/dvb-frontends/rtl2832_sdr.h
-@@ -29,16 +29,22 @@
- #include <media/v4l2-subdev.h>
- #include "dvb_frontend.h"
- 
-+/**
-+ * struct rtl2832_sdr_platform_data - Platform data for the rtl2832_sdr driver
-+ * @clk: Clock frequency (4000000, 16000000, 25000000, 28800000).
-+ * @tuner: Used tuner model.
-+ * @i2c_client: rtl2832 demod driver I2C client.
-+ * @bulk_read: rtl2832 driver private I/O interface.
-+ * @bulk_write: rtl2832 driver private I/O interface.
-+ * @update_bits: rtl2832 driver private I/O interface.
-+ * @dvb_frontend: rtl2832 DVB frontend.
-+ * @v4l2_subdev: Tuner v4l2 controls.
-+ * @dvb_usb_device: DVB USB interface for USB streaming.
-+ */
-+
- struct rtl2832_sdr_platform_data {
--	/*
--	 * Clock frequency.
--	 * Hz
--	 * 4000000, 16000000, 25000000, 28800000
--	 */
- 	u32 clk;
--
- 	/*
--	 * Tuner.
- 	 * XXX: This list must be kept sync with dvb_usb_rtl28xxu USB IF driver.
- 	 */
- #define RTL2832_SDR_TUNER_TUA9001   0x24
+Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+> ---
+>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 +++---
+>   1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index b481d20..bfb5917 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -299,7 +299,6 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+>   	/* stealing dmabuf mutex to serialize map/unmap operations */
+>   	struct mutex *lock = &db_attach->dmabuf->lock;
+>   	struct sg_table *sgt;
+> -	int ret;
+>   
+>   	mutex_lock(lock);
+>   
+> @@ -318,8 +317,9 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+>   	}
+>   
+>   	/* mapping to the client with new direction */
+> -	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
+> -	if (ret <= 0) {
+> +	sgt->nents = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+> +				dma_dir);
+> +	if (!sgt->nents) {
+>   		pr_err("failed to map scatterlist\n");
+>   		mutex_unlock(lock);
+>   		return ERR_PTR(-EIO);
+
+Best regards
 -- 
-http://palosaari.fi/
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
