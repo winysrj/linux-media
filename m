@@ -1,71 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:45238 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751595AbbBSQFn (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:45863 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751429AbbBKIhy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 11:05:43 -0500
-Received: by mail-ob0-f173.google.com with SMTP id uy5so16062057obc.4
-        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2015 08:05:42 -0800 (PST)
+	Wed, 11 Feb 2015 03:37:54 -0500
 MIME-Version: 1.0
-In-Reply-To: <20150219124037.GA3500@gofer.mess.org>
-References: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>
-	<1424116126-14052-2-git-send-email-pdowner@prospero-tech.com>
-	<20150219124037.GA3500@gofer.mess.org>
-Date: Thu, 19 Feb 2015 16:05:42 +0000
-Message-ID: <CAE6wzSJ5pshY0atiYKp2m7EG7G5_V5meKJNbYS7=5DK+7EfU9A@mail.gmail.com>
-Subject: Re: [RFC PATCH 1/1] [media] pci: Add support for DVB PCIe cards from
- Prospero Technologies Ltd.
-From: Philip Downer <pdowner@prospero-tech.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <54DB0D84.7020600@samsung.com>
+References: <1423498466-16718-1-git-send-email-ricardo.ribalda@gmail.com> <54DB0D84.7020600@samsung.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Wed, 11 Feb 2015 09:37:32 +0100
+Message-ID: <CAPybu_37FJhAKYYKuyMqTexYgFspwhnBs8bMxHGpG7XiVejaJw@mail.gmail.com>
+Subject: Re: [PATCH 1/3] media/videobuf2-dma-sg: Fix handling of sg_table structure
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 19, 2015 at 12:40 PM, Sean Young <sean@mess.org> wrote:
-> On Mon, Feb 16, 2015 at 07:48:46PM +0000, Philip Downer wrote:
-> -snip-
->> +     dev = rc_allocate_device();
->> +
->> +     if (!ir || !dev)
->> +             goto err_out_free;
->> +
->> +     ir->dev = dev;
->> +
->> +     snprintf(ir->name, sizeof(ir->name), "prospero IR");
->> +     snprintf(ir->phys, sizeof(ir->phys), "pci-%s/ir0", pci_name(pci));
->> +
->> +     dev->input_name = ir->name;
->> +     dev->input_phys = ir->phys;
->> +     dev->input_id.bustype = BUS_PCI;
->> +     dev->input_id.version = 1;
->> +     dev->input_id.vendor = pci->vendor;
->> +     dev->input_id.product = pci->device;
->> +
->> +     dev->dev.parent = &pci->dev;
->> +     dev->map_name = RC_MAP_LIRC;
+Hello Marek
+On Wed, Feb 11, 2015 at 9:06 AM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+>> Unfortunately nent differs in sign to the output of dma_map_sg, so an
+>> intermediate value must be used.
 >
-> RC_MAP_LIRC isn't really a useful default; no remote will work with that.
-> Other drivers default to RC_MAP_RC6_MCE if no remote was provided with
-> the product. I don't know if this is good choice, but at least it is
-> consistent.
 >
->> +
->> +     dev->driver_name = "prospero";
->> +     dev->priv = p;
->> +     dev->open = prospero_ir_open;
->> +     dev->close = prospero_ir_close;
->> +     dev->driver_type = RC_DRIVER_IR_RAW;
->> +     dev->timeout = 10 * 1000 * 1000;
->
-> There is a MS_TO_NS() macro for this.
+> I don't get this part. dma_map_sg() returns the number of scatter list
+> entries mapped
+> to the hardware or zero if anything fails. What is the problem of assigning
+> it directly
+> to nents?
 
-Ok, thanks Sean, those changes have been made and will be included
-when I submit the next RFC patch.
+Are you sure about that?
 
-Thanks again,
+The prototype of the function is (from dma-mapping-common.h)
+static inline int dma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
+  int nents, enum dma_data_direction dir,
+  struct dma_attrs *attrs)
+
+which calls map_sg at the struct dma_map_ops (dma-mapping.h)
+
+int (*map_sg)(struct device *dev, struct scatterlist *sg,
+     int nents, enum dma_data_direction dir,
+     struct dma_attrs *attrs);
+
+Both return int instead of unsigned int....
+
+>
+>
+> dma_map_sg_attrs() return 0 in case of error, so the check can be
+> simplified,
+> there is no need for temporary variable.
+
+Check last comment
+
+>>                 vm_unmap_ram(buf->vaddr, buf->num_pages);
+>>         sg_free_table(buf->dma_sgt);
+>> @@ -463,7 +470,7 @@ static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf
+>> *dbuf, struct device *dev
+>>         rd = buf->dma_sgt->sgl;
+>>         wr = sgt->sgl;
+>> -       for (i = 0; i < sgt->orig_nents; ++i) {
+>> +       for (i = 0; i < sgt->nents; ++i) {
+>
+>
+> Here the code iterates over every memory page in the scatter list (to create
+> a copy of it), not the device mapped chunks, so it must use orig_nents
+> like it was already there.
+
+At that point both have the same value, but you are right, it is more
+clear to use orig_nents
+
+>
+
+>
+> Best regards
+
+
+I will resend a version using orig_nents in dmabug_ops attach, but
+please take a look the map_sg, I think it can return <0
+
+Best regards!
 
 -- 
-Philip Downer
-+44 (0)7879 470 969
-pdowner@prospero-tech.com
+Ricardo Ribalda
