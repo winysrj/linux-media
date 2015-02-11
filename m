@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50787 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965948AbbBCSlC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 13:41:02 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/3] [media] rtl28xxu: properly initialize pdata
-Date: Tue,  3 Feb 2015 16:40:51 -0200
-Message-Id: <e181b1f19045a5843aefafa561207fbea8bd2973.1422988845.git.mchehab@osg.samsung.com>
-In-Reply-To: <d858b0e787a8eef66457bcbbd9a758a327102b94.1422988845.git.mchehab@osg.samsung.com>
-References: <d858b0e787a8eef66457bcbbd9a758a327102b94.1422988845.git.mchehab@osg.samsung.com>
-In-Reply-To: <d858b0e787a8eef66457bcbbd9a758a327102b94.1422988845.git.mchehab@osg.samsung.com>
-References: <d858b0e787a8eef66457bcbbd9a758a327102b94.1422988845.git.mchehab@osg.samsung.com>
+Received: from mail-la0-f45.google.com ([209.85.215.45]:36236 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751616AbbBKKdx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Feb 2015 05:33:53 -0500
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2 2/3] media/videobuf2-dma-contig: Save output from dma_map_sg
+Date: Wed, 11 Feb 2015 11:33:46 +0100
+Message-Id: <1423650827-16232-2-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As complained by smatch:
-	drivers/media/usb/dvb-usb-v2/rtl28xxu.c:1159 rtl2832u_tuner_attach() info: 'pdata' is not actually initialized (unreached code).
+dma_map_sg returns the number of areas mapped by the hardware,
+which could be different than the areas given as an input.
+The output must be saved to nent.
 
-Cc: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index d88f7994bc7c..77dcfdf547ac 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1055,10 +1055,13 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 	struct i2c_board_info info;
- 	struct i2c_client *client;
- 	struct v4l2_subdev *subdev = NULL;
-+	struct platform_device *pdev;
-+	struct rtl2832_sdr_platform_data pdata;
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index b481d20..bfb5917 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -299,7 +299,6 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+ 	/* stealing dmabuf mutex to serialize map/unmap operations */
+ 	struct mutex *lock = &db_attach->dmabuf->lock;
+ 	struct sg_table *sgt;
+-	int ret;
  
- 	dev_dbg(&d->intf->dev, "\n");
+ 	mutex_lock(lock);
  
- 	memset(&info, 0, sizeof(struct i2c_board_info));
-+	memset(&pdata, 0, sizeof(pdata));
+@@ -318,8 +317,9 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+ 	}
  
- 	switch (dev->tuner) {
- 	case TUNER_RTL2832_FC0012:
-@@ -1155,9 +1158,6 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 
- 	/* register SDR */
- 	switch (dev->tuner) {
--		struct platform_device *pdev;
--		struct rtl2832_sdr_platform_data pdata = {};
--
- 	case TUNER_RTL2832_FC0012:
- 	case TUNER_RTL2832_FC0013:
- 	case TUNER_RTL2832_E4000:
+ 	/* mapping to the client with new direction */
+-	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
+-	if (ret <= 0) {
++	sgt->nents = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++				dma_dir);
++	if (!sgt->nents) {
+ 		pr_err("failed to map scatterlist\n");
+ 		mutex_unlock(lock);
+ 		return ERR_PTR(-EIO);
 -- 
-2.1.0
+2.1.4
 
