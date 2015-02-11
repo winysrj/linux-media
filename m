@@ -1,156 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37459 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753282AbbBJTg4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2015 14:36:56 -0500
-Date: Tue, 10 Feb 2015 13:36:21 -0600
-From: Benoit Parrot <bparrot@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] media: i2c: add support for omnivision's ov2659 sensor
-Message-ID: <20150210193620.GA4937@ti.com>
-References: <1421365163-29394-1-git-send-email-prabhakar.csengg@gmail.com>
- <3110055.vYzQi51GtK@avalon>
- <CA+V-a8vhRLC2EsKJRjuf1ZyABnSyeLBg+OTOKetzA62Eybqv3w@mail.gmail.com>
- <3367184.gDmyGXufvA@avalon>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:38064 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752240AbbBKNyD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Feb 2015 08:54:03 -0500
+Received: by lamq1 with SMTP id q1so3419557lam.5
+        for <linux-media@vger.kernel.org>; Wed, 11 Feb 2015 05:54:01 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <3367184.gDmyGXufvA@avalon>
+In-Reply-To: <e65f6b905eae37f11e697ad20b97c37c@hardeman.nu>
+References: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
+ <54D9E14A.5090200@iki.fi> <e65f6b905eae37f11e697ad20b97c37c@hardeman.nu>
+From: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>
+Date: Wed, 11 Feb 2015 14:53:30 +0100
+Message-ID: <CAEmZozPN2xDQMyao8GAYB1KqKxvgznn6CNc+LgPGhE=TJfDbFQ@mail.gmail.com>
+Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working
+ since kernel 3.17
+To: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote on Thu [2015-Feb-05 16:52:22 +0200]:
-> Hi Prabhakar,
-> 
-> (CC'ing Benoit Parrot)
-> 
-> On Thursday 05 February 2015 11:55:28 Lad, Prabhakar wrote:
-> > On Thu, Feb 5, 2015 at 11:53 AM, Laurent Pinchart wrote:
-> > > On Wednesday 04 February 2015 20:55:02 Lad, Prabhakar wrote:
-> > >> On Wed, Feb 4, 2015 at 5:03 PM, Laurent Pinchart wrote:
-> > >> > On Thursday 15 January 2015 23:39:23 Lad, Prabhakar wrote:
-> > >> >> From: Benoit Parrot <bparrot@ti.com>
-> > >> >> 
-> > >> >> this patch adds support for omnivision's ov2659
-> > >> >> sensor.
-> > >> >> 
-> > >> >> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> > >> >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> > >> >> ---
-> > >> >> 
-> > >> >>  .../devicetree/bindings/media/i2c/ov2659.txt       |   33 +
-> > >> >>  .../devicetree/bindings/vendor-prefixes.txt        |    1 +
-> > >> >>  MAINTAINERS                                        |   10 +
-> > >> >>  drivers/media/i2c/Kconfig                          |   11 +
-> > >> >>  drivers/media/i2c/Makefile                         |    1 +
-> > >> >>  drivers/media/i2c/ov2659.c                         | 1623 +++++++++++
-> > >> >>  include/media/ov2659.h                             |   33 +
-> > >> >>  7 files changed, 1712 insertions(+)
-> > >> >>  create mode 100644
-> > >> >>  Documentation/devicetree/bindings/media/i2c/ov2659.txt
-> > >> >>  create mode 100644 drivers/media/i2c/ov2659.c
-> > >> >>  create mode 100644 include/media/ov2659.h
-> > > 
-> > > [snip]
-> > > 
-> > >> >> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-> > >> >> new file mode 100644
-> > >> >> index 0000000..ce8ec8d
-> > >> >> --- /dev/null
-> > >> >> +++ b/drivers/media/i2c/ov2659.c
-> > >> >> @@ -0,0 +1,1623 @@
-> > > 
-> > > [snip]
-> > > 
-> > >> >> +static const struct ov2659_framesize ov2659_framesizes[] = {
-> > >> >> +     { /* QVGA */
-> > >> >> +             .width          = 320,
-> > >> >> +             .height         = 240,
-> > >> >> +             .regs           = ov2659_qvga,
-> > >> >> +             .max_exp_lines  = 248,
-> > >> >> +     }, { /* VGA */
-> > >> >> +             .width          = 640,
-> > >> >> +             .height         = 480,
-> > >> >> +             .regs           = ov2659_vga,
-> > >> >> +             .max_exp_lines  = 498,
-> > >> >> +     }, { /* SVGA */
-> > >> >> +             .width          = 800,
-> > >> >> +             .height         = 600,
-> > >> >> +             .regs           = ov2659_svga,
-> > >> >> +             .max_exp_lines  = 498,
-> > >> >> +     }, { /* XGA */
-> > >> >> +             .width          = 1024,
-> > >> >> +             .height         = 768,
-> > >> >> +             .regs           = ov2659_xga,
-> > >> >> +             .max_exp_lines  = 498,
-> > >> >> +     }, { /* 720P */
-> > >> >> +             .width          = 1280,
-> > >> >> +             .height         = 720,
-> > >> >> +             .regs           = ov2659_720p,
-> > >> >> +             .max_exp_lines  = 498,
-> > >> >> +     }, { /* SXGA */
-> > >> >> +             .width          = 1280,
-> > >> >> +             .height         = 1024,
-> > >> >> +             .regs           = ov2659_sxga,
-> > >> >> +             .max_exp_lines  = 1048,
-> > >> >> +     }, { /* UXGA */
-> > >> >> +             .width          = 1600,
-> > >> >> +             .height         = 1200,
-> > >> >> +             .regs           = ov2659_uxga,
-> > >> >> +             .max_exp_lines  = 498,
-> > >> >> +     },
-> > >> >> +};
-> > >> > 
-> > >> > That's what bothers me the most about drivers for Omnivision sensors.
-> > >> > For some reason (I'd bet on lack of proper documentation) they list a
-> > >> > couple of supported resolutions with corresponding register values,
-> > >> > instead of computing the register values from the format configured by
-> > >> > userspace. That's not the way we want to go. Prabhakar, do you have
-> > >> > enough documentation to fix that ?
-> > >> 
-> > >> I am afraid I have limited documentation here.
-> > > 
-> > > How limited ? :-) I assume someone has documentation, given that the patch
-> > > contains a larger number of #define's with register names.
-> > 
-> > Yea I don’t have NDA signed with TI/Omnivision :( because I which I
-> > lack the documentation.
-> 
-> And a quick online search doesn't show any leaked datasheet. Wikileaks isn't 
-> doing a good job ;-)
-> 
-> Benoit, do you think this is something that can be fixed ?
+David Härdeman: I'm using defaults, I have no custom modifications.
 
-Laurent,
 
-I did spend several days (many moons ago) to try and derive a generic
-way to set the output resolution dynamically. However even though
-the data sheet is somewhat useful, the various working example config
-from the vendor make use of several un-documented registers which
-make this pretty much unfeasible.
-
-I am afraid we are stuck with this method for the time being.
-
-Regards,
-Benoit Parrot
-
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+2015-02-11 14:24 GMT+01:00 David Härdeman <david@hardeman.nu>:
+> David C: are you using the in-kernel keymap or loading a custom one?
+>
+>
+> On 2015-02-10 11:45, Antti Palosaari wrote:
+>>
+>> David Härdeman,
+>> Could you look that as it is your patch which has broken it
+>>
+>> commit af3a4a9bbeb00df3e42e77240b4cdac5479812f9
+>> Author: David Härdeman <david@hardeman.nu>
+>> Date:   Thu Apr 3 20:31:51 2014 -0300
+>>
+>>     [media] dib0700: NEC scancode cleanup
+>>
+>>
+>> Antti
+>>
+>> On 02/10/2015 12:38 PM, David Cimbůrek wrote:
+>>>
+>>> Please include this patch to kernel! It takes too much time for such a
+>>> simple fix!
+>>>
+>>>
+>>> 2015-01-07 13:51 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
+>>>>
+>>>> No one is interested? I'd like to get this patch to kernel to fix the
+>>>> issue. Can someone here do it please?
+>>>>
+>>>>
+>>>> 2014-12-20 14:36 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
+>>>>>
+>>>>> Hi,
+>>>>>
+>>>>> with kernel 3.17 remote control for Pinnacle 73e (ID 2304:0237
+>>>>> Pinnacle Systems, Inc. PCTV 73e [DiBcom DiB7000PC]) does not work
+>>>>> anymore.
+>>>>>
+>>>>> I checked the changes and found out the problem in commit
+>>>>> af3a4a9bbeb00df3e42e77240b4cdac5479812f9.
+>>>>>
+>>>>> In dib0700_core.c in struct dib0700_rc_response the following union:
+>>>>>
+>>>>> union {
+>>>>>      u16 system16;
+>>>>>      struct {
+>>>>>          u8 not_system;
+>>>>>          u8 system;
+>>>>>      };
+>>>>> };
+>>>>>
+>>>>> has been replaced by simple variables:
+>>>>>
+>>>>> u8 system;
+>>>>> u8 not_system;
+>>>>>
+>>>>> But these variables are in reverse order! When I switch the order
+>>>>> back, the remote works fine again! Here is the patch:
+>>>>>
+>>>>>
+>>>>> --- a/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
+>>>>> 14:27:15.000000000 +0100
+>>>>> +++ b/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
+>>>>> 14:27:36.000000000 +0100
+>>>>> @@ -658,8 +658,8 @@
+>>>>>   struct dib0700_rc_response {
+>>>>>       u8 report_id;
+>>>>>       u8 data_state;
+>>>>> -    u8 system;
+>>>>>       u8 not_system;
+>>>>> +    u8 system;
+>>>>>       u8 data;
+>>>>>       u8 not_data;
+>>>>>   };
+>>>>>
+>>>>>
+>>>>> Regards,
+>>>>> David
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>
