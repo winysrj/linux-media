@@ -1,44 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56052 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755287AbbBBMs0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 07:48:26 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1A1352A0080
-	for <linux-media@vger.kernel.org>; Mon,  2 Feb 2015 13:47:47 +0100 (CET)
-Message-ID: <54CF71F2.1060704@xs4all.nl>
-Date: Mon, 02 Feb 2015 13:47:46 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from vader.hardeman.nu ([95.142.160.32]:43507 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752379AbbBKOkc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Feb 2015 09:40:32 -0500
+To: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>
+Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working  since kernel 3.17
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.20] au0828: fixes and vb2 conversion
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Wed, 11 Feb 2015 15:40:30 +0100
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+In-Reply-To: <CAEmZozPN2xDQMyao8GAYB1KqKxvgznn6CNc+LgPGhE=TJfDbFQ@mail.gmail.com>
+References: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
+ <54D9E14A.5090200@iki.fi> <e65f6b905eae37f11e697ad20b97c37c@hardeman.nu>
+ <CAEmZozPN2xDQMyao8GAYB1KqKxvgznn6CNc+LgPGhE=TJfDbFQ@mail.gmail.com>
+Message-ID: <32c10d8cd2303ed9476db1b68924170a@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit a5f43c18fceb2b96ec9fddb4348f5282a71cf2b0:
+Can you generate some scancodes before and after commit 
+af3a4a9bbeb00df3e42e77240b4cdac5479812f9?
 
-  [media] Documentation/video4linux: remove obsolete text files (2015-01-29 19:16:30 -0200)
 
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git au0828
-
-for you to fetch changes up to bdf9b69416a114cd8a6eaa96384535b2e0275653:
-
-  media: au0828 - convert to use videobuf2 (2015-02-02 13:08:02 +0100)
-
-----------------------------------------------------------------
-Shuah Khan (3):
-      media: fix au0828_analog_register() to not free au0828_dev
-      media: fix au0828 compile error from au0828_boards initialization
-      media: au0828 - convert to use videobuf2
-
- drivers/media/usb/au0828/Kconfig        |   2 +-
- drivers/media/usb/au0828/au0828-cards.c |   2 +-
- drivers/media/usb/au0828/au0828-vbi.c   | 122 ++++-------
- drivers/media/usb/au0828/au0828-video.c | 964 ++++++++++++++++++++++++++++++++----------------------------------------------------
- drivers/media/usb/au0828/au0828.h       |  61 +++---
- 5 files changed, 443 insertions(+), 708 deletions(-)
+On 2015-02-11 14:53, David Cimbůrek wrote:
+> David Härdeman: I'm using defaults, I have no custom modifications.
+> 
+> 
+> 2015-02-11 14:24 GMT+01:00 David Härdeman <david@hardeman.nu>:
+>> David C: are you using the in-kernel keymap or loading a custom one?
+>> 
+>> 
+>> On 2015-02-10 11:45, Antti Palosaari wrote:
+>>> 
+>>> David Härdeman,
+>>> Could you look that as it is your patch which has broken it
+>>> 
+>>> commit af3a4a9bbeb00df3e42e77240b4cdac5479812f9
+>>> Author: David Härdeman <david@hardeman.nu>
+>>> Date:   Thu Apr 3 20:31:51 2014 -0300
+>>> 
+>>>     [media] dib0700: NEC scancode cleanup
+>>> 
+>>> 
+>>> Antti
+>>> 
+>>> On 02/10/2015 12:38 PM, David Cimbůrek wrote:
+>>>> 
+>>>> Please include this patch to kernel! It takes too much time for such 
+>>>> a
+>>>> simple fix!
+>>>> 
+>>>> 
+>>>> 2015-01-07 13:51 GMT+01:00 David Cimbůrek 
+>>>> <david.cimburek@gmail.com>:
+>>>>> 
+>>>>> No one is interested? I'd like to get this patch to kernel to fix 
+>>>>> the
+>>>>> issue. Can someone here do it please?
+>>>>> 
+>>>>> 
+>>>>> 2014-12-20 14:36 GMT+01:00 David Cimbůrek 
+>>>>> <david.cimburek@gmail.com>:
+>>>>>> 
+>>>>>> Hi,
+>>>>>> 
+>>>>>> with kernel 3.17 remote control for Pinnacle 73e (ID 2304:0237
+>>>>>> Pinnacle Systems, Inc. PCTV 73e [DiBcom DiB7000PC]) does not work
+>>>>>> anymore.
+>>>>>> 
+>>>>>> I checked the changes and found out the problem in commit
+>>>>>> af3a4a9bbeb00df3e42e77240b4cdac5479812f9.
+>>>>>> 
+>>>>>> In dib0700_core.c in struct dib0700_rc_response the following 
+>>>>>> union:
+>>>>>> 
+>>>>>> union {
+>>>>>>      u16 system16;
+>>>>>>      struct {
+>>>>>>          u8 not_system;
+>>>>>>          u8 system;
+>>>>>>      };
+>>>>>> };
+>>>>>> 
+>>>>>> has been replaced by simple variables:
+>>>>>> 
+>>>>>> u8 system;
+>>>>>> u8 not_system;
+>>>>>> 
+>>>>>> But these variables are in reverse order! When I switch the order
+>>>>>> back, the remote works fine again! Here is the patch:
+>>>>>> 
+>>>>>> 
+>>>>>> --- a/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
+>>>>>> 14:27:15.000000000 +0100
+>>>>>> +++ b/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
+>>>>>> 14:27:36.000000000 +0100
+>>>>>> @@ -658,8 +658,8 @@
+>>>>>>   struct dib0700_rc_response {
+>>>>>>       u8 report_id;
+>>>>>>       u8 data_state;
+>>>>>> -    u8 system;
+>>>>>>       u8 not_system;
+>>>>>> +    u8 system;
+>>>>>>       u8 data;
+>>>>>>       u8 not_data;
+>>>>>>   };
+>>>>>> 
+>>>>>> 
+>>>>>> Regards,
+>>>>>> David
+>>>> 
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe 
+>>>> linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>> 
+>> 
