@@ -1,69 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33733 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751950AbbBRPaM (ORCPT
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:34027 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751418AbbBKLNP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 10:30:12 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/7] [media] cx231xx: fix compilation if the media controller is not defined
-Date: Wed, 18 Feb 2015 13:29:56 -0200
-Message-Id: <9250f0139f21e0ccfeb1441a252fe7ae904b7066.1424273378.git.mchehab@osg.samsung.com>
-In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+	Wed, 11 Feb 2015 06:13:15 -0500
+Date: Wed, 11 Feb 2015 11:12:58 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
+	robin.murphy@arm.com, robdclark@gmail.com,
+	linaro-kernel@lists.linaro.org, stanislawski.tomasz@googlemail.com,
+	daniel@ffwll.ch
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher
+ constraints with dma-parms
+Message-ID: <20150211111258.GP8656@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+ <54DB12B5.4080000@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <54DB12B5.4080000@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/cx231xx/cx231xx-cards.c: In function ‘cx231xx_usb_probe’:
-drivers/media/usb/cx231xx/cx231xx-cards.c:1589:15: error: ‘struct v4l2_device’ has no member named ‘mdev’
-  dev->v4l2_dev.mdev = dev->media_dev;
-               ^
-drivers/media/usb/cx231xx/cx231xx-cards.c:1589:26: error: ‘struct cx231xx’ has no member named ‘media_dev’
-  dev->v4l2_dev.mdev = dev->media_dev;
-                          ^
-scripts/Makefile.build:257: recipe for target 'drivers/media/usb/cx231xx/cx231xx-cards.o' failed
+On Wed, Feb 11, 2015 at 09:28:37AM +0100, Marek Szyprowski wrote:
+> Hello,
+> 
+> On 2015-01-27 09:25, Sumit Semwal wrote:
+> >Add some helpers to share the constraints of devices while attaching
+> >to the dmabuf buffer.
+> >
+> >At each attach, the constraints are calculated based on the following:
+> >- max_segment_size, max_segment_count, segment_boundary_mask from
+> >    device_dma_parameters.
+> >
+> >In case the attaching device's constraints don't match up, attach() fails.
+> >
+> >At detach, the constraints are recalculated based on the remaining
+> >attached devices.
+> >
+> >Two helpers are added:
+> >- dma_buf_get_constraints - which gives the current constraints as calculated
+> >       during each attach on the buffer till the time,
+> >- dma_buf_recalc_constraints - which recalculates the constraints for all
+> >       currently attached devices for the 'paranoid' ones amongst us.
+> >
+> >The idea of this patch is largely taken from Rob Clark's RFC at
+> >https://lkml.org/lkml/2012/7/19/285, and the comments received on it.
+> >
+> >Cc: Rob Clark <robdclark@gmail.com>
+> >Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+> 
+> The code looks okay, although it will probably will work well only with
+> typical cases like 'contiguous memory needed' or 'no constraints at all'
+> (iommu).
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Which is a damn good reason to NAK it - by that admission, it's a half-baked
+idea.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index dfc7010cff7f..372b70eb042c 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1586,7 +1586,9 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 	cx231xx_media_device_register(dev, udev);
- 
- 	/* Create v4l2 device */
-+#ifdef CONFIG_MEDIA_CONTROLLER
- 	dev->v4l2_dev.mdev = dev->media_dev;
-+#endif
- 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
- 	if (retval) {
- 		dev_err(d, "v4l2_device_register failed\n");
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index e8c054c4ac8c..44229a2c2d32 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -540,7 +540,9 @@ static int register_dvb(struct cx231xx_dvb *dvb,
- 
- 	/* register network adapter */
- 	dvb_net_init(&dvb->adapter, &dvb->net, &dvb->demux.dmx);
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
- 	dvb_create_media_graph(dev->media_dev);
-+#endif
- 	return 0;
- 
- fail_fe_conn:
+If all we want to know is whether the importer can accept only contiguous
+memory or not, make a flag to do that, and allow the exporter to test this
+flag.  Don't over-engineer this to make it _seem_ like it can do something
+that it actually totally fails with.
+
+As I've already pointed out, there's a major problem if you have already
+had a less restrictive attachment which has an active mapping, and a new
+more restrictive attachment comes along later.
+
+It seems from Rob's descriptions that we also need another flag in the
+importer to indicate whether it wants to have a valid struct page in the
+scatter list, or whether it (correctly) uses the DMA accessors on the
+scatter list - so that exporters can reject importers which are buggy.
+
 -- 
-2.1.0
-
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
