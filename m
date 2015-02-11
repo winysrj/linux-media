@@ -1,159 +1,539 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-In-reply-to: <1805679.hlRzVeq61B@avalon>
-References: <1424185706-16711-1-git-send-email-ricardo.ribalda@gmail.com>
- <54EAED82.5040804@xs4all.nl> <1805679.hlRzVeq61B@avalon>
-MIME-version: 1.0
-Content-type: multipart/alternative; boundary=----WPUV1O3OJHS8AUHO3E2XFEN3EEGLBP
-Content-transfer-encoding: 8bit
-Subject: Re: [PATCH v4 1/2] media/v4l2-ctrls: Always run s_ctrl on volatile
- ctrls
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Tue, 24 Feb 2015 06:42:53 +0700
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
- Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Hans Verkuil <hans.verkuil@cisco.com>,
- Sylwester Nawrocki <s.nawrocki@samsung.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Message-id: <BCBD9AA6-F7D0-48EE-8157-C935461E6297@gmail.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-vc0-f173.google.com ([209.85.220.173]:50730 "EHLO
+	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753484AbbBKSjS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Feb 2015 13:39:18 -0500
+Received: by mail-vc0-f173.google.com with SMTP id hy4so1872051vcb.4
+        for <linux-media@vger.kernel.org>; Wed, 11 Feb 2015 10:39:17 -0800 (PST)
+Received: from mail-vc0-f175.google.com (mail-vc0-f175.google.com. [209.85.220.175])
+        by mx.google.com with ESMTPSA id i11sm199022vdt.17.2015.02.11.10.39.16
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 11 Feb 2015 10:39:16 -0800 (PST)
+Received: by mail-vc0-f175.google.com with SMTP id hq12so1852281vcb.6
+        for <linux-media@vger.kernel.org>; Wed, 11 Feb 2015 10:39:15 -0800 (PST)
+MIME-Version: 1.0
+Date: Wed, 11 Feb 2015 10:39:15 -0800
+Message-ID: <CAPUS084EM0QMVapYxt8pDOn7=M+JK0BQMwufXsH94vD+bMDMgw@mail.gmail.com>
+Subject: [PATCH] media: vivid test device: Add NV{12,21} and Y{U,V}12 pixel format.
+From: Miguel Casas-Sanchez <mcasas@chromium.org>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl, pawel@osciak.com,
+	Miguel Casas-Sanchez <mcasas@chromium.org>
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-------WPUV1O3OJHS8AUHO3E2XFEN3EEGLBP
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="UTF-8"
+Add support for vertical + horizontal subsampled formats to vivid and use it to
+generate YU12, YV12, NV12, NV21 as defined in [1,2]. These formats are tightly
+packed N planar, because they provide chroma(s) as a separate array, but they
+are not mplanar yet, as discussed in the list.
 
-Hello Hans and Laurent
+The modus operandi is to let tpg_fillbuffer() create a YUYV packed format per
+pattern line as usual and apply downsampling if needed immediately afterwards,
+in a new function called tpg_apply_downsampling(). This one will unpack as
+needed, and average the chroma samples (note that luma samples are never
+downsampled). (Some provisions for horizontal downsampling are made, so it can
+be followed up with e.g. YUV410 etc formats, please understand in this context).
+Writing the text information on top of the produced pattern also needs a bit of
+a retouch.
 
+[1] http://linuxtv.org/downloads/v4l-dvb-apis/re30.html
+[2] http://linuxtv.org/downloads/v4l-dvb-apis/re24.html
 
-I understand volatile as a control that can change its value by the device. So in that sense I think that my control is volatile and writeable (ack by the user).
+Signed-off-by: Miguel Casas-Sanchez <mcasas@chromium.org>
+---
+ drivers/media/platform/vivid/vivid-kthread-cap.c |   6 +-
+ drivers/media/platform/vivid/vivid-tpg.c         | 232 +++++++++++++++++++----
+ drivers/media/platform/vivid/vivid-tpg.h         |  15 +-
+ drivers/media/platform/vivid/vivid-vid-common.c  |  28 +++
+ 4 files changed, 238 insertions(+), 43 deletions(-)
 
-The value written by the user is meaning-less in my usercase, but in another s it could be useful.
+diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c
+b/drivers/media/platform/vivid/vivid-kthread-cap.c
+index 39a67cf..93c6ca3 100644
+--- a/drivers/media/platform/vivid/vivid-kthread-cap.c
++++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
+@@ -669,8 +669,7 @@ static void vivid_thread_vid_cap_tick(struct
+vivid_dev *dev, int dropped_bufs)
+        if (vid_cap_buf) {
+                /* Fill buffer */
+                vivid_fillbuff(dev, vid_cap_buf);
+-               dprintk(dev, 1, "filled buffer %d\n",
+-                       vid_cap_buf->vb.v4l2_buf.index);
++               dprintk(dev, 1, "filled buffer %d\n",
+vid_cap_buf->vb.v4l2_buf.index);
 
-I am outside the office and with no computer for the next two weeks. If you can wait until then I can implement Hans idea or another one and try it out with my hw.  I can reply mails with my phone thought.
+                /* Handle overlay */
+                if (dev->overlay_cap_owner && dev->fb_cap.base &&
+@@ -679,8 +678,7 @@ static void vivid_thread_vid_cap_tick(struct
+vivid_dev *dev, int dropped_bufs)
 
-Thanks for considering my usercase :)
+                vb2_buffer_done(&vid_cap_buf->vb, dev->dqbuf_error ?
+                                VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+-               dprintk(dev, 2, "vid_cap buffer %d done\n",
+-                               vid_cap_buf->vb.v4l2_buf.index);
++               dprintk(dev, 2, "vid_cap buffer %d done\n",
+vid_cap_buf->vb.v4l2_buf.index);
+        }
 
+        if (vbi_cap_buf) {
+diff --git a/drivers/media/platform/vivid/vivid-tpg.c
+b/drivers/media/platform/vivid/vivid-tpg.c
+index 34493f4..d72e19a 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.c
++++ b/drivers/media/platform/vivid/vivid-tpg.c
+@@ -193,6 +193,10 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+        case V4L2_PIX_FMT_UYVY:
+        case V4L2_PIX_FMT_YVYU:
+        case V4L2_PIX_FMT_VYUY:
++       case V4L2_PIX_FMT_NV12:
++       case V4L2_PIX_FMT_NV21:
++       case V4L2_PIX_FMT_YUV420:
++       case V4L2_PIX_FMT_YVU420:
+                tpg->is_yuv = true;
+                break;
+        default:
+@@ -224,12 +228,32 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+        case V4L2_PIX_FMT_ABGR32:
+                tpg->twopixelsize[0] = 2 * 4;
+                break;
++       case V4L2_PIX_FMT_NV12:
++       case V4L2_PIX_FMT_NV21:
++       case V4L2_PIX_FMT_YUV420:
++       case V4L2_PIX_FMT_YVU420:
++               tpg->twopixelsize[0] = 3;
++               break;
+        case V4L2_PIX_FMT_NV16M:
+        case V4L2_PIX_FMT_NV61M:
+                tpg->twopixelsize[0] = 2;
+                tpg->twopixelsize[1] = 2;
+                break;
+        }
++
++       switch (fourcc) {
++       case V4L2_PIX_FMT_NV12:
++       case V4L2_PIX_FMT_NV21:
++       case V4L2_PIX_FMT_YUV420:
++       case V4L2_PIX_FMT_YVU420:
++               tpg->vertical_downsampling = 2;
++               tpg->horizontal_downsampling = 2;
++               break;
++       default:
++               tpg->vertical_downsampling = 0;
++               tpg->horizontal_downsampling = 0;
++       }
++
+        return true;
+ }
 
-Regards
+@@ -271,6 +295,12 @@ void tpg_reset_source(struct tpg_data *tpg,
+unsigned width, unsigned height,
+        tpg->recalc_square_border = true;
+ }
 
++/* Vertically downsampled pixel formats use YUYV as intermediate. */
++static unsigned tpg_get_packed_twopixsize(struct tpg_data *tpg, unsigned p)
++{
++       return tpg->vertical_downsampling ? 4 : tpg->twopixelsize[p];
++}
++
+ static enum tpg_color tpg_get_textbg_color(struct tpg_data *tpg)
+ {
+        switch (tpg->pattern) {
+@@ -673,7 +703,15 @@ static void gen_twopix(struct tpg_data *tpg,
+                buf[0][offset] = r_y;
+                buf[1][offset] = odd ? g_u : b_v;
+                break;
+-
++       /*
++        * For these cases we compose a YUYV macropixel. They will be
+verticallly
++        * downsampled later on.
++        */
++       case V4L2_PIX_FMT_NV12:
++       case V4L2_PIX_FMT_NV21:
++       case V4L2_PIX_FMT_YUV420:
++       case V4L2_PIX_FMT_YVU420:
++               offset = odd * tpg_get_packed_twopixsize(tpg, 0) / 2;
+        case V4L2_PIX_FMT_YUYV:
+                buf[0][offset] = r_y;
+                buf[0][offset + 1] = odd ? b_v : g_u;
+@@ -1000,9 +1038,8 @@ static void tpg_precalculate_line(struct tpg_data *tpg)
+                        gen_twopix(tpg, pix, tpg->hflip ? color2 : color1, 0);
+                        gen_twopix(tpg, pix, tpg->hflip ? color1 : color2, 1);
+                        for (p = 0; p < tpg->planes; p++) {
+-                               unsigned twopixsize = tpg->twopixelsize[p];
++                               const unsigned twopixsize =
+tpg_get_packed_twopixsize(tpg, p);
+                                u8 *pos = tpg->lines[pat][p] + x *
+twopixsize / 2;
+-
+                                memcpy(pos, pix[p], twopixsize);
+                        }
+                }
+@@ -1013,7 +1050,7 @@ static void tpg_precalculate_line(struct tpg_data *tpg)
+                gen_twopix(tpg, pix, contrast, 0);
+                gen_twopix(tpg, pix, contrast, 1);
+                for (p = 0; p < tpg->planes; p++) {
+-                       unsigned twopixsize = tpg->twopixelsize[p];
++                       const unsigned twopixsize =
+tpg_get_packed_twopixsize(tpg, p);
+                        u8 *pos = tpg->contrast_line[p] + x * twopixsize / 2;
 
+                        memcpy(pos, pix[p], twopixsize);
+@@ -1025,9 +1062,8 @@ static void tpg_precalculate_line(struct tpg_data *tpg)
+                gen_twopix(tpg, pix, TPG_COLOR_100_BLACK, 0);
+                gen_twopix(tpg, pix, TPG_COLOR_100_BLACK, 1);
+                for (p = 0; p < tpg->planes; p++) {
+-                       unsigned twopixsize = tpg->twopixelsize[p];
++                       const unsigned twopixsize =
+tpg_get_packed_twopixsize(tpg, p);
+                        u8 *pos = tpg->black_line[p] + x * twopixsize / 2;
+-
+                        memcpy(pos, pix[p], twopixsize);
+                }
+        }
+@@ -1037,7 +1073,7 @@ static void tpg_precalculate_line(struct tpg_data *tpg)
+                gen_twopix(tpg, pix, TPG_COLOR_RANDOM, 0);
+                gen_twopix(tpg, pix, TPG_COLOR_RANDOM, 1);
+                for (p = 0; p < tpg->planes; p++) {
+-                       unsigned twopixsize = tpg->twopixelsize[p];
++                       const unsigned twopixsize =
+tpg_get_packed_twopixsize(tpg, p);
+                        u8 *pos = tpg->random_line[p] + x * twopixsize / 2;
 
-On 24 February 2015 06:07:49 GMT+07:00, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
->Hi Hans,
->
->On Monday 23 February 2015 10:06:10 Hans Verkuil wrote:
->> On 02/17/2015 04:08 PM, Ricardo Ribalda Delgado wrote:
->> > Volatile controls can change their value outside the v4l-ctrl
->framework.
->> > We should ignore the cached written value of the ctrl when
->evaluating if
->> > we should run s_ctrl.
->> 
->> I've been thinking some more about this (also due to some comments
->Laurent
->> made on irc), and I think this should be done differently.
->> 
->> What you want to do here is to signal that setting this control will
->execute
->> some action that needs to happen even if the same value is set twice.
->> 
->> That's not really covered by VOLATILE. Interestingly, the WRITE_ONLY
->flag is
->> to be used for just that purpose, but this happens to be a R/W
->control, so
->> that can't be used either.
->> 
->> What is needed is the following:
->> 
->> 1) Add a new flag: V4L2_CTRL_FLAG_ACTION.
->> 2) Any control that sets FLAG_WRITE_ONLY should OR it with
->FLAG_ACTION (to
->>    keep the current meaning of WRITE_ONLY).
->> 3) Any control with FLAG_ACTION set should return changed == true in
->>    cluster_changed.
->> 4) Any control with FLAG_VOLATILE set should set ctrl->has_changed to
->false
->>    to prevent generating the CH_VALUE control (that's a real bug).
->> 
->> Your control will now set FLAG_ACTION and FLAG_VOLATILE and it will
->do the
->> right thing.
->
->I'm not sure about Ricardo's use case, is it the one we've discussed on
->#v4l ? 
->If so, and if I recall correctly, the idea was to perform an action
->with a 
->parameter, and didn't require volatility.
->
->> Basically what was missing was a flag to explicitly signal this
->'writing
->> executes an action' behavior. Trying to shoehorn that into the
->volatile
->> flag or the write_only flag is just not right. It's a flag in its own
->right.
->
->Just for the sake of exploring all options, what did you think about
->the idea 
->of making button controls accept a value ?
->
->Your proposal is interesting as well, but I'm not sure about the 
->V4L2_CTRL_FLAG_ACTION name. Aren't all controls supposed to have an
->action of 
->some sort ? That's nitpicking of course.
->
->Also, should the action flag be automatically set for button controls ?
->Button 
->controls would in a way become type-less controls with the action flag
->set, 
->that's interesting. I suppose type-less controls without the action
->flag don't 
->make sense.
->
->> > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
->> > ---
->> > v4: Hans Verkuil:
->> > 
->> > explicity set has_changed to false. and add comment
->> > 
->> >  drivers/media/v4l2-core/v4l2-ctrls.c | 11 +++++++++++
->> >  1 file changed, 11 insertions(+)
->
->-- 
->Regards,
->
->Laurent Pinchart
+                        memcpy(pos, pix[p], twopixsize);
+@@ -1083,8 +1119,8 @@ void tpg_gen_text(struct tpg_data *tpg, u8
+*basep[TPG_MAX_PLANES][2],
+                div = 2;
 
--- 
-Ricardo Ribalda
-Sent from my Android device with K-9 Mail. Please excuse my brevity.
-------WPUV1O3OJHS8AUHO3E2XFEN3EEGLBP
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        for (p = 0; p < tpg->planes; p++) {
+-               /* Print stream time */
+-#define PRINTSTR(PIXTYPE) do { \
++               /* Print text */
++#define PRINTSTR(PIXTYPE, dst_ptr, stride) do {        \
+        PIXTYPE fg;     \
+        PIXTYPE bg;     \
+        memcpy(&fg, tpg->textfg[p], sizeof(PIXTYPE));   \
+@@ -1092,32 +1128,31 @@ void tpg_gen_text(struct tpg_data *tpg, u8
+*basep[TPG_MAX_PLANES][2],
+        \
+        for (line = first; line < 16; line += step) {   \
+                int l = tpg->vflip ? 15 - line : line; \
+-               PIXTYPE *pos = (PIXTYPE *)(basep[p][line & 1] + \
+-                              ((y * step + l) / div) * tpg->bytesperline[p] + \
++               PIXTYPE *pos = (PIXTYPE *)((dst_ptr)[line & 1] +        \
++                              ((y * step + l) / div) * stride + \
+                               x * sizeof(PIXTYPE));    \
+-               unsigned s;     \
+        \
++               unsigned s;     \
+                for (s = 0; s < len; s++) {     \
+                        u8 chr = font8x16[text[s] * 16 + line]; \
+-       \
+                        if (tpg->hflip) { \
+-                               pos[7] = (chr & (0x01 << 7) ? fg : bg); \
+-                               pos[6] = (chr & (0x01 << 6) ? fg : bg); \
+-                               pos[5] = (chr & (0x01 << 5) ? fg : bg); \
+-                               pos[4] = (chr & (0x01 << 4) ? fg : bg); \
+-                               pos[3] = (chr & (0x01 << 3) ? fg : bg); \
+-                               pos[2] = (chr & (0x01 << 2) ? fg : bg); \
+-                               pos[1] = (chr & (0x01 << 1) ? fg : bg); \
+-                               pos[0] = (chr & (0x01 << 0) ? fg : bg); \
++                               pos[7] = (chr & (0x01 << 7) ? fg : bg); \
++                               pos[6] = (chr & (0x01 << 6) ? fg : bg); \
++                               pos[5] = (chr & (0x01 << 5) ? fg : bg); \
++                               pos[4] = (chr & (0x01 << 4) ? fg : bg); \
++                               pos[3] = (chr & (0x01 << 3) ? fg : bg); \
++                               pos[2] = (chr & (0x01 << 2) ? fg : bg); \
++                               pos[1] = (chr & (0x01 << 1) ? fg : bg); \
++                               pos[0] = (chr & (0x01 << 0) ? fg : bg); \
+                        } else { \
+-                               pos[0] = (chr & (0x01 << 7) ? fg : bg); \
+-                               pos[1] = (chr & (0x01 << 6) ? fg : bg); \
+-                               pos[2] = (chr & (0x01 << 5) ? fg : bg); \
+-                               pos[3] = (chr & (0x01 << 4) ? fg : bg); \
+-                               pos[4] = (chr & (0x01 << 3) ? fg : bg); \
+-                               pos[5] = (chr & (0x01 << 2) ? fg : bg); \
+-                               pos[6] = (chr & (0x01 << 1) ? fg : bg); \
+-                               pos[7] = (chr & (0x01 << 0) ? fg : bg); \
++                               pos[0] = (chr & (0x01 << 7) ? fg : bg); \
++                               pos[1] = (chr & (0x01 << 6) ? fg : bg); \
++                               pos[2] = (chr & (0x01 << 5) ? fg : bg); \
++                               pos[3] = (chr & (0x01 << 4) ? fg : bg); \
++                               pos[4] = (chr & (0x01 << 3) ? fg : bg); \
++                               pos[5] = (chr & (0x01 << 2) ? fg : bg); \
++                               pos[6] = (chr & (0x01 << 1) ? fg : bg); \
++                               pos[7] = (chr & (0x01 << 0) ? fg : bg); \
+                        } \
+        \
+                        pos += tpg->hflip ? -8 : 8;     \
+@@ -1125,15 +1160,25 @@ void tpg_gen_text(struct tpg_data *tpg, u8
+*basep[TPG_MAX_PLANES][2],
+        }       \
+ } while (0)
 
-<html><head></head><body>Hello Hans and Laurent<br>
-<br>
-<br>
-I understand volatile as a control that can change its value by the device. So in that sense I think that my control is volatile and writeable (ack by the user).<br>
-<br>
-The value written by the user is meaning-less in my usercase, but in another s it could be useful.<br>
-<br>
-I am outside the office and with no computer for the next two weeks. If you can wait until then I can implement Hans idea or another one and try it out with my hw.  I can reply mails with my phone thought.<br>
-<br>
-Thanks for considering my usercase :)<br>
-<br>
-<br>
-Regards<br>
-<br>
-<br><br><div class="gmail_quote">On 24 February 2015 06:07:49 GMT+07:00, Laurent Pinchart &lt;laurent.pinchart@ideasonboard.com&gt; wrote:<blockquote class="gmail_quote" style="margin: 0pt 0pt 0pt 0.8ex; border-left: 1px solid rgb(204, 204, 204); padding-left: 1ex;">
-<pre class="k9mail">Hi Hans,<br /><br />On Monday 23 February 2015 10:06:10 Hans Verkuil wrote:<br /><blockquote class="gmail_quote" style="margin: 0pt 0pt 1ex 0.8ex; border-left: 1px solid #729fcf; padding-left: 1ex;"> On 02/17/2015 04:08 PM, Ricardo Ribalda Delgado wrote:<br /><blockquote class="gmail_quote" style="margin: 0pt 0pt 1ex 0.8ex; border-left: 1px solid #ad7fa8; padding-left: 1ex;"> Volatile controls can change their value outside the v4l-ctrl framework.<br /> We should ignore the cached written value of the ctrl when evaluating if<br /> we should run s_ctrl.<br /></blockquote> <br /> I've been thinking some more about this (also due to some comments Laurent<br /> made on irc), and I think this should be done differently.<br /> <br /> What you want to do here is to signal that setting this control will execute<br /> some action that needs to happen even if the same value is set twice.<br /> <br /> That's not really covered by VOLATILE. Interestingly, the WRITE_ON
- LY flag
-is<br /> to be used for just that purpose, but this happens to be a R/W control, so<br /> that can't be used either.<br /> <br /> What is needed is the following:<br /> <br /> 1) Add a new flag: V4L2_CTRL_FLAG_ACTION.<br /> 2) Any control that sets FLAG_WRITE_ONLY should OR it with FLAG_ACTION (to<br />    keep the current meaning of WRITE_ONLY).<br /> 3) Any control with FLAG_ACTION set should return changed == true in<br />    cluster_changed.<br /> 4) Any control with FLAG_VOLATILE set should set ctrl-&gt;has_changed to false<br />    to prevent generating the CH_VALUE control (that's a real bug).<br /> <br /> Your control will now set FLAG_ACTION and FLAG_VOLATILE and it will do the<br /> right thing.<br /></blockquote><br />I'm not sure about Ricardo's use case, is it the one we've discussed on #v4l ? <br />If so, and if I recall correctly, the idea was to perform an action with a <br />parameter, and didn't require volatility.<br /><br /><blockquote class="gmail_quote"
- 
-style="margin: 0pt 0pt 1ex 0.8ex; border-left: 1px solid #729fcf; padding-left: 1ex;"> Basically what was missing was a flag to explicitly signal this 'writing<br /> executes an action' behavior. Trying to shoehorn that into the volatile<br /> flag or the write_only flag is just not right. It's a flag in its own right.<br /></blockquote><br />Just for the sake of exploring all options, what did you think about the idea <br />of making button controls accept a value ?<br /><br />Your proposal is interesting as well, but I'm not sure about the <br />V4L2_CTRL_FLAG_ACTION name. Aren't all controls supposed to have an action of <br />some sort ? That's nitpicking of course.<br /><br />Also, should the action flag be automatically set for button controls ? Button <br />controls would in a way become type-less controls with the action flag set, <br />that's interesting. I suppose type-less controls without the action flag don't <br />make sense.<br /><br /><blockquote class="gmail_
- quote"
-style="margin: 0pt 0pt 1ex 0.8ex; border-left: 1px solid #729fcf; padding-left: 1ex;"><blockquote class="gmail_quote" style="margin: 0pt 0pt 1ex 0.8ex; border-left: 1px solid #ad7fa8; padding-left: 1ex;"> Signed-off-by: Ricardo Ribalda Delgado &lt;ricardo.ribalda@gmail.com&gt;<br /> ---<br /> v4: Hans Verkuil:<br /> <br /> explicity set has_changed to false. and add comment<br /> <br />  drivers/media/v4l2-core/v4l2-ctrls.c | 11 +++++++++++<br />  1 file changed, 11 insertions(+)<br /></blockquote></blockquote></pre></blockquote></div><br>
--- <br>
-Ricardo Ribalda<br>
-Sent from my Android device with K-9 Mail. Please excuse my brevity.</body></html>
-------WPUV1O3OJHS8AUHO3E2XFEN3EEGLBP--
+-               switch (tpg->twopixelsize[p]) {
+-               case 2:
+-                       PRINTSTR(u8); break;
+-               case 4:
+-                       PRINTSTR(u16); break;
+-               case 6:
+-                       PRINTSTR(x24); break;
+-               case 8:
+-                       PRINTSTR(u32); break;
++               if (!tpg->vertical_downsampling) {
++                       switch (tpg->twopixelsize[p]) {
++                       case 2:
++                               PRINTSTR(u8, basep[p],
+tpg->bytesperline[p]); break;
++                       case 4:
++                               PRINTSTR(u16, basep[p],
+tpg->bytesperline[p]); break;
++                       case 6:
++                               PRINTSTR(x24, basep[p],
+tpg->bytesperline[p]); break;
++                       case 8:
++                               PRINTSTR(u32, basep[p],
+tpg->bytesperline[p]); break;
++                       }
++               } else {
++                       /* tpg->twopixelsize[p] is 3 for the defined
+formats so far. */
++                       if (tpg->twopixelsize[p] != 3) {
++                               printk(KERN_WARNING "Unsupported twopixelsize");
++                               return;
++                       }
++                       PRINTSTR(u8, basep[p], tpg->compose.width);
++                       /* TODO(mcasas): Do the same for Chroma
+planes, not urgently needed. */
+                }
+        }
+ }
+@@ -1551,4 +1596,115 @@ void tpg_fillbuffer(struct tpg_data *tpg,
+v4l2_std_id std, unsigned p, u8 *vbuf)
+                                (hact ^ vact ^ f);
+                }
+        }
++
++  tpg_apply_downsampling(tpg, std, p, vbuf);
++}
++
++/*
++ * Apply downsampling(s). Assumes that pattern lines have been generated in
++ * packed YUYV and written in tpg->lines: we unpack them in the appropriate
++ * plane locations, which depend on the concrete format and its planarity
++ * and chroma packaging.
++ */
++void tpg_apply_downsampling(struct tpg_data *tpg, v4l2_std_id std, unsigned p,
++               u8 *vbuf)
++{
++       u8 *y_ptr = vbuf;
++       u8 *chromas_start = y_ptr + (tpg->compose.height * tpg->compose.width);
++       u8 *u_ptr;
++       u8 *v_ptr;
++       u8 u_ptr_step = 1;
++       u8 v_ptr_step = 1;
++       int y;
++
++       if (tpg->vertical_downsampling == 0)
++               return;
++       if (tpg->vertical_downsampling > 2) {
++               printk(KERN_WARNING "Vertical downsampling by > 2 not
+implemented\n");
++               return;
++       }
++       if (tpg->horizontal_downsampling > 2) {
++               printk(KERN_WARNING "Horizontal downsampling by > 2
+not implemented\n");
++               return;
++       }
++       if (tpg->planes > 1) {
++               printk(KERN_WARNING "Mplane vertically downsampling
+not implemented\n");
++               return;
++       }
++
++       switch (tpg->fourcc) {
++       case V4L2_PIX_FMT_YUV420:
++               u_ptr = chromas_start;
++               v_ptr = chromas_start +
++                       (tpg->compose.height * tpg->compose.width) /
++                       (2 * tpg->horizontal_downsampling);
++               break;
++       case V4L2_PIX_FMT_YVU420:
++               v_ptr = chromas_start;
++               u_ptr = chromas_start +
++                       (tpg->compose.height * tpg->compose.width) /
++                       (2 * tpg->horizontal_downsampling);
++               break;
++       case V4L2_PIX_FMT_NV12:  /* N{21,21} are special: interleaved
+chromas. */
++               u_ptr = chromas_start;
++               v_ptr = u_ptr + 1;
++               u_ptr_step = v_ptr_step = 2;
++               break;
++       case V4L2_PIX_FMT_NV21:
++               v_ptr = chromas_start;
++               u_ptr = v_ptr + 1;
++               u_ptr_step = v_ptr_step = 2;
++               break;
++       default:
++               printk(KERN_ERR "Unknown vertically downsampled format\n");
++               return;
++       }
++
++       /*
++        * Per line: fetch the pattern line to use in packed YUYV,
+then unpack in
++        * the dst buffers. Vertical downsampling can only be 2 or 4
+here: average
++        * as-many-rows of Chroma components. Since we use YUYV as
+starting point,
++        * horizontal downsampling of 2 is a natural match; 4 would need hoops.
++        */
++       for (y = 0; y < tpg->compose.height; y += 2) {
++               u8 *src_ptr;
++               unsigned buf_line;
++               unsigned downsampling_index = 0;
++
++               for (; downsampling_index < tpg->vertical_downsampling;
++                       ++downsampling_index) {
++                       int x;
++
++                       /* Fetch the pattern line to use in packed YUYV. */
++                       buf_line = tpg_calc_buffer_line(tpg, y +
+downsampling_index,
++                               tpg->field);
++                       src_ptr = tpg->lines[tpg_get_pat_line(tpg,
+buf_line)][0];
++                       if ((downsampling_index %
+tpg->vertical_downsampling) == 0) {
++                               /* Unpack yuyv macropixel. _Set_ the
+Chroma planes. */
++                               for (x = 0; x < 2 *
+tpg->compose.width; x += 4) {
++                                       *y_ptr++ = *src_ptr++;
++                                       *u_ptr = *src_ptr++ /
+tpg->vertical_downsampling;
++                                       u_ptr += u_ptr_step;
++                                       *y_ptr++ = *src_ptr++;
++                                       *v_ptr = *src_ptr++ /
+tpg->vertical_downsampling;
++                                       v_ptr += v_ptr_step;
++                               }
++                       } else {
++                               /* Rewind U, V pointers. */
++                               u_ptr -= (u_ptr_step * tpg->compose.width /
++                                               tpg->horizontal_downsampling);
++                               v_ptr -= (v_ptr_step * tpg->compose.width /
++                                               tpg->horizontal_downsampling);
++                               /* Unpack yuyv macropixel.
+_Accumulate_ the Chroma planes. */
++                               for (x = 0; x < 2 *
+tpg->compose.width; x += 4) {
++                                       *y_ptr++ = *src_ptr++;
++                                       *u_ptr += *src_ptr++ /
+tpg->vertical_downsampling;
++                                       u_ptr += u_ptr_step;
++                                       *y_ptr++ = *src_ptr++;
++                                       *v_ptr += *src_ptr++ /
+tpg->vertical_downsampling;
++                                       v_ptr += v_ptr_step;
++                               }
++                       }
++               }
++       }
+ }
+diff --git a/drivers/media/platform/vivid/vivid-tpg.h
+b/drivers/media/platform/vivid/vivid-tpg.h
+index bd8b1c7..ac374f1 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.h
++++ b/drivers/media/platform/vivid/vivid-tpg.h
+@@ -141,6 +141,14 @@ struct tpg_data {
+        /* size in bytes for two pixels in each plane */
+        unsigned                        twopixelsize[TPG_MAX_PLANES];
+        unsigned                        bytesperline[TPG_MAX_PLANES];
++       /*
++        * Vertical and horizontal downsample factors. Only applies to
+YUV formats,
++        * concretely Chroma components (not the Luma), and implies
+that the format
++        * is planar (2 or 3 planes). Only even numbers are allowed.
+Typical values
++        * include 0 for no downsampling and 2 (like in 4:2:0 formats,
+e.g. YUV420).
++        */
++       unsigned      vertical_downsampling;
++       unsigned      horizontal_downsampling;
+
+        /* Configuration */
+        enum tpg_pattern                pattern;
+@@ -165,7 +173,10 @@ struct tpg_data {
+        bool                            recalc_lines;
+        bool                            recalc_square_border;
+
+-       /* Used to store TPG_MAX_PAT_LINES lines, each with up to two planes */
++       /*
++        *  Used to store TPG_MAX_PAT_LINES lines, each with up to
+TPG_MAX_PLANES
++        *  planes
++        */
+        unsigned                        max_line_width;
+        u8
+*lines[TPG_MAX_PAT_LINES][TPG_MAX_PLANES];
+        u8                              *random_line[TPG_MAX_PLANES];
+@@ -185,6 +196,8 @@ void tpg_gen_text(struct tpg_data *tpg,
+ void tpg_calc_text_basep(struct tpg_data *tpg,
+                u8 *basep[TPG_MAX_PLANES][2], unsigned p, u8 *vbuf);
+ void tpg_fillbuffer(struct tpg_data *tpg, v4l2_std_id std, unsigned
+p, u8 *vbuf);
++void tpg_apply_downsampling(struct tpg_data *tpg, v4l2_std_id std, unsigned p,
++               u8 *vbuf);
+ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc);
+ void tpg_s_crop_compose(struct tpg_data *tpg, const struct v4l2_rect *crop,
+                const struct v4l2_rect *compose);
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c
+b/drivers/media/platform/vivid/vivid-vid-common.c
+index 6bef1e6..99e0d22 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -73,6 +73,34 @@ struct vivid_fmt vivid_formats[] = {
+                .planes   = 1,
+        },
+        {
++               .name     = "YUV 4:2:0, planar, 1 Chroma plane",
++               .fourcc   = V4L2_PIX_FMT_NV12,
++               .depth    = 12,
++               .is_yuv   = true,
++               .planes   = 1,
++       },
++       {
++               .name     = "YVU 4:2:0, planar, 1 Chroma plane",
++               .fourcc   = V4L2_PIX_FMT_NV21,
++               .depth    = 12,
++               .is_yuv   = true,
++               .planes   = 1,
++       },
++       {
++               .name     = "YUV 4:2:0, planar, 2 Chroma planes",
++               .fourcc   = V4L2_PIX_FMT_YUV420,
++               .depth    = 12,
++               .is_yuv   = true,
++               .planes   = 1,
++       },
++       {
++               .name     = "YVU 4:2:0, planar, 2 Chroma planes",
++               .fourcc   = V4L2_PIX_FMT_YVU420,
++               .depth    = 12,
++               .is_yuv   = true,
++               .planes   = 1,
++       },
++       {
+                .name     = "RGB565 (LE)",
+                .fourcc   = V4L2_PIX_FMT_RGB565, /* gggbbbbb rrrrrggg */
+                .depth    = 16,
+
+--
+2.2.0.rc0.207.ga3a616c
