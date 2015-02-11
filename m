@@ -1,54 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-232.synserver.de ([212.40.185.232]:1063 "EHLO
-	smtp-out-232.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933266AbbBBNtM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 08:49:12 -0500
-Message-ID: <54CF8057.1060806@metafoo.de>
-Date: Mon, 02 Feb 2015 14:49:11 +0100
-From: Lars-Peter Clausen <lars@metafoo.de>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:34256 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751434AbbBKCLd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Feb 2015 21:11:33 -0500
+Received: by iery20 with SMTP id y20so937744ier.1
+        for <linux-media@vger.kernel.org>; Tue, 10 Feb 2015 18:11:33 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
-	=?windows-1252?Q?Richard_R=F6jfors?=
-	<richard.rojfors@mocean-labs.com>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 03/15] [media] adv7180: Use inline function instead
- of macro
-References: <1422028354-31891-1-git-send-email-lars@metafoo.de>	<1422028354-31891-4-git-send-email-lars@metafoo.de> <20150202113613.07673af0@recife.lan>
-In-Reply-To: <20150202113613.07673af0@recife.lan>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAKoAQ7m8kBFSNbd=Sw8+1Ou5X4LDm9Yvmz+_SZOgYuaYCu=YSA@mail.gmail.com>
+References: <CAKoAQ7m8kBFSNbd=Sw8+1Ou5X4LDm9Yvmz+_SZOgYuaYCu=YSA@mail.gmail.com>
+Date: Tue, 10 Feb 2015 18:11:32 -0800
+Message-ID: <CAKoAQ7nfi5LzVnQHKZtyiMDqpavFTkx9SMJaju3dGBiXjVz=bA@mail.gmail.com>
+Subject: Fwd: [PATCH] Correction doco NV12/NV21M Chroma indexes
+From: Miguel Casas-Sanchez <mcasas@chromium.org>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=001a1140e638b484f7050ec68587
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/02/2015 02:36 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 23 Jan 2015 16:52:22 +0100
-> Lars-Peter Clausen <lars@metafoo.de> escreveu:
->
->> Use a inline function instead of a macro for the container_of helper for
->> getting the driver's state struct from a control. A inline function has the
->> advantage that it is more typesafe and nicer in general.
->
-> I don't see any advantage on this.
->
-> See: container_of is already a macro, and it is written in a way that, if
-> you use it with inconsistent values, the compilation will break.
+--001a1140e638b484f7050ec68587
+Content-Type: text/plain; charset=UTF-8
 
-Yes, container_of is a macro, because it needs to be a macro. Compilation 
-will also not always break if you pass in a incorrect type, it might succeed 
-with even generating a warning. Furthermore if compilation breaks the error 
-message is completely incomprehensible. Using a function instead makes sure 
-that the error message you get is in the style of "passing argument of wrong 
-type to function, expected typeX, got typeY".
+In the linuxtv.org entry with the description of V4L2_PIX_FMT_NV{12,21}
+@ http://linuxtv.org/downloads/v4l-dvb-apis/re30.html
+it reads:
 
->
-> Also, there's the risk that, for whatever reason, gcc to decide to not
-> inline this.
+start +  0:Y'00 Y'01 Y'02 Y'03
+start +  4:Y'10 Y'11 Y'12 Y'13
+start +  8:Y'20 Y'21 Y'22 Y'23
+start + 12:Y'30 Y'31 Y'32 Y'33
+start + 16:Cb00 Cr00 Cb01 Cr01
+start + 20:Cb10 Cr10 Cb11 Cr11
 
-If the compiler does not inline this it probably has a good reason to do so. 
-Not inlining this will not break the functionality, so it is not a problem.
+whereas the last line should read:
 
-- Lars
+start + 20:Cb20 Cr20 Cb21 Cr21
+
+--001a1140e638b484f7050ec68587
+Content-Type: text/x-patch; charset=US-ASCII; name="V4L2_PIX_FMT_NV12M.correction.patch"
+Content-Disposition: attachment;
+	filename="V4L2_PIX_FMT_NV12M.correction.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_i5tvk3fq0
+
+ZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vRG9jQm9vay9tZWRpYS92NGwvcGl4Zm10LW52MTIu
+eG1sIGIvRG9jdW1lbnRhdGlvbi9Eb2NCb29rL21lZGlhL3Y0bC9waXhmbXQtbnYxMi54bWwKaW5k
+ZXggODRkZDRmZC4uMWRhMTJlMyAxMDA2NDQKLS0tIGEvRG9jdW1lbnRhdGlvbi9Eb2NCb29rL21l
+ZGlhL3Y0bC9waXhmbXQtbnYxMi54bWwKKysrIGIvRG9jdW1lbnRhdGlvbi9Eb2NCb29rL21lZGlh
+L3Y0bC9waXhmbXQtbnYxMi54bWwKQEAgLTc4LDEwICs3OCwxMCBAQCBwaXhlbCBpbWFnZTwvdGl0
+bGU+CiAJCSAgICA8L3Jvdz4KIAkJICAgIDxyb3c+CiAJCSAgICAgIDxlbnRyeT5zdGFydCZuYnNw
+OysmbmJzcDsyMDo8L2VudHJ5PgotCQkgICAgICA8ZW50cnk+Q2I8c3Vic2NyaXB0PjEwPC9zdWJz
+Y3JpcHQ+PC9lbnRyeT4KLQkJICAgICAgPGVudHJ5PkNyPHN1YnNjcmlwdD4xMDwvc3Vic2NyaXB0
+PjwvZW50cnk+Ci0JCSAgICAgIDxlbnRyeT5DYjxzdWJzY3JpcHQ+MTE8L3N1YnNjcmlwdD48L2Vu
+dHJ5PgotCQkgICAgICA8ZW50cnk+Q3I8c3Vic2NyaXB0PjExPC9zdWJzY3JpcHQ+PC9lbnRyeT4K
+KwkJICAgICAgPGVudHJ5PkNiPHN1YnNjcmlwdD4yMDwvc3Vic2NyaXB0PjwvZW50cnk+CisJCSAg
+ICAgIDxlbnRyeT5DcjxzdWJzY3JpcHQ+MjA8L3N1YnNjcmlwdD48L2VudHJ5PgorCQkgICAgICA8
+ZW50cnk+Q2I8c3Vic2NyaXB0PjIxPC9zdWJzY3JpcHQ+PC9lbnRyeT4KKwkJICAgICAgPGVudHJ5
+PkNyPHN1YnNjcmlwdD4yMTwvc3Vic2NyaXB0PjwvZW50cnk+CiAJCSAgICA8L3Jvdz4KIAkJICA8
+L3Rib2R5PgogCQk8L3Rncm91cD4K
+--001a1140e638b484f7050ec68587--
