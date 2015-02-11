@@ -1,131 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:44116 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754211AbbBQDpR (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:23368 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752043AbbBKMU2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 22:45:17 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 8CF3B2A0080
-	for <linux-media@vger.kernel.org>; Tue, 17 Feb 2015 04:44:56 +0100 (CET)
-Date: Tue, 17 Feb 2015 04:44:56 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ABI WARNING
-Message-Id: <20150217034456.8CF3B2A0080@tschai.lan>
+	Wed, 11 Feb 2015 07:20:28 -0500
+Message-id: <54DB4908.10004@samsung.com>
+Date: Wed, 11 Feb 2015 13:20:24 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
+	robin.murphy@arm.com, robdclark@gmail.com,
+	linaro-kernel@lists.linaro.org, stanislawski.tomasz@googlemail.com,
+	daniel@ffwll.ch
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
+ with dma-parms
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+ <54DB12B5.4080000@samsung.com> <20150211111258.GP8656@n2100.arm.linux.org.uk>
+In-reply-to: <20150211111258.GP8656@n2100.arm.linux.org.uk>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello,
 
-Results of the daily build of media_tree:
+On 2015-02-11 12:12, Russell King - ARM Linux wrote:
+> On Wed, Feb 11, 2015 at 09:28:37AM +0100, Marek Szyprowski wrote:
+>> On 2015-01-27 09:25, Sumit Semwal wrote:
+>>> Add some helpers to share the constraints of devices while attaching
+>>> to the dmabuf buffer.
+>>>
+>>> At each attach, the constraints are calculated based on the following:
+>>> - max_segment_size, max_segment_count, segment_boundary_mask from
+>>>     device_dma_parameters.
+>>>
+>>> In case the attaching device's constraints don't match up, attach() fails.
+>>>
+>>> At detach, the constraints are recalculated based on the remaining
+>>> attached devices.
+>>>
+>>> Two helpers are added:
+>>> - dma_buf_get_constraints - which gives the current constraints as calculated
+>>>        during each attach on the buffer till the time,
+>>> - dma_buf_recalc_constraints - which recalculates the constraints for all
+>>>        currently attached devices for the 'paranoid' ones amongst us.
+>>>
+>>> The idea of this patch is largely taken from Rob Clark's RFC at
+>>> https://lkml.org/lkml/2012/7/19/285, and the comments received on it.
+>>>
+>>> Cc: Rob Clark <robdclark@gmail.com>
+>>> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+>> The code looks okay, although it will probably will work well only with
+>> typical cases like 'contiguous memory needed' or 'no constraints at all'
+>> (iommu).
+> Which is a damn good reason to NAK it - by that admission, it's a half-baked
+> idea.
+>
+> If all we want to know is whether the importer can accept only contiguous
+> memory or not, make a flag to do that, and allow the exporter to test this
+> flag.  Don't over-engineer this to make it _seem_ like it can do something
+> that it actually totally fails with.
+>
+> As I've already pointed out, there's a major problem if you have already
+> had a less restrictive attachment which has an active mapping, and a new
+> more restrictive attachment comes along later.
+>
+> It seems from Rob's descriptions that we also need another flag in the
+> importer to indicate whether it wants to have a valid struct page in the
+> scatter list, or whether it (correctly) uses the DMA accessors on the
+> scatter list - so that exporters can reject importers which are buggy.
 
-date:		Tue Feb 17 04:00:23 CET 2015
-git branch:	test
-git hash:	135f9be9194cf7778eb73594aa55791b229cf27c
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-5.slh.1-amd64
+Okay, but flag-based approach also have limitations.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse: WARNINGS
-smatch: ERRORS
+Frankly, if we want to make it really portable and sharable between devices,
+then IMO we should get rid of struct scatterlist and replace it with simple
+array of pfns in dma_buf. This way at least the problem of missing struct
+page will be solved and the buffer representation will be also a bit more
+compact.
 
-Detailed results are available here:
+Such solution however also requires extending dma-mapping API to handle
+mapping and unmapping of such pfn arrays. The advantage of this approach
+is the fact that it will be completely new API, so it can be designed
+well from the beginning.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
