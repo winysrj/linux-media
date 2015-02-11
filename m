@@ -1,139 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:54796 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754485AbbBZQBH (ORCPT
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:44406 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752064AbbBKLXx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 11:01:07 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NKD000GTZ5UM400@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Feb 2015 01:01:06 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [v4l-utils PATCH/RFC v5 13/14] mediactl: libv4l2subdev: Enable
- opening/closing pipelines
-Date: Thu, 26 Feb 2015 16:59:23 +0100
-Message-id: <1424966364-3647-14-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
-References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
+	Wed, 11 Feb 2015 06:23:53 -0500
+MIME-Version: 1.0
+In-Reply-To: <20150211111258.GP8656@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+	<1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+	<54DB12B5.4080000@samsung.com>
+	<20150211111258.GP8656@n2100.arm.linux.org.uk>
+Date: Wed, 11 Feb 2015 06:23:52 -0500
+Message-ID: <CAF6AEGscETLVnhg7zTFHQbj2KmX150VPaVHsqjvyJnVfHnHkOQ@mail.gmail.com>
+Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
+ with dma-parms
+From: Rob Clark <robdclark@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	linux-mm <linux-mm@kvack.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	Daniel Vetter <daniel@ffwll.ch>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add functions for opening and closing media entity pipelines
-at one go.
+On Wed, Feb 11, 2015 at 6:12 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Wed, Feb 11, 2015 at 09:28:37AM +0100, Marek Szyprowski wrote:
+>> Hello,
+>>
+>> On 2015-01-27 09:25, Sumit Semwal wrote:
+>> >Add some helpers to share the constraints of devices while attaching
+>> >to the dmabuf buffer.
+>> >
+>> >At each attach, the constraints are calculated based on the following:
+>> >- max_segment_size, max_segment_count, segment_boundary_mask from
+>> >    device_dma_parameters.
+>> >
+>> >In case the attaching device's constraints don't match up, attach() fails.
+>> >
+>> >At detach, the constraints are recalculated based on the remaining
+>> >attached devices.
+>> >
+>> >Two helpers are added:
+>> >- dma_buf_get_constraints - which gives the current constraints as calculated
+>> >       during each attach on the buffer till the time,
+>> >- dma_buf_recalc_constraints - which recalculates the constraints for all
+>> >       currently attached devices for the 'paranoid' ones amongst us.
+>> >
+>> >The idea of this patch is largely taken from Rob Clark's RFC at
+>> >https://lkml.org/lkml/2012/7/19/285, and the comments received on it.
+>> >
+>> >Cc: Rob Clark <robdclark@gmail.com>
+>> >Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+>>
+>> The code looks okay, although it will probably will work well only with
+>> typical cases like 'contiguous memory needed' or 'no constraints at all'
+>> (iommu).
+>
+> Which is a damn good reason to NAK it - by that admission, it's a half-baked
+> idea.
+>
+> If all we want to know is whether the importer can accept only contiguous
+> memory or not, make a flag to do that, and allow the exporter to test this
+> flag.  Don't over-engineer this to make it _seem_ like it can do something
+> that it actually totally fails with.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- utils/media-ctl/libv4l2subdev.c |   60 +++++++++++++++++++++++++++++++++++++++
- utils/media-ctl/v4l2subdev.h    |   18 ++++++++++++
- 2 files changed, 78 insertions(+)
+jfyi, I agree with that.. I think the flag is probably the right
+approach to start with.  At the end of the day it *is* still just an
+in-kernel API (and not something that ends up as userspace ABI) so
+when we come up with the use case to make it more generic we can.  Vs.
+making it look like something more generic when it isn't really yet.
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 379fe64..4475ef7 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -117,6 +117,66 @@ void v4l2_subdev_close(struct media_entity *entity)
- 	entity->sd->fd = -1;
- }
- 
-+int v4l2_subdev_open_pipeline(struct media_device *media)
-+{
-+	struct media_entity *entity = media->pipeline;
-+	int ret;
-+
-+	if (entity == NULL)
-+		return 0;
-+
-+	/*
-+	 * Stop walking the pipeline on the last last but one entity, because
-+	 * the sink entity sub-device was opened by libv4l2 core and its
-+	 * file descriptor needs to be preserved.
-+	 */
-+	while (entity->next) {
-+		media_dbg(media, "Opening sub-device: %s\n", entity->devname);
-+		ret = v4l2_subdev_open(entity);
-+		if (ret < 0)
-+			return ret;
-+
-+		if (entity->sd->fd < 0)
-+			goto err_open_subdev;
-+
-+		entity = entity->next;
-+	}
-+
-+	return 0;
-+
-+err_open_subdev:
-+	v4l2_subdev_release_pipeline(media);
-+
-+	return -EINVAL;
-+}
-+
-+void v4l2_subdev_release_pipeline(struct media_device *media)
-+{
-+	struct media_entity *entity = media->pipeline;
-+
-+	if (entity == NULL)
-+		return;
-+	/*
-+	 * Stop walking the pipeline on the last last but one entity, because
-+	 * the sink entity sub-device should be released by the client that
-+	 * instantiated it.
-+	 */
-+	while (entity->next) {
-+		if (!entity->sd) {
-+			entity = entity->next;
-+			continue;
-+		}
-+
-+		if (entity->sd->fd >= 0) {
-+			media_dbg(media, "Releasing sub-device: %s\n", entity->devname);
-+			v4l2_subdev_release(entity, true);
-+		}
-+
-+		entity = entity->next;
-+	}
-+}
-+
-+
- int v4l2_subdev_get_format(struct media_entity *entity,
- 	struct v4l2_mbus_framefmt *format, unsigned int pad,
- 	enum v4l2_subdev_format_whence which)
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 0f1deca..2fdcb76 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -90,6 +90,24 @@ int v4l2_subdev_open(struct media_entity *entity);
- void v4l2_subdev_close(struct media_entity *entity);
- 
- /**
-+ * @brief Open media device pipeline
-+ * @param media - media device.
-+ *
-+ * Open all sub-devices in the media device pipeline.
-+ *
-+ * @return 0 on success, or a negative error code on failure.
-+ */
-+int v4l2_subdev_open_pipeline(struct media_device *media);
-+
-+/**
-+ * @brief Release media device pipeline sub-devices
-+ * @param media - media device.
-+ *
-+ * Release all sub-devices in the media device pipeline.
-+ */
-+void v4l2_subdev_release_pipeline(struct media_device *media);
-+
-+/**
-  * @brief Retrieve the format on a pad.
-  * @param entity - subdev-device media entity.
-  * @param format - format to be filled.
--- 
-1.7.9.5
+> As I've already pointed out, there's a major problem if you have already
+> had a less restrictive attachment which has an active mapping, and a new
+> more restrictive attachment comes along later.
+>
+> It seems from Rob's descriptions that we also need another flag in the
+> importer to indicate whether it wants to have a valid struct page in the
+> scatter list, or whether it (correctly) uses the DMA accessors on the
+> scatter list - so that exporters can reject importers which are buggy.
 
+to be completely generic, we would really need a way that the device
+could take over only just the last iommu (in case there were multiple
+levels of address translation)..
+
+I'm not completely sure, but I *think* the other arm gpu's have their
+own internal mmu for doing context switching, etc, so if there is an
+additional iommu in front of them they may actually still want to use
+the normal dma api's.  Someone please contradict me if I am wrong.  If
+this ends up being an issue only for msm, then I'm completely ok with
+the easier option of a less generic solution..
+
+BR,
+-R
+
+>
+> --
+> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+> according to speedtest.net.
