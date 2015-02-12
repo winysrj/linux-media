@@ -1,54 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:63807 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753294AbbBRRHV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 12:07:21 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NJZ00GST8W83040@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 19 Feb 2015 02:07:20 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
+Received: from mga02.intel.com ([134.134.136.20]:1321 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932153AbbBLNmj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Feb 2015 08:42:39 -0500
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id D132B20093
+	for <linux-media@vger.kernel.org>; Thu, 12 Feb 2015 15:42:36 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl
-Subject: [PATCH v2 2/3] coda: set allow_zero_bytesused flag for vb2_queue_init
-Date: Wed, 18 Feb 2015 18:07:05 +0100
-Message-id: <1424279226-23548-2-git-send-email-k.debski@samsung.com>
-In-reply-to: <1424279226-23548-1-git-send-email-k.debski@samsung.com>
-References: <1424279226-23548-1-git-send-email-k.debski@samsung.com>
+Subject: [PATCH 1/1] media: Correctly notify about the failed pipeline validation
+Date: Thu, 12 Feb 2015 15:43:11 +0200
+Message-Id: <1423748591-19402-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The coda driver interprets a buffer with bytesused equal to 0 as a special
-case indicating end-of-stream. After vb2: fix bytesused == 0 handling
-(8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
-The allow_zero_bytesused flag was added to videobuf2 to keep
-backward compatibility.
+On the place of the source entity name, the sink entity name was printed.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/coda/coda-common.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/media/media-entity.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 6f32e6d..2d23f9a 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1541,6 +1541,13 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
- 	vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	vq->lock = &ctx->dev->dev_mutex;
-+	/* One of means to indicate end-of-stream for coda is to set the
-+	 * bytesused == 0. However by default videobuf2 handles videobuf
-+	 * equal to 0 as a special case and changes its value to the size
-+	 * of the buffer. Set the allow_zero_bytesused flag, so
-+	 * that videobuf2 will keep the value of bytesused intact.
-+	 */
-+	vq->allow_zero_bytesused = 1;
- 
- 	return vb2_queue_init(vq);
- }
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index defe4ac..d894481 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -283,9 +283,9 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 			if (ret < 0 && ret != -ENOIOCTLCMD) {
+ 				dev_dbg(entity->parent->dev,
+ 					"link validation failed for \"%s\":%u -> \"%s\":%u, error %d\n",
+-					entity->name, link->source->index,
+-					link->sink->entity->name,
+-					link->sink->index, ret);
++					link->source->entity->name,
++					link->source->index,
++					entity->name, link->sink->index, ret);
+ 				goto error;
+ 			}
+ 		}
 -- 
-1.7.9.5
+2.1.0.231.g7484e3b
 
