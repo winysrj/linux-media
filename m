@@ -1,56 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34905 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755154AbbBPMhD (ORCPT
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:50949 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188AbbBLWLu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 07:37:03 -0500
-Message-ID: <54E1E45B.2040602@xs4all.nl>
-Date: Mon, 16 Feb 2015 13:36:43 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 12 Feb 2015 17:11:50 -0500
+From: Luis de Bethencourt <luis@debethencourt.com>
+Date: Thu, 12 Feb 2015 22:11:47 +0000
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, david@hardeman.nu,
+	james.harper@ejbdigital.com.au, linux-kernel@vger.kernel.org
+Subject: [PATCH] dib0700: remove unused macros
+Message-ID: <20150212221147.GA12614@turing>
 MIME-Version: 1.0
-To: Luis de Bethencourt <luis@debethencourt.com>,
-	linux-media@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
-Subject: Re: Recent commit introduces compiler Error in some platforms
-References: <20150216121829.GA23673@biggie>
-In-Reply-To: <20150216121829.GA23673@biggie>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/16/2015 01:18 PM, Luis de Bethencourt wrote:
-> Hi all,
-> 
-> As can be seen in Han's build log:
-> http://hverkuil.home.xs4all.nl/logs/Saturday.log
-> 
-> The recent commit bc0c5aa35ac88342831933ca7758ead62d9bae2b introduces a
-> compiler error in some platforms.
-> 
-> /home/hans/work/build/media_build/v4l/ir-hix5hd2.c: In function 'hix5hd2_ir_config':
-> /home/hans/work/build/media_build/v4l/ir-hix5hd2.c:95:2: error: implicit declaration of function 'writel_relaxed' [-Werror=implicit-function-declaration]
->   writel_relaxed(0x01, priv->base + IR_ENABLE);
->   ^
-> 
-> Better than reverting, what would be a good solution for this problem?
-> I am happy to implment it once I know what is the right direction.
-> 
-> From what I see that commit mentions that the function is now available from
-> include/asm-generic/io.h, but this isn't included.
+Remove unused macros RC_REPEAT_DELAY and RC_REPEAT_DELAY_V1_20
 
-I've just fixed the media_build repository to handle this. Do a git pull and
-it should compile again (only tested against kernel 3.18).
+Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
+---
+ drivers/media/usb/dvb-usb/dib0700_core.c    | 3 ---
+ drivers/media/usb/dvb-usb/dib0700_devices.c | 3 ---
+ 2 files changed, 6 deletions(-)
 
-Regards,
-
-	Hans
-
-> Thanks,
-> Luis
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index 50856db..2b40393 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -651,9 +651,6 @@ out:
+ 	return ret;
+ }
+ 
+-/* Number of keypresses to ignore before start repeating */
+-#define RC_REPEAT_DELAY_V1_20 10
+-
+ /* This is the structure of the RC response packet starting in firmware 1.20 */
+ struct dib0700_rc_response {
+ 	u8 report_id;
+diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+index e1757b8..d7d55a2 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+@@ -510,9 +510,6 @@ static int stk7700ph_tuner_attach(struct dvb_usb_adapter *adap)
+ 
+ static u8 rc_request[] = { REQUEST_POLL_RC, 0 };
+ 
+-/* Number of keypresses to ignore before start repeating */
+-#define RC_REPEAT_DELAY 6
+-
+ /*
+  * This function is used only when firmware is < 1.20 version. Newer
+  * firmwares use bulk mode, with functions implemented at dib0700_core,
+-- 
+2.1.0
 
