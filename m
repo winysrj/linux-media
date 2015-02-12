@@ -1,51 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:44134 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932986AbbBDQxP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 11:53:15 -0500
+Received: from mail-qg0-f41.google.com ([209.85.192.41]:49875 "EHLO
+	mail-qg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755201AbbBLLhz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Feb 2015 06:37:55 -0500
+Received: by mail-qg0-f41.google.com with SMTP id i50so7402069qgf.0
+        for <linux-media@vger.kernel.org>; Thu, 12 Feb 2015 03:37:54 -0800 (PST)
+From: =?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: =?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>
+Subject: [PATCH v2] dvb-usb-v2: add support for the media controller at USB driver
+Date: Thu, 12 Feb 2015 09:37:25 -0200
+Message-Id: <1423741045-4647-1-git-send-email-chehabrafael@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOMZO5D5QQQj6u7av4TTAY7gbRXXx7AF_eYJiQxuPtgo9zsQtQ@mail.gmail.com>
-References: <1421365163-29394-1-git-send-email-prabhakar.csengg@gmail.com>
- <CAL_Jsq+Yk1sDT+KfxRfR3ue74KtKxDB3Aj0BS2=sfYwzMcQtDw@mail.gmail.com> <CAOMZO5D5QQQj6u7av4TTAY7gbRXXx7AF_eYJiQxuPtgo9zsQtQ@mail.gmail.com>
-From: Rob Herring <robherring2@gmail.com>
-Date: Wed, 4 Feb 2015 10:52:53 -0600
-Message-ID: <CAL_JsqJ9oxgKsCSeNaPFANFq_rzCGYNg+oZEfgy2gmY7SYGt2A@mail.gmail.com>
-Subject: Re: [PATCH] media: i2c: add support for omnivision's ov2659 sensor
-To: Fabio Estevam <festevam@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 4, 2015 at 9:23 AM, Fabio Estevam <festevam@gmail.com> wrote:
-> Rob,
->
-> On Wed, Feb 4, 2015 at 12:55 PM, Rob Herring <robherring2@gmail.com> wrote:
->
->> I'm surprised there are not already compatible strings with
->> OmniVision. There are some examples using "omnivision", but no dts
->> files and examples don't count.
->>
->> The stock ticker is ovti, so please use that.
->
-> That's what I sent:
-> http://patchwork.ozlabs.org/patch/416685/
->
-> Could you apply it?
+Create a struct media_device and add it to the dvb adapter.
 
-Yes. Now applied.
+Please notice that the tuner is not mapped yet by the dvb core.
 
-Rob
+Signed-off-by: Rafael Lourenço de Lima Chehab <chehabrafael@gmail.com>
+---
+ drivers/media/usb/dvb-usb-v2/dvb_usb.h      |  5 +++
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 61 +++++++++++++++++++++++++++++
+ 2 files changed, 66 insertions(+)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+index 14e111e13e54..b273250d0e31 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+@@ -25,6 +25,7 @@
+ #include <linux/usb/input.h>
+ #include <linux/firmware.h>
+ #include <media/rc-core.h>
++#include <media/media-device.h>
+ 
+ #include "dvb_frontend.h"
+ #include "dvb_demux.h"
+@@ -389,6 +390,10 @@ struct dvb_usb_device {
+ 	struct delayed_work rc_query_work;
+ 
+ 	void *priv;
++
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_device *media_dev;
++#endif
+ };
+ 
+ extern int dvb_usbv2_probe(struct usb_interface *,
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index 1950f37df835..16dca65e1d6b 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -400,6 +400,55 @@ skip_feed_stop:
+ 	return ret;
+ }
+ 
++static void dvb_usbv2_media_device_register(struct dvb_usb_device *d)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++
++	struct media_device *mdev;
++	struct usb_device *udev = d->udev;
++	int ret;
++
++	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	if (!mdev)
++		return;
++
++	mdev->dev = &udev->dev;
++	strlcpy(mdev->model, d->name, sizeof(mdev->model));
++	if (udev->serial)
++		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
++	strcpy(mdev->bus_info, udev->devpath);
++	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
++	mdev->driver_version = LINUX_VERSION_CODE;
++
++	ret = media_device_register(mdev);
++	if (ret) {
++		dev_err(&d->udev->dev,
++			"Couldn't create a media device. Error: %d\n",
++			ret);
++		kfree(mdev);
++		return;
++	}
++
++	d->media_dev = mdev;
++
++	dev_info(&d->udev->dev, "media controller created\n");
++
++#endif
++}
++
++static void dvb_usbv2_media_device_unregister (struct dvb_usb_device *d)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	if (!d->media_dev)
++		return;
++
++	media_device_unregister(d->media_dev);
++	kfree(d->media_dev);
++	d->media_dev = NULL;
++
++#endif
++}
++
+ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
+ {
+ 	int ret;
+@@ -416,6 +465,11 @@ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
+ 
+ 	adap->dvb_adap.priv = adap;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	dvb_usbv2_media_device_register(d);
++	adap->dvb_adap.mdev = d->media_dev;
++#endif
++
+ 	if (d->props->read_mac_address) {
+ 		ret = d->props->read_mac_address(adap,
+ 				adap->dvb_adap.proposed_mac);
+@@ -464,6 +518,7 @@ err_dvb_net_init:
+ err_dvb_dmxdev_init:
+ 	dvb_dmx_release(&adap->demux);
+ err_dvb_dmx_init:
++	dvb_usbv2_media_device_unregister(d);
+ 	dvb_unregister_adapter(&adap->dvb_adap);
+ err_dvb_register_adapter:
+ 	adap->dvb_adap.priv = NULL;
+@@ -472,6 +527,8 @@ err_dvb_register_adapter:
+ 
+ static int dvb_usbv2_adapter_dvb_exit(struct dvb_usb_adapter *adap)
+ {
++	struct dvb_usb_device *d = adap_to_d(adap);
++
+ 	dev_dbg(&adap_to_d(adap)->udev->dev, "%s: adap=%d\n", __func__,
+ 			adap->id);
+ 
+@@ -480,6 +537,7 @@ static int dvb_usbv2_adapter_dvb_exit(struct dvb_usb_adapter *adap)
+ 		adap->demux.dmx.close(&adap->demux.dmx);
+ 		dvb_dmxdev_release(&adap->dmxdev);
+ 		dvb_dmx_release(&adap->demux);
++		dvb_usbv2_media_device_unregister(d);
+ 		dvb_unregister_adapter(&adap->dvb_adap);
+ 	}
+ 
+@@ -643,6 +701,8 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
+ 		}
+ 	}
+ 
++	dvb_create_media_graph(d->media_dev);
++
+ 	return 0;
+ 
+ err_dvb_unregister_frontend:
+@@ -954,6 +1014,7 @@ void dvb_usbv2_disconnect(struct usb_interface *intf)
+ 	struct dvb_usb_device *d = usb_get_intfdata(intf);
+ 	const char *name = d->name;
+ 	struct device dev = d->udev->dev;
++
+ 	dev_dbg(&d->udev->dev, "%s: bInterfaceNumber=%d\n", __func__,
+ 			intf->cur_altsetting->desc.bInterfaceNumber);
+ 
+-- 
+2.1.0
+
