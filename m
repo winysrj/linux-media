@@ -1,61 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f178.google.com ([74.125.82.178]:63982 "EHLO
-	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754749AbbBOMLp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Feb 2015 07:11:45 -0500
-From: Silvan Jegen <s.jegen@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: Silvan Jegen <s.jegen@gmail.com>, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH 1/2] [media] mantis: Move jump label to activate dead code
-Date: Sun, 15 Feb 2015 13:11:04 +0100
-Message-Id: <1424002265-16865-2-git-send-email-s.jegen@gmail.com>
-In-Reply-To: <1424002265-16865-1-git-send-email-s.jegen@gmail.com>
-References: <1424002265-16865-1-git-send-email-s.jegen@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:59886 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751781AbbBLALv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Feb 2015 19:11:51 -0500
+Message-ID: <54DBEFC4.7080208@iki.fi>
+Date: Thu, 12 Feb 2015 02:11:48 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: =?UTF-8?B?UmFmYWVsIExvdXJlbsOnbyBkZSBMaW1hIENoZWhhYg==?=
+	<chehabrafael@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFC] dvb-usb-v2: add support for the media controller
+ at USB driver
+References: <1423699484-8733-1-git-send-email-chehabrafael@gmail.com>
+In-Reply-To: <1423699484-8733-1-git-send-email-chehabrafael@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to a misplaced goto label mantis_uart_exit is never called.  Adjusting
-the label position (while correcting its numbering) changes this.
+Moikka!
 
-This issue was found using the smatch static checker.
+On 02/12/2015 02:04 AM, Rafael Lourenço de Lima Chehab wrote:
+> Create a struct media_device and add it to the dvb adapter.
+>
+> Please notice that the tuner is not mapped yet by the dvb core.
+>
+> Signed-off-by: Rafael Lourenço de Lima Chehab <chehabrafael@gmail.com>
+> ---
+>   drivers/media/usb/dvb-usb-v2/dvb_usb.h      |  5 +++
+>   drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 61 +++++++++++++++++++++++++++++
+>   2 files changed, 66 insertions(+)
 
-Signed-off-by: Silvan Jegen <s.jegen@gmail.com>
----
- drivers/media/pci/mantis/mantis_cards.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+I am not against that patch, but I don't simply understand media 
+controller concept enough detailed level. So it is all up to Mauro.
 
-diff --git a/drivers/media/pci/mantis/mantis_cards.c b/drivers/media/pci/mantis/mantis_cards.c
-index 801fc55..e566061 100644
---- a/drivers/media/pci/mantis/mantis_cards.c
-+++ b/drivers/media/pci/mantis/mantis_cards.c
-@@ -215,10 +215,11 @@ static int mantis_pci_probe(struct pci_dev *pdev,
- 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis DVB initialization failed <%d>", err);
- 		goto fail4;
- 	}
-+
- 	err = mantis_uart_init(mantis);
- 	if (err < 0) {
- 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis UART initialization failed <%d>", err);
--		goto fail6;
-+		goto fail5;
- 	}
- 
- 	devs++;
-@@ -226,10 +227,10 @@ static int mantis_pci_probe(struct pci_dev *pdev,
- 	return err;
- 
- 
-+fail5:
- 	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis UART exit! <%d>", err);
- 	mantis_uart_exit(mantis);
- 
--fail6:
- fail4:
- 	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis DMA exit! <%d>", err);
- 	mantis_dma_exit(mantis);
+regards
+Antti
+
 -- 
-2.2.2
-
+http://palosaari.fi/
