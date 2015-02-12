@@ -1,43 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45388 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965802AbbBDNOw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 08:14:52 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 4/5] [media] s5p-mfc: Set last buffer flag
-Date: Wed,  4 Feb 2015 14:14:36 +0100
-Message-Id: <1423055677-13161-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
-References: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-la0-f43.google.com ([209.85.215.43]:39703 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750881AbbBLHPm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Feb 2015 02:15:42 -0500
+Received: by labgq15 with SMTP id gq15so8277792lab.6
+        for <linux-media@vger.kernel.org>; Wed, 11 Feb 2015 23:15:41 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20150212001034.GA1864@turing>
+References: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
+ <20150212001034.GA1864@turing>
+From: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>
+Date: Thu, 12 Feb 2015 08:15:10 +0100
+Message-ID: <CAEmZozNL_GZtTVkJvn5sgteSaWoRV2fNNhboADiGJhJNCCh_Fw@mail.gmail.com>
+Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working
+ since kernel 3.17
+To: Luis de Bethencourt <luis@debethencourt.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Setting the last buffer flag causes the videobuf2 core to return -EPIPE from
-DQBUF calls on the capture queue after the last buffer is dequeued.
+I'll try to describe my thoughts.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 1 +
- 1 file changed, 1 insertion(+)
+The changed structure "dib0700_rc_response" is used in
+dib0700_core.c:dib0700_rc_urb_completion(struct urb *purb) function:
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 8e44a59..f08d639 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -211,6 +211,7 @@ static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
- 			dst_buf->b->v4l2_buf.field = V4L2_FIELD_NONE;
- 		else
- 			dst_buf->b->v4l2_buf.field = V4L2_FIELD_INTERLACED;
-+		dst_buf->b->v4l2_buf.flags |= V4L2_BUF_FLAG_LAST;
- 
- 		ctx->dec_dst_flag &= ~(1 << dst_buf->b->v4l2_buf.index);
- 		vb2_buffer_done(dst_buf->b, VB2_BUF_STATE_DONE);
--- 
-2.1.4
+struct dib0700_rc_response *poll_reply;
+...
+poll_reply = purb->transfer_buffer;
 
+dib0700_rc_urb_completion() is then used in
+dib0700_core.c:dib0700_rc_setup() in macros usb_fill_bulk_urb and
+usb_fill_int_urb. These macros are defined in header file usb.h. Here
+I have found in macro description this:
+
+ * @transfer_buffer: pointer to the transfer buffer
+
+I suppose that it means that the struct dib0700_rc_response is being
+filled from this transfer buffer. Therefore I suppose that the order
+of structure members IS important.
+
+Of course it's only my guess but my patch is really working for me :-)
+
+
+
+2015-02-12 1:10 GMT+01:00 Luis de Bethencourt <luis@debethencourt.com>:
+> On Tue, Feb 10, 2015 at 11:38:11AM +0100, David Cimbůrek wrote:
+>> Please include this patch to kernel! It takes too much time for such a
+>> simple fix!
+>>
+>
+> The patch is simple but why it fixes the issue isn't that simple. Could you
+> explain why the order of the variables inside the structure is breaking things?
+>
+> All the uses of the variables inside the structure that I can see are by name.
+> Not by memory offsets.
+>
+> Thanks,
+> Luis
+>
+>>
+>> 2015-01-07 13:51 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
+>> > No one is interested? I'd like to get this patch to kernel to fix the
+>> > issue. Can someone here do it please?
+>> >
+>> >
+>> > 2014-12-20 14:36 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
+>> >> Hi,
+>> >>
+>> >> with kernel 3.17 remote control for Pinnacle 73e (ID 2304:0237
+>> >> Pinnacle Systems, Inc. PCTV 73e [DiBcom DiB7000PC]) does not work
+>> >> anymore.
+>> >>
+>> >> I checked the changes and found out the problem in commit
+>> >> af3a4a9bbeb00df3e42e77240b4cdac5479812f9.
+>> >>
+>> >> In dib0700_core.c in struct dib0700_rc_response the following union:
+>> >>
+>> >> union {
+>> >>     u16 system16;
+>> >>     struct {
+>> >>         u8 not_system;
+>> >>         u8 system;
+>> >>     };
+>> >> };
+>> >>
+>> >> has been replaced by simple variables:
+>> >>
+>> >> u8 system;
+>> >> u8 not_system;
+>> >>
+>> >> But these variables are in reverse order! When I switch the order
+>> >> back, the remote works fine again! Here is the patch:
+>> >>
+>> >>
+>> >> --- a/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
+>> >> 14:27:15.000000000 +0100
+>> >> +++ b/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
+>> >> 14:27:36.000000000 +0100
+>> >> @@ -658,8 +658,8 @@
+>> >>  struct dib0700_rc_response {
+>> >>      u8 report_id;
+>> >>      u8 data_state;
+>> >> -    u8 system;
+>> >>      u8 not_system;
+>> >> +    u8 system;
+>> >>      u8 data;
+>> >>      u8 not_data;
+>> >>  };
+>> >>
+>> >>
+>> >> Regards,
+>> >> David
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
