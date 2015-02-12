@@ -1,55 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:49032 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754866AbbBCHsu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 02:48:50 -0500
-Received: by mail-we0-f179.google.com with SMTP id q59so43336445wes.10
-        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2015 23:48:49 -0800 (PST)
-Date: Tue, 3 Feb 2015 08:50:11 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Rob Clark <robdclark@gmail.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher
- constraints with dma-parms
-Message-ID: <20150203075011.GG14009@phenom.ffwll.local>
-References: <20150129143908.GA26493@n2100.arm.linux.org.uk>
- <CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
- <20150129154718.GB26493@n2100.arm.linux.org.uk>
- <CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
- <20150129192610.GE26493@n2100.arm.linux.org.uk>
- <CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
- <20150202165405.GX14009@phenom.ffwll.local>
- <CAF6AEGuESM+e3HSRGM6zLqrp8kqRLGUYvA3KKECdm7m-nt0M=Q@mail.gmail.com>
- <20150202214616.GI8656@n2100.arm.linux.org.uk>
- <CAF6AEGvE78a9u9=C6HbuuYs_zwGf6opdXUNfxb51kixFa7zLwA@mail.gmail.com>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:43553 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750872AbbBLXia (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Feb 2015 18:38:30 -0500
+From: luis@debethencourt.com
+Date: Thu, 12 Feb 2015 23:38:26 +0000
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, david@hardeman.nu,
+	james.harper@ejbdigital.com.au, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] dib0700: remove unused macros
+Message-ID: <20150212233826.GA10015@turing>
+References: <20150212221147.GA12614@turing>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAF6AEGvE78a9u9=C6HbuuYs_zwGf6opdXUNfxb51kixFa7zLwA@mail.gmail.com>
+In-Reply-To: <20150212221147.GA12614@turing>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 02, 2015 at 05:36:10PM -0500, Rob Clark wrote:
-> well, I guess anyways when it comes to sharing buffers, it won't be
-> the vram placement of the bo that gets shared ;-)
+On Thu, Feb 12, 2015 at 10:11:47PM +0000, Luis de Bethencourt wrote:
+> Remove unused macros RC_REPEAT_DELAY and RC_REPEAT_DELAY_V1_20
+> 
+> Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
+> ---
+>  drivers/media/usb/dvb-usb/dib0700_core.c    | 3 ---
+>  drivers/media/usb/dvb-usb/dib0700_devices.c | 3 ---
+>  2 files changed, 6 deletions(-)
+> 
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+> index 50856db..2b40393 100644
+> --- a/drivers/media/usb/dvb-usb/dib0700_core.c
+> +++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+> @@ -651,9 +651,6 @@ out:
+>  	return ret;
+>  }
+>  
+> -/* Number of keypresses to ignore before start repeating */
+> -#define RC_REPEAT_DELAY_V1_20 10
+> -
+>  /* This is the structure of the RC response packet starting in firmware 1.20 */
+>  struct dib0700_rc_response {
+>  	u8 report_id;
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> index e1757b8..d7d55a2 100644
+> --- a/drivers/media/usb/dvb-usb/dib0700_devices.c
+> +++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> @@ -510,9 +510,6 @@ static int stk7700ph_tuner_attach(struct dvb_usb_adapter *adap)
+>  
+>  static u8 rc_request[] = { REQUEST_POLL_RC, 0 };
+>  
+> -/* Number of keypresses to ignore before start repeating */
+> -#define RC_REPEAT_DELAY 6
+> -
+>  /*
+>   * This function is used only when firmware is < 1.20 version. Newer
+>   * firmwares use bulk mode, with functions implemented at dib0700_core,
+> -- 
+> 2.1.0
+> 
 
-Actually that's pretty much what I'd like to be able to do for i915.
-Except that vram is just a specially protected chunk of main memory.
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+For some context, the only usage of macro RC_REPEAT_DELAY_V1_20 was removed in
+commit 72b393106bddc9f0a1ab502b4c8c5793a0441a30
+
+And the last usage of macro RC_REPEAT_DELAY was removed in commit
+72b393106bddc9f0a1ab502b4c8c5793a0441a30
+
+Thanks,
+Luis
