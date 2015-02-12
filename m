@@ -1,91 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f46.google.com ([209.85.192.46]:33003 "EHLO
-	mail-qg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751562AbbBSQBc convert rfc822-to-8bit (ORCPT
+Received: from or-71-0-52-80.sta.embarqhsd.net ([71.0.52.80]:55890 "EHLO
+	asgard.dharty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468AbbBLXsH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 11:01:32 -0500
-Received: by mail-qg0-f46.google.com with SMTP id z107so7062358qgd.5
-        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2015 08:01:31 -0800 (PST)
+	Thu, 12 Feb 2015 18:48:07 -0500
+Message-ID: <54DD3986.3010707@dharty.com>
+Date: Thu, 12 Feb 2015 15:38:46 -0800
+From: David Harty <dwh@dharty.com>
+Reply-To: v4l@dharty.com
 MIME-Version: 1.0
-In-Reply-To: <54E60378.6030604@iki.fi>
-References: <1424337200-6446-1-git-send-email-a.seppala@gmail.com>
-	<54E5B028.5080900@southpole.se>
-	<CAKv9HNaSqgFpC+TmMm86Y7mrgXvZ9U+wqdgjM4n=hf80p2W1jg@mail.gmail.com>
-	<54E60378.6030604@iki.fi>
-Date: Thu, 19 Feb 2015 18:01:31 +0200
-Message-ID: <CAKv9HNZPLws9=dpigcVtL7zedWYRit=yK_dw9EkdzH2VD55qMQ@mail.gmail.com>
-Subject: Re: [RFC PATCH] mn88472: reduce firmware download chunk size
-From: =?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Benjamin Larsson <benjamin@southpole.se>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: DCRYPT@telefonica.net, stoth@kernellabs.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [BUG, workaround] HVR-2200/saa7164 problem with C7 power state
+References: <14641294.293916.1422889477503.JavaMail.defaultUser@defaultHost>	<1842309.294410.1422891194529.JavaMail.defaultUser@defaultHost> <CALzAhNXPne4_0vs80Y26Yia8=jYh8EqA0phJm31UzATdAvPvDg@mail.gmail.com> <8039614.312436.1422971964080.JavaMail.defaultUser@defaultHost>
+In-Reply-To: <8039614.312436.1422971964080.JavaMail.defaultUser@defaultHost>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19 February 2015 at 17:38, Antti Palosaari <crope@iki.fi> wrote:
->
->
-> On 02/19/2015 12:21 PM, Antti Seppälä wrote:
->>
->> On 19 February 2015 at 11:43, Benjamin Larsson <benjamin@southpole.se>
->> wrote:
->>>
->>> On 2015-02-19 10:13, Antti Seppälä wrote:
->>>>
->>>>
->>>> It seems that currently the firmware download on the mn88472 is
->>>> somehow wrong for my Astrometa HD-901T2.
->>>>
->>>> Reducing the download chunk size (mn88472_config.i2c_wr_max) to 2
->>>> makes the firmware download consistently succeed.
->>>>
->>>
->>>
->>> Hi, try adding the workaround patch I sent for this.
->>>
->>> [PATCH 1/3] rtl28xxu: lower the rc poll time to mitigate i2c transfer
->>> errors
->>>
->>> I now see that it hasn't been merged. But I have been running with this
->>> patch for a few months now without any major issues.
->>>
->>
->> The patch really did improve firmware loading. Weird...
->>
->> Even with it I still get occasional i2c errors from r820t:
->>
->> [   15.874402] r820t 8-003a: r820t_write: i2c wr failed=-32 reg=0a len=1:
->> da
->> [   81.455517] r820t 8-003a: r820t_read: i2c rd failed=-32 reg=00
->> len=4: 69 74 e6 df
->> [   99.949702] r820t 8-003a: r820t_read: i2c rd failed=-32 reg=00
->> len=4: 69 74 e6 df
->>
->> These errors seem to appear more often if I'm reading the signal
->> strength values using e.g. femon.
->
->
-> Could you disable whole IR polling and test
-> modprobe dvb_usb_v2 disable_rc_polling=1
->
-> It is funny that *increasing* RC polling makes things better, though...
->
 
-Hi.
 
-I tried loading the driver with polling disabled and it fails completely:
+On 02/03/2015 05:59 AM, DCRYPT@telefonica.net wrote:
+>> ---- Mensaje original ----
+>> De : stoth@kernellabs.com
+>> Fecha : 02/02/2015 - 16:39 (GMT)
+>> Para : DCRYPT@telefonica.net
+>> CC : linux-media@vger.kernel.org
+>> Asunto : Re: [BUG, workaround] HVR-2200/saa7164 problem with C7 power state
+>>
+>>>> Basically, it starts working but after a while I get an "Event timed out" message and several i2c errors and VDR shuts down (some hours after reboot). As the web page mentions, I tested downgrading the PCIe bandwith from GEN2 to GEN1 without success. But after playing with different BIOS options, what did the trick was limiting the power-saving C-states. If I select "C7" as the maximum C-state, the card fails as described. After limiting the maximum C-state to "C6", it has been working for a whole weekend.
+>> Good feedback on the C7 vs C6 power state, thanks.
+> You are welcome, Steve. Happy to be helpful.
+>
+> I will be at your disposal for testing purposes, if you need.
+>
+> BR
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-[ 5526.693563] mn88472 7-0018: downloading firmware from file
-'dvb-demod-mn88472-02.fw'
-[ 5527.032209] mn88472 7-0018: firmware download failed=-32
-[ 5527.033864] rtl2832 7-0010: i2c reg write failed -32
-[ 5527.033874] r820t 8-003a: r820t_write: i2c wr failed=-32 reg=05 len=1: 83
-[ 5527.036014] rtl2832 7-0010: i2c reg write failed -32
 
-I have no idea why the device behaves so counter-intuitively. Is there
-maybe some sorf of internal power-save mode the device enters when
-there is no i2c traffic for a while or something?
+Some additional input:
 
--Antti
+I made similar changes to the bios of my ASRock H87M Pro4.  There were 
+multiple settings for CPU C state support.  I set the C7 state to 
+disabled and forced selected C6 in the State support dropdown to further 
+force it to C6.
+
+Within 3 hours the dmesg was filling up with the no free sequences errors.
+
+I hadn't changed the PCI Express Configuration to Gen1 because per the 
+http://whirlpool.net.au/wiki/n54l_all_in_one page it didn't appear to 
+help reliably.  I've made that change now. I'll report to see if that 
+improves anything, perhaps both changes have to be made in conjunction.
+
+
+Regards,
+
+David
+
