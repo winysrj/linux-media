@@ -1,66 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45391 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965805AbbBDNOw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 08:14:52 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 5/5] [media] DocBooc: mention mem2mem codecs for encoder/decoder commands
-Date: Wed,  4 Feb 2015 14:14:37 +0100
-Message-Id: <1423055677-13161-6-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
-References: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37260 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753122AbbBMQnG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Feb 2015 11:43:06 -0500
+Message-ID: <54DE298A.3040205@xs4all.nl>
+Date: Fri, 13 Feb 2015 17:42:50 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Jurgen Kramer <gtmkramer@xs4all.nl>
+CC: Raimonds Cicans <ray@apollo.lv>, linux-media@vger.kernel.org
+Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
+ cx23885: convert to vb2"
+References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>			 <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>			 <54CE24F2.7090400@apollo.lv> <54CF4508.9070305@xs4all.nl>		 <1423065972.2650.1.camel@xs4all.nl> <54D24685.1000708@xs4all.nl>	 <1423070484.2650.3.camel@xs4all.nl> <54DDC00D.209@xs4all.nl> <1423844081.2887.6.camel@xs4all.nl>
+In-Reply-To: <1423844081.2887.6.camel@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch mentions mem2mem codecs and the mem2mem draining flow signals in the
-VIDIOC_DECODER_CMD V4L2_DEC_CMD_STOP and VIDIOC_ENCODER_CMD V4L2_ENC_CMD_STOP
-documentation.
+On 02/13/2015 05:14 PM, Jurgen Kramer wrote:
+> Hi,
+> 
+> On Fri, 2015-02-13 at 10:12 +0100, Hans Verkuil wrote:
+>> Hi Jurgen,
+>>
+>> On 02/04/2015 06:21 PM, Jurgen Kramer wrote:
+>>> On Wed, 2015-02-04 at 17:19 +0100, Hans Verkuil wrote:
+>>>> On 02/04/2015 05:06 PM, Jurgen Kramer wrote:
+>>>>> Hi Hans,
+>>>>>
+>>>>> On Mon, 2015-02-02 at 10:36 +0100, Hans Verkuil wrote:
+>>>>>> Raimonds and Jurgen,
+>>>>>>
+>>>>>> Can you both test with the following patch applied to the driver:
+>>>>>
+>>>>> Unfortunately the mpeg error is not (completely) gone:
+>>>>
+>>>> OK, I suspected that might be the case. Is the UNBALANCED warning
+>>>> gone with my vb2 patch?
+>>
+>>>> When you see this risc error, does anything
+>>>> break (broken up video) or crash, or does it just keep on streaming?
+>>
+>> Can you comment on this question?
+> I still get the risc errors at regular intervals. I am not sure what the real impact is. 
+> I do get the occasional failed recording (dreaded 0 byte recoderings).
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml | 6 +++++-
- Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml | 5 ++++-
- 2 files changed, 9 insertions(+), 2 deletions(-)
+Did you get those failed recordings in the past (i.e. before the 'convert
+to vb2' commit) as well? Or are these new since that commit?
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-index 9215627..6a30493 100644
---- a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-@@ -197,7 +197,11 @@ be muted when playing back at a non-standard speed.
- this command does nothing. This command has two flags:
- if <constant>V4L2_DEC_CMD_STOP_TO_BLACK</constant> is set, then the decoder will
- set the picture to black after it stopped decoding. Otherwise the last image will
--repeat. If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
-+repeat. mem2mem decoders will stop producing new frames altogether. They will send
-+a <constant>V4L2_EVENT_EOS</constant> event after the last frame was decoded and
-+will set the <constant>V4L2_BUF_FLAG_LAST</constant> buffer flag when there will
-+be no new buffers produced to dequeue.
-+If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
- stops immediately (ignoring the <structfield>pts</structfield> value), otherwise it
- will keep decoding until timestamp >= pts or until the last of the pending data from
- its internal buffers was decoded.
-diff --git a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-index 0619ca5..e9cf601 100644
---- a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-@@ -129,7 +129,10 @@ this command.</entry>
- encoding will continue until the end of the current <wordasword>Group
- Of Pictures</wordasword>, otherwise encoding will stop immediately.
- When the encoder is already stopped, this command does
--nothing.</entry>
-+nothing. mem2mem encoders will send a <constant>V4L2_EVENT_EOS</constant> event
-+after the last frame was encoded and will set the
-+<constant>V4L2_BUF_FLAG_LAST</constant> buffer flag on the capture queue when
-+there will be no new buffers produced to dequeue</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_ENC_CMD_PAUSE</constant></entry>
--- 
-2.1.4
+>>>
+>>> The UNBALANCED warnings have not reappeared (so far).
+>>
+>> And they are still gone? If that's the case, then I'll merge the patch
+>> fixing this for 3.20.
+> No, these are gone.
 
+Ah, good news.
+
+>>
+>> With respect to the risc error: the only reason I can think of is that it
+>> is a race condition when the risc program is updated. I'll see if I can
+>> spend some time on this today or on Monday. Can you give me an indication
+>> how often you see this risc error message?
+> 
+> dmesg |grep "risc op code error"
+> [ 1267.999719] cx23885[1]: mpeg risc op code error
+> [17830.312766] cx23885[2]: mpeg risc op code error
+> [37820.312372] cx23885[2]: mpeg risc op code error
+> [48973.897721] cx23885[2]: mpeg risc op code error
+> [126673.151447] cx23885[0]: mpeg risc op code error
+> [208262.607584] cx23885[2]: mpeg risc op code error
+> [212564.803499] cx23885[2]: mpeg risc op code error
+> [288834.700570] cx23885[1]: mpeg risc op code error
+> [298753.789105] cx23885[2]: mpeg risc op code error
+> [341900.746719] cx23885[2]: mpeg risc op code error
+> [346513.849946] cx23885[1]: mpeg risc op code error
+> [359267.169552] cx23885[2]: mpeg risc op code error
+> [370728.293458] cx23885[1]: mpeg risc op code error
+> [423626.314834] cx23885[1]: mpeg risc op code error
+> uptime:
+>  17:14:03 up 4 days, 22:22,  2 users,  load average: 0.19, 0.39, 0.34
+
+I understand that you record continuously? Or only at specific times?
+
+Sorry for all these questions, but they help me locate the problem.
+
+Regards,
+
+	Hans
