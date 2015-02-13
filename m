@@ -1,76 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:18921 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932069AbbBPJEe (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35343 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752466AbbBMJND (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 04:04:34 -0500
-Date: Mon, 16 Feb 2015 12:04:08 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Silvan Jegen <s.jegen@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 1/2] [media] mantis: Move jump label to activate dead code
-Message-ID: <20150216090408.GW5206@mwanda>
-References: <1424002265-16865-1-git-send-email-s.jegen@gmail.com>
- <1424002265-16865-2-git-send-email-s.jegen@gmail.com>
+	Fri, 13 Feb 2015 04:13:03 -0500
+Message-ID: <54DDC00D.209@xs4all.nl>
+Date: Fri, 13 Feb 2015 10:12:45 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1424002265-16865-2-git-send-email-s.jegen@gmail.com>
+To: Jurgen Kramer <gtmkramer@xs4all.nl>
+CC: Raimonds Cicans <ray@apollo.lv>, linux-media@vger.kernel.org
+Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
+ cx23885: convert to vb2"
+References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>		 <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>		 <54CE24F2.7090400@apollo.lv> <54CF4508.9070305@xs4all.nl>	 <1423065972.2650.1.camel@xs4all.nl> <54D24685.1000708@xs4all.nl> <1423070484.2650.3.camel@xs4all.nl>
+In-Reply-To: <1423070484.2650.3.camel@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Feb 15, 2015 at 01:11:04PM +0100, Silvan Jegen wrote:
-> diff --git a/drivers/media/pci/mantis/mantis_cards.c b/drivers/media/pci/mantis/mantis_cards.c
-> index 801fc55..e566061 100644
-> --- a/drivers/media/pci/mantis/mantis_cards.c
-> +++ b/drivers/media/pci/mantis/mantis_cards.c
-> @@ -215,10 +215,11 @@ static int mantis_pci_probe(struct pci_dev *pdev,
->  		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis DVB initialization failed <%d>", err);
->  		goto fail4;
->  	}
-> +
->  	err = mantis_uart_init(mantis);
->  	if (err < 0) {
->  		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis UART initialization failed <%d>", err);
-> -		goto fail6;
-> +		goto fail5;
->  	}
->  
->  	devs++;
-> @@ -226,10 +227,10 @@ static int mantis_pci_probe(struct pci_dev *pdev,
->  	return err;
->  
->  
-> +fail5:
->  	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis UART exit! <%d>", err);
->  	mantis_uart_exit(mantis);
->  
-> -fail6:
->  fail4:
->  	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis DMA exit! <%d>", err);
->  	mantis_dma_exit(mantis);
+Hi Jurgen,
 
-This patch isn't right, I'm afraid.  The person who wrote this driver
-deliberately added some dead error handling code in case we change it
-later and need to activate it.  It's an ugly thing to do because it
-causes static checker warnings, and confusion, and, in real life, then
-we are not ever going to need to activate it.  It's defensive
-programming but we don't do defensive programming.
-http://lwn.net/Articles/604813/  Just delete this dead code.
+On 02/04/2015 06:21 PM, Jurgen Kramer wrote:
+> On Wed, 2015-02-04 at 17:19 +0100, Hans Verkuil wrote:
+>> On 02/04/2015 05:06 PM, Jurgen Kramer wrote:
+>>> Hi Hans,
+>>>
+>>> On Mon, 2015-02-02 at 10:36 +0100, Hans Verkuil wrote:
+>>>> Raimonds and Jurgen,
+>>>>
+>>>> Can you both test with the following patch applied to the driver:
+>>>
+>>> Unfortunately the mpeg error is not (completely) gone:
+>>
+>> OK, I suspected that might be the case. Is the UNBALANCED warning
+>> gone with my vb2 patch?
 
-Also this code uses GW-BASIC style numbered gotos.  So ugly!  The label
-names should be based on what the label location does.  Eg
-"err_uart_exit", "err_dma_exit".  I have written an essay about label
-names:  https://plus.google.com/106378716002406849458/posts/dnanfhQ4mHQ
+>> When you see this risc error, does anything
+>> break (broken up video) or crash, or does it just keep on streaming?
 
-In theory, we should be calling mantis_dvb_exit() if mantis_uart_init()
-fails.  In reality, it can't fail but it's still wrong to leave that
-out.
+Can you comment on this question?
 
-These patches would be easier to review if you just folded them into one
-patch.  Call it "fix error error handling" or something.
+> 
+> The UNBALANCED warnings have not reappeared (so far).
 
-regards,
-dan carpenter
+And they are still gone? If that's the case, then I'll merge the patch
+fixing this for 3.20.
+
+With respect to the risc error: the only reason I can think of is that it
+is a race condition when the risc program is updated. I'll see if I can
+spend some time on this today or on Monday. Can you give me an indication
+how often you see this risc error message?
+
+Regards,
+
+	Hans
