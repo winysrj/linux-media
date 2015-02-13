@@ -1,59 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f182.google.com ([74.125.82.182]:46534 "EHLO
-	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751742AbbBUSk1 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49522 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753941AbbBMW6X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2015 13:40:27 -0500
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	adi-buildroot-devel@lists.sourceforge.net
+	Fri, 13 Feb 2015 17:58:23 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 00/15] media: blackfin: bfin_capture enhancements
-Date: Sat, 21 Feb 2015 18:39:46 +0000
-Message-Id: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv4 18/25] [media] cx231xx: create media links for analog mode
+Date: Fri, 13 Feb 2015 20:58:01 -0200
+Message-Id: <a79689cf604a4ca2ac6e7531ef57ba89d82774a2.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Now that we have entities and pads, let's create media links
+between them, for analog setup.
 
-This patch series, enhances blackfin capture driver with
-vb2 helpers.
+We may not have all the links for digital yet, as the dvb extention
+may not be loaded yet.
 
-Changes for v3:
-1: patches unchanged except for patch 8/15 fixing starting of ppi only
-   after we have the resources.
-2: Rebased on media tree.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-v2: http://lkml.iu.edu/hypermail/linux/kernel/1501.2/04655.html
-
-v1: https://lkml.org/lkml/2014/12/20/27
-
-Lad, Prabhakar (15):
-  media: blackfin: bfin_capture: drop buf_init() callback
-  media: blackfin: bfin_capture: release buffers in case
-    start_streaming() call back fails
-  media: blackfin: bfin_capture: set min_buffers_needed
-  media: blackfin: bfin_capture: improve buf_prepare() callback
-  media: blackfin: bfin_capture: improve queue_setup() callback
-  media: blackfin: bfin_capture: use vb2_fop_mmap/poll
-  media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
-  media: blackfin: bfin_capture: use vb2_ioctl_* helpers
-  media: blackfin: bfin_capture: make sure all buffers are returned on
-    stop_streaming() callback
-  media: blackfin: bfin_capture: return -ENODATA for *std calls
-  media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
-  media: blackfin: bfin_capture: add support for vidioc_create_bufs
-  media: blackfin: bfin_capture: add support for VB2_DMABUF
-  media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
-  media: blackfin: bfin_capture: set v4l2 buffer sequence
-
- drivers/media/platform/blackfin/bfin_capture.c | 306 ++++++++-----------------
- 1 file changed, 94 insertions(+), 212 deletions(-)
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index d357e8c0c485..dfc7010cff7f 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1159,6 +1159,42 @@ static void cx231xx_media_device_register(struct cx231xx *dev,
+ #endif
+ }
+ 
++static void cx231xx_create_media_graph(struct cx231xx *dev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev = dev->media_dev;
++	struct media_entity *entity;
++	struct media_entity *tuner = NULL, *decoder = NULL;
++
++	if (!mdev)
++		return;
++
++	media_device_for_each_entity(entity, mdev) {
++		switch (entity->type) {
++		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
++			tuner = entity;
++			break;
++		case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
++			decoder = entity;
++			break;
++		}
++	}
++
++	/* Analog setup, using tuner as a link */
++
++	if (!decoder)
++		return;
++
++	if (tuner)
++		media_entity_create_link(tuner, 0, decoder, 0,
++					 MEDIA_LNK_FL_ENABLED);
++	media_entity_create_link(decoder, 1, &dev->vdev->entity, 0,
++				 MEDIA_LNK_FL_ENABLED);
++	media_entity_create_link(decoder, 2, &dev->vbi_dev->entity, 0,
++				 MEDIA_LNK_FL_ENABLED);
++#endif
++}
++
+ /*
+  * cx231xx_init_dev()
+  * allocates and inits the device structs, registers i2c bus and v4l device
+@@ -1616,6 +1652,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	/* load other modules required */
+ 	request_modules(dev);
+ 
++	cx231xx_create_media_graph(dev);
++
+ 	return 0;
+ err_video_alt:
+ 	/* cx231xx_uninit_dev: */
 -- 
 2.1.0
 
