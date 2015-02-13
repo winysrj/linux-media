@@ -1,162 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:42607 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807AbbBEUpE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Feb 2015 15:45:04 -0500
-Received: by mail-ob0-f176.google.com with SMTP id wo20so9348665obc.7
-        for <linux-media@vger.kernel.org>; Thu, 05 Feb 2015 12:45:03 -0800 (PST)
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:61177 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752123AbbBMPUj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Feb 2015 10:20:39 -0500
 MIME-Version: 1.0
-Date: Thu, 5 Feb 2015 20:45:03 +0000
-Message-ID: <CACha5riDu2q1wztAny5he+s0W26rkY2_YuTZLNox7O2m8N=9UA@mail.gmail.com>
-Subject: ISDB Dongle MyGica S2870
-From: Nicolas Antonio Corrarello <ncorrare@gmail.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <54DE11FA.6050702@xs4all.nl>
+References: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com> <54DE11FA.6050702@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 13 Feb 2015 16:20:16 +0100
+Message-ID: <CAPybu_0wpNU0m2jjmbff+-mcoU-dkKjpHoW8Hr-GPyWH4oGcgQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] media/videobuf2-dma-sg: Fix handling of sg_table structure
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	martin.petersen@oracle.com, hch@lst.de, tonyb@cybernetics.com,
+	axboe@fb.com, Stephen Rothwell <sfr@canb.auug.org.au>,
+	lauraa@codeaurora.org,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	webbnh@hp.com, hare@suse.de,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Everyone,
-I just bought this new dongle, and while the parts seem to be
-supported, the usb id is not recognised.
-It seems to be based on the dibcom 0700 IC and it identifies itself as
-STK8096-PVR.
+Hello Hans
 
-I tried the patch in
-http://www.spinics.net/lists/linux-media/msg63445.html on the latest
-linux media tree, but while the dib0700 module now loads
-automatically, I don't see anything on dmesg showing that its loading
-the firmware, and I most definitely don't get a /dev/dvb directory.
+On Fri, Feb 13, 2015 at 4:02 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Ricardo, Marek,
+>
+> I have a few questions, mostly to improve my own understanding.
+>
+> First of all, is this solving an actual bug for you, or did you just find
+> it while reviewing code? And if it solves a bug, then which architecture
+> are you using? ARM? Intel?
+>
 
-[255053.847864] usb 1-3: new high-speed USB device number 4 using xhci_hcd
-[255054.012368] usb 1-3: New USB device found, idVendor=10b8, idProduct=1faa
-[255054.012373] usb 1-3: New USB device strings: Mfr=1, Product=2,
-SerialNumber=3
-[255054.012376] usb 1-3: Product: STK8096-PVR
-[255054.012379] usb 1-3: Manufacturer: Geniatech
-[255054.012381] usb 1-3: SerialNumber: 1
-[255055.034149] rc_core: module verification failed: signature and/or
-required key missing - tainting kernel
-[255055.034764] WARNING: You are using an experimental version of the
-media stack.
-As the driver is backported to an older kernel, it doesn't offer
-enough quality for its usage in production.
-Use it with care.
-Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
-a5f43c18fceb2b96ec9fddb4348f5282a71cf2b0 [media]
-Documentation/video4linux: remove obsolete text files
-51d3d4eee565a707e4053fe447cd28b2d1f4ce79 [media] bw/c-qcam, w9966,
-pms: remove deprecated staging drivers
-8f32df451f843df2ba88f9597a34b8dc3533dee7 [media] vino/saa7191: remove
-deprecated drivers
-[255055.039058] WARNING: You are using an experimental version of the
-media stack.
-As the driver is backported to an older kernel, it doesn't offer
-enough quality for its usage in production.
-Use it with care.
-Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
-a5f43c18fceb2b96ec9fddb4348f5282a71cf2b0 [media]
-Documentation/video4linux: remove obsolete text files
-51d3d4eee565a707e4053fe447cd28b2d1f4ce79 [media] bw/c-qcam, w9966,
-pms: remove deprecated staging drivers
-8f32df451f843df2ba88f9597a34b8dc3533dee7 [media] vino/saa7191: remove
-deprecated drivers
-[255055.072159] usbcore: registered new interface driver dvb_usb_dib0700
-[root@chromebox1 ~]# ls /dev/dvb
-ls: cannot access /dev/dvb: No such file or directory
+My arch is intel based (AMD APU). I found it while doing review. While
+updating our kernel to 3.19 I had to patch some of my out of tree
+drivers, and then I gave a look to the file.
 
+>> dma_map_sg returns the number of areas mapped by the hardware,
+>> which could be different than the areas given as an input.
+>> The output must be saved to nent.
+>>
+>> The output of dma_map, should be used to transverse the scatter list.
+>>
+>> dma_unmap_sg needs the value passed to dma_map_sg (nents_orig).
+>
+> I noticed that few dma_unmap_sg calls actually use orig_nents. It makes
+> me wonder if the dma_unmap_sg documentation is actually correct. It does
+> clearly state that orig_nents should be used, and it might well be that
+> the only reason this hasn't led to problems is that very few architectures
+> actually seem to return nents < orig_nents.
 
-[root@chromebox1 ~]# lsusb -v -d 10b8:1faa
+It is not the most clear API to use :(. Some of the prototypes do not
+make a lot of sense, and it is documented outside the code.
 
-Bus 001 Device 004: ID 10b8:1faa DiBcom
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x10b8 DiBcom
-  idProduct          0x1faa
-  bcdDevice            1.00
-  iManufacturer           1 Geniatech
-  iProduct                2 STK8096-PVR
-  iSerial                 3 1
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0xa0
-      (Bus Powered)
-      Remote Wakeup
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+I have sent these two patches:
 
-Does everyone know if this device is actually supported now? If not,
-is there any information I can provide to help with the development.
+https://lkml.org/lkml/2015/2/11/231
+https://lkml.org/lkml/2015/2/11/232
 
-Regards,
+>> +     sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+>> +                                   buf->dma_dir, &attrs);
+>
+> Is a driver free to change sgt->nents? It's unclear from the documentation
+> or code that that is actually the purpose of sgt->nents. Most drivers seem
+> to store the result of dma_map_sg into a driver-specific struct.
+
+As I understand it, this is the purpose of the struct scatter list,
+have at hand the three values that you need,
+the sgl, nents and orig_ents.
+
+But it would be great if the maintaner of the dma-api speaks up :)
+
+I am putting  get_maintainer.pl in cc
+
+Thanks Hans!
