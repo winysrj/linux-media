@@ -1,120 +1,134 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-In-reply-to: <1805679.hlRzVeq61B@avalon>
-References: <1424185706-16711-1-git-send-email-ricardo.ribalda@gmail.com>
- <54EAED82.5040804@xs4all.nl> <1805679.hlRzVeq61B@avalon>
-MIME-version: 1.0
-Content-transfer-encoding: 8bit
-Content-type: text/plain; charset=UTF-8
-Subject: Re: [PATCH v4 1/2] media/v4l2-ctrls: Always run s_ctrl on volatile
- ctrls
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Tue, 24 Feb 2015 08:04:43 +0700
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
- Hans Verkuil <hverkuil@xs4all.nl>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:49407 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753877AbbBMW6T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Feb 2015 17:58:19 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Hans Verkuil <hans.verkuil@cisco.com>,
- Sylwester Nawrocki <s.nawrocki@samsung.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Message-id: <E6C16338-CF67-4308-BD0B-3D1F10A024BE@gmail.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv4 14/25] [media] dvbdev: add pad for the DVB devnodes
+Date: Fri, 13 Feb 2015 20:57:57 -0200
+Message-Id: <ae0d3cd4580a18176edce68fd57288eda217c436.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans and Laurent
+We want to represent the links between the several DVB devnodes,
+so let's create PADs for them.
 
+The DVB net devnode is a different matter, as it is not related
+to the media stream, but with network. So, at least for now, let's
+not add any pad for it.
 
-I understand volatile as a control that can change its value by the device. So in that sense I think that my control is volatile and writeable (ack by the user).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-The value written by the user is meaning-less in my usercase, but in another s it could be useful.
-
-I am outside the office and with no computer for the next two weeks. If you can wait until then I can implement Hans idea or another one and try it out with my hw. 
-
-Thanks for consideing my usercase :)
-
-
-Regards
-
-(Sorry for duplicate, still trying to convince my phone to use plain text)
-
-On 24 February 2015 06:07:49 GMT+07:00, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
->Hi Hans,
->
->On Monday 23 February 2015 10:06:10 Hans Verkuil wrote:
->> On 02/17/2015 04:08 PM, Ricardo Ribalda Delgado wrote:
->> > Volatile controls can change their value outside the v4l-ctrl
->framework.
->> > We should ignore the cached written value of the ctrl when
->evaluating if
->> > we should run s_ctrl.
->> 
->> I've been thinking some more about this (also due to some comments
->Laurent
->> made on irc), and I think this should be done differently.
->> 
->> What you want to do here is to signal that setting this control will
->execute
->> some action that needs to happen even if the same value is set twice.
->> 
->> That's not really covered by VOLATILE. Interestingly, the WRITE_ONLY
->flag is
->> to be used for just that purpose, but this happens to be a R/W
->control, so
->> that can't be used either.
->> 
->> What is needed is the following:
->> 
->> 1) Add a new flag: V4L2_CTRL_FLAG_ACTION.
->> 2) Any control that sets FLAG_WRITE_ONLY should OR it with
->FLAG_ACTION (to
->>    keep the current meaning of WRITE_ONLY).
->> 3) Any control with FLAG_ACTION set should return changed == true in
->>    cluster_changed.
->> 4) Any control with FLAG_VOLATILE set should set ctrl->has_changed to
->false
->>    to prevent generating the CH_VALUE control (that's a real bug).
->> 
->> Your control will now set FLAG_ACTION and FLAG_VOLATILE and it will
->do the
->> right thing.
->
->I'm not sure about Ricardo's use case, is it the one we've discussed on
->#v4l ? 
->If so, and if I recall correctly, the idea was to perform an action
->with a 
->parameter, and didn't require volatility.
->
->> Basically what was missing was a flag to explicitly signal this
->'writing
->> executes an action' behavior. Trying to shoehorn that into the
->volatile
->> flag or the write_only flag is just not right. It's a flag in its own
->right.
->
->Just for the sake of exploring all options, what did you think about
->the idea 
->of making button controls accept a value ?
->
->Your proposal is interesting as well, but I'm not sure about the 
->V4L2_CTRL_FLAG_ACTION name. Aren't all controls supposed to have an
->action of 
->some sort ? That's nitpicking of course.
->
->Also, should the action flag be automatically set for button controls ?
->Button 
->controls would in a way become type-less controls with the action flag
->set, 
->that's interesting. I suppose type-less controls without the action
->flag don't 
->make sense.
->
->> > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
->> > ---
->> > v4: Hans Verkuil:
->> > 
->> > explicity set has_changed to false. and add comment
->> > 
->> >  drivers/media/v4l2-core/v4l2-ctrls.c | 11 +++++++++++
->> >  1 file changed, 11 insertions(+)
-
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index f98fd3b29afe..79c96edf71ef 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -184,7 +184,7 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 				      int type, int minor)
+ {
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+-	int ret;
++	int ret = 0, npads;
+ 
+ 	if (!dvbdev->adapter->mdev)
+ 		return;
+@@ -196,18 +196,46 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 	dvbdev->entity->info.dev.major = DVB_MAJOR;
+ 	dvbdev->entity->info.dev.minor = minor;
+ 	dvbdev->entity->name = dvbdev->name;
++
++	switch (type) {
++	case DVB_DEVICE_CA:
++	case DVB_DEVICE_DEMUX:
++		npads = 2;
++		break;
++	case DVB_DEVICE_NET:
++		npads = 0;
++		break;
++	default:
++		npads = 1;
++	}
++
++	if (npads) {
++		dvbdev->pads = kcalloc(npads, sizeof(*dvbdev->pads),
++				       GFP_KERNEL);
++		if (!dvbdev->pads) {
++			kfree(dvbdev->entity);
++			return;
++		}
++	}
++
+ 	switch (type) {
+ 	case DVB_DEVICE_FRONTEND:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+ 		break;
+ 	case DVB_DEVICE_DEMUX:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
++		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
+ 		break;
+ 	case DVB_DEVICE_DVR:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+ 		break;
+ 	case DVB_DEVICE_CA:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
++		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
++		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
+ 		break;
+ 	case DVB_DEVICE_NET:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
+@@ -218,12 +246,16 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 		return;
+ 	}
+ 
+-	ret = media_device_register_entity(dvbdev->adapter->mdev,
+-					   dvbdev->entity);
++	if (npads)
++		ret = media_entity_init(dvbdev->entity, npads, dvbdev->pads, 0);
++	if (!ret)
++		ret = media_device_register_entity(dvbdev->adapter->mdev,
++						   dvbdev->entity);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR
+ 			"%s: media_device_register_entity failed for %s\n",
+ 			__func__, dvbdev->entity->name);
++		kfree(dvbdev->pads);
+ 		kfree(dvbdev->entity);
+ 		dvbdev->entity = NULL;
+ 		return;
+@@ -336,6 +368,7 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
+ 	if (dvbdev->entity) {
+ 		media_device_unregister_entity(dvbdev->entity);
+ 		kfree(dvbdev->entity);
++		kfree(dvbdev->pads);
+ 	}
+ #endif
+ 
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index 485d8e660aea..464067c43a35 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -101,8 +101,9 @@ struct dvb_device {
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+ 	const char *name;
+ 
+-	/* Filled inside dvbdev.c */
++	/* Allocated and filled inside dvbdev.c */
+ 	struct media_entity *entity;
++	struct media_pad *pads;
+ #endif
+ 
+ 	void *priv;
 -- 
-Ricardo Ribalda
-Sent from my Android device with K-9 Mail. Please excuse my brevity.
+2.1.0
+
