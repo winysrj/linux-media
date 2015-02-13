@@ -1,117 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:41175 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753134AbbBEDpq (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42046 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753829AbbBMQOo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Feb 2015 22:45:46 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 04BC72A0084
-	for <linux-media@vger.kernel.org>; Thu,  5 Feb 2015 04:45:04 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150205034504.04BC72A0084@tschai.lan>
-Date: Thu,  5 Feb 2015 04:45:04 +0100 (CET)
+	Fri, 13 Feb 2015 11:14:44 -0500
+Message-ID: <1423844081.2887.6.camel@xs4all.nl>
+Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
+ cx23885: convert to vb2"
+From: Jurgen Kramer <gtmkramer@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Raimonds Cicans <ray@apollo.lv>, linux-media@vger.kernel.org
+Date: Fri, 13 Feb 2015 17:14:41 +0100
+In-Reply-To: <54DDC00D.209@xs4all.nl>
+References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>
+			 <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>
+			 <54CE24F2.7090400@apollo.lv> <54CF4508.9070305@xs4all.nl>
+		 <1423065972.2650.1.camel@xs4all.nl> <54D24685.1000708@xs4all.nl>
+	 <1423070484.2650.3.camel@xs4all.nl> <54DDC00D.209@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+On Fri, 2015-02-13 at 10:12 +0100, Hans Verkuil wrote:
+> Hi Jurgen,
+> 
+> On 02/04/2015 06:21 PM, Jurgen Kramer wrote:
+> > On Wed, 2015-02-04 at 17:19 +0100, Hans Verkuil wrote:
+> >> On 02/04/2015 05:06 PM, Jurgen Kramer wrote:
+> >>> Hi Hans,
+> >>>
+> >>> On Mon, 2015-02-02 at 10:36 +0100, Hans Verkuil wrote:
+> >>>> Raimonds and Jurgen,
+> >>>>
+> >>>> Can you both test with the following patch applied to the driver:
+> >>>
+> >>> Unfortunately the mpeg error is not (completely) gone:
+> >>
+> >> OK, I suspected that might be the case. Is the UNBALANCED warning
+> >> gone with my vb2 patch?
+> 
+> >> When you see this risc error, does anything
+> >> break (broken up video) or crash, or does it just keep on streaming?
+> 
+> Can you comment on this question?
+I still get the risc errors at regular intervals. I am not sure what the real impact is. 
+I do get the occasional failed recording (dreaded 0 byte recoderings).
+> > 
+> > The UNBALANCED warnings have not reappeared (so far).
+> 
+> And they are still gone? If that's the case, then I'll merge the patch
+> fixing this for 3.20.
+No, these are gone.
+> 
+> With respect to the risc error: the only reason I can think of is that it
+> is a race condition when the risc program is updated. I'll see if I can
+> spend some time on this today or on Monday. Can you give me an indication
+> how often you see this risc error message?
 
-date:		Thu Feb  5 04:00:16 CET 2015
-git branch:	test
-git hash:	4bad5d2d25099a42e146d7b18d2b98950ed287f5
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-1.slh.1-amd64
+dmesg |grep "risc op code error"
+[ 1267.999719] cx23885[1]: mpeg risc op code error
+[17830.312766] cx23885[2]: mpeg risc op code error
+[37820.312372] cx23885[2]: mpeg risc op code error
+[48973.897721] cx23885[2]: mpeg risc op code error
+[126673.151447] cx23885[0]: mpeg risc op code error
+[208262.607584] cx23885[2]: mpeg risc op code error
+[212564.803499] cx23885[2]: mpeg risc op code error
+[288834.700570] cx23885[1]: mpeg risc op code error
+[298753.789105] cx23885[2]: mpeg risc op code error
+[341900.746719] cx23885[2]: mpeg risc op code error
+[346513.849946] cx23885[1]: mpeg risc op code error
+[359267.169552] cx23885[2]: mpeg risc op code error
+[370728.293458] cx23885[1]: mpeg risc op code error
+[423626.314834] cx23885[1]: mpeg risc op code error
+uptime:
+ 17:14:03 up 4 days, 22:22,  2 users,  load average: 0.19, 0.39, 0.34
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18-i686: OK
-linux-3.19-rc4-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18-x86_64: OK
-linux-3.19-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
 
-Detailed results are available here:
+Best regards,
+Jurgen
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
