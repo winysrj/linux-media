@@ -1,44 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43928 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932954AbbBQIpH (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49418 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753742AbbBMW6T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 03:45:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
+	Fri, 13 Feb 2015 17:58:19 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 4/6] uvc gadget: switch to unlocked_ioctl.
-Date: Tue, 17 Feb 2015 09:44:07 +0100
-Message-Id: <1424162649-17249-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1424162649-17249-1-git-send-email-hverkuil@xs4all.nl>
-References: <1424162649-17249-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [PATCHv4 21/25] [media] cx231xx: create DVB graph
+Date: Fri, 13 Feb 2015 20:58:04 -0200
+Message-Id: <80f9c4d456ce9770c21622e6dca4c776549734dd.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+cx231xx is simple with regards to DVB: all boards have just one
+DVB adapter. So, we can use the default DVB helper function to
+create the DVB media graph.
 
-Instead of .ioctl use unlocked_ioctl. This allows us to finally remove
-the old .ioctl op.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/usb/gadget/function/uvc_v4l2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/usb/gadget/function/uvc_v4l2.c b/drivers/usb/gadget/function/uvc_v4l2.c
-index 0bd6965..5a84e51 100644
---- a/drivers/usb/gadget/function/uvc_v4l2.c
-+++ b/drivers/usb/gadget/function/uvc_v4l2.c
-@@ -357,7 +357,7 @@ struct v4l2_file_operations uvc_v4l2_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= uvc_v4l2_open,
- 	.release	= uvc_v4l2_release,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- 	.mmap		= uvc_v4l2_mmap,
- 	.poll		= uvc_v4l2_poll,
- #ifndef CONFIG_MMU
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index bb7e766cd30c..e8c054c4ac8c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -540,6 +540,7 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 
+ 	/* register network adapter */
+ 	dvb_net_init(&dvb->adapter, &dvb->net, &dvb->demux.dmx);
++	dvb_create_media_graph(dev->media_dev);
+ 	return 0;
+ 
+ fail_fe_conn:
 -- 
-2.1.4
+2.1.0
 
