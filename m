@@ -1,57 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:36226 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752364AbbBBMCq (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49505 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753866AbbBMW6X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 07:02:46 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A83E82A0080
-	for <linux-media@vger.kernel.org>; Mon,  2 Feb 2015 13:02:07 +0100 (CET)
-Message-ID: <54CF673F.1010804@xs4all.nl>
-Date: Mon, 02 Feb 2015 13:02:07 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
+	Fri, 13 Feb 2015 17:58:23 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.20] adv7180 improvements
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Antti Palosaari <crope@iki.fi>, linux-doc@vger.kernel.org
+Subject: [PATCHv4 03/25] [media] Docbook: Fix documentation for media controller devnodes
+Date: Fri, 13 Feb 2015 20:57:46 -0200
+Message-Id: <c696cf94283bdaf48a0efbc64fd84dd3f068b4cf.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit a5f43c18fceb2b96ec9fddb4348f5282a71cf2b0:
+The media-ctl userspace application assumes that all device nodes
+are uniquelly defined via major,minor, just like v4l and fb.
 
-  [media] Documentation/video4linux: remove obsolete text files (2015-01-29 19:16:30 -0200)
+That's ok for those types of devices, but, as we're adding support
+for DVB at the API, what's written there at the DocBook is wrong.
 
-are available in the git repository at:
+So, fix it.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.20d
+While here, fix the size of the reserved space inside the union,
+with is 184, and not 180.
 
-for you to fetch changes up to f35d0d068fe717b7c6c84e376e47ccfec7f07051:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-  Add MAINTAINERS entry for the adv7180 (2015-02-02 12:57:37 +0100)
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+index 116c301656e0..19ab836b2651 100644
+--- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
++++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+@@ -143,86 +143,14 @@
+ 	  <row>
+ 	    <entry></entry>
+ 	    <entry>struct</entry>
+-	    <entry><structfield>v4l</structfield></entry>
++	    <entry><structfield>dev</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>Valid for V4L sub-devices and nodes only.</entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>major</structfield></entry>
+-	    <entry>V4L device node major number. For V4L sub-devices with no
+-	    device node, set by the driver to 0.</entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>minor</structfield></entry>
+-	    <entry>V4L device node minor number. For V4L sub-devices with no
+-	    device node, set by the driver to 0.</entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry>struct</entry>
+-	    <entry><structfield>fb</structfield></entry>
+-	    <entry></entry>
+-	    <entry>Valid for frame buffer nodes only.</entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>major</structfield></entry>
+-	    <entry>Frame buffer device node major number.</entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>minor</structfield></entry>
+-	    <entry>Frame buffer device node minor number.</entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry>struct</entry>
+-	    <entry><structfield>alsa</structfield></entry>
+-	    <entry></entry>
+-	    <entry>Valid for ALSA devices only.</entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>card</structfield></entry>
+-	    <entry>ALSA card number</entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>device</structfield></entry>
+-	    <entry>ALSA device number</entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>subdevice</structfield></entry>
+-	    <entry>ALSA sub-device number</entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry>int</entry>
+-	    <entry><structfield>dvb</structfield></entry>
+-	    <entry></entry>
+-	    <entry>DVB card number</entry>
++	    <entry>Valid for (sub-)devices that create devnodes.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+ 	    <entry>__u8</entry>
+-	    <entry><structfield>raw</structfield>[180]</entry>
++	    <entry><structfield>raw</structfield>[184]</entry>
+ 	    <entry></entry>
+ 	    <entry></entry>
+ 	  </row>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index ac0f8d9d2a49..3a16ac1f67d0 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -136,6 +136,7 @@ Remote Controller chapter.</contrib>
+       <year>2012</year>
+       <year>2013</year>
+       <year>2014</year>
++      <year>2015</year>
+       <holder>Bill Dirks, Michael H. Schimek, Hans Verkuil, Martin
+ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
+ 	Pawel Osciak</holder>
+@@ -152,6 +153,13 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>3.21</revnumber>
++	<date>2015-02-13</date>
++	<authorinitials>mcc</authorinitials>
++	<revremark>Fix documentation for media controller device nodes.
++	</revremark>
++      </revision>
++      <revision>
+ 	<revnumber>3.19</revnumber>
+ 	<date>2014-12-05</date>
+ 	<authorinitials>hv</authorinitials>
+-- 
+2.1.0
 
-----------------------------------------------------------------
-Lars-Peter Clausen (15):
-      adv7180: Do not request the IRQ again during resume
-      adv7180: Pass correct flags to request_threaded_irq()
-      adv7180: Use inline function instead of macro
-      adv7180: Cleanup register define naming
-      adv7180: Do implicit register paging
-      adv7180: Reset the device before initialization
-      adv7180: Add media controller support
-      adv7180: Consolidate video mode setting
-      adv7180: Prepare for multi-chip support
-      adv7180: Add support for the adv7182
-      adv7180: Add support for the adv7280/adv7281/adv7282
-      adv7180: Add support for the adv7280-m/adv7281-m/adv7281-ma/adv7282-m
-      adv7180: Add I2P support
-      adv7180: Add fast switch support
-      Add MAINTAINERS entry for the adv7180
-
- MAINTAINERS                        |    7 +
- drivers/media/i2c/Kconfig          |    2 +-
- drivers/media/i2c/adv7180.c        | 1016 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------
- drivers/media/pci/sta2x11/Kconfig  |    1 +
- drivers/media/platform/Kconfig     |    2 +-
- include/uapi/linux/v4l2-controls.h |    4 +
- 6 files changed, 831 insertions(+), 201 deletions(-)
