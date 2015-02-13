@@ -1,36 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:43310 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754436AbbBZVU3 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33520 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752374AbbBMLaw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 16:20:29 -0500
-Received: by wesu56 with SMTP id u56so14882845wes.10
-        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2015 13:20:28 -0800 (PST)
-Received: from [192.168.177.27] ([83.222.43.225])
-        by mx.google.com with ESMTPSA id vh8sm3117056wjc.12.2015.02.26.13.20.27
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 26 Feb 2015 13:20:27 -0800 (PST)
-Message-ID: <54EF8DDD.1040608@gmail.com>
-Date: Thu, 26 Feb 2015 22:19:25 +0100
-From: Gilles Risch <gilles.risch@gmail.com>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Linux TV support Elgato EyeTV hybrid
-References: <CALnjqVkteEsFGQXRdh3exzGrqdC=Qw4guSGRT_pCF50WjGqy1g@mail.gmail.com> <CAAZRmGwmNhczjXNXdKkotS0YZ8Tc+kKb4b+SyNN_8KVj2H8xuQ@mail.gmail.com> <54E9DDFE.4010507@gmail.com> <54EA3633.3030805@southpole.se> <54EA4A3B.9060000@iki.fi> <54EB8C86.3040700@gmail.com> <54EB8F38.9080806@southpole.se> <54EBAFB8.9010105@gmail.com> <54EBB413.6020608@southpole.se> <54ECF8BA.2080505@gmail.com>
-In-Reply-To: <54ECF8BA.2080505@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 13 Feb 2015 06:30:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/7] v4l2-subdev.c: add 'which' checks for enum ops.
+Date: Fri, 13 Feb 2015 12:30:02 +0100
+Message-Id: <1423827006-32878-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl>
+References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-watching TV now works fine, but I still have a strange behavior, when I 
-connect the stick and open an application like Me-TV or VLC I get this 
-message:
-"Failed to get available frontend" or "There are no DVB devices available"
-After running a w_scan it works, does someone know why?
+Return an error if an invalid 'which' valid is passed in.
 
-Regards,
-Gilles
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 3c8b198..8bafb94 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -321,6 +321,10 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
+ 		struct v4l2_subdev_mbus_code_enum *code = arg;
+ 
++		if (code->which != V4L2_SUBDEV_FORMAT_TRY &&
++		    code->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++			return -EINVAL;
++
+ 		if (code->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
+@@ -331,6 +335,10 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE: {
+ 		struct v4l2_subdev_frame_size_enum *fse = arg;
+ 
++		if (fse->which != V4L2_SUBDEV_FORMAT_TRY &&
++		    fse->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++			return -EINVAL;
++
+ 		if (fse->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
+@@ -359,6 +367,10 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL: {
+ 		struct v4l2_subdev_frame_interval_enum *fie = arg;
+ 
++		if (fie->which != V4L2_SUBDEV_FORMAT_TRY &&
++		    fie->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++			return -EINVAL;
++
+ 		if (fie->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
+-- 
+2.1.4
+
