@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49405 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:49408 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753703AbbBMW6T (ORCPT
+	with ESMTP id S1753866AbbBMW6T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
 	Fri, 13 Feb 2015 17:58:19 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv4 19/25] [media] dvbdev: represent frontend with two pads
-Date: Fri, 13 Feb 2015 20:58:02 -0200
-Message-Id: <74bdea96c2ac42be217853fa1ef0399251ba8e17.1423867976.git.mchehab@osg.samsung.com>
+Subject: [PATCHv4 12/25] [media] dvb_ca_en50221: add support for CA node at the media controller
+Date: Fri, 13 Feb 2015 20:57:55 -0200
+Message-Id: <ff6b48d612b1130720761ec2f8ac28a05ac86d58.1423867976.git.mchehab@osg.samsung.com>
 In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
 References: <cover.1423867976.git.mchehab@osg.samsung.com>
 In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
@@ -18,60 +18,35 @@ References: <cover.1423867976.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While on some devices the tuner is bound inside the frontend,
-other devices use a separate subdevice for it.
-
-So, in order to be more generic, better to map it with two
-pads.
-
-That will allows to use the media controller to lock the tuner
-between the DVB and the V4L2 sub-drivers, on hybrid devices.
-
-While here, change the logic to use pad 0 as sink for devices
-with both sink and source pads.
+Make the dvb core CA support aware of the media controller and
+register the corresponding devices.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 79c96edf71ef..c5de02455b17 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -200,6 +200,7 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 	switch (type) {
- 	case DVB_DEVICE_CA:
- 	case DVB_DEVICE_DEMUX:
-+	case DVB_DEVICE_FRONTEND:
- 		npads = 2;
- 		break;
- 	case DVB_DEVICE_NET:
-@@ -221,12 +222,13 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 	switch (type) {
- 	case DVB_DEVICE_FRONTEND:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
--		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
-+		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_DEMUX:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
--		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
--		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
-+		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_DVR:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
-@@ -234,8 +236,8 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 		break;
- 	case DVB_DEVICE_CA:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
--		dvbdev->pads[0].flags = MEDIA_PAD_FL_SOURCE;
--		dvbdev->pads[1].flags = MEDIA_PAD_FL_SINK;
-+		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
-+		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_NET:
- 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 0aac3096728e..2bf28eb97a64 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -1638,15 +1638,17 @@ static const struct file_operations dvb_ca_fops = {
+ 	.llseek = noop_llseek,
+ };
+ 
+-static struct dvb_device dvbdev_ca = {
++static const struct dvb_device dvbdev_ca = {
+ 	.priv = NULL,
+ 	.users = 1,
+ 	.readers = 1,
+ 	.writers = 1,
++#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
++	.name = "ca_en50221",
++#endif
+ 	.fops = &dvb_ca_fops,
+ };
+ 
+-
+ /* ******************************************************************************** */
+ /* Initialisation/shutdown functions */
+ 
 -- 
 2.1.0
 
