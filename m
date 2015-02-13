@@ -1,100 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:51930 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752427AbbBCJ3X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 04:29:23 -0500
-Received: by mail-wi0-f173.google.com with SMTP id r20so22716338wiv.0
-        for <linux-media@vger.kernel.org>; Tue, 03 Feb 2015 01:29:22 -0800 (PST)
-Message-ID: <54D094F1.50404@linaro.org>
-Date: Tue, 03 Feb 2015 09:29:21 +0000
-From: Daniel Thompson <daniel.thompson@linaro.org>
-MIME-Version: 1.0
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-arm-kernel@lists.infradead.org, rmk+kernel@arm.linux.org.uk,
-	airlied@linux.ie, kgene@kernel.org, daniel.vetter@intel.com,
-	thierry.reding@gmail.com, pawel@osciak.com,
-	m.szyprowski@samsung.com, mchehab@osg.samsung.com,
-	gregkh@linuxfoundation.org
-CC: linaro-kernel@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-	linux-tegra@vger.kernel.org
-Subject: Re: [PATCH v3] dma-buf: cleanup dma_buf_export() to make it easily
- extensible
-References: <1422449643-7829-1-git-send-email-sumit.semwal@linaro.org>
-In-Reply-To: <1422449643-7829-1-git-send-email-sumit.semwal@linaro.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:49454 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753855AbbBMW6V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Feb 2015 17:58:21 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuah.kh@samsung.com>,
+	Ole Ernst <olebowle@gmx.com>,
+	Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCHv4 23/25] [media] dvb-frontend: enable tuner link when the FE thread starts
+Date: Fri, 13 Feb 2015 20:58:06 -0200
+Message-Id: <fe73db581ca5aa8a2bc84009c3d9f88c5c26c5dc.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28/01/15 12:54, Sumit Semwal wrote:
-> At present, dma_buf_export() takes a series of parameters, which
-> makes it difficult to add any new parameters for exporters, if required.
-> 
-> Make it simpler by moving all these parameters into a struct, and pass
-> the struct * as parameter to dma_buf_export().
-> 
-> While at it, unite dma_buf_export_named() with dma_buf_export(), and
-> change all callers accordingly.
-> 
-> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+If the dvb frontend thread starts, the tuner should be switched
+to the frontend. Add a code that ensures that this will happen,
+using the media controller.
 
-Sorry, a few more comments. Should have sent these before but at least
-the are all related only to documentation. Once that is fixed then:
-Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 2564422278df..50bc6056e914 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -590,12 +590,99 @@ static void dvb_frontend_wakeup(struct dvb_frontend *fe)
+ 	wake_up_interruptible(&fepriv->wait_queue);
+ }
+ 
++/**
++ * dvb_enable_media_tuner() - tries to enable the DVB tuner
++ *
++ * @fe:		struct dvb_frontend pointer
++ *
++ * This function ensures that just one media tuner is enabled for a given
++ * frontend. It has two different behaviors:
++ * - For trivial devices with just one tuner:
++ *   it just enables the existing tuner->fe link
++ * - For devices with more than one tuner:
++ *   It is up to the driver to implement the logic that will enable one tuner
++ *   and disable the other ones. However, if more than one tuner is enabled for
++ *   the same frontend, it will print an error message and return -EINVAL.
++ *
++ * At return, it will return the error code returned by media_entity_setup_link,
++ * or 0 if everything is OK, if no tuner is linked to the frontend or if the
++ * mdev is NULL.
++ */
++static int dvb_enable_media_tuner(struct dvb_frontend *fe)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++	struct dvb_frontend_private *fepriv = fe->frontend_priv;
++	struct dvb_adapter *adapter = fe->dvb;
++	struct media_device *mdev = adapter->mdev;
++	struct media_entity  *entity, *source;
++	struct media_link *link, *found_link = NULL;
++	int i, ret, n_links = 0, active_links = 0;
++
++	if (!mdev)
++		return 0;
++
++	entity = fepriv->dvbdev->entity;
++	for (i = 0; i < entity->num_links; i++) {
++		link = &entity->links[i];
++		if (link->sink->entity == entity) {
++			found_link = link;
++			n_links++;
++			if (link->flags & MEDIA_LNK_FL_ENABLED)
++				active_links++;
++		}
++	}
++
++	if (!n_links || active_links == 1 || !found_link)
++		return 0;
++
++	/*
++	 * If a frontend has more than one tuner linked, it is up to the driver
++	 * to select with one will be the active one, as the frontend core can't
++	 * guess. If the driver doesn't do that, it is a bug.
++	 */
++	if (n_links > 1 && active_links != 1) {
++		dev_err(fe->dvb->device,
++			"WARNING: there are %d active links among %d tuners. This is a driver's bug!\n",
++			active_links, n_links);
++		return -EINVAL;
++	}
++
++	source = found_link->source->entity;
++	for (i = 0; i < source->num_links; i++) {
++		struct media_entity *sink;
++		int flags = 0;
++
++		link = &source->links[i];
++		sink = link->sink->entity;
++
++		if (sink == entity)
++			flags = MEDIA_LNK_FL_ENABLED;
++
++		ret = media_entity_setup_link(link, flags);
++		if (ret) {
++			dev_err(fe->dvb->device,
++				"Couldn't change link %s->%s to %s. Error %d\n",
++				source->name, sink->name,
++				flags ? "enabled" : "disabled",
++				ret);
++			return ret;
++		} else
++			dev_dbg(fe->dvb->device,
++				"link %s->%s was %s\n",
++				source->name, sink->name,
++				flags ? "ENABLED" : "disabled");
++	}
++#endif
++	return 0;
++}
++
+ static int dvb_frontend_thread(void *data)
+ {
+ 	struct dvb_frontend *fe = data;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	fe_status_t s;
+ 	enum dvbfe_algo algo;
++	int ret;
+ 
+ 	bool re_tune = false;
+ 	bool semheld = false;
+@@ -609,6 +696,13 @@ static int dvb_frontend_thread(void *data)
+ 	fepriv->wakeup = 0;
+ 	fepriv->reinitialise = 0;
+ 
++	ret = dvb_enable_media_tuner(fe);
++	if (ret) {
++		/* FIXME: return an error if it fails */
++		dev_info(fe->dvb->device,
++			"proceeding with FE task\n");
++	}
++
+ 	dvb_frontend_init(fe);
+ 
+ 	set_freezable();
+-- 
+2.1.0
 
-> ---
-> v3: Daniel Thompson caught the C99 warning issue w/ using {0}; using
->     {.exp_name = xxx} instead.
-> 
-> v2: add macro to zero out local struct, and fill KBUILD_MODNAME by default
-> 
->  drivers/dma-buf/dma-buf.c                      | 47 +++++++++++++-------------
->  drivers/gpu/drm/armada/armada_gem.c            | 10 ++++--
->  drivers/gpu/drm/drm_prime.c                    | 12 ++++---
->  drivers/gpu/drm/exynos/exynos_drm_dmabuf.c     |  9 +++--
->  drivers/gpu/drm/i915/i915_gem_dmabuf.c         | 10 ++++--
->  drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c      |  9 ++++-
->  drivers/gpu/drm/tegra/gem.c                    | 10 ++++--
->  drivers/gpu/drm/ttm/ttm_object.c               |  9 +++--
->  drivers/gpu/drm/udl/udl_dmabuf.c               |  9 ++++-
->  drivers/media/v4l2-core/videobuf2-dma-contig.c |  8 ++++-
->  drivers/media/v4l2-core/videobuf2-dma-sg.c     |  8 ++++-
->  drivers/media/v4l2-core/videobuf2-vmalloc.c    |  8 ++++-
->  drivers/staging/android/ion/ion.c              |  9 +++--
->  include/linux/dma-buf.h                        | 34 +++++++++++++++----
-
-Documentation/dma-buf-sharing.txt needs updating as a result of these
-changes but its not in the diffstat.
-
-
->  14 files changed, 142 insertions(+), 50 deletions(-)
-> 
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index 5be225c2ba98..6d3df3dd9310 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -265,7 +265,7 @@ static inline int is_dma_buf_file(struct file *file)
->  }
->  
->  /**
-> - * dma_buf_export_named - Creates a new dma_buf, and associates an anon file
-> + * dma_buf_export - Creates a new dma_buf, and associates an anon file
->   * with this buffer, so it can be exported.
->   * Also connect the allocator specific data and ops to the buffer.
->   * Additionally, provide a name string for exporter; useful in debugging.
-> @@ -277,31 +277,32 @@ static inline int is_dma_buf_file(struct file *file)
->   * @exp_name:	[in]	name of the exporting module - useful for debugging.
->   * @resv:	[in]	reservation-object, NULL to allocate default one.
->   *
-> + * All the above info comes from struct dma_buf_export_info.
-> + *
-
-I'm not at all sure about this. Its a novel trick but won't this make
-the HTML docs come out looking a bit weird? Is there any prior art for
-double-documenting the structure members like this?
-
-
-Daniel.
