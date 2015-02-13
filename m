@@ -1,58 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:48694 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932156AbbBBNSt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 08:18:49 -0500
-Received: by mail-la0-f47.google.com with SMTP id hz20so40530729lab.6
-        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2015 05:18:48 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAPx3zdRNiaSKbG9PtVbnA_fXm-ietqOiciq9H0N5dHQFKibZ_w@mail.gmail.com>
-References: <CAPx3zdRNiaSKbG9PtVbnA_fXm-ietqOiciq9H0N5dHQFKibZ_w@mail.gmail.com>
-From: =?UTF-8?Q?Roberto_Alc=C3=A2ntara?= <roberto@eletronica.org>
-Date: Mon, 2 Feb 2015 10:18:27 -0300
-Message-ID: <CAEt6MX=4t5EPjAQ=Jy0Zs+wuKRsiH_6zuRQZNnanAmZ66Gk1Gg@mail.gmail.com>
-Subject: Re: [BUG] - Why anyone fix this problem?
-To: Francesco Other <francesco.other@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:49456 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753898AbbBMW6V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Feb 2015 17:58:21 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv4 15/25] [media] tuner-core: properly initialize media controller subdev
+Date: Fri, 13 Feb 2015 20:57:58 -0200
+Message-Id: <5c8a3752af88ba4c349d9d2416cad937f96a0423.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Properly initialize tuner core subdev at the media controller.
 
-Francesco has reported problem with DVB-T on Siano sms2270. Basically
-him reach a lock with tzap but seems not have stream data.
+That requires a new subtype at the media controller API.
 
-I tried to help him to debug but I can't reproduce their problem once
-I have isdb-t only here. He is using some dvb firmware with device
-that seems works fine on Windows.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Cheers,
- - Roberto
+diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+index 559f8372e2eb..9a83b27a7e8f 100644
+--- a/drivers/media/v4l2-core/tuner-core.c
++++ b/drivers/media/v4l2-core/tuner-core.c
+@@ -134,6 +134,9 @@ struct tuner {
+ 	unsigned int        type; /* chip type id */
+ 	void                *config;
+ 	const char          *name;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad	pad;
++#endif
+ };
+ 
+ /*
+@@ -434,6 +437,8 @@ static void set_type(struct i2c_client *c, unsigned int type,
+ 		t->name = analog_ops->info.name;
+ 	}
+ 
++	t->sd.entity.name = t->name;
++
+ 	tuner_dbg("type set to %s\n", t->name);
+ 
+ 	t->mode_mask = new_mode_mask;
+@@ -592,6 +597,9 @@ static int tuner_probe(struct i2c_client *client,
+ 	struct tuner *t;
+ 	struct tuner *radio;
+ 	struct tuner *tv;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	int ret;
++#endif
+ 
+ 	t = kzalloc(sizeof(struct tuner), GFP_KERNEL);
+ 	if (NULL == t)
+@@ -684,6 +692,18 @@ static int tuner_probe(struct i2c_client *client,
+ 
+ 	/* Should be just before return */
+ register_client:
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	t->pad.flags = MEDIA_PAD_FL_SOURCE;
++	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
++	t->sd.entity.name = t->name;
++
++	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
++	if (ret < 0) {
++		tuner_err("failed to initialize media entity!\n");
++		kfree(t);
++		return -ENODEV;
++	}
++#endif
+ 	/* Sets a default mode */
+ 	if (t->mode_mask & T_ANALOG_TV)
+ 		t->mode = V4L2_TUNER_ANALOG_TV;
+-- 
+2.1.0
 
-
- - Roberto
-
-
-On Mon, Feb 2, 2015 at 10:10 AM, Francesco Other
-<francesco.other@gmail.com> wrote:
-> Is it possible that the problem I explained here isn't interesting for anyone?
->
-> The device is supported by kernel but obviously there is a bug with DVB-T.
->
-> I have the working firmware (on Windows) for DVB-T if you need it.
->
-> http://www.spinics.net/lists/linux-media/msg85505.html
->
-> http://www.spinics.net/lists/linux-media/msg85478.html
->
-> http://www.spinics.net/lists/linux-media/msg85432.html
->
-> Regards
->
-> Francesco
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
