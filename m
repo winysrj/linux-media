@@ -1,76 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-020.synserver.de ([212.40.185.20]:1068 "EHLO
-	smtp-out-017.synserver.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S965989AbbBCP35 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57010 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752443AbbBMLb1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 10:29:57 -0500
-Message-ID: <54D0E975.8060205@metafoo.de>
-Date: Tue, 03 Feb 2015 16:29:57 +0100
-From: Lars-Peter Clausen <lars@metafoo.de>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	William Towle <william.towle@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 6/8] WmT: adv7604 driver compatibility
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <2552213.h99FiuUI04@avalon> <54CF4CD7.2060901@xs4all.nl> <7877033.djOMQDpcA0@avalon> <54D0E823.2070803@xs4all.nl>
-In-Reply-To: <54D0E823.2070803@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 13 Feb 2015 06:31:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 7/7] DocBook media: document the new 'which' field.
+Date: Fri, 13 Feb 2015 12:30:06 +0100
+Message-Id: <1423827006-32878-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl>
+References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/03/2015 04:24 PM, Hans Verkuil wrote:
-> On 02/03/15 16:22, Laurent Pinchart wrote:
->> Hi Hans,
->>
->> On Monday 02 February 2015 11:09:27 Hans Verkuil wrote:
->>> On 02/02/2015 11:01 AM, Laurent Pinchart wrote:
->>>> On Sunday 01 February 2015 12:26:11 Guennadi Liakhovetski wrote:
->>>>> On a second thought:
->>>>>
->>>>> On Sun, 1 Feb 2015, Guennadi Liakhovetski wrote:
->>>>>> Hi Wills,
->>>>>>
->>>>>> Thanks for the patch. First and foremost, the title of the patch is
->>>>>> wrong. This patch does more than just adding some "adv7604
->>>>>> compatibility." It's adding pad-level API to soc-camera.
->>>>>>
->>>>>> This is just a rough review. I'm not an expert in media-controller /
->>>>>> pad-level API, I hope someone with a better knowledge of those areas
->>>>>> will help me reviewing this.
->>>>>>
->>>>>> Another general comment: it has been discussed since a long time,
->>>>>> whether a wrapper wouldn't be desired to enable a seamless use of both
->>>>>> subdev drivers using and not using the pad-level API. Maybe it's the
->>>>>> right time now?..
->>>>>
->>>>> This would be a considerable change and would most probably take a rather
->>>>> long time, given how busy everyone is.
->>>>
->>>> If I understood correctly Hans Verkuil told me over the weekend that he
->>>> wanted to address this problem in the near future. Hans, could you detail
->>>> your plans ?
->>>
->>> That's correct. This patch series makes all the necessary changes.
->>>
->>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg83415.html
->>>
->>> Patches 1-4 have been merged already, but I need to do more testing for the
->>> remainder. The Renesas SH7724 board is ideal for that, but unfortunately I
->>> can't get it to work with the current kernel.
->>
->> I can't help you much with that, but I could test changes using the rcar-vin
->> driver with the adv7180 if needed (does the adv7180 generate an image if no
->> analog source is connected ?).
->
-> I expect so, most SDTV receivers do that.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It has a freerun mode, in which it can output various kinds of patterns, see 
-https://patchwork.linuxtv.org/patch/27894/
+The subdev enum ioctls now have a new 'which' field. Document this.
 
-- Lars
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml | 13 +++++++++----
+ .../DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml     | 13 +++++++++----
+ .../DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml      | 11 ++++++++---
+ 3 files changed, 26 insertions(+), 11 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
+index 2f8f4f0..cff59f5 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
+@@ -67,9 +67,9 @@
+ 
+     <para>To enumerate frame intervals applications initialize the
+     <structfield>index</structfield>, <structfield>pad</structfield>,
+-    <structfield>code</structfield>, <structfield>width</structfield> and
+-    <structfield>height</structfield> fields of
+-    &v4l2-subdev-frame-interval-enum; and call the
++    <structfield>which</structfield>, <structfield>code</structfield>,
++    <structfield>width</structfield> and <structfield>height</structfield>
++    fields of &v4l2-subdev-frame-interval-enum; and call the
+     <constant>VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL</constant> ioctl with a pointer
+     to this structure. Drivers fill the rest of the structure or return
+     an &EINVAL; if one of the input fields is invalid. All frame intervals are
+@@ -123,7 +123,12 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[9]</entry>
++	    <entry><structfield>which</structfield></entry>
++	    <entry>Frame intervals to be enumerated, from &v4l2-subdev-format-whence;.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[8]</entry>
+ 	    <entry>Reserved for future extensions. Applications and drivers must
+ 	    set the array to zero.</entry>
+ 	  </row>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
+index 79ce42b..abd545e 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
+@@ -61,9 +61,9 @@
+     ioctl.</para>
+ 
+     <para>To enumerate frame sizes applications initialize the
+-    <structfield>pad</structfield>, <structfield>code</structfield> and
+-    <structfield>index</structfield> fields of the
+-    &v4l2-subdev-mbus-code-enum; and call the
++    <structfield>pad</structfield>, <structfield>which</structfield> ,
++    <structfield>code</structfield> and <structfield>index</structfield>
++    fields of the &v4l2-subdev-mbus-code-enum; and call the
+     <constant>VIDIOC_SUBDEV_ENUM_FRAME_SIZE</constant> ioctl with a pointer to
+     the structure. Drivers fill the minimum and maximum frame sizes or return
+     an &EINVAL; if one of the input parameters is invalid.</para>
+@@ -127,7 +127,12 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[9]</entry>
++	    <entry><structfield>which</structfield></entry>
++	    <entry>Frame sizes to be enumerated, from &v4l2-subdev-format-whence;.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[8]</entry>
+ 	    <entry>Reserved for future extensions. Applications and drivers must
+ 	    set the array to zero.</entry>
+ 	  </row>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
+index a6b3432..0bcb278 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
+@@ -56,8 +56,8 @@
+     </note>
+ 
+     <para>To enumerate media bus formats available at a given sub-device pad
+-    applications initialize the <structfield>pad</structfield> and
+-    <structfield>index</structfield> fields of &v4l2-subdev-mbus-code-enum; and
++    applications initialize the <structfield>pad</structfield>, <structfield>which</structfield>
++    and <structfield>index</structfield> fields of &v4l2-subdev-mbus-code-enum; and
+     call the <constant>VIDIOC_SUBDEV_ENUM_MBUS_CODE</constant> ioctl with a
+     pointer to this structure. Drivers fill the rest of the structure or return
+     an &EINVAL; if either the <structfield>pad</structfield> or
+@@ -93,7 +93,12 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[9]</entry>
++	    <entry><structfield>which</structfield></entry>
++	    <entry>Media bus format codes to be enumerated, from &v4l2-subdev-format-whence;.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[8]</entry>
+ 	    <entry>Reserved for future extensions. Applications and drivers must
+ 	    set the array to zero.</entry>
+ 	  </row>
+-- 
+2.1.4
 
