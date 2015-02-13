@@ -1,179 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:53328 "EHLO
-	resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754578AbbBZWdS (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49176 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752378AbbBMRUl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 17:33:18 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, Julia.Lawall@lip6.fr
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: au0828 - embed vdev and vbi_dev structs in au0828_dev
-Date: Thu, 26 Feb 2015 15:33:13 -0700
-Message-Id: <1424989993-8458-1-git-send-email-shuahkh@osg.samsung.com>
+	Fri, 13 Feb 2015 12:20:41 -0500
+Message-ID: <1423848038.2887.12.camel@xs4all.nl>
+Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
+ cx23885: convert to vb2"
+From: Jurgen Kramer <gtmkramer@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Raimonds Cicans <ray@apollo.lv>, linux-media@vger.kernel.org
+Date: Fri, 13 Feb 2015 18:20:38 +0100
+In-Reply-To: <54DE298A.3040205@xs4all.nl>
+References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>
+				 <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>
+				 <54CE24F2.7090400@apollo.lv> <54CF4508.9070305@xs4all.nl>
+			 <1423065972.2650.1.camel@xs4all.nl> <54D24685.1000708@xs4all.nl>
+		 <1423070484.2650.3.camel@xs4all.nl> <54DDC00D.209@xs4all.nl>
+	 <1423844081.2887.6.camel@xs4all.nl> <54DE298A.3040205@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Embed video_device structs vdev and vbi_dev in au0828_dev.
-With this change, dynamic allocation and error path logic
-in au0828_analog_register() is removed as it doesn't need
-to allocate and handle allocation errors. Unregister path
-doesn't need to free the now static video_device structures,
-hence, changed video_device.release in au0828_video_template
-to point to video_device_release_empty.
+Hi,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-video.c | 66 +++++++++++----------------------
- drivers/media/usb/au0828/au0828.h       |  4 +-
- 2 files changed, 24 insertions(+), 46 deletions(-)
+On Fri, 2015-02-13 at 17:42 +0100, Hans Verkuil wrote:
+> On 02/13/2015 05:14 PM, Jurgen Kramer wrote:
+> > Hi,
+> > 
+> > On Fri, 2015-02-13 at 10:12 +0100, Hans Verkuil wrote:
+> >> Hi Jurgen,
+> >>
+> >> On 02/04/2015 06:21 PM, Jurgen Kramer wrote:
+> >>> On Wed, 2015-02-04 at 17:19 +0100, Hans Verkuil wrote:
+> >>>> On 02/04/2015 05:06 PM, Jurgen Kramer wrote:
+> >>>>> Hi Hans,
+> >>>>>
+> >>>>> On Mon, 2015-02-02 at 10:36 +0100, Hans Verkuil wrote:
+> >>>>>> Raimonds and Jurgen,
+> >>>>>>
+> >>>>>> Can you both test with the following patch applied to the driver:
+> >>>>>
+> >>>>> Unfortunately the mpeg error is not (completely) gone:
+> >>>>
+> >>>> OK, I suspected that might be the case. Is the UNBALANCED warning
+> >>>> gone with my vb2 patch?
+> >>
+> >>>> When you see this risc error, does anything
+> >>>> break (broken up video) or crash, or does it just keep on streaming?
+> >>
+> >> Can you comment on this question?
+> > I still get the risc errors at regular intervals. I am not sure what the real impact is. 
+> > I do get the occasional failed recording (dreaded 0 byte recoderings).
+> 
+> Did you get those failed recordings in the past (i.e. before the 'convert
+> to vb2' commit) as well? Or are these new since that commit?
+I only got the T980C's last December. I also had the occasional failed recording with my old PCI cards.
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index a27cb5f..f47ee90 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -900,10 +900,8 @@ void au0828_analog_unregister(struct au0828_dev *dev)
- 	dprintk(1, "au0828_analog_unregister called\n");
- 	mutex_lock(&au0828_sysfs_lock);
- 
--	if (dev->vdev)
--		video_unregister_device(dev->vdev);
--	if (dev->vbi_dev)
--		video_unregister_device(dev->vbi_dev);
-+	video_unregister_device(&dev->vdev);
-+	video_unregister_device(&dev->vbi_dev);
- 
- 	mutex_unlock(&au0828_sysfs_lock);
- }
-@@ -1286,7 +1284,7 @@ static int vidioc_enum_input(struct file *file, void *priv,
- 		input->audioset = 2;
- 	}
- 
--	input->std = dev->vdev->tvnorms;
-+	input->std = dev->vdev.tvnorms;
- 
- 	return 0;
- }
-@@ -1704,7 +1702,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 
- static const struct video_device au0828_video_template = {
- 	.fops                       = &au0828_v4l_fops,
--	.release                    = video_device_release,
-+	.release                    = video_device_release_empty,
- 	.ioctl_ops 		    = &video_ioctl_ops,
- 	.tvnorms                    = V4L2_STD_NTSC_M | V4L2_STD_PAL_M,
- };
-@@ -1814,52 +1812,36 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	dev->std = V4L2_STD_NTSC_M;
- 	au0828_s_input(dev, 0);
- 
--	/* allocate and fill v4l2 video struct */
--	dev->vdev = video_device_alloc();
--	if (NULL == dev->vdev) {
--		dprintk(1, "Can't allocate video_device.\n");
--		return -ENOMEM;
--	}
--
--	/* allocate the VBI struct */
--	dev->vbi_dev = video_device_alloc();
--	if (NULL == dev->vbi_dev) {
--		dprintk(1, "Can't allocate vbi_device.\n");
--		ret = -ENOMEM;
--		goto err_vdev;
--	}
--
- 	mutex_init(&dev->vb_queue_lock);
- 	mutex_init(&dev->vb_vbi_queue_lock);
- 
- 	/* Fill the video capture device struct */
--	*dev->vdev = au0828_video_template;
--	dev->vdev->v4l2_dev = &dev->v4l2_dev;
--	dev->vdev->lock = &dev->lock;
--	dev->vdev->queue = &dev->vb_vidq;
--	dev->vdev->queue->lock = &dev->vb_queue_lock;
--	strcpy(dev->vdev->name, "au0828a video");
-+	dev->vdev = au0828_video_template;
-+	dev->vdev.v4l2_dev = &dev->v4l2_dev;
-+	dev->vdev.lock = &dev->lock;
-+	dev->vdev.queue = &dev->vb_vidq;
-+	dev->vdev.queue->lock = &dev->vb_queue_lock;
-+	strcpy(dev->vdev.name, "au0828a video");
- 
- 	/* Setup the VBI device */
--	*dev->vbi_dev = au0828_video_template;
--	dev->vbi_dev->v4l2_dev = &dev->v4l2_dev;
--	dev->vbi_dev->lock = &dev->lock;
--	dev->vbi_dev->queue = &dev->vb_vbiq;
--	dev->vbi_dev->queue->lock = &dev->vb_vbi_queue_lock;
--	strcpy(dev->vbi_dev->name, "au0828a vbi");
-+	dev->vbi_dev = au0828_video_template;
-+	dev->vbi_dev.v4l2_dev = &dev->v4l2_dev;
-+	dev->vbi_dev.lock = &dev->lock;
-+	dev->vbi_dev.queue = &dev->vb_vbiq;
-+	dev->vbi_dev.queue->lock = &dev->vb_vbi_queue_lock;
-+	strcpy(dev->vbi_dev.name, "au0828a vbi");
- 
- 	/* initialize videobuf2 stuff */
- 	retval = au0828_vb2_setup(dev);
- 	if (retval != 0) {
- 		dprintk(1, "unable to setup videobuf2 queues (error = %d).\n",
- 			retval);
--		ret = -ENODEV;
--		goto err_vbi_dev;
-+		return -ENODEV;
- 	}
- 
- 	/* Register the v4l2 device */
--	video_set_drvdata(dev->vdev, dev);
--	retval = video_register_device(dev->vdev, VFL_TYPE_GRABBER, -1);
-+	video_set_drvdata(&dev->vdev, dev);
-+	retval = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
- 	if (retval != 0) {
- 		dprintk(1, "unable to register video device (error = %d).\n",
- 			retval);
-@@ -1868,8 +1850,8 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	}
- 
- 	/* Register the vbi device */
--	video_set_drvdata(dev->vbi_dev, dev);
--	retval = video_register_device(dev->vbi_dev, VFL_TYPE_VBI, -1);
-+	video_set_drvdata(&dev->vbi_dev, dev);
-+	retval = video_register_device(&dev->vbi_dev, VFL_TYPE_VBI, -1);
- 	if (retval != 0) {
- 		dprintk(1, "unable to register vbi device (error = %d).\n",
- 			retval);
-@@ -1882,14 +1864,10 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	return 0;
- 
- err_reg_vbi_dev:
--	video_unregister_device(dev->vdev);
-+	video_unregister_device(&dev->vdev);
- err_reg_vdev:
- 	vb2_queue_release(&dev->vb_vidq);
- 	vb2_queue_release(&dev->vb_vbiq);
--err_vbi_dev:
--	video_device_release(dev->vbi_dev);
--err_vdev:
--	video_device_release(dev->vdev);
- 	return ret;
- }
- 
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index eb15187..3b48000 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -209,8 +209,8 @@ struct au0828_dev {
- 	struct au0828_rc *ir;
- #endif
- 
--	struct video_device *vdev;
--	struct video_device *vbi_dev;
-+	struct video_device vdev;
-+	struct video_device vbi_dev;
- 
- 	/* Videobuf2 */
- 	struct vb2_queue vb_vidq;
--- 
-2.1.0
+> >>>
+> >>> The UNBALANCED warnings have not reappeared (so far).
+> >>
+> >> And they are still gone? If that's the case, then I'll merge the patch
+> >> fixing this for 3.20.
+> > No, these are gone.
+> 
+> Ah, good news.
+> 
+> >>
+> >> With respect to the risc error: the only reason I can think of is that it
+> >> is a race condition when the risc program is updated. I'll see if I can
+> >> spend some time on this today or on Monday. Can you give me an indication
+> >> how often you see this risc error message?
+> > 
+> > dmesg |grep "risc op code error"
+> > [ 1267.999719] cx23885[1]: mpeg risc op code error
+> > [17830.312766] cx23885[2]: mpeg risc op code error
+> > [37820.312372] cx23885[2]: mpeg risc op code error
+> > [48973.897721] cx23885[2]: mpeg risc op code error
+> > [126673.151447] cx23885[0]: mpeg risc op code error
+> > [208262.607584] cx23885[2]: mpeg risc op code error
+> > [212564.803499] cx23885[2]: mpeg risc op code error
+> > [288834.700570] cx23885[1]: mpeg risc op code error
+> > [298753.789105] cx23885[2]: mpeg risc op code error
+> > [341900.746719] cx23885[2]: mpeg risc op code error
+> > [346513.849946] cx23885[1]: mpeg risc op code error
+> > [359267.169552] cx23885[2]: mpeg risc op code error
+> > [370728.293458] cx23885[1]: mpeg risc op code error
+> > [423626.314834] cx23885[1]: mpeg risc op code error
+> > uptime:
+> >  17:14:03 up 4 days, 22:22,  2 users,  load average: 0.19, 0.39, 0.34
+> 
+> I understand that you record continuously? Or only at specific times?
+No not continuously, occasionally when there is something interesting :-), but quite regularly (series etc). 
+
+> Sorry for all these questions, but they help me locate the problem.
+No problem :-)
+
+Regards,
+Jurgen
 
