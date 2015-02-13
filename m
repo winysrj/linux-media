@@ -1,81 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:46804 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753281AbbBMPr6 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49474 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753742AbbBMW6W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 10:47:58 -0500
-MIME-Version: 1.0
-In-Reply-To: <54DE192B.5060402@xs4all.nl>
-References: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com>
- <54DE11FA.6050702@xs4all.nl> <CAPybu_0wpNU0m2jjmbff+-mcoU-dkKjpHoW8Hr-GPyWH4oGcgQ@mail.gmail.com>
- <54DE192B.5060402@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 13 Feb 2015 16:47:36 +0100
-Message-ID: <CAPybu_1fw6qEmeXPrJVsTAoiY5=athE6FaakXznnbzd7fE7shw@mail.gmail.com>
-Subject: Re: [PATCH v2 1/3] media/videobuf2-dma-sg: Fix handling of sg_table structure
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
+	Fri, 13 Feb 2015 17:58:22 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	martin.petersen@oracle.com, hch@lst.de, tonyb@cybernetics.com,
-	axboe@fb.com, Stephen Rothwell <sfr@canb.auug.org.au>,
-	lauraa@codeaurora.org,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	webbnh@hp.com, hare@suse.de,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Content-Type: text/plain; charset=UTF-8
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Joe Perches <joe@perches.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: [PATCHv4 16/25] [media] cx25840: fill the media controller entity
+Date: Fri, 13 Feb 2015 20:57:59 -0200
+Message-Id: <6e028daf7da0bb15af4ff03290a2a67b7b35515c.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all
+Instead of keeping the media controller entity not initialized,
+fill it and create the pads for cx25840.
 
-On Fri, Feb 13, 2015 at 4:32 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> Yes please. And if Ricardo is correct, then someone (janitor job?) should do
-> a review of dma_unmap_sg in particular.
-
-Perhaps a code snippet inside scatterlist.h will clarify even more.
-
-Would any of the maintainers accept a patch to include a comment like:
-
-struct sg_table *sgt;
-
-sgt = kzalloc(sizeof(*sgt);
-if (!sgt){
-return -ENOMEM;
-}
-
-ret = sg_alloc_table(sgt, N_NENTS, GPF_KERNEL);
-if (ret){
-  kfree(sgt);
-  return ret;
-}
-
-//Fill sgt using orig_nents or nents  as index
-
-sgt->nents = dma_map_sg(dev, sgt->sgl, sgt->orig_nents, DIR);
-if (!sgt->nents){
-  sg_free_table(sgt);
-  kfree(sgt);
-  return -EIO;
-}
-
-//Use nent  as index
-
-dma_unmap_sg(dev, sgt->sgl, sgt->orig_nents, DIR);
-sg_free_table(sgt);
-kfree(sgt);
-return 0
-
-
-
-Thanks!
-
-
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+index 573e08826b9b..bdb5bb6b58da 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.c
++++ b/drivers/media/i2c/cx25840/cx25840-core.c
+@@ -5137,6 +5137,9 @@ static int cx25840_probe(struct i2c_client *client,
+ 	int default_volume;
+ 	u32 id;
+ 	u16 device_id;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	int ret;
++#endif
+ 
+ 	/* Check if the adapter supports the needed features */
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+@@ -5178,6 +5181,21 @@ static int cx25840_probe(struct i2c_client *client,
+ 
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &cx25840_ops);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	/* TODO: need to represent analog inputs too */
++	state->pads[0].flags = MEDIA_PAD_FL_SINK;	/* Tuner or input */
++	state->pads[1].flags = MEDIA_PAD_FL_SOURCE;	/* Video */
++	state->pads[2].flags = MEDIA_PAD_FL_SOURCE;	/* VBI */
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
++
++	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
++				state->pads, 0);
++	if (ret < 0) {
++		v4l_info(client, "failed to initialize media entity!\n");
++		kfree(state);
++		return -ENODEV;
++	}
++#endif
+ 
+ 	switch (id) {
+ 	case CX23885_AV:
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.h b/drivers/media/i2c/cx25840/cx25840-core.h
+index 37bc04217c44..17b409f55445 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.h
++++ b/drivers/media/i2c/cx25840/cx25840-core.h
+@@ -64,6 +64,9 @@ struct cx25840_state {
+ 	wait_queue_head_t fw_wait;    /* wake up when the fw load is finished */
+ 	struct work_struct fw_work;   /* work entry for fw load */
+ 	struct cx25840_ir_state *ir_state;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad	pads[3];
++#endif
+ };
+ 
+ static inline struct cx25840_state *to_state(struct v4l2_subdev *sd)
 -- 
-Ricardo Ribalda
+2.1.0
+
