@@ -1,138 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:34660 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752785AbbBBO6E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 09:58:04 -0500
-Date: Mon, 02 Feb 2015 12:57:55 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [RESEND PATCH v2] [media] Add RGB444_1X12 and RGB565_1X16 media
- bus formats
-Message-id: <20150202125755.5bf5ecc9.m.chehab@samsung.com>
-In-reply-to: <1420544615-18788-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1420544615-18788-1-git-send-email-boris.brezillon@free-electrons.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:49524 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753951AbbBMW6X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Feb 2015 17:58:23 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv4 09/25] [media] cx231xx: add media controller support
+Date: Fri, 13 Feb 2015 20:57:52 -0200
+Message-Id: <23a0642d141c8cfbbde0e20b671dd9e3946d53bc.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue,  6 Jan 2015 12:43:35 +0100
-Boris Brezillon <boris.brezillon@free-electrons.com> escreveu:
+Let's add media controller support for this driver and register it
+for both V4L and DVB.
 
-> Add RGB444_1X12 and RGB565_1X16 format definitions and update the
-> documentation.
-> 
-> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Hi Mauro, Sakari,
-> 
-> This patch has been rejected as 'Not Applicable'.
-> Is there anyting wrong in it ?
+The media controller on this driver is not mandatory, as it can fully
+work without it. So, if the media controller register fails, just print
+an error message, but proceed with device registering.
 
-I was expecting that this patch would be merged together with the
-remaining series, via the DRM tree. That's basically why I gave
-my ack:
-	https://lkml.org/lkml/2014/11/3/661
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-HINT: when a subsystem maintainer gives an ack, that likely means that
-he expects that the patch will be applied via some other tree.
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index da03733690bd..d357e8c0c485 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -912,9 +912,6 @@ static inline void cx231xx_set_model(struct cx231xx *dev)
+  */
+ void cx231xx_pre_card_setup(struct cx231xx *dev)
+ {
+-
+-	cx231xx_set_model(dev);
+-
+ 	dev_info(dev->dev, "Identified as %s (card=%d)\n",
+ 		dev->board.name, dev->model);
+ 
+@@ -1092,6 +1089,17 @@ void cx231xx_config_i2c(struct cx231xx *dev)
+ 	call_all(dev, video, s_stream, 1);
+ }
+ 
++static void cx231xx_unregister_media_device(struct cx231xx *dev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	if (dev->media_dev) {
++		media_device_unregister(dev->media_dev);
++		kfree(dev->media_dev);
++		dev->media_dev = NULL;
++	}
++#endif
++}
++
+ /*
+  * cx231xx_realease_resources()
+  * unregisters the v4l2,i2c and usb devices
+@@ -1099,6 +1107,8 @@ void cx231xx_config_i2c(struct cx231xx *dev)
+ */
+ void cx231xx_release_resources(struct cx231xx *dev)
+ {
++	cx231xx_unregister_media_device(dev);
++
+ 	cx231xx_release_analog_resources(dev);
+ 
+ 	cx231xx_remove_from_devlist(dev);
+@@ -1117,6 +1127,38 @@ void cx231xx_release_resources(struct cx231xx *dev)
+ 	clear_bit(dev->devno, &cx231xx_devused);
+ }
+ 
++static void cx231xx_media_device_register(struct cx231xx *dev,
++					  struct usb_device *udev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev;
++	int ret;
++
++	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	if (!mdev)
++		return;
++
++	mdev->dev = dev->dev;
++	strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
++	if (udev->serial)
++		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
++	strcpy(mdev->bus_info, udev->devpath);
++	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
++	mdev->driver_version = LINUX_VERSION_CODE;
++
++	ret = media_device_register(mdev);
++	if (ret) {
++		dev_err(dev->dev,
++			"Couldn't create a media device. Error: %d\n",
++			ret);
++		kfree(mdev);
++		return;
++	}
++
++	dev->media_dev = mdev;
++#endif
++}
++
+ /*
+  * cx231xx_init_dev()
+  * allocates and inits the device structs, registers i2c bus and v4l device
+@@ -1225,10 +1267,8 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 	}
+ 
+ 	retval = cx231xx_register_analog_devices(dev);
+-	if (retval) {
+-		cx231xx_release_analog_resources(dev);
++	if (retval)
+ 		goto err_analog;
+-	}
+ 
+ 	cx231xx_ir_init(dev);
+ 
+@@ -1236,6 +1276,8 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 
+ 	return 0;
+ err_analog:
++	cx231xx_unregister_media_device(dev);
++	cx231xx_release_analog_resources(dev);
+ 	cx231xx_remove_from_devlist(dev);
+ err_dev_init:
+ 	cx231xx_dev_uninit(dev);
+@@ -1438,6 +1480,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	dev->video_mode.alt = -1;
+ 	dev->dev = d;
+ 
++	cx231xx_set_model(dev);
++
+ 	dev->interface_count++;
+ 	/* reset gpio dir and value */
+ 	dev->gpio_dir = 0;
+@@ -1502,7 +1546,11 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	/* save our data pointer in this interface device */
+ 	usb_set_intfdata(interface, dev);
+ 
++	/* Register the media controller */
++	cx231xx_media_device_register(dev, udev);
++
+ 	/* Create v4l2 device */
++	dev->v4l2_dev.mdev = dev->media_dev;
+ 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
+ 	if (retval) {
+ 		dev_err(d, "v4l2_device_register failed\n");
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index dd600b994e69..bb7e766cd30c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -455,6 +455,7 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 
+ 	mutex_init(&dvb->lock);
+ 
++
+ 	/* register adapter */
+ 	result = dvb_register_adapter(&dvb->adapter, dev->name, module, device,
+ 				      adapter_nr);
+@@ -464,6 +465,9 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 		       dev->name, result);
+ 		goto fail_adapter;
+ 	}
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++	dvb->adapter.mdev = dev->media_dev;
++#endif
+ 
+ 	/* Ensure all frontends negotiate bus access */
+ 	dvb->frontend->ops.ts_bus_ctrl = cx231xx_dvb_bus_ctrl;
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 6d6f3ee812f6..af9d6c4041dc 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -658,6 +658,10 @@ struct cx231xx {
+ 	struct video_device *vbi_dev;
+ 	struct video_device *radio_dev;
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_device *media_dev;
++#endif
++
+ 	unsigned char eedata[256];
+ 
+ 	struct cx231xx_video_mode video_mode;
+-- 
+2.1.0
 
-Regards,
-Mauro
-
-> 
-> Best Regards,
-> 
-> Boris
-> 
->  Documentation/DocBook/media/v4l/subdev-formats.xml | 40 ++++++++++++++++++++++
->  include/uapi/linux/media-bus-format.h              |  4 ++-
->  2 files changed, 43 insertions(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> index c5ea868..be57efa 100644
-> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> @@ -192,6 +192,24 @@ see <xref linkend="colorspaces" />.</entry>
->  	    </row>
->  	  </thead>
->  	  <tbody valign="top">
-> +	    <row id="MEDIA-BUS-FMT-RGB444-1X12">
-> +	      <entry>MEDIA_BUS_FMT_RGB444_1X12</entry>
-> +	      <entry>0x100d</entry>
-> +	      <entry></entry>
-> +	      &dash-ent-20;
-> +	      <entry>r<subscript>3</subscript></entry>
-> +	      <entry>r<subscript>2</subscript></entry>
-> +	      <entry>r<subscript>1</subscript></entry>
-> +	      <entry>r<subscript>0</subscript></entry>
-> +	      <entry>g<subscript>3</subscript></entry>
-> +	      <entry>g<subscript>2</subscript></entry>
-> +	      <entry>g<subscript>1</subscript></entry>
-> +	      <entry>g<subscript>0</subscript></entry>
-> +	      <entry>b<subscript>3</subscript></entry>
-> +	      <entry>b<subscript>2</subscript></entry>
-> +	      <entry>b<subscript>1</subscript></entry>
-> +	      <entry>b<subscript>0</subscript></entry>
-> +	    </row>
->  	    <row id="MEDIA-BUS-FMT-RGB444-2X8-PADHI-BE">
->  	      <entry>MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE</entry>
->  	      <entry>0x1001</entry>
-> @@ -304,6 +322,28 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>g<subscript>4</subscript></entry>
->  	      <entry>g<subscript>3</subscript></entry>
->  	    </row>
-> +	    <row id="MEDIA-BUS-FMT-RGB565-1X16">
-> +	      <entry>MEDIA_BUS_FMT_RGB565_1X16</entry>
-> +	      <entry>0x100d</entry>
-> +	      <entry></entry>
-> +	      &dash-ent-16;
-> +	      <entry>r<subscript>4</subscript></entry>
-> +	      <entry>r<subscript>3</subscript></entry>
-> +	      <entry>r<subscript>2</subscript></entry>
-> +	      <entry>r<subscript>1</subscript></entry>
-> +	      <entry>r<subscript>0</subscript></entry>
-> +	      <entry>g<subscript>5</subscript></entry>
-> +	      <entry>g<subscript>4</subscript></entry>
-> +	      <entry>g<subscript>3</subscript></entry>
-> +	      <entry>g<subscript>2</subscript></entry>
-> +	      <entry>g<subscript>1</subscript></entry>
-> +	      <entry>g<subscript>0</subscript></entry>
-> +	      <entry>b<subscript>4</subscript></entry>
-> +	      <entry>b<subscript>3</subscript></entry>
-> +	      <entry>b<subscript>2</subscript></entry>
-> +	      <entry>b<subscript>1</subscript></entry>
-> +	      <entry>b<subscript>0</subscript></entry>
-> +	    </row>
->  	    <row id="MEDIA-BUS-FMT-BGR565-2X8-BE">
->  	      <entry>MEDIA_BUS_FMT_BGR565_2X8_BE</entry>
->  	      <entry>0x1005</entry>
-> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-> index 23b4090..37091c6 100644
-> --- a/include/uapi/linux/media-bus-format.h
-> +++ b/include/uapi/linux/media-bus-format.h
-> @@ -33,11 +33,13 @@
->  
->  #define MEDIA_BUS_FMT_FIXED			0x0001
->  
-> -/* RGB - next is	0x100e */
-> +/* RGB - next is	0x1010 */
-> +#define MEDIA_BUS_FMT_RGB444_1X12		0x100e
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
->  #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
->  #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE	0x1004
-> +#define MEDIA_BUS_FMT_RGB565_1X16		0x100f
->  #define MEDIA_BUS_FMT_BGR565_2X8_BE		0x1005
->  #define MEDIA_BUS_FMT_BGR565_2X8_LE		0x1006
->  #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
