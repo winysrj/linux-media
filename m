@@ -1,117 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42045 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932086AbbBLDp3 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49460 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753901AbbBMW6V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2015 22:45:29 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6ACFA2A0099
-	for <linux-media@vger.kernel.org>; Thu, 12 Feb 2015 04:45:15 +0100 (CET)
-Date: Thu, 12 Feb 2015 04:45:15 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150212034515.6ACFA2A0099@tschai.lan>
+	Fri, 13 Feb 2015 17:58:21 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv4 17/25] [media] cx231xx: initialize video/vbi pads
+Date: Fri, 13 Feb 2015 20:58:00 -0200
+Message-Id: <adca72951078de7069b61ded4212d47ae5b4fe71.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Both video and vbi are sink pads. Initialize them as such.
 
-Results of the daily build of media_tree:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-date:		Thu Feb 12 04:00:26 CET 2015
-git branch:	test
-git hash:	d6d4c0e00fe559ef54b414e2e6266beaa50b4d8e
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-5.slh.1-amd64
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index ecea76fe07f6..f3d1a488dfa7 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -2121,7 +2121,12 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
+ 		dev_err(dev->dev, "cannot allocate video_device.\n");
+ 		return -ENODEV;
+ 	}
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&dev->vdev->entity, 1, &dev->video_pad, 0);
++	if (ret < 0)
++		dev_err(dev->dev, "failed to initialize video media entity!\n");
++#endif
+ 	dev->vdev->ctrl_handler = &dev->ctrl_handler;
+ 	/* register v4l2 video video_device */
+ 	ret = video_register_device(dev->vdev, VFL_TYPE_GRABBER,
+@@ -2147,6 +2152,12 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
+ 		dev_err(dev->dev, "cannot allocate video_device.\n");
+ 		return -ENODEV;
+ 	}
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&dev->vbi_dev->entity, 1, &dev->vbi_pad, 0);
++	if (ret < 0)
++		dev_err(dev->dev, "failed to initialize vbi media entity!\n");
++#endif
+ 	dev->vbi_dev->ctrl_handler = &dev->ctrl_handler;
+ 	/* register v4l2 vbi video_device */
+ 	ret = video_register_device(dev->vbi_dev, VFL_TYPE_VBI,
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index af9d6c4041dc..e0d3106f6b44 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -660,6 +660,7 @@ struct cx231xx {
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct media_device *media_dev;
++	struct media_pad video_pad, vbi_pad;
+ #endif
+ 
+ 	unsigned char eedata[256];
+-- 
+2.1.0
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18-i686: OK
-linux-3.19-rc4-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18-x86_64: OK
-linux-3.19-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
