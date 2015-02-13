@@ -1,455 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54264 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754831AbbBBKAt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 05:00:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: William Towle <william.towle@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 6/8] WmT: adv7604 driver compatibility
-Date: Mon, 02 Feb 2015 12:01:05 +0200
-Message-ID: <2552213.h99FiuUI04@avalon>
-In-Reply-To: <Pine.LNX.4.64.1502011216460.9534@axis700.grange>
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <Pine.LNX.4.64.1502010028150.26661@axis700.grange> <Pine.LNX.4.64.1502011216460.9534@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:49415 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753859AbbBMW6U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Feb 2015 17:58:20 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv4 08/25] [media] dvbdev: add support for media controller
+Date: Fri, 13 Feb 2015 20:57:51 -0200
+Message-Id: <461d43d93727a9349b64140fcbdd1cb7412b7855.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Provide a way to register media controller device nodes
+at the DVB core.
 
-On Sunday 01 February 2015 12:26:11 Guennadi Liakhovetski wrote:
-> On a second thought:
-> 
-> On Sun, 1 Feb 2015, Guennadi Liakhovetski wrote:
-> > Hi Wills,
-> > 
-> > Thanks for the patch. First and foremost, the title of the patch is wrong.
-> > This patch does more than just adding some "adv7604 compatibility." It's
-> > adding pad-level API to soc-camera.
-> > 
-> > This is just a rough review. I'm not an expert in media-controller /
-> > pad-level API, I hope someone with a better knowledge of those areas will
-> > help me reviewing this.
-> > 
-> > Another general comment: it has been discussed since a long time, whether
-> > a wrapper wouldn't be desired to enable a seamless use of both subdev
-> > drivers using and not using the pad-level API. Maybe it's the right time
-> > now?..
-> 
-> This would be a considerable change and would most probably take a rather
-> long time, given how busy everyone is.
+Please notice that the dvbdev callers also require changes
+for the devices to be registered via the media controller.
 
-If I understood correctly Hans Verkuil told me over the weekend that he wanted 
-to address this problem in the near future. Hans, could you detail your plans 
-?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> I personally would be fine with a (yet another) intermittent solution,
-> whereby we create a soc_camera_subdev.c file, in which we collect all those
-> function to call either a video or a pad subdev operation, depending on
-> whether the latter is available. E.g.
-> 
-> int soc_camera_sd_enum_mbus_fmt(sd, code)
-> {
-> 	int ret;
-> 
-> 	if (v4l2_subdev_has_op(sd, pad, enum_mbus_code)) {
-> 		ret = v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, code);
-> 	} else {
-> 		u32 pixcode;
-> 
-> 		ret = v4l2_subdev_call(sd, video, enum_mbus_fmt, code->index, 
-&pixcode);
-> 		if (!ret)
-> 			code->code= pixcode;
-> 	}
-> 
-> 	return ret;
-> }
-> 
-> Similarly for other ops.
-> 
-> Thanks
-> Guennadi
-> 
-> > On Thu, 29 Jan 2015, William Towle wrote:
-> > > Add 'struct media_pad pad' member and suitable glue code, so that
-> > > soc_camera/rcar_vin can become agnostic to whether an old or new-
-> > > style driver (wrt pad API use) can sit underneath
-> > > 
-> > > This version has been reworked to include appropriate constant and
-> > > datatype names for kernel v3.18
-> > > ---
-> > > 
-> > >  drivers/media/platform/soc_camera/soc_camera.c     |  148
-> > >  +++++++++++++++++++-
-> > >  drivers/media/platform/soc_camera/soc_scale_crop.c |   43 +++++-
-> > >  include/media/soc_camera.h                         |    1 +
-> > >  3 files changed, 182 insertions(+), 10 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/platform/soc_camera/soc_camera.c
-> > > b/drivers/media/platform/soc_camera/soc_camera.c index f4be2a1..efc20bf
-> > > 100644
-> > > --- a/drivers/media/platform/soc_camera/soc_camera.c
-> > > +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> > > @@ -37,8 +37,11 @@
-> > > 
-> > >  #include <media/v4l2-ioctl.h>
-> > >  #include <media/v4l2-dev.h>
-> > >  #include <media/v4l2-of.h>
-> > > 
-> > > +#if 0
-> > > 
-> > >  #include <media/videobuf-core.h>
-> > >  #include <media/videobuf2-core.h>
-> > > 
-> > > +#endif
-> > 
-> > No. These headers are needed even if the code can be compiled without
-> > them.
-> > 
-> > > +#include <media/v4l2-mediabus.h>
-> > 
-> > Well, maybe. This header is included indirectly via soc_mediabus.h, but
-> > yes, as I just said above, headers, whose defines, structs etc. are used,
-> > should be encluded directly. Further, you'll need more headers, e.g.
-> > media-entity.h, maybe some more.
-> > 
-> > >  /* Default to VGA resolution */
-> > >  #define DEFAULT_WIDTH	640
-> > > 
-> > > @@ -453,6 +456,98 @@ static int soc_camera_expbuf(struct file *file,
-> > > void *priv,> > 
-> > >  		return vb2_expbuf(&icd->vb2_vidq, p);
-> > >  
-> > >  }
-> > > 
-> > > +static int soc_camera_init_user_formats_pad(struct soc_camera_device
-> > > *icd, int src_pad_idx) +{
-> > > +	struct v4l2_subdev *sd= soc_camera_to_subdev(icd);
-> > > +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> > > +	struct v4l2_subdev_mbus_code_enum code;
-> > > +	int fmts= 0, raw_fmts, i, ret;
-> > 
-> > Please, run this patch through checkpatch.pl. It will tell you to add a
-> > Signed-off-by line, (hopefully) to add spaces before "=" in multiple
-> > places, to place braces correctly, to not use C++-style comments etc. Only
-> > feel free to ignore 80-character warnings.
-> > 
-> > > +
-> > > +	code.pad= src_pad_idx;
-> > > +	code.index= 0;
-> > > +
-> > > +	// subdev_has_op -> enum_mbus_code vs enum_mbus_fmt
-> > > +	if (v4l2_subdev_has_op(sd, pad, enum_mbus_code)) {
-> > 
-> > This function is called only once below and only after the above test has
-> > already returned success. Looks like you don't need it here again and the
-> > below "else" branch can be dropped completely?
-> > 
-> > > +		while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code))
-> > > +			code.index++;
-> > > +	} else {
-> > > +		u32 pixcode;
-> > > +
-> > > +		while (!v4l2_subdev_call(sd, video, enum_mbus_fmt, code.index,
-> > > &pixcode)) +		{
-> > > +			code.code= pixcode;
-> > > +			code.index++;
-> > > +		}
-> > > +	}
-> > > +	raw_fmts= code.index;
-> > > +
-> > > +	if (!ici->ops->get_formats) {
-> > > +		/*
-> > > +		 * Fallback mode - the host will have to serve all
-> > > +		 * sensor-provided formats one-to-one to the user
-> > > +		 */
-> > > +		fmts = raw_fmts;
-> > > +	}
-> > > +	else {
-> > > +		/*
-> > > +		 * First pass - only count formats this host-sensor
-> > > +		 * configuration can provide
-> > > +		 */
-> > > +		for (i = 0; i < raw_fmts; i++) {
-> > > +			int ret = ici->ops->get_formats(icd, i, NULL);
-> > > +			if (ret < 0)
-> > > +				return ret;
-> > > +			fmts += ret;
-> > > +		}
-> > > +	}
-> > > +
-> > > +	if (!fmts)
-> > > +		return -ENXIO;
-> > > +
-> > > +	icd->user_formats =
-> > > +		vmalloc(fmts * sizeof(struct soc_camera_format_xlate));
-> > > +	if (!icd->user_formats)
-> > > +		return -ENOMEM;
-> > > +
-> > > +	dev_dbg(icd->pdev, "Found %d supported formats.\n", fmts);
-> > > +
-> > > +	/* Second pass - actually fill data formats */
-> > > +	fmts = 0;
-> > > +	for (i = 0; i < raw_fmts; i++) {
-> > > +		if (!ici->ops->get_formats) {
-> > > +			code.index= i;
-> > > +			// subdev_has_op -> enum_mbus_code vs enum_mbus_fmt
-> > > +			if (v4l2_subdev_has_op(sd, pad, enum_mbus_code)) {
-> > 
-> > Same test again?? Or am I missing something? If indeed these tests are
-> > redundant, after you remove them this function will become very similar to
-> > the original soc_camera_init_user_formats(), so, maybe some code reuse
-> > will become possible.
-> > 
-> > > +				v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code);
-> > > +			} else {
-> > > +				u32 pixcode;
-> > > +
-> > > +				v4l2_subdev_call(sd, video, enum_mbus_fmt, code.index, 
-&pixcode);
-> > > +				code.code= pixcode;
-> > > +			}
-> > > +			icd->user_formats[fmts].host_fmt =
-> > > +				soc_mbus_get_fmtdesc(code.code);
-> > > +			if (icd->user_formats[fmts].host_fmt)
-> > > +				icd->user_formats[fmts++].code = code.code;
-> > > +		} else {
-> > > +			ret = ici->ops->get_formats(icd, i,
-> > > +						    &icd->user_formats[fmts]);
-> > > +			if (ret < 0)
-> > > +				goto egfmt;
-> > > +			fmts += ret;
-> > > +		}
-> > > +	}
-> > > +
-> > > +	icd->num_user_formats = fmts;
-> > > +	icd->current_fmt = &icd->user_formats[0];
-> > > +
-> > > +	return 0;
-> > > +
-> > > +egfmt:
-> > > +	vfree(icd->user_formats);
-> > > +	return ret;
-> > > +}
-> > > +
-> > > 
-> > >  /* Always entered with .host_lock held */
-> > >  static int soc_camera_init_user_formats(struct soc_camera_device *icd)
-> > >  {
-> > > 
-> > > @@ -1289,6 +1384,7 @@ static int soc_camera_probe_finish(struct
-> > > soc_camera_device *icd)> > 
-> > >  {
-> > >  
-> > >  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> > >  	struct v4l2_mbus_framefmt mf;
-> > > 
-> > > +	int src_pad_idx= -1;
-> > > 
-> > >  	int ret;
-> > >  	
-> > >  	sd->grp_id = soc_camera_grp_id(icd);
-> > > 
-> > > @@ -1307,7 +1403,30 @@ static int soc_camera_probe_finish(struct
-> > > soc_camera_device *icd)> > 
-> > >  	}
-> > >  	
-> > >  	/* At this point client .probe() should have run already */
-> > > 
-> > > -	ret = soc_camera_init_user_formats(icd);
-> > > +	// subdev_has_op -> enum_mbus_code vs enum_mbus_fmt
-> > > +	if (!v4l2_subdev_has_op(sd, pad, enum_mbus_code))
-> > 
-> > This is the test, that I meant above.
-> > 
-> > > +		ret = soc_camera_init_user_formats(icd);
-> > > +	else {
-> > > +		ret = media_entity_init(&icd->vdev->entity, 1,
-> > > +					&icd->pad, 0);
-> > 
-> > Ok, maybe this hard-coded 1 pad with no extras is justified here, but
-> > let's here what others say.
-> > 
-> > > +		if (!ret) {
-> > > +			for (src_pad_idx= 0; src_pad_idx < sd->entity.num_pads;
-> > > src_pad_idx++)
-> > > +				if (sd->entity.pads[src_pad_idx].flags == 
-MEDIA_PAD_FL_SOURCE)
-> > > +					break;
-> > > +
-> > > +			if (src_pad_idx < sd->entity.num_pads) {
-> > > +				ret = media_entity_create_link(
-> > > +					&icd->vdev->entity, 0,
-> > > +					&sd->entity, src_pad_idx,
-> > > +					MEDIA_LNK_FL_IMMUTABLE |
-> > > +					MEDIA_LNK_FL_ENABLED);
-> > 
-> > Let's try to preserve the style. I normally try to avoid splitting the
-> > line after "f(" and adding at least the first function parameter above
-> > will not make that line longer, than the ones above. So, let's do that.
-> > 
-> > > +			}
-> > > +		}
-> > > +
-> > > +		if (!ret)
-> > > +			ret = soc_camera_init_user_formats_pad(icd,
-> > > +							src_pad_idx);
-> > 
-> > Probably no need to break the line here either.
-> > 
-> > > +	}
-> > > 
-> > >  	if (ret < 0)
-> > >  	
-> > >  		goto eusrfmt;
-> > > 
-> > > @@ -1318,11 +1437,28 @@ static int soc_camera_probe_finish(struct
-> > > soc_camera_device *icd)> > 
-> > >  		goto evidstart;
-> > >  	
-> > >  	/* Try to improve our guess of a reasonable window format */
-> > > 
-> > > -	if (!v4l2_subdev_call(sd, video, g_mbus_fmt, &mf)) {
-> > > -		icd->user_width		= mf.width;
-> > > -		icd->user_height	= mf.height;
-> > > -		icd->colorspace		= mf.colorspace;
-> > > -		icd->field		= mf.field;
-> > > +	// subdev_has_op -> get_fmt vs g_mbus_fmt
-> > > +	if (v4l2_subdev_has_op(sd, pad, enum_mbus_code)
-> > > +		&& v4l2_subdev_has_op(sd, pad, get_fmt)
-> > > +		&& src_pad_idx != -1) {
-> > 
-> > The rest of the file puts operations after the first argument, not before
-> > the second one when breaking the line. Let's do that here too.
-> > 
-> > Thanks
-> > Guennadi
-> > 
-> > > +		struct v4l2_subdev_format sd_format;
-> > > +
-> > > +		sd_format.pad= src_pad_idx;
-> > > +		sd_format.which= V4L2_SUBDEV_FORMAT_ACTIVE;
-> > > +
-> > > +		if (!v4l2_subdev_call(sd, pad, get_fmt, NULL, &sd_format)) {
-> > > +			icd->user_width		= sd_format.format.width;
-> > > +			icd->user_height	= sd_format.format.height;
-> > > +			icd->colorspace		= sd_format.format.colorspace;
-> > > +			icd->field		= sd_format.format.field;
-> > > +		}
-> > > +	} else {
-> > > +		if (!v4l2_subdev_call(sd, video, g_mbus_fmt, &mf)) {
-> > > +			icd->user_width		= mf.width;
-> > > +			icd->user_height	= mf.height;
-> > > +			icd->colorspace		= mf.colorspace;
-> > > +			icd->field		= mf.field;
-> > > +		}
-> > > 
-> > >  	}
-> > >  	soc_camera_remove_device(icd);
-> > > 
-> > > diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c
-> > > b/drivers/media/platform/soc_camera/soc_scale_crop.c index
-> > > 8e74fb7..8a1ca05 100644
-> > > --- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-> > > +++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-> > > @@ -224,9 +224,27 @@ static int client_s_fmt(struct soc_camera_device
-> > > *icd,
-> > > 
-> > >  	bool host_1to1;
-> > >  	int ret;
-> > > 
-> > > -	ret = v4l2_device_call_until_err(sd->v4l2_dev,
-> > > -					 soc_camera_grp_id(icd), video,
-> > > -					 s_mbus_fmt, mf);
-> > > +	// subdev_has_op -> set_fmt vs s_mbus_fmt
-> > > +	if (v4l2_subdev_has_op(sd, pad, set_fmt)) {
-> > > +		struct v4l2_subdev_format sd_format;
-> > > +		struct media_pad *remote_pad;
-> > > +
-> > > +		remote_pad= media_entity_remote_pad(
-> > > +			&icd->vdev->entity.pads[0]);
-> > > +		sd_format.pad = remote_pad->index;
-> > > +		sd_format.which= V4L2_SUBDEV_FORMAT_ACTIVE;
-> > > +		sd_format.format= *mf;
-> > > +
-> > > +		ret = v4l2_device_call_until_err(sd->v4l2_dev,
-> > > +			soc_camera_grp_id(icd), pad, set_fmt, NULL,
-> > > +			&sd_format);
-> > > +
-> > > +		mf->width = sd_format.format.width;
-> > > +		mf->height = sd_format.format.height;
-> > > +	} else {
-> > > +		ret = v4l2_device_call_until_err(sd->v4l2_dev,
-> > > +			 soc_camera_grp_id(icd), video, s_mbus_fmt, mf);
-> > > +	}
-> > > 
-> > >  	if (ret < 0)
-> > >  	
-> > >  		return ret;
-> > > 
-> > > @@ -264,9 +282,26 @@ static int client_s_fmt(struct soc_camera_device
-> > > *icd,
-> > > 
-> > >  		tmp_h = min(2 * tmp_h, max_height);
-> > >  		mf->width = tmp_w;
-> > >  		mf->height = tmp_h;
-> > > 
-> > > -		ret = v4l2_device_call_until_err(sd->v4l2_dev,
-> > > +		// subdev_has_op -> set_fmt vs s_mbus_fmt
-> > > +		if (v4l2_subdev_has_op(sd, pad, set_fmt)) {
-> > > +			struct v4l2_subdev_format sd_format;
-> > > +			struct media_pad *remote_pad;
-> > > +
-> > > +			remote_pad= media_entity_remote_pad(
-> > > +				&icd->vdev->entity.pads[0]);
-> > > +			sd_format.pad = remote_pad->index;
-> > > +			sd_format.which= V4L2_SUBDEV_FORMAT_ACTIVE;
-> > > +			sd_format.format= *mf;
-> > > +
-> > > +			ret = v4l2_device_call_until_err(sd->v4l2_dev,
-> > > +					soc_camera_grp_id(icd),
-> > > +					pad, set_fmt, NULL,
-> > > +					&sd_format);
-> > > +		} else {
-> > > +			ret = v4l2_device_call_until_err(sd->v4l2_dev,
-> > > 
-> > >  					soc_camera_grp_id(icd), video,
-> > >  					s_mbus_fmt, mf);
-> > > 
-> > > +		}
-> > > 
-> > >  		dev_geo(dev, "Camera scaled to %ux%u\n",
-> > >  		
-> > >  			mf->width, mf->height);
-> > >  		
-> > >  		if (ret < 0) {
-> > > 
-> > > diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> > > index 2f6261f..f0c5238 100644
-> > > --- a/include/media/soc_camera.h
-> > > +++ b/include/media/soc_camera.h
-> > > @@ -42,6 +42,7 @@ struct soc_camera_device {
-> > > 
-> > >  	unsigned char devnum;		/* Device number per host */
-> > >  	struct soc_camera_sense *sense;	/* See comment in struct definition 
-*/
-> > >  	struct video_device *vdev;
-> > > 
-> > > +	struct media_pad pad;
-> > > 
-> > >  	struct v4l2_ctrl_handler ctrl_handler;
-> > >  	const struct soc_camera_format_xlate *current_fmt;
-> > >  	struct soc_camera_format_xlate *user_formats;
-
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 49cd30870e0d..3ef0f90b128f 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -87,13 +87,21 @@ config MEDIA_RC_SUPPORT
+ 
+ config MEDIA_CONTROLLER
+ 	bool "Media Controller API"
+-	depends on MEDIA_CAMERA_SUPPORT
++	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT
+ 	---help---
+ 	  Enable the media controller API used to query media devices internal
+ 	  topology and configure it dynamically.
+ 
+ 	  This API is mostly used by camera interfaces in embedded platforms.
+ 
++config MEDIA_CONTROLLER_DVB
++	bool "Enable Media controller for DVB"
++	depends on MEDIA_CONTROLLER
++	---help---
++	  Enable the media controller API support for DVB.
++
++	  This is currently experimental.
++
+ #
+ # Video4Linux support
+ #	Only enables if one of the V4L2 types (ATV, webcam, radio) is selected
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 983db75de350..f98fd3b29afe 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -180,6 +180,59 @@ skip:
+ 	return -ENFILE;
+ }
+ 
++static void dvb_register_media_device(struct dvb_device *dvbdev,
++				      int type, int minor)
++{
++#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
++	int ret;
++
++	if (!dvbdev->adapter->mdev)
++		return;
++
++	dvbdev->entity = kzalloc(sizeof(*dvbdev->entity), GFP_KERNEL);
++	if (!dvbdev->entity)
++		return;
++
++	dvbdev->entity->info.dev.major = DVB_MAJOR;
++	dvbdev->entity->info.dev.minor = minor;
++	dvbdev->entity->name = dvbdev->name;
++	switch (type) {
++	case DVB_DEVICE_FRONTEND:
++		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
++		break;
++	case DVB_DEVICE_DEMUX:
++		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
++		break;
++	case DVB_DEVICE_DVR:
++		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
++		break;
++	case DVB_DEVICE_CA:
++		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
++		break;
++	case DVB_DEVICE_NET:
++		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
++		break;
++	default:
++		kfree(dvbdev->entity);
++		dvbdev->entity = NULL;
++		return;
++	}
++
++	ret = media_device_register_entity(dvbdev->adapter->mdev,
++					   dvbdev->entity);
++	if (ret < 0) {
++		printk(KERN_ERR
++			"%s: media_device_register_entity failed for %s\n",
++			__func__, dvbdev->entity->name);
++		kfree(dvbdev->entity);
++		dvbdev->entity = NULL;
++		return;
++	}
++
++	printk(KERN_DEBUG "%s: media device '%s' registered.\n",
++		__func__, dvbdev->entity->name);
++#endif
++}
+ 
+ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+ 			const struct dvb_device *template, void *priv, int type)
+@@ -258,10 +311,11 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+ 		       __func__, adap->num, dnames[type], id, PTR_ERR(clsdev));
+ 		return PTR_ERR(clsdev);
+ 	}
+-
+ 	dprintk(KERN_DEBUG "DVB: register adapter%d/%s%d @ minor: %i (0x%02x)\n",
+ 		adap->num, dnames[type], id, minor, minor);
+ 
++	dvb_register_media_device(dvbdev, type, minor);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL(dvb_register_device);
+@@ -278,6 +332,13 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
+ 
+ 	device_destroy(dvb_class, MKDEV(DVB_MAJOR, dvbdev->minor));
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
++	if (dvbdev->entity) {
++		media_device_unregister_entity(dvbdev->entity);
++		kfree(dvbdev->entity);
++	}
++#endif
++
+ 	list_del (&dvbdev->list_head);
+ 	kfree (dvbdev->fops);
+ 	kfree (dvbdev);
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index f96b28e7fc95..485d8e660aea 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -27,6 +27,7 @@
+ #include <linux/poll.h>
+ #include <linux/fs.h>
+ #include <linux/list.h>
++#include <media/media-device.h>
+ 
+ #define DVB_MAJOR 212
+ 
+@@ -71,6 +72,10 @@ struct dvb_adapter {
+ 	int mfe_shared;			/* indicates mutually exclusive frontends */
+ 	struct dvb_device *mfe_dvbdev;	/* frontend device in use */
+ 	struct mutex mfe_lock;		/* access lock for thread creation */
++
++#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
++	struct media_device *mdev;
++#endif
+ };
+ 
+ 
+@@ -92,6 +97,14 @@ struct dvb_device {
+ 	/* don't really need those !? -- FIXME: use video_usercopy  */
+ 	int (*kernel_ioctl)(struct file *file, unsigned int cmd, void *arg);
+ 
++	/* Needed for media controller register/unregister */
++#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
++	const char *name;
++
++	/* Filled inside dvbdev.c */
++	struct media_entity *entity;
++#endif
++
+ 	void *priv;
+ };
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.0
 
