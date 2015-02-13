@@ -1,70 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52599 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751426AbbBSQoY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 11:44:24 -0500
-Message-ID: <54E612E5.2090905@iki.fi>
-Date: Thu, 19 Feb 2015 18:44:21 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>
-CC: =?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>,
-	Benjamin Larsson <benjamin@southpole.se>,
-	Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH] mn88472: reduce firmware download chunk size
-References: <1424337200-6446-1-git-send-email-a.seppala@gmail.com>	<54E5B028.5080900@southpole.se>	<CAKv9HNaSqgFpC+TmMm86Y7mrgXvZ9U+wqdgjM4n=hf80p2W1jg@mail.gmail.com>	<54E60378.6030604@iki.fi>	<CAKv9HNZPLws9=dpigcVtL7zedWYRit=yK_dw9EkdzH2VD55qMQ@mail.gmail.com>	<54E60BFD.6090409@iki.fi> <CALzAhNUYQeSDeZ5RFqaRm__a6UDXj7EGZi51vACG2injgBeeRA@mail.gmail.com>
-In-Reply-To: <CALzAhNUYQeSDeZ5RFqaRm__a6UDXj7EGZi51vACG2injgBeeRA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:54532 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752469AbbBMQ3P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Feb 2015 11:29:15 -0500
+Message-ID: <1423844953.2887.7.camel@xs4all.nl>
+Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
+ cx23885: convert to vb2"
+From: Jurgen Kramer <gtmkramer@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Raimonds Cicans <ray@apollo.lv>, linux-media@vger.kernel.org
+Date: Fri, 13 Feb 2015 17:29:13 +0100
+In-Reply-To: <54DDC2B7.2080503@xs4all.nl>
+References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>
+			 <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>
+			 <54CE24F2.7090400@apollo.lv> <54CF4508.9070305@xs4all.nl>
+		 <1423065972.2650.1.camel@xs4all.nl> <54D24685.1000708@xs4all.nl>
+	 <1423070484.2650.3.camel@xs4all.nl> <54DDC00D.209@xs4all.nl>
+	 <54DDC2B7.2080503@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
+
+On Fri, 2015-02-13 at 10:24 +0100, Hans Verkuil wrote:
+> Jurgen, Raimond,
+> 
+> On 02/13/2015 10:12 AM, Hans Verkuil wrote:
+> > Hi Jurgen,
+> > 
+> > On 02/04/2015 06:21 PM, Jurgen Kramer wrote:
+> >> On Wed, 2015-02-04 at 17:19 +0100, Hans Verkuil wrote:
+> >>> On 02/04/2015 05:06 PM, Jurgen Kramer wrote:
+> >>>> Hi Hans,
+> >>>>
+> >>>> On Mon, 2015-02-02 at 10:36 +0100, Hans Verkuil wrote:
+> >>>>> Raimonds and Jurgen,
+> >>>>>
+> >>>>> Can you both test with the following patch applied to the driver:
+> >>>>
+> >>>> Unfortunately the mpeg error is not (completely) gone:
+> >>>
+> >>> OK, I suspected that might be the case. Is the UNBALANCED warning
+> >>> gone with my vb2 patch?
+> > 
+> >>> When you see this risc error, does anything
+> >>> break (broken up video) or crash, or does it just keep on streaming?
+> > 
+> > Can you comment on this question?
+> > 
+> >>
+> >> The UNBALANCED warnings have not reappeared (so far).
+> > 
+> > And they are still gone? If that's the case, then I'll merge the patch
+> > fixing this for 3.20.
+> > 
+> > With respect to the risc error: the only reason I can think of is that it
+> > is a race condition when the risc program is updated. I'll see if I can
+> > spend some time on this today or on Monday. Can you give me an indication
+> > how often you see this risc error message?
+> 
+> Can you both apply this patch and let me know what it says the next time you
+> get a risc error message? I just realized that important information was never
+> logged, so with luck this might help me pinpoint the problem.
+I'll apply it tonight and will keep you posted.
+
+Jurgen
 
 
-On 02/19/2015 06:25 PM, Steven Toth wrote:
->>> I tried loading the driver with polling disabled and it fails completely:
->>>
->>> [ 5526.693563] mn88472 7-0018: downloading firmware from file
->>> 'dvb-demod-mn88472-02.fw'
->>> [ 5527.032209] mn88472 7-0018: firmware download failed=-32
->>> [ 5527.033864] rtl2832 7-0010: i2c reg write failed -32
->>> [ 5527.033874] r820t 8-003a: r820t_write: i2c wr failed=-32 reg=05 len=1:
->>> 83
->>> [ 5527.036014] rtl2832 7-0010: i2c reg write failed -32
->>>
->>> I have no idea why the device behaves so counter-intuitively. Is there
->>> maybe some sorf of internal power-save mode the device enters when
->>> there is no i2c traffic for a while or something?
->>
->>
->> IR polling does not use I2C but some own commands. Could you make more
->> tests. Use rtl28xxu module parameter to disable IR and test. It will disable
->> both IR interrupts and polling. Then make some tests with different IR
->> polling intervals to see how it behaves.
->>
->> I have 3 mn88472 and 1 mn88473 device and all those seems to work fine for
->> me. I don't care to buy anymore devices to find out one which does not work.
->> Somehow root of cause should be find - it is not proper fix to repeat or
->> break I2C messages to multiple smaller ones.
->
-> Ack.
->
-> Its the job of the I2C controller to manage the I2C bus
-> implementation, including any fragmentation needs, not the
-> tuner/demod/other driver.
->
-> Find and fix the resource contention bug in the bridge and the mn88472
-> will work as is. I suspect something is broken with I2C locking.
-
-It uses i2c control messages - single message per single operation.
-
-You will need lock "control message" when it is done using multiple 
-messages, very typically two bulk message one for request and one for 
-reply - but that's not the case. Anyhow, it is possible firmware 
-rtl2832u firmware does not like some "large (larger than single 
-message)" operation is interrupted...
-
-regards
-Antti
--- 
-http://palosaari.fi/
