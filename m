@@ -1,88 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:36640 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750903AbbBWJBv (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:50769 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752407AbbBMLbA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 04:01:51 -0500
-Received: by pdjp10 with SMTP id p10so24001286pdj.3
-        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2015 01:01:50 -0800 (PST)
-Date: Mon, 23 Feb 2015 20:01:38 +1100
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Gert-Jan van der Stroom <gjstroom@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Mygica T230 DVB-T/T2/C Ubuntu 14.04 (kernel 3.13.0-45) using
- media_build
-Message-ID: <20150223090136.GA11783@shambles.windy>
-References: <002401d04ea1$e5cf1780$b16d4680$@gmail.com>
- <54EA4BB8.2080106@iki.fi>
- <20150222185503.41cbcb1a@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150222185503.41cbcb1a@recife.lan>
+	Fri, 13 Feb 2015 06:31:00 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/7] v4l2-subdev: support new 'which' field in enum_mbus_code
+Date: Fri, 13 Feb 2015 12:30:03 +0100
+Message-Id: <1423827006-32878-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl>
+References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I saw this too, while working with Antti on adding support for 
-another rtl2832-based DVB card.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The kernel version
-[    0.000000] Linux version 3.13.0-45-generic (buildd@kissel) (gcc version 4.8.2 (Ubuntu 4.8.2-19ubuntu1) ) #74-Ubuntu SMP Tue Jan 13 19:37:48 UTC 2015 (Ubuntu 3.13.0-45.74-generic 3.13.11-ckt13)
+Support the new 'which' field in the enum_mbus_code ops. Most drivers do not
+need to be changed since they always returns the same enumeration regardless
+of the 'which' field.
 
-
-This is what dmesg contained:
-
-[  247.897962] BUG: unable to handle kernel NULL pointer dereference at 00000008
-[  247.897971] IP: [<f84f62f4>] media_entity_pipeline_start+0x24/0x350 [media]
-[  247.897982] *pdpt = 000000001c70f001 *pde = 0000000000000000
-[  247.897988] Oops: 0000 [#1] SMP
-[  247.897992] Modules linked in: gpio_ich nvidia(POX) snd_hda_codec_hdmi bnep ir_lirc_codec(OX) rfcomm ir_xmp_decoder(OX) lirc_dev(OX) ir_sony_decoder(OX) ir_sharp_decoder(OX) ir_sanyo_decoder(OX) ir_rc6_decoder(OX) ir_rc5_decoder(OX) ir_nec_decoder(OX) ir_mce_kbd_decoder(OX) ir_jvc_decoder(OX) bluetooth rtl2832_sdr(OX) videobuf2_vmalloc(OX) snd_hda_intel videobuf2_memops(OX) snd_intel8x0 snd_ac97_codec snd_hda_codec videobuf2_core(OX) ac97_bus snd_hwdep v4l2_common(OX) snd_pcm videodev(OX) snd_page_alloc fc0013(OX) snd_seq_midi snd_seq_midi_event rtl2832(OX) snd_rawmidi i2c_mux snd_seq dvb_usb_rtl28xxu(OX) dvb_usb_v2(OX) dvb_core(OX) rc_core(OX) snd_seq_device media(OX) snd_timer dcdbas snd serio_raw drm soundcore lpc_ich shpchp ppdev parport_pc lp mac_hid parport hid_generic tg3 usbhid psmouse ptp e1000 pps_core pata_acpi floppy hid
-[  247.898043] CPU: 0 PID: 2967 Comm: kdvb-ad-0-fe-0 Tainted: POX 3.13.0-45-generic #74-Ubuntu
-[  247.898046] Hardware name: Dell Inc.                 OptiPlex GX280/0DG476, BIOS A07 11/29/2005
-[  247.898049] task: e5e9db00 ti: dbb80000 task.ti: dbb80000
-[  247.898052] EIP: 0060:[<f84f62f4>] EFLAGS: 00010286 CPU: 0
-[  247.898058] EIP is at media_entity_pipeline_start+0x24/0x350 [media]
-[  247.898061] EAX: 00000000 EBX: e0b26280 ECX: f7b8a580 EDX: f6aac614
-[  247.898063] ESI: f6aac400 EDI: 00000000 EBP: dbb81f08 ESP: dbb81e30
-[  247.898066]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
-[  247.898069] CR0: 8005003b CR2: 00000008 CR3: 1c70e000 CR4: 000007f0
-[  247.898072] Stack:
-[  247.898074]  f7b8a5c8 00000001 00000006 00000000 b7de1fcc 00000039 00000000 00000001
-[  247.898081]  00000000 f7b8a5c8 00000001 00000000 dbb81eb4 c1089ef6 dbb81eb8 c108c7c9
-[  247.898086]  00000000 f7b8a580 f7b8a5c8 f7b8a580 f261ea00 e5e9db00 dbb81eac c108a44a
-[  247.898093] Call Trace:
-[  247.898102]  [<c1089ef6>] ? dequeue_task_fair+0x416/0x7c0
-[  247.898106]  [<c108c7c9>] ? enqueue_task_fair+0x5d9/0x7e0
-[  247.898110]  [<c108a44a>] ? check_preempt_wakeup+0x1aa/0x250
-[  247.898115]  [<c1087b21>] ? set_next_entity+0xb1/0xe0
-[  247.898120]  [<c100ed20>] ? __switch_to+0xb0/0x340
-[  247.898126]  [<c1658fc8>] ? __schedule+0x358/0x770
-[  247.898130]  [<c1082c60>] ? try_to_wake_up+0x150/0x240
-[  247.898143]  [<f8763121>] dvb_frontend_thread+0x331/0x9a0 [dvb_core]
-[  247.898154]  [<f8763121>] ? dvb_frontend_thread+0x331/0x9a0 [dvb_core]
-[  247.898158]  [<c1082dc0>] ? default_wake_function+0x10/0x20
-[  247.898162]  [<c1090f57>] ? __wake_up_common+0x47/0x70
-[  247.898166]  [<c1090f9f>] ? __wake_up_locked+0x1f/0x30
-[  247.898177]  [<f8762df0>] ? dvb_frontend_ioctl_legacy.isra.8+0xc20/0xc20 [dvb_core]
-[  247.898182]  [<c10751d1>] kthread+0xa1/0xc0
-[  247.898187]  [<c1663b37>] ret_from_kernel_thread+0x1b/0x28
-[  247.898191]  [<c1075130>] ? kthread_create_on_node+0x140/0x140
-[  247.898193] Code: 90 90 90 90 90 90 90 57 8d 7c 24 08 83 e4 f8 ff 77 fc 55 89 e5 57 56 53 81 ec cc 00 00 00 3e 8d 74 26 00 89 c7 89 85 48 ff ff ff <8b> 40 08 89 95 50 ff ff ff 89 85 60 ff ff ff 05 44 02 00
-00 89
-[  247.898229] EIP: [<f84f62f4>] media_entity_pipeline_start+0x24/0x350 [media] SS:ESP 0068:dbb81e30
-[  247.898236] CR2: 0000000000000008
-[  247.898241] ---[ end trace 800df23615d3c02a ]---
-
-
-The git commit for the media_build tree at the time I compiled
-everything was
-
-commit  c40e87b410c9ed170e2ae6ca2aeef06a44621b20 
-Add writel_relaxed supportHEADmaster
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/omap3isp/ispccdc.c    | 4 ++--
+ drivers/media/platform/omap3isp/ispccp2.c    | 2 +-
+ drivers/media/platform/omap3isp/ispcsi2.c    | 2 +-
+ drivers/media/platform/omap3isp/ispresizer.c | 2 +-
+ drivers/media/platform/vsp1/vsp1_bru.c       | 4 +++-
+ drivers/media/platform/vsp1/vsp1_lif.c       | 4 +++-
+ drivers/media/platform/vsp1/vsp1_lut.c       | 4 +++-
+ drivers/media/platform/vsp1/vsp1_sru.c       | 4 +++-
+ drivers/media/platform/vsp1/vsp1_uds.c       | 4 +++-
+ drivers/staging/media/omap4iss/iss_csi2.c    | 2 +-
+ drivers/staging/media/omap4iss/iss_ipipeif.c | 2 +-
+ drivers/staging/media/omap4iss/iss_resizer.c | 2 +-
+ 12 files changed, 23 insertions(+), 13 deletions(-)
 
-HTH
-Vince
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index b0431a9..818aa52 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -2133,7 +2133,7 @@ static int ccdc_enum_mbus_code(struct v4l2_subdev *sd,
+ 
+ 	case CCDC_PAD_SOURCE_OF:
+ 		format = __ccdc_get_format(ccdc, cfg, code->pad,
+-					   V4L2_SUBDEV_FORMAT_TRY);
++					   code->which);
+ 
+ 		if (format->code == MEDIA_BUS_FMT_YUYV8_2X8 ||
+ 		    format->code == MEDIA_BUS_FMT_UYVY8_2X8) {
+@@ -2164,7 +2164,7 @@ static int ccdc_enum_mbus_code(struct v4l2_subdev *sd,
+ 			return -EINVAL;
+ 
+ 		format = __ccdc_get_format(ccdc, cfg, code->pad,
+-					   V4L2_SUBDEV_FORMAT_TRY);
++					   code->which);
+ 
+ 		/* A pixel code equal to 0 means that the video port doesn't
+ 		 * support the input format. Don't enumerate any pixel code.
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index 3f10c3a..1d79368 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -703,7 +703,7 @@ static int ccp2_enum_mbus_code(struct v4l2_subdev *sd,
+ 			return -EINVAL;
+ 
+ 		format = __ccp2_get_format(ccp2, cfg, CCP2_PAD_SINK,
+-					      V4L2_SUBDEV_FORMAT_TRY);
++					      code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+index 12ca63f..bde734c 100644
+--- a/drivers/media/platform/omap3isp/ispcsi2.c
++++ b/drivers/media/platform/omap3isp/ispcsi2.c
+@@ -909,7 +909,7 @@ static int csi2_enum_mbus_code(struct v4l2_subdev *sd,
+ 		code->code = csi2_input_fmts[code->index];
+ 	} else {
+ 		format = __csi2_get_format(csi2, cfg, CSI2_PAD_SINK,
+-					   V4L2_SUBDEV_FORMAT_TRY);
++					   code->which);
+ 		switch (code->index) {
+ 		case 0:
+ 			/* Passthrough sink pad code */
+diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
+index 3ede27b..02549fa8 100644
+--- a/drivers/media/platform/omap3isp/ispresizer.c
++++ b/drivers/media/platform/omap3isp/ispresizer.c
+@@ -1431,7 +1431,7 @@ static int resizer_enum_mbus_code(struct v4l2_subdev *sd,
+ 			return -EINVAL;
+ 
+ 		format = __resizer_get_format(res, cfg, RESZ_PAD_SINK,
+-					      V4L2_SUBDEV_FORMAT_TRY);
++					      code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index 31ad0b6..7dd7633 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -190,6 +190,7 @@ static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
++	struct vsp1_bru *bru = to_bru(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+ 	if (code->pad == BRU_PAD_SINK(0)) {
+@@ -201,7 +202,8 @@ static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		if (code->index)
+ 			return -EINVAL;
+ 
+-		format = v4l2_subdev_get_try_format(subdev, cfg, BRU_PAD_SINK(0));
++		format = vsp1_entity_get_pad_format(&bru->entity, cfg,
++						    BRU_PAD_SINK(0), code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index b91c925..60f1bd8 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -81,6 +81,7 @@ static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
++	struct vsp1_lif *lif = to_lif(subdev);
+ 
+ 	if (code->pad == LIF_PAD_SINK) {
+ 		if (code->index >= ARRAY_SIZE(codes))
+@@ -96,7 +97,8 @@ static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		if (code->index)
+ 			return -EINVAL;
+ 
+-		format = v4l2_subdev_get_try_format(subdev, cfg, LIF_PAD_SINK);
++		format = vsp1_entity_get_pad_format(&lif->entity, cfg,
++						    LIF_PAD_SINK, code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 003363d..8aa8c11 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -90,6 +90,7 @@ static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_AHSV8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
++	struct vsp1_lut *lut = to_lut(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+ 	if (code->pad == LUT_PAD_SINK) {
+@@ -104,7 +105,8 @@ static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		if (code->index)
+ 			return -EINVAL;
+ 
+-		format = v4l2_subdev_get_try_format(subdev, cfg, LUT_PAD_SINK);
++		format = vsp1_entity_get_pad_format(&lut->entity, cfg,
++						    LUT_PAD_SINK, code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index c51dcee..554340d 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -173,6 +173,7 @@ static int sru_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
++	struct vsp1_sru *sru = to_sru(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+ 	if (code->pad == SRU_PAD_SINK) {
+@@ -187,7 +188,8 @@ static int sru_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		if (code->index)
+ 			return -EINVAL;
+ 
+-		format = v4l2_subdev_get_try_format(subdev, cfg, SRU_PAD_SINK);
++		format = vsp1_entity_get_pad_format(&sru->entity, cfg,
++						    SRU_PAD_SINK, code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index 08d916d..ef4d307 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -176,6 +176,7 @@ static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
++	struct vsp1_uds *uds = to_uds(subdev);
+ 
+ 	if (code->pad == UDS_PAD_SINK) {
+ 		if (code->index >= ARRAY_SIZE(codes))
+@@ -191,7 +192,8 @@ static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		if (code->index)
+ 			return -EINVAL;
+ 
+-		format = v4l2_subdev_get_try_format(subdev, cfg, UDS_PAD_SINK);
++		format = vsp1_entity_get_pad_format(&uds->entity, cfg,
++						    UDS_PAD_SINK, code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
+index e404ad4..2d5079d 100644
+--- a/drivers/staging/media/omap4iss/iss_csi2.c
++++ b/drivers/staging/media/omap4iss/iss_csi2.c
+@@ -908,7 +908,7 @@ static int csi2_enum_mbus_code(struct v4l2_subdev *sd,
+ 		code->code = csi2_input_fmts[code->index];
+ 	} else {
+ 		format = __csi2_get_format(csi2, cfg, CSI2_PAD_SINK,
+-					   V4L2_SUBDEV_FORMAT_TRY);
++					   code->which);
+ 		switch (code->index) {
+ 		case 0:
+ 			/* Passthrough sink pad code */
+diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
+index 948edcc..b8e7277 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipeif.c
++++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
+@@ -467,7 +467,7 @@ static int ipipeif_enum_mbus_code(struct v4l2_subdev *sd,
+ 			return -EINVAL;
+ 
+ 		format = __ipipeif_get_format(ipipeif, cfg, IPIPEIF_PAD_SINK,
+-					      V4L2_SUBDEV_FORMAT_TRY);
++					      code->which);
+ 
+ 		code->code = format->code;
+ 		break;
+diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
+index f9b0aac..075b876 100644
+--- a/drivers/staging/media/omap4iss/iss_resizer.c
++++ b/drivers/staging/media/omap4iss/iss_resizer.c
+@@ -513,7 +513,7 @@ static int resizer_enum_mbus_code(struct v4l2_subdev *sd,
+ 
+ 	case RESIZER_PAD_SOURCE_MEM:
+ 		format = __resizer_get_format(resizer, cfg, RESIZER_PAD_SINK,
+-					      V4L2_SUBDEV_FORMAT_TRY);
++					      code->which);
+ 
+ 		if (code->index == 0) {
+ 			code->code = format->code;
+-- 
+2.1.4
 
