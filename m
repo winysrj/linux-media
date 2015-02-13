@@ -1,147 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60483 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932259AbbBPLTQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 06:19:16 -0500
-Date: Mon, 16 Feb 2015 09:19:10 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCHv4 24/25] [media] cx231xx: enable tuner->decoder link at
- videobuf start
-Message-ID: <20150216091910.26f01813@recife.lan>
-In-Reply-To: <54E1B7F3.60504@xs4all.nl>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-	<f27ba253fe46ff3e8bd592e77657191a33f1a39d.1423867976.git.mchehab@osg.samsung.com>
-	<54E1B7F3.60504@xs4all.nl>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:47823 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752934AbbBMPdY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Feb 2015 10:33:24 -0500
+Message-ID: <54DE192B.5060402@xs4all.nl>
+Date: Fri, 13 Feb 2015 16:32:59 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	martin.petersen@oracle.com, hch@lst.de, tonyb@cybernetics.com,
+	axboe@fb.com, Stephen Rothwell <sfr@canb.auug.org.au>,
+	lauraa@codeaurora.org,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	webbnh@hp.com, hare@suse.de,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v2 1/3] media/videobuf2-dma-sg: Fix handling of sg_table
+ structure
+References: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com> <54DE11FA.6050702@xs4all.nl> <CAPybu_0wpNU0m2jjmbff+-mcoU-dkKjpHoW8Hr-GPyWH4oGcgQ@mail.gmail.com>
+In-Reply-To: <CAPybu_0wpNU0m2jjmbff+-mcoU-dkKjpHoW8Hr-GPyWH4oGcgQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 16 Feb 2015 10:27:15 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> On 02/13/2015 11:58 PM, Mauro Carvalho Chehab wrote:
-> > The tuner->decoder needs to be enabled when we're about to
-> > start streaming.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-> > index f3d1a488dfa7..634763535d60 100644
-> > --- a/drivers/media/usb/cx231xx/cx231xx-video.c
-> > +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-> > @@ -703,6 +703,74 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
-> >  	buf->vb.state = VIDEOBUF_NEEDS_INIT;
-> >  }
-> >  
-> > +static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
-> > +{
-> > +#ifdef CONFIG_MEDIA_CONTROLLER
-> > +	struct media_device *mdev = dev->media_dev;
-> > +	struct media_entity  *entity, *decoder = NULL, *source;
-> > +	struct media_link *link, *found_link = NULL;
-> > +	int i, ret, active_links = 0;
-> > +
-> > +	if (!mdev)
-> > +		return 0;
-> > +
-> > +/*
-> > + * This will find the tuner that it is connected into the decoder.
-> > + * Technically, this is not 100% correct, as the device may be using an
-> > + * analog input instead of the tuner. However, we can't use the DVB for dvb
+On 02/13/2015 04:20 PM, Ricardo Ribalda Delgado wrote:
+> Hello Hans
 > 
-> 'we can't use the DVB for dvb'?? You probably mean 'can't use the DVB API'.
-
-What I meant to say is that we can't use the device for DVB while it is
-doing an analog stream.
-
-I'll fix this on a separate patch.
-
-> > + * while the DMA engine is being used for V4L2.
-> > + */
+> On Fri, Feb 13, 2015 at 4:02 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Ricardo, Marek,
+>>
+>> I have a few questions, mostly to improve my own understanding.
+>>
+>> First of all, is this solving an actual bug for you, or did you just find
+>> it while reviewing code? And if it solves a bug, then which architecture
+>> are you using? ARM? Intel?
+>>
 > 
-> Weird indentation, should be one to the right.
-
-Ah, true. I'll fix this too.
-
-> > +	media_device_for_each_entity(entity, mdev) {
-> > +		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
-> > +			decoder = entity;
-> > +			break;
-> > +		}
-> > +	}
-> > +	if (!decoder)
-> > +		return 0;
-> > +
-> > +	for (i = 0; i < decoder->num_links; i++) {
-> > +		link = &decoder->links[i];
-> > +		if (link->sink->entity == decoder) {
-> > +			found_link = link;
-> > +			if (link->flags & MEDIA_LNK_FL_ENABLED)
-> > +				active_links++;
-> > +			break;
-> > +		}
-> > +	}
-> > +
-> > +	if (active_links == 1 || !found_link)
-> > +		return 0;
-> > +
-> > +	source = found_link->source->entity;
-> > +	for (i = 0; i < source->num_links; i++) {
-> > +		struct media_entity *sink;
-> > +		int flags = 0;
-> > +
-> > +		link = &source->links[i];
-> > +		sink = link->sink->entity;
-> > +
-> > +		if (sink == entity)
-> > +			flags = MEDIA_LNK_FL_ENABLED;
-> > +
-> > +		ret = media_entity_setup_link(link, flags);
-> > +		if (ret) {
-> > +			dev_err(dev->dev,
-> > +				"Couldn't change link %s->%s to %s. Error %d\n",
-> > +				source->name, sink->name,
-> > +				flags ? "enabled" : "disabled",
-> > +				ret);
-> > +			return ret;
-> > +		} else
-> > +			dev_dbg(dev->dev,
-> > +				"link %s->%s was %s\n",
-> > +				source->name, sink->name,
-> > +				flags ? "ENABLED" : "disabled");
-> > +	}
-> > +#endif
-> > +	return 0;
-> > +}
-> > +
-> >  static int
-> >  buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
-> >  	       enum v4l2_field field)
-> > @@ -756,6 +824,9 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
-> >  	}
-> >  
-> >  	buf->vb.state = VIDEOBUF_PREPARED;
-> > +
-> > +	cx231xx_enable_analog_tuner(dev);
+> My arch is intel based (AMD APU). I found it while doing review. While
+> updating our kernel to 3.19 I had to patch some of my out of tree
+> drivers, and then I gave a look to the file.
 > 
-> Is this the right place? Isn't this now called for every QBUF? I would expect this
-> to happen when you start streaming.
-> 
-> In vb2 it would be in start_streaming(), of course.
+>>> dma_map_sg returns the number of areas mapped by the hardware,
+>>> which could be different than the areas given as an input.
+>>> The output must be saved to nent.
+>>>
+>>> The output of dma_map, should be used to transverse the scatter list.
+>>>
+>>> dma_unmap_sg needs the value passed to dma_map_sg (nents_orig).
+>>
+>> I noticed that few dma_unmap_sg calls actually use orig_nents. It makes
+>> me wonder if the dma_unmap_sg documentation is actually correct. It does
+>> clearly state that orig_nents should be used, and it might well be that
+>> the only reason this hasn't led to problems is that very few architectures
+>> actually seem to return nents < orig_nents.
 
-True. I think that the vb1 dialog would be, instead, ops->buf_setup.
-I'll fix this on a separate patch.
+Actually, I think I should pay more attention how often I actually write
+'actually'. I went a bit too far with that... :-)
+
+> 
+> It is not the most clear API to use :(. Some of the prototypes do not
+> make a lot of sense, and it is documented outside the code.
+> 
+> I have sent these two patches:
+> 
+> https://lkml.org/lkml/2015/2/11/231
+> https://lkml.org/lkml/2015/2/11/232
+> 
+>>> +     sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+>>> +                                   buf->dma_dir, &attrs);
+>>
+>> Is a driver free to change sgt->nents? It's unclear from the documentation
+>> or code that that is actually the purpose of sgt->nents. Most drivers seem
+>> to store the result of dma_map_sg into a driver-specific struct.
+> 
+> As I understand it, this is the purpose of the struct scatter list,
+> have at hand the three values that you need,
+> the sgl, nents and orig_ents.
+> 
+> But it would be great if the maintaner of the dma-api speaks up :)
+
+Yes please. And if Ricardo is correct, then someone (janitor job?) should do
+a review of dma_unmap_sg in particular.
 
 Regards,
-Mauro
+
+	Hans
+
+> 
+> I am putting  get_maintainer.pl in cc
+> 
+> Thanks Hans!
+> 
+
