@@ -1,487 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:39625 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751861AbbBWUTn (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:34297 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753246AbbBMPeQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 15:19:43 -0500
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 2/3] media: omap3isp: ispvideo: drop driver specific isp_video_fh
-Date: Mon, 23 Feb 2015 20:19:32 +0000
-Message-Id: <1424722773-20131-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1424722773-20131-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1424722773-20131-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 13 Feb 2015 10:34:16 -0500
+MIME-Version: 1.0
+In-Reply-To: <s5hzj8h976f.wl-tiwai@suse.de>
+References: <s5hvbjbtkp0.wl-tiwai@suse.de>
+	<s5h7fvlaozh.wl-tiwai@suse.de>
+	<20150213124125.67a67e04@recife.lan>
+	<s5hzj8h976f.wl-tiwai@suse.de>
+Date: Fri, 13 Feb 2015 08:34:15 -0700
+Message-ID: <CAKocOOOAZEj_6uUVdbysHyp08CD96AAuzRxdVw9MVEmUfL=meg@mail.gmail.com>
+Subject: Re: DVB suspend/resume regression on 3.19
+From: Shuah Khan <shuahkhan@gmail.com>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On Fri, Feb 13, 2015 at 8:12 AM, Takashi Iwai <tiwai@suse.de> wrote:
+> At Fri, 13 Feb 2015 12:41:25 -0200,
+> Mauro Carvalho Chehab wrote:
+>>
+>> Em Fri, 13 Feb 2015 15:02:42 +0100
+>> Takashi Iwai <tiwai@suse.de> escreveu:
+>>
+>> > At Mon, 09 Feb 2015 11:59:07 +0100,
+>> > Takashi Iwai wrote:
+>> > >
+>> > > Hi,
+>> > >
+>> > > we've got a bug report about the suspend/resume regression of DVB
+>> > > device with 3.19.  The symptom is VLC doesn't work after S3 or S4
+>> > > resume.  strace shows that /dev/dvb/adaptor0/dvr returns -ENODEV.
+>> > >
+>> > > The reporter confirmed that 3.18 works fine, so the regression must be
+>> > > in 3.19.
+>> > >
+>> > > There is a relevant kernel warning while suspending:
+>> > >
+>> > >  WARNING: CPU: 1 PID: 3603 at ../kernel/module.c:1001 module_put+0xc7/0xd0()
+>> > >  Workqueue: events_unbound async_run_entry_fn
+>> > >   0000000000000000 ffffffff81a45779 ffffffff81664f12 0000000000000000
+>> > >   ffffffff81062381 0000000000000000 ffffffffa051eea0 ffff8800ca369278
+>> > >   ffffffffa051a068 ffff8800c0a18090 ffffffff810dfb47 0000000000000000
+>> > >  Call Trace:
+>> > >   [<ffffffff810055ac>] dump_trace+0x8c/0x340
+>> > >   [<ffffffff81005903>] show_stack_log_lvl+0xa3/0x190
+>> > >   [<ffffffff81007061>] show_stack+0x21/0x50
+>> > >   [<ffffffff81664f12>] dump_stack+0x47/0x67
+>> > >   [<ffffffff81062381>] warn_slowpath_common+0x81/0xb0
+>> > >   [<ffffffff810dfb47>] module_put+0xc7/0xd0
+>> > >   [<ffffffffa04d98d1>] dvb_usb_adapter_frontend_exit+0x41/0x60 [dvb_usb]
+>> > >   [<ffffffffa04d8451>] dvb_usb_exit+0x31/0xa0 [dvb_usb]
+>> > >   [<ffffffffa04d84fb>] dvb_usb_device_exit+0x3b/0x50 [dvb_usb]
+>> > >   [<ffffffff814cefad>] usb_unbind_interface+0x1ed/0x2c0
+>> > >   [<ffffffff8145ceae>] __device_release_driver+0x7e/0x100
+>> > >   [<ffffffff8145cf52>] device_release_driver+0x22/0x30
+>> > >   [<ffffffff814cf13d>] usb_forced_unbind_intf+0x2d/0x60
+>> > >   [<ffffffff814cf3c3>] usb_suspend+0x73/0x130
+>> > >   [<ffffffff814bd453>] usb_dev_freeze+0x13/0x20
+>> > >   [<ffffffff81468fca>] dpm_run_callback+0x4a/0x150
+>> > >   [<ffffffff81469c81>] __device_suspend+0x121/0x350
+>> > >   [<ffffffff81469ece>] async_suspend+0x1e/0xa0
+>> > >   [<ffffffff81081e63>] async_run_entry_fn+0x43/0x150
+>> > >   [<ffffffff81079e72>] process_one_work+0x142/0x3f0
+>> > >   [<ffffffff8107a234>] worker_thread+0x114/0x460
+>> > >   [<ffffffff8107f3b1>] kthread+0xc1/0xe0
+>> > >   [<ffffffff8166b77c>] ret_from_fork+0x7c/0xb0
+>> > >
+>> > > So something went wrong in module refcount, which likely leads to
+>> > > disabling the device and returning -ENODEV in the end.
+>> > >
 
-this patch drops driver specific isp_video_fh, as this
-can be handled by core.
+Hi Takashi and Mauro,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/omap3isp/ispvideo.c | 128 +++++++++++------------------
- drivers/media/platform/omap3isp/ispvideo.h |  13 +--
- 2 files changed, 49 insertions(+), 92 deletions(-)
+Looking at the stack trace usb_forced_unbind_intf() gets called from
+usb_suspend(). Looks like the suspend path in  unbind_no_pm_drivers_interfaces()
+determines the driver doesn't have suspend/resume support and goes to
+usb_forced_unbind_intf().
 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 837018d..b648176 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -294,22 +294,22 @@ __isp_video_get_format(struct isp_video *video, struct v4l2_format *format)
- }
- 
- static int
--isp_video_check_format(struct isp_video *video, struct isp_video_fh *vfh)
-+isp_video_check_format(struct isp_video *video)
- {
- 	struct v4l2_format format;
- 	int ret;
- 
--	memcpy(&format, &vfh->format, sizeof(format));
-+	memcpy(&format, &video->format, sizeof(format));
- 	ret = __isp_video_get_format(video, &format);
- 	if (ret < 0)
- 		return ret;
- 
--	if (vfh->format.fmt.pix.pixelformat != format.fmt.pix.pixelformat ||
--	    vfh->format.fmt.pix.height != format.fmt.pix.height ||
--	    vfh->format.fmt.pix.width != format.fmt.pix.width ||
--	    vfh->format.fmt.pix.bytesperline != format.fmt.pix.bytesperline ||
--	    vfh->format.fmt.pix.sizeimage != format.fmt.pix.sizeimage ||
--	    vfh->format.fmt.pix.field != format.fmt.pix.field)
-+	if (video->format.fmt.pix.pixelformat != format.fmt.pix.pixelformat ||
-+	    video->format.fmt.pix.height != format.fmt.pix.height ||
-+	    video->format.fmt.pix.width != format.fmt.pix.width ||
-+	    video->format.fmt.pix.bytesperline != format.fmt.pix.bytesperline ||
-+	    video->format.fmt.pix.sizeimage != format.fmt.pix.sizeimage ||
-+	    video->format.fmt.pix.field != format.fmt.pix.field)
- 		return -EINVAL;
- 
- 	return 0;
-@@ -324,12 +324,11 @@ static int isp_video_queue_setup(struct vb2_queue *queue,
- 				 unsigned int *count, unsigned int *num_planes,
- 				 unsigned int sizes[], void *alloc_ctxs[])
- {
--	struct isp_video_fh *vfh = vb2_get_drv_priv(queue);
--	struct isp_video *video = vfh->video;
-+	struct isp_video *video = vb2_get_drv_priv(queue);
- 
- 	*num_planes = 1;
- 
--	sizes[0] = vfh->format.fmt.pix.sizeimage;
-+	sizes[0] = video->format.fmt.pix.sizeimage;
- 	if (sizes[0] == 0)
- 		return -EINVAL;
- 
-@@ -342,9 +341,8 @@ static int isp_video_queue_setup(struct vb2_queue *queue,
- 
- static int isp_video_buffer_prepare(struct vb2_buffer *buf)
- {
--	struct isp_video_fh *vfh = vb2_get_drv_priv(buf->vb2_queue);
-+	struct isp_video *video = vb2_get_drv_priv(buf->vb2_queue);
- 	struct isp_buffer *buffer = to_isp_buffer(buf);
--	struct isp_video *video = vfh->video;
- 	dma_addr_t addr;
- 
- 	/* Refuse to prepare the buffer is the video node has registered an
-@@ -363,7 +361,7 @@ static int isp_video_buffer_prepare(struct vb2_buffer *buf)
- 		return -EINVAL;
- 	}
- 
--	vb2_set_plane_payload(&buffer->vb, 0, vfh->format.fmt.pix.sizeimage);
-+	vb2_set_plane_payload(&buffer->vb, 0, video->format.fmt.pix.sizeimage);
- 	buffer->dma = addr;
- 
- 	return 0;
-@@ -380,9 +378,8 @@ static int isp_video_buffer_prepare(struct vb2_buffer *buf)
-  */
- static void isp_video_buffer_queue(struct vb2_buffer *buf)
- {
--	struct isp_video_fh *vfh = vb2_get_drv_priv(buf->vb2_queue);
-+	struct isp_video *video = vb2_get_drv_priv(buf->vb2_queue);
- 	struct isp_buffer *buffer = to_isp_buffer(buf);
--	struct isp_video *video = vfh->video;
- 	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
- 	enum isp_pipeline_state state;
- 	unsigned long flags;
-@@ -573,7 +570,7 @@ void omap3isp_video_resume(struct isp_video *video, int continuous)
- 
- 	if (continuous && video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
- 		mutex_lock(&video->queue_lock);
--		vb2_discard_done(video->queue);
-+		vb2_discard_done(&video->queue);
- 		mutex_unlock(&video->queue_lock);
- 	}
- 
-@@ -615,14 +612,13 @@ isp_video_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
- static int
- isp_video_get_format(struct file *file, void *fh, struct v4l2_format *format)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(fh);
- 	struct isp_video *video = video_drvdata(file);
- 
- 	if (format->type != video->type)
- 		return -EINVAL;
- 
- 	mutex_lock(&video->mutex);
--	*format = vfh->format;
-+	*format = video->format;
- 	mutex_unlock(&video->mutex);
- 
- 	return 0;
-@@ -631,7 +627,6 @@ isp_video_get_format(struct file *file, void *fh, struct v4l2_format *format)
- static int
- isp_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(fh);
- 	struct isp_video *video = video_drvdata(file);
- 	struct v4l2_mbus_framefmt fmt;
- 
-@@ -680,7 +675,7 @@ isp_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
- 	isp_video_mbus_to_pix(video, &fmt, &format->fmt.pix);
- 
- 	mutex_lock(&video->mutex);
--	vfh->format = *format;
-+	video->format = *format;
- 	mutex_unlock(&video->mutex);
- 
- 	return 0;
-@@ -787,7 +782,6 @@ isp_video_set_crop(struct file *file, void *fh, const struct v4l2_crop *crop)
- static int
- isp_video_get_param(struct file *file, void *fh, struct v4l2_streamparm *a)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(fh);
- 	struct isp_video *video = video_drvdata(file);
- 
- 	if (video->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
-@@ -797,7 +791,7 @@ isp_video_get_param(struct file *file, void *fh, struct v4l2_streamparm *a)
- 	memset(a, 0, sizeof(*a));
- 	a->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
- 	a->parm.output.capability = V4L2_CAP_TIMEPERFRAME;
--	a->parm.output.timeperframe = vfh->timeperframe;
-+	a->parm.output.timeperframe = video->timeperframe;
- 
- 	return 0;
- }
-@@ -805,7 +799,6 @@ isp_video_get_param(struct file *file, void *fh, struct v4l2_streamparm *a)
- static int
- isp_video_set_param(struct file *file, void *fh, struct v4l2_streamparm *a)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(fh);
- 	struct isp_video *video = video_drvdata(file);
- 
- 	if (video->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
-@@ -815,7 +808,7 @@ isp_video_set_param(struct file *file, void *fh, struct v4l2_streamparm *a)
- 	if (a->parm.output.timeperframe.denominator == 0)
- 		a->parm.output.timeperframe.denominator = 1;
- 
--	vfh->timeperframe = a->parm.output.timeperframe;
-+	video->timeperframe = a->parm.output.timeperframe;
- 
- 	return 0;
- }
-@@ -823,12 +816,11 @@ isp_video_set_param(struct file *file, void *fh, struct v4l2_streamparm *a)
- static int
- isp_video_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *rb)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(fh);
- 	struct isp_video *video = video_drvdata(file);
- 	int ret;
- 
- 	mutex_lock(&video->queue_lock);
--	ret = vb2_reqbufs(&vfh->queue, rb);
-+	ret = vb2_reqbufs(&video->queue, rb);
- 	mutex_unlock(&video->queue_lock);
- 
- 	return ret;
-@@ -837,12 +829,11 @@ isp_video_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *rb)
- static int
- isp_video_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(fh);
- 	struct isp_video *video = video_drvdata(file);
- 	int ret;
- 
- 	mutex_lock(&video->queue_lock);
--	ret = vb2_querybuf(&vfh->queue, b);
-+	ret = vb2_querybuf(&video->queue, b);
- 	mutex_unlock(&video->queue_lock);
- 
- 	return ret;
-@@ -851,12 +842,11 @@ isp_video_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
- static int
- isp_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(fh);
- 	struct isp_video *video = video_drvdata(file);
- 	int ret;
- 
- 	mutex_lock(&video->queue_lock);
--	ret = vb2_qbuf(&vfh->queue, b);
-+	ret = vb2_qbuf(&video->queue, b);
- 	mutex_unlock(&video->queue_lock);
- 
- 	return ret;
-@@ -865,12 +855,11 @@ isp_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
- static int
- isp_video_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(fh);
- 	struct isp_video *video = video_drvdata(file);
- 	int ret;
- 
- 	mutex_lock(&video->queue_lock);
--	ret = vb2_dqbuf(&vfh->queue, b, file->f_flags & O_NONBLOCK);
-+	ret = vb2_dqbuf(&video->queue, b, file->f_flags & O_NONBLOCK);
- 	mutex_unlock(&video->queue_lock);
- 
- 	return ret;
-@@ -1001,7 +990,6 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
- static int
- isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(fh);
- 	struct isp_video *video = video_drvdata(file);
- 	enum isp_pipeline_state state;
- 	struct isp_pipeline *pipe;
-@@ -1033,12 +1021,12 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	/* Verify that the currently configured format matches the output of
- 	 * the connected subdev.
- 	 */
--	ret = isp_video_check_format(video, vfh);
-+	ret = isp_video_check_format(video);
- 	if (ret < 0)
- 		goto err_check_format;
- 
- 	video->bpl_padding = ret;
--	video->bpl_value = vfh->format.fmt.pix.bytesperline;
-+	video->bpl_value = video->format.fmt.pix.bytesperline;
- 
- 	ret = isp_video_get_graph_data(video, pipe);
- 	if (ret < 0)
-@@ -1065,15 +1053,14 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	 * support the request limit.
- 	 */
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
--		pipe->max_timeperframe = vfh->timeperframe;
-+		pipe->max_timeperframe = video->timeperframe;
- 
--	video->queue = &vfh->queue;
- 	INIT_LIST_HEAD(&video->dmaqueue);
- 	atomic_set(&pipe->frame_number, -1);
--	pipe->field = vfh->format.fmt.pix.field;
-+	pipe->field = video->format.fmt.pix.field;
- 
- 	mutex_lock(&video->queue_lock);
--	ret = vb2_streamon(&vfh->queue, type);
-+	ret = vb2_streamon(&video->queue, type);
- 	mutex_unlock(&video->queue_lock);
- 	if (ret < 0)
- 		goto err_check_format;
-@@ -1098,7 +1085,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 
- err_set_stream:
- 	mutex_lock(&video->queue_lock);
--	vb2_streamoff(&vfh->queue, type);
-+	vb2_streamoff(&video->queue, type);
- 	mutex_unlock(&video->queue_lock);
- err_check_format:
- 	media_entity_pipeline_stop(&video->video.entity);
-@@ -1113,7 +1100,6 @@ err_pipeline_start:
- 	 * free-running sensor.
- 	 */
- 	INIT_LIST_HEAD(&video->dmaqueue);
--	video->queue = NULL;
- 
- 	mutex_unlock(&video->stream_lock);
- 	return ret;
-@@ -1122,7 +1108,6 @@ err_pipeline_start:
- static int
- isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(fh);
- 	struct isp_video *video = video_drvdata(file);
- 	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
- 	enum isp_pipeline_state state;
-@@ -1136,7 +1121,7 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
- 
- 	/* Make sure we're not streaming yet. */
- 	mutex_lock(&video->queue_lock);
--	streaming = vb2_is_streaming(&vfh->queue);
-+	streaming = vb2_is_streaming(&video->queue);
- 	mutex_unlock(&video->queue_lock);
- 
- 	if (!streaming)
-@@ -1159,9 +1144,8 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
- 	omap3isp_video_cancel_stream(video);
- 
- 	mutex_lock(&video->queue_lock);
--	vb2_streamoff(&vfh->queue, type);
-+	vb2_streamoff(&video->queue, type);
- 	mutex_unlock(&video->queue_lock);
--	video->queue = NULL;
- 	video->error = false;
- 
- 	if (video->isp->pdata->set_constraints)
-@@ -1230,16 +1214,12 @@ static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
- static int isp_video_open(struct file *file)
- {
- 	struct isp_video *video = video_drvdata(file);
--	struct isp_video_fh *handle;
- 	struct vb2_queue *queue;
--	int ret = 0;
--
--	handle = kzalloc(sizeof(*handle), GFP_KERNEL);
--	if (handle == NULL)
--		return -ENOMEM;
-+	int ret;
- 
--	v4l2_fh_init(&handle->vfh, &video->video);
--	v4l2_fh_add(&handle->vfh);
-+	ret = v4l2_fh_open(file);
-+	if (ret)
-+		return ret;
- 
- 	/* If this is the first user, initialise the pipeline. */
- 	if (omap3isp_get(video->isp) == NULL) {
-@@ -1253,70 +1233,57 @@ static int isp_video_open(struct file *file)
- 		goto done;
- 	}
- 
--	queue = &handle->queue;
-+	queue = &video->queue;
- 	queue->type = video->type;
- 	queue->io_modes = VB2_MMAP | VB2_USERPTR;
--	queue->drv_priv = handle;
-+	queue->drv_priv = video;
- 	queue->ops = &isp_video_queue_ops;
- 	queue->mem_ops = &vb2_dma_contig_memops;
- 	queue->buf_struct_size = sizeof(struct isp_buffer);
- 	queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 
--	ret = vb2_queue_init(&handle->queue);
-+	ret = vb2_queue_init(queue);
- 	if (ret < 0) {
- 		omap3isp_put(video->isp);
- 		goto done;
- 	}
- 
--	memset(&handle->format, 0, sizeof(handle->format));
--	handle->format.type = video->type;
--	handle->timeperframe.denominator = 1;
--
--	handle->video = video;
--	file->private_data = &handle->vfh;
-+	memset(&video->format, 0, sizeof(video->format));
-+	video->format.type = video->type;
-+	video->timeperframe.denominator = 1;
- 
- done:
--	if (ret < 0) {
--		v4l2_fh_del(&handle->vfh);
--		kfree(handle);
--	}
--
- 	return ret;
- }
- 
- static int isp_video_release(struct file *file)
- {
- 	struct isp_video *video = video_drvdata(file);
--	struct v4l2_fh *vfh = file->private_data;
--	struct isp_video_fh *handle = to_isp_video_fh(vfh);
-+	int ret;
- 
- 	/* Disable streaming and free the buffers queue resources. */
--	isp_video_streamoff(file, vfh, video->type);
-+	isp_video_streamoff(file, NULL, video->type);
- 
- 	mutex_lock(&video->queue_lock);
--	vb2_queue_release(&handle->queue);
-+	vb2_queue_release(&video->queue);
- 	mutex_unlock(&video->queue_lock);
- 
- 	omap3isp_pipeline_pm_use(&video->video.entity, 0);
- 
--	/* Release the file handle. */
--	v4l2_fh_del(vfh);
--	kfree(handle);
--	file->private_data = NULL;
-+	ret = _vb2_fop_release(file, NULL);
- 
- 	omap3isp_put(video->isp);
- 
--	return 0;
-+	return ret;
- }
- 
- static unsigned int isp_video_poll(struct file *file, poll_table *wait)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(file->private_data);
- 	struct isp_video *video = video_drvdata(file);
- 	int ret;
- 
- 	mutex_lock(&video->queue_lock);
--	ret = vb2_poll(&vfh->queue, file, wait);
-+	ret = vb2_poll(&video->queue, file, wait);
- 	mutex_unlock(&video->queue_lock);
- 
- 	return ret;
-@@ -1324,12 +1291,11 @@ static unsigned int isp_video_poll(struct file *file, poll_table *wait)
- 
- static int isp_video_mmap(struct file *file, struct vm_area_struct *vma)
- {
--	struct isp_video_fh *vfh = to_isp_video_fh(file->private_data);
- 	struct isp_video *video = video_drvdata(file);
- 	int ret;
- 
- 	mutex_lock(&video->queue_lock);
--	ret = vb2_mmap(&vfh->queue, vma);
-+	ret = vb2_mmap(&video->queue, vma);
- 	mutex_unlock(&video->queue_lock);
- 
- 	return ret;
-diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
-index 4071dd7..d960bbd 100644
---- a/drivers/media/platform/omap3isp/ispvideo.h
-+++ b/drivers/media/platform/omap3isp/ispvideo.h
-@@ -172,28 +172,19 @@ struct isp_video {
- 
- 	/* Video buffers queue */
- 	void *alloc_ctx;
--	struct vb2_queue *queue;
-+	struct vb2_queue queue;
- 	struct mutex queue_lock;	/* protects the queue */
- 	spinlock_t irqlock;		/* protects dmaqueue */
- 	struct list_head dmaqueue;
- 	enum isp_video_dmaqueue_flags dmaqueue_flags;
- 
- 	const struct isp_video_operations *ops;
--};
--
--#define to_isp_video(vdev)	container_of(vdev, struct isp_video, video)
- 
--struct isp_video_fh {
--	struct v4l2_fh vfh;
--	struct isp_video *video;
--	struct vb2_queue queue;
- 	struct v4l2_format format;
- 	struct v4l2_fract timeperframe;
- };
- 
--#define to_isp_video_fh(fh)	container_of(fh, struct isp_video_fh, vfh)
--#define isp_video_queue_to_isp_video_fh(q) \
--				container_of(q, struct isp_video_fh, queue)
-+#define to_isp_video(vdev)	container_of(vdev, struct isp_video, video)
- 
- int omap3isp_video_init(struct isp_video *video, const char *name);
- void omap3isp_video_cleanup(struct isp_video *video);
--- 
-2.1.0
+At this point forced unbinding results in release the driver via
+usb_driver_release_interface().
 
+It is worth looking into if the driver indeed has suspend/resume
+routines?
+
+-- Shuah
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
