@@ -1,63 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:62429 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752157AbbBRQVl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 11:21:41 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v11 02/20] leds: flash: Improve sync strobe related sysfs
- attributes
-Date: Wed, 18 Feb 2015 17:20:23 +0100
-Message-id: <1424276441-3969-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
-References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:33224 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754142AbbBOWNu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Feb 2015 17:13:50 -0500
+Subject: [PATCH] CONFIG_VIDEO_DEV needs to be enabled by
+ MEDIA_DIGITAL_TV_SUPPORT also
+From: David Howells <dhowells@redhat.com>
+To: mchehab@osg.samsung.com
+Cc: linux-media@vger.kernel.org
+Date: Sun, 15 Feb 2015 22:13:13 +0000
+Message-ID: <20150215221313.4844.16785.stgit@warthog.procyon.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Current format of synchronized strobe related attributes introduces
-problems when it comes to parsing. Avoding the usage of square brackets
-and colons makes the parsing more convenient.
+CONFIG_VIDEO_DEV needs to be enabled by MEDIA_DIGITAL_TV_SUPPORT so that DVB
+TV receiver drivers can be enabled.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: David Howells <dhowells@redhat.com>
 ---
- drivers/leds/led-class-flash.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/leds/led-class-flash.c b/drivers/leds/led-class-flash.c
-index 4a19fd4..a2da52e 100644
---- a/drivers/leds/led-class-flash.c
-+++ b/drivers/leds/led-class-flash.c
-@@ -224,11 +224,11 @@ static ssize_t available_sync_leds_show(struct device *dev,
- 	char *pbuf = buf;
- 	int i, buf_len;
+ drivers/media/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 49cd308..52d4a20 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -102,7 +102,7 @@ config MEDIA_CONTROLLER
+ config VIDEO_DEV
+ 	tristate
+ 	depends on MEDIA_SUPPORT
+-	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT
++	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT
+ 	default y
  
--	buf_len = sprintf(pbuf, "[0: none] ");
-+	buf_len = sprintf(pbuf, "0.none ");
- 	pbuf += buf_len;
- 
- 	for (i = 0; i < fled_cdev->num_sync_leds; ++i) {
--		buf_len = sprintf(pbuf, "[%d: %s] ", i + 1,
-+		buf_len = sprintf(pbuf, "%d.%s ", i + 1,
- 				  fled_cdev->sync_leds[i]->led_cdev.name);
- 		pbuf += buf_len;
- 	}
-@@ -281,7 +281,7 @@ static ssize_t flash_sync_strobe_show(struct device *dev,
- 		sync_led_name = (char *)
- 			fled_cdev->sync_leds[sled_id - 1]->led_cdev.name;
- 
--	return sprintf(buf, "[%d: %s]\n", sled_id, sync_led_name);
-+	return sprintf(buf, "%d.%s\n", sled_id, sync_led_name);
- }
- static DEVICE_ATTR_RW(flash_sync_strobe);
- 
--- 
-1.7.9.5
+ config VIDEO_V4L2_SUBDEV_API
 
