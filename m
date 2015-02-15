@@ -1,59 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35957 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755498AbbBPLIg (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50117 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754876AbbBOHxa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 06:08:36 -0500
-Message-ID: <54E1CFA0.50400@xs4all.nl>
-Date: Mon, 16 Feb 2015 12:08:16 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCHv4 00/25] dvb core: add basic support for the media controller
-References: <cover.1423867976.git.mchehab@osg.samsung.com>	<54DF1625.20808@xs4all.nl>	<20150214090019.798b6d18@recife.lan>	<54DF34E2.2020709@xs4all.nl>	<20150215082716.45165770@recife.lan>	<54E1BEA6.8060400@xs4all.nl> <20150216085051.01f01e19@recife.lan>
-In-Reply-To: <20150216085051.01f01e19@recife.lan>
-Content-Type: text/plain; charset=windows-1252
+	Sun, 15 Feb 2015 02:53:30 -0500
+Message-ID: <1423986807.2688.1.camel@xs4all.nl>
+Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
+ cx23885: convert to vb2"
+From: Jurgen Kramer <gtmkramer@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Raimonds Cicans <ray@apollo.lv>, linux-media@vger.kernel.org
+Date: Sun, 15 Feb 2015 08:53:27 +0100
+In-Reply-To: <54DDC2B7.2080503@xs4all.nl>
+References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>
+			 <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>
+			 <54CE24F2.7090400@apollo.lv> <54CF4508.9070305@xs4all.nl>
+		 <1423065972.2650.1.camel@xs4all.nl> <54D24685.1000708@xs4all.nl>
+	 <1423070484.2650.3.camel@xs4all.nl> <54DDC00D.209@xs4all.nl>
+	 <54DDC2B7.2080503@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/16/2015 11:50 AM, Mauro Carvalho Chehab wrote:
-> Em Mon, 16 Feb 2015 10:55:50 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Hans,
+
+On Fri, 2015-02-13 at 10:24 +0100, Hans Verkuil wrote:
+> Jurgen, Raimond,
 > 
->> On 02/15/2015 11:27 AM, Mauro Carvalho Chehab wrote:
+> On 02/13/2015 10:12 AM, Hans Verkuil wrote:
+> > Hi Jurgen,
+> > 
+> > On 02/04/2015 06:21 PM, Jurgen Kramer wrote:
+> >> On Wed, 2015-02-04 at 17:19 +0100, Hans Verkuil wrote:
+> >>> On 02/04/2015 05:06 PM, Jurgen Kramer wrote:
+> >>>> Hi Hans,
+> >>>>
+> >>>> On Mon, 2015-02-02 at 10:36 +0100, Hans Verkuil wrote:
+> >>>>> Raimonds and Jurgen,
+> >>>>>
+> >>>>> Can you both test with the following patch applied to the driver:
+> >>>>
+> >>>> Unfortunately the mpeg error is not (completely) gone:
+> >>>
+> >>> OK, I suspected that might be the case. Is the UNBALANCED warning
+> >>> gone with my vb2 patch?
+> > 
+> >>> When you see this risc error, does anything
+> >>> break (broken up video) or crash, or does it just keep on streaming?
+> > 
+> > Can you comment on this question?
+> > 
+> >>
+> >> The UNBALANCED warnings have not reappeared (so far).
+> > 
+> > And they are still gone? If that's the case, then I'll merge the patch
+> > fixing this for 3.20.
+> > 
+> > With respect to the risc error: the only reason I can think of is that it
+> > is a race condition when the risc program is updated. I'll see if I can
+> > spend some time on this today or on Monday. Can you give me an indication
+> > how often you see this risc error message?
 > 
->>> In any case, for ALSA, we should do the right thing here: remove (actually
->>> deprecate) whatever definition is there, and then re-add it only when we
->>> actually have the patches inside the ALSA subsystem to support the media
->>> controller, plus having the corresponding patches for the media-ctl in order
->>> to support the devnode discovery using both udev and sysfs for their nodes.
->>
->> I actually thought about how alsa should be handled and it is doing the
->> right thing. See my patch that I posted today, partially reverting your
->> patch.
+> Can you both apply this patch and let me know what it says the next time you
+> get a risc error message? I just realized that important information was never
+> logged, so with luck this might help me pinpoint the problem.
 > 
-> Well, I can live with that patch for now, but I suspect that removing
-> major/minor from ALSA will make things very complex at the userspace side.
-> 
-> Do you know how to convert from card/device/subdevice into a device node
-> patch using libudev and sysfs?
+So far I got one mpeg error:
+[81639.485605] cx23885[2]: mpeg risc op code error 10001 0
+[81639.485610] cx23885[2]: TS1 B - dma channel status dump
+[81639.485612] cx23885[2]:   cmds: init risc lo   : 0x053aa000
+[81639.485615] cx23885[2]:   cmds: init risc hi   : 0x00000000
+[81639.485617] cx23885[2]:   cmds: cdt base       : 0x00010580
+[81639.485620] cx23885[2]:   cmds: cdt size       : 0x0000000a
+[81639.485622] cx23885[2]:   cmds: iq base        : 0x00010400
+[81639.485625] cx23885[2]:   cmds: iq size        : 0x00000010
+[81639.485628] cx23885[2]:   cmds: risc pc lo     : 0x048e5048
+[81639.485630] cx23885[2]:   cmds: risc pc hi     : 0x00000000
+[81639.485633] cx23885[2]:   cmds: iq wr ptr      : 0x00004105
+[81639.485636] cx23885[2]:   cmds: iq rd ptr      : 0x00004109
+[81639.485638] cx23885[2]:   cmds: cdt current    : 0x000105a8
+[81639.485640] cx23885[2]:   cmds: pci target lo  : 0xadc44000
+[81639.485642] cx23885[2]:   cmds: pci target hi  : 0x00000000
+[81639.485645] cx23885[2]:   cmds: line / byte    : 0x00200000
+[81639.485648] cx23885[2]:   risc0: 0x1c0002f0 [ write sol eol count=752
+]
+[81639.485651] cx23885[2]:   risc1: 0xadc44000 [ readc sol eol irq1 23
+22 18 14 count=0 ]
+[81639.485655] cx23885[2]:   risc2: 0x00000000 [ INVALID count=0 ]
+[81639.485658] cx23885[2]:   risc3: 0x1c0002f0 [ write sol eol count=752
+]
+[81639.485661] cx23885[2]:   (0x00010400) iq 0: 0xadc448d0 [ readc sol
+eol irq1 23 22 18 14 count=2256 ]
+[81639.485665] cx23885[2]:   (0x00010404) iq 1: 0x00000000 [ INVALID
+count=0 ]
+[81639.485667] cx23885[2]:   (0x00010408) iq 2: 0x1c0002f0 [ write sol
+eol count=752 ]
+[81639.485670] cx23885[2]:   iq 3: 0xadc44bc0 [ arg #1 ]
+[81639.485672] cx23885[2]:   iq 4: 0x00000000 [ arg #2 ]
+[81639.485674] cx23885[2]:   (0x00010414) iq 5: 0x71000000 [ jump irq1
+count=0 ]
+[81639.485677] cx23885[2]:   iq 6: 0x1c0002f0 [ arg #1 ]
+[81639.485679] cx23885[2]:   iq 7: 0xadc44000 [ arg #2 ]
+[81639.485682] cx23885[2]:   (0x00010420) iq 8: 0x00000000 [ INVALID
+count=0 ]
+[81639.485684] cx23885[2]:   (0x00010424) iq 9: 0x1c0002f0 [ write sol
+eol count=752 ]
+[81639.485687] cx23885[2]:   iq a: 0xadc442f0 [ arg #1 ]
+[81639.485689] cx23885[2]:   iq b: 0x00000000 [ arg #2 ]
+[81639.485691] cx23885[2]:   (0x00010430) iq c: 0x1c0002f0 [ write sol
+eol count=752 ]
+[81639.485694] cx23885[2]:   iq d: 0xadc445e0 [ arg #1 ]
+[81639.485696] cx23885[2]:   iq e: 0x00000000 [ arg #2 ]
+[81639.485698] cx23885[2]:   (0x0001043c) iq f: 0x1c0002f0 [ write sol
+eol count=752 ]
+[81639.485701] cx23885[2]:   iq 10: 0x3efdbb2f [ arg #1 ]
+[81639.485704] cx23885[2]:   iq 11: 0xbb1ae8fd [ arg #2 ]
+[81639.485704] cx23885[2]: fifo: 0x00005000 -> 0x6000
+[81639.485705] cx23885[2]: ctrl: 0x00010400 -> 0x10460
+[81639.485707] cx23885[2]:   ptr1_reg: 0x00005700
+[81639.485709] cx23885[2]:   ptr2_reg: 0x000105a8
+[81639.485711] cx23885[2]:   cnt1_reg: 0x00000012
+[81639.485714] cx23885[2]:   cnt2_reg: 0x00000005
 
-You don't *want* a device. The user space alsa utilities all operate on
-card/device/subdevice level. I've never used an alsa device node directly,
-or seen anyone do that. That's all done by the alsa library.
+Best regards,
+Jurgen
 
-But regardless of whether or not it is right or wrong, as long as we do not
-actually implement this in a driver I would keep this and wait until we
-do have a working example. Replacing the alsa struct by a simple major/minor
-is certainly not enough, of that I am 100% certain.
-
-Let's keep it as is, and only touch it again when we actually get the first
-user.
-
-Regards,
-
-	Hans
