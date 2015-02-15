@@ -1,36 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:42393 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216AbbBZKJO (ORCPT
+Received: from mail-we0-f169.google.com ([74.125.82.169]:54728 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752556AbbBOMLo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 05:09:14 -0500
-Received: by iecrp18 with SMTP id rp18so12681410iec.9
-        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2015 02:09:13 -0800 (PST)
-MIME-Version: 1.0
-Date: Thu, 26 Feb 2015 11:09:13 +0100
-Message-ID: <CAPW4HR3+_zK0n1_djM2qd-Zxk-yrfn2GwTOrQjbLGEoYvNb0UQ@mail.gmail.com>
-Subject: Media Controller for i.MX6 IPU
-From: =?UTF-8?Q?Carlos_Sanmart=C3=ADn_Bustos?= <carsanbu@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Sun, 15 Feb 2015 07:11:44 -0500
+From: Silvan Jegen <s.jegen@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: Silvan Jegen <s.jegen@gmail.com>, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 0/2] [media] mantis: Fix goto labels
+Date: Sun, 15 Feb 2015 13:11:03 +0100
+Message-Id: <1424002265-16865-1-git-send-email-s.jegen@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+I found two issues regarding goto labels in the mantis driver
+when checking a smatch warning and addressed them in two separate
+patches. Please be aware that these patches have only been compile-tested
+since I do not have access to the corresponding hardware.
 
-I am testing your implementation of MC for the i.MX6 IPU:
+Silvan Jegen (2):
+  [media] mantis: Move jump label to activate dead code
+  [media] mantis: Use correct goto labels for cleanup on error
 
-git://git.pengutronix.de/git/pza/linux.git test/nitrogen6x-ipu-media
+ drivers/media/pci/mantis/mantis_cards.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-I made the changes for get working my sensor, all is registering well
-but I can't understand the last links in media controller. Why IPU
-SMFC and imx-ipuv3-camera entities have not got format?
+-- 
+2.2.2
 
-I can't capture nothing if I have not got format. I don't understand
-how you captured with these entities.
-I understand the repo is WIP but I want to reproduce the capture.
-
-Thanks,
-
-Carlos
