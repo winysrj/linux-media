@@ -1,53 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:36651 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753768AbbBBPXu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 10:23:50 -0500
-Message-ID: <1422890625.6112.12.camel@pengutronix.de>
-Subject: Re: [RFC PATCH 2/2] [media] videobuf2: return -EPIPE from DQBUF
- after the last buffer
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Kamil Debski <k.debski@samsung.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>
-Date: Mon, 02 Feb 2015 16:23:45 +0100
-In-Reply-To: <54CF8313.5020207@xs4all.nl>
-References: <1421926118-29535-1-git-send-email-p.zabel@pengutronix.de>
-	 <1421926118-29535-3-git-send-email-p.zabel@pengutronix.de>
-	 <54CF8313.5020207@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41978 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753114AbbBPSdo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2015 13:33:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Steven Zakulec <spzakulec@gmail.com>,
+	Michael Hall <mhall119@gmail.com>
+Subject: [PATCH] uvcvideo: Recognize the Tasco USB microscope
+Date: Mon, 16 Feb 2015 20:34:36 +0200
+Message-Id: <1424111676-26096-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, den 02.02.2015, 15:00 +0100 schrieb Hans Verkuil:
-> On 01/22/2015 12:28 PM, Philipp Zabel wrote:
-> > If the last buffer was dequeued from a capture queue, let poll return
-> > immediately and let DQBUF return -EPIPE to signal there will no more
-> > buffers to dequeue until STREAMOFF.
-> 
-> This looks OK to me, although I would like to see comments from others as well.
-> Of course, this needs to be documented in the spec as well.
+The device is based on an Aveo chipset, implements UVC but advertises a
+vendor-specific class on all interfaces.
 
-Thanks, I'll fix that in the next round.
+Support it by listing the USB VID:PID explicitly.
 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> > TODO: (How) should the last_buffer_dequeud flag be cleared in reaction to
-> > V4L2_DEC_CMD_START?
-> 
-> I would suggest an inline function in videobuf2-core.h that clears the flag
-> and that drivers can call. I don't think the vb2 core can detect when it is
-> OK to clear the flag, it needs to be told by the driver (correct me if I am
-> wrong).
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-No, I think you are right that this should be done explicitly. I'll add
-an inline function next time.
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 7f5003c..62359f6 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -2482,6 +2482,14 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
+ 				| UVC_QUIRK_PROBE_EXTRAFIELDS },
++	/* Aveo Technology USB 2.0 Camera (Tasco USB Microscope) */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x1871,
++	  .idProduct		= 0x0516,
++	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0 },
+ 	/* Ecamm Pico iMage */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
+-- 
+Regards,
 
-regards
-Philipp
+Laurent Pinchart
 
