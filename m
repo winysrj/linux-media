@@ -1,178 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53294 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752082AbbBAK0y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Feb 2015 05:26:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Josh Wu <josh.wu@atmel.com>
-Subject: Re: [PATCH v3 2/2] V4L: add CCF support to the v4l2_clk API
-Date: Sun, 01 Feb 2015 12:27:37 +0200
-Message-ID: <8420980.1Z1tGTCX4O@avalon>
-In-Reply-To: <Pine.LNX.4.64.1502010019380.26661@axis700.grange>
-References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange> <Pine.LNX.4.64.1502010019380.26661@axis700.grange>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45995 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751797AbbBPJKe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2015 04:10:34 -0500
+Message-ID: <54E1B3F0.7060807@xs4all.nl>
+Date: Mon, 16 Feb 2015 10:10:08 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCHv4 15/25] [media] tuner-core: properly initialize media
+ controller subdev
+References: <cover.1423867976.git.mchehab@osg.samsung.com> <5c8a3752af88ba4c349d9d2416cad937f96a0423.1423867976.git.mchehab@osg.samsung.com>
+In-Reply-To: <5c8a3752af88ba4c349d9d2416cad937f96a0423.1423867976.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-Thank you for the patch.
-
-On Sunday 01 February 2015 00:21:36 Guennadi Liakhovetski wrote:
-> V4L2 clocks, e.g. used by camera sensors for their master clock, do not
-> have to be supplied by a different V4L2 driver, they can also be
-> supplied by an independent source. In this case the standart kernel
-> clock API should be used to handle such clocks. This patch adds support
-> for such cases.
+On 02/13/2015 11:57 PM, Mauro Carvalho Chehab wrote:
+> Properly initialize tuner core subdev at the media controller.
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
+> That requires a new subtype at the media controller API.
 > 
-> v3:
-> 1. return -EPROBE_DEFER if it's returned by clk_get()
-> 2. handle the case of disabled CCF in kernel configuration
-> 3. use clk_prepare_enable() and clk_unprepare_disable()
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
->  drivers/media/v4l2-core/v4l2-clk.c | 48 ++++++++++++++++++++++++++++++++---
->  include/media/v4l2-clk.h           |  2 ++
->  2 files changed, 47 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-clk.c
-> b/drivers/media/v4l2-core/v4l2-clk.c index 3ff0b00..9f8cb20 100644
-> --- a/drivers/media/v4l2-core/v4l2-clk.c
-> +++ b/drivers/media/v4l2-core/v4l2-clk.c
-> @@ -9,6 +9,7 @@
->   */
-> 
->  #include <linux/atomic.h>
-> +#include <linux/clk.h>
->  #include <linux/device.h>
->  #include <linux/errno.h>
->  #include <linux/list.h>
-> @@ -37,6 +38,21 @@ static struct v4l2_clk *v4l2_clk_find(const char *dev_id)
-> struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id) {
->  	struct v4l2_clk *clk;
-> +	struct clk *ccf_clk = clk_get(dev, id);
-> +
-> +	if (PTR_ERR(ccf_clk) == -EPROBE_DEFER)
-> +		return ERR_PTR(-EPROBE_DEFER);
-> +
-> +	if (!IS_ERR_OR_NULL(ccf_clk)) {
-> +		clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
-
-Doesn't the kernel tend to favour sizeof(*clk) instead of sizeof(struct 
-v4l2_clk) ?
-
-Apart from that,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +		if (!clk) {
-> +			clk_put(ccf_clk);
-> +			return ERR_PTR(-ENOMEM);
-> +		}
-> +		clk->clk = ccf_clk;
-> +
-> +		return clk;
-> +	}
-> 
->  	mutex_lock(&clk_lock);
->  	clk = v4l2_clk_find(dev_name(dev));
-> @@ -56,6 +72,12 @@ void v4l2_clk_put(struct v4l2_clk *clk)
->  	if (IS_ERR(clk))
->  		return;
-> 
-> +	if (clk->clk) {
-> +		clk_put(clk->clk);
-> +		kfree(clk);
-> +		return;
-> +	}
-> +
->  	mutex_lock(&clk_lock);
-> 
->  	list_for_each_entry(tmp, &clk_list, list)
-> @@ -93,8 +115,12 @@ static void v4l2_clk_unlock_driver(struct v4l2_clk *clk)
-> 
->  int v4l2_clk_enable(struct v4l2_clk *clk)
->  {
-> -	int ret = v4l2_clk_lock_driver(clk);
-> +	int ret;
-> 
-> +	if (clk->clk)
-> +		return clk_prepare_enable(clk->clk);
-> +
-> +	ret = v4l2_clk_lock_driver(clk);
->  	if (ret < 0)
->  		return ret;
-> 
-> @@ -120,6 +146,9 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
->  {
->  	int enable;
-> 
-> +	if (clk->clk)
-> +		return clk_disable_unprepare(clk->clk);
-> +
->  	mutex_lock(&clk->lock);
-> 
->  	enable = --clk->enable;
-> @@ -137,8 +166,12 @@ EXPORT_SYMBOL(v4l2_clk_disable);
-> 
->  unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
->  {
-> -	int ret = v4l2_clk_lock_driver(clk);
-> +	int ret;
-> +
-> +	if (clk->clk)
-> +		return clk_get_rate(clk->clk);
-> 
-> +	ret = v4l2_clk_lock_driver(clk);
->  	if (ret < 0)
->  		return ret;
-> 
-> @@ -157,7 +190,16 @@ EXPORT_SYMBOL(v4l2_clk_get_rate);
-> 
->  int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
->  {
-> -	int ret = v4l2_clk_lock_driver(clk);
-> +	int ret;
-> +
-> +	if (clk->clk) {
-> +		long r = clk_round_rate(clk->clk, rate);
-> +		if (r < 0)
-> +			return r;
-> +		return clk_set_rate(clk->clk, r);
-> +	}
-> +
-> +	ret = v4l2_clk_lock_driver(clk);
-> 
->  	if (ret < 0)
->  		return ret;
-> diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-> index 928045f..3ef6e3d 100644
-> --- a/include/media/v4l2-clk.h
-> +++ b/include/media/v4l2-clk.h
-> @@ -22,6 +22,7 @@
->  struct module;
->  struct device;
-> 
-> +struct clk;
->  struct v4l2_clk {
->  	struct list_head list;
->  	const struct v4l2_clk_ops *ops;
-> @@ -29,6 +30,7 @@ struct v4l2_clk {
->  	int enable;
->  	struct mutex lock; /* Protect the enable count */
->  	atomic_t use_count;
-> +	struct clk *clk;
->  	void *priv;
+> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> index 559f8372e2eb..9a83b27a7e8f 100644
+> --- a/drivers/media/v4l2-core/tuner-core.c
+> +++ b/drivers/media/v4l2-core/tuner-core.c
+> @@ -134,6 +134,9 @@ struct tuner {
+>  	unsigned int        type; /* chip type id */
+>  	void                *config;
+>  	const char          *name;
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	struct media_pad	pad;
+> +#endif
 >  };
+>  
+>  /*
+> @@ -434,6 +437,8 @@ static void set_type(struct i2c_client *c, unsigned int type,
+>  		t->name = analog_ops->info.name;
+>  	}
+>  
+> +	t->sd.entity.name = t->name;
+> +
+>  	tuner_dbg("type set to %s\n", t->name);
+>  
+>  	t->mode_mask = new_mode_mask;
+> @@ -592,6 +597,9 @@ static int tuner_probe(struct i2c_client *client,
+>  	struct tuner *t;
+>  	struct tuner *radio;
+>  	struct tuner *tv;
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	int ret;
+> +#endif
+>  
+>  	t = kzalloc(sizeof(struct tuner), GFP_KERNEL);
+>  	if (NULL == t)
+> @@ -684,6 +692,18 @@ static int tuner_probe(struct i2c_client *client,
+>  
+>  	/* Should be just before return */
+>  register_client:
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	t->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
+> +	t->sd.entity.name = t->name;
 
--- 
+Will this be a unique name in the case of one board with multiple identical tuners?
+
+I don't know if we have any cards like that (my PVR-500 is really two PCI boards on
+one PCB).
+
+Laurent, the name should be unique, right? In any case, the spec needs to be updated
+to clearly state whether or not the name should be unique.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> +
+> +	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
+> +	if (ret < 0) {
+> +		tuner_err("failed to initialize media entity!\n");
+> +		kfree(t);
+> +		return -ENODEV;
+> +	}
+> +#endif
+>  	/* Sets a default mode */
+>  	if (t->mode_mask & T_ANALOG_TV)
+>  		t->mode = V4L2_TUNER_ANALOG_TV;
+> 
 
