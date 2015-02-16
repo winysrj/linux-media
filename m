@@ -1,141 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50680 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753719AbbBZLef (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37990 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750954AbbBPDkz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 06:34:35 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/2 v2] dvb-usb-v2: create one media_dev per adapter
-Date: Thu, 26 Feb 2015 08:34:20 -0300
-Message-Id: <5f768a83b8035c8c17a7812388c1382b69e1bdf1.1424950218.git.mchehab@osg.samsung.com>
+	Sun, 15 Feb 2015 22:40:55 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 8EB2E2A0083
+	for <linux-media@vger.kernel.org>; Mon, 16 Feb 2015 04:40:35 +0100 (CET)
+Date: Mon, 16 Feb 2015 04:40:35 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150216034035.8EB2E2A0083@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of assuming just one adapter, change the code to store
-one media controller per adapter.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This works fine for dvb-usb, as, on all drivers here, it is not
-possible to write a media graph that would mix resources between
-the two different adapters.
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+date:		Mon Feb 16 04:00:22 CET 2015
+git branch:	test
+git hash:	135f9be9194cf7778eb73594aa55791b229cf27c
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-5.slh.1-amd64
 
-v2:
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18-i686: ERRORS
+linux-3.19-rc4-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18-x86_64: ERRORS
+linux-3.19-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+smatch: ERRORS
 
-- Fix unregister logic
+Detailed results are available here:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-index dbac1633312a..023d91f7e654 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-@@ -392,10 +392,6 @@ struct dvb_usb_device {
- 	struct delayed_work rc_query_work;
- 
- 	void *priv;
--
--#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
--	struct media_device *media_dev;
--#endif
- };
- 
- extern int dvb_usbv2_probe(struct usb_interface *,
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-index 94a7f6390f46..0666c8f33ac7 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-@@ -400,11 +400,11 @@ skip_feed_stop:
- 	return ret;
- }
- 
--static void dvb_usbv2_media_device_register(struct dvb_usb_device *d)
-+static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
- {
- #ifdef CONFIG_MEDIA_CONTROLLER_DVB
--
- 	struct media_device *mdev;
-+	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct usb_device *udev = d->udev;
- 	int ret;
- 
-@@ -429,22 +429,23 @@ static void dvb_usbv2_media_device_register(struct dvb_usb_device *d)
- 		return;
- 	}
- 
--	d->media_dev = mdev;
-+	adap->dvb_adap.mdev = mdev;
- 
- 	dev_info(&d->udev->dev, "media controller created\n");
- 
- #endif
- }
- 
--static void dvb_usbv2_media_device_unregister(struct dvb_usb_device *d)
-+static void dvb_usbv2_media_device_unregister(struct dvb_usb_adapter *adap)
- {
- #ifdef CONFIG_MEDIA_CONTROLLER_DVB
--	if (!d->media_dev)
-+
-+	if (!adap->dvb_adap.mdev)
- 		return;
- 
--	media_device_unregister(d->media_dev);
--	kfree(d->media_dev);
--	d->media_dev = NULL;
-+	media_device_unregister(adap->dvb_adap.mdev);
-+	kfree(adap->dvb_adap.mdev);
-+	adap->dvb_adap.mdev = NULL;
- 
- #endif
- }
-@@ -453,6 +454,7 @@ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
- {
- 	int ret;
- 	struct dvb_usb_device *d = adap_to_d(adap);
-+
- 	dev_dbg(&d->udev->dev, "%s: adap=%d\n", __func__, adap->id);
- 
- 	ret = dvb_register_adapter(&adap->dvb_adap, d->name, d->props->owner,
-@@ -466,8 +468,7 @@ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
- 	adap->dvb_adap.priv = adap;
- 
- #ifdef CONFIG_MEDIA_CONTROLLER_DVB
--	dvb_usbv2_media_device_register(d);
--	adap->dvb_adap.mdev = d->media_dev;
-+	dvb_usbv2_media_device_register(adap);
- #endif
- 
- 	if (d->props->read_mac_address) {
-@@ -518,7 +519,7 @@ err_dvb_net_init:
- err_dvb_dmxdev_init:
- 	dvb_dmx_release(&adap->demux);
- err_dvb_dmx_init:
--	dvb_usbv2_media_device_unregister(d);
-+	dvb_usbv2_media_device_unregister(adap);
- 	dvb_unregister_adapter(&adap->dvb_adap);
- err_dvb_register_adapter:
- 	adap->dvb_adap.priv = NULL;
-@@ -537,7 +538,7 @@ static int dvb_usbv2_adapter_dvb_exit(struct dvb_usb_adapter *adap)
- 		adap->demux.dmx.close(&adap->demux.dmx);
- 		dvb_dmxdev_release(&adap->dmxdev);
- 		dvb_dmx_release(&adap->demux);
--		dvb_usbv2_media_device_unregister(d);
-+		dvb_usbv2_media_device_unregister(adap);
- 		dvb_unregister_adapter(&adap->dvb_adap);
- 	}
- 
-@@ -701,7 +702,7 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
- 		}
- 	}
- 
--	dvb_create_media_graph(d->media_dev);
-+	dvb_create_media_graph(adap->dvb_adap.mdev);
- 
- 	return 0;
- 
--- 
-2.1.0
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
