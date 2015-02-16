@@ -1,74 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45382 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965653AbbBDNOw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 08:14:52 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Peter Seiderer <ps.report@gmx.net>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 1/5] [media] videodev2: Add V4L2_BUF_FLAG_LAST
-Date: Wed,  4 Feb 2015 14:14:33 +0100
-Message-Id: <1423055677-13161-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
-References: <1423055677-13161-1-git-send-email-p.zabel@pengutronix.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42123 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751021AbbBPUOo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2015 15:14:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, isely@isely.net, pali.rohar@gmail.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 3/5] uvc gadget: switch to unlocked_ioctl.
+Date: Mon, 16 Feb 2015 22:15:37 +0200
+Message-ID: <2390343.jYF8yA1sby@avalon>
+In-Reply-To: <54E208BB.9010804@xs4all.nl>
+References: <1422967646-12223-1-git-send-email-hverkuil@xs4all.nl> <3185495.drmK3h6s8j@avalon> <54E208BB.9010804@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Seiderer <ps.report@gmx.net>
+Hi Hans,
 
-This v4l2_buffer flag can be used by drivers to mark a capture buffer
-as the last generated buffer, for example after a V4L2_DEC_CMD_STOP
-command was issued.
+On Monday 16 February 2015 16:11:55 Hans Verkuil wrote:
+> On 02/03/2015 02:55 PM, Laurent Pinchart wrote:
+> > On Tuesday 03 February 2015 13:47:24 Hans Verkuil wrote:
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >> 
+> >> Instead of .ioctl use unlocked_ioctl. While all the queue ops
+> >> already use a lock, there was no lock to protect uvc_video, so
+> >> add that one.
+> > 
+> > There's more. streamon and streamoff need to be protected by a lock for
+> > instance. Wouldn't it be easier to just set vdev->lock for this driver
+> > instead of adding manual locking ?
+> 
+> I could set vdev->lock to &video->mutex and remove the queue->mutex
+> altogether since video->mutex will now be used for all locking. I only
+> need to take the video->mutex in uvc_v4l2_release() as well.
+> 
+> If you agree with that, then I'll make that change.
 
-Signed-off-by: Peter Seiderer <ps.report@gmx.net>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - Added documentation
----
- Documentation/DocBook/media/v4l/io.xml | 10 ++++++++++
- include/uapi/linux/videodev2.h         |  2 ++
- 2 files changed, 12 insertions(+)
+That sounds good to me. I haven't really tried to optimize locking in the UVC 
+gadget driver, so relying on core locking is fine. Could you split that in two 
+patches, one that switches to core locking, and another that switches to 
+unlocked_ioctl ?
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 1c17f80..f3b8bc0 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -1129,6 +1129,16 @@ in this buffer has not been created by the CPU but by some DMA-capable unit,
- in which case caches have not been used.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_BUF_FLAG_LAST</constant></entry>
-+	    <entry>0x00100000</entry>
-+	    <entry>Last buffer produced by the hardware. mem2mem codec drivers
-+set this flag on the capture queue for the last buffer when the
-+<link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link> or
-+<link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called. After the
-+queue is drained, the <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl will
-+not block anymore, but return an &EPIPE;.</entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
- 	    <entry>0x0000e000</entry>
- 	    <entry>Mask for timestamp types below. To test the
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index fbdc360..c642c10 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -809,6 +809,8 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
- #define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
- #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
-+/* mem2mem encoder/decoder */
-+#define V4L2_BUF_FLAG_LAST			0x00100000
- 
- /**
-  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >> 
+> >>  drivers/usb/gadget/function/f_uvc.c    | 1 +
+> >>  drivers/usb/gadget/function/uvc.h      | 1 +
+> >>  drivers/usb/gadget/function/uvc_v4l2.c | 6 +++++-
+> >>  3 files changed, 7 insertions(+), 1 deletion(-)
+> >> 
+> >> diff --git a/drivers/usb/gadget/function/f_uvc.c
+> >> b/drivers/usb/gadget/function/f_uvc.c index 945b3bd..748a80c 100644
+> >> --- a/drivers/usb/gadget/function/f_uvc.c
+> >> +++ b/drivers/usb/gadget/function/f_uvc.c
+> >> @@ -817,6 +817,7 @@ static struct usb_function *uvc_alloc(struct
+> >> usb_function_instance *fi) if (uvc == NULL)
+> >> 
+> >>  		return ERR_PTR(-ENOMEM);
+> >> 
+> >> +	mutex_init(&uvc->video.mutex);
+> > 
+> > We need a corresponding mutex_destroy() somewhere.
+> 
+> Why? Few drivers do so. If you want it, then I'll do that, but it's not
+> required to my knowledge.
+
+I somehow thought mutex_destroy() was required to avoid leakages when mutex 
+debugging is enabled, but it turns out I'm wrong. Omitting it thus seems fine.
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
