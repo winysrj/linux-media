@@ -1,43 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34260 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018AbbBSTxO (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:56130 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754303AbbBPMUi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 14:53:14 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] cx25840: fix return logic when media entity init fails
-Date: Thu, 19 Feb 2015 17:53:05 -0200
-Message-Id: <1424375585-22509-1-git-send-email-mchehab@osg.samsung.com>
+	Mon, 16 Feb 2015 07:20:38 -0500
+Date: Mon, 16 Feb 2015 12:18:29 +0000
+From: Luis de Bethencourt <luis@debethencourt.com>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Subject: Recent commit introduces compiler Error in some platforms
+Message-ID: <20150216121829.GA23673@biggie>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's no need to free state, as it was allocated via devm_kzalloc().
+Hi all,
 
-Also, let's return the error code, instead of something else.
+As can be seen in Han's build log:
+http://hverkuil.home.xs4all.nl/logs/Saturday.log
 
-Reported-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/i2c/cx25840/cx25840-core.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+The recent commit bc0c5aa35ac88342831933ca7758ead62d9bae2b introduces a
+compiler error in some platforms.
 
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-index cb4e03de9b75..185cb55253c9 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.c
-+++ b/drivers/media/i2c/cx25840/cx25840-core.c
-@@ -5205,8 +5205,7 @@ static int cx25840_probe(struct i2c_client *client,
- 				state->pads, 0);
- 	if (ret < 0) {
- 		v4l_info(client, "failed to initialize media entity!\n");
--		kfree(state);
--		return -ENODEV;
-+		return ret;
- 	}
- #endif
- 
--- 
-2.1.0
+/home/hans/work/build/media_build/v4l/ir-hix5hd2.c: In function 'hix5hd2_ir_config':
+/home/hans/work/build/media_build/v4l/ir-hix5hd2.c:95:2: error: implicit declaration of function 'writel_relaxed' [-Werror=implicit-function-declaration]
+  writel_relaxed(0x01, priv->base + IR_ENABLE);
+  ^
 
+Better than reverting, what would be a good solution for this problem?
+I am happy to implment it once I know what is the right direction.
+
+>From what I see that commit mentions that the function is now available from
+include/asm-generic/io.h, but this isn't included.
+
+Thanks,
+Luis
