@@ -1,129 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:11143 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752584AbbBRQY7 (ORCPT
+Received: from mail-we0-f181.google.com ([74.125.82.181]:36910 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757AbbBPTue (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 11:24:59 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v11 10/20] DT: Add documentation for the mfd Maxim max77693
-Date: Wed, 18 Feb 2015 17:20:31 +0100
-Message-id: <1424276441-3969-11-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
-References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+	Mon, 16 Feb 2015 14:50:34 -0500
+Received: by mail-we0-f181.google.com with SMTP id w62so31088860wes.12
+        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2015 11:50:32 -0800 (PST)
+From: Philip Downer <pdowner@prospero-tech.com>
+To: linux-media@vger.kernel.org
+Cc: Philip Downer <pdowner@prospero-tech.com>
+Subject: [RFC PATCH 0/1]  [media] pci: Add support for DVB PCIe cards from Prospero Technologies Ltd.
+Date: Mon, 16 Feb 2015 19:48:45 +0000
+Message-Id: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-the flash cell of the Maxim max77693 multifunctional device.
+The Vortex PCIe card by Prospero Technologies Ltd is a modular DVB card
+with a hardware demux, the card can support up to 8 modules which are
+fixed to the board at assembly time. Currently we only offer one 
+configuration, 8 x Dibcom 7090p DVB-t tuners, but we will soon be releasing
+other configurations. There is also a connector for an infra-red receiver 
+dongle on the board which supports RAW IR.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
----
- Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++++++++++++++++++++
- 1 file changed, 61 insertions(+)
+The driver has been in testing on our systems (ARM Cortex-A9, Marvell Sheva, 
+x86, x86-64) for longer than 6 months, so I'm confident that it works. 
+However as this is the first Linux driver I've written, I'm sure there are 
+some things that I've got wrong. One thing in particular which has been 
+raised by one of our early testers is that we currently register all of 
+our frontends as being attached to one adapter. This means the device is
+enumerated in /dev like this:
 
-diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-index 38e6440..ab8fbd5 100644
---- a/Documentation/devicetree/bindings/mfd/max77693.txt
-+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-@@ -76,7 +76,53 @@ Optional properties:
-     Valid values: 4300000, 4700000, 4800000, 4900000
-     Default: 4300000
- 
-+- led : the LED submodule device node
-+
-+There are two LED outputs available - FLED1 and FLED2. Each of them can
-+control a separate LED or they can be connected together to double
-+the maximum current for a single connected LED. One LED is represented
-+by one child node.
-+
-+Required properties:
-+- compatible : Must be "maxim,max77693-led".
-+
-+Optional properties:
-+- maxim,trigger-type : Flash trigger type.
-+	Possible trigger types:
-+		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
-+			the flash,
-+		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
-+			of the flash.
-+- maxim,boost-mode :
-+	In boost mode the device can produce up to 1.2A of total current
-+	on both outputs. The maximum current on each output is reduced
-+	to 625mA then. If not enabled explicitly, boost setting defaults to
-+	LEDS_BOOST_FIXED in case both current sources are used.
-+	Possible values:
-+		LEDS_BOOST_OFF (0) - no boost,
-+		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
-+		LEDS_BOOST_FIXED (2) - fixed mode.
-+- maxim,boost-mvout : Output voltage of the boost module in millivolts.
-+- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
-+	if chip estimates that system voltage could drop below this level due
-+	to flash power consumption.
-+
-+Required properties of the LED child node:
-+- label : see Documentation/devicetree/bindings/leds/common.txt
-+- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
-+		device current output identifiers: 0 - FLED1, 1 - FLED2
-+
-+Optional properties of the LED child node:
-+- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 15625 - 250000
-+- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 15625 - 1000000
-+- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 62500 - 1000000
-+
- Example:
-+#include <dt-bindings/leds/max77693.h>
-+
- 	max77693@66 {
- 		compatible = "maxim,max77693";
- 		reg = <0x66>;
-@@ -117,5 +163,20 @@ Example:
- 			maxim,thermal-regulation-celsius = <75>;
- 			maxim,battery-overcurrent-microamp = <3000000>;
- 			maxim,charge-input-threshold-microvolt = <4300000>;
-+
-+		led {
-+			compatible = "maxim,max77693-led";
-+			maxim,trigger-type = <LEDS_TRIG_TYPE_LEVEL>;
-+			maxim,boost-mode = <LEDS_BOOST_FIXED>;
-+			maxim,boost-mvout = <5000>;
-+			maxim,mvsys-min = <2400>;
-+
-+			camera_flash: flash-led {
-+				label = "max77693-flash1";
-+				led-sources = <0>, <1>;
-+				max-microamp = <500000>;
-+				flash-max-microamp = <1250000>;
-+				flash-timeout-us = <1000000>;
-+			};
- 		};
- 	};
+/dev/dvb/adapter0/frontend0
+/dev/dvb/adapter0/dvr0
+/dev/dvb/adapter0/demux0
+
+/dev/dvb/adapter0/frontend1
+/dev/dvb/adapter0/dvr1
+/dev/dvb/adapter0/demux1
+
+/dev/dvb/adapter0/frontend2
+/dev/dvb/adapter0/dvr2
+/dev/dvb/adapter0/demux2
+
+etc.
+
+Whilst I think this is ok according to the spec, our tester has complained 
+that it's incompatible with their software which expects to find just one 
+frontend per adapter. So I'm wondering if someone could confirm if what 
+I've done with regards to this is correct.
+
+I've tested this patch by applying it to current media-master and it applies 
+cleanly and builds without issue for me.
+
+More information on the card can be found at:
+http://prospero-tech.com/vortex-1-dvb-t-pcie-card/
+
+Regards,
+
+Philip Downer
+
+Philip Downer (1):
+  [media] pci: Add support for DVB PCIe cards from Prospero Technologies
+    Ltd.
+
+ drivers/media/pci/Kconfig                     |    1 +
+ drivers/media/pci/Makefile                    |    2 +
+ drivers/media/pci/prospero/Kconfig            |    7 +
+ drivers/media/pci/prospero/Makefile           |    7 +
+ drivers/media/pci/prospero/prospero_common.h  |  264 ++++
+ drivers/media/pci/prospero/prospero_fe.h      |    5 +
+ drivers/media/pci/prospero/prospero_fe_main.c |  466 ++++++
+ drivers/media/pci/prospero/prospero_i2c.c     |  449 ++++++
+ drivers/media/pci/prospero/prospero_i2c.h     |    3 +
+ drivers/media/pci/prospero/prospero_ir.c      |  150 ++
+ drivers/media/pci/prospero/prospero_ir.h      |    4 +
+ drivers/media/pci/prospero/prospero_main.c    | 2086 +++++++++++++++++++++++++
+ 12 files changed, 3444 insertions(+)
+ create mode 100644 drivers/media/pci/prospero/Kconfig
+ create mode 100644 drivers/media/pci/prospero/Makefile
+ create mode 100644 drivers/media/pci/prospero/prospero_common.h
+ create mode 100644 drivers/media/pci/prospero/prospero_fe.h
+ create mode 100644 drivers/media/pci/prospero/prospero_fe_main.c
+ create mode 100644 drivers/media/pci/prospero/prospero_i2c.c
+ create mode 100644 drivers/media/pci/prospero/prospero_i2c.h
+ create mode 100644 drivers/media/pci/prospero/prospero_ir.c
+ create mode 100644 drivers/media/pci/prospero/prospero_ir.h
+ create mode 100644 drivers/media/pci/prospero/prospero_main.c
+
 -- 
-1.7.9.5
+2.1.4
 
