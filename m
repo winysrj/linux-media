@@ -1,58 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:59626 "EHLO mout.web.de"
+Received: from mail.kapsi.fi ([217.30.184.167]:48704 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965900AbbBCSDo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 13:03:44 -0500
-Message-ID: <54D10D79.4020409@users.sourceforge.net>
-Date: Tue, 03 Feb 2015 19:03:37 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
+	id S1751356AbbBPUBK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2015 15:01:10 -0500
+Message-ID: <54E24C83.7090309@iki.fi>
+Date: Mon, 16 Feb 2015 22:01:07 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+To: Philip Downer <pdowner@prospero-tech.com>,
 	linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH] [media] au0828: Delete unnecessary checks before the function
- call "video_unregister_device"
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
+Subject: Re: [RFC PATCH 0/1]  [media] pci: Add support for DVB PCIe cards
+ from Prospero Technologies Ltd.
+References: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>
+In-Reply-To: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 3 Feb 2015 19:00:25 +0100
+Moikka!
 
-The video_unregister_device() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
+On 02/16/2015 09:48 PM, Philip Downer wrote:
+> The Vortex PCIe card by Prospero Technologies Ltd is a modular DVB card
+> with a hardware demux, the card can support up to 8 modules which are
+> fixed to the board at assembly time. Currently we only offer one
+> configuration, 8 x Dibcom 7090p DVB-t tuners, but we will soon be releasing
+> other configurations. There is also a connector for an infra-red receiver
+> dongle on the board which supports RAW IR.
+>
+> The driver has been in testing on our systems (ARM Cortex-A9, Marvell Sheva,
+> x86, x86-64) for longer than 6 months, so I'm confident that it works.
+> However as this is the first Linux driver I've written, I'm sure there are
+> some things that I've got wrong. One thing in particular which has been
+> raised by one of our early testers is that we currently register all of
+> our frontends as being attached to one adapter. This means the device is
+> enumerated in /dev like this:
+>
+> /dev/dvb/adapter0/frontend0
+> /dev/dvb/adapter0/dvr0
+> /dev/dvb/adapter0/demux0
+>
+> /dev/dvb/adapter0/frontend1
+> /dev/dvb/adapter0/dvr1
+> /dev/dvb/adapter0/demux1
+>
+> /dev/dvb/adapter0/frontend2
+> /dev/dvb/adapter0/dvr2
+> /dev/dvb/adapter0/demux2
+>
+> etc.
+>
+> Whilst I think this is ok according to the spec, our tester has complained
+> that it's incompatible with their software which expects to find just one
+> frontend per adapter. So I'm wondering if someone could confirm if what
+> I've done with regards to this is correct.
 
-This issue was detected by using the Coccinelle software.
+As I understand all those tuners are independent (could be used same 
+time) you should register those as a 8 adapters, each having single 
+frontend, dvr and demux.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/au0828/au0828-video.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+regards
+Antti
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 5f337b1..e593fb5 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -870,12 +870,8 @@ void au0828_analog_unregister(struct au0828_dev *dev)
- {
- 	dprintk(1, "au0828_release_resources called\n");
- 	mutex_lock(&au0828_sysfs_lock);
--
--	if (dev->vdev)
--		video_unregister_device(dev->vdev);
--	if (dev->vbi_dev)
--		video_unregister_device(dev->vbi_dev);
--
-+	video_unregister_device(dev->vdev);
-+	video_unregister_device(dev->vbi_dev);
- 	mutex_unlock(&au0828_sysfs_lock);
- }
- 
+> I've tested this patch by applying it to current media-master and it applies
+> cleanly and builds without issue for me.
+>
+> More information on the card can be found at:
+> http://prospero-tech.com/vortex-1-dvb-t-pcie-card/
+>
+> Regards,
+>
+> Philip Downer
+>
+> Philip Downer (1):
+>    [media] pci: Add support for DVB PCIe cards from Prospero Technologies
+>      Ltd.
+>
+>   drivers/media/pci/Kconfig                     |    1 +
+>   drivers/media/pci/Makefile                    |    2 +
+>   drivers/media/pci/prospero/Kconfig            |    7 +
+>   drivers/media/pci/prospero/Makefile           |    7 +
+>   drivers/media/pci/prospero/prospero_common.h  |  264 ++++
+>   drivers/media/pci/prospero/prospero_fe.h      |    5 +
+>   drivers/media/pci/prospero/prospero_fe_main.c |  466 ++++++
+>   drivers/media/pci/prospero/prospero_i2c.c     |  449 ++++++
+>   drivers/media/pci/prospero/prospero_i2c.h     |    3 +
+>   drivers/media/pci/prospero/prospero_ir.c      |  150 ++
+>   drivers/media/pci/prospero/prospero_ir.h      |    4 +
+>   drivers/media/pci/prospero/prospero_main.c    | 2086 +++++++++++++++++++++++++
+>   12 files changed, 3444 insertions(+)
+>   create mode 100644 drivers/media/pci/prospero/Kconfig
+>   create mode 100644 drivers/media/pci/prospero/Makefile
+>   create mode 100644 drivers/media/pci/prospero/prospero_common.h
+>   create mode 100644 drivers/media/pci/prospero/prospero_fe.h
+>   create mode 100644 drivers/media/pci/prospero/prospero_fe_main.c
+>   create mode 100644 drivers/media/pci/prospero/prospero_i2c.c
+>   create mode 100644 drivers/media/pci/prospero/prospero_i2c.h
+>   create mode 100644 drivers/media/pci/prospero/prospero_ir.c
+>   create mode 100644 drivers/media/pci/prospero/prospero_ir.h
+>   create mode 100644 drivers/media/pci/prospero/prospero_main.c
+>
+
 -- 
-2.2.2
-
+http://palosaari.fi/
