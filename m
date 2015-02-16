@@ -1,48 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48603 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753688AbbBBPVM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 10:21:12 -0500
-Message-ID: <1422890460.6112.9.camel@pengutronix.de>
-Subject: Re: [PATCH v2 1/3] Add BGR888_1X24 and GBR888_1X24 media bus formats
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Boris Brezillon <boris.brezillon@free-electrons.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Date: Mon, 02 Feb 2015 16:21:00 +0100
-In-Reply-To: <54CF92DD.6020308@xs4all.nl>
-References: <1417614811-15634-1-git-send-email-p.zabel@pengutronix.de>
-	 <54CF92DD.6020308@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:43054 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753081AbbBPQJN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2015 11:09:13 -0500
+Message-ID: <54E21614.5010800@xs4all.nl>
+Date: Mon, 16 Feb 2015 17:08:52 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Michael Hall <mhall119@gmail.com>,
+	Steven Zakulec <spzakulec@gmail.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Can the patch adding support for the Tasco USB microscope be
+ queued up?
+References: <CAOraNAbMn227Doegfx-o=-edLCwaL3so-6019jHf+ydChuoiCQ@mail.gmail.com> <54E20D3E.9020308@gmail.com> <54E20F64.5060506@xs4all.nl> <54E2144C.7030206@gmail.com>
+In-Reply-To: <54E2144C.7030206@gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, den 02.02.2015, 16:08 +0100 schrieb Hans Verkuil:
-> On 12/03/2014 02:53 PM, Philipp Zabel wrote:
-> > This patch adds two more 24-bit RGB formats. BGR888 is more or less common,
-> > GBR888 is used on the internal connection between the IPU display interface
-> > and the TVE (VGA DAC) on i.MX53 SoCs.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On 02/16/2015 05:01 PM, Michael Hall wrote:
+> My apologies, the other emails were sent to linux-uvc-devel, not
+> linux-media.
 > 
-> This three-part patch series doesn't apply. Is it on top of another patch
-> series?
+> Do you want an attached patch file, or simply a diff in the body of the
+> email? I'm also not clear on what you mean by "correct Signed-off-by
+> line", I have very little experience with git, I've mostly used bzr.
 
-It is on top of "Add RGB444_1X12 and RGB565_1X16 media bus formats" and
-"Add LVDS RGB media bus formats".
+This is a good link with the relevant information:
 
-> Anyway, it can't be merged unless it is actually used in a driver.
+http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
 
-I'd like to use these in the imx-drm driver, so this is kind of a
-chicken and egg situation. Shall I submit a patch that uses the defines
-to dri-devel and reference it here?
+Anyway, I checked where the original patch came from, and Laurent Pinchart
+wrote it. Since he's kernel maintainer he knows all about well-formatted
+patches and it's best if he just posts and merges his own patch :-)
 
-regards
-Philipp
+Laurent, it's all yours!
+
+Regards,
+
+	Hans
+
+> 
+> Michael Hall
+> mhall119@gmail.com
+> 
+> On 02/16/2015 10:40 AM, Hans Verkuil wrote:
+>> On 02/16/2015 04:31 PM, Michael Hall wrote:
+>>> This is now the 3rd or 4th email to this list requesting that this patch
+>>> be merged in. If there is something wrong with the patch that needs
+>>> fixing, please let me know and I will work on the fix. Otherwise I've
+>>> lost interest in pushing to get it into upstream.
+>>
+>> I can't remember ever seeing a patch for that posted to the linux-media
+>> mailinglist.
+>>
+>> The best way is just to post the patch to this mailinglist, check that it
+>> appears in patchwork (https://patchwork.linuxtv.org/project/linux-media/list/),
+>> make sure you keep the author and correct Signed-off-by line and it's
+>> *guaranteed* that someone will look at it, and merge it or reply to it
+>> if there are problems.
+>>
+>> Mails like 'please pick up a patch from some other git repo' are very
+>> likely to be forgotten due to volume of other postings. Patchwork won't
+>> pick them up and that's what we all rely on.
+>>
+>> So if either of you can just post this as a properly formatted patch,
+>> then it will be taken care of.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>> Michael Hall
+>>> mhall119@gmail.com
+>>>
+>>> On 02/16/2015 10:08 AM, Steven Zakulec wrote:
+>>>> Hi, as an owner of a Tasco/Aveo USB microscope detected but not
+>>>> working under Linux, I'd really like to see the patch adding this
+>>>> variant added to the kernel.  I've copied the patch's author on the
+>>>> email.
+>>>> The people on the linux-uvc-devel list directed me over here.
+>>>>
+>>>> The patch here:
+>>>> http://sourceforge.net/p/linux-uvc/mailman/message/32434617/ , itself
+>>>> an update of an earlier patch:
+>>>> http://sourceforge.net/p/linux-uvc/mailman/message/29835445/ works.
+>>>> The patch does make the USB microscope work where it didn't work at all before.
+>>>>
+>>>> Thank you!
+>>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
 
