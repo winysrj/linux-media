@@ -1,88 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41709 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752223AbbBQMEJ (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55863 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754914AbbBPKta (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 07:04:09 -0500
-Message-ID: <54E32E11.9060004@xs4all.nl>
-Date: Tue, 17 Feb 2015 13:03:29 +0100
+	Mon, 16 Feb 2015 05:49:30 -0500
+Message-ID: <54E1CB23.3050206@xs4all.nl>
+Date: Mon, 16 Feb 2015 11:49:07 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
-References: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=windows-1252
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Jurgen Kramer <gtmkramer@xs4all.nl>
+Subject: [PATCH for v3.20] vb2: fix 'UNBALANCED' warnings when calling vb2_thread_stop()
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
+Stopping the vb2 thread (as used by several DVB devices) can result
+in an 'UNBALANCED' warning such as this:
 
-I've thought about this some more and I agree that this should be allowed.
+vb2: counters for queue ffff880407ee9828: UNBALANCED!
+vb2:     setup: 1 start_streaming: 1 stop_streaming: 1
+vb2:     wait_prepare: 249333 wait_finish: 249334
 
-But I have some comments, see below.
+This is due to a race condition between stopping the thread and
+calling vb2_internal_streamoff(). While I have not been able to deduce
+the exact mechanism how this race condition can produce this warning,
+I can see that the way the stream is stopped is likely to lead to a
+race somewhere.
 
-On 02/17/15 12:02, Ricardo Ribalda Delgado wrote:
-> Volatile controls can change their value outside the v4l-ctrl framework.
-> 
-> We should ignore the cached written value of the ctrl when evaluating if
-> we should run s_ctrl.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
-> 
-> I have a control that tells the user when there has been a external trigger
-> overrun. (Trigger while processing old image). This is a volatile control.
-> 
-> The user writes 0 to the control, to ack the error condition, and clear the
-> hardware flag.
-> 
-> Unfortunately, it only works one time, because the next time the user writes
-> a zero to the control cluster_changed returns false.
-> 
-> I think on volatile controls it is safer to run s_ctrl twice than missing a
-> valid s_ctrl.
-> 
-> I know I am abusing a bit the API for this :P, but I also believe that the
-> semantic here is a bit confusing.
-> 
->  drivers/media/v4l2-core/v4l2-ctrls.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 45c5b47..3d0c7f4 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1605,7 +1605,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
->  
->  	for (i = 0; i < master->ncontrols; i++) {
->  		struct v4l2_ctrl *ctrl = master->cluster[i];
-> -		bool ctrl_changed = false;
-> +		bool ctrl_changed = ctrl->flags & V4L2_CTRL_FLAG_VOLATILE;
+This patch simplifies how this is done by first ensuring that the
+thread is completely stopped before cleaning up the vb2 queue. It
+does that by setting threadio->stop to true, followed by a call to
+vb2_queue_error() which will wake up the thread. The thread sees that
+'stop' is true and it will exit.
 
-Should be done after the 'ctrl == NULL' check.
+The call to kthread_stop() waits until the thread has exited, and only
+then is the queue cleaned up by calling __vb2_cleanup_fileio().
 
->  
->  		if (ctrl == NULL)
->  			continue;
-> 
+This is a much cleaner sequence and the warning has now disappeared.
 
-There is one more change that has to be made: setting a volatile control
-should never generate a V4L2_EVENT_CTRL_CH_VALUE event since that makes
-no sense. The way to prevent that is to ensure that ctrl->has_changed is
-always false for volatile controls. The new_to_cur function looks at that
-field to decide whether to send an event.
+Reported-by: Jurgen Kramer <gtmkramer@xs4all.nl>
+Tested-by: Jurgen Kramer <gtmkramer@xs4all.nl>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: <stable@vger.kernel.org>      # for v3.18 and up
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-The documentation should also be updated: that of V4L2_CTRL_FLAG_VOLATILE
-(in VIDIOC_QUERYCTRL), and of V4L2_EVENT_CTRL_CH_VALUE.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index bc08a82..cc16e76 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -3230,18 +3230,13 @@ int vb2_thread_stop(struct vb2_queue *q)
+ 
+ 	if (threadio == NULL)
+ 		return 0;
+-	call_void_qop(q, wait_finish, q);
+ 	threadio->stop = true;
+-	vb2_internal_streamoff(q, q->type);
+-	call_void_qop(q, wait_prepare, q);
++	/* Wake up all pending sleeps in the thread */
++	vb2_queue_error(q);
+ 	err = kthread_stop(threadio->thread);
+-	q->fileio = NULL;
+-	fileio->req.count = 0;
+-	vb2_reqbufs(q, &fileio->req);
+-	kfree(fileio);
++	__vb2_cleanup_fileio(q);
+ 	threadio->thread = NULL;
+ 	kfree(threadio);
+-	q->fileio = NULL;
+ 	q->threadio = NULL;
+ 	return err;
+ }
+-- 
+2.1.4
 
-Regards,
-
-	Hans
