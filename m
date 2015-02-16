@@ -1,62 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:48744 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750925AbbBXNrJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2015 08:47:09 -0500
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working  since kernel 3.17
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:59143 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932132AbbBPLkc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2015 06:40:32 -0500
+Message-ID: <54E1D71C.2000003@xs4all.nl>
+Date: Mon, 16 Feb 2015 12:40:12 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Tue, 24 Feb 2015 14:47:08 +0100
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>,
-	Luis de Bethencourt <luis@debethencourt.com>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-In-Reply-To: <20150224104438.53bcfd59@recife.lan>
-References: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
- <54D9E14A.5090200@iki.fi> <e65f6b905eae37f11e697ad20b97c37c@hardeman.nu>
- <CAEmZozPN2xDQMyao8GAYB1KqKxvgznn6CNc+LgPGhE=TJfDbFQ@mail.gmail.com>
- <32c10d8cd2303ed9476db1b68924170a@hardeman.nu>
- <CAEmZozP5jrJnWAF6ZbXtvkRveZE29BnSg+hO2x9KDSyPmjBBaQ@mail.gmail.com>
- <20150212095029.018f63df@recife.lan>
- <CAEmZozOTuigxavH_5M4mw5kDHS_mxgwLS53HipG2o4uvm_09OQ@mail.gmail.com>
- <20150212215700.GA4882@turing>
- <CAEmZozPKsBwq4=TtAOtR-LdjOi3k8MhmEqZ49gg8X48P1f5wdQ@mail.gmail.com>
- <CAEmZozMP1FFN-Y1d+7Mopy1Y9_2FjX2tJmmCne_Gpa2+_yFg0g@mail.gmail.com>
- <67d0fa2066c017a66ad785dc90447d08@hardeman.nu>
- <20150224104438.53bcfd59@recife.lan>
-Message-ID: <743019811e24099226b55a708d7699af@hardeman.nu>
+To: Florian Echtler <floe@butterbrot.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: laurent.pinchart@ideasonboard.com, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v3][RFC] add raw video stream support for Samsung SUR40
+References: <1423063842-6902-1-git-send-email-floe@butterbrot.org> <54DB4295.1080307@butterbrot.org>
+In-Reply-To: <54DB4295.1080307@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2015-02-24 14:44, Mauro Carvalho Chehab wrote:
-> Em Tue, 24 Feb 2015 11:15:53 +0100
-> David Härdeman <david@hardeman.nu> escreveu:
->> The output that you gave (the actual scancodes that are generated) is
->> what I was looking for, not the keymap. If I remember correctly my 
->> patch
->> wasn't supposed to change the generated scancodes (or the keymap would
->> have to be changed as well).
->> 
->> The question is whether the right thing to do is to change back the
->> scancode calculation or to update the keymap. I'll try to have a 
->> closer
->> look as soon as possible (which might take a few days more, sorry).
+On 02/11/2015 12:52 PM, Florian Echtler wrote:
+> Hello again,
 > 
-> I suspect we should change back the scancode calculation, as I think 
-> that
-> the scancode table is right, but I need to do some tests with some 
-> other
-> driver to be certain.
+> does anyone have any suggestions why USERPTR still fails with dma-sg?
 > 
-> I have a few devices here that I can use for testing, including a PCTV
-> remote, just lacking the time.
+> Could I just disable the corresponding capability for the moment so that
+> the patch could perhaps be merged, and investigate this separately?
 
-I've exchanged a few more emails with David. I think I know what the 
-problem is now. It's not the NEC scancode generation, it's that my patch 
-accidentally broke the RC5 case (his remote is an RC5 one). I'll post a 
-patch later.
+I prefer to dig into this a little bit more, as I don't really understand
+it. Set the videobuf2-core debug level to 1 and see what the warnings are.
 
+Since 'buf.qbuf' fails in v4l2-compliance, it's something in the VIDIOC_QBUF
+sequence that returns an error, so you need to pinpoint that.
 
+If push comes to shove I can also merge the patch without USERPTR support,
+but I really prefer not to do that.
+
+Regards,
+
+	Hans
