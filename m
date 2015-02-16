@@ -1,59 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:37017 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751742AbbBUSkd (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38006 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752517AbbBPOqx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2015 13:40:33 -0500
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	adi-buildroot-devel@lists.sourceforge.net
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 04/15] media: blackfin: bfin_capture: improve buf_prepare() callback
-Date: Sat, 21 Feb 2015 18:39:50 +0000
-Message-Id: <1424544001-19045-5-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+	Mon, 16 Feb 2015 09:46:53 -0500
+Message-ID: <54E202C5.7070904@xs4all.nl>
+Date: Mon, 16 Feb 2015 15:46:29 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCHv4 15/25] [media] tuner-core: properly initialize media
+ controller subdev
+References: <cover.1423867976.git.mchehab@osg.samsung.com>	<5c8a3752af88ba4c349d9d2416cad937f96a0423.1423867976.git.mchehab@osg.samsung.com>	<54E1B3F0.7060807@xs4all.nl>	<20150216085925.3b52a558@recife.lan> <CAGoCfiy+te9GRt=xPrHmUe+ckeO2X0u3XmJC77BSQG6VJ_aEFw@mail.gmail.com>
+In-Reply-To: <CAGoCfiy+te9GRt=xPrHmUe+ckeO2X0u3XmJC77BSQG6VJ_aEFw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On 02/16/2015 03:39 PM, Devin Heitmueller wrote:
+>> Except for PVR-500, I can't remember any case where the same tuner is used
+>> more than once.
+>>
+>> There is the case of a device with two tuners, one for TV and another one
+>> for FM. Yet, on such case, the name of the FM tuner will be different,
+>> anyway. So, I don't think this is a current issue, but if the name should
+>> be unique, then we need to properly document it.
+> 
+> Perhaps I've misunderstood the comment, but HVR-2200/2250 and numerous
+> dib0700 designs are dual DVB tuners.  Neither are like the PVR-500 in
+> that they are a single entity with two tuners (as opposed to the
+> PVR-500 which is two PCI devices which happen to be on the same PCB).
 
-this patch improves the buf_prepare() callback.
+DVB, yes, but not analog (V4L2) tuners. For DVB tuners the frontend name
+is used as the entity name, which I assumed is unique. It is, right? If
+that's not unique, then the same issue is there as well. I have ordered
+a dual DVB-T board, but I won't have that for another two weeks.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 332f8c9..8f62a84 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -305,16 +305,12 @@ static int bcap_queue_setup(struct vb2_queue *vq,
- static int bcap_buffer_prepare(struct vb2_buffer *vb)
- {
- 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
--	struct bcap_buffer *buf = to_bcap_vb(vb);
--	unsigned long size;
- 
--	size = bcap_dev->fmt.sizeimage;
--	if (vb2_plane_size(vb, 0) < size) {
--		v4l2_err(&bcap_dev->v4l2_dev, "buffer too small (%lu < %lu)\n",
--				vb2_plane_size(vb, 0), size);
-+	vb2_set_plane_payload(vb, 0, bcap_dev->fmt.sizeimage);
-+	if (vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
- 		return -EINVAL;
--	}
--	vb2_set_plane_payload(&buf->vb, 0, size);
-+
-+	vb->v4l2_buf.field = bcap_dev->fmt.field;
- 
- 	return 0;
- }
--- 
-2.1.0
-
+	Hans
