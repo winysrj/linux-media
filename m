@@ -1,56 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46212 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751391AbbBBPQk (ORCPT
+Received: from mail-qc0-f182.google.com ([209.85.216.182]:42812 "EHLO
+	mail-qc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752411AbbBPPYZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 10:16:40 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6B1F02A0080
-	for <linux-media@vger.kernel.org>; Mon,  2 Feb 2015 16:16:01 +0100 (CET)
-Message-ID: <54CF94B1.20109@xs4all.nl>
-Date: Mon, 02 Feb 2015 16:16:01 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 16 Feb 2015 10:24:25 -0500
+Received: by mail-qc0-f182.google.com with SMTP id r5so10919013qcx.13
+        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2015 07:24:24 -0800 (PST)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.20] Various fixes
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <54E202C5.7070904@xs4all.nl>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+	<5c8a3752af88ba4c349d9d2416cad937f96a0423.1423867976.git.mchehab@osg.samsung.com>
+	<54E1B3F0.7060807@xs4all.nl>
+	<20150216085925.3b52a558@recife.lan>
+	<CAGoCfiy+te9GRt=xPrHmUe+ckeO2X0u3XmJC77BSQG6VJ_aEFw@mail.gmail.com>
+	<54E202C5.7070904@xs4all.nl>
+Date: Mon, 16 Feb 2015 10:24:24 -0500
+Message-ID: <CAGoCfiy5Obec7OZXjEsO0kEcDSOVLdkzX+qQYVjDf9wtkGR2Ew@mail.gmail.com>
+Subject: Re: [PATCHv4 15/25] [media] tuner-core: properly initialize media
+ controller subdev
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Found a few more patches that I missed.
+Hi Hans,
 
-Regards,
+On Mon, Feb 16, 2015 at 9:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 02/16/2015 03:39 PM, Devin Heitmueller wrote:
+>>> Except for PVR-500, I can't remember any case where the same tuner is used
+>>> more than once.
+>>>
+>>> There is the case of a device with two tuners, one for TV and another one
+>>> for FM. Yet, on such case, the name of the FM tuner will be different,
+>>> anyway. So, I don't think this is a current issue, but if the name should
+>>> be unique, then we need to properly document it.
+>>
+>> Perhaps I've misunderstood the comment, but HVR-2200/2250 and numerous
+>> dib0700 designs are dual DVB tuners.  Neither are like the PVR-500 in
+>> that they are a single entity with two tuners (as opposed to the
+>> PVR-500 which is two PCI devices which happen to be on the same PCB).
+>
+> DVB, yes, but not analog (V4L2) tuners. For DVB tuners the frontend name
+> is used as the entity name, which I assumed is unique. It is, right? If
+> that's not unique, then the same issue is there as well. I have ordered
+> a dual DVB-T board, but I won't have that for another two weeks.
 
-	Hans
+Sorry, I thought this patch was related to the DVB tuner subdev -
+didn't realize it was for tuner-core (which is obviously analog).
 
-The following changes since commit 05439b1a36935992785c4f28f6693e73820321cb:
+The HVR-2200/2250 is a single board with dual hybrid tuners (model
+2200 has a DVB-T demod and 2250 has an ATSC demod).  In other words,
+it has two tuners, each of which can be independently tuned to either
+digital or analog signals.  And unlike the PVR-500, it's a single PCIe
+bridge (saa7164).
 
-  [media] media: au0828 - convert to use videobuf2 (2015-02-02 11:58:27 -0200)
+Regarding your question on DVB tuners, yes - each tuner gets its own
+frontendX device node (in reality the frontendX points to the digital
+demodulator, but ultimately it passes the tuning request off to the
+tuner as well).
 
-are available in the git repository at:
+Devin
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.20e
-
-for you to fetch changes up to d1abf49aab3b43ac0eb2551592ab9cba65abad9b:
-
-  media: platform: fix platform_no_drv_owner.cocci warnings (2015-02-02 16:14:31 +0100)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      marvell-ccic: MMP_CAMERA no longer builds
-
-Fengguang Wu (1):
-      media: platform: fix platform_no_drv_owner.cocci warnings
-
-Markus Elfring (1):
-      staging: bcm2048: Delete an unnecessary check before the function call "video_unregister_device"
-
-Prabhakar Lad (1):
-      media: ti-vpe: Use mem-to-mem ioctl helpers
-
- drivers/media/platform/am437x/am437x-vpfe.c   |   1 -
- drivers/media/platform/marvell-ccic/Kconfig   |   2 +-
- drivers/media/platform/ti-vpe/vpe.c           | 157 +++++++++++++++++++++++++-----------------------------------------------------
- drivers/staging/media/bcm2048/radio-bcm2048.c |   4 +-
- 4 files changed, 52 insertions(+), 112 deletions(-)
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
