@@ -1,57 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35343 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752466AbbBMJND (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:39407 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751108AbbBPML7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 04:13:03 -0500
-Message-ID: <54DDC00D.209@xs4all.nl>
-Date: Fri, 13 Feb 2015 10:12:45 +0100
+	Mon, 16 Feb 2015 07:11:59 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 70AD92A0080
+	for <linux-media@vger.kernel.org>; Mon, 16 Feb 2015 13:11:39 +0100 (CET)
+Message-ID: <54E1DE7B.1060106@xs4all.nl>
+Date: Mon, 16 Feb 2015 13:11:39 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Jurgen Kramer <gtmkramer@xs4all.nl>
-CC: Raimonds Cicans <ray@apollo.lv>, linux-media@vger.kernel.org
-Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
- cx23885: convert to vb2"
-References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>		 <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>		 <54CE24F2.7090400@apollo.lv> <54CF4508.9070305@xs4all.nl>	 <1423065972.2650.1.camel@xs4all.nl> <54D24685.1000708@xs4all.nl> <1423070484.2650.3.camel@xs4all.nl>
-In-Reply-To: <1423070484.2650.3.camel@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2] Partially revert 'Fix DVB devnode representation at media
+ controller'
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jurgen,
+Partially revert e31a0ba7df6ce21ac4ed58c4182ec12ca8fd78fb (media: Fix DVB devnode
+representation at media controller) and 15d2042107f90f7ce39705716bc2c9a2ec1d5125
+(Docbook: Fix documentation for media controller devnodes) commits.
 
-On 02/04/2015 06:21 PM, Jurgen Kramer wrote:
-> On Wed, 2015-02-04 at 17:19 +0100, Hans Verkuil wrote:
->> On 02/04/2015 05:06 PM, Jurgen Kramer wrote:
->>> Hi Hans,
->>>
->>> On Mon, 2015-02-02 at 10:36 +0100, Hans Verkuil wrote:
->>>> Raimonds and Jurgen,
->>>>
->>>> Can you both test with the following patch applied to the driver:
->>>
->>> Unfortunately the mpeg error is not (completely) gone:
->>
->> OK, I suspected that might be the case. Is the UNBALANCED warning
->> gone with my vb2 patch?
+Those commits mark the alsa struct in struct media_entity_desc as deprecated.
+However, the alsa struct should remain as it is since it cannot be replaced
+by a simple major/minor device node description. The alsa struct was designed
+to be used as an alsa card description so V4L2 drivers could use this to expose
+the alsa card that they create to carry the captured audio. Such a card is not
+just a PCM device, but also needs to contain the alsa subdevice information,
+and it may map to multiple devices, e.g. a PCM and a mixer device, such as the
+au0828 usb stick creates.
 
->> When you see this risc error, does anything
->> break (broken up video) or crash, or does it just keep on streaming?
+This is exactly as intended and this cannot and should not be replaced by a
+simple major/minor.
 
-Can you comment on this question?
+However, whether this information is in the right form for an ALSA device such
+that it can handle udev renaming rules as well is another matter. So mark this
+alsa struct as experimental and document the problems involved.
 
-> 
-> The UNBALANCED warnings have not reappeared (so far).
+Updated the documentation as well to reflect this and to reinstate the 'major'
+and 'minor' field documentation for the struct dev that was removed in the
+original commit.
 
-And they are still gone? If that's the case, then I'll merge the patch
-fixing this for 3.20.
+Updated the documentation to clearly state that struct dev is to be used for
+(sub-)devices that create a single device node. Other devices need their own
+structure here.
 
-With respect to the risc error: the only reason I can think of is that it
-is a race condition when the risc program is updated. I'll see if I can
-spend some time on this today or on Monday. Can you give me an indication
-how often you see this risc error message?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Regards,
-
-	Hans
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+index cbf307f..a77c1de 100644
+--- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
++++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+@@ -145,7 +145,52 @@
+ 	    <entry>struct</entry>
+ 	    <entry><structfield>dev</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>Valid for (sub-)devices that create devnodes.</entry>
++	    <entry>Valid for (sub-)devices that create a single device node.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>major</structfield></entry>
++	    <entry>Device node major number.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>minor</structfield></entry>
++	    <entry>Device node minor number.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>struct</entry>
++	    <entry><structfield>alsa</structfield></entry>
++	    <entry></entry>
++	    <entry>Valid for ALSA devices only. This is an <link linkend="experimental">experimental</link>
++	    ALSA device specification. If you want to use this, please contact the
++	    linux-media mailing list (&v4l-ml;) first.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>card</structfield></entry>
++	    <entry>ALSA card number</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>device</structfield></entry>
++	    <entry>ALSA device number</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>subdevice</structfield></entry>
++	    <entry>ALSA sub-device number</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 52cc2a6..bcb2fe8a 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -91,6 +91,27 @@ struct media_entity_desc {
+ 
+ #if 1
+ 		/*
++		 * EXPERIMENTAL: this shouldn't have been added without
++		 * actual drivers that use this. When the first real driver
++		 * appears that sets this information, special attention
++		 * should be given whether this information is 1) enough, and
++		 * 2) can deal with udev rules that rename devices. The struct
++		 * dev would not be sufficient for this since that does not
++		 * contain the subdevice information. In addition, struct dev
++		 * can only refer to a single device, and not to multiple (e.g.
++		 * pcm and mixer devices).
++		 *
++		 * So for now mark this as experimental.
++		 */
++		struct {
++			__u32 card;
++			__u32 device;
++			__u32 subdevice;
++		} alsa;
++#endif
++
++#if 1
++		/*
+ 		 * DEPRECATED: previous node specifications. Kept just to
+ 		 * avoid breaking compilation, but media_entity_desc.dev
+ 		 * should be used instead. In particular, alsa and dvb
+@@ -106,11 +127,6 @@ struct media_entity_desc {
+ 			__u32 major;
+ 			__u32 minor;
+ 		} fb;
+-		struct {
+-			__u32 card;
+-			__u32 device;
+-			__u32 subdevice;
+-		} alsa;
+ 		int dvb;
+ #endif
+ 
