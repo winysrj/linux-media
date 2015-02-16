@@ -1,209 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33738 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125AbbBRPaM (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56374 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932117AbbBPJri (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 10:30:12 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: [PATCH 7/7] [media] cx231xx: enable the analog tuner at buffer setup
-Date: Wed, 18 Feb 2015 13:30:01 -0200
-Message-Id: <8a2bc3b2e5bd4978d1c5252a88c950fa6029047f.1424273378.git.mchehab@osg.samsung.com>
-In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+	Mon, 16 Feb 2015 04:47:38 -0500
+Message-ID: <54E1BCA7.3000102@xs4all.nl>
+Date: Mon, 16 Feb 2015 10:47:19 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH] Partially revert 'Fix DVB devnode representation at media
+ controller'
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-buf_prepare callback is called for every queued buffer. This is
-an overkill. Call it at buf_setup, as this should be enough.
+Partially revert e31a0ba7df6ce21ac4ed58c4182ec12ca8fd78fb (media: Fix DVB devnode
+representation at media controller) and 15d2042107f90f7ce39705716bc2c9a2ec1d5125
+(Docbook: Fix documentation for media controller devnodes) commits.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Those commits mark the alsa struct in struct media_entity_desc as deprecated.
+However, the alsa struct should remain as it is since it cannot be replaced
+by a simple major/minor device node description. The alsa struct was designed
+to be used as an alsa card description so V4L2 drivers could use this to expose
+the alsa card that they create to carry the captured audio. Such a card is not
+just a PCM device, but also needs to contain the alsa subdevice information,
+and it may map to multiple devices, e.g. a PCM and a mixer device, such as the
+au0828 usb stick creates.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 87c9e27505f4..f9e885fa153f 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -100,6 +100,75 @@ static struct cx231xx_fmt format[] = {
- };
- 
- 
-+static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device *mdev = dev->media_dev;
-+	struct media_entity  *entity, *decoder = NULL, *source;
-+	struct media_link *link, *found_link = NULL;
-+	int i, ret, active_links = 0;
-+
-+	if (!mdev)
-+		return 0;
-+
-+	/*
-+	 * This will find the tuner that it is connected into the decoder.
-+	 * Technically, this is not 100% correct, as the device may be
-+	 * using an analog input instead of the tuner. However, as we can't
-+	 * do DVB streaming  while the DMA engine is being used for V4L2,
-+	 * this should be enough for the actual needs.
-+	 */
-+	media_device_for_each_entity(entity, mdev) {
-+		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
-+			decoder = entity;
-+			break;
-+		}
-+	}
-+	if (!decoder)
-+		return 0;
-+
-+	for (i = 0; i < decoder->num_links; i++) {
-+		link = &decoder->links[i];
-+		if (link->sink->entity == decoder) {
-+			found_link = link;
-+			if (link->flags & MEDIA_LNK_FL_ENABLED)
-+				active_links++;
-+			break;
-+		}
-+	}
-+
-+	if (active_links == 1 || !found_link)
-+		return 0;
-+
-+	source = found_link->source->entity;
-+	for (i = 0; i < source->num_links; i++) {
-+		struct media_entity *sink;
-+		int flags = 0;
-+
-+		link = &source->links[i];
-+		sink = link->sink->entity;
-+
-+		if (sink == entity)
-+			flags = MEDIA_LNK_FL_ENABLED;
-+
-+		ret = media_entity_setup_link(link, flags);
-+		if (ret) {
-+			dev_err(dev->dev,
-+				"Couldn't change link %s->%s to %s. Error %d\n",
-+				source->name, sink->name,
-+				flags ? "enabled" : "disabled",
-+				ret);
-+			return ret;
-+		} else
-+			dev_dbg(dev->dev,
-+				"link %s->%s was %s\n",
-+				source->name, sink->name,
-+				flags ? "ENABLED" : "disabled");
-+	}
-+#endif
-+	return 0;
-+}
-+
- /* ------------------------------------------------------------------
- 	Video buffer and parser functions
-    ------------------------------------------------------------------*/
-@@ -667,6 +736,9 @@ buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned int *size)
- 	if (*count < CX231XX_MIN_BUF)
- 		*count = CX231XX_MIN_BUF;
- 
-+
-+	cx231xx_enable_analog_tuner(dev);
-+
- 	return 0;
- }
- 
-@@ -703,75 +775,6 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
- 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
- }
- 
--static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
--{
--#ifdef CONFIG_MEDIA_CONTROLLER
--	struct media_device *mdev = dev->media_dev;
--	struct media_entity  *entity, *decoder = NULL, *source;
--	struct media_link *link, *found_link = NULL;
--	int i, ret, active_links = 0;
--
--	if (!mdev)
--		return 0;
--
--	/*
--	 * This will find the tuner that it is connected into the decoder.
--	 * Technically, this is not 100% correct, as the device may be
--	 * using an analog input instead of the tuner. However, as we can't
--	 * do DVB streaming  while the DMA engine is being used for V4L2,
--	 * this should be enough for the actual needs.
--	 */
--	media_device_for_each_entity(entity, mdev) {
--		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
--			decoder = entity;
--			break;
--		}
--	}
--	if (!decoder)
--		return 0;
--
--	for (i = 0; i < decoder->num_links; i++) {
--		link = &decoder->links[i];
--		if (link->sink->entity == decoder) {
--			found_link = link;
--			if (link->flags & MEDIA_LNK_FL_ENABLED)
--				active_links++;
--			break;
--		}
--	}
--
--	if (active_links == 1 || !found_link)
--		return 0;
--
--	source = found_link->source->entity;
--	for (i = 0; i < source->num_links; i++) {
--		struct media_entity *sink;
--		int flags = 0;
--
--		link = &source->links[i];
--		sink = link->sink->entity;
--
--		if (sink == entity)
--			flags = MEDIA_LNK_FL_ENABLED;
--
--		ret = media_entity_setup_link(link, flags);
--		if (ret) {
--			dev_err(dev->dev,
--				"Couldn't change link %s->%s to %s. Error %d\n",
--				source->name, sink->name,
--				flags ? "enabled" : "disabled",
--				ret);
--			return ret;
--		} else
--			dev_dbg(dev->dev,
--				"link %s->%s was %s\n",
--				source->name, sink->name,
--				flags ? "ENABLED" : "disabled");
--	}
--#endif
--	return 0;
--}
--
- static int
- buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
- 	       enum v4l2_field field)
-@@ -826,8 +829,6 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
- 
- 	buf->vb.state = VIDEOBUF_PREPARED;
- 
--	cx231xx_enable_analog_tuner(dev);
--
- 	return 0;
- 
- fail:
--- 
-2.1.0
+This is exactly as intended and this cannot and should not be replaced by a
+simple major/minor.
 
+Updated the documentation as well to reflect this and to reinstate the 'major'
+and 'minor' field documentation for the struct dev that was removed in the
+original commit.
+
+Updated the documentation to clearly state that struct dev is to be used for
+(sub-)devices that create a single device node.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+index cbf307f..8b22244 100644
+--- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
++++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+@@ -145,7 +145,49 @@
+ 	    <entry>struct</entry>
+ 	    <entry><structfield>dev</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>Valid for (sub-)devices that create devnodes.</entry>
++	    <entry>Valid for (sub-)devices that create a single device node.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>major</structfield></entry>
++	    <entry>Device node major number.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>minor</structfield></entry>
++	    <entry>Device node minor number.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>struct</entry>
++	    <entry><structfield>alsa</structfield></entry>
++	    <entry></entry>
++	    <entry>Valid for ALSA devices only.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>card</structfield></entry>
++	    <entry>ALSA card number</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>device</structfield></entry>
++	    <entry>ALSA device number</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>subdevice</structfield></entry>
++	    <entry>ALSA sub-device number</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index d6d74bc..ec4e7ad 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -88,6 +88,11 @@ struct media_entity {
+ 			u32 major;
+ 			u32 minor;
+ 		} dev;
++		struct {
++			u32 card;
++			u32 device;
++			u32 subdevice;
++		} alsa;
+ 
+ 		/* Sub-device specifications */
+ 		/* Nothing needed yet */
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 52cc2a6..34a10a5 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -88,6 +88,11 @@ struct media_entity_desc {
+ 			__u32 major;
+ 			__u32 minor;
+ 		} dev;
++		struct {
++			__u32 card;
++			__u32 device;
++			__u32 subdevice;
++		} alsa;
+ 
+ #if 1
+ 		/*
+@@ -106,11 +111,6 @@ struct media_entity_desc {
+ 			__u32 major;
+ 			__u32 minor;
+ 		} fb;
+-		struct {
+-			__u32 card;
+-			__u32 device;
+-			__u32 subdevice;
+-		} alsa;
+ 		int dvb;
+ #endif
+ 
