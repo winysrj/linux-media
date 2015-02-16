@@ -1,77 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:44670 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752900AbbBBPcL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 10:32:11 -0500
-Date: Mon, 2 Feb 2015 16:32:07 +0100
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	linux-kernel@vger.kernel.org,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Dave Airlie <airlied@linux.ie>
-Subject: Re: [RESEND PATCH v2] [media] Add RGB444_1X12 and RGB565_1X16 media
- bus formats
-Message-ID: <20150202163207.6111bc5d@bbrezillon>
-In-Reply-To: <20150202125755.5bf5ecc9.m.chehab@samsung.com>
-References: <1420544615-18788-1-git-send-email-boris.brezillon@free-electrons.com>
-	<20150202125755.5bf5ecc9.m.chehab@samsung.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59691 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932356AbbBPLmY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2015 06:42:24 -0500
+Message-ID: <54E1D78C.3000305@xs4all.nl>
+Date: Mon, 16 Feb 2015 12:42:04 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net
+CC: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH v2 00/15] media: blackfin: bfin_capture enhancements
+References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com> <CA+V-a8uVRZr3cYNsq5yehxjWoZMp6HMzm486KktKOXYkzJyFbA@mail.gmail.com> <54CF5E70.3000302@xs4all.nl>
+In-Reply-To: <54CF5E70.3000302@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Mon, 02 Feb 2015 12:57:55 -0200
-Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
-
-> Em Tue,  6 Jan 2015 12:43:35 +0100
-> Boris Brezillon <boris.brezillon@free-electrons.com> escreveu:
+On 02/02/2015 12:24 PM, Hans Verkuil wrote:
+> On 01/30/2015 04:49 PM, Lad, Prabhakar wrote:
+>> Hello Scott,
+>>
+>> On Thu, Jan 22, 2015 at 10:18 PM, Lad, Prabhakar
+>> <prabhakar.csengg@gmail.com> wrote:
+>>> This patch series, enhances blackfin capture driver with
+>>> vb2 helpers.
+>>>
+>>> Changes for v2:
+>>> --------------
+>>> Only patches 5/15 and 8/15 as per Scott's suggestions.
+>>>
+>>> Lad, Prabhakar (15):
+>>>   media: blackfin: bfin_capture: drop buf_init() callback
+>>>   media: blackfin: bfin_capture: release buffers in case
+>>>     start_streaming() call back fails
+>>>   media: blackfin: bfin_capture: set min_buffers_needed
+>>>   media: blackfin: bfin_capture: improve buf_prepare() callback
+>>>   media: blackfin: bfin_capture: improve queue_setup() callback
+>>>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
+>>>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
+>>>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
+>>>   media: blackfin: bfin_capture: make sure all buffers are returned on
+>>>     stop_streaming() callback
+>>>   media: blackfin: bfin_capture: return -ENODATA for *std calls
+>>>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
+>>>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
+>>>   media: blackfin: bfin_capture: add support for VB2_DMABUF
+>>>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
+>>>   media: blackfin: bfin_capture: set v4l2 buffer sequence
+>>>
+>>>  drivers/media/platform/blackfin/bfin_capture.c | 311 ++++++++-----------------
+>>>  1 file changed, 99 insertions(+), 212 deletions(-)
+>>>
+>> Can you ACK the series ? so that its easier for Hans to pick it up.
 > 
-> > Add RGB444_1X12 and RGB565_1X16 format definitions and update the
-> > documentation.
-> > 
-> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-> > Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> > Hi Mauro, Sakari,
-> > 
-> > This patch has been rejected as 'Not Applicable'.
-> > Is there anyting wrong in it ?
+> ping!
 > 
-> I was expecting that this patch would be merged together with the
-> remaining series, via the DRM tree. That's basically why I gave
-> my ack:
-> 	https://lkml.org/lkml/2014/11/3/661
+> Scott, I can't take it unless you Ack it. Actually, I'd like to see a
+> 'Tested-by' tag.
 > 
-> HINT: when a subsystem maintainer gives an ack, that likely means that
-> he expects that the patch will be applied via some other tree.
+> And if you are testing anyway, then I would really like to see the output
+> of 'v4l2-compliance -s', using the v4l2-compliance from the latest v4l-utils.git.
+> 
+> I'm curious to see the results of that.
 
-My bad, I thought this would go into the media tree since this single
-patch is not exactly related to a DRM feature (except the fact that I
-was planning to use it in my DRM driver).
-Actually, I didn't send it to the DRM maintainer or dri-devel ML in the
-first place :-(.
-Can you reconsider taking it in the media tree ?
-I you can't, I'll ask Dave (just added him in Cc) to take it into the
-DRM tree.
+Ping! Again, I need an Ack.
 
-Thanks.
+Regards,
 
-Best Regards,
+	Hans
 
-Boris
-
-
--- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
