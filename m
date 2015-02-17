@@ -1,63 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52042 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753512AbbBTJ7a (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41709 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752223AbbBQMEJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2015 04:59:30 -0500
-Message-ID: <54E70564.6000103@xs4all.nl>
-Date: Fri, 20 Feb 2015 10:59:00 +0100
+	Tue, 17 Feb 2015 07:04:09 -0500
+Message-ID: <54E32E11.9060004@xs4all.nl>
+Date: Tue, 17 Feb 2015 13:03:29 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Changbing Xiong <cb.xiong@samsung.com>,
-	Joe Perches <joe@perches.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	David Herrmann <dh.herrmann@gmail.com>,
-	Tom Gundersen <teg@jklm.no>
-Subject: Re: [PATCH 4/7] [media] dvb core: rename the media controller entities
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>	<56874b07885afd9d58dd3d3985d6167eb9a3deea.1424273378.git.mchehab@osg.samsung.com>	<54E4B1C2.20403@xs4all.nl> <20150219173307.36b043f3@recife.lan>
-In-Reply-To: <20150219173307.36b043f3@recife.lan>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
+References: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/19/2015 08:33 PM, Mauro Carvalho Chehab wrote:
-> Em Wed, 18 Feb 2015 16:37:38 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> Hi Mauro,
->>
->> On 02/18/2015 04:29 PM, Mauro Carvalho Chehab wrote:
->>> Prefix all DVB media controller entities with "dvb-" and use dash
->>> instead of underline at the names.
->>>
->>> Requested-by: Hans Verkuil <hverkuil@xs4all.nl>
->> 			      ^^^^^^^^^^^^^^^^^^
->>
->> For these foo-by lines please keep my hans.verkuil@cisco.com email.
->> It's my way of thanking Cisco for allowing me to do this work. Not a
->> big deal, but if you can change that before committing?
->>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> 
-> Sure, I'll run a
-> git filter-branch -f --msg-filter 'cat |sed s,hverkuil@xs4all.nl,hans.verkuil@cisco.com,' origin..
-> 
-> To replace the e-mail on this series.
-> 
-> Next time, it would be better if you could reply using your @cisco
-> email on your From: if you want me to use it, as I generally just
-> cut-and-paste whatever e-mail used at the replies ;)
+Hi Ricardo,
 
-My Signed-offs, acks, etc. are (almost) always with the cisco email (occasionally I
-forget as well :-) ), but all my email correspondence uses my private email. Mainly
-because to read my work email I need a vpn, which is a pain and which I cannot use
-everywhere.
+I've thought about this some more and I agree that this should be allowed.
+
+But I have some comments, see below.
+
+On 02/17/15 12:02, Ricardo Ribalda Delgado wrote:
+> Volatile controls can change their value outside the v4l-ctrl framework.
+> 
+> We should ignore the cached written value of the ctrl when evaluating if
+> we should run s_ctrl.
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+> 
+> I have a control that tells the user when there has been a external trigger
+> overrun. (Trigger while processing old image). This is a volatile control.
+> 
+> The user writes 0 to the control, to ack the error condition, and clear the
+> hardware flag.
+> 
+> Unfortunately, it only works one time, because the next time the user writes
+> a zero to the control cluster_changed returns false.
+> 
+> I think on volatile controls it is safer to run s_ctrl twice than missing a
+> valid s_ctrl.
+> 
+> I know I am abusing a bit the API for this :P, but I also believe that the
+> semantic here is a bit confusing.
+> 
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 45c5b47..3d0c7f4 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1605,7 +1605,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
+>  
+>  	for (i = 0; i < master->ncontrols; i++) {
+>  		struct v4l2_ctrl *ctrl = master->cluster[i];
+> -		bool ctrl_changed = false;
+> +		bool ctrl_changed = ctrl->flags & V4L2_CTRL_FLAG_VOLATILE;
+
+Should be done after the 'ctrl == NULL' check.
+
+>  
+>  		if (ctrl == NULL)
+>  			continue;
+> 
+
+There is one more change that has to be made: setting a volatile control
+should never generate a V4L2_EVENT_CTRL_CH_VALUE event since that makes
+no sense. The way to prevent that is to ensure that ctrl->has_changed is
+always false for volatile controls. The new_to_cur function looks at that
+field to decide whether to send an event.
+
+The documentation should also be updated: that of V4L2_CTRL_FLAG_VOLATILE
+(in VIDIOC_QUERYCTRL), and of V4L2_EVENT_CTRL_CH_VALUE.
 
 Regards,
 
