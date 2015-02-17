@@ -1,73 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:63120 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750985AbbBRVRN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 16:17:13 -0500
-Date: Wed, 18 Feb 2015 22:16:58 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-cc: Geert Uytterhoeven <geert+renesas@glider.be>,
-	Ben Dooks <ben.dooks@codethink.co.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH] [media] soc-camera: Remove bogus devm_kfree() in
- soc_of_bind()
-In-Reply-To: <54E4D2DB.4050909@cogentembedded.com>
-Message-ID: <Pine.LNX.4.64.1502182216060.31387@axis700.grange>
-References: <1424277163-24869-1-git-send-email-geert+renesas@glider.be>
- <54E4D2DB.4050909@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38366 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932954AbbBQIol (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 03:44:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 1/6] pvrusb2: replace .ioctl by .unlocked_ioctl.
+Date: Tue, 17 Feb 2015 09:44:04 +0100
+Message-Id: <1424162649-17249-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1424162649-17249-1-git-send-email-hverkuil@xs4all.nl>
+References: <1424162649-17249-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 18 Feb 2015, Sergei Shtylyov wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hello.
-> 
-> On 02/18/2015 07:32 PM, Geert Uytterhoeven wrote:
-> 
-> > Unlike scan_async_group(), soc_of_bind() doesn't allocate its
-> > soc_camera_async_client structure using devm_kzalloc(), but has it
-> > embedded inside the soc_of_info structure.  Hence on failure, it must
-> > not free it using devm_kfree(), as this will cause a warning, and may
-> > cause slab corruption:
-> 
-> [...]
-> 
-> > Fixes: 1ddc6a6caa94e1e1 ("[media] soc_camera: add support for dt binding
-> > soc_camera drivers")
-> > Cc: stable@vger.kernel.org
-> > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> > ---
-> > Triggered with shmobile-defconfig on r8a7791/koelsch.
-> > ---
-> >   drivers/media/platform/soc_camera/soc_camera.c | 1 -
-> >   1 file changed, 1 deletion(-)
-> 
-> > diff --git a/drivers/media/platform/soc_camera/soc_camera.c
-> > b/drivers/media/platform/soc_camera/soc_camera.c
-> > index cee7b56f84049944..d8a072fe46035821 100644
-> > --- a/drivers/media/platform/soc_camera/soc_camera.c
-> > +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> > @@ -1665,7 +1665,6 @@ eclkreg:
-> >   eaddpdev:
-> >   	platform_device_put(sasc->pdev);
-> >   eallocpdev:
-> > -	devm_kfree(ici->v4l2_dev.dev, sasc);
-> 
->    Perhaps Ben meant 'info' ISO 'sasc'? This way it would make more sense.
+As far as I can tell pvrusb2 does its own locking, so there is
+no need to use .ioctl.
 
-Agree. Geert, could you double-check and respin?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks
-Guennadi
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+index 35e4ea5..91c1700 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+@@ -1247,7 +1247,7 @@ static const struct v4l2_file_operations vdev_fops = {
+ 	.open       = pvr2_v4l2_open,
+ 	.release    = pvr2_v4l2_release,
+ 	.read       = pvr2_v4l2_read,
+-	.ioctl      = pvr2_v4l2_ioctl,
++	.unlocked_ioctl = pvr2_v4l2_ioctl,
+ 	.poll       = pvr2_v4l2_poll,
+ };
+ 
+-- 
+2.1.4
 
-> 
-> >   	dev_err(ici->v4l2_dev.dev, "group probe failed: %d\n", ret);
-> > 
-> >   	return ret;
-> 
-> WBR, Sergei
-> 
