@@ -1,181 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:54720 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753551AbbBZQAa (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:44116 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754211AbbBQDpR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 11:00:30 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NKD00DAJZ4MD2D0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Feb 2015 01:00:22 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+	Mon, 16 Feb 2015 22:45:17 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 8CF3B2A0080
+	for <linux-media@vger.kernel.org>; Tue, 17 Feb 2015 04:44:56 +0100 (CET)
+Date: Tue, 17 Feb 2015 04:44:56 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [v4l-utils PATCH/RFC v5 06/14] mediactl: Add media_device creation
- helpers
-Date: Thu, 26 Feb 2015 16:59:16 +0100
-Message-id: <1424966364-3647-7-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
-References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
+Subject: cron job: media_tree daily build: ABI WARNING
+Message-Id: <20150217034456.8CF3B2A0080@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper functions that allow for easy instantiation of media_device
-object basing on whether the media device contains video device with
-given node name.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- utils/media-ctl/libmediactl.c |   75 +++++++++++++++++++++++++++++++++++++++++
- utils/media-ctl/mediactl.h    |   30 +++++++++++++++++
- 2 files changed, 105 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index a294ada..6d3e691 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -719,6 +719,44 @@ struct media_device *media_device_new(const char *devnode)
- 	return media;
- }
- 
-+struct media_device *media_device_new_by_entity_devname(char *entity_devname)
-+{
-+	struct media_device *media;
-+	char media_devname[32];
-+	struct media_entity *entity;
-+	int i, ret;
-+
-+	/* query all available media devices */
-+	for (i = 0;; ++i) {
-+		sprintf(media_devname, "/dev/media%d", i);
-+
-+		media = media_device_new(media_devname);
-+		if (media == NULL)
-+			return NULL;
-+
-+		ret = media_device_enumerate(media);
-+		if (ret < 0) {
-+			media_dbg(media, "Failed to enumerate %s (%d)\n",
-+				  media_devname, ret);
-+			goto err_dev_enum;
-+		}
-+
-+		/* Check if the media device contains entity with entity_devname */
-+		entity = media_get_entity_by_devname(media, entity_devname,
-+							strlen(entity_devname));
-+		if (entity)
-+			return media;
-+
-+		if (media)
-+			media_device_unref(media);
-+	}
-+
-+err_dev_enum:
-+	if (media)
-+		media_device_unref(media);
-+	return NULL;
-+}
-+
- struct media_device *media_device_new_emulated(struct media_device_info *info)
- {
- 	struct media_device *media;
-@@ -758,6 +796,43 @@ void media_device_unref(struct media_device *media)
- 	free(media);
- }
- 
-+int media_get_devname_by_fd(int fd, char *node_name)
-+{
-+	struct udev *udev;
-+	struct media_entity tmp_entity;
-+	struct stat stat;
-+	int ret;
-+
-+	if (node_name == NULL)
-+		return -EINVAL;
-+
-+	ret = fstat(fd, &stat);
-+	if (ret < 0)
-+		return -EINVAL;
-+
-+	tmp_entity.info.v4l.major = MAJOR(stat.st_rdev);
-+	tmp_entity.info.v4l.minor = MINOR(stat.st_rdev);
-+
-+	ret = media_udev_open(&udev);
-+	if (ret < 0)
-+		printf("Can't get udev context\n");
-+
-+	/* Try to get the device name via udev */
-+	ret = media_get_devname_udev(udev, &tmp_entity);
-+	if (!ret)
-+		goto out;
-+
-+	ret = media_get_devname_sysfs(&tmp_entity);
-+	if (ret < 0)
-+		goto err_get_devname;
-+
-+out:
-+	strcpy(node_name, tmp_entity.devname);
-+err_get_devname:
-+	media_udev_close(udev);
-+	return ret;
-+}
-+
- int media_device_add_entity(struct media_device *media,
- 			    const struct media_entity_desc *desc,
- 			    const char *devnode)
-diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
-index 9db40a8..1d62191 100644
---- a/utils/media-ctl/mediactl.h
-+++ b/utils/media-ctl/mediactl.h
-@@ -76,6 +76,23 @@ struct media_device *media_device_new(const char *devnode);
- struct media_device *media_device_new_emulated(struct media_device_info *info);
- 
- /**
-+ * @brief Create a new media device if it comprises entity with given devname
-+ * @param entity_devname - device node name of the entity to be matched.
-+ *
-+ * Query all media devices available in the system to find the one comprising
-+ * the entity with given devname. If the media device is matched then its
-+ * instance is created and initialized with enumerated entities and links.
-+ * The returned device can be accessed.
-+ *
-+ * Media devices are reference-counted, see media_device_ref() and
-+ * media_device_unref() for more information.
-+ *
-+ * @return A pointer to the new media device or NULL if video_devname cannot
-+ * be matched or memory cannot be allocated.
-+ */
-+struct media_device *media_device_new_by_entity_devname(char *entity_devname);
-+
-+/**
-  * @brief Take a reference to the device.
-  * @param media - device instance.
-  *
-@@ -240,6 +257,19 @@ const char *media_entity_get_devname(struct media_entity *entity);
-  */
- const char *media_entity_get_name(struct media_entity *entity);
- 
-+/**
-+ * @brief Get the device node name by its file descriptor
-+ * @param fd - file descriptor of a device.
-+ * @param node_name - output device node name string.
-+ *
-+ * This function returns the full path and name to the device node corresponding
-+ * to the given file descriptor.
-+ *
-+ * @return 0 on success, or a negative error code on failure.
-+ */
-+int media_get_devname_by_fd(int fd, char *node_name);
-+
-+/**
-  * @brief Get the type of an entity.
-  * @param entity - the entity.
-  *
--- 
-1.7.9.5
+date:		Tue Feb 17 04:00:23 CET 2015
+git branch:	test
+git hash:	135f9be9194cf7778eb73594aa55791b229cf27c
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-5.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
