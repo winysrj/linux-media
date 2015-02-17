@@ -1,84 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:44606 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753963AbbBQL3W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 06:29:22 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:50873 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751654AbbBQTOl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 14:14:41 -0500
+Message-ID: <54E3931C.9060508@iki.fi>
+Date: Tue, 17 Feb 2015 21:14:36 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <54E32358.8010303@cisco.com>
-References: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com> <54E32358.8010303@cisco.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Tue, 17 Feb 2015 12:29:00 +0100
-Message-ID: <CAPybu_2123XLneiCHmz8F-xe=-ettbfQJh2X89x4tefCCjztnA@mail.gmail.com>
-Subject: Re: [PATCH] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Philip Downer <pdowner@prospero-tech.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/1] [media] pci: Add support for DVB PCIe cards from
+ Prospero Technologies Ltd.
+References: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>	<54E24C83.7090309@iki.fi>	<20150216214743.6a9180a6@recife.lan> <CAE6wzS+i1uaNr23ViFdW0U0Pf3j7--vV16dwRggTVV7X0AiCKg@mail.gmail.com>
+In-Reply-To: <CAE6wzS+i1uaNr23ViFdW0U0Pf3j7--vV16dwRggTVV7X0AiCKg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
-
-I need to figure out how can you  reply that fast. Thanks a lot!
-
-On Tue, Feb 17, 2015 at 12:17 PM, Hans Verkuil <hansverk@cisco.com> wrote:
->> I have a control that tells the user when there has been a external trigger
->> overrun. (Trigger while processing old image). This is a volatile control.
+On 02/17/2015 08:22 PM, Philip Downer wrote:
+> Hi Mauro,
 >
-> Does the application just read the control to check whether the trigger happened?
-> Or is the control perhaps changed by an interrupt handler?
-
-The control exposes a bit on the trigger system. The application polls
-it at its own rate.
-I could convince the hardware engineer to make an inq on that event,
-but right now the
-hw does not support it.
-
+> On Mon, Feb 16, 2015 at 11:47 PM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+>> Em Mon, 16 Feb 2015 22:01:07 +0200
+>> Antti Palosaari <crope@iki.fi> escreveu:
+>>
+>>> Moikka!
+>>>
+>>> On 02/16/2015 09:48 PM, Philip Downer wrote:
+>>>> The Vortex PCIe card by Prospero Technologies Ltd is a modular DVB card
+>>>> with a hardware demux, the card can support up to 8 modules which are
+>>>> fixed to the board at assembly time. Currently we only offer one
+>>>> configuration, 8 x Dibcom 7090p DVB-t tuners, but we will soon be releasing
+>>>> other configurations. There is also a connector for an infra-red receiver
+>>>> dongle on the board which supports RAW IR.
+>>>>
+>>>> The driver has been in testing on our systems (ARM Cortex-A9, Marvell Sheva,
+>>>> x86, x86-64) for longer than 6 months, so I'm confident that it works.
+>>>> However as this is the first Linux driver I've written, I'm sure there are
+>>>> some things that I've got wrong. One thing in particular which has been
+>>>> raised by one of our early testers is that we currently register all of
+>>>> our frontends as being attached to one adapter. This means the device is
+>>>> enumerated in /dev like this:
+>>>>
+>>>> /dev/dvb/adapter0/frontend0
+>>>> /dev/dvb/adapter0/dvr0
+>>>> /dev/dvb/adapter0/demux0
+>>>>
+>>>> /dev/dvb/adapter0/frontend1
+>>>> /dev/dvb/adapter0/dvr1
+>>>> /dev/dvb/adapter0/demux1
+>>>>
+>>>> /dev/dvb/adapter0/frontend2
+>>>> /dev/dvb/adapter0/dvr2
+>>>> /dev/dvb/adapter0/demux2
+>>>>
+>>>> etc.
+>>>>
+>>>> Whilst I think this is ok according to the spec, our tester has complained
+>>>> that it's incompatible with their software which expects to find just one
+>>>> frontend per adapter. So I'm wondering if someone could confirm if what
+>>>> I've done with regards to this is correct.
+>>>
+>>> As I understand all those tuners are independent (could be used same
+>>> time) you should register those as a 8 adapters, each having single
+>>> frontend, dvr and demux.
+>>
+>> Yeah, creating one adapter per device is the best solution, if you
+>> can't do things like:
+>>
+>>          frontend0 -> demux2 -> dvr5
 >
->> The user writes 0 to the control, to ack the error condition, and clear the
->> hardware flag.
->
-> Would it be an idea to automatically ack the error condition when reading the
-> control?
+> Thanks for confirming what Antti said, I'll change the driver and resubmit it.
 
-There might be two applications running at the same time.
+Also, take care to fix issues to meet Kernel coding style and 
+checkpatch.pl requirements where possible.
 
-ie: APP1 calibrates the camera, while APP2 gets images.
-APP1 will ack the error and APP2 will never notice, when is APP2 the
-one that cares abot the error.
+Read file Documentation/CodingStyle from kernel tree.
 
+There is script to check some common style issues and more, also in 
+kernel tree
+./scripts/checkpatch.pl --file drivers/media/pci/your_driver_file.c
 
->
-> Or, alternatively, have a separate button control to clear the condition.
->
-
-Of course this is an option, but I think this is not very clean.
-
->> I know I am abusing a bit the API for this :P, but I also believe that the
->> semantic here is a bit confusing.
->
-> The reason for that is that I have yet to see a convincing argument for
-> allowing s_ctrl for a volatile control.
-
-This kind of error flags could be a nice candidate for this control.
-
-Right now we can create a volatile control with s_ctrl, the api allows
-it, so I think it is either
-not allowing that or adding this patch.
-
- Both are perfectly fine :), but allowing s_ctrl and volatile and then
-now running s_ctrl always
-seems a bit weird to me.
-
-Thanks!
-
-
+regards
+Antti
 
 -- 
-Ricardo Ribalda
+http://palosaari.fi/
