@@ -1,56 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48114 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753618AbbBTKYW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2015 05:24:22 -0500
-Message-ID: <54E70B52.9040708@suse.cz>
-Date: Fri, 20 Feb 2015 11:24:18 +0100
-From: Michal Marek <mmarek@suse.cz>
-MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-CC: linux-arm-kernel@lists.infradead.org,
-	Antti Palosaari <crope@iki.fi>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org,
-	"Yann E. MORIN" <yann.morin.1998@free.fr>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] [kbuild] Add and use IS_REACHABLE macro
-References: <6116702.rrbrOqQ26P@wuerfel> <14254005.QkaJhTuY5H@wuerfel> <54E5FBEA.1000005@suse.cz> <5822078.VORY4BTfEj@wuerfel>
-In-Reply-To: <5822078.VORY4BTfEj@wuerfel>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-la0-f48.google.com ([209.85.215.48]:38189 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753090AbbBQPId (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 10:08:33 -0500
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v4 1/2] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
+Date: Tue, 17 Feb 2015 16:08:26 +0100
+Message-Id: <1424185706-16711-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2015-02-20 10:29, Arnd Bergmann wrote:
-> On Thursday 19 February 2015 16:06:18 Michal Marek wrote:
->>> We have similar problems in other areas
->>> of the kernel. In theory, we could enforce the VIDEO_TUNER driver to
->>> be modular here by adding lots of dependencies to it:
->>>
->>> config VIDEO_TUNER
->>>       tristate
->>>       depends on MEDIA_TUNER_TEA5761 || !MEDIA_TUNER_TEA5761
->>>       depends on MEDIA_TUNER_TEA5767 || !MEDIA_TUNER_TEA5767
->>>       depends on MEDIA_TUNER_MSI001  || !MEDIA_TUNER_MSI001
->>
->> Nah, that's even uglier. I suggest to merge your IS_REACHABLE patch.
->>
-> 
-> Ok, can I take this as an ack from your side to merge the
-> include/linux/kconfig.h part of the patch through the linux-media
-> tree?
+Volatile controls can change their value outside the v4l-ctrl framework.
+We should ignore the cached written value of the ctrl when evaluating if
+we should run s_ctrl.
 
-Yes. If you want
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+v4: Hans Verkuil:
 
-Acked-by: Michal Marek <mmarek@suse.cz> [kconfig]
+explicity set has_changed to false. and add comment
 
+ drivers/media/v4l2-core/v4l2-ctrls.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-> I thought about splitting up the patch into two, but that would
-> just make merging it harder because we'd still have the dependency.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 45c5b47..f34a689 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1609,6 +1609,17 @@ static int cluster_changed(struct v4l2_ctrl *master)
+ 
+ 		if (ctrl == NULL)
+ 			continue;
++
++		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
++			/*
++			 * Set has_changed to false to avoid generating
++			 * the event V4L2_EVENT_CTRL_CH_VALUE
++			 */
++			ctrl->has_changed = false;
++			changed = true;
++			continue;
++		}
++
+ 		for (idx = 0; !ctrl_changed && idx < ctrl->elems; idx++)
+ 			ctrl_changed = !ctrl->type_ops->equal(ctrl, idx,
+ 				ctrl->p_cur, ctrl->p_new);
+-- 
+2.1.4
 
-Agreed, no need to pedantically split patches just for the sake of it.
-
-Michal
