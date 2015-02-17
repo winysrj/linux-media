@@ -1,80 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34589 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932452AbbBBRvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 12:51:00 -0500
-Message-ID: <54CFB901.3080306@iki.fi>
-Date: Mon, 02 Feb 2015 19:50:57 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ob0-f173.google.com ([209.85.214.173]:50283 "EHLO
+	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752657AbbBQSWv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 13:22:51 -0500
+Received: by mail-ob0-f173.google.com with SMTP id uy5so56379523obc.4
+        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2015 10:22:51 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <20150216214743.6a9180a6@recife.lan>
+References: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>
+	<54E24C83.7090309@iki.fi>
+	<20150216214743.6a9180a6@recife.lan>
+Date: Tue, 17 Feb 2015 18:22:50 +0000
+Message-ID: <CAE6wzS+i1uaNr23ViFdW0U0Pf3j7--vV16dwRggTVV7X0AiCKg@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/1] [media] pci: Add support for DVB PCIe cards from
+ Prospero Technologies Ltd.
+From: Philip Downer <pdowner@prospero-tech.com>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 05/66] rtl2830: convert driver to kernel I2C model
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>	<1419367799-14263-5-git-send-email-crope@iki.fi> <20150127111004.795c40ca@recife.lan>
-In-Reply-To: <20150127111004.795c40ca@recife.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/27/2015 03:10 PM, Mauro Carvalho Chehab wrote:
-> Em Tue, 23 Dec 2014 22:48:58 +0200
+Hi Mauro,
+
+On Mon, Feb 16, 2015 at 11:47 PM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Em Mon, 16 Feb 2015 22:01:07 +0200
 > Antti Palosaari <crope@iki.fi> escreveu:
 >
->> Convert driver to kernel I2C model. Old DVB proprietary model is
->> still left there also.
+>> Moikka!
 >>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
-
->> +struct rtl2830_platform_data {
->> +	/*
->> +	 * Clock frequency.
->> +	 * Hz
->> +	 * 4000000, 16000000, 25000000, 28800000
->> +	 */
->> +	u32 clk;
->> +
->> +	/*
->> +	 * Spectrum inversion.
->> +	 */
->> +	bool spec_inv;
->> +
->> +	/*
->> +	 */
->> +	u8 vtop;
->> +
->> +	/*
->> +	 */
->> +	u8 krf;
->> +
->> +	/*
->> +	 */
->> +	u8 agc_targ_val;
->> +
->> +	/*
->> +	 */
->> +	struct dvb_frontend* (*get_dvb_frontend)(struct i2c_client *);
->> +	struct i2c_adapter* (*get_i2c_adapter)(struct i2c_client *);
->> +};
+>> On 02/16/2015 09:48 PM, Philip Downer wrote:
+>> > The Vortex PCIe card by Prospero Technologies Ltd is a modular DVB card
+>> > with a hardware demux, the card can support up to 8 modules which are
+>> > fixed to the board at assembly time. Currently we only offer one
+>> > configuration, 8 x Dibcom 7090p DVB-t tuners, but we will soon be releasing
+>> > other configurations. There is also a connector for an infra-red receiver
+>> > dongle on the board which supports RAW IR.
+>> >
+>> > The driver has been in testing on our systems (ARM Cortex-A9, Marvell Sheva,
+>> > x86, x86-64) for longer than 6 months, so I'm confident that it works.
+>> > However as this is the first Linux driver I've written, I'm sure there are
+>> > some things that I've got wrong. One thing in particular which has been
+>> > raised by one of our early testers is that we currently register all of
+>> > our frontends as being attached to one adapter. This means the device is
+>> > enumerated in /dev like this:
+>> >
+>> > /dev/dvb/adapter0/frontend0
+>> > /dev/dvb/adapter0/dvr0
+>> > /dev/dvb/adapter0/demux0
+>> >
+>> > /dev/dvb/adapter0/frontend1
+>> > /dev/dvb/adapter0/dvr1
+>> > /dev/dvb/adapter0/demux1
+>> >
+>> > /dev/dvb/adapter0/frontend2
+>> > /dev/dvb/adapter0/dvr2
+>> > /dev/dvb/adapter0/demux2
+>> >
+>> > etc.
+>> >
+>> > Whilst I think this is ok according to the spec, our tester has complained
+>> > that it's incompatible with their software which expects to find just one
+>> > frontend per adapter. So I'm wondering if someone could confirm if what
+>> > I've done with regards to this is correct.
+>>
+>> As I understand all those tuners are independent (could be used same
+>> time) you should register those as a 8 adapters, each having single
+>> frontend, dvr and demux.
 >
-> Please fix this to follow the Kernel CodingStyle for struct/function/...
-> documentation:
-> 	Documentation/kernel-doc-nano-HOWTO.txt
+> Yeah, creating one adapter per device is the best solution, if you
+> can't do things like:
 >
-> Sometimes, I just leave things like that to pass, but the above one is too
-> ugly, with empty multiple line comments, uncommented arguments, etc.
+>         frontend0 -> demux2 -> dvr5
 
-I added kernel-doc comments for rtl2830, rtl2832 and rtl2832_sdr driver 
-platform data. PULL request is already updated.
+Thanks for confirming what Antti said, I'll change the driver and resubmit it.
 
-And next time please start keep noise earlier - I have written tens of 
-these drivers and that was first time you ask kernel-doc format comments 
-for driver configurations structures. I see those should be as 
-kernel-doc-nano-HOWTO.txt says, but it was first time I hear about that 
-rule.
+> If such configuration is allowed, then the best is to use the media
+> controller API. The patches for it were just added. Yet, userspace
+> programs are not aware, as this will be merged upstream only for
+> Kernel 3.21. For now, the media controller API is still experimental.
 
-regards
-Antti
+Yes, I saw your patches at the weekend, we're obviously quite
+interested in the media controller API for dvb so I'll be looking to
+add support for this to the driver when I can.
+
+Thanks.
 
 -- 
-http://palosaari.fi/
+Philip Downer
++44 (0)7879 470 969
+pdowner@prospero-tech.com
