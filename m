@@ -1,71 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:34783 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752356AbbBWPbc (ORCPT
+Received: from mail-la0-f50.google.com ([209.85.215.50]:44103 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752830AbbBQMVZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 10:31:32 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id F0BAA2A0004
-	for <linux-media@vger.kernel.org>; Mon, 23 Feb 2015 16:31:26 +0100 (CET)
-Message-ID: <54EB47CE.90600@xs4all.nl>
-Date: Mon, 23 Feb 2015 16:31:26 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: Re: [ANNOUNCE] media mini-summit on March, 26 in San Jose together
- with ELC
-References: <20150219180525.7014fe88.m.chehab@samsung.com>
-In-Reply-To: <20150219180525.7014fe88.m.chehab@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Tue, 17 Feb 2015 07:21:25 -0500
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
+Date: Tue, 17 Feb 2015 13:21:21 +0100
+Message-Id: <1424175681-19787-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/19/2015 09:05 PM, Mauro Carvalho Chehab wrote:
-> As discussed on our IRC #v4l channels and on the media ML, most of the 
-> core developers will be again this year in San Jose - CA - USA for the
-> Embedded Linux Conference.
-> 
-> There are several subjects that we've been discussing those days that
-> require a face to face meeting.
-> 
-> So, We'll be doing a media mini-summit on March, 26 (Thursday) at the 
-> Marriott San Jose.
-> 
-> This time, Linux Foundation will be handling the subscriptions
-> for the event, via their registering site:
-> 	https://www.regonline.com/register/login.aspx?eventID=1623927&MethodId=0&EventsessionId=
-> 
-> So, you need to register for an "add-on" option as shown below:
-> 
-> [  ] Linux Media Summit:
-> Please click here if you would like to attend Linux Media Summit. 
-> Media Summit is the premier forum to discuss the Linux multimedia 
-> development for webcams, audio and video streaming devices and 
-> analog/digital TV support at the Linux Kernel and its userspace APIs.
-> 
-> Date: Thursday, March 26, 2015 9:00 AM - 6:00 PM (Pacific Time)
-> 
-> If you're already subscribed to the event, you can login using
-> the same URL, select your register and register for the Media
-> Summit.
-> 
-> I hope to see you there!
-> 
-> Ah, as usual, we'll be using the media-workshop@linuxtv.org ML for
-> specific discussions about that, so the ones interested on participate
-> are requested to subscribe it, and to submit themes of interest to
-> the mailing lists.
+Volatile controls can change their value outside the v4l-ctrl framework.
+We should ignore the cached written value of the ctrl when evaluating if
+we should run s_ctrl.
 
-Please note that I posted a 'Request for topics' mail to the media-workshop
-mailinglist. If you are interested in attending the mini-summit, and if you
-have topics, then please subscribe to media-workshop mailinglist and post
-your suggestion there.
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
 
-You can subscribe to the media-workshop mailinglist here:
+v2: Do volatile test, once you know ctrl is not NULL
 
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
+ drivers/media/v4l2-core/v4l2-ctrls.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Regards,
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 45c5b47..f0f58dd 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1605,10 +1605,13 @@ static int cluster_changed(struct v4l2_ctrl *master)
+ 
+ 	for (i = 0; i < master->ncontrols; i++) {
+ 		struct v4l2_ctrl *ctrl = master->cluster[i];
+-		bool ctrl_changed = false;
++		bool ctrl_changed;
+ 
+ 		if (ctrl == NULL)
+ 			continue;
++
++		ctrl_changed = ctrl->flags & V4L2_CTRL_FLAG_VOLATILE;
++
+ 		for (idx = 0; !ctrl_changed && idx < ctrl->elems; idx++)
+ 			ctrl_changed = !ctrl->type_ops->equal(ctrl, idx,
+ 				ctrl->p_cur, ctrl->p_new);
+-- 
+2.1.4
 
-	Hans
