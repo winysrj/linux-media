@@ -1,94 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:31798 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752121AbbBQOfh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 09:35:37 -0500
-Message-ID: <54E351B5.8040608@linux.intel.com>
-Date: Tue, 17 Feb 2015 16:35:33 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48802 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755011AbbBQJLu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 04:11:50 -0500
+Message-ID: <54E305AC.6050103@xs4all.nl>
+Date: Tue, 17 Feb 2015 10:11:08 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-CC: Hans Verkuil <hansverk@cisco.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
-References: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com> <54E32358.8010303@cisco.com> <54E326C0.8040901@linux.intel.com> <54E347D7.6090104@samsung.com> <54E34AE9.90505@linux.intel.com> <54E34E95.7070001@samsung.com>
-In-Reply-To: <54E34E95.7070001@samsung.com>
+To: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org
+CC: m.szyprowski@samsung.com, nicolas.dufresne@collabora.com
+Subject: Re: [PATCH 1/2] vb2: Add VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag to
+ vb2_fileio_flags
+References: <1418729778-14480-1-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1418729778-14480-1-git-send-email-k.debski@samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jacek Anaszewski wrote:
-> On 02/17/2015 03:06 PM, Sakari Ailus wrote:
->> Hi Jacek,
->>
->> Jacek Anaszewski wrote:
->>> Hi Hans, Sakari,
->>>
->>> On 02/17/2015 12:32 PM, Sakari Ailus wrote:
->>>> Hi Hans,
->>>>
->>>> Hans Verkuil wrote:
->>>> ...
->>>>>> Unfortunately, it only works one time, because the next time the
->>>>>> user writes
->>>>>> a zero to the control cluster_changed returns false.
->>>>>>
->>>>>> I think on volatile controls it is safer to run s_ctrl twice than
->>>>>> missing a
->>>>>> valid s_ctrl.
->>>>>>
->>>>>> I know I am abusing a bit the API for this :P, but I also believe
->>>>>> that the
->>>>>> semantic here is a bit confusing.
->>>>>
->>>>> The reason for that is that I have yet to see a convincing argument
->>>>> for
->>>>> allowing s_ctrl for a volatile control.
->>>>
->>>> Well, one example are LED flash class devices which implement V4L2
->>>> flash
->>>> API through a wrapper. The user may use the LED flash class API to
->>>> change the values of the controls, and V4L2 framework has no clue about
->>>> this. The V4L2 controls are volatile, and the real values of the
->>>> settings are stored in the LED flash class.
->>>>
->>>> This is the current implementation (not merged yet); an alternative, a
->>>> more correct one, would be to use callbacks to tell about the
->>>> changes in
->>>> control values. I haven't pushed for that, primarily because the
->>>> patchset is already quite complex and I've seen this as something that
->>>> can be always implemented later if it bothers someone.
->>>>
->>>> Cc Jacek.
->>>>
->>>
->>> Actually this will be not an issue for v4l2-flash sub-device anymore.
->>> In the next version of the patch set the v4l2-flash sub-device
->>> will be synchronizing the flash device registers with the
->>> state of the controls on open.
->>
->> Ah, right --- you're preventing the use of the LED flash class whilst
->> the V4L2 sub-device is opened?
-> 
-> Yes.
-> 
->> I'm not fully certain whether that'd be
->> really useful, as the V4L2 sub-device can also be opened by multiple
->> users at the same time.
-> 
-> We also prevent from this using v4l2_fh_is_singular on open.
+Hi Kamil,
 
-I'm not fully certain if I'd do that --- no other flash chip driver
-does. It might be good to think about how does one acquire the ownership
-of media devices or parts of media devices, or whether it's something
-that's needed at all.
+On 12/16/14 12:36, Kamil Debski wrote:
+> The vb2: fix bytesused == 0 handling (8a75ffb) patch changed the behavior
+> of __fill_vb2_buffer function, so that if bytesused is 0 it is set to the
+> size of the buffer. However, bytesused set to 0 is used by older codec
+> drivers as as indication used to mark the end of stream.
+> 
+> To keep backward compatibility, this patch adds a flag passed to the
+> vb2_queue_init function - VB2_FILEIO_ALLOW_ZERO_BYTESUSED. If the flag is
+> set upon initialization of the queue, the videobuf2 keeps the value of
+> bytesused intact and passes it to the driver.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+What is the status of this patch series?
+
+Note that io_flags is really the wrong place for this flag, it should
+be io_modes. This flag has nothing to do with file I/O.
+
+Regards,
+
+	Hans
+
+> 
+> Reported-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c |   33 ++++++++++++++++++++++++------
+>  include/media/videobuf2-core.h           |    3 +++
+>  2 files changed, 30 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index d09a891..1068dbb 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1276,13 +1276,23 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  			 * userspace clearly never bothered to set it and
+>  			 * it's a safe assumption that they really meant to
+>  			 * use the full plane sizes.
+> +			 *
+> +			 * Some drivers, e.g. old codec drivers, use bytesused
+> +			 * == 0 as a way to indicate that streaming is finished.
+> +			 * In that case, the driver should use the following
+> +			 * io_flag VB2_FILEIO_ALLOW_ZERO_BYTESUSED to keep old
+> +			 * userspace applications working.
+>  			 */
+>  			for (plane = 0; plane < vb->num_planes; ++plane) {
+>  				struct v4l2_plane *pdst = &v4l2_planes[plane];
+>  				struct v4l2_plane *psrc = &b->m.planes[plane];
+>  
+> -				pdst->bytesused = psrc->bytesused ?
+> -					psrc->bytesused : pdst->length;
+> +				if (vb->vb2_queue->io_flags &
+> +					VB2_FILEIO_ALLOW_ZERO_BYTESUSED)
+> +					pdst->bytesused = psrc->bytesused;
+> +				else
+> +					pdst->bytesused = psrc->bytesused ?
+> +						psrc->bytesused : pdst->length;
+>  				pdst->data_offset = psrc->data_offset;
+>  			}
+>  		}
+> @@ -1295,6 +1305,12 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  		 *
+>  		 * If bytesused == 0 for the output buffer, then fall back
+>  		 * to the full buffer size as that's a sensible default.
+> +		 *
+> +		 * Some drivers, e.g. old codec drivers, use bytesused == 0
+> +		 * as a way to indicate that streaming is finished. In that
+> +		 * case, the driver should use the following io_flag
+> +		 * VB2_FILEIO_ALLOW_ZERO_BYTESUSED to keep old userspace
+> +		 * applications working.
+>  		 */
+>  		if (b->memory == V4L2_MEMORY_USERPTR) {
+>  			v4l2_planes[0].m.userptr = b->m.userptr;
+> @@ -1306,11 +1322,16 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  			v4l2_planes[0].length = b->length;
+>  		}
+>  
+> -		if (V4L2_TYPE_IS_OUTPUT(b->type))
+> -			v4l2_planes[0].bytesused = b->bytesused ?
+> -				b->bytesused : v4l2_planes[0].length;
+> -		else
+> +		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> +			if (vb->vb2_queue->io_flags &
+> +				VB2_FILEIO_ALLOW_ZERO_BYTESUSED)
+> +				v4l2_planes[0].bytesused = b->bytesused;
+> +			else
+> +				v4l2_planes[0].bytesused = b->bytesused ?
+> +					b->bytesused : v4l2_planes[0].length;
+> +		} else {
+>  			v4l2_planes[0].bytesused = 0;
+> +		}
+>  
+>  	}
+>  
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index bd2cec2..0540bc3 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -138,10 +138,13 @@ enum vb2_io_modes {
+>   * by default the 'streaming' style is used by the file io emulator
+>   * @VB2_FILEIO_READ_ONCE:	report EOF after reading the first buffer
+>   * @VB2_FILEIO_WRITE_IMMEDIATELY:	queue buffer after each write() call
+> + * @VB2_FILEIO_ALLOW_ZERO_BYTESUSED:	the driver setting this flag will handle
+> + *					bytesused == 0 as a special case
+>   */
+>  enum vb2_fileio_flags {
+>  	VB2_FILEIO_READ_ONCE		= (1 << 0),
+>  	VB2_FILEIO_WRITE_IMMEDIATELY	= (1 << 1),
+> +	VB2_FILEIO_ALLOW_ZERO_BYTESUSED	= (1 << 2),
+>  };
+>  
+>  /**
+> 
+
