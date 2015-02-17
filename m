@@ -1,118 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55830 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753776AbbBCNyU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 08:54:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, isely@isely.net, pali.rohar@gmail.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 3/5] uvc gadget: switch to unlocked_ioctl.
-Date: Tue, 03 Feb 2015 15:55:03 +0200
-Message-ID: <3185495.drmK3h6s8j@avalon>
-In-Reply-To: <1422967646-12223-4-git-send-email-hverkuil@xs4all.nl>
-References: <1422967646-12223-1-git-send-email-hverkuil@xs4all.nl> <1422967646-12223-4-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:38797 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752829AbbBQMVq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 07:21:46 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <54E32E11.9060004@xs4all.nl>
+References: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com> <54E32E11.9060004@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 17 Feb 2015 13:21:24 +0100
+Message-ID: <CAPybu_3EJo0imtPoM3WJbjn2nNjf=D3WnJmmdpLQ3_qzo5oXvA@mail.gmail.com>
+Subject: Re: [PATCH] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello Hans
 
-Thank you for the patch.
+On Tue, Feb 17, 2015 at 1:03 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Should be done after the 'ctrl == NULL' check.
 
-On Tuesday 03 February 2015 13:47:24 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Instead of .ioctl use unlocked_ioctl. While all the queue ops
-> already use a lock, there was no lock to protect uvc_video, so
-> add that one.
+Good catch. Fixed on v2
 
-There's more. streamon and streamoff need to be protected by a lock for 
-instance. Wouldn't it be easier to just set vdev->lock for this driver instead 
-of adding manual locking ?
+>
+>>
+>>               if (ctrl == NULL)
+>>                       continue;
+>>
+>
+> There is one more change that has to be made: setting a volatile control
+> should never generate a V4L2_EVENT_CTRL_CH_VALUE event since that makes
+> no sense. The way to prevent that is to ensure that ctrl->has_changed is
+> always false for volatile controls. The new_to_cur function looks at that
+> field to decide whether to send an event.
+>
+> The documentation should also be updated: that of V4L2_CTRL_FLAG_VOLATILE
+> (in VIDIOC_QUERYCTRL), and of V4L2_EVENT_CTRL_CH_VALUE.
 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/usb/gadget/function/f_uvc.c    | 1 +
->  drivers/usb/gadget/function/uvc.h      | 1 +
->  drivers/usb/gadget/function/uvc_v4l2.c | 6 +++++-
->  3 files changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/gadget/function/f_uvc.c
-> b/drivers/usb/gadget/function/f_uvc.c index 945b3bd..748a80c 100644
-> --- a/drivers/usb/gadget/function/f_uvc.c
-> +++ b/drivers/usb/gadget/function/f_uvc.c
-> @@ -817,6 +817,7 @@ static struct usb_function *uvc_alloc(struct
-> usb_function_instance *fi) if (uvc == NULL)
->  		return ERR_PTR(-ENOMEM);
-> 
-> +	mutex_init(&uvc->video.mutex);
+I can do this also if you want. It has been a while without
+contributing to media :)
 
-We need a corresponding mutex_destroy() somewhere.
+Regards!
 
->  	uvc->state = UVC_STATE_DISCONNECTED;
->  	opts = to_f_uvc_opts(fi);
-> 
-> diff --git a/drivers/usb/gadget/function/uvc.h
-> b/drivers/usb/gadget/function/uvc.h index f67695c..3390ecd 100644
-> --- a/drivers/usb/gadget/function/uvc.h
-> +++ b/drivers/usb/gadget/function/uvc.h
-> @@ -115,6 +115,7 @@ struct uvc_video
->  	unsigned int width;
->  	unsigned int height;
->  	unsigned int imagesize;
-> +	struct mutex mutex;	/* protects frame parameters */
-> 
->  	/* Requests */
->  	unsigned int req_size;
-> diff --git a/drivers/usb/gadget/function/uvc_v4l2.c
-> b/drivers/usb/gadget/function/uvc_v4l2.c index 5aad7fe..67f084f 100644
-> --- a/drivers/usb/gadget/function/uvc_v4l2.c
-> +++ b/drivers/usb/gadget/function/uvc_v4l2.c
-> @@ -88,6 +88,7 @@ uvc_v4l2_get_format(struct file *file, void *fh, struct
-> v4l2_format *fmt) struct uvc_device *uvc = video_get_drvdata(vdev);
->  	struct uvc_video *video = &uvc->video;
-> 
-> +	mutex_lock(&video->mutex);
->  	fmt->fmt.pix.pixelformat = video->fcc;
->  	fmt->fmt.pix.width = video->width;
->  	fmt->fmt.pix.height = video->height;
-> @@ -96,6 +97,7 @@ uvc_v4l2_get_format(struct file *file, void *fh, struct
-> v4l2_format *fmt) fmt->fmt.pix.sizeimage = video->imagesize;
->  	fmt->fmt.pix.colorspace = V4L2_COLORSPACE_SRGB;
->  	fmt->fmt.pix.priv = 0;
-> +	mutex_unlock(&video->mutex);
-> 
->  	return 0;
->  }
-> @@ -126,11 +128,13 @@ uvc_v4l2_set_format(struct file *file, void *fh,
-> struct v4l2_format *fmt) bpl = format->bpp * fmt->fmt.pix.width / 8;
->  	imagesize = bpl ? bpl * fmt->fmt.pix.height : fmt->fmt.pix.sizeimage;
-> 
-> +	mutex_lock(&video->mutex);
->  	video->fcc = format->fcc;
->  	video->bpp = format->bpp;
->  	video->width = fmt->fmt.pix.width;
->  	video->height = fmt->fmt.pix.height;
->  	video->imagesize = imagesize;
-> +	mutex_unlock(&video->mutex);
-> 
->  	fmt->fmt.pix.field = V4L2_FIELD_NONE;
->  	fmt->fmt.pix.bytesperline = bpl;
-> @@ -356,7 +360,7 @@ struct v4l2_file_operations uvc_v4l2_fops = {
->  	.owner		= THIS_MODULE,
->  	.open		= uvc_v4l2_open,
->  	.release	= uvc_v4l2_release,
-> -	.ioctl		= video_ioctl2,
-> +	.unlocked_ioctl	= video_ioctl2,
->  	.mmap		= uvc_v4l2_mmap,
->  	.poll		= uvc_v4l2_poll,
->  #ifndef CONFIG_MMU
+>
+> Regards,
+>
+>         Hans
+
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Ricardo Ribalda
