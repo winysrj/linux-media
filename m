@@ -1,74 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:53801 "EHLO butterbrot.org"
+Received: from mail.southpole.se ([37.247.8.11]:59396 "EHLO mail.southpole.se"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965563AbbBDNVt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Feb 2015 08:21:49 -0500
-Message-ID: <54D21CEB.1090506@butterbrot.org>
-Date: Wed, 04 Feb 2015 14:21:47 +0100
-From: Florian Echtler <floe@butterbrot.org>
+	id S933320AbbBQKRB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 05:17:01 -0500
+Message-ID: <54E31010.10700@southpole.se>
+Date: Tue, 17 Feb 2015 10:55:28 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
-References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <54D1F2CA.9020201@xs4all.nl> <54D1FAFA.3070506@butterbrot.org> <10701805.dDfTQCs2MO@avalon> <54D204F2.3040006@xs4all.nl>
-In-Reply-To: <54D204F2.3040006@xs4all.nl>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="okEsiP7JVDFVIjQ6WICdtRdWHwdx4VeDO"
+To: mchehab@osg.samsung.com
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] r820t: add DVBC profile in sysfreq_sel
+References: <1423961576-15038-1-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1423961576-15038-1-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---okEsiP7JVDFVIjQ6WICdtRdWHwdx4VeDO
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Forgot to say that with this patch the Astrometa DVB-T/T2/C usb stick 
+now has working DVB-C reception at all the frequencies I have at home. 
+Before it was not working at around 290-314 MHz.
 
-Hello everyone,
+The current status of the Astrometa stick is that DVB-T and DVB-C (8MHz 
+tested, 6MHz testers wanted) should be working fine. DVB-T2 needs 
+working pid filters before it can work properly.
 
-On 04.02.2015 12:39, Hans Verkuil wrote:
-> On 02/04/15 12:34, Laurent Pinchart wrote:
->> On Wednesday 04 February 2015 11:56:58 Florian Echtler wrote:
->>> That's what I assumed, however, I'm running into the same problem as
->>> with dma-sg when I switch to vmalloc...?
->>
->> I don't expect vmalloc to work, as you can't DMA to vmalloc memory dir=
-ectly=20
->> without any IOMMU in the general case (the allocated memory being phys=
-ically=20
->> fragmented).
->>
->> dma-sg should work though, but you won't be able to use usb_bulk_msg()=
-=2E You=20
->> need to create the URBs manually, set their sg and num_sgs fields and =
-submit=20
->> them.
-Can I also use usb_sg_init/_wait for this? I can't find any other driver
-which uses USB in conjunction with dma-sg, can you suggest one I could
-use as an example?
-
-> Anyway Florian, based on Laurent's explanation I think trying to make
-> dma-sg work seems to be the best solution. And I've learned something
-> new :-)
-Thanks for the clarification, please ignore the v2 patch submission for
-now :-)
-
-Best, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
-
-
---okEsiP7JVDFVIjQ6WICdtRdWHwdx4VeDO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlTSHOsACgkQ7CzyshGvatinlgCgotk+2kJQDeDmYBOUqzCY46D3
-+NgAoKkQ8ndwNwPKBYbYQj+U9tqriHQt
-=N6jX
------END PGP SIGNATURE-----
-
---okEsiP7JVDFVIjQ6WICdtRdWHwdx4VeDO--
+MvH
+Benjamin Larsson
