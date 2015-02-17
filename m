@@ -1,94 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:50283 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752657AbbBQSWv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 13:22:51 -0500
-Received: by mail-ob0-f173.google.com with SMTP id uy5so56379523obc.4
-        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2015 10:22:51 -0800 (PST)
+Received: from mga11.intel.com ([192.55.52.93]:31798 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752121AbbBQOfh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 09:35:37 -0500
+Message-ID: <54E351B5.8040608@linux.intel.com>
+Date: Tue, 17 Feb 2015 16:35:33 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20150216214743.6a9180a6@recife.lan>
-References: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>
-	<54E24C83.7090309@iki.fi>
-	<20150216214743.6a9180a6@recife.lan>
-Date: Tue, 17 Feb 2015 18:22:50 +0000
-Message-ID: <CAE6wzS+i1uaNr23ViFdW0U0Pf3j7--vV16dwRggTVV7X0AiCKg@mail.gmail.com>
-Subject: Re: [RFC PATCH 0/1] [media] pci: Add support for DVB PCIe cards from
- Prospero Technologies Ltd.
-From: Philip Downer <pdowner@prospero-tech.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+CC: Hans Verkuil <hansverk@cisco.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
+References: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com> <54E32358.8010303@cisco.com> <54E326C0.8040901@linux.intel.com> <54E347D7.6090104@samsung.com> <54E34AE9.90505@linux.intel.com> <54E34E95.7070001@samsung.com>
+In-Reply-To: <54E34E95.7070001@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Mon, Feb 16, 2015 at 11:47 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Em Mon, 16 Feb 2015 22:01:07 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> Moikka!
+Jacek Anaszewski wrote:
+> On 02/17/2015 03:06 PM, Sakari Ailus wrote:
+>> Hi Jacek,
 >>
->> On 02/16/2015 09:48 PM, Philip Downer wrote:
->> > The Vortex PCIe card by Prospero Technologies Ltd is a modular DVB card
->> > with a hardware demux, the card can support up to 8 modules which are
->> > fixed to the board at assembly time. Currently we only offer one
->> > configuration, 8 x Dibcom 7090p DVB-t tuners, but we will soon be releasing
->> > other configurations. There is also a connector for an infra-red receiver
->> > dongle on the board which supports RAW IR.
->> >
->> > The driver has been in testing on our systems (ARM Cortex-A9, Marvell Sheva,
->> > x86, x86-64) for longer than 6 months, so I'm confident that it works.
->> > However as this is the first Linux driver I've written, I'm sure there are
->> > some things that I've got wrong. One thing in particular which has been
->> > raised by one of our early testers is that we currently register all of
->> > our frontends as being attached to one adapter. This means the device is
->> > enumerated in /dev like this:
->> >
->> > /dev/dvb/adapter0/frontend0
->> > /dev/dvb/adapter0/dvr0
->> > /dev/dvb/adapter0/demux0
->> >
->> > /dev/dvb/adapter0/frontend1
->> > /dev/dvb/adapter0/dvr1
->> > /dev/dvb/adapter0/demux1
->> >
->> > /dev/dvb/adapter0/frontend2
->> > /dev/dvb/adapter0/dvr2
->> > /dev/dvb/adapter0/demux2
->> >
->> > etc.
->> >
->> > Whilst I think this is ok according to the spec, our tester has complained
->> > that it's incompatible with their software which expects to find just one
->> > frontend per adapter. So I'm wondering if someone could confirm if what
->> > I've done with regards to this is correct.
+>> Jacek Anaszewski wrote:
+>>> Hi Hans, Sakari,
+>>>
+>>> On 02/17/2015 12:32 PM, Sakari Ailus wrote:
+>>>> Hi Hans,
+>>>>
+>>>> Hans Verkuil wrote:
+>>>> ...
+>>>>>> Unfortunately, it only works one time, because the next time the
+>>>>>> user writes
+>>>>>> a zero to the control cluster_changed returns false.
+>>>>>>
+>>>>>> I think on volatile controls it is safer to run s_ctrl twice than
+>>>>>> missing a
+>>>>>> valid s_ctrl.
+>>>>>>
+>>>>>> I know I am abusing a bit the API for this :P, but I also believe
+>>>>>> that the
+>>>>>> semantic here is a bit confusing.
+>>>>>
+>>>>> The reason for that is that I have yet to see a convincing argument
+>>>>> for
+>>>>> allowing s_ctrl for a volatile control.
+>>>>
+>>>> Well, one example are LED flash class devices which implement V4L2
+>>>> flash
+>>>> API through a wrapper. The user may use the LED flash class API to
+>>>> change the values of the controls, and V4L2 framework has no clue about
+>>>> this. The V4L2 controls are volatile, and the real values of the
+>>>> settings are stored in the LED flash class.
+>>>>
+>>>> This is the current implementation (not merged yet); an alternative, a
+>>>> more correct one, would be to use callbacks to tell about the
+>>>> changes in
+>>>> control values. I haven't pushed for that, primarily because the
+>>>> patchset is already quite complex and I've seen this as something that
+>>>> can be always implemented later if it bothers someone.
+>>>>
+>>>> Cc Jacek.
+>>>>
+>>>
+>>> Actually this will be not an issue for v4l2-flash sub-device anymore.
+>>> In the next version of the patch set the v4l2-flash sub-device
+>>> will be synchronizing the flash device registers with the
+>>> state of the controls on open.
 >>
->> As I understand all those tuners are independent (could be used same
->> time) you should register those as a 8 adapters, each having single
->> frontend, dvr and demux.
->
-> Yeah, creating one adapter per device is the best solution, if you
-> can't do things like:
->
->         frontend0 -> demux2 -> dvr5
+>> Ah, right --- you're preventing the use of the LED flash class whilst
+>> the V4L2 sub-device is opened?
+> 
+> Yes.
+> 
+>> I'm not fully certain whether that'd be
+>> really useful, as the V4L2 sub-device can also be opened by multiple
+>> users at the same time.
+> 
+> We also prevent from this using v4l2_fh_is_singular on open.
 
-Thanks for confirming what Antti said, I'll change the driver and resubmit it.
-
-> If such configuration is allowed, then the best is to use the media
-> controller API. The patches for it were just added. Yet, userspace
-> programs are not aware, as this will be merged upstream only for
-> Kernel 3.21. For now, the media controller API is still experimental.
-
-Yes, I saw your patches at the weekend, we're obviously quite
-interested in the media controller API for dvb so I'll be looking to
-add support for this to the driver when I can.
-
-Thanks.
+I'm not fully certain if I'd do that --- no other flash chip driver
+does. It might be good to think about how does one acquire the ownership
+of media devices or parts of media devices, or whether it's something
+that's needed at all.
 
 -- 
-Philip Downer
-+44 (0)7879 470 969
-pdowner@prospero-tech.com
+Sakari Ailus
+sakari.ailus@linux.intel.com
