@@ -1,58 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:61943 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753341AbbBOWqg (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38366 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932954AbbBQIpQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Feb 2015 17:46:36 -0500
-Date: Sun, 15 Feb 2015 22:46:33 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: mchehab@osg.samsung.com
-Cc: crop@iki.fi, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] rtl2832: remove compiler warning
-Message-ID: <20150215224633.GA3015@turing>
-References: <20150211110851.GA30505@biggie>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150211110851.GA30505@biggie>
+	Tue, 17 Feb 2015 03:45:16 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 5/6] uvc gadget: set device_caps in querycap.
+Date: Tue, 17 Feb 2015 09:44:08 +0100
+Message-Id: <1424162649-17249-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1424162649-17249-1-git-send-email-hverkuil@xs4all.nl>
+References: <1424162649-17249-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 11, 2015 at 11:08:51AM +0000, Luis de Bethencourt wrote:
-> Cleaning up the following compiler warning:
-> rtl2832.c:703:12: warning: 'tmp' may be used uninitialized in this function
-> 
-> Even though it could never happen since if rtl2832_rd_demod_reg () doesn't set
-> tmp, this line would never run because we go to err. It is still nice to avoid
-> compiler warnings.
-> 
-> Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
-> ---
->  drivers/media/dvb-frontends/rtl2832.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-> index 5d2d8f4..20fa245 100644
-> --- a/drivers/media/dvb-frontends/rtl2832.c
-> +++ b/drivers/media/dvb-frontends/rtl2832.c
-> @@ -685,7 +685,7 @@ static int rtl2832_read_status(struct dvb_frontend *fe, fe_status_t *status)
->  	struct rtl2832_dev *dev = fe->demodulator_priv;
->  	struct i2c_client *client = dev->client;
->  	int ret;
-> -	u32 tmp;
-> +	u32 uninitialized_var(tmp);
->  
->  	dev_dbg(&client->dev, "\n");
->  
-> -- 
-> 2.1.3
-> 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hi Mauro,
+The V4L2 core will warn if this is not done. Unfortunately this driver
+wasn't updated.
 
-The warning is still happening. Just a reminder in case you want to apply this
-patch.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/usb/gadget/function/uvc_v4l2.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Thanks,
-Luis
+diff --git a/drivers/usb/gadget/function/uvc_v4l2.c b/drivers/usb/gadget/function/uvc_v4l2.c
+index 5a84e51..cbd9bf0 100644
+--- a/drivers/usb/gadget/function/uvc_v4l2.c
++++ b/drivers/usb/gadget/function/uvc_v4l2.c
+@@ -75,7 +75,8 @@ uvc_v4l2_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+ 	strlcpy(cap->bus_info, dev_name(&cdev->gadget->dev),
+ 		sizeof(cap->bus_info));
+ 
+-	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 
+ 	return 0;
+ }
+-- 
+2.1.4
+
