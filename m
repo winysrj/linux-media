@@ -1,57 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f170.google.com ([209.85.213.170]:50426 "EHLO
-	mail-ig0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965747AbbBCQWD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 11:22:03 -0500
-MIME-Version: 1.0
-In-Reply-To: <6906596.JU5vQoa1jV@wuerfel>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
-	<3783167.LiVXgA35gN@wuerfel>
-	<20150203155404.GV8656@n2100.arm.linux.org.uk>
-	<6906596.JU5vQoa1jV@wuerfel>
-Date: Tue, 3 Feb 2015 11:22:01 -0500
-Message-ID: <CAF6AEGsttiufoqPbDiZfUX2ndbv2XfeZzcfyaf-AcUJgJpgLkA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
- attacher constraints with dma-parms
-From: Rob Clark <robdclark@gmail.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38366 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932954AbbBQIpX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 03:45:23 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 6/6] v4l2-core: remove the old .ioctl BKL replacement
+Date: Tue, 17 Feb 2015 09:44:09 +0100
+Message-Id: <1424162649-17249-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1424162649-17249-1-git-send-email-hverkuil@xs4all.nl>
+References: <1424162649-17249-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 3, 2015 at 11:12 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> I agree for the case you are describing here. From what I understood
-> from Rob was that he is looking at something more like:
->
-> Fig 3
-> CPU--L1cache--L2cache--Memory--IOMMU---<iobus>--device
->
-> where the IOMMU controls one or more contexts per device, and is
-> shared across GPU and non-GPU devices. Here, we need to use the
-> dmap-mapping interface to set up the IO page table for any device
-> that is unable to address all of system RAM, and we can use it
-> for purposes like isolation of the devices. There are also cases
-> where using the IOMMU is not optional.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+To keep V4L2 drivers that did not yet convert to unlocked_ioctl happy,
+the v4l2 core had a .ioctl file operation that took a V4L2 lock.
 
-Actually, just to clarify, the IOMMU instance is specific to the GPU..
-not shared with other devices.  Otherwise managing multiple contexts
-would go quite badly..
+The last drivers are now converted to unlocked_ioctl, so all this
+old code can now be removed.
 
-But other devices have their own instance of the same IOMMU.. so same
-driver could be used.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c    | 28 ----------------------------
+ drivers/media/v4l2-core/v4l2-device.c |  1 -
+ include/media/v4l2-dev.h              |  1 -
+ include/media/v4l2-device.h           |  2 --
+ 4 files changed, 32 deletions(-)
 
-BR,
--R
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index d89d5cb..9f4538c 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -357,34 +357,6 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+ 		if (lock)
+ 			mutex_unlock(lock);
+-	} else if (vdev->fops->ioctl) {
+-		/* This code path is a replacement for the BKL. It is a major
+-		 * hack but it will have to do for those drivers that are not
+-		 * yet converted to use unlocked_ioctl.
+-		 *
+-		 * All drivers implement struct v4l2_device, so we use the
+-		 * lock defined there to serialize the ioctls.
+-		 *
+-		 * However, if the driver sleeps, then it blocks all ioctls
+-		 * since the lock is still held. This is very common for
+-		 * VIDIOC_DQBUF since that normally waits for a frame to arrive.
+-		 * As a result any other ioctl calls will proceed very, very
+-		 * slowly since each call will have to wait for the VIDIOC_QBUF
+-		 * to finish. Things that should take 0.01s may now take 10-20
+-		 * seconds.
+-		 *
+-		 * The workaround is to *not* take the lock for VIDIOC_DQBUF.
+-		 * This actually works OK for videobuf-based drivers, since
+-		 * videobuf will take its own internal lock.
+-		 */
+-		struct mutex *m = &vdev->v4l2_dev->ioctl_lock;
+-
+-		if (cmd != VIDIOC_DQBUF && mutex_lock_interruptible(m))
+-			return -ERESTARTSYS;
+-		if (video_is_registered(vdev))
+-			ret = vdev->fops->ioctl(filp, cmd, arg);
+-		if (cmd != VIDIOC_DQBUF)
+-			mutex_unlock(m);
+ 	} else
+ 		ret = -ENOTTY;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index 204cc67..5b0a30b 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -37,7 +37,6 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
+ 
+ 	INIT_LIST_HEAD(&v4l2_dev->subdevs);
+ 	spin_lock_init(&v4l2_dev->lock);
+-	mutex_init(&v4l2_dev->ioctl_lock);
+ 	v4l2_prio_init(&v4l2_dev->prio);
+ 	kref_init(&v4l2_dev->ref);
+ 	get_device(dev);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 3e4fddf..acbcd2f 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -65,7 +65,6 @@ struct v4l2_file_operations {
+ 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+ 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+ 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+-	long (*ioctl) (struct file *, unsigned int, unsigned long);
+ 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+ #ifdef CONFIG_COMPAT
+ 	long (*compat_ioctl32) (struct file *, unsigned int, unsigned long);
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index ffb69da..9c58157 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -58,8 +58,6 @@ struct v4l2_device {
+ 	struct v4l2_ctrl_handler *ctrl_handler;
+ 	/* Device's priority state */
+ 	struct v4l2_prio_state prio;
+-	/* BKL replacement mutex. Temporary solution only. */
+-	struct mutex ioctl_lock;
+ 	/* Keep track of the references to this struct. */
+ 	struct kref ref;
+ 	/* Release function that is called when the ref count goes to 0. */
+-- 
+2.1.4
+
