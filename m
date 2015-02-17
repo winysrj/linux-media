@@ -1,51 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42759 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751071AbbBWPUU (ORCPT
+Received: from or-71-0-52-80.sta.embarqhsd.net ([71.0.52.80]:56345 "EHLO
+	asgard.dharty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755021AbbBQD5m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 10:20:20 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 02/12] [media] coda: fix double call to debugfs_remove
-Date: Mon, 23 Feb 2015 16:20:03 +0100
-Message-Id: <1424704813-20792-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
-References: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
+	Mon, 16 Feb 2015 22:57:42 -0500
+Message-ID: <54E2BC31.7000809@dharty.com>
+Date: Mon, 16 Feb 2015 19:57:37 -0800
+From: catchall <catchall@dharty.com>
+Reply-To: v4l@dharty.com
+MIME-Version: 1.0
+To: v4l@dharty.com, DCRYPT@telefonica.net, stoth@kernellabs.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [BUG, workaround] HVR-2200/saa7164 problem with C7 power state
+References: <14641294.293916.1422889477503.JavaMail.defaultUser@defaultHost>	<1842309.294410.1422891194529.JavaMail.defaultUser@defaultHost> <CALzAhNXPne4_0vs80Y26Yia8=jYh8EqA0phJm31UzATdAvPvDg@mail.gmail.com> <8039614.312436.1422971964080.JavaMail.defaultUser@defaultHost> <54DD3986.3010707@dharty.com>
+In-Reply-To: <54DD3986.3010707@dharty.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Seiderer <ps.report@gmx.net>
+On 02/12/2015 03:38 PM, David Harty wrote:
+> I hadn't changed the PCI Express Configuration to Gen1 because per the 
+> http://whirlpool.net.au/wiki/n54l_all_in_one page it didn't appear to 
+> help reliably.  I've made that change now. I'll report to see if that 
+> improves anything, perhaps both changes have to be made in conjunction. 
 
-In coda_free_aux_buf() call debugfs_remove only if buffer entry
-is valid (and therfore dentry is valid), double protect by
-invalidating dentry value.
+So the PCI Express change hasn't seemed to help either.  Any other ideas?
 
-Fixes erroneous prematurely dealloc of debugfs caused by
-incorrect reference count incrementing.
-
-Signed-off-by: Peter Seiderer <ps.report@gmx.net>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index c81af1b..37bbd57 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1215,8 +1215,9 @@ void coda_free_aux_buf(struct coda_dev *dev,
- 				  buf->vaddr, buf->paddr);
- 		buf->vaddr = NULL;
- 		buf->size = 0;
-+		debugfs_remove(buf->dentry);
-+		buf->dentry = NULL;
- 	}
--	debugfs_remove(buf->dentry);
- }
- 
- static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
--- 
-2.1.4
+David
 
