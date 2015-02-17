@@ -1,125 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49515 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753940AbbBMW6X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 17:58:23 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuah.kh@samsung.com>,
-	Ole Ernst <olebowle@gmx.com>,
-	Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCHv4 25/25] [media] dvb_frontend: start media pipeline while thread is running
-Date: Fri, 13 Feb 2015 20:58:08 -0200
-Message-Id: <08d239bd74bdc64596313f3c7edc21bff7a888c5.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
+Received: from www.netup.ru ([77.72.80.15]:33893 "EHLO imap.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750846AbbBQVkr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 16:40:47 -0500
+Received: from mail-la0-f46.google.com (mail-la0-f46.google.com [209.85.215.46])
+	by imap.netup.ru (Postfix) with ESMTPA id 7D4E9689C1D
+	for <linux-media@vger.kernel.org>; Wed, 18 Feb 2015 00:40:43 +0300 (MSK)
+Received: by lams18 with SMTP id s18so38527760lam.13
+        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2015 13:40:43 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20150216163545.GA12302@biggie>
+References: <CAK3bHNUaC=XoqREJMTWAAP=i+nPjcsQQPehS0--rk12Yhhn16g@mail.gmail.com>
+	<20150216163545.GA12302@biggie>
+Date: Tue, 17 Feb 2015 16:40:43 -0500
+Message-ID: <CAK3bHNV8+x2+TXt=WK5g7ObDX+zO-HJHk7B08YkXwKtAGy+fNg@mail.gmail.com>
+Subject: Re: Opening firmware source code (vhdl)
+From: Abylay Ospan <aospan@netup.ru>
+To: Luis de Bethencourt <luis@debethencourt.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While the DVB thread is running, the media pipeline should be
-streaming. This should prevent any attempt of using the analog
-TV while digital TV is working, and vice-versa.
+Hi Luis,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+welcome !
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 50bc6056e914..aa5306908193 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -131,6 +131,11 @@ struct dvb_frontend_private {
- 	int quality;
- 	unsigned int check_wrapped;
- 	enum dvbfe_search algo_status;
-+
-+#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-+	struct media_pipeline pipe;
-+	struct media_entity *pipe_start_entity;
-+#endif
- };
- 
- static void dvb_frontend_wakeup(struct dvb_frontend *fe);
-@@ -608,9 +613,9 @@ static void dvb_frontend_wakeup(struct dvb_frontend *fe)
-  * or 0 if everything is OK, if no tuner is linked to the frontend or if the
-  * mdev is NULL.
-  */
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
- static int dvb_enable_media_tuner(struct dvb_frontend *fe)
- {
--#ifdef CONFIG_MEDIA_CONTROLLER_DVB
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	struct dvb_adapter *adapter = fe->dvb;
- 	struct media_device *mdev = adapter->mdev;
-@@ -618,10 +623,14 @@ static int dvb_enable_media_tuner(struct dvb_frontend *fe)
- 	struct media_link *link, *found_link = NULL;
- 	int i, ret, n_links = 0, active_links = 0;
- 
-+	fepriv->pipe_start_entity = NULL;
-+
- 	if (!mdev)
- 		return 0;
- 
- 	entity = fepriv->dvbdev->entity;
-+	fepriv->pipe_start_entity = entity;
-+
- 	for (i = 0; i < entity->num_links; i++) {
- 		link = &entity->links[i];
- 		if (link->sink->entity == entity) {
-@@ -648,6 +657,7 @@ static int dvb_enable_media_tuner(struct dvb_frontend *fe)
- 	}
- 
- 	source = found_link->source->entity;
-+	fepriv->pipe_start_entity = source;
- 	for (i = 0; i < source->num_links; i++) {
- 		struct media_entity *sink;
- 		int flags = 0;
-@@ -672,9 +682,9 @@ static int dvb_enable_media_tuner(struct dvb_frontend *fe)
- 				source->name, sink->name,
- 				flags ? "ENABLED" : "disabled");
- 	}
--#endif
- 	return 0;
- }
-+#endif
- 
- static int dvb_frontend_thread(void *data)
- {
-@@ -696,12 +706,19 @@ static int dvb_frontend_thread(void *data)
- 	fepriv->wakeup = 0;
- 	fepriv->reinitialise = 0;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
- 	ret = dvb_enable_media_tuner(fe);
- 	if (ret) {
- 		/* FIXME: return an error if it fails */
- 		dev_info(fe->dvb->device,
- 			"proceeding with FE task\n");
-+	} else {
-+		ret = media_entity_pipeline_start(fepriv->pipe_start_entity,
-+						  &fepriv->pipe);
-+		if (ret)
-+			return ret;
- 	}
-+#endif
- 
- 	dvb_frontend_init(fe);
- 
-@@ -812,6 +829,11 @@ restart:
- 		}
- 	}
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+	media_entity_pipeline_stop(fepriv->pipe_start_entity);
-+	fepriv->pipe_start_entity = NULL;
-+#endif
-+
- 	if (dvb_powerdown_on_sleep) {
- 		if (fe->ops.set_voltage)
- 			fe->ops.set_voltage(fe, SEC_VOLTAGE_OFF);
+We have some amount (5+ pcs) of boards available for developers. If
+someone seriously interested (have any ideas to check with board ?) we
+can ship it for free :)
+
+
+
+2015-02-16 11:35 GMT-05:00 Luis de Bethencourt <luis@debethencourt.com>:
+> On Mon, Feb 16, 2015 at 11:04:47AM -0500, Abylay Ospan wrote:
+>> Hello,
+>>
+>> We're fully opening firmware sources for our new card - NetUP Dual
+>> Universal DVB CI. License is GPLv3. Sources is VHDL for Altera FPGA
+>> EP4CGX22CF19C8
+>> and can be compiled with Altera Quartus II (free edition). Hope this
+>> will help for enthusiasts and developers to deeply understand hardware
+>> part of DVB card.
+>>
+>> Source code:
+>> https://github.com/aospan/NetUP_Dual_Universal_CI-fpga
+>>
+>> Here is a description for building and uploading fw into DVB card:
+>> http://linuxtv.org/wiki/index.php/FPGA_fw_for_NetUP_Dual_Universal_CI
+>>
+>> Feel free to contact me for any questions or comments.
+>>
+>> --
+>> Abylay Ospan,
+>> NetUP Inc.
+>> http://www.netup.tv
+>> --
+>
+> Thanks for open sourcing the firmware of your new card!
+>
+> I am sure the owners of this hardware will appreciate this.
+>
+> Luis
+
+
+
 -- 
-2.1.0
-
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
