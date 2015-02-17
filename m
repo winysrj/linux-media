@@ -1,141 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48146 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752056AbbBVQLy (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:51352 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753893AbbBQNqc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2015 11:11:54 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 10/10] [media] siano: register media controller earlier
-Date: Sun, 22 Feb 2015 13:11:41 -0300
-Message-Id: <1424621501-17466-11-git-send-email-mchehab@osg.samsung.com>
-In-Reply-To: <1424621501-17466-1-git-send-email-mchehab@osg.samsung.com>
-References: <1424621501-17466-1-git-send-email-mchehab@osg.samsung.com>
+	Tue, 17 Feb 2015 08:46:32 -0500
+From: David Howells <dhowells@redhat.com>
+In-Reply-To: <20150217095705.6b317321@recife.lan>
+References: <20150217095705.6b317321@recife.lan> <20150216153307.19963.61947.stgit@warthog.procyon.org.uk>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: dhowells@redhat.com, mkrufky@linuxtv.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] cxusb: Use enum to represent table offsets rather than hard-coding numbers
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <28063.1424180750.1@warthog.procyon.org.uk>
+Content-Transfer-Encoding: 8BIT
+Date: Tue, 17 Feb 2015 13:45:50 +0000
+Message-ID: <28064.1424180750@warthog.procyon.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need to initialize the media controller earlier, as the core
-will call the smsdvb hotplug during register time. Ok, this is
-an async operation, so, when the module is not loaded, the media
-controller works.
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
 
-However, if the module is already loaded, nothing will be
-registered at the media controller, as it will load too late.
+> I would do a s/ix_USB_PID_// in the above, in order to simplify the
+> namespace and to avoid giving the false impression that those are vendor
+> IDs.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/common/siano/smscoreapi.c |  7 ++++++-
- drivers/media/common/siano/smscoreapi.h |  3 ++-
- drivers/media/usb/siano/smsusb.c        | 17 +++++++++++------
- 3 files changed, 19 insertions(+), 8 deletions(-)
+Okay.
 
-diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
-index cb7515ba2193..2a8d9a36d6f0 100644
---- a/drivers/media/common/siano/smscoreapi.c
-+++ b/drivers/media/common/siano/smscoreapi.c
-@@ -653,7 +653,8 @@ smscore_buffer_t *smscore_createbuffer(u8 *buffer, void *common_buffer,
-  * @return 0 on success, <0 on error.
-  */
- int smscore_register_device(struct smsdevice_params_t *params,
--			    struct smscore_device_t **coredev)
-+			    struct smscore_device_t **coredev,
-+			    void *mdev)
- {
- 	struct smscore_device_t *dev;
- 	u8 *buffer;
-@@ -662,6 +663,10 @@ int smscore_register_device(struct smsdevice_params_t *params,
- 	if (!dev)
- 		return -ENOMEM;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+	dev->media_dev = mdev;
-+#endif
-+
- 	/* init list entry so it could be safe in smscore_unregister_device */
- 	INIT_LIST_HEAD(&dev->entry);
- 
-diff --git a/drivers/media/common/siano/smscoreapi.h b/drivers/media/common/siano/smscoreapi.h
-index 6ff8f64a3794..eb8bd689b936 100644
---- a/drivers/media/common/siano/smscoreapi.h
-+++ b/drivers/media/common/siano/smscoreapi.h
-@@ -1123,7 +1123,8 @@ extern int smscore_register_hotplug(hotplug_t hotplug);
- extern void smscore_unregister_hotplug(hotplug_t hotplug);
- 
- extern int smscore_register_device(struct smsdevice_params_t *params,
--				   struct smscore_device_t **coredev);
-+				   struct smscore_device_t **coredev,
-+				   void *mdev);
- extern void smscore_unregister_device(struct smscore_device_t *coredev);
- 
- extern int smscore_start_device(struct smscore_device_t *coredev);
-diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
-index 7d57b2677130..37fc1ef84575 100644
---- a/drivers/media/usb/siano/smsusb.c
-+++ b/drivers/media/usb/siano/smsusb.c
-@@ -340,12 +340,12 @@ static void smsusb_term_device(struct usb_interface *intf)
- 	usb_set_intfdata(intf, NULL);
- }
- 
--static void siano_media_device_register(struct smsusb_device_t *dev)
-+static void *siano_media_device_register(struct smsusb_device_t *dev,
-+					int board_id)
- {
- #ifdef CONFIG_MEDIA_CONTROLLER_DVB
- 	struct media_device *mdev;
- 	struct usb_device *udev = dev->udev;
--	int board_id = smscore_get_board_id(dev->coredev);
- 	struct sms_board *board = sms_get_board(board_id);
- 	int ret;
- 
-@@ -369,10 +369,11 @@ static void siano_media_device_register(struct smsusb_device_t *dev)
- 		return;
- 	}
- 
--	dev->coredev->media_dev = mdev;
--
- 	pr_info("media controller created\n");
- 
-+	return mdev;
-+#else
-+	return NULL;
- #endif
- }
- 
-@@ -380,6 +381,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
- {
- 	struct smsdevice_params_t params;
- 	struct smsusb_device_t *dev;
-+	void *mdev;
- 	int i, rc;
- 
- 	/* create device object */
-@@ -433,11 +435,15 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
- 	params.context = dev;
- 	usb_make_path(dev->udev, params.devpath, sizeof(params.devpath));
- 
-+	mdev = siano_media_device_register(dev, board_id);
-+
- 	/* register in smscore */
--	rc = smscore_register_device(&params, &dev->coredev);
-+	rc = smscore_register_device(&params, &dev->coredev, mdev);
- 	if (rc < 0) {
- 		pr_err("smscore_register_device(...) failed, rc %d\n", rc);
- 		smsusb_term_device(intf);
-+		media_device_unregister(mdev);
-+		kfree(mdev);
- 		return rc;
- 	}
- 
-@@ -469,7 +475,6 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
- 	}
- 
- 	pr_debug("device 0x%p created\n", dev);
--	siano_media_device_register(dev);
- 
- 	return rc;
- }
--- 
-2.1.0
+> If you look below on your patch, even you forgot to add a "ix_" prefix into
+> one of the entires ;)
 
+Bah.  I realised I'd forgotten and went back to try and fix them up.
+
+> Just calling MEDION_MD95700..MYGICA_T230 would be enough and shorter.
+
+True.
+
+> static struct usb_device_id cxusb_table [] = {
+> 	[VID_MEDION] = {USB_VID_MEDION,	USB_PID_MEDION_MD95700},
+> ...
+
+That should really be:
+
+	[VID_MEDION_MD95700] = {USB_VID_MEDION,	USB_PID_MEDION_MD95700},
+
+since the index number is the model, not the vendor, which brings me to:
+
+	[DVICO_BLUEBIRD_DVB_T_NANO_2_NFW_WARM] = {USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DVB_T_NANO_2_NFW_WARM},
+
+which would be excessively long.
+
+> > +	_(USB_VID_MEDION,	USB_PID_MEDION_MD95700), // 0
+> 
+> Please don't use c99 comments. Also, I don't think that the comments would
+> help, as the entries on this table doesn't need to follow the same order
+> as defined at the enum.
+
+Sorry, yes, I meant those as guides purely for when I was converting numbers
+to symbols.
+
+David
