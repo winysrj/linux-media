@@ -1,90 +1,129 @@
-Return-Path: <hverkuil@xs4all.nl>
-Message-id: <54EAED82.5040804@xs4all.nl>
-Date: Mon, 23 Feb 2015 10:06:10 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Hans Verkuil <hans.verkuil@cisco.com>,
- Sylwester Nawrocki <s.nawrocki@samsung.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 1/2] media/v4l2-ctrls: Always run s_ctrl on volatile
- ctrls
-References: <1424185706-16711-1-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1424185706-16711-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:34233 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933072AbbBQIub (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 03:50:31 -0500
+Message-ID: <1424163029.3841.15.camel@pengutronix.de>
+Subject: Re: [RFC v01] Driver for Toshiba TC358743 CSI-2 to HDMI bridge
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: matrandg@cisco.com
+Cc: linux-media@vger.kernel.org, hansverk@cisco.com
+Date: Tue, 17 Feb 2015 09:50:29 +0100
+In-Reply-To: <1418667661-21078-1-git-send-email-matrandg@cisco.com>
+References: <1418667661-21078-1-git-send-email-matrandg@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
+Hi Mats,
 
-On 02/17/2015 04:08 PM, Ricardo Ribalda Delgado wrote:
-> Volatile controls can change their value outside the v4l-ctrl framework.
-> We should ignore the cached written value of the ctrl when evaluating if
-> we should run s_ctrl.
-
-I've been thinking some more about this (also due to some comments Laurent
-made on irc), and I think this should be done differently.
-
-What you want to do here is to signal that setting this control will execute
-some action that needs to happen even if the same value is set twice.
-
-That's not really covered by VOLATILE. Interestingly, the WRITE_ONLY flag is
-to be used for just that purpose, but this happens to be a R/W control, so
-that can't be used either.
-
-What is needed is the following:
-
-1) Add a new flag: V4L2_CTRL_FLAG_ACTION.
-2) Any control that sets FLAG_WRITE_ONLY should OR it with FLAG_ACTION (to
-   keep the current meaning of WRITE_ONLY).
-3) Any control with FLAG_ACTION set should return changed == true in
-   cluster_changed.
-4) Any control with FLAG_VOLATILE set should set ctrl->has_changed to false
-   to prevent generating the CH_VALUE control (that's a real bug).
-
-Your control will now set FLAG_ACTION and FLAG_VOLATILE and it will do the
-right thing.
-
-Basically what was missing was a flag to explicitly signal this 'writing
-executes an action' behavior. Trying to shoehorn that into the volatile
-flag or the write_only flag is just not right. It's a flag in its own right.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
-> v4: Hans Verkuil:
-> 
-> explicity set has_changed to false. and add comment
-> 
->  drivers/media/v4l2-core/v4l2-ctrls.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 45c5b47..f34a689 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1609,6 +1609,17 @@ static int cluster_changed(struct v4l2_ctrl *master)
->  
->  		if (ctrl == NULL)
->  			continue;
+Am Montag, den 15.12.2014, 19:21 +0100 schrieb matrandg@cisco.com:
+[...]
+> +static void tc358743_set_pll(struct v4l2_subdev *sd)
+> +{
+> +	struct tc358743_state *state = to_state(sd);
+> +	struct tc358743_platform_data *pdata = &state->pdata;
+> +	u16 pllctl0 = i2c_rd16(sd, PLLCTL0);
+> +	u16 pllctl0_new = SET_PLL_PRD(pdata->pll_prd) |
+> +		SET_PLL_FBD(pdata->pll_fbd);
 > +
-> +		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
-> +			/*
-> +			 * Set has_changed to false to avoid generating
-> +			 * the event V4L2_EVENT_CTRL_CH_VALUE
-> +			 */
-> +			ctrl->has_changed = false;
-> +			changed = true;
-> +			continue;
-> +		}
+> +	v4l2_dbg(2, debug, sd, "%s:\n", __func__);
 > +
->  		for (idx = 0; !ctrl_changed && idx < ctrl->elems; idx++)
->  			ctrl_changed = !ctrl->type_ops->equal(ctrl, idx,
->  				ctrl->p_cur, ctrl->p_new);
-> 
+> +	/* Only rewrite when needed, since rewriting triggers another format
+> +	 * change event. */
+> +	if (pllctl0 != pllctl0_new) {
+> +		u32 hsck = (pdata->refclk_hz * pdata->pll_prd) / pdata->pll_fbd;
+
+This is the wrong way around. refclk_hz is divided by pll_prd to get the
+PLL input clock. The PLL then multiplies by pll_fbd. Example:
+
+refclk_hz = 27000000, pll_prd = 4, pll_fbd = 88
+--> hsck = refclk_hz / pll_prd * pll_fbd = 594 MHz, pll_frs should be 0.
+
+[...]
+> +static unsigned tc358743_num_csi_lanes_needed(struct v4l2_subdev *sd)
+> +{
+> +	struct tc358743_state *state = to_state(sd);
+> +	struct v4l2_bt_timings *bt = &state->timings.bt;
+> +	u32 bits_pr_pixel =
+> +		(state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_1X16) ?  16 : 24;
+> +	u32 bps = bt->width * bt->height * fps(bt) * bits_pr_pixel;
+
+I think this calculation should include the blanking intervals.
+
+> +static void tc358743_set_csi(struct v4l2_subdev *sd)
+> +{
+> +	struct tc358743_state *state = to_state(sd);
+> +	struct tc358743_platform_data *pdata = &state->pdata;
+> +	unsigned lanes = tc358743_num_csi_lanes_needed(sd);
+> +
+> +	v4l2_dbg(3, debug, sd, "%s:\n", __func__);
+> +
+> +	tc358743_reset(sd, MASK_CTXRST);
+> +
+> +	if (lanes < 1)
+> +		i2c_wr32(sd, CLW_CNTRL, MASK_CLW_LANEDISABLE);
+> +	if (lanes < 1)
+> +		i2c_wr32(sd, D0W_CNTRL, MASK_D0W_LANEDISABLE);
+> +	if (lanes < 2)
+> +		i2c_wr32(sd, D1W_CNTRL, MASK_D1W_LANEDISABLE);
+> +	if (lanes < 3)
+> +		i2c_wr32(sd, D2W_CNTRL, MASK_D2W_LANEDISABLE);
+> +	if (lanes < 4)
+> +		i2c_wr32(sd, D3W_CNTRL, MASK_D3W_LANEDISABLE);
+> +
+> +	i2c_wr32(sd, LINEINITCNT, pdata->lineinitcnt);
+> +	i2c_wr32(sd, LPTXTIMECNT, pdata->lptxtimecnt);
+> +	i2c_wr32(sd, TCLK_HEADERCNT, pdata->tclk_headercnt);
+> +	i2c_wr32(sd, THS_HEADERCNT, pdata->ths_headercnt);
+> +	i2c_wr32(sd, TWAKEUP, pdata->twakeup);
+> +	i2c_wr32(sd, THS_TRAILCNT, pdata->ths_trailcnt);
+> +	i2c_wr32(sd, HSTXVREGCNT, pdata->hstxvregcnt);
+> +
+> +	i2c_wr32(sd, HSTXVREGEN,
+> +			((lanes > 0) ? MASK_CLM_HSTXVREGEN : 0x0) |
+> +			((lanes > 0) ? MASK_D0M_HSTXVREGEN : 0x0) |
+> +			((lanes > 1) ? MASK_D1M_HSTXVREGEN : 0x0) |
+> +			((lanes > 2) ? MASK_D2M_HSTXVREGEN : 0x0) |
+> +			((lanes > 3) ? MASK_D3M_HSTXVREGEN : 0x0));
+> +
+> +	i2c_wr32(sd, TXOPTIONCNTRL, MASK_CONTCLKMODE);
+
+Since anything below can't be undone without pulling CTXRST, I propose
+to split tc358743_set_csi into tc358743_set_csi (above) and
+tc358743_start_csi (below).
+
+To make this driver work with the Synopsys DesignWare MIPI CSI-2 Host
+Controller, there needs to be a time when the lanes are in stop state
+first, so the host can synchronize. I'd then like to call start_csi in
+s_stream only.
+
+> +	i2c_wr32(sd, STARTCNTRL, MASK_START);
+> +	i2c_wr32(sd, CSI_START, MASK_STRT);
+> +
+> +	i2c_wr32(sd, CSI_CONFW, MASK_MODE_SET |
+> +			MASK_ADDRESS_CSI_CONTROL |
+> +			MASK_CSI_MODE |
+> +			MASK_TXHSMD |
+> +			((lanes == 4) ? MASK_NOL_4 :
+> +			 (lanes == 3) ? MASK_NOL_3 :
+> +			 (lanes == 2) ? MASK_NOL_2 : MASK_NOL_1));
+> +
+> +	i2c_wr32(sd, CSI_CONFW, MASK_MODE_SET |
+> +			MASK_ADDRESS_CSI_ERR_INTENA | MASK_TXBRK | MASK_QUNK |
+> +			MASK_WCER | MASK_INER);
+> +
+> +	i2c_wr32(sd, CSI_CONFW, MASK_MODE_CLEAR |
+> +			MASK_ADDRESS_CSI_ERR_HALT | MASK_TXBRK | MASK_QUNK);
+> +
+> +	i2c_wr32(sd, CSI_CONFW, MASK_MODE_SET |
+> +			MASK_ADDRESS_CSI_INT_ENA | MASK_INTER);
+> +}
+[...]
+
+regards
+Philipp
+
