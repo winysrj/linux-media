@@ -1,131 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50224 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751609AbbBRDp3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 22:45:29 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2BA1E2A008D
-	for <linux-media@vger.kernel.org>; Wed, 18 Feb 2015 04:45:08 +0100 (CET)
-Date: Wed, 18 Feb 2015 04:45:08 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ABI WARNING
-Message-Id: <20150218034508.2BA1E2A008D@tschai.lan>
+Received: from www.netup.ru ([77.72.80.15]:37258 "EHLO imap.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751730AbbBRBeO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2015 20:34:14 -0500
+Received: from mail-lb0-f178.google.com (mail-lb0-f178.google.com [209.85.217.178])
+	by imap.netup.ru (Postfix) with ESMTPA id D002768CA01
+	for <linux-media@vger.kernel.org>; Wed, 18 Feb 2015 04:34:07 +0300 (MSK)
+Received: by lbjb6 with SMTP id b6so8004051lbj.12
+        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2015 17:34:07 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAPA4HGVMe9WmwgkriS5nFiGF6DSuNntj8tzHG1c9sMHPnouzkA@mail.gmail.com>
+References: <CAK3bHNUaC=XoqREJMTWAAP=i+nPjcsQQPehS0--rk12Yhhn16g@mail.gmail.com>
+	<20150216163545.GA12302@biggie>
+	<CAK3bHNV8+x2+TXt=WK5g7ObDX+zO-HJHk7B08YkXwKtAGy+fNg@mail.gmail.com>
+	<CAPA4HGVMe9WmwgkriS5nFiGF6DSuNntj8tzHG1c9sMHPnouzkA@mail.gmail.com>
+Date: Tue, 17 Feb 2015 20:34:07 -0500
+Message-ID: <CAK3bHNW1s5-gNyXSD3AcPOWkCEi1BFVQVvJEPKuNpMgPFMwYWQ@mail.gmail.com>
+Subject: Re: Opening firmware source code (vhdl)
+From: Abylay Ospan <aospan@netup.ru>
+To: Luis de Bethencourt <luis@debethencourt.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Luis,
 
-Results of the daily build of media_tree:
+Great !
+Please send me your address and phone in private email. I will arrange shipment.
 
-date:		Wed Feb 18 04:00:23 CET 2015
-git branch:	test
-git hash:	135f9be9194cf7778eb73594aa55791b229cf27c
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-5.slh.1-amd64
+2015-02-17 19:43 GMT-05:00 Luis de Bethencourt <luis@debethencourt.com>:
+> On 17 Feb 2015 21:40, "Abylay Ospan" <aospan@netup.ru> wrote:
+>>
+>> Hi Luis,
+>>
+>> welcome !
+>>
+>> We have some amount (5+ pcs) of boards available for developers. If
+>> someone seriously interested (have any ideas to check with board ?) we
+>> can ship it for free :)
+>>
+>>
+>
+> Hi Abylay,
+>
+> Besides making sure it all works nicely in Linux, I would be interested on
+> having the broad selection of features available through GStreamer elements.
+>
+> Would this be of interest to you?
+>
+> Thanks,
+> Luis
+>
+>>
+>> 2015-02-16 11:35 GMT-05:00 Luis de Bethencourt <luis@debethencourt.com>:
+>> > On Mon, Feb 16, 2015 at 11:04:47AM -0500, Abylay Ospan wrote:
+>> >> Hello,
+>> >>
+>> >> We're fully opening firmware sources for our new card - NetUP Dual
+>> >> Universal DVB CI. License is GPLv3. Sources is VHDL for Altera FPGA
+>> >> EP4CGX22CF19C8
+>> >> and can be compiled with Altera Quartus II (free edition). Hope this
+>> >> will help for enthusiasts and developers to deeply understand hardware
+>> >> part of DVB card.
+>> >>
+>> >> Source code:
+>> >> https://github.com/aospan/NetUP_Dual_Universal_CI-fpga
+>> >>
+>> >> Here is a description for building and uploading fw into DVB card:
+>> >> http://linuxtv.org/wiki/index.php/FPGA_fw_for_NetUP_Dual_Universal_CI
+>> >>
+>> >> Feel free to contact me for any questions or comments.
+>> >>
+>> >> --
+>> >> Abylay Ospan,
+>> >> NetUP Inc.
+>> >> http://www.netup.tv
+>> >> --
+>> >
+>> > Thanks for open sourcing the firmware of your new card!
+>> >
+>> > I am sure the owners of this hardware will appreciate this.
+>> >
+>> > Luis
+>>
+>>
+>>
+>> --
+>> Abylay Ospan,
+>> NetUP Inc.
+>> http://www.netup.tv
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse: WARNINGS
-smatch: ERRORS
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
