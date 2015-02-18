@@ -1,72 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:40609 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752450AbbBYP6c (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:33733 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751950AbbBRPaM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2015 10:58:32 -0500
-Received: by wghl18 with SMTP id l18so4538841wgh.7
-        for <linux-media@vger.kernel.org>; Wed, 25 Feb 2015 07:58:31 -0800 (PST)
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: omap3isp: use vb2_buffer_state enum for vb2 buffer state
-Date: Wed, 25 Feb 2015 15:58:14 +0000
-Message-Id: <1424879894-7128-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 18 Feb 2015 10:30:12 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/7] [media] cx231xx: fix compilation if the media controller is not defined
+Date: Wed, 18 Feb 2015 13:29:56 -0200
+Message-Id: <9250f0139f21e0ccfeb1441a252fe7ae904b7066.1424273378.git.mchehab@osg.samsung.com>
+In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+drivers/media/usb/cx231xx/cx231xx-cards.c: In function ‘cx231xx_usb_probe’:
+drivers/media/usb/cx231xx/cx231xx-cards.c:1589:15: error: ‘struct v4l2_device’ has no member named ‘mdev’
+  dev->v4l2_dev.mdev = dev->media_dev;
+               ^
+drivers/media/usb/cx231xx/cx231xx-cards.c:1589:26: error: ‘struct cx231xx’ has no member named ‘media_dev’
+  dev->v4l2_dev.mdev = dev->media_dev;
+                          ^
+scripts/Makefile.build:257: recipe for target 'drivers/media/usb/cx231xx/cx231xx-cards.o' failed
 
-use the vb2_buffer_state enum for assigning the state
-of the vb2 buffer, along side making isp_pipeline_state
-state variable local to the block.
-This fixes the following sparse warning as well:
-drivers/media/platform/omap3isp/ispvideo.c:497:35: warning: mixing different enum types
-drivers/media/platform/omap3isp/ispvideo.c:497:35:     int enum isp_pipeline_state  versus
-drivers/media/platform/omap3isp/ispvideo.c:497:35:     int enum vb2_buffer_state
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/omap3isp/ispvideo.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 3fe9047..8cd3a57 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -449,7 +449,7 @@ static const struct vb2_ops isp_video_queue_ops = {
- struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
- {
- 	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
--	enum isp_pipeline_state state;
-+	enum vb2_buffer_state vb_state;
- 	struct isp_buffer *buf;
- 	unsigned long flags;
- 	struct timespec ts;
-@@ -488,17 +488,19 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index dfc7010cff7f..372b70eb042c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1586,7 +1586,9 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	cx231xx_media_device_register(dev, udev);
  
- 	/* Report pipeline errors to userspace on the capture device side. */
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && pipe->error) {
--		state = VB2_BUF_STATE_ERROR;
-+		vb_state = VB2_BUF_STATE_ERROR;
- 		pipe->error = false;
- 	} else {
--		state = VB2_BUF_STATE_DONE;
-+		vb_state = VB2_BUF_STATE_DONE;
- 	}
+ 	/* Create v4l2 device */
++#ifdef CONFIG_MEDIA_CONTROLLER
+ 	dev->v4l2_dev.mdev = dev->media_dev;
++#endif
+ 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
+ 	if (retval) {
+ 		dev_err(d, "v4l2_device_register failed\n");
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index e8c054c4ac8c..44229a2c2d32 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -540,7 +540,9 @@ static int register_dvb(struct cx231xx_dvb *dvb,
  
--	vb2_buffer_done(&buf->vb, state);
-+	vb2_buffer_done(&buf->vb, vb_state);
+ 	/* register network adapter */
+ 	dvb_net_init(&dvb->adapter, &dvb->net, &dvb->demux.dmx);
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+ 	dvb_create_media_graph(dev->media_dev);
++#endif
+ 	return 0;
  
- 	spin_lock_irqsave(&video->irqlock, flags);
- 
- 	if (list_empty(&video->dmaqueue)) {
-+		enum isp_pipeline_state state;
-+
- 		spin_unlock_irqrestore(&video->irqlock, flags);
- 
- 		if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ fail_fe_conn:
 -- 
-1.9.1
+2.1.0
 
