@@ -1,67 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fortimail.online.lv ([81.198.164.220]:33225 "EHLO
-	fortimail.online.lv" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752944AbbBANHE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Feb 2015 08:07:04 -0500
-Received: from mailo-proxy2.online.lv (smtp.online.lv [81.198.164.193])
-	by fortimail.online.lv  with ESMTP id t11D70CV025209-t11D70CW025209
-	for <linux-media@vger.kernel.org>; Sun, 1 Feb 2015 15:07:00 +0200
-Message-ID: <54CE24F2.7090400@apollo.lv>
-Date: Sun, 01 Feb 2015 15:06:58 +0200
-From: Raimonds Cicans <ray@apollo.lv>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, hans.verkuil@cisco.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
- cx23885: convert to vb2"
-References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>
- <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>
-In-Reply-To: <54CA23BE.7050609@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from andre.telenet-ops.be ([195.130.132.53]:43219 "EHLO
+	andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752528AbbBRQcr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2015 11:32:47 -0500
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+To: Ben Dooks <ben.dooks@codethink.co.uk>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	stable@vger.kernel.org
+Subject: [PATCH] [media] soc-camera: Remove bogus devm_kfree() in soc_of_bind()
+Date: Wed, 18 Feb 2015 17:32:43 +0100
+Message-Id: <1424277163-24869-1-git-send-email-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29.01.2015 14:12, Hans Verkuil wrote:
-> On 01/29/15 12:51, Raimonds Cicans wrote:
->> On 29.01.2015 09:33, Hans Verkuil wrote:
->>> On 01/11/2015 10:33 AM, Raimonds Cicans wrote:
->>>> I contacted you because I am hit by regression caused by your commit:
->>>> 453afdd "[media] cx23885: convert to vb2"
->>>>
->>>>
->>>> My system:
->>>> AMD Athlon(tm) II X2 240e Processor on Asus M5A97 LE R2.0 motherboard
->>>> TBS6981 card (Dual DVB-S/S2 PCIe receiver, cx23885 in kernel driver)
->>>>
->>>> After upgrade from kernel 3.13.10 (do not have commit) to 3.17.7
->>>> (have commit) I started receiving following IOMMU related messages:
->>>>
->>>> 1)
->>>> AMD-Vi: Event logged [IO_PAGE_FAULT device=0a:00.0 domain=0x001d
->>>> address=0x000000000637c000 flags=0x0000]
->>>>
->>>> where device=0a:00.0 is TBS6981 card
->>> As far as I can tell this has nothing to do with the cx23885 driver but is
->>> a bug in the amd iommu/BIOS. See e.g.:
->>>
->>> https://bbs.archlinux.org/viewtopic.php?pid=1309055
->>>
->>> I managed to reproduce the Intel equivalent if I enable CONFIG_IOMMU_SUPPORT.
->>>
->>> Most likely due to broken BIOS/ACPI/whatever information that's read by the
->>> kernel. I would recommend disabling this kernel option.
->>>
->> Maybe...
->>
->> But on other hand this did not happen on old kernel with old driver.
->> And when I did bisection on old kernel + media tree I started to
->> receive this message only on new driver.
-> Was CONFIG_IOMMU_SUPPORT enabled in the old kernel?
+Unlike scan_async_group(), soc_of_bind() doesn't allocate its
+soc_camera_async_client structure using devm_kzalloc(), but has it
+embedded inside the soc_of_info structure.  Hence on failure, it must
+not free it using devm_kfree(), as this will cause a warning, and may
+cause slab corruption:
 
-zgrep CONFIG_IOMMU_SUPPORT /proc/config.gz
-CONFIG_IOMMU_SUPPORT=y
+    soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+    ------------[ cut here ]------------
+    WARNING: CPU: 0 PID: 1 at drivers/base/devres.c:887 devm_kfree+0x30/0x40()
+    CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.19.0-shmobile-08386-g37feb0d093cb2d8e #128
+    Hardware name: Generic R8A7791 (Flattened Device Tree)
+    Backtrace:
+    [<c0011e7c>] (dump_backtrace) from [<c0012024>] (show_stack+0x18/0x1c)
+     r6:c05a923b r5:00000009 r4:00000000 r3:00204140
+    [<c001200c>] (show_stack) from [<c048ed30>] (dump_stack+0x78/0x94)
+    [<c048ecb8>] (dump_stack) from [<c002687c>] (warn_slowpath_common+0x8c/0xb8)
+     r4:00000000 r3:00000000
+    [<c00267f0>] (warn_slowpath_common) from [<c0026980>] (warn_slowpath_null+0x24/0x2c)
+     r8:ee7d8214 r7:ed83b810 r6:ed83bc20 r5:fffffffa r4:ed83e510
+    [<c002695c>] (warn_slowpath_null) from [<c025e0cc>] (devm_kfree+0x30/0x40)
+    [<c025e09c>] (devm_kfree) from [<c032bbf4>] (soc_of_bind.isra.14+0x194/0x1d4)
+    [<c032ba60>] (soc_of_bind.isra.14) from [<c032c6b8>] (soc_camera_host_register+0x208/0x31c)
+     r9:00000070 r8:ee7e05d0 r7:ee153210 r6:00000000 r5:ee7e0218 r4:ed83bc20
+    [<c032c4b0>] (soc_camera_host_register) from [<c032e80c>] (rcar_vin_probe+0x1f4/0x238)
+     r8:ee153200 r7:00000008 r6:ee153210 r5:ed83bc10 r4:c066319c r3:000000c0
+    [<c032e618>] (rcar_vin_probe) from [<c025c334>] (platform_drv_probe+0x50/0xa0)
+     r10:00000000 r9:c0662fa8 r8:00000000 r7:c06a3700 r6:c0662fa8 r5:ee153210
+     r4:00000000
+    [<c025c2e4>] (platform_drv_probe) from [<c025af08>] (driver_probe_device+0xc4/0x208)
+     r6:c06a36f4 r5:00000000 r4:ee153210 r3:c025c2e4
+    [<c025ae44>] (driver_probe_device) from [<c025b108>] (__driver_attach+0x70/0x94)
+     r9:c066f9c0 r8:c0624a98 r7:c065b790 r6:c0662fa8 r5:ee153244 r4:ee153210
+    [<c025b098>] (__driver_attach) from [<c025984c>] (bus_for_each_dev+0x74/0x98)
+     r6:c025b098 r5:c0662fa8 r4:00000000 r3:00000001
+    [<c02597d8>] (bus_for_each_dev) from [<c025b1dc>] (driver_attach+0x20/0x28)
+     r6:ed83c200 r5:00000000 r4:c0662fa8
+    [<c025b1bc>] (driver_attach) from [<c025a00c>] (bus_add_driver+0xdc/0x1c4)
+    [<c0259f30>] (bus_add_driver) from [<c025b8f4>] (driver_register+0xa4/0xe8)
+     r7:c0624a98 r6:00000000 r5:c060b010 r4:c0662fa8
+    [<c025b850>] (driver_register) from [<c025ccd0>] (__platform_driver_register+0x50/0x64)
+     r5:c060b010 r4:ed8394c0
+    [<c025cc80>] (__platform_driver_register) from [<c060b028>] (rcar_vin_driver_init+0x18/0x20)
+    [<c060b010>] (rcar_vin_driver_init) from [<c05edde8>] (do_one_initcall+0x108/0x1b8)
+    [<c05edce0>] (do_one_initcall) from [<c05edfb4>] (kernel_init_freeable+0x11c/0x1e4)
+     r9:c066f9c0 r8:c066f9c0 r7:c062eab0 r6:c06252c4 r5:000000ad r4:00000006
+    [<c05ede98>] (kernel_init_freeable) from [<c048c3d0>] (kernel_init+0x10/0xec)
+     r9:00000000 r8:00000000 r7:00000000 r6:00000000 r5:c048c3c0 r4:00000000
+    [<c048c3c0>] (kernel_init) from [<c000eba0>] (ret_from_fork+0x14/0x34)
+     r4:00000000 r3:ee04e000
+    ---[ end trace e3a984cc0335c8a0 ]---
+    rcar_vin e6ef1000.video: group probe failed: -6
 
+Fixes: 1ddc6a6caa94e1e1 ("[media] soc_camera: add support for dt binding soc_camera drivers")
+Cc: stable@vger.kernel.org
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+---
+Triggered with shmobile-defconfig on r8a7791/koelsch.
+---
+ drivers/media/platform/soc_camera/soc_camera.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Raimonds Cicans
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index cee7b56f84049944..d8a072fe46035821 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1665,7 +1665,6 @@ eclkreg:
+ eaddpdev:
+ 	platform_device_put(sasc->pdev);
+ eallocpdev:
+-	devm_kfree(ici->v4l2_dev.dev, sasc);
+ 	dev_err(ici->v4l2_dev.dev, "group probe failed: %d\n", ret);
+ 
+ 	return ret;
+-- 
+1.9.1
 
