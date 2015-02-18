@@ -1,98 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39127 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752916AbbBJKpe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2015 05:45:34 -0500
-Message-ID: <54D9E14A.5090200@iki.fi>
-Date: Tue, 10 Feb 2015 12:45:30 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: =?UTF-8?B?RGF2aWQgQ2ltYsWvcmVr?= <david.cimburek@gmail.com>,
-	linux-media@vger.kernel.org,
-	=?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
-Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working
- since kernel 3.17
-References: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
-In-Reply-To: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.samsung.com ([203.254.224.25]:11191 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752000AbbBRQZZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2015 11:25:25 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: [PATCH/RFC v11 12/20] of: Add Skyworks Solutions, Inc. vendor prefix
+Date: Wed, 18 Feb 2015 17:20:33 +0100
+Message-id: <1424276441-3969-13-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-David Härdeman,
-Could you look that as it is your patch which has broken it
+Use "skyworks" as the vendor prefix for the Skyworks Solutions, Inc.
 
-commit af3a4a9bbeb00df3e42e77240b4cdac5479812f9
-Author: David Härdeman <david@hardeman.nu>
-Date:   Thu Apr 3 20:31:51 2014 -0300
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+---
+ .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+ 1 file changed, 1 insertion(+)
 
-     [media] dib0700: NEC scancode cleanup
-
-
-Antti
-
-On 02/10/2015 12:38 PM, David Cimbůrek wrote:
-> Please include this patch to kernel! It takes too much time for such a
-> simple fix!
->
->
-> 2015-01-07 13:51 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
->> No one is interested? I'd like to get this patch to kernel to fix the
->> issue. Can someone here do it please?
->>
->>
->> 2014-12-20 14:36 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
->>> Hi,
->>>
->>> with kernel 3.17 remote control for Pinnacle 73e (ID 2304:0237
->>> Pinnacle Systems, Inc. PCTV 73e [DiBcom DiB7000PC]) does not work
->>> anymore.
->>>
->>> I checked the changes and found out the problem in commit
->>> af3a4a9bbeb00df3e42e77240b4cdac5479812f9.
->>>
->>> In dib0700_core.c in struct dib0700_rc_response the following union:
->>>
->>> union {
->>>      u16 system16;
->>>      struct {
->>>          u8 not_system;
->>>          u8 system;
->>>      };
->>> };
->>>
->>> has been replaced by simple variables:
->>>
->>> u8 system;
->>> u8 not_system;
->>>
->>> But these variables are in reverse order! When I switch the order
->>> back, the remote works fine again! Here is the patch:
->>>
->>>
->>> --- a/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
->>> 14:27:15.000000000 +0100
->>> +++ b/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
->>> 14:27:36.000000000 +0100
->>> @@ -658,8 +658,8 @@
->>>   struct dib0700_rc_response {
->>>       u8 report_id;
->>>       u8 data_state;
->>> -    u8 system;
->>>       u8 not_system;
->>> +    u8 system;
->>>       u8 data;
->>>       u8 not_data;
->>>   };
->>>
->>>
->>> Regards,
->>> David
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 389ca13..9276e7f 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -153,6 +153,7 @@ ricoh	Ricoh Co. Ltd.
+ rockchip	Fuzhou Rockchip Electronics Co., Ltd
+ samsung	Samsung Semiconductor
+ sandisk	Sandisk Corporation
++skyworks	Skyworks Solutions, Inc.
+ sbs	Smart Battery System
+ schindler	Schindler
+ seagate	Seagate Technology PLC
 -- 
-http://palosaari.fi/
+1.7.9.5
+
