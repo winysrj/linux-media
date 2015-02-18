@@ -1,100 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:42809 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753610AbbBTJLS convert rfc822-to-8bit (ORCPT
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:64360 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752203AbbBRLH1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2015 04:11:18 -0500
-Received: by mail-ob0-f172.google.com with SMTP id nt9so23044089obb.3
-        for <linux-media@vger.kernel.org>; Fri, 20 Feb 2015 01:11:17 -0800 (PST)
+	Wed, 18 Feb 2015 06:07:27 -0500
+Received: by mail-ob0-f182.google.com with SMTP id nt9so519624obb.13
+        for <linux-media@vger.kernel.org>; Wed, 18 Feb 2015 03:07:26 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <54E68315.7020209@iki.fi>
-References: <CAJ+AEyMT6etRK6cj6s2iwNHW3QG4mh7TVdPeNvVKKSBAJU9ztA@mail.gmail.com>
-	<54E68315.7020209@iki.fi>
-Date: Fri, 20 Feb 2015 09:11:17 +0000
-Message-ID: <CAJ+AEyNfefnHiKtr+iGnE6NfWbTVT40DcqPckfa=kQbEw6ymYg@mail.gmail.com>
-Subject: Re: DVBSky T982 (Si2168) Questions/Issues/Request
-From: Eponymous - <the.epon@gmail.com>
+In-Reply-To: <54E3931C.9060508@iki.fi>
+References: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>
+	<54E24C83.7090309@iki.fi>
+	<20150216214743.6a9180a6@recife.lan>
+	<CAE6wzS+i1uaNr23ViFdW0U0Pf3j7--vV16dwRggTVV7X0AiCKg@mail.gmail.com>
+	<54E3931C.9060508@iki.fi>
+Date: Wed, 18 Feb 2015 11:07:26 +0000
+Message-ID: <CAE6wzSJ8-cB=NGU9SmZ1jqmWv5wpzSShRnquM8JFk3CtSj4pAA@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/1] [media] pci: Add support for DVB PCIe cards from
+ Prospero Technologies Ltd.
+From: Philip Downer <pdowner@prospero-tech.com>
 To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> It is increased to 70 ms already,.
+Hi Antti,
 
-A great I will test with this value and see if it is ok.
-
-
->> I don't understand what you mean. Likely you are not understanding how DVB-T and DVB-T2 works. There is transmitter which uses DVB-T or DVB-T2, not both standards same time. You have to select used standard according to transmitter specs and make proper tuning request. Driver could do DVB-T, DVB-T2 and DVB-C, but only one transmission is possible to receive as once per tuner.
-
-I understand how the system works but I don't think I'm explaining the
-problem very well :)
-
-In tvheadend 3.4.27 I add two muxes, one DVB-T (64QAM 8K 2/324.1Mb/s
-DVB-T MPEG2) and one DVB-T2 (256QAM 32KE 2/340.2Mb/s DVB-T2 MPEG4). I
-can only receive DVB-T services and channel/mux information, not
-DVB-T2.
-
-I've tested with w_scan as well with the same result. It's almost like
-it's not able to see any DVB-T2 muxes.
-
-Sean.
-
-On Fri, Feb 20, 2015 at 12:43 AM, Antti Palosaari <crope@iki.fi> wrote:
-> Moi
->
-> On 02/20/2015 01:33 AM, Eponymous - wrote:
+On Tue, Feb 17, 2015 at 7:14 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 02/17/2015 08:22 PM, Philip Downer wrote:
 >>
->> Hi.
+>> Hi Mauro,
 >>
->> I have a couple of issues with the si2168.c dvb-frontend in kernel v
->> 3.19.0. To get the firnware to load I've had to increase the #define
->> TIMEOUT to 150 from 50. I read another post
->> (http://www.spinics.net/lists/linux-media/msg84198.html) where another
->> user had to do the same modification.
+>> On Mon, Feb 16, 2015 at 11:47 PM, Mauro Carvalho Chehab
+>> <mchehab@osg.samsung.com> wrote:
+>>>
+>>> Em Mon, 16 Feb 2015 22:01:07 +0200
+>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>
+>>>> Moikka!
+>>>>
+>>>> On 02/16/2015 09:48 PM, Philip Downer wrote:
+>>>>>
+>>>>> The Vortex PCIe card by Prospero Technologies Ltd is a modular DVB card
+>>>>> with a hardware demux, the card can support up to 8 modules which are
+>>>>> fixed to the board at assembly time. Currently we only offer one
+>>>>> configuration, 8 x Dibcom 7090p DVB-t tuners, but we will soon be
+>>>>> releasing
+>>>>> other configurations. There is also a connector for an infra-red
+>>>>> receiver
+>>>>> dongle on the board which supports RAW IR.
+>>>>>
+>>>>> The driver has been in testing on our systems (ARM Cortex-A9, Marvell
+>>>>> Sheva,
+>>>>> x86, x86-64) for longer than 6 months, so I'm confident that it works.
+>>>>> However as this is the first Linux driver I've written, I'm sure there
+>>>>> are
+>>>>> some things that I've got wrong. One thing in particular which has been
+>>>>> raised by one of our early testers is that we currently register all of
+>>>>> our frontends as being attached to one adapter. This means the device
+>>>>> is
+>>>>> enumerated in /dev like this:
+>>>>>
+>>>>> /dev/dvb/adapter0/frontend0
+>>>>> /dev/dvb/adapter0/dvr0
+>>>>> /dev/dvb/adapter0/demux0
+>>>>>
+>>>>> /dev/dvb/adapter0/frontend1
+>>>>> /dev/dvb/adapter0/dvr1
+>>>>> /dev/dvb/adapter0/demux1
+>>>>>
+>>>>> /dev/dvb/adapter0/frontend2
+>>>>> /dev/dvb/adapter0/dvr2
+>>>>> /dev/dvb/adapter0/demux2
+>>>>>
+>>>>> etc.
+>>>>>
+>>>>> Whilst I think this is ok according to the spec, our tester has
+>>>>> complained
+>>>>> that it's incompatible with their software which expects to find just
+>>>>> one
+>>>>> frontend per adapter. So I'm wondering if someone could confirm if what
+>>>>> I've done with regards to this is correct.
+>>>>
+>>>>
+>>>> As I understand all those tuners are independent (could be used same
+>>>> time) you should register those as a 8 adapters, each having single
+>>>> frontend, dvr and demux.
+>>>
+>>>
+>>> Yeah, creating one adapter per device is the best solution, if you
+>>> can't do things like:
+>>>
+>>>          frontend0 -> demux2 -> dvr5
 >>
->> @ Antti Palosaari: Since the 50ms value you came up with was just
->> based on some "trail and error", would it be possible to submit a
->> change upstream to increase this timeout since it's likely others are
->> going to encounter this issue?
->
->
-> It is increased to 70 ms already,
->
-> commit 551c33e729f654ecfaed00ad399f5d2a631b72cb
-> Author: Jurgen Kramer <gtmkramer@xs4all.nl>
-> Date:   Mon Dec 8 05:30:44 2014 -0300
-> [media] Si2168: increase timeout to fix firmware loading
->
-> If it is not enough, then send patch which increased it even more.
->
-> Have to check if that fix never applied to stable, as there is no Cc stable
-> I added.... Mauro has applied patch from patchwork, not from pull request I
-> made:
-> https://patchwork.linuxtv.org/patch/27960/
-> http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=si2168_fix
->
 >>
->> The second issue I have is that where I am based (UK) we have both
->> DVB-T and DVB-T2 muxes and I can't get a single tuner to be able to
->> tune to both transports, but looking through the Si2168.c code, I'm
->> having trouble working out how (if at all) this is achieved?
->>
->> It's not the case where we can only tune to DVB-T OR DVB-T2 is it? If
->> so, that's far from ideal...
->>
->> Are there any workarounds if true?
+>> Thanks for confirming what Antti said, I'll change the driver and resubmit
+>> it.
 >
 >
-> I don't understand what you mean. Likely you are not understanding how DVB-T
-> and DVB-T2 works. There is transmitter which uses DVB-T or DVB-T2, not both
-> standards same time. You have to select used standard according to
-> transmitter specs and make proper tuning request. Driver could do DVB-T,
-> DVB-T2 and DVB-C, but only one transmission is possible to receive as once
-> per tuner.
->
-> regards
-> Antti
-> --
-> http://palosaari.fi/
+> Also, take care to fix issues to meet Kernel coding style and checkpatch.pl
+> requirements where possible.
+
+Sure, I had pushed this patch through checkpatch and fixed most
+things, the only things I'm aware of that aren't fixed are line
+lengths and one section with too many nested statements. However I've
+read that line lengths are less of an issue these days in kernel code
+and the section with too many nested statements came from dibcom
+therefore I didn't want to refactor this, at least not without a lot
+of testing. Please let me know if I'm wrong in my assumptions or if
+I've missed something in generating this patch.
+
+-- 
+Philip Downer
+pdowner@prospero-tech.com
