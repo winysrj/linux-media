@@ -1,91 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:53153 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752127AbbBLANQ (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40862 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751596AbbBRPip (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2015 19:13:16 -0500
-Received: by mail-wg0-f43.google.com with SMTP id n12so6843738wgh.2
-        for <linux-media@vger.kernel.org>; Wed, 11 Feb 2015 16:13:15 -0800 (PST)
-Date: Thu, 12 Feb 2015 00:13:13 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Matthias Schwarzott <zzam@gentoo.org>,
-	Christian Engelmayer <cengelma@gmx.at>,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	hans.verkuil@cisco.com
-Subject: Re: [PATCH] [media] si2165: Fix possible leak in
- si2165_upload_firmware()
-Message-ID: <20150212001313.GB1864@turing>
-References: <1423688303-31894-1-git-send-email-cengelma@gmx.at>
- <54DBCD5D.8000409@gentoo.org>
- <20150211233856.GA5444@turing>
- <54DBE8F5.6080803@iki.fi>
+	Wed, 18 Feb 2015 10:38:45 -0500
+Message-ID: <54E4B1ED.2090404@xs4all.nl>
+Date: Wed, 18 Feb 2015 16:38:21 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54DBE8F5.6080803@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Joe Perches <joe@perches.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 5/7] [media] cx25840: better document the media controller
+ TODO
+References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com> <b42dd11d90c964db544f176c1e0d1637bb79b474.1424273378.git.mchehab@osg.samsung.com>
+In-Reply-To: <b42dd11d90c964db544f176c1e0d1637bb79b474.1424273378.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 12, 2015 at 01:42:45AM +0200, Antti Palosaari wrote:
-> On 02/12/2015 01:38 AM, Luis de Bethencourt wrote:
-> >On Wed, Feb 11, 2015 at 10:45:01PM +0100, Matthias Schwarzott wrote:
-> >>On 11.02.2015 21:58, Christian Engelmayer wrote:
-> >>>In case of an error function si2165_upload_firmware() releases the already
-> >>>requested firmware in the exit path. However, there is one deviation where
-> >>>the function directly returns. Use the correct cleanup so that the firmware
-> >>>memory gets freed correctly. Detected by Coverity CID 1269120.
-> >>>
-> >>>Signed-off-by: Christian Engelmayer <cengelma@gmx.at>
-> >>>---
-> >>>Compile tested only. Applies against linux-next.
-> >>>---
-> >>>  drivers/media/dvb-frontends/si2165.c | 2 +-
-> >>>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>>
-> >>>diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-> >>>index 98ddb49ad52b..4cc5d10ed0d4 100644
-> >>>--- a/drivers/media/dvb-frontends/si2165.c
-> >>>+++ b/drivers/media/dvb-frontends/si2165.c
-> >>>@@ -505,7 +505,7 @@ static int si2165_upload_firmware(struct si2165_state *state)
-> >>>  	/* reset crc */
-> >>>  	ret = si2165_writereg8(state, 0x0379, 0x01);
-> >>>  	if (ret)
-> >>>-		return ret;
-> >>>+		goto error;
-> >>>
-> >>>  	ret = si2165_upload_firmware_block(state, data, len,
-> >>>  					   &offset, block_count);
-> >>>
-> >>Good catch.
-> >>
-> >>Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> >>
-> >
-> >Good catch indeed.
-> >
-> >Can I sign off? Not sure what the rules are.
-> >
-> >Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
+On 02/18/2015 04:29 PM, Mauro Carvalho Chehab wrote:
+> Analog video inputs are the tuner, plus composite, svideo, etc,
+>  e. g. the input pat should actually be like:
 > 
+>                 ___________
+> TUNER --------> |         |
+>                 |         |
+> SVIDEO .......> | cx25840 |
+>                 |         |
+> COMPOSITE1 ...> |_________|
 > 
-> You cannot sign it unless patch is going through hands. Probably you want
-> review it. Check documentation "SubmittingPatches".
+> (in the above, dashes represent the enabled link, and periods
+> represent the disabled ones)
 > 
-> https://www.kernel.org/doc/Documentation/SubmittingPatches
+> In other words, if we want to properly represent the pipeline,
+> it should be possible to see via the media controller if the tuner
+> is being used as an image source, or if the source is something else.
 > 
-> regards
-> Antti
+> I didn't map those other inputs here yet, due to a few things:
+> - The extra inputs would require subdevs that won't be controlled
+> - I was in doubt about the best way for doing that
+> - That would likely require some extra setup for cx25840 caller
+>   drivers, in order to represent what of the possible internal
+>   inputs are actually used on each specific board
 > 
-> -- 
-> http://palosaari.fi/
-> --
+> Actually, at least for now, I was unable to see much benefit
+> on adding such map now, so let's just document it, as this could
+> be added later on, as needed.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Hi Antti,
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-That was an interesting read. Now I know how these tags work :)
-Thanks for the pointing it out to me.
+> 
+> diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+> index bdb5bb6b58da..cb4e03de9b75 100644
+> --- a/drivers/media/i2c/cx25840/cx25840-core.c
+> +++ b/drivers/media/i2c/cx25840/cx25840-core.c
+> @@ -5182,7 +5182,20 @@ static int cx25840_probe(struct i2c_client *client,
+>  	sd = &state->sd;
+>  	v4l2_i2c_subdev_init(sd, client, &cx25840_ops);
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> -	/* TODO: need to represent analog inputs too */
+> +	/*
+> +	 * TODO: add media controller support for analog video inputs like
+> +	 * composite, svideo, etc.
+> +	 * A real input pad for this analog demod would be like:
+> +	 *                 ___________
+> +	 * TUNER --------> |         |
+> +	 *		   |         |
+> +	 * SVIDEO .......> | cx25840 |
+> +	 *		   |         |
+> +	 * COMPOSITE1 ...> |_________|
+> +	 *
+> +	 * However, at least for now, there's no much gain on modelling
+> +	 * those extra inputs. So, let's add it only when needed.
+> +	 */
+>  	state->pads[0].flags = MEDIA_PAD_FL_SINK;	/* Tuner or input */
+>  	state->pads[1].flags = MEDIA_PAD_FL_SOURCE;	/* Video */
+>  	state->pads[2].flags = MEDIA_PAD_FL_SOURCE;	/* VBI */
+> 
 
-So I meant "Reviewed-by:"
-
-Luis
