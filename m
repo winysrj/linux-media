@@ -1,37 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52478 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751078AbbBUO5w (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:11000 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751783AbbBRQWV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2015 09:57:52 -0500
-Message-ID: <54E5AB1A.2040306@iki.fi>
-Date: Thu, 19 Feb 2015 11:21:30 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	Wed, 18 Feb 2015 11:22:21 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
 	devicetree@vger.kernel.org
-CC: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com
-Subject: Re: [PATCH/RFC v11 05/20] mfd: max77693: Modify flash cell
- name identifiers
-References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com> <1424276441-3969-6-git-send-email-j.anaszewski@samsung.com>
-In-Reply-To: <1424276441-3969-6-git-send-email-j.anaszewski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v11 05/20] mfd: max77693: Modify flash cell name identifiers
+Date: Wed, 18 Feb 2015 17:20:26 +0100
+Message-id: <1424276441-3969-6-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jacek Anaszewski wrote:
-> Change flash cell identifiers from max77693-flash to max77693-led
-> to avoid confusion with NOR/NAND Flash.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Acked-by: Lee Jones <lee.jones@linaro.org>
+Change flash cell identifiers from max77693-flash to max77693-led
+to avoid confusion with NOR/NAND Flash.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Lee Jones <lee.jones@linaro.org>
+---
+ drivers/mfd/max77693.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
+index a159593..cb14afa 100644
+--- a/drivers/mfd/max77693.c
++++ b/drivers/mfd/max77693.c
+@@ -53,8 +53,8 @@ static const struct mfd_cell max77693_devs[] = {
+ 		.of_compatible = "maxim,max77693-haptic",
+ 	},
+ 	{
+-		.name = "max77693-flash",
+-		.of_compatible = "maxim,max77693-flash",
++		.name = "max77693-led",
++		.of_compatible = "maxim,max77693-led",
+ 	},
+ };
+ 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.9.5
+
