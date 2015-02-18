@@ -1,116 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:35953 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751055AbbBWOV7 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38794 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751568AbbBRPnL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 09:21:59 -0500
-Received: by wevk48 with SMTP id k48so18597362wev.3
-        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2015 06:21:57 -0800 (PST)
-Message-ID: <54EB3784.4090908@gmail.com>
-Date: Mon, 23 Feb 2015 15:21:56 +0100
-From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
+	Wed, 18 Feb 2015 10:43:11 -0500
+Message-ID: <54E4B2F8.5090104@xs4all.nl>
+Date: Wed, 18 Feb 2015 16:42:48 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>,
-	=?UTF-8?B?SG9uemEgUGV0?= =?UTF-8?B?cm91xaE=?=
-	<jpetrous@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: DVB Simulcrypt
-References: <54E8F8F4.1010601@grumpydevil.homelinux.org>	<54E9F59A.4070407@grumpydevil.homelinux.org>	<CAJbz7-2efvftG4=UAphyLFjjuFpLZQKCFDzqXrwb-mfDg4A7SQ@mail.gmail.com>	<54EB016D.8040105@grumpydevil.homelinux.org> <CAJbz7-0U-s543mQ+a+sNt1V2m8T23X=ST5VYJ7LF0tk-n_yd8g@mail.gmail.com> <54EB2099.5040103@grumpydevil.homelinux.org>
-In-Reply-To: <54EB2099.5040103@grumpydevil.homelinux.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH 7/7] [media] cx231xx: enable the analog tuner at buffer
+ setup
+References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com> <8a2bc3b2e5bd4978d1c5252a88c950fa6029047f.1424273378.git.mchehab@osg.samsung.com>
+In-Reply-To: <8a2bc3b2e5bd4978d1c5252a88c950fa6029047f.1424273378.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 02/18/2015 04:30 PM, Mauro Carvalho Chehab wrote:
+> buf_prepare callback is called for every queued buffer. This is
+> an overkill. Call it at buf_setup, as this should be enough.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+> index 87c9e27505f4..f9e885fa153f 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+> @@ -100,6 +100,75 @@ static struct cx231xx_fmt format[] = {
+>  };
+>  
+>  
+> +static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
+> +{
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	struct media_device *mdev = dev->media_dev;
+> +	struct media_entity  *entity, *decoder = NULL, *source;
+> +	struct media_link *link, *found_link = NULL;
+> +	int i, ret, active_links = 0;
+> +
+> +	if (!mdev)
+> +		return 0;
+> +
+> +	/*
+> +	 * This will find the tuner that it is connected into the decoder.
 
-Op 23-02-15 om 13:44 schreef Rudy Zijlstra:
-> On 23-02-15 12:21, Honza Petrouš wrote:
->> 2015-02-23 11:31 GMT+01:00 Rudy Zijlstra 
->> <rudy@grumpydevil.homelinux.org>:
->>> On 23-02-15 08:44, Honza Petrouš wrote:
->>>
->>> Hi Rudy.
->>>
->>> 2015-02-22 16:28 GMT+01:00 Rudy Zijlstra 
->>> <rudy@grumpydevil.homelinux.org>:
->>>> Some more info
->>>>
->>>> On 21-02-15 22:30, Rudy Zijlstra wrote:
->>>>> Dears (Hans?)
->>>>>
->>>>> My setup, where the cable operator was using only irdeto, was working
->>>>> good. Then the cable operator merged with another, and now the 
->>>>> networks are
->>>>> being merged. As a result, the encryption has moved from irdeto 
->>>>> only to
->>>>> simulcyrpt with Irdeto and Nagra.
->>>>>
->>>>> Current status:
->>>>> - when i put the CA card in a STB, it works
->>>>> - when trying to record an encrypted channel from PC, it no longer 
->>>>> works.
->>>> Recording system has 3 tuners. All equal, all with same permissions 
->>>> on the
->>>> smartcard. On cards 0 and 2 does not work, but card 1 does work, on 
->>>> all
->>>> channels tested.
->>>>
->>> Does it mean that descrambling is not working for you? If so,
->>> how do you manage descrambling? By CI-CAM module
->>> or by some "softcam" like oscam?
->>>
->>> Or do you record ENCRYPTED stream and decrypt the recordings
->>> later on?
->>>
->>>
->>> Each tuner has its own legal CI-CAM module. And yes, except for the 
->>> second
->>> tuner descrambling no longer works
->>>
->> I'm not much familiar with MythTV, so I'm guessing from the mux setup 
->> changes,
->> but did you check to descramble the same channel on different tuners?
->> To eliminate
->> the particular change inside one service only.
->>
->> Of course there can be also software issue in CI-CAM module itself
->> (fail in parsing
->> PMT CA descriptors etc).
->>
->> TBH, I think it must be application layer issue, not kernel one.
->>
-> See above:
->
-> Recording system has 3 tuners. All equal, all with same permissions on 
-> the
-> smartcard. On cards 0 and 2 does not work, but card 1 does work, on all
-> channels tested.
->
-> additional finfo: i tested the same channel(s) on all 3 tuners. For 
-> now i have re-configured mythtv to use only the second tuner for 
-> encrypted channels.
-> This does reduce scheduling flexibility though.
->
-> Would to understand what makes the difference, so i can ask the right 
-> questions to MythTV developers.
->
->
-> As the decryption does work with 1 tuner, i see 2 options:
-> - depending on tuner id the default CA descriptor used is different, 
-> and this selection is not expoerted on API level (kernel issue)
-> - application needs to select which CA to use (and currently does not 
-> do this)
->
-It should be the latter one. I'm also having  Ziggo for provider, but 
-always used FFdecsawrapper/Oscam for decryption (also legal in The 
-Netherlands, providing you have a paid subscription)
-ECM CA system id's 0x604 or 0x602 (depending on your region) gets you 
-Irdeto, while ECM CA system id's 0x1850 or 0x1801 get you Nagra.
-Correctly configured FFdecsa/Oscam can deal with it, MythTV probably cannot.
-Check it out at: 
-http://www.dtvmonitor.com/nl/?guid=0BE90D25-BA46-7B93-FDCD-20EFC79691E0
-That's a snapshot from today, monitored from Groningen.
+s/that it is/that is/
 
-Cheers,
+> +	 * Technically, this is not 100% correct, as the device may be
+> +	 * using an analog input instead of the tuner. However, as we can't
+> +	 * do DVB streaming  while the DMA engine is being used for V4L2,
 
-Tycho.
+s/streaming  while/streaming while/
+
+With those changes:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> +	 * this should be enough for the actual needs.
+> +	 */
+> +	media_device_for_each_entity(entity, mdev) {
+> +		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
+> +			decoder = entity;
+> +			break;
+> +		}
+> +	}
+> +	if (!decoder)
+> +		return 0;
+> +
+> +	for (i = 0; i < decoder->num_links; i++) {
+> +		link = &decoder->links[i];
+> +		if (link->sink->entity == decoder) {
+> +			found_link = link;
+> +			if (link->flags & MEDIA_LNK_FL_ENABLED)
+> +				active_links++;
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (active_links == 1 || !found_link)
+> +		return 0;
+> +
+> +	source = found_link->source->entity;
+> +	for (i = 0; i < source->num_links; i++) {
+> +		struct media_entity *sink;
+> +		int flags = 0;
+> +
+> +		link = &source->links[i];
+> +		sink = link->sink->entity;
+> +
+> +		if (sink == entity)
+> +			flags = MEDIA_LNK_FL_ENABLED;
+> +
+> +		ret = media_entity_setup_link(link, flags);
+> +		if (ret) {
+> +			dev_err(dev->dev,
+> +				"Couldn't change link %s->%s to %s. Error %d\n",
+> +				source->name, sink->name,
+> +				flags ? "enabled" : "disabled",
+> +				ret);
+> +			return ret;
+> +		} else
+> +			dev_dbg(dev->dev,
+> +				"link %s->%s was %s\n",
+> +				source->name, sink->name,
+> +				flags ? "ENABLED" : "disabled");
+> +	}
+> +#endif
+> +	return 0;
+> +}
+> +
+>  /* ------------------------------------------------------------------
+>  	Video buffer and parser functions
+>     ------------------------------------------------------------------*/
+> @@ -667,6 +736,9 @@ buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned int *size)
+>  	if (*count < CX231XX_MIN_BUF)
+>  		*count = CX231XX_MIN_BUF;
+>  
+> +
+> +	cx231xx_enable_analog_tuner(dev);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -703,75 +775,6 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
+>  	buf->vb.state = VIDEOBUF_NEEDS_INIT;
+>  }
+>  
+> -static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
+> -{
+> -#ifdef CONFIG_MEDIA_CONTROLLER
+> -	struct media_device *mdev = dev->media_dev;
+> -	struct media_entity  *entity, *decoder = NULL, *source;
+> -	struct media_link *link, *found_link = NULL;
+> -	int i, ret, active_links = 0;
+> -
+> -	if (!mdev)
+> -		return 0;
+> -
+> -	/*
+> -	 * This will find the tuner that it is connected into the decoder.
+> -	 * Technically, this is not 100% correct, as the device may be
+> -	 * using an analog input instead of the tuner. However, as we can't
+> -	 * do DVB streaming  while the DMA engine is being used for V4L2,
+> -	 * this should be enough for the actual needs.
+> -	 */
+> -	media_device_for_each_entity(entity, mdev) {
+> -		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
+> -			decoder = entity;
+> -			break;
+> -		}
+> -	}
+> -	if (!decoder)
+> -		return 0;
+> -
+> -	for (i = 0; i < decoder->num_links; i++) {
+> -		link = &decoder->links[i];
+> -		if (link->sink->entity == decoder) {
+> -			found_link = link;
+> -			if (link->flags & MEDIA_LNK_FL_ENABLED)
+> -				active_links++;
+> -			break;
+> -		}
+> -	}
+> -
+> -	if (active_links == 1 || !found_link)
+> -		return 0;
+> -
+> -	source = found_link->source->entity;
+> -	for (i = 0; i < source->num_links; i++) {
+> -		struct media_entity *sink;
+> -		int flags = 0;
+> -
+> -		link = &source->links[i];
+> -		sink = link->sink->entity;
+> -
+> -		if (sink == entity)
+> -			flags = MEDIA_LNK_FL_ENABLED;
+> -
+> -		ret = media_entity_setup_link(link, flags);
+> -		if (ret) {
+> -			dev_err(dev->dev,
+> -				"Couldn't change link %s->%s to %s. Error %d\n",
+> -				source->name, sink->name,
+> -				flags ? "enabled" : "disabled",
+> -				ret);
+> -			return ret;
+> -		} else
+> -			dev_dbg(dev->dev,
+> -				"link %s->%s was %s\n",
+> -				source->name, sink->name,
+> -				flags ? "ENABLED" : "disabled");
+> -	}
+> -#endif
+> -	return 0;
+> -}
+> -
+>  static int
+>  buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+>  	       enum v4l2_field field)
+> @@ -826,8 +829,6 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+>  
+>  	buf->vb.state = VIDEOBUF_PREPARED;
+>  
+> -	cx231xx_enable_analog_tuner(dev);
+> -
+>  	return 0;
+>  
+>  fail:
+> 
+
