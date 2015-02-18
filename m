@@ -1,61 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:57507 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932871AbbBBLOF (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:33740 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751934AbbBRPaM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 06:14:05 -0500
-Message-ID: <54CF5BC9.3040501@xs4all.nl>
-Date: Mon, 02 Feb 2015 12:13:13 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Miguel Casas-Sanchez <mcasas@chromium.org>,
-	linux-media@vger.kernel.org
-Subject: Re: Vivid test device: adding YU12
-References: <CAKoAQ7=kQyJLP62iAA43aDGGnnwVS8LAQBUK-FrwWWLFF2Tm6w@mail.gmail.com>
-In-Reply-To: <CAKoAQ7=kQyJLP62iAA43aDGGnnwVS8LAQBUK-FrwWWLFF2Tm6w@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 18 Feb 2015 10:30:12 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 6/7] [media] cx231xx: Improve the media controller comment
+Date: Wed, 18 Feb 2015 13:30:00 -0200
+Message-Id: <8b03c5e79532023025ba18649aecd334e36a6f14.1424273378.git.mchehab@osg.samsung.com>
+In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/29/2015 03:44 AM, Miguel Casas-Sanchez wrote:
-> Hi folks, I've been trying to add a triplanar format to those that vivid
-> can generate, and didn't quite manage :(
-> 
-> So, I tried adding code for it like in the patch (with some dprintk() as
-> well) to clarify what I wanted to do. Module is insmod'ed like "insmod
-> vivid.ko n_devs=1 node_types=0x1 multiplanar=2 vivid_debug=1"
+There are two problems at the comment:
+- it is badly idented;
+- its comment doesn't mean anything.
 
-You are confusing something: PIX_FMT_YUV420 is single-planar, not multi-planar.
-That is, all image data is contained in one buffer. PIX_FMT_YUV420M is multi-planar,
-however. So you need to think which one you actually want to support.
+Fix it.
 
-Another problem is that for the chroma part you need to average the values over
-four pixels. So the TPG needs to be aware of the previous line. This makes the TPG
-more complicated, and of course it is the reason why I didn't implement 4:2:0
-formats :-)
+Requested-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-I would implement YUV420 first, and (if needed) YUV420M and/or NV12 can easily be
-added later.
-
-Regards,
-
-	Hans
-
-> With the patch, vivid:
-> - seems to enumerate the new triplanar format all right
-> - vid_s_fmt_vid_cap() works as intended too, apparently
-> - when arriving to vid_cap_queue_setup(), the size of the different
-> sub-arrays does not look quite ok.
-> - Generated video is, visually, all green.
-> 
-> I added as well a capture output dmesgs. Not much of interest here, the
-> first few lines configure the queue -- with my few added dprintk it can be
-> seen that the queue sizes are seemingly incorrect.
-> 
-> If and when this part is up and running, I wanted to use Vivid to test
-> dma-buf based capture.
-> 
-> Big thanks!
-> 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 634763535d60..87c9e27505f4 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -714,12 +714,13 @@ static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
+ 	if (!mdev)
+ 		return 0;
+ 
+-/*
+- * This will find the tuner that it is connected into the decoder.
+- * Technically, this is not 100% correct, as the device may be using an
+- * analog input instead of the tuner. However, we can't use the DVB for dvb
+- * while the DMA engine is being used for V4L2.
+- */
++	/*
++	 * This will find the tuner that it is connected into the decoder.
++	 * Technically, this is not 100% correct, as the device may be
++	 * using an analog input instead of the tuner. However, as we can't
++	 * do DVB streaming  while the DMA engine is being used for V4L2,
++	 * this should be enough for the actual needs.
++	 */
+ 	media_device_for_each_entity(entity, mdev) {
+ 		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
+ 			decoder = entity;
+-- 
+2.1.0
 
