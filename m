@@ -1,99 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.netup.ru ([77.72.80.15]:37258 "EHLO imap.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751730AbbBRBeO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 20:34:14 -0500
-Received: from mail-lb0-f178.google.com (mail-lb0-f178.google.com [209.85.217.178])
-	by imap.netup.ru (Postfix) with ESMTPA id D002768CA01
-	for <linux-media@vger.kernel.org>; Wed, 18 Feb 2015 04:34:07 +0300 (MSK)
-Received: by lbjb6 with SMTP id b6so8004051lbj.12
-        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2015 17:34:07 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAPA4HGVMe9WmwgkriS5nFiGF6DSuNntj8tzHG1c9sMHPnouzkA@mail.gmail.com>
-References: <CAK3bHNUaC=XoqREJMTWAAP=i+nPjcsQQPehS0--rk12Yhhn16g@mail.gmail.com>
-	<20150216163545.GA12302@biggie>
-	<CAK3bHNV8+x2+TXt=WK5g7ObDX+zO-HJHk7B08YkXwKtAGy+fNg@mail.gmail.com>
-	<CAPA4HGVMe9WmwgkriS5nFiGF6DSuNntj8tzHG1c9sMHPnouzkA@mail.gmail.com>
-Date: Tue, 17 Feb 2015 20:34:07 -0500
-Message-ID: <CAK3bHNW1s5-gNyXSD3AcPOWkCEi1BFVQVvJEPKuNpMgPFMwYWQ@mail.gmail.com>
-Subject: Re: Opening firmware source code (vhdl)
-From: Abylay Ospan <aospan@netup.ru>
-To: Luis de Bethencourt <luis@debethencourt.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout3.samsung.com ([203.254.224.33]:60214 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751734AbbBRRHY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2015 12:07:24 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NJZ0045U8WAW460@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 19 Feb 2015 02:07:22 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH v2 3/3] s5p-mfc: set allow_zero_bytesused flag for
+ vb2_queue_init
+Date: Wed, 18 Feb 2015 18:07:06 +0100
+Message-id: <1424279226-23548-3-git-send-email-k.debski@samsung.com>
+In-reply-to: <1424279226-23548-1-git-send-email-k.debski@samsung.com>
+References: <1424279226-23548-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Luis,
+The s5p-mfc driver interprets a buffer with bytesused equal to 0 as a
+special case indicating end-of-stream. After vb2: fix bytesused == 0
+handling (8a75ffb) patch videobuf2 modified the value of bytesused if it
+was 0. The allow_zero_bytesused flag was added to videobuf2 to keep
+backward compatibility.
 
-Great !
-Please send me your address and phone in private email. I will arrange shipment.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-2015-02-17 19:43 GMT-05:00 Luis de Bethencourt <luis@debethencourt.com>:
-> On 17 Feb 2015 21:40, "Abylay Ospan" <aospan@netup.ru> wrote:
->>
->> Hi Luis,
->>
->> welcome !
->>
->> We have some amount (5+ pcs) of boards available for developers. If
->> someone seriously interested (have any ideas to check with board ?) we
->> can ship it for free :)
->>
->>
->
-> Hi Abylay,
->
-> Besides making sure it all works nicely in Linux, I would be interested on
-> having the broad selection of features available through GStreamer elements.
->
-> Would this be of interest to you?
->
-> Thanks,
-> Luis
->
->>
->> 2015-02-16 11:35 GMT-05:00 Luis de Bethencourt <luis@debethencourt.com>:
->> > On Mon, Feb 16, 2015 at 11:04:47AM -0500, Abylay Ospan wrote:
->> >> Hello,
->> >>
->> >> We're fully opening firmware sources for our new card - NetUP Dual
->> >> Universal DVB CI. License is GPLv3. Sources is VHDL for Altera FPGA
->> >> EP4CGX22CF19C8
->> >> and can be compiled with Altera Quartus II (free edition). Hope this
->> >> will help for enthusiasts and developers to deeply understand hardware
->> >> part of DVB card.
->> >>
->> >> Source code:
->> >> https://github.com/aospan/NetUP_Dual_Universal_CI-fpga
->> >>
->> >> Here is a description for building and uploading fw into DVB card:
->> >> http://linuxtv.org/wiki/index.php/FPGA_fw_for_NetUP_Dual_Universal_CI
->> >>
->> >> Feel free to contact me for any questions or comments.
->> >>
->> >> --
->> >> Abylay Ospan,
->> >> NetUP Inc.
->> >> http://www.netup.tv
->> >> --
->> >
->> > Thanks for open sourcing the firmware of your new card!
->> >
->> > I am sure the owners of this hardware will appreciate this.
->> >
->> > Luis
->>
->>
->>
->> --
->> Abylay Ospan,
->> NetUP Inc.
->> http://www.netup.tv
-
-
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 8e44a59..6b08488 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -843,6 +843,13 @@ static int s5p_mfc_open(struct file *file)
+ 		ret = -ENOENT;
+ 		goto err_queue_init;
+ 	}
++	/* One of means to indicate end-of-stream for MFC is to set the
++	 * bytesused == 0. However by default videobuf2 handles videobuf
++	 * equal to 0 as a special case and changes its value to the size
++	 * of the buffer. Set the allow_zero_bytesused flag so that videobuf2
++	 * will keep the value of bytesused intact.
++	 */
++	q->allow_zero_bytesused = 1;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	ret = vb2_queue_init(q);
 -- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+1.7.9.5
+
