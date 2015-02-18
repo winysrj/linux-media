@@ -1,60 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:10653 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752038AbbBQLcU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 06:32:20 -0500
-Message-ID: <54E326C0.8040901@linux.intel.com>
-Date: Tue, 17 Feb 2015 13:32:16 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hansverk@cisco.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
-References: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com> <54E32358.8010303@cisco.com>
-In-Reply-To: <54E32358.8010303@cisco.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:33757 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752150AbbBRPaN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2015 10:30:13 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Changbing Xiong <cb.xiong@samsung.com>,
+	Joe Perches <joe@perches.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	David Herrmann <dh.herrmann@gmail.com>,
+	Tom Gundersen <teg@jklm.no>
+Subject: [PATCH 4/7] [media] dvb core: rename the media controller entities
+Date: Wed, 18 Feb 2015 13:29:58 -0200
+Message-Id: <56874b07885afd9d58dd3d3985d6167eb9a3deea.1424273378.git.mchehab@osg.samsung.com>
+In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Prefix all DVB media controller entities with "dvb-" and use dash
+instead of underline at the names.
 
-Hans Verkuil wrote:
-...
->> Unfortunately, it only works one time, because the next time the user writes
->> a zero to the control cluster_changed returns false.
->>
->> I think on volatile controls it is safer to run s_ctrl twice than missing a
->> valid s_ctrl.
->>
->> I know I am abusing a bit the API for this :P, but I also believe that the
->> semantic here is a bit confusing.
-> 
-> The reason for that is that I have yet to see a convincing argument for
-> allowing s_ctrl for a volatile control.
+Requested-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Well, one example are LED flash class devices which implement V4L2 flash
-API through a wrapper. The user may use the LED flash class API to
-change the values of the controls, and V4L2 framework has no clue about
-this. The V4L2 controls are volatile, and the real values of the
-settings are stored in the LED flash class.
-
-This is the current implementation (not merged yet); an alternative, a
-more correct one, would be to use callbacks to tell about the changes in
-control values. I haven't pushed for that, primarily because the
-patchset is already quite complex and I've seen this as something that
-can be always implemented later if it bothers someone.
-
-Cc Jacek.
-
+diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+index 2835924955a4..d0e3f9d85f34 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -1141,7 +1141,7 @@ static const struct dvb_device dvbdev_demux = {
+ 	.users = 1,
+ 	.writers = 1,
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+-	.name = "demux",
++	.name = "dvb-demux",
+ #endif
+ 	.fops = &dvb_demux_fops
+ };
+@@ -1217,7 +1217,7 @@ static const struct dvb_device dvbdev_dvr = {
+ 	.readers = 1,
+ 	.users = 1,
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+-	.name = "dvr",
++	.name = "dvb-dvr",
+ #endif
+ 	.fops = &dvb_dvr_fops
+ };
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 2bf28eb97a64..55a217f0ad0e 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -1644,7 +1644,7 @@ static const struct dvb_device dvbdev_ca = {
+ 	.readers = 1,
+ 	.writers = 1,
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+-	.name = "ca_en50221",
++	.name = "dvb-ca-en50221",
+ #endif
+ 	.fops = &dvb_ca_fops,
+ };
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index 40990058b4bc..1508d918205d 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -1467,7 +1467,7 @@ static const struct dvb_device dvbdev_net = {
+ 	.users = 1,
+ 	.writers = 1,
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+-	.name = "dvb net",
++	.name = "dvb-net",
+ #endif
+ 	.fops = &dvb_net_fops,
+ };
 -- 
-Kind regards,
+2.1.0
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
