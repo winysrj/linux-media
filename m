@@ -1,54 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:50377 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752650AbbBSKLh (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:24280 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753063AbbBRQ0Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 05:11:37 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NK000CYCKBB0T70@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 19 Feb 2015 19:11:35 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl
-Subject: [PATCH v3 3/4] coda: set allow_zero_bytesused flag for vb2_queue_init
-Date: Thu, 19 Feb 2015 11:11:19 +0100
-Message-id: <1424340680-13817-3-git-send-email-k.debski@samsung.com>
-In-reply-to: <1424340680-13817-1-git-send-email-k.debski@samsung.com>
-References: <1424340680-13817-1-git-send-email-k.debski@samsung.com>
+	Wed, 18 Feb 2015 11:26:16 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v11 17/20] Documentation: leds: Add description of
+ v4l2-flash sub-device
+Date: Wed, 18 Feb 2015 17:20:38 +0100
+Message-id: <1424276441-3969-18-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The coda driver interprets a buffer with bytesused equal to 0 as a special
-case indicating end-of-stream. After vb2: fix bytesused == 0 handling
-(8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
-The allow_zero_bytesused flag was added to videobuf2 to keep
-backward compatibility.
+This patch extends LED Flash class documention by
+the description of interactions with v4l2-flash sub-device.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- drivers/media/platform/coda/coda-common.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ Documentation/leds/leds-class-flash.txt |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 6f32e6d..2d23f9a 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1541,6 +1541,13 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
- 	vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	vq->lock = &ctx->dev->dev_mutex;
-+	/* One of means to indicate end-of-stream for coda is to set the
-+	 * bytesused == 0. However by default videobuf2 handles videobuf
-+	 * equal to 0 as a special case and changes its value to the size
-+	 * of the buffer. Set the allow_zero_bytesused flag, so
-+	 * that videobuf2 will keep the value of bytesused intact.
-+	 */
-+	vq->allow_zero_bytesused = 1;
- 
- 	return vb2_queue_init(vq);
- }
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+index ff03a66..dc46ae0 100644
+--- a/Documentation/leds/leds-class-flash.txt
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -30,3 +30,16 @@ Following sysfs attributes are exposed for controlling flash LED devices:
+ 	- available_sync_leds
+ 	- flash_sync_strobe
+ 	- flash_fault
++
++A LED subsystem driver can be controlled also from the level of VideoForLinux2
++subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
++be defined in the kernel config. The driver must call the v4l2_flash_init
++function to get registered in the V4L2 subsystem. On remove the
++v4l2_flash_release function has to be called (see <media/v4l2-flash.h>).
++
++After proper initialization a V4L2 Flash sub-device is created. The sub-device
++exposes a number of V4L2 controls, which allow for controlling a LED Flash class
++device with use of its internal kernel API.
++Opening the V4L2 Flash sub-device makes the LED subsystem sysfs interface
++unavailable. The interface is re-enabled after the V4L2 Flash sub-device
++is closed.
 -- 
 1.7.9.5
 
