@@ -1,143 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49263 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752474AbbBWQpi (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:24117 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752047AbbBRQVx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 11:45:38 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 7/7] DocBook media: document the new 'which' field.
-Date: Mon, 23 Feb 2015 18:46:40 +0200
-Message-ID: <3196637.eIdTnyjkZV@avalon>
-In-Reply-To: <1423827006-32878-8-git-send-email-hverkuil@xs4all.nl>
-References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl> <1423827006-32878-8-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 18 Feb 2015 11:21:53 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v11 03/20] Documentation: leds: Add description of LED
+ Flash class extension
+Date: Wed, 18 Feb 2015 17:20:24 +0100
+Message-id: <1424276441-3969-4-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The documentation being added contains overall description of the
+LED Flash Class and the related sysfs attributes.
 
-Thank you for the patch.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ Documentation/leds/leds-class-flash.txt |   32 +++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+ create mode 100644 Documentation/leds/leds-class-flash.txt
 
-On Friday 13 February 2015 12:30:06 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The subdev enum ioctls now have a new 'which' field. Document this.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  .../DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml | 13 ++++++----
->  .../DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml     | 13 ++++++----
->  .../DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml      | 11 +++++++--- 
-3 files changed, 26 insertions(+), 11 deletions(-)
-> 
-> diff --git
-> a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-> b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-> index 2f8f4f0..cff59f5 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-> @@ -67,9 +67,9 @@
-> 
->      <para>To enumerate frame intervals applications initialize the
->      <structfield>index</structfield>, <structfield>pad</structfield>,
-> -    <structfield>code</structfield>, <structfield>width</structfield> and
-> -    <structfield>height</structfield> fields of
-> -    &v4l2-subdev-frame-interval-enum; and call the
-> +    <structfield>which</structfield>, <structfield>code</structfield>,
-> +    <structfield>width</structfield> and <structfield>height</structfield>
-> +    fields of &v4l2-subdev-frame-interval-enum; and call the
->      <constant>VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL</constant> ioctl with a
-> pointer to this structure. Drivers fill the rest of the structure or return
-> an &EINVAL; if one of the input fields is invalid. All frame intervals are
-> @@ -123,7 +123,12 @@
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> -	    <entry><structfield>reserved</structfield>[9]</entry>
-> +	    <entry><structfield>which</structfield></entry>
-> +	    <entry>Frame intervals to be enumerated, from
-> &v4l2-subdev-format-whence;.</entry> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[8]</entry>
->  	    <entry>Reserved for future extensions. Applications and drivers must
->  	    set the array to zero.</entry>
->  	  </row>
-> diff --git
-> a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-> b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml index
-> 79ce42b..abd545e 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-> @@ -61,9 +61,9 @@
->      ioctl.</para>
-> 
->      <para>To enumerate frame sizes applications initialize the
-> -    <structfield>pad</structfield>, <structfield>code</structfield> and
-> -    <structfield>index</structfield> fields of the
-> -    &v4l2-subdev-mbus-code-enum; and call the
-> +    <structfield>pad</structfield>, <structfield>which</structfield> ,
-> +    <structfield>code</structfield> and <structfield>index</structfield>
-> +    fields of the &v4l2-subdev-mbus-code-enum; and call the
->      <constant>VIDIOC_SUBDEV_ENUM_FRAME_SIZE</constant> ioctl with a pointer
-> to the structure. Drivers fill the minimum and maximum frame sizes or
-> return an &EINVAL; if one of the input parameters is invalid.</para> @@
-> -127,7 +127,12 @@
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> -	    <entry><structfield>reserved</structfield>[9]</entry>
-> +	    <entry><structfield>which</structfield></entry>
-> +	    <entry>Frame sizes to be enumerated, from
-> &v4l2-subdev-format-whence;.</entry> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[8]</entry>
->  	    <entry>Reserved for future extensions. Applications and drivers must
->  	    set the array to zero.</entry>
->  	  </row>
-> diff --git
-> a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-> b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml index
-> a6b3432..0bcb278 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-> @@ -56,8 +56,8 @@
->      </note>
-> 
->      <para>To enumerate media bus formats available at a given sub-device
-> pad -    applications initialize the <structfield>pad</structfield> and -  
->  <structfield>index</structfield> fields of &v4l2-subdev-mbus-code-enum;
-> and +    applications initialize the <structfield>pad</structfield>,
-> <structfield>which</structfield> +    and <structfield>index</structfield>
-> fields of &v4l2-subdev-mbus-code-enum; and call the
-> <constant>VIDIOC_SUBDEV_ENUM_MBUS_CODE</constant> ioctl with a pointer to
-> this structure. Drivers fill the rest of the structure or return an
-> &EINVAL; if either the <structfield>pad</structfield> or
-> @@ -93,7 +93,12 @@
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> -	    <entry><structfield>reserved</structfield>[9]</entry>
-> +	    <entry><structfield>which</structfield></entry>
-> +	    <entry>Media bus format codes to be enumerated, from
-> &v4l2-subdev-format-whence;.</entry> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[8]</entry>
->  	    <entry>Reserved for future extensions. Applications and drivers must
->  	    set the array to zero.</entry>
->  	  </row>
-
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+new file mode 100644
+index 0000000..ff03a66
+--- /dev/null
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -0,0 +1,32 @@
++
++Flash LED handling under Linux
++==============================
++
++Some LED devices provide two modes - torch and flash. In the LED subsystem
++those modes are supported by LED class (see Documentation/leds/leds-class.txt)
++and LED Flash class respectively. The torch mode related features are enabled
++by default and the flash ones only if a driver declares it by setting
++LED_DEV_CAP_FLASH flag.
++
++In order to enable support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
++must be defined in the kernel config. A flash LED driver must register
++in the LED subsystem with led_classdev_flash_register function to gain flash
++related capabilities.
++
++There are flash LED devices which can control more than one LED and allow for
++strobing the sub-LEDs synchronously. A LED will be strobed synchronously with
++the one whose identifier is written to the flash_sync_strobe sysfs attribute.
++The list of available sub-LED identifiers can be read from the available_sync_leds
++sysfs attribute. In order to enable the related settings the driver must set
++LED_DEV_CAP_SYNC_STROBE flag.
++
++Following sysfs attributes are exposed for controlling flash LED devices:
++(see Documentation/ABI/testing/sysfs-class-led-flash)
++	- flash_brightness
++	- max_flash_brightness
++	- flash_timeout
++	- max_flash_timeout
++	- flash_strobe
++	- available_sync_leds
++	- flash_sync_strobe
++	- flash_fault
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
