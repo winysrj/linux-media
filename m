@@ -1,105 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:39259 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751615AbbB1PZl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Feb 2015 10:25:41 -0500
-Received: by lbvn10 with SMTP id n10so22491556lbv.6
-        for <linux-media@vger.kernel.org>; Sat, 28 Feb 2015 07:25:40 -0800 (PST)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 1/2] si2157: IF frequency for ATSC and QAM
-Date: Sat, 28 Feb 2015 17:25:23 +0200
-Message-Id: <1425137124-17324-1-git-send-email-olli.salonen@iki.fi>
+Received: from lists.s-osg.org ([54.187.51.154]:45380 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751882AbbBSTuN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 14:50:13 -0500
+Date: Thu, 19 Feb 2015 17:50:07 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Joe Perches <joe@perches.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCHv4 16/25] [media] cx25840: fill the media controller
+ entity
+Message-ID: <20150219175007.6098ae32@recife.lan>
+In-Reply-To: <CA+V-a8tiGyPMfUgdknC=3q2mZUjCsTvfcaP_O7HwCVucA_xYNA@mail.gmail.com>
+References: <cover.1423867976.git.mchehab@osg.samsung.com>
+	<6e028daf7da0bb15af4ff03290a2a67b7b35515c.1423867976.git.mchehab@osg.samsung.com>
+	<CA+V-a8tiGyPMfUgdknC=3q2mZUjCsTvfcaP_O7HwCVucA_xYNA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For supporting ATSC and QAM modes the driver should use a smaller IF frequency than 5 MHz.
+Em Wed, 18 Feb 2015 22:48:04 +0000
+"Lad, Prabhakar" <prabhakar.csengg@gmail.com> escreveu:
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/tuners/si2157.c      | 23 ++++++++++++++++++++++-
- drivers/media/tuners/si2157_priv.h |  1 +
- 2 files changed, 23 insertions(+), 1 deletion(-)
+> Hi Mauro,
+> 
+> Thanks for the patch.
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index fcf139d..d8309b9 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -244,6 +244,7 @@ static int si2157_set_params(struct dvb_frontend *fe)
- 	int ret;
- 	struct si2157_cmd cmd;
- 	u8 bandwidth, delivery_system;
-+	u32 if_frequency = 5000000;
- 
- 	dev_dbg(&client->dev,
- 			"delivery_system=%d frequency=%u bandwidth_hz=%u\n",
-@@ -266,9 +267,11 @@ static int si2157_set_params(struct dvb_frontend *fe)
- 	switch (c->delivery_system) {
- 	case SYS_ATSC:
- 			delivery_system = 0x00;
-+			if_frequency = 3250000;
- 			break;
- 	case SYS_DVBC_ANNEX_B:
- 			delivery_system = 0x10;
-+			if_frequency = 4000000;
- 			break;
- 	case SYS_DVBT:
- 	case SYS_DVBT2: /* it seems DVB-T and DVB-T2 both are 0x20 here */
-@@ -302,6 +305,20 @@ static int si2157_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	/* set if frequency if needed */
-+	if (if_frequency != dev->if_frequency) {
-+		memcpy(cmd.args, "\x14\x00\x06\x07", 4);
-+		cmd.args[4] = (if_frequency / 1000) & 0xff;
-+		cmd.args[5] = ((if_frequency / 1000) >> 8) & 0xff;
-+		cmd.wlen = 6;
-+		cmd.rlen = 4;
-+		ret = si2157_cmd_execute(client, &cmd);
-+		if (ret)
-+			goto err;
-+
-+		dev->if_frequency = if_frequency;
-+	}
-+
- 	/* set frequency */
- 	memcpy(cmd.args, "\x41\x00\x00\x00\x00\x00\x00\x00", 8);
- 	cmd.args[4] = (c->frequency >>  0) & 0xff;
-@@ -322,7 +339,10 @@ err:
- 
- static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
--	*frequency = 5000000; /* default value of property 0x0706 */
-+	struct i2c_client *client = fe->tuner_priv;
-+	struct si2157_dev *dev = i2c_get_clientdata(client);
-+
-+	*frequency = dev->if_frequency;
- 	return 0;
- }
- 
-@@ -360,6 +380,7 @@ static int si2157_probe(struct i2c_client *client,
- 	dev->inversion = cfg->inversion;
- 	dev->fw_loaded = false;
- 	dev->chiptype = (u8)id->driver_data;
-+	dev->if_frequency = 5000000; /* default value of property 0x0706 */
- 	mutex_init(&dev->i2c_mutex);
- 
- 	/* check if the tuner is there */
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index 7aa53bc..cd8fa5b 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -28,6 +28,7 @@ struct si2157_dev {
- 	bool fw_loaded;
- 	bool inversion;
- 	u8 chiptype;
-+	u32 if_frequency;
- };
- 
- #define SI2157_CHIPTYPE_SI2157 0
--- 
-1.9.1
+Thanks for the review.
+> 
+> On Fri, Feb 13, 2015 at 10:57 PM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> > Instead of keeping the media controller entity not initialized,
+> > fill it and create the pads for cx25840.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >
+> > diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+> > index 573e08826b9b..bdb5bb6b58da 100644
+> > --- a/drivers/media/i2c/cx25840/cx25840-core.c
+> > +++ b/drivers/media/i2c/cx25840/cx25840-core.c
+> > @@ -5137,6 +5137,9 @@ static int cx25840_probe(struct i2c_client *client,
+> >         int default_volume;
+> >         u32 id;
+> >         u16 device_id;
+> > +#if defined(CONFIG_MEDIA_CONTROLLER)
+> > +       int ret;
+> > +#endif
+> >
+> >         /* Check if the adapter supports the needed features */
+> >         if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> > @@ -5178,6 +5181,21 @@ static int cx25840_probe(struct i2c_client *client,
+> >
+> >         sd = &state->sd;
+> >         v4l2_i2c_subdev_init(sd, client, &cx25840_ops);
+> > +#if defined(CONFIG_MEDIA_CONTROLLER)
+> > +       /* TODO: need to represent analog inputs too */
+> > +       state->pads[0].flags = MEDIA_PAD_FL_SINK;       /* Tuner or input */
+> > +       state->pads[1].flags = MEDIA_PAD_FL_SOURCE;     /* Video */
+> > +       state->pads[2].flags = MEDIA_PAD_FL_SOURCE;     /* VBI */
+> Macros for 0,1,2 would make it more readable.
 
+I was in doubt, on weather use a macro or not for it. I ended by
+deciding to not use because the code shouldn't assume a particular order
+for the pads. Also, I'm not sure if is there a way to "taint" a PAD for
+VBI or Video, or if it is worth or not do do it.
+
+So, the comments there are more a reminder than anything else.
+
+> 
+> > +       sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
+> > +
+> > +       ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
+> > +                               state->pads, 0);
+> > +       if (ret < 0) {
+> > +               v4l_info(client, "failed to initialize media entity!\n");
+> > +               kfree(state);
+> not needed as state is allocated using devm_kzalloc()
+> 
+> > +               return -ENODEV;
+> return ret instead ?
+
+Yeah, both comments make sense. I'll write a patch changing it.
+
+> 
+> > +       }
+> > +#endif
+> >
+> >         switch (id) {
+> >         case CX23885_AV:
+> > diff --git a/drivers/media/i2c/cx25840/cx25840-core.h b/drivers/media/i2c/cx25840/cx25840-core.h
+> > index 37bc04217c44..17b409f55445 100644
+> > --- a/drivers/media/i2c/cx25840/cx25840-core.h
+> > +++ b/drivers/media/i2c/cx25840/cx25840-core.h
+> > @@ -64,6 +64,9 @@ struct cx25840_state {
+> >         wait_queue_head_t fw_wait;    /* wake up when the fw load is finished */
+> >         struct work_struct fw_work;   /* work entry for fw load */
+> >         struct cx25840_ir_state *ir_state;
+> > +#if defined(CONFIG_MEDIA_CONTROLLER)
+> > +       struct media_pad        pads[3];
+> Macro for 3 ?
+
+Not much sense, as this is used only here. Ok, if we're adding an
+enum (or defines) for the pads, then it makes sense to have an alias
+for the number of pads.
+
+Regards,
+Mauro
