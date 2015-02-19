@@ -1,82 +1,44 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <suratjebat@gmail.com>) id 1YAbDQ-000392-V6
-	for linux-dvb@linuxtv.org; Mon, 12 Jan 2015 10:23:17 +0100
-Received: from mail-qc0-f196.google.com ([209.85.216.196])
-	by mail.tu-berlin.de (exim-4.72/mailfrontend-5) with esmtps
-	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1YAbDP-0003lB-8Y; Mon, 12 Jan 2015 10:23:16 +0100
-Received: by mail-qc0-f196.google.com with SMTP id r5so6256959qcx.3
-	for <linux-dvb@linuxtv.org>; Mon, 12 Jan 2015 01:23:14 -0800 (PST)
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:58464 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752304AbbBSXdd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 18:33:33 -0500
+Received: by mail-ob0-f179.google.com with SMTP id wp4so20819115obc.10
+        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2015 15:33:32 -0800 (PST)
 MIME-Version: 1.0
-Date: Mon, 12 Jan 2015 01:23:14 -0800
-Message-ID: <CAJke7c+NKGqxAjy2J+j2_Hyym6jSPL_hGYHEvWkEUiN=WLpESw@mail.gmail.com>
-From: Roy Keano <suratjebat@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] w_scan: Country Identifier
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0448458722=="
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
-
---===============0448458722==
-Content-Type: multipart/alternative; boundary=001a11c2d7ec4d65b4050c710ed0
-
---001a11c2d7ec4d65b4050c710ed0
+Date: Thu, 19 Feb 2015 23:33:32 +0000
+Message-ID: <CAJ+AEyMT6etRK6cj6s2iwNHW3QG4mh7TVdPeNvVKKSBAJU9ztA@mail.gmail.com>
+Subject: DVBSky T982 (Si2168) Questions/Issues/Request
+From: Eponymous - <the.epon@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-Hi All
+Hi.
 
-I'm learning to use w_scan. The problem I hit:
+I have a couple of issues with the si2168.c dvb-frontend in kernel v
+3.19.0. To get the firnware to load I've had to increase the #define
+TIMEOUT to 150 from 50. I read another post
+(http://www.spinics.net/lists/linux-media/msg84198.html) where another
+user had to do the same modification.
 
-#w_scan -ft -c SG
+@ Antti Palosaari: Since the 50ms value you came up with was just
+based on some "trail and error", would it be possible to submit a
+change upstream to increase this timeout since it's likely others are
+going to encounter this issue?
 
-Country Identifier SG NOT defined. Using defaults.
+The second issue I have is that where I am based (UK) we have both
+DVB-T and DVB-T2 muxes and I can't get a single tuner to be able to
+tune to both transports, but looking through the Si2168.c code, I'm
+having trouble working out how (if at all) this is achieved?
 
-After couple of minutes, it reports an error:
+It's not the case where we can only tune to DVB-T OR DVB-T2 is it? If
+so, that's far from ideal...
 
-ERROR: Sorry - I couldn't get any frequency/ transponder
+Are there any workarounds if true?
 
-I am in Singapore by the way.
+Best regards.
 
-Best Regards
-Roy
-
---001a11c2d7ec4d65b4050c710ed0
-Content-Type: text/html; charset=UTF-8
-
-<p dir="ltr">Hi All</p>
-<p dir="ltr">I&#39;m learning to use w_scan. The problem I hit:</p>
-<p dir="ltr">#w_scan -ft -c SG</p>
-<p dir="ltr">Country Identifier SG NOT defined. Using defaults.</p>
-<p dir="ltr">After couple of minutes, it reports an error:</p>
-<p dir="ltr">ERROR: Sorry - I couldn&#39;t get any frequency/ transponder</p>
-<p dir="ltr">I am in Singapore by the way.</p>
-<p dir="ltr">Best Regards<br>
-Roy<br>
-</p>
-
---001a11c2d7ec4d65b4050c710ed0--
-
-
---===============0448458722==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0448458722==--
+Sean.
