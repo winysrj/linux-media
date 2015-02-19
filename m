@@ -1,92 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:41294 "EHLO butterbrot.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:52584 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754862AbbBCUp5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 15:45:57 -0500
-Message-ID: <54D13383.7010603@butterbrot.org>
-Date: Tue, 03 Feb 2015 21:45:55 +0100
-From: Florian Echtler <floe@butterbrot.org>
+	id S1751623AbbBSPif (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 10:38:35 -0500
+Message-ID: <54E60378.6030604@iki.fi>
+Date: Thu, 19 Feb 2015 17:38:32 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] add raw video support for Samsung SUR40 touchscreen
-References: <1420626920-9357-1-git-send-email-floe@butterbrot.org> <64652239.MTTlcOgNK2@avalon> <54BE5204.3020600@xs4all.nl> <6025823.veVKIskIW2@avalon> <54BFA989.4090405@butterbrot.org> <54BFA9D6.1040201@xs4all.nl> <54CAA786.2040908@butterbrot.org>
-In-Reply-To: <54CAA786.2040908@butterbrot.org>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="uvVgu0CLjXT3t8NTKhCWsMC5X3qJPP73s"
+To: =?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>,
+	Benjamin Larsson <benjamin@southpole.se>
+CC: linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH] mn88472: reduce firmware download chunk size
+References: <1424337200-6446-1-git-send-email-a.seppala@gmail.com>	<54E5B028.5080900@southpole.se> <CAKv9HNaSqgFpC+TmMm86Y7mrgXvZ9U+wqdgjM4n=hf80p2W1jg@mail.gmail.com>
+In-Reply-To: <CAKv9HNaSqgFpC+TmMm86Y7mrgXvZ9U+wqdgjM4n=hf80p2W1jg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---uvVgu0CLjXT3t8NTKhCWsMC5X3qJPP73s
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 
-Sorry to bring this up again, but would it be acceptable to simply use
-dma-contig after all? Since the GFP_DMA flag is gone, this shouldn't be
-too big of an issue IMHO, and I was kind of hoping the patch could still
-be part of 3.20.
 
-Best, Florian
-
-On 29.01.2015 22:35, Florian Echtler wrote:
-> I'm still having a couple of issues sorting out the correct way to
-> provide DMA access for my driver. I've integrated most of your
-> suggestions, but I still can't switch from dma-contig to dma-sg.
-> As far as I understood it, there is no further initialization required
-> besides using vb2_dma_sg_memops, vb2_dma_sg_init_ctx and
-> vb2_dma_sg_cleanup_ctx instead of the respective -contig- calls, correc=
-t?
-> However, as soon as I swap the relevant function calls, the video image=
-
-> stays black and in dmesg, I get the following warning:
+On 02/19/2015 12:21 PM, Antti Seppälä wrote:
+> On 19 February 2015 at 11:43, Benjamin Larsson <benjamin@southpole.se> wrote:
+>> On 2015-02-19 10:13, Antti Seppälä wrote:
+>>>
+>>> It seems that currently the firmware download on the mn88472 is
+>>> somehow wrong for my Astrometa HD-901T2.
+>>>
+>>> Reducing the download chunk size (mn88472_config.i2c_wr_max) to 2
+>>> makes the firmware download consistently succeed.
+>>>
+>>
+>>
+>> Hi, try adding the workaround patch I sent for this.
+>>
+>> [PATCH 1/3] rtl28xxu: lower the rc poll time to mitigate i2c transfer errors
+>>
+>> I now see that it hasn't been merged. But I have been running with this
+>> patch for a few months now without any major issues.
+>>
 >
-> Call Trace:
-> [<ffffffff817c4584>] dump_stack+0x45/0x57
-> [<ffffffff81076df7>] warn_slowpath_common+0x97/0xe0
-> [<ffffffff81076ef6>] warn_slowpath_fmt+0x46/0x50
-> [<ffffffff815aff0b>] usb_hcd_map_urb_for_dma+0x4eb/0x500
-> [<ffffffff817d03b4>] ? schedule_timeout+0x124/0x210
-> [<ffffffff815b0bd5>] usb_hcd_submit_urb+0x135/0x1c0
-> [<ffffffff815b20a6>] usb_submit_urb.part.8+0x1f6/0x580
-> [<ffffffff811bb542>] ? vmap_pud_range+0x122/0x1c0
-> [<ffffffff815b2465>] usb_submit_urb+0x35/0x80
-> [<ffffffff815b339a>] usb_start_wait_urb+0x6a/0x170
-> [<ffffffff815b1cce>] ? usb_alloc_urb+0x1e/0x50
-> [<ffffffff815b1cce>] ? usb_alloc_urb+0x1e/0x50
-> [<ffffffff815b3570>] usb_bulk_msg+0xd0/0x1a0
-> [<ffffffffc059a841>] sur40_poll+0x561/0x5e0 [sur40]
+> The patch really did improve firmware loading. Weird...
 >
-> Moreover, I'm getting the following test failure from v4l2-compliance:
->=20
-> Streaming ioctls:
-> 	test read/write: OK
-> 	test MMAP: OK
-> 		fail: v4l2-test-buffers.cpp(951): buf.qbuf(node)
-> 		fail: v4l2-test-buffers.cpp(994): setupUserPtr(node, q)
-> 	test USERPTR: FAIL
-> 	test DMABUF: Cannot test, specify --expbuf-device
->=20
-> Total: 45, Succeeded: 44, Failed: 1, Warnings: 0
+> Even with it I still get occasional i2c errors from r820t:
+>
+> [   15.874402] r820t 8-003a: r820t_write: i2c wr failed=-32 reg=0a len=1: da
+> [   81.455517] r820t 8-003a: r820t_read: i2c rd failed=-32 reg=00
+> len=4: 69 74 e6 df
+> [   99.949702] r820t 8-003a: r820t_read: i2c rd failed=-32 reg=00
+> len=4: 69 74 e6 df
+>
+> These errors seem to appear more often if I'm reading the signal
+> strength values using e.g. femon.
 
+Could you disable whole IR polling and test
+modprobe dvb_usb_v2 disable_rc_polling=1
 
---=20
-SENT FROM MY DEC VT50 TERMINAL
+It is funny that *increasing* RC polling makes things better, though...
 
-
---uvVgu0CLjXT3t8NTKhCWsMC5X3qJPP73s
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlTRM4MACgkQ7CzyshGvathu7gCgvPpZ95r5KXEXa1oGBgOmeG7N
-vvIAn1OVn2LcyFy/xDPEXfw7HYoclvCK
-=NCb6
------END PGP SIGNATURE-----
-
---uvVgu0CLjXT3t8NTKhCWsMC5X3qJPP73s--
+regards
+Antti
+-- 
+http://palosaari.fi/
