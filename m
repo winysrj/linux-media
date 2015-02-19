@@ -1,66 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fortimail.online.lv ([81.198.164.220]:55129 "EHLO
-	fortimail.online.lv" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757039AbbBFQC7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2015 11:02:59 -0500
-Received: from mailo-proxy2.online.lv (smtp.online.lv [81.198.164.193])
-	by fortimail.online.lv  with ESMTP id t16G2p7i017726-t16G2p7k017726
-	(version=TLSv1.2 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 6 Feb 2015 18:02:51 +0200
-Message-ID: <54D4E5AA.9050606@apollo.lv>
-Date: Fri, 06 Feb 2015 18:02:50 +0200
-From: Raimonds Cicans <ray@apollo.lv>
+Received: from mail.kapsi.fi ([217.30.184.167]:54490 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753584AbbBSUcL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 15:32:11 -0500
+Message-ID: <54E64848.6010009@iki.fi>
+Date: Thu, 19 Feb 2015 22:32:08 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jurgen Kramer <gtmkramer@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
- cx23885: convert to vb2"
-References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>
-	 <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>
-	 <54CE24F2.7090400@apollo.lv> <54CF4508.9070305@xs4all.nl>
- <1423065972.2650.1.camel@xs4all.nl> <54D24685.1000708@xs4all.nl>
- <54D278CF.9010605@apollo.lv>
-In-Reply-To: <54D278CF.9010605@apollo.lv>
+To: =?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>
+CC: Benjamin Larsson <benjamin@southpole.se>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH] mn88472: reduce firmware download chunk size
+References: <1424337200-6446-1-git-send-email-a.seppala@gmail.com>	<54E5B028.5080900@southpole.se>	<CAKv9HNaSqgFpC+TmMm86Y7mrgXvZ9U+wqdgjM4n=hf80p2W1jg@mail.gmail.com>	<54E60378.6030604@iki.fi>	<CAKv9HNZPLws9=dpigcVtL7zedWYRit=yK_dw9EkdzH2VD55qMQ@mail.gmail.com>	<54E60BFD.6090409@iki.fi> <CAKv9HNaWqs5MAEAfKKGOeNLY_brUaj4DGrE_t9EK2JzBjhFREg@mail.gmail.com>
+In-Reply-To: <CAKv9HNaWqs5MAEAfKKGOeNLY_brUaj4DGrE_t9EK2JzBjhFREg@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04.02.2015 21:53, Raimonds Cicans wrote:
-> On 04.02.2015 18:19, Hans Verkuil wrote:
->> On 02/04/2015 05:06 PM, Jurgen Kramer wrote:
->>> Hi Hans,
+
+
+On 02/19/2015 08:42 PM, Antti Seppälä wrote:
+> On 19 February 2015 at 18:14, Antti Palosaari <crope@iki.fi> wrote:
+>> On 02/19/2015 06:01 PM, Antti Seppälä wrote:
 >>>
->>> On Mon, 2015-02-02 at 10:36 +0100, Hans Verkuil wrote:
->>>> Raimonds and Jurgen,
+>>> On 19 February 2015 at 17:38, Antti Palosaari <crope@iki.fi> wrote:
 >>>>
->>>> Can you both test with the following patch applied to the driver:
->> Raimond, do you still see the AMD iommu faults with this patch?
+>>>> On 02/19/2015 12:21 PM, Antti Seppälä wrote:
+>>>>>
+>>>>> On 19 February 2015 at 11:43, Benjamin Larsson <benjamin@southpole.se>
+>>>>> wrote:
+>>>>>>
+>>>>>>
+>>>>>> On 2015-02-19 10:13, Antti Seppälä wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> It seems that currently the firmware download on the mn88472 is
+>>>>>>> somehow wrong for my Astrometa HD-901T2.
+>>>>>>>
+>>>>>>> Reducing the download chunk size (mn88472_config.i2c_wr_max) to 2
+>>>>>>> makes the firmware download consistently succeed.
+>>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> Hi, try adding the workaround patch I sent for this.
+>>>>>>
+>>>>>> [PATCH 1/3] rtl28xxu: lower the rc poll time to mitigate i2c transfer
+>>>>>> errors
+>>>>>>
+>>>>>> I now see that it hasn't been merged. But I have been running with this
+>>>>>> patch for a few months now without any major issues.
+>>>>>>
+>>>>>
+>>>>> The patch really did improve firmware loading. Weird...
+>>>>>
+>>>>> Even with it I still get occasional i2c errors from r820t:
+>>>>>
+>>>>> [   15.874402] r820t 8-003a: r820t_write: i2c wr failed=-32 reg=0a
+>>>>> len=1:
+>>>>> da
+>>>>> [   81.455517] r820t 8-003a: r820t_read: i2c rd failed=-32 reg=00
+>>>>> len=4: 69 74 e6 df
+>>>>> [   99.949702] r820t 8-003a: r820t_read: i2c rd failed=-32 reg=00
+>>>>> len=4: 69 74 e6 df
+>>>>>
+>>>>> These errors seem to appear more often if I'm reading the signal
+>>>>> strength values using e.g. femon.
+>>>>
+>>>>
+>>>>
+>>>> Could you disable whole IR polling and test
+>>>> modprobe dvb_usb_v2 disable_rc_polling=1
+>>>>
+>>>> It is funny that *increasing* RC polling makes things better, though...
+>>>>
+>>>
+>>> Hi.
+>>>
+>>> I tried loading the driver with polling disabled and it fails completely:
+>>>
+>>> [ 5526.693563] mn88472 7-0018: downloading firmware from file
+>>> 'dvb-demod-mn88472-02.fw'
+>>> [ 5527.032209] mn88472 7-0018: firmware download failed=-32
+>>> [ 5527.033864] rtl2832 7-0010: i2c reg write failed -32
+>>> [ 5527.033874] r820t 8-003a: r820t_write: i2c wr failed=-32 reg=05 len=1:
+>>> 83
+>>> [ 5527.036014] rtl2832 7-0010: i2c reg write failed -32
+>>>
+>>> I have no idea why the device behaves so counter-intuitively. Is there
+>>> maybe some sorf of internal power-save mode the device enters when
+>>> there is no i2c traffic for a while or something?
+>>
+>>
+>> IR polling does not use I2C but some own commands. Could you make more
+>> tests. Use rtl28xxu module parameter to disable IR and test. It will disable
+>> both IR interrupts and polling. Then make some tests with different IR
+>> polling intervals to see how it behaves.
+>>
 >
-> I have limited access to this box at workdays. I will try to test
-> your patch tomorrow.
+> Hi Antti.
 >
+> I made some further tests for you. Here are the results:
 >
-Unfortunately I still see AMD iommu faults.
+> dvb_usb_v2 disable_rc_polling=1: firmware download FAILED
+>
+> dvb_usb_rtl28xxu disable_rc=1: firmware download FAILED
+>
+> Then I restored the module parameters to default values and tested
+> with various rc->interval values:
+>
+> interval = 800: firmware download FAILED
+> interval = 600: firmware download FAILED
+> interval = 400: firmware download FAILED
+> interval = 300: firmware download SUCCESS but I2C errors from tuner
+> could be sometimes observed
+> interval = 200: firmware download SUCCESS
+> interval = 100: firmware download SUCCESS
+>
+> So somehow higher rc polling rate makes the firmware download succeed.
+> This could indeed be some locking/timing related bug.
+>
+> Please let me know if there is something else I can test.
 
-Test environment:
-kernel: 3.18.1 (I was unable to compile drivers on kernel 3.13.10)
-media tree: pure main media tree + your patch
-test: 1) warm reboot
-         2) run command "w_scan -fs -s S13E0 -D0c -a X"
-             where X - receiver's number
-             Tests were run on single receiver
+Sure you could do. Play with I2C settings. Test few values to I2C bus 
+speed / clock is good start. Put oscilloscope to I2C bus and look what 
+there happens on error cases. There is also 2 different I2C commands, 
+test if there is any difference. And so. Increasing polling interval to 
+something between 250-300 does not sound very bad, though.
 
-Observations:
-1) Tests were run three times on first receiver and three times on second.
-     Only one test from three failed on first receiver.
-     All tests failed on second receiver.
+regards
+Antti
 
-2) I have feeling that with your patch faults on first receiver appear 
-less often
-     but this may be pure luck or placebo.
-
-
-Raimonds Cicans
-
+-- 
+http://palosaari.fi/
