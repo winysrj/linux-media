@@ -1,185 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:55559 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753018AbbBBIGr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 03:06:47 -0500
-Received: by mail-pa0-f50.google.com with SMTP id rd3so79283877pab.9
-        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2015 00:06:46 -0800 (PST)
-From: Kassey Li <kassey1216@gmail.com>
-To: g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, kasseyl@nvidia.com
-Subject: [PATCH V2] [media] V4L: soc-camera: add SPI device support
-Date: Mon,  2 Feb 2015 16:06:57 +0800
-Message-Id: <1422864417-7296-1-git-send-email-kassey1216@gmail.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:62614 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751874AbbBSPlE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 10:41:04 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NK000BT6ZKF2BA0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 20 Feb 2015 00:41:03 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH v4 2/4] vb2: add allow_zero_bytesused flag to the vb2_queue
+ struct
+Date: Thu, 19 Feb 2015 16:40:48 +0100
+Message-id: <1424360450-13048-2-git-send-email-k.debski@samsung.com>
+In-reply-to: <1424360450-13048-1-git-send-email-k.debski@samsung.com>
+References: <1424360450-13048-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kassey Li <kasseyl@nvidia.com>
+The vb2: fix bytesused == 0 handling (8a75ffb) patch changed the behavior
+of __fill_vb2_buffer function, so that if bytesused is 0 it is set to the
+size of the buffer. However, bytesused set to 0 is used by older codec
+drivers as as indication used to mark the end of stream.
 
-This adds support for spi interface sub device for
-soc_camera.
+To keep backward compatibility, this patch adds a flag passed to the
+vb2_queue_init function - allow_zero_bytesused. If the flag is set upon
+initialization of the queue, the videobuf2 keeps the value of bytesused
+intact in the OUTPUT queue and passes it to the driver.
 
-Signed-off-by: Kassey Li <kasseyl@nvidia.com>
+Reported-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
 ---
- drivers/media/platform/soc_camera/soc_camera.c |   94 ++++++++++++++++++++++++
- include/media/soc_camera.h                     |    4 +
- 2 files changed, 98 insertions(+)
+ drivers/media/v4l2-core/videobuf2-core.c |   29 +++++++++++++++++++++++------
+ include/media/videobuf2-core.h           |    2 ++
+ 2 files changed, 25 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index b3db51c..b01c075 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -27,6 +27,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/regulator/consumer.h>
- #include <linux/slab.h>
-+#include <linux/spi/spi.h>
- #include <linux/vmalloc.h>
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5cd60bf..b8a30d5 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1276,13 +1276,22 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 			 * userspace clearly never bothered to set it and
+ 			 * it's a safe assumption that they really meant to
+ 			 * use the full plane sizes.
++			 *
++			 * Some drivers, e.g. old codec drivers, use bytesused
++			 * == 0 as a way to indicate that streaming is finished.
++			 * In that case, the driver should use the
++			 * allow_zero_bytesused flag to keep old userspace
++			 * applications working.
+ 			 */
+ 			for (plane = 0; plane < vb->num_planes; ++plane) {
+ 				struct v4l2_plane *pdst = &v4l2_planes[plane];
+ 				struct v4l2_plane *psrc = &b->m.planes[plane];
  
- #include <media/soc_camera.h>
-@@ -1430,6 +1431,91 @@ static void soc_camera_i2c_free(struct soc_camera_device *icd)
- 	icd->clk = NULL;
- }
+-				pdst->bytesused = psrc->bytesused ?
+-					psrc->bytesused : pdst->length;
++				if (vb->vb2_queue->allow_zero_bytesused)
++					pdst->bytesused = psrc->bytesused;
++				else
++					pdst->bytesused = psrc->bytesused ?
++						psrc->bytesused : pdst->length;
+ 				pdst->data_offset = psrc->data_offset;
+ 			}
+ 		}
+@@ -1295,6 +1304,11 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 		 *
+ 		 * If bytesused == 0 for the output buffer, then fall back
+ 		 * to the full buffer size as that's a sensible default.
++		 *
++		 * Some drivers, e.g. old codec drivers, use bytesused * == 0 as
++		 * a way to indicate that streaming is finished. In that case,
++		 * the driver should use the allow_zero_bytesused flag to keep
++		 * old userspace applications working.
+ 		 */
+ 		if (b->memory == V4L2_MEMORY_USERPTR) {
+ 			v4l2_planes[0].m.userptr = b->m.userptr;
+@@ -1306,10 +1320,13 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 			v4l2_planes[0].length = b->length;
+ 		}
  
-+static int soc_camera_spi_init(struct soc_camera_device *icd,
-+			       struct soc_camera_desc *sdesc)
-+{
-+	struct soc_camera_subdev_desc *ssdd;
-+	struct spi_device *spi;
-+	struct soc_camera_host *ici;
-+	struct soc_camera_host_desc *shd = &sdesc->host_desc;
-+	struct spi_master *spi_master;
-+	struct v4l2_subdev *subdev;
-+	char clk_name[V4L2_SUBDEV_NAME_SIZE];
-+	int ret;
-+
-+	/* First find out how we link the main client */
-+	if (icd->sasc) {
-+		/* Async non-OF probing handled by the subdevice list */
-+		return -EPROBE_DEFER;
-+	}
-+
-+	ici = to_soc_camera_host(icd->parent);
-+	spi_master = spi_busnum_to_master(shd->spi_bus_id);
-+	if (!spi_master) {
-+		dev_err(icd->pdev, "Cannot get SPI master #%d. No driver?\n",
-+			shd->spi_bus_id);
-+		return -ENODEV;
-+	}
-+
-+	ssdd = kmemdup(&sdesc->subdev_desc, sizeof(*ssdd), GFP_KERNEL);
-+	if (!ssdd)
-+		return -ENOMEM;
-+	/*
-+	 * In synchronous case we request regulators ourselves in
-+	 * soc_camera_pdrv_probe(), make sure the subdevice driver doesn't try
-+	 * to allocate them again.
-+	 */
-+	ssdd->sd_pdata.num_regulators = 0;
-+	ssdd->sd_pdata.regulators = NULL;
-+	shd->board_info_spi->platform_data = ssdd;
-+
-+	snprintf(clk_name, sizeof(clk_name), "%d",
-+		 shd->spi_bus_id);
-+
-+	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
-+	if (IS_ERR(icd->clk)) {
-+		ret = PTR_ERR(icd->clk);
-+		goto eclkreg;
-+	}
-+
-+	subdev = v4l2_spi_new_subdev(&ici->v4l2_dev, spi_master,
-+				shd->board_info_spi);
-+	if (!subdev) {
-+		ret = -ENODEV;
-+		goto espind;
-+	}
-+
-+	spi = v4l2_get_subdevdata(subdev);
-+
-+	icd->control = &spi->dev;
-+
-+	return 0;
-+espind:
-+	v4l2_clk_unregister(icd->clk);
-+	icd->clk = NULL;
-+eclkreg:
-+	kfree(ssdd);
-+	return ret;
-+}
-+
-+static void soc_camera_spi_free(struct soc_camera_device *icd)
-+{
-+	struct spi_device *spi =
-+		to_spi_device(to_soc_camera_control(icd));
-+	struct soc_camera_subdev_desc *ssdd;
-+	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-+
-+	icd->control = NULL;
-+	if (icd->sasc)
-+		return;
-+	ssdd = spi->dev.platform_data;
-+	v4l2_device_unregister_subdev(sd);
-+	spi_unregister_device(spi);
-+	kfree(ssdd);
-+	v4l2_clk_unregister(icd->clk);
-+	icd->clk = NULL;
-+}
-+
- /*
-  * V4L2 asynchronous notifier callbacks. They are all called under a v4l2-async
-  * internal global mutex, therefore cannot race against other asynchronous
-@@ -1762,6 +1848,10 @@ static int soc_camera_probe(struct soc_camera_host *ici,
- 		ret = soc_camera_i2c_init(icd, sdesc);
- 		if (ret < 0 && ret != -EPROBE_DEFER)
- 			goto eadd;
-+	} else if (shd->board_info_spi) {
-+		ret = soc_camera_spi_init(icd, sdesc);
-+		if (ret < 0)
-+			goto eadd;
- 	} else if (!shd->add_device || !shd->del_device) {
- 		ret = -EINVAL;
- 		goto eadd;
-@@ -1803,6 +1893,8 @@ static int soc_camera_probe(struct soc_camera_host *ici,
- efinish:
- 	if (shd->board_info) {
- 		soc_camera_i2c_free(icd);
-+	} else if (shd->board_info_spi) {
-+		soc_camera_spi_free(icd);
- 	} else {
- 		shd->del_device(icd);
- 		module_put(control->driver->owner);
-@@ -1843,6 +1935,8 @@ static int soc_camera_remove(struct soc_camera_device *icd)
+-		if (V4L2_TYPE_IS_OUTPUT(b->type))
+-			v4l2_planes[0].bytesused = b->bytesused ?
+-				b->bytesused : v4l2_planes[0].length;
+-		else
++		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
++			if (vb->vb2_queue->allow_zero_bytesused)
++				v4l2_planes[0].bytesused = b->bytesused;
++			else
++				v4l2_planes[0].bytesused = b->bytesused ?
++					b->bytesused : v4l2_planes[0].length;
++		} else
+ 			v4l2_planes[0].bytesused = 0;
  
- 	if (sdesc->host_desc.board_info) {
- 		soc_camera_i2c_free(icd);
-+	} else if (sdesc->host_desc.board_info_spi) {
-+		soc_camera_spi_free(icd);
- 	} else {
- 		struct device *dev = to_soc_camera_control(icd);
- 		struct device_driver *drv = dev ? dev->driver : NULL;
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 2f6261f..a948ff6 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -178,6 +178,8 @@ struct soc_camera_host_desc {
- 	int i2c_adapter_id;
- 	struct i2c_board_info *board_info;
- 	const char *module_name;
-+	struct spi_board_info *board_info_spi;
-+	int spi_bus_id;
+ 	}
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index e49dc6b..a5790fd 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -337,6 +337,7 @@ struct v4l2_fh;
+  * @io_modes:	supported io methods (see vb2_io_modes enum)
+  * @fileio_read_once:		report EOF after reading the first buffer
+  * @fileio_write_immediately:	queue buffer after each write() call
++ * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
+  * @lock:	pointer to a mutex that protects the vb2_queue struct. The
+  *		driver can set this to a mutex to let the v4l2 core serialize
+  *		the queuing ioctls. If the driver wants to handle locking
+@@ -388,6 +389,7 @@ struct vb2_queue {
+ 	unsigned int			io_modes;
+ 	unsigned			fileio_read_once:1;
+ 	unsigned			fileio_write_immediately:1;
++	unsigned			allow_zero_bytesused:1;
  
- 	/*
- 	 * For non-I2C devices platform has to provide methods to add a device
-@@ -243,6 +245,8 @@ struct soc_camera_link {
- 	int i2c_adapter_id;
- 	struct i2c_board_info *board_info;
- 	const char *module_name;
-+	struct spi_board_info *board_info_spi;
-+	int spi_bus_id;
- 
- 	/*
- 	 * For non-I2C devices platform has to provide methods to add a device
+ 	struct mutex			*lock;
+ 	struct v4l2_fh			*owner;
 -- 
 1.7.9.5
 
