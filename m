@@ -1,56 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58411 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757241AbbBEMAc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Feb 2015 07:00:32 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] [media] mt9p031: fixed calculation of clk_div
-Date: Thu, 05 Feb 2015 14:01:17 +0200
-Message-ID: <5787881.fq9SL5Zs8d@avalon>
-In-Reply-To: <1423072270-20078-1-git-send-email-enrico.scholz@sigma-chemnitz.de>
-References: <1423061612-12623-1-git-send-email-enrico.scholz@sigma-chemnitz.de> <1423072270-20078-1-git-send-email-enrico.scholz@sigma-chemnitz.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout4.samsung.com ([203.254.224.34]:50377 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752650AbbBSKLh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 05:11:37 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NK000CYCKBB0T70@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 19 Feb 2015 19:11:35 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH v3 3/4] coda: set allow_zero_bytesused flag for vb2_queue_init
+Date: Thu, 19 Feb 2015 11:11:19 +0100
+Message-id: <1424340680-13817-3-git-send-email-k.debski@samsung.com>
+In-reply-to: <1424340680-13817-1-git-send-email-k.debski@samsung.com>
+References: <1424340680-13817-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enrico,
+The coda driver interprets a buffer with bytesused equal to 0 as a special
+case indicating end-of-stream. After vb2: fix bytesused == 0 handling
+(8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
+The allow_zero_bytesused flag was added to videobuf2 to keep
+backward compatibility.
 
-Thank you for the patch.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/platform/coda/coda-common.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-On Wednesday 04 February 2015 18:51:10 Enrico Scholz wrote:
-> There must be used 'min_t', not 'max_t' for calculating the divider.
-> 
-> Signed-off-by: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree. I'll send a pull request for v3.21.
-
-> ---
->  drivers/media/i2c/mt9p031.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index 0cabf91..43ee299 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -254,7 +254,7 @@ static int mt9p031_clk_setup(struct mt9p031 *mt9p031)
->  		div = DIV_ROUND_UP(ext_freq, pdata->target_freq);
->  		div = roundup_pow_of_two(div) / 2;
-> 
-> -		mt9p031->clk_div = max_t(unsigned int, div, 64);
-> +		mt9p031->clk_div = min_t(unsigned int, div, 64);
->  		mt9p031->use_pll = false;
-> 
->  		return 0;
-
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 6f32e6d..2d23f9a 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1541,6 +1541,13 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
+ 	vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	vq->lock = &ctx->dev->dev_mutex;
++	/* One of means to indicate end-of-stream for coda is to set the
++	 * bytesused == 0. However by default videobuf2 handles videobuf
++	 * equal to 0 as a special case and changes its value to the size
++	 * of the buffer. Set the allow_zero_bytesused flag, so
++	 * that videobuf2 will keep the value of bytesused intact.
++	 */
++	vq->allow_zero_bytesused = 1;
+ 
+ 	return vb2_queue_init(vq);
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
