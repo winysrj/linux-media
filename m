@@ -1,95 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:50510 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759515AbbBIP5D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2015 10:57:03 -0500
-Date: Mon, 9 Feb 2015 13:56:56 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Luis de Bethencourt <luis@debethencourt.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: divide error: 0000 in the gspca_topro
-Message-ID: <20150209135656.11cc85e6@recife.lan>
-In-Reply-To: <20150209102348.GB28420@biggie>
-References: <54D7E0B8.30503@reflexion.tv>
-	<CA+55aFxB4Wq-Bob_+q0c3oS1hUf_BLGqqyoepGRDvm9-X2Y+og@mail.gmail.com>
-	<20150209102348.GB28420@biggie>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:23538 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752612AbbBSUFb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 15:05:31 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NK10038UBT5KG00@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 19 Feb 2015 15:05:29 -0500 (EST)
+Date: Thu, 19 Feb 2015 18:05:25 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: LMML <linux-media@vger.kernel.org>, media-workshop@linuxtv.org
+Subject: [ANNOUNCE] media mini-summit on March, 26 in San Jose together with ELC
+Message-id: <20150219180525.7014fe88.m.chehab@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 09 Feb 2015 10:23:48 +0000
-Luis de Bethencourt <luis@debethencourt.com> escreveu:
+As discussed on our IRC #v4l channels and on the media ML, most of the 
+core developers will be again this year in San Jose - CA - USA for the
+Embedded Linux Conference.
 
-> On Sun, Feb 08, 2015 at 06:07:45PM -0800, Linus Torvalds wrote:
-> > I got this, and it certainly seems relevant,.
-> > 
-> > It would seem that that whole 'quality' thing needs some range
-> > checking, it should presumably be in the range [1..100] in order to
-> > avoid negative 'sc' values or the divide-by-zero.
-> > 
-> > Hans, Mauro?
-> > 
-> >                       Linus
-> 
-> Hello Linus,
-> 
-> The case of quality being set to 0 is correctly handled in
-> drivers/media/usb/gspca/jpeg.h [0], so I have sent a patch to do the same
-> in topro.c.
+There are several subjects that we've been discussing those days that
+require a face to face meeting.
 
-Patch looks good to me.
+So, We'll be doing a media mini-summit on March, 26 (Thursday) at the 
+Marriott San Jose.
 
-I'll double check if some other driver has the same bad handling for
-quality set and give a couple days for Hans to take a look.
+This time, Linux Foundation will be handling the subscriptions
+for the event, via their registering site:
+	https://www.regonline.com/register/login.aspx?eventID=1623927&MethodId=0&EventsessionId=
 
-If he's fine with this approach, I'll add it on a separate pull request.
+So, you need to register for an "add-on" option as shown below:
 
-Regards,
+[  ] Linux Media Summit:
+Please click here if you would like to attend Linux Media Summit. 
+Media Summit is the premier forum to discuss the Linux multimedia 
+development for webcams, audio and video streaming devices and 
+analog/digital TV support at the Linux Kernel and its userspace APIs.
+
+Date: Thursday, March 26, 2015 9:00 AM - 6:00 PM (Pacific Time)
+
+If you're already subscribed to the event, you can login using
+the same URL, select your register and register for the Media
+Summit.
+
+I hope to see you there!
+
+Ah, as usual, we'll be using the media-workshop@linuxtv.org ML for
+specific discussions about that, so the ones interested on participate
+are requested to subscribe it, and to submit themes of interest to
+the mailing lists.
+
+Regards!
 Mauro
-
-> 
-> Thanks,
-> Luis
-> 
-> [0] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/media/usb/gspca/jpeg.h#n157
-> 
-> > 
-> > ---------- Forwarded message ----------
-> > From: Peter Kovář <peter.kovar@reflexion.tv>
-> > Date: Sun, Feb 8, 2015 at 2:18 PM
-> > Subject: divide error: 0000 in the gspca_topro
-> > To: Linus Torvalds <torvalds@linux-foundation.org>
-> > 
-> > 
-> > Hi++ Linus!
-> > 
-> > There is a trivial bug in the gspca_topro webcam driver.
-> > 
-> > /* set the JPEG quality for sensor soi763a */
-> > static void jpeg_set_qual(u8 *jpeg_hdr,
-> >                           int quality)
-> > {
-> >         int i, sc;
-> > 
-> >         if (quality < 50)
-> >                 sc = 5000 / quality;
-> >         else
-> >                 sc = 200 - quality * 2;
-> > 
-> > 
-> > 
-> > Crash can be reproduced by setting JPEG quality to zero in the guvcview
-> > application.
-> > 
-> > Cheers,
-> > 
-> > Peter Kovář
-> > 50 65 74 65 72 20 4B 6F 76 C3 A1 C5 99
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
