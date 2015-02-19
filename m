@@ -1,113 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:36649 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755813AbbBCOZc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 09:25:32 -0500
+Received: from gofer.mess.org ([80.229.237.210]:52253 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752433AbbBSLGr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 06:06:47 -0500
+Date: Thu, 19 Feb 2015 11:06:45 +0000
+From: Sean Young <sean@mess.org>
+To: Philip Downer <pdowner@prospero-tech.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 1/1] [media] pci: Add support for DVB PCIe cards from
+ Prospero Technologies Ltd.
+Message-ID: <20150219110645.GA2608@gofer.mess.org>
+References: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>
+ <1424116126-14052-2-git-send-email-pdowner@prospero-tech.com>
 MIME-Version: 1.0
-In-Reply-To: <20150203122813.GN8656@n2100.arm.linux.org.uk>
-References: <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
-	<20150129143908.GA26493@n2100.arm.linux.org.uk>
-	<CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
-	<20150129154718.GB26493@n2100.arm.linux.org.uk>
-	<CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
-	<20150129192610.GE26493@n2100.arm.linux.org.uk>
-	<CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
-	<20150202165405.GX14009@phenom.ffwll.local>
-	<CAF6AEGuESM+e3HSRGM6zLqrp8kqRLGUYvA3KKECdm7m-nt0M=Q@mail.gmail.com>
-	<20150203074856.GF14009@phenom.ffwll.local>
-	<20150203122813.GN8656@n2100.arm.linux.org.uk>
-Date: Tue, 3 Feb 2015 09:25:30 -0500
-Message-ID: <CAF6AEGuu=xBY-Con2CVYJ5kPfNk-emT6DqCuukiGErPzntcusA@mail.gmail.com>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
- with dma-parms
-From: Rob Clark <robdclark@gmail.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1424116126-14052-2-git-send-email-pdowner@prospero-tech.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 3, 2015 at 7:28 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Tue, Feb 03, 2015 at 08:48:56AM +0100, Daniel Vetter wrote:
->> On Mon, Feb 02, 2015 at 03:30:21PM -0500, Rob Clark wrote:
->> > On Mon, Feb 2, 2015 at 11:54 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
->> > >> My initial thought is for dma-buf to not try to prevent something than
->> > >> an exporter can actually do.. I think the scenario you describe could
->> > >> be handled by two sg-lists, if the exporter was clever enough.
->> > >
->> > > That's already needed, each attachment has it's own sg-list. After all
->> > > there's no array of dma_addr_t in the sg tables, so you can't use one sg
->> > > for more than one mapping. And due to different iommu different devices
->> > > can easily end up with different addresses.
->> >
->> >
->> > Well, to be fair it may not be explicitly stated, but currently one
->> > should assume the dma_addr_t's in the dmabuf sglist are bogus.  With
->> > gpu's that implement per-process/context page tables, I'm not really
->> > sure that there is a sane way to actually do anything else..
->>
->> Hm, what does per-process/context page tables have to do here? At least on
->> i915 we have a two levels of page tables:
->> - first level for vm/device isolation, used through dma api
->> - 2nd level for per-gpu-context isolation and context switching, handled
->>   internally.
->>
->> Since atm the dma api doesn't have any context of contexts or different
->> pagetables, I don't see who you could use that at all.
->
-> What I've found with *my* etnaviv drm implementation (not Christian's - I
-> found it impossible to work with Christian, especially with the endless
-> "msm doesn't do it that way, so we shouldn't" responses and his attitude
-> towards cherry-picking my development work [*]) is that it's much easier to
-> keep the GPU MMU local to the GPU and under the control of the DRM MM code,
-> rather than attaching the IOMMU to the DMA API and handling it that way.
->
-> There are several reasons for that:
->
-> 1. DRM has a better idea about when the memory needs to be mapped to the
->    GPU, and it can more effectively manage the GPU MMU.
->
-> 2. The GPU MMU may have TLBs which can only be flushed via a command in
->    the GPU command stream, so it's fundamentally necessary for the MMU to
->    be managed by the GPU driver so that it knows when (and how) to insert
->    the flushes.
->
+On Mon, Feb 16, 2015 at 07:48:46PM +0000, Philip Downer wrote:
+> This patch adds support for the Vortex 1 PCIe card from Prospero
+> Technologies Ltd. The Vortex 1 supports up to 8 tuner modules and
+> currently ships with 8xDibcom 7090p tuners. The card also has raw
+> infra-red support and a hardware demuxer.
+> 
+-snip-
+> diff --git a/drivers/media/pci/prospero/prospero_ir.c b/drivers/media/pci/prospero/prospero_ir.c
+> new file mode 100644
+> index 0000000..01e5204
+> --- /dev/null
+> +++ b/drivers/media/pci/prospero/prospero_ir.c
+> @@ -0,0 +1,150 @@
+> +/*
+> + *  Infra-red driver for PCIe DVB cards from Prospero Technology Ltd.
+> + *
+> + *  Copyright Prospero Technology Ltd. 2014
+> + *  Written/Maintained by Philip Downer
+> + *  Contact: pdowner@prospero-tech.com
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or
+> + *  (at your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + *
+> + */
+> +
+> +#include <media/rc-core.h>
+> +#include "prospero_ir.h"
+> +
+> +#define DURATION_MASK 0x7FFFF
+> +#define PULSE_MASK 0x1000000
+> +#define FIFO_FILL_MASK 0xFF
+> +
+> +#define FIFO_FILL 0x60
+> +#define FIFO 0x64
+> +
+> +struct prospero_IR {
+> +	struct prospero_device *pdev;
+> +	struct rc_dev *dev;
+> +
+> +	int users;
 
-If gpu mmu needs some/all updates to happen from command-stream then
-probably better to handle it internally..
+The users field is never used.
 
-That is a slightly different scenario from msm, where we have many
-instances of the same iommu[*] scattered through the SoC in front of
-various different devices.
+> +
+> +	char name[32];
+> +	char phys[32];
+> +};
+> +
+> +static int prospero_ir_open(struct rc_dev *rc)
+> +{
+> +	struct prospero_device *p = rc->priv;
+> +
+> +	p->ir->users++;
+> +	return 0;
+> +
+> +}
+> +
+> +static void prospero_ir_close(struct rc_dev *rc)
+> +{
+> +	struct prospero_device *p = rc->priv;
+> +
+> +	p->ir->users--;
+> +
+> +}
 
-BR,
--R
+Since the users field is never read these functions are unnecessary and 
+can be removed.
 
-[*] at least from iommu register layout, same driver is used for all
-instances.. but maybe the tlb+walker are maybe more tightly integrated
-to the gpu, but that is just speculation on implementation details
-based on some paper I found along the way
+> +
+> +void ir_interrupt(struct prospero_pci *p_pci)
+> +{
+> +
+> +	struct prospero_device *p = p_pci->p_dev;
+> +	struct prospero_IR *ir = p->ir;
+> +	struct ir_raw_event ev;
+> +	int tmp = 0;
+> +	int fill = 0;
+> +	int pulse = 0;
+> +	int duration = 0;
+> +
+> +	pr_debug("Infra: Interrupt!\n");
+> +
+> +	tmp = ioread32(p_pci->io_mem + FIFO_FILL);
+> +	fill = tmp & FIFO_FILL_MASK;
+> +
+> +	init_ir_raw_event(&ev);
+> +
+> +	while (fill > 0) {
+> +
+> +		pr_debug("Infra: fifo fill = %d\n", fill);
+> +
+> +		tmp = ioread32(p_pci->io_mem + FIFO);
+> +		pr_debug("Infra: raw dump = 0x%x\n", tmp);
+> +		pulse = (tmp & PULSE_MASK) >> 24;
+> +		duration = (tmp & DURATION_MASK) * 1000;	/* Convert uS to nS */
+> +
+> +		pr_debug("Infra: pulse = %d; duration = %d\n", pulse, duration);
+> +
+> +		ev.pulse = pulse;
+> +		ev.duration = duration;
+> +		ir_raw_event_store_with_filter(ir->dev, &ev);
+> +		fill--;
+> +	}
+> +	ir_raw_event_handle(ir->dev);
+> +
+> +}
+> +
+> +int prospero_ir_init(struct prospero_device *p)
+> +{
+> +
+> +	struct prospero_pci *p_pci = p->bus_specific;
+> +	struct pci_dev *pci = p_pci->pcidev;
+> +	struct prospero_IR *ir;
+> +	struct rc_dev *dev;
+> +	int err = -ENOMEM;
+> +
+> +	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+> +
+> +	dev = rc_allocate_device();
+> +
+> +	if (!ir || !dev)
+> +		goto err_out_free;
+> +
+> +	ir->dev = dev;
+> +
+> +	snprintf(ir->name, sizeof(ir->name), "prospero IR");
+> +	snprintf(ir->phys, sizeof(ir->phys), "pci-%s/ir0", pci_name(pci));
+> +
+> +	dev->input_name = ir->name;
+> +	dev->input_phys = ir->phys;
+> +	dev->input_id.bustype = BUS_PCI;
+> +	dev->input_id.version = 1;
+> +	dev->input_id.vendor = pci->vendor;
+> +	dev->input_id.product = pci->device;
+> +
+> +	dev->dev.parent = &pci->dev;
+> +	dev->map_name = RC_MAP_LIRC;
+> +
+> +	dev->driver_name = "prospero";
+> +	dev->priv = p;
+> +	dev->open = prospero_ir_open;
+> +	dev->close = prospero_ir_close;
+> +	dev->driver_type = RC_DRIVER_IR_RAW;
+> +	dev->timeout = 10 * 1000 * 1000;
 
->
-> * - as a direct result of that, I've stopped all further development of
-> etnaviv drm, and I'm intending to strip it out from my Xorg DDX driver
-> as the etnaviv drm API which Christian wants is completely incompatible
-> with the non-etnaviv drm, and that just creates far too much pain in the
-> DDX driver.
->
-> --
-> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-> according to speedtest.net.
+If you know the rx_resolution, please provide it. The lirc interface
+can query it.
+
+> +
+> +	iowrite32(0x12000, p_pci->io_mem + FIFO_FILL);
+> +
+> +	ir->pdev = p;
+> +	p->ir = ir;
+> +
+> +	err = rc_register_device(dev);
+> +	if (err)
+> +		goto err_out_free;
+> +
+> +	return 0;
+> +
+> + err_out_free:
+> +	rc_free_device(dev);
+> +	p->ir = NULL;
+> +	kfree(ir);
+> +	return -ENOMEM;
+> +
+> +}
+Thanks
+
+Sean
