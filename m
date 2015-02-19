@@ -1,126 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ipmail05.adl6.internode.on.net ([150.101.137.143]:52421 "EHLO
-	ipmail05.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751305AbbCAAPs (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60852 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752308AbbBSVs0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Feb 2015 19:15:48 -0500
-From: Brendan McGrath <redmcg@redmandi.dyndns.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Brendan McGrath <redmcg@redmandi.dyndns.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: [PATCHv3] [media] saa7164: use an MSI interrupt when available
-Date: Sun,  1 Mar 2015 11:14:53 +1100
-Message-Id: <1425168893-5251-1-git-send-email-redmcg@redmandi.dyndns.org>
-In-Reply-To: <54EFAC4B.6080002@redmandi.dyndns.org>
-References: <54EFAC4B.6080002@redmandi.dyndns.org>
+	Thu, 19 Feb 2015 16:48:26 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Joe Perches <joe@perches.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: [PATCH] [media] cx25840: better document the media pads
+Date: Thu, 19 Feb 2015 19:48:10 -0200
+Message-Id: <409cb3a15152aaa945cbd9e54ad5275152249a89.1424382466.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enhances driver to use an MSI interrupt when available.
+Use an enum to better document the media pads.
 
-Adds the module option 'enable_msi' (type bool) which by default is
-enabled. Can be set to 'N' to disable.
+No functional changes.
 
-Fixes (or can reduce the occurrence of) a crash which is most commonly
-reported when multiple saa7164 chips are in use. A reported example can
-be found here:
-http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/83948
+Suggested-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Reviewed-by: Steven Toth <stoth@kernellabs.com>
-Signed-off-by: Brendan McGrath <redmcg@redmandi.dyndns.org>
----
-
-Changes since v3:
- * Added link to reported incident in comments
- * Added Reviewed-by tag from Steven Toth
- * Used git send-mail (as my patch got mangled using Thunderbird)
- * Added the linux-kernel mailing list to the recipient list
-
-Note I have not included the Tested-by tag from Kyle Sanderson as his test was on v1 (which did not include the module option 'enable_msi') - although much of the code in v3 was there is v1.
-
- drivers/media/pci/saa7164/saa7164-core.c | 40 ++++++++++++++++++++++++++++++--
- drivers/media/pci/saa7164/saa7164.h      |  1 +
- 2 files changed, 39 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/pci/saa7164/saa7164-core.c b/drivers/media/pci/saa7164/saa7164-core.c
-index 4b0bec3..c9a6447 100644
---- a/drivers/media/pci/saa7164/saa7164-core.c
-+++ b/drivers/media/pci/saa7164/saa7164-core.c
-@@ -85,6 +85,11 @@ module_param(guard_checking, int, 0644);
- MODULE_PARM_DESC(guard_checking,
- 	"enable dma sanity checking for buffer overruns");
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+index 185cb55253c9..bd496447749a 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.c
++++ b/drivers/media/i2c/cx25840/cx25840-core.c
+@@ -5196,9 +5196,9 @@ static int cx25840_probe(struct i2c_client *client,
+ 	 * However, at least for now, there's no much gain on modelling
+ 	 * those extra inputs. So, let's add it only when needed.
+ 	 */
+-	state->pads[0].flags = MEDIA_PAD_FL_SINK;	/* Tuner or input */
+-	state->pads[1].flags = MEDIA_PAD_FL_SOURCE;	/* Video */
+-	state->pads[2].flags = MEDIA_PAD_FL_SOURCE;	/* VBI */
++	state->pads[CX25840_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
++	state->pads[CX25840_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	state->pads[CX25840_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
  
-+static bool enable_msi = true;
-+module_param(enable_msi, bool, 0444);
-+MODULE_PARM_DESC(enable_msi,
-+		"enable the use of an msi interrupt if available");
-+
- static unsigned int saa7164_devcount;
+ 	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.h b/drivers/media/i2c/cx25840/cx25840-core.h
+index 17b409f55445..fdea48ce0c03 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.h
++++ b/drivers/media/i2c/cx25840/cx25840-core.h
+@@ -41,6 +41,14 @@ enum cx25840_model {
+ 	CX25837,
+ };
  
- static DEFINE_MUTEX(devlist);
-@@ -1230,8 +1235,34 @@ static int saa7164_initdev(struct pci_dev *pci_dev,
- 		goto fail_irq;
- 	}
++enum cx25840_media_pads {
++	CX25840_PAD_INPUT,
++	CX25840_PAD_VID_OUT,
++	CX25840_PAD_VBI_OUT,
++
++	CX25840_NUM_PADS
++};
++
+ struct cx25840_state {
+ 	struct i2c_client *c;
+ 	struct v4l2_subdev sd;
+@@ -65,7 +73,7 @@ struct cx25840_state {
+ 	struct work_struct fw_work;   /* work entry for fw load */
+ 	struct cx25840_ir_state *ir_state;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	struct media_pad	pads[3];
++	struct media_pad	pads[CX25840_NUM_PADS];
+ #endif
+ };
  
--	err = request_irq(pci_dev->irq, saa7164_irq,
--		IRQF_SHARED, dev->name, dev);
-+	/* irq bit */
-+	if (enable_msi)
-+		err = pci_enable_msi(pci_dev);
-+
-+	if (!err && enable_msi) {
-+		/* no error - so request an msi interrupt */
-+		err = request_irq(pci_dev->irq, saa7164_irq, 0,
-+				  dev->name, dev);
-+
-+		if (err) {
-+			/* fall back to legacy interrupt */
-+			printk(KERN_ERR "%s() Failed to get an MSI interrupt."
-+			       " Falling back to a shared IRQ\n", __func__);
-+			pci_disable_msi(pci_dev);
-+		} else {
-+			dev->msi = true;
-+		}
-+	}
-+
-+	if ((!enable_msi) || err) {
-+		dev->msi = false;
-+		/* if we have an error (i.e. we don't have an interrupt)
-+			 or msi is not enabled - fallback to shared interrupt */
-+
-+		err = request_irq(pci_dev->irq, saa7164_irq,
-+				  IRQF_SHARED, dev->name, dev);
-+	}
-+
- 	if (err < 0) {
- 		printk(KERN_ERR "%s: can't get IRQ %d\n", dev->name,
- 			pci_dev->irq);
-@@ -1441,6 +1472,11 @@ static void saa7164_finidev(struct pci_dev *pci_dev)
- 	/* unregister stuff */
- 	free_irq(pci_dev->irq, dev);
- 
-+	if (dev->msi) {
-+		pci_disable_msi(pci_dev);
-+		dev->msi = false;
-+	}
-+
- 	mutex_lock(&devlist);
- 	list_del(&dev->devlist);
- 	mutex_unlock(&devlist);
-diff --git a/drivers/media/pci/saa7164/saa7164.h b/drivers/media/pci/saa7164/saa7164.h
-index cd1a07c..6df4b252 100644
---- a/drivers/media/pci/saa7164/saa7164.h
-+++ b/drivers/media/pci/saa7164/saa7164.h
-@@ -459,6 +459,7 @@ struct saa7164_dev {
- 	/* Interrupt status and ack registers */
- 	u32 int_status;
- 	u32 int_ack;
-+	u32 msi;
- 
- 	struct cmd			cmds[SAA_CMD_MAX_MSG_UNITS];
- 	struct mutex			lock;
 -- 
-1.9.1
+2.1.0
 
