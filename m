@@ -1,115 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:53783 "EHLO mout.gmx.net"
+Received: from cantor2.suse.de ([195.135.220.15]:40870 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753884AbbBAS32 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Feb 2015 13:29:28 -0500
-Date: Sun, 1 Feb 2015 19:29:19 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: William Towle <william.towle@codethink.co.uk>
-cc: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 5/8] media: rcar_vin: Add RGB888_1X24 input format support
-In-Reply-To: <1422548388-28861-6-git-send-email-william.towle@codethink.co.uk>
-Message-ID: <Pine.LNX.4.64.1502011926420.18447@axis700.grange>
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
- <1422548388-28861-6-git-send-email-william.towle@codethink.co.uk>
+	id S1752695AbbBSMLL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 07:11:11 -0500
+Date: Thu, 19 Feb 2015 13:11:07 +0100
+From: Michal Marek <mmarek@suse.cz>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Antti Palosaari <crope@iki.fi>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Trent Piepho <xyzzy@speakeasy.org>,
+	linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org,
+	"Yann E. MORIN" <yann.morin.1998@free.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] [kbuild] Add and use IS_REACHABLE macro
+Message-ID: <20150219121107.GA19684@sepie.suse.cz>
+References: <6116702.rrbrOqQ26P@wuerfel>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6116702.rrbrOqQ26P@wuerfel>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wills,
-
-On Thu, 29 Jan 2015, William Towle wrote:
-
-> This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
-> which is used by the ADV7612 chip.
+On 2015-02-18 18:12, Arnd Bergmann wrote:
+> In the media drivers, the v4l2 core knows about all submodules
+> and calls into them from a common function. However this cannot
+> work if the modules that get called are loadable and the
+> core is built-in. In that case we get
 > 
-> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
-> ---
-> URL:    http://marc.info/?l=linux-sh&m=138002993417489&q=raw
-> FIXMEs required:
-> - "From:" as per URL
-> - adapted for lx3.18 by William Towle -> add S-o-b **
+> drivers/built-in.o: In function `set_type':
+> drivers/media/v4l2-core/tuner-core.c:301: undefined reference to `tea5767_attach'
+> drivers/media/v4l2-core/tuner-core.c:307: undefined reference to `tea5761_attach'
+> drivers/media/v4l2-core/tuner-core.c:349: undefined reference to `tda9887_attach'
+> drivers/media/v4l2-core/tuner-core.c:405: undefined reference to `xc4000_attach'
+> [...]
+> Ideally Kconfig would be used to avoid the case of a broken dependency,
+> or the code restructured in a way to turn around the dependency, but either
+> way would require much larger changes here.
 
-Yes, please, add your Sob and the original authorship. Which, btw, isn't 
-this patch a modified version of 
-http://lists.kde.org/?l=linux-sh&m=141476801629391&w=4 ? I.e. shouldn't it 
-be
+What can be done without extending kbuild is to accept
+CONFIG_VIDEO_TUNER=y and CONFIG_MEDIA_TUNER_FOO=m, but build both into
+the kernel, e.g.
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
+index 42e5a01..d2c7e89 100644
+--- a/drivers/media/tuners/Kconfig
++++ b/drivers/media/tuners/Kconfig
+@@ -71,6 +71,11 @@ config MEDIA_TUNER_TEA5767
+ 	help
+ 	  Say Y here to include support for the Philips TEA5767 radio tuner.
+ 
++config MEDIA_TUNER_TEA5767_BUILD
++	tristate
++	default VIDEO_TUNER || MEDIA_TUNER_TEA5767
++	depends on MEDIA_TUNER_TEA5767!=n
++
+ config MEDIA_TUNER_MSI001
+ 	tristate "Mirics MSi001"
+ 	depends on MEDIA_SUPPORT && SPI && VIDEO_V4L2
 
-? And yes, I like this version better, because it sets the VNMC_BPS bit in 
-one step instead of two.
+Actually, I have hard time coming up with a kconfig syntactic sugar to
+express such dependency. If I understand it correctly, the valid
+configurations in this case are
 
-Thanks
-Guennadi
+MEDIA_TUNER_TEA5767	n	m	y
+VIDEO_TUNER	n	x	x	x
+		m	x	x	x
+		y	x		x
 
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c |   11 +++++++++--
->  1 file changed, 9 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index c4f88c3..e4f60d3 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -74,6 +74,7 @@
->  #define VNMC_INF_YUV10_BT656	(2 << 16)
->  #define VNMC_INF_YUV10_BT601	(3 << 16)
->  #define VNMC_INF_YUV16		(5 << 16)
-> +#define VNMC_INF_RGB888		(6 << 16)
->  #define VNMC_VUP		(1 << 10)
->  #define VNMC_IM_ODD		(0 << 3)
->  #define VNMC_IM_ODD_EVEN	(1 << 3)
-> @@ -241,7 +242,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->  	struct soc_camera_device *icd = priv->ici.icd;
->  	struct rcar_vin_cam *cam = icd->host_priv;
->  	u32 vnmc, dmr, interrupts;
-> -	bool progressive = false, output_is_yuv = false;
-> +	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
->  
->  	switch (priv->field) {
->  	case V4L2_FIELD_TOP:
-> @@ -275,11 +276,16 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->  	case MEDIA_BUS_FMT_YUYV8_1X16:
->  		/* BT.601/BT.1358 16bit YCbCr422 */
->  		vnmc |= VNMC_INF_YUV16;
-> +		input_is_yuv = true;
->  		break;
->  	case MEDIA_BUS_FMT_YUYV8_2X8:
->  		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
->  		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
->  			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
-> +		input_is_yuv = true;
-> +		break;
-> +	case MEDIA_BUS_FMT_RGB888_1X24:
-> +		vnmc |= VNMC_INF_RGB888;
->  		break;
->  	case MEDIA_BUS_FMT_YUYV10_2X10:
->  		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
-> @@ -328,7 +334,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->  	vnmc |= VNMC_VUP;
->  
->  	/* If input and output use the same colorspace, use bypass mode */
-> -	if (output_is_yuv)
-> +	if (input_is_yuv == output_is_yuv)
->  		vnmc |= VNMC_BPS;
->  
->  	/* progressive or interlaced mode */
-> @@ -1015,6 +1021,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
->  	case MEDIA_BUS_FMT_YUYV8_1X16:
->  	case MEDIA_BUS_FMT_YUYV8_2X8:
->  	case MEDIA_BUS_FMT_YUYV10_2X10:
-> +	case MEDIA_BUS_FMT_RGB888_1X24:
->  		if (cam->extra_fmt)
->  			break;
->  
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I.e. only VIDEO_TUNER=y and MEDIA_TUNER_TEA5767=m is incorrect, isn't
+it?
+
+Thanks,
+Michal
