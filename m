@@ -1,93 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:51643 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759898AbbBIQOc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2015 11:14:32 -0500
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 2/3] media/videobuf2-dma-contig: Fix handling of sg_table structure
-Date: Mon,  9 Feb 2015 17:14:25 +0100
-Message-Id: <1423498466-16718-2-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1423498466-16718-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1423498466-16718-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from mail-ob0-f177.google.com ([209.85.214.177]:38931 "EHLO
+	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752874AbbBSMW4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 07:22:56 -0500
+Received: by mail-ob0-f177.google.com with SMTP id wp18so12932800obc.8
+        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2015 04:22:56 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20150219110645.GA2608@gofer.mess.org>
+References: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>
+	<1424116126-14052-2-git-send-email-pdowner@prospero-tech.com>
+	<20150219110645.GA2608@gofer.mess.org>
+Date: Thu, 19 Feb 2015 12:22:56 +0000
+Message-ID: <CAE6wzSKtTXsk0PXb+fqkcnaJbpasnEiz+wVrKG5JwT1UZG+Zww@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/1] [media] pci: Add support for DVB PCIe cards from
+ Prospero Technologies Ltd.
+From: Philip Downer <pdowner@prospero-tech.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-when sg_alloc_table_from_pages() does not fail it returns a sg_table
-structure with nents and nents_orig initialized to the same value.
+On Thu, Feb 19, 2015 at 11:06 AM, Sean Young <sean@mess.org> wrote:
+> On Mon, Feb 16, 2015 at 07:48:46PM +0000, Philip Downer wrote:
+>> This patch adds support for the Vortex 1 PCIe card from Prospero
+>> Technologies Ltd. The Vortex 1 supports up to 8 tuner modules and
+>> currently ships with 8xDibcom 7090p tuners. The card also has raw
+>> infra-red support and a hardware demuxer.
+>>
+> -snip-
+>> diff --git a/drivers/media/pci/prospero/prospero_ir.c b/drivers/media/pci/prospero/prospero_ir.c
+>> new file mode 100644
+>> index 0000000..01e5204
+>> --- /dev/null
+>> +++ b/drivers/media/pci/prospero/prospero_ir.c
+>> @@ -0,0 +1,150 @@
+>> +/*
+>> + *  Infra-red driver for PCIe DVB cards from Prospero Technology Ltd.
+>> + *
+>> + *  Copyright Prospero Technology Ltd. 2014
+>> + *  Written/Maintained by Philip Downer
+>> + *  Contact: pdowner@prospero-tech.com
+>> + *
+>> + *  This program is free software; you can redistribute it and/or modify
+>> + *  it under the terms of the GNU General Public License as published by
+>> + *  the Free Software Foundation; either version 2 of the License, or
+>> + *  (at your option) any later version.
+>> + *
+>> + *  This program is distributed in the hope that it will be useful,
+>> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + *  GNU General Public License for more details.
+>> + *
+>> + */
+>> +
+>> +#include <media/rc-core.h>
+>> +#include "prospero_ir.h"
+>> +
+>> +#define DURATION_MASK 0x7FFFF
+>> +#define PULSE_MASK 0x1000000
+>> +#define FIFO_FILL_MASK 0xFF
+>> +
+>> +#define FIFO_FILL 0x60
+>> +#define FIFO 0x64
+>> +
+>> +struct prospero_IR {
+>> +     struct prospero_device *pdev;
+>> +     struct rc_dev *dev;
+>> +
+>> +     int users;
+>
+> The users field is never used.
+>
+>> +
+>> +     char name[32];
+>> +     char phys[32];
+>> +};
+>> +
+>> +static int prospero_ir_open(struct rc_dev *rc)
+>> +{
+>> +     struct prospero_device *p = rc->priv;
+>> +
+>> +     p->ir->users++;
+>> +     return 0;
+>> +
+>> +}
+>> +
+>> +static void prospero_ir_close(struct rc_dev *rc)
+>> +{
+>> +     struct prospero_device *p = rc->priv;
+>> +
+>> +     p->ir->users--;
+>> +
+>> +}
+>
+> Since the users field is never read these functions are unnecessary and
+> can be removed.
+>
+>> +
+>> +void ir_interrupt(struct prospero_pci *p_pci)
+>> +{
+>> +
+>> +     struct prospero_device *p = p_pci->p_dev;
+>> +     struct prospero_IR *ir = p->ir;
+>> +     struct ir_raw_event ev;
+>> +     int tmp = 0;
+>> +     int fill = 0;
+>> +     int pulse = 0;
+>> +     int duration = 0;
+>> +
+>> +     pr_debug("Infra: Interrupt!\n");
+>> +
+>> +     tmp = ioread32(p_pci->io_mem + FIFO_FILL);
+>> +     fill = tmp & FIFO_FILL_MASK;
+>> +
+>> +     init_ir_raw_event(&ev);
+>> +
+>> +     while (fill > 0) {
+>> +
+>> +             pr_debug("Infra: fifo fill = %d\n", fill);
+>> +
+>> +             tmp = ioread32(p_pci->io_mem + FIFO);
+>> +             pr_debug("Infra: raw dump = 0x%x\n", tmp);
+>> +             pulse = (tmp & PULSE_MASK) >> 24;
+>> +             duration = (tmp & DURATION_MASK) * 1000;        /* Convert uS to nS */
+>> +
+>> +             pr_debug("Infra: pulse = %d; duration = %d\n", pulse, duration);
+>> +
+>> +             ev.pulse = pulse;
+>> +             ev.duration = duration;
+>> +             ir_raw_event_store_with_filter(ir->dev, &ev);
+>> +             fill--;
+>> +     }
+>> +     ir_raw_event_handle(ir->dev);
+>> +
+>> +}
+>> +
+>> +int prospero_ir_init(struct prospero_device *p)
+>> +{
+>> +
+>> +     struct prospero_pci *p_pci = p->bus_specific;
+>> +     struct pci_dev *pci = p_pci->pcidev;
+>> +     struct prospero_IR *ir;
+>> +     struct rc_dev *dev;
+>> +     int err = -ENOMEM;
+>> +
+>> +     ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+>> +
+>> +     dev = rc_allocate_device();
+>> +
+>> +     if (!ir || !dev)
+>> +             goto err_out_free;
+>> +
+>> +     ir->dev = dev;
+>> +
+>> +     snprintf(ir->name, sizeof(ir->name), "prospero IR");
+>> +     snprintf(ir->phys, sizeof(ir->phys), "pci-%s/ir0", pci_name(pci));
+>> +
+>> +     dev->input_name = ir->name;
+>> +     dev->input_phys = ir->phys;
+>> +     dev->input_id.bustype = BUS_PCI;
+>> +     dev->input_id.version = 1;
+>> +     dev->input_id.vendor = pci->vendor;
+>> +     dev->input_id.product = pci->device;
+>> +
+>> +     dev->dev.parent = &pci->dev;
+>> +     dev->map_name = RC_MAP_LIRC;
+>> +
+>> +     dev->driver_name = "prospero";
+>> +     dev->priv = p;
+>> +     dev->open = prospero_ir_open;
+>> +     dev->close = prospero_ir_close;
+>> +     dev->driver_type = RC_DRIVER_IR_RAW;
+>> +     dev->timeout = 10 * 1000 * 1000;
+>
+> If you know the rx_resolution, please provide it. The lirc interface
+> can query it.
+>
+>> +
+>> +     iowrite32(0x12000, p_pci->io_mem + FIFO_FILL);
+>> +
+>> +     ir->pdev = p;
+>> +     p->ir = ir;
+>> +
+>> +     err = rc_register_device(dev);
+>> +     if (err)
+>> +             goto err_out_free;
+>> +
+>> +     return 0;
+>> +
+>> + err_out_free:
+>> +     rc_free_device(dev);
+>> +     p->ir = NULL;
+>> +     kfree(ir);
+>> +     return -ENOMEM;
+>> +
+>> +}
 
-dma_map_sg returns the dma_map_sg returns the number of areas mapped
-by the hardware, which could be different than the areas given as an input.
-The output must be saved to nent.
-Unfortunately nent differs in sign to the output of dma_map_sg, so an
-intermediate value must be used.
+Thanks For your feedback Sean, I'll make those changes.
 
-The output of dma_map, should be used to transverse the scatter list.
+regards,
 
-dma_unmap_sg needs the value passed to dma_map_sg (nents_orig).
-
-sg_free_tables uses also orig_nent.
-
-This patch fix the file to follow this paradigm.
-
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index b481d20..c7e4bdd 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -56,7 +56,7 @@ static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
- 	struct scatterlist *s;
- 	unsigned int i;
- 
--	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
-+	for_each_sg(sgt->sgl, s, sgt->nents, i) {
- 		struct page *page = sg_page(s);
- 		unsigned int n_pages = PAGE_ALIGN(s->offset + s->length)
- 			>> PAGE_SHIFT;
-@@ -260,7 +260,7 @@ static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
- 
- 	rd = buf->sgt_base->sgl;
- 	wr = sgt->sgl;
--	for (i = 0; i < sgt->orig_nents; ++i) {
-+	for (i = 0; i < sgt->nents; ++i) {
- 		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
- 		rd = sg_next(rd);
- 		wr = sg_next(wr);
-@@ -324,6 +324,7 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
- 		mutex_unlock(lock);
- 		return ERR_PTR(-EIO);
- 	}
-+	sgt->nents = ret;
- 
- 	attach->dma_dir = dma_dir;
- 
-@@ -669,13 +670,14 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	 * No need to sync to the device, this will happen later when the
- 	 * prepare() memop is called.
- 	 */
--	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
-+	ret = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
- 				      buf->dma_dir, &attrs);
--	if (sgt->nents <= 0) {
-+	if (ret <= 0) {
- 		pr_err("failed to map scatterlist\n");
- 		ret = -EIO;
- 		goto fail_sgt_init;
- 	}
-+	sgt->nents = ret;
- 
- 	contig_size = vb2_dc_get_contiguous_size(sgt);
- 	if (contig_size < size) {
 -- 
-2.1.4
-
+Philip Downer
+pdowner@prospero-tech.com
