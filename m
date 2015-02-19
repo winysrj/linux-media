@@ -1,81 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:44522 "EHLO mx2.suse.de"
+Received: from mail.southpole.se ([37.247.8.11]:60953 "EHLO mail.southpole.se"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753588AbbBBU43 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 15:56:29 -0500
-Date: Mon, 2 Feb 2015 21:56:23 +0100
-From: Jean Delvare <jdelvare@suse.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>, Mark Brown <broonie@kernel.org>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 21/66] rtl2830: implement own I2C locking
-Message-ID: <20150202215623.5e289f24@endymion.delvare>
-In-Reply-To: <20150202180726.454dc878@recife.lan>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
-	<1419367799-14263-21-git-send-email-crope@iki.fi>
-	<20150202180726.454dc878@recife.lan>
+	id S1752598AbbBSLyD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 06:54:03 -0500
+Message-ID: <54E5CED2.3010701@southpole.se>
+Date: Thu, 19 Feb 2015 12:53:54 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>
+CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH] mn88472: reduce firmware download chunk size
+References: <1424337200-6446-1-git-send-email-a.seppala@gmail.com>	<54E5B028.5080900@southpole.se> <CAKv9HNaSqgFpC+TmMm86Y7mrgXvZ9U+wqdgjM4n=hf80p2W1jg@mail.gmail.com>
+In-Reply-To: <CAKv9HNaSqgFpC+TmMm86Y7mrgXvZ9U+wqdgjM4n=hf80p2W1jg@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------010904060907070700030906"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, Antti,
+This is a multi-part message in MIME format.
+--------------010904060907070700030906
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Mon, 2 Feb 2015 18:07:26 -0200, Mauro Carvalho Chehab wrote:
-> Em Tue, 23 Dec 2014 22:49:14 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
-> 
-> > Own I2C locking is needed due to two special reasons:
-> > 1) Chips uses multiple register pages/banks on single I2C slave.
-> > Page is changed via I2C register access.
+On 2015-02-19 11:21, Antti Seppälä wrote:
+> On 19 February 2015 at 11:43, Benjamin Larsson <benjamin@southpole.se> wrote:
+>> On 2015-02-19 10:13, Antti Seppälä wrote:
+>>>
+>>> It seems that currently the firmware download on the mn88472 is
+>>> somehow wrong for my Astrometa HD-901T2.
+>>>
+>>> Reducing the download chunk size (mn88472_config.i2c_wr_max) to 2
+>>> makes the firmware download consistently succeed.
+>>>
+>>
+>>
+>> Hi, try adding the workaround patch I sent for this.
+>>
+>> [PATCH 1/3] rtl28xxu: lower the rc poll time to mitigate i2c transfer errors
+>>
+>> I now see that it hasn't been merged. But I have been running with this
+>> patch for a few months now without any major issues.
+>>
+>
+> The patch really did improve firmware loading. Weird...
+>
+> Even with it I still get occasional i2c errors from r820t:
+>
+> [   15.874402] r820t 8-003a: r820t_write: i2c wr failed=-32 reg=0a len=1: da
+> [   81.455517] r820t 8-003a: r820t_read: i2c rd failed=-32 reg=00
+> len=4: 69 74 e6 df
+> [   99.949702] r820t 8-003a: r820t_read: i2c rd failed=-32 reg=00
+> len=4: 69 74 e6 df
+>
+> These errors seem to appear more often if I'm reading the signal
+> strength values using e.g. femon.
+>
+> Br,
+> -Antti
+>
 
-This is no good reason to implement your own i2c bus locking. Lots of
-i2c slave device work that way, and the way to handle it is through a
-dedicated lock at the i2c slave device level. This is in addition to
-the standard i2c bus locking and not a replacement.
+This patch implements a retry logic. If a transfer fails it will convert 
+it to 1 byte transfers. This will not work when loading the nm88472 
+firmware as everything is loaded through the 0xf6 register.
 
-> > 2) Chip offers muxed/gated I2C adapter for tuner. Gate/mux is
-> > controlled by I2C register access.
+I think we might need something like this to get the Astrometa working 
+reliably.
 
-This, OTOH, is a valid reason for calling __i2c_transfer, and as a
-matter of fact a number of dvb frontend drivers already do so.
+Based on usb logs from the windows driver one can see that they only 
+send 1 byte at a time so they can retry all transfers. So this issue 
+seems to be related to the rtl2832p bridge chip and how much i2c traffic 
+is generated.
 
-> > Due to these reasons, I2C locking did not fit very well.
-> 
-> I don't like the idea of calling __i2c_transfer() without calling first
-> i2c_lock_adapter(). This can be dangerous, as the I2C core itself uses
-> the lock for its own usage.
+MvH
+Benjamin Larsson
 
-I think the idea is that the i2c bus lock is already held at the time
-the muxing code is called. This happens each time the I2C muxing chip
-is an I2C chip itself.
+--------------010904060907070700030906
+Content-Type: text/x-patch;
+ name="0001-rtl28xxu-implement-i2c-transfer-retry-logic.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-rtl28xxu-implement-i2c-transfer-retry-logic.patch"
 
-> Ok, this may eventually work ok for now, but a further change at the I2C
-> core could easily break it. So, we need to double check about such
-> patch with the I2C maintainer.
+>From 5962cf8fafdfe98138fd69beb4d0b5d2a7af5732 Mon Sep 17 00:00:00 2001
+From: Benjamin Larsson <benjamin@southpole.se>
+Date: Thu, 20 Nov 2014 00:50:02 +0100
+Subject: [PATCH] rtl28xxu: implement i2c transfer retry logic
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 
-If it breaks than it'll break a dozen drivers which are already doing
-that, not just this one. But it's OK, I don't see this happening soon.
+This is needed for Astrometa hardware. Retry counts up to 6 has been
+observered before the i2c transfer succeded.
 
-> Jean,
-> 
-> Are you ok with such patch? If so, please ack.
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-First of all: I am no longer the maintainer of the I2C subsystem. That
-being said...
-
-The changes look OK to me. I think it's how they are presented which
-make them look suspect. As I understand it, the extra locking at device
-level is unrelated with calling unlocked i2c transfer functions. The
-former change is to address the multi-page/bank register mapping, while
-the latter is to solve the deadlock due to the i2c bus topology and
-i2c-based muxing. If I am correct then it would be clearer to make that
-two separate patches with better descriptions.
-
-And if I'm wrong then the patch needs a better description too ;-)
-
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 4af8a61..4d321ae 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -185,6 +185,8 @@ static int rtl28xxu_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
+ 	struct rtl28xxu_priv *priv = d->priv;
+ 	struct rtl28xxu_req req;
++	u8 rb_buf[2];
++	int i, retry_cnt;
+ 
+ 	/*
+ 	 * It is not known which are real I2C bus xfer limits, but testing
+@@ -273,6 +275,33 @@ static int rtl28xxu_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 			req.size = msg[0].len-1;
+ 			req.data = &msg[0].buf[1];
+ 			ret = rtl28xxu_ctrl_msg(d, &req);
++
++			/* Astrometa hardware needs a retry for some failed transfers.
++			 * Just send one byte at the time.
++			 * Retry max 10 times for each transfer.
++			 */
++			if (ret) {
++				req.size = 1;
++				req.data = rb_buf;
++
++				dev_dbg(&d->udev->dev, "%s: transfer of %d bytes failed\n", __func__, msg[0].len-1);
++				rb_buf[0] = msg[0].buf[0];
++
++				for (i=0 ; i<msg[0].len-1 ; i++) {
++					retry_cnt = 0;
++					req.value = ((msg[0].buf[0]+i) << 8) | (msg[0].addr << 1);
++					rb_buf[0] = msg[0].buf[i+1];
++
++					do {
++						dev_dbg(&d->udev->dev, "%s: byte: %d retry: %d\n", __func__, i, retry_cnt);
++						ret = rtl28xxu_ctrl_msg(d, &req);
++						retry_cnt++;
++						if (retry_cnt > 10)
++							goto err_mutex_unlock;
++
++					} while (ret);
++				}
++			}
+ 		} else {
+ 			/* method 3 - new I2C */
+ 			req.value = (msg[0].addr << 1);
 -- 
-Jean Delvare
-SUSE L3 Support
+1.9.1
+
+
+--------------010904060907070700030906--
