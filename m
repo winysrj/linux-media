@@ -1,82 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55985 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965999AbbBCPzE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 10:55:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	William Towle <william.towle@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 6/8] WmT: adv7604 driver compatibility
-Date: Tue, 03 Feb 2015 17:55:48 +0200
-Message-ID: <3156515.ppIHrJT46V@avalon>
-In-Reply-To: <54D0E823.2070803@xs4all.nl>
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <7877033.djOMQDpcA0@avalon> <54D0E823.2070803@xs4all.nl>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:37504 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752789AbbBSNbA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 08:31:00 -0500
+Message-ID: <54E5E58E.7070507@collabora.com>
+Date: Thu, 19 Feb 2015 08:30:54 -0500
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Zahari Doychev <zahari.doychev@linux.com>
+CC: Fabio Estevam <festevam@gmail.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Jean-Michel Hautbois <jhautbois@gmail.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: Using the coda driver with Gstreamer
+References: <CAOMZO5AX0R-s94-5m0G=SKkNb38u+jZo=7Toa+LDOkiJLAh=Tg@mail.gmail.com> <20141117185554.GW25554@pengutronix.de> <CAOMZO5DGR=Y1MVAc46OG6f26s9kEAoT+XCXgyezFOefM6H_NQg@mail.gmail.com> <CAOMZO5CtXEzBw2_McwTpn3S4FB_8wRE-HYTghv=ceBo_AAuMqA@mail.gmail.com> <546B92E3.30105@collabora.com> <CAOMZO5AkyqNt5g8+AVhoLdLiKv20_q9YRQidNv+2JuOO4BBzSg@mail.gmail.com> <20150218084245.GB30358@riot.fritz.box> <54E494F3.6030302@collabora.com> <20150219072436.GE30358@riot.fritz.box>
+In-Reply-To: <20150219072436.GE30358@riot.fritz.box>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On Tuesday 03 February 2015 16:24:19 Hans Verkuil wrote:
-> On 02/03/15 16:22, Laurent Pinchart wrote:
-> > On Monday 02 February 2015 11:09:27 Hans Verkuil wrote:
-> >> On 02/02/2015 11:01 AM, Laurent Pinchart wrote:
-> >>> On Sunday 01 February 2015 12:26:11 Guennadi Liakhovetski wrote:
-> >>>> On a second thought:
-> >>>> 
-> >>>> On Sun, 1 Feb 2015, Guennadi Liakhovetski wrote:
-> >>>>> Hi Wills,
-> >>>>> 
-> >>>>> Thanks for the patch. First and foremost, the title of the patch is
-> >>>>> wrong. This patch does more than just adding some "adv7604
-> >>>>> compatibility." It's adding pad-level API to soc-camera.
-> >>>>> 
-> >>>>> This is just a rough review. I'm not an expert in media-controller /
-> >>>>> pad-level API, I hope someone with a better knowledge of those areas
-> >>>>> will help me reviewing this.
-> >>>>> 
-> >>>>> Another general comment: it has been discussed since a long time,
-> >>>>> whether a wrapper wouldn't be desired to enable a seamless use of both
-> >>>>> subdev drivers using and not using the pad-level API. Maybe it's the
-> >>>>> right time now?..
-> >>>> 
-> >>>> This would be a considerable change and would most probably take a
-> >>>> rather long time, given how busy everyone is.
-> >>> 
-> >>> If I understood correctly Hans Verkuil told me over the weekend that he
-> >>> wanted to address this problem in the near future. Hans, could you
-> >>> detail your plans ?
-> >> 
-> >> That's correct. This patch series makes all the necessary changes.
-> >> 
-> >> https://www.mail-archive.com/linux-media@vger.kernel.org/msg83415.html
-> >> 
-> >> Patches 1-4 have been merged already, but I need to do more testing for
-> >> the remainder. The Renesas SH7724 board is ideal for that, but
-> >> unfortunately I can't get it to work with the current kernel.
-> > 
-> > I can't help you much with that, but I could test changes using the
-> > rcar-vin driver with the adv7180 if needed (does the adv7180 generate an
-> > image if no analog source is connected ?).
-> 
-> I expect so, most SDTV receivers do that.
-> 
-> > That will need to wait for two weeks though as
-> > I don't have access to the hardware right now.
-> 
-> It's certainly appreciated (I'll see if I can rebase it), but I am not
-> worried about that driver. It's soc_camera that is affected the most.
+Le 2015-02-19 02:24, Zahari Doychev a écrit :
+> So can you tell me if there are some drivers and plugins that can do this
+> in efficient way. Is there some work going on in this directions. I suppose
+> glimagesink maybe will be a good way to go.
 
-rcar-vin is an soc-camera host driver, isn't it ?
+There is a lot of work happening, you should notice by searching this 
+mailing list archive. The most promising seems to be the one targeting 
+Wayland and DMABUF. On the GST side, there is experimental patches to 
+handle DMABUF import and render queue, these are not yet fully merged 
+into Wayland protocol and Weston. Weston can import DMABUF of various 
+format and do the colorspace conversion using shaders. This can 
+compensate the lack of hw color converter if your GPU is fast and 
+precise enough.
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Nicolas
