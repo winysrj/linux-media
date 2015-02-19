@@ -1,66 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:36959 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752213AbbBPJES (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:55977 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157AbbBSI01 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 04:04:18 -0500
-Message-ID: <54E1B277.9030802@xs4all.nl>
-Date: Mon, 16 Feb 2015 10:03:51 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Joe Perches <joe@perches.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	David Herrmann <dh.herrmann@gmail.com>,
-	Tom Gundersen <teg@jklm.no>,
-	Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCHv4 13/25] [media] dvb_net: add support for DVB net node
- at the media controller
-References: <cover.1423867976.git.mchehab@osg.samsung.com> <9c7ff55979e714f5ffb23a8a85bc2593d5b9350b.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <9c7ff55979e714f5ffb23a8a85bc2593d5b9350b.1423867976.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 19 Feb 2015 03:26:27 -0500
+Message-id: <54E59E2F.5050805@samsung.com>
+Date: Thu, 19 Feb 2015 09:26:23 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Greg KH <greg@kroah.com>, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
+	sakari.ailus@iki.fi, s.nawrocki@samsung.com
+Subject: Re: 0.led_name 2.other.led.name in /sysfs Re: [PATCH/RFC v11 01/20]
+ leds: flash: document sysfs interface
+References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+ <1424276441-3969-2-git-send-email-j.anaszewski@samsung.com>
+ <20150218224747.GA3999@amd>
+In-reply-to: <20150218224747.GA3999@amd>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/13/2015 11:57 PM, Mauro Carvalho Chehab wrote:
-> Make the dvb core network support aware of the media controller and
-> register the corresponding devices.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-> index 686d3277dad1..40990058b4bc 100644
-> --- a/drivers/media/dvb-core/dvb_net.c
-> +++ b/drivers/media/dvb-core/dvb_net.c
-> @@ -1462,14 +1462,16 @@ static const struct file_operations dvb_net_fops = {
->  	.llseek = noop_llseek,
->  };
->  
-> -static struct dvb_device dvbdev_net = {
-> +static const struct dvb_device dvbdev_net = {
->  	.priv = NULL,
->  	.users = 1,
->  	.writers = 1,
-> +#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-> +	.name = "dvb net",
+On 02/18/2015 11:47 PM, Pavel Machek wrote:
+>
+> On Wed 2015-02-18 17:20:22, Jacek Anaszewski wrote:
+>> Add a documentation of LED Flash class specific sysfs attributes.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Bryan Wu <cooloney@gmail.com>
+>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>
+> NAK-ed-by: Pavel Machek
+>
+>> +What:		/sys/class/leds/<led>/available_sync_leds
+>> +Date:		February 2015
+>> +KernelVersion:	3.20
+>> +Contact:	Jacek Anaszewski <j.anaszewski@samsung.com>
+>> +Description:	read/write
 
-I would suggest 'dvb-net' rather than 'dvb net' with a space. That's a personal
-preference, though.
+Here it should be 'read only', to be fixed.
 
-Regards,
+>> +		Space separated list of LEDs available for flash strobe
+>> +		synchronization, displayed in the format:
+>> +
+>> +		led1_id.led1_name led2_id.led2_name led3_id.led3_name etc.
+>
+> Multiple values per file, with all the problems we had in /proc. I
+> assume led_id is an integer?
 
-	Hans
+Yes.
 
-> +#endif
->  	.fops = &dvb_net_fops,
->  };
->  
-> -
->  void dvb_net_release (struct dvb_net *dvbnet)
->  {
->  	int i;
-> 
+> What prevents space or dot in led name?
 
+Space can be forbidden by defining naming convention. The name comes
+from the DT binding 'label' property and I don't see any problem in
+forbidding space in it.
+
+A dot in the name does not introduce parsing problems - simply the first
+dot after digits separates led id from led name.
+
+-- 
+Best Regards,
+Jacek Anaszewski
