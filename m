@@ -1,55 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50424 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754094AbbBZVmd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 16:42:33 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailout1.samsung.com ([203.254.224.24]:24119 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751559AbbBSPlD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 10:41:03 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NK0006SSZKDYH80@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 20 Feb 2015 00:41:01 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Jurgen Kramer <gtmkramer@xs4all.nl>, <stable@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2] Si2168: increase timeout to fix firmware loading
-Date: Thu, 26 Feb 2015 23:41:54 +0200
-Message-Id: <1424986914-5472-1-git-send-email-crope@iki.fi>
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH v4 1/4] vb2: split the io_flags member of vb2_queue into a bit
+ field
+Date: Thu, 19 Feb 2015 16:40:47 +0100
+Message-id: <1424360450-13048-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jurgen Kramer <gtmkramer@xs4all.nl>
+This patch splits the io_flags member of vb2_queue into a bit field.
+Instead of an enum with flags separate bit fields were introduced.
 
-Increase si2168 cmd execute timeout to prevent firmware load failures. Tests
-shows it takes up to 52ms to load the 'dvb-demod-si2168-a30-01.fw' firmware.
-Increase timeout to a safe value of 70ms.
-
-Cc: <stable@vger.kernel.org> # v3.16+
-Signed-off-by: Jurgen Kramer <gtmkramer@xs4all.nl>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
 ---
-Changes since v1:
- * I added my SOB
+ drivers/media/v4l2-core/videobuf2-core.c |   17 +++++++++--------
+ include/media/videobuf2-core.h           |   18 +++++-------------
+ 2 files changed, 14 insertions(+), 21 deletions(-)
 
-Patch for stable 3.16+
-
-That patch is already applied to master as commit 551c33e729f654ecfaed00ad399f5d2a631b72cb
-There was some mistake and Cc stable tag I added to patchwork [1] was lost.
-
-[1] https://patchwork.linuxtv.org/patch/27382/
----
- drivers/media/dvb-frontends/si2168.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 2e3cdcf..fbc1fa8 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -39,7 +39,7 @@ static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index bc08a82..5cd60bf 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2760,7 +2760,8 @@ struct vb2_fileio_data {
+ 	unsigned int initial_index;
+ 	unsigned int q_count;
+ 	unsigned int dq_count;
+-	unsigned int flags;
++	unsigned read_once:1;
++	unsigned write_immediately:1;
+ };
  
- 	if (cmd->rlen) {
- 		/* wait cmd execution terminate */
--		#define TIMEOUT 50
-+		#define TIMEOUT 70
- 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
- 		while (!time_after(jiffies, timeout)) {
- 			ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
+ /**
+@@ -2798,14 +2799,16 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	 */
+ 	count = 1;
+ 
+-	dprintk(3, "setting up file io: mode %s, count %d, flags %08x\n",
+-		(read) ? "read" : "write", count, q->io_flags);
++	dprintk(3, "setting up file io: mode %s, count %d, read_once %d, write_immediately %d\n",
++		(read) ? "read" : "write", count, q->fileio_read_once,
++		q->fileio_write_immediately);
+ 
+ 	fileio = kzalloc(sizeof(struct vb2_fileio_data), GFP_KERNEL);
+ 	if (fileio == NULL)
+ 		return -ENOMEM;
+ 
+-	fileio->flags = q->io_flags;
++	fileio->read_once = q->fileio_read_once;
++	fileio->write_immediately = q->fileio_write_immediately;
+ 
+ 	/*
+ 	 * Request buffers and use MMAP type to force driver
+@@ -3028,13 +3031,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	/*
+ 	 * Queue next buffer if required.
+ 	 */
+-	if (buf->pos == buf->size ||
+-	   (!read && (fileio->flags & VB2_FILEIO_WRITE_IMMEDIATELY))) {
++	if (buf->pos == buf->size || (!read && fileio->write_immediately)) {
+ 		/*
+ 		 * Check if this is the last buffer to read.
+ 		 */
+-		if (read && (fileio->flags & VB2_FILEIO_READ_ONCE) &&
+-		    fileio->dq_count == 1) {
++		if (read && fileio->read_once && fileio->dq_count == 1) {
+ 			dprintk(3, "read limit reached\n");
+ 			return __vb2_cleanup_fileio(q);
+ 		}
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index bd2cec2..e49dc6b 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -134,17 +134,6 @@ enum vb2_io_modes {
+ };
+ 
+ /**
+- * enum vb2_fileio_flags - flags for selecting a mode of the file io emulator,
+- * by default the 'streaming' style is used by the file io emulator
+- * @VB2_FILEIO_READ_ONCE:	report EOF after reading the first buffer
+- * @VB2_FILEIO_WRITE_IMMEDIATELY:	queue buffer after each write() call
+- */
+-enum vb2_fileio_flags {
+-	VB2_FILEIO_READ_ONCE		= (1 << 0),
+-	VB2_FILEIO_WRITE_IMMEDIATELY	= (1 << 1),
+-};
+-
+-/**
+  * enum vb2_buffer_state - current video buffer state
+  * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control
+  * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf
+@@ -346,7 +335,8 @@ struct v4l2_fh;
+  *
+  * @type:	queue type (see V4L2_BUF_TYPE_* in linux/videodev2.h
+  * @io_modes:	supported io methods (see vb2_io_modes enum)
+- * @io_flags:	additional io flags (see vb2_fileio_flags enum)
++ * @fileio_read_once:		report EOF after reading the first buffer
++ * @fileio_write_immediately:	queue buffer after each write() call
+  * @lock:	pointer to a mutex that protects the vb2_queue struct. The
+  *		driver can set this to a mutex to let the v4l2 core serialize
+  *		the queuing ioctls. If the driver wants to handle locking
+@@ -396,7 +386,9 @@ struct v4l2_fh;
+ struct vb2_queue {
+ 	enum v4l2_buf_type		type;
+ 	unsigned int			io_modes;
+-	unsigned int			io_flags;
++	unsigned			fileio_read_once:1;
++	unsigned			fileio_write_immediately:1;
++
+ 	struct mutex			*lock;
+ 	struct v4l2_fh			*owner;
+ 
 -- 
-http://palosaari.fi/
+1.7.9.5
 
