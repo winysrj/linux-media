@@ -1,98 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f182.google.com ([209.85.213.182]:56203 "EHLO
-	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932309AbbBCK5D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 05:57:03 -0500
-Received: by mail-ig0-f182.google.com with SMTP id h15so8466800igd.3
-        for <linux-media@vger.kernel.org>; Tue, 03 Feb 2015 02:57:01 -0800 (PST)
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:43418 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753665AbbBTJ7n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Feb 2015 04:59:43 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id CF75F2A009F
+	for <linux-media@vger.kernel.org>; Fri, 20 Feb 2015 10:59:18 +0100 (CET)
+Message-ID: <54E70576.50306@xs4all.nl>
+Date: Fri, 20 Feb 2015 10:59:18 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAPx3zdQPBR2_G-N46oVR-XZOvP9YJxaPQUf=2Ycvs4UNHsx+sg@mail.gmail.com>
-References: <CAPx3zdRNiaSKbG9PtVbnA_fXm-ietqOiciq9H0N5dHQFKibZ_w@mail.gmail.com>
-	<CAAZRmGyh83_S0hSAz8f1=HGoCitMx=+kqM_pkQ0xWfOrLOAMyA@mail.gmail.com>
-	<CAPx3zdQPBR2_G-N46oVR-XZOvP9YJxaPQUf=2Ycvs4UNHsx+sg@mail.gmail.com>
-Date: Tue, 3 Feb 2015 12:57:01 +0200
-Message-ID: <CAAZRmGzYkkGKbP2z98DTM+6KKjuEeiGHsa7Oh5EfZJZhtw7GgQ@mail.gmail.com>
-Subject: Re: [BUG] - Why anyone fix this problem?
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Francesco Other <francesco.other@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.21] Core cleanups and a docbook fix
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Well, if you suspect that some other change broke the driver, then you
-can try an older kernel (the support was introduced in kernel 3.10) or
-an older media_tree to see if that's indeed the case.
+A bunch of nice core cleanups:
 
-The firmware is just one small piece of the puzzle. Maybe you can just
-replace the firmware or maybe you need to write a lot of code or even
-both. All this is next to impossible to say without having a very
-strictly defined and pinpointed issue or alternatively the actual
-device to play around with. So far it seems you're the only one with
-that device here, so it would help a lot if you can narrow the scope
-down by saying: "it worked fine in kernel xyz, but commit abc seems to
-break the support for the device" or "it seems it has never worked for
-DVB-T".
+The first 6 patches replace the last few .ioctl ops by .unlocked_ioctl,
+finally allowing the old .ioctl op to die.
 
-Cheers,
--olli
+The next two patches do the same for the g/s_priority ioctl ops: this is
+now fully handled by the V4L2 core.
 
+The next cleanup I should look into is to have all drivers use v4l2_fh and
+make that a requirement. That will allow for some more simplifications.
 
+The last patch fixes a colorspace documentation mistake.
 
-On 3 February 2015 at 11:42, Francesco Other <francesco.other@gmail.com> wrote:
-> Maybe when Doron Cohen wrote the patch the device worked fine but now,
-> after that someone change the code for their own enjoyment, it
-> doesn't.
->
-> If you read my question you will find that the device has signal lock
-> but no data stream. There isn't need to write a code from scratch
-> because I have the working firmware that kernel asks for.
->
-> I don't know what the problem is, I'm an aerospace engineer not a
-> software engineer.
->
-> Best Regards
->
-> Francesco
->
->
-> 2015-02-03 9:06 GMT+01:00 Olli Salonen <olli.salonen@iki.fi>:
->> Hi Francesco,
->>
->> You need to understand that many people write code for their own
->> enjoyment. In other words, they often write code to scratch an itch.
->> Thus it can sometimes happen that there really is no-one here who
->> could help you. The person who wrote the code originally might have
->> stopped contributing and is more interested in gardening or
->> kiteboarding these days. Maybe no-one here just has heard of the
->> device you're talking about or owns one.
->>
->> Anyway, I did some digging for you. The support for your device was
->> originally added based on this patch
->> https://patchwork.linuxtv.org/patch/7881/ submitted by Doron Cohen
->> <doronc@siano-ms.com>. It seems he's working for the Siano company
->> itself. Have you tried contacting them already?
->>
->> Cheers,
->> -olli
->>
->> On 2 February 2015 at 15:10, Francesco Other <francesco.other@gmail.com> wrote:
->>> Is it possible that the problem I explained here isn't interesting for anyone?
->>>
->>> The device is supported by kernel but obviously there is a bug with DVB-T.
->>>
->>> I have the working firmware (on Windows) for DVB-T if you need it.
->>>
->>> http://www.spinics.net/lists/linux-media/msg85505.html
->>>
->>> http://www.spinics.net/lists/linux-media/msg85478.html
->>>
->>> http://www.spinics.net/lists/linux-media/msg85432.html
->>>
->>> Regards
->>>
->>> Francesco
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+	Hans
+
+The following changes since commit 135f9be9194cf7778eb73594aa55791b229cf27c:
+
+  [media] dvb_frontend: start media pipeline while thread is running (2015-02-13 21:10:17 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.21b
+
+for you to fetch changes up to db391cb7e2aba33042c534e42b64f6f52d5fbc21:
+
+  DocBook media: fix xvYCC601 documentation (2015-02-20 10:42:58 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (9):
+      pvrusb2: replace .ioctl by .unlocked_ioctl.
+      radio-bcm2048: use unlocked_ioctl instead of ioctl
+      uvc gadget: switch to v4l2 core locking
+      uvc gadget: switch to unlocked_ioctl.
+      uvc gadget: set device_caps in querycap.
+      v4l2-core: remove the old .ioctl BKL replacement
+      pvrusb2: use struct v4l2_fh
+      v4l2-core: drop g/s_priority ops
+      DocBook media: fix xvYCC601 documentation
+
+ Documentation/DocBook/media/v4l/pixfmt.xml    | 41 ++++++++++++++++-----------------------
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c      | 83 ++++++++++++++-----------------------------------------------------------------
+ drivers/media/v4l2-core/v4l2-dev.c            | 35 +++------------------------------
+ drivers/media/v4l2-core/v4l2-device.c         |  1 -
+ drivers/media/v4l2-core/v4l2-ioctl.c          |  6 ++----
+ drivers/staging/media/bcm2048/radio-bcm2048.c |  2 +-
+ drivers/usb/gadget/function/f_uvc.c           |  2 ++
+ drivers/usb/gadget/function/uvc.h             |  1 +
+ drivers/usb/gadget/function/uvc_queue.c       | 79 +++++++++++++--------------------------------------------------------------
+ drivers/usb/gadget/function/uvc_queue.h       |  4 ++--
+ drivers/usb/gadget/function/uvc_v4l2.c        |  8 +++++---
+ drivers/usb/gadget/function/uvc_video.c       |  3 ++-
+ include/media/v4l2-dev.h                      |  1 -
+ include/media/v4l2-device.h                   |  2 --
+ include/media/v4l2-ioctl.h                    |  6 ------
+ 15 files changed, 62 insertions(+), 212 deletions(-)
