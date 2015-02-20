@@ -1,123 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57010 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752443AbbBMLb1 (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:24580 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755213AbbBTQiZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 06:31:27 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 20 Feb 2015 11:38:25 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NK2004TNWW0HQ80@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 21 Feb 2015 01:38:24 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 7/7] DocBook media: document the new 'which' field.
-Date: Fri, 13 Feb 2015 12:30:06 +0100
-Message-Id: <1423827006-32878-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl>
-References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl>
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH v5 4/4] s5p-mfc: set allow_zero_bytesused flag for
+ vb2_queue_init
+Date: Fri, 20 Feb 2015 17:38:08 +0100
+Message-id: <1424450288-26444-4-git-send-email-k.debski@samsung.com>
+In-reply-to: <1424450288-26444-1-git-send-email-k.debski@samsung.com>
+References: <1424450288-26444-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The s5p-mfc driver interprets a buffer with bytesused equal to 0 as a
+special case indicating end-of-stream. After vb2: fix bytesused == 0
+handling (8a75ffb) patch videobuf2 modified the value of bytesused if it
+was 0. The allow_zero_bytesused flag was added to videobuf2 to keep
+backward compatibility.
 
-The subdev enum ioctls now have a new 'which' field. Document this.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
 ---
- .../DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml | 13 +++++++++----
- .../DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml     | 13 +++++++++----
- .../DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml      | 11 ++++++++---
- 3 files changed, 26 insertions(+), 11 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-index 2f8f4f0..cff59f5 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-@@ -67,9 +67,9 @@
- 
-     <para>To enumerate frame intervals applications initialize the
-     <structfield>index</structfield>, <structfield>pad</structfield>,
--    <structfield>code</structfield>, <structfield>width</structfield> and
--    <structfield>height</structfield> fields of
--    &v4l2-subdev-frame-interval-enum; and call the
-+    <structfield>which</structfield>, <structfield>code</structfield>,
-+    <structfield>width</structfield> and <structfield>height</structfield>
-+    fields of &v4l2-subdev-frame-interval-enum; and call the
-     <constant>VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL</constant> ioctl with a pointer
-     to this structure. Drivers fill the rest of the structure or return
-     an &EINVAL; if one of the input fields is invalid. All frame intervals are
-@@ -123,7 +123,12 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[9]</entry>
-+	    <entry><structfield>which</structfield></entry>
-+	    <entry>Frame intervals to be enumerated, from &v4l2-subdev-format-whence;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[8]</entry>
- 	    <entry>Reserved for future extensions. Applications and drivers must
- 	    set the array to zero.</entry>
- 	  </row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-index 79ce42b..abd545e 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-@@ -61,9 +61,9 @@
-     ioctl.</para>
- 
-     <para>To enumerate frame sizes applications initialize the
--    <structfield>pad</structfield>, <structfield>code</structfield> and
--    <structfield>index</structfield> fields of the
--    &v4l2-subdev-mbus-code-enum; and call the
-+    <structfield>pad</structfield>, <structfield>which</structfield> ,
-+    <structfield>code</structfield> and <structfield>index</structfield>
-+    fields of the &v4l2-subdev-mbus-code-enum; and call the
-     <constant>VIDIOC_SUBDEV_ENUM_FRAME_SIZE</constant> ioctl with a pointer to
-     the structure. Drivers fill the minimum and maximum frame sizes or return
-     an &EINVAL; if one of the input parameters is invalid.</para>
-@@ -127,7 +127,12 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[9]</entry>
-+	    <entry><structfield>which</structfield></entry>
-+	    <entry>Frame sizes to be enumerated, from &v4l2-subdev-format-whence;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[8]</entry>
- 	    <entry>Reserved for future extensions. Applications and drivers must
- 	    set the array to zero.</entry>
- 	  </row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-index a6b3432..0bcb278 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-@@ -56,8 +56,8 @@
-     </note>
- 
-     <para>To enumerate media bus formats available at a given sub-device pad
--    applications initialize the <structfield>pad</structfield> and
--    <structfield>index</structfield> fields of &v4l2-subdev-mbus-code-enum; and
-+    applications initialize the <structfield>pad</structfield>, <structfield>which</structfield>
-+    and <structfield>index</structfield> fields of &v4l2-subdev-mbus-code-enum; and
-     call the <constant>VIDIOC_SUBDEV_ENUM_MBUS_CODE</constant> ioctl with a
-     pointer to this structure. Drivers fill the rest of the structure or return
-     an &EINVAL; if either the <structfield>pad</structfield> or
-@@ -93,7 +93,12 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[9]</entry>
-+	    <entry><structfield>which</structfield></entry>
-+	    <entry>Media bus format codes to be enumerated, from &v4l2-subdev-format-whence;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[8]</entry>
- 	    <entry>Reserved for future extensions. Applications and drivers must
- 	    set the array to zero.</entry>
- 	  </row>
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 8e44a59..6b08488 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -843,6 +843,13 @@ static int s5p_mfc_open(struct file *file)
+ 		ret = -ENOENT;
+ 		goto err_queue_init;
+ 	}
++	/* One of means to indicate end-of-stream for MFC is to set the
++	 * bytesused == 0. However by default videobuf2 handles videobuf
++	 * equal to 0 as a special case and changes its value to the size
++	 * of the buffer. Set the allow_zero_bytesused flag so that videobuf2
++	 * will keep the value of bytesused intact.
++	 */
++	q->allow_zero_bytesused = 1;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	ret = vb2_queue_init(q);
 -- 
-2.1.4
+1.7.9.5
 
