@@ -1,62 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f44.google.com ([209.85.216.44]:38194 "EHLO
-	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753251AbbBXR33 (ORCPT
+Received: from mailrelay107.isp.belgacom.be ([195.238.20.134]:8656 "EHLO
+	mailrelay107.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932166AbbBTSNI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2015 12:29:29 -0500
-Received: by mail-qa0-f44.google.com with SMTP id n8so28118741qaq.3
-        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2015 09:29:28 -0800 (PST)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: [PATCH] xc5000: fix memory corruption when unplugging device
-Date: Tue, 24 Feb 2015 12:29:18 -0500
-Message-Id: <1424798958-2819-1-git-send-email-dheitmueller@kernellabs.com>
+	Fri, 20 Feb 2015 13:13:08 -0500
+From: Fabian Frederick <fabf@skynet.be>
+To: linux-kernel@vger.kernel.org
+Cc: Ingo Molnar <mingo@redhat.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Fabian Frederick <fabf@skynet.be>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 4/7 linux-next] saa7146: replace current->state by set_current_state()
+Date: Fri, 20 Feb 2015 19:12:54 +0100
+Message-Id: <1424455977-21903-4-git-send-email-fabf@skynet.be>
+In-Reply-To: <1424455977-21903-1-git-send-email-fabf@skynet.be>
+References: <1424455977-21903-1-git-send-email-fabf@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch addresses a regression introduced in the following patch:
+Use helper functions to access current->state.
+Direct assignments are prone to races and therefore buggy.
 
-commit 5264a522a597032c009f9143686ebf0fa4e244fb
-Author: Shuah Khan <shuahkh@osg.samsung.com>
-Date:   Mon Sep 22 21:30:46 2014 -0300
-    [media] media: tuner xc5000 - release firmwware from xc5000_release()
+current->state = TASK_RUNNING can be replaced by __set_current_state()
 
-The "priv" struct is actually reference counted, so the xc5000_release()
-function gets called multiple times for hybrid devices.  Because
-release_firmware() was always being called, it would work fine as expected
-on the first call but then the second call would corrupt aribtrary memory.
+Thanks to Peter Zijlstra for the exact definition of the problem.
 
-Set the pointer to NULL after releasing so that we don't call
-release_firmware() twice.
-
-This problem was detected in the HVR-950q where plugging/unplugging the
-device multiple times would intermittently show panics in completely
-unrelated areas of the kernel.
-
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Suggested-By: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 ---
- drivers/media/tuners/xc5000.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/media/common/saa7146/saa7146_vbi.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index 40f9db6..74b2092 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -1314,7 +1314,10 @@ static int xc5000_release(struct dvb_frontend *fe)
+diff --git a/drivers/media/common/saa7146/saa7146_vbi.c b/drivers/media/common/saa7146/saa7146_vbi.c
+index 1e71e37..2da9957 100644
+--- a/drivers/media/common/saa7146/saa7146_vbi.c
++++ b/drivers/media/common/saa7146/saa7146_vbi.c
+@@ -95,7 +95,7 @@ static int vbi_workaround(struct saa7146_dev *dev)
  
- 	if (priv) {
- 		cancel_delayed_work(&priv->timer_sleep);
--		release_firmware(priv->firmware);
-+		if (priv->firmware) {
-+			release_firmware(priv->firmware);
-+			priv->firmware = NULL;
-+		}
- 		hybrid_tuner_release_state(priv);
- 	}
+ 		/* prepare to wait to be woken up by the irq-handler */
+ 		add_wait_queue(&vv->vbi_wq, &wait);
+-		current->state = TASK_INTERRUPTIBLE;
++		set_current_state(TASK_INTERRUPTIBLE);
  
+ 		/* start rps1 to enable workaround */
+ 		saa7146_write(dev, RPS_ADDR1, dev->d_rps1.dma_handle);
+@@ -106,7 +106,7 @@ static int vbi_workaround(struct saa7146_dev *dev)
+ 		DEB_VBI("brs bug workaround %d/1\n", i);
+ 
+ 		remove_wait_queue(&vv->vbi_wq, &wait);
+-		current->state = TASK_RUNNING;
++		__set_current_state(TASK_RUNNING);
+ 
+ 		/* disable rps1 irqs */
+ 		SAA7146_IER_DISABLE(dev,MASK_28);
 -- 
-1.9.1
+2.1.0
 
