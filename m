@@ -1,83 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:59793 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543AbbBWPbS (ORCPT
+Received: from mail-ig0-f169.google.com ([209.85.213.169]:39110 "EHLO
+	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753570AbbBTUHK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 10:31:18 -0500
-Received: by mail-wi0-f175.google.com with SMTP id r20so18353715wiv.2
-        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2015 07:31:16 -0800 (PST)
+	Fri, 20 Feb 2015 15:07:10 -0500
+Received: by mail-ig0-f169.google.com with SMTP id hl2so9472437igb.0
+        for <linux-media@vger.kernel.org>; Fri, 20 Feb 2015 12:07:09 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1424702961-2349-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1424702961-2349-1-git-send-email-laurent.pinchart@ideasonboard.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Mon, 23 Feb 2015 15:30:46 +0000
-Message-ID: <CA+V-a8vqQmSmVGdGYw18xQeGAxvH3j4-n78c+dnvPFekD6uHcQ@mail.gmail.com>
-Subject: Re: [PATCH] media: am437x: Don't release OF node reference twice
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Benoit Parrot <bparrot@ti.com>
+In-Reply-To: <CAJ+AEyNfefnHiKtr+iGnE6NfWbTVT40DcqPckfa=kQbEw6ymYg@mail.gmail.com>
+References: <CAJ+AEyMT6etRK6cj6s2iwNHW3QG4mh7TVdPeNvVKKSBAJU9ztA@mail.gmail.com>
+	<54E68315.7020209@iki.fi>
+	<CAJ+AEyNfefnHiKtr+iGnE6NfWbTVT40DcqPckfa=kQbEw6ymYg@mail.gmail.com>
+Date: Fri, 20 Feb 2015 22:07:09 +0200
+Message-ID: <CAAZRmGygjbTgSa9syNNBiOMig5Rb+8o5CH9JWMQtudtpWX_oMA@mail.gmail.com>
+Subject: Re: DVBSky T982 (Si2168) Questions/Issues/Request
+From: Olli Salonen <olli.salonen@iki.fi>
+To: Eponymous - <the.epon@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi,
 
-Thanks for the patch.
+It would seem to me that you are using application that are not
+capable of handling frontends that do support multiple standards.
+TVheadend 3.4.27 does not for sure. You will need to use the 3.9
+series where you can define the wanted standard for each mux.
 
-On Mon, Feb 23, 2015 at 2:49 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> The remote port reference is released both at the end of the OF graph
-> parsing loop, and in the error code path at the end of the function.
-> Those two calls will release the same reference, causing the reference
-> count to go negative.
->
-> Fix the problem by removing the second call.
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Also, w_scan needs to be fairly recent in order to support DVB-T2.
+Many distros have too old versions included. DVB-T2 support was added
+on July 2014.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cheers,
+-olli
 
-Thanks,
---Prabhakar Lad
-
-> ---
->  drivers/media/platform/am437x/am437x-vpfe.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+On 20 February 2015 at 11:11, Eponymous - <the.epon@gmail.com> wrote:
+>>> It is increased to 70 ms already,.
 >
-> I've found this issue while reading the code, the patch hasn't been tested.
+> A great I will test with this value and see if it is ok.
 >
-> diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-> index 56a5cb0..ce273b2 100644
-> --- a/drivers/media/platform/am437x/am437x-vpfe.c
-> +++ b/drivers/media/platform/am437x/am437x-vpfe.c
-> @@ -2425,7 +2425,7 @@ static int vpfe_async_complete(struct v4l2_async_notifier *notifier)
->  static struct vpfe_config *
->  vpfe_get_pdata(struct platform_device *pdev)
->  {
-> -       struct device_node *endpoint = NULL, *rem = NULL;
-> +       struct device_node *endpoint = NULL;
->         struct v4l2_of_endpoint bus_cfg;
->         struct vpfe_subdev_info *sdinfo;
->         struct vpfe_config *pdata;
-> @@ -2443,6 +2443,8 @@ vpfe_get_pdata(struct platform_device *pdev)
->                 return NULL;
 >
->         for (i = 0; ; i++) {
-> +               struct device_node *rem;
-> +
->                 endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
->                                                       endpoint);
->                 if (!endpoint)
-> @@ -2513,7 +2515,6 @@ vpfe_get_pdata(struct platform_device *pdev)
+>>> I don't understand what you mean. Likely you are not understanding how DVB-T and DVB-T2 works. There is transmitter which uses DVB-T or DVB-T2, not both standards same time. You have to select used standard according to transmitter specs and make proper tuning request. Driver could do DVB-T, DVB-T2 and DVB-C, but only one transmission is possible to receive as once per tuner.
 >
->  done:
->         of_node_put(endpoint);
-> -       of_node_put(rem);
->         return NULL;
->  }
+> I understand how the system works but I don't think I'm explaining the
+> problem very well :)
 >
+> In tvheadend 3.4.27 I add two muxes, one DVB-T (64QAM 8K 2/324.1Mb/s
+> DVB-T MPEG2) and one DVB-T2 (256QAM 32KE 2/340.2Mb/s DVB-T2 MPEG4). I
+> can only receive DVB-T services and channel/mux information, not
+> DVB-T2.
+>
+> I've tested with w_scan as well with the same result. It's almost like
+> it's not able to see any DVB-T2 muxes.
+>
+> Sean.
+>
+> On Fri, Feb 20, 2015 at 12:43 AM, Antti Palosaari <crope@iki.fi> wrote:
+>> Moi
+>>
+>> On 02/20/2015 01:33 AM, Eponymous - wrote:
+>>>
+>>> Hi.
+>>>
+>>> I have a couple of issues with the si2168.c dvb-frontend in kernel v
+>>> 3.19.0. To get the firnware to load I've had to increase the #define
+>>> TIMEOUT to 150 from 50. I read another post
+>>> (http://www.spinics.net/lists/linux-media/msg84198.html) where another
+>>> user had to do the same modification.
+>>>
+>>> @ Antti Palosaari: Since the 50ms value you came up with was just
+>>> based on some "trail and error", would it be possible to submit a
+>>> change upstream to increase this timeout since it's likely others are
+>>> going to encounter this issue?
+>>
+>>
+>> It is increased to 70 ms already,
+>>
+>> commit 551c33e729f654ecfaed00ad399f5d2a631b72cb
+>> Author: Jurgen Kramer <gtmkramer@xs4all.nl>
+>> Date:   Mon Dec 8 05:30:44 2014 -0300
+>> [media] Si2168: increase timeout to fix firmware loading
+>>
+>> If it is not enough, then send patch which increased it even more.
+>>
+>> Have to check if that fix never applied to stable, as there is no Cc stable
+>> I added.... Mauro has applied patch from patchwork, not from pull request I
+>> made:
+>> https://patchwork.linuxtv.org/patch/27960/
+>> http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=si2168_fix
+>>
+>>>
+>>> The second issue I have is that where I am based (UK) we have both
+>>> DVB-T and DVB-T2 muxes and I can't get a single tuner to be able to
+>>> tune to both transports, but looking through the Si2168.c code, I'm
+>>> having trouble working out how (if at all) this is achieved?
+>>>
+>>> It's not the case where we can only tune to DVB-T OR DVB-T2 is it? If
+>>> so, that's far from ideal...
+>>>
+>>> Are there any workarounds if true?
+>>
+>>
+>> I don't understand what you mean. Likely you are not understanding how DVB-T
+>> and DVB-T2 works. There is transmitter which uses DVB-T or DVB-T2, not both
+>> standards same time. You have to select used standard according to
+>> transmitter specs and make proper tuning request. Driver could do DVB-T,
+>> DVB-T2 and DVB-C, but only one transmission is possible to receive as once
+>> per tuner.
+>>
+>> regards
+>> Antti
+>> --
+>> http://palosaari.fi/
 > --
-> Regards,
->
-> Laurent Pinchart
->
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
