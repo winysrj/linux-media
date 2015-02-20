@@ -1,76 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:45536 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932109AbbBJKim convert rfc822-to-8bit (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:24578 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755213AbbBTQiX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2015 05:38:42 -0500
-Received: by mail-lb0-f173.google.com with SMTP id n10so8195317lbv.4
-        for <linux-media@vger.kernel.org>; Tue, 10 Feb 2015 02:38:41 -0800 (PST)
-MIME-Version: 1.0
-From: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>
-Date: Tue, 10 Feb 2015 11:38:11 +0100
-Message-ID: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
-Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working
- since kernel 3.17
+	Fri, 20 Feb 2015 11:38:23 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NK2004TLWVYHQ80@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 21 Feb 2015 01:38:22 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH v5 3/4] coda: set allow_zero_bytesused flag for vb2_queue_init
+Date: Fri, 20 Feb 2015 17:38:07 +0100
+Message-id: <1424450288-26444-3-git-send-email-k.debski@samsung.com>
+In-reply-to: <1424450288-26444-1-git-send-email-k.debski@samsung.com>
+References: <1424450288-26444-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please include this patch to kernel! It takes too much time for such a
-simple fix!
+The coda driver interprets a buffer with bytesused equal to 0 as a special
+case indicating end-of-stream. After vb2: fix bytesused == 0 handling
+(8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
+The allow_zero_bytesused flag was added to videobuf2 to keep
+backward compatibility.
 
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/platform/coda/coda-common.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-2015-01-07 13:51 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
-> No one is interested? I'd like to get this patch to kernel to fix the
-> issue. Can someone here do it please?
->
->
-> 2014-12-20 14:36 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
->> Hi,
->>
->> with kernel 3.17 remote control for Pinnacle 73e (ID 2304:0237
->> Pinnacle Systems, Inc. PCTV 73e [DiBcom DiB7000PC]) does not work
->> anymore.
->>
->> I checked the changes and found out the problem in commit
->> af3a4a9bbeb00df3e42e77240b4cdac5479812f9.
->>
->> In dib0700_core.c in struct dib0700_rc_response the following union:
->>
->> union {
->>     u16 system16;
->>     struct {
->>         u8 not_system;
->>         u8 system;
->>     };
->> };
->>
->> has been replaced by simple variables:
->>
->> u8 system;
->> u8 not_system;
->>
->> But these variables are in reverse order! When I switch the order
->> back, the remote works fine again! Here is the patch:
->>
->>
->> --- a/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
->> 14:27:15.000000000 +0100
->> +++ b/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
->> 14:27:36.000000000 +0100
->> @@ -658,8 +658,8 @@
->>  struct dib0700_rc_response {
->>      u8 report_id;
->>      u8 data_state;
->> -    u8 system;
->>      u8 not_system;
->> +    u8 system;
->>      u8 data;
->>      u8 not_data;
->>  };
->>
->>
->> Regards,
->> David
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 6f32e6d..2d23f9a 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1541,6 +1541,13 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
+ 	vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	vq->lock = &ctx->dev->dev_mutex;
++	/* One of means to indicate end-of-stream for coda is to set the
++	 * bytesused == 0. However by default videobuf2 handles videobuf
++	 * equal to 0 as a special case and changes its value to the size
++	 * of the buffer. Set the allow_zero_bytesused flag, so
++	 * that videobuf2 will keep the value of bytesused intact.
++	 */
++	vq->allow_zero_bytesused = 1;
+ 
+ 	return vb2_queue_init(vq);
+ }
+-- 
+1.7.9.5
+
