@@ -1,33 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f172.google.com ([209.85.213.172]:54394 "EHLO
-	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753570AbbBMQFh (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52042 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753512AbbBTJ7a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 11:05:37 -0500
-Received: by mail-ig0-f172.google.com with SMTP id l13so11398294iga.5
-        for <linux-media@vger.kernel.org>; Fri, 13 Feb 2015 08:05:36 -0800 (PST)
+	Fri, 20 Feb 2015 04:59:30 -0500
+Message-ID: <54E70564.6000103@xs4all.nl>
+Date: Fri, 20 Feb 2015 10:59:00 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Date: Fri, 13 Feb 2015 17:05:36 +0100
-Message-ID: <CANd4v7HavGkoCg1xvaY1+O5RoHPcaqk3=MWVBv0qa5xzL4_WsQ@mail.gmail.com>
-Subject: DVBSky S960 drivers fro Raspberry Pi Kernel 3.18.5+
-From: =?ISO-8859-1?Q?Michael_H=F6hl?= <michael.hoehl89@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Changbing Xiong <cb.xiong@samsung.com>,
+	Joe Perches <joe@perches.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	David Herrmann <dh.herrmann@gmail.com>,
+	Tom Gundersen <teg@jklm.no>
+Subject: Re: [PATCH 4/7] [media] dvb core: rename the media controller entities
+References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>	<56874b07885afd9d58dd3d3985d6167eb9a3deea.1424273378.git.mchehab@osg.samsung.com>	<54E4B1C2.20403@xs4all.nl> <20150219173307.36b043f3@recife.lan>
+In-Reply-To: <20150219173307.36b043f3@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 02/19/2015 08:33 PM, Mauro Carvalho Chehab wrote:
+> Em Wed, 18 Feb 2015 16:37:38 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> Hi Mauro,
+>>
+>> On 02/18/2015 04:29 PM, Mauro Carvalho Chehab wrote:
+>>> Prefix all DVB media controller entities with "dvb-" and use dash
+>>> instead of underline at the names.
+>>>
+>>> Requested-by: Hans Verkuil <hverkuil@xs4all.nl>
+>> 			      ^^^^^^^^^^^^^^^^^^
+>>
+>> For these foo-by lines please keep my hans.verkuil@cisco.com email.
+>> It's my way of thanking Cisco for allowing me to do this work. Not a
+>> big deal, but if you can change that before committing?
+>>
+>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> 
+> Sure, I'll run a
+> git filter-branch -f --msg-filter 'cat |sed s,hverkuil@xs4all.nl,hans.verkuil@cisco.com,' origin..
+> 
+> To replace the e-mail on this series.
+> 
+> Next time, it would be better if you could reply using your @cisco
+> email on your From: if you want me to use it, as I generally just
+> cut-and-paste whatever e-mail used at the replies ;)
 
-I have an Raspberry Pi with the OS Raspbian installed. Currently I'm
-using the Kernel 3.18.5+ and I'm trying to install the driver for the
-DVBSky S960. I tried all packages without any success.
-Do you have an Media Build Package for an Raspberry Pi with this
-Kernel Version? Or Can you give me an hint?
+My Signed-offs, acks, etc. are (almost) always with the cisco email (occasionally I
+forget as well :-) ), but all my email correspondence uses my private email. Mainly
+because to read my work email I need a vpn, which is a pain and which I cannot use
+everywhere.
 
-root@raspberrypi:~# uname -a
-Linux raspberrypi 3.18.5+ #744 PREEMPT Fri Jan 30 18:19:07 GMT 2015
-armv6l GNU/Linux
+Regards,
 
-
-Thanks and regards,
-Michael
+	Hans
