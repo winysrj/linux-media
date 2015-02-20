@@ -1,58 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from michel.telenet-ops.be ([195.130.137.88]:49403 "EHLO
-	michel.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756143AbbBLOLv (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58831 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754988AbbBTQxe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Feb 2015 09:11:51 -0500
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH 2/2] [media] timberdale: VIDEO_TIMBERDALE should depend on HAS_DMA
-Date: Thu, 12 Feb 2015 15:11:40 +0100
-Message-Id: <1423750300-29433-2-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1423750300-29433-1-git-send-email-geert@linux-m68k.org>
-References: <1423750300-29433-1-git-send-email-geert@linux-m68k.org>
+	Fri, 20 Feb 2015 11:53:34 -0500
+Message-ID: <54E76675.70908@xs4all.nl>
+Date: Fri, 20 Feb 2015 17:53:09 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org
+CC: m.szyprowski@samsung.com
+Subject: Re: [PATCH v5 3/4] coda: set allow_zero_bytesused flag for vb2_queue_init
+References: <1424450288-26444-1-git-send-email-k.debski@samsung.com> <1424450288-26444-3-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1424450288-26444-3-git-send-email-k.debski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If NO_DMA=y:
+On 02/20/2015 05:38 PM, Kamil Debski wrote:
+> The coda driver interprets a buffer with bytesused equal to 0 as a special
+> case indicating end-of-stream. After vb2: fix bytesused == 0 handling
+> (8a75ffb) patch videobuf2 modified the value of bytesused if it was 0.
+> The allow_zero_bytesused flag was added to videobuf2 to keep
+> backward compatibility.
+> 
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> ---
+>  drivers/media/platform/coda/coda-common.c |    7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> index 6f32e6d..2d23f9a 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -1541,6 +1541,13 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
+>  	vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+>  	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+>  	vq->lock = &ctx->dev->dev_mutex;
+> +	/* One of means to indicate end-of-stream for coda is to set the
 
-    warning: (VIDEO_OMAP2_VOUT && VIDEO_VIU && VIDEO_TIMBERDALE) selects VIDEOBUF_DMA_CONTIG which has unmet direct dependencies (MEDIA_SUPPORT && HAS_DMA)
+s/One of means/One way/
 
-    drivers/built-in.o: In function `__videobuf_dc_free':
-    videobuf-dma-contig.c:(.text+0x6f4d32): undefined reference to `dma_free_coherent'
-    drivers/built-in.o: In function `__videobuf_dc_alloc':
-    videobuf-dma-contig.c:(.text+0x6f4fe6): undefined reference to `dma_alloc_coherent'
-    drivers/built-in.o: In function `__videobuf_mmap_mapper':
-    videobuf-dma-contig.c:(.text+0x6f518e): undefined reference to `dma_free_coherent'
+> +	 * bytesused == 0. However by default videobuf2 handles videobuf
 
-Commit 244829226f47ffb4 ("[media] timberdale: do not select TIMB_DMA")
-dropped the dependency of VIDEO_TIMBERDALE on DMADEVICES, and thus the
-implicit dependency on HAS_DMA.  VIDEO_TIMBERDALE selects
-VIDEOBUF_DMA_CONTIG, which bypasses its dependency on HAS_DMA.  Make
-VIDEO_TIMBERDALE depend on HAS_DMA to fix this.
+s/videobuf/bytesused/
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
- drivers/media/platform/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> +	 * equal to 0 as a special case and changes its value to the size
+> +	 * of the buffer. Set the allow_zero_bytesused flag, so
+> +	 * that videobuf2 will keep the value of bytesused intact.
+> +	 */
+> +	vq->allow_zero_bytesused = 1;
+>  
+>  	return vb2_queue_init(vq);
+>  }
+> 
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index d9b872b9285a3460..2e30be55d17a7db2 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -56,7 +56,7 @@ config VIDEO_VIU
- 
- config VIDEO_TIMBERDALE
- 	tristate "Support for timberdale Video In/LogiWIN"
--	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-+	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && HAS_DMA
- 	depends on (MFD_TIMBERDALE && TIMB_DMA) || COMPILE_TEST
- 	select VIDEO_ADV7180
- 	select VIDEOBUF_DMA_CONTIG
--- 
-1.9.1
+Regards,
 
+	Hans
