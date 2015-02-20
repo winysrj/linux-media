@@ -1,59 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49502 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753929AbbBMW6X (ORCPT
+Received: from mail-oi0-f54.google.com ([209.85.218.54]:38401 "EHLO
+	mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754616AbbBTQTT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 17:58:23 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Antti Palosaari <crope@iki.fi>, linux-doc@vger.kernel.org
-Subject: [PATCHv4 07/25] [media] DocBook: Add tuner subdev at documentation
-Date: Fri, 13 Feb 2015 20:57:50 -0200
-Message-Id: <6320905a19054bd9f598358160cb31377c79ec8c.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
+	Fri, 20 Feb 2015 11:19:19 -0500
+Received: by mail-oi0-f54.google.com with SMTP id v63so3345952oia.13
+        for <linux-media@vger.kernel.org>; Fri, 20 Feb 2015 08:19:19 -0800 (PST)
+MIME-Version: 1.0
+Date: Fri, 20 Feb 2015 17:19:18 +0100
+Message-ID: <CALnjqVkteEsFGQXRdh3exzGrqdC=Qw4guSGRT_pCF50WjGqy1g@mail.gmail.com>
+Subject: Linux TV support Elgato EyeTV hybrid
+From: Gilles Risch <gilles.risch@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we've added MEDIA_ENT_T_V4L2_SUBDEV_TUNER at the API,
-document it.
+Hello,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+I'm owning an Elgato EyeTV hybrid USB stick that I'm using daily on my
+iMac, now I'd like to use it on my laptop too but I'm unable to get it
+running. Is this device already supported? If not, is there any way I
+can help? I've already opened my device and uploaded the photos to the
+linux TV wiki page
+(http://www.linuxtv.org/wiki/index.php/Elgato_EyeTV_hybrid).
+I'm not sure which tuner is mounted on the PCB, therefor I've made two
+USB traces, maybe someone could interpret them and conclude which one
+is used:
+https://www.dropbox.com/s/99b2a17ohu0zqpz/20150219-EyeTV_Hybrid_capturedTV.pcap?dl=0
+https://www.dropbox.com/s/q4k8zf8d3qpxznu/20150219-EyeTV_Hybrid_Pluggedin.pcap?dl=0
 
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-index 6f1b1cf172b7..cbf307f21a63 100644
---- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-+++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-@@ -226,6 +226,10 @@
- 	    it in some digital video standard, with appropriate embedded timing
- 	    signals.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_TUNER</constant></entry>
-+	    <entry>TV and/or radio tuner</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 408e1068ffe6..e98caa1c39bd 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -157,6 +157,7 @@ applications. -->
- 	<date>2015-02-13</date>
- 	<authorinitials>mcc</authorinitials>
- 	<revremark>Fix documentation for media controller device nodes and add support for DVB device nodes.
-+Add support for Tuner sub-device.
- 	</revremark>
-       </revision>
-       <revision>
--- 
-2.1.0
-
+Kind regards,
+Gilles
