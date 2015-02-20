@@ -1,124 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:52926 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753795AbbBNLAZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Feb 2015 06:00:25 -0500
-Date: Sat, 14 Feb 2015 09:00:19 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCHv4 00/25] dvb core: add basic support for the media
- controller
-Message-ID: <20150214090019.798b6d18@recife.lan>
-In-Reply-To: <54DF1625.20808@xs4all.nl>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-	<54DF1625.20808@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:41950 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753431AbbBTIzR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Feb 2015 03:55:17 -0500
+Message-id: <54E6F671.7070500@samsung.com>
+Date: Fri, 20 Feb 2015 09:55:13 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Greg KH <greg@kroah.com>, Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, s.nawrocki@samsung.com
+Subject: Re: 0.led_name 2.other.led.name in /sysfs Re: [PATCH/RFC v11 01/20]
+ leds: flash: document sysfs interface
+References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+ <1424276441-3969-2-git-send-email-j.anaszewski@samsung.com>
+ <20150218224747.GA3999@amd> <20150219090204.GI3915@valkosipuli.retiisi.org.uk>
+ <20150219214043.GB29875@kroah.com> <54E6E89B.4050404@samsung.com>
+ <20150220081617.GA14057@amd>
+In-reply-to: <20150220081617.GA14057@amd>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 14 Feb 2015 10:32:21 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Pavel,
 
-> On 02/13/2015 11:57 PM, Mauro Carvalho Chehab wrote:
-> > This patch series adds basic support for the media controller at the
-> > DVB core: it creates one media entity per DVB devnode, if the media
-> > device is passed as an argument to the DVB structures.
-> > 
-> > The cx231xx driver was modified to pass such argument for DVB NET,
-> > DVB frontend and DVB demux.
-> > 
-> > -
-> > 
-> > version 4:
-> > 
-> > - Addressed the issues pointed via e-mail
-> 
-> No, you didn't. Especially with regards to the alsa node definition. I'm
-> pretty sure you need at least the subdevice information which is now removed.
-
-Well, back on Jan, 26 I answered your issues about that at:
-	http://www.spinics.net/lists/linux-media/msg85857.html
-
-As you didn't reply back in a reasonable amount of time, I assumed that
-you're happy with that.
-
-In any case, the definitions are still there, as nothing got dropped
-from the external header.
-
-So, when ALSA media controller support will be added at the Kernel, we
-can decide if it will use major/minor or card/device/subdevice or both.
-
-As I said back in Jan, 26, IMO, the best would be to use both:
-
-struct media_entity_desc {
-	...
-	union {
-		struct {
-			u32 major;
-			u32 minor;
-		} dev;
-		/* deprecated fields */
-		...
-	}
-	union {
-		struct {
-			u32 card;
-			u32 device;
-			u32 subdevice;
-		} alsa_props;
-		__u8 raw[172];
-	}
-}
-
-(additional and deprecated fields removed just to simplify its
- representation above)
-
-Even for ALSA, it is a way easier for libmediactl.c to keep using
-major/minor to get the device node name via both udev/sysfs than
-using anything else, as I don't think that udev has any method to
-find the associated name without major,minor information. Ok, there
-are indirect methods using the ALSA API to get such association, but
-it is just easier to fill everything at the struct than to add the
-extra complexity for the media control clients to convert between
-major/minor into card/device/subdevice.
-
-What I'm saying is that the card/device/subdevice really seems to be
-an extra property for this specific type of devnode, and not a
-replacement.
-
-In any case, I think we should take the decision on how to properly
-map the ALSA specific bits when we merge ALSA media controller patches,
-and not before.
-
-> I also do *not* like the fact that you posted a v4 and immediately applied
-> these patches to the master without leaving any time for more discussions.
-> 
-> These patches change the kernel API and need to go to proper review and need
-> a bunch of Acks, Laurent's at the very minimum since he's MC maintainer.
+On 02/20/2015 09:16 AM, Pavel Machek wrote:
+> Hi!
 >
-> Please revert the whole patch series from master, then we can discuss this
-> more.
-> 
-> For the record, for patch 02/25:
-> 
-> Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> I do *not* agree with this API change.
-> 
-> We can discuss this more on Monday.
+>>>>>> +What:		/sys/class/leds/<led>/available_sync_leds
+>>>>>> +Date:		February 2015
+>>>>>> +KernelVersion:	3.20
+>>>>>> +Contact:	Jacek Anaszewski <j.anaszewski@samsung.com>
+>>>>>> +Description:	read/write
+>>>>>> +		Space separated list of LEDs available for flash strobe
+>>>>>> +		synchronization, displayed in the format:
+>>>>>> +
+>>>>>> +		led1_id.led1_name led2_id.led2_name led3_id.led3_name etc.
+>>>>>
+>>>>> Multiple values per file, with all the problems we had in /proc. I
+>>>>> assume led_id is an integer? What prevents space or dot in led name?
+>>>>
+>>>> Very good point. How about using a newline instead? That'd be a little bit
+>>>> easier to parse, too.
+>>>
+>>> No, please make it one value per-file, which is what sysfs requires.
+>>
+>> The purpose of this attribute is only to provide an information about
+>> the range of valid identifiers that can be written to the
+>> flash_sync_strobe attribute. Wouldn't splitting this to many attributes
+>> be an unnecessary inflation of sysfs files?
+>
+> No, it would not. It is required so that we don't end up with broken
+> parsers.
 
-This hole series is for discussions for a long time (since the beginning of
-January), without rejection, and its now starting to receive patches from
-other authors. Keeping it OOT just makes harder to discuss and for people to
-test. It is time to move on.
+Let's discuss the acceptable approach then. I propose a directory
+named synchronized_strobe and containing the files as you proposed
+in one of the previous messages: led_id.active and led_id.name.
+The attribute flash_sync_strobe would be redundant then and should
+be removed.
 
-As I said on IRC, as I opted to merge it for 3.21, we'll have 2 entire
-Kernel cycles to make it mature before being merged upstream. During that
-period, we can fix any issues on it.
+Use cases for two LEDs:
 
-Regards,
-Mauro
+- max77693-led1
+- max77693-led2
+
+#cd synchronized_strobe
+#ls
+#0.active 0.name 1.active 1.name
+#cat 0.name
+#max77693-led1
+#cat 0.active
+#0
+#cat 1.name
+#max77693-led2
+#cat 1.active
+#0
+#echo 1 > 0.active
+#cat 0.active
+#1
+#echo 1 > 1.active
+#cat 0.active
+#0
+#cat 1.active
+#1
+
+
+>> Apart from it, we have also flash_faults attribute, that currently
+>> provides a space separated list of flash faults that have occurred.
+>> If we are to stick tightly to the one-value-per-file rule, then how
+>> we should approach flash_faults case? Should the separate file be
+>> dynamically created for each reported fault?
+>
+> I think you can get away with flash_faults attribute (since the
+> strings are hardcoded).
+
+If so, the attribute will be left as is.
+
+> Dynamically created files would be extremely ugly interface, but you
+> could also have files such as "overvoltage_fault" containing either 0
+> or 1 ...
+
+-- 
+Best Regards,
+Jacek Anaszewski
