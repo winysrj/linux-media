@@ -1,181 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:21624 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751035AbbBRJmX (ORCPT
+Received: from mail-ob0-f172.google.com ([209.85.214.172]:42809 "EHLO
+	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753610AbbBTJLS convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 04:42:23 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NJY0010XOHF9160@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Feb 2015 09:46:27 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	nicolas.dufresne@collabora.com
-References: <1418729778-14480-1-git-send-email-k.debski@samsung.com>
- <54E305AC.6050103@xs4all.nl>
-In-reply-to: <54E305AC.6050103@xs4all.nl>
-Subject: RE: [PATCH 1/2] vb2: Add VB2_FILEIO_ALLOW_ZERO_BYTESUSED flag to
- vb2_fileio_flags
-Date: Wed, 18 Feb 2015 10:42:18 +0100
-Message-id: <000001d04b5f$30a4afe0$91ee0fa0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Fri, 20 Feb 2015 04:11:18 -0500
+Received: by mail-ob0-f172.google.com with SMTP id nt9so23044089obb.3
+        for <linux-media@vger.kernel.org>; Fri, 20 Feb 2015 01:11:17 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <54E68315.7020209@iki.fi>
+References: <CAJ+AEyMT6etRK6cj6s2iwNHW3QG4mh7TVdPeNvVKKSBAJU9ztA@mail.gmail.com>
+	<54E68315.7020209@iki.fi>
+Date: Fri, 20 Feb 2015 09:11:17 +0000
+Message-ID: <CAJ+AEyNfefnHiKtr+iGnE6NfWbTVT40DcqPckfa=kQbEw6ymYg@mail.gmail.com>
+Subject: Re: DVBSky T982 (Si2168) Questions/Issues/Request
+From: Eponymous - <the.epon@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+>> It is increased to 70 ms already,.
 
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Tuesday, February 17, 2015 10:11 AM
-> 
-> Hi Kamil,
-> 
-> On 12/16/14 12:36, Kamil Debski wrote:
-> > The vb2: fix bytesused == 0 handling (8a75ffb) patch changed the
-> > behavior of __fill_vb2_buffer function, so that if bytesused is 0 it
-> > is set to the size of the buffer. However, bytesused set to 0 is used
-> > by older codec drivers as as indication used to mark the end of
-> stream.
-> >
-> > To keep backward compatibility, this patch adds a flag passed to the
-> > vb2_queue_init function - VB2_FILEIO_ALLOW_ZERO_BYTESUSED. If the
-> flag
-> > is set upon initialization of the queue, the videobuf2 keeps the
-> value
-> > of bytesused intact and passes it to the driver.
-> 
-> What is the status of this patch series?
+A great I will test with this value and see if it is ok.
 
-I have to admit that I had forgotten a bit about this patch, because of
-other
-important work. Thanks for reminding me :)
- 
-> Note that io_flags is really the wrong place for this flag, it should
-> be io_modes. This flag has nothing to do with file I/O.
 
-What do you think about adding a separate flags field into the vb2_queue
-structure? This could be combined with changing io_flags to u8 or a bit
-field
-to save space.
+>> I don't understand what you mean. Likely you are not understanding how DVB-T and DVB-T2 works. There is transmitter which uses DVB-T or DVB-T2, not both standards same time. You have to select used standard according to transmitter specs and make proper tuning request. Driver could do DVB-T, DVB-T2 and DVB-C, but only one transmission is possible to receive as once per tuner.
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+I understand how the system works but I don't think I'm explaining the
+problem very well :)
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> >
-> > Reported-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > ---
-> >  drivers/media/v4l2-core/videobuf2-core.c |   33
-> ++++++++++++++++++++++++------
-> >  include/media/videobuf2-core.h           |    3 +++
-> >  2 files changed, 30 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> > b/drivers/media/v4l2-core/videobuf2-core.c
-> > index d09a891..1068dbb 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -1276,13 +1276,23 @@ static void __fill_vb2_buffer(struct
-> vb2_buffer *vb, const struct v4l2_buffer *b
-> >  			 * userspace clearly never bothered to set it and
-> >  			 * it's a safe assumption that they really meant to
-> >  			 * use the full plane sizes.
-> > +			 *
-> > +			 * Some drivers, e.g. old codec drivers, use
-> bytesused
-> > +			 * == 0 as a way to indicate that streaming is
-> finished.
-> > +			 * In that case, the driver should use the following
-> > +			 * io_flag VB2_FILEIO_ALLOW_ZERO_BYTESUSED to keep
-> old
-> > +			 * userspace applications working.
-> >  			 */
-> >  			for (plane = 0; plane < vb->num_planes; ++plane) {
-> >  				struct v4l2_plane *pdst =
-&v4l2_planes[plane];
-> >  				struct v4l2_plane *psrc =
-&b->m.planes[plane];
-> >
-> > -				pdst->bytesused = psrc->bytesused ?
-> > -					psrc->bytesused : pdst->length;
-> > +				if (vb->vb2_queue->io_flags &
-> > +					VB2_FILEIO_ALLOW_ZERO_BYTESUSED)
-> > +					pdst->bytesused = psrc->bytesused;
-> > +				else
-> > +					pdst->bytesused = psrc->bytesused ?
-> > +						psrc->bytesused :
-pdst->length;
-> >  				pdst->data_offset = psrc->data_offset;
-> >  			}
-> >  		}
-> > @@ -1295,6 +1305,12 @@ static void __fill_vb2_buffer(struct
-> vb2_buffer *vb, const struct v4l2_buffer *b
-> >  		 *
-> >  		 * If bytesused == 0 for the output buffer, then fall back
-> >  		 * to the full buffer size as that's a sensible default.
-> > +		 *
-> > +		 * Some drivers, e.g. old codec drivers, use bytesused == 0
-> > +		 * as a way to indicate that streaming is finished. In that
-> > +		 * case, the driver should use the following io_flag
-> > +		 * VB2_FILEIO_ALLOW_ZERO_BYTESUSED to keep old userspace
-> > +		 * applications working.
-> >  		 */
-> >  		if (b->memory == V4L2_MEMORY_USERPTR) {
-> >  			v4l2_planes[0].m.userptr = b->m.userptr; @@ -1306,11
-> +1322,16 @@
-> > static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct
-> v4l2_buffer *b
-> >  			v4l2_planes[0].length = b->length;
-> >  		}
-> >
-> > -		if (V4L2_TYPE_IS_OUTPUT(b->type))
-> > -			v4l2_planes[0].bytesused = b->bytesused ?
-> > -				b->bytesused : v4l2_planes[0].length;
-> > -		else
-> > +		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> > +			if (vb->vb2_queue->io_flags &
-> > +				VB2_FILEIO_ALLOW_ZERO_BYTESUSED)
-> > +				v4l2_planes[0].bytesused = b->bytesused;
-> > +			else
-> > +				v4l2_planes[0].bytesused = b->bytesused ?
-> > +					b->bytesused :
-v4l2_planes[0].length;
-> > +		} else {
-> >  			v4l2_planes[0].bytesused = 0;
-> > +		}
-> >
-> >  	}
-> >
-> > diff --git a/include/media/videobuf2-core.h
-> > b/include/media/videobuf2-core.h index bd2cec2..0540bc3 100644
-> > --- a/include/media/videobuf2-core.h
-> > +++ b/include/media/videobuf2-core.h
-> > @@ -138,10 +138,13 @@ enum vb2_io_modes {
-> >   * by default the 'streaming' style is used by the file io emulator
-> >   * @VB2_FILEIO_READ_ONCE:	report EOF after reading the first buffer
-> >   * @VB2_FILEIO_WRITE_IMMEDIATELY:	queue buffer after each
-> write() call
-> > + * @VB2_FILEIO_ALLOW_ZERO_BYTESUSED:	the driver setting this flag
-> will handle
-> > + *					bytesused == 0 as a special case
-> >   */
-> >  enum vb2_fileio_flags {
-> >  	VB2_FILEIO_READ_ONCE		= (1 << 0),
-> >  	VB2_FILEIO_WRITE_IMMEDIATELY	= (1 << 1),
-> > +	VB2_FILEIO_ALLOW_ZERO_BYTESUSED	= (1 << 2),
-> >  };
-> >
-> >  /**
-> >
+In tvheadend 3.4.27 I add two muxes, one DVB-T (64QAM 8K 2/324.1Mb/s
+DVB-T MPEG2) and one DVB-T2 (256QAM 32KE 2/340.2Mb/s DVB-T2 MPEG4). I
+can only receive DVB-T services and channel/mux information, not
+DVB-T2.
 
+I've tested with w_scan as well with the same result. It's almost like
+it's not able to see any DVB-T2 muxes.
+
+Sean.
+
+On Fri, Feb 20, 2015 at 12:43 AM, Antti Palosaari <crope@iki.fi> wrote:
+> Moi
+>
+> On 02/20/2015 01:33 AM, Eponymous - wrote:
+>>
+>> Hi.
+>>
+>> I have a couple of issues with the si2168.c dvb-frontend in kernel v
+>> 3.19.0. To get the firnware to load I've had to increase the #define
+>> TIMEOUT to 150 from 50. I read another post
+>> (http://www.spinics.net/lists/linux-media/msg84198.html) where another
+>> user had to do the same modification.
+>>
+>> @ Antti Palosaari: Since the 50ms value you came up with was just
+>> based on some "trail and error", would it be possible to submit a
+>> change upstream to increase this timeout since it's likely others are
+>> going to encounter this issue?
+>
+>
+> It is increased to 70 ms already,
+>
+> commit 551c33e729f654ecfaed00ad399f5d2a631b72cb
+> Author: Jurgen Kramer <gtmkramer@xs4all.nl>
+> Date:   Mon Dec 8 05:30:44 2014 -0300
+> [media] Si2168: increase timeout to fix firmware loading
+>
+> If it is not enough, then send patch which increased it even more.
+>
+> Have to check if that fix never applied to stable, as there is no Cc stable
+> I added.... Mauro has applied patch from patchwork, not from pull request I
+> made:
+> https://patchwork.linuxtv.org/patch/27960/
+> http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=si2168_fix
+>
+>>
+>> The second issue I have is that where I am based (UK) we have both
+>> DVB-T and DVB-T2 muxes and I can't get a single tuner to be able to
+>> tune to both transports, but looking through the Si2168.c code, I'm
+>> having trouble working out how (if at all) this is achieved?
+>>
+>> It's not the case where we can only tune to DVB-T OR DVB-T2 is it? If
+>> so, that's far from ideal...
+>>
+>> Are there any workarounds if true?
+>
+>
+> I don't understand what you mean. Likely you are not understanding how DVB-T
+> and DVB-T2 works. There is transmitter which uses DVB-T or DVB-T2, not both
+> standards same time. You have to select used standard according to
+> transmitter specs and make proper tuning request. Driver could do DVB-T,
+> DVB-T2 and DVB-C, but only one transmission is possible to receive as once
+> per tuner.
+>
+> regards
+> Antti
+> --
+> http://palosaari.fi/
