@@ -1,62 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:43041 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062AbbBUSk3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2015 13:40:29 -0500
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	adi-buildroot-devel@lists.sourceforge.net
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 01/15] media: blackfin: bfin_capture: drop buf_init() callback
-Date: Sat, 21 Feb 2015 18:39:47 +0000
-Message-Id: <1424544001-19045-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:46239 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752304AbbBTBgq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2015 20:36:46 -0500
+Date: Thu, 19 Feb 2015 23:36:41 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL 3.19] si2168 fix
+Message-ID: <20150219233641.72340a03@recife.lan>
+In-Reply-To: <54E68430.6010607@iki.fi>
+References: <54C0CCEF.8080500@iki.fi>
+	<54E68430.6010607@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Em Fri, 20 Feb 2015 02:47:44 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-this patch drops the buf_init() callback as init
-of buf list is not required.
+> Mauro
+> Did that patch went to stable? I see you have committed original patch 
+> from patchwork, but there is no stable tag.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 9 ---------
- 1 file changed, 9 deletions(-)
+It went upstream, but I'm unsure if it arrived for 3.19 or 3.20.
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 8f66986..c6d8b95 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -302,14 +302,6 @@ static int bcap_queue_setup(struct vb2_queue *vq,
- 	return 0;
- }
- 
--static int bcap_buffer_init(struct vb2_buffer *vb)
--{
--	struct bcap_buffer *buf = to_bcap_vb(vb);
--
--	INIT_LIST_HEAD(&buf->list);
--	return 0;
--}
--
- static int bcap_buffer_prepare(struct vb2_buffer *vb)
- {
- 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
-@@ -441,7 +433,6 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
- 
- static struct vb2_ops bcap_video_qops = {
- 	.queue_setup            = bcap_queue_setup,
--	.buf_init               = bcap_buffer_init,
- 	.buf_prepare            = bcap_buffer_prepare,
- 	.buf_cleanup            = bcap_buffer_cleanup,
- 	.buf_queue              = bcap_buffer_queue,
--- 
-2.1.0
+That's the upstream changeset:
 
+$ git show 551c33e729f6 
+commit 551c33e729f654ecfaed00ad399f5d2a631b72cb
+Author: Jurgen Kramer <gtmkramer@xs4all.nl>
+Date:   Mon Dec 8 05:30:44 2014 -0300
+
+    [media] Si2168: increase timeout to fix firmware loading
+    
+    Increase si2168 cmd execute timeout to prevent firmware load failures. Tests
+    shows it takes up to 52ms to load the 'dvb-demod-si2168-a30-01.fw' firmware.
+    Increase timeout to a safe value of 70ms.
+    
+    Signed-off-by: Jurgen Kramer <gtmkramer@xs4all.nl>
+    Reviewed-by: Antti Palosaari <crope@iki.fi>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+Weird, it is missing the Cc tag on its commit message. I double-checked
+re-applying it on a scratch branch: my scripts are properly recognizing
+the Cc tag.
+
+I've no idea what happened. Perhaps you've added this patch on some other
+branch that you asked me to pull?
+
+Anyway, now the proper solution is to send this patch directly to
+stable@vger.kernel.org, C/C the mailing list.
+
+Regards,
+Mauro
+
+> 
+> 
+> On 01/22/2015 12:11 PM, Antti Palosaari wrote:
+> > That patch must go also stable v3.16+ as tagged Cc.
+> >
+> > regards
+> > Antti
+> >
+> > The following changes since commit
+> > 2c0108e1c02f9fc95f465adc4d2ce1ad8688290a:
+> >
+> >    [media] omap3isp: Correctly set QUERYCAP capabilities (2015-01-21
+> > 21:09:11 -0200)
+> >
+> > are available in the git repository at:
+> >
+> >    git://linuxtv.org/anttip/media_tree.git si2168_fix
+> >
+> > for you to fetch changes up to a85385413c60602b529a1555146c4e81a5935e98:
+> >
+> >    si2168: increase timeout to fix firmware loading (2015-01-22 12:06:20
+> > +0200)
+> >
+> > ----------------------------------------------------------------
+> > Jurgen Kramer (1):
+> >        si2168: increase timeout to fix firmware loading
+> >
+> >   drivers/media/dvb-frontends/si2168.c | 2 +-
+> >   1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> 
+> 
+> https://patchwork.linuxtv.org/patch/27382/
+> 
+> 
+> 
+> commit 551c33e729f654ecfaed00ad399f5d2a631b72cb
+> Author: Jurgen Kramer <gtmkramer@xs4all.nl>
+> Date:   Mon Dec 8 05:30:44 2014 -0300
+> 
+>      [media] Si2168: increase timeout to fix firmware loading
+> 
+>      Increase si2168 cmd execute timeout to prevent firmware load 
+> failures. Tests
+>      shows it takes up to 52ms to load the 'dvb-demod-si2168-a30-01.fw' 
+> firmware.
+>      Increase timeout to a safe value of 70ms.
+> 
+>      Signed-off-by: Jurgen Kramer <gtmkramer@xs4all.nl>
+>      Reviewed-by: Antti Palosaari <crope@iki.fi>
+>      Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> Antti
+> 
+> 
+> 
+> 
+> 
