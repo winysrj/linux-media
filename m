@@ -1,208 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:56172 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751661AbbBWL6Z (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55786 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752384AbbBTU5m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 06:58:25 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NK800GSL4456WA0@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 23 Feb 2015 12:02:29 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-References: <1424450288-26444-1-git-send-email-k.debski@samsung.com>
- <1424450288-26444-2-git-send-email-k.debski@samsung.com>
- <54E76637.3030007@xs4all.nl>
-In-reply-to: <54E76637.3030007@xs4all.nl>
-Subject: RE: [PATCH v5 2/4] vb2: add allow_zero_bytesused flag to the vb2_queue
- struct
-Date: Mon, 23 Feb 2015 12:58:21 +0100
-Message-id: <02f201d04f60$05ba6220$112f2660$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Fri, 20 Feb 2015 15:57:42 -0500
+Date: Fri, 20 Feb 2015 21:57:38 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Greg KH <greg@kroah.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
+	s.nawrocki@samsung.com
+Subject: Re: 0.led_name 2.other.led.name in /sysfs Re: [PATCH/RFC v11 01/20]
+ leds: flash: document sysfs interface
+Message-ID: <20150220205738.GA28995@amd>
+References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+ <1424276441-3969-2-git-send-email-j.anaszewski@samsung.com>
+ <20150218224747.GA3999@amd>
+ <20150219090204.GI3915@valkosipuli.retiisi.org.uk>
+ <20150219214043.GB29875@kroah.com>
+ <54E6E89B.4050404@samsung.com>
+ <20150220153616.GB18111@kroah.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150220153616.GB18111@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri 2015-02-20 07:36:16, Greg KH wrote:
+> On Fri, Feb 20, 2015 at 08:56:11AM +0100, Jacek Anaszewski wrote:
+> > On 02/19/2015 10:40 PM, Greg KH wrote:
+> > >On Thu, Feb 19, 2015 at 11:02:04AM +0200, Sakari Ailus wrote:
+> > >>On Wed, Feb 18, 2015 at 11:47:47PM +0100, Pavel Machek wrote:
+> > >>>
+> > >>>On Wed 2015-02-18 17:20:22, Jacek Anaszewski wrote:
+> > >>>>Add a documentation of LED Flash class specific sysfs attributes.
+> > >>>>
+> > >>>>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> > >>>>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > >>>>Cc: Bryan Wu <cooloney@gmail.com>
+> > >>>>Cc: Richard Purdie <rpurdie@rpsys.net>
+> > >>>
+> > >>>NAK-ed-by: Pavel Machek
+> > >>>
+> > >>>>+What:		/sys/class/leds/<led>/available_sync_leds
+> > >>>>+Date:		February 2015
+> > >>>>+KernelVersion:	3.20
+> > >>>>+Contact:	Jacek Anaszewski <j.anaszewski@samsung.com>
+> > >>>>+Description:	read/write
+> > >>>>+		Space separated list of LEDs available for flash strobe
+> > >>>>+		synchronization, displayed in the format:
+> > >>>>+
+> > >>>>+		led1_id.led1_name led2_id.led2_name led3_id.led3_name etc.
+> > >>>
+> > >>>Multiple values per file, with all the problems we had in /proc. I
+> > >>>assume led_id is an integer? What prevents space or dot in led name?
+> > >>
+> > >>Very good point. How about using a newline instead? That'd be a little bit
+> > >>easier to parse, too.
+> > >
+> > >No, please make it one value per-file, which is what sysfs requires.
+> > 
+> > The purpose of this attribute is only to provide an information about
+> > the range of valid identifiers that can be written to the
+> > flash_sync_strobe attribute. Wouldn't splitting this to many attributes
+> > be an unnecessary inflation of sysfs files?
+> 
+> Ok a list of allowed values to write is acceptable, as long as it is not
+> hard to parse and always is space separated.
 
-Thank you for the review :)
+Well, this one is list of LED numbers and LED names.
 
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Friday, February 20, 2015 5:52 PM
+> > Apart from it, we have also flash_faults attribute, that currently
+> > provides a space separated list of flash faults that have occurred.
 > 
-> Hi Kamil,
-> 
-> One question and one typo below...
-> 
-> On 02/20/2015 05:38 PM, Kamil Debski wrote:
-> > The vb2: fix bytesused == 0 handling (8a75ffb) patch changed the
-> > behavior of __fill_vb2_buffer function, so that if bytesused is 0 it
-> > is set to the size of the buffer. However, bytesused set to 0 is used
-> > by older codec drivers as as indication used to mark the end of
-> stream.
-> >
-> > To keep backward compatibility, this patch adds a flag passed to the
-> > vb2_queue_init function - allow_zero_bytesused. If the flag is set
-> > upon initialization of the queue, the videobuf2 keeps the value of
-> > bytesused intact in the OUTPUT queue and passes it to the driver.
-> >
-> > Reported-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > ---
-> >  drivers/media/v4l2-core/videobuf2-core.c |   39
-> +++++++++++++++++++++++++-----
-> >  include/media/videobuf2-core.h           |    2 ++
-> >  2 files changed, 35 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> > b/drivers/media/v4l2-core/videobuf2-core.c
-> > index 5cd60bf..5d77670 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -1247,6 +1247,16 @@ static void __fill_vb2_buffer(struct
-> vb2_buffer
-> > *vb, const struct v4l2_buffer *b  {
-> >  	unsigned int plane;
-> >
-> > +	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> > +		if (WARN_ON_ONCE(b->bytesused == 0)) {
-> > +			pr_warn_once("use of bytesused == 0 is deprecated
-and
-> will be
-> > +removed in 2017,\n");
-> 
-> I wonder if we should give a specific year, or just say 'in the
-> future'.
-> 
-> What do you think?
+> That's crazy, what's to keep it from growing and growing to be larger
+> than is allowed to be read?
 
-I think I would prefer to use the phrase "in the future". 
-If you are ok with that I will post an updated patch set soon.
+Umm. Actually, this one is less crazy, I'd say. List of faults is
+fixed, and you can have them all-at-once, at most, which is way below
+4K limit.
+								Pavel
 
-> 
-> > +			if (vb->vb2_queue->allow_zero_bytesused)
-> > +				pr_warn_once("use
-> VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
-> > +			else
-> > +				pr_warn_once("use the actual size
-instead.\n");
-> > +		}
-> > +	}
-> > +
-> >  	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
-> >  		if (b->memory == V4L2_MEMORY_USERPTR) {
-> >  			for (plane = 0; plane < vb->num_planes; ++plane) {
-@@
-> -1276,13
-> > +1286,22 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb,
-> const struct v4l2_buffer *b
-> >  			 * userspace clearly never bothered to set it and
-> >  			 * it's a safe assumption that they really meant to
-> >  			 * use the full plane sizes.
-> > +			 *
-> > +			 * Some drivers, e.g. old codec drivers, use
-> bytesused
-> > +			 * == 0 as a way to indicate that streaming is
-> finished.
-> > +			 * In that case, the driver should use the
-> > +			 * allow_zero_bytesused flag to keep old userspace
-> > +			 * applications working.
-> >  			 */
-> >  			for (plane = 0; plane < vb->num_planes; ++plane) {
-> >  				struct v4l2_plane *pdst =
-&v4l2_planes[plane];
-> >  				struct v4l2_plane *psrc =
-&b->m.planes[plane];
-> >
-> > -				pdst->bytesused = psrc->bytesused ?
-> > -					psrc->bytesused : pdst->length;
-> > +				if (vb->vb2_queue->allow_zero_bytesused)
-> > +					pdst->bytesused = psrc->bytesused;
-> > +				else
-> > +					pdst->bytesused = psrc->bytesused ?
-> > +						psrc->bytesused :
-pdst->length;
-> >  				pdst->data_offset = psrc->data_offset;
-> >  			}
-> >  		}
-> > @@ -1295,6 +1314,11 @@ static void __fill_vb2_buffer(struct
-> vb2_buffer *vb, const struct v4l2_buffer *b
-> >  		 *
-> >  		 * If bytesused == 0 for the output buffer, then fall back
-> >  		 * to the full buffer size as that's a sensible default.
-> > +		 *
-> > +		 * Some drivers, e.g. old codec drivers, use bytesused * ==
-> 0 as
-> 
-> Small typo:
-> 
-> s/bytesused * == 0/bytesused == 0/
-> 
-> > +		 * a way to indicate that streaming is finished. In that
-> case,
-> > +		 * the driver should use the allow_zero_bytesused flag to
-> keep
-> > +		 * old userspace applications working.
-> >  		 */
-> >  		if (b->memory == V4L2_MEMORY_USERPTR) {
-> >  			v4l2_planes[0].m.userptr = b->m.userptr; @@ -1306,10
-> +1330,13 @@
-> > static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct
-> v4l2_buffer *b
-> >  			v4l2_planes[0].length = b->length;
-> >  		}
-> >
-> > -		if (V4L2_TYPE_IS_OUTPUT(b->type))
-> > -			v4l2_planes[0].bytesused = b->bytesused ?
-> > -				b->bytesused : v4l2_planes[0].length;
-> > -		else
-> > +		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> > +			if (vb->vb2_queue->allow_zero_bytesused)
-> > +				v4l2_planes[0].bytesused = b->bytesused;
-> > +			else
-> > +				v4l2_planes[0].bytesused = b->bytesused ?
-> > +					b->bytesused :
-v4l2_planes[0].length;
-> > +		} else
-> >  			v4l2_planes[0].bytesused = 0;
-> >
-> >  	}
-> > diff --git a/include/media/videobuf2-core.h
-> > b/include/media/videobuf2-core.h index e49dc6b..a5790fd 100644
-> > --- a/include/media/videobuf2-core.h
-> > +++ b/include/media/videobuf2-core.h
-> > @@ -337,6 +337,7 @@ struct v4l2_fh;
-> >   * @io_modes:	supported io methods (see vb2_io_modes enum)
-> >   * @fileio_read_once:		report EOF after reading the first
-> buffer
-> >   * @fileio_write_immediately:	queue buffer after each write() call
-> > + * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the
-> driver
-> >   * @lock:	pointer to a mutex that protects the vb2_queue
-> struct. The
-> >   *		driver can set this to a mutex to let the v4l2 core
-> serialize
-> >   *		the queuing ioctls. If the driver wants to handle locking
-> > @@ -388,6 +389,7 @@ struct vb2_queue {
-> >  	unsigned int			io_modes;
-> >  	unsigned			fileio_read_once:1;
-> >  	unsigned			fileio_write_immediately:1;
-> > +	unsigned			allow_zero_bytesused:1;
-> >
-> >  	struct mutex			*lock;
-> >  	struct v4l2_fh			*owner;
-> >
-> 
-> Regards,
-> 
-> 	Hans
-
-Best wishes,
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
