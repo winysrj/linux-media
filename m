@@ -1,48 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43928 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932954AbbBQIou (ORCPT
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:37017 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751742AbbBUSkd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 03:44:50 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 2/6] radio-bcm2048: use unlocked_ioctl instead of ioctl
-Date: Tue, 17 Feb 2015 09:44:05 +0100
-Message-Id: <1424162649-17249-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1424162649-17249-1-git-send-email-hverkuil@xs4all.nl>
-References: <1424162649-17249-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sat, 21 Feb 2015 13:40:33 -0500
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 04/15] media: blackfin: bfin_capture: improve buf_prepare() callback
+Date: Sat, 21 Feb 2015 18:39:50 +0000
+Message-Id: <1424544001-19045-5-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-This driver does its own locking, so there is no need to use
-ioctl instead of unlocked_ioctl.
+this patch improves the buf_prepare() callback.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pali Rohár <pali.rohar@gmail.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/staging/media/bcm2048/radio-bcm2048.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/blackfin/bfin_capture.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 5382506..512fa26 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -2274,7 +2274,7 @@ done:
-  */
- static const struct v4l2_file_operations bcm2048_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- 	/* for RDS read support */
- 	.open		= bcm2048_fops_open,
- 	.release	= bcm2048_fops_release,
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 332f8c9..8f62a84 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -305,16 +305,12 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+ static int bcap_buffer_prepare(struct vb2_buffer *vb)
+ {
+ 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
+-	struct bcap_buffer *buf = to_bcap_vb(vb);
+-	unsigned long size;
+ 
+-	size = bcap_dev->fmt.sizeimage;
+-	if (vb2_plane_size(vb, 0) < size) {
+-		v4l2_err(&bcap_dev->v4l2_dev, "buffer too small (%lu < %lu)\n",
+-				vb2_plane_size(vb, 0), size);
++	vb2_set_plane_payload(vb, 0, bcap_dev->fmt.sizeimage);
++	if (vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
+ 		return -EINVAL;
+-	}
+-	vb2_set_plane_payload(&buf->vb, 0, size);
++
++	vb->v4l2_buf.field = bcap_dev->fmt.field;
+ 
+ 	return 0;
+ }
 -- 
-2.1.4
+2.1.0
 
