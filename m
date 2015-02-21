@@ -1,63 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:52689 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752624AbbBIGnq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2015 01:43:46 -0500
-Date: Mon, 9 Feb 2015 07:43:02 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: nick <xerofoify@gmail.com>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media:firewire:Remove unneeded function
- definition,avc_tuner_host2ca in firedtv-avc.c
-Message-ID: <20150209074302.79876412@kant>
-In-Reply-To: <54D80CCC.5030700@gmail.com>
-References: <1423423437-31949-1-git-send-email-xerofoify@gmail.com>
-	<20150209005500.104d20a6@kant>
-	<54D80CCC.5030700@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:48802 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751671AbbBUSkd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Feb 2015 13:40:33 -0500
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 03/15] media: blackfin: bfin_capture: set min_buffers_needed
+Date: Sat, 21 Feb 2015 18:39:49 +0000
+Message-Id: <1424544001-19045-4-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Feb 08 nick wrote:
-> On 2015-02-08 06:55 PM, Stefan Richter wrote:
-> > I still am missing research on the question whether or not the Common
-> > Interface serving part of the driver needs to send Host2CA commands.  If
-> > yes, we implement it and use the function.  If not, we remove the
-> > function.  As long as we are not sure, I prefer to leave the #if-0'd code
-> > where it is.  It documents how the command is formed, and we don't have
-> > any other documentation (except perhaps the git history).
-[...]
-> Stefan,
-> I looked in the history with git log -p 154907957f939 and all I got 
-> for this function was 
->  Wed Feb 11 21:21:04 CET 2009
->     firedtv: avc: header file cleanup
->     
->         Remove unused constants and declarations.
->         Move privately used constants into .c files.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-The function was added a few commits before this one, by "firesat: update
-isochronous interface, add CI support".
+this patch sets the min_buffers_needed field of the vb2 queue
+so that the vb2 core will make sure start_streaming() callback
+is called only when we have minimum buffers queued.
 
-> Clearly this states to remove unused declarations and avc_tuner_host2ca is unused.
-> Can you explain to me then why it's still needed to be around if there no callers
-> of it?
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-See above; in this instance
-
-	#if 0
-	dead code
-	#endif
-
-stands in for
-
-	/*
-	 * pseudo code
-	 */
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 2c720bc..332f8c9 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -986,6 +986,7 @@ static int bcap_probe(struct platform_device *pdev)
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->lock = &bcap_dev->mutex;
++	q->min_buffers_needed = 1;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret)
 -- 
-Stefan Richter
--=====-===== --=- -=--=
-http://arcgraph.de/sr/
+2.1.0
+
