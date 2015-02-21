@@ -1,67 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58381 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753471AbbBBNVz (ORCPT
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:54655 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752246AbbBUSkj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 08:21:55 -0500
-Message-ID: <54CF79CB.6000603@xs4all.nl>
-Date: Mon, 02 Feb 2015 14:21:15 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] staging: media: vino: vino: Removed variables that is
- never used
-References: <1422485265-11231-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-In-Reply-To: <1422485265-11231-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sat, 21 Feb 2015 13:40:39 -0500
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 07/15] media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
+Date: Sat, 21 Feb 2015 18:39:53 +0000
+Message-Id: <1424544001-19045-8-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/28/2015 11:47 PM, Rickard Strandqvist wrote:
-> Variable ar assigned a value that is never used.
-> I have also removed all the code that thereby serves no purpose.
-> 
-> This was found using a static code analysis program called cppcheck
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-FYI: I've dropped this patch since the vino driver will be removed in 3.20.
+this patch adds support to use v4l2_fh_open() and vb2_fop_release,
+which allows to drop driver specific struct bcap_fh, as this is handled
+by core.
 
-Regards.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 79 +-------------------------
+ 1 file changed, 2 insertions(+), 77 deletions(-)
 
-	Hans
-
-> 
-> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-> ---
->  drivers/staging/media/vino/vino.c |    2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/staging/media/vino/vino.c b/drivers/staging/media/vino/vino.c
-> index 2c85357..f43c1ea 100644
-> --- a/drivers/staging/media/vino/vino.c
-> +++ b/drivers/staging/media/vino/vino.c
-> @@ -2375,7 +2375,6 @@ static irqreturn_t vino_interrupt(int irq, void *dev_id)
->  		next_4_desc = vino->a.next_4_desc;
->  	unsigned int line_count_2,
->  		page_index_2,
-> -		field_counter_2,
->  		start_desc_tbl_2,
->  		next_4_desc_2;
->  #endif
-> @@ -2421,7 +2420,6 @@ static irqreturn_t vino_interrupt(int irq, void *dev_id)
->  #ifdef VINO_DEBUG_INT
->  			line_count_2 = vino->a.line_count;
->  			page_index_2 = vino->a.page_index;
-> -			field_counter_2 = vino->a.field_counter;
->  			start_desc_tbl_2 = vino->a.start_desc_tbl;
->  			next_4_desc_2 = vino->a.next_4_desc;
->  
-> 
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index ee0e848..9b8ad06 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -105,12 +105,6 @@ struct bcap_device {
+ 	bool stop;
+ };
+ 
+-struct bcap_fh {
+-	struct v4l2_fh fh;
+-	/* indicates whether this file handle is doing IO */
+-	bool io_allowed;
+-};
+-
+ static const struct bcap_format bcap_formats[] = {
+ 	{
+ 		.desc        = "YCbCr 4:2:2 Interleaved UYVY",
+@@ -200,50 +194,6 @@ static void bcap_free_sensor_formats(struct bcap_device *bcap_dev)
+ 	bcap_dev->sensor_formats = NULL;
+ }
+ 
+-static int bcap_open(struct file *file)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct video_device *vfd = bcap_dev->video_dev;
+-	struct bcap_fh *bcap_fh;
+-
+-	if (!bcap_dev->sd) {
+-		v4l2_err(&bcap_dev->v4l2_dev, "No sub device registered\n");
+-		return -ENODEV;
+-	}
+-
+-	bcap_fh = kzalloc(sizeof(*bcap_fh), GFP_KERNEL);
+-	if (!bcap_fh) {
+-		v4l2_err(&bcap_dev->v4l2_dev,
+-			 "unable to allocate memory for file handle object\n");
+-		return -ENOMEM;
+-	}
+-
+-	v4l2_fh_init(&bcap_fh->fh, vfd);
+-
+-	/* store pointer to v4l2_fh in private_data member of file */
+-	file->private_data = &bcap_fh->fh;
+-	v4l2_fh_add(&bcap_fh->fh);
+-	bcap_fh->io_allowed = false;
+-	return 0;
+-}
+-
+-static int bcap_release(struct file *file)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct v4l2_fh *fh = file->private_data;
+-	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+-
+-	/* if this instance is doing IO */
+-	if (bcap_fh->io_allowed)
+-		vb2_queue_release(&bcap_dev->buffer_queue);
+-
+-	file->private_data = NULL;
+-	v4l2_fh_del(&bcap_fh->fh);
+-	v4l2_fh_exit(&bcap_fh->fh);
+-	kfree(bcap_fh);
+-	return 0;
+-}
+-
+ #ifndef CONFIG_MMU
+ static unsigned long bcap_get_unmapped_area(struct file *file,
+ 					    unsigned long addr,
+@@ -432,13 +382,6 @@ static int bcap_reqbufs(struct file *file, void *priv,
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+ 	struct vb2_queue *vq = &bcap_dev->buffer_queue;
+-	struct v4l2_fh *fh = file->private_data;
+-	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+-
+-	if (vb2_is_busy(vq))
+-		return -EBUSY;
+-
+-	bcap_fh->io_allowed = true;
+ 
+ 	return vb2_reqbufs(vq, req_buf);
+ }
+@@ -455,11 +398,6 @@ static int bcap_qbuf(struct file *file, void *priv,
+ 			struct v4l2_buffer *buf)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct v4l2_fh *fh = file->private_data;
+-	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+-
+-	if (!bcap_fh->io_allowed)
+-		return -EBUSY;
+ 
+ 	return vb2_qbuf(&bcap_dev->buffer_queue, buf);
+ }
+@@ -468,11 +406,6 @@ static int bcap_dqbuf(struct file *file, void *priv,
+ 			struct v4l2_buffer *buf)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct v4l2_fh *fh = file->private_data;
+-	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+-
+-	if (!bcap_fh->io_allowed)
+-		return -EBUSY;
+ 
+ 	return vb2_dqbuf(&bcap_dev->buffer_queue,
+ 				buf, file->f_flags & O_NONBLOCK);
+@@ -523,14 +456,10 @@ static int bcap_streamon(struct file *file, void *priv,
+ 				enum v4l2_buf_type buf_type)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct bcap_fh *fh = file->private_data;
+ 	struct ppi_if *ppi = bcap_dev->ppi;
+ 	dma_addr_t addr;
+ 	int ret;
+ 
+-	if (!fh->io_allowed)
+-		return -EBUSY;
+-
+ 	/* call streamon to start streaming in videobuf */
+ 	ret = vb2_streamon(&bcap_dev->buffer_queue, buf_type);
+ 	if (ret)
+@@ -564,10 +493,6 @@ static int bcap_streamoff(struct file *file, void *priv,
+ 				enum v4l2_buf_type buf_type)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct bcap_fh *fh = file->private_data;
+-
+-	if (!fh->io_allowed)
+-		return -EBUSY;
+ 
+ 	return vb2_streamoff(&bcap_dev->buffer_queue, buf_type);
+ }
+@@ -870,8 +795,8 @@ static const struct v4l2_ioctl_ops bcap_ioctl_ops = {
+ 
+ static struct v4l2_file_operations bcap_fops = {
+ 	.owner = THIS_MODULE,
+-	.open = bcap_open,
+-	.release = bcap_release,
++	.open = v4l2_fh_open,
++	.release = vb2_fop_release,
+ 	.unlocked_ioctl = video_ioctl2,
+ 	.mmap = vb2_fop_mmap,
+ #ifndef CONFIG_MMU
+-- 
+2.1.0
 
