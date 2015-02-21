@@ -1,46 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:37782 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965452AbbBDPXO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2015 10:23:14 -0500
+Received: from smtpq1.tb.mail.iss.as9143.net ([212.54.42.164]:35126 "EHLO
+	smtpq1.tb.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751288AbbBUWQx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Feb 2015 17:16:53 -0500
+Received: from [212.54.42.134] (helo=smtp3.tb.mail.iss.as9143.net)
+	by smtpq1.tb.mail.iss.as9143.net with esmtp (Exim 4.82)
+	(envelope-from <rudy@grumpydevil.homelinux.org>)
+	id 1YPHdC-0005MX-6p
+	for linux-media@vger.kernel.org; Sat, 21 Feb 2015 22:30:34 +0100
+Received: from 5ed66c68.cm-7-7b.dynamic.ziggo.nl ([94.214.108.104] helo=imail.office.romunt.nl)
+	by smtp3.tb.mail.iss.as9143.net with esmtp (Exim 4.82)
+	(envelope-from <rudy@grumpydevil.homelinux.org>)
+	id 1YPHdC-0006Hk-40
+	for linux-media@vger.kernel.org; Sat, 21 Feb 2015 22:30:34 +0100
+Received: from [192.168.1.15] (cenedra.office.romunt.nl [192.168.1.15])
+	by imail.office.romunt.nl (8.14.4/8.14.4/Debian-4) with ESMTP id t1LLUXLO012677
+	for <linux-media@vger.kernel.org>; Sat, 21 Feb 2015 22:30:33 +0100
+Message-ID: <54E8F8F4.1010601@grumpydevil.homelinux.org>
+Date: Sat, 21 Feb 2015 22:30:28 +0100
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
 MIME-Version: 1.0
-In-Reply-To: <CAL_Jsq+Yk1sDT+KfxRfR3ue74KtKxDB3Aj0BS2=sfYwzMcQtDw@mail.gmail.com>
-References: <1421365163-29394-1-git-send-email-prabhakar.csengg@gmail.com>
-	<CAL_Jsq+Yk1sDT+KfxRfR3ue74KtKxDB3Aj0BS2=sfYwzMcQtDw@mail.gmail.com>
-Date: Wed, 4 Feb 2015 13:23:12 -0200
-Message-ID: <CAOMZO5D5QQQj6u7av4TTAY7gbRXXx7AF_eYJiQxuPtgo9zsQtQ@mail.gmail.com>
-Subject: Re: [PATCH] media: i2c: add support for omnivision's ov2659 sensor
-From: Fabio Estevam <festevam@gmail.com>
-To: Rob Herring <robherring2@gmail.com>
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: DVB Simulcrypt
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rob,
+Dears (Hans?)
 
-On Wed, Feb 4, 2015 at 12:55 PM, Rob Herring <robherring2@gmail.com> wrote:
+My setup, where the cable operator was using only irdeto, was working 
+good. Then the cable operator merged with another, and now the networks 
+are being merged. As a result, the encryption has moved from irdeto only 
+to simulcyrpt with Irdeto and Nagra.
 
-> I'm surprised there are not already compatible strings with
-> OmniVision. There are some examples using "omnivision", but no dts
-> files and examples don't count.
->
-> The stock ticker is ovti, so please use that.
+Current status:
+- when i put the CA card in a STB, it works
+- when trying to record an encrypted channel from PC, it no longer works.
 
-That's what I sent:
-http://patchwork.ozlabs.org/patch/416685/
+I suspect the problem is that the wrong keys are used: Nagra keys in 
+stead of Irdeto keys.
 
-Could you apply it?
+I do not know whether:
+- kernel issue (is simulcrypt supported?)
+- API issue (is all support in place to select the right key stream?)
+- application issue (does the application allow to set the right CA?)
+
+If this is an application issue, could it be solved by setting the API 
+outside the application, to direct it to the right (Irdeto in my case) 
+encryption?
+
+The application i am using is MythTV.
+
+
+Cheers
+
+
+Rudy
