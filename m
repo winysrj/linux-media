@@ -1,79 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49469 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753904AbbBMW6V (ORCPT
+Received: from mail-we0-f175.google.com ([74.125.82.175]:43041 "EHLO
+	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752062AbbBUSk3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 17:58:21 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+	Sat, 21 Feb 2015 13:40:29 -0500
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	adi-buildroot-devel@lists.sourceforge.net
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Antti Palosaari <crope@iki.fi>, linux-doc@vger.kernel.org
-Subject: [PATCHv4 05/25] [media] DocBook: Document the DVB API devnodes at the media controller
-Date: Fri, 13 Feb 2015 20:57:48 -0200
-Message-Id: <36759260b831a0625805fd6ec044a447140405cd.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 01/15] media: blackfin: bfin_capture: drop buf_init() callback
+Date: Sat, 21 Feb 2015 18:39:47 +0000
+Message-Id: <1424544001-19045-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DVB API is actually several different APIs bundled together, each
-using its own device node.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Fix the media controller DVB API to actually reflect what's there at the
-DVB subsystem.
+this patch drops the buf_init() callback as init
+of buf list is not required.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-index 19ab836b2651..6f1b1cf172b7 100644
---- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-+++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-@@ -181,8 +181,24 @@
- 	    <entry>ALSA card</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB</constant></entry>
--	    <entry>DVB card</entry>
-+	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_FE</constant></entry>
-+	    <entry>DVB frontend devnode</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_DEMUX</constant></entry>
-+	    <entry>DVB demux devnode</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_DVR</constant></entry>
-+	    <entry>DVB DVR devnode</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_CA</constant></entry>
-+	    <entry>DVB CAM devnode</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_NET</constant></entry>
-+	    <entry>DVB network devnode</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV</constant></entry>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 3a16ac1f67d0..408e1068ffe6 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -156,7 +156,7 @@ applications. -->
- 	<revnumber>3.21</revnumber>
- 	<date>2015-02-13</date>
- 	<authorinitials>mcc</authorinitials>
--	<revremark>Fix documentation for media controller device nodes.
-+	<revremark>Fix documentation for media controller device nodes and add support for DVB device nodes.
- 	</revremark>
-       </revision>
-       <revision>
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 8f66986..c6d8b95 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -302,14 +302,6 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+ 	return 0;
+ }
+ 
+-static int bcap_buffer_init(struct vb2_buffer *vb)
+-{
+-	struct bcap_buffer *buf = to_bcap_vb(vb);
+-
+-	INIT_LIST_HEAD(&buf->list);
+-	return 0;
+-}
+-
+ static int bcap_buffer_prepare(struct vb2_buffer *vb)
+ {
+ 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
+@@ -441,7 +433,6 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
+ 
+ static struct vb2_ops bcap_video_qops = {
+ 	.queue_setup            = bcap_queue_setup,
+-	.buf_init               = bcap_buffer_init,
+ 	.buf_prepare            = bcap_buffer_prepare,
+ 	.buf_cleanup            = bcap_buffer_cleanup,
+ 	.buf_queue              = bcap_buffer_queue,
 -- 
 2.1.0
 
