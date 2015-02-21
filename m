@@ -1,54 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38060 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752234AbbBXWDu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2015 17:03:50 -0500
-Date: Tue, 24 Feb 2015 19:03:46 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: au0828 replace printk KERN_DEBUG with pr_debug
-Message-ID: <20150224190346.4cf0b439@recife.lan>
-In-Reply-To: <1424804014-7743-1-git-send-email-shuahkh@osg.samsung.com>
-References: <1424804014-7743-1-git-send-email-shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:59489 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752470AbbBUSkz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Feb 2015 13:40:55 -0500
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 15/15] media: blackfin: bfin_capture: set v4l2 buffer sequence
+Date: Sat, 21 Feb 2015 18:40:01 +0000
+Message-Id: <1424544001-19045-16-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 24 Feb 2015 11:53:34 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-> Replace printk KERN_DEBUG with pr_debug in dprintk macro
-> defined in au0828.h
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/usb/au0828/au0828.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-> index eb15187..e3e90ea 100644
-> --- a/drivers/media/usb/au0828/au0828.h
-> +++ b/drivers/media/usb/au0828/au0828.h
-> @@ -336,7 +336,7 @@ extern struct vb2_ops au0828_vbi_qops;
->  
->  #define dprintk(level, fmt, arg...)\
->  	do { if (au0828_debug & level)\
-> -		printk(KERN_DEBUG pr_fmt(fmt), ## arg);\
-> +		pr_debug(pr_fmt(fmt), ## arg);\
+this patch adds support to set the v4l2 buffer sequence.
 
-NACK.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-This is the worse of two words, as it would require both to enable
-each debug line via dynamic printk setting and to enable au0828_debug.
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 1fc4dbb1..46a8cd3 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -103,6 +103,8 @@ struct bcap_device {
+ 	struct completion comp;
+ 	/* prepare to stop */
+ 	bool stop;
++	/* vb2 buffer sequence counter */
++	unsigned sequence;
+ };
+ 
+ static const struct bcap_format bcap_formats[] = {
+@@ -329,6 +331,8 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		goto err;
+ 	}
+ 
++	bcap_dev->sequence = 0;
++
+ 	reinit_completion(&bcap_dev->comp);
+ 	bcap_dev->stop = false;
+ 
+@@ -407,6 +411,7 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
+ 			vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
+ 			ppi->err = false;
+ 		} else {
++			vb->v4l2_buf.sequence = bcap_dev->sequence++;
+ 			vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+ 		}
+ 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
+-- 
+2.1.0
 
-Regards,
-Mauro
-
-
->  	} while (0)
->  
->  /* au0828-input.c */
