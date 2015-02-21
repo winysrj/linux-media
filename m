@@ -1,85 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:54773 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754557AbbBZQA7 (ORCPT
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:38784 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752400AbbBUSks (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 11:00:59 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NKD000GKZ5MM400@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Feb 2015 01:00:58 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [v4l-utils PATCH/RFC v5 11/14] mediactl: libv4l2subdev: add
- get_pipeline_entity_by_cid function
-Date: Thu, 26 Feb 2015 16:59:21 +0100
-Message-id: <1424966364-3647-12-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
-References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
+	Sat, 21 Feb 2015 13:40:48 -0500
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	adi-buildroot-devel@lists.sourceforge.net
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 12/15] media: blackfin: bfin_capture: add support for vidioc_create_bufs
+Date: Sat, 21 Feb 2015 18:39:58 +0000
+Message-Id: <1424544001-19045-13-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a function for obtaining the v4l2 sub-device for which
-the v4l2 control related ioctl is predestined.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+this patch adds support for vidioc_create_bufs.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- utils/media-ctl/libv4l2subdev.c |   14 ++++++++++++++
- utils/media-ctl/v4l2subdev.h    |   15 +++++++++++++++
- 2 files changed, 29 insertions(+)
+ drivers/media/platform/blackfin/bfin_capture.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index cc3df1e..379fe64 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -946,3 +946,17 @@ bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
- 
- 	return false;
- }
-+
-+struct media_entity *v4l2_subdev_get_pipeline_entity_by_cid(struct media_device *media,
-+						int cid)
-+{
-+	struct media_entity *entity = media->pipeline;
-+
-+	while (entity) {
-+		if (v4l2_subdev_has_v4l2_control_redir(media, entity, cid))
-+			return entity;
-+		entity = entity->next;
-+	}
-+
-+	return NULL;
-+}
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 2b48fb5..0f1deca 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -353,4 +353,19 @@ int v4l2_subdev_format_compare(struct v4l2_mbus_framefmt *fmt1,
- bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
- 	struct media_entity *entity, int ctrl_id);
- 
-+/**
-+ * @brief Get the first pipeline entity supporting the control
-+ * @param media - media device.
-+ * @param cid - v4l2 control identifier.
-+ *
-+ * Get the first entity in the media device pipeline,
-+ * for which v4l2_control with cid is to be redirected
-+ *
-+ * @return associated entity if defined, or NULL if the
-+ *	   control redirection wasn't defined for any entity
-+ *	   in the pipeline
-+ */
-+struct media_entity *v4l2_subdev_get_pipeline_entity_by_cid(
-+	struct media_device *media, int cid);
-+
- #endif
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index fde8942..b3f5e63 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -755,6 +755,7 @@ static const struct v4l2_ioctl_ops bcap_ioctl_ops = {
+ 	.vidioc_query_dv_timings = bcap_query_dv_timings,
+ 	.vidioc_enum_dv_timings  = bcap_enum_dv_timings,
+ 	.vidioc_reqbufs          = vb2_ioctl_reqbufs,
++	.vidioc_create_bufs      = vb2_ioctl_create_bufs,
+ 	.vidioc_querybuf         = vb2_ioctl_querybuf,
+ 	.vidioc_qbuf             = vb2_ioctl_qbuf,
+ 	.vidioc_dqbuf            = vb2_ioctl_dqbuf,
 -- 
-1.7.9.5
+2.1.0
 
