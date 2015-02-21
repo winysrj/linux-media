@@ -1,53 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56741 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752068AbbBMKQQ (ORCPT
+Received: from mail-ig0-f174.google.com ([209.85.213.174]:46145 "EHLO
+	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751671AbbBUUMj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 05:16:16 -0500
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 5BAE360093
-	for <linux-media@vger.kernel.org>; Fri, 13 Feb 2015 12:16:12 +0200 (EET)
-Date: Fri, 13 Feb 2015 12:16:11 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT FIXES FOR v3.20] Fix USERPTR buffers for vb2 dma-contig mem type
-Message-ID: <20150213101611.GJ32575@valkosipuli.retiisi.org.uk>
+	Sat, 21 Feb 2015 15:12:39 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <CAO_48GGT6C8-7gnKMcQ+rAQfvkEmyNzUmJAB=uJUJrFZSNo5sg@mail.gmail.com>
+References: <CAO_48GGT6C8-7gnKMcQ+rAQfvkEmyNzUmJAB=uJUJrFZSNo5sg@mail.gmail.com>
+Date: Sat, 21 Feb 2015 12:12:38 -0800
+Message-ID: <CA+55aFxAcq9a+Q6evyPXUf_BOkSUW6oajaz-g+DCDpaaE2wc4w@mail.gmail.com>
+Subject: Re: [GIT PULL]: few dma-buf updates for 3.20-rc1
+From: Linus Torvalds <torvalds@linux-foundation.org>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Tom Gall <tom.gall@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Fri, Feb 20, 2015 at 8:27 AM, Sumit Semwal <sumit.semwal@linaro.org> wrote:
+>
+> Could you please pull a few dma-buf changes for 3.20-rc1? Nothing
+> fancy, minor cleanups.
 
-This single patch fixes setting the write parameter to 1 for
-get_user_pages() on writable buffers. Without this using USERPTR buffers
-with the dma-contig mem type will corrupt system memory.
+No.
 
-This is directly applicable to fixes and master branches and should be
-pulled into both.
+I pulled, and immediately unpulled again.
 
-The following changes since commit 4bad5d2d25099a42e146d7b18d2b98950ed287f5:
+This is complete shit, and the compiler even tells you so:
 
-  [media] dvb_net: Convert local hex dump to print_hex_dump_debug (2015-02-03 18:24:44 -0200)
+    drivers/staging/android/ion/ion.c: In function ‘ion_share_dma_buf’:
+    drivers/staging/android/ion/ion.c:1112:24: warning: ‘buffer’ is
+used uninitialized in this function [-Wuninitialized]
+     exp_info.size = buffer->size;
+                            ^
 
-are available in the git repository at:
+Introduced by "dma-buf: cleanup dma_buf_export() to make it easily extensible".
 
-  ssh://linuxtv.org/git/sailus/media_tree.git vb2-fix
+I'm not taking "cleanups" like this.  And I certainly don't appreciate
+being sent completely bogus shit pull requests at the end of the merge
+cycle.
 
-for you to fetch changes up to 5a433fbc3ead7d65143bf039eb77512d0558e2e7:
-
-  vb2: Fix dma_dir setting for dma-contig mem type (2015-02-13 12:14:31 +0200)
-
-----------------------------------------------------------------
-Sakari Ailus (1):
-      vb2: Fix dma_dir setting for dma-contig mem type
-
- drivers/media/v4l2-core/videobuf2-dma-contig.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+                           Linus
