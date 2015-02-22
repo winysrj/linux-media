@@ -1,55 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:59721 "EHLO mout.web.de"
+Received: from mail.kapsi.fi ([217.30.184.167]:36550 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754233AbbBBMoY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 07:44:24 -0500
-Message-ID: <54CF711B.5030507@users.sourceforge.net>
-Date: Mon, 02 Feb 2015 13:44:11 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
+	id S1752072AbbBVV3d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2015 16:29:33 -0500
+Message-ID: <54EA4A3B.9060000@iki.fi>
+Date: Sun, 22 Feb 2015 23:29:31 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [media] staging: bcm2048: Delete an unnecessary check before the
- function call "video_unregister_device"
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
+To: Benjamin Larsson <benjamin@southpole.se>,
+	Gilles Risch <gilles.risch@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+CC: Olli Salonen <olli.salonen@iki.fi>
+Subject: Re: Linux TV support Elgato EyeTV hybrid
+References: <CALnjqVkteEsFGQXRdh3exzGrqdC=Qw4guSGRT_pCF50WjGqy1g@mail.gmail.com> <CAAZRmGwmNhczjXNXdKkotS0YZ8Tc+kKb4b+SyNN_8KVj2H8xuQ@mail.gmail.com> <54E9DDFE.4010507@gmail.com> <54EA3633.3030805@southpole.se>
+In-Reply-To: <54EA3633.3030805@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 2 Feb 2015 13:20:23 +0100
+On 02/22/2015 10:04 PM, Benjamin Larsson wrote:
+> On 02/22/2015 02:47 PM, Gilles Risch wrote:
+>> Hi,
+>>
+>> most of the used components are identified:
+>> - USB Controller: Empia EM2884
+>> - Stereo A/V Decoder: Micronas AVF 49x0B
+>> - Hybrid Channel Decoder: Micronas DRX-K DRX3926K:A3 0.9.0
+>> The only ambiguity is the tuner, but I think it could be a Xceive XC5000
+>
+> This sounds like the Hauppauge WinTV HVR-930C:
+>
+> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-930C
 
-The video_unregister_device() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
+It is pretty similar than 930C but not same. Compare pictures from my 
+blog and those on LinuxTV wiki. PCB is different.
 
-This issue was detected by using the Coccinelle software.
+http://www.linuxtv.org/wiki/index.php/Elgato_EyeTV_hybrid
+http://blog.palosaari.fi/2013/06/naked-hardware-10-hauppauge-wintv-hvr.html
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+>
+>> because the windows driver comprises the xc5000 firmware and it is 100%
+>> identical:
+>>      $ mkdir extract-xc5000-fw
+>>      $ cd extract-xc5000-fw
+>>      $ wget
+>> http://linuxtv.org/downloads/firmware/dvb-fe-xc5000-1.6.114.fw
+>>      $ wget
+>> http://elgatoweb.s3.amazonaws.com/Documents/Support/EyeTV_Hybrid/EyeTV_Hybrid_2008_509081301_W8.exe
+>>
+>>
+>>      $ 7z -y e EyeTV_Hybrid_2008_509081301_W8.exe
+>>      $ dd if=emBDA.sys of=dvb-fe-xc5000-test.fw bs=1 skip=518800
+>> count=12401 >/dev/null 2>&1
+>>      $ md5sum dvb-fe-xc5000-1.6.114.fw dvb-fe-xc5000-test.fw
+>>      b1ac8f759020523ebaaeff3fdf4789ed  dvb-fe-xc5000-1.6.114.fw
+>>      b1ac8f759020523ebaaeff3fdf4789ed  dvb-fe-xc5000-test.fw
+>>
+>> The Elgato_EyeTV_Hybrid.inf file contains a comment with "TerraTec H5",
+>> which components are assembled on that USB stick?
+>
+> The TerraTec H5 has a TDA18271 tuner.
+>
+>>
+>>
+>> Regards,
+>> Gilles
+>
+>
+> So most likely the Elgato EyeTV hybrid is one of these combinations. And
+> it should quite feasible to add support for someone who knows the Empia
+> EM2884.
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 60a57b2..f308078 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -2684,9 +2684,7 @@ static int __exit bcm2048_i2c_driver_remove(struct i2c_client *client)
- 		vd = bdev->videodev;
- 
- 		bcm2048_sysfs_unregister_properties(bdev, ARRAY_SIZE(attrs));
--
--		if (vd)
--			video_unregister_device(vd);
-+		video_unregister_device(vd);
- 
- 		if (bdev->power_state)
- 			bcm2048_set_power_state(bdev, BCM2048_POWER_OFF);
+That device could be supported just making proper board profile to 
+em28xx driver. Rather trivial stuff to one who has any experience. Just 
+one hour work or so.
+
+regards
+Antti
+
 -- 
-2.2.2
-
+http://palosaari.fi/
