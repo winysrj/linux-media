@@ -1,55 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42787 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752291AbbBWPUY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 10:20:24 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 10/12] [media] coda: fail to start streaming if userspace set invalid formats
-Date: Mon, 23 Feb 2015 16:20:11 +0100
-Message-Id: <1424704813-20792-11-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
-References: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:42227 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752069AbbBVWLV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2015 17:11:21 -0500
+Message-ID: <54EA5405.1080906@iki.fi>
+Date: Mon, 23 Feb 2015 00:11:17 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Gert-Jan van der Stroom <gjstroom@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Mygica T230 DVB-T/T2/C Ubuntu 14.04 (kernel 3.13.0-45) using
+ media_build
+References: <002401d04ea1$e5cf1780$b16d4680$@gmail.com>	<54EA4BB8.2080106@iki.fi> <20150222185503.41cbcb1a@recife.lan>
+In-Reply-To: <20150222185503.41cbcb1a@recife.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+On 02/22/2015 11:55 PM, Mauro Carvalho Chehab wrote:
+> Em Sun, 22 Feb 2015 23:35:52 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> Mauro,
+>> could you fix your media controller stuff ASAP as I think almost all DVB
+>> devices are currently broken. I have got multiple bug reports....
+>
+> That looks weird... I think the patch adding media controller support
+> for the dvb-usb was not merged yet.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index b42ccfc..4441179 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1282,12 +1282,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 	if (!(ctx->streamon_out & ctx->streamon_cap))
- 		return 0;
- 
-+	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-+	if ((q_data_src->width != q_data_dst->width &&
-+	     round_up(q_data_src->width, 16) != q_data_dst->width) ||
-+	    (q_data_src->height != q_data_dst->height &&
-+	     round_up(q_data_src->height, 16) != q_data_dst->height)) {
-+		v4l2_err(v4l2_dev, "can't convert %dx%d to %dx%d\n",
-+			 q_data_src->width, q_data_src->height,
-+			 q_data_dst->width, q_data_dst->height);
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
- 	/* Allow BIT decoder device_run with no new buffers queued */
- 	if (ctx->inst_type == CODA_INST_DECODER && ctx->use_bit)
- 		v4l2_m2m_set_src_buffered(ctx->fh.m2m_ctx, true);
- 
- 	ctx->gopcounter = ctx->params.gop_size - 1;
--	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
- 
- 	ctx->codec = coda_find_codec(ctx->dev, q_data_src->fourcc,
- 				     q_data_dst->fourcc);
+hmm, OK. But I have got at least one such report for rtl28xxu driver on 
+my mail and there is another report on my blog, which is likely same, 
+though there was no log, only report saying it crash when latest media 
+build used.
+
+
+>> On 02/22/2015 03:17 PM, Gert-Jan van der Stroom wrote:
+>>> Can someone help me to get a Mygica T230 DVB-T/T2/C working on Ubuntu 14.04
+>>> (kernel 3.13.0-45) using media_build.
+>>> I succeed doing a build of the media_build, the drivers also load when I
+>>> attach the Mygica, but when I try to use it (tvheadend) it crashes:
+>>>
+>>> [   61.592114] dvb-usb: found a 'Mygica T230 DVB-T/T2/C' in warm state.
+>>> [   61.828138] dvb-usb: will pass the complete MPEG2 transport stream to the
+>>> software demuxer.
+>>> [   61.828279] DVB: registering new adapter (Mygica T230 DVB-T/T2/C)
+>>> [   61.847369] i2c i2c-7: Added multiplexed i2c bus 8
+>>> [   61.847372] si2168 7-0064: Silicon Labs Si2168 successfully attached
+>>> [   61.857024] si2157 8-0060: Silicon Labs Si2147/2148/2157/2158
+>>> successfully attached
+>>> [   61.857034] usb 1-5: DVB: registering adapter 0 frontend 0 (Silicon Labs
+>>> Si2168)...
+>>> [   61.857488] input: IR-receiver inside an USB DVB receiver as
+>>> /devices/pci0000:00/0000:00:1a.7/usb1/1-5/input/input11
+>>> [   61.857541] dvb-usb: schedule remote query interval to 100 msecs.
+>>> [   61.857709] dvb-usb: Mygica T230 DVB-T/T2/C successfully initialized and
+>>> connected.
+>>> [   61.857773] usbcore: registered new interface driver dvb_usb_cxusb
+>>>
+>>> Tvheadend start:
+>>> [  314.356162] BUG: unable to handle kernel NULL pointer dereference at
+>>> 0000000000000010
+>>> [  314.356202] IP: [<ffffffffa02ef74c>]
+>>> media_entity_pipeline_start+0x1c/0x390 [media]
+>>
+>>
+>> ^^^^^^^^^^^^ problem is that I think
+>>
+>>
+>>> [  314.356236] PGD 76c6c067 PUD 766b0067 PMD 0
+>>> [  314.356260] Oops: 0000 [#1] SMP
+>>> [  314.356279] Modules linked in: si2157(OX) si2168(OX) i2c_mux
+>>> dvb_usb_cxusb(OX) dib0070(OX) dvb_usb(OX) dvb_core(OX) rc_core(OX) media(OX)
+>>> snd_hda_codec_analog gpio_ich hp_wmi sparse_keymap coretemp kvm_intel kvm
+>>> serio_raw snd_hda_intel i915 lpc_ich snd_hda_codec shpchp drm_kms_helper
+>>> snd_hwdep snd_pcm snd_page_alloc snd_timer pl2303 video wmi tpm_infineon drm
+>>> mac_hid mei_me snd soundcore i2c_algo_bit usbserial mei lp parport psmouse
+>>> e1000e floppy ptp pps_core pata_acpi
+>>> [  314.356541] CPU: 1 PID: 1053 Comm: kdvb-ad-0-fe-0 Tainted: G        W  OX
+>>> 3.13.0-45-generic #74-Ubuntu
+>
+> Gert-Jan,
+>
+> Could you please post the stack dump? It would help to know what's calling
+> media_entity_pipeline_start.
+>
+> Regards,
+> Mauro
+>
+>>>
+>>> What is wrong, or do I miss something ?
+>>> I also added the firmware described at:
+>>> http://www.linuxtv.org/wiki/index.php/Geniatech_T230
+>>
+>> regards
+>> Antti
+>>
+
 -- 
-2.1.4
-
+http://palosaari.fi/
