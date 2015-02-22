@@ -1,50 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44878 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753969AbbBZV3k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 16:29:40 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Jurgen Kramer <gtmkramer@xs4all.nl>, <stable@vger.kernel.org>
-Subject: [PATCH] Si2168: increase timeout to fix firmware loading
-Date: Thu, 26 Feb 2015 23:28:53 +0200
-Message-Id: <1424986133-5105-1-git-send-email-crope@iki.fi>
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:54095 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752027AbbBVUEM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2015 15:04:12 -0500
+Received: by mail-wg0-f41.google.com with SMTP id b13so22136082wgh.0
+        for <linux-media@vger.kernel.org>; Sun, 22 Feb 2015 12:04:11 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1423827006-32878-2-git-send-email-hverkuil@xs4all.nl>
+References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl> <1423827006-32878-2-git-send-email-hverkuil@xs4all.nl>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Sun, 22 Feb 2015 20:03:41 +0000
+Message-ID: <CA+V-a8u1n8emCNt3c9_52Q0U1WUjQLpOTBS+301ubYOrFO5qXQ@mail.gmail.com>
+Subject: Re: [PATCH 1/7] v4l2-subdev: replace v4l2_subdev_fh by v4l2_subdev_pad_config
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	laurent pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jurgen Kramer <gtmkramer@xs4all.nl>
+Hi Hans,
 
-Increase si2168 cmd execute timeout to prevent firmware load failures. Tests
-shows it takes up to 52ms to load the 'dvb-demod-si2168-a30-01.fw' firmware.
-Increase timeout to a safe value of 70ms.
+Thanks for the patch.
 
-Cc: <stable@vger.kernel.org> # v3.16+
-Signed-off-by: Jurgen Kramer <gtmkramer@xs4all.nl>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
----
-Patch for stable 3.16+
+On Fri, Feb 13, 2015 at 11:30 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> If a subdevice pad op is called from a bridge driver, then there is
+> no v4l2_subdev_fh struct that can be passed to the subdevice. This
+> made it hard to use such subdevs from a bridge driver.
+>
+> This patch replaces the v4l2_subdev_fh pointer by a v4l2_subdev_pad_config
+> pointer in the pad ops. This allows bridge drivers to use the various
+> try_ pad ops by creating a v4l2_subdev_pad_config struct and passing it
+> along to the pad op.
+>
+> The v4l2_subdev_get_try_* macros had to be changed because of this, so
+> I also took the opportunity to use the full name of the v4l2_subdev_get_try_*
+> functions in the __V4L2_SUBDEV_MK_GET_TRY macro arguments: if you now do
+> 'git grep v4l2_subdev_get_try_format' you will actually find the header
+> where it is defined.
+>
+> One remark regarding the drivers/staging/media/davinci_vpfe patches: the
+> *_init_formats() functions assumed that fh could be NULL. However, that's
+> not true for this driver, it's always set. This is almost certainly a copy
+> and paste from the omap3isp driver. I've updated the code to reflect the
+> fact that fh is never NULL.
+>
+Yes omap3isp was the only reference at that time :)
 
-That patch is already applied to master as commit 551c33e729f654ecfaed00ad399f5d2a631b72cb
-There was some mistake and Cc stable tag I added to patchwork [1] was lost.
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
 
-[1] https://patchwork.linuxtv.org/patch/27382/
----
- drivers/media/dvb-frontends/si2168.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The series has few checkpatch warnings, apart from that,
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 2e3cdcf..fbc1fa8 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -39,7 +39,7 @@ static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
- 
- 	if (cmd->rlen) {
- 		/* wait cmd execution terminate */
--		#define TIMEOUT 50
-+		#define TIMEOUT 70
- 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
- 		while (!time_after(jiffies, timeout)) {
- 			ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
--- 
-http://palosaari.fi/
+For patches 1-7
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
+Regards,
+--Prabhakar Lad
