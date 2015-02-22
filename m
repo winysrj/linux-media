@@ -1,85 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33745 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:48146 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752143AbbBRPaN (ORCPT
+	with ESMTP id S1752056AbbBVQLy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 10:30:13 -0500
+	Sun, 22 Feb 2015 11:11:54 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Joe Perches <joe@perches.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 5/7] [media] cx25840: better document the media controller TODO
-Date: Wed, 18 Feb 2015 13:29:59 -0200
-Message-Id: <b42dd11d90c964db544f176c1e0d1637bb79b474.1424273378.git.mchehab@osg.samsung.com>
-In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 10/10] [media] siano: register media controller earlier
+Date: Sun, 22 Feb 2015 13:11:41 -0300
+Message-Id: <1424621501-17466-11-git-send-email-mchehab@osg.samsung.com>
+In-Reply-To: <1424621501-17466-1-git-send-email-mchehab@osg.samsung.com>
+References: <1424621501-17466-1-git-send-email-mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Analog video inputs are the tuner, plus composite, svideo, etc,
- e. g. the input pat should actually be like:
+We need to initialize the media controller earlier, as the core
+will call the smsdvb hotplug during register time. Ok, this is
+an async operation, so, when the module is not loaded, the media
+controller works.
 
-                ___________
-TUNER --------> |         |
-                |         |
-SVIDEO .......> | cx25840 |
-                |         |
-COMPOSITE1 ...> |_________|
-
-(in the above, dashes represent the enabled link, and periods
-represent the disabled ones)
-
-In other words, if we want to properly represent the pipeline,
-it should be possible to see via the media controller if the tuner
-is being used as an image source, or if the source is something else.
-
-I didn't map those other inputs here yet, due to a few things:
-- The extra inputs would require subdevs that won't be controlled
-- I was in doubt about the best way for doing that
-- That would likely require some extra setup for cx25840 caller
-  drivers, in order to represent what of the possible internal
-  inputs are actually used on each specific board
-
-Actually, at least for now, I was unable to see much benefit
-on adding such map now, so let's just document it, as this could
-be added later on, as needed.
+However, if the module is already loaded, nothing will be
+registered at the media controller, as it will load too late.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/common/siano/smscoreapi.c |  7 ++++++-
+ drivers/media/common/siano/smscoreapi.h |  3 ++-
+ drivers/media/usb/siano/smsusb.c        | 17 +++++++++++------
+ 3 files changed, 19 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-index bdb5bb6b58da..cb4e03de9b75 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.c
-+++ b/drivers/media/i2c/cx25840/cx25840-core.c
-@@ -5182,7 +5182,20 @@ static int cx25840_probe(struct i2c_client *client,
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &cx25840_ops);
- #if defined(CONFIG_MEDIA_CONTROLLER)
--	/* TODO: need to represent analog inputs too */
-+	/*
-+	 * TODO: add media controller support for analog video inputs like
-+	 * composite, svideo, etc.
-+	 * A real input pad for this analog demod would be like:
-+	 *                 ___________
-+	 * TUNER --------> |         |
-+	 *		   |         |
-+	 * SVIDEO .......> | cx25840 |
-+	 *		   |         |
-+	 * COMPOSITE1 ...> |_________|
-+	 *
-+	 * However, at least for now, there's no much gain on modelling
-+	 * those extra inputs. So, let's add it only when needed.
-+	 */
- 	state->pads[0].flags = MEDIA_PAD_FL_SINK;	/* Tuner or input */
- 	state->pads[1].flags = MEDIA_PAD_FL_SOURCE;	/* Video */
- 	state->pads[2].flags = MEDIA_PAD_FL_SOURCE;	/* VBI */
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index cb7515ba2193..2a8d9a36d6f0 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -653,7 +653,8 @@ smscore_buffer_t *smscore_createbuffer(u8 *buffer, void *common_buffer,
+  * @return 0 on success, <0 on error.
+  */
+ int smscore_register_device(struct smsdevice_params_t *params,
+-			    struct smscore_device_t **coredev)
++			    struct smscore_device_t **coredev,
++			    void *mdev)
+ {
+ 	struct smscore_device_t *dev;
+ 	u8 *buffer;
+@@ -662,6 +663,10 @@ int smscore_register_device(struct smsdevice_params_t *params,
+ 	if (!dev)
+ 		return -ENOMEM;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++	dev->media_dev = mdev;
++#endif
++
+ 	/* init list entry so it could be safe in smscore_unregister_device */
+ 	INIT_LIST_HEAD(&dev->entry);
+ 
+diff --git a/drivers/media/common/siano/smscoreapi.h b/drivers/media/common/siano/smscoreapi.h
+index 6ff8f64a3794..eb8bd689b936 100644
+--- a/drivers/media/common/siano/smscoreapi.h
++++ b/drivers/media/common/siano/smscoreapi.h
+@@ -1123,7 +1123,8 @@ extern int smscore_register_hotplug(hotplug_t hotplug);
+ extern void smscore_unregister_hotplug(hotplug_t hotplug);
+ 
+ extern int smscore_register_device(struct smsdevice_params_t *params,
+-				   struct smscore_device_t **coredev);
++				   struct smscore_device_t **coredev,
++				   void *mdev);
+ extern void smscore_unregister_device(struct smscore_device_t *coredev);
+ 
+ extern int smscore_start_device(struct smscore_device_t *coredev);
+diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+index 7d57b2677130..37fc1ef84575 100644
+--- a/drivers/media/usb/siano/smsusb.c
++++ b/drivers/media/usb/siano/smsusb.c
+@@ -340,12 +340,12 @@ static void smsusb_term_device(struct usb_interface *intf)
+ 	usb_set_intfdata(intf, NULL);
+ }
+ 
+-static void siano_media_device_register(struct smsusb_device_t *dev)
++static void *siano_media_device_register(struct smsusb_device_t *dev,
++					int board_id)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+ 	struct media_device *mdev;
+ 	struct usb_device *udev = dev->udev;
+-	int board_id = smscore_get_board_id(dev->coredev);
+ 	struct sms_board *board = sms_get_board(board_id);
+ 	int ret;
+ 
+@@ -369,10 +369,11 @@ static void siano_media_device_register(struct smsusb_device_t *dev)
+ 		return;
+ 	}
+ 
+-	dev->coredev->media_dev = mdev;
+-
+ 	pr_info("media controller created\n");
+ 
++	return mdev;
++#else
++	return NULL;
+ #endif
+ }
+ 
+@@ -380,6 +381,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+ {
+ 	struct smsdevice_params_t params;
+ 	struct smsusb_device_t *dev;
++	void *mdev;
+ 	int i, rc;
+ 
+ 	/* create device object */
+@@ -433,11 +435,15 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+ 	params.context = dev;
+ 	usb_make_path(dev->udev, params.devpath, sizeof(params.devpath));
+ 
++	mdev = siano_media_device_register(dev, board_id);
++
+ 	/* register in smscore */
+-	rc = smscore_register_device(&params, &dev->coredev);
++	rc = smscore_register_device(&params, &dev->coredev, mdev);
+ 	if (rc < 0) {
+ 		pr_err("smscore_register_device(...) failed, rc %d\n", rc);
+ 		smsusb_term_device(intf);
++		media_device_unregister(mdev);
++		kfree(mdev);
+ 		return rc;
+ 	}
+ 
+@@ -469,7 +475,6 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+ 	}
+ 
+ 	pr_debug("device 0x%p created\n", dev);
+-	siano_media_device_register(dev);
+ 
+ 	return rc;
+ }
 -- 
 2.1.0
 
