@@ -1,95 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:45298 "EHLO
-	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751526AbbBZFSo convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 00:18:44 -0500
-From: Sudip JAIN <sudip.jain@st.com>
-To: Jeremiah Mahler <jmmahler@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Date: Thu, 26 Feb 2015 13:18:31 +0800
-Subject: RE: 0001-media-vb2-Fill-vb2_buffer-with-bytesused-from-user.patch;
- kernel version 3.10.69
-Message-ID: <AE3729EDFAD6D548827A31E3191F1E5B0138E8DF@EAPEX1MAIL1.st.com>
-References: <AE3729EDFAD6D548827A31E3191F1E5B0138E8D7@EAPEX1MAIL1.st.com>,<20150225182308.GB27977@hudson.localdomain>
-In-Reply-To: <20150225182308.GB27977@hudson.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from bombadil.infradead.org ([198.137.202.9]:48108 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965AbbBVQLw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2015 11:11:52 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 09/10] [media] siano: print a message if DVB register succeeds
+Date: Sun, 22 Feb 2015 13:11:40 -0300
+Message-Id: <1424621501-17466-10-git-send-email-mchehab@osg.samsung.com>
+In-Reply-To: <1424621501-17466-1-git-send-email-mchehab@osg.samsung.com>
+References: <1424621501-17466-1-git-send-email-mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Jeremiah,
+Right now, this is a debug message, misplaced. Promote it
+to an info message, as it helps to discover if something
+bad happened during device init.
 
-Please find the patch  "inline"
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/common/siano/smsdvb-main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-commit 3390900680e5182998916c8fa231bc79cd84046b
-Author: Sudip Jain <sudip.jain@st.com>
-Date:   Thu Feb 26 10:40:34 2015 +0530
+diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+index e6c41a4941f4..b121f4f262ec 100644
+--- a/drivers/media/common/siano/smsdvb-main.c
++++ b/drivers/media/common/siano/smsdvb-main.c
+@@ -1182,7 +1182,6 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
+ 	client->event_unc_state = -1;
+ 	sms_board_dvb3_event(client, DVB3_EVENT_HOTPLUG);
+ 
+-	pr_debug("success\n");
+ 	sms_board_setup(coredev);
+ 
+ 	if (smsdvb_debugfs_create(client) < 0)
+@@ -1190,6 +1189,7 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
+ 
+ 	dvb_create_media_graph(coredev->media_dev);
+ 
++	pr_info("DVB interface registered.\n");
+ 	return 0;
+ 
+ client_error:
+-- 
+2.1.0
 
-    media: vb2: Fill vb2_buffer with bytesused from user
-    
-    In vb2_qbuf for dmabuf memory type, userside bytesused is not read to
-    vb2 buffer. This leads garbage value being copied from __qbuf_dmabuf()
-    back to user in __fill_v4l2_buffer().
-    
-    As a default case, the vb2 framework must trust the userside value,
-    and also allow driver's buffer prepare function prefer modify/update
-    or not to.
-    
-    Applied on kernel version 3.10.69
-    
-    Change-Id: Ieda389403898935f59c2e2994106f3e5238cfefd
-    Signed-off-by: Sudip Jain <sudip.jain@st.com>
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 5e47ba4..54fe9c9 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -919,6 +919,8 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
-                                        b->m.planes[plane].m.fd;
-                                v4l2_planes[plane].length =
-                                        b->m.planes[plane].length;
-+                               v4l2_planes[plane].bytesused =
-+                                       b->m.planes[plane].bytesused;
-                                v4l2_planes[plane].data_offset =
-                                        b->m.planes[plane].data_offset;
-                        }
-@@ -943,6 +945,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
-                if (b->memory == V4L2_MEMORY_DMABUF) {
-                        v4l2_planes[0].m.fd = b->m.fd;
-                        v4l2_planes[0].length = b->length;
-+                       v4l2_planes[0].bytesused = b->bytesused;
-                        v4l2_planes[0].data_offset = 0;
-                }
-
-Thanks,
-Sudip
-________________________________________
-From: Jeremiah Mahler [jmmahler@gmail.com]
-Sent: Wednesday, February 25, 2015 11:53 PM
-To: Sudip JAIN
-Cc: linux-media@vger.kernel.org; linux-kernel@vger.kernel.org
-Subject: Re: 0001-media-vb2-Fill-vb2_buffer-with-bytesused-from-user.patch
-
-Sudip,
-
-On Wed, Feb 25, 2015 at 03:29:22PM +0800, Sudip JAIN wrote:
-> Dear Maintainer,
->
-> PFA attached patch that prevents user from being returned garbage bytesused value from vb2 framework.
->
-> Regards,
-> Sudip Jain
->
-
-Patches should never be submitted as attachments, they should be inline.
-
-See Documentation/SubmittingPatches for more info.
-
-[...]
-
---
-- Jeremiah Mahler
