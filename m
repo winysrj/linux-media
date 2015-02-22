@@ -1,111 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f180.google.com ([209.85.220.180]:44803 "EHLO
-	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753053AbbBXRAj (ORCPT
+Received: from smtpq5.tb.mail.iss.as9143.net ([212.54.42.168]:36641 "EHLO
+	smtpq5.tb.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751890AbbBVP2f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2015 12:00:39 -0500
-Received: by mail-vc0-f180.google.com with SMTP id im6so10474680vcb.11
-        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2015 09:00:39 -0800 (PST)
-Received: from mail-vc0-f175.google.com (mail-vc0-f175.google.com. [209.85.220.175])
-        by mx.google.com with ESMTPSA id lp17sm4740596vdb.19.2015.02.24.09.00.37
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 24 Feb 2015 09:00:38 -0800 (PST)
-Received: by mail-vc0-f175.google.com with SMTP id hq12so10403071vcb.6
-        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2015 09:00:37 -0800 (PST)
+	Sun, 22 Feb 2015 10:28:35 -0500
+Received: from [212.54.42.136] (helo=smtp5.tb.mail.iss.as9143.net)
+	by smtpq5.tb.mail.iss.as9143.net with esmtp (Exim 4.82)
+	(envelope-from <rudy@grumpydevil.homelinux.org>)
+	id 1YPYSP-0003S0-E8
+	for linux-media@vger.kernel.org; Sun, 22 Feb 2015 16:28:33 +0100
+Received: from 5ed66c68.cm-7-7b.dynamic.ziggo.nl ([94.214.108.104] helo=imail.office.romunt.nl)
+	by smtp5.tb.mail.iss.as9143.net with esmtp (Exim 4.82)
+	(envelope-from <rudy@grumpydevil.homelinux.org>)
+	id 1YPYSP-0004zh-BJ
+	for linux-media@vger.kernel.org; Sun, 22 Feb 2015 16:28:33 +0100
+Received: from [192.168.1.15] (cenedra.office.romunt.nl [192.168.1.15])
+	by imail.office.romunt.nl (8.14.4/8.14.4/Debian-4) with ESMTP id t1MFSVgd015662
+	for <linux-media@vger.kernel.org>; Sun, 22 Feb 2015 16:28:32 +0100
+Message-ID: <54E9F59A.4070407@grumpydevil.homelinux.org>
+Date: Sun, 22 Feb 2015 16:28:26 +0100
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
 MIME-Version: 1.0
-In-Reply-To: <54EC3016.8020407@xs4all.nl>
-References: <54E547F4.6090309@chromium.org>
-	<54EC3016.8020407@xs4all.nl>
-Date: Tue, 24 Feb 2015 09:00:37 -0800
-Message-ID: <CAPUS08467gbZp3U22K0mFVEzSq0KBQrFBO_x+pcic4R53zWr5g@mail.gmail.com>
-Subject: Re: [PATCH v2] Adding NV{12,21} and Y{U,V}12 pixel formats support.
-From: Miguel Casas-Sanchez <mcasas@chromium.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: DVB Simulcrypt
+References: <54E8F8F4.1010601@grumpydevil.homelinux.org>
+In-Reply-To: <54E8F8F4.1010601@grumpydevil.homelinux.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Some more info
 
-go for it if you feel it's the best approach. Are you planning to add
-multiplanar formats? Particularly, I'm interested in YUV420M and its
-twin evil brother YVU420M.
+On 21-02-15 22:30, Rudy Zijlstra wrote:
+> Dears (Hans?)
+>
+> My setup, where the cable operator was using only irdeto, was working 
+> good. Then the cable operator merged with another, and now the 
+> networks are being merged. As a result, the encryption has moved from 
+> irdeto only to simulcyrpt with Irdeto and Nagra.
+>
+> Current status:
+> - when i put the CA card in a STB, it works
+> - when trying to record an encrypted channel from PC, it no longer works.
+Recording system has 3 tuners. All equal, all with same permissions on 
+the smartcard. On cards 0 and 2 does not work, but card 1 does work, on 
+all channels tested.
 
-I would recommend adding support for a less-common format such as
-YUV410 (or variation thereof). Since this format is so different, it
-stresses the added code in revealing ways. I was planning to support
-it as a bonus, but I noticed is not recognised in lib4vl -- neither in
-qv4l2, therefore. Just saying, it'd be cool.
+>
+> I suspect the problem is that the wrong keys are used: Nagra keys in 
+> stead of Irdeto keys.
+>
+> I do not know whether:
+> - kernel issue (is simulcrypt supported?)
+> - API issue (is all support in place to select the right key stream?)
+> - application issue (does the application allow to set the right CA?)
+>
+> If this is an application issue, could it be solved by setting the API 
+> outside the application, to direct it to the right (Irdeto in my case) 
+> encryption?
+>
+> The application i am using is MythTV.
+>
+>
+> Cheers
+>
+>
+> Rudy
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Cheers
-M
-
-On 24 February 2015 at 00:02, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> Hi Miguel,
->
-> Thanks for the patch. However, after reviewing it and testing it
-> I decided to implement my own version. Partially because several
-> features were still failing (crop/compose/scale), partially because
-> I didn't like the way the tpg was changed: too much change basically.
->
-> Yesterday I added YUV 420 support. It's still work in progress as I
-> am not happy with some of the internal changes and because changing the
-> compose height fails to work at the moment.
->
-> You can find my preliminary work here:
->
-> http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/log/?h=vivid-420
->
-> I plan to continue work on this on Friday and Monday, fixing any
-> remaining bugs, adding support for the other planar formats and
-> carefully reviewing if I handle the downsampling correctly. I also
-> want to add output support for these formats.
->
-> Regards,
->
->         Hans
->
-> On 02/19/2015 03:18 AM, Miguel Casas-Sanchez wrote:
-> >
-> > This is the second attempt at creating a patch doing
-> > that while respecting the pattern movements, crops,
-> > and other artifacts that can be added to the generated
-> > frames.
-> >
-> > Hope it addresses Hans' comments on the first patch.
-> > It should create properly moving patterns, border,
-> > square and noise. SAV/EAV are left out for the new
-> > formats, but can be pulled in if deemed interesting/
-> > necessary. New formats' descriptions are shorter.
-> > Needless to say, previous formats should work 100%
-> > the same as before.
-> >
-> > Text is, still, printed as Y only. I think the
-> > goal of the text is not pixel-value-based comparisons,
-> > but human reading. Please let me know otherwise.
-> >
-> > It needed quite some refactoring of the original
-> > tpg_fillbuffer() function:
-> > - the internal code generating the video buffer
-> >   line-by-line are factored out into a function
-> >   tpg_fill_oneline(). const added wherever it made
-> >   sense.
-> > - this new tpg_fill_oneline() is used by both
-> >   new functions tpg_fillbuffer_packed() and
-> >   tpg_fillbuffer_planar().
-> > - tpg_fillbuffer_packed() does the non-planar
-> >   formats' buffer composition, so it does, or should
-> >   do, pretty much the same as vivid did before this
-> >   patch.
-> >
-> > Tested via both guvcview and qv4l2, checking formats,
-> > patterns, pattern movements, box and frame checkboxes.
-> >
-> > Hope I managed to get the patch correctly into the mail
-> > i.e. no spurious wraparounds, no whitespaces etc :)
-> >
-> > Signed-off-by: Miguel Casas-Sanchez <mcasas@chromium.org>
->
