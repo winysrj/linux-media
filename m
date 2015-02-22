@@ -1,109 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:65039 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965720AbbBCQNF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 11:13:05 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linaro-mm-sig@lists.linaro.org,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Rob Clark <robdclark@gmail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	linux-arm-kernel@lists.infradead.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints with dma-parms
-Date: Tue, 03 Feb 2015 17:12:40 +0100
-Message-ID: <6906596.JU5vQoa1jV@wuerfel>
-In-Reply-To: <20150203155404.GV8656@n2100.arm.linux.org.uk>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org> <3783167.LiVXgA35gN@wuerfel> <20150203155404.GV8656@n2100.arm.linux.org.uk>
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:63226 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751796AbbBVNsl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2015 08:48:41 -0500
+Received: by mail-wg0-f52.google.com with SMTP id x12so21021393wgg.11
+        for <linux-media@vger.kernel.org>; Sun, 22 Feb 2015 05:48:40 -0800 (PST)
+Message-ID: <54E9DDFE.4010507@gmail.com>
+Date: Sun, 22 Feb 2015 14:47:42 +0100
+From: Gilles Risch <gilles.risch@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media <linux-media@vger.kernel.org>
+CC: Olli Salonen <olli.salonen@iki.fi>
+Subject: Re: Linux TV support Elgato EyeTV hybrid
+References: <CALnjqVkteEsFGQXRdh3exzGrqdC=Qw4guSGRT_pCF50WjGqy1g@mail.gmail.com> <CAAZRmGwmNhczjXNXdKkotS0YZ8Tc+kKb4b+SyNN_8KVj2H8xuQ@mail.gmail.com>
+In-Reply-To: <CAAZRmGwmNhczjXNXdKkotS0YZ8Tc+kKb4b+SyNN_8KVj2H8xuQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 03 February 2015 15:54:04 Russell King - ARM Linux wrote:
-> On Tue, Feb 03, 2015 at 04:31:13PM +0100, Arnd Bergmann wrote:
-> > The dma_map_* interfaces assign the virtual addresses internally,
-> > using typically either a global address space for all devices, or one
-> > address space per device.
-> 
-> We shouldn't be doing one address space per device for precisely this
-> reason.  We should be doing one address space per *bus*.  I did have
-> a nice diagram to illustrate the point in my previous email, but I
-> deleted it, I wish I hadn't... briefly:
-> 
-> Fig. 1.
->                                                  +------------------+
->                                                  |+-----+  device   |
-> CPU--L1cache--L2cache--Memory--SysMMU---<iobus>----IOMMU-->         |
->                                                  |+-----+           |
->                                                  +------------------+
-> 
-> Fig.1 represents what I'd call the "GPU" issue that we're talking about
-> in this thread.
-> 
-> Fig. 2.
-> CPU--L1cache--L2cache--Memory--SysMMU---<iobus>--IOMMU--device
-> 
-> The DMA API should be responsible (at the very least) for everything on
-> the left of "<iobus>" in and should be providing a dma_addr_t which is
-> representative of what the device (in Fig.1) as a whole sees.  That's
-> the "system" part.  
-> 
-> I believe this is the approach which is taken by x86 and similar platforms,
-> simply because they tend not to have an IOMMU on individual devices (and
-> if they did, eg, on a PCI card, it's clearly the responsibility of the
-> device driver.)
-> 
-> Whether the DMA API also handles the IOMMU in Fig.1 or 2 is questionable.
-> For fig.2, it is entirely possible that the same device could appear
-> without an IOMMU, and in that scenario, you would want the IOMMU to be
-> handled transparently.
-> 
-> However, by doing so for everything, you run into exactly the problem
-> which is being discussed here - the need to separate out the cache
-> coherency from the IOMMU aspects.  You probably also have a setup very
-> similar to fig.1 (which is certainly true of Vivante GPUs.)
-> 
-> If you have the need to separately control both, then using the DMA API
-> to encapsulate both does not make sense - at which point, the DMA API
-> should be responsible for the minimum only - in other words, everything
-> to the left of <iobus> (so including the system MMU.)  The control of
-> the device IOMMU should be the responsibility of device driver in this
-> case.
-> 
-> So, dma_map_sg() would be responsible for dealing with the CPU cache
-> coherency issues, and setting up the system MMU.  dma_sync_*() would
-> be responsible for the CPU cache coherency issues, and dma_unmap_sg()
-> would (again) deal with the CPU cache and tear down the system MMU
-> mappings.
-> 
-> Meanwhile, the device driver has ultimate control over its IOMMU, the
-> creation and destruction of mappings and context switches at the
-> appropriate times.
+Hi,
 
-I agree for the case you are describing here. From what I understood
-from Rob was that he is looking at something more like:
+most of the used components are identified:
+- USB Controller: Empia EM2884
+- Stereo A/V Decoder: Micronas AVF 49x0B
+- Hybrid Channel Decoder: Micronas DRX-K DRX3926K:A3 0.9.0
+The only ambiguity is the tuner, but I think it could be a Xceive XC5000 
+because the windows driver comprises the xc5000 firmware and it is 100% 
+identical:
+     $ mkdir extract-xc5000-fw
+     $ cd extract-xc5000-fw
+     $ wget http://linuxtv.org/downloads/firmware/dvb-fe-xc5000-1.6.114.fw
+     $ wget 
+http://elgatoweb.s3.amazonaws.com/Documents/Support/EyeTV_Hybrid/EyeTV_Hybrid_2008_509081301_W8.exe
+     $ 7z -y e EyeTV_Hybrid_2008_509081301_W8.exe
+     $ dd if=emBDA.sys of=dvb-fe-xc5000-test.fw bs=1 skip=518800 
+count=12401 >/dev/null 2>&1
+     $ md5sum dvb-fe-xc5000-1.6.114.fw dvb-fe-xc5000-test.fw
+     b1ac8f759020523ebaaeff3fdf4789ed  dvb-fe-xc5000-1.6.114.fw
+     b1ac8f759020523ebaaeff3fdf4789ed  dvb-fe-xc5000-test.fw
 
-Fig 3
-CPU--L1cache--L2cache--Memory--IOMMU---<iobus>--device
+The Elgato_EyeTV_Hybrid.inf file contains a comment with "TerraTec H5", 
+which components are assembled on that USB stick?
 
-where the IOMMU controls one or more contexts per device, and is
-shared across GPU and non-GPU devices. Here, we need to use the
-dmap-mapping interface to set up the IO page table for any device
-that is unable to address all of system RAM, and we can use it
-for purposes like isolation of the devices. There are also cases
-where using the IOMMU is not optional.
 
-So unlike the scenario you describe, the driver cannot at the
-same time control the cache (using the dma-mapping API) and
-the I/O page tables (using the iommu API or some internal
-functions).
+Regards,
+Gilles
 
-	Arnd
+On 02/21/2015 08:08 PM, Olli Salonen wrote:
+> Hi Gilles,
+>
+> Not sure if the following information will help you, but here comes.
+> The USB bridge is EM2884, supported by em28xx driver. The Micronas
+> demodulator is probably supported by drxk driver. Tuner I did not
+> recognize after a quick glimpse. That sandwich construction look like
+> something PCTV has used with some of their designs (290e and 292e for
+> example).
+>
+> In order to have a driver for your device you need to have each
+> individual component supported (USB bridge, demod and tuner). Then
+> these can be combined into a driver (typically by modifying the USB
+> bridge driver).
+>
+> Cheers,
+> -olli
+>
+> On 20 February 2015 at 18:19, Gilles Risch <gilles.risch@gmail.com> wrote:
+>> Hello,
+>>
+>> I'm owning an Elgato EyeTV hybrid USB stick that I'm using daily on my
+>> iMac, now I'd like to use it on my laptop too but I'm unable to get it
+>> running. Is this device already supported? If not, is there any way I
+>> can help? I've already opened my device and uploaded the photos to the
+>> linux TV wiki page
+>> (http://www.linuxtv.org/wiki/index.php/Elgato_EyeTV_hybrid).
+>> I'm not sure which tuner is mounted on the PCB, therefor I've made two
+>> USB traces, maybe someone could interpret them and conclude which one
+>> is used:
+>> https://www.dropbox.com/s/99b2a17ohu0zqpz/20150219-EyeTV_Hybrid_capturedTV.pcap?dl=0
+>> https://www.dropbox.com/s/q4k8zf8d3qpxznu/20150219-EyeTV_Hybrid_Pluggedin.pcap?dl=0
+>>
+>> Kind regards,
+>> Gilles
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
