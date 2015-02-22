@@ -1,125 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58400 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757187AbbBELwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Feb 2015 06:52:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] media: i2c: add support for omnivision's ov2659 sensor
-Date: Thu, 05 Feb 2015 13:53:16 +0200
-Message-ID: <3110055.vYzQi51GtK@avalon>
-In-Reply-To: <CA+V-a8uTzo3DL+rCGK2wPHtwqQTDxfzNOBXB+RVszJnThSBMqQ@mail.gmail.com>
-References: <1421365163-29394-1-git-send-email-prabhakar.csengg@gmail.com> <2517945.eGhlRo2yDj@avalon> <CA+V-a8uTzo3DL+rCGK2wPHtwqQTDxfzNOBXB+RVszJnThSBMqQ@mail.gmail.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:55459 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752315AbbBVNRi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2015 08:17:38 -0500
+Received: by mail-wg0-f44.google.com with SMTP id k14so21082938wgh.3
+        for <linux-media@vger.kernel.org>; Sun, 22 Feb 2015 05:17:37 -0800 (PST)
+Received: from i72600 ([2001:610:600:8489::10])
+        by mx.google.com with ESMTPSA id ul1sm51129465wjc.0.2015.02.22.05.17.36
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Sun, 22 Feb 2015 05:17:36 -0800 (PST)
+From: "Gert-Jan van der Stroom" <gjstroom@gmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: Mygica T230 DVB-T/T2/C Ubuntu 14.04 (kernel 3.13.0-45) using media_build
+Date: Sun, 22 Feb 2015 14:17:24 +0100
+Message-ID: <002401d04ea1$e5cf1780$b16d4680$@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: nl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Can someone help me to get a Mygica T230 DVB-T/T2/C working on Ubuntu 14.04
+(kernel 3.13.0-45) using media_build.
+I succeed doing a build of the media_build, the drivers also load when I
+attach the Mygica, but when I try to use it (tvheadend) it crashes:
 
-On Wednesday 04 February 2015 20:55:02 Lad, Prabhakar wrote:
-> On Wed, Feb 4, 2015 at 5:03 PM, Laurent Pinchart wrote:
-> > On Thursday 15 January 2015 23:39:23 Lad, Prabhakar wrote:
-> >> From: Benoit Parrot <bparrot@ti.com>
-> >> 
-> >> this patch adds support for omnivision's ov2659
-> >> sensor.
-> >> 
-> >> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> >> ---
-> >> 
-> >>  .../devicetree/bindings/media/i2c/ov2659.txt       |   33 +
-> >>  .../devicetree/bindings/vendor-prefixes.txt        |    1 +
-> >>  MAINTAINERS                                        |   10 +
-> >>  drivers/media/i2c/Kconfig                          |   11 +
-> >>  drivers/media/i2c/Makefile                         |    1 +
-> >>  drivers/media/i2c/ov2659.c                         | 1623
-> >>  +++++++++++++++++
-> >>  include/media/ov2659.h                             |   33 +
-> >>  7 files changed, 1712 insertions(+)
-> >>  create mode 100644
-> >>  Documentation/devicetree/bindings/media/i2c/ov2659.txt
-> >>  create mode 100644 drivers/media/i2c/ov2659.c
-> >>  create mode 100644 include/media/ov2659.h
+[   61.592114] dvb-usb: found a 'Mygica T230 DVB-T/T2/C' in warm state.
+[   61.828138] dvb-usb: will pass the complete MPEG2 transport stream to the
+software demuxer.
+[   61.828279] DVB: registering new adapter (Mygica T230 DVB-T/T2/C)
+[   61.847369] i2c i2c-7: Added multiplexed i2c bus 8
+[   61.847372] si2168 7-0064: Silicon Labs Si2168 successfully attached
+[   61.857024] si2157 8-0060: Silicon Labs Si2147/2148/2157/2158
+successfully attached
+[   61.857034] usb 1-5: DVB: registering adapter 0 frontend 0 (Silicon Labs
+Si2168)...
+[   61.857488] input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:1a.7/usb1/1-5/input/input11
+[   61.857541] dvb-usb: schedule remote query interval to 100 msecs.
+[   61.857709] dvb-usb: Mygica T230 DVB-T/T2/C successfully initialized and
+connected.
+[   61.857773] usbcore: registered new interface driver dvb_usb_cxusb
 
-[snip]
+Tvheadend start:
+[  314.356162] BUG: unable to handle kernel NULL pointer dereference at
+0000000000000010
+[  314.356202] IP: [<ffffffffa02ef74c>]
+media_entity_pipeline_start+0x1c/0x390 [media]
+[  314.356236] PGD 76c6c067 PUD 766b0067 PMD 0
+[  314.356260] Oops: 0000 [#1] SMP
+[  314.356279] Modules linked in: si2157(OX) si2168(OX) i2c_mux
+dvb_usb_cxusb(OX) dib0070(OX) dvb_usb(OX) dvb_core(OX) rc_core(OX) media(OX)
+snd_hda_codec_analog gpio_ich hp_wmi sparse_keymap coretemp kvm_intel kvm
+serio_raw snd_hda_intel i915 lpc_ich snd_hda_codec shpchp drm_kms_helper
+snd_hwdep snd_pcm snd_page_alloc snd_timer pl2303 video wmi tpm_infineon drm
+mac_hid mei_me snd soundcore i2c_algo_bit usbserial mei lp parport psmouse
+e1000e floppy ptp pps_core pata_acpi
+[  314.356541] CPU: 1 PID: 1053 Comm: kdvb-ad-0-fe-0 Tainted: G        W  OX
+3.13.0-45-generic #74-Ubuntu
 
-> >> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-> >> new file mode 100644
-> >> index 0000000..ce8ec8d
-> >> --- /dev/null
-> >> +++ b/drivers/media/i2c/ov2659.c
-> >> @@ -0,0 +1,1623 @@
-
-[snip]
-
-> >> +static const struct ov2659_framesize ov2659_framesizes[] = {
-> >> +     { /* QVGA */
-> >> +             .width          = 320,
-> >> +             .height         = 240,
-> >> +             .regs           = ov2659_qvga,
-> >> +             .max_exp_lines  = 248,
-> >> +     }, { /* VGA */
-> >> +             .width          = 640,
-> >> +             .height         = 480,
-> >> +             .regs           = ov2659_vga,
-> >> +             .max_exp_lines  = 498,
-> >> +     }, { /* SVGA */
-> >> +             .width          = 800,
-> >> +             .height         = 600,
-> >> +             .regs           = ov2659_svga,
-> >> +             .max_exp_lines  = 498,
-> >> +     }, { /* XGA */
-> >> +             .width          = 1024,
-> >> +             .height         = 768,
-> >> +             .regs           = ov2659_xga,
-> >> +             .max_exp_lines  = 498,
-> >> +     }, { /* 720P */
-> >> +             .width          = 1280,
-> >> +             .height         = 720,
-> >> +             .regs           = ov2659_720p,
-> >> +             .max_exp_lines  = 498,
-> >> +     }, { /* SXGA */
-> >> +             .width          = 1280,
-> >> +             .height         = 1024,
-> >> +             .regs           = ov2659_sxga,
-> >> +             .max_exp_lines  = 1048,
-> >> +     }, { /* UXGA */
-> >> +             .width          = 1600,
-> >> +             .height         = 1200,
-> >> +             .regs           = ov2659_uxga,
-> >> +             .max_exp_lines  = 498,
-> >> +     },
-> >> +};
-> > 
-> > That's what bothers me the most about drivers for Omnivision sensors. For
-> > some reason (I'd bet on lack of proper documentation) they list a couple
-> > of supported resolutions with corresponding register values, instead of
-> > computing the register values from the format configured by userspace.
-> > That's not the way we want to go. Prabhakar, do you have enough
-> > documentation to fix that ?
->
-> I am afraid I have limited documentation here.
-
-How limited ? :-) I assume someone has documentation, given that the patch 
-contains a larger number of #define's with register names.
-
--- 
-Regards,
-
-Laurent Pinchart
+What is wrong, or do I miss something ?
+I also added the firmware described at:
+http://www.linuxtv.org/wiki/index.php/Geniatech_T230
 
