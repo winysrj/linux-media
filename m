@@ -1,62 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33740 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:48101 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934AbbBRPaM (ORCPT
+	with ESMTP id S1751857AbbBVQLw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 10:30:12 -0500
+	Sun, 22 Feb 2015 11:11:52 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 6/7] [media] cx231xx: Improve the media controller comment
-Date: Wed, 18 Feb 2015 13:30:00 -0200
-Message-Id: <8b03c5e79532023025ba18649aecd334e36a6f14.1424273378.git.mchehab@osg.samsung.com>
-In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-In-Reply-To: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
-References: <110dcdca23da9714db1a2d95800abc4c9d33b512.1424273378.git.mchehab@osg.samsung.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 03/10] [media] siano: replace sms_warn() by pr_warn()
+Date: Sun, 22 Feb 2015 13:11:34 -0300
+Message-Id: <1424621501-17466-4-git-send-email-mchehab@osg.samsung.com>
+In-Reply-To: <1424621501-17466-1-git-send-email-mchehab@osg.samsung.com>
+References: <1424621501-17466-1-git-send-email-mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are two problems at the comment:
-- it is badly idented;
-- its comment doesn't mean anything.
+There's no reason for a sms' own sms_warn macro. Just replace
+it by the standard pr_warn().
 
-Fix it.
-
-Requested-by: Hans Verkuil <hverkuil@xs4all.nl>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/common/siano/smscoreapi.h | 1 -
+ drivers/media/usb/siano/smsusb.c        | 6 +++---
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 634763535d60..87c9e27505f4 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -714,12 +714,13 @@ static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
- 	if (!mdev)
- 		return 0;
+diff --git a/drivers/media/common/siano/smscoreapi.h b/drivers/media/common/siano/smscoreapi.h
+index b5d85fd0bee8..13bd7ef7a588 100644
+--- a/drivers/media/common/siano/smscoreapi.h
++++ b/drivers/media/common/siano/smscoreapi.h
+@@ -1181,7 +1181,6 @@ int smscore_led_state(struct smscore_device_t *core, int led);
  
--/*
-- * This will find the tuner that it is connected into the decoder.
-- * Technically, this is not 100% correct, as the device may be using an
-- * analog input instead of the tuner. However, we can't use the DVB for dvb
-- * while the DMA engine is being used for V4L2.
-- */
-+	/*
-+	 * This will find the tuner that it is connected into the decoder.
-+	 * Technically, this is not 100% correct, as the device may be
-+	 * using an analog input instead of the tuner. However, as we can't
-+	 * do DVB streaming  while the DMA engine is being used for V4L2,
-+	 * this should be enough for the actual needs.
-+	 */
- 	media_device_for_each_entity(entity, mdev) {
- 		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
- 			decoder = entity;
+ #define sms_log(fmt, arg...) pr_info(fmt "\n", ##arg)
+ #define sms_err(fmt, arg...) pr_err(fmt " on line: %d\n", ##arg, __LINE__)
+-#define sms_warn(fmt, arg...) pr_warn(fmt "\n", ##arg)
+ #define sms_info(fmt, arg...) do {\
+ 	if (sms_dbg & DBG_INFO) \
+ 		pr_info(fmt "\n", ##arg); \
+diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+index 426455118d02..244674599878 100644
+--- a/drivers/media/usb/siano/smsusb.c
++++ b/drivers/media/usb/siano/smsusb.c
+@@ -258,13 +258,13 @@ static int smsusb1_load_firmware(struct usb_device *udev, int id, int board_id)
+ 
+ 	rc = request_firmware(&fw, fw_filename, &udev->dev);
+ 	if (rc < 0) {
+-		sms_warn("failed to open \"%s\" mode %d, "
+-			 "trying again with default firmware", fw_filename, id);
++		pr_warn("failed to open '%s' mode %d, trying again with default firmware\n",
++			fw_filename, id);
+ 
+ 		fw_filename = smsusb1_fw_lkup[id];
+ 		rc = request_firmware(&fw, fw_filename, &udev->dev);
+ 		if (rc < 0) {
+-			sms_warn("failed to open \"%s\" mode %d",
++			pr_warn("failed to open '%s' mode %d\n",
+ 				 fw_filename, id);
+ 
+ 			return rc;
 -- 
 2.1.0
 
