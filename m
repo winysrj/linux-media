@@ -1,45 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:37257 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850AbbBANQJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Feb 2015 08:16:09 -0500
-Message-ID: <54CE2712.3050509@southpole.se>
-Date: Sun, 01 Feb 2015 14:16:02 +0100
-From: Benjamin Larsson <benjamin@southpole.se>
+Received: from mail-yh0-f46.google.com ([209.85.213.46]:35427 "EHLO
+	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751870AbbBVQ0w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2015 11:26:52 -0500
+Received: by yhoc41 with SMTP id c41so7894724yho.2
+        for <linux-media@vger.kernel.org>; Sun, 22 Feb 2015 08:26:52 -0800 (PST)
 MIME-Version: 1.0
-To: steigerungs faktor <steigerungsfaktor@web.de>,
-	linux-media@vger.kernel.org
-Subject: Re: Sundtek Media Pro III Europe switching off
-References: <54CDFC13.6040908@web.de>
-In-Reply-To: <54CDFC13.6040908@web.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1424555126-26151-1-git-send-email-olli.salonen@iki.fi>
+References: <1424555126-26151-1-git-send-email-olli.salonen@iki.fi>
+Date: Sun, 22 Feb 2015 11:26:52 -0500
+Message-ID: <CALzAhNWqfkpk7U2D5xUuYafwWMH-tcMDRD9bEepnnOCoedEVog@mail.gmail.com>
+Subject: Re: [PATCH] saa7164: free_irq before pci_disable_device
+From: Steven Toth <stoth@kernellabs.com>
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/01/2015 11:12 AM, steigerungs faktor wrote:
-> Hi.
-> New to the list, so maybe topic "Sundtek Media Pro III" has been treatet
-> allready.
-> If so, please just send "archives".
+On Sat, Feb 21, 2015 at 4:45 PM, Olli Salonen <olli.salonen@iki.fi> wrote:
+> Free the IRQ before disabling the device. Otherwise errors like this when unloading the module:
 >
-> If not:
-> Setup is the the above Stick, newest driver, Linux (Fedora 20), Kodi
-> with TVHeadend.
-> All fine when initially starting. Shows TV and records shows.
-> Then Timer is set, and stick 'stops working'. I.e.: the timed show is
-> not recorded.
-> Instead Kodi tells me that connection to tvheadend is lost.
-> To gain stick back, reboot is necessary.
+> [21135.458560] ------------[ cut here ]------------
+> [21135.458569] WARNING: CPU: 4 PID: 1696 at /home/apw/COD/linux/fs/proc/generic.c:521 remove_proc_entry+0x1a1/0x1b0()
+> [21135.458572] remove_proc_entry: removing non-empty directory 'irq/47', leaking at least 'saa7164[0]'
 >
-> Any ideas?
->
-> Gunter
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 
-Try asking for support in the Sundtek forums.
+Thx.
 
-http://support.sundtek.com/
+Reviewed-by: Steven Toth <stoth@kernellabs.com>
 
-MvH
-Benjamin Larsson
-
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
