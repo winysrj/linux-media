@@ -1,101 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:47568 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751548AbbBCRxP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 12:53:15 -0500
-Date: Tue, 3 Feb 2015 15:53:01 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Antti Palosaari <crope@iki.fi>, Mark Brown <broonie@kernel.org>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	Jean Delvare <jdelvare@suse.de>
-Subject: Re: [PATCH 21/66] rtl2830: implement own I2C locking
-Message-ID: <20150203155301.7ba63776@recife.lan>
-In-Reply-To: <20150202203324.GA11486@katana>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
-	<1419367799-14263-21-git-send-email-crope@iki.fi>
-	<20150202180726.454dc878@recife.lan>
-	<54CFDCCC.3030006@iki.fi>
-	<20150202203324.GA11486@katana>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49230 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752284AbbBWQ14 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2015 11:27:56 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH 1/7] v4l2-subdev: replace v4l2_subdev_fh by v4l2_subdev_pad_config
+Date: Mon, 23 Feb 2015 18:28:56 +0200
+Message-ID: <2510510.zPxjXIyMcj@avalon>
+In-Reply-To: <1423827006-32878-2-git-send-email-hverkuil@xs4all.nl>
+References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl> <1423827006-32878-2-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/vlc4iJA=hRPVu/H5BVxFEdq"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/vlc4iJA=hRPVu/H5BVxFEdq
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi Hans,
 
-Em Mon, 02 Feb 2015 21:33:24 +0100
-Wolfram Sang <wsa@the-dreams.de> escreveu:
+Thank you for the patch.
 
->=20
-> > >Ok, this may eventually work ok for now, but a further change at the I=
-2C
-> > >core could easily break it. So, we need to double check about such
-> > >patch with the I2C maintainer.
-> > >
-> > >Jean,
-> > >
-> > >Are you ok with such patch? If so, please ack.
->=20
-> Jean handed over I2C to me in late 2012 :)
+On Friday 13 February 2015 12:30:00 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> If a subdevice pad op is called from a bridge driver, then there is
+> no v4l2_subdev_fh struct that can be passed to the subdevice. This
+> made it hard to use such subdevs from a bridge driver.
+> 
+> This patch replaces the v4l2_subdev_fh pointer by a v4l2_subdev_pad_config
+> pointer in the pad ops. This allows bridge drivers to use the various
+> try_ pad ops by creating a v4l2_subdev_pad_config struct and passing it
+> along to the pad op.
+> 
+> The v4l2_subdev_get_try_* macros had to be changed because of this, so
+> I also took the opportunity to use the full name of the
+> v4l2_subdev_get_try_* functions in the __V4L2_SUBDEV_MK_GET_TRY macro
+> arguments: if you now do 'git grep v4l2_subdev_get_try_format' you will
+> actually find the header where it is defined.
+> 
+> One remark regarding the drivers/staging/media/davinci_vpfe patches: the
+> *_init_formats() functions assumed that fh could be NULL. However, that's
+> not true for this driver, it's always set. This is almost certainly a copy
+> and paste from the omap3isp driver. I've updated the code to reflect the
+> fact that fh is never NULL.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Sorry for the mess... I mis-read MAINTAINERS.
+For the subdev core, the Aptina sensor drivers and the OMAP3 ISP, VSP1 and 
+OMAP4 ISS drivers,
 
-> > Basic problem here is that I2C-mux itself is controlled by same I2C dev=
-ice
-> > which implements I2C adapter for tuner.
-> >=20
-> > Here is what connections looks like:
-> >  ___________         ____________         ____________
-> > |  USB IF   |       |   demod    |       |    tuner   |
-> > |-----------|       |------------|       |------------|
-> > |           |--I2C--|-----/ -----|--I2C--|            |
-> > |I2C master |       |  I2C mux   |       | I2C slave  |
-> > |___________|       |____________|       |____________|
-> >=20
-> >=20
-> > So when tuner is called via I2C, it needs recursively call same I2C ada=
-pter
-> > which is already locked. More elegant solution would be indeed nice.
->=20
-> So, AFAIU this is the same problem that I2C based mux devices have (like
-> drivers/i2c/muxes/i2c-mux-pca954x.c)? They also use the unlocked
-> transfers...
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-If I understood your comment correct, you're ok with this approach,
-right? I'll then merge the remaining of this 66-patch series.
+> ---
+>  drivers/media/i2c/adv7180.c                        | 10 +--
+>  drivers/media/i2c/adv7511.c                        | 16 +++--
+>  drivers/media/i2c/adv7604.c                        | 12 ++--
+>  drivers/media/i2c/m5mols/m5mols_core.c             | 16 ++---
+>  drivers/media/i2c/mt9m032.c                        | 34 ++++-----
+>  drivers/media/i2c/mt9p031.c                        | 36 +++++-----
+>  drivers/media/i2c/mt9t001.c                        | 36 +++++-----
+>  drivers/media/i2c/mt9v032.c                        | 36 +++++-----
+>  drivers/media/i2c/noon010pc30.c                    | 17 ++---
+>  drivers/media/i2c/ov9650.c                         | 16 ++---
+>  drivers/media/i2c/s5c73m3/s5c73m3-core.c           | 51 +++++++-------
+>  drivers/media/i2c/s5k4ecgx.c                       | 16 ++---
+>  drivers/media/i2c/s5k5baf.c                        | 38 +++++-----
+>  drivers/media/i2c/s5k6a3.c                         | 18 ++---
+>  drivers/media/i2c/s5k6aa.c                         | 34 ++++-----
+>  drivers/media/i2c/smiapp/smiapp-core.c             | 80  +++++++++---------
+>  drivers/media/i2c/tvp514x.c                        | 12 ++--
+>  drivers/media/i2c/tvp7002.c                        | 14 ++--
+>  drivers/media/platform/exynos4-is/fimc-capture.c   | 22 +++---
+>  drivers/media/platform/exynos4-is/fimc-isp.c       | 28 ++++----
+>  drivers/media/platform/exynos4-is/fimc-lite.c      | 33 ++++-----
+>  drivers/media/platform/exynos4-is/mipi-csis.c      | 16 ++---
+>  drivers/media/platform/omap3isp/ispccdc.c          | 82 ++++++++++---------
+>  drivers/media/platform/omap3isp/ispccp2.c          | 44 ++++++------
+>  drivers/media/platform/omap3isp/ispcsi2.c          | 40 +++++------
+>  drivers/media/platform/omap3isp/isppreview.c       | 70 +++++++++---------
+>  drivers/media/platform/omap3isp/ispresizer.c       | 78 ++++++++++---------
+>  drivers/media/platform/s3c-camif/camif-capture.c   | 18 ++---
+>  drivers/media/platform/vsp1/vsp1_bru.c             | 40 +++++------
+>  drivers/media/platform/vsp1/vsp1_entity.c          | 16 ++---
+>  drivers/media/platform/vsp1/vsp1_entity.h          |  4 +-
+>  drivers/media/platform/vsp1/vsp1_hsit.c            | 16 ++---
+>  drivers/media/platform/vsp1/vsp1_lif.c             | 18 ++---
+>  drivers/media/platform/vsp1/vsp1_lut.c             | 18 ++---
+>  drivers/media/platform/vsp1/vsp1_rwpf.c            | 36 +++++-----
+>  drivers/media/platform/vsp1/vsp1_rwpf.h            | 12 ++--
+>  drivers/media/platform/vsp1/vsp1_sru.c             | 26 +++----
+>  drivers/media/platform/vsp1/vsp1_uds.c             | 26 +++----
+>  drivers/media/v4l2-core/v4l2-subdev.c              | 18 ++---
+>  drivers/staging/media/davinci_vpfe/dm365_ipipe.c   | 49 +++++++------
+>  drivers/staging/media/davinci_vpfe/dm365_ipipeif.c | 47 ++++++-------
+>  drivers/staging/media/davinci_vpfe/dm365_isif.c    | 79  +++++++++---------
+>  drivers/staging/media/davinci_vpfe/dm365_resizer.c | 57 ++++++++-------
+>  drivers/staging/media/omap4iss/iss_csi2.c          | 40 +++++------
+>  drivers/staging/media/omap4iss/iss_ipipe.c         | 42 +++++------
+>  drivers/staging/media/omap4iss/iss_ipipeif.c       | 48 ++++++-------
+>  drivers/staging/media/omap4iss/iss_resizer.c       | 42 +++++------
+>  include/media/v4l2-subdev.h                        | 50 +++++++------
+>  48 files changed, 810 insertions(+), 797 deletions(-)
 
-If latter a better way to lock the I2C mux appears, we can reverse
-this change.
-
+-- 
 Regards,
-Mauro
->=20
 
---Sig_/vlc4iJA=hRPVu/H5BVxFEdq
-Content-Type: application/pgp-signature
-Content-Description: Assinatura digital OpenPGP
+Laurent Pinchart
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJU0QsFAAoJEAhfPr2O5OEVQWoP/3pSoFGkdT+Cq8m9sv0iHul/
-V4V+vIn7DVqTRc98oM6Ehtu+BubBR6pAKQiN6XQNQJBg+acB4nVO/nukjbbZmIRh
-M335nepmqaMFUAPS1+43vVqgN+w9hqBmlTSUn0SUGw76z2h5jWP2DlMxAlnBayvs
-XochsQNkjPAD9dfNRAiU+wE0PysfE5RBAuZC767S69X2+dLUyKuo+UzdIN2ZczyK
-E7DJIfyTCEUP9qyuwk3rudLoxVNCVnjnz5gbBZAvHRqlotE1cC4UY5GY13tmKUIp
-lnYv1fDjWDtR8w0n00UNnq6fT+xz2ANyPgTbBVxQCIC9Eq5D2237LTPRiFr/Ke1n
-hhuH69geST8GxquBOnc3G3lNHES2lj72v+msg6eKcwfTC7S5dPBHcMV6DMvKV+Qw
-LzrPfh5bG4cJqz5t8bM80IXjxPJhk2TFihPwBwxmaQ3lGFwozgqvmEs65etiGZJP
-6vx16qUK0Goz8kvxTXwa9j5Ea4VuYRPT2Fiz4VDqoPNCiKGw0RBaCy/bKpJXsyKE
-ZvShe0E/cSgWHfAKo/NwWV6+RlVTeeg93+9kGlhd641/Jkmy6rW1zKSMb8HRgSho
-sn4pIUZ5JYb+GxFgpvzIGvniKTs1e/ZHByRGuXbXMVUxrcvyH3wq0oag2xsQFlOg
-0x5HOZGlM9cQTqjyyaHY
-=1fer
------END PGP SIGNATURE-----
-
---Sig_/vlc4iJA=hRPVu/H5BVxFEdq--
