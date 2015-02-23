@@ -1,142 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58453 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752123AbbBMPCg (ORCPT
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:45562 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249AbbBWLVe convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 10:02:36 -0500
-Message-ID: <54DE11FA.6050702@xs4all.nl>
-Date: Fri, 13 Feb 2015 16:02:18 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 23 Feb 2015 06:21:34 -0500
+Received: by mail-ob0-f176.google.com with SMTP id wo20so35783618obc.7
+        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2015 03:21:33 -0800 (PST)
 MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2 1/3] media/videobuf2-dma-sg: Fix handling of sg_table
- structure
-References: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1423650827-16232-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <54EB016D.8040105@grumpydevil.homelinux.org>
+References: <54E8F8F4.1010601@grumpydevil.homelinux.org>
+	<54E9F59A.4070407@grumpydevil.homelinux.org>
+	<CAJbz7-2efvftG4=UAphyLFjjuFpLZQKCFDzqXrwb-mfDg4A7SQ@mail.gmail.com>
+	<54EB016D.8040105@grumpydevil.homelinux.org>
+Date: Mon, 23 Feb 2015 12:21:33 +0100
+Message-ID: <CAJbz7-0U-s543mQ+a+sNt1V2m8T23X=ST5VYJ7LF0tk-n_yd8g@mail.gmail.com>
+Subject: Re: DVB Simulcrypt
+From: =?UTF-8?Q?Honza_Petrou=C5=A1?= <jpetrous@gmail.com>
+To: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo, Marek,
+2015-02-23 11:31 GMT+01:00 Rudy Zijlstra <rudy@grumpydevil.homelinux.org>:
+> On 23-02-15 08:44, Honza Petrouš wrote:
+>
+> Hi Rudy.
+>
+> 2015-02-22 16:28 GMT+01:00 Rudy Zijlstra <rudy@grumpydevil.homelinux.org>:
+>>
+>> Some more info
+>>
+>> On 21-02-15 22:30, Rudy Zijlstra wrote:
+>>>
+>>> Dears (Hans?)
+>>>
+>>> My setup, where the cable operator was using only irdeto, was working
+>>> good. Then the cable operator merged with another, and now the networks are
+>>> being merged. As a result, the encryption has moved from irdeto only to
+>>> simulcyrpt with Irdeto and Nagra.
+>>>
+>>> Current status:
+>>> - when i put the CA card in a STB, it works
+>>> - when trying to record an encrypted channel from PC, it no longer works.
+>>
+>> Recording system has 3 tuners. All equal, all with same permissions on the
+>> smartcard. On cards 0 and 2 does not work, but card 1 does work, on all
+>> channels tested.
+>>
+>
+> Does it mean that descrambling is not working for you? If so,
+> how do you manage descrambling? By CI-CAM module
+> or by some "softcam" like oscam?
+>
+> Or do you record ENCRYPTED stream and decrypt the recordings
+> later on?
+>
+>
+> Each tuner has its own legal CI-CAM module. And yes, except for the second
+> tuner descrambling no longer works
+>
 
-I have a few questions, mostly to improve my own understanding.
+I'm not much familiar with MythTV, so I'm guessing from the mux setup changes,
+but did you check to descramble the same channel on different tuners?
+To eliminate
+the particular change inside one service only.
 
-First of all, is this solving an actual bug for you, or did you just find
-it while reviewing code? And if it solves a bug, then which architecture
-are you using? ARM? Intel?
+Of course there can be also software issue in CI-CAM module itself
+(fail in parsing
+PMT CA descriptors etc).
 
-On 02/11/2015 11:33 AM, Ricardo Ribalda Delgado wrote:
-> When sg_alloc_table_from_pages() does not fail it returns a sg_table
-> structure with nents and nents_orig initialized to the same value.
-> 
-> dma_map_sg returns the number of areas mapped by the hardware,
-> which could be different than the areas given as an input.
-> The output must be saved to nent.
-> 
-> The output of dma_map, should be used to transverse the scatter list.
-> 
-> dma_unmap_sg needs the value passed to dma_map_sg (nents_orig).
+TBH, I think it must be application layer issue, not kernel one.
 
-I noticed that few dma_unmap_sg calls actually use orig_nents. It makes
-me wonder if the dma_unmap_sg documentation is actually correct. It does
-clearly state that orig_nents should be used, and it might well be that
-the only reason this hasn't led to problems is that very few architectures
-actually seem to return nents < orig_nents.
-
-> 
-> sg_free_tables uses also orig_nent.
-> 
-> This patch fix the file to follow this paradigm.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-dma-sg.c | 22 +++++++++++++---------
->  1 file changed, 13 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> index b1838ab..40c330f 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -147,8 +147,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
->  	 * No need to sync to the device, this will happen later when the
->  	 * prepare() memop is called.
->  	 */
-> -	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
-> -			     buf->dma_dir, &attrs) == 0)
-> +	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
-> +				      buf->dma_dir, &attrs);
-
-Is a driver free to change sgt->nents? It's unclear from the documentation
-or code that that is actually the purpose of sgt->nents. Most drivers seem
-to store the result of dma_map_sg into a driver-specific struct.
-
-Regards,
-
-	Hans
-
-> +	if (!sgt->nents)
->  		goto fail_map;
->  
->  	buf->handler.refcount = &buf->refcount;
-> @@ -187,7 +188,7 @@ static void vb2_dma_sg_put(void *buf_priv)
->  		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
->  		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
->  			buf->num_pages);
-> -		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
-> +		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
->  				   buf->dma_dir, &attrs);
->  		if (buf->vaddr)
->  			vm_unmap_ram(buf->vaddr, buf->num_pages);
-> @@ -314,9 +315,11 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
->  	 * No need to sync to the device, this will happen later when the
->  	 * prepare() memop is called.
->  	 */
-> -	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
-> -			     buf->dma_dir, &attrs) == 0)
-> +	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
-> +				      buf->dma_dir, &attrs);
-> +	if (!sgt->nents)
->  		goto userptr_fail_map;
-> +
->  	return buf;
->  
->  userptr_fail_map:
-> @@ -351,7 +354,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
->  
->  	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
->  	       __func__, buf->num_pages);
-> -	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir, &attrs);
-> +	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir,
-> +			   &attrs);
->  	if (buf->vaddr)
->  		vm_unmap_ram(buf->vaddr, buf->num_pages);
->  	sg_free_table(buf->dma_sgt);
-> @@ -502,7 +506,6 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
->  	/* stealing dmabuf mutex to serialize map/unmap operations */
->  	struct mutex *lock = &db_attach->dmabuf->lock;
->  	struct sg_table *sgt;
-> -	int ret;
->  
->  	mutex_lock(lock);
->  
-> @@ -521,8 +524,9 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
->  	}
->  
->  	/* mapping to the client with new direction */
-> -	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
-> -	if (ret <= 0) {
-> +	sgt->nents = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-> +				dma_dir);
-> +	if (!sgt->nents) {
->  		pr_err("failed to map scatterlist\n");
->  		mutex_unlock(lock);
->  		return ERR_PTR(-EIO);
-> 
-
+/Honza
