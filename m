@@ -1,63 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:36657 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752456AbbBMLaY (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42765 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751624AbbBWPUU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 06:30:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: v4l2-subdev: removal of duplicate video enum ops
-Date: Fri, 13 Feb 2015 12:29:59 +0100
-Message-Id: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 23 Feb 2015 10:20:20 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 04/12] [media] coda: bitstream payload is unsigned
+Date: Mon, 23 Feb 2015 16:20:05 +0100
+Message-Id: <1424704813-20792-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
+References: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series is based on this earlier RFC series:
+kfifo_len is unsigned int, return it as such.
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg83415.html
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This patch series starts the work of removing several video ops that
-are duplicated in as pad ops in the subdev kernel API. This kills the
-whole point of the subdev API which is to enable reuse of subdevices by 
-different bridge drivers. With duplicate ops bridge drivers now either
-have to check which one to use, or (and that's what happens today) they
-make an assumption and just use one of the two.
-
-Duplicate ops should never have been allowed. A lesson for the future.
-
-This patch series gets rid of two duplicate ops (the enum_framesizes
-and enum_frameintervals video ops) and prepares the way to remove the
-remaining crop video ops. The patch that does that isn't part of this
-patch series as it needs more work (testing primarily).
-
-The first patch of this series lays the foundation: the pad ops
-use the v4l2_subdev_fh for the try formats. However, bridge drivers that
-want to call the pad ops do not have a v4l2_subdev_fh struct available.
-It's only used when accessing the 'try' formats that are part of struct
-v4l2_subdev_fh. This patch splits off those fields into a separate struct
-and uses that instead of v4l2_subdev_fh. This breaks the link between a
-file handle and the try formats. If a bridge driver needs to deal with
-try formats, then it is the responsibility of the bridge driver to create
-a v4l2_subdev_pad_config array.
-
-In practice, bridge drivers for simple, non-MC devices only need to use
-the active format, and that doesn't need a v4l2_subdev_pad_config array,
-so NULL can be used there instead. However, this might change in the
-future.
-
-The second and third patch add a 'which' field to the enum struct used
-in the pad ops. Currently all enum pad ops assume that it is against the
-'try' formats, but simple bridge drivers will want to enum against the
-active formats. So add support to select what you want. And frankly, I
-think it is more consistent and actually useful for application to see
-what the enumeration is against the active format.
-
-The next two patches add support for the new 'which' field where appropriate,
-the sixth patch removes the uses of the video enum ops and the final patch
-documents the new 'which' field.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 0c35cd5..499049f 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -284,7 +284,7 @@ const char *coda_product_name(int product);
+ 
+ int coda_check_firmware(struct coda_dev *dev);
+ 
+-static inline int coda_get_bitstream_payload(struct coda_ctx *ctx)
++static inline unsigned int coda_get_bitstream_payload(struct coda_ctx *ctx)
+ {
+ 	return kfifo_len(&ctx->bitstream_fifo);
+ }
+-- 
+2.1.4
 
