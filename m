@@ -1,83 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:60091 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755819AbbBCOEF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 09:04:05 -0500
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49259 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752165AbbBWQnh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2015 11:43:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 5/7] v4l2-subdev: add support for the new enum_frame_size 'which' field.
+Date: Mon, 23 Feb 2015 18:44:39 +0200
+Message-ID: <1477074.hT2BHRMHFc@avalon>
+In-Reply-To: <1423827006-32878-6-git-send-email-hverkuil@xs4all.nl>
+References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl> <1423827006-32878-6-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20150203074856.GF14009@phenom.ffwll.local>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
-	<1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
-	<20150129143908.GA26493@n2100.arm.linux.org.uk>
-	<CAO_48GEOQ1pBwirgEWeVVXW-iOmaC=Xerr2VyYYz9t1QDXgVsw@mail.gmail.com>
-	<20150129154718.GB26493@n2100.arm.linux.org.uk>
-	<CAF6AEGtTmFg66TK_AFkQ-xp7Nd9Evk3nqe6xCBp7K=77OmXTxA@mail.gmail.com>
-	<20150129192610.GE26493@n2100.arm.linux.org.uk>
-	<CAF6AEGujk8UC4X6T=yhTrz1s+SyZUQ=m05h_WcxLDGZU6bydbw@mail.gmail.com>
-	<20150202165405.GX14009@phenom.ffwll.local>
-	<CAF6AEGuESM+e3HSRGM6zLqrp8kqRLGUYvA3KKECdm7m-nt0M=Q@mail.gmail.com>
-	<20150203074856.GF14009@phenom.ffwll.local>
-Date: Tue, 3 Feb 2015 09:04:03 -0500
-Message-ID: <CAF6AEGu0-TgyE4BjiaSWXQCSk31VU7dogq=6xDRUhi79rGgbxg@mail.gmail.com>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
- with dma-parms
-From: Rob Clark <robdclark@gmail.com>
-To: Rob Clark <robdclark@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 3, 2015 at 2:48 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Mon, Feb 02, 2015 at 03:30:21PM -0500, Rob Clark wrote:
->> On Mon, Feb 2, 2015 at 11:54 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
->> >> My initial thought is for dma-buf to not try to prevent something than
->> >> an exporter can actually do.. I think the scenario you describe could
->> >> be handled by two sg-lists, if the exporter was clever enough.
->> >
->> > That's already needed, each attachment has it's own sg-list. After all
->> > there's no array of dma_addr_t in the sg tables, so you can't use one sg
->> > for more than one mapping. And due to different iommu different devices
->> > can easily end up with different addresses.
->>
->>
->> Well, to be fair it may not be explicitly stated, but currently one
->> should assume the dma_addr_t's in the dmabuf sglist are bogus.  With
->> gpu's that implement per-process/context page tables, I'm not really
->> sure that there is a sane way to actually do anything else..
->
-> Hm, what does per-process/context page tables have to do here? At least on
-> i915 we have a two levels of page tables:
-> - first level for vm/device isolation, used through dma api
-> - 2nd level for per-gpu-context isolation and context switching, handled
->   internally.
->
-> Since atm the dma api doesn't have any context of contexts or different
-> pagetables, I don't see who you could use that at all.
+Hi Hans,
 
-Since I'm stuck w/ an iommu, instead of built in mmu, my plan was to
-drop use of dma-mapping entirely (incl the current call to dma_map_sg,
-which I just need until we can use drm_cflush on arm), and
-attach/detach iommu domains directly to implement context switches.
-At that point, dma_addr_t really has no sensible meaning for me.
+Thank you for the patch.
 
-BR,
--R
+On Friday 13 February 2015 12:30:04 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Support the new 'which' field in the enum_frame_size ops. Most drivers do
+> not need to be changed since they always returns the same enumeration
+> regardless of the 'which' field.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-> -Daniel
-> --
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
+For everything except s5c73m3, 
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Please see below for a small note.
+
+> ---
+>  drivers/media/i2c/s5c73m3/s5c73m3-core.c           | 23 +++++++++++++++----
+>  drivers/media/platform/omap3isp/ispccdc.c          |  4 ++--
+>  drivers/media/platform/omap3isp/ispccp2.c          |  4 ++--
+>  drivers/media/platform/omap3isp/ispcsi2.c          |  4 ++--
+>  drivers/media/platform/omap3isp/isppreview.c       |  4 ++--
+>  drivers/media/platform/omap3isp/ispresizer.c       |  4 ++--
+>  drivers/media/platform/vsp1/vsp1_hsit.c            |  4 +++-
+>  drivers/media/platform/vsp1/vsp1_lif.c             |  4 +++-
+>  drivers/media/platform/vsp1/vsp1_lut.c             |  4 +++-
+>  drivers/media/platform/vsp1/vsp1_rwpf.c            |  3 ++-
+>  drivers/media/platform/vsp1/vsp1_sru.c             |  4 +++-
+>  drivers/media/platform/vsp1/vsp1_uds.c             |  4 +++-
+>  drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |  6 ++----
+>  drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |  6 ++----
+>  drivers/staging/media/davinci_vpfe/dm365_isif.c    |  4 ++--
+>  drivers/staging/media/davinci_vpfe/dm365_resizer.c |  6 ++----
+>  drivers/staging/media/omap4iss/iss_csi2.c          |  4 ++--
+>  drivers/staging/media/omap4iss/iss_ipipe.c         |  4 ++--
+>  drivers/staging/media/omap4iss/iss_ipipeif.c       |  6 ++----
+>  drivers/staging/media/omap4iss/iss_resizer.c       |  6 ++----
+>  20 files changed, 62 insertions(+), 46 deletions(-)
+
+[snip]
+
+> diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c
+> b/drivers/media/platform/vsp1/vsp1_hsit.c index d226b3f..8ffb817 100644
+> --- a/drivers/media/platform/vsp1/vsp1_hsit.c
+> +++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+> @@ -76,9 +76,11 @@ static int hsit_enum_frame_size(struct v4l2_subdev
+> *subdev, struct v4l2_subdev_pad_config *cfg,
+>  				struct v4l2_subdev_frame_size_enum *fse)
+>  {
+> +	struct vsp1_hsit *hsit = to_hsit(subdev);
+>  	struct v4l2_mbus_framefmt *format;
+> 
+> -	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
+> +	format = vsp1_entity_get_pad_format(&hsit->entity, cfg, fse->pad,
+> +					    fse->which);
+
+You could also have used to_vsp1_entity(subdev) to cast to an entity pointer 
+directly, but both are fine with me. Same comment for the rest of the driver.
+
+> 
+>  	if (fse->index || fse->code != format->code)
+>  		return -EINVAL;
+> diff --git a/drivers/media/platform/vsp1/vsp1_lif.c
+> b/drivers/media/platform/vsp1/vsp1_lif.c index 60f1bd8..39fa5ef 100644
+> --- a/drivers/media/platform/vsp1/vsp1_lif.c
+> +++ b/drivers/media/platform/vsp1/vsp1_lif.c
+> @@ -109,9 +109,11 @@ static int lif_enum_frame_size(struct v4l2_subdev
+> *subdev, struct v4l2_subdev_pad_config *cfg,
+>  			       struct v4l2_subdev_frame_size_enum *fse)
+>  {
+> +	struct vsp1_lif *lif = to_lif(subdev);
+>  	struct v4l2_mbus_framefmt *format;
+> 
+> -	format = v4l2_subdev_get_try_format(subdev, cfg, LIF_PAD_SINK);
+> +	format = vsp1_entity_get_pad_format(&lif->entity, cfg, LIF_PAD_SINK,
+> +					    fse->which);
+> 
+>  	if (fse->index || fse->code != format->code)
+>  		return -EINVAL;
+> diff --git a/drivers/media/platform/vsp1/vsp1_lut.c
+> b/drivers/media/platform/vsp1/vsp1_lut.c index 8aa8c11..656ec27 100644
+> --- a/drivers/media/platform/vsp1/vsp1_lut.c
+> +++ b/drivers/media/platform/vsp1/vsp1_lut.c
+> @@ -117,9 +117,11 @@ static int lut_enum_frame_size(struct v4l2_subdev
+> *subdev, struct v4l2_subdev_pad_config *cfg,
+>  			       struct v4l2_subdev_frame_size_enum *fse)
+>  {
+> +	struct vsp1_lut *lut = to_lut(subdev);
+>  	struct v4l2_mbus_framefmt *format;
+> 
+> -	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
+> +	format = vsp1_entity_get_pad_format(&lut->entity, cfg,
+> +					    fse->pad, fse->which);
+> 
+>  	if (fse->index || fse->code != format->code)
+>  		return -EINVAL;
+> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c
+> b/drivers/media/platform/vsp1/vsp1_rwpf.c index a083d85..fa71f46 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rwpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
+> @@ -48,7 +48,8 @@ int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+>  	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+>  	struct v4l2_mbus_framefmt *format;
+> 
+> -	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
+> +	format = vsp1_entity_get_pad_format(&rwpf->entity, cfg, fse->pad,
+> +					    fse->which);
+> 
+>  	if (fse->index || fse->code != format->code)
+>  		return -EINVAL;
+> diff --git a/drivers/media/platform/vsp1/vsp1_sru.c
+> b/drivers/media/platform/vsp1/vsp1_sru.c index 554340d..6310aca 100644
+> --- a/drivers/media/platform/vsp1/vsp1_sru.c
+> +++ b/drivers/media/platform/vsp1/vsp1_sru.c
+> @@ -200,9 +200,11 @@ static int sru_enum_frame_size(struct v4l2_subdev
+> *subdev, struct v4l2_subdev_pad_config *cfg,
+>  			       struct v4l2_subdev_frame_size_enum *fse)
+>  {
+> +	struct vsp1_sru *sru = to_sru(subdev);
+>  	struct v4l2_mbus_framefmt *format;
+> 
+> -	format = v4l2_subdev_get_try_format(subdev, cfg, SRU_PAD_SINK);
+> +	format = vsp1_entity_get_pad_format(&sru->entity, cfg,
+> +					    SRU_PAD_SINK, fse->which);
+> 
+>  	if (fse->index || fse->code != format->code)
+>  		return -EINVAL;
+> diff --git a/drivers/media/platform/vsp1/vsp1_uds.c
+> b/drivers/media/platform/vsp1/vsp1_uds.c index ef4d307..ccc8243 100644
+> --- a/drivers/media/platform/vsp1/vsp1_uds.c
+> +++ b/drivers/media/platform/vsp1/vsp1_uds.c
+> @@ -204,9 +204,11 @@ static int uds_enum_frame_size(struct v4l2_subdev
+> *subdev, struct v4l2_subdev_pad_config *cfg,
+>  			       struct v4l2_subdev_frame_size_enum *fse)
+>  {
+> +	struct vsp1_uds *uds = to_uds(subdev);
+>  	struct v4l2_mbus_framefmt *format;
+> 
+> -	format = v4l2_subdev_get_try_format(subdev, cfg, UDS_PAD_SINK);
+> +	format = vsp1_entity_get_pad_format(&uds->entity, cfg,
+> +					    UDS_PAD_SINK, fse->which);
+> 
+>  	if (fse->index || fse->code != format->code)
+>  		return -EINVAL;
+
+-- 
+Regards,
+
+Laurent Pinchart
+
