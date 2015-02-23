@@ -1,79 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.osadl.org ([62.245.132.105]:33023 "EHLO www.osadl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752500AbbBKOXo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2015 09:23:44 -0500
-From: Nicholas Mc Guire <hofrat@osadl.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH] [media] si470x: fixup wait_for_completion_timeout return handling
-Date: Wed, 11 Feb 2015 09:19:01 -0500
-Message-Id: <1423664341-7327-1-git-send-email-hofrat@osadl.org>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:42922 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752372AbbBWUTo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2015 15:19:44 -0500
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 3/3] media: omap3isp: ispvideo: use vb2_fop_mmap/poll
+Date: Mon, 23 Feb 2015 20:19:33 +0000
+Message-Id: <1424722773-20131-4-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1424722773-20131-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1424722773-20131-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-return type of wait_for_completion_timeout is unsigned long not int. A
-appropriately named variable of type unsigned long is added and the
-assignments fixed up.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+No need to reinvent the wheel. Just use the already existing
+functions provided v4l-core.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
+ drivers/media/platform/omap3isp/ispvideo.c | 30 ++++--------------------------
+ 1 file changed, 4 insertions(+), 26 deletions(-)
 
-Patch was only compile tested with 
-
-Patch is against 3.19.0 (localversion-next is -next-20150211)
-
- drivers/media/radio/si470x/radio-si470x-common.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index 909c3f9..1d827ad 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -208,6 +208,7 @@ static int si470x_set_band(struct si470x_device *radio, int band)
- static int si470x_set_chan(struct si470x_device *radio, unsigned short chan)
- {
- 	int retval;
-+	unsigned long time_left;
- 	bool timed_out = false;
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index b648176..5dd5ffc 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1277,37 +1277,13 @@ static int isp_video_release(struct file *file)
+ 	return ret;
+ }
  
- 	/* start tuning */
-@@ -219,9 +220,9 @@ static int si470x_set_chan(struct si470x_device *radio, unsigned short chan)
+-static unsigned int isp_video_poll(struct file *file, poll_table *wait)
+-{
+-	struct isp_video *video = video_drvdata(file);
+-	int ret;
+-
+-	mutex_lock(&video->queue_lock);
+-	ret = vb2_poll(&video->queue, file, wait);
+-	mutex_unlock(&video->queue_lock);
+-
+-	return ret;
+-}
+-
+-static int isp_video_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	struct isp_video *video = video_drvdata(file);
+-	int ret;
+-
+-	mutex_lock(&video->queue_lock);
+-	ret = vb2_mmap(&video->queue, vma);
+-	mutex_unlock(&video->queue_lock);
+-
+-	return ret;
+-}
+-
+ static struct v4l2_file_operations isp_video_fops = {
+ 	.owner = THIS_MODULE,
+ 	.unlocked_ioctl = video_ioctl2,
+ 	.open = isp_video_open,
+ 	.release = isp_video_release,
+-	.poll = isp_video_poll,
+-	.mmap = isp_video_mmap,
++	.poll = vb2_fop_poll,
++	.mmap = vb2_fop_mmap,
+ };
  
- 	/* wait till tune operation has completed */
- 	reinit_completion(&radio->completion);
--	retval = wait_for_completion_timeout(&radio->completion,
--			msecs_to_jiffies(tune_timeout));
--	if (!retval)
-+	time_left = wait_for_completion_timeout(&radio->completion,
-+						msecs_to_jiffies(tune_timeout));
-+	if (time_left == 0)
- 		timed_out = true;
+ /* -----------------------------------------------------------------------------
+@@ -1389,6 +1365,8 @@ int omap3isp_video_register(struct isp_video *video, struct v4l2_device *vdev)
  
- 	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
-@@ -301,6 +302,7 @@ static int si470x_set_seek(struct si470x_device *radio,
- 	int band, retval;
- 	unsigned int freq;
- 	bool timed_out = false;
-+	unsigned long time_left;
+ 	video->video.v4l2_dev = vdev;
  
- 	/* set band */
- 	if (seek->rangelow || seek->rangehigh) {
-@@ -342,9 +344,9 @@ static int si470x_set_seek(struct si470x_device *radio,
- 
- 	/* wait till tune operation has completed */
- 	reinit_completion(&radio->completion);
--	retval = wait_for_completion_timeout(&radio->completion,
--			msecs_to_jiffies(seek_timeout));
--	if (!retval)
-+	time_left = wait_for_completion_timeout(&radio->completion,
-+						msecs_to_jiffies(seek_timeout));
-+	if (time_left == 0)
- 		timed_out = true;
- 
- 	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
++	/* queue isnt initalized */
++	video->video.queue = &video->queue;
+ 	ret = video_register_device(&video->video, VFL_TYPE_GRABBER, -1);
+ 	if (ret < 0)
+ 		dev_err(video->isp->dev,
 -- 
-1.7.10.4
+2.1.0
 
