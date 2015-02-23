@@ -1,109 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:58569 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752789AbbBMNml (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 08:42:41 -0500
-Received: from localhost ([79.231.112.199]) by mail.gmx.com (mrgmx101) with
- ESMTPSA (Nemesis) id 0MGEv5-1YPmUy0WmN-00F8mX for
- <linux-media@vger.kernel.org>; Fri, 13 Feb 2015 14:42:39 +0100
-Date: Fri, 13 Feb 2015 14:42:38 +0100
-From: Daniel Lord <d_lord@gmx.de>
+Received: from mailout1.samsung.com ([203.254.224.24]:19614 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751974AbbBWM0f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2015 07:26:35 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NK8002TJ589T930@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Feb 2015 21:26:33 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: Patch to add a timestamping and version option to femon
-Message-ID: <20150213134238.GA17802@gmx.de>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="RnlQjJ0d97Da+TV1"
-Content-Disposition: inline
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH v6 1/4] vb2: split the io_flags member of vb2_queue into a bit
+ field
+Date: Mon, 23 Feb 2015 13:26:16 +0100
+Message-id: <1424694379-11115-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch splits the io_flags member of vb2_queue into a bit field.
+Instead of an enum with flags separate bit fields were introduced.
 
---RnlQjJ0d97Da+TV1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi,
-
-as I have been in need for a monitoring tool, to check the (in)stability of my
-SAT-DVB setup I came across femon of dvb-apps. As it doesn't has a timestamp
-option I haven't been able to correlate the outage of video with a signal
-reported by femon easily.
-
-Therefore please find attached a patch which adds a timestamping option (-t)
-to femon.
-
-It also adds a version option (-v) as you stated somewhere on your homepage
-this would be needed. Be carefull with the compiletime/date line. It will
-break the debian reproducable build system.
-
-Kind regards
-
-    Daniel
-
---RnlQjJ0d97Da+TV1
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="femon.diff"
-
-34d33
-< #include <time.h>
-42,43d40
-< #define TLEN 150
-< #define VERSION "0.2"
-54,56c51
-<     "     -c number : samples to take (default 0 = infinite)\n"
-<     "     -v        : display version information\n"
-<     "     -t        : add timestamp for monitoring\n\n";
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
->     "     -c number : samples to take (default 0 = infinite)\n\n";
-61d55
-< char timebuf[TLEN];
-69,74d62
-< static void version(void)
-< {
-< 	printf("This is femon version %s\n", VERSION);
-< 	printf("compiled at %s %s\n", __DATE__, __TIME__); /* remove for reproduceable builds */
-< 	exit(1);
-< }
-77c65
-< int check_frontend (struct dvbfe_handle *fe, int human_readable, unsigned int count, int timestamp)
----
-> int check_frontend (struct dvbfe_handle *fe, int human_readable, unsigned int count)
-82d69
-< 	time_t curtime = time(NULL);
-109,114c96
-< if (timestamp) {
-< 	curtime = time(NULL);
-< 	strncpy(timebuf,ctime(&curtime),TLEN);
-< 	timebuf[strlen(timebuf) - 1] = 0x00;
-< 	printf("%s | ",timebuf);
-< }
----
-> 
-166c148
-< int do_mon(unsigned int adapter, unsigned int frontend, int human_readable, unsigned int count, int timestamp)
----
-> int do_mon(unsigned int adapter, unsigned int frontend, int human_readable, unsigned int count)
-196c178
-< 	result = check_frontend (fe, human_readable, count, timestamp);
----
-> 	result = check_frontend (fe, human_readable, count);
-208d189
-< 	int timestamp = 0;
-210c191
-< 	   while ((opt = getopt(argc, argv, "vrAHta:f:c:")) != -1) {
----
->        while ((opt = getopt(argc, argv, "rAHa:f:c:")) != -1) {
-216,218d196
-< 		case 'v':
-< 			version();
-< 			break;
-240,242d217
-< 		case 't':
-< 			timestamp=1;
-< 			break;
-246c221
-< 	do_mon(adapter, frontend, human_readable, count, timestamp);
----
-> 	do_mon(adapter, frontend, human_readable, count);
+ drivers/media/v4l2-core/videobuf2-core.c |   17 +++++++++--------
+ include/media/videobuf2-core.h           |   18 +++++-------------
+ 2 files changed, 14 insertions(+), 21 deletions(-)
 
---RnlQjJ0d97Da+TV1--
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index bc08a82..5cd60bf 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2760,7 +2760,8 @@ struct vb2_fileio_data {
+ 	unsigned int initial_index;
+ 	unsigned int q_count;
+ 	unsigned int dq_count;
+-	unsigned int flags;
++	unsigned read_once:1;
++	unsigned write_immediately:1;
+ };
+ 
+ /**
+@@ -2798,14 +2799,16 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	 */
+ 	count = 1;
+ 
+-	dprintk(3, "setting up file io: mode %s, count %d, flags %08x\n",
+-		(read) ? "read" : "write", count, q->io_flags);
++	dprintk(3, "setting up file io: mode %s, count %d, read_once %d, write_immediately %d\n",
++		(read) ? "read" : "write", count, q->fileio_read_once,
++		q->fileio_write_immediately);
+ 
+ 	fileio = kzalloc(sizeof(struct vb2_fileio_data), GFP_KERNEL);
+ 	if (fileio == NULL)
+ 		return -ENOMEM;
+ 
+-	fileio->flags = q->io_flags;
++	fileio->read_once = q->fileio_read_once;
++	fileio->write_immediately = q->fileio_write_immediately;
+ 
+ 	/*
+ 	 * Request buffers and use MMAP type to force driver
+@@ -3028,13 +3031,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	/*
+ 	 * Queue next buffer if required.
+ 	 */
+-	if (buf->pos == buf->size ||
+-	   (!read && (fileio->flags & VB2_FILEIO_WRITE_IMMEDIATELY))) {
++	if (buf->pos == buf->size || (!read && fileio->write_immediately)) {
+ 		/*
+ 		 * Check if this is the last buffer to read.
+ 		 */
+-		if (read && (fileio->flags & VB2_FILEIO_READ_ONCE) &&
+-		    fileio->dq_count == 1) {
++		if (read && fileio->read_once && fileio->dq_count == 1) {
+ 			dprintk(3, "read limit reached\n");
+ 			return __vb2_cleanup_fileio(q);
+ 		}
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index bd2cec2..e49dc6b 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -134,17 +134,6 @@ enum vb2_io_modes {
+ };
+ 
+ /**
+- * enum vb2_fileio_flags - flags for selecting a mode of the file io emulator,
+- * by default the 'streaming' style is used by the file io emulator
+- * @VB2_FILEIO_READ_ONCE:	report EOF after reading the first buffer
+- * @VB2_FILEIO_WRITE_IMMEDIATELY:	queue buffer after each write() call
+- */
+-enum vb2_fileio_flags {
+-	VB2_FILEIO_READ_ONCE		= (1 << 0),
+-	VB2_FILEIO_WRITE_IMMEDIATELY	= (1 << 1),
+-};
+-
+-/**
+  * enum vb2_buffer_state - current video buffer state
+  * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control
+  * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf
+@@ -346,7 +335,8 @@ struct v4l2_fh;
+  *
+  * @type:	queue type (see V4L2_BUF_TYPE_* in linux/videodev2.h
+  * @io_modes:	supported io methods (see vb2_io_modes enum)
+- * @io_flags:	additional io flags (see vb2_fileio_flags enum)
++ * @fileio_read_once:		report EOF after reading the first buffer
++ * @fileio_write_immediately:	queue buffer after each write() call
+  * @lock:	pointer to a mutex that protects the vb2_queue struct. The
+  *		driver can set this to a mutex to let the v4l2 core serialize
+  *		the queuing ioctls. If the driver wants to handle locking
+@@ -396,7 +386,9 @@ struct v4l2_fh;
+ struct vb2_queue {
+ 	enum v4l2_buf_type		type;
+ 	unsigned int			io_modes;
+-	unsigned int			io_flags;
++	unsigned			fileio_read_once:1;
++	unsigned			fileio_write_immediately:1;
++
+ 	struct mutex			*lock;
+ 	struct v4l2_fh			*owner;
+ 
+-- 
+1.7.9.5
+
