@@ -1,206 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:48805 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751601AbbBWMAS (ORCPT
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:59793 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752543AbbBWPbS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 07:00:18 -0500
-Message-ID: <54EB1628.6040208@xs4all.nl>
-Date: Mon, 23 Feb 2015 12:59:36 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 23 Feb 2015 10:31:18 -0500
+Received: by mail-wi0-f175.google.com with SMTP id r20so18353715wiv.2
+        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2015 07:31:16 -0800 (PST)
 MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org
-CC: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH v5 2/4] vb2: add allow_zero_bytesused flag to the vb2_queue
- struct
-References: <1424450288-26444-1-git-send-email-k.debski@samsung.com> <1424450288-26444-2-git-send-email-k.debski@samsung.com> <54E76637.3030007@xs4all.nl> <02f201d04f60$05ba6220$112f2660$%debski@samsung.com>
-In-Reply-To: <02f201d04f60$05ba6220$112f2660$%debski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1424702961-2349-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1424702961-2349-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Mon, 23 Feb 2015 15:30:46 +0000
+Message-ID: <CA+V-a8vqQmSmVGdGYw18xQeGAxvH3j4-n78c+dnvPFekD6uHcQ@mail.gmail.com>
+Subject: Re: [PATCH] media: am437x: Don't release OF node reference twice
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Benoit Parrot <bparrot@ti.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/23/2015 12:58 PM, Kamil Debski wrote:
-> Hi,
-> 
-> Thank you for the review :)
-> 
->> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->> Sent: Friday, February 20, 2015 5:52 PM
->>
->> Hi Kamil,
->>
->> One question and one typo below...
->>
->> On 02/20/2015 05:38 PM, Kamil Debski wrote:
->>> The vb2: fix bytesused == 0 handling (8a75ffb) patch changed the
->>> behavior of __fill_vb2_buffer function, so that if bytesused is 0 it
->>> is set to the size of the buffer. However, bytesused set to 0 is used
->>> by older codec drivers as as indication used to mark the end of
->> stream.
->>>
->>> To keep backward compatibility, this patch adds a flag passed to the
->>> vb2_queue_init function - allow_zero_bytesused. If the flag is set
->>> upon initialization of the queue, the videobuf2 keeps the value of
->>> bytesused intact in the OUTPUT queue and passes it to the driver.
->>>
->>> Reported-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
->>> Signed-off-by: Kamil Debski <k.debski@samsung.com>
->>> ---
->>>  drivers/media/v4l2-core/videobuf2-core.c |   39
->> +++++++++++++++++++++++++-----
->>>  include/media/videobuf2-core.h           |    2 ++
->>>  2 files changed, 35 insertions(+), 6 deletions(-)
->>>
->>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
->>> b/drivers/media/v4l2-core/videobuf2-core.c
->>> index 5cd60bf..5d77670 100644
->>> --- a/drivers/media/v4l2-core/videobuf2-core.c
->>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->>> @@ -1247,6 +1247,16 @@ static void __fill_vb2_buffer(struct
->> vb2_buffer
->>> *vb, const struct v4l2_buffer *b  {
->>>  	unsigned int plane;
->>>
->>> +	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
->>> +		if (WARN_ON_ONCE(b->bytesused == 0)) {
->>> +			pr_warn_once("use of bytesused == 0 is deprecated
-> and
->> will be
->>> +removed in 2017,\n");
->>
->> I wonder if we should give a specific year, or just say 'in the
->> future'.
->>
->> What do you think?
-> 
-> I think I would prefer to use the phrase "in the future". 
-> If you are ok with that I will post an updated patch set soon.
+Hi Laurent,
 
-I agree with that.
+Thanks for the patch.
 
-Regards,
+On Mon, Feb 23, 2015 at 2:49 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> The remote port reference is released both at the end of the OF graph
+> parsing loop, and in the error code path at the end of the function.
+> Those two calls will release the same reference, causing the reference
+> count to go negative.
+>
+> Fix the problem by removing the second call.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-	Hans
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-> 
->>
->>> +			if (vb->vb2_queue->allow_zero_bytesused)
->>> +				pr_warn_once("use
->> VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
->>> +			else
->>> +				pr_warn_once("use the actual size
-> instead.\n");
->>> +		}
->>> +	}
->>> +
->>>  	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
->>>  		if (b->memory == V4L2_MEMORY_USERPTR) {
->>>  			for (plane = 0; plane < vb->num_planes; ++plane) {
-> @@
->> -1276,13
->>> +1286,22 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb,
->> const struct v4l2_buffer *b
->>>  			 * userspace clearly never bothered to set it and
->>>  			 * it's a safe assumption that they really meant to
->>>  			 * use the full plane sizes.
->>> +			 *
->>> +			 * Some drivers, e.g. old codec drivers, use
->> bytesused
->>> +			 * == 0 as a way to indicate that streaming is
->> finished.
->>> +			 * In that case, the driver should use the
->>> +			 * allow_zero_bytesused flag to keep old userspace
->>> +			 * applications working.
->>>  			 */
->>>  			for (plane = 0; plane < vb->num_planes; ++plane) {
->>>  				struct v4l2_plane *pdst =
-> &v4l2_planes[plane];
->>>  				struct v4l2_plane *psrc =
-> &b->m.planes[plane];
->>>
->>> -				pdst->bytesused = psrc->bytesused ?
->>> -					psrc->bytesused : pdst->length;
->>> +				if (vb->vb2_queue->allow_zero_bytesused)
->>> +					pdst->bytesused = psrc->bytesused;
->>> +				else
->>> +					pdst->bytesused = psrc->bytesused ?
->>> +						psrc->bytesused :
-> pdst->length;
->>>  				pdst->data_offset = psrc->data_offset;
->>>  			}
->>>  		}
->>> @@ -1295,6 +1314,11 @@ static void __fill_vb2_buffer(struct
->> vb2_buffer *vb, const struct v4l2_buffer *b
->>>  		 *
->>>  		 * If bytesused == 0 for the output buffer, then fall back
->>>  		 * to the full buffer size as that's a sensible default.
->>> +		 *
->>> +		 * Some drivers, e.g. old codec drivers, use bytesused * ==
->> 0 as
->>
->> Small typo:
->>
->> s/bytesused * == 0/bytesused == 0/
->>
->>> +		 * a way to indicate that streaming is finished. In that
->> case,
->>> +		 * the driver should use the allow_zero_bytesused flag to
->> keep
->>> +		 * old userspace applications working.
->>>  		 */
->>>  		if (b->memory == V4L2_MEMORY_USERPTR) {
->>>  			v4l2_planes[0].m.userptr = b->m.userptr; @@ -1306,10
->> +1330,13 @@
->>> static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct
->> v4l2_buffer *b
->>>  			v4l2_planes[0].length = b->length;
->>>  		}
->>>
->>> -		if (V4L2_TYPE_IS_OUTPUT(b->type))
->>> -			v4l2_planes[0].bytesused = b->bytesused ?
->>> -				b->bytesused : v4l2_planes[0].length;
->>> -		else
->>> +		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
->>> +			if (vb->vb2_queue->allow_zero_bytesused)
->>> +				v4l2_planes[0].bytesused = b->bytesused;
->>> +			else
->>> +				v4l2_planes[0].bytesused = b->bytesused ?
->>> +					b->bytesused :
-> v4l2_planes[0].length;
->>> +		} else
->>>  			v4l2_planes[0].bytesused = 0;
->>>
->>>  	}
->>> diff --git a/include/media/videobuf2-core.h
->>> b/include/media/videobuf2-core.h index e49dc6b..a5790fd 100644
->>> --- a/include/media/videobuf2-core.h
->>> +++ b/include/media/videobuf2-core.h
->>> @@ -337,6 +337,7 @@ struct v4l2_fh;
->>>   * @io_modes:	supported io methods (see vb2_io_modes enum)
->>>   * @fileio_read_once:		report EOF after reading the first
->> buffer
->>>   * @fileio_write_immediately:	queue buffer after each write() call
->>> + * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the
->> driver
->>>   * @lock:	pointer to a mutex that protects the vb2_queue
->> struct. The
->>>   *		driver can set this to a mutex to let the v4l2 core
->> serialize
->>>   *		the queuing ioctls. If the driver wants to handle locking
->>> @@ -388,6 +389,7 @@ struct vb2_queue {
->>>  	unsigned int			io_modes;
->>>  	unsigned			fileio_read_once:1;
->>>  	unsigned			fileio_write_immediately:1;
->>> +	unsigned			allow_zero_bytesused:1;
->>>
->>>  	struct mutex			*lock;
->>>  	struct v4l2_fh			*owner;
->>>
->>
->> Regards,
->>
->> 	Hans
-> 
-> Best wishes,
-> 
+Thanks,
+--Prabhakar Lad
 
+> ---
+>  drivers/media/platform/am437x/am437x-vpfe.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+>
+> I've found this issue while reading the code, the patch hasn't been tested.
+>
+> diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+> index 56a5cb0..ce273b2 100644
+> --- a/drivers/media/platform/am437x/am437x-vpfe.c
+> +++ b/drivers/media/platform/am437x/am437x-vpfe.c
+> @@ -2425,7 +2425,7 @@ static int vpfe_async_complete(struct v4l2_async_notifier *notifier)
+>  static struct vpfe_config *
+>  vpfe_get_pdata(struct platform_device *pdev)
+>  {
+> -       struct device_node *endpoint = NULL, *rem = NULL;
+> +       struct device_node *endpoint = NULL;
+>         struct v4l2_of_endpoint bus_cfg;
+>         struct vpfe_subdev_info *sdinfo;
+>         struct vpfe_config *pdata;
+> @@ -2443,6 +2443,8 @@ vpfe_get_pdata(struct platform_device *pdev)
+>                 return NULL;
+>
+>         for (i = 0; ; i++) {
+> +               struct device_node *rem;
+> +
+>                 endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
+>                                                       endpoint);
+>                 if (!endpoint)
+> @@ -2513,7 +2515,6 @@ vpfe_get_pdata(struct platform_device *pdev)
+>
+>  done:
+>         of_node_put(endpoint);
+> -       of_node_put(rem);
+>         return NULL;
+>  }
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
