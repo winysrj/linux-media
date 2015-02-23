@@ -1,53 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f178.google.com ([74.125.82.178]:56998 "EHLO
-	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751352AbbBHW3P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Feb 2015 17:29:15 -0500
-From: Luis de Bethencourt <luis@debethencourt.com>
-Date: Sun, 8 Feb 2015 22:29:11 +0000
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49122 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055AbbBWOs0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2015 09:48:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	mchehab@osg.samsung.com, gregkh@linuxfoundation.org,
-	hans.verkuil@cisco.com, pavel@ucw.cz, pali.rohar@gmail.com,
-	wsa@the-dreams.de, luke.hart@birchleys.eu, askb23@gmail.com
-Subject: [PATCH] media: bcm2048: remove unused return of function
-Message-ID: <20150208222911.GA18445@turing>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: Benoit Parrot <bparrot@ti.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: am437x: Don't release OF node reference twice
+Date: Mon, 23 Feb 2015 16:49:21 +0200
+Message-Id: <1424702961-2349-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Integer return of bcm2048_parse_rds_rt () is never used, changing the return
-type to void.
+The remote port reference is released both at the end of the OF graph
+parsing loop, and in the error code path at the end of the function.
+Those two calls will release the same reference, causing the reference
+count to go negative.
 
-Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
+Fix the problem by removing the second call.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/staging/media/bcm2048/radio-bcm2048.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/platform/am437x/am437x-vpfe.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 5382506..7f3d528 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -1579,7 +1579,7 @@ static void bcm2048_parse_rt_match_d(struct bcm2048_device *bdev, int i,
- 		bcm2048_parse_rds_rt_block(bdev, i, index+2, crc);
- }
- 
--static int bcm2048_parse_rds_rt(struct bcm2048_device *bdev)
-+static void bcm2048_parse_rds_rt(struct bcm2048_device *bdev)
+I've found this issue while reading the code, the patch hasn't been tested.
+
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+index 56a5cb0..ce273b2 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.c
++++ b/drivers/media/platform/am437x/am437x-vpfe.c
+@@ -2425,7 +2425,7 @@ static int vpfe_async_complete(struct v4l2_async_notifier *notifier)
+ static struct vpfe_config *
+ vpfe_get_pdata(struct platform_device *pdev)
  {
- 	int i, index = 0, crc, match_b = 0, match_c = 0, match_d = 0;
+-	struct device_node *endpoint = NULL, *rem = NULL;
++	struct device_node *endpoint = NULL;
+ 	struct v4l2_of_endpoint bus_cfg;
+ 	struct vpfe_subdev_info *sdinfo;
+ 	struct vpfe_config *pdata;
+@@ -2443,6 +2443,8 @@ vpfe_get_pdata(struct platform_device *pdev)
+ 		return NULL;
  
-@@ -1615,8 +1615,6 @@ static int bcm2048_parse_rds_rt(struct bcm2048_device *bdev)
- 					match_b = 1;
- 		}
- 	}
--
--	return 0;
+ 	for (i = 0; ; i++) {
++		struct device_node *rem;
++
+ 		endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
+ 						      endpoint);
+ 		if (!endpoint)
+@@ -2513,7 +2515,6 @@ vpfe_get_pdata(struct platform_device *pdev)
+ 
+ done:
+ 	of_node_put(endpoint);
+-	of_node_put(rem);
+ 	return NULL;
  }
  
- static void bcm2048_parse_rds_ps_block(struct bcm2048_device *bdev, int i,
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
