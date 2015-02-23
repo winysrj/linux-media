@@ -1,86 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:23111 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965940AbbBCFwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 00:52:33 -0500
-Message-ID: <54D061A5.3000503@atmel.com>
-Date: Tue, 3 Feb 2015 13:50:29 +0800
-From: Josh Wu <josh.wu@atmel.com>
+Received: from mail-we0-f173.google.com ([74.125.82.173]:35953 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055AbbBWOV7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2015 09:21:59 -0500
+Received: by wevk48 with SMTP id k48so18597362wev.3
+        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2015 06:21:57 -0800 (PST)
+Message-ID: <54EB3784.4090908@gmail.com>
+Date: Mon, 23 Feb 2015 15:21:56 +0100
+From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
-	<linux-arm-kernel@lists.infradead.org>, <voice.shen@atmel.com>,
-	<nicolas.ferre@atmel.com>
-Subject: Re: [PATCH] media: atmel-isi: increase the burst length to improve
- the performance
-References: <1416907825-23826-1-git-send-email-josh.wu@atmel.com> <54CF4E52.6020901@atmel.com> <Pine.LNX.4.64.1502021122140.31366@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1502021122140.31366@axis700.grange>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>,
+	=?UTF-8?B?SG9uemEgUGV0?= =?UTF-8?B?cm91xaE=?=
+	<jpetrous@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: DVB Simulcrypt
+References: <54E8F8F4.1010601@grumpydevil.homelinux.org>	<54E9F59A.4070407@grumpydevil.homelinux.org>	<CAJbz7-2efvftG4=UAphyLFjjuFpLZQKCFDzqXrwb-mfDg4A7SQ@mail.gmail.com>	<54EB016D.8040105@grumpydevil.homelinux.org> <CAJbz7-0U-s543mQ+a+sNt1V2m8T23X=ST5VYJ7LF0tk-n_yd8g@mail.gmail.com> <54EB2099.5040103@grumpydevil.homelinux.org>
+In-Reply-To: <54EB2099.5040103@grumpydevil.homelinux.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
 
-On 2/2/2015 6:22 PM, Guennadi Liakhovetski wrote:
-> Hi Josh,
->
-> On Mon, 2 Feb 2015, Josh Wu wrote:
->
->> Hi, Guennadi
+Op 23-02-15 om 13:44 schreef Rudy Zijlstra:
+> On 23-02-15 12:21, Honza Petrouš wrote:
+>> 2015-02-23 11:31 GMT+01:00 Rudy Zijlstra 
+>> <rudy@grumpydevil.homelinux.org>:
+>>> On 23-02-15 08:44, Honza Petrouš wrote:
+>>>
+>>> Hi Rudy.
+>>>
+>>> 2015-02-22 16:28 GMT+01:00 Rudy Zijlstra 
+>>> <rudy@grumpydevil.homelinux.org>:
+>>>> Some more info
+>>>>
+>>>> On 21-02-15 22:30, Rudy Zijlstra wrote:
+>>>>> Dears (Hans?)
+>>>>>
+>>>>> My setup, where the cable operator was using only irdeto, was working
+>>>>> good. Then the cable operator merged with another, and now the 
+>>>>> networks are
+>>>>> being merged. As a result, the encryption has moved from irdeto 
+>>>>> only to
+>>>>> simulcyrpt with Irdeto and Nagra.
+>>>>>
+>>>>> Current status:
+>>>>> - when i put the CA card in a STB, it works
+>>>>> - when trying to record an encrypted channel from PC, it no longer 
+>>>>> works.
+>>>> Recording system has 3 tuners. All equal, all with same permissions 
+>>>> on the
+>>>> smartcard. On cards 0 and 2 does not work, but card 1 does work, on 
+>>>> all
+>>>> channels tested.
+>>>>
+>>> Does it mean that descrambling is not working for you? If so,
+>>> how do you manage descrambling? By CI-CAM module
+>>> or by some "softcam" like oscam?
+>>>
+>>> Or do you record ENCRYPTED stream and decrypt the recordings
+>>> later on?
+>>>
+>>>
+>>> Each tuner has its own legal CI-CAM module. And yes, except for the 
+>>> second
+>>> tuner descrambling no longer works
+>>>
+>> I'm not much familiar with MythTV, so I'm guessing from the mux setup 
+>> changes,
+>> but did you check to descramble the same channel on different tuners?
+>> To eliminate
+>> the particular change inside one service only.
 >>
->> Ping? what about the status of this patch?
-> Right, got lost, sorry... Added to the queue now.
-Thank you.
-
-Best Regards,
-Josh Wu
-
->
-> Thanks
-> Guennadi
->
->> Best Regards,
->> Josh Wu
+>> Of course there can be also software issue in CI-CAM module itself
+>> (fail in parsing
+>> PMT CA descriptors etc).
 >>
->> On 11/25/2014 5:30 PM, Josh Wu wrote:
->>> The burst length could be BEATS_4/8/16. Before this patch, isi use default
->>> value BEATS_4. To imporve the performance we could set it to BEATS_16.
->>>
->>> Otherwise sometime it would cause the ISI overflow error.
->>>
->>> Reported-by: Bo Shen <voice.shen@atmel.com>
->>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->>> ---
->>>    drivers/media/platform/soc_camera/atmel-isi.c | 2 ++
->>>    include/media/atmel-isi.h                     | 4 ++++
->>>    2 files changed, 6 insertions(+)
->>>
->>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
->>> b/drivers/media/platform/soc_camera/atmel-isi.c
->>> index ee5650f..fda587b 100644
->>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
->>> @@ -839,6 +839,8 @@ static int isi_camera_set_bus_param(struct
->>> soc_camera_device *icd)
->>>    	if (isi->pdata.full_mode)
->>>    		cfg1 |= ISI_CFG1_FULL_MODE;
->>>    +	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
->>> +
->>>    	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
->>>    	isi_writel(isi, ISI_CFG1, cfg1);
->>>    diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
->>> index c2e5703..6008b09 100644
->>> --- a/include/media/atmel-isi.h
->>> +++ b/include/media/atmel-isi.h
->>> @@ -59,6 +59,10 @@
->>>    #define		ISI_CFG1_FRATE_DIV_MASK		(7 << 8)
->>>    #define ISI_CFG1_DISCR				(1 << 11)
->>>    #define ISI_CFG1_FULL_MODE			(1 << 12)
->>> +/* Definition for THMASK(ISI_V2) */
->>> +#define		ISI_CFG1_THMASK_BEATS_4		(0 << 13)
->>> +#define		ISI_CFG1_THMASK_BEATS_8		(1 << 13)
->>> +#define		ISI_CFG1_THMASK_BEATS_16	(2 << 13)
->>>      /* Bitfields in CFG2 */
->>>    #define ISI_CFG2_GRAYSCALE			(1 << 13)
+>> TBH, I think it must be application layer issue, not kernel one.
+>>
+> See above:
+>
+> Recording system has 3 tuners. All equal, all with same permissions on 
+> the
+> smartcard. On cards 0 and 2 does not work, but card 1 does work, on all
+> channels tested.
+>
+> additional finfo: i tested the same channel(s) on all 3 tuners. For 
+> now i have re-configured mythtv to use only the second tuner for 
+> encrypted channels.
+> This does reduce scheduling flexibility though.
+>
+> Would to understand what makes the difference, so i can ask the right 
+> questions to MythTV developers.
+>
+>
+> As the decryption does work with 1 tuner, i see 2 options:
+> - depending on tuner id the default CA descriptor used is different, 
+> and this selection is not expoerted on API level (kernel issue)
+> - application needs to select which CA to use (and currently does not 
+> do this)
+>
+It should be the latter one. I'm also having  Ziggo for provider, but 
+always used FFdecsawrapper/Oscam for decryption (also legal in The 
+Netherlands, providing you have a paid subscription)
+ECM CA system id's 0x604 or 0x602 (depending on your region) gets you 
+Irdeto, while ECM CA system id's 0x1850 or 0x1801 get you Nagra.
+Correctly configured FFdecsa/Oscam can deal with it, MythTV probably cannot.
+Check it out at: 
+http://www.dtvmonitor.com/nl/?guid=0BE90D25-BA46-7B93-FDCD-20EFC79691E0
+That's a snapshot from today, monitored from Groningen.
 
+Cheers,
+
+Tycho.
