@@ -1,49 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38006 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752517AbbBPOqx (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42759 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751071AbbBWPUU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 09:46:53 -0500
-Message-ID: <54E202C5.7070904@xs4all.nl>
-Date: Mon, 16 Feb 2015 15:46:29 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCHv4 15/25] [media] tuner-core: properly initialize media
- controller subdev
-References: <cover.1423867976.git.mchehab@osg.samsung.com>	<5c8a3752af88ba4c349d9d2416cad937f96a0423.1423867976.git.mchehab@osg.samsung.com>	<54E1B3F0.7060807@xs4all.nl>	<20150216085925.3b52a558@recife.lan> <CAGoCfiy+te9GRt=xPrHmUe+ckeO2X0u3XmJC77BSQG6VJ_aEFw@mail.gmail.com>
-In-Reply-To: <CAGoCfiy+te9GRt=xPrHmUe+ckeO2X0u3XmJC77BSQG6VJ_aEFw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Mon, 23 Feb 2015 10:20:20 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 02/12] [media] coda: fix double call to debugfs_remove
+Date: Mon, 23 Feb 2015 16:20:03 +0100
+Message-Id: <1424704813-20792-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
+References: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/16/2015 03:39 PM, Devin Heitmueller wrote:
->> Except for PVR-500, I can't remember any case where the same tuner is used
->> more than once.
->>
->> There is the case of a device with two tuners, one for TV and another one
->> for FM. Yet, on such case, the name of the FM tuner will be different,
->> anyway. So, I don't think this is a current issue, but if the name should
->> be unique, then we need to properly document it.
-> 
-> Perhaps I've misunderstood the comment, but HVR-2200/2250 and numerous
-> dib0700 designs are dual DVB tuners.  Neither are like the PVR-500 in
-> that they are a single entity with two tuners (as opposed to the
-> PVR-500 which is two PCI devices which happen to be on the same PCB).
+From: Peter Seiderer <ps.report@gmx.net>
 
-DVB, yes, but not analog (V4L2) tuners. For DVB tuners the frontend name
-is used as the entity name, which I assumed is unique. It is, right? If
-that's not unique, then the same issue is there as well. I have ordered
-a dual DVB-T board, but I won't have that for another two weeks.
+In coda_free_aux_buf() call debugfs_remove only if buffer entry
+is valid (and therfore dentry is valid), double protect by
+invalidating dentry value.
 
-Regards,
+Fixes erroneous prematurely dealloc of debugfs caused by
+incorrect reference count incrementing.
 
-	Hans
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index c81af1b..37bbd57 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1215,8 +1215,9 @@ void coda_free_aux_buf(struct coda_dev *dev,
+ 				  buf->vaddr, buf->paddr);
+ 		buf->vaddr = NULL;
+ 		buf->size = 0;
++		debugfs_remove(buf->dentry);
++		buf->dentry = NULL;
+ 	}
+-	debugfs_remove(buf->dentry);
+ }
+ 
+ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+-- 
+2.1.4
+
