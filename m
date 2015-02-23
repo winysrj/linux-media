@@ -1,88 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:54354 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753588AbbBBUdl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 15:33:41 -0500
-Date: Mon, 2 Feb 2015 21:33:24 +0100
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mark Brown <broonie@kernel.org>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	Jean Delvare <jdelvare@suse.de>
-Subject: Re: [PATCH 21/66] rtl2830: implement own I2C locking
-Message-ID: <20150202203324.GA11486@katana>
-References: <1419367799-14263-1-git-send-email-crope@iki.fi>
- <1419367799-14263-21-git-send-email-crope@iki.fi>
- <20150202180726.454dc878@recife.lan>
- <54CFDCCC.3030006@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49126 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055AbbBWOtD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2015 09:49:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Benoit Parrot <bparrot@ti.com>,
+	Darren Etheridge <detheridge@ti.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH v8 1/3] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
+Date: Mon, 23 Feb 2015 16:50 +0200
+Message-ID: <5913850.Ssk1TlHgDf@avalon>
+In-Reply-To: <1424688846-10909-2-git-send-email-p.zabel@pengutronix.de>
+References: <1424688846-10909-1-git-send-email-p.zabel@pengutronix.de> <1424688846-10909-2-git-send-email-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
-Content-Disposition: inline
-In-Reply-To: <54CFDCCC.3030006@iki.fi>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Philipp,
 
---tKW2IUtsqtDRztdT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patch.
 
+Benoit, please see below for a possible issue in the am437x-vpfe driver.
 
-> >Ok, this may eventually work ok for now, but a further change at the I2C
-> >core could easily break it. So, we need to double check about such
-> >patch with the I2C maintainer.
-> >
-> >Jean,
-> >
-> >Are you ok with such patch? If so, please ack.
+On Monday 23 February 2015 11:54:04 Philipp Zabel wrote:
+> Decrementing the reference count of the previous endpoint node allows to
+> use the of_graph_get_next_endpoint function in a for_each_... style macro.
+> All current users of this function that pass a non-NULL prev parameter
+> (that is, soc_camera and imx-drm) are changed to not decrement the passed
+> prev argument's refcount themselves.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+> Changes since v7:
+>  - Rebased onto v4.0-rc1
+>  - Added fix for am437x-vpfe
+> ---
+>  drivers/coresight/of_coresight.c                  | 13 ++-----------
+>  drivers/gpu/drm/imx/imx-drm-core.c                | 11 +----------
+>  drivers/gpu/drm/rcar-du/rcar_du_kms.c             | 15 ++++-----------
+>  drivers/media/platform/am437x/am437x-vpfe.c       |  1 -
+>  drivers/media/platform/soc_camera/soc_camera.c    |  3 ++-
+>  drivers/of/base.c                                 |  9 +--------
+>  drivers/video/fbdev/omap2/dss/omapdss-boot-init.c |  7 +------
+>  7 files changed, 11 insertions(+), 48 deletions(-)
 
-Jean handed over I2C to me in late 2012 :)
+[snip]
 
-> Basic problem here is that I2C-mux itself is controlled by same I2C device
-> which implements I2C adapter for tuner.
->=20
-> Here is what connections looks like:
->  ___________         ____________         ____________
-> |  USB IF   |       |   demod    |       |    tuner   |
-> |-----------|       |------------|       |------------|
-> |           |--I2C--|-----/ -----|--I2C--|            |
-> |I2C master |       |  I2C mux   |       | I2C slave  |
-> |___________|       |____________|       |____________|
->=20
->=20
-> So when tuner is called via I2C, it needs recursively call same I2C adapt=
-er
-> which is already locked. More elegant solution would be indeed nice.
+> diff --git a/drivers/media/platform/am437x/am437x-vpfe.c
+> b/drivers/media/platform/am437x/am437x-vpfe.c index 56a5cb0..0d07fca 100644
+> --- a/drivers/media/platform/am437x/am437x-vpfe.c
+> +++ b/drivers/media/platform/am437x/am437x-vpfe.c
+> @@ -2504,7 +2504,6 @@ vpfe_get_pdata(struct platform_device *pdev)
+>  					     GFP_KERNEL);
+>  		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_OF;
+>  		pdata->asd[i]->match.of.node = rem;
+> -		of_node_put(endpoint);
+>  		of_node_put(rem);
+>  	}
 
-So, AFAIU this is the same problem that I2C based mux devices have (like
-drivers/i2c/muxes/i2c-mux-pca954x.c)? They also use the unlocked
-transfers...
+For the am47x-vpfe driver,
 
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
---tKW2IUtsqtDRztdT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Benoit, there seems to be a refcount issue with rem. The node pointer is 
+assigned to pdata->asd[i]->match.of.node, which should require a reference, 
+but you then call of_node_put(rem), releasing the only reference held. Isn't 
+that a problem ?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Furthermore, on the next iteration, if an error occurs the goto done will 
+result in of_node_put(rem) being called again, releasing a reference that you 
+don't hold. I've sent a patch to fix that.
 
-iQIcBAEBAgAGBQJUz98UAAoJEBQN5MwUoCm2BccP/RV44szd9ocf8LtYppv7c4do
-Gvg9shTDCBVSJVTs6iBhgFjU3MCzvmqcP9ZTSpAmH6xHdD5bPq+O8TztjSlhHjeR
-dOHaC/bWhtlBVYSiUnR26jc1EDtVhVeNmeiiRMRRASnb8lqwEXUiUNkT6LOiygfC
-rNmaqfAb8B+boX3yODbx29SjMpjtAOcbOXSU+ABNU2Bc+3SzItwtXCilCL4/s3Ob
-ow8Ngyo2Wri6dWryo4Q71+bOlYbZVNUwa9iJpxKURnZ6PHWfGQhTM95j+thP5M75
-TWBrnwaGg22vjH5xK/7rBmGFMqLHeya2kTuvgFnjELIBP9trUaiLYgAi9A5rq7Vx
-Urf9SUxJM0McaksjB7o0ecw+YDELbm/y9v4OoNQzqaErnO1X0BfXHXYb0jB77qQf
-cin/7q4ApXlplGf+CF/SkERKMqfA/TxFe6m0Lvnh/2jh1NCQUfRbGCOeyDqFvQyM
-QJiHV4SHVTgCFq7aCdoaLeGSPprm64rxrTb1Tf/hR5r5cmCTSMQu+j9pMSQTtNxT
-zFasSviPp95ztSUFmC9rLMGe06sjDM57+OvtN/ejoWNrA0X8H+sAnKauzbOBlxei
-ZMyWMWbFCbSFBP1yb08DL7+w8AnSAJEPjWulk+VYmw7Rxlf8tktwMkvcsLpGR7w+
-2RJPHeX7v+pUNgCeqChT
-=dDU1
------END PGP SIGNATURE-----
+-- 
+Regards,
 
---tKW2IUtsqtDRztdT--
+Laurent Pinchart
+
