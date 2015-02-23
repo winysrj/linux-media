@@ -1,172 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f41.google.com ([209.85.192.41]:49875 "EHLO
-	mail-qg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755201AbbBLLhz (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47971 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752130AbbBWDpf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Feb 2015 06:37:55 -0500
-Received: by mail-qg0-f41.google.com with SMTP id i50so7402069qgf.0
-        for <linux-media@vger.kernel.org>; Thu, 12 Feb 2015 03:37:54 -0800 (PST)
-From: =?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: =?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>
-Subject: [PATCH v2] dvb-usb-v2: add support for the media controller at USB driver
-Date: Thu, 12 Feb 2015 09:37:25 -0200
-Message-Id: <1423741045-4647-1-git-send-email-chehabrafael@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sun, 22 Feb 2015 22:45:35 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E946C2A0090
+	for <linux-media@vger.kernel.org>; Mon, 23 Feb 2015 04:44:59 +0100 (CET)
+Date: Mon, 23 Feb 2015 04:44:59 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150223034459.E946C2A0090@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Create a struct media_device and add it to the dvb adapter.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Please notice that the tuner is not mapped yet by the dvb core.
+Results of the daily build of media_tree:
 
-Signed-off-by: Rafael Lourenço de Lima Chehab <chehabrafael@gmail.com>
----
- drivers/media/usb/dvb-usb-v2/dvb_usb.h      |  5 +++
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 61 +++++++++++++++++++++++++++++
- 2 files changed, 66 insertions(+)
+date:		Mon Feb 23 04:00:17 CET 2015
+git branch:	test
+git hash:	135f9be9194cf7778eb73594aa55791b229cf27c
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-5.slh.1-amd64
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-index 14e111e13e54..b273250d0e31 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-@@ -25,6 +25,7 @@
- #include <linux/usb/input.h>
- #include <linux/firmware.h>
- #include <media/rc-core.h>
-+#include <media/media-device.h>
- 
- #include "dvb_frontend.h"
- #include "dvb_demux.h"
-@@ -389,6 +390,10 @@ struct dvb_usb_device {
- 	struct delayed_work rc_query_work;
- 
- 	void *priv;
-+
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_device *media_dev;
-+#endif
- };
- 
- extern int dvb_usbv2_probe(struct usb_interface *,
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-index 1950f37df835..16dca65e1d6b 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-@@ -400,6 +400,55 @@ skip_feed_stop:
- 	return ret;
- }
- 
-+static void dvb_usbv2_media_device_register(struct dvb_usb_device *d)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+
-+	struct media_device *mdev;
-+	struct usb_device *udev = d->udev;
-+	int ret;
-+
-+	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-+	if (!mdev)
-+		return;
-+
-+	mdev->dev = &udev->dev;
-+	strlcpy(mdev->model, d->name, sizeof(mdev->model));
-+	if (udev->serial)
-+		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
-+	strcpy(mdev->bus_info, udev->devpath);
-+	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
-+	mdev->driver_version = LINUX_VERSION_CODE;
-+
-+	ret = media_device_register(mdev);
-+	if (ret) {
-+		dev_err(&d->udev->dev,
-+			"Couldn't create a media device. Error: %d\n",
-+			ret);
-+		kfree(mdev);
-+		return;
-+	}
-+
-+	d->media_dev = mdev;
-+
-+	dev_info(&d->udev->dev, "media controller created\n");
-+
-+#endif
-+}
-+
-+static void dvb_usbv2_media_device_unregister (struct dvb_usb_device *d)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	if (!d->media_dev)
-+		return;
-+
-+	media_device_unregister(d->media_dev);
-+	kfree(d->media_dev);
-+	d->media_dev = NULL;
-+
-+#endif
-+}
-+
- static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
- {
- 	int ret;
-@@ -416,6 +465,11 @@ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
- 
- 	adap->dvb_adap.priv = adap;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	dvb_usbv2_media_device_register(d);
-+	adap->dvb_adap.mdev = d->media_dev;
-+#endif
-+
- 	if (d->props->read_mac_address) {
- 		ret = d->props->read_mac_address(adap,
- 				adap->dvb_adap.proposed_mac);
-@@ -464,6 +518,7 @@ err_dvb_net_init:
- err_dvb_dmxdev_init:
- 	dvb_dmx_release(&adap->demux);
- err_dvb_dmx_init:
-+	dvb_usbv2_media_device_unregister(d);
- 	dvb_unregister_adapter(&adap->dvb_adap);
- err_dvb_register_adapter:
- 	adap->dvb_adap.priv = NULL;
-@@ -472,6 +527,8 @@ err_dvb_register_adapter:
- 
- static int dvb_usbv2_adapter_dvb_exit(struct dvb_usb_adapter *adap)
- {
-+	struct dvb_usb_device *d = adap_to_d(adap);
-+
- 	dev_dbg(&adap_to_d(adap)->udev->dev, "%s: adap=%d\n", __func__,
- 			adap->id);
- 
-@@ -480,6 +537,7 @@ static int dvb_usbv2_adapter_dvb_exit(struct dvb_usb_adapter *adap)
- 		adap->demux.dmx.close(&adap->demux.dmx);
- 		dvb_dmxdev_release(&adap->dmxdev);
- 		dvb_dmx_release(&adap->demux);
-+		dvb_usbv2_media_device_unregister(d);
- 		dvb_unregister_adapter(&adap->dvb_adap);
- 	}
- 
-@@ -643,6 +701,8 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
- 		}
- 	}
- 
-+	dvb_create_media_graph(d->media_dev);
-+
- 	return 0;
- 
- err_dvb_unregister_frontend:
-@@ -954,6 +1014,7 @@ void dvb_usbv2_disconnect(struct usb_interface *intf)
- 	struct dvb_usb_device *d = usb_get_intfdata(intf);
- 	const char *name = d->name;
- 	struct device dev = d->udev->dev;
-+
- 	dev_dbg(&d->udev->dev, "%s: bInterfaceNumber=%d\n", __func__,
- 			intf->cur_altsetting->desc.bInterfaceNumber);
- 
--- 
-2.1.0
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
