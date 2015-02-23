@@ -1,117 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46283 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753966AbbBFDpC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Feb 2015 22:45:02 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 49E932A01AF
-	for <linux-media@vger.kernel.org>; Fri,  6 Feb 2015 04:44:56 +0100 (CET)
-Date: Fri, 06 Feb 2015 04:44:56 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150206034456.49E932A01AF@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:57453 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751618AbbBWQZ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2015 11:25:57 -0500
+Message-ID: <54EB548C.8070508@osg.samsung.com>
+Date: Mon, 23 Feb 2015 09:25:48 -0700
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+CC: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [PATCH] media: au0828: drop vbi_buffer_filled() and re-use buffer_filled()
+References: <1424704012-15993-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1424704012-15993-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Prabhakar,
 
-Results of the daily build of media_tree:
+Thanks for getting to this before I could. Couple of comments,
+mainly typos in commit log.
 
-date:		Fri Feb  6 04:00:15 CET 2015
-git branch:	test
-git hash:	4bad5d2d25099a42e146d7b18d2b98950ed287f5
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-5.slh.1-amd64
+On 02/23/2015 08:06 AM, Lad Prabhakar wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> The vbi_buffer_filled() and buffer_filled() did the same functionality
+> except for incrementing the buffer sequence, this patch drops the
+> vbi_buffer_filled() and re-uses buffer_filled() for vbi buffers
+> aswell by adding the check for vb2-queue type while incrementing
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18-i686: OK
-linux-3.19-rc4-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18-x86_64: OK
-linux-3.19-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+as well
 
-Detailed results are available here:
+> the sequence numbers. Along side this patch aligns the code.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Not sure about this last line "aligns the code" - please elaborate.
+I am guessing it is the input arguments in buffer_filled() function?
 
-Full logs are available here:
+Otherwise looks good. You have my Acked-by once the commit log is fixed.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+Acked-by: Shuah Khan <shuahkh@osg.samsung.com>
 
-The Media Infrastructure API from this daily build is here:
+thanks,
+-- Shuah
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  drivers/media/usb/au0828/au0828-video.c | 36 +++++++++++++--------------------
+>  1 file changed, 14 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+> index a27cb5f..60012ec 100644
+> --- a/drivers/media/usb/au0828/au0828-video.c
+> +++ b/drivers/media/usb/au0828/au0828-video.c
+> @@ -299,29 +299,23 @@ static int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
+>   * Announces that a buffer were filled and request the next
+>   */
+>  static inline void buffer_filled(struct au0828_dev *dev,
+> -				  struct au0828_dmaqueue *dma_q,
+> -				  struct au0828_buffer *buf)
+> +				 struct au0828_dmaqueue *dma_q,
+> +				 struct au0828_buffer *buf)
+>  {
+> -	/* Advice that buffer was filled */
+> -	au0828_isocdbg("[%p/%d] wakeup\n", buf, buf->top_field);
+> -
+> -	buf->vb.v4l2_buf.sequence = dev->frame_count++;
+> -	buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
+> -	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
+> -	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
+> -}
+> +	struct vb2_buffer vb = buf->vb;
+> +	struct vb2_queue *q = vb.vb2_queue;
+>  
+> -static inline void vbi_buffer_filled(struct au0828_dev *dev,
+> -				     struct au0828_dmaqueue *dma_q,
+> -				     struct au0828_buffer *buf)
+> -{
+>  	/* Advice that buffer was filled */
+>  	au0828_isocdbg("[%p/%d] wakeup\n", buf, buf->top_field);
+>  
+> -	buf->vb.v4l2_buf.sequence = dev->vbi_frame_count++;
+> -	buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
+> -	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
+> -	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
+> +	if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +		vb.v4l2_buf.sequence = dev->frame_count++;
+> +	else
+> +		vb.v4l2_buf.sequence = dev->vbi_frame_count++;
+> +
+> +	vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
+> +	v4l2_get_timestamp(&vb.v4l2_buf.timestamp);
+> +	vb2_buffer_done(&vb, VB2_BUF_STATE_DONE);
+>  }
+>  
+>  /*
+> @@ -574,9 +568,7 @@ static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
+>  			if (fbyte & 0x40) {
+>  				/* VBI */
+>  				if (vbi_buf != NULL)
+> -					vbi_buffer_filled(dev,
+> -							  vbi_dma_q,
+> -							  vbi_buf);
+> +					buffer_filled(dev, vbi_dma_q, vbi_buf);
+>  				vbi_get_next_buf(vbi_dma_q, &vbi_buf);
+>  				if (vbi_buf == NULL)
+>  					vbioutp = NULL;
+> @@ -949,7 +941,7 @@ static void au0828_vbi_buffer_timeout(unsigned long data)
+>  	if (buf != NULL) {
+>  		vbi_data = vb2_plane_vaddr(&buf->vb, 0);
+>  		memset(vbi_data, 0x00, buf->length);
+> -		vbi_buffer_filled(dev, dma_q, buf);
+> +		buffer_filled(dev, dma_q, buf);
+>  	}
+>  	vbi_get_next_buf(dma_q, &buf);
+>  
+> 
+
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
