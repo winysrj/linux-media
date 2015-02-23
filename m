@@ -1,91 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50873 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751654AbbBQTOl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 14:14:41 -0500
-Message-ID: <54E3931C.9060508@iki.fi>
-Date: Tue, 17 Feb 2015 21:14:36 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtpq1.tb.mail.iss.as9143.net ([212.54.42.164]:50067 "EHLO
+	smtpq1.tb.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752136AbbBWKfE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2015 05:35:04 -0500
+Message-ID: <54EB0250.1070802@grumpydevil.homelinux.org>
+Date: Mon, 23 Feb 2015 11:34:56 +0100
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
 MIME-Version: 1.0
-To: Philip Downer <pdowner@prospero-tech.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/1] [media] pci: Add support for DVB PCIe cards from
- Prospero Technologies Ltd.
-References: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>	<54E24C83.7090309@iki.fi>	<20150216214743.6a9180a6@recife.lan> <CAE6wzS+i1uaNr23ViFdW0U0Pf3j7--vV16dwRggTVV7X0AiCKg@mail.gmail.com>
-In-Reply-To: <CAE6wzS+i1uaNr23ViFdW0U0Pf3j7--vV16dwRggTVV7X0AiCKg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: =?windows-1252?Q?Honza_Petrou=9A?= <jpetrous@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: DVB Simulcrypt
+References: <54E8F8F4.1010601@grumpydevil.homelinux.org>	<54E9F59A.4070407@grumpydevil.homelinux.org> <CAJbz7-2efvftG4=UAphyLFjjuFpLZQKCFDzqXrwb-mfDg4A7SQ@mail.gmail.com>
+In-Reply-To: <CAJbz7-2efvftG4=UAphyLFjjuFpLZQKCFDzqXrwb-mfDg4A7SQ@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/17/2015 08:22 PM, Philip Downer wrote:
-> Hi Mauro,
+On 23-02-15 08:44, Honza Petrouš wrote:
+> Hi Rudy.
 >
-> On Mon, Feb 16, 2015 at 11:47 PM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
->> Em Mon, 16 Feb 2015 22:01:07 +0200
->> Antti Palosaari <crope@iki.fi> escreveu:
->>
->>> Moikka!
->>>
->>> On 02/16/2015 09:48 PM, Philip Downer wrote:
->>>> The Vortex PCIe card by Prospero Technologies Ltd is a modular DVB card
->>>> with a hardware demux, the card can support up to 8 modules which are
->>>> fixed to the board at assembly time. Currently we only offer one
->>>> configuration, 8 x Dibcom 7090p DVB-t tuners, but we will soon be releasing
->>>> other configurations. There is also a connector for an infra-red receiver
->>>> dongle on the board which supports RAW IR.
->>>>
->>>> The driver has been in testing on our systems (ARM Cortex-A9, Marvell Sheva,
->>>> x86, x86-64) for longer than 6 months, so I'm confident that it works.
->>>> However as this is the first Linux driver I've written, I'm sure there are
->>>> some things that I've got wrong. One thing in particular which has been
->>>> raised by one of our early testers is that we currently register all of
->>>> our frontends as being attached to one adapter. This means the device is
->>>> enumerated in /dev like this:
->>>>
->>>> /dev/dvb/adapter0/frontend0
->>>> /dev/dvb/adapter0/dvr0
->>>> /dev/dvb/adapter0/demux0
->>>>
->>>> /dev/dvb/adapter0/frontend1
->>>> /dev/dvb/adapter0/dvr1
->>>> /dev/dvb/adapter0/demux1
->>>>
->>>> /dev/dvb/adapter0/frontend2
->>>> /dev/dvb/adapter0/dvr2
->>>> /dev/dvb/adapter0/demux2
->>>>
->>>> etc.
->>>>
->>>> Whilst I think this is ok according to the spec, our tester has complained
->>>> that it's incompatible with their software which expects to find just one
->>>> frontend per adapter. So I'm wondering if someone could confirm if what
->>>> I've done with regards to this is correct.
->>>
->>> As I understand all those tuners are independent (could be used same
->>> time) you should register those as a 8 adapters, each having single
->>> frontend, dvr and demux.
->>
->> Yeah, creating one adapter per device is the best solution, if you
->> can't do things like:
->>
->>          frontend0 -> demux2 -> dvr5
+> 2015-02-22 16:28 GMT+01:00 Rudy Zijlstra 
+> <rudy@grumpydevil.homelinux.org <mailto:rudy@grumpydevil.homelinux.org>>:
+> >
+> > Some more info
+> >
+> > On 21-02-15 22:30, Rudy Zijlstra wrote:
+> >>
+> >> Dears (Hans?)
+> >>
+> >> My setup, where the cable operator was using only irdeto, was 
+> working good. Then the cable operator merged with another, and now the 
+> networks are being merged. As a result, the encryption has moved from 
+> irdeto only to simulcyrpt with Irdeto and Nagra.
+> >>
+> >> Current status:
+> >> - when i put the CA card in a STB, it works
+> >> - when trying to record an encrypted channel from PC, it no longer 
+> works.
+> >
+> > Recording system has 3 tuners. All equal, all with same permissions 
+> on the smartcard. On cards 0 and 2 does not work, but card 1 does 
+> work, on all channels tested.
+> >
 >
-> Thanks for confirming what Antti said, I'll change the driver and resubmit it.
+> Does it mean that descrambling is not working for you? If so,
+> how do you manage descrambling? By CI-CAM module
+> or by some "softcam" like oscam?
+>
+> Or do you record ENCRYPTED stream and decrypt the recordings
+> later on?
 
-Also, take care to fix issues to meet Kernel coding style and 
-checkpatch.pl requirements where possible.
+Each tuner has its own legal CI-CAM module. And yes, except for the 
+second tuner descrambling no longer works
 
-Read file Documentation/CodingStyle from kernel tree.
+Cheers
 
-There is script to check some common style issues and more, also in 
-kernel tree
-./scripts/checkpatch.pl --file drivers/media/pci/your_driver_file.c
 
-regards
-Antti
+Rudy
+>
+> /Honza
+>
+> >
 
--- 
-http://palosaari.fi/
