@@ -1,124 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42789 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52538 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752301AbbBWPUY (ORCPT
+	with ESMTP id S1752165AbbBWKyS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 10:20:24 -0500
+	Mon, 23 Feb 2015 05:54:18 -0500
 From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
+To: Grant Likely <grant.likely@linaro.org>,
+	Benoit Parrot <bparrot@ti.com>
+Cc: Darren Etheridge <detheridge@ti.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
 	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 09/12] [media] coda: remove duplicate error messages for buffer allocations
-Date: Mon, 23 Feb 2015 16:20:10 +0100
-Message-Id: <1424704813-20792-10-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
-References: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
+Subject: [PATCH v8 3/3] of: Add of_graph_get_port_by_id function
+Date: Mon, 23 Feb 2015 11:54:06 +0100
+Message-Id: <1424688846-10909-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1424688846-10909-1-git-send-email-p.zabel@pengutronix.de>
+References: <1424688846-10909-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-coda_alloc_aux_buf already prints an error, no need to print duplicate
-error messages all over the place.
+This patch adds a function to get a port device tree node by port id,
+or reg property value.
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/coda/coda-bit.c    | 21 ++++-----------------
- drivers/media/platform/coda/coda-common.c | 12 +++---------
- 2 files changed, 7 insertions(+), 26 deletions(-)
+ drivers/of/base.c        | 32 ++++++++++++++++++++++++++++++++
+ include/linux/of_graph.h |  7 +++++++
+ 2 files changed, 39 insertions(+)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 0073f5a..2304158 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -402,10 +402,8 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 	if (!ctx->parabuf.vaddr) {
- 		ret = coda_alloc_context_buf(ctx, &ctx->parabuf,
- 					     CODA_PARA_BUF_SIZE, "parabuf");
--		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev, "failed to allocate parabuf");
-+		if (ret < 0)
- 			return ret;
--		}
- 	}
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index 05b20f1..6398b9c 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -2081,6 +2081,38 @@ int of_graph_parse_endpoint(const struct device_node *node,
+ EXPORT_SYMBOL(of_graph_parse_endpoint);
  
- 	if (dev->devtype->product == CODA_DX6)
-@@ -417,22 +415,15 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 			DIV_ROUND_UP(q_data->height, 16)) * 3200 / 8 + 512;
- 		ret = coda_alloc_context_buf(ctx, &ctx->slicebuf, size,
- 					     "slicebuf");
--		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev,
--				 "failed to allocate %d byte slice buffer",
--				 ctx->slicebuf.size);
-+		if (ret < 0)
- 			goto err;
--		}
- 	}
+ /**
++ * of_graph_get_port_by_id() - get the port matching a given id
++ * @parent: pointer to the parent device node
++ * @id: id of the port
++ *
++ * Return: A 'port' node pointer with refcount incremented. The caller
++ * has to use of_node_put() on it when done.
++ */
++struct device_node *of_graph_get_port_by_id(struct device_node *parent, u32 id)
++{
++	struct device_node *node, *port;
++
++	node = of_get_child_by_name(parent, "ports");
++	if (node)
++		parent = node;
++
++	for_each_child_of_node(parent, port) {
++		u32 port_id = 0;
++
++		if (of_node_cmp(port->name, "port") != 0)
++			continue;
++		of_property_read_u32(port, "reg", &port_id);
++		if (id == port_id)
++			break;
++	}
++
++	of_node_put(node);
++
++	return port;
++}
++EXPORT_SYMBOL(of_graph_get_port_by_id);
++
++/**
+  * of_graph_get_next_endpoint() - get next endpoint node
+  * @parent: pointer to the parent device node
+  * @prev: previous endpoint node, or NULL to get first
+diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+index e43442e..3c1c95a 100644
+--- a/include/linux/of_graph.h
++++ b/include/linux/of_graph.h
+@@ -40,6 +40,7 @@ struct of_endpoint {
+ #ifdef CONFIG_OF
+ int of_graph_parse_endpoint(const struct device_node *node,
+ 				struct of_endpoint *endpoint);
++struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id);
+ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 					struct device_node *previous);
+ struct device_node *of_graph_get_remote_port_parent(
+@@ -53,6 +54,12 @@ static inline int of_graph_parse_endpoint(const struct device_node *node,
+ 	return -ENOSYS;
+ }
  
- 	if (!ctx->psbuf.vaddr && dev->devtype->product == CODA_7541) {
- 		ret = coda_alloc_context_buf(ctx, &ctx->psbuf,
- 					     CODA7_PS_BUF_SIZE, "psbuf");
--		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev,
--				 "failed to allocate psmem buffer");
-+		if (ret < 0)
- 			goto err;
--		}
- 	}
- 
- 	if (!ctx->workbuf.vaddr) {
-@@ -442,12 +433,8 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 			size += CODA9_PS_SAVE_SIZE;
- 		ret = coda_alloc_context_buf(ctx, &ctx->workbuf, size,
- 					     "workbuf");
--		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev,
--				 "failed to allocate %d byte context buffer",
--				 ctx->workbuf.size);
-+		if (ret < 0)
- 			goto err;
--		}
- 	}
- 
- 	return 0;
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 172805b..b42ccfc 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1925,10 +1925,8 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 	/* allocate auxiliary per-device code buffer for the BIT processor */
- 	ret = coda_alloc_aux_buf(dev, &dev->codebuf, fw->size, "codebuf",
- 				 dev->debugfs_root);
--	if (ret < 0) {
--		dev_err(&pdev->dev, "failed to allocate code buffer\n");
-+	if (ret < 0)
- 		goto put_pm;
--	}
- 
- 	/* Copy the whole firmware image to the code buffer */
- 	memcpy(dev->codebuf.vaddr, fw->data, fw->size);
-@@ -2166,20 +2164,16 @@ static int coda_probe(struct platform_device *pdev)
- 		ret = coda_alloc_aux_buf(dev, &dev->workbuf,
- 					 dev->devtype->workbuf_size, "workbuf",
- 					 dev->debugfs_root);
--		if (ret < 0) {
--			dev_err(&pdev->dev, "failed to allocate work buffer\n");
-+		if (ret < 0)
- 			goto err_v4l2_register;
--		}
- 	}
- 
- 	if (dev->devtype->tempbuf_size) {
- 		ret = coda_alloc_aux_buf(dev, &dev->tempbuf,
- 					 dev->devtype->tempbuf_size, "tempbuf",
- 					 dev->debugfs_root);
--		if (ret < 0) {
--			dev_err(&pdev->dev, "failed to allocate temp buffer\n");
-+		if (ret < 0)
- 			goto err_v4l2_register;
--		}
- 	}
- 
- 	dev->iram.size = dev->devtype->iram_size;
++static inline struct device_node *of_graph_get_port_by_id(
++					struct device_node *node, u32 id)
++{
++	return NULL;
++}
++
+ static inline struct device_node *of_graph_get_next_endpoint(
+ 					const struct device_node *parent,
+ 					struct device_node *previous)
 -- 
 2.1.4
 
