@@ -1,247 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56284 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932322AbbBQN6O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 08:58:14 -0500
-Subject: [PATCH] cxusb: Use enum to represent table offsets rather than
- hard-coding numbers [ver #2]
-From: David Howells <dhowells@redhat.com>
-To: mchehab@osg.samsung.com
-Cc: mkrufky@linuxtv.org, linux-media@vger.kernel.org
-Date: Tue, 17 Feb 2015 13:57:33 +0000
-Message-ID: <20150217135733.14168.51189.stgit@warthog.procyon.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42789 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752301AbbBWPUY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2015 10:20:24 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 09/12] [media] coda: remove duplicate error messages for buffer allocations
+Date: Mon, 23 Feb 2015 16:20:10 +0100
+Message-Id: <1424704813-20792-10-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
+References: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use enum to represent table offsets rather than hard-coding numbers to avoid
-problems with the numbers becoming out of sync with the table.
+coda_alloc_aux_buf already prints an error, no need to print duplicate
+error messages all over the place.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
+ drivers/media/platform/coda/coda-bit.c    | 21 ++++-----------------
+ drivers/media/platform/coda/coda-common.c | 12 +++---------
+ 2 files changed, 7 insertions(+), 26 deletions(-)
 
- drivers/media/usb/dvb-usb/cxusb.c |  113 +++++++++++++++++++++++--------------
- 1 file changed, 69 insertions(+), 44 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index f327c49..40880c6 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -1516,28 +1516,53 @@ static void cxusb_disconnect(struct usb_interface *intf)
- 	dvb_usb_device_exit(intf);
- }
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 0073f5a..2304158 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -402,10 +402,8 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
+ 	if (!ctx->parabuf.vaddr) {
+ 		ret = coda_alloc_context_buf(ctx, &ctx->parabuf,
+ 					     CODA_PARA_BUF_SIZE, "parabuf");
+-		if (ret < 0) {
+-			v4l2_err(&dev->v4l2_dev, "failed to allocate parabuf");
++		if (ret < 0)
+ 			return ret;
+-		}
+ 	}
  
--static struct usb_device_id cxusb_table [] = {
--	{ USB_DEVICE(USB_VID_MEDION, USB_PID_MEDION_MD95700) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_LG064F_COLD) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_LG064F_WARM) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_1_COLD) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_1_WARM) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_LGZ201_COLD) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_LGZ201_WARM) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_TH7579_COLD) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_TH7579_WARM) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DIGITALNOW_BLUEBIRD_DUAL_1_COLD) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DIGITALNOW_BLUEBIRD_DUAL_1_WARM) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_2_COLD) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_2_WARM) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_4) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DVB_T_NANO_2) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DVB_T_NANO_2_NFW_WARM) },
--	{ USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_A868R) },
--	{ USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_4_REV_2) },
--	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_CONEXANT_D680_DMB) },
--	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_D689) },
--	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230) },
-+enum cxusb_table_index {
-+	MEDION_MD95700,
-+	DVICO_BLUEBIRD_LG064F_COLD,
-+	DVICO_BLUEBIRD_LG064F_WARM,
-+	DVICO_BLUEBIRD_DUAL_1_COLD,
-+	DVICO_BLUEBIRD_DUAL_1_WARM,
-+	DVICO_BLUEBIRD_LGZ201_COLD,
-+	DVICO_BLUEBIRD_LGZ201_WARM,
-+	DVICO_BLUEBIRD_TH7579_COLD,
-+	DVICO_BLUEBIRD_TH7579_WARM,
-+	DIGITALNOW_BLUEBIRD_DUAL_1_COLD,
-+	DIGITALNOW_BLUEBIRD_DUAL_1_WARM,
-+	DVICO_BLUEBIRD_DUAL_2_COLD,
-+	DVICO_BLUEBIRD_DUAL_2_WARM,
-+	DVICO_BLUEBIRD_DUAL_4,
-+	DVICO_BLUEBIRD_DVB_T_NANO_2,
-+	DVICO_BLUEBIRD_DVB_T_NANO_2_NFW_WARM,
-+	AVERMEDIA_VOLAR_A868R,
-+	DVICO_BLUEBIRD_DUAL_4_REV_2,
-+	CONEXANT_D680_DMB,
-+	MYGICA_D689,
-+	MYGICA_T230,
-+	NR__cxusb_table_index
-+};
-+
-+static struct usb_device_id cxusb_table[NR__cxusb_table_index + 1] = {
-+	[MEDION_MD95700] = { USB_DEVICE(USB_VID_MEDION, USB_PID_MEDION_MD95700) },
-+	[DVICO_BLUEBIRD_LG064F_COLD] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_LG064F_COLD) },
-+	[DVICO_BLUEBIRD_LG064F_WARM] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_LG064F_WARM) },
-+	[DVICO_BLUEBIRD_DUAL_1_COLD] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_1_COLD) },
-+	[DVICO_BLUEBIRD_DUAL_1_WARM] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_1_WARM) },
-+	[DVICO_BLUEBIRD_LGZ201_COLD] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_LGZ201_COLD) },
-+	[DVICO_BLUEBIRD_LGZ201_WARM] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_LGZ201_WARM) },
-+	[DVICO_BLUEBIRD_TH7579_COLD] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_TH7579_COLD) },
-+	[DVICO_BLUEBIRD_TH7579_WARM] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_TH7579_WARM) },
-+	[DIGITALNOW_BLUEBIRD_DUAL_1_COLD] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DIGITALNOW_BLUEBIRD_DUAL_1_COLD) },
-+	[DIGITALNOW_BLUEBIRD_DUAL_1_WARM] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DIGITALNOW_BLUEBIRD_DUAL_1_WARM) },
-+	[DVICO_BLUEBIRD_DUAL_2_COLD] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_2_COLD) },
-+	[DVICO_BLUEBIRD_DUAL_2_WARM] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_2_WARM) },
-+	[DVICO_BLUEBIRD_DUAL_4] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_4) },
-+	[DVICO_BLUEBIRD_DVB_T_NANO_2] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DVB_T_NANO_2) },
-+	[DVICO_BLUEBIRD_DVB_T_NANO_2_NFW_WARM] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DVB_T_NANO_2_NFW_WARM) },
-+	[AVERMEDIA_VOLAR_A868R] = { USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_A868R) },
-+	[DVICO_BLUEBIRD_DUAL_4_REV_2] = { USB_DEVICE(USB_VID_DVICO, USB_PID_DVICO_BLUEBIRD_DUAL_4_REV_2) },
-+	[CONEXANT_D680_DMB] = { USB_DEVICE(USB_VID_CONEXANT, USB_PID_CONEXANT_D680_DMB) },
-+	[MYGICA_D689] = { USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_D689) },
-+	[MYGICA_T230] = { USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230) },
- 	{}		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE (usb, cxusb_table);
-@@ -1581,7 +1606,7 @@ static struct dvb_usb_device_properties cxusb_medion_properties = {
- 	.devices = {
- 		{   "Medion MD95700 (MDUSBTV-HYBRID)",
- 			{ NULL },
--			{ &cxusb_table[0], NULL },
-+			{ &cxusb_table[MEDION_MD95700], NULL },
- 		},
+ 	if (dev->devtype->product == CODA_DX6)
+@@ -417,22 +415,15 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
+ 			DIV_ROUND_UP(q_data->height, 16)) * 3200 / 8 + 512;
+ 		ret = coda_alloc_context_buf(ctx, &ctx->slicebuf, size,
+ 					     "slicebuf");
+-		if (ret < 0) {
+-			v4l2_err(&dev->v4l2_dev,
+-				 "failed to allocate %d byte slice buffer",
+-				 ctx->slicebuf.size);
++		if (ret < 0)
+ 			goto err;
+-		}
  	}
- };
-@@ -1637,8 +1662,8 @@ static struct dvb_usb_device_properties cxusb_bluebird_lgh064f_properties = {
- 	.num_device_descs = 1,
- 	.devices = {
- 		{   "DViCO FusionHDTV5 USB Gold",
--			{ &cxusb_table[1], NULL },
--			{ &cxusb_table[2], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_LG064F_COLD], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_LG064F_WARM], NULL },
- 		},
+ 
+ 	if (!ctx->psbuf.vaddr && dev->devtype->product == CODA_7541) {
+ 		ret = coda_alloc_context_buf(ctx, &ctx->psbuf,
+ 					     CODA7_PS_BUF_SIZE, "psbuf");
+-		if (ret < 0) {
+-			v4l2_err(&dev->v4l2_dev,
+-				 "failed to allocate psmem buffer");
++		if (ret < 0)
+ 			goto err;
+-		}
  	}
- };
-@@ -1693,16 +1718,16 @@ static struct dvb_usb_device_properties cxusb_bluebird_dee1601_properties = {
- 	.num_device_descs = 3,
- 	.devices = {
- 		{   "DViCO FusionHDTV DVB-T Dual USB",
--			{ &cxusb_table[3], NULL },
--			{ &cxusb_table[4], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_DUAL_1_COLD], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_DUAL_1_WARM], NULL },
- 		},
- 		{   "DigitalNow DVB-T Dual USB",
--			{ &cxusb_table[9],  NULL },
--			{ &cxusb_table[10], NULL },
-+			{ &cxusb_table[DIGITALNOW_BLUEBIRD_DUAL_1_COLD],  NULL },
-+			{ &cxusb_table[DIGITALNOW_BLUEBIRD_DUAL_1_WARM], NULL },
- 		},
- 		{   "DViCO FusionHDTV DVB-T Dual Digital 2",
--			{ &cxusb_table[11], NULL },
--			{ &cxusb_table[12], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_DUAL_2_COLD], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_DUAL_2_WARM], NULL },
- 		},
+ 
+ 	if (!ctx->workbuf.vaddr) {
+@@ -442,12 +433,8 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
+ 			size += CODA9_PS_SAVE_SIZE;
+ 		ret = coda_alloc_context_buf(ctx, &ctx->workbuf, size,
+ 					     "workbuf");
+-		if (ret < 0) {
+-			v4l2_err(&dev->v4l2_dev,
+-				 "failed to allocate %d byte context buffer",
+-				 ctx->workbuf.size);
++		if (ret < 0)
+ 			goto err;
+-		}
  	}
- };
-@@ -1756,8 +1781,8 @@ static struct dvb_usb_device_properties cxusb_bluebird_lgz201_properties = {
- 	.num_device_descs = 1,
- 	.devices = {
- 		{   "DViCO FusionHDTV DVB-T USB (LGZ201)",
--			{ &cxusb_table[5], NULL },
--			{ &cxusb_table[6], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_LGZ201_COLD], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_LGZ201_WARM], NULL },
- 		},
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 172805b..b42ccfc 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1925,10 +1925,8 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+ 	/* allocate auxiliary per-device code buffer for the BIT processor */
+ 	ret = coda_alloc_aux_buf(dev, &dev->codebuf, fw->size, "codebuf",
+ 				 dev->debugfs_root);
+-	if (ret < 0) {
+-		dev_err(&pdev->dev, "failed to allocate code buffer\n");
++	if (ret < 0)
+ 		goto put_pm;
+-	}
+ 
+ 	/* Copy the whole firmware image to the code buffer */
+ 	memcpy(dev->codebuf.vaddr, fw->data, fw->size);
+@@ -2166,20 +2164,16 @@ static int coda_probe(struct platform_device *pdev)
+ 		ret = coda_alloc_aux_buf(dev, &dev->workbuf,
+ 					 dev->devtype->workbuf_size, "workbuf",
+ 					 dev->debugfs_root);
+-		if (ret < 0) {
+-			dev_err(&pdev->dev, "failed to allocate work buffer\n");
++		if (ret < 0)
+ 			goto err_v4l2_register;
+-		}
  	}
- };
-@@ -1812,8 +1837,8 @@ static struct dvb_usb_device_properties cxusb_bluebird_dtt7579_properties = {
- 	.num_device_descs = 1,
- 	.devices = {
- 		{   "DViCO FusionHDTV DVB-T USB (TH7579)",
--			{ &cxusb_table[7], NULL },
--			{ &cxusb_table[8], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_TH7579_COLD], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_TH7579_WARM], NULL },
- 		},
+ 
+ 	if (dev->devtype->tempbuf_size) {
+ 		ret = coda_alloc_aux_buf(dev, &dev->tempbuf,
+ 					 dev->devtype->tempbuf_size, "tempbuf",
+ 					 dev->debugfs_root);
+-		if (ret < 0) {
+-			dev_err(&pdev->dev, "failed to allocate temp buffer\n");
++		if (ret < 0)
+ 			goto err_v4l2_register;
+-		}
  	}
- };
-@@ -1865,7 +1890,7 @@ static struct dvb_usb_device_properties cxusb_bluebird_dualdig4_properties = {
- 	.devices = {
- 		{   "DViCO FusionHDTV DVB-T Dual Digital 4",
- 			{ NULL },
--			{ &cxusb_table[13], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_DUAL_4], NULL },
- 		},
- 	}
- };
-@@ -1918,7 +1943,7 @@ static struct dvb_usb_device_properties cxusb_bluebird_nano2_properties = {
- 	.devices = {
- 		{   "DViCO FusionHDTV DVB-T NANO2",
- 			{ NULL },
--			{ &cxusb_table[14], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_DVB_T_NANO_2], NULL },
- 		},
- 	}
- };
-@@ -1972,8 +1997,8 @@ static struct dvb_usb_device_properties cxusb_bluebird_nano2_needsfirmware_prope
- 	.num_device_descs = 1,
- 	.devices = {
- 		{   "DViCO FusionHDTV DVB-T NANO2 w/o firmware",
--			{ &cxusb_table[14], NULL },
--			{ &cxusb_table[15], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_DVB_T_NANO_2], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_DVB_T_NANO_2_NFW_WARM], NULL },
- 		},
- 	}
- };
-@@ -2017,7 +2042,7 @@ static struct dvb_usb_device_properties cxusb_aver_a868r_properties = {
- 	.devices = {
- 		{   "AVerMedia AVerTVHD Volar (A868R)",
- 			{ NULL },
--			{ &cxusb_table[16], NULL },
-+			{ &cxusb_table[AVERMEDIA_VOLAR_A868R], NULL },
- 		},
- 	}
- };
-@@ -2071,7 +2096,7 @@ struct dvb_usb_device_properties cxusb_bluebird_dualdig4_rev2_properties = {
- 	.devices = {
- 		{   "DViCO FusionHDTV DVB-T Dual Digital 4 (rev 2)",
- 			{ NULL },
--			{ &cxusb_table[17], NULL },
-+			{ &cxusb_table[DVICO_BLUEBIRD_DUAL_4_REV_2], NULL },
- 		},
- 	}
- };
-@@ -2125,7 +2150,7 @@ static struct dvb_usb_device_properties cxusb_d680_dmb_properties = {
- 		{
- 			"Conexant DMB-TH Stick",
- 			{ NULL },
--			{ &cxusb_table[18], NULL },
-+			{ &cxusb_table[CONEXANT_D680_DMB], NULL },
- 		},
- 	}
- };
-@@ -2179,7 +2204,7 @@ static struct dvb_usb_device_properties cxusb_mygica_d689_properties = {
- 		{
- 			"Mygica D689 DMB-TH",
- 			{ NULL },
--			{ &cxusb_table[19], NULL },
-+			{ &cxusb_table[MYGICA_D689], NULL },
- 		},
- 	}
- };
-@@ -2232,7 +2257,7 @@ static struct dvb_usb_device_properties cxusb_mygica_t230_properties = {
- 		{
- 			"Mygica T230 DVB-T/T2/C",
- 			{ NULL },
--			{ &cxusb_table[20], NULL },
-+			{ &cxusb_table[MYGICA_T230], NULL },
- 		},
- 	}
- };
+ 
+ 	dev->iram.size = dev->devtype->iram_size;
+-- 
+2.1.4
 
