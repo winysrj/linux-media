@@ -1,85 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33441 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308AbbBSVuY (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42787 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752291AbbBWPUY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 16:50:24 -0500
-Date: Thu, 19 Feb 2015 19:50:20 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Joe Perches <joe@perches.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCHv4 16/25] [media] cx25840: fill the media controller
- entity
-Message-ID: <20150219195020.0dfbb1ce@recife.lan>
-In-Reply-To: <20150219175007.6098ae32@recife.lan>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-	<6e028daf7da0bb15af4ff03290a2a67b7b35515c.1423867976.git.mchehab@osg.samsung.com>
-	<CA+V-a8tiGyPMfUgdknC=3q2mZUjCsTvfcaP_O7HwCVucA_xYNA@mail.gmail.com>
-	<20150219175007.6098ae32@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 23 Feb 2015 10:20:24 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 10/12] [media] coda: fail to start streaming if userspace set invalid formats
+Date: Mon, 23 Feb 2015 16:20:11 +0100
+Message-Id: <1424704813-20792-11-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
+References: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 19 Feb 2015 17:50:07 -0200
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-> Em Wed, 18 Feb 2015 22:48:04 +0000
-> "Lad, Prabhakar" <prabhakar.csengg@gmail.com> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > Thanks for the patch.
-> 
-> Thanks for the review.
-> > 
-> > On Fri, Feb 13, 2015 at 10:57 PM, Mauro Carvalho Chehab
-> > <mchehab@osg.samsung.com> wrote:
-> > > Instead of keeping the media controller entity not initialized,
-> > > fill it and create the pads for cx25840.
-> > >
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > >
-> > > diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-> > > index 573e08826b9b..bdb5bb6b58da 100644
-> > > --- a/drivers/media/i2c/cx25840/cx25840-core.c
-> > > +++ b/drivers/media/i2c/cx25840/cx25840-core.c
-> > > @@ -5137,6 +5137,9 @@ static int cx25840_probe(struct i2c_client *client,
-> > >         int default_volume;
-> > >         u32 id;
-> > >         u16 device_id;
-> > > +#if defined(CONFIG_MEDIA_CONTROLLER)
-> > > +       int ret;
-> > > +#endif
-> > >
-> > >         /* Check if the adapter supports the needed features */
-> > >         if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> > > @@ -5178,6 +5181,21 @@ static int cx25840_probe(struct i2c_client *client,
-> > >
-> > >         sd = &state->sd;
-> > >         v4l2_i2c_subdev_init(sd, client, &cx25840_ops);
-> > > +#if defined(CONFIG_MEDIA_CONTROLLER)
-> > > +       /* TODO: need to represent analog inputs too */
-> > > +       state->pads[0].flags = MEDIA_PAD_FL_SINK;       /* Tuner or input */
-> > > +       state->pads[1].flags = MEDIA_PAD_FL_SOURCE;     /* Video */
-> > > +       state->pads[2].flags = MEDIA_PAD_FL_SOURCE;     /* VBI */
-> > Macros for 0,1,2 would make it more readable.
-> 
-> I was in doubt, on weather use a macro or not for it. I ended by
-> deciding to not use because the code shouldn't assume a particular order
-> for the pads. Also, I'm not sure if is there a way to "taint" a PAD for
-> VBI or Video, or if it is worth or not do do it.
-> 
-> So, the comments there are more a reminder than anything else.
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index b42ccfc..4441179 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1282,12 +1282,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	if (!(ctx->streamon_out & ctx->streamon_cap))
+ 		return 0;
+ 
++	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++	if ((q_data_src->width != q_data_dst->width &&
++	     round_up(q_data_src->width, 16) != q_data_dst->width) ||
++	    (q_data_src->height != q_data_dst->height &&
++	     round_up(q_data_src->height, 16) != q_data_dst->height)) {
++		v4l2_err(v4l2_dev, "can't convert %dx%d to %dx%d\n",
++			 q_data_src->width, q_data_src->height,
++			 q_data_dst->width, q_data_dst->height);
++		ret = -EINVAL;
++		goto err;
++	}
++
+ 	/* Allow BIT decoder device_run with no new buffers queued */
+ 	if (ctx->inst_type == CODA_INST_DECODER && ctx->use_bit)
+ 		v4l2_m2m_set_src_buffered(ctx->fh.m2m_ctx, true);
+ 
+ 	ctx->gopcounter = ctx->params.gop_size - 1;
+-	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+ 
+ 	ctx->codec = coda_find_codec(ctx->dev, q_data_src->fourcc,
+ 				     q_data_dst->fourcc);
+-- 
+2.1.4
 
-On a second thought, indeed it seems better to use an enum here. Just
-sent the patch.
-
-Regards,
-Mauro
