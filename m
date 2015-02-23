@@ -1,96 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51680 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932111AbbBCKK2 (ORCPT
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:39838 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751959AbbBWUcy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 05:10:28 -0500
-Message-ID: <54D09E86.2020400@xs4all.nl>
-Date: Tue, 03 Feb 2015 11:10:14 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 23 Feb 2015 15:32:54 -0500
+Received: by wggx12 with SMTP id x12so1171649wgg.6
+        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2015 12:32:53 -0800 (PST)
+Message-ID: <54EB8E73.2060808@gmail.com>
+Date: Mon, 23 Feb 2015 21:32:51 +0100
+From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
 MIME-Version: 1.0
-To: Miguel Casas-Sanchez <mcasas@chromium.org>,
-	linux-media@vger.kernel.org
-Subject: Re: Vivid test device: adding YU12
-References: <CAKoAQ7=4wzPbahK7RnrCG1XJgdqon2ZBphNS_krM51+p7KT3PQ@mail.gmail.com>
-In-Reply-To: <CAKoAQ7=4wzPbahK7RnrCG1XJgdqon2ZBphNS_krM51+p7KT3PQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?SG9uemEgUGV0cm91xaE=?= <jpetrous@gmail.com>,
+	Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: DVB Simulcrypt
+References: <54E8F8F4.1010601@grumpydevil.homelinux.org>	<54E9F59A.4070407@grumpydevil.homelinux.org>	<CAJbz7-2efvftG4=UAphyLFjjuFpLZQKCFDzqXrwb-mfDg4A7SQ@mail.gmail.com>	<54EB016D.8040105@grumpydevil.homelinux.org>	<CAJbz7-0U-s543mQ+a+sNt1V2m8T23X=ST5VYJ7LF0tk-n_yd8g@mail.gmail.com>	<54EB2099.5040103@grumpydevil.homelinux.org>	<54EB3784.4090908@gmail.com>	<54EB4C85.1050003@grumpydevil.homelinux.org> <CAJbz7-2hQo-jtJCqx1OEuTOxtzVYNVR+e7SvssFJ5YY2ZU=YQw@mail.gmail.com>
+In-Reply-To: <CAJbz7-2hQo-jtJCqx1OEuTOxtzVYNVR+e7SvssFJ5YY2ZU=YQw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/02/15 23:32, Miguel Casas-Sanchez wrote:
->> On 01/29/2015 03:44 AM, Miguel Casas-Sanchez wrote:
->>> Hi folks, I've been trying to add a triplanar format to those that vivid
->>> can generate, and didn't quite manage :(
+
+Op 23-02-15 om 20:56 schreef Honza Petrouš:
+> 2015-02-23 16:51 GMT+01:00 Rudy Zijlstra <rudy@grumpydevil.homelinux.org>:
+>> On 23-02-15 15:21, Tycho Lürsen wrote:
 >>>
->>> So, I tried adding code for it like in the patch (with some dprintk() as
->>> well) to clarify what I wanted to do. Module is insmod'ed like "insmod
->>> vivid.ko n_devs=1 node_types=0x1 multiplanar=2 vivid_debug=1"
+>>> Op 23-02-15 om 13:44 schreef Rudy Zijlstra:
+>>>> On 23-02-15 12:21, Honza Petrouš wrote:
+>>>>> 2015-02-23 11:31 GMT+01:00 Rudy Zijlstra
+>>>>> <rudy@grumpydevil.homelinux.org>:
+>>>>>> On 23-02-15 08:44, Honza Petrouš wrote:
+>>>>>>
+>>>>>> Hi Rudy.
+>>>>>>
+>>>>>> 2015-02-22 16:28 GMT+01:00 Rudy Zijlstra
+>>>>>> <rudy@grumpydevil.homelinux.org>:
+>>>>>>> Some more info
+>>>>>>>
+>>>>>>> On 21-02-15 22:30, Rudy Zijlstra wrote:
+>>>>>>>> Dears (Hans?)
+>>>>>>>>
+>>>>>>>> My setup, where the cable operator was using only irdeto, was working
+>>>>>>>> good. Then the cable operator merged with another, and now the
+>>>>>>>> networks are
+>>>>>>>> being merged. As a result, the encryption has moved from irdeto only
+>>>>>>>> to
+>>>>>>>> simulcyrpt with Irdeto and Nagra.
+>>>>>>>>
+>>>>>>>> Current status:
+>>>>>>>> - when i put the CA card in a STB, it works
+>>>>>>>> - when trying to record an encrypted channel from PC, it no longer
+>>>>>>>> works.
+>>>>>>> Recording system has 3 tuners. All equal, all with same permissions on
+>>>>>>> the
+>>>>>>> smartcard. On cards 0 and 2 does not work, but card 1 does work, on
+>>>>>>> all
+>>>>>>> channels tested.
+>>>>>>>
+>>>>>> Does it mean that descrambling is not working for you? If so,
+>>>>>> how do you manage descrambling? By CI-CAM module
+>>>>>> or by some "softcam" like oscam?
+>>>>>>
+>>>>>> Or do you record ENCRYPTED stream and decrypt the recordings
+>>>>>> later on?
+>>>>>>
+>>>>>>
+>>>>>> Each tuner has its own legal CI-CAM module. And yes, except for the
+>>>>>> second
+>>>>>> tuner descrambling no longer works
+>>>>>>
+>>>>> I'm not much familiar with MythTV, so I'm guessing from the mux setup
+>>>>> changes,
+>>>>> but did you check to descramble the same channel on different tuners?
+>>>>> To eliminate
+>>>>> the particular change inside one service only.
+>>>>>
+>>>>> Of course there can be also software issue in CI-CAM module itself
+>>>>> (fail in parsing
+>>>>> PMT CA descriptors etc).
+>>>>>
+>>>>> TBH, I think it must be application layer issue, not kernel one.
+>>>>>
+>>>> See above:
+>>>>
+>>>> Recording system has 3 tuners. All equal, all with same permissions on
+>>>> the
+>>>> smartcard. On cards 0 and 2 does not work, but card 1 does work, on all
+>>>> channels tested.
+>>>>
+>>>> additional finfo: i tested the same channel(s) on all 3 tuners. For now i
+>>>> have re-configured mythtv to use only the second tuner for encrypted
+>>>> channels.
+>>>> This does reduce scheduling flexibility though.
+>>>>
+>>>> Would to understand what makes the difference, so i can ask the right
+>>>> questions to MythTV developers.
+>>>>
+>>>>
+>>>> As the decryption does work with 1 tuner, i see 2 options:
+>>>> - depending on tuner id the default CA descriptor used is different, and
+>>>> this selection is not expoerted on API level (kernel issue)
+>>>> - application needs to select which CA to use (and currently does not do
+>>>> this)
+>>>>
+>>> It should be the latter one. I'm also having  Ziggo for provider, but
+>>> always used FFdecsawrapper/Oscam for decryption (also legal in The
+>>> Netherlands, providing you have a paid subscription)
+>>> ECM CA system id's 0x604 or 0x602 (depending on your region) gets you
+>>> Irdeto, while ECM CA system id's 0x1850 or 0x1801 get you Nagra.
+>>> Correctly configured FFdecsa/Oscam can deal with it, MythTV probably
+>>> cannot.
+>>> Check it out at:
+>>> http://www.dtvmonitor.com/nl/?guid=0BE90D25-BA46-7B93-FDCD-20EFC79691E0
+>>> That's a snapshot from today, monitored from Groningen.
+>>>
+>> Tycho,
 >>
->> You are confusing something: PIX_FMT_YUV420 is single-planar, not multi-planar.
->> That is, all image data is contained in one buffer. PIX_FMT_YUV420M is multi-planar,
->> however. So you need to think which one you actually want to support.
->> Another problem is that for the chroma part you need to average the values over
->> four pixels. So the TPG needs to be aware of the previous line. This makes the TPG
->> more complicated, and of course it is the reason why I didn't implement 4:2:0
->> formats :-)
->> I would implement YUV420 first, and (if needed) YUV420M and/or NV12 can easily be
->> added later.
->> Regards,
->>         Hans
+>> thanks. looking at http://www.dtvmonitor.com/nl/ziggo-limburg the CA id for
+>> Iredeto are same in Limburg as in Groningen.
 >>
-> 
-> So, we could call YUV420 (YU12) a tightly packed planar format :)
-> because it has several planes, rigurously speaking, but they are
-> laid out back-to-back in memory. Correct?
-
-Correct.
-
-> I was interested here precisely in using the MPLANE API, so I'd
-> rather go for YUV420M directly; perhaps cheating a bit on the
-> TPG calculation in the first implementation: I/we could just simplify
-> the Chroma calculation to grabbing the upper-left pixel value,
-> ignoring the other three. Not perfect, but for a first patch of a test
-> device it should do.
-> 
-> WDYT?
-
-I would actually pick YUV420 or NV12 as the initial implementation, since
-you can test that with qv4l2 (it uses libv4lconvert which understands
-those two formats). That way you can develop on any linux PC. Also there
-is no need initially to add support for 3-plane formats, which simplifies
-things. But that's just my preference.
-
-Note that I won't accept patches that do not implement 4:2:0 correctly
-(averaging four pixels). The goal of the vivid driver is to emulate
-hardware as well as possible, so shortcuts with that are a no-go.
-
-Regards,
-
-	Hans
-
-> 
+>> And yes, my CAM's are for Irdeto and do not support Nagra. To my knowledge
+>> no valid Nagra CAM do exist for DVB-C
 >>
->>
->>> With the patch, vivid:
->>> - seems to enumerate the new triplanar format all right
->>> - vid_s_fmt_vid_cap() works as intended too, apparently
->>> - when arriving to vid_cap_queue_setup(), the size of the different
->>> sub-arrays does not look quite ok.
->>> - Generated video is, visually, all green.
->>>
->>> I added as well a capture output dmesgs. Not much of interest here, the
->>> first few lines configure the queue -- with my few added dprintk it can be
->>> seen that the queue sizes are seemingly incorrect.
->>>
->>> If and when this part is up and running, I wanted to use Vivid to test
->>> dma-buf based capture.
->>>
->>> Big thanks!
->>>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> I'm a bit fossil regarding current status of CA in DVB but anyway I can say
+> I know that some years ago existed CI-CAM modules for Nagra, it was
+> in time of so-called Nagra2 introduction on Hispasat ;)
+>
+> Dunno how is the current situation.
+>
+> An second - it has no difference if it is for sattelite or cable variant
+> of DVB. The CI-CAM standard is the same. The only problem
+> can be if support for particular provider is "baked" inside (meaning
+> only particular auth data are inserted).
+>
+> /Honza
+Thanks for the input Honza, but where we live, we are forced to use 
+Irdeto. Moreover, such a Nagra CAM would not eliminate the supposed 
+inability of MythTV to point (while tuning&locking) to the right CA 
+descriptor in a reliable way.
+Tycho
+
 
