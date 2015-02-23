@@ -1,77 +1,90 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59691 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932356AbbBPLmY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 06:42:24 -0500
-Message-ID: <54E1D78C.3000305@xs4all.nl>
-Date: Mon, 16 Feb 2015 12:42:04 +0100
+Return-Path: <hverkuil@xs4all.nl>
+Message-id: <54EAED82.5040804@xs4all.nl>
+Date: Mon, 23 Feb 2015 10:06:10 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net
-CC: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v2 00/15] media: blackfin: bfin_capture enhancements
-References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com> <CA+V-a8uVRZr3cYNsq5yehxjWoZMp6HMzm486KktKOXYkzJyFbA@mail.gmail.com> <54CF5E70.3000302@xs4all.nl>
-In-Reply-To: <54CF5E70.3000302@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+MIME-version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Hans Verkuil <hans.verkuil@cisco.com>,
+ Sylwester Nawrocki <s.nawrocki@samsung.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
+ linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4 1/2] media/v4l2-ctrls: Always run s_ctrl on volatile
+ ctrls
+References: <1424185706-16711-1-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1424185706-16711-1-git-send-email-ricardo.ribalda@gmail.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/02/2015 12:24 PM, Hans Verkuil wrote:
-> On 01/30/2015 04:49 PM, Lad, Prabhakar wrote:
->> Hello Scott,
->>
->> On Thu, Jan 22, 2015 at 10:18 PM, Lad, Prabhakar
->> <prabhakar.csengg@gmail.com> wrote:
->>> This patch series, enhances blackfin capture driver with
->>> vb2 helpers.
->>>
->>> Changes for v2:
->>> --------------
->>> Only patches 5/15 and 8/15 as per Scott's suggestions.
->>>
->>> Lad, Prabhakar (15):
->>>   media: blackfin: bfin_capture: drop buf_init() callback
->>>   media: blackfin: bfin_capture: release buffers in case
->>>     start_streaming() call back fails
->>>   media: blackfin: bfin_capture: set min_buffers_needed
->>>   media: blackfin: bfin_capture: improve buf_prepare() callback
->>>   media: blackfin: bfin_capture: improve queue_setup() callback
->>>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
->>>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
->>>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
->>>   media: blackfin: bfin_capture: make sure all buffers are returned on
->>>     stop_streaming() callback
->>>   media: blackfin: bfin_capture: return -ENODATA for *std calls
->>>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
->>>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
->>>   media: blackfin: bfin_capture: add support for VB2_DMABUF
->>>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
->>>   media: blackfin: bfin_capture: set v4l2 buffer sequence
->>>
->>>  drivers/media/platform/blackfin/bfin_capture.c | 311 ++++++++-----------------
->>>  1 file changed, 99 insertions(+), 212 deletions(-)
->>>
->> Can you ACK the series ? so that its easier for Hans to pick it up.
-> 
-> ping!
-> 
-> Scott, I can't take it unless you Ack it. Actually, I'd like to see a
-> 'Tested-by' tag.
-> 
-> And if you are testing anyway, then I would really like to see the output
-> of 'v4l2-compliance -s', using the v4l2-compliance from the latest v4l-utils.git.
-> 
-> I'm curious to see the results of that.
+Hi Ricardo,
 
-Ping! Again, I need an Ack.
+On 02/17/2015 04:08 PM, Ricardo Ribalda Delgado wrote:
+> Volatile controls can change their value outside the v4l-ctrl framework.
+> We should ignore the cached written value of the ctrl when evaluating if
+> we should run s_ctrl.
+
+I've been thinking some more about this (also due to some comments Laurent
+made on irc), and I think this should be done differently.
+
+What you want to do here is to signal that setting this control will execute
+some action that needs to happen even if the same value is set twice.
+
+That's not really covered by VOLATILE. Interestingly, the WRITE_ONLY flag is
+to be used for just that purpose, but this happens to be a R/W control, so
+that can't be used either.
+
+What is needed is the following:
+
+1) Add a new flag: V4L2_CTRL_FLAG_ACTION.
+2) Any control that sets FLAG_WRITE_ONLY should OR it with FLAG_ACTION (to
+   keep the current meaning of WRITE_ONLY).
+3) Any control with FLAG_ACTION set should return changed == true in
+   cluster_changed.
+4) Any control with FLAG_VOLATILE set should set ctrl->has_changed to false
+   to prevent generating the CH_VALUE control (that's a real bug).
+
+Your control will now set FLAG_ACTION and FLAG_VOLATILE and it will do the
+right thing.
+
+Basically what was missing was a flag to explicitly signal this 'writing
+executes an action' behavior. Trying to shoehorn that into the volatile
+flag or the write_only flag is just not right. It's a flag in its own right.
 
 Regards,
 
 	Hans
 
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+> v4: Hans Verkuil:
+> 
+> explicity set has_changed to false. and add comment
+> 
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 45c5b47..f34a689 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1609,6 +1609,17 @@ static int cluster_changed(struct v4l2_ctrl *master)
+>  
+>  		if (ctrl == NULL)
+>  			continue;
+> +
+> +		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
+> +			/*
+> +			 * Set has_changed to false to avoid generating
+> +			 * the event V4L2_EVENT_CTRL_CH_VALUE
+> +			 */
+> +			ctrl->has_changed = false;
+> +			changed = true;
+> +			continue;
+> +		}
+> +
+>  		for (idx = 0; !ctrl_changed && idx < ctrl->elems; idx++)
+>  			ctrl_changed = !ctrl->type_ops->equal(ctrl, idx,
+>  				ctrl->p_cur, ctrl->p_new);
+> 
