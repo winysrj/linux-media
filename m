@@ -1,81 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:47623 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751676AbbBRWt7 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49244 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752389AbbBWQhp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 17:49:59 -0500
-MIME-Version: 1.0
-In-Reply-To: <54E1D78C.3000305@xs4all.nl>
-References: <1421965128-10470-1-git-send-email-prabhakar.csengg@gmail.com>
- <CA+V-a8uVRZr3cYNsq5yehxjWoZMp6HMzm486KktKOXYkzJyFbA@mail.gmail.com>
- <54CF5E70.3000302@xs4all.nl> <54E1D78C.3000305@xs4all.nl>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Wed, 18 Feb 2015 22:49:26 +0000
-Message-ID: <CA+V-a8sbKeDD1NU0-ckATw2P-conp_Diuu+rd=sa=WQzKWeV_A@mail.gmail.com>
-Subject: Re: [PATCH v2 00/15] media: blackfin: bfin_capture enhancements
+	Mon, 23 Feb 2015 11:37:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 3/7] v4l2-subdev.c: add 'which' checks for enum ops.
+Date: Mon, 23 Feb 2015 18:38:46 +0200
+Message-ID: <8333854.bO18x4suAV@avalon>
+In-Reply-To: <1423827006-32878-4-git-send-email-hverkuil@xs4all.nl>
+References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl> <1423827006-32878-4-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+Hi Hans,
 
-On Mon, Feb 16, 2015 at 11:42 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 02/02/2015 12:24 PM, Hans Verkuil wrote:
->> On 01/30/2015 04:49 PM, Lad, Prabhakar wrote:
->>> Hello Scott,
->>>
->>> On Thu, Jan 22, 2015 at 10:18 PM, Lad, Prabhakar
->>> <prabhakar.csengg@gmail.com> wrote:
->>>> This patch series, enhances blackfin capture driver with
->>>> vb2 helpers.
->>>>
->>>> Changes for v2:
->>>> --------------
->>>> Only patches 5/15 and 8/15 as per Scott's suggestions.
->>>>
->>>> Lad, Prabhakar (15):
->>>>   media: blackfin: bfin_capture: drop buf_init() callback
->>>>   media: blackfin: bfin_capture: release buffers in case
->>>>     start_streaming() call back fails
->>>>   media: blackfin: bfin_capture: set min_buffers_needed
->>>>   media: blackfin: bfin_capture: improve buf_prepare() callback
->>>>   media: blackfin: bfin_capture: improve queue_setup() callback
->>>>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
->>>>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
->>>>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
->>>>   media: blackfin: bfin_capture: make sure all buffers are returned on
->>>>     stop_streaming() callback
->>>>   media: blackfin: bfin_capture: return -ENODATA for *std calls
->>>>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
->>>>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
->>>>   media: blackfin: bfin_capture: add support for VB2_DMABUF
->>>>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
->>>>   media: blackfin: bfin_capture: set v4l2 buffer sequence
->>>>
->>>>  drivers/media/platform/blackfin/bfin_capture.c | 311 ++++++++-----------------
->>>>  1 file changed, 99 insertions(+), 212 deletions(-)
->>>>
->>> Can you ACK the series ? so that its easier for Hans to pick it up.
->>
->> ping!
->>
->> Scott, I can't take it unless you Ack it. Actually, I'd like to see a
->> 'Tested-by' tag.
->>
->> And if you are testing anyway, then I would really like to see the output
->> of 'v4l2-compliance -s', using the v4l2-compliance from the latest v4l-utils.git.
->>
->> I'm curious to see the results of that.
->
-> Ping! Again, I need an Ack.
->
-Oops I need to respin fixing one of the patch.
+Thank you for the patch.
 
-Cheers,
---Prabhakar Lad
+On Friday 13 February 2015 12:30:02 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Return an error if an invalid 'which' valid is passed in.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/v4l2-core/v4l2-subdev.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
+> b/drivers/media/v4l2-core/v4l2-subdev.c index 3c8b198..8bafb94 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -321,6 +321,10 @@ static long subdev_do_ioctl(struct file *file, unsigned
+> int cmd, void *arg) case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
+>  		struct v4l2_subdev_mbus_code_enum *code = arg;
+> 
+> +		if (code->which != V4L2_SUBDEV_FORMAT_TRY &&
+> +		    code->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+> +			return -EINVAL;
+> +
+>  		if (code->pad >= sd->entity.num_pads)
+>  			return -EINVAL;
+> 
+> @@ -331,6 +335,10 @@ static long subdev_do_ioctl(struct file *file, unsigned
+> int cmd, void *arg) case VIDIOC_SUBDEV_ENUM_FRAME_SIZE: {
+>  		struct v4l2_subdev_frame_size_enum *fse = arg;
+> 
+> +		if (fse->which != V4L2_SUBDEV_FORMAT_TRY &&
+> +		    fse->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+> +			return -EINVAL;
+> +
+>  		if (fse->pad >= sd->entity.num_pads)
+>  			return -EINVAL;
+> 
+> @@ -359,6 +367,10 @@ static long subdev_do_ioctl(struct file *file, unsigned
+> int cmd, void *arg) case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL: {
+>  		struct v4l2_subdev_frame_interval_enum *fie = arg;
+> 
+> +		if (fie->which != V4L2_SUBDEV_FORMAT_TRY &&
+> +		    fie->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+> +			return -EINVAL;
+> +
+>  		if (fie->pad >= sd->entity.num_pads)
+>  			return -EINVAL;
+
+-- 
+Regards,
+
+Laurent Pinchart
+
