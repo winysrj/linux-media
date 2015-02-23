@@ -1,78 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:54113 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42811 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932416AbbBBQvx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2015 11:51:53 -0500
-Message-ID: <1422895907.6112.19.camel@pengutronix.de>
-Subject: Re: [PATCH v2 1/3] Add BGR888_1X24 and GBR888_1X24 media bus formats
+	with ESMTP id S1752308AbbBWPU1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2015 10:20:27 -0500
 From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Date: Mon, 02 Feb 2015 17:51:47 +0100
-In-Reply-To: <20150202164809.459eaf26@bbrezillon>
-References: <1417614811-15634-1-git-send-email-p.zabel@pengutronix.de>
-	 <54CF92DD.6020308@xs4all.nl> <1422890460.6112.9.camel@pengutronix.de>
-	 <20150202132421.6f2ecbd3.m.chehab@samsung.com>
-	 <1422891282.6112.15.camel@pengutronix.de>
-	 <20150202164809.459eaf26@bbrezillon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 00/12] CODA fixes and buffer allocation in REQBUFS
+Date: Mon, 23 Feb 2015 16:20:01 +0100
+Message-Id: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Boris,
+Hi,
 
-Am Montag, den 02.02.2015, 16:48 +0100 schrieb Boris Brezillon:
-> Hi Philip,
-> 
-> On Mon, 02 Feb 2015 16:34:42 +0100
-> Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> 
-> > Am Montag, den 02.02.2015, 13:24 -0200 schrieb Mauro Carvalho Chehab:
-> > > Em Mon, 02 Feb 2015 16:21:00 +0100
-> > > Philipp Zabel <p.zabel@pengutronix.de> escreveu:
-> > > 
-> > > > Am Montag, den 02.02.2015, 16:08 +0100 schrieb Hans Verkuil:
-> > > > > On 12/03/2014 02:53 PM, Philipp Zabel wrote:
-> > > > > > This patch adds two more 24-bit RGB formats. BGR888 is more or less common,
-> > > > > > GBR888 is used on the internal connection between the IPU display interface
-> > > > > > and the TVE (VGA DAC) on i.MX53 SoCs.
-> > > > > > 
-> > > > > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > > > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > > 
-> > > > > This three-part patch series doesn't apply. Is it on top of another patch
-> > > > > series?
-> > > > 
-> > > > It is on top of "Add RGB444_1X12 and RGB565_1X16 media bus formats" and
-> > > > "Add LVDS RGB media bus formats".
-> > > > 
-> > > > > Anyway, it can't be merged unless it is actually used in a driver.
-> > > > 
-> > > > I'd like to use these in the imx-drm driver, so this is kind of a
-> > > > chicken and egg situation. Shall I submit a patch that uses the defines
-> > > > to dri-devel and reference it here?
-> > > 
-> > > Submit the full patch series with the imx-drm driver, mentioning at the
-> > > V4L2 patch that it will be applied via the DRM tree. We'll review
-> > > and give our ack for it to be applied via DRM tree.
-> > 
-> > I'll do that, thanks.
-> 
-> Don't know if you plan to keep the dependency on my RGB444 and RGB565
-> addition, but if you do, I guess you don't want to wait for my
-> atmel-hlcdc changes, so the best solution is to include my patch in
-> your series ;-).
+this is a series of various fixes and a move of the per-context buffer
+allocation into the REQBUFS call. Allocating the bitstream buffer only
+after S_FMT allows at the same time to guarantee that the bitstream buffer
+is always large enough to contain two worst-case compressed frames and
+doesn't waste memory if a small format is selected.
 
-Ok, I'll include your patch since I need the RGB565 format description
-as well.
+Peter Seiderer (3):
+  [media] coda: check kasprintf return value in coda_open
+  [media] coda: fix double call to debugfs_remove
+  [media] coda: free decoder bitstream buffer
 
-regards
-Philipp
+Philipp Zabel (9):
+  [media] coda: bitstream payload is unsigned
+  [media] coda: use strlcpy instead of snprintf
+  [media] coda: allocate per-context buffers from REQBUFS
+  [media] coda: allocate bitstream buffer from REQBUFS, size depends on
+    the format
+  [media] coda: move parameter buffer in together with context buffer
+    allocation
+  [media] coda: remove duplicate error messages for buffer allocations
+  [media] coda: fail to start streaming if userspace set invalid formats
+  [media] coda: call SEQ_END when the first queue is stopped
+  [media] coda: fix fill bitstream errors in nonstreaming case
+
+ drivers/media/platform/coda/coda-bit.c    | 177 +++++++++++++++++++++---------
+ drivers/media/platform/coda/coda-common.c | 104 +++++++++---------
+ drivers/media/platform/coda/coda.h        |  13 +--
+ 3 files changed, 180 insertions(+), 114 deletions(-)
+
+-- 
+2.1.4
 
