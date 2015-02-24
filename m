@@ -1,99 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:58503 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754049AbbBPNb4 (ORCPT
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:43303 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751281AbbBXNAy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 08:31:56 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E867D2A0080
-	for <linux-media@vger.kernel.org>; Mon, 16 Feb 2015 14:31:36 +0100 (CET)
-Message-ID: <54E1F138.3020508@xs4all.nl>
-Date: Mon, 16 Feb 2015 14:31:36 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.21] Various fixes
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Tue, 24 Feb 2015 08:00:54 -0500
+Received: by wggy19 with SMTP id y19so5093352wgg.10
+        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2015 05:00:53 -0800 (PST)
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2] media: au0828: drop vbi_buffer_filled() and re-use buffer_filled()
+Date: Tue, 24 Feb 2015 13:00:29 +0000
+Message-Id: <1424782829-20907-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Just a bunch of various fixes for 3.21.
+The vbi_buffer_filled() and buffer_filled() did the same functionality
+except for incrementing the buffer sequence, this patch drops the
+vbi_buffer_filled() and re-uses buffer_filled() for vbi buffers
+as well by adding the check for vb2-queue type while incrementing
+the sequence numbers. Along side this patch aligns the input parameters
+of buffer_filled() function appropriately.
 
-Regards,
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Acked-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ Changes for v2:
+ 1: fixed a typo in commit message.
+ 2: Included a Ack from Shuah.
+ 
+ drivers/media/usb/au0828/au0828-video.c | 36 +++++++++++++--------------------
+ 1 file changed, 14 insertions(+), 22 deletions(-)
 
-	Hans
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index a27cb5f..60012ec 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -299,29 +299,23 @@ static int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
+  * Announces that a buffer were filled and request the next
+  */
+ static inline void buffer_filled(struct au0828_dev *dev,
+-				  struct au0828_dmaqueue *dma_q,
+-				  struct au0828_buffer *buf)
++				 struct au0828_dmaqueue *dma_q,
++				 struct au0828_buffer *buf)
+ {
+-	/* Advice that buffer was filled */
+-	au0828_isocdbg("[%p/%d] wakeup\n", buf, buf->top_field);
+-
+-	buf->vb.v4l2_buf.sequence = dev->frame_count++;
+-	buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
+-	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
+-	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
+-}
++	struct vb2_buffer vb = buf->vb;
++	struct vb2_queue *q = vb.vb2_queue;
+ 
+-static inline void vbi_buffer_filled(struct au0828_dev *dev,
+-				     struct au0828_dmaqueue *dma_q,
+-				     struct au0828_buffer *buf)
+-{
+ 	/* Advice that buffer was filled */
+ 	au0828_isocdbg("[%p/%d] wakeup\n", buf, buf->top_field);
+ 
+-	buf->vb.v4l2_buf.sequence = dev->vbi_frame_count++;
+-	buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
+-	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
+-	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
++	if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		vb.v4l2_buf.sequence = dev->frame_count++;
++	else
++		vb.v4l2_buf.sequence = dev->vbi_frame_count++;
++
++	vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
++	v4l2_get_timestamp(&vb.v4l2_buf.timestamp);
++	vb2_buffer_done(&vb, VB2_BUF_STATE_DONE);
+ }
+ 
+ /*
+@@ -574,9 +568,7 @@ static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
+ 			if (fbyte & 0x40) {
+ 				/* VBI */
+ 				if (vbi_buf != NULL)
+-					vbi_buffer_filled(dev,
+-							  vbi_dma_q,
+-							  vbi_buf);
++					buffer_filled(dev, vbi_dma_q, vbi_buf);
+ 				vbi_get_next_buf(vbi_dma_q, &vbi_buf);
+ 				if (vbi_buf == NULL)
+ 					vbioutp = NULL;
+@@ -949,7 +941,7 @@ static void au0828_vbi_buffer_timeout(unsigned long data)
+ 	if (buf != NULL) {
+ 		vbi_data = vb2_plane_vaddr(&buf->vb, 0);
+ 		memset(vbi_data, 0x00, buf->length);
+-		vbi_buffer_filled(dev, dma_q, buf);
++		buffer_filled(dev, dma_q, buf);
+ 	}
+ 	vbi_get_next_buf(dma_q, &buf);
+ 
+-- 
+1.9.1
 
-The following changes since commit 135f9be9194cf7778eb73594aa55791b229cf27c:
-
-  [media] dvb_frontend: start media pipeline while thread is running (2015-02-13 21:10:17 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.21a
-
-for you to fetch changes up to 4c75339d0238da17f5d28311373b6335d9f290b1:
-
-  media: radio: handle timeouts (2015-02-16 12:24:16 +0100)
-
-----------------------------------------------------------------
-Alexey Khoroshilov (1):
-      sh_vou: fix memory leak on error paths in sh_vou_open()
-
-Christian Engelmayer (1):
-      cx88: Fix possible leak in cx8802_probe()
-
-Geert Uytterhoeven (2):
-      am437x: VIDEO_AM437X_VPFE should depend on HAS_DMA
-      timberdale: VIDEO_TIMBERDALE should depend on HAS_DMA
-
-Hans Verkuil (1):
-      DocBook media: fix validation error
-
-Kiran Padwal (1):
-      staging: dt3155v4l: Switch to using managed resource with devm_
-
-Luis de Bethencourt (1):
-      media: bcm2048: remove unused return of function
-
-Markus Elfring (2):
-      stk-webcam: Delete an unnecessary check before the function call "vfree"
-      au0828: Delete unnecessary checks before the function call "video_unregister_device"
-
-Mauro Carvalho Chehab (1):
-      fixp-arith: replace sin/cos table by a better precision one
-
-Nicholas Mc Guire (4):
-      cx231xx: drop condition with no effect
-      si470x: fixup wait_for_completion_timeout return handling
-      media: radio: assign wait_for_completion_timeout to appropriately typed var
-      media: radio: handle timeouts
-
-Prashant Laddha (2):
-      vivid sdr: Use LUT based implementation for sin/cos()
-      vivid sdr: fix broken sine tone generated for sdr FM
-
-jean-michel.hautbois@vodalys.com (2):
-      media: i2c: ADV7604: In free run mode, signal is locked
-      media: adv7604: CP CSC uses a different register on adv7604 and adv7611
-
- Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml |   2 +-
- drivers/input/ff-memless.c                          |  18 +++++++--
- drivers/media/i2c/adv7604.c                         |  17 +++++++--
- drivers/media/pci/cx88/cx88-mpeg.c                  |   3 +-
- drivers/media/platform/Kconfig                      |   2 +-
- drivers/media/platform/am437x/Kconfig               |   2 +-
- drivers/media/platform/sh_vou.c                     |   9 +++--
- drivers/media/platform/vivid/vivid-sdr-cap.c        |  66 ++++++++++++++-------------------
- drivers/media/radio/radio-wl1273.c                  |  27 +++++++++-----
- drivers/media/radio/si470x/radio-si470x-common.c    |  14 ++++---
- drivers/media/usb/au0828/au0828-video.c             |   8 +---
- drivers/media/usb/cx231xx/cx231xx-core.c            |  13 ++-----
- drivers/media/usb/gspca/ov534.c                     |  11 ++----
- drivers/media/usb/stkwebcam/stk-webcam.c            |   6 +--
- drivers/staging/media/bcm2048/radio-bcm2048.c       |   4 +-
- drivers/staging/media/dt3155v4l/dt3155v4l.c         |  13 +++----
- include/linux/fixp-arith.h                          | 145 +++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------
- 17 files changed, 214 insertions(+), 146 deletions(-)
