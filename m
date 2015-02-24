@@ -1,48 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:32960 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932076AbbBZRJP (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36844 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752506AbbBXHqY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 12:09:15 -0500
-Date: Thu, 26 Feb 2015 09:09:11 -0800
-From: Jeremiah Mahler <jmmahler@gmail.com>
-To: Sudip JAIN <sudip.jain@st.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: 0001-media-vb2-Fill-vb2_buffer-with-bytesused-from-user.patch;
- kernel version 3.10.69
-Message-ID: <20150226170911.GA17392@hudson.localdomain>
-References: <AE3729EDFAD6D548827A31E3191F1E5B0138E8D7@EAPEX1MAIL1.st.com>
- <20150225182308.GB27977@hudson.localdomain>
- <AE3729EDFAD6D548827A31E3191F1E5B0138E8DF@EAPEX1MAIL1.st.com>
+	Tue, 24 Feb 2015 02:46:24 -0500
+Message-ID: <54EC2C49.8050006@xs4all.nl>
+Date: Tue, 24 Feb 2015 08:46:17 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AE3729EDFAD6D548827A31E3191F1E5B0138E8DF@EAPEX1MAIL1.st.com>
+To: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org
+CC: m.szyprowski@samsung.com
+Subject: Re: [PATCH v6 2/4] vb2: add allow_zero_bytesused flag to the vb2_queue
+ struct
+References: <1424694379-11115-1-git-send-email-k.debski@samsung.com> <1424694379-11115-2-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1424694379-11115-2-git-send-email-k.debski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sudip,
-
-On Thu, Feb 26, 2015 at 01:18:31PM +0800, Sudip JAIN wrote:
-> Hello Jeremiah,
+On 02/23/2015 01:26 PM, Kamil Debski wrote:
+> The vb2: fix bytesused == 0 handling (8a75ffb) patch changed the behavior
+> of __fill_vb2_buffer function, so that if bytesused is 0 it is set to the
+> size of the buffer. However, bytesused set to 0 is used by older codec
+> drivers as as indication used to mark the end of stream.
 > 
-> Please find the patch  "inline"
+> To keep backward compatibility, this patch adds a flag passed to the
+> vb2_queue_init function - allow_zero_bytesused. If the flag is set upon
+> initialization of the queue, the videobuf2 keeps the value of bytesused
+> intact in the OUTPUT queue and passes it to the driver.
 > 
-There are more problems than just not being "inline".
+> Reported-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
 
-- The subject line wrong.
-- The log message is formatted wrong.
-- This patch is not in a form that can be applied.
-- And there are probably more problems as well...
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I would review how to submit patches and then try again.
-I recommend watching the video by Greg Kroah-Hartman on how
-to submit your first kernel patch [1].
+Thanks!
 
-  [1]: https://www.youtube.com/watch?v=LLBrBBImJt4
+	Hans
 
-[...]
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c |   39 +++++++++++++++++++++++++-----
+>  include/media/videobuf2-core.h           |    2 ++
+>  2 files changed, 35 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 5cd60bf..33a5d93 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1247,6 +1247,16 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  {
+>  	unsigned int plane;
+>  
+> +	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> +		if (WARN_ON_ONCE(b->bytesused == 0)) {
+> +			pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
+> +			if (vb->vb2_queue->allow_zero_bytesused)
+> +				pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+> +			else
+> +				pr_warn_once("use the actual size instead.\n");
+> +		}
+> +	}
+> +
+>  	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+>  		if (b->memory == V4L2_MEMORY_USERPTR) {
+>  			for (plane = 0; plane < vb->num_planes; ++plane) {
+> @@ -1276,13 +1286,22 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  			 * userspace clearly never bothered to set it and
+>  			 * it's a safe assumption that they really meant to
+>  			 * use the full plane sizes.
+> +			 *
+> +			 * Some drivers, e.g. old codec drivers, use bytesused == 0
+> +			 * as a way to indicate that streaming is finished.
+> +			 * In that case, the driver should use the
+> +			 * allow_zero_bytesused flag to keep old userspace
+> +			 * applications working.
+>  			 */
+>  			for (plane = 0; plane < vb->num_planes; ++plane) {
+>  				struct v4l2_plane *pdst = &v4l2_planes[plane];
+>  				struct v4l2_plane *psrc = &b->m.planes[plane];
+>  
+> -				pdst->bytesused = psrc->bytesused ?
+> -					psrc->bytesused : pdst->length;
+> +				if (vb->vb2_queue->allow_zero_bytesused)
+> +					pdst->bytesused = psrc->bytesused;
+> +				else
+> +					pdst->bytesused = psrc->bytesused ?
+> +						psrc->bytesused : pdst->length;
+>  				pdst->data_offset = psrc->data_offset;
+>  			}
+>  		}
+> @@ -1295,6 +1314,11 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  		 *
+>  		 * If bytesused == 0 for the output buffer, then fall back
+>  		 * to the full buffer size as that's a sensible default.
+> +		 *
+> +		 * Some drivers, e.g. old codec drivers, use bytesused == 0 as
+> +		 * a way to indicate that streaming is finished. In that case,
+> +		 * the driver should use the allow_zero_bytesused flag to keep
+> +		 * old userspace applications working.
+>  		 */
+>  		if (b->memory == V4L2_MEMORY_USERPTR) {
+>  			v4l2_planes[0].m.userptr = b->m.userptr;
+> @@ -1306,10 +1330,13 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  			v4l2_planes[0].length = b->length;
+>  		}
+>  
+> -		if (V4L2_TYPE_IS_OUTPUT(b->type))
+> -			v4l2_planes[0].bytesused = b->bytesused ?
+> -				b->bytesused : v4l2_planes[0].length;
+> -		else
+> +		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> +			if (vb->vb2_queue->allow_zero_bytesused)
+> +				v4l2_planes[0].bytesused = b->bytesused;
+> +			else
+> +				v4l2_planes[0].bytesused = b->bytesused ?
+> +					b->bytesused : v4l2_planes[0].length;
+> +		} else
+>  			v4l2_planes[0].bytesused = 0;
+>  
+>  	}
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index e49dc6b..a5790fd 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -337,6 +337,7 @@ struct v4l2_fh;
+>   * @io_modes:	supported io methods (see vb2_io_modes enum)
+>   * @fileio_read_once:		report EOF after reading the first buffer
+>   * @fileio_write_immediately:	queue buffer after each write() call
+> + * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
+>   * @lock:	pointer to a mutex that protects the vb2_queue struct. The
+>   *		driver can set this to a mutex to let the v4l2 core serialize
+>   *		the queuing ioctls. If the driver wants to handle locking
+> @@ -388,6 +389,7 @@ struct vb2_queue {
+>  	unsigned int			io_modes;
+>  	unsigned			fileio_read_once:1;
+>  	unsigned			fileio_write_immediately:1;
+> +	unsigned			allow_zero_bytesused:1;
+>  
+>  	struct mutex			*lock;
+>  	struct v4l2_fh			*owner;
+> 
 
--- 
-- Jeremiah Mahler
