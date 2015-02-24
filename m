@@ -1,50 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49402 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753880AbbBMW6U (ORCPT
+Received: from smtprelay0131.hostedemail.com ([216.40.44.131]:48785 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751812AbbBXEyp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 17:58:20 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCHv4 04/25] [media] media: add new types for DVB devnodes
-Date: Fri, 13 Feb 2015 20:57:47 -0200
-Message-Id: <531e8c73d777d1a1d477597b722b78cd7c78bd99.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1423867976.git.mchehab@osg.samsung.com>
-References: <cover.1423867976.git.mchehab@osg.samsung.com>
+	Mon, 23 Feb 2015 23:54:45 -0500
+Message-ID: <1424753682.5342.9.camel@perches.com>
+Subject: Re: [PATCH] drivers: media: i2c : s5c73m3: Replace dev_err with
+ pr_err
+From: Joe Perches <joe@perches.com>
+To: Tapasweni Pathak <tapaswenipathak@gmail.com>
+Cc: kyungmin.park@samsung.com, a.hajda@samsung.com,
+	mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Date: Mon, 23 Feb 2015 20:54:42 -0800
+In-Reply-To: <20150224044731.GA5804@kt-Inspiron-3542>
+References: <20150224044731.GA5804@kt-Inspiron-3542>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most of the DVB subdevs have already their own devnode.
+On Tue, 2015-02-24 at 10:17 +0530, Tapasweni Pathak wrote:
+> Replace dev_err statement with pr_err to fix null dereference.
+> 
+> Found by Coccinelle.
+> 
+> Signed-off-by: Tapasweni Pathak <tapaswenipathak@gmail.com>
+> ---
+>  drivers/media/i2c/s5c73m3/s5c73m3-spi.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
+> index f60b265..63eb190 100644
+> --- a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
+> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
+> @@ -52,7 +52,7 @@ static int spi_xmit(struct spi_device *spi_dev, void *addr, const int len,
+>  		xfer.rx_buf = addr;
+> 
+>  	if (spi_dev == NULL) {
+> -		dev_err(&spi_dev->dev, "SPI device is uninitialized\n");
+> +		pr_err("SPI device is uninitialized\n");
+>  		return -ENODEV;
+>  	}
 
-Add support for them at the media controller API.
+It'd be better to move this above the if (dir...) block
+and use ratelimit/once it too
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+static int spi_xmit(struct spi_device *spi_dev, void *addr, const int len,
+		    enum spi_direction dir)
+{
+	struct spi_message msg;
+	int r;
+	struct spi_transfer xfer = {
+		.len	= len,
+	};
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 418f4fec391a..4c8f26243252 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -50,7 +50,14 @@ struct media_device_info {
- #define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
- #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
- #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
--#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
-+#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
-+#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
-+#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
-+#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
-+#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
-+
-+/* Legacy symbol. Use it to avoid userspace compilation breakages */
-+#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
- 
- #define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
- #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
--- 
-2.1.0
+	if (!spi_dev) {
+		pr_err_once("SPI device is uninitialized\n");
+		return -ENODEV;
+	}
+
+	if (dir == SPI_DIR_TX)
+		xfer.tx_buf = addr;
+	else
+		xfer.rx_buf = addr;
+
+	...
 
