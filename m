@@ -1,59 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f175.google.com ([209.85.213.175]:39531 "EHLO
-	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932144AbbBCIGd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 03:06:33 -0500
-Received: by mail-ig0-f175.google.com with SMTP id hn18so24697405igb.2
-        for <linux-media@vger.kernel.org>; Tue, 03 Feb 2015 00:06:33 -0800 (PST)
+Received: from mail-vc0-f172.google.com ([209.85.220.172]:57639 "EHLO
+	mail-vc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932079AbbBXTEQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Feb 2015 14:04:16 -0500
+Received: by mail-vc0-f172.google.com with SMTP id kv7so10625646vcb.3
+        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2015 11:04:16 -0800 (PST)
+Received: from mail-vc0-f179.google.com (mail-vc0-f179.google.com. [209.85.220.179])
+        by mx.google.com with ESMTPSA id l6sm322137vdl.7.2015.02.24.11.04.14
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 24 Feb 2015 11:04:15 -0800 (PST)
+Received: by mail-vc0-f179.google.com with SMTP id hy4so10794043vcb.10
+        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2015 11:04:14 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAPx3zdRNiaSKbG9PtVbnA_fXm-ietqOiciq9H0N5dHQFKibZ_w@mail.gmail.com>
-References: <CAPx3zdRNiaSKbG9PtVbnA_fXm-ietqOiciq9H0N5dHQFKibZ_w@mail.gmail.com>
-Date: Tue, 3 Feb 2015 10:06:32 +0200
-Message-ID: <CAAZRmGyh83_S0hSAz8f1=HGoCitMx=+kqM_pkQ0xWfOrLOAMyA@mail.gmail.com>
-Subject: Re: [BUG] - Why anyone fix this problem?
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Francesco Other <francesco.other@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <54ECB7DE.2010102@xs4all.nl>
+References: <54E547F4.6090309@chromium.org>
+	<54EC3016.8020407@xs4all.nl>
+	<CAPUS08467gbZp3U22K0mFVEzSq0KBQrFBO_x+pcic4R53zWr5g@mail.gmail.com>
+	<54ECB7DE.2010102@xs4all.nl>
+Date: Tue, 24 Feb 2015 11:04:14 -0800
+Message-ID: <CAPUS0854gttyWU9Xaro5AZW_ECx3V+gTd48yO3z=74gLiriryQ@mail.gmail.com>
+Subject: Re: [PATCH v2] Adding NV{12,21} and Y{U,V}12 pixel formats support.
+From: Miguel Casas-Sanchez <mcasas@chromium.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Francesco,
+On 24 February 2015 at 09:41, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 02/24/2015 06:00 PM, Miguel Casas-Sanchez wrote:
+>> Hi Hans,
+>>
+>> go for it if you feel it's the best approach. Are you planning to add
+>> multiplanar formats? Particularly, I'm interested in YUV420M and its
+>> twin evil brother YVU420M.
+>
+> Certainly. I'm planning to add all those YUV420 variants. Once you have
+> one working, the others are trivial.
 
-You need to understand that many people write code for their own
-enjoyment. In other words, they often write code to scratch an itch.
-Thus it can sometimes happen that there really is no-one here who
-could help you. The person who wrote the code originally might have
-stopped contributing and is more interested in gardening or
-kiteboarding these days. Maybe no-one here just has heard of the
-device you're talking about or owns one.
+Hooray!
 
-Anyway, I did some digging for you. The support for your device was
-originally added based on this patch
-https://patchwork.linuxtv.org/patch/7881/ submitted by Doron Cohen
-<doronc@siano-ms.com>. It seems he's working for the Siano company
-itself. Have you tried contacting them already?
+>
+>> I would recommend adding support for a less-common format such as
+>> YUV410 (or variation thereof). Since this format is so different, it
+>> stresses the added code in revealing ways. I was planning to support
+>> it as a bonus, but I noticed is not recognised in lib4vl -- neither in
+>> qv4l2, therefore. Just saying, it'd be cool.
+>
+> I'll look at it. Is it something you will need? It's a really rare format,
+> and I don't know if I want to spend a lot of time on it.
+>
 
-Cheers,
--olli
+Not particularly high need no; moreover the high downsampling makes
+it look visually awful. I just found it was good to stretch assumptions in
+the code such as missed hardcoded loop boundaries etc. It'd be a
+nice-to-have. Like I said, it also depends on adding support for it in
+libv4l (typo before).
 
-On 2 February 2015 at 15:10, Francesco Other <francesco.other@gmail.com> wrote:
-> Is it possible that the problem I explained here isn't interesting for anyone?
+> Regards,
 >
-> The device is supported by kernel but obviously there is a bug with DVB-T.
+>         Hans
 >
-> I have the working firmware (on Windows) for DVB-T if you need it.
+>>
+>> Cheers
+>> M
+>>
+>> On 24 February 2015 at 00:02, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>
+>>> Hi Miguel,
+>>>
+>>> Thanks for the patch. However, after reviewing it and testing it
+>>> I decided to implement my own version. Partially because several
+>>> features were still failing (crop/compose/scale), partially because
+>>> I didn't like the way the tpg was changed: too much change basically.
+>>>
+>>> Yesterday I added YUV 420 support. It's still work in progress as I
+>>> am not happy with some of the internal changes and because changing the
+>>> compose height fails to work at the moment.
+>>>
+>>> You can find my preliminary work here:
+>>>
+>>> http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/log/?h=vivid-420
+>>>
+>>> I plan to continue work on this on Friday and Monday, fixing any
+>>> remaining bugs, adding support for the other planar formats and
+>>> carefully reviewing if I handle the downsampling correctly. I also
+>>> want to add output support for these formats.
+>>>
+>>> Regards,
+>>>
+>>>         Hans
+>>>
+>>> On 02/19/2015 03:18 AM, Miguel Casas-Sanchez wrote:
+>>>>
+>>>> This is the second attempt at creating a patch doing
+>>>> that while respecting the pattern movements, crops,
+>>>> and other artifacts that can be added to the generated
+>>>> frames.
+>>>>
+>>>> Hope it addresses Hans' comments on the first patch.
+>>>> It should create properly moving patterns, border,
+>>>> square and noise. SAV/EAV are left out for the new
+>>>> formats, but can be pulled in if deemed interesting/
+>>>> necessary. New formats' descriptions are shorter.
+>>>> Needless to say, previous formats should work 100%
+>>>> the same as before.
+>>>>
+>>>> Text is, still, printed as Y only. I think the
+>>>> goal of the text is not pixel-value-based comparisons,
+>>>> but human reading. Please let me know otherwise.
+>>>>
+>>>> It needed quite some refactoring of the original
+>>>> tpg_fillbuffer() function:
+>>>> - the internal code generating the video buffer
+>>>>   line-by-line are factored out into a function
+>>>>   tpg_fill_oneline(). const added wherever it made
+>>>>   sense.
+>>>> - this new tpg_fill_oneline() is used by both
+>>>>   new functions tpg_fillbuffer_packed() and
+>>>>   tpg_fillbuffer_planar().
+>>>> - tpg_fillbuffer_packed() does the non-planar
+>>>>   formats' buffer composition, so it does, or should
+>>>>   do, pretty much the same as vivid did before this
+>>>>   patch.
+>>>>
+>>>> Tested via both guvcview and qv4l2, checking formats,
+>>>> patterns, pattern movements, box and frame checkboxes.
+>>>>
+>>>> Hope I managed to get the patch correctly into the mail
+>>>> i.e. no spurious wraparounds, no whitespaces etc :)
+>>>>
+>>>> Signed-off-by: Miguel Casas-Sanchez <mcasas@chromium.org>
+>>>
 >
-> http://www.spinics.net/lists/linux-media/msg85505.html
->
-> http://www.spinics.net/lists/linux-media/msg85478.html
->
-> http://www.spinics.net/lists/linux-media/msg85432.html
->
-> Regards
->
-> Francesco
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
