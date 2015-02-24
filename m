@@ -1,101 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:8604 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754525AbbBTQPO (ORCPT
+Received: from lists.s-osg.org ([54.187.51.154]:36982 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751151AbbBXNoo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2015 11:15:14 -0500
-Message-id: <54E75D8E.40004@samsung.com>
-Date: Fri, 20 Feb 2015 17:15:10 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Greg KH <greg@kroah.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, Pavel Machek <pavel@ucw.cz>,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	cooloney@gmail.com, rpurdie@rpsys.net, s.nawrocki@samsung.com
-Subject: Re: 0.led_name 2.other.led.name in /sysfs Re: [PATCH/RFC v11 01/20]
- leds: flash: document sysfs interface
-References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
- <1424276441-3969-2-git-send-email-j.anaszewski@samsung.com>
- <20150218224747.GA3999@amd> <20150219090204.GI3915@valkosipuli.retiisi.org.uk>
- <20150219214043.GB29875@kroah.com> <54E6E89B.4050404@samsung.com>
- <20150220153616.GB18111@kroah.com>
-In-reply-to: <20150220153616.GB18111@kroah.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Tue, 24 Feb 2015 08:44:44 -0500
+Date: Tue, 24 Feb 2015 10:44:38 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: David =?UTF-8?B?Q2ltYsWvcmVr?= <david.cimburek@gmail.com>,
+	Luis de Bethencourt <luis@debethencourt.com>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working
+ since kernel 3.17
+Message-ID: <20150224104438.53bcfd59@recife.lan>
+In-Reply-To: <67d0fa2066c017a66ad785dc90447d08@hardeman.nu>
+References: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
+	<54D9E14A.5090200@iki.fi>
+	<e65f6b905eae37f11e697ad20b97c37c@hardeman.nu>
+	<CAEmZozPN2xDQMyao8GAYB1KqKxvgznn6CNc+LgPGhE=TJfDbFQ@mail.gmail.com>
+	<32c10d8cd2303ed9476db1b68924170a@hardeman.nu>
+	<CAEmZozP5jrJnWAF6ZbXtvkRveZE29BnSg+hO2x9KDSyPmjBBaQ@mail.gmail.com>
+	<20150212095029.018f63df@recife.lan>
+	<CAEmZozOTuigxavH_5M4mw5kDHS_mxgwLS53HipG2o4uvm_09OQ@mail.gmail.com>
+	<20150212215700.GA4882@turing>
+	<CAEmZozPKsBwq4=TtAOtR-LdjOi3k8MhmEqZ49gg8X48P1f5wdQ@mail.gmail.com>
+	<CAEmZozMP1FFN-Y1d+7Mopy1Y9_2FjX2tJmmCne_Gpa2+_yFg0g@mail.gmail.com>
+	<67d0fa2066c017a66ad785dc90447d08@hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/20/2015 04:36 PM, Greg KH wrote:
-> On Fri, Feb 20, 2015 at 08:56:11AM +0100, Jacek Anaszewski wrote:
->> On 02/19/2015 10:40 PM, Greg KH wrote:
->>> On Thu, Feb 19, 2015 at 11:02:04AM +0200, Sakari Ailus wrote:
->>>> On Wed, Feb 18, 2015 at 11:47:47PM +0100, Pavel Machek wrote:
->>>>>
->>>>> On Wed 2015-02-18 17:20:22, Jacek Anaszewski wrote:
->>>>>> Add a documentation of LED Flash class specific sysfs attributes.
->>>>>>
->>>>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->>>>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->>>>>> Cc: Bryan Wu <cooloney@gmail.com>
->>>>>> Cc: Richard Purdie <rpurdie@rpsys.net>
->>>>>
->>>>> NAK-ed-by: Pavel Machek
->>>>>
->>>>>> +What:		/sys/class/leds/<led>/available_sync_leds
->>>>>> +Date:		February 2015
->>>>>> +KernelVersion:	3.20
->>>>>> +Contact:	Jacek Anaszewski <j.anaszewski@samsung.com>
->>>>>> +Description:	read/write
->>>>>> +		Space separated list of LEDs available for flash strobe
->>>>>> +		synchronization, displayed in the format:
->>>>>> +
->>>>>> +		led1_id.led1_name led2_id.led2_name led3_id.led3_name etc.
->>>>>
->>>>> Multiple values per file, with all the problems we had in /proc. I
->>>>> assume led_id is an integer? What prevents space or dot in led name?
->>>>
->>>> Very good point. How about using a newline instead? That'd be a little bit
->>>> easier to parse, too.
->>>
->>> No, please make it one value per-file, which is what sysfs requires.
->>
->> The purpose of this attribute is only to provide an information about
->> the range of valid identifiers that can be written to the
->> flash_sync_strobe attribute. Wouldn't splitting this to many attributes
->> be an unnecessary inflation of sysfs files?
->
-> Ok a list of allowed values to write is acceptable, as long as it is not
-> hard to parse and always is space separated.
+Em Tue, 24 Feb 2015 11:15:53 +0100
+David Härdeman <david@hardeman.nu> escreveu:
 
-Is a new line character also acceptable as a delimiter?
+> On 2015-02-24 11:08, David Cimbůrek wrote:
+> >>> Hi,
+> >>> 
+> >>> I looked at this again and I still don't see why the order is 
+> >>> important.
+> >>> Plus the code looks like it does what it should be doing when using
+> >>> RC_SCANCODE_NEC, RC_SCANCODE_NEC32, RC_SCANCODE_NECX and 
+> >>> RC_SCANCODE_RC5.
+> >>> 
+> >>> Unfortunately I can't review this if I am not sure about it, and I 
+> >>> don't
+> >>> have the device to be able to properly test your patch.
+> >>> 
+> >>> Hopefully your print of the scancodes helps.
+> >>> 
+> >>> Luis
+> >> 
+> >> Hi,
+> >> 
+> >> unfortunately I don't understand the code very well but it really
+> >> works like I described.
+> >> 
+> >> I tried to get debugging output from the
+> >> dib0700_core.c:dib0700_rc_urb_completion() function:
+> >> 
+> >> deb_data("IR ID = %02X state = %02X System = %02X %02X Cmd = %02X %02X
+> >> (len %d)\n",
+> >>         poll_reply->report_id, poll_reply->data_state,
+> >>         poll_reply->system, poll_reply->not_system,
+> >>         poll_reply->data, poll_reply->not_data,
+> >>         purb->actual_length);
+> >> 
+> >> And the output after my patch (and before commit
+> >> af3a4a9bbeb00df3e42e77240b4cdac5479812f9!) looks like this:
+> >> 
+> >> [  282.842557] IR ID = 01 state = 01 System = 07 00 Cmd = 0F F0 (len 
+> >> 6)
+> >> [  282.955810] IR ID = 01 state = 02 System = 07 00 Cmd = 0F F0 (len 
+> >> 6)
+> >> 
+> >> But without my patch the output looks after commit
+> >> af3a4a9bbeb00df3e42e77240b4cdac5479812f9 like this:
+> >> 
+> >> [  186.302282] IR ID = 01 state = 01 System = 00 07 Cmd = 0F F0 (len 
+> >> 6)
+> >> [  186.415660] IR ID = 01 state = 02 System = 00 07 Cmd = 0F F0 (len 
+> >> 6)
+> >> 
+> >> You can see that the content of "system" and "not_system" is really 
+> >> switched...
+> >> 
+> >> Regards,
+> >> David
+> > 
+> > Is there anything more I can do? Shall I provide some more debugging
+> > outputs? There is no response nearly for two weeks...
+> 
+> Sorry, I'm just really busy.
+> 
+> The output that you gave (the actual scancodes that are generated) is 
+> what I was looking for, not the keymap. If I remember correctly my patch 
+> wasn't supposed to change the generated scancodes (or the keymap would 
+> have to be changed as well).
+> 
+> The question is whether the right thing to do is to change back the 
+> scancode calculation or to update the keymap. I'll try to have a closer 
+> look as soon as possible (which might take a few days more, sorry).
 
->> Apart from it, we have also flash_faults attribute, that currently
->> provides a space separated list of flash faults that have occurred.
->
-> That's crazy, what's to keep it from growing and growing to be larger
-> than is allowed to be read?
+I suspect we should change back the scancode calculation, as I think that
+the scancode table is right, but I need to do some tests with some other
+driver to be certain.
 
-The number of possible faults is fixed to 9 currently. They are 
-presented in the form of strings no longer currently than 40 characters.
-There can be maximum 9 faults reported at a time, this is not a kind of
-a log. This will allow to define roughly 100 types of faults, having
-that PAGE_SIZE is 4096. I think this is far more than it is conceivable
-for the simple LED flash device.
+I have a few devices here that I can use for testing, including a PCTV
+remote, just lacking the time.
 
->> If we are to stick tightly to the one-value-per-file rule, then how
->> we should approach flash_faults case? Should the separate file be
->> dynamically created for each reported fault?
->
-> I think you need to use something other than sysfs here, sorry.
->
-> uevents for your faults?
->
-> thanks,
->
-> greg k-h
->
-
--- 
-Best Regards,
-Jacek Anaszewski
+> 
+> Re,
+> David
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
