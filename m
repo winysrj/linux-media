@@ -1,62 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:24172 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751783AbbBRQXD (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53841 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751812AbbBXD1n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2015 11:23:03 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>
-Subject: [PATCH/RFC v11 06/20] mfd: max77693: Remove struct
- max77693_led_platform_data
-Date: Wed, 18 Feb 2015 17:20:27 +0100
-Message-id: <1424276441-3969-7-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
-References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+	Mon, 23 Feb 2015 22:27:43 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id A5EBF2A0004
+	for <linux-media@vger.kernel.org>; Tue, 24 Feb 2015 04:27:37 +0100 (CET)
+Date: Tue, 24 Feb 2015 04:27:37 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150224032737.A5EBF2A0004@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The flash part of the max77693 device will depend only on OF, and thus
-will not use board files. Since there are no other users of the
-struct max77693_led_platform_data its existence is unjustified.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
----
- include/linux/mfd/max77693.h |   13 -------------
- 1 file changed, 13 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
-index f0b6585..ce894b6 100644
---- a/include/linux/mfd/max77693.h
-+++ b/include/linux/mfd/max77693.h
-@@ -87,19 +87,6 @@ enum max77693_led_boost_mode {
- 	MAX77693_LED_BOOST_FIXED,
- };
- 
--struct max77693_led_platform_data {
--	u32 fleds[2];
--	u32 iout_torch[2];
--	u32 iout_flash[2];
--	u32 trigger[2];
--	u32 trigger_type[2];
--	u32 num_leds;
--	u32 boost_mode;
--	u32 flash_timeout;
--	u32 boost_vout;
--	u32 low_vsys;
--};
--
- /* MAX77693 */
- 
- struct max77693_platform_data {
--- 
-1.7.9.5
+date:		Tue Feb 24 04:00:18 CET 2015
+git branch:	test
+git hash:	8a26a258bdb82db241cdc35f332f88dd67bdb9c9
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-5.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
