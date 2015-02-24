@@ -1,39 +1,120 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:56130 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754303AbbBPMUi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 07:20:38 -0500
-Date: Mon, 16 Feb 2015 12:18:29 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Subject: Recent commit introduces compiler Error in some platforms
-Message-ID: <20150216121829.GA23673@biggie>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+In-reply-to: <1805679.hlRzVeq61B@avalon>
+References: <1424185706-16711-1-git-send-email-ricardo.ribalda@gmail.com>
+ <54EAED82.5040804@xs4all.nl> <1805679.hlRzVeq61B@avalon>
+MIME-version: 1.0
+Content-transfer-encoding: 8bit
+Content-type: text/plain; charset=UTF-8
+Subject: Re: [PATCH v4 1/2] media/v4l2-ctrls: Always run s_ctrl on volatile
+ ctrls
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 24 Feb 2015 08:04:43 +0700
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+ Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Hans Verkuil <hans.verkuil@cisco.com>,
+ Sylwester Nawrocki <s.nawrocki@samsung.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
+ linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Message-id: <E6C16338-CF67-4308-BD0B-3D1F10A024BE@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hello Hans and Laurent
 
-As can be seen in Han's build log:
-http://hverkuil.home.xs4all.nl/logs/Saturday.log
 
-The recent commit bc0c5aa35ac88342831933ca7758ead62d9bae2b introduces a
-compiler error in some platforms.
+I understand volatile as a control that can change its value by the device. So in that sense I think that my control is volatile and writeable (ack by the user).
 
-/home/hans/work/build/media_build/v4l/ir-hix5hd2.c: In function 'hix5hd2_ir_config':
-/home/hans/work/build/media_build/v4l/ir-hix5hd2.c:95:2: error: implicit declaration of function 'writel_relaxed' [-Werror=implicit-function-declaration]
-  writel_relaxed(0x01, priv->base + IR_ENABLE);
-  ^
+The value written by the user is meaning-less in my usercase, but in another s it could be useful.
 
-Better than reverting, what would be a good solution for this problem?
-I am happy to implment it once I know what is the right direction.
+I am outside the office and with no computer for the next two weeks. If you can wait until then I can implement Hans idea or another one and try it out with my hw. 
 
->From what I see that commit mentions that the function is now available from
-include/asm-generic/io.h, but this isn't included.
+Thanks for consideing my usercase :)
 
-Thanks,
-Luis
+
+Regards
+
+(Sorry for duplicate, still trying to convince my phone to use plain text)
+
+On 24 February 2015 06:07:49 GMT+07:00, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+>Hi Hans,
+>
+>On Monday 23 February 2015 10:06:10 Hans Verkuil wrote:
+>> On 02/17/2015 04:08 PM, Ricardo Ribalda Delgado wrote:
+>> > Volatile controls can change their value outside the v4l-ctrl
+>framework.
+>> > We should ignore the cached written value of the ctrl when
+>evaluating if
+>> > we should run s_ctrl.
+>> 
+>> I've been thinking some more about this (also due to some comments
+>Laurent
+>> made on irc), and I think this should be done differently.
+>> 
+>> What you want to do here is to signal that setting this control will
+>execute
+>> some action that needs to happen even if the same value is set twice.
+>> 
+>> That's not really covered by VOLATILE. Interestingly, the WRITE_ONLY
+>flag is
+>> to be used for just that purpose, but this happens to be a R/W
+>control, so
+>> that can't be used either.
+>> 
+>> What is needed is the following:
+>> 
+>> 1) Add a new flag: V4L2_CTRL_FLAG_ACTION.
+>> 2) Any control that sets FLAG_WRITE_ONLY should OR it with
+>FLAG_ACTION (to
+>>    keep the current meaning of WRITE_ONLY).
+>> 3) Any control with FLAG_ACTION set should return changed == true in
+>>    cluster_changed.
+>> 4) Any control with FLAG_VOLATILE set should set ctrl->has_changed to
+>false
+>>    to prevent generating the CH_VALUE control (that's a real bug).
+>> 
+>> Your control will now set FLAG_ACTION and FLAG_VOLATILE and it will
+>do the
+>> right thing.
+>
+>I'm not sure about Ricardo's use case, is it the one we've discussed on
+>#v4l ? 
+>If so, and if I recall correctly, the idea was to perform an action
+>with a 
+>parameter, and didn't require volatility.
+>
+>> Basically what was missing was a flag to explicitly signal this
+>'writing
+>> executes an action' behavior. Trying to shoehorn that into the
+>volatile
+>> flag or the write_only flag is just not right. It's a flag in its own
+>right.
+>
+>Just for the sake of exploring all options, what did you think about
+>the idea 
+>of making button controls accept a value ?
+>
+>Your proposal is interesting as well, but I'm not sure about the 
+>V4L2_CTRL_FLAG_ACTION name. Aren't all controls supposed to have an
+>action of 
+>some sort ? That's nitpicking of course.
+>
+>Also, should the action flag be automatically set for button controls ?
+>Button 
+>controls would in a way become type-less controls with the action flag
+>set, 
+>that's interesting. I suppose type-less controls without the action
+>flag don't 
+>make sense.
+>
+>> > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>> > ---
+>> > v4: Hans Verkuil:
+>> > 
+>> > explicity set has_changed to false. and add comment
+>> > 
+>> >  drivers/media/v4l2-core/v4l2-ctrls.c | 11 +++++++++++
+>> >  1 file changed, 11 insertions(+)
+
+-- 
+Ricardo Ribalda
+Sent from my Android device with K-9 Mail. Please excuse my brevity.
