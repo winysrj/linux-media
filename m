@@ -1,32 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:45375 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755397AbbBPPIF (ORCPT
+Received: from mail-vc0-f180.google.com ([209.85.220.180]:44803 "EHLO
+	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753053AbbBXRAj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 10:08:05 -0500
-Received: by mail-vc0-f174.google.com with SMTP id id10so10773476vcb.5
-        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2015 07:08:04 -0800 (PST)
+	Tue, 24 Feb 2015 12:00:39 -0500
+Received: by mail-vc0-f180.google.com with SMTP id im6so10474680vcb.11
+        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2015 09:00:39 -0800 (PST)
+Received: from mail-vc0-f175.google.com (mail-vc0-f175.google.com. [209.85.220.175])
+        by mx.google.com with ESMTPSA id lp17sm4740596vdb.19.2015.02.24.09.00.37
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 24 Feb 2015 09:00:38 -0800 (PST)
+Received: by mail-vc0-f175.google.com with SMTP id hq12so10403071vcb.6
+        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2015 09:00:37 -0800 (PST)
 MIME-Version: 1.0
-Date: Mon, 16 Feb 2015 10:08:04 -0500
-Message-ID: <CAOraNAbMn227Doegfx-o=-edLCwaL3so-6019jHf+ydChuoiCQ@mail.gmail.com>
-Subject: Can the patch adding support for the Tasco USB microscope be queued up?
-From: Steven Zakulec <spzakulec@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Michael Hall <mhall119@gmail.com>
+In-Reply-To: <54EC3016.8020407@xs4all.nl>
+References: <54E547F4.6090309@chromium.org>
+	<54EC3016.8020407@xs4all.nl>
+Date: Tue, 24 Feb 2015 09:00:37 -0800
+Message-ID: <CAPUS08467gbZp3U22K0mFVEzSq0KBQrFBO_x+pcic4R53zWr5g@mail.gmail.com>
+Subject: Re: [PATCH v2] Adding NV{12,21} and Y{U,V}12 pixel formats support.
+From: Miguel Casas-Sanchez <mcasas@chromium.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, as an owner of a Tasco/Aveo USB microscope detected but not
-working under Linux, I'd really like to see the patch adding this
-variant added to the kernel.  I've copied the patch's author on the
-email.
-The people on the linux-uvc-devel list directed me over here.
+Hi Hans,
 
-The patch here:
-http://sourceforge.net/p/linux-uvc/mailman/message/32434617/ , itself
-an update of an earlier patch:
-http://sourceforge.net/p/linux-uvc/mailman/message/29835445/ works.
-The patch does make the USB microscope work where it didn't work at all before.
+go for it if you feel it's the best approach. Are you planning to add
+multiplanar formats? Particularly, I'm interested in YUV420M and its
+twin evil brother YVU420M.
 
-Thank you!
+I would recommend adding support for a less-common format such as
+YUV410 (or variation thereof). Since this format is so different, it
+stresses the added code in revealing ways. I was planning to support
+it as a bonus, but I noticed is not recognised in lib4vl -- neither in
+qv4l2, therefore. Just saying, it'd be cool.
+
+Cheers
+M
+
+On 24 February 2015 at 00:02, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> Hi Miguel,
+>
+> Thanks for the patch. However, after reviewing it and testing it
+> I decided to implement my own version. Partially because several
+> features were still failing (crop/compose/scale), partially because
+> I didn't like the way the tpg was changed: too much change basically.
+>
+> Yesterday I added YUV 420 support. It's still work in progress as I
+> am not happy with some of the internal changes and because changing the
+> compose height fails to work at the moment.
+>
+> You can find my preliminary work here:
+>
+> http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/log/?h=vivid-420
+>
+> I plan to continue work on this on Friday and Monday, fixing any
+> remaining bugs, adding support for the other planar formats and
+> carefully reviewing if I handle the downsampling correctly. I also
+> want to add output support for these formats.
+>
+> Regards,
+>
+>         Hans
+>
+> On 02/19/2015 03:18 AM, Miguel Casas-Sanchez wrote:
+> >
+> > This is the second attempt at creating a patch doing
+> > that while respecting the pattern movements, crops,
+> > and other artifacts that can be added to the generated
+> > frames.
+> >
+> > Hope it addresses Hans' comments on the first patch.
+> > It should create properly moving patterns, border,
+> > square and noise. SAV/EAV are left out for the new
+> > formats, but can be pulled in if deemed interesting/
+> > necessary. New formats' descriptions are shorter.
+> > Needless to say, previous formats should work 100%
+> > the same as before.
+> >
+> > Text is, still, printed as Y only. I think the
+> > goal of the text is not pixel-value-based comparisons,
+> > but human reading. Please let me know otherwise.
+> >
+> > It needed quite some refactoring of the original
+> > tpg_fillbuffer() function:
+> > - the internal code generating the video buffer
+> >   line-by-line are factored out into a function
+> >   tpg_fill_oneline(). const added wherever it made
+> >   sense.
+> > - this new tpg_fill_oneline() is used by both
+> >   new functions tpg_fillbuffer_packed() and
+> >   tpg_fillbuffer_planar().
+> > - tpg_fillbuffer_packed() does the non-planar
+> >   formats' buffer composition, so it does, or should
+> >   do, pretty much the same as vivid did before this
+> >   patch.
+> >
+> > Tested via both guvcview and qv4l2, checking formats,
+> > patterns, pattern movements, box and frame checkboxes.
+> >
+> > Hope I managed to get the patch correctly into the mail
+> > i.e. no spurious wraparounds, no whitespaces etc :)
+> >
+> > Signed-off-by: Miguel Casas-Sanchez <mcasas@chromium.org>
+>
