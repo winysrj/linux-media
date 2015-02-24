@@ -1,112 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52538 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165AbbBWKyS (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:35553 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750748AbbBXIFM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 05:54:18 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Benoit Parrot <bparrot@ti.com>
-Cc: Darren Etheridge <detheridge@ti.com>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-arm-kernel@lists.infradead.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mathieu Poirier <mathieu.poirier@linaro.org>,
-	David Airlie <airlied@linux.ie>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v8 3/3] of: Add of_graph_get_port_by_id function
-Date: Mon, 23 Feb 2015 11:54:06 +0100
-Message-Id: <1424688846-10909-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1424688846-10909-1-git-send-email-p.zabel@pengutronix.de>
-References: <1424688846-10909-1-git-send-email-p.zabel@pengutronix.de>
+	Tue, 24 Feb 2015 03:05:12 -0500
+MIME-Version: 1.0
+In-Reply-To: <7125910.hm5qgSJ3zA@avalon>
+References: <1424722773-20131-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1424722773-20131-3-git-send-email-prabhakar.csengg@gmail.com> <7125910.hm5qgSJ3zA@avalon>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Tue, 24 Feb 2015 08:04:40 +0000
+Message-ID: <CA+V-a8urdZhD97m4mQu_aYLWW9Kf0PSx=ddhbvteb-HRz2hEEA@mail.gmail.com>
+Subject: Re: [PATCH 2/3] media: omap3isp: ispvideo: drop driver specific isp_video_fh
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a function to get a port device tree node by port id,
-or reg property value.
+Hi Laurent,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/of/base.c        | 32 ++++++++++++++++++++++++++++++++
- include/linux/of_graph.h |  7 +++++++
- 2 files changed, 39 insertions(+)
+Thanks for the review.
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 05b20f1..6398b9c 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2081,6 +2081,38 @@ int of_graph_parse_endpoint(const struct device_node *node,
- EXPORT_SYMBOL(of_graph_parse_endpoint);
- 
- /**
-+ * of_graph_get_port_by_id() - get the port matching a given id
-+ * @parent: pointer to the parent device node
-+ * @id: id of the port
-+ *
-+ * Return: A 'port' node pointer with refcount incremented. The caller
-+ * has to use of_node_put() on it when done.
-+ */
-+struct device_node *of_graph_get_port_by_id(struct device_node *parent, u32 id)
-+{
-+	struct device_node *node, *port;
-+
-+	node = of_get_child_by_name(parent, "ports");
-+	if (node)
-+		parent = node;
-+
-+	for_each_child_of_node(parent, port) {
-+		u32 port_id = 0;
-+
-+		if (of_node_cmp(port->name, "port") != 0)
-+			continue;
-+		of_property_read_u32(port, "reg", &port_id);
-+		if (id == port_id)
-+			break;
-+	}
-+
-+	of_node_put(node);
-+
-+	return port;
-+}
-+EXPORT_SYMBOL(of_graph_get_port_by_id);
-+
-+/**
-  * of_graph_get_next_endpoint() - get next endpoint node
-  * @parent: pointer to the parent device node
-  * @prev: previous endpoint node, or NULL to get first
-diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-index e43442e..3c1c95a 100644
---- a/include/linux/of_graph.h
-+++ b/include/linux/of_graph.h
-@@ -40,6 +40,7 @@ struct of_endpoint {
- #ifdef CONFIG_OF
- int of_graph_parse_endpoint(const struct device_node *node,
- 				struct of_endpoint *endpoint);
-+struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id);
- struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 					struct device_node *previous);
- struct device_node *of_graph_get_remote_port_parent(
-@@ -53,6 +54,12 @@ static inline int of_graph_parse_endpoint(const struct device_node *node,
- 	return -ENOSYS;
- }
- 
-+static inline struct device_node *of_graph_get_port_by_id(
-+					struct device_node *node, u32 id)
-+{
-+	return NULL;
-+}
-+
- static inline struct device_node *of_graph_get_next_endpoint(
- 					const struct device_node *parent,
- 					struct device_node *previous)
--- 
-2.1.4
+On Tue, Feb 24, 2015 at 12:35 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
+>
+> Thank you for the patch.
+>
+> On Monday 23 February 2015 20:19:32 Lad Prabhakar wrote:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> this patch drops driver specific isp_video_fh, as this
+>> can be handled by core.
+>
+> I'm afraid it's not that simple.
+>
+> The omap3isp driver stores video queues per file handle for a reason. This was
+> design to permit creating a high-resolution still image capture queue and
+> prepare buffers ahead of time, to avoid the large delay due to cache
+> management as prepare time when taking the snapshot.
+>
+Ah I see the reason.
 
+> Now this use case has been partially solved by VIDIOC_CREATE_BUFS, but we're
+> still missing a VIDIOC_DESTROY_BUFS to make it work completely. That needs to
+> be solved first.
+>
+I haven't used the VIDIOC_CREATE_BUFS ioctl so far in any of the apps
+so cant comment
+much on this.
+But isn't that obvious we need VIDIOC_DESTROY_BUFS or is there any backdoor
+to destroy them that I am missing ?
+
+Regards,
+--Prabhakar Lad
+
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> ---
+>>  drivers/media/platform/omap3isp/ispvideo.c | 128  ++++++++++---------------
+>>  drivers/media/platform/omap3isp/ispvideo.h |  13 +--
+>>  2 files changed, 49 insertions(+), 92 deletions(-)
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
