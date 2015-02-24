@@ -1,57 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41499 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752944AbbBQMYL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 07:24:11 -0500
-Message-ID: <54E332C5.6080503@xs4all.nl>
-Date: Tue, 17 Feb 2015 13:23:33 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from vader.hardeman.nu ([95.142.160.32]:48744 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750925AbbBXNrJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Feb 2015 08:47:09 -0500
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working  since kernel 3.17
 MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
-References: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com> <54E32E11.9060004@xs4all.nl> <CAPybu_3EJo0imtPoM3WJbjn2nNjf=D3WnJmmdpLQ3_qzo5oXvA@mail.gmail.com>
-In-Reply-To: <CAPybu_3EJo0imtPoM3WJbjn2nNjf=D3WnJmmdpLQ3_qzo5oXvA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Tue, 24 Feb 2015 14:47:08 +0100
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>,
+	Luis de Bethencourt <luis@debethencourt.com>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+In-Reply-To: <20150224104438.53bcfd59@recife.lan>
+References: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
+ <54D9E14A.5090200@iki.fi> <e65f6b905eae37f11e697ad20b97c37c@hardeman.nu>
+ <CAEmZozPN2xDQMyao8GAYB1KqKxvgznn6CNc+LgPGhE=TJfDbFQ@mail.gmail.com>
+ <32c10d8cd2303ed9476db1b68924170a@hardeman.nu>
+ <CAEmZozP5jrJnWAF6ZbXtvkRveZE29BnSg+hO2x9KDSyPmjBBaQ@mail.gmail.com>
+ <20150212095029.018f63df@recife.lan>
+ <CAEmZozOTuigxavH_5M4mw5kDHS_mxgwLS53HipG2o4uvm_09OQ@mail.gmail.com>
+ <20150212215700.GA4882@turing>
+ <CAEmZozPKsBwq4=TtAOtR-LdjOi3k8MhmEqZ49gg8X48P1f5wdQ@mail.gmail.com>
+ <CAEmZozMP1FFN-Y1d+7Mopy1Y9_2FjX2tJmmCne_Gpa2+_yFg0g@mail.gmail.com>
+ <67d0fa2066c017a66ad785dc90447d08@hardeman.nu>
+ <20150224104438.53bcfd59@recife.lan>
+Message-ID: <743019811e24099226b55a708d7699af@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/17/15 13:21, Ricardo Ribalda Delgado wrote:
-> Hello Hans
+On 2015-02-24 14:44, Mauro Carvalho Chehab wrote:
+> Em Tue, 24 Feb 2015 11:15:53 +0100
+> David Härdeman <david@hardeman.nu> escreveu:
+>> The output that you gave (the actual scancodes that are generated) is
+>> what I was looking for, not the keymap. If I remember correctly my 
+>> patch
+>> wasn't supposed to change the generated scancodes (or the keymap would
+>> have to be changed as well).
+>> 
+>> The question is whether the right thing to do is to change back the
+>> scancode calculation or to update the keymap. I'll try to have a 
+>> closer
+>> look as soon as possible (which might take a few days more, sorry).
 > 
-> On Tue, Feb 17, 2015 at 1:03 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Should be done after the 'ctrl == NULL' check.
+> I suspect we should change back the scancode calculation, as I think 
+> that
+> the scancode table is right, but I need to do some tests with some 
+> other
+> driver to be certain.
 > 
-> Good catch. Fixed on v2
-> 
->>
->>>
->>>               if (ctrl == NULL)
->>>                       continue;
->>>
->>
->> There is one more change that has to be made: setting a volatile control
->> should never generate a V4L2_EVENT_CTRL_CH_VALUE event since that makes
->> no sense. The way to prevent that is to ensure that ctrl->has_changed is
->> always false for volatile controls. The new_to_cur function looks at that
->> field to decide whether to send an event.
->>
->> The documentation should also be updated: that of V4L2_CTRL_FLAG_VOLATILE
->> (in VIDIOC_QUERYCTRL), and of V4L2_EVENT_CTRL_CH_VALUE.
-> 
-> I can do this also if you want. It has been a while without
-> contributing to media :)
+> I have a few devices here that I can use for testing, including a PCTV
+> remote, just lacking the time.
 
-Yes, please. I can't accept the patch without these other changes anyway :-)
+I've exchanged a few more emails with David. I think I know what the 
+problem is now. It's not the NEC scancode generation, it's that my patch 
+accidentally broke the RC5 case (his remote is an RC5 one). I'll post a 
+patch later.
 
-Regards,
 
-	Hans
