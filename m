@@ -1,34 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40011 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753963AbbBCMsI (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49793 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751925AbbBXBRd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 07:48:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, isely@isely.net,
-	pali.rohar@gmail.com
-Subject: [PATCH 0/5] Remove .ioctl from v4l2_file_operations
-Date: Tue,  3 Feb 2015 13:47:21 +0100
-Message-Id: <1422967646-12223-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 23 Feb 2015 20:17:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Steven Zakulec <spzakulec@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Michael Hall <mhall119@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Can the patch adding support for the Tasco USB microscope be queued up?
+Date: Tue, 24 Feb 2015 03:18:29 +0200
+Message-ID: <2067061.0lBa0Cfhnl@avalon>
+In-Reply-To: <CAOraNAafQbA7vk8y3k8KkM9WYuc44TgiVC+zC9wDhPLyn6DJrA@mail.gmail.com>
+References: <CAOraNAbMn227Doegfx-o=-edLCwaL3so-6019jHf+ydChuoiCQ@mail.gmail.com> <2359205.hdVH21fv1b@avalon> <CAOraNAafQbA7vk8y3k8KkM9WYuc44TgiVC+zC9wDhPLyn6DJrA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All V4L2 drivers should use .unlocked_ioctl instead of .ioctl. There are
-only three drivers left that do not do that: pvrusb2, radio-bcm2048 and
-the uvc gadget driver.
+Hi Steven,
 
-The pvrusb2 driver does its own locking as far as I can tell, so it can
-just switch to unlocked_ioctl. Ditto for radio-bcm2048.
+On Wednesday 18 February 2015 21:47:58 Steven Zakulec wrote:
+> Here are the results of running lsusb -v -d '1871:0516' on my system
+> that has the patch applied:
 
-The uvc gadget driver uses a lock for the queuing ioctls, but not for
-g/s_format, so a new lock was added for that. In addition querycap
-didn't set device_caps, so that was added as well (this will cause a
-warning otherwise).
+Thank you.
 
-The last patch removes the old .ioctl op completely.
+> Thanks for your help here!
 
+You're welcome. I'll include the device support patch in my v4.1 pull request.
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
