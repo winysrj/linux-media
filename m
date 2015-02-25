@@ -1,62 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:42770 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752089AbbBQLCT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 06:02:19 -0500
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] media/v4l2-ctrls: Always run s_ctrl on volatile ctrls
-Date: Tue, 17 Feb 2015 12:02:14 +0100
-Message-Id: <1424170934-18619-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:39619 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751813AbbBYOIm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2015 09:08:42 -0500
+Message-ID: <54EDD761.6060900@osg.samsung.com>
+Date: Wed, 25 Feb 2015 07:08:33 -0700
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	"mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] xc5000: fix memory corruption when unplugging device
+References: <1424798958-2819-1-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1424798958-2819-1-git-send-email-dheitmueller@kernellabs.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Volatile controls can change their value outside the v4l-ctrl framework.
+On 02/24/2015 10:29 AM, Devin Heitmueller wrote:
+> This patch addresses a regression introduced in the following patch:
+> 
+> commit 5264a522a597032c009f9143686ebf0fa4e244fb
+> Author: Shuah Khan <shuahkh@osg.samsung.com>
+> Date:   Mon Sep 22 21:30:46 2014 -0300
+>     [media] media: tuner xc5000 - release firmwware from xc5000_release()
+> 
+> The "priv" struct is actually reference counted, so the xc5000_release()
+> function gets called multiple times for hybrid devices.  Because
+> release_firmware() was always being called, it would work fine as expected
+> on the first call but then the second call would corrupt aribtrary memory.
+> 
+> Set the pointer to NULL after releasing so that we don't call
+> release_firmware() twice.
+> 
+> This problem was detected in the HVR-950q where plugging/unplugging the
+> device multiple times would intermittently show panics in completely
+> unrelated areas of the kernel.
 
-We should ignore the cached written value of the ctrl when evaluating if
-we should run s_ctrl.
+Thanks for finding and fixing the problem.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
+> 
+> Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+> Cc: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/tuners/xc5000.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
+> index 40f9db6..74b2092 100644
+> --- a/drivers/media/tuners/xc5000.c
+> +++ b/drivers/media/tuners/xc5000.c
+> @@ -1314,7 +1314,10 @@ static int xc5000_release(struct dvb_frontend *fe)
+>  
+>  	if (priv) {
+>  		cancel_delayed_work(&priv->timer_sleep);
+> -		release_firmware(priv->firmware);
 
-I have a control that tells the user when there has been a external trigger
-overrun. (Trigger while processing old image). This is a volatile control.
+I would request you to add a comment here indicating the
+hybrid case scenario to avoid any future cleanup type work
+deciding there is no need to set priv->firmware to null
+since priv gets released in hybrid_tuner_release_state(priv);
 
-The user writes 0 to the control, to ack the error condition, and clear the
-hardware flag.
 
-Unfortunately, it only works one time, because the next time the user writes
-a zero to the control cluster_changed returns false.
+> +		if (priv->firmware) {
+> +			release_firmware(priv->firmware);
+> +			priv->firmware = NULL;
+> +		}
+>  		hybrid_tuner_release_state(priv);
+>  	}
+>  
+> 
 
-I think on volatile controls it is safer to run s_ctrl twice than missing a
-valid s_ctrl.
+Adding Mauro as will to the thread. This should go into stable
+as well.
 
-I know I am abusing a bit the API for this :P, but I also believe that the
-semantic here is a bit confusing.
+thanks,
+-- Shuah
 
- drivers/media/v4l2-core/v4l2-ctrls.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 45c5b47..3d0c7f4 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1605,7 +1605,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
- 
- 	for (i = 0; i < master->ncontrols; i++) {
- 		struct v4l2_ctrl *ctrl = master->cluster[i];
--		bool ctrl_changed = false;
-+		bool ctrl_changed = ctrl->flags & V4L2_CTRL_FLAG_VOLATILE;
- 
- 		if (ctrl == NULL)
- 			continue;
 -- 
-2.1.4
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
