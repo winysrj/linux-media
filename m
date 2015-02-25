@@ -1,43 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:57231 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752901AbbBKU66 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2015 15:58:58 -0500
-From: Christian Engelmayer <cengelma@gmx.at>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, zzam@gentoo.org, hans.verkuil@cisco.com,
-	Christian Engelmayer <cengelma@gmx.at>
-Subject: [PATCH] [media] si2165: Fix possible leak in si2165_upload_firmware()
-Date: Wed, 11 Feb 2015 21:58:23 +0100
-Message-Id: <1423688303-31894-1-git-send-email-cengelma@gmx.at>
+Received: from mail-qa0-f54.google.com ([209.85.216.54]:37992 "EHLO
+	mail-qa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503AbbBYR4c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2015 12:56:32 -0500
+Received: by mail-qa0-f54.google.com with SMTP id x12so3868648qac.13
+        for <linux-media@vger.kernel.org>; Wed, 25 Feb 2015 09:56:31 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <54EDD761.6060900@osg.samsung.com>
+References: <1424798958-2819-1-git-send-email-dheitmueller@kernellabs.com>
+	<54EDD761.6060900@osg.samsung.com>
+Date: Wed, 25 Feb 2015 12:56:31 -0500
+Message-ID: <CAGoCfiyN_iQ6vGn0YGUD_OxngwKEMs056Gzp4yW9wWjSa8Lisw@mail.gmail.com>
+Subject: Re: [PATCH] xc5000: fix memory corruption when unplugging device
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: "mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In case of an error function si2165_upload_firmware() releases the already
-requested firmware in the exit path. However, there is one deviation where
-the function directly returns. Use the correct cleanup so that the firmware
-memory gets freed correctly. Detected by Coverity CID 1269120.
+> I would request you to add a comment here indicating the
+> hybrid case scenario to avoid any future cleanup type work
+> deciding there is no need to set priv->firmware to null
+> since priv gets released in hybrid_tuner_release_state(priv);
 
-Signed-off-by: Christian Engelmayer <cengelma@gmx.at>
----
-Compile tested only. Applies against linux-next.
----
- drivers/media/dvb-frontends/si2165.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+No, I'm not going to rebase my tree and regenerate the patch just to
+add a comment explaining how hybrid_tuner_[request/release]_state()
+works (which, btw, is how it works in all hybrid tuner drivers).  I
+already wasted enough of my time tracking down the source of the
+memory corruption and providing a fix for this regression.  If you
+want to submit a subsequent patch with a comment, be my guest.
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 98ddb49ad52b..4cc5d10ed0d4 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -505,7 +505,7 @@ static int si2165_upload_firmware(struct si2165_state *state)
- 	/* reset crc */
- 	ret = si2165_writereg8(state, 0x0379, 0x01);
- 	if (ret)
--		return ret;
-+		goto error;
- 
- 	ret = si2165_upload_firmware_block(state, data, len,
- 					   &offset, block_count);
+Devin
+
 -- 
-1.9.1
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
