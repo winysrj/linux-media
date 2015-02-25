@@ -1,102 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52407 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932850AbbBBNmy (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41145 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752617AbbBYOOX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2015 08:42:54 -0500
-Message-ID: <54CF7EB2.9020109@xs4all.nl>
-Date: Mon, 02 Feb 2015 14:42:10 +0100
+	Wed, 25 Feb 2015 09:14:23 -0500
+Message-ID: <54EDD8B8.1030608@xs4all.nl>
+Date: Wed, 25 Feb 2015 15:14:16 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-CC: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
-	=?windows-1252?Q?Richard_R=F6jfors?=
-	<richard.rojfors@mocean-labs.com>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 03/15] [media] adv7180: Use inline function instead
- of macro
-References: <1422028354-31891-1-git-send-email-lars@metafoo.de>	<1422028354-31891-4-git-send-email-lars@metafoo.de> <20150202113613.07673af0@recife.lan>
-In-Reply-To: <20150202113613.07673af0@recife.lan>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 3/3] smiapp: Use __v4l2_ctrl_grab() to grab controls
+References: <1424867607-4082-1-git-send-email-sakari.ailus@iki.fi> <1424867607-4082-4-git-send-email-sakari.ailus@iki.fi> <54EDD216.9030806@xs4all.nl> <20150225135711.GK6539@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20150225135711.GK6539@valkosipuli.retiisi.org.uk>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/02/2015 02:36 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 23 Jan 2015 16:52:22 +0100
-> Lars-Peter Clausen <lars@metafoo.de> escreveu:
+On 02/25/15 14:57, Sakari Ailus wrote:
+> Hi Hans,
 > 
->> Use a inline function instead of a macro for the container_of helper for
->> getting the driver's state struct from a control. A inline function has the
->> advantage that it is more typesafe and nicer in general.
+> On Wed, Feb 25, 2015 at 02:45:58PM +0100, Hans Verkuil wrote:
+> ...
+>>> @@ -1535,15 +1529,15 @@ static int smiapp_set_stream(struct v4l2_subdev *subdev, int enable)
+>>>  	if (sensor->streaming == enable)
+>>>  		goto out;
+>>>  
+>>> -	if (enable) {
+>>> -		sensor->streaming = true;
+>>> +	if (enable)
+>>>  		rval = smiapp_start_streaming(sensor);
+>>> -		if (rval < 0)
+>>> -			sensor->streaming = false;
+>>> -	} else {
+>>> +	else
+>>>  		rval = smiapp_stop_streaming(sensor);
+>>> -		sensor->streaming = false;
+>>> -	}
+>>> +
+>>> +	sensor->streaming = enable;
+>>> +	__v4l2_ctrl_grab(sensor->hflip, enable);
+>>> +	__v4l2_ctrl_grab(sensor->vflip, enable);
+>>> +	__v4l2_ctrl_grab(sensor->link_freq, enable);
+>>
+>> Just checking: is it really not possible to change these controls
+>> while streaming? Most devices I know of allow changing this on the fly.
+>>
+>> If it is really not possible, then you can add my Ack for this series:
 > 
-> I don't see any advantage on this.
-> 
-> See: container_of is already a macro, and it is written in a way that, if
-> you use it with inconsistent values, the compilation will break.
-> 
-> Also, there's the risk that, for whatever reason, gcc to decide to not
-> inline this.
+> I'm not sure what the sensors would do in practice, but the problem is that
+> changing the values of these control affect the pixel order. That's why
+> changing them has been prevented while streaming.
 
-For the record: I disagree with this. I think a static inline is more readable
-than a macro. It is also consistent with other existing i2c subdev drivers since
-they all use a static inline as well. And if in rare cases gcc might decide not
-to inline this, then so what? You really won't notice any difference. It's an
-i2c device, so it's slow as molasses anyway. Readability is much more important
-IMHO.
+Ah, OK.
 
-On the other hand, it's not critical enough for me to make a big deal out of
-it if this patch is dropped.
+Can you add a comment explaining why this is done?
+
+BTW, I understand that HFLIP will cause changes in the pixel order,
+but VFLIP and link_freq should be OK, I would expect.
 
 Regards,
 
 	Hans
-
-> 
-> So, this doesn't sound a good idea.
-> 
-> Regards,
-> Mauro
-> 
->>
->> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/i2c/adv7180.c | 13 +++++++------
->>  1 file changed, 7 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
->> index f424a4d..f2508abe 100644
->> --- a/drivers/media/i2c/adv7180.c
->> +++ b/drivers/media/i2c/adv7180.c
->> @@ -130,9 +130,11 @@ struct adv7180_state {
->>  	bool			powered;
->>  	u8			input;
->>  };
->> -#define to_adv7180_sd(_ctrl) (&container_of(_ctrl->handler,		\
->> -					    struct adv7180_state,	\
->> -					    ctrl_hdl)->sd)
->> +
->> +static struct adv7180_state *ctrl_to_adv7180(struct v4l2_ctrl *ctrl)
->> +{
->> +	return container_of(ctrl->handler, struct adv7180_state, ctrl_hdl);
->> +}
->>  
->>  static v4l2_std_id adv7180_std_to_v4l2(u8 status1)
->>  {
->> @@ -345,9 +347,8 @@ static int adv7180_s_power(struct v4l2_subdev *sd, int on)
->>  
->>  static int adv7180_s_ctrl(struct v4l2_ctrl *ctrl)
->>  {
->> -	struct v4l2_subdev *sd = to_adv7180_sd(ctrl);
->> -	struct adv7180_state *state = to_state(sd);
->> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
->> +	struct adv7180_state *state = ctrl_to_adv7180(ctrl);
->> +	struct i2c_client *client = v4l2_get_subdevdata(&state->sd);
->>  	int ret = mutex_lock_interruptible(&state->mutex);
->>  	int val;
->>  
-
