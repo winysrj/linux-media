@@ -1,61 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay107.isp.belgacom.be ([195.238.20.134]:8656 "EHLO
-	mailrelay107.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932166AbbBTSNI (ORCPT
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:40609 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752450AbbBYP6c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2015 13:13:08 -0500
-From: Fabian Frederick <fabf@skynet.be>
-To: linux-kernel@vger.kernel.org
-Cc: Ingo Molnar <mingo@redhat.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Fabian Frederick <fabf@skynet.be>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Wed, 25 Feb 2015 10:58:32 -0500
+Received: by wghl18 with SMTP id l18so4538841wgh.7
+        for <linux-media@vger.kernel.org>; Wed, 25 Feb 2015 07:58:31 -0800 (PST)
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	linux-media@vger.kernel.org
-Subject: [PATCH 4/7 linux-next] saa7146: replace current->state by set_current_state()
-Date: Fri, 20 Feb 2015 19:12:54 +0100
-Message-Id: <1424455977-21903-4-git-send-email-fabf@skynet.be>
-In-Reply-To: <1424455977-21903-1-git-send-email-fabf@skynet.be>
-References: <1424455977-21903-1-git-send-email-fabf@skynet.be>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: omap3isp: use vb2_buffer_state enum for vb2 buffer state
+Date: Wed, 25 Feb 2015 15:58:14 +0000
+Message-Id: <1424879894-7128-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use helper functions to access current->state.
-Direct assignments are prone to races and therefore buggy.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-current->state = TASK_RUNNING can be replaced by __set_current_state()
+use the vb2_buffer_state enum for assigning the state
+of the vb2 buffer, along side making isp_pipeline_state
+state variable local to the block.
+This fixes the following sparse warning as well:
+drivers/media/platform/omap3isp/ispvideo.c:497:35: warning: mixing different enum types
+drivers/media/platform/omap3isp/ispvideo.c:497:35:     int enum isp_pipeline_state  versus
+drivers/media/platform/omap3isp/ispvideo.c:497:35:     int enum vb2_buffer_state
 
-Thanks to Peter Zijlstra for the exact definition of the problem.
-
-Suggested-By: Peter Zijlstra <peterz@infradead.org>
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/common/saa7146/saa7146_vbi.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/omap3isp/ispvideo.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/common/saa7146/saa7146_vbi.c b/drivers/media/common/saa7146/saa7146_vbi.c
-index 1e71e37..2da9957 100644
---- a/drivers/media/common/saa7146/saa7146_vbi.c
-+++ b/drivers/media/common/saa7146/saa7146_vbi.c
-@@ -95,7 +95,7 @@ static int vbi_workaround(struct saa7146_dev *dev)
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 3fe9047..8cd3a57 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -449,7 +449,7 @@ static const struct vb2_ops isp_video_queue_ops = {
+ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
+ {
+ 	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
+-	enum isp_pipeline_state state;
++	enum vb2_buffer_state vb_state;
+ 	struct isp_buffer *buf;
+ 	unsigned long flags;
+ 	struct timespec ts;
+@@ -488,17 +488,19 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
  
- 		/* prepare to wait to be woken up by the irq-handler */
- 		add_wait_queue(&vv->vbi_wq, &wait);
--		current->state = TASK_INTERRUPTIBLE;
-+		set_current_state(TASK_INTERRUPTIBLE);
+ 	/* Report pipeline errors to userspace on the capture device side. */
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && pipe->error) {
+-		state = VB2_BUF_STATE_ERROR;
++		vb_state = VB2_BUF_STATE_ERROR;
+ 		pipe->error = false;
+ 	} else {
+-		state = VB2_BUF_STATE_DONE;
++		vb_state = VB2_BUF_STATE_DONE;
+ 	}
  
- 		/* start rps1 to enable workaround */
- 		saa7146_write(dev, RPS_ADDR1, dev->d_rps1.dma_handle);
-@@ -106,7 +106,7 @@ static int vbi_workaround(struct saa7146_dev *dev)
- 		DEB_VBI("brs bug workaround %d/1\n", i);
+-	vb2_buffer_done(&buf->vb, state);
++	vb2_buffer_done(&buf->vb, vb_state);
  
- 		remove_wait_queue(&vv->vbi_wq, &wait);
--		current->state = TASK_RUNNING;
-+		__set_current_state(TASK_RUNNING);
+ 	spin_lock_irqsave(&video->irqlock, flags);
  
- 		/* disable rps1 irqs */
- 		SAA7146_IER_DISABLE(dev,MASK_28);
+ 	if (list_empty(&video->dmaqueue)) {
++		enum isp_pipeline_state state;
++
+ 		spin_unlock_irqrestore(&video->irqlock, flags);
+ 
+ 		if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
 -- 
-2.1.0
+1.9.1
 
