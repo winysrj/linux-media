@@ -1,59 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:48742 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933528AbbBCMHB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 07:07:01 -0500
-Date: Tue, 3 Feb 2015 12:06:44 +0000
-From: Mark Brown <broonie@kernel.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <20150203120644.GH21293@sirena.org.uk>
-References: <1419114892-4550-1-git-send-email-crope@iki.fi>
- <20141222124411.GK17800@sirena.org.uk>
- <549814BB.3040808@iki.fi>
- <20141222133142.GM17800@sirena.org.uk>
- <54982246.20300@iki.fi>
- <20141222150515.GV17800@sirena.org.uk>
- <20150202123138.2b2a2fa4@recife.lan>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="rSzVoqZYYAmX/8Rt"
-Content-Disposition: inline
-In-Reply-To: <20150202123138.2b2a2fa4@recife.lan>
-Subject: Re: [PATCHv2 1/2] regmap: add configurable lock class key for lockdep
+Received: from claranet-outbound-smtp01.uk.clara.net ([195.8.89.34]:39320 "EHLO
+	claranet-outbound-smtp01.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752759AbbBYRSK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2015 12:18:10 -0500
+From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+Subject: [PATCH] cx18: Fix bytes_per_line
+Date: Wed, 25 Feb 2015 16:47:34 +0000
+Message-Id: <1424882854-17768-1-git-send-email-simon.farnsworth@onelan.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Current GStreamer userspace respects the bytes_per_line from the driver. Set
+it to something reasonable for the format chosen.
 
---rSzVoqZYYAmX/8Rt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+---
 
-On Mon, Feb 02, 2015 at 12:31:38PM -0200, Mauro Carvalho Chehab wrote:
-> Antti/Mark,
->=20
-> Any news with regards to this?
+I'm hoping this is trivially correct - I've only tested UYVY.
 
-Please don't top post or send content free nags.  I can't really
-remember what this is about but I don't think my review comments were
-ever addressed.
+ drivers/media/pci/cx18/cx18-driver.h | 1 +
+ drivers/media/pci/cx18/cx18-ioctl.c  | 9 ++++++---
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
---rSzVoqZYYAmX/8Rt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+diff --git a/drivers/media/pci/cx18/cx18-driver.h b/drivers/media/pci/cx18/cx18-driver.h
+index 207d6e82..ec40f2d 100644
+--- a/drivers/media/pci/cx18/cx18-driver.h
++++ b/drivers/media/pci/cx18/cx18-driver.h
+@@ -409,6 +409,7 @@ struct cx18_stream {
+ 	/* Videobuf for YUV video */
+ 	u32 pixelformat;
+ 	u32 vb_bytes_per_frame;
++	u32 vb_bytes_per_line;
+ 	struct list_head vb_capture;    /* video capture queue */
+ 	spinlock_t vb_lock;
+ 	struct timer_list vb_timeout;
+diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
+index b8e4b68..c2e0093 100644
+--- a/drivers/media/pci/cx18/cx18-ioctl.c
++++ b/drivers/media/pci/cx18/cx18-ioctl.c
+@@ -159,7 +159,7 @@ static int cx18_g_fmt_vid_cap(struct file *file, void *fh,
+ 	if (id->type == CX18_ENC_STREAM_TYPE_YUV) {
+ 		pixfmt->pixelformat = s->pixelformat;
+ 		pixfmt->sizeimage = s->vb_bytes_per_frame;
+-		pixfmt->bytesperline = 720;
++		pixfmt->bytesperline = s->vb_bytes_per_line;
+ 	} else {
+ 		pixfmt->pixelformat = V4L2_PIX_FMT_MPEG;
+ 		pixfmt->sizeimage = 128 * 1024;
+@@ -287,10 +287,13 @@ static int cx18_s_fmt_vid_cap(struct file *file, void *fh,
+ 	s->pixelformat = fmt->fmt.pix.pixelformat;
+ 	/* HM12 YUV size is (Y=(h*720) + UV=(h*(720/2)))
+ 	   UYUV YUV size is (Y=(h*720) + UV=(h*(720))) */
+-	if (s->pixelformat == V4L2_PIX_FMT_HM12)
++	if (s->pixelformat == V4L2_PIX_FMT_HM12) {
+ 		s->vb_bytes_per_frame = h * 720 * 3 / 2;
+-	else
++		s->vb_bytes_per_line = 720; /* First plane */
++	} else {
+ 		s->vb_bytes_per_frame = h * 720 * 2;
++		s->vb_bytes_per_line = 1440; /* Packed */
++	}
+ 
+ 	mbus_fmt.width = cx->cxhdl.width = w;
+ 	mbus_fmt.height = cx->cxhdl.height = h;
+-- 
+2.1.0
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJU0LnTAAoJECTWi3JdVIfQuyQH/20F6/GB/BOrJHAXb3VWFFJY
-y4jD9aNhLZEEvHQgOj+V/qhtS6HfzpLynK6y/L0eP+9k/AUdYjOv/2MerAC8uJfD
-iFvnKGLjCiykRKk1jUCjtsPmHRQ3AEkCIl9z1PWqd506FwoFHpcYViEYBlcsUWzt
-gPl08FSyaVH40ylIf/bgrizMN8yDlu5xkonouIcP+G9JqB+L4wlgqWtEv/MydM/2
-KajgAL1+WRAh5isyhlviCabo6nDhsqkkHQBifhB+kUU8fFx88JV5yphCCIH0F4aO
-L2i08q+ACCXzvFBgQPUwh2kCdyJW4wlAiIVcR5uiS1G8lwosT8o2hYQskwXwYas=
-=8MQz
------END PGP SIGNATURE-----
-
---rSzVoqZYYAmX/8Rt--
