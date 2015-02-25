@@ -1,101 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59957 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753963AbbBCMsd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2015 07:48:33 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, isely@isely.net,
-	pali.rohar@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/5] uvc gadget: switch to unlocked_ioctl.
-Date: Tue,  3 Feb 2015 13:47:24 +0100
-Message-Id: <1422967646-12223-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1422967646-12223-1-git-send-email-hverkuil@xs4all.nl>
-References: <1422967646-12223-1-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:39449 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752643AbbBYMJH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2015 07:09:07 -0500
+Date: Wed, 25 Feb 2015 09:09:01 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Joe Perches <joe@perches.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: em28xx replace printk in dprintk macros
+Message-ID: <20150225090901.64bfd6ef@recife.lan>
+In-Reply-To: <1424835950.11070.5.camel@perches.com>
+References: <1424804027-7790-1-git-send-email-shuahkh@osg.samsung.com>
+	<20150224190315.124b71f3@recife.lan>
+	<54ED0C0D.10704@osg.samsung.com>
+	<1424835950.11070.5.camel@perches.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Tue, 24 Feb 2015 19:45:50 -0800
+Joe Perches <joe@perches.com> escreveu:
 
-Instead of .ioctl use unlocked_ioctl. While all the queue ops
-already use a lock, there was no lock to protect uvc_video, so
-add that one.
+> On Tue, 2015-02-24 at 16:41 -0700, Shuah Khan wrote:
+> > On 02/24/2015 03:03 PM, Mauro Carvalho Chehab wrote:
+> > > Em Tue, 24 Feb 2015 11:53:47 -0700 Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> > >> Replace printk macro in dprintk macros in em28xx audio, dvb,
+> > >> and input files with pr_* equivalent routines.
+> []
+> > >> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+> []
+> > >>  #define dprintk(fmt, arg...) \
+> > >>  	if (ir_debug) { \
+> > >> -		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
+> > >> +		pr_debug("%s/ir: " fmt, ir->name, ## arg); \
+> > > 
+> > > NACK.
+> > > 
+> > > This is the worse of two words, as it would require both to enable
+> > > each debug line via dynamic printk setting and to enable ir_debug.
+> > Ah. I missed that. Sorry for the noise.
+> 
+> It's
+> At some point, I'm going to propose a standard mechanism
+> similar to netif_<level> that does bitmap matching for
+> dynamic_debug and generic debugging.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/usb/gadget/function/f_uvc.c    | 1 +
- drivers/usb/gadget/function/uvc.h      | 1 +
- drivers/usb/gadget/function/uvc_v4l2.c | 6 +++++-
- 3 files changed, 7 insertions(+), 1 deletion(-)
+Such mechanism would make sense for media drivers.
 
-diff --git a/drivers/usb/gadget/function/f_uvc.c b/drivers/usb/gadget/function/f_uvc.c
-index 945b3bd..748a80c 100644
---- a/drivers/usb/gadget/function/f_uvc.c
-+++ b/drivers/usb/gadget/function/f_uvc.c
-@@ -817,6 +817,7 @@ static struct usb_function *uvc_alloc(struct usb_function_instance *fi)
- 	if (uvc == NULL)
- 		return ERR_PTR(-ENOMEM);
- 
-+	mutex_init(&uvc->video.mutex);
- 	uvc->state = UVC_STATE_DISCONNECTED;
- 	opts = to_f_uvc_opts(fi);
- 
-diff --git a/drivers/usb/gadget/function/uvc.h b/drivers/usb/gadget/function/uvc.h
-index f67695c..3390ecd 100644
---- a/drivers/usb/gadget/function/uvc.h
-+++ b/drivers/usb/gadget/function/uvc.h
-@@ -115,6 +115,7 @@ struct uvc_video
- 	unsigned int width;
- 	unsigned int height;
- 	unsigned int imagesize;
-+	struct mutex mutex;	/* protects frame parameters */
- 
- 	/* Requests */
- 	unsigned int req_size;
-diff --git a/drivers/usb/gadget/function/uvc_v4l2.c b/drivers/usb/gadget/function/uvc_v4l2.c
-index 5aad7fe..67f084f 100644
---- a/drivers/usb/gadget/function/uvc_v4l2.c
-+++ b/drivers/usb/gadget/function/uvc_v4l2.c
-@@ -88,6 +88,7 @@ uvc_v4l2_get_format(struct file *file, void *fh, struct v4l2_format *fmt)
- 	struct uvc_device *uvc = video_get_drvdata(vdev);
- 	struct uvc_video *video = &uvc->video;
- 
-+	mutex_lock(&video->mutex);
- 	fmt->fmt.pix.pixelformat = video->fcc;
- 	fmt->fmt.pix.width = video->width;
- 	fmt->fmt.pix.height = video->height;
-@@ -96,6 +97,7 @@ uvc_v4l2_get_format(struct file *file, void *fh, struct v4l2_format *fmt)
- 	fmt->fmt.pix.sizeimage = video->imagesize;
- 	fmt->fmt.pix.colorspace = V4L2_COLORSPACE_SRGB;
- 	fmt->fmt.pix.priv = 0;
-+	mutex_unlock(&video->mutex);
- 
- 	return 0;
- }
-@@ -126,11 +128,13 @@ uvc_v4l2_set_format(struct file *file, void *fh, struct v4l2_format *fmt)
- 	bpl = format->bpp * fmt->fmt.pix.width / 8;
- 	imagesize = bpl ? bpl * fmt->fmt.pix.height : fmt->fmt.pix.sizeimage;
- 
-+	mutex_lock(&video->mutex);
- 	video->fcc = format->fcc;
- 	video->bpp = format->bpp;
- 	video->width = fmt->fmt.pix.width;
- 	video->height = fmt->fmt.pix.height;
- 	video->imagesize = imagesize;
-+	mutex_unlock(&video->mutex);
- 
- 	fmt->fmt.pix.field = V4L2_FIELD_NONE;
- 	fmt->fmt.pix.bytesperline = bpl;
-@@ -356,7 +360,7 @@ struct v4l2_file_operations uvc_v4l2_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= uvc_v4l2_open,
- 	.release	= uvc_v4l2_release,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- 	.mmap		= uvc_v4l2_mmap,
- 	.poll		= uvc_v4l2_poll,
- #ifndef CONFIG_MMU
--- 
-2.1.4
-
+Regards,
+Mauro
