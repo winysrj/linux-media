@@ -1,80 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38056 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751444AbbBXWDU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2015 17:03:20 -0500
-Date: Tue, 24 Feb 2015 19:03:15 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: em28xx replace printk in dprintk macros
-Message-ID: <20150224190315.124b71f3@recife.lan>
-In-Reply-To: <1424804027-7790-1-git-send-email-shuahkh@osg.samsung.com>
-References: <1424804027-7790-1-git-send-email-shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:54720 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753551AbbBZQAa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2015 11:00:30 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NKD00DAJZ4MD2D0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 27 Feb 2015 01:00:22 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com,
+	kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [v4l-utils PATCH/RFC v5 06/14] mediactl: Add media_device creation
+ helpers
+Date: Thu, 26 Feb 2015 16:59:16 +0100
+Message-id: <1424966364-3647-7-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
+References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 24 Feb 2015 11:53:47 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Add helper functions that allow for easy instantiation of media_device
+object basing on whether the media device contains video device with
+given node name.
 
-> Replace printk macro in dprintk macros in em28xx audio, dvb,
-> and input files with pr_* equivalent routines.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-audio.c | 3 +--
->  drivers/media/usb/em28xx/em28xx-dvb.c   | 2 +-
->  drivers/media/usb/em28xx/em28xx-input.c | 2 +-
->  3 files changed, 3 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-> index 49a5f95..93d89f2 100644
-> --- a/drivers/media/usb/em28xx/em28xx-audio.c
-> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
-> @@ -55,8 +55,7 @@ MODULE_PARM_DESC(debug, "activates debug info");
->  
->  #define dprintk(fmt, arg...) do {					\
->  	    if (debug)							\
-> -		printk(KERN_INFO "em28xx-audio %s: " fmt,		\
-> -				  __func__, ##arg);		\
-> +		pr_info("em28xx-audio %s: " fmt, __func__, ##arg);	\
->  	} while (0)
->  
->  static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;
-> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> index aee70d4..8826054 100644
-> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> @@ -71,7 +71,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
->  
->  #define dprintk(level, fmt, arg...) do {			\
->  if (debug >= level)						\
-> -	printk(KERN_DEBUG "%s/2-dvb: " fmt, dev->name, ## arg);	\
-> +	pr_debug("%s/2-dvb: " fmt, dev->name, ## arg);		\
->  } while (0)
->  
->  struct em28xx_dvb {
-> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-> index 4007356..e99108b 100644
-> --- a/drivers/media/usb/em28xx/em28xx-input.c
-> +++ b/drivers/media/usb/em28xx/em28xx-input.c
-> @@ -43,7 +43,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug messages [IR]");
->  
->  #define dprintk(fmt, arg...) \
->  	if (ir_debug) { \
-> -		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
-> +		pr_debug("%s/ir: " fmt, ir->name, ## arg); \
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ utils/media-ctl/libmediactl.c |   75 +++++++++++++++++++++++++++++++++++++++++
+ utils/media-ctl/mediactl.h    |   30 +++++++++++++++++
+ 2 files changed, 105 insertions(+)
 
-NACK.
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index a294ada..6d3e691 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -719,6 +719,44 @@ struct media_device *media_device_new(const char *devnode)
+ 	return media;
+ }
+ 
++struct media_device *media_device_new_by_entity_devname(char *entity_devname)
++{
++	struct media_device *media;
++	char media_devname[32];
++	struct media_entity *entity;
++	int i, ret;
++
++	/* query all available media devices */
++	for (i = 0;; ++i) {
++		sprintf(media_devname, "/dev/media%d", i);
++
++		media = media_device_new(media_devname);
++		if (media == NULL)
++			return NULL;
++
++		ret = media_device_enumerate(media);
++		if (ret < 0) {
++			media_dbg(media, "Failed to enumerate %s (%d)\n",
++				  media_devname, ret);
++			goto err_dev_enum;
++		}
++
++		/* Check if the media device contains entity with entity_devname */
++		entity = media_get_entity_by_devname(media, entity_devname,
++							strlen(entity_devname));
++		if (entity)
++			return media;
++
++		if (media)
++			media_device_unref(media);
++	}
++
++err_dev_enum:
++	if (media)
++		media_device_unref(media);
++	return NULL;
++}
++
+ struct media_device *media_device_new_emulated(struct media_device_info *info)
+ {
+ 	struct media_device *media;
+@@ -758,6 +796,43 @@ void media_device_unref(struct media_device *media)
+ 	free(media);
+ }
+ 
++int media_get_devname_by_fd(int fd, char *node_name)
++{
++	struct udev *udev;
++	struct media_entity tmp_entity;
++	struct stat stat;
++	int ret;
++
++	if (node_name == NULL)
++		return -EINVAL;
++
++	ret = fstat(fd, &stat);
++	if (ret < 0)
++		return -EINVAL;
++
++	tmp_entity.info.v4l.major = MAJOR(stat.st_rdev);
++	tmp_entity.info.v4l.minor = MINOR(stat.st_rdev);
++
++	ret = media_udev_open(&udev);
++	if (ret < 0)
++		printf("Can't get udev context\n");
++
++	/* Try to get the device name via udev */
++	ret = media_get_devname_udev(udev, &tmp_entity);
++	if (!ret)
++		goto out;
++
++	ret = media_get_devname_sysfs(&tmp_entity);
++	if (ret < 0)
++		goto err_get_devname;
++
++out:
++	strcpy(node_name, tmp_entity.devname);
++err_get_devname:
++	media_udev_close(udev);
++	return ret;
++}
++
+ int media_device_add_entity(struct media_device *media,
+ 			    const struct media_entity_desc *desc,
+ 			    const char *devnode)
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index 9db40a8..1d62191 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -76,6 +76,23 @@ struct media_device *media_device_new(const char *devnode);
+ struct media_device *media_device_new_emulated(struct media_device_info *info);
+ 
+ /**
++ * @brief Create a new media device if it comprises entity with given devname
++ * @param entity_devname - device node name of the entity to be matched.
++ *
++ * Query all media devices available in the system to find the one comprising
++ * the entity with given devname. If the media device is matched then its
++ * instance is created and initialized with enumerated entities and links.
++ * The returned device can be accessed.
++ *
++ * Media devices are reference-counted, see media_device_ref() and
++ * media_device_unref() for more information.
++ *
++ * @return A pointer to the new media device or NULL if video_devname cannot
++ * be matched or memory cannot be allocated.
++ */
++struct media_device *media_device_new_by_entity_devname(char *entity_devname);
++
++/**
+  * @brief Take a reference to the device.
+  * @param media - device instance.
+  *
+@@ -240,6 +257,19 @@ const char *media_entity_get_devname(struct media_entity *entity);
+  */
+ const char *media_entity_get_name(struct media_entity *entity);
+ 
++/**
++ * @brief Get the device node name by its file descriptor
++ * @param fd - file descriptor of a device.
++ * @param node_name - output device node name string.
++ *
++ * This function returns the full path and name to the device node corresponding
++ * to the given file descriptor.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int media_get_devname_by_fd(int fd, char *node_name);
++
++/**
+  * @brief Get the type of an entity.
+  * @param entity - the entity.
+  *
+-- 
+1.7.9.5
 
-This is the worse of two words, as it would require both to enable
-each debug line via dynamic printk setting and to enable ir_debug.
-
-Regards,
-Mauro
->  	}
->  
->  /**********************************************************
