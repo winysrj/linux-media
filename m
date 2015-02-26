@@ -1,117 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48074 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754954AbbBUDpm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2015 22:45:42 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 37CFC2A009F
-	for <linux-media@vger.kernel.org>; Sat, 21 Feb 2015 04:45:15 +0100 (CET)
-Date: Sat, 21 Feb 2015 04:45:15 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:50424 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754094AbbBZVmd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2015 16:42:33 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150221034515.37CFC2A009F@tschai.lan>
+Cc: Jurgen Kramer <gtmkramer@xs4all.nl>, <stable@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv2] Si2168: increase timeout to fix firmware loading
+Date: Thu, 26 Feb 2015 23:41:54 +0200
+Message-Id: <1424986914-5472-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Jurgen Kramer <gtmkramer@xs4all.nl>
 
-Results of the daily build of media_tree:
+Increase si2168 cmd execute timeout to prevent firmware load failures. Tests
+shows it takes up to 52ms to load the 'dvb-demod-si2168-a30-01.fw' firmware.
+Increase timeout to a safe value of 70ms.
 
-date:		Sat Feb 21 04:00:15 CET 2015
-git branch:	test
-git hash:	135f9be9194cf7778eb73594aa55791b229cf27c
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-5.slh.1-amd64
+Cc: <stable@vger.kernel.org> # v3.16+
+Signed-off-by: Jurgen Kramer <gtmkramer@xs4all.nl>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+Changes since v1:
+ * I added my SOB
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Patch for stable 3.16+
 
-Detailed results are available here:
+That patch is already applied to master as commit 551c33e729f654ecfaed00ad399f5d2a631b72cb
+There was some mistake and Cc stable tag I added to patchwork [1] was lost.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+[1] https://patchwork.linuxtv.org/patch/27382/
+---
+ drivers/media/dvb-frontends/si2168.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Full logs are available here:
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 2e3cdcf..fbc1fa8 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -39,7 +39,7 @@ static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
+ 
+ 	if (cmd->rlen) {
+ 		/* wait cmd execution terminate */
+-		#define TIMEOUT 50
++		#define TIMEOUT 70
+ 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
+ 		while (!time_after(jiffies, timeout)) {
+ 			ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
+-- 
+http://palosaari.fi/
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
