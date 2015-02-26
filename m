@@ -1,98 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:55331 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010AbbBSOxe (ORCPT
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:45103 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754069AbbBZSP0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2015 09:53:34 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Michal Marek <mmarek@suse.cz>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Antti Palosaari <crope@iki.fi>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org,
-	"Yann E. MORIN" <yann.morin.1998@free.fr>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] [kbuild] Add and use IS_REACHABLE macro
-Date: Thu, 19 Feb 2015 15:53:07 +0100
-Message-ID: <14254005.QkaJhTuY5H@wuerfel>
-In-Reply-To: <20150219121107.GA19684@sepie.suse.cz>
-References: <6116702.rrbrOqQ26P@wuerfel> <20150219121107.GA19684@sepie.suse.cz>
+	Thu, 26 Feb 2015 13:15:26 -0500
+Received: by lbjb6 with SMTP id b6so12501714lbj.12
+        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2015 10:15:24 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20150225223036.23353.77716.stgit@zeus.muc.hardeman.nu>
+References: <20150225223036.23353.77716.stgit@zeus.muc.hardeman.nu>
+From: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>
+Date: Thu, 26 Feb 2015 19:14:54 +0100
+Message-ID: <CAEmZozNLC_2pUD9h2vQeVMUQvt0apHdWas=SEpeuftp4PYiRNw@mail.gmail.com>
+Subject: Re: [PATCH] rc-core: fix dib0700 scancode generation for RC5
+To: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 19 February 2015 13:11:07 Michal Marek wrote:
-> On 2015-02-18 18:12, Arnd Bergmann wrote:
-> > In the media drivers, the v4l2 core knows about all submodules
-> > and calls into them from a common function. However this cannot
-> > work if the modules that get called are loadable and the
-> > core is built-in. In that case we get
-> > 
-> > drivers/built-in.o: In function `set_type':
-> > drivers/media/v4l2-core/tuner-core.c:301: undefined reference to `tea5767_attach'
-> > drivers/media/v4l2-core/tuner-core.c:307: undefined reference to `tea5761_attach'
-> > drivers/media/v4l2-core/tuner-core.c:349: undefined reference to `tda9887_attach'
-> > drivers/media/v4l2-core/tuner-core.c:405: undefined reference to `xc4000_attach'
-> > [...]
-> > Ideally Kconfig would be used to avoid the case of a broken dependency,
-> > or the code restructured in a way to turn around the dependency, but either
-> > way would require much larger changes here.
-> 
-> What can be done without extending kbuild is to accept
-> CONFIG_VIDEO_TUNER=y and CONFIG_MEDIA_TUNER_FOO=m, but build both into
-> the kernel, e.g.
-
-Right, but
-
-> diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-> index 42e5a01..d2c7e89 100644
-> --- a/drivers/media/tuners/Kconfig
-> +++ b/drivers/media/tuners/Kconfig
-> @@ -71,6 +71,11 @@ config MEDIA_TUNER_TEA5767
->         help
->           Say Y here to include support for the Philips TEA5767 radio tuner.
->  
-> +config MEDIA_TUNER_TEA5767_BUILD
-> +       tristate
-> +       default VIDEO_TUNER || MEDIA_TUNER_TEA5767
-> +       depends on MEDIA_TUNER_TEA5767!=n
+2015-02-25 23:30 GMT+01:00 David Härdeman <david@hardeman.nu>:
+> David, could you please test this patch?
+> ---
+>  drivers/media/usb/dvb-usb/dib0700_core.c |   70 +++++++++++++++++-------------
+>  1 file changed, 40 insertions(+), 30 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+> index 50856db..605b090 100644
+> --- a/drivers/media/usb/dvb-usb/dib0700_core.c
+> +++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+> @@ -658,10 +658,20 @@ out:
+>  struct dib0700_rc_response {
+>         u8 report_id;
+>         u8 data_state;
+> -       u8 system;
+> -       u8 not_system;
+> -       u8 data;
+> -       u8 not_data;
+> +       union {
+> +               struct {
+> +                       u8 system;
+> +                       u8 not_system;
+> +                       u8 data;
+> +                       u8 not_data;
+> +               } nec;
+> +               struct {
+> +                       u8 not_used;
+> +                       u8 system;
+> +                       u8 data;
+> +                       u8 not_data;
+> +               } rc5;
+> +       };
+>  };
+>  #define RC_MSG_SIZE_V1_20 6
+>
+> @@ -697,8 +707,8 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+>
+>         deb_data("IR ID = %02X state = %02X System = %02X %02X Cmd = %02X %02X (len %d)\n",
+>                  poll_reply->report_id, poll_reply->data_state,
+> -                poll_reply->system, poll_reply->not_system,
+> -                poll_reply->data, poll_reply->not_data,
+> +                poll_reply->nec.system, poll_reply->nec.not_system,
+> +                poll_reply->nec.data, poll_reply->nec.not_data,
+>                  purb->actual_length);
+>
+>         switch (d->props.rc.core.protocol) {
+> @@ -707,30 +717,30 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+>                 toggle = 0;
+>
+>                 /* NEC protocol sends repeat code as 0 0 0 FF */
+> -               if (poll_reply->system     == 0x00 &&
+> -                   poll_reply->not_system == 0x00 &&
+> -                   poll_reply->data       == 0x00 &&
+> -                   poll_reply->not_data   == 0xff) {
+> +               if (poll_reply->nec.system     == 0x00 &&
+> +                   poll_reply->nec.not_system == 0x00 &&
+> +                   poll_reply->nec.data       == 0x00 &&
+> +                   poll_reply->nec.not_data   == 0xff) {
+>                         poll_reply->data_state = 2;
+>                         break;
+>                 }
+>
+> -               if ((poll_reply->data ^ poll_reply->not_data) != 0xff) {
+> +               if ((poll_reply->nec.data ^ poll_reply->nec.not_data) != 0xff) {
+>                         deb_data("NEC32 protocol\n");
+> -                       keycode = RC_SCANCODE_NEC32(poll_reply->system     << 24 |
+> -                                                    poll_reply->not_system << 16 |
+> -                                                    poll_reply->data       << 8  |
+> -                                                    poll_reply->not_data);
+> -               } else if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
+> +                       keycode = RC_SCANCODE_NEC32(poll_reply->nec.system     << 24 |
+> +                                                    poll_reply->nec.not_system << 16 |
+> +                                                    poll_reply->nec.data       << 8  |
+> +                                                    poll_reply->nec.not_data);
+> +               } else if ((poll_reply->nec.system ^ poll_reply->nec.not_system) != 0xff) {
+>                         deb_data("NEC extended protocol\n");
+> -                       keycode = RC_SCANCODE_NECX(poll_reply->system << 8 |
+> -                                                   poll_reply->not_system,
+> -                                                   poll_reply->data);
+> +                       keycode = RC_SCANCODE_NECX(poll_reply->nec.system << 8 |
+> +                                                   poll_reply->nec.not_system,
+> +                                                   poll_reply->nec.data);
+>
+>                 } else {
+>                         deb_data("NEC normal protocol\n");
+> -                       keycode = RC_SCANCODE_NEC(poll_reply->system,
+> -                                                  poll_reply->data);
+> +                       keycode = RC_SCANCODE_NEC(poll_reply->nec.system,
+> +                                                  poll_reply->nec.data);
+>                 }
+>
+>                 break;
+> @@ -738,19 +748,19 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+>                 deb_data("RC5 protocol\n");
+>                 protocol = RC_TYPE_RC5;
+>                 toggle = poll_reply->report_id;
+> -               keycode = RC_SCANCODE_RC5(poll_reply->system, poll_reply->data);
+> +               keycode = RC_SCANCODE_RC5(poll_reply->rc5.system, poll_reply->rc5.data);
 > +
->  config MEDIA_TUNER_MSI001
->         tristate "Mirics MSi001"
->         depends on MEDIA_SUPPORT && SPI && VIDEO_V4L2
+> +               if ((poll_reply->rc5.data ^ poll_reply->rc5.not_data) != 0xff) {
+> +                       /* Key failed integrity check */
+> +                       err("key failed integrity check: %02x %02x %02x %02x",
+> +                           poll_reply->rc5.not_used, poll_reply->rc5.system,
+> +                           poll_reply->rc5.data, poll_reply->rc5.not_data);
+> +                       goto resubmit;
+> +               }
+>
+>                 break;
+>         }
+>
+> -       if ((poll_reply->data + poll_reply->not_data) != 0xff) {
+> -               /* Key failed integrity check */
+> -               err("key failed integrity check: %02x %02x %02x %02x",
+> -                   poll_reply->system,  poll_reply->not_system,
+> -                   poll_reply->data, poll_reply->not_data);
+> -               goto resubmit;
+> -       }
+> -
+>         rc_keydown(d->rc_dev, protocol, keycode, toggle);
+>
+>  resubmit:
+>
 
-We'd then have to do the same for each tuner driver that we have in the
-kernel or that gets added later. My patch was intended to just restore
-the previous behavior that was accidentally changed as part of a misguided
-cleanup.
+Hi David,
 
-> Actually, I have hard time coming up with a kconfig syntactic sugar to
-> express such dependency. If I understand it correctly, the valid
-> configurations in this case are
-> 
-> MEDIA_TUNER_TEA5767     n       m       y
-> VIDEO_TUNER     n       x       x       x
->                 m       x       x       x
->                 y       x               x
-> 
-> I.e. only VIDEO_TUNER=y and MEDIA_TUNER_TEA5767=m is incorrect, isn't
-> it?
+yes! Your patch seems to work fine on my side, my remote is working again!
 
-Yes, I think that is correct. We have similar problems in other areas
-of the kernel. In theory, we could enforce the VIDEO_TUNER driver to
-be modular here by adding lots of dependencies to it:
+Here is the relevant debug log (press and release of the "1" key):
 
-config VIDEO_TUNER
-	tristate
-	depends on MEDIA_TUNER_TEA5761 || !MEDIA_TUNER_TEA5761
-	depends on MEDIA_TUNER_TEA5767 || !MEDIA_TUNER_TEA5767
-	depends on MEDIA_TUNER_MSI001  || !MEDIA_TUNER_MSI001
+[ 4131.099573] IR ID = 01 state = 01 System = 00 07 Cmd = 0F F0 (len 6)
+[ 4131.099579] RC5 protocol
+[ 4131.099581] protocol = 03 keycode = 070F toggle = 01
+[ 4131.212813] IR ID = 01 state = 02 System = 00 07 Cmd = 0F F0 (len 6)
+[ 4131.212819] RC5 protocol
 
-but that would also soon get out of hand, and we probably need another
-indirection here too, for each symbol that selects VIDEO_TUNER.
+This is the output of debug output which I added in
+dib0700_core.c:dib0700_rc_urb_completion() before the call of
+rc_keydown() function:
 
-	Arnd
+deb_data("protocol = %02X keycode = %04X toggle = %02X\n", protocol,
+keycode, toggle);
+[ 4131.212821] protocol = 03 keycode = 070F toggle = 01
+
+Regards,
+David
