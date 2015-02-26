@@ -1,121 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:43507 "EHLO hardeman.nu"
+Received: from mail.kapsi.fi ([217.30.184.167]:56656 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752379AbbBKOkc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2015 09:40:32 -0500
-To: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>
-Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working  since kernel 3.17
+	id S1753671AbbBZLyY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2015 06:54:24 -0500
+Message-ID: <54EF096B.1060603@iki.fi>
+Date: Thu, 26 Feb 2015 13:54:19 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Wed, 11 Feb 2015 15:40:30 +0100
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-In-Reply-To: <CAEmZozPN2xDQMyao8GAYB1KqKxvgznn6CNc+LgPGhE=TJfDbFQ@mail.gmail.com>
-References: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
- <54D9E14A.5090200@iki.fi> <e65f6b905eae37f11e697ad20b97c37c@hardeman.nu>
- <CAEmZozPN2xDQMyao8GAYB1KqKxvgznn6CNc+LgPGhE=TJfDbFQ@mail.gmail.com>
-Message-ID: <32c10d8cd2303ed9476db1b68924170a@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2/2 v2] dvb-usb-v2: create one media_dev per adapter
+References: <5f768a83b8035c8c17a7812388c1382b69e1bdf1.1424950218.git.mchehab@osg.samsung.com>
+In-Reply-To: <5f768a83b8035c8c17a7812388c1382b69e1bdf1.1424950218.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Can you generate some scancodes before and after commit 
-af3a4a9bbeb00df3e42e77240b4cdac5479812f9?
+On 02/26/2015 01:34 PM, Mauro Carvalho Chehab wrote:
+> Instead of assuming just one adapter, change the code to store
+> one media controller per adapter.
+>
+> This works fine for dvb-usb, as, on all drivers here, it is not
+> possible to write a media graph that would mix resources between
+> the two different adapters.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+Acked-by: Antti Palosaari <crope@iki.fi>
+
+Antti
 
 
-On 2015-02-11 14:53, David Cimbůrek wrote:
-> David Härdeman: I'm using defaults, I have no custom modifications.
-> 
-> 
-> 2015-02-11 14:24 GMT+01:00 David Härdeman <david@hardeman.nu>:
->> David C: are you using the in-kernel keymap or loading a custom one?
->> 
->> 
->> On 2015-02-10 11:45, Antti Palosaari wrote:
->>> 
->>> David Härdeman,
->>> Could you look that as it is your patch which has broken it
->>> 
->>> commit af3a4a9bbeb00df3e42e77240b4cdac5479812f9
->>> Author: David Härdeman <david@hardeman.nu>
->>> Date:   Thu Apr 3 20:31:51 2014 -0300
->>> 
->>>     [media] dib0700: NEC scancode cleanup
->>> 
->>> 
->>> Antti
->>> 
->>> On 02/10/2015 12:38 PM, David Cimbůrek wrote:
->>>> 
->>>> Please include this patch to kernel! It takes too much time for such 
->>>> a
->>>> simple fix!
->>>> 
->>>> 
->>>> 2015-01-07 13:51 GMT+01:00 David Cimbůrek 
->>>> <david.cimburek@gmail.com>:
->>>>> 
->>>>> No one is interested? I'd like to get this patch to kernel to fix 
->>>>> the
->>>>> issue. Can someone here do it please?
->>>>> 
->>>>> 
->>>>> 2014-12-20 14:36 GMT+01:00 David Cimbůrek 
->>>>> <david.cimburek@gmail.com>:
->>>>>> 
->>>>>> Hi,
->>>>>> 
->>>>>> with kernel 3.17 remote control for Pinnacle 73e (ID 2304:0237
->>>>>> Pinnacle Systems, Inc. PCTV 73e [DiBcom DiB7000PC]) does not work
->>>>>> anymore.
->>>>>> 
->>>>>> I checked the changes and found out the problem in commit
->>>>>> af3a4a9bbeb00df3e42e77240b4cdac5479812f9.
->>>>>> 
->>>>>> In dib0700_core.c in struct dib0700_rc_response the following 
->>>>>> union:
->>>>>> 
->>>>>> union {
->>>>>>      u16 system16;
->>>>>>      struct {
->>>>>>          u8 not_system;
->>>>>>          u8 system;
->>>>>>      };
->>>>>> };
->>>>>> 
->>>>>> has been replaced by simple variables:
->>>>>> 
->>>>>> u8 system;
->>>>>> u8 not_system;
->>>>>> 
->>>>>> But these variables are in reverse order! When I switch the order
->>>>>> back, the remote works fine again! Here is the patch:
->>>>>> 
->>>>>> 
->>>>>> --- a/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
->>>>>> 14:27:15.000000000 +0100
->>>>>> +++ b/drivers/media/usb/dvb-usr/dib0700_core.c    2014-12-20
->>>>>> 14:27:36.000000000 +0100
->>>>>> @@ -658,8 +658,8 @@
->>>>>>   struct dib0700_rc_response {
->>>>>>       u8 report_id;
->>>>>>       u8 data_state;
->>>>>> -    u8 system;
->>>>>>       u8 not_system;
->>>>>> +    u8 system;
->>>>>>       u8 data;
->>>>>>       u8 not_data;
->>>>>>   };
->>>>>> 
->>>>>> 
->>>>>> Regards,
->>>>>> David
->>>> 
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe 
->>>> linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>> 
->> 
+>
+> v2:
+>
+> - Fix unregister logic
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+> index dbac1633312a..023d91f7e654 100644
+> --- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+> +++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+> @@ -392,10 +392,6 @@ struct dvb_usb_device {
+>   	struct delayed_work rc_query_work;
+>
+>   	void *priv;
+> -
+> -#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+> -	struct media_device *media_dev;
+> -#endif
+>   };
+>
+>   extern int dvb_usbv2_probe(struct usb_interface *,
+> diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+> index 94a7f6390f46..0666c8f33ac7 100644
+> --- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+> +++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+> @@ -400,11 +400,11 @@ skip_feed_stop:
+>   	return ret;
+>   }
+>
+> -static void dvb_usbv2_media_device_register(struct dvb_usb_device *d)
+> +static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
+>   {
+>   #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -
+>   	struct media_device *mdev;
+> +	struct dvb_usb_device *d = adap_to_d(adap);
+>   	struct usb_device *udev = d->udev;
+>   	int ret;
+>
+> @@ -429,22 +429,23 @@ static void dvb_usbv2_media_device_register(struct dvb_usb_device *d)
+>   		return;
+>   	}
+>
+> -	d->media_dev = mdev;
+> +	adap->dvb_adap.mdev = mdev;
+>
+>   	dev_info(&d->udev->dev, "media controller created\n");
+>
+>   #endif
+>   }
+>
+> -static void dvb_usbv2_media_device_unregister(struct dvb_usb_device *d)
+> +static void dvb_usbv2_media_device_unregister(struct dvb_usb_adapter *adap)
+>   {
+>   #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -	if (!d->media_dev)
+> +
+> +	if (!adap->dvb_adap.mdev)
+>   		return;
+>
+> -	media_device_unregister(d->media_dev);
+> -	kfree(d->media_dev);
+> -	d->media_dev = NULL;
+> +	media_device_unregister(adap->dvb_adap.mdev);
+> +	kfree(adap->dvb_adap.mdev);
+> +	adap->dvb_adap.mdev = NULL;
+>
+>   #endif
+>   }
+> @@ -453,6 +454,7 @@ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
+>   {
+>   	int ret;
+>   	struct dvb_usb_device *d = adap_to_d(adap);
+> +
+>   	dev_dbg(&d->udev->dev, "%s: adap=%d\n", __func__, adap->id);
+>
+>   	ret = dvb_register_adapter(&adap->dvb_adap, d->name, d->props->owner,
+> @@ -466,8 +468,7 @@ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
+>   	adap->dvb_adap.priv = adap;
+>
+>   #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -	dvb_usbv2_media_device_register(d);
+> -	adap->dvb_adap.mdev = d->media_dev;
+> +	dvb_usbv2_media_device_register(adap);
+>   #endif
+>
+>   	if (d->props->read_mac_address) {
+> @@ -518,7 +519,7 @@ err_dvb_net_init:
+>   err_dvb_dmxdev_init:
+>   	dvb_dmx_release(&adap->demux);
+>   err_dvb_dmx_init:
+> -	dvb_usbv2_media_device_unregister(d);
+> +	dvb_usbv2_media_device_unregister(adap);
+>   	dvb_unregister_adapter(&adap->dvb_adap);
+>   err_dvb_register_adapter:
+>   	adap->dvb_adap.priv = NULL;
+> @@ -537,7 +538,7 @@ static int dvb_usbv2_adapter_dvb_exit(struct dvb_usb_adapter *adap)
+>   		adap->demux.dmx.close(&adap->demux.dmx);
+>   		dvb_dmxdev_release(&adap->dmxdev);
+>   		dvb_dmx_release(&adap->demux);
+> -		dvb_usbv2_media_device_unregister(d);
+> +		dvb_usbv2_media_device_unregister(adap);
+>   		dvb_unregister_adapter(&adap->dvb_adap);
+>   	}
+>
+> @@ -701,7 +702,7 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
+>   		}
+>   	}
+>
+> -	dvb_create_media_graph(d->media_dev);
+> +	dvb_create_media_graph(adap->dvb_adap.mdev);
+>
+>   	return 0;
+>
+>
+
+-- 
+http://palosaari.fi/
