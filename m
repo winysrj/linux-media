@@ -1,92 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:36910 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751757AbbBPTue (ORCPT
+Received: from mail-we0-f180.google.com ([74.125.82.180]:37691 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754264AbbBZSTq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2015 14:50:34 -0500
-Received: by mail-we0-f181.google.com with SMTP id w62so31088860wes.12
-        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2015 11:50:32 -0800 (PST)
-From: Philip Downer <pdowner@prospero-tech.com>
-To: linux-media@vger.kernel.org
-Cc: Philip Downer <pdowner@prospero-tech.com>
-Subject: [RFC PATCH 0/1]  [media] pci: Add support for DVB PCIe cards from Prospero Technologies Ltd.
-Date: Mon, 16 Feb 2015 19:48:45 +0000
-Message-Id: <1424116126-14052-1-git-send-email-pdowner@prospero-tech.com>
+	Thu, 26 Feb 2015 13:19:46 -0500
+Received: by wesw55 with SMTP id w55so13482418wes.4
+        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2015 10:19:45 -0800 (PST)
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: linux-media@vger.kernel.org,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: i2c: adv7180: unregister the subdev in remove callback
+Date: Thu, 26 Feb 2015 18:19:29 +0000
+Message-Id: <1424974769-27095-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Vortex PCIe card by Prospero Technologies Ltd is a modular DVB card
-with a hardware demux, the card can support up to 8 modules which are
-fixed to the board at assembly time. Currently we only offer one 
-configuration, 8 x Dibcom 7090p DVB-t tuners, but we will soon be releasing
-other configurations. There is also a connector for an infra-red receiver 
-dongle on the board which supports RAW IR.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-The driver has been in testing on our systems (ARM Cortex-A9, Marvell Sheva, 
-x86, x86-64) for longer than 6 months, so I'm confident that it works. 
-However as this is the first Linux driver I've written, I'm sure there are 
-some things that I've got wrong. One thing in particular which has been 
-raised by one of our early testers is that we currently register all of 
-our frontends as being attached to one adapter. This means the device is
-enumerated in /dev like this:
+this patch makes sure we unregister the subdev by calling
+v4l2_device_unregister_subdev() on remove callback.
 
-/dev/dvb/adapter0/frontend0
-/dev/dvb/adapter0/dvr0
-/dev/dvb/adapter0/demux0
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/i2c/adv7180.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-/dev/dvb/adapter0/frontend1
-/dev/dvb/adapter0/dvr1
-/dev/dvb/adapter0/demux1
-
-/dev/dvb/adapter0/frontend2
-/dev/dvb/adapter0/dvr2
-/dev/dvb/adapter0/demux2
-
-etc.
-
-Whilst I think this is ok according to the spec, our tester has complained 
-that it's incompatible with their software which expects to find just one 
-frontend per adapter. So I'm wondering if someone could confirm if what 
-I've done with regards to this is correct.
-
-I've tested this patch by applying it to current media-master and it applies 
-cleanly and builds without issue for me.
-
-More information on the card can be found at:
-http://prospero-tech.com/vortex-1-dvb-t-pcie-card/
-
-Regards,
-
-Philip Downer
-
-Philip Downer (1):
-  [media] pci: Add support for DVB PCIe cards from Prospero Technologies
-    Ltd.
-
- drivers/media/pci/Kconfig                     |    1 +
- drivers/media/pci/Makefile                    |    2 +
- drivers/media/pci/prospero/Kconfig            |    7 +
- drivers/media/pci/prospero/Makefile           |    7 +
- drivers/media/pci/prospero/prospero_common.h  |  264 ++++
- drivers/media/pci/prospero/prospero_fe.h      |    5 +
- drivers/media/pci/prospero/prospero_fe_main.c |  466 ++++++
- drivers/media/pci/prospero/prospero_i2c.c     |  449 ++++++
- drivers/media/pci/prospero/prospero_i2c.h     |    3 +
- drivers/media/pci/prospero/prospero_ir.c      |  150 ++
- drivers/media/pci/prospero/prospero_ir.h      |    4 +
- drivers/media/pci/prospero/prospero_main.c    | 2086 +++++++++++++++++++++++++
- 12 files changed, 3444 insertions(+)
- create mode 100644 drivers/media/pci/prospero/Kconfig
- create mode 100644 drivers/media/pci/prospero/Makefile
- create mode 100644 drivers/media/pci/prospero/prospero_common.h
- create mode 100644 drivers/media/pci/prospero/prospero_fe.h
- create mode 100644 drivers/media/pci/prospero/prospero_fe_main.c
- create mode 100644 drivers/media/pci/prospero/prospero_i2c.c
- create mode 100644 drivers/media/pci/prospero/prospero_i2c.h
- create mode 100644 drivers/media/pci/prospero/prospero_ir.c
- create mode 100644 drivers/media/pci/prospero/prospero_ir.h
- create mode 100644 drivers/media/pci/prospero/prospero_main.c
-
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index b75878c..734d84a 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -1270,6 +1270,7 @@ static int adv7180_remove(struct i2c_client *client)
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2)
+ 		i2c_unregister_device(state->csi_client);
+ 
++	v4l2_device_unregister_subdev(sd);
+ 	mutex_destroy(&state->mutex);
+ 
+ 	return 0;
 -- 
-2.1.4
+1.9.1
 
