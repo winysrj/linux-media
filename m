@@ -1,60 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpq1.tb.mail.iss.as9143.net ([212.54.42.164]:35126 "EHLO
-	smtpq1.tb.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751288AbbBUWQx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2015 17:16:53 -0500
-Received: from [212.54.42.134] (helo=smtp3.tb.mail.iss.as9143.net)
-	by smtpq1.tb.mail.iss.as9143.net with esmtp (Exim 4.82)
-	(envelope-from <rudy@grumpydevil.homelinux.org>)
-	id 1YPHdC-0005MX-6p
-	for linux-media@vger.kernel.org; Sat, 21 Feb 2015 22:30:34 +0100
-Received: from 5ed66c68.cm-7-7b.dynamic.ziggo.nl ([94.214.108.104] helo=imail.office.romunt.nl)
-	by smtp3.tb.mail.iss.as9143.net with esmtp (Exim 4.82)
-	(envelope-from <rudy@grumpydevil.homelinux.org>)
-	id 1YPHdC-0006Hk-40
-	for linux-media@vger.kernel.org; Sat, 21 Feb 2015 22:30:34 +0100
-Received: from [192.168.1.15] (cenedra.office.romunt.nl [192.168.1.15])
-	by imail.office.romunt.nl (8.14.4/8.14.4/Debian-4) with ESMTP id t1LLUXLO012677
-	for <linux-media@vger.kernel.org>; Sat, 21 Feb 2015 22:30:33 +0100
-Message-ID: <54E8F8F4.1010601@grumpydevil.homelinux.org>
-Date: Sat, 21 Feb 2015 22:30:28 +0100
-From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:45298 "EHLO
+	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751526AbbBZFSo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2015 00:18:44 -0500
+From: Sudip JAIN <sudip.jain@st.com>
+To: Jeremiah Mahler <jmmahler@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Date: Thu, 26 Feb 2015 13:18:31 +0800
+Subject: RE: 0001-media-vb2-Fill-vb2_buffer-with-bytesused-from-user.patch;
+ kernel version 3.10.69
+Message-ID: <AE3729EDFAD6D548827A31E3191F1E5B0138E8DF@EAPEX1MAIL1.st.com>
+References: <AE3729EDFAD6D548827A31E3191F1E5B0138E8D7@EAPEX1MAIL1.st.com>,<20150225182308.GB27977@hudson.localdomain>
+In-Reply-To: <20150225182308.GB27977@hudson.localdomain>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: DVB Simulcrypt
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dears (Hans?)
+Hello Jeremiah,
 
-My setup, where the cable operator was using only irdeto, was working 
-good. Then the cable operator merged with another, and now the networks 
-are being merged. As a result, the encryption has moved from irdeto only 
-to simulcyrpt with Irdeto and Nagra.
+Please find the patch  "inline"
 
-Current status:
-- when i put the CA card in a STB, it works
-- when trying to record an encrypted channel from PC, it no longer works.
+commit 3390900680e5182998916c8fa231bc79cd84046b
+Author: Sudip Jain <sudip.jain@st.com>
+Date:   Thu Feb 26 10:40:34 2015 +0530
 
-I suspect the problem is that the wrong keys are used: Nagra keys in 
-stead of Irdeto keys.
+    media: vb2: Fill vb2_buffer with bytesused from user
+    
+    In vb2_qbuf for dmabuf memory type, userside bytesused is not read to
+    vb2 buffer. This leads garbage value being copied from __qbuf_dmabuf()
+    back to user in __fill_v4l2_buffer().
+    
+    As a default case, the vb2 framework must trust the userside value,
+    and also allow driver's buffer prepare function prefer modify/update
+    or not to.
+    
+    Applied on kernel version 3.10.69
+    
+    Change-Id: Ieda389403898935f59c2e2994106f3e5238cfefd
+    Signed-off-by: Sudip Jain <sudip.jain@st.com>
 
-I do not know whether:
-- kernel issue (is simulcrypt supported?)
-- API issue (is all support in place to select the right key stream?)
-- application issue (does the application allow to set the right CA?)
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5e47ba4..54fe9c9 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -919,6 +919,8 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+                                        b->m.planes[plane].m.fd;
+                                v4l2_planes[plane].length =
+                                        b->m.planes[plane].length;
++                               v4l2_planes[plane].bytesused =
++                                       b->m.planes[plane].bytesused;
+                                v4l2_planes[plane].data_offset =
+                                        b->m.planes[plane].data_offset;
+                        }
+@@ -943,6 +945,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+                if (b->memory == V4L2_MEMORY_DMABUF) {
+                        v4l2_planes[0].m.fd = b->m.fd;
+                        v4l2_planes[0].length = b->length;
++                       v4l2_planes[0].bytesused = b->bytesused;
+                        v4l2_planes[0].data_offset = 0;
+                }
 
-If this is an application issue, could it be solved by setting the API 
-outside the application, to direct it to the right (Irdeto in my case) 
-encryption?
+Thanks,
+Sudip
+________________________________________
+From: Jeremiah Mahler [jmmahler@gmail.com]
+Sent: Wednesday, February 25, 2015 11:53 PM
+To: Sudip JAIN
+Cc: linux-media@vger.kernel.org; linux-kernel@vger.kernel.org
+Subject: Re: 0001-media-vb2-Fill-vb2_buffer-with-bytesused-from-user.patch
 
-The application i am using is MythTV.
+Sudip,
 
+On Wed, Feb 25, 2015 at 03:29:22PM +0800, Sudip JAIN wrote:
+> Dear Maintainer,
+>
+> PFA attached patch that prevents user from being returned garbage bytesused value from vb2 framework.
+>
+> Regards,
+> Sudip Jain
+>
 
-Cheers
+Patches should never be submitted as attachments, they should be inline.
 
+See Documentation/SubmittingPatches for more info.
 
-Rudy
+[...]
+
+--
+- Jeremiah Mahler
