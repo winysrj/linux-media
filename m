@@ -1,41 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:44990 "EHLO
-	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753295AbbBXSxi (ORCPT
+Received: from mail-we0-f180.google.com ([74.125.82.180]:39533 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752891AbbBZAgh convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2015 13:53:38 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: au0828 replace printk KERN_DEBUG with pr_debug
-Date: Tue, 24 Feb 2015 11:53:34 -0700
-Message-Id: <1424804014-7743-1-git-send-email-shuahkh@osg.samsung.com>
+	Wed, 25 Feb 2015 19:36:37 -0500
+MIME-Version: 1.0
+In-Reply-To: <54ED4772.902@atmel.com>
+References: <1423560696-12304-1-git-send-email-josh.wu@atmel.com>
+ <1423560696-12304-4-git-send-email-josh.wu@atmel.com> <CA+V-a8vkd2Q714s=o9WZZvPWJQATp=6POb8VYdSgarKxxEKqyQ@mail.gmail.com>
+ <54ED4772.902@atmel.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Thu, 26 Feb 2015 00:36:05 +0000
+Message-ID: <CA+V-a8s_PosECku7Pzg4Rt4Mq7_mMtvo3ZGDxUByx__XEgUxcA@mail.gmail.com>
+Subject: Re: [PATCH v5 3/4] media: ov2640: add primary dt support
+To: Josh Wu <josh.wu@atmel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace printk KERN_DEBUG with pr_debug in dprintk macro
-defined in au0828.h
+Hi Josh,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Wed, Feb 25, 2015 at 3:54 AM, Josh Wu <josh.wu@atmel.com> wrote:
+> Hi, Prabhakar Lad
+>
+>
+> On 2/17/2015 12:48 AM, Lad, Prabhakar wrote:
+>>
+>> Hi Josh,
+>>
+>> Thanks for the patch.
+>>
+>> On Tue, Feb 10, 2015 at 9:31 AM, Josh Wu <josh.wu@atmel.com> wrote:
+>> [Snip]
+>>>
+>>> -       priv->clk = v4l2_clk_get(&client->dev, "mclk");
+>>> +       priv->clk = v4l2_clk_get(&client->dev, "xvclk");
+>>
+>> with this change don’t you need to update the board file using this
+>> driver/
+>> the bridge driver ?
+>
+> I think no.
+>
+> First, my patch should be on top of the following two patches, which changed
+> the *v4l2_clk_get()* behavior:
+> [v3,1/2] V4L: remove clock name from v4l2_clk API
+> https://patchwork.linuxtv.org/patch/28108/
+> [v4,2/2] V4L: add CCF support to the v4l2_clk API
+> https://patchwork.linuxtv.org/patch/28111/
+>
+Thanks I missed the dependent patches.
 
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index eb15187..e3e90ea 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -336,7 +336,7 @@ extern struct vb2_ops au0828_vbi_qops;
- 
- #define dprintk(level, fmt, arg...)\
- 	do { if (au0828_debug & level)\
--		printk(KERN_DEBUG pr_fmt(fmt), ## arg);\
-+		pr_debug(pr_fmt(fmt), ## arg);\
- 	} while (0)
- 
- /* au0828-input.c */
--- 
-2.1.0
-
+Cheers,
+--Prabhakar Lad
