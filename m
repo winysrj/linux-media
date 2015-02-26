@@ -1,380 +1,541 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:45112 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601AbbBWM0Z (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:36476 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754325AbbBZQAQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2015 07:26:25 -0500
-Received: by iecat20 with SMTP id at20so22726952iec.12
-        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2015 04:26:25 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAL8zT=ixDG50JuLU+iWMByHvXAB5RX4rg63azBp7E4w4WWmcfw@mail.gmail.com>
-References: <CAL8zT=hPSYBcUGZbpaqidcWvHk9TB5u30XeXjVsp_b_puB0KYg@mail.gmail.com>
-	<CAL8zT=ixDG50JuLU+iWMByHvXAB5RX4rg63azBp7E4w4WWmcfw@mail.gmail.com>
-Date: Mon, 23 Feb 2015 13:26:24 +0100
-Message-ID: <CAPW4HR06yxDOwVvnJNZv8Kp9+=uFJ0OCa2zsqOaN2t8VYfNORw@mail.gmail.com>
-Subject: Re: HDMI input on i.MX6 using IPU
-From: =?UTF-8?Q?Carlos_Sanmart=C3=ADn_Bustos?= <carsanbu@gmail.com>
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Jean-Michel Hautbois <jhautbois@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+	Thu, 26 Feb 2015 11:00:16 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NKD00MC9Z4ERPC0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 27 Feb 2015 01:00:14 +0900 (KST)
+Content-transfer-encoding: 8BIT
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com,
+	kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Teemu Tuominen <teemu.tuominen@intel.com>
+Subject: =?UTF-8?q?=5Bv4l-utils=20PATCH/RFC=20v5=2004/14=5D=20mediatext=3A=20Add=20library?=
+Date: Thu, 26 Feb 2015 16:59:14 +0100
+Message-id: <1424966364-3647-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
+References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi JM,
+libmediatext is a helper library for converting configurations (Media
+controller links, V4L2 controls and V4L2 sub-device media bus formats and
+selections) from text-based form into IOCTLs.
 
-I am trying the Philipp's code and I came to the same conclusion, it
-is not possible to setup the last link. Did you do some progress on
-this? Any idea?
+libmediatext depends on libv4l2subdev and libmediactl.
 
-Maybe, between us we can fix this problem.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Teemu Tuominen <teemu.tuominen@intel.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+---
+ utils/media-ctl/Makefile.am        |   10 +-
+ utils/media-ctl/libmediatext.pc.in |   10 ++
+ utils/media-ctl/mediatext-test.c   |   64 ++++++++
+ utils/media-ctl/mediatext.c        |  311 ++++++++++++++++++++++++++++++++++++
+ utils/media-ctl/mediatext.h        |   52 ++++++
+ 5 files changed, 445 insertions(+), 2 deletions(-)
+ create mode 100644 utils/media-ctl/libmediatext.pc.in
+ create mode 100644 utils/media-ctl/mediatext-test.c
+ create mode 100644 utils/media-ctl/mediatext.c
+ create mode 100644 utils/media-ctl/mediatext.h
 
-Thanks for advice,
+diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+index a3931fb..3e883e0 100644
+--- a/utils/media-ctl/Makefile.am
++++ b/utils/media-ctl/Makefile.am
+@@ -1,4 +1,4 @@
+-noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la
++noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la libmediatext.la
+ 
+ libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
+ libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
+@@ -9,9 +9,15 @@ libv4l2subdev_la_LIBADD = libmediactl.la
+ libv4l2subdev_la_CFLAGS = -static
+ libv4l2subdev_la_LDFLAGS = -static
+ 
++libmediatext_la_SOURCES = mediatext.c
++libmediatext_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
++libmediatext_la_LDFLAGS = -static $(LIBUDEV_LIBS)
++
+ mediactl_includedir=$(includedir)/mediactl
+ noinst_HEADERS = mediactl.h v4l2subdev.h
+ 
+-bin_PROGRAMS = media-ctl
++bin_PROGRAMS = media-ctl mediatext-test
+ media_ctl_SOURCES = media-ctl.c options.c options.h tools.h
+ media_ctl_LDADD = libmediactl.la libv4l2subdev.la
++mediatext_test_SOURCES = mediatext-test.c
++mediatext_test_LDADD = libmediatext.la libmediactl.la libv4l2subdev.la
+diff --git a/utils/media-ctl/libmediatext.pc.in b/utils/media-ctl/libmediatext.pc.in
+new file mode 100644
+index 0000000..6aa6353
+--- /dev/null
++++ b/utils/media-ctl/libmediatext.pc.in
+@@ -0,0 +1,10 @@
++prefix=@prefix@
++exec_prefix=@exec_prefix@
++libdir=@libdir@
++includedir=@includedir@
++
++Name: libmediatext
++Description: Media controller and V4L2 text-based configuration library
++Version: @PACKAGE_VERSION@
++Cflags: -I${includedir}
++Libs: -L${libdir} -lmediatext
+diff --git a/utils/media-ctl/mediatext-test.c b/utils/media-ctl/mediatext-test.c
+new file mode 100644
+index 0000000..e3ae89c
+--- /dev/null
++++ b/utils/media-ctl/mediatext-test.c
+@@ -0,0 +1,64 @@
++/*
++ * libmediatext test program
++ *
++ * Copyright (C) 2013 Intel Corporation
++ *
++ * Contact: Sakari Ailus <sakari.ailus@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU Lesser General Public License as published
++ * by the Free Software Foundation; either version 2.1 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#include "mediactl.h"
++#include "mediatext.h"
++
++int main(int argc, char *argv[])
++{
++	struct media_device *device;
++	int rval;
++
++	if (argc != 3) {
++		fprintf(stderr, "usage: %s <media device> <string>\n\n", argv[0]);
++		fprintf(stderr, "\tstring := [ v4l2-ctrl | v4l2-mbus | link-reset | link-conf]\n\n");
++		fprintf(stderr, "\tv4l2-ctrl := \"entity\" ctrl_type ctrl_id ctrl_value\n");
++		fprintf(stderr, "\tctrl_type := [ int | int64 | bitmask ]\n");
++		fprintf(stderr, "\tctrl_value := [ %%d | %%PRId64 | bitmask_value ]\n");
++		fprintf(stderr, "\tbitmask_value := b<binary_number>\n\n");
++		fprintf(stderr, "\tv4l2-mbus := \n");
++		fprintf(stderr, "\tlink-conf := \"entity\":pad -> \"entity\":pad[link-flags]\n");
++		fprintf(stderr, "\tv4l2-ctrl-redir := ctrl_id -> \"entity\"\n");
++		return EXIT_FAILURE;
++	}
++
++	device = media_device_new(argv[1]);
++	if (!device)
++		return EXIT_FAILURE;
++
++	rval = media_device_enumerate(device);
++	if (rval)
++		return EXIT_FAILURE;
++
++	rval = mediatext_parse(device, argv[2]);
++	if (rval) {
++		fprintf(stderr, "bad string %s (%s)\n", argv[2], strerror(-rval));
++		return EXIT_FAILURE;
++	}
++
++	media_device_unref(device);
++
++	return EXIT_SUCCESS;
++}
+diff --git a/utils/media-ctl/mediatext.c b/utils/media-ctl/mediatext.c
+new file mode 100644
+index 0000000..c39e889
+--- /dev/null
++++ b/utils/media-ctl/mediatext.c
+@@ -0,0 +1,311 @@
++/*
++ * Media controller text-based configuration library
++ *
++ * Copyright (C) 2013 Intel Corporation
++ *
++ * Contact: Sakari Ailus <sakari.ailus@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU Lesser General Public License as published
++ * by the Free Software Foundation; either version 2.1 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <sys/ioctl.h>
++
++#include <ctype.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <inttypes.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/stat.h>
++
++#include <linux/types.h>
++
++#include "mediactl.h"
++#include "mediactl-priv.h"
++#include "tools.h"
++#include "v4l2subdev.h"
++
++struct parser {
++	char *prefix;
++	int (*parse)(struct media_device *media, const struct parser *p,
++		     char *string);
++	struct parser *next;
++	bool no_args;
++};
++
++static int parse(struct media_device *media, const struct parser *p, char *string)
++{
++	for (; p->prefix; p++) {
++		size_t len = strlen(p->prefix);
++
++		if (strncmp(p->prefix, string, len) || string[len] != ' ')
++			continue;
++
++		string += len;
++
++		for (; isspace(*string); string++);
++
++		if (p->no_args)
++			return p->parse(media, p->next, NULL);
++
++		if (strlen(string) == 0)
++			return -ENOEXEC;
++
++		return p->parse(media, p->next, string);
++	}
++
++	media_dbg(media, "Unknown parser prefix\n");
++
++	return -ENOENT;
++}
++
++struct ctrl_type {
++	uint32_t type;
++	char *str;
++} ctrltypes[] = {
++	{ V4L2_CTRL_TYPE_INTEGER, "int" },
++	{ V4L2_CTRL_TYPE_MENU, "menu" },
++	{ V4L2_CTRL_TYPE_INTEGER_MENU, "intmenu" },
++	{ V4L2_CTRL_TYPE_BITMASK, "bitmask" },
++	{ V4L2_CTRL_TYPE_INTEGER64, "int64" },
++};
++
++static int parse_v4l2_ctrl_id(struct media_device *media, const struct parser *p,
++			      char *string, char **endp, __u32 *ctrl_id)
++{
++	int rval;
++
++	for (; isspace(*string); string++);
++	rval = sscanf(string, "0x%" PRIx32, ctrl_id);
++	if (rval <= 0)
++		return -EINVAL;
++
++	for (; !isspace(*string) && *string; string++);
++	for (; isspace(*string); string++);
++
++	*endp = string;
++
++	return 0;
++}
++
++/* adapted from yavta.c */
++static int parse_v4l2_ctrl(struct media_device *media, const struct parser *p,
++			   char *string)
++{
++	struct v4l2_ext_control ctrl = { 0 };
++	struct v4l2_ext_controls ctrls = { .count = 1,
++					   .controls = &ctrl };
++	int64_t val;
++	int rval;
++	struct media_entity *entity;
++	struct ctrl_type *ctype;
++	unsigned int i;
++
++	entity = media_parse_entity(media, string, &string);
++	if (!entity)
++		return -ENOENT;
++
++	for (i = 0; i < ARRAY_SIZE(ctrltypes); i++)
++		if (!strncmp(string, ctrltypes[i].str,
++			     strlen(ctrltypes[i].str)))
++			break;
++
++	if (i == ARRAY_SIZE(ctrltypes))
++		return -ENOENT;
++
++	ctype = &ctrltypes[i];
++
++	string += strlen(ctrltypes[i].str);
++
++	rval = parse_v4l2_ctrl_id(media, p, string, &string, &ctrl.id);
++	if (rval < 0)
++		return -EINVAL;
++
++	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(ctrl.id);
++
++	switch (ctype->type) {
++	case V4L2_CTRL_TYPE_BITMASK:
++		if (*string++ != 'b')
++			return -EINVAL;
++		while (*string == '1' || *string == '0') {
++			val <<= 1;
++			if (*string == '1')
++				val++;
++			string++;
++		}
++		break;
++	default:
++		rval = sscanf(string, "%" PRId64, &val);
++		break;
++	}
++	if (rval <= 0)
++		return -EINVAL;
++
++	media_dbg(media, "Setting control 0x%8.8x (type %s), value %" PRId64 "\n",
++		  ctrl.id, ctype->str, val);
++
++	if (ctype->type == V4L2_CTRL_TYPE_INTEGER64)
++		ctrl.value64 = val;
++	else
++		ctrl.value = val;
++
++	rval = v4l2_subdev_open(entity);
++	if (rval < 0)
++		return rval;
++
++	rval = ioctl(entity->sd->fd, VIDIOC_S_EXT_CTRLS, &ctrls);
++	if (ctype->type != V4L2_CTRL_TYPE_INTEGER64) {
++		if (rval != -1) {
++			ctrl.value64 = ctrl.value;
++		} else if (ctype->type != V4L2_CTRL_TYPE_STRING &&
++			   (errno == EINVAL || errno == ENOTTY)) {
++			struct v4l2_control old = { .id = ctrl.id,
++						    .value = val };
++
++			rval = ioctl(entity->sd->fd, VIDIOC_S_CTRL, &old);
++			if (rval != -1)
++				ctrl.value64 = old.value;
++		}
++	}
++	if (rval == -1) {
++		media_dbg(media,
++			  "Failed setting control 0x%8.8x: %s (%d) to value %"
++			  PRId64 "\n", ctrl.id, strerror(errno), errno, val);
++		return -errno;
++	}
++
++	if (val != ctrl.value64)
++		media_dbg(media, "Asking for %" PRId64 ", got %" PRId64 "\n",
++			  val, ctrl.value64);
++
++	return 0;
++}
++
++/*
++
++parse_name(string, end)
++
++*/
++
++int parse_v4l2_ctrl_redir(struct media_device *media, const struct parser *p,
++			   char *string)
++{
++	struct media_entity *entity;
++	struct v4l2_subdev *sd;
++	__u32 ctrl_id;
++	int rval;
++
++	rval = parse_v4l2_ctrl_id(media, p, string, &string, &ctrl_id);
++	if (rval < 0)
++		return -EINVAL;
++
++	for (; isspace(*string); ++string);
++
++	if (string[0] != '-' || string[1] != '>') {
++		media_dbg(media, "Expected '->'\n");
++		return -EINVAL;
++	}
++
++	string += 2;
++
++	entity = media_parse_entity(media, string, &string);
++	if (!entity)
++		return -ENOENT;
++
++	rval = v4l2_subdev_validate_v4l2_ctrl(media, entity, ctrl_id);
++	if (rval < 0) {
++		media_dbg(media, "Failed to validate a v4l2 control on entity %s\n",
++			  entity->info.name);
++		return rval;
++	}
++
++	sd = entity->sd;
++
++	sd->v4l2_control_redir = realloc(sd->v4l2_control_redir,
++					 sizeof(*sd->v4l2_control_redir) *
++					 (sd->v4l2_control_redir_num + 1));
++	if (!sd->v4l2_control_redir)
++		return -ENOMEM;
++
++	sd->v4l2_control_redir[sd->v4l2_control_redir_num] = ctrl_id;
++	++sd->v4l2_control_redir_num;
++
++	return 0;
++}
++
++static int parse_v4l2_mbus(struct media_device *media, const struct parser *p,
++			   char *string)
++{
++	media_dbg(media, "Media bus format setup: %s\n", string);
++	return v4l2_subdev_parse_setup_formats(media, string);
++}
++
++static int parse_link_reset(struct media_device *media, const struct parser *p,
++			    char *string)
++{
++	media_dbg(media, "Resetting links\n");
++	return media_reset_links(media);
++}
++
++static int parse_link_conf(struct media_device *media, const struct parser *p,
++			   char *string)
++{
++	media_dbg(media, "Configuring links: %s\n", string);
++	return media_parse_setup_links(media, string);
++}
++
++static const struct parser parsers[] = {
++	{ "v4l2-ctrl", parse_v4l2_ctrl },
++	{ "v4l2-ctrl-redir", parse_v4l2_ctrl_redir },
++	{ "v4l2-mbus", parse_v4l2_mbus },
++	{ "link-reset", parse_link_reset, NULL, true },
++	{ "link-conf", parse_link_conf },
++	{ 0 }
++};
++
++int mediatext_parse(struct media_device *media, char *string)
++{
++	return parse(media, parsers, string);
++}
++
++int mediatext_parse_setup_config(struct media_device *device, const char *conf_path)
++{
++	char *line;
++	size_t n = 0;
++	FILE *f;
++	int ret;
++
++	if (conf_path == NULL)
++		return -EINVAL;
++
++	f = fopen(conf_path, "r");
++	if (!f)
++		return -EINVAL;
++
++	while (getline(&line, &n, f) != -1) {
++		ret = mediatext_parse(device, line);
++		if (ret < 0)
++			goto err_parse;
++		free(line);
++		line = NULL;
++		n = 0;
++	}
++
++err_parse:
++	fclose(f);
++	return ret;
++}
+diff --git a/utils/media-ctl/mediatext.h b/utils/media-ctl/mediatext.h
+new file mode 100644
+index 0000000..7dfbaf6
+--- /dev/null
++++ b/utils/media-ctl/mediatext.h
+@@ -0,0 +1,52 @@
++/*
++ * Media controller text-based configuration library
++ *
++ * Copyright (C) 2013 Intel Corporation
++ *
++ * Contact: Sakari Ailus <sakari.ailus@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU Lesser General Public License as published
++ * by the Free Software Foundation; either version 2.1 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __MEDIATEXT_H__
++#define __MEDIATEXT_H__
++
++struct media_device;
++
++/**
++ * @brief Parse and apply media device command
++ * @param device - media device
++ * @param string - string to parse
++ *
++ * Parse media device command and apply it to the media device
++ * passed in the device argument.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int mediatext_parse(struct media_device *device, char *string);
++
++/**
++ * @brief Parse and apply media device configuration
++ * @param media - media device
++ * @param conf_path - path to the configuration file
++ *
++ * Parse the media device commands listed in the file under
++ * conf_path and apply them to the media device passed in the
++ * device argument.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int mediatext_parse_setup_config(struct media_device *device, const char *conf_path);
++
++#endif /* __MEDIATEXT_H__ */
+-- 
+1.7.9.5
 
-2015-01-14 18:11 GMT+01:00 Jean-Michel Hautbois
-<jean-michel.hautbois@vodalys.com>:
-> Hi,
->
-> 2015-01-08 17:53 GMT+01:00 Jean-Michel Hautbois
-> <jean-michel.hautbois@vodalys.com>:
->> Hi,
->>
->> I have modified both Steve's and Philipp's code, in order to get
->> something able to get frames from an ADV7611.
->> Right now, I am back to Philipp's base of code, rebased on top of
->> media-tree, and everything works fine, except the very last link
->> between SFMC and IDMAC (using media controller).
->> Here is a status.
->>
->> The code is here :
->> https://github.com/Vodalys/linux-2.6-imx/tree/media-tree-zabel
->
-> Right now, I can go further. I added support for BT.1120 in order to
-> get the correct video format, and I am able to start a streaming, but
-> I can't get an interrupt on IDMAC.
->
-> I am starting with setting DV timings on adv7611 input, and then, I am
-> using 4l2-compliance in order to test streaming. It has shown several
-> things, most of them are corrected, sometimes in a hacky way.
->
-> Right now, I can do the following :
-> $> media-ctl --set-dv '"adv7611 1-004c":1 [fmt:YUYV/1280x720]' &&
-> media-ctl --set-v4l2 '"adv7611 1-004c":1 [fmt:YUYV/1280x720]'
-> $> echo -n 'module imx_ipuv3_csi +p' > /sys/kernel/debug/dynamic_debug/control
-> $> v4l2-compliance -v -s
-> Driver Info:
->     Driver name   : imx-ipuv3-csi
->     Card type     : imx-ipuv3-camera
->     Bus info      : platform:imx-ipuv3-csi
->     Driver version: 3.19.0
->     Capabilities  : 0x84200001
->         Video Capture
->         Streaming
->         Extended Pix Format
->         Device Capabilities
->     Device Caps   : 0x04200001
->         Video Capture
->         Streaming
->         Extended Pix Format
->
-> Compliance test for device /dev/video0 (not using libv4l2):
->
-> Required ioctls:
->     test VIDIOC_QUERYCAP: OK
->
-> Allow for multiple opens:
->     test second video open: OK
->     test VIDIOC_QUERYCAP: OK
->     test VIDIOC_G/S_PRIORITY: OK
->
-> Debug ioctls:
->     test VIDIOC_DBG_G/S_REGISTER: OK
->     test VIDIOC_LOG_STATUS: OK
->
-> Input ioctls:
->     test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
->     test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->     test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->     test VIDIOC_ENUMAUDIO: OK (Not Supported)
->     test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
->     test VIDIOC_G/S_AUDIO: OK (Not Supported)
->     Inputs: 0 Audio Inputs: 0 Tuners: 0
->
-> Output ioctls:
->     test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->     test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->     test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->     test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->     test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->     Outputs: 0 Audio Outputs: 0 Modulators: 0
->
-> Input/Output configuration ioctls:
->     test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
->     test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->     test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->     test VIDIOC_G/S_EDID: OK (Not Supported)
->
->     Control ioctls:
->         info: checking v4l2_queryctrl of control 'User Controls' (0x00980001)
->         info: checking v4l2_queryctrl of control 'Brightness' (0x00980900)
->         info: checking v4l2_queryctrl of control 'Contrast' (0x00980901)
->         info: checking v4l2_queryctrl of control 'Saturation' (0x00980902)
->         info: checking v4l2_queryctrl of control 'Hue' (0x00980903)
->         info: checking v4l2_queryctrl of control 'Image Processing
-> Controls' (0x009f0001)
->         info: checking v4l2_queryctrl of control 'Test Pattern' (0x009f0903)
->         info: checking v4l2_queryctrl of control 'Brightness' (0x00980900)
->         info: checking v4l2_queryctrl of control 'Contrast' (0x00980901)
->         info: checking v4l2_queryctrl of control 'Saturation' (0x00980902)
->         info: checking v4l2_queryctrl of control 'Hue' (0x00980903)
->         test VIDIOC_QUERYCTRL/MENU: OK
->         info: checking control 'User Controls' (0x00980001)
->         info: checking control 'Brightness' (0x00980900)
->         info: checking control 'Contrast' (0x00980901)
->         info: checking control 'Saturation' (0x00980902)
->         info: checking control 'Hue' (0x00980903)
->         info: checking control 'Image Processing Controls' (0x009f0001)
->         info: checking control 'Test Pattern' (0x009f0903)
->         test VIDIOC_G/S_CTRL: OK
->         info: checking extended control 'User Controls' (0x00980001)
->         info: checking extended control 'Brightness' (0x00980900)
->         info: checking extended control 'Contrast' (0x00980901)
->         info: checking extended control 'Saturation' (0x00980902)
->         info: checking extended control 'Hue' (0x00980903)
->         info: checking extended control 'Image Processing Controls' (0x009f0001)
->         info: checking extended control 'Test Pattern' (0x009f0903)
->         test VIDIOC_G/S/TRY_EXT_CTRLS: OK
->         info: checking control event 'User Controls' (0x00980001)
->         fail: /run/media/jm/SSD_JM/Projets/vodabox3/poky/build/tmp/work/cortexa9hf-vfp-neon-poky-linux-gnueabi/v4l-utils/git-r0/git/utils/v4l2-compliance/v4l2-test-controls.cpp(721):
-> subscribe event for control 'User Controls' failed
->         test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
->         test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->         Standard Controls: 7 Private Controls: 0
->
->     Format ioctls:
->         info: found 2 framesizes for pixel format 59455247
->         info: found 2 framesizes for pixel format 20303159
->         info: found 2 framesizes for pixel format 20363159
->         info: found 2 framesizes for pixel format 59565955
->         info: found 2 framesizes for pixel format 56595559
->         info: found 5 formats for buftype 1
->         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->         test VIDIOC_G/S_PARM: OK (Not Supported)
->         test VIDIOC_G_FBUF: OK (Not Supported)
->         test VIDIOC_G_FMT: OK
->         test VIDIOC_TRY_FMT: OK
->         info: Global format check succeeded for type 1
->         test VIDIOC_S_FMT: OK
->         test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->
->     Codec ioctls:
->         test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->         test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->         test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
->
->     Buffer ioctls:
->         info: test buftype Video Capture
->         test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->         test VIDIOC_EXPBUF: OK (Not Supported)
->
-> Streaming ioctls:
->     test read/write: OK (Not Supported)
->         Video Capture:
->
-> It waits here.
-> I can still abort it using ^C and disply kernel messages :
-> $> dmesg
-> [   41.794280] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.826567] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.853863] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.853926] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.853995] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.854045] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.854123] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.854192] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.882802] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.882882] imx-ipuv3-camera imx-ipuv3-camera.2: get 1 buffer(s) of
-> size 1843200 each.
-> [   41.882966] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.883037] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.883103] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.883165] imx-ipuv3-camera imx-ipuv3-camera.2: get 1 buffer(s) of
-> size 1843200 each.
-> [   41.883239] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.883303] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.883370] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.883432] imx-ipuv3-camera imx-ipuv3-camera.2: get 1 buffer(s) of
-> size 1843200 each.
-> [   41.885321] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.915234] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.939194] imx-ipuv3-camera imx-ipuv3-camera.2: get 3 buffer(s) of
-> size 1843200 each.
-> [   41.960376] imx-ipuv3-camera imx-ipuv3-camera.2: get 1 buffer(s) of
-> size 3686400 each.
-> [   41.971627] [ipucsi_videobuf_queue]
-> [   41.975131] [ipucsi_videobuf_queue]
-> [   41.978672] [ipucsi_videobuf_queue]
-> [   41.982173] [ipucsi_videobuf_queue]
-> [   41.985673] [ipu_entity] 14 entities to parse and find IPU0 SMFC0
-> [   41.991789] [ipu_entity] Parsing /soc/ipu@02400000/port@0
-> [   41.997211] [ipu_entity] Parsing /soc/ipu@02400000/port@1
-> [   42.002615] [ipu_entity] Parsing IPU0 SMFC0
-> [   42.006822] [ipu_entity] 14 entities to parse and find IPU0 SMFC0
-> [   42.012921] [ipu_entity] Parsing /soc/ipu@02400000/port@0
-> [   42.018340] [ipu_entity] Parsing /soc/ipu@02400000/port@1
-> [   42.023744] [ipu_entity] Parsing IPU0 SMFC0
-> [   42.027978] imx-ipuv3-camera imx-ipuv3-camera.2: Selected output
-> entity 'IPU0 SMFC0':1, channel 0
-> [   42.036882] imx-ipuv3 2400000.ipu: ipu_idmac_get 0
-> [   42.039810] imx-ipuv3-camera imx-ipuv3-camera.2: Requested NFACK
-> interrupt : 305
-> [   42.039929] imx-ipuv3-camera imx-ipuv3-camera.2: Requested EOF
-> interrupt : 306
-> [   42.040040] imx-ipuv3-camera imx-ipuv3-camera.2: Requested NFB4EOF
-> interrupt : 307
-> [   42.040056] imx-ipuv3-camera imx-ipuv3-camera.2: width: 1280
-> height: 720, YUYV ([   42.040075] ipu_cpmem_set_image: resolution:
-> 1280x720 stride: 2560
-> [   42.040086] ipu_ch_param_write_field 0 125 13
-> [   42.040096] ipu_ch_param_write_field 0 138 12
-> [   42.040107] ipu_ch_param_write_field 1 102 14
-> [   42.040117] ipu_ch_param_write_field 0 107 3
-> [   42.040128] ipu_ch_param_write_field 1 85 4
-> [   42.040136] ipu_ch_param_write_field 1 78 7
-> [   42.040148] ipu_ch_param_write_field 1 0 29
-> [   42.040157] ipu_ch_param_write_field 1 29 29
-> [   42.040167] [ipu_cpmem_set_burstsize] burstsize : 16
-> [   42.045137] ipu_ch_param_write_field 1 78 7
-> [   42.045149] [ipu_smfc_set_watermark] SMFC_WMC: 0x0000098A
-> [   42.050783] ipu_ch_param_write_field 1 93 2
-> [   42.050804] imx-ipuv3-camera imx-ipuv3-camera.2: smfc burstsize : 3
-> [   42.050816] [ipu_smfc_set_burstsize] SMFC_BS: 0x00000003
-> [   42.056138] imx-ipuv3-camera imx-ipuv3-camera.2: smfc map channel 0 on 0
-> [   42.056150] [ipu_smfc_map_channel] map channel 0 on 0
-> [   42.061207] [ipu_smfc_map_channel] SMFC_MAP: 0x00000100
-> [   42.066579] [fill_csi_bus_cfg] Format 0x00002011
-> [   42.071203] [fill_csi_bus_cfg] bus BT.656
-> [   42.075225] imx-ipuv3 2400000.ipu: CSI_SENS_CONF = 0x04000950
-> [   42.075238] imx-ipuv3 2400000.ipu: CSI_ACT_FRM_SIZE = 0x02CF04FF
-> [   42.075258] ipu_ch_param_write_field 1 29 29
-> [   42.075292] imx-ipuv3 2400000.ipu: IPU_CONF =     0x00000101
-> [   42.075304] imx-ipuv3 2400000.ipu: IDMAC_CONF =     0x0000002F
-> [   42.075315] imx-ipuv3 2400000.ipu: IDMAC_CHA_EN1 =     0x00000001
-> [   42.075325] imx-ipuv3 2400000.ipu: IDMAC_CHA_EN2 =     0x00000000
-> [   42.075336] imx-ipuv3 2400000.ipu: IDMAC_CHA_PRI1 =     0x00000001
-> [   42.075346] imx-ipuv3 2400000.ipu: IDMAC_CHA_PRI2 =     0x00000000
-> [   42.075357] imx-ipuv3 2400000.ipu: IDMAC_BAND_EN1 =     0x00000000
-> [   42.075368] imx-ipuv3 2400000.ipu: IDMAC_BAND_EN2 =     0x00000000
-> [   42.075378] imx-ipuv3 2400000.ipu: IPU_CHA_DB_MODE_SEL0 =     0x00000000
-> [   42.075388] imx-ipuv3 2400000.ipu: IPU_CHA_DB_MODE_SEL1 =     0x00000000
-> [   42.075398] imx-ipuv3 2400000.ipu: IPU_FS_PROC_FLOW1 =     0x00000000
-> [   42.075408] imx-ipuv3 2400000.ipu: IPU_FS_PROC_FLOW2 =     0x00000000
-> [   42.075419] imx-ipuv3 2400000.ipu: IPU_FS_PROC_FLOW3 =     0x00000000
-> [   42.075430] imx-ipuv3 2400000.ipu: IPU_FS_DISP_FLOW1 =     0x00000000
-> [   42.075442] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(0) =     10800001
-> [   42.075453] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(1) =     00000000
-> [   42.075465] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(2) =     00000001
-> [   42.075477] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(3) =     00000000
-> [   42.075488] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(4) =     00000001
-> [   42.075500] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(5) =     00000000
-> [   42.075511] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(6) =     00000000
-> [   42.075522] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(7) =     00000000
-> [   42.075534] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(8) =     00000000
-> [   42.075545] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(9) =     00000000
-> [   42.075556] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(10) =     00000000
-> [   42.075567] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(11) =     00000000
-> [   42.075579] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(12) =     00000000
-> [   42.075590] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(13) =     00000000
-> [   42.075602] imx-ipuv3 2400000.ipu: IPU_INT_CTRL(14) =     00000208
-> [   42.075617] imx-ipuv3 2400000.ipu: ch 0 word 0 - 00000000 00000000
-> 00000000 E0001800 000B3C9F
-> [   42.075632] imx-ipuv3 2400000.ipu: ch 0 word 1 - 00000000 0120C000
-> 0103C000 00027FC0 00000000
-> [   42.075642] ipu_ch_param_read_field 1 85 4
-> [   42.075653] imx-ipuv3 2400000.ipu: PFS 0x8,
-> [   42.075663] ipu_ch_param_read_field 0 107 3
-> [   42.075674] imx-ipuv3 2400000.ipu: BPP 0x3,
-> [   42.075683] ipu_ch_param_read_field 1 78 7
-> [   42.075694] imx-ipuv3 2400000.ipu: NPB 0xf
-> [   42.075704] ipu_ch_param_read_field 0 125 13
-> [   42.075715] imx-ipuv3 2400000.ipu: FW 1279,
-> [   42.075723] ipu_ch_param_read_field 0 138 12
-> [   42.075734] imx-ipuv3 2400000.ipu: FH 719,
-> [   42.075743] ipu_ch_param_read_field 1 0 29
-> [   42.075753] imx-ipuv3 2400000.ipu: EBA0 0x48300000
-> [   42.075762] ipu_ch_param_read_field 1 29 29
-> [   42.075773] imx-ipuv3 2400000.ipu: EBA1 0x0
-> [   42.075782] ipu_ch_param_read_field 1 102 14
-> [   42.075793] imx-ipuv3 2400000.ipu: Stride 2559
-> [   42.075802] ipu_ch_param_read_field 0 113 1
-> [   42.075813] imx-ipuv3 2400000.ipu: scan_order 0
-> [   42.075822] ipu_ch_param_read_field 1 128 14
-> [   42.075832] imx-ipuv3 2400000.ipu: uv_stride 0
-> [   42.075840] ipu_ch_param_read_field 0 46 22
-> [   42.075852] imx-ipuv3 2400000.ipu: u_offset 0x0
-> [   42.075862] ipu_ch_param_read_field 0 68 22
-> [   42.075872] imx-ipuv3 2400000.ipu: v_offset 0x0
-> [   42.075881] ipu_ch_param_read_field 1 116 3
-> [   42.075891] imx-ipuv3 2400000.ipu: Width0 0+1,
-> [   42.075901] ipu_ch_param_read_field 1 119 3
-> [   42.075911] imx-ipuv3 2400000.ipu: Width1 0+1,
-> [   42.075920] ipu_ch_param_read_field 1 122 3
-> [   42.075931] imx-ipuv3 2400000.ipu: Width2 0+1,
-> [   42.075939] ipu_ch_param_read_field 1 125 3
-> [   42.075949] imx-ipuv3 2400000.ipu: Width3 0+1,
-> [   42.075958] ipu_ch_param_read_field 1 128 5
-> [   42.075968] imx-ipuv3 2400000.ipu: Offset0 0,
-> [   42.075977] ipu_ch_param_read_field 1 133 5
-> [   42.075988] imx-ipuv3 2400000.ipu: Offset1 0,
-> [   42.075996] ipu_ch_param_read_field 1 138 5
-> [   42.076007] imx-ipuv3 2400000.ipu: Offset2 0,
-> [   42.076015] ipu_ch_param_read_field 1 143 5
-> [   42.076026] imx-ipuv3 2400000.ipu: Offset3 0
-> [   42.076039] imx-ipuv3 2400000.ipu: CSI_SENS_CONF:     04000950
-> [   42.076050] imx-ipuv3 2400000.ipu: CSI_SENS_FRM_SIZE: 02cf04ff
-> [   42.076061] imx-ipuv3 2400000.ipu: CSI_ACT_FRM_SIZE:  02cf04ff
-> [   42.076071] imx-ipuv3 2400000.ipu: CSI_OUT_FRM_CTRL:  00000000
-> [   42.076081] imx-ipuv3 2400000.ipu: CSI_TST_CTRL:      00000000
-> [   42.076091] imx-ipuv3 2400000.ipu: CSI_CCIR_CODE_1:   01040030
-> [   42.076101] imx-ipuv3 2400000.ipu: CSI_CCIR_CODE_2:   00000000
-> [   42.076111] imx-ipuv3 2400000.ipu: CSI_CCIR_CODE_3:   00ff0000
-> [   42.076121] imx-ipuv3 2400000.ipu: CSI_MIPI_DI:       ffffffff
-> [   42.076132] imx-ipuv3 2400000.ipu: CSI_SKIP:          00000000
->
-> The only thing I can see in the registers dump, is that the base
-> adress for double buffering is set only for the first one.
-> But I don't know if it explains why there is not the first interrupt,
-> as there is an address for the first buffer...
->
-> Thanks for any advice,
-> JM
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Carlos S.
