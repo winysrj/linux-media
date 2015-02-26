@@ -1,54 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.246]:28585 "EHLO
-	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752191AbbBJJ3e (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:33536 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752971AbbBZSFy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2015 04:29:34 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	<devicetree@vger.kernel.org>, "Josh Wu" <josh.wu@atmel.com>
-Subject: [PATCH v5 0/4] media: ov2640: add device tree support
-Date: Tue, 10 Feb 2015 17:31:32 +0800
-Message-ID: <1423560696-12304-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Thu, 26 Feb 2015 13:05:54 -0500
+Received: by wevk48 with SMTP id k48so13394167wev.0
+        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2015 10:05:53 -0800 (PST)
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: i2c: mt9p031: make sure we destroy the mutex
+Date: Thu, 26 Feb 2015 18:05:38 +0000
+Message-Id: <1424973938-26121-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series add device tree support for ov2640. And also add
-the document for the devicetree properties.
-v4->v5:
-  1. based on soc-camera v4l2-clk changes.
-  2. remove the master_clk related (one commit), we only have one clk.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-v3->v4:
-  1. refined the dt document.
-  2. Add Laurent's acked-by.
+this patch makes sure to call mutex_destroy() in
+case of probe failure or module unload.
 
-v2->v3:
-  1. fix the gpiod_xxx api usage as we use reset pin as ACTIVE_LOW.
-  2. update the devicetree binding document.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/i2c/mt9p031.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-v1 -> v2:
-  1.  modified the dt bindings according to Laurent's suggestion.
-  2. add a fix patch for soc_camera. Otherwise the .reset() function
-won't work.
-
-Josh Wu (4):
-  media: soc-camera: use icd->control instead of icd->pdev for reset()
-  media: ov2640: add async probe function
-  media: ov2640: add primary dt support
-  media: ov2640: dt: add the device tree binding document
-
- .../devicetree/bindings/media/i2c/ov2640.txt       |  46 ++++++++
- drivers/media/i2c/soc_camera/ov2640.c              | 117 ++++++++++++++++++---
- drivers/media/platform/soc_camera/soc_camera.c     |   8 +-
- 3 files changed, 152 insertions(+), 19 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
-
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index e3acae9..af5a09d 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -1071,6 +1071,8 @@ static int mt9p031_probe(struct i2c_client *client,
+ 		return ret;
+ 	}
+ 
++	mutex_init(&mt9p031->power_lock);
++
+ 	v4l2_ctrl_handler_init(&mt9p031->ctrls, ARRAY_SIZE(mt9p031_ctrls) + 6);
+ 
+ 	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
+@@ -1108,7 +1110,6 @@ static int mt9p031_probe(struct i2c_client *client,
+ 	mt9p031->blc_offset = v4l2_ctrl_find(&mt9p031->ctrls,
+ 					     V4L2_CID_BLC_DIGITAL_OFFSET);
+ 
+-	mutex_init(&mt9p031->power_lock);
+ 	v4l2_i2c_subdev_init(&mt9p031->subdev, client, &mt9p031_subdev_ops);
+ 	mt9p031->subdev.internal_ops = &mt9p031_subdev_internal_ops;
+ 
+@@ -1149,6 +1150,7 @@ done:
+ 	if (ret < 0) {
+ 		v4l2_ctrl_handler_free(&mt9p031->ctrls);
+ 		media_entity_cleanup(&mt9p031->subdev.entity);
++		mutex_destroy(&mt9p031->power_lock);
+ 	}
+ 
+ 	return ret;
+@@ -1162,6 +1164,7 @@ static int mt9p031_remove(struct i2c_client *client)
+ 	v4l2_ctrl_handler_free(&mt9p031->ctrls);
+ 	v4l2_device_unregister_subdev(subdev);
+ 	media_entity_cleanup(&subdev->entity);
++	mutex_destroy(&mt9p031->power_lock);
+ 
+ 	return 0;
+ }
 -- 
 1.9.1
 
