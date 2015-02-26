@@ -1,71 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.netup.ru ([77.72.80.15]:33893 "EHLO imap.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750846AbbBQVkr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2015 16:40:47 -0500
-Received: from mail-la0-f46.google.com (mail-la0-f46.google.com [209.85.215.46])
-	by imap.netup.ru (Postfix) with ESMTPA id 7D4E9689C1D
-	for <linux-media@vger.kernel.org>; Wed, 18 Feb 2015 00:40:43 +0300 (MSK)
-Received: by lams18 with SMTP id s18so38527760lam.13
-        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2015 13:40:43 -0800 (PST)
+Received: from ipmail05.adl6.internode.on.net ([150.101.137.143]:53226 "EHLO
+	ipmail05.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752953AbbBZDVE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2015 22:21:04 -0500
+Message-ID: <54EE90BF.2030602@redmandi.dyndns.org>
+Date: Thu, 26 Feb 2015 14:19:27 +1100
+From: Brendan McGrath <redmcg@redmandi.dyndns.org>
 MIME-Version: 1.0
-In-Reply-To: <20150216163545.GA12302@biggie>
-References: <CAK3bHNUaC=XoqREJMTWAAP=i+nPjcsQQPehS0--rk12Yhhn16g@mail.gmail.com>
-	<20150216163545.GA12302@biggie>
-Date: Tue, 17 Feb 2015 16:40:43 -0500
-Message-ID: <CAK3bHNV8+x2+TXt=WK5g7ObDX+zO-HJHk7B08YkXwKtAGy+fNg@mail.gmail.com>
-Subject: Re: Opening firmware source code (vhdl)
-From: Abylay Ospan <aospan@netup.ru>
-To: Luis de Bethencourt <luis@debethencourt.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+CC: Brendan McGrath <redmcg@redmandi.dyndns.org>
+Subject: [PATCH] [media] saa7164: use an MSI interrupt when available
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Luis,
+From: Brendan McGrath <redmcg@redmandi.dyndns.org>
 
-welcome !
+[media] saa7164: use an MSI interrupt when available
 
-We have some amount (5+ pcs) of boards available for developers. If
-someone seriously interested (have any ideas to check with board ?) we
-can ship it for free :)
+Fixes a known crash which most commonly occurs when multiple saa7164 
+chips are in use.
+
+Signed-off-by: Brendan McGrath <redmcg@redmandi.dyndns.org>
+---
+  drivers/media/pci/saa7164/saa7164-core.c | 34 
+++++++++++++++++++++++++++++++--
+  drivers/media/pci/saa7164/saa7164.h      |  1 +
+  2 files changed, 33 insertions(+), 2 deletions(-)
 
 
+This patch falls back to the original code - a 'shared' interrupt - when 
+MSI is not available (or encounters an error).
 
-2015-02-16 11:35 GMT-05:00 Luis de Bethencourt <luis@debethencourt.com>:
-> On Mon, Feb 16, 2015 at 11:04:47AM -0500, Abylay Ospan wrote:
->> Hello,
->>
->> We're fully opening firmware sources for our new card - NetUP Dual
->> Universal DVB CI. License is GPLv3. Sources is VHDL for Altera FPGA
->> EP4CGX22CF19C8
->> and can be compiled with Altera Quartus II (free edition). Hope this
->> will help for enthusiasts and developers to deeply understand hardware
->> part of DVB card.
->>
->> Source code:
->> https://github.com/aospan/NetUP_Dual_Universal_CI-fpga
->>
->> Here is a description for building and uploading fw into DVB card:
->> http://linuxtv.org/wiki/index.php/FPGA_fw_for_NetUP_Dual_Universal_CI
->>
->> Feel free to contact me for any questions or comments.
->>
->> --
->> Abylay Ospan,
->> NetUP Inc.
->> http://www.netup.tv
->> --
->
-> Thanks for open sourcing the firmware of your new card!
->
-> I am sure the owners of this hardware will appreciate this.
->
-> Luis
+Many of today's cards that use the saa7164 chip operate on a PCI-E bus 
+(thus MSI should be available). Examples: the Hauppage HVR-2200 and HVR-2250
+
+This enhancement also fixes an issue that was causing the driver to crash:
+http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/83948
+
+I believe the root cause of the crash is due to a DMA/IRQ race 
+condition. It most commonly occurs when the saa7164 driver is dealing 
+with more than one saa7164 chip (the HVR-2200 and HVR-2250 for example 
+have two - one for each tuner). Given MSI avoids DMA/IRQ race conditions 
+- this would explain why the patch works as a fix.
 
 
 
+
+diff --git a/drivers/media/pci/saa7164/saa7164-core.c 
+b/drivers/media/pci/saa7164/saa7164-core.c
+index 4b0bec3..083bea4 100644
+--- a/drivers/media/pci/saa7164/saa7164-core.c
++++ b/drivers/media/pci/saa7164/saa7164-core.c
+@@ -1230,8 +1230,33 @@ static int saa7164_initdev(struct pci_dev *pci_dev,
+          goto fail_irq;
+      }
+
+-    err = request_irq(pci_dev->irq, saa7164_irq,
+-        IRQF_SHARED, dev->name, dev);
++    /* irq bit */
++    err = pci_enable_msi(pci_dev);
++
++    if (!err) {
++        /* no error - so request an msi interrupt */
++        err = request_irq(pci_dev->irq, saa7164_irq, 0,
++                  dev->name, dev);
++
++        if (err) {
++            /* fall back to legacy interrupt */
++            printk(KERN_ERR "%s() Failed to get an MSI interrupt."
++                " Falling back to a shared IRQ\n", __func__);
++            pci_disable_msi(pci_dev);
++        } else {
++            dev->msi = true;
++        }
++    }
++
++    if (err) {
++        dev->msi = false;
++        /* if we have an error (i.e. we don't have an interrupt)
++             - fallback to legacy interrupt */
++
++        err = request_irq(pci_dev->irq, saa7164_irq,
++                    IRQF_SHARED, dev->name, dev);
++    }
++
+      if (err < 0) {
+          printk(KERN_ERR "%s: can't get IRQ %d\n", dev->name,
+              pci_dev->irq);
+@@ -1441,6 +1466,11 @@ static void saa7164_finidev(struct pci_dev *pci_dev)
+      /* unregister stuff */
+      free_irq(pci_dev->irq, dev);
+
++    if (dev->msi) {
++        pci_disable_msi(pci_dev);
++        dev->msi = false;
++    }
++
+      mutex_lock(&devlist);
+      list_del(&dev->devlist);
+      mutex_unlock(&devlist);
+diff --git a/drivers/media/pci/saa7164/saa7164.h 
+b/drivers/media/pci/saa7164/saa7164.h
+index cd1a07c..6df4b252 100644
+--- a/drivers/media/pci/saa7164/saa7164.h
++++ b/drivers/media/pci/saa7164/saa7164.h
+@@ -459,6 +459,7 @@ struct saa7164_dev {
+      /* Interrupt status and ack registers */
+      u32 int_status;
+      u32 int_ack;
++    u32 msi;
+
+      struct cmd            cmds[SAA_CMD_MAX_MSG_UNITS];
+      struct mutex            lock;
 -- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+1.9.1
+
+
