@@ -1,909 +1,678 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:38174 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932740AbbBILP7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2015 06:15:59 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 8BIT
-Message-id: <54D896EA.4090704@samsung.com>
-Date: Mon, 09 Feb 2015 12:15:54 +0100
+Received: from mailout2.samsung.com ([203.254.224.25]:53204 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754485AbbBZQBM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2015 11:01:12 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NKD004YQZ5YEGB0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 27 Feb 2015 01:01:10 +0900 (KST)
 From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com, pavel@ucw.cz,
-	cooloney@gmail.com, rpurdie@rpsys.net, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH/RFC v10 15/19] media: Add registration helpers for V4L2
- flash sub-devices
-References: <1420816989-1808-1-git-send-email-j.anaszewski@samsung.com>
- <1420816989-1808-16-git-send-email-j.anaszewski@samsung.com>
- <20150205175901.GG32575@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150205175901.GG32575@valkosipuli.retiisi.org.uk>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com,
+	kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [v4l-utils PATCH/RFC v5 14/14] Add a libv4l plugin for Exynos4 camera
+Date: Thu, 26 Feb 2015 16:59:24 +0100
+Message-id: <1424966364-3647-15-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
+References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+The plugin provides support for the media device on Exynos4 SoC.
+It performs single plane <-> multi plane API conversion,
+video pipeline linking and takes care of automatic data format
+negotiation for the whole pipeline, after intercepting
+VIDIOC_S_FMT or VIDIOC_TRY_FMT ioctls.
 
-Thanks for the review.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ configure.ac                                      |    1 +
+ lib/Makefile.am                                   |    5 +
+ lib/libv4l-exynos4-camera/Makefile.am             |    7 +
+ lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c |  586 +++++++++++++++++++++
+ 4 files changed, 599 insertions(+)
+ create mode 100644 lib/libv4l-exynos4-camera/Makefile.am
+ create mode 100644 lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c
 
-On 02/05/2015 06:59 PM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> Thank you for your continuous efforts on this! I think this ended up being
-> more complicated than I originally anticipated.
->
-> On Fri, Jan 09, 2015 at 04:23:05PM +0100, Jacek Anaszewski wrote:
->> This patch adds helper functions for registering/unregistering
->> LED Flash class devices as V4L2 sub-devices. The functions should
->> be called from the LED subsystem device driver. In case the
->> support for V4L2 Flash sub-devices is disabled in the kernel
->> config the functions' empty versions will be used.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/media/v4l2-core/Kconfig      |   11 +
->>   drivers/media/v4l2-core/Makefile     |    2 +
->>   drivers/media/v4l2-core/v4l2-flash.c |  581 ++++++++++++++++++++++++++++++++++
->>   include/media/v4l2-flash.h           |  139 ++++++++
->>   4 files changed, 733 insertions(+)
->>   create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
->>   create mode 100644 include/media/v4l2-flash.h
->>
->> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
->> index ba7e21a..f034f1a 100644
->> --- a/drivers/media/v4l2-core/Kconfig
->> +++ b/drivers/media/v4l2-core/Kconfig
->> @@ -44,6 +44,17 @@ config V4L2_MEM2MEM_DEV
->>           tristate
->>           depends on VIDEOBUF2_CORE
->>
->> +# Used by LED subsystem flash drivers
->> +config V4L2_FLASH_LED_CLASS
->> +	tristate "Enable support for Flash sub-devices"
->> +	depends on VIDEO_V4L2_SUBDEV_API
->> +	depends on LEDS_CLASS_FLASH
->> +	---help---
->> +	  Say Y here to enable support for Flash sub-devices, which allow
->> +	  to control LED class devices with use of V4L2 Flash controls.
->> +
->> +	  When in doubt, say N.
->> +
->>   # Used by drivers that need Videobuf modules
->>   config VIDEOBUF_GEN
->>   	tristate
->> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
->> index 63d29f2..44e858c 100644
->> --- a/drivers/media/v4l2-core/Makefile
->> +++ b/drivers/media/v4l2-core/Makefile
->> @@ -22,6 +22,8 @@ obj-$(CONFIG_VIDEO_TUNER) += tuner.o
->>
->>   obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
->>
->> +obj-$(CONFIG_V4L2_FLASH_LED_CLASS) += v4l2-flash.o
->> +
->>   obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
->>   obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
->>   obj-$(CONFIG_VIDEOBUF_DMA_CONTIG) += videobuf-dma-contig.o
->> diff --git a/drivers/media/v4l2-core/v4l2-flash.c b/drivers/media/v4l2-core/v4l2-flash.c
->> new file mode 100644
->> index 0000000..3fd6a08
->> --- /dev/null
->> +++ b/drivers/media/v4l2-core/v4l2-flash.c
->> @@ -0,0 +1,581 @@
->> +/*
->> + * V4L2 Flash LED sub-device registration helpers.
->> + *
->> + *	Copyright (C) 2015 Samsung Electronics Co., Ltd
->> + *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation."
->> + */
->> +
->> +#include <linux/led-class-flash.h>
->> +#include <linux/module.h>
->> +#include <linux/mutex.h>
->> +#include <linux/slab.h>
->> +#include <linux/types.h>
->> +#include <media/v4l2-flash.h>
->> +
->> +#define has_flash_op(v4l2_flash, op)			\
->> +	(v4l2_flash && v4l2_flash->ops->op)
->> +
->> +#define call_flash_op(v4l2_flash, op, args...)		\
->> +		(has_flash_op(v4l2_flash, op) ?		\
->> +			v4l2_flash->ops->op(args) :	\
->
-> Wouldn't you need __VA_ARGS__ here to deliver the variable argument to the
-> callee? Do you need variable arguments for the current flash ops?
-
-Indeed, it would allow to avoid the need for passing v4l2_flash
-argument twice. Nonetheless, as currently we have only one op, the macro
-can have fixed number of arguments.
-
->> +			-EINVAL)
->> +
->> +static inline enum led_brightness v4l2_flash_intensity_to_led_brightness(
->
-> I'd drop inline and let the compiler decide. Same below.
-
-Yes, this is a residue from the previous versions when the function
-had single line probably.
-
->> +					struct v4l2_ctrl **ctrls,
->> +					enum ctrl_init_data_id cdata_id,
->> +					s32 intensity)
->> +{
->> +	struct v4l2_ctrl *ctrl = ctrls[cdata_id];
->> +	s64 __intensity = intensity - ctrl->minimum;
->> +
->> +	do_div(__intensity, ctrl->step);
->> +
->> +	/*
->> +	 * Indicator leds, unlike torch leds, are turned on/off basing on
->> +	 * the state of V4L2_CID_FLASH_INDICATOR_INTENSITY control only.
->> +	 * Therefore it must be possible to set it to 0 level which in
->> +	 * the LED subsystem reflects LED_OFF state.
->> +	 */
->> +	if (cdata_id != INDICATOR_INTENSITY)
->> +		++__intensity;
->> +
->> +	return __intensity;
->> +}
->> +
->> +static inline s32 v4l2_flash_led_brightness_to_intensity(
->> +					struct v4l2_ctrl **ctrls,
->> +					enum ctrl_init_data_id cdata_id,
->
-> Could you pass a pointer to struct v4l2_ctrl instead?
-
-Good point.
-
->> +					enum led_brightness brightness)
->> +{
->> +	struct v4l2_ctrl *ctrl = ctrls[cdata_id];
->> +
->> +	/*
->> +	 * Indicator leds, unlike torch leds, are turned on/off basing on
->> +	 * the state of V4L2_CID_FLASH_INDICATOR_INTENSITY control only.
->> +	 * Do not decrement brightness read from the LED subsystem for
->> +	 * indicator led as it may equal 0. For torch leds this function
->> +	 * is called only when V4L2_FLASH_LED_MODE_TORCH is set and the
->> +	 * brightness read is guaranteed to be greater than 0. In the mode
->> +	 * V4L2_FLASH_LED_MODE_NONE the cached torch intensity value is used.
->> +	 */
->> +	if (cdata_id != INDICATOR_INTENSITY)
->> +		--brightness;
->> +
->> +	return (brightness * ctrl->step) + ctrl->minimum;
->> +}
->> +
->> +static int v4l2_flash_g_volatile_ctrl(struct v4l2_ctrl *c)
->> +{
->> +	struct v4l2_flash *v4l2_flash = v4l2_ctrl_to_v4l2_flash(c);
->> +	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
->> +	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
->> +	struct v4l2_ctrl **ctrls = v4l2_flash->ctrls;
->> +	bool is_strobing;
->> +	int ret;
->> +
->> +	switch (c->id) {
->> +	case V4L2_CID_FLASH_TORCH_INTENSITY:
->> +		/*
->> +		 * Update torch brightness only if in TORCH_MODE.
->> +		 * In other modes torch led is turned off, which
->> +		 * would spuriously inform the user space that
->> +		 * V4L2_CID_FLASH_TORCH_INTENSITY control setting
->> +		 * has changed.
->> +		 */
->> +		if (ctrls[LED_MODE]->val == V4L2_FLASH_LED_MODE_TORCH) {
->> +			ret = led_update_brightness(led_cdev);
->> +			if (ret < 0)
->> +				return ret;
->> +			c->val = v4l2_flash_led_brightness_to_intensity(
->> +							ctrls, TORCH_INTENSITY,
->> +							led_cdev->brightness);
->> +		}
->> +		return 0;
->> +	case V4L2_CID_FLASH_INDICATOR_INTENSITY:
->> +		ret = led_update_brightness(led_cdev);
->> +		if (ret < 0)
->> +			return ret;
->> +		c->val = v4l2_flash_led_brightness_to_intensity(
->> +						ctrls, INDICATOR_INTENSITY,
->> +						led_cdev->brightness);
->> +		return 0;
->> +	case V4L2_CID_FLASH_INTENSITY:
->> +		ret = led_update_flash_brightness(fled_cdev);
->> +		if (ret < 0)
->> +			return ret;
->> +		/* no conversion is needed */
->> +		c->val = fled_cdev->brightness.val;
->> +		return 0;
->> +	case V4L2_CID_FLASH_STROBE_STATUS:
->> +		ret = led_get_flash_strobe(fled_cdev, &is_strobing);
->> +		if (ret < 0)
->> +			return ret;
->> +		c->val = is_strobing;
->> +		return 0;
->> +	case V4L2_CID_FLASH_FAULT:
->> +		/* led faults map directly to V4L2 flash faults */
->> +		return led_get_flash_fault(fled_cdev, &c->val);
->> +	case V4L2_CID_FLASH_SYNC_STROBE:
->> +		c->val = fled_cdev->sync_led_id;
->> +		return 0;
->> +	default:
->> +		return -EINVAL;
->> +	}
->> +}
->> +
->> +static int v4l2_flash_s_ctrl(struct v4l2_ctrl *c)
->> +{
->> +	struct v4l2_flash *v4l2_flash = v4l2_ctrl_to_v4l2_flash(c);
->> +	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
->> +	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
->> +	struct v4l2_ctrl **ctrls = v4l2_flash->ctrls;
->> +	enum led_brightness brightness;
->> +	bool external_strobe;
->> +	int ret = 0;
->> +
->> +	switch (c->id) {
->> +	case V4L2_CID_FLASH_LED_MODE:
->> +		switch (c->val) {
->> +		case V4L2_FLASH_LED_MODE_NONE:
->> +			led_set_brightness(led_cdev, LED_OFF);
->> +			return led_set_flash_strobe(fled_cdev, false);
->> +		case V4L2_FLASH_LED_MODE_FLASH:
->> +			/* Turn the torch LED off */
->> +			led_set_brightness(led_cdev, LED_OFF);
->> +			external_strobe = (ctrls[STROBE_SOURCE]->val ==
->> +					V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
->> +
->> +			if (has_flash_op(v4l2_flash, external_strobe_set))
->> +				ret = call_flash_op(v4l2_flash,
->> +						external_strobe_set, v4l2_flash,
->> +						external_strobe);
->> +			return ret;
->> +		case V4L2_FLASH_LED_MODE_TORCH:
->> +			/* Stop flash strobing */
->> +			ret = led_set_flash_strobe(fled_cdev, false);
->> +			if (ret < 0)
->> +				return ret;
->> +
->> +			brightness =
->> +				v4l2_flash_intensity_to_led_brightness(
->> +						ctrls, TORCH_INTENSITY,
->> +						ctrls[TORCH_INTENSITY]->val);
->> +			led_set_brightness(led_cdev, brightness);
->> +			return 0;
->> +		}
->> +		break;
->> +	case V4L2_CID_FLASH_STROBE_SOURCE:
->> +		external_strobe = (c->val == V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
->> +
->> +		return call_flash_op(v4l2_flash, external_strobe_set,
->> +					v4l2_flash, external_strobe);
->> +	case V4L2_CID_FLASH_STROBE:
->> +		if (ctrls[LED_MODE]->val != V4L2_FLASH_LED_MODE_FLASH ||
->> +		    ctrls[STROBE_SOURCE]->val !=
->> +					V4L2_FLASH_STROBE_SOURCE_SOFTWARE)
->> +			return -EINVAL;
->> +		return led_set_flash_strobe(fled_cdev, true);
->> +	case V4L2_CID_FLASH_STROBE_STOP:
->> +		if (ctrls[LED_MODE]->val != V4L2_FLASH_LED_MODE_FLASH ||
->> +		    ctrls[STROBE_SOURCE]->val !=
->> +					V4L2_FLASH_STROBE_SOURCE_SOFTWARE)
->> +			return -EINVAL;
->> +		return led_set_flash_strobe(fled_cdev, false);
->> +	case V4L2_CID_FLASH_TIMEOUT:
->> +		/* no conversion is needed */
->> +		return led_set_flash_timeout(fled_cdev, c->val);
->> +	case V4L2_CID_FLASH_INTENSITY:
->> +		/* no conversion is needed */
->> +		return led_set_flash_brightness(fled_cdev, c->val);
->> +	case V4L2_CID_FLASH_INDICATOR_INTENSITY:
->> +		brightness = v4l2_flash_intensity_to_led_brightness(
->> +						ctrls, INDICATOR_INTENSITY,
->> +						c->val);
->> +		led_set_brightness(led_cdev, brightness);
->> +		return 0;
->> +	case V4L2_CID_FLASH_TORCH_INTENSITY:
->> +		/*
->> +		 * If not in MODE_TORCH don't call led-class brightness_set
->> +		 * op, as it would result in turning the torch led on.
->> +		 * Instead the value is cached only and will be written
->> +		 * to the device upon transition to MODE_TORCH.
->> +		 */
->> +		if (ctrls[LED_MODE]->val == V4L2_FLASH_LED_MODE_TORCH) {
->> +			brightness =
->> +				v4l2_flash_intensity_to_led_brightness(
->> +							ctrls, TORCH_INTENSITY,
->> +							c->val);
->> +			led_set_brightness(led_cdev, brightness);
->> +		}
->> +		return 0;
->> +	case V4L2_CID_FLASH_SYNC_STROBE:
->> +		fled_cdev->sync_led_id = c->val;
->> +		return 0;
->> +	}
->> +
->> +	return -EINVAL;
->> +}
->> +
->> +static const struct v4l2_ctrl_ops v4l2_flash_ctrl_ops = {
->> +	.g_volatile_ctrl = v4l2_flash_g_volatile_ctrl,
->> +	.s_ctrl = v4l2_flash_s_ctrl,
->> +};
->> +
->> +static void fill_ctrl_init_data(struct v4l2_flash *v4l2_flash,
->> +			  struct v4l2_flash_ctrl_config *flash_ctrl_cfg,
->> +			  struct v4l2_flash_ctrl_data *ctrl_init_data)
->> +{
->> +	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
->> +	const struct led_flash_ops *fled_cdev_ops = fled_cdev->ops;
->> +	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
->> +	struct v4l2_ctrl_config *ctrl_cfg;
->> +	u32 mask;
->> +	s64 max;
->> +
->> +	/* Init FLASH_FAULT ctrl data */
->> +	if (flash_ctrl_cfg->flash_faults) {
->> +		ctrl_init_data[FLASH_FAULT].supported = true;
->> +		ctrl_cfg = &ctrl_init_data[FLASH_FAULT].config;
->> +		ctrl_cfg->id = V4L2_CID_FLASH_FAULT;
->> +		ctrl_cfg->max = flash_ctrl_cfg->flash_faults;
->> +		ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE |
->> +				  V4L2_CTRL_FLAG_READ_ONLY;
->> +	}
->> +
->> +	/* Init INDICATOR_INTENSITY ctrl data */
->> +	if (flash_ctrl_cfg->indicator_led) {
->> +		ctrl_init_data[INDICATOR_INTENSITY].supported = true;
->> +		ctrl_init_data[INDICATOR_INTENSITY].config =
->> +						flash_ctrl_cfg->intensity;
->> +		ctrl_cfg = &ctrl_init_data[INDICATOR_INTENSITY].config;
->> +		ctrl_cfg->id = V4L2_CID_FLASH_INDICATOR_INTENSITY;
->> +		ctrl_cfg->min = 0;
->> +		ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE;
->> +
->> +		/* Indicator LED can have only faults and intensity controls. */
->> +		return;
->> +	}
->> +
->> +	/* Init FLASH_LED_MODE ctrl data */
->> +	mask = 1 << V4L2_FLASH_LED_MODE_NONE |
->> +	       1 << V4L2_FLASH_LED_MODE_TORCH;
->> +	if (led_cdev->flags & LED_DEV_CAP_FLASH)
->> +		mask |= 1 << V4L2_FLASH_LED_MODE_FLASH;
->> +
->> +	ctrl_init_data[LED_MODE].supported = true;
->> +	ctrl_cfg = &ctrl_init_data[LED_MODE].config;
->> +	ctrl_cfg->id = V4L2_CID_FLASH_LED_MODE;
->> +	ctrl_cfg->max = V4L2_FLASH_LED_MODE_TORCH;
->> +	ctrl_cfg->menu_skip_mask = ~mask;
->> +	ctrl_cfg->def = V4L2_FLASH_LED_MODE_NONE;
->> +	ctrl_cfg->flags = 0;
->> +
->> +	/* Init TORCH_INTENSITY ctrl data */
->> +	ctrl_init_data[TORCH_INTENSITY].supported = true;
->> +	ctrl_init_data[TORCH_INTENSITY].config = flash_ctrl_cfg->intensity;
->> +	ctrl_cfg = &ctrl_init_data[TORCH_INTENSITY].config;
->> +	ctrl_cfg->id = V4L2_CID_FLASH_TORCH_INTENSITY;
->> +	ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE;
->> +
->> +	if (!(led_cdev->flags & LED_DEV_CAP_FLASH))
->> +		return;
->> +
->> +	/* Init FLASH_STROBE_SOURCE ctrl data */
->> +	mask = 1 << V4L2_FLASH_STROBE_SOURCE_SOFTWARE;
->> +	if (flash_ctrl_cfg->has_external_strobe) {
->> +		mask |= 1 << V4L2_FLASH_STROBE_SOURCE_EXTERNAL;
->> +		max = V4L2_FLASH_STROBE_SOURCE_EXTERNAL;
->> +	} else {
->> +		max = V4L2_FLASH_STROBE_SOURCE_SOFTWARE;
->> +	}
->> +
->> +	ctrl_init_data[STROBE_SOURCE].supported = true;
->> +	ctrl_cfg = &ctrl_init_data[STROBE_SOURCE].config;
->> +	ctrl_cfg->id = V4L2_CID_FLASH_STROBE_SOURCE;
->> +	ctrl_cfg->max = max;
->> +	ctrl_cfg->menu_skip_mask = ~mask;
->> +	ctrl_cfg->def = V4L2_FLASH_STROBE_SOURCE_SOFTWARE;
->> +
->> +	/* Init FLASH_STROBE ctrl data */
->> +	ctrl_init_data[FLASH_STROBE].supported = true;
->> +	ctrl_cfg = &ctrl_init_data[FLASH_STROBE].config;
->> +	ctrl_cfg->id = V4L2_CID_FLASH_STROBE;
->> +
->> +	/* Init STROBE_STOP ctrl data */
->> +	ctrl_init_data[STROBE_STOP].supported = true;
->> +	ctrl_cfg = &ctrl_init_data[STROBE_STOP].config;
->> +	ctrl_cfg->id = V4L2_CID_FLASH_STROBE_STOP;
->> +
->> +	/* Init STROBE_STATUS ctrl data */
->> +	if (fled_cdev_ops->strobe_get) {
->> +		ctrl_init_data[STROBE_STATUS].supported = true;
->> +		ctrl_cfg = &ctrl_init_data[STROBE_STATUS].config;
->> +		ctrl_cfg->id = V4L2_CID_FLASH_STROBE_STATUS;
->> +		ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE |
->> +				  V4L2_CTRL_FLAG_READ_ONLY;
->> +	}
->> +
->> +	/* Init FLASH_TIMEOUT ctrl data */
->> +	if (fled_cdev_ops->timeout_set) {
->> +		ctrl_init_data[FLASH_TIMEOUT].supported = true;
->> +		ctrl_init_data[FLASH_TIMEOUT].config =
->> +					flash_ctrl_cfg->flash_timeout;
->> +		ctrl_cfg = &ctrl_init_data[FLASH_TIMEOUT].config;
->> +		ctrl_cfg->id = V4L2_CID_FLASH_TIMEOUT;
->> +		ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE;
->> +	}
->> +
->> +	/* Init FLASH_INTENSITY ctrl data */
->> +	if (fled_cdev_ops->flash_brightness_set) {
->> +		ctrl_init_data[FLASH_INTENSITY].supported = true;
->> +		ctrl_init_data[FLASH_INTENSITY].config =
->> +					flash_ctrl_cfg->flash_intensity;
->> +		ctrl_cfg = &ctrl_init_data[FLASH_INTENSITY].config;
->> +		ctrl_cfg->id = V4L2_CID_FLASH_INTENSITY;
->> +		ctrl_cfg->flags = V4L2_CTRL_FLAG_VOLATILE;
->> +	}
->> +}
->> +
->> +static int v4l2_flash_init_sync_strobe_menu(struct v4l2_flash *v4l2_flash)
->> +{
->> +	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
->> +	struct v4l2_ctrl *ctrl;
->> +	int i = 0;
->> +
->> +	v4l2_flash->sync_strobe_menu =
->> +			devm_kcalloc(fled_cdev->led_cdev.dev->parent,
->> +					fled_cdev->num_sync_leds + 1,
->> +					sizeof(*fled_cdev),
->> +					GFP_KERNEL);
->> +
->> +	if (!v4l2_flash->sync_strobe_menu)
->> +		return -ENOMEM;
->> +
->> +	v4l2_flash->sync_strobe_menu[0] = "none";
->> +
->> +	for (i = 0; i < fled_cdev->num_sync_leds; ++i)
->> +		v4l2_flash->sync_strobe_menu[i + 1] =
->> +				(char *) fled_cdev->sync_leds[i]->led_cdev.name;
->
-> What's here, and where does it come from?
->
-> The rest of the sub-devices typically have a device's (chip's) name and the
-> bus address (usually i2c).
-
-It comes from the struct led_classdev's 'name' property, which is
-assigned a pointer to the parsed 'label' DT property (LEDs common 
-bindings) string. It has to be unique as it is passed to the
-device_create_with_groups in the led-class.c
-
-We can't use device's name and I2C bus address, as a v4l2-flash sub-dev
-is created per discrete LED element, not per device (many v4l2-flash
-sub-devs can be created per one flash LED device).
-
->> +	ctrl = v4l2_ctrl_new_std_menu_items(
->> +		&v4l2_flash->hdl, &v4l2_flash_ctrl_ops,
->> +		V4L2_CID_FLASH_SYNC_STROBE,
->> +		fled_cdev->num_sync_leds,
->> +		0, 0,
->> +		(const char * const *) v4l2_flash->sync_strobe_menu);
->
-> Do you need the casting here?
-
-Yes, there is warning generated without it:
-
-drivers/media/v4l2-core/v4l2-flash.c:364:3: warning: passing argument 7 
-of ‘v4l2_ctrl_new_std_menu_items’ from incompatible pointer type 
-[enabled by default]
-include/media/v4l2-ctrls.h:408:19: note: expected ‘const char * const*’ 
-but argument is of type ‘char **’
-
->> +
->> +	if (ctrl)
->> +		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
->> +
->> +	return 0;
->> +}
->> +
->> +static int v4l2_flash_init_controls(struct v4l2_flash *v4l2_flash,
->> +				struct v4l2_flash_ctrl_config *flash_ctrl_cfg)
->> +
->> +{
->> +	struct led_classdev *led_cdev = &v4l2_flash->fled_cdev->led_cdev;
->> +	struct v4l2_flash_ctrl_data *ctrl_init_data;
->> +	struct v4l2_ctrl *ctrl;
->> +	struct v4l2_ctrl_config *ctrl_cfg;
->> +	int i, ret, num_ctrls = 0;
->> +
->> +	/* allocate memory dynamically so as not to exceed stack frame size */
->> +	ctrl_init_data = kcalloc(NUM_FLASH_CTRLS, sizeof(*ctrl_init_data),
->> +					GFP_KERNEL);
->> +	if (!ctrl_init_data)
->> +		return -ENOMEM;
->> +
->> +	memset(ctrl_init_data, 0, sizeof(*ctrl_init_data));
->
-> kcalloc() clears the memory, no need to do it again.
-
-Right.
-
->> +	fill_ctrl_init_data(v4l2_flash, flash_ctrl_cfg, ctrl_init_data);
->> +
->> +	for (i = 0; i < NUM_FLASH_CTRLS; ++i)
->> +		if (ctrl_init_data[i].supported)
->> +			++num_ctrls;
->> +
->> +	v4l2_ctrl_handler_init(&v4l2_flash->hdl, num_ctrls);
->> +
->> +	for (i = 0; i < NUM_FLASH_CTRLS; ++i) {
->> +		ctrl_cfg = &ctrl_init_data[i].config;
->> +		if (!ctrl_init_data[i].supported)
->> +			continue;
->> +
->> +		if (ctrl_cfg->id == V4L2_CID_FLASH_LED_MODE ||
->> +		    ctrl_cfg->id == V4L2_CID_FLASH_STROBE_SOURCE)
->> +			ctrl = v4l2_ctrl_new_std_menu(&v4l2_flash->hdl,
->> +						&v4l2_flash_ctrl_ops,
->> +						ctrl_cfg->id,
->> +						ctrl_cfg->max,
->> +						ctrl_cfg->menu_skip_mask,
->> +						ctrl_cfg->def);
->> +		else
->> +			ctrl = v4l2_ctrl_new_std(&v4l2_flash->hdl,
->> +						&v4l2_flash_ctrl_ops,
->> +						ctrl_cfg->id,
->> +						ctrl_cfg->min,
->> +						ctrl_cfg->max,
->> +						ctrl_cfg->step,
->> +						ctrl_cfg->def);
->> +
->> +		if (ctrl)
->> +			ctrl->flags |= ctrl_cfg->flags;
->> +
->> +		if (i <= STROBE_SOURCE)
->> +			v4l2_flash->ctrls[i] = ctrl;
->> +	}
->> +
->> +	kfree(ctrl_init_data);
->> +
->> +	if (led_cdev->flags & LED_DEV_CAP_SYNC_STROBE) {
->> +		ret = v4l2_flash_init_sync_strobe_menu(v4l2_flash);
->> +		if (ret < 0)
->> +			goto error_free_handler;
->> +	}
->> +
->> +	if (v4l2_flash->hdl.error) {
->> +		ret = v4l2_flash->hdl.error;
->> +		goto error_free_handler;
->> +	}
->> +
->> +	v4l2_ctrl_handler_setup(&v4l2_flash->hdl);
->> +
->> +	v4l2_flash->sd.ctrl_handler = &v4l2_flash->hdl;
->> +
->> +	return 0;
->> +
->> +error_free_handler:
->> +	v4l2_ctrl_handler_free(&v4l2_flash->hdl);
->> +	return ret;
->> +}
->> +
->> +/*
->> + * V4L2 subdev internal operations
->> + */
->> +
->> +static int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
->> +{
->> +	struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
->> +	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
->> +	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
->> +	int ret = 0;
->> +
->> +	mutex_lock(&led_cdev->led_access);
->> +
->> +	if (!v4l2_fh_is_singular(&fh->vfh)) {
->> +		ret = -EBUSY;
->> +		goto unlock;
->> +	}
->> +
->> +	led_sysfs_disable(led_cdev);
->> +
->> +unlock:
->> +	mutex_unlock(&led_cdev->led_access);
->> +	return ret;
->> +}
->> +
->> +static int v4l2_flash_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
->> +{
->> +	struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
->> +	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
->> +	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
->> +	int ret = 0;
->> +
->> +	mutex_lock(&led_cdev->led_access);
->> +
->> +	if (has_flash_op(v4l2_flash, external_strobe_set))
->> +		ret = call_flash_op(v4l2_flash, external_strobe_set,
->> +				v4l2_flash, false);
->> +	led_sysfs_enable(led_cdev);
->> +
->> +	mutex_unlock(&led_cdev->led_access);
->> +
->> +	return ret;
->> +}
->> +
->> +static const struct v4l2_subdev_internal_ops v4l2_flash_subdev_internal_ops = {
->> +	.open = v4l2_flash_open,
->> +	.close = v4l2_flash_close,
->> +};
->> +
->> +static const struct v4l2_subdev_core_ops v4l2_flash_core_ops = {
->> +	.queryctrl = v4l2_subdev_queryctrl,
->> +	.querymenu = v4l2_subdev_querymenu,
->> +};
->> +
->> +static const struct v4l2_subdev_ops v4l2_flash_subdev_ops = {
->> +	.core = &v4l2_flash_core_ops,
->> +};
->> +
->> +struct v4l2_flash *v4l2_flash_init(struct led_classdev_flash *fled_cdev,
->> +				   const struct v4l2_flash_ops *ops,
->> +				   struct v4l2_flash_ctrl_config *config)
->> +{
->> +	struct v4l2_flash *v4l2_flash;
->> +	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
->> +	struct v4l2_subdev *sd;
->> +	int ret;
->> +
->> +	if (!fled_cdev || !ops || !config)
->> +		return ERR_PTR(-EINVAL);
->> +
->> +	v4l2_flash = kzalloc(sizeof(*v4l2_flash), GFP_KERNEL);
->> +	if (!v4l2_flash)
->> +		return ERR_PTR(-ENOMEM);
->> +
->> +	sd = &v4l2_flash->sd;
->> +	v4l2_flash->fled_cdev = fled_cdev;
->> +	v4l2_flash->ops = ops;
->> +	sd->dev = led_cdev->dev;
->> +	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
->> +	sd->internal_ops = &v4l2_flash_subdev_internal_ops;
->> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->> +	snprintf(sd->name, sizeof(sd->name), led_cdev->name);
->
-> strlcpy() or snprintf(sd->name, sizeof(), "%s", led_cdev->name).
-
-I think that strlcpy will fit here best.
-
->> +
->> +	ret = v4l2_flash_init_controls(v4l2_flash, config);
->> +	if (ret < 0)
->> +		goto err_init_controls;
->> +
->> +	ret = media_entity_init(&sd->entity, 0, NULL, 0);
->> +	if (ret < 0)
->> +		goto err_init_entity;
->> +
->> +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
->> +
->> +	ret = v4l2_async_register_subdev(sd);
->> +	if (ret < 0)
->> +		goto err_init_entity;
->> +
->> +	return v4l2_flash;
->> +
->> +err_init_entity:
->> +	media_entity_cleanup(&sd->entity);
->
-> media_entity_cleanup() can be called on an uninitialised entity (as long as
-> it's zeroed). So you could simplity this a little. Up to you.
->
->> +err_init_controls:
->> +	v4l2_ctrl_handler_free(sd->ctrl_handler);
->> +	kfree(v4l2_flash);
->> +
->> +	return ERR_PTR(ret);
->> +}
->> +EXPORT_SYMBOL_GPL(v4l2_flash_init);
->> +
->> +void v4l2_flash_release(struct v4l2_flash *v4l2_flash)
->> +{
->> +	struct v4l2_subdev *sd = &v4l2_flash->sd;
->> +
->> +	if (!v4l2_flash)
->> +		return;
->> +
->> +	v4l2_async_unregister_subdev(sd);
->> +	media_entity_cleanup(&sd->entity);
->> +	v4l2_ctrl_handler_free(sd->ctrl_handler);
->> +	kfree(v4l2_flash);
->> +}
->> +EXPORT_SYMBOL_GPL(v4l2_flash_release);
->> +
->> +MODULE_AUTHOR("Jacek Anaszewski <j.anaszewski@samsung.com>");
->> +MODULE_DESCRIPTION("V4L2 Flash sub-device helpers");
->> +MODULE_LICENSE("GPL v2");
->> diff --git a/include/media/v4l2-flash.h b/include/media/v4l2-flash.h
->> new file mode 100644
->> index 0000000..404b5a8
->> --- /dev/null
->> +++ b/include/media/v4l2-flash.h
->> @@ -0,0 +1,139 @@
->> +/*
->> + * V4L2 Flash LED sub-device registration helpers.
->> + *
->> + *	Copyright (C) 2015 Samsung Electronics Co., Ltd
->> + *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation."
->
-> There's an unbalanced quote here. Is that intended? Same in the .c file.
-
-This is unintended, to be removed.
-
->> + */
->> +
->> +#ifndef _V4L2_FLASH_H
->> +#define _V4L2_FLASH_H
->> +
->> +#include <media/v4l2-ctrls.h>
->> +#include <media/v4l2-device.h>
->> +#include <media/v4l2-dev.h>
->> +#include <media/v4l2-event.h>
->> +#include <media/v4l2-ioctl.h>
->
-> Do you need all the above headers here?
-
-Actually no - only media/v4l2-ctrls.h nad media/v4l2-subdev.h are
-required. I will fix this.
-
->> +
->> +struct led_classdev_flash;
->> +struct led_classdev;
->> +struct v4l2_flash;
->> +enum led_brightness;
->> +
->> +enum ctrl_init_data_id {
->> +	LED_MODE,
->> +	TORCH_INTENSITY,
->> +	INDICATOR_INTENSITY,
->> +	STROBE_SOURCE,
->> +	FLASH_STROBE,
->> +	STROBE_STOP,
->> +	STROBE_STATUS,
->
-> I think it'd be good to say e.g. in a comment here which values are still
-> applicable to the struct v4l2_flash field ctrls.
-
-OK.
-
->> +	FLASH_TIMEOUT,
->> +	FLASH_INTENSITY,
->> +	FLASH_FAULT,
->> +	SYNC_STROBE,
->> +	NUM_FLASH_CTRLS,
->> +};
->> +
->> +/*
->> + * struct v4l2_flash_ctrl_data - flash control initialization data -
->> + *				 filled basing on the features declared
->> + *				 by the LED Flash class driver
->> + * @config:	initialization data for a control
->> + * @supported:	indicates whether a control is supported
->> + *		by the LED Flash class driver
->> + */
->> +struct v4l2_flash_ctrl_data {
->> +	struct v4l2_ctrl_config config;
->> +	bool supported;
->
-> Every control has an id, right? Could you use that one instead of
-> "supported"?
-
-OK.
-
->> +};
->> +
->> +struct v4l2_flash_ops {
->> +	/* setup strobing the flash by hardware pin state assertion */
->> +	int (*external_strobe_set)(struct v4l2_flash *v4l2_flash,
->> +					bool enable);
->> +};
->> +
->> +/**
->> + * struct v4l2_flash_ctrl_config - V4L2 Flash controls initialization data
->> + * @intensity:			constraints for the led in a non-flash mode
->> + * @flash_intensity:		V4L2_CID_FLASH_INTENSITY settings constraints
->> + * @flash_timeout:		V4L2_CID_FLASH_TIMEOUT constraints
->> + * @flash_faults:		possible flash faults
->> + * @has_external_strobe:	external strobe capability
->> + * @indicator_led:		signifies that a led is of indicator type
->> + */
->> +struct v4l2_flash_ctrl_config {
->> +	struct v4l2_ctrl_config intensity;
->> +	struct v4l2_ctrl_config flash_intensity;
->> +	struct v4l2_ctrl_config flash_timeout;
->> +	u32 flash_faults;
->> +	bool has_external_strobe:1;
->> +	bool indicator_led:1;
->> +};
->> +
->> +/**
->> + * struct v4l2_flash - Flash sub-device context
->> + * @fled_cdev:		LED Flash Class device controlled by this sub-device
->> + * @ops:		V4L2 specific flash ops
->> + * @sd:			V4L2 sub-device
->> + * @hdl:		flash controls handler
->> + * @ctrls:		array of pointers to controls, whose values define
->> + *			the sub-device state
->> + * @sync_strobe_menu	leds available for flash strobe synchronization
->> + */
->> +struct v4l2_flash {
->> +	struct led_classdev_flash *fled_cdev;
->> +	const struct v4l2_flash_ops *ops;
->> +
->> +	struct v4l2_subdev sd;
->> +	struct v4l2_ctrl_handler hdl;
->> +	struct v4l2_ctrl *ctrls[STROBE_SOURCE + 1];
->> +	char **sync_strobe_menu;
->> +};
->> +
->> +static inline struct v4l2_flash *v4l2_subdev_to_v4l2_flash(
->> +							struct v4l2_subdev *sd)
->> +{
->> +	return container_of(sd, struct v4l2_flash, sd);
->> +}
->> +
->> +static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
->> +{
->> +	return container_of(c->handler, struct v4l2_flash, hdl);
->> +}
->> +
->> +#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
->> +/**
->> + * v4l2_flash_init - initialize V4L2 flash led sub-device
->> + * @fled_cdev:	the LED Flash Class device to wrap
->> + * @flash_ops:	V4L2 Flash device ops
->> + * @config:	initialization data for V4L2 Flash controls
->> + *
->> + * Create V4L2 subdev wrapping given LED subsystem device.
->> + *
->> + * Returns: A valid pointer, or, when an error occurs, the return
->> + * value is encoded using ERR_PTR(). Use IS_ERR() to check and
->> + * PTR_ERR() to obtain the numeric return value.
->> + */
->> +struct v4l2_flash *v4l2_flash_init(struct led_classdev_flash *fled_cdev,
->> +				   const struct v4l2_flash_ops *ops,
->> +				   struct v4l2_flash_ctrl_config *config);
->> +
->> +/**
->> + * v4l2_flash_release - release V4L2 Flash sub-device
->> + * @flash: the V4L2 Flash device to release
->> + *
->> + * Release V4L2 flash led subdev.
->> + */
->> +void v4l2_flash_release(struct v4l2_flash *v4l2_flash);
->> +
->> +#else
->> +#define v4l2_flash_init(fled_cdev, ops, config) (NULL)
->> +#define v4l2_flash_release(v4l2_flash)
->> +#endif /* CONFIG_V4L2_FLASH_LED_CLASS */
->> +
->> +#endif /* _V4L2_FLASH_H */
->
-
-
+diff --git a/configure.ac b/configure.ac
+index 85f71e0..fa3679f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -17,6 +17,7 @@ AC_CONFIG_FILES([Makefile
+ 	lib/libdvbv5/Makefile
+ 	lib/libv4l2rds/Makefile
+ 	lib/libv4l-mplane/Makefile
++	lib/libv4l-exynos4-camera/Makefile
+ 
+ 	utils/Makefile
+ 	utils/libv4l2util/Makefile
+diff --git a/lib/Makefile.am b/lib/Makefile.am
+index ee0c3c5..56b3a9f 100644
+--- a/lib/Makefile.am
++++ b/lib/Makefile.am
+@@ -5,6 +5,11 @@ SUBDIRS = \
+ 	libv4l2rds \
+ 	libv4l-mplane
+ 
++if WITH_V4LUTILS
++SUBDIRS += \
++	libv4l-exynos4-camera
++endif
++
+ if LINUX_OS
+ SUBDIRS += \
+ 	libdvbv5
+diff --git a/lib/libv4l-exynos4-camera/Makefile.am b/lib/libv4l-exynos4-camera/Makefile.am
+new file mode 100644
+index 0000000..23c60c6
+--- /dev/null
++++ b/lib/libv4l-exynos4-camera/Makefile.am
+@@ -0,0 +1,7 @@
++if WITH_V4L_PLUGINS
++libv4l2plugin_LTLIBRARIES = libv4l-exynos4-camera.la
++endif
++
++libv4l_exynos4_camera_la_SOURCES = libv4l-exynos4-camera.c ../../utils/media-ctl/libmediactl.c ../../utils/media-ctl/libv4l2subdev.c ../../utils/media-ctl/libv4l2media_ioctl.c ../../utils/media-ctl/mediatext.c
++libv4l_exynos4_camera_la_CFLAGS = -fvisibility=hidden -std=gnu99
++libv4l_exynos4_camera_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -lpthread
+diff --git a/lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c b/lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c
+new file mode 100644
+index 0000000..29cfab2
+--- /dev/null
++++ b/lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c
+@@ -0,0 +1,586 @@
++/*
++ * Copyright (c) 2015 Samsung Electronics Co., Ltd.
++ *              http://www.samsung.com
++ *
++ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU Lesser General Public License as published by
++ * the Free Software Foundation; either version 2.1 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ */
++
++#include <config.h>
++#include <errno.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++
++#include <sys/syscall.h>
++#include <linux/types.h>
++
++#include "../../utils/media-ctl/libv4l2media_ioctl.h"
++#include "../../utils/media-ctl/mediactl.h"
++#include "../../utils/media-ctl/mediatext.h"
++#include "../../utils/media-ctl/v4l2subdev.h"
++#include "libv4l-plugin.h"
++
++struct media_device;
++struct media_entity;
++
++/*
++ * struct exynos4_camera_plugin - libv4l exynos4 camera plugin
++ * @media:		media device comprising the vid_fd related video device
++ */
++struct exynos4_camera_plugin {
++	struct media_device *media;
++	struct media_entity *sink_entity;
++};
++
++#ifdef DEBUG
++#define V4L2_EXYNOS4_DBG(format, ARG...)\
++	printf("[%s:%d] [%s] " format " \n", __FILE__, __LINE__, __func__, ##ARG)
++#else
++#define V4L2_EXYNOS4_DBG(format, ARG...)
++#endif
++
++#define V4L2_EXYNOS4_ERR(format, ARG...)\
++	fprintf(stderr, "Libv4l Exynos4 camera plugin: "format "\n", ##ARG)
++
++#define V4L2_EXYNOS4_LOG(format, ARG...)\
++	fprintf(stdout, "Libv4l Exynos4 camera plugin: "format "\n", ##ARG)
++
++#if HAVE_VISIBILITY
++#define PLUGIN_PUBLIC __attribute__ ((visibility("default")))
++#else
++#define PLUGIN_PUBLIC
++#endif
++
++#define SYS_IOCTL(fd, cmd, arg) \
++	syscall(SYS_ioctl, (int)(fd), (unsigned long)(cmd), (void *)(arg))
++
++#define SIMPLE_CONVERT_IOCTL(fd, cmd, arg, __struc) ({  \
++	int __ret;                                      \
++	struct __struc *req = arg;                      \
++	uint32_t type = req->type;                      \
++	req->type = convert_type(type);                 \
++	__ret = SYS_IOCTL(fd, cmd, arg);                \
++	req->type = type;                               \
++	__ret;                                          \
++	})
++
++#define EXYNOS4_FIMC_DRV	"exynos4-fimc"
++#define EXYNOS4_FIMC_LITE_DRV	"exynos-fimc-lit"
++#define EXYNOS4_FIMC_IS_ISP_DRV	"exynos4-fimc-is"
++#define ENTITY_CAPTURE_SEGMENT	"capture"
++#define EXYNOS4_CAPTURE_CONF	"/var/lib/libv4l/exynos4_capture_conf"
++#define EXYNOS4_FIMC_IS_ISP	"FIMC-IS-ISP"
++#define EXYNOS4_FIMC_PREFIX	"FIMC."
++#define MAX_FMT_NEGO_NUM	50
++
++
++static int __capture_entity(const char *name)
++{
++	int cap_segment_pos;
++
++	if (name == NULL)
++		return 0;
++
++	cap_segment_pos = strlen(name) - strlen(ENTITY_CAPTURE_SEGMENT);
++
++	if (strcmp(name + cap_segment_pos, ENTITY_CAPTURE_SEGMENT) == 0)
++		return 1;
++
++	return 0;
++}
++
++static int __adjust_format_to_fimc_is_isp(struct v4l2_mbus_framefmt *mbus_fmt)
++{
++	if (mbus_fmt == NULL)
++		return -EINVAL;
++
++	mbus_fmt->width += 16;
++	mbus_fmt->height += 12;
++
++	return 0;
++}
++
++static int negotiate_pipeline_fmt(struct media_entity *pipeline,
++				  struct v4l2_format *dev_fmt)
++{
++	struct media_entity *entity = pipeline;
++	struct v4l2_subdev_format subdev_fmt = { 0 };
++	struct v4l2_mbus_framefmt mbus_fmt = { 0 }, common_fmt;
++	int repeat_negotiation, cnt_negotiation = 0, ret, pad_id;
++
++	if (pipeline == NULL || dev_fmt == NULL)
++		return -EINVAL;
++
++	mbus_fmt.width = dev_fmt->fmt.pix_mp.width;
++	mbus_fmt.height = dev_fmt->fmt.pix_mp.height;
++	mbus_fmt.field = dev_fmt->fmt.pix_mp.field;
++	mbus_fmt.colorspace = dev_fmt->fmt.pix_mp.colorspace;
++
++	if (media_has_pipeline_entity(entity, EXYNOS4_FIMC_IS_ISP)) {
++		ret = __adjust_format_to_fimc_is_isp(&mbus_fmt);
++		if (ret < 0)
++			return ret;
++	}
++
++	V4L2_EXYNOS4_DBG("Begin pipeline format negotiation...");
++
++	for (;;) {
++		repeat_negotiation = 0;
++		entity = pipeline;
++
++		pad_id = media_entity_get_src_pad_index(entity);
++
++		V4L2_EXYNOS4_DBG("Setting format on entity %s, pad: %d",
++				 media_entity_get_name(entity), pad_id);
++
++		ret = v4l2_subdev_set_format(entity, &mbus_fmt,
++					     pad_id, V4L2_SUBDEV_FORMAT_TRY);
++		if (ret < 0)
++			return ret;
++
++		common_fmt = mbus_fmt;
++
++		entity = media_entity_get_next(entity);
++
++		while (entity) {
++			pad_id = media_entity_get_sink_pad_index(entity);
++
++			/* Set format on the entity src pad */
++			V4L2_EXYNOS4_DBG("Setting format on the entity pad %s:%d: mbus_code: %s, width: %d, height: %d",
++					 media_entity_get_name(entity), pad_id,
++					 v4l2_subdev_pixelcode_to_string(mbus_fmt.code),
++					 mbus_fmt.width, mbus_fmt.height);
++
++			ret = v4l2_subdev_set_format(entity, &mbus_fmt, pad_id,
++							V4L2_SUBDEV_FORMAT_TRY);
++			if (ret < 0)
++				return ret;
++
++			if (!v4l2_subdev_format_compare(&mbus_fmt, &common_fmt)) {
++				repeat_negotiation = 1;
++				break;
++			}
++
++			/*
++			 * Do not check format on FIMC.[n] source pad
++			 * and stop negotiation.
++			 */
++			if (!strncmp(media_entity_get_name(entity),
++				     EXYNOS4_FIMC_PREFIX,
++				     strlen(EXYNOS4_FIMC_PREFIX)))
++				break;
++
++			pad_id = media_entity_get_src_pad_index(entity);
++
++			/* Get format on the entity sink pad */
++			ret = v4l2_subdev_get_format(entity, &mbus_fmt, pad_id,
++							V4L2_SUBDEV_FORMAT_TRY);
++			if (ret < 0)
++				return -EINVAL;
++
++			V4L2_EXYNOS4_DBG("Format propagated to the entity pad %s:%d: mbus_code: %s, width: %d, height: %d",
++					 media_entity_get_name(entity), pad_id,
++					 v4l2_subdev_pixelcode_to_string(mbus_fmt.code),
++					 mbus_fmt.width, mbus_fmt.height);
++
++			if (!strcmp(media_entity_get_name(entity),
++				    EXYNOS4_FIMC_IS_ISP)) {
++				common_fmt.code = subdev_fmt.format.code;
++				common_fmt.colorspace =
++						subdev_fmt.format.colorspace;
++				common_fmt.width -= 16;
++				common_fmt.height -= 12;
++			}
++
++			if (!v4l2_subdev_format_compare(&mbus_fmt, &common_fmt)) {
++				repeat_negotiation = 1;
++				break;
++			}
++
++			entity = media_entity_get_next(entity);
++
++			/*
++			 * Stop if this is last element in the
++			 * pipeline as it is not a sub-device.
++			 */
++			if (media_entity_get_next(entity) == NULL)
++				break;
++		}
++
++		if (!repeat_negotiation) {
++			break;
++		} else if (++cnt_negotiation > MAX_FMT_NEGO_NUM) {
++			V4L2_EXYNOS4_DBG("Pipeline format negotiation failed!");
++			return -EINVAL;
++		}
++	}
++
++	dev_fmt->fmt.pix_mp.width = mbus_fmt.width;
++	dev_fmt->fmt.pix_mp.height = mbus_fmt.height;
++	dev_fmt->fmt.pix_mp.field = mbus_fmt.field;
++	dev_fmt->fmt.pix_mp.colorspace = mbus_fmt.colorspace;
++
++	V4L2_EXYNOS4_DBG("Pipeline format successfuly negotiated");
++
++	return 0;
++}
++
++static __u32 convert_type(__u32 type)
++{
++	switch (type) {
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		return V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++	default:
++		return type;
++	}
++}
++
++static int set_fmt_ioctl(struct media_device *media,
++			 unsigned long int cmd,
++			 struct v4l2_format *arg,
++			 enum v4l2_subdev_format_whence set_mode)
++{
++	struct v4l2_format fmt = { 0 };
++	int ret;
++
++	fmt.type = convert_type(arg->type);
++	if (fmt.type != arg->type) {
++		fmt.fmt.pix_mp.width = arg->fmt.pix.width;
++		fmt.fmt.pix_mp.height = arg->fmt.pix.height;
++		fmt.fmt.pix_mp.pixelformat = arg->fmt.pix.pixelformat;
++		fmt.fmt.pix_mp.field = arg->fmt.pix.field;
++		fmt.fmt.pix_mp.colorspace = arg->fmt.pix.colorspace;
++		fmt.fmt.pix_mp.num_planes = 1;
++		fmt.fmt.pix_mp.flags = arg->fmt.pix.flags;
++		fmt.fmt.pix_mp.plane_fmt[0].bytesperline = arg->fmt.pix.bytesperline;
++		fmt.fmt.pix_mp.plane_fmt[0].sizeimage = arg->fmt.pix.sizeimage;
++	} else {
++		fmt = *arg;
++	}
++
++	ret = negotiate_pipeline_fmt(media_get_pipeline(media), &fmt);
++	if (ret < 0)
++		return ret;
++
++	if (set_mode == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		ret = v4l2_subdev_apply_pipeline_fmt(media, &fmt);
++		if (ret < 0)
++			return ret;
++	}
++
++	if (fmt.type != arg->type) {
++		arg->fmt.pix.width = fmt.fmt.pix_mp.width;
++		arg->fmt.pix.height = fmt.fmt.pix_mp.height;
++		arg->fmt.pix.pixelformat = fmt.fmt.pix_mp.pixelformat;
++		arg->fmt.pix.field = fmt.fmt.pix_mp.field;
++		arg->fmt.pix.colorspace = fmt.fmt.pix_mp.colorspace;
++		arg->fmt.pix.bytesperline = fmt.fmt.pix_mp.plane_fmt[0].bytesperline;
++		arg->fmt.pix.sizeimage = fmt.fmt.pix_mp.plane_fmt[0].sizeimage;
++		arg->fmt.pix.flags = fmt.fmt.pix_mp.flags;
++	} else {
++		*arg = fmt;
++	}
++
++	return 0;
++}
++
++static int get_fmt_ioctl(int fd,
++			 unsigned long int cmd,
++			 struct v4l2_format *arg)
++{
++	struct v4l2_format fmt = { 0 };
++	int ret;
++
++	fmt.type = convert_type(arg->type);
++
++	if (fmt.type == arg->type)
++		return SYS_IOCTL(fd, cmd, arg);
++
++	ret = SYS_IOCTL(fd, cmd, &fmt);
++	if (ret < 0)
++		return ret;
++
++	memset(&arg->fmt.pix, 0, sizeof(arg->fmt.pix));
++	arg->fmt.pix.width = fmt.fmt.pix_mp.width;
++	arg->fmt.pix.height = fmt.fmt.pix_mp.height;
++	arg->fmt.pix.pixelformat = fmt.fmt.pix_mp.pixelformat;
++	arg->fmt.pix.field = fmt.fmt.pix_mp.field;
++	arg->fmt.pix.colorspace = fmt.fmt.pix_mp.colorspace;
++	arg->fmt.pix.bytesperline = fmt.fmt.pix_mp.plane_fmt[0].bytesperline;
++	arg->fmt.pix.sizeimage = fmt.fmt.pix_mp.plane_fmt[0].sizeimage;
++	arg->fmt.pix.flags = fmt.fmt.pix_mp.flags;
++
++	return ret;
++}
++
++static int buf_ioctl(int fd,
++		     unsigned long int cmd,
++		     struct v4l2_buffer *arg)
++{
++	struct v4l2_buffer buf = *arg;
++	struct v4l2_plane plane = { 0 };
++	int ret;
++
++	buf.type = convert_type(arg->type);
++
++	if (buf.type == arg->type)
++		return SYS_IOCTL(fd, cmd, arg);
++
++	memcpy(&plane.m, &arg->m, sizeof(plane.m));
++	plane.length = arg->length;
++	plane.bytesused = arg->bytesused;
++
++	buf.m.planes = &plane;
++	buf.length = 1;
++
++	ret = SYS_IOCTL(fd, cmd, &buf);
++
++	arg->index = buf.index;
++	arg->memory = buf.memory;
++	arg->flags = buf.flags;
++	arg->field = buf.field;
++	arg->timestamp = buf.timestamp;
++	arg->timecode = buf.timecode;
++	arg->sequence = buf.sequence;
++
++	arg->length = plane.length;
++	arg->bytesused = plane.bytesused;
++	memcpy(&arg->m, &plane.m, sizeof(arg->m));
++
++	return ret;
++}
++
++static int querycap_ioctl(int fd, struct v4l2_capability *arg)
++{
++	int ret;
++
++	ret = SYS_IOCTL(fd, VIDIOC_QUERYCAP, arg);
++	if (ret < 0)
++		return ret;
++
++	arg->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
++	arg->capabilities |= V4L2_CAP_VIDEO_CAPTURE;
++
++	return ret;
++}
++
++static void *plugin_init(int fd)
++{
++	struct v4l2_capability cap = { 0 };
++	struct exynos4_camera_plugin *plugin = NULL;
++	const char *sink_entity_name;
++	struct media_device *media;
++	struct media_entity *sink_entity;
++	char video_devname[32];
++	int ret;
++
++	ret = SYS_IOCTL(fd, VIDIOC_QUERYCAP, &cap);
++	if (ret < 0) {
++		V4L2_EXYNOS4_ERR("Failed to query video capabilities.");
++		return NULL;
++	}
++
++	/* Check if this is Exynos4 media device */
++	if (strcmp((char *) cap.driver, EXYNOS4_FIMC_DRV) &&
++	    strcmp((char *) cap.driver, EXYNOS4_FIMC_LITE_DRV) &&
++	    strcmp((char *) cap.driver, EXYNOS4_FIMC_IS_ISP_DRV)) {
++		V4L2_EXYNOS4_ERR("Not an Exynos4 media device.");
++		return NULL;
++	}
++
++	/* Obtain the node name of the opened device */
++	ret = media_get_devname_by_fd(fd, video_devname);
++	if (ret < 0) {
++		V4L2_EXYNOS4_ERR("Failed to get video device node name.");
++		return NULL;
++	}
++
++	/*
++	 * Create the representation of a media device
++	 * containing the opened video device.
++	 */
++	media = media_device_new_by_entity_devname(video_devname);
++	if (media == NULL) {
++		V4L2_EXYNOS4_ERR("Failed to create media device.");
++		return NULL;
++	}
++
++#ifdef DEBUG
++	media_debug_set_handler(media, (void (*)(void *, ...))fprintf, stdout);
++#endif
++
++	/* Get the entity representing the opened video device node */
++	sink_entity = media_get_entity_by_devname(media, video_devname,
++						  strlen(video_devname));
++	if (sink_entity == NULL) {
++		V4L2_EXYNOS4_ERR("Failed to get sink entity name.");
++		goto err_get_sink_entity;
++	}
++
++	/*
++	 * Initialize sink_entity subdev fd with the one opened
++	 * by the libv4l core to avoid losing it on pipeline opening.
++	 */
++	v4l2_subdev_create_with_fd(sink_entity, fd);
++
++	sink_entity_name = media_entity_get_name(sink_entity);
++
++	/* Check if video entity is of capture type, not m2m */
++	if (!__capture_entity(sink_entity_name)) {
++		V4L2_EXYNOS4_ERR("Device not of capture type.");
++		goto err_get_sink_entity;
++	}
++
++	V4L2_EXYNOS4_ERR("before parsing");
++	/* Parse media configuration file and apply its settings */
++	ret = mediatext_parse_setup_config(media, EXYNOS4_CAPTURE_CONF);
++	if (ret < 0) {
++		V4L2_EXYNOS4_ERR("Media config parser error.");
++		goto err_get_sink_entity;
++	}
++
++	/*
++	 * Discover the pipeline of sub-devices from a camera sensor
++	 * to the opened video device.
++	 */
++	ret = media_discover_pipeline_by_entity(media, sink_entity);
++	if (ret < 0) {
++		V4L2_EXYNOS4_ERR("Error discovering video pipeline.");
++		goto err_get_sink_entity;
++	}
++
++	/* Open all sub-devices in the discovered pipeline */
++	ret = v4l2_subdev_open_pipeline(media);
++	if (ret < 0) {
++		V4L2_EXYNOS4_ERR("Error opening video pipeline.");
++		goto err_get_sink_entity;
++	}
++
++	/* Allocate private data */
++	plugin = calloc(1, sizeof(*plugin));
++	if (!plugin)
++		goto err_validate_controls;
++
++	plugin->media = media;
++	plugin->sink_entity = sink_entity;
++
++	V4L2_EXYNOS4_LOG("Initialized exynos4-camera plugin.");
++
++	return plugin;
++
++err_validate_controls:
++	v4l2_subdev_release(sink_entity, false);
++	v4l2_subdev_release_pipeline(media);
++err_get_sink_entity:
++	if (media)
++		media_device_unref(media);
++	return NULL;
++}
++
++static void plugin_close(void *dev_ops_priv)
++{
++	struct exynos4_camera_plugin *plugin = dev_ops_priv;
++	struct media_device *media;
++
++	if (plugin == NULL)
++		return;
++
++	/* release sink entity sub-device, but don't close fd */
++	v4l2_subdev_release(plugin->sink_entity, false);
++
++	media = plugin->media;
++	v4l2_subdev_release_pipeline(media);
++	media_device_unref(media);
++
++	free(plugin);
++}
++
++static int plugin_ioctl(void *dev_ops_priv, int fd, unsigned long int cmd,
++							void *arg)
++{
++	struct exynos4_camera_plugin *plugin = dev_ops_priv;
++	struct media_device *media;
++
++	if (plugin == NULL || arg == NULL)
++		return -EINVAL;
++
++	media = plugin->media;
++
++	if (media == NULL)
++		return -EINVAL;
++
++	switch (cmd) {
++	case VIDIOC_S_CTRL:
++	case VIDIOC_G_CTRL:
++		return media_ioctl_ctrl(media, cmd, arg);
++	case VIDIOC_S_EXT_CTRLS:
++	case VIDIOC_G_EXT_CTRLS:
++	case VIDIOC_TRY_EXT_CTRLS:
++		return media_ioctl_ext_ctrl(media, cmd, arg);
++	case VIDIOC_QUERYCTRL:
++		return media_ioctl_queryctrl(media, arg);
++	case VIDIOC_QUERY_EXT_CTRL:
++		return media_ioctl_query_ext_ctrl(media, arg);
++	case VIDIOC_QUERYMENU:
++		return media_ioctl_querymenu(media, arg);
++	case VIDIOC_TRY_FMT:
++		return set_fmt_ioctl(media, cmd, arg,
++				     V4L2_SUBDEV_FORMAT_TRY);
++	case VIDIOC_S_FMT:
++		return set_fmt_ioctl(media, cmd, arg,
++				     V4L2_SUBDEV_FORMAT_ACTIVE);
++	case VIDIOC_G_FMT:
++		return get_fmt_ioctl(fd, cmd, arg);
++	case VIDIOC_QUERYCAP:
++		return querycap_ioctl(fd, arg);
++	case VIDIOC_QBUF:
++	case VIDIOC_DQBUF:
++	case VIDIOC_QUERYBUF:
++	case VIDIOC_PREPARE_BUF:
++		return buf_ioctl(fd, cmd, arg);
++	case VIDIOC_REQBUFS:
++		return SIMPLE_CONVERT_IOCTL(fd, cmd, arg,
++					    v4l2_requestbuffers);
++	case VIDIOC_ENUM_FMT:
++		return SIMPLE_CONVERT_IOCTL(fd, cmd, arg, v4l2_fmtdesc);
++	case VIDIOC_CROPCAP:
++		return SIMPLE_CONVERT_IOCTL(fd, cmd, arg, v4l2_cropcap);
++	case VIDIOC_STREAMON:
++	case VIDIOC_STREAMOFF:
++		{
++			int *arg_type = (int *) arg;
++			__u32 type;
++
++			type = convert_type(*arg_type);
++
++			if (type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
++			    type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++				V4L2_EXYNOS4_ERR("Invalid buffer type.");
++				return -EINVAL;
++			}
++
++			return SYS_IOCTL(fd, cmd, &type);
++		}
++
++	default:
++		return SYS_IOCTL(fd, cmd, arg);
++	}
++}
++
++PLUGIN_PUBLIC const struct libv4l_dev_ops libv4l2_plugin = {
++	.init = &plugin_init,
++	.close = &plugin_close,
++	.ioctl = &plugin_ioctl,
++};
 -- 
-Best Regards,
-Jacek Anaszewski
+1.7.9.5
+
