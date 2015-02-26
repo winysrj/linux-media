@@ -1,130 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50691 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752769AbbBZLSx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2015 06:18:53 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>
-Subject: [PATCH 1/2] [media] dvb-usb: create one media_dev per adapter
-Date: Thu, 26 Feb 2015 08:18:36 -0300
-Message-Id: <b905ed9a7a9cb26282abd19a9865d8ed02ec3a9d.1424949510.git.mchehab@osg.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:56391 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932165AbbBZLvW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2015 06:51:22 -0500
+Message-ID: <54EF08B5.8030602@iki.fi>
+Date: Thu, 26 Feb 2015 13:51:17 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Yannick Guerrini <yguerrini@tomshardware.fr>
+CC: mchehab@osg.samsung.com, trivial@kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] si2168: tda10071: m88ds3103: Fix trivial typos
+References: <1424945586-8232-1-git-send-email-yguerrini@tomshardware.fr>
+In-Reply-To: <1424945586-8232-1-git-send-email-yguerrini@tomshardware.fr>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of assuming just one adapter, change the code to store
-one media controller per adapter.
+On 02/26/2015 12:13 PM, Yannick Guerrini wrote:
+> Change 'firmare' to 'firmware'
+>
+> Signed-off-by: Yannick Guerrini <yguerrini@tomshardware.fr>
 
-This works fine for dvb-usb, as, on all drivers here, it is not
-possible to write a media graph that would mix resources between
-the two different adapters.
+Acked-by: Antti Palosaari <crope@iki.fi>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Antti
 
-diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-index d0b0f3071422..e9fcb000b305 100644
---- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-+++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-@@ -94,11 +94,11 @@ static int dvb_usb_stop_feed(struct dvb_demux_feed *dvbdmxfeed)
- 	return dvb_usb_ctrl_feed(dvbdmxfeed,0);
- }
- 
--static void dvb_usb_media_device_register(struct dvb_usb_device *d)
-+static void dvb_usb_media_device_register(struct dvb_usb_adapter *adap)
- {
- #ifdef CONFIG_MEDIA_CONTROLLER_DVB
--
- 	struct media_device *mdev;
-+	struct dvb_usb_device *d = adap->dev;
- 	struct usb_device *udev = d->udev;
- 	int ret;
- 
-@@ -122,24 +122,20 @@ static void dvb_usb_media_device_register(struct dvb_usb_device *d)
- 		kfree(mdev);
- 		return;
- 	}
--
--	d->media_dev = mdev;
-+	adap->dvb_adap.mdev = mdev;
- 
- 	dev_info(&d->udev->dev, "media controller created\n");
--
- #endif
- }
- 
--static void dvb_usb_media_device_unregister(struct dvb_usb_device *d)
-+static void dvb_usb_media_device_unregister(struct dvb_usb_adapter *adap)
- {
- #ifdef CONFIG_MEDIA_CONTROLLER_DVB
--	if (!d->media_dev)
- 		return;
- 
--	media_device_unregister(d->media_dev);
--	kfree(d->media_dev);
--	d->media_dev = NULL;
--
-+	media_device_unregister(adap->dvb_adap.mdev);
-+	kfree(adap->dvb_adap.mdev);
-+	adap->dvb_adap.mdev = NULL;
- #endif
- }
- 
-@@ -157,8 +153,7 @@ int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
- 	adap->dvb_adap.priv = adap;
- 
- #ifdef CONFIG_MEDIA_CONTROLLER_DVB
--	dvb_usb_media_device_register(adap->dev);
--	adap->dvb_adap.mdev = adap->dev->media_dev;
-+	dvb_usb_media_device_register(adap);
- #endif
- 
- 	if (adap->dev->props.read_mac_address) {
-@@ -208,7 +203,7 @@ err_net_init:
- err_dmx_dev:
- 	dvb_dmx_release(&adap->demux);
- err_dmx:
--	dvb_usb_media_device_unregister(adap->dev);
-+	dvb_usb_media_device_unregister(adap);
- 	dvb_unregister_adapter(&adap->dvb_adap);
- err:
- 	return ret;
-@@ -222,7 +217,7 @@ int dvb_usb_adapter_dvb_exit(struct dvb_usb_adapter *adap)
- 		adap->demux.dmx.close(&adap->demux.dmx);
- 		dvb_dmxdev_release(&adap->dmxdev);
- 		dvb_dmx_release(&adap->demux);
--		dvb_usb_media_device_unregister(adap->dev);
-+		dvb_usb_media_device_unregister(adap);
- 		dvb_unregister_adapter(&adap->dvb_adap);
- 		adap->state &= ~DVB_USB_ADAP_STATE_DVB;
- 	}
-@@ -324,7 +319,7 @@ int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
- 		adap->num_frontends_initialized++;
- 	}
- 
--	dvb_create_media_graph(adap->dev->media_dev);
-+	dvb_create_media_graph(adap->dvb_adap.mdev);
- 
- 	return 0;
- }
-diff --git a/drivers/media/usb/dvb-usb/dvb-usb.h b/drivers/media/usb/dvb-usb/dvb-usb.h
-index 8d37f1e5ff23..ce4c4e3b58bb 100644
---- a/drivers/media/usb/dvb-usb/dvb-usb.h
-+++ b/drivers/media/usb/dvb-usb/dvb-usb.h
-@@ -453,10 +453,6 @@ struct dvb_usb_device {
- 	struct module *owner;
- 
- 	void *priv;
--
--#ifdef CONFIG_MEDIA_CONTROLLER_DVB
--	struct media_device *media_dev;
--#endif
- };
- 
- extern int dvb_usb_device_init(struct usb_interface *,
+> ---
+>   drivers/media/dvb-frontends/m88ds3103.c     | 2 +-
+>   drivers/media/dvb-frontends/si2168_priv.h   | 2 +-
+>   drivers/media/dvb-frontends/tda10071_priv.h | 2 +-
+>   3 files changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+> index ba4ee0b..d3d928e 100644
+> --- a/drivers/media/dvb-frontends/m88ds3103.c
+> +++ b/drivers/media/dvb-frontends/m88ds3103.c
+> @@ -630,7 +630,7 @@ static int m88ds3103_init(struct dvb_frontend *fe)
+>   	/* request the firmware, this will block and timeout */
+>   	ret = request_firmware(&fw, fw_file, priv->i2c->dev.parent);
+>   	if (ret) {
+> -		dev_err(&priv->i2c->dev, "%s: firmare file '%s' not found\n",
+> +		dev_err(&priv->i2c->dev, "%s: firmware file '%s' not found\n",
+>   				KBUILD_MODNAME, fw_file);
+>   		goto err;
+>   	}
+> diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+> index aadd136..d7efce8 100644
+> --- a/drivers/media/dvb-frontends/si2168_priv.h
+> +++ b/drivers/media/dvb-frontends/si2168_priv.h
+> @@ -40,7 +40,7 @@ struct si2168_dev {
+>   	bool ts_clock_inv;
+>   };
+>
+> -/* firmare command struct */
+> +/* firmware command struct */
+>   #define SI2168_ARGLEN      30
+>   struct si2168_cmd {
+>   	u8 args[SI2168_ARGLEN];
+> diff --git a/drivers/media/dvb-frontends/tda10071_priv.h b/drivers/media/dvb-frontends/tda10071_priv.h
+> index 4204861..03f839c 100644
+> --- a/drivers/media/dvb-frontends/tda10071_priv.h
+> +++ b/drivers/media/dvb-frontends/tda10071_priv.h
+> @@ -99,7 +99,7 @@ struct tda10071_reg_val_mask {
+>   #define CMD_BER_CONTROL         0x3e
+>   #define CMD_BER_UPDATE_COUNTERS 0x3f
+>
+> -/* firmare command struct */
+> +/* firmware command struct */
+>   #define TDA10071_ARGLEN      30
+>   struct tda10071_cmd {
+>   	u8 args[TDA10071_ARGLEN];
+>
+
 -- 
-2.1.0
-
+http://palosaari.fi/
