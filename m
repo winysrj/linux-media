@@ -1,104 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:58554 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161027AbbBCUDP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2015 15:03:15 -0500
-Received: by mail-wi0-f175.google.com with SMTP id fb4so27155713wid.2
-        for <linux-media@vger.kernel.org>; Tue, 03 Feb 2015 12:03:13 -0800 (PST)
-Date: Tue, 3 Feb 2015 21:04:35 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linaro-kernel@lists.linaro.org, Rob Clark <robdclark@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Robin Murphy <robin.murphy@arm.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
- attacher constraints with dma-parms
-Message-ID: <20150203200435.GX14009@phenom.ffwll.local>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
- <6906596.JU5vQoa1jV@wuerfel>
- <CAF6AEGsttiufoqPbDiZfUX2ndbv2XfeZzcfyaf-AcUJgJpgLkA@mail.gmail.com>
- <7233574.nKiRa7HnXU@wuerfel>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7233574.nKiRa7HnXU@wuerfel>
+Received: from mailout3.samsung.com ([203.254.224.33]:54683 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754359AbbBZQAI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2015 11:00:08 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NKD00E64Z46UDC0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 27 Feb 2015 01:00:06 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com,
+	kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [v4l-utils PATCH/RFC v5 02/14] mediactl: Add support for
+ v4l2-ctrl-redir config
+Date: Thu, 26 Feb 2015 16:59:12 +0100
+Message-id: <1424966364-3647-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
+References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 03, 2015 at 05:36:59PM +0100, Arnd Bergmann wrote:
-> On Tuesday 03 February 2015 11:22:01 Rob Clark wrote:
-> > On Tue, Feb 3, 2015 at 11:12 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > > I agree for the case you are describing here. From what I understood
-> > > from Rob was that he is looking at something more like:
-> > >
-> > > Fig 3
-> > > CPU--L1cache--L2cache--Memory--IOMMU---<iobus>--device
-> > >
-> > > where the IOMMU controls one or more contexts per device, and is
-> > > shared across GPU and non-GPU devices. Here, we need to use the
-> > > dmap-mapping interface to set up the IO page table for any device
-> > > that is unable to address all of system RAM, and we can use it
-> > > for purposes like isolation of the devices. There are also cases
-> > > where using the IOMMU is not optional.
-> > 
-> > 
-> > Actually, just to clarify, the IOMMU instance is specific to the GPU..
-> > not shared with other devices.  Otherwise managing multiple contexts
-> > would go quite badly..
-> > 
-> > But other devices have their own instance of the same IOMMU.. so same
-> > driver could be used.
-> 
-> I think from the driver perspective, I'd view those two cases as
-> identical. Not sure if Russell agrees with that.
+Make struct v4l2_subdev capable of aggregating v4l2-ctrl-redir
+media device configuration entries. Added are also functions for
+validating the config and checking whether a v4l2 sub-device
+expects to receive ioctls related to the v4l2-control with given id.
 
-Imo whether the iommu is private to the device and required for gpu
-functionality like context switching or shared across a bunch of devices
-is fairly important. Assuming I understand this discussion correctly we
-have two different things pulling in opposite directions:
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ utils/media-ctl/libv4l2subdev.c |   49 ++++++++++++++++++++++++++++++++++++++-
+ utils/media-ctl/v4l2subdev.h    |   33 ++++++++++++++++++++++++++
+ 2 files changed, 81 insertions(+), 1 deletion(-)
 
-- From a gpu functionality perspective we want to give the gpu driver full
-  control over the device-private iommu, pushing it out of the control of
-  the dma api. dma_map_sg would just map to whatever bus addresses that
-  iommu would need to use for generating access cycles.
-
-  This is the design used by every gpu driver we have in upstream thus far
-  (where you always have some on-gpu iommu/pagetable walker thing), on top
-  of whatever system iommu that might be there or not (which is then
-  managed by the dma apis).
-
-- On many soc people love to reuse iommus with the same or similar
-  interface all over the place. The solution thus far adopted on arm
-  platforms is to write an iommu driver for those and then implement the
-  dma-api on top of this iommu.
-
-  But if we unconditionally do this then we rob the gpu driver's ability
-  to control its private iommu like it wants to, because a lot of the
-  functionality is lost behind the dma api abstraction.
-
-Again assuming I'm not confused can't we just solve this by pushing the
-dma api abstraction down one layer for just the gpu, and let it use its
-private iommmu directly? Steps for binding a buffer would be:
-1. dma_map_sg
-2. Noodle the dma_addr_t out of the sg table and feed those into a 2nd
-level mapping set up through the iommu api for the gpu-private mmu.
-
-Again, this is what i915 and all the ttm based drivers already do, except
-that we don't use the generic iommu interfaces but have our own (i915 has
-its interface in i915_gem_gtt.c, ttm just calls them tt for translation
-tables ...).
-
-Cheers, Daniel
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 68404d4..5b9d908 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -26,7 +26,6 @@
+ #include <ctype.h>
+ #include <errno.h>
+ #include <fcntl.h>
+-#include <stdbool.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -50,7 +49,15 @@ int v4l2_subdev_create(struct media_entity *entity)
+ 
+ 	entity->sd->fd = -1;
+ 
++	entity->sd->v4l2_control_redir = malloc(sizeof(__u32));
++	if (entity->sd->v4l2_control_redir == NULL)
++		goto err_v4l2_control_redir_alloc;
++
+ 	return 0;
++
++err_v4l2_control_redir_alloc:
++	free(entity->sd);
++	return -ENOMEM;
+ }
+ 
+ int v4l2_subdev_create_with_fd(struct media_entity *entity, int fd)
+@@ -803,3 +810,43 @@ enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
+ 
+ 	return mbus_formats[i].code;
+ }
++
++int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
++				   struct media_entity *entity,
++				   __u32 ctrl_id)
++{
++	struct v4l2_queryctrl queryctrl = {};
++	int ret;
++
++	ret = v4l2_subdev_open(entity);
++	if (ret < 0)
++		return ret;
++
++	queryctrl.id = ctrl_id;
++
++	ret = ioctl(entity->sd->fd, VIDIOC_QUERYCTRL, &queryctrl);
++	if (ret < 0)
++		return ret;
++
++	media_dbg(media, "Validated control \"%s\" (0x%8.8x) on entity %s\n",
++		  queryctrl.name, queryctrl.id, entity->info.name);
++
++	return 0;
++}
++
++bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
++				  struct media_entity *entity,
++				  int ctrl_id)
++{
++	struct v4l2_subdev *sd = entity->sd;
++	int i;
++
++	if (!sd)
++		return false;
++
++	for (i = 0; i < sd->v4l2_control_redir_num; ++i)
++		if (sd->v4l2_control_redir[i] == ctrl_id)
++			return true;
++
++	return false;
++}
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index b386294..07f9697 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -23,11 +23,16 @@
+ #define __SUBDEV_H__
+ 
+ #include <linux/v4l2-subdev.h>
++#include <stdbool.h>
+ 
+ struct media_entity;
++struct media_device;
+ 
+ struct v4l2_subdev {
+ 	int fd;
++
++	__u32 *v4l2_control_redir;
++	unsigned int v4l2_control_redir_num;
+ };
+ 
+ /**
+@@ -293,4 +298,32 @@ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code);
+  */
+ enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
+ 							 unsigned int length);
++
++/**
++ * @brief Validate v4l2 control for a sub-device
++ * @param media - media device.
++ * @param entity - subdev-device media entity.
++ * @param ctrl_id - id of the v4l2 control to validate.
++ *
++ * Verify if the entity supports v4l2-control with given ctrl_id.
++ *
++ * @return 1 if the control is supported, 0 otherwise.
++ */
++int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
++				   struct media_entity *entity,
++				   __u32 ctrl_id);
++
++/**
++ * @brief Check if there was a v4l2_control redirection defined for the entity
++ * @param media - media device.
++ * @param entity - subdev-device media entity.
++ * @param ctrl_id - v4l2 control identifier.
++ *
++ * Check if there was a v4l2-ctrl-redir entry defined for the entity.
++ *
++ * @return true if the entry exists, false otherwise
++ */
++bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
++	struct media_entity *entity, int ctrl_id);
++
+ #endif
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+1.7.9.5
+
