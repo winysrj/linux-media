@@ -1,85 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42046 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753829AbbBMQOo (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:10537 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605AbbB0OeZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2015 11:14:44 -0500
-Message-ID: <1423844081.2887.6.camel@xs4all.nl>
-Subject: Re: [REGRESSION] media: cx23885 broken by commit 453afdd "[media]
- cx23885: convert to vb2"
-From: Jurgen Kramer <gtmkramer@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Raimonds Cicans <ray@apollo.lv>, linux-media@vger.kernel.org
-Date: Fri, 13 Feb 2015 17:14:41 +0100
-In-Reply-To: <54DDC00D.209@xs4all.nl>
-References: <54B24370.6010004@apollo.lv> <54C9E238.9090101@xs4all.nl>
-			 <54CA1EB4.8000103@apollo.lv> <54CA23BE.7050609@xs4all.nl>
-			 <54CE24F2.7090400@apollo.lv> <54CF4508.9070305@xs4all.nl>
-		 <1423065972.2650.1.camel@xs4all.nl> <54D24685.1000708@xs4all.nl>
-	 <1423070484.2650.3.camel@xs4all.nl> <54DDC00D.209@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 27 Feb 2015 09:34:25 -0500
+Message-id: <54F0806E.2040309@samsung.com>
+Date: Fri, 27 Feb 2015 15:34:22 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Pavel Machek <pavel@ucw.cz>, Greg KH <greg@kroah.com>,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, s.nawrocki@samsung.com
+Subject: Re: 0.led_name 2.other.led.name in /sysfs Re: [PATCH/RFC v11 01/20]
+ leds: flash: document sysfs interface
+References: <1424276441-3969-1-git-send-email-j.anaszewski@samsung.com>
+ <1424276441-3969-2-git-send-email-j.anaszewski@samsung.com>
+ <20150218224747.GA3999@amd> <20150219090204.GI3915@valkosipuli.retiisi.org.uk>
+ <20150219214043.GB29875@kroah.com> <54E6E89B.4050404@samsung.com>
+ <20150220153616.GB18111@kroah.com> <20150220205738.GA28995@amd>
+ <20150221105733.GO3915@valkosipuli.retiisi.org.uk>
+In-reply-to: <20150221105733.GO3915@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sakari,
 
-On Fri, 2015-02-13 at 10:12 +0100, Hans Verkuil wrote:
-> Hi Jurgen,
-> 
-> On 02/04/2015 06:21 PM, Jurgen Kramer wrote:
-> > On Wed, 2015-02-04 at 17:19 +0100, Hans Verkuil wrote:
-> >> On 02/04/2015 05:06 PM, Jurgen Kramer wrote:
-> >>> Hi Hans,
-> >>>
-> >>> On Mon, 2015-02-02 at 10:36 +0100, Hans Verkuil wrote:
-> >>>> Raimonds and Jurgen,
-> >>>>
-> >>>> Can you both test with the following patch applied to the driver:
-> >>>
-> >>> Unfortunately the mpeg error is not (completely) gone:
-> >>
-> >> OK, I suspected that might be the case. Is the UNBALANCED warning
-> >> gone with my vb2 patch?
-> 
-> >> When you see this risc error, does anything
-> >> break (broken up video) or crash, or does it just keep on streaming?
-> 
-> Can you comment on this question?
-I still get the risc errors at regular intervals. I am not sure what the real impact is. 
-I do get the occasional failed recording (dreaded 0 byte recoderings).
-> > 
-> > The UNBALANCED warnings have not reappeared (so far).
-> 
-> And they are still gone? If that's the case, then I'll merge the patch
-> fixing this for 3.20.
-No, these are gone.
-> 
-> With respect to the risc error: the only reason I can think of is that it
-> is a race condition when the risc program is updated. I'll see if I can
-> spend some time on this today or on Monday. Can you give me an indication
-> how often you see this risc error message?
+On 02/21/2015 11:57 AM, Sakari Ailus wrote:
+> Hi Pavel and Greg,
+>
+> On Fri, Feb 20, 2015 at 09:57:38PM +0100, Pavel Machek wrote:
+>> On Fri 2015-02-20 07:36:16, Greg KH wrote:
+>>> On Fri, Feb 20, 2015 at 08:56:11AM +0100, Jacek Anaszewski wrote:
+>>>> On 02/19/2015 10:40 PM, Greg KH wrote:
+>>>>> On Thu, Feb 19, 2015 at 11:02:04AM +0200, Sakari Ailus wrote:
+>>>>>> On Wed, Feb 18, 2015 at 11:47:47PM +0100, Pavel Machek wrote:
+>>>>>>>
+>>>>>>> On Wed 2015-02-18 17:20:22, Jacek Anaszewski wrote:
+>>>>>>>> Add a documentation of LED Flash class specific sysfs attributes.
+>>>>>>>>
+>>>>>>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>>>>>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>>>>>>> Cc: Bryan Wu <cooloney@gmail.com>
+>>>>>>>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>>>>>>>
+>>>>>>> NAK-ed-by: Pavel Machek
+>>>>>>>
+>>>>>>>> +What:		/sys/class/leds/<led>/available_sync_leds
+>>>>>>>> +Date:		February 2015
+>>>>>>>> +KernelVersion:	3.20
+>>>>>>>> +Contact:	Jacek Anaszewski <j.anaszewski@samsung.com>
+>>>>>>>> +Description:	read/write
+>>>>>>>> +		Space separated list of LEDs available for flash strobe
+>>>>>>>> +		synchronization, displayed in the format:
+>>>>>>>> +
+>>>>>>>> +		led1_id.led1_name led2_id.led2_name led3_id.led3_name etc.
+>>>>>>>
+>>>>>>> Multiple values per file, with all the problems we had in /proc. I
+>>>>>>> assume led_id is an integer? What prevents space or dot in led name?
+>>>>>>
+>>>>>> Very good point. How about using a newline instead? That'd be a little bit
+>>>>>> easier to parse, too.
+>>>>>
+>>>>> No, please make it one value per-file, which is what sysfs requires.
+>>>>
+>>>> The purpose of this attribute is only to provide an information about
+>>>> the range of valid identifiers that can be written to the
+>>>> flash_sync_strobe attribute. Wouldn't splitting this to many attributes
+>>>> be an unnecessary inflation of sysfs files?
+>>>
+>>> Ok a list of allowed values to write is acceptable, as long as it is not
+>>> hard to parse and always is space separated.
+>>
+>> Well, this one is list of LED numbers and LED names.
+>
+> It'd be nice if these names would match the V4L2 sub-device names. We don't
 
-dmesg |grep "risc op code error"
-[ 1267.999719] cx23885[1]: mpeg risc op code error
-[17830.312766] cx23885[2]: mpeg risc op code error
-[37820.312372] cx23885[2]: mpeg risc op code error
-[48973.897721] cx23885[2]: mpeg risc op code error
-[126673.151447] cx23885[0]: mpeg risc op code error
-[208262.607584] cx23885[2]: mpeg risc op code error
-[212564.803499] cx23885[2]: mpeg risc op code error
-[288834.700570] cx23885[1]: mpeg risc op code error
-[298753.789105] cx23885[2]: mpeg risc op code error
-[341900.746719] cx23885[2]: mpeg risc op code error
-[346513.849946] cx23885[1]: mpeg risc op code error
-[359267.169552] cx23885[2]: mpeg risc op code error
-[370728.293458] cx23885[1]: mpeg risc op code error
-[423626.314834] cx23885[1]: mpeg risc op code error
-uptime:
- 17:14:03 up 4 days, 22:22,  2 users,  load average: 0.19, 0.39, 0.34
+ From the discussion on IRC it turned out that one of components of the
+V4L2 sub-device name will be a media controller identifier.
 
+This implies that if support for V4L2 Flash devices will be turned off
+in the kernel config the LED name will have to differ from the case
+when the support is on. I think that this is undesired.
 
-Best regards,
-Jurgen
+> have any rules for them other than they must be unique, and there's the
+> established practice that an I2C address follows the component name. We're
+> about to discuss the matter on Monday on #v4l (11:00 Finnish time), but I
+> don't think we can generally guarantee any of the names won't have spaces.
 
+> Separate files, then?
+
+I tried to split this to separate files but it turned out to be awkward.
+Since the number of LEDs to synchronize can vary from device to device,
+the number of the related sysfs attributes cannot be fixed.
+
+As far as I know allocating the sysfs attributes dynamically is unsafe,
+and thus the maximum allowed number of synchronized LEDs would have to
+be agreed on for the whole led-class-flash and the relevant number of
+similar struct attribute instances and related callbacks would have to
+be created statically for every LED Flash class device, no matter if
+a device would need them.
+
+Of course the relevant sysfs group could be initialized only with
+the needed number of sync leds attributes, but still this is less
+than optimal design.
+
+It looks like this interface indeed doesn't fit for sysfs.
+
+I am leaning towards removing the support for synchronized flash LEDs
+from the LED subsystem entirely and leave it only to V4L2.
+
+-- 
+Best Regards,
+Jacek Anaszewski
