@@ -1,102 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:48266 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751334AbbBXKPz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2015 05:15:55 -0500
-To: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>
-Subject: Re: [PATCH] media: Pinnacle 73e infrared control stopped working  since kernel 3.17
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Tue, 24 Feb 2015 11:15:53 +0100
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: Luis de Bethencourt <luis@debethencourt.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-In-Reply-To: <CAEmZozMP1FFN-Y1d+7Mopy1Y9_2FjX2tJmmCne_Gpa2+_yFg0g@mail.gmail.com>
-References: <CAEmZozMOenY096OwgMgdL27hizp8Z26PJ_ZZRsq0DyNpSZam-g@mail.gmail.com>
- <54D9E14A.5090200@iki.fi> <e65f6b905eae37f11e697ad20b97c37c@hardeman.nu>
- <CAEmZozPN2xDQMyao8GAYB1KqKxvgznn6CNc+LgPGhE=TJfDbFQ@mail.gmail.com>
- <32c10d8cd2303ed9476db1b68924170a@hardeman.nu>
- <CAEmZozP5jrJnWAF6ZbXtvkRveZE29BnSg+hO2x9KDSyPmjBBaQ@mail.gmail.com>
- <20150212095029.018f63df@recife.lan>
- <CAEmZozOTuigxavH_5M4mw5kDHS_mxgwLS53HipG2o4uvm_09OQ@mail.gmail.com>
- <20150212215700.GA4882@turing>
- <CAEmZozPKsBwq4=TtAOtR-LdjOi3k8MhmEqZ49gg8X48P1f5wdQ@mail.gmail.com>
- <CAEmZozMP1FFN-Y1d+7Mopy1Y9_2FjX2tJmmCne_Gpa2+_yFg0g@mail.gmail.com>
-Message-ID: <67d0fa2066c017a66ad785dc90447d08@hardeman.nu>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:39259 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751615AbbB1PZl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Feb 2015 10:25:41 -0500
+Received: by lbvn10 with SMTP id n10so22491556lbv.6
+        for <linux-media@vger.kernel.org>; Sat, 28 Feb 2015 07:25:40 -0800 (PST)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 1/2] si2157: IF frequency for ATSC and QAM
+Date: Sat, 28 Feb 2015 17:25:23 +0200
+Message-Id: <1425137124-17324-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2015-02-24 11:08, David Cimbůrek wrote:
->>> Hi,
->>> 
->>> I looked at this again and I still don't see why the order is 
->>> important.
->>> Plus the code looks like it does what it should be doing when using
->>> RC_SCANCODE_NEC, RC_SCANCODE_NEC32, RC_SCANCODE_NECX and 
->>> RC_SCANCODE_RC5.
->>> 
->>> Unfortunately I can't review this if I am not sure about it, and I 
->>> don't
->>> have the device to be able to properly test your patch.
->>> 
->>> Hopefully your print of the scancodes helps.
->>> 
->>> Luis
->> 
->> Hi,
->> 
->> unfortunately I don't understand the code very well but it really
->> works like I described.
->> 
->> I tried to get debugging output from the
->> dib0700_core.c:dib0700_rc_urb_completion() function:
->> 
->> deb_data("IR ID = %02X state = %02X System = %02X %02X Cmd = %02X %02X
->> (len %d)\n",
->>         poll_reply->report_id, poll_reply->data_state,
->>         poll_reply->system, poll_reply->not_system,
->>         poll_reply->data, poll_reply->not_data,
->>         purb->actual_length);
->> 
->> And the output after my patch (and before commit
->> af3a4a9bbeb00df3e42e77240b4cdac5479812f9!) looks like this:
->> 
->> [  282.842557] IR ID = 01 state = 01 System = 07 00 Cmd = 0F F0 (len 
->> 6)
->> [  282.955810] IR ID = 01 state = 02 System = 07 00 Cmd = 0F F0 (len 
->> 6)
->> 
->> But without my patch the output looks after commit
->> af3a4a9bbeb00df3e42e77240b4cdac5479812f9 like this:
->> 
->> [  186.302282] IR ID = 01 state = 01 System = 00 07 Cmd = 0F F0 (len 
->> 6)
->> [  186.415660] IR ID = 01 state = 02 System = 00 07 Cmd = 0F F0 (len 
->> 6)
->> 
->> You can see that the content of "system" and "not_system" is really 
->> switched...
->> 
->> Regards,
->> David
-> 
-> Is there anything more I can do? Shall I provide some more debugging
-> outputs? There is no response nearly for two weeks...
+For supporting ATSC and QAM modes the driver should use a smaller IF frequency than 5 MHz.
 
-Sorry, I'm just really busy.
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/tuners/si2157.c      | 23 ++++++++++++++++++++++-
+ drivers/media/tuners/si2157_priv.h |  1 +
+ 2 files changed, 23 insertions(+), 1 deletion(-)
 
-The output that you gave (the actual scancodes that are generated) is 
-what I was looking for, not the keymap. If I remember correctly my patch 
-wasn't supposed to change the generated scancodes (or the keymap would 
-have to be changed as well).
-
-The question is whether the right thing to do is to change back the 
-scancode calculation or to update the keymap. I'll try to have a closer 
-look as soon as possible (which might take a few days more, sorry).
-
-Re,
-David
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index fcf139d..d8309b9 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -244,6 +244,7 @@ static int si2157_set_params(struct dvb_frontend *fe)
+ 	int ret;
+ 	struct si2157_cmd cmd;
+ 	u8 bandwidth, delivery_system;
++	u32 if_frequency = 5000000;
+ 
+ 	dev_dbg(&client->dev,
+ 			"delivery_system=%d frequency=%u bandwidth_hz=%u\n",
+@@ -266,9 +267,11 @@ static int si2157_set_params(struct dvb_frontend *fe)
+ 	switch (c->delivery_system) {
+ 	case SYS_ATSC:
+ 			delivery_system = 0x00;
++			if_frequency = 3250000;
+ 			break;
+ 	case SYS_DVBC_ANNEX_B:
+ 			delivery_system = 0x10;
++			if_frequency = 4000000;
+ 			break;
+ 	case SYS_DVBT:
+ 	case SYS_DVBT2: /* it seems DVB-T and DVB-T2 both are 0x20 here */
+@@ -302,6 +305,20 @@ static int si2157_set_params(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
++	/* set if frequency if needed */
++	if (if_frequency != dev->if_frequency) {
++		memcpy(cmd.args, "\x14\x00\x06\x07", 4);
++		cmd.args[4] = (if_frequency / 1000) & 0xff;
++		cmd.args[5] = ((if_frequency / 1000) >> 8) & 0xff;
++		cmd.wlen = 6;
++		cmd.rlen = 4;
++		ret = si2157_cmd_execute(client, &cmd);
++		if (ret)
++			goto err;
++
++		dev->if_frequency = if_frequency;
++	}
++
+ 	/* set frequency */
+ 	memcpy(cmd.args, "\x41\x00\x00\x00\x00\x00\x00\x00", 8);
+ 	cmd.args[4] = (c->frequency >>  0) & 0xff;
+@@ -322,7 +339,10 @@ err:
+ 
+ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+-	*frequency = 5000000; /* default value of property 0x0706 */
++	struct i2c_client *client = fe->tuner_priv;
++	struct si2157_dev *dev = i2c_get_clientdata(client);
++
++	*frequency = dev->if_frequency;
+ 	return 0;
+ }
+ 
+@@ -360,6 +380,7 @@ static int si2157_probe(struct i2c_client *client,
+ 	dev->inversion = cfg->inversion;
+ 	dev->fw_loaded = false;
+ 	dev->chiptype = (u8)id->driver_data;
++	dev->if_frequency = 5000000; /* default value of property 0x0706 */
+ 	mutex_init(&dev->i2c_mutex);
+ 
+ 	/* check if the tuner is there */
+diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+index 7aa53bc..cd8fa5b 100644
+--- a/drivers/media/tuners/si2157_priv.h
++++ b/drivers/media/tuners/si2157_priv.h
+@@ -28,6 +28,7 @@ struct si2157_dev {
+ 	bool fw_loaded;
+ 	bool inversion;
+ 	u8 chiptype;
++	u32 if_frequency;
+ };
+ 
+ #define SI2157_CHIPTYPE_SI2157 0
+-- 
+1.9.1
 
