@@ -1,54 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:55707 "EHLO vena.lwn.net"
+Received: from mout.gmx.net ([212.227.17.22]:63399 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752605AbbCMV2E (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 17:28:04 -0400
-Date: Fri, 13 Mar 2015 17:28:01 -0400
-From: Jonathan Corbet <corbet@lwn.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCHv2 00/21] marvell-ccic: drop and fix formats
-Message-ID: <20150313172801.6bc4bf75@lwn.net>
-In-Reply-To: <1426061428-47019-1-git-send-email-hverkuil@xs4all.nl>
-References: <1426061428-47019-1-git-send-email-hverkuil@xs4all.nl>
+	id S1751261AbbCAVH2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Mar 2015 16:07:28 -0500
+Date: Sun, 1 Mar 2015 22:06:50 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH v5 2/4] media: ov2640: add async probe function
+In-Reply-To: <1423560696-12304-3-git-send-email-josh.wu@atmel.com>
+Message-ID: <Pine.LNX.4.64.1503012202460.2412@axis700.grange>
+References: <1423560696-12304-1-git-send-email-josh.wu@atmel.com>
+ <1423560696-12304-3-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 11 Mar 2015 09:10:24 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Hi Josh,
 
-> After some more testing I realized that the 422P format produced
-> wrong colors and I couldn't get it to work. Since it never worked and
-> nobody complained about it (and it is a fairly obscure format as well)
-> I've dropped it.
+Thanks for a patch update. I think it looks good as a first step in your 
+patch series, just a minor comment below:
 
-I'm not sure how that format came in anymore; I didn't add it.  No
-objections to its removal.
+On Tue, 10 Feb 2015, Josh Wu wrote:
 
-> I also tested RGB444 format for the first time, and that had wrong colors
-> as well, but that was easy to fix. Finally there was a Bayer format
-> reported, but it was never implemented. So that too was dropped.
+> In async probe, there is a case that ov2640 is probed before the
+> host device which provided 'mclk'.
+> To support this async probe, we will get 'mclk' at first in the probe(),
+> if failed it will return -EPROBE_DEFER. That will let ov2640 wait for
+> the host device probed.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> ---
+> 
+> Changes in v5:
+> - don't change the ov2640_s_power() code.
+> - will get 'mclk' at the beginning of ov2640_probe().
+> 
+> Changes in v4: None
+> Changes in v3: None
+> Changes in v2: None
+> 
+>  drivers/media/i2c/soc_camera/ov2640.c | 29 +++++++++++++++++++----------
+>  1 file changed, 19 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+> index 1fdce2f..057dd49 100644
+> --- a/drivers/media/i2c/soc_camera/ov2640.c
+> +++ b/drivers/media/i2c/soc_camera/ov2640.c
+> @@ -1068,6 +1068,10 @@ static int ov2640_probe(struct i2c_client *client,
+>  		return -ENOMEM;
+>  	}
+>  
+> +	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+> +	if (IS_ERR(priv->clk))
+> +		return -EPROBE_DEFER;
+> +
+>  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+>  	v4l2_ctrl_handler_init(&priv->hdl, 2);
+>  	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+> @@ -1075,24 +1079,28 @@ static int ov2640_probe(struct i2c_client *client,
+>  	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+>  			V4L2_CID_HFLIP, 0, 1, 1, 0);
+>  	priv->subdev.ctrl_handler = &priv->hdl;
+> -	if (priv->hdl.error)
+> -		return priv->hdl.error;
+> -
+> -	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+> -	if (IS_ERR(priv->clk)) {
+> -		ret = PTR_ERR(priv->clk);
+> -		goto eclkget;
+> +	if (priv->hdl.error) {
+> +		ret = priv->hdl.error;
+> +		goto err_clk;
+>  	}
+>  
+>  	ret = ov2640_video_probe(client);
+>  	if (ret) {
+> -		v4l2_clk_put(priv->clk);
+> -eclkget:
+> -		v4l2_ctrl_handler_free(&priv->hdl);
+> +		goto err_videoprobe;
 
-The RGB444 change worries me somewhat; that was the default format on the
-XO1 and worked for years.  I vaguely remember some discussions about the
-ordering of the colors there, but that was a while ago.  Did you test it
-with any of the Sugar apps?
+Since you add a "goto" here, you don't need an "else" after it, and the 
+"probed" success message should go down, so, just make it
 
-In the end, correctness is probably the right way to go (it usually is!),
-but I'd hate to get a regression report from somebody who is crazy enough
-to put current kernels on those machines.  Fortunately, such people
-should be rare.
+	ret = ov2640_video_probe(client);
+	if (ret < 0)
+		goto err_videoprobe;
 
-Bayer sort-of worked once, honest.  I added it for some academic who
-wanted to do stuff, and was never really able to close the loop on
-getting it working correctly.  It might be worth removing the alleged
-support from ov7670 as well.
+	ret = v4l2_async_register_subdev(&priv->subdev);
+	if (ret < 0)
+		goto err_videoprobe;
 
-In any case, for all of them:
+	dev_info(&adapter->dev, "OV2640 Probed\n");
 
-Acked-by: Jonathan Corbet <corbet@lwn.net>
+	return 0;
 
-jon
+err_...
+
+Thanks
+Guennadi
+
+>  	} else {
+>  		dev_info(&adapter->dev, "OV2640 Probed\n");
+>  	}
+>  
+> +	ret = v4l2_async_register_subdev(&priv->subdev);
+> +	if (ret < 0)
+> +		goto err_videoprobe;
+> +
+> +	return 0;
+> +
+> +err_videoprobe:
+> +	v4l2_ctrl_handler_free(&priv->hdl);
+> +err_clk:
+> +	v4l2_clk_put(priv->clk);
+>  	return ret;
+>  }
+>  
+> @@ -1100,6 +1108,7 @@ static int ov2640_remove(struct i2c_client *client)
+>  {
+>  	struct ov2640_priv       *priv = to_ov2640(client);
+>  
+> +	v4l2_async_unregister_subdev(&priv->subdev);
+>  	v4l2_clk_put(priv->clk);
+>  	v4l2_device_unregister_subdev(&priv->subdev);
+>  	v4l2_ctrl_handler_free(&priv->hdl);
+> -- 
+> 1.9.1
+> 
