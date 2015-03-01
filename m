@@ -1,44 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:10821 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752577AbbC3HWq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 03:22:46 -0400
-Message-id: <5518F9C2.3030500@samsung.com>
-Date: Mon, 30 Mar 2015 09:22:42 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v2 02/11] leds: add uapi header file
-References: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
- <1427464185-27950-3-git-send-email-j.anaszewski@samsung.com>
- <20150328223510.GX18321@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150328223510.GX18321@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from smtp.bredband2.com ([83.219.192.166]:53803 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751804AbbCAPNs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2015 10:13:48 -0500
+Message-ID: <54F32CAA.2040904@southpole.se>
+Date: Sun, 01 Mar 2015 16:13:46 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
+MIME-Version: 1.0
+To: Gilles Risch <gilles.risch@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Basic support for the Elgato EyeTV Hybrid INT 2008 USB
+ Stick
+References: <54F32A6D.5090909@gmail.com>
+In-Reply-To: <54F32A6D.5090909@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On 03/28/2015 11:35 PM, Sakari Ailus wrote:
-> Hi Jacek,
+On 03/01/2015 04:04 PM, Gilles Risch wrote:
+> This patch will add basic support for the Elgato EyeTV Hybrid INT
+> 2008 USB Stick.
 >
-> On Fri, Mar 27, 2015 at 02:49:36PM +0100, Jacek Anaszewski wrote:
->> This patch adds header file for LED subsystem definitions and
->> declarations. The initial need for the header is allowing the
->> user space to discover the semantics of flash fault bits.
->
-> Where does the user space need these? The fault codes are strings in the
-> sysfs interface.
+> Signed-off-by: Gilles Risch <gilles.risch@gmail.com>
 >
 
-Right, this is not needed. Please ignore this patch.
+[...]
 
--- 
-Best Regards,
-Jacek Anaszewski
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -41,7 +41,7 @@
+>   #include "mt352.h"
+>   #include "mt352_priv.h" /* FIXME */
+>   #include "tda1002x.h"
+> -#include "drx39xyj/drx39xxj.h"
+> +#include "drx39xxj.h"
+
+This change looks unrelated.
+
+The rest looks ok.
+
+MvH
+Benjamin Larsson
