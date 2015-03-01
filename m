@@ -1,168 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:35477 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753500AbbCRBks (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2015 21:40:48 -0400
-Received: by webcq43 with SMTP id cq43so20831608web.2
-        for <linux-media@vger.kernel.org>; Tue, 17 Mar 2015 18:40:47 -0700 (PDT)
-Date: Wed, 18 Mar 2015 09:40:42 +0800
-From: "=?utf-8?B?TmliYmxlIE1heA==?=" <nibble.max@gmail.com>
-To: "=?utf-8?B?T2xlIEVybnN0?=" <olebowle@gmx.com>
-Cc: "=?utf-8?B?b2xsaS5zYWxvbmVu?=" <olli.salonen@iki.fi>,
-	"=?utf-8?B?QW50dGkgUGFsb3NhYXJp?=" <crope@iki.fi>,
-	"=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
-References: <5504920C.7080806@gmx.com>,
- <55055E66.6040600@gmx.com>,
- <550563B2.9010306@iki.fi>,
- <201503170953368436904@gmail.com>
-Subject: =?utf-8?B?UmU6IFJlOiBjeDIzODg1OiBEVkJTa3kgUzk1MiBkdmJfcmVnaXN0ZXIgZmFpbGVkIGVyciA9IC0yMg==?=
-Message-ID: <201503180940386096906@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56062 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752279AbbCAQT1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2015 11:19:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Grant Likely <grant.likely@linaro.org>,
+	Benoit Parrot <bparrot@ti.com>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, Darren Etheridge <detheridge@ti.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>, kernel@pengutronix.de,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v8 0/3] Add of-graph helpers to loop over endpoints and find ports by id
+Date: Sun, 01 Mar 2015 18:20:35 +0200
+Message-ID: <4784761.VJqXeAqkXK@avalon>
+In-Reply-To: <1424688846-10909-1-git-send-email-p.zabel@pengutronix.de>
+References: <1424688846-10909-1-git-send-email-p.zabel@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Ole,
+Hi Philipp and all,
 
-On 2015-03-18 02:32:54, Ole Ernst <olebowle@gmx.com> wrote:
->Hi Max,
->
->I get a chip_id of 0x81, which returns -ENODEV in the default branch of
->the subsequent switch. So I guess my S952 is too old? :-( How hard would
->it be to add support for it?
+This series has been around for a long time, it seems to be time to get it 
+merged.
 
-If it is m88ts2020, there is a tuner driver "ts2020" in "dvb-frontends" directory.
-If fail to load m88ts2022 driver, then try to load ts2020 driver.
-m88ts2022 driver is an i2c driver, but ts2020 is traditional dvb-attach driver.
-Please check the other code using ts2020 for reference.
+What's the plan ? If we wait for the v4.1 merge window there's a chance we'll 
+get more conflicts, especially on patch 1/3. Could it be merged in v4.0-rc to 
+avoid that ?
 
-Best Regards,
-Max
->
->Thanks,
->Ole
->
->Am 17.03.2015 um 02:53 schrieb Nibble Max:
->> Hello,
->> 
->> what is the "chip_id" debug output from m88ts2022 module?
->> 
->> I think you maybe hold the old S952 card.
->> Its satellite tuner is M88TS2020, not M88TS2022.
->> 
->> Best Regards,
->> Max
->> On 2015-03-15 19:07:07, Ole Ernst <olebowle@gmx.com> wrote:
->>> Hi Antti,
->>>
->>> thanks for your quick response! Based on lsmod and modinfo I do have
->>> m88ts2022.
->>>
->>> $ lsmod | grep m88
->>> m88ts2022              16898  0
->>> regmap_i2c             12783  1 m88ts2022
->>> m88ds3103              21452  0
->>> i2c_mux                12534  1 m88ds3103
->>> dvb_core              102038  4 cx23885,altera_ci,m88ds3103,videobuf2_dvb
->>> i2c_core               50240  13
->>> drm,i2c_i801,cx23885,cx25840,m88ts2022,i2c_mux,regmap_i2c,nvidia,v4l2_common,tveeprom,m88ds3103,tda18271,videodev
->>>
->>> $ modinfo m88ts2022
->>> filename:
->>> /lib/modules/3.19.1-1-ARCH/kernel/drivers/media/tuners/m88ts2022.ko.gz
->>> license:        GPL
->>> author:         Antti Palosaari <crope@iki.fi>
->>> description:    Montage M88TS2022 silicon tuner driver
->>> alias:          i2c:m88ts2022
->>> depends:        i2c-core,regmap-i2c
->>> intree:         Y
->>> vermagic:       3.19.1-1-ARCH SMP preempt mod_unload modversions
->>>
->>> Thanks,
->>> Ole
->>>
->>> Am 15.03.2015 um 11:49 schrieb Antti Palosaari:
->>>> You don't have m88ts2022 driver installed.
->>>>
->>>> Antti
->>>>
->>>> On 03/15/2015 12:26 PM, Ole Ernst wrote:
->>>>> Hi,
->>>>>
->>>>> I added some printk in cx23885-dvb.c and the problem is in
->>>>> i2c_new_device:
->>>>> https://git.kernel.org/cgit/linux/kernel/git/stable/linux-stable.git/tree/drivers/media/pci/cx23885/cx23885-dvb.c?id=refs/tags/v3.19.1#n1935
->>>>>
->>>>>
->>>>> The returned client_tuner is not NULL, but client_tuner->dev.driver is.
->>>>> Hence it will goto frontend_detach, which will then return -EINVAL. Any
->>>>> idea why client_tuner->dev.driver is NULL?
->>>>>
->>>>> Thanks,
->>>>> Ole
->>>>>
->>>>> Am 14.03.2015 um 20:54 schrieb Ole Ernst:
->>>>>> Hi,
->>>>>>
->>>>>> using linux-3.19.1-1 (Archlinux) I get the following output while
->>>>>> booting without the media-build-tree provided by DVBSky:
->>>>>>
->>>>>> cx23885 driver version 0.0.4 loaded
->>>>>> cx23885 0000:04:00.0: enabling device (0000 -> 0002)
->>>>>> CORE cx23885[0]: subsystem: 4254:0952, board: DVBSky S952
->>>>>> [card=50,autodetected]
->>>>>> cx25840 3-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
->>>>>> cx25840 3-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
->>>>>> cx23885_dvb_register() allocating 1 frontend(s)
->>>>>> cx23885[0]: cx23885 based dvb card
->>>>>> i2c i2c-2: m88ds3103_attach: chip_id=70
->>>>>> i2c i2c-2: Added multiplexed i2c bus 4
->>>>>> cx23885_dvb_register() dvb_register failed err = -22
->>>>>> cx23885_dev_setup() Failed to register dvb adapters on VID_B
->>>>>> cx23885_dvb_register() allocating 1 frontend(s)
->>>>>> cx23885[0]: cx23885 based dvb card
->>>>>> i2c i2c-1: m88ds3103_attach: chip_id=70
->>>>>> i2c i2c-1: Added multiplexed i2c bus 4
->>>>>> cx23885_dvb_register() dvb_register failed err = -22
->>>>>> cx23885_dev_setup() Failed to register dvb on VID_C
->>>>>> cx23885_dev_checkrevision() Hardware revision = 0xa5
->>>>>> cx23885[0]/0: found at 0000:04:00.0, rev: 4, irq: 17, latency: 0, mmio:
->>>>>> 0xf7200000
->>>>>>
->>>>>> Obviously there are no device in /dev/dvb. Using the media-build-tree
->>>>>> works just fine though. The following firmware files are installed in
->>>>>> /usr/lib/firmware:
->>>>>> dvb-demod-m88ds3103.fw
->>>>>> dvb-demod-m88rs6000.fw
->>>>>> dvb-demod-si2168-a20-01.fw
->>>>>> dvb-demod-si2168-a30-01.fw
->>>>>> dvb-demod-si2168-b40-01.fw
->>>>>> dvb-fe-ds300x.fw
->>>>>> dvb-fe-ds3103.fw
->>>>>> dvb-fe-rs6000.fw
->>>>>> dvb-tuner-si2158-a20-01.fw
->>>>>>
->>>>>> Output of lspci -vvvnn:
->>>>>> https://gist.githubusercontent.com/olebowle/6a4108363a9d1f7dd033/raw/lscpi
->>>>>>
->>>>>>
->>>>>> I also set the module parameters debug, i2c_debug, irq_debug and
->>>>>> irq_debug in cx23885.
->>>>>> The output is pretty verbose and can be found here:
->>>>>> https://gist.githubusercontent.com/olebowle/6a4108363a9d1f7dd033/raw/debug.log
->>>>>>
->>>>>>
->>>>>> Thanks,
->>>>>> Ole
->>>>>> -- 
->>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>>> linux-media" in
->>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>>
->>>>
->> 
+On Monday 23 February 2015 11:54:03 Philipp Zabel wrote:
+> Hi,
+> 
+> Since there now is a merge conflict in imx-drm-core, I've rebased the series
+> onto v4.0-rc1. Also a new driver touched by this change appeared, so the
+> first patch now includes a fix for am437x-vfpe, too. I'd be happy to get an
+> ack for that.
+> 
+> This series converts all existing users of of_graph_get_next_endpoint that
+> pass a non-NULL prev argument to the function and decrement its refcount
+> themselves to stop doing that. The of_node_put is moved into
+> of_graph_get_next_endpoint instead.
+> This allows to add a for_each_endpoint_of_node helper macro to loop over all
+> endpoints in a device tree node.
+> 
+> Changes since v8:
+>  - Rebased onto v4.0-rc1
+>  - Added fix to am437x-vpfe
+> 
+> The previous version can be found here: https://lkml.org/lkml/2014/12/23/219
+> 
+> regards
+> Philipp
+> 
+> Philipp Zabel (3):
+>   of: Decrement refcount of previous endpoint in
+>     of_graph_get_next_endpoint
+>   of: Add for_each_endpoint_of_node helper macro
+>   of: Add of_graph_get_port_by_id function
+> 
+>  drivers/coresight/of_coresight.c                  | 13 ++-----
+>  drivers/gpu/drm/imx/imx-drm-core.c                | 11 +-----
+>  drivers/gpu/drm/rcar-du/rcar_du_kms.c             | 15 +++------
+>  drivers/media/platform/am437x/am437x-vpfe.c       |  1 -
+>  drivers/media/platform/soc_camera/soc_camera.c    |  3 +-
+>  drivers/of/base.c                                 | 41 +++++++++++++++-----
+>  drivers/video/fbdev/omap2/dss/omapdss-boot-init.c |  7 +---
+>  include/linux/of_graph.h                          | 18 ++++++++++
+>  8 files changed, 61 insertions(+), 48 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
 
