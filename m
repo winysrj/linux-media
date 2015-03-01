@@ -1,83 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:60772 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755211AbbCNLrj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 07:47:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 20/22] videodev2.h: add V4L2_PIX_FMT_XBGR444
-Date: Sat, 14 Mar 2015 12:46:59 +0100
-Message-Id: <1426333621-21474-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1426333621-21474-1-git-send-email-hverkuil@xs4all.nl>
-References: <1426333621-21474-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:43295 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751313AbbCAUMK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2015 15:12:10 -0500
+Received: by wesu56 with SMTP id u56so29625817wes.10
+        for <linux-media@vger.kernel.org>; Sun, 01 Mar 2015 12:12:09 -0800 (PST)
+Received: from [192.168.177.27] ([83.222.43.225])
+        by mx.google.com with ESMTPSA id jy7sm12908437wid.22.2015.03.01.12.12.08
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 01 Mar 2015 12:12:08 -0800 (PST)
+Message-ID: <54F37259.3070505@gmail.com>
+Date: Sun, 01 Mar 2015 21:11:05 +0100
+From: Gilles Risch <gilles.risch@gmail.com>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [PATCHv2] Basic support for the Elgato EyeTV Hybrid INT 2008 USB
+ Stick
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+commit b33c38a5ba412a8d63466265aa38678aeed496db
+Author: Gilles Risch <gilles.risch@gmail.com>
+Date:   Sun Mar 1 21:05:21 2015 +0100
 
-This is similar to XRGB444 but with the red and blue components swapped. It
-turns out that the RGB444 format in marvell-ccic driver really was this
-variant, so we need a proper definition of that.
+     This patch will add basic support for the Elgato EyeTV Hybrid INT
+     2008 USB Stick.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 22 ++++++++++++++++++++++
- include/uapi/linux/videodev2.h                     |  7 ++++---
- 2 files changed, 26 insertions(+), 3 deletions(-)
+     Signed-off-by: Gilles Risch <gilles.risch@gmail.com>
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-index 6ab4f0f..cd6cc81 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-@@ -171,6 +171,28 @@ for a pixel lie next to each other in memory.</para>
- 	    <entry>r<subscript>1</subscript></entry>
- 	    <entry>r<subscript>0</subscript></entry>
- 	  </row>
-+	  <row id="V4L2-PIX-FMT-XBGR444">
-+	    <entry><constant>V4L2_PIX_FMT_XBGR444</constant></entry>
-+	    <entry>'XB12'</entry>
-+	    <entry></entry>
-+	    <entry>g</entry>
-+	    <entry>g</entry>
-+	    <entry>g</entry>
-+	    <entry>g</entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>-<subscript>3</subscript></entry>
-+	    <entry>-<subscript>2</subscript></entry>
-+	    <entry>-<subscript>1</subscript></entry>
-+	    <entry>-<subscript>0</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	  </row>
- 	  <row id="V4L2-PIX-FMT-ARGB555">
- 	    <entry><constant>V4L2_PIX_FMT_ARGB555</constant></entry>
- 	    <entry>'AR15'</entry>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index fbdc360..0b015c1 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -375,9 +375,10 @@ struct v4l2_pix_format {
- 
- /* RGB formats */
- #define V4L2_PIX_FMT_RGB332  v4l2_fourcc('R', 'G', 'B', '1') /*  8  RGB-3-3-2     */
--#define V4L2_PIX_FMT_RGB444  v4l2_fourcc('R', '4', '4', '4') /* 16  xxxxrrrr ggggbbbb */
--#define V4L2_PIX_FMT_ARGB444 v4l2_fourcc('A', 'R', '1', '2') /* 16  aaaarrrr ggggbbbb */
--#define V4L2_PIX_FMT_XRGB444 v4l2_fourcc('X', 'R', '1', '2') /* 16  xxxxrrrr ggggbbbb */
-+#define V4L2_PIX_FMT_RGB444  v4l2_fourcc('R', '4', '4', '4') /* 16  RGB-4-4-4 */
-+#define V4L2_PIX_FMT_ARGB444 v4l2_fourcc('A', 'R', '1', '2') /* 16  RGB-4-4-4-4 */
-+#define V4L2_PIX_FMT_XRGB444 v4l2_fourcc('X', 'R', '1', '2') /* 16  RGB-4-4-4-4 */
-+#define V4L2_PIX_FMT_XBGR444 v4l2_fourcc('X', 'B', '1', '2') /* 16  BGR-4-4-4-4 */
- #define V4L2_PIX_FMT_RGB555  v4l2_fourcc('R', 'G', 'B', 'O') /* 16  RGB-5-5-5     */
- #define V4L2_PIX_FMT_ARGB555 v4l2_fourcc('A', 'R', '1', '5') /* 16  ARGB-1-5-5-5  */
- #define V4L2_PIX_FMT_XRGB555 v4l2_fourcc('X', 'R', '1', '5') /* 16  XRGB-1-5-5-5  */
--- 
-2.1.4
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c 
+b/drivers/media/usb/em28xx/em28xx-cards.c
+index d9704e6..3a72188 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -1157,6 +1157,15 @@ struct em28xx_board em28xx_boards[] = {
+          .i2c_speed    = EM28XX_I2C_CLK_WAIT_ENABLE |
+                  EM28XX_I2C_FREQ_400_KHZ,
+      },
++    [EM2884_BOARD_ELGATO_EYETV_HYBRID_2008] = {
++        .name         = "Elgato EyeTV Hybrid 2008 INT",
++        .has_dvb      = 1,
++        .ir_codes     = RC_MAP_NEC_TERRATEC_CINERGY_XS,
++        .tuner_type   = TUNER_ABSENT,
++        .def_i2c_bus  = 1,
++        .i2c_speed    = EM28XX_I2C_CLK_WAIT_ENABLE |
++                EM28XX_I2C_FREQ_400_KHZ,
++    },
+      [EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
+          .name         = "Hauppauge WinTV HVR 900",
+          .tda9887_conf = TDA9887_PRESENT,
+@@ -2378,6 +2387,8 @@ struct usb_device_id em28xx_id_table[] = {
+              .driver_info = EM2860_BOARD_TERRATEC_GRABBY },
+      { USB_DEVICE(0x0ccd, 0x00b2),
+              .driver_info = EM2884_BOARD_CINERGY_HTC_STICK },
++    { USB_DEVICE(0x0fd9, 0x0018),
++            .driver_info = EM2884_BOARD_ELGATO_EYETV_HYBRID_2008},
+      { USB_DEVICE(0x0fd9, 0x0033),
+              .driver_info = EM2860_BOARD_ELGATO_VIDEO_CAPTURE},
+      { USB_DEVICE(0x185b, 0x2870),
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c 
+b/drivers/media/usb/em28xx/em28xx-dvb.c
+index aee70d4..6bfe81d 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1380,6 +1380,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+              }
+          }
+          break;
++    case EM2884_BOARD_ELGATO_EYETV_HYBRID_2008:
+      case EM2884_BOARD_CINERGY_HTC_STICK:
+          terratec_htc_stick_init(dev);
 
+diff --git a/drivers/media/usb/em28xx/em28xx.h 
+b/drivers/media/usb/em28xx/em28xx.h
+index 9c70753..0ccb32c 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -143,6 +143,7 @@
+  #define EM28178_BOARD_PCTV_292E                   94
+  #define EM2861_BOARD_LEADTEK_VC100                95
+  #define EM28178_BOARD_TERRATEC_T2_STICK_HD        96
++#define EM2884_BOARD_ELGATO_EYETV_HYBRID_2008      97
+
+  /* Limits minimum and default number of buffers */
+  #define EM28XX_MIN_BUF 4
