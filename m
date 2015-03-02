@@ -1,91 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:42106 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027AbbCJS3y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2015 14:29:54 -0400
-Received: by lams18 with SMTP id s18so3687801lam.9
-        for <linux-media@vger.kernel.org>; Tue, 10 Mar 2015 11:29:53 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1425822043-18733-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1425822043-18733-1-git-send-email-laurent.pinchart@ideasonboard.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Tue, 10 Mar 2015 18:29:22 +0000
-Message-ID: <CA+V-a8uvEfiTAsL826udM8r0aFT3ZYXkMoT1UXgCOeq=pTbw0Q@mail.gmail.com>
-Subject: Re: [PATCH] v4l: mt9p031: Convert to the gpiod API
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56467 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752662AbbCBBtB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2015 20:49:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>, devicetree@vger.kernel.org
+Subject: [PATCH v5 0/8] Xilinx Video IP Core support
+Date: Mon,  2 Mar 2015 03:48:37 +0200
+Message-Id: <1425260925-12064-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello,
 
-Thanks for the patch.
+Here's the fifth, latest and greatest version of the Xilinx FPGA Video IP
+Cores kernel drivers.
 
-On Sun, Mar 8, 2015 at 1:40 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> This simplifies platform data and DT integration.
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/i2c/mt9p031.c | 31 +++++++++++--------------------
->  include/media/mt9p031.h     |  2 --
->  2 files changed, 11 insertions(+), 22 deletions(-)
->
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index 89ae2b4..1757ef6 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -15,12 +15,11 @@
->  #include <linux/clk.h>
->  #include <linux/delay.h>
->  #include <linux/device.h>
-> -#include <linux/gpio.h>
-> +#include <linux/gpio/consumer.h>
->  #include <linux/i2c.h>
->  #include <linux/log2.h>
->  #include <linux/module.h>
->  #include <linux/of.h>
-> -#include <linux/of_gpio.h>
->  #include <linux/of_graph.h>
->  #include <linux/pm.h>
->  #include <linux/regulator/consumer.h>
-> @@ -136,7 +135,7 @@ struct mt9p031 {
->         struct aptina_pll pll;
->         unsigned int clk_div;
->         bool use_pll;
-> -       int reset;
-> +       struct gpio_desc *reset;
->
->         struct v4l2_ctrl_handler ctrls;
->         struct v4l2_ctrl *blc_auto;
-> @@ -309,9 +308,9 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
->  {
->         int ret;
->
-> -       /* Ensure RESET_BAR is low */
-> -       if (gpio_is_valid(mt9p031->reset)) {
-> -               gpio_set_value(mt9p031->reset, 0);
-> +       /* Ensure RESET_BAR is active */
-> +       if (mt9p031->reset) {
-> +               gpiod_set_value(mt9p031->reset, 1);
->                 usleep_range(1000, 2000);
->         }
->
-> @@ -332,8 +331,8 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
->         }
->
->         /* Now RESET_BAR must be high */
-> -       if (gpio_is_valid(mt9p031->reset)) {
-> -               gpio_set_value(mt9p031->reset, 1);
-> +       if (mt9p031->reset) {
-> +               gpiod_set_value(mt9p031->reset, 0);
->                 usleep_range(1000, 2000);
->         }
->
-As per the data sheet reset needs to be low initially and then high,
-you just reversed it.
+I won't detail in great lengths the Xilinx Video IP architecture here, as that
+would result in dozens of pages of documentation. The interested reader can
+refer to the Zynq ZC702 Base TRD (Targeted Reference Design) User Guide
+(http://www.xilinx.com/support/documentation/boards_and_kits/zc702_zvik/2014_2/ug925-zynq-zc702-base-trd.pdf).
 
-Thanks,
---Prabhakar Lad
+In a nutshell, the Xilinx Video IP Cores architecture specifies how
+video-related IP cores need to be designed to interoperate and how to assemble
+them in pipelines of various complexities. The concepts map neatly to the
+media controller architecture, which this patch set uses extensively.
+
+The series starts with various new V4L2 core features, bug fixes or cleanups,
+with a small documentation enhancement (1/8), the addition of new media bus
+formats needed by the new drivers (2/8 to 4/8) and a new V4L2 OF link
+parsing function (5/8).
+
+The last three patches are the core of this series.
+
+Patch 6/8 adds support for the Xilinx Video IP architecture core in the form
+of a base object to model video IP cores (xilinx-vip.c - Video IP), a
+framework that parses a DT representation of a video pipeline and connects the
+corresponding V4L2 subdevices together (xilinx-vipp.c - Video IP Pipeline) and
+a glue between the Video DMA engine driver and the V4L2 API (xilinx-dma.c).
+
+Patch 7/8 adds a driver for the Video Timing Controller (VTC) IP core. While
+not strictly a video processing IP core, the VTC is required by other video IP
+core drivers.
+
+Finally, patch 8/8 adds a first video IP core driver for the Test Pattern
+Generator (TPG). Drivers for other IP cores will be added in the future.
+
+Changes since v4:
+
+- Clarify the v4l2_of_parse_link() documentation
+- Use a DT format description closer to the hardware
+- Document the xvip_device clk field
+- Fix a crash in the TPG probe error path
+
+Cc: devicetree@vger.kernel.org
+
+Hyun Kwon (2):
+  v4l: Sort YUV formats of v4l2_mbus_pixelcode
+  v4l: Add VUY8 24 bits bus format
+
+Laurent Pinchart (6):
+  media: entity: Document the media_entity_ops structure
+  v4l: Add RBG and RGB 8:8:8 media bus formats on 24 and 32 bit busses
+  v4l: of: Add v4l2_of_parse_link() function
+  v4l: xilinx: Add Xilinx Video IP core
+  v4l: xilinx: Add Video Timing Controller driver
+  v4l: xilinx: Add Test Pattern Generator driver
+
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 719 +++++++++-------
+ .../devicetree/bindings/media/xilinx/video.txt     |  35 +
+ .../devicetree/bindings/media/xilinx/xlnx,v-tc.txt |  33 +
+ .../bindings/media/xilinx/xlnx,v-tpg.txt           |  71 ++
+ .../bindings/media/xilinx/xlnx,video.txt           |  55 ++
+ MAINTAINERS                                        |  10 +
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/xilinx/Kconfig              |  23 +
+ drivers/media/platform/xilinx/Makefile             |   5 +
+ drivers/media/platform/xilinx/xilinx-dma.c         | 753 +++++++++++++++++
+ drivers/media/platform/xilinx/xilinx-dma.h         | 109 +++
+ drivers/media/platform/xilinx/xilinx-tpg.c         | 926 +++++++++++++++++++++
+ drivers/media/platform/xilinx/xilinx-vip.c         | 309 +++++++
+ drivers/media/platform/xilinx/xilinx-vip.h         | 236 ++++++
+ drivers/media/platform/xilinx/xilinx-vipp.c        | 669 +++++++++++++++
+ drivers/media/platform/xilinx/xilinx-vipp.h        |  49 ++
+ drivers/media/platform/xilinx/xilinx-vtc.c         | 380 +++++++++
+ drivers/media/platform/xilinx/xilinx-vtc.h         |  42 +
+ drivers/media/v4l2-core/v4l2-of.c                  |  61 ++
+ include/dt-bindings/media/xilinx-vip.h             |  39 +
+ include/media/media-entity.h                       |   9 +
+ include/media/v4l2-of.h                            |  27 +
+ include/uapi/linux/Kbuild                          |   1 +
+ include/uapi/linux/media-bus-format.h              |  19 +-
+ include/uapi/linux/xilinx-v4l2-controls.h          |  73 ++
+ 26 files changed, 4337 insertions(+), 319 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/xilinx/video.txt
+ create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,v-tc.txt
+ create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,v-tpg.txt
+ create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt
+ create mode 100644 drivers/media/platform/xilinx/Kconfig
+ create mode 100644 drivers/media/platform/xilinx/Makefile
+ create mode 100644 drivers/media/platform/xilinx/xilinx-dma.c
+ create mode 100644 drivers/media/platform/xilinx/xilinx-dma.h
+ create mode 100644 drivers/media/platform/xilinx/xilinx-tpg.c
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vip.c
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vip.h
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.c
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.h
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vtc.c
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vtc.h
+ create mode 100644 include/dt-bindings/media/xilinx-vip.h
+ create mode 100644 include/uapi/linux/xilinx-v4l2-controls.h
+
+-- 
+Regards,
+
+Laurent Pinchart
+
