@@ -1,85 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:49742 "EHLO butterbrot.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752135AbbCWPrV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2015 11:47:21 -0400
-Message-ID: <55103587.3080901@butterbrot.org>
-Date: Mon, 23 Mar 2015 16:47:19 +0100
-From: Florian Echtler <floe@butterbrot.org>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45380 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755134AbbCBRGg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:06:36 -0500
+In-Reply-To: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: [PATCH 05/10] clkdev: add clkdev_create() helper
 MIME-Version: 1.0
-To: linux-input <linux-input@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Benjamin Tissoires <benjamin.tissoires@gmail.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [sur40] Debugging a race condition?
-References: <550FFFB2.9020400@butterbrot.org>
-In-Reply-To: <550FFFB2.9020400@butterbrot.org>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="OTlnALC322I9njVa8P6pasxJMT6lOSEQN"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
+Date: Mon, 02 Mar 2015 17:06:26 +0000
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---OTlnALC322I9njVa8P6pasxJMT6lOSEQN
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Add a helper to allocate and add a clk_lookup structure.  This can not
+only be used in several places in clkdev.c to simplify the code, but
+more importantly, can be used by callers of the clkdev code to simplify
+their clkdev creation and registration.
 
-Additional note: this happens almost never with the original code using
-dma-contig, which is why I didn't catch it during testing. I've now
-switched back and forth between the two versions multiple times, and
-it's definitely a lot less stable with dma-sg and usb_sg_init/_wait.
-Maybe that can help somebody in narrowing down the reason of the problem?=
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ drivers/clk/clkdev.c   | 52 ++++++++++++++++++++++++++++++++++++++------------
+ include/linux/clkdev.h |  3 +++
+ 2 files changed, 43 insertions(+), 12 deletions(-)
 
+diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
+index 043fd3633373..611b9acbad78 100644
+--- a/drivers/clk/clkdev.c
++++ b/drivers/clk/clkdev.c
+@@ -294,6 +294,19 @@ vclkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt,
+ 	return &cla->cl;
+ }
+ 
++static struct clk_lookup *
++vclkdev_create((struct clk *clk, const char *con_id, const char *dev_fmt,
++	va_list ap)
++{
++	struct clk_lookup *cl;
++
++	cl = vclkdev_alloc(clk, con_id, dev_fmt, ap);
++	if (cl)
++		clkdev_add(cl);
++
++	return cl;
++}
++
+ struct clk_lookup * __init_refok
+ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
+ {
+@@ -308,6 +321,28 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
+ }
+ EXPORT_SYMBOL(clkdev_alloc);
+ 
++/**
++ * clkdev_create - allocate and add a clkdev lookup structure
++ * @clk: struct clk to associate with all clk_lookups
++ * @con_id: connection ID string on device
++ * @dev_fmt: format string describing device name
++ *
++ * Returns a clk_lookup structure, which can be later unregistered and
++ * freed.
++ */
++struct clk_lookup *clkdev_create(struct clk *clk, const char *con_id,
++	const char *dev_fmt, ...)
++{
++	struct clk_lookup *cl;
++	va_list ap;
++
++	va_start(ap, dev_fmt);
++	cl = vclkdev_create(clk, con_id, dev_fmt, ap);
++	va_end(ap);
++
++	return cl;
++}
++
+ int clk_add_alias(const char *alias, const char *alias_dev_name, char *id,
+ 	struct device *dev)
+ {
+@@ -317,12 +352,10 @@ int clk_add_alias(const char *alias, const char *alias_dev_name, char *id,
+ 	if (IS_ERR(r))
+ 		return PTR_ERR(r);
+ 
+-	l = clkdev_alloc(r, alias, alias_dev_name);
++	l = vclkdev_create(r, alias, "%s", alias_dev_name);
+ 	clk_put(r);
+-	if (!l)
+-		return -ENODEV;
+-	clkdev_add(l);
+-	return 0;
++
++	return l ? 0 : -ENODEV;
+ }
+ EXPORT_SYMBOL(clk_add_alias);
+ 
+@@ -362,15 +395,10 @@ int clk_register_clkdev(struct clk *clk, const char *con_id,
+ 		return PTR_ERR(clk);
+ 
+ 	va_start(ap, dev_fmt);
+-	cl = vclkdev_alloc(clk, con_id, dev_fmt, ap);
++	cl = vclkdev_create(clk, con_id, dev_fmt, ap);
+ 	va_end(ap);
+ 
+-	if (!cl)
+-		return -ENOMEM;
+-
+-	clkdev_add(cl);
+-
+-	return 0;
++	return cl ? 0 : -ENOMEM;
+ }
+ EXPORT_SYMBOL(clk_register_clkdev);
+ 
+diff --git a/include/linux/clkdev.h b/include/linux/clkdev.h
+index 94bad77eeb4a..6f32f6d8b6ee 100644
+--- a/include/linux/clkdev.h
++++ b/include/linux/clkdev.h
+@@ -37,6 +37,9 @@ struct clk_lookup *clkdev_alloc(struct clk *clk, const char *con_id,
+ void clkdev_add(struct clk_lookup *cl);
+ void clkdev_drop(struct clk_lookup *cl);
+ 
++struct clk_lookup *clkdev_create(struct clk *clk, const char *con_id,
++	const char *dev_fmt, ...);
++
+ void clkdev_add_table(struct clk_lookup *, size_t);
+ int clk_add_alias(const char *, const char *, char *, struct device *);
+ 
+-- 
+1.8.3.1
 
-Best, Florian
-
-On 23.03.2015 12:57, Florian Echtler wrote:
-> Hello everyone,
->=20
-> now that I'm using the newly merged sur40 video driver in a development=
-
-> environment, I've noticed that a custom V4L2 application we've been
-> using in our lab will sometimes trigger a hard lockup of the machine
-> (_nothing_ works anymore, no VT switching, no network, not even Magic
-> SysRq).
->=20
-> This doesn't happen with plain old cheese or v4l2-compliance, only with=
-
-> our custom application and only under X11, i.e. as far as I can tell,
-> when the input device is being polled at the same time. However, I have=
-
-> a really hard time tracking this down, as even SysRq doesn't work
-> anymore. A console continuously dumping dmesg or strace of our tool
-> didn't really help, either.
->=20
-> I assume that somehow the input_polldev thread is put to sleep/waiting
-> for a lock due to the video functions and that causes the lockup, but I=
-
-> can't really tell where that might happen. Can somebody with better
-> knowledge of the internals give some suggestions?
->=20
-> Thanks & best regards, Florian
->=20
-
-
---=20
-SENT FROM MY DEC VT50 TERMINAL
-
-
---OTlnALC322I9njVa8P6pasxJMT6lOSEQN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlUQNYcACgkQ7CzyshGvatjfJwCgkykheDQW+3q6yx/vCWZwJvK8
-8c8AoOY2tRaEMjWL51YrxyuIPBPbxqYb
-=42fj
------END PGP SIGNATURE-----
-
---OTlnALC322I9njVa8P6pasxJMT6lOSEQN--
