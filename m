@@ -1,88 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:40883 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608AbbCHOlF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:05 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: adi-buildroot-devel@lists.sourceforge.net,
-	linux-kernel@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 02/17] media: blackfin: bfin_capture: release buffers in case start_streaming() call back fails
-Date: Sun,  8 Mar 2015 14:40:38 +0000
-Message-Id: <1425825653-14768-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail.quartzbg.ro ([82.79.64.94]:55866 "EHLO mail.quartzbg.ro"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753910AbbCBQn7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 11:43:59 -0500
+Content-Type: text/plain; charset=US-ASCII
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: Confidential Letter  
+To: Recipients <noreply@popfax.com>
+From: "Mr. Juan Sebastian Morato" <noreply@popfax.com>
+Date: Mon, 02 Mar 2015 01:34:40 +0100
+Reply-To: juan_morato@yahoo.es
+Message-Id: <20150302003449.C20903EE0FE@mail.quartzbg.ro>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Dear Friend, 
 
-this patch adds support to release the buffer by calling
-vb2_buffer_done(), with state marked as VB2_BUF_STATE_QUEUED
-if start_streaming() call back fails.
+I am Mr. Juan Sebastian Morato, the Auditor General of Unicaja Bank Madrid. In the course of my auditing, I discovered a floating fund in an account, which was opened in 1990 at Cam Bank before it was bought over by Unicaja Group which I am the auditor belonging to a dead foreigner Mr. Kenny who died in 2004. Every effort made to track any member of his family or next of kin has since failed; hence I got in contact with you to stand as his next of kin since you bear the same last name. He died leaving no heir or a will.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
-Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+My intention is to transfer this sum of 5.5M in the aforementioned account to a safe account. I am therefore proposing that you quietly partner with me and provide an account or set up a new one that will serve the purpose of receiving this fund. For your assistance in this venture, I am ready to part with a good percentage of the entire funds. After going through the deceased person's records and files, I discovered that:
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index c6d8b95..2c720bc 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -345,6 +345,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
- 	struct ppi_if *ppi = bcap_dev->ppi;
-+	struct bcap_buffer *buf, *tmp;
- 	struct ppi_params params;
- 	int ret;
- 
-@@ -352,7 +353,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	ret = v4l2_subdev_call(bcap_dev->sd, video, s_stream, 1);
- 	if (ret && (ret != -ENOIOCTLCMD)) {
- 		v4l2_err(&bcap_dev->v4l2_dev, "stream on failed in subdev\n");
--		return ret;
-+		goto err;
- 	}
- 
- 	/* set ppi params */
-@@ -391,7 +392,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (ret < 0) {
- 		v4l2_err(&bcap_dev->v4l2_dev,
- 				"Error in setting ppi params\n");
--		return ret;
-+		goto err;
- 	}
- 
- 	/* attach ppi DMA irq handler */
-@@ -399,12 +400,21 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (ret < 0) {
- 		v4l2_err(&bcap_dev->v4l2_dev,
- 				"Error in attaching interrupt handler\n");
--		return ret;
-+		goto err;
- 	}
- 
- 	reinit_completion(&bcap_dev->comp);
- 	bcap_dev->stop = false;
-+
- 	return 0;
-+
-+err:
-+	list_for_each_entry_safe(buf, tmp, &bcap_dev->dma_queue, list) {
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+	}
-+
-+	return ret;
- }
- 
- static void bcap_stop_streaming(struct vb2_queue *vq)
--- 
-2.1.0
+(1) No one has operated this account since 2004
+(2) He died without an heir; hence the money has been floating.
+(3) No other person knows about this account and there was no known beneficiary.
 
+If I do not remit this money urgently, it would be forfeited and subsequently converted to company's funds, which will benefit only the directors of my firm. This money can be approved to you legally as with all the necessary documentary approvals in your name. However, you would be required to show some proof of claim, which I will provide you with and also guide you on how to make your applications.
+
+Please do give me a reply on my private e-mail juan.morato1@1email.eu or fax 00 34 917 692 656 so that I can send you detailed information on the modalities of my proposition. I completely trust you to keep this proposition absolutely confidential. Kindly forward your telephone number where I can reach you easily. I look forward to your prompt response.
+
+Best Regards,
+Mr. Juan Sebastian Morato
+Fax: 00 34 917 692 656
