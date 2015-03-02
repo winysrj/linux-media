@@ -1,240 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:30102 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756390AbbCEPGg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2015 10:06:36 -0500
-Message-id: <54F870F8.3050500@samsung.com>
-Date: Thu, 05 Mar 2015 16:06:32 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Cc: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	Kukjin Kim <kgene@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 2/2] media: s5p-jpeg: add 5420 family support
-References: <1425556596-3938-1-git-send-email-andrzej.p@samsung.com>
- <1425556596-3938-3-git-send-email-andrzej.p@samsung.com>
-In-reply-to: <1425556596-3938-3-git-send-email-andrzej.p@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from lists.s-osg.org ([54.187.51.154]:59256 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754043AbbCBQz3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Mar 2015 11:55:29 -0500
+Date: Mon, 2 Mar 2015 13:55:23 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: Re: [PATCH v4 2/2] V4L: add CCF support to the v4l2_clk API
+Message-ID: <20150302135523.1f34dc84@recife.lan>
+In-Reply-To: <Pine.LNX.4.64.1502011211160.9534@axis700.grange>
+References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange>
+	<Pine.LNX.4.64.1502010019380.26661@axis700.grange>
+	<8420980.1Z1tGTCX4O@avalon>
+	<Pine.LNX.4.64.1502011211160.9534@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+Em Sun, 1 Feb 2015 12:12:33 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
 
-On 03/05/2015 12:56 PM, Andrzej Pietrasiewicz wrote:
-> JPEG IP found in Exynos5420 is similar to what is in Exynos3250, but
-> there are some subtle differences which this patch takes into account.
->
-> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> V4L2 clocks, e.g. used by camera sensors for their master clock, do not
+> have to be supplied by a different V4L2 driver, they can also be
+> supplied by an independent source. In this case the standart kernel
+> clock API should be used to handle such clocks. This patch adds support
+> for such cases.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > ---
->   .../bindings/media/exynos-jpeg-codec.txt           |  2 +-
->   drivers/media/platform/s5p-jpeg/jpeg-core.c        | 69 +++++++++++++++++-----
->   drivers/media/platform/s5p-jpeg/jpeg-core.h        |  1 +
->   3 files changed, 56 insertions(+), 16 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> index bf52ed4..4ef4563 100644
-> --- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> +++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> @@ -4,7 +4,7 @@ Required properties:
->
->   - compatible	: should be one of:
->   		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
-> -		  "samsung,exynos3250-jpeg";
-> +		  "samsung,exynos3250-jpeg", "samsung,exynos5420-jpeg";
->   - reg		: address and length of the JPEG codec IP register set;
->   - interrupts	: specifies the JPEG codec IP interrupt;
->   - clock-names   : should contain:
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> index 12f7452..99bf5b3 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -621,6 +621,7 @@ static int s5p_jpeg_to_user_subsampling(struct s5p_jpeg_ctx *ctx)
->   			return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
->   		return ctx->subsampling;
->   	case SJPEG_EXYNOS3250:
-> +	case SJPEG_EXYNOS5420:
->   		if (ctx->subsampling > 3)
->   			return V4L2_JPEG_CHROMA_SUBSAMPLING_411;
->   		return exynos3250_decoded_subsampling[ctx->subsampling];
-> @@ -1128,6 +1129,18 @@ static struct s5p_jpeg_fmt *s5p_jpeg_find_format(struct s5p_jpeg_ctx *ctx,
->   	return NULL;
->   }
->
-> +static inline bool is_3250_compat(struct s5p_jpeg_ctx *ctx)
-> +{
-> +	switch (ctx->jpeg->variant->version) {
-> +	case SJPEG_EXYNOS3250:
-> +	case SJPEG_EXYNOS5420:
-> +		return true;
-> +	default:
-> +		return false;
-> +	}
-> +	return false;
-> +}
+> 
+> v4: sizeof(*clk) :)
+> 
+>  drivers/media/v4l2-core/v4l2-clk.c | 48 +++++++++++++++++++++++++++++++++++---
+>  include/media/v4l2-clk.h           |  2 ++
+>  2 files changed, 47 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
+> index 3ff0b00..9f8cb20 100644
+> --- a/drivers/media/v4l2-core/v4l2-clk.c
+> +++ b/drivers/media/v4l2-core/v4l2-clk.c
+> @@ -9,6 +9,7 @@
+>   */
+>  
+>  #include <linux/atomic.h>
+> +#include <linux/clk.h>
+>  #include <linux/device.h>
+>  #include <linux/errno.h>
+>  #include <linux/list.h>
+> @@ -37,6 +38,21 @@ static struct v4l2_clk *v4l2_clk_find(const char *dev_id)
+>  struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
+>  {
+>  	struct v4l2_clk *clk;
+> +	struct clk *ccf_clk = clk_get(dev, id);
 > +
->   static void jpeg_bound_align_image(struct s5p_jpeg_ctx *ctx,
->   				   u32 *w, unsigned int wmin, unsigned int wmax,
->   				   unsigned int walign,
-> @@ -1142,13 +1155,13 @@ static void jpeg_bound_align_image(struct s5p_jpeg_ctx *ctx,
->   	w_step = 1 << walign;
->   	h_step = 1 << halign;
->
-> -	if (ctx->jpeg->variant->version == SJPEG_EXYNOS3250) {
-> +	if (is_3250_compat(ctx)) {
->   		/*
->   		 * Rightmost and bottommost pixels are cropped by the
-> -		 * Exynos3250 JPEG IP for RGB formats, for the specific
-> -		 * width and height values respectively. This assignment
-> -		 * will result in v4l_bound_align_image returning dimensions
-> -		 * reduced by 1 for the aforementioned cases.
-> +		 * Exynos3250/compatible JPEG IP for RGB formats, for the
-> +		 * specific width and height values respectively. This
-> +		 * assignment will result in v4l_bound_align_image returning
-> +		 * dimensions reduced by 1 for the aforementioned cases.
->   		 */
->   		if (w_step == 4 && ((width & 3) == 1)) {
->   			wmax = width;
-> @@ -1384,12 +1397,12 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
->
->   	/*
->   	 * Prevent downscaling to YUV420 format by more than 2
-> -	 * for Exynos3250 SoC as it produces broken raw image
-> +	 * for Exynos3250/compatible SoC as it produces broken raw image
->   	 * in such cases.
->   	 */
->   	if (ct->mode == S5P_JPEG_DECODE &&
->   	    f_type == FMT_TYPE_CAPTURE &&
-> -	    ct->jpeg->variant->version == SJPEG_EXYNOS3250 &&
-> +	    is_3250_compat(ct) &&
->   	    pix->pixelformat == V4L2_PIX_FMT_YUV420 &&
->   	    ct->scale_factor > 2) {
->   		scale_rect.width = ct->out_q.w / 2;
-> @@ -1569,12 +1582,12 @@ static int s5p_jpeg_s_selection(struct file *file, void *fh,
->   	if (s->target == V4L2_SEL_TGT_COMPOSE) {
->   		if (ctx->mode != S5P_JPEG_DECODE)
->   			return -EINVAL;
-> -		if (ctx->jpeg->variant->version == SJPEG_EXYNOS3250)
-> +		if (is_3250_compat(ctx))
->   			ret = exynos3250_jpeg_try_downscale(ctx, rect);
->   	} else if (s->target == V4L2_SEL_TGT_CROP) {
->   		if (ctx->mode != S5P_JPEG_ENCODE)
->   			return -EINVAL;
-> -		if (ctx->jpeg->variant->version == SJPEG_EXYNOS3250)
-> +		if (is_3250_compat(ctx))
->   			ret = exynos3250_jpeg_try_crop(ctx, rect);
->   	}
->
-> @@ -1604,8 +1617,9 @@ static int s5p_jpeg_adjust_subs_ctrl(struct s5p_jpeg_ctx *ctx, int *ctrl_val)
->   	case SJPEG_S5P:
->   		return 0;
->   	case SJPEG_EXYNOS3250:
-> +	case SJPEG_EXYNOS5420:
->   		/*
-> -		 * The exynos3250 device can produce JPEG image only
-> +		 * The exynos3250/compatible device can produce JPEG image only
->   		 * of 4:4:4 subsampling when given RGB32 source image.
->   		 */
->   		if (ctx->out_q.fmt->fourcc == V4L2_PIX_FMT_RGB32)
-> @@ -1624,7 +1638,7 @@ static int s5p_jpeg_adjust_subs_ctrl(struct s5p_jpeg_ctx *ctx, int *ctrl_val)
->   	}
->
->   	/*
-> -	 * The exynos4x12 and exynos3250 devices require resulting
-> +	 * The exynos4x12 and exynos3250/compatible devices require resulting
->   	 * jpeg subsampling not to be lower than the input raw image
->   	 * subsampling.
->   	 */
-> @@ -2017,6 +2031,15 @@ static void exynos3250_jpeg_device_run(void *priv)
->   		exynos3250_jpeg_qtbl(jpeg->regs, 2, 1);
->   		exynos3250_jpeg_qtbl(jpeg->regs, 3, 1);
->
-> +		/*
-> +		 * 5420 family requires setting Huffman tables before each run
-> +		 */
-> +		if (jpeg->variant->version == SJPEG_EXYNOS5420) {
-> +			s5p_jpeg_set_hdctbl(jpeg->regs);
-> +			s5p_jpeg_set_hdctblg(jpeg->regs);
-> +			s5p_jpeg_set_hactbl(jpeg->regs);
-> +			s5p_jpeg_set_hactblg(jpeg->regs);
+> +	if (PTR_ERR(ccf_clk) == -EPROBE_DEFER)
+> +		return ERR_PTR(-EPROBE_DEFER);
+
+Why not do just:
+		return ccf_clk;
+
+> +
+> +	if (!IS_ERR_OR_NULL(ccf_clk)) {
+> +		clk = kzalloc(sizeof(*clk), GFP_KERNEL);
+> +		if (!clk) {
+> +			clk_put(ccf_clk);
+> +			return ERR_PTR(-ENOMEM);
 > +		}
->   		/* Y, Cb, Cr use Huffman table 0 */
->   		exynos3250_jpeg_htbl_ac(jpeg->regs, 1);
->   		exynos3250_jpeg_htbl_dc(jpeg->regs, 1);
-> @@ -2098,6 +2121,12 @@ static struct v4l2_m2m_ops exynos4_jpeg_m2m_ops = {
->   	.job_abort	= s5p_jpeg_job_abort,
->   };
->
-> +static struct v4l2_m2m_ops exynos5420_jpeg_m2m_ops = {
-> +	.device_run	= exynos3250_jpeg_device_run,	/* intentionally 3250 */
-> +	.job_ready	= s5p_jpeg_job_ready,
-> +	.job_abort	= s5p_jpeg_job_abort,
-> +};
+> +		clk->clk = ccf_clk;
 > +
+> +		return clk;
+> +	}
 
-You don't need to declare new m2m ops - just use
-exynos3250_jpeg_m2m_ops.
+The error condition here looks a little weird to me. I mean, if the
+CCF clock returns an error, shouldn't it fail instead of silently
+run some logic to find another clock source? Isn't it risky on getting
+a wrong value?
 
-> /*
->    * ============================================================================
->    * Queue operations
-> @@ -2660,10 +2689,10 @@ static int s5p_jpeg_runtime_resume(struct device *dev)
->   	/*
->   	 * JPEG IP allows storing two Huffman tables for each component.
->   	 * We fill table 0 for each component and do this here only
-> -	 * for S5PC210 and Exynos3250 SoCs. Exynos4x12 SoC requires
-> -	 * programming its Huffman tables each time the encoding process
-> -	 * is initialized, and thus it is accomplished in the device_run
-> -	 * callback of m2m_ops.
-> +	 * for S5PC210 and Exynos3250 SoCs. Exynos4x12 and Exynos542x SoC
-> +	 * require programming their Huffman tables each time the encoding
-> +	 * process is initialized, and thus it is accomplished in the
-> +	 * device_run callback of m2m_ops.
->   	 */
->   	if (jpeg->variant->version == SJPEG_S5P ||
->   	    jpeg->variant->version == SJPEG_EXYNOS3250) {
-> @@ -2723,6 +2752,13 @@ static struct s5p_jpeg_variant exynos4_jpeg_drvdata = {
->   	.fmt_ver_flag	= SJPEG_FMT_FLAG_EXYNOS4,
->   };
->
-> +static struct s5p_jpeg_variant exynos5420_jpeg_drvdata = {
-> +	.version	= SJPEG_EXYNOS5420,
-> +	.jpeg_irq	= exynos3250_jpeg_irq,		/* intentionally 3250 */
-> +	.m2m_ops	= &exynos5420_jpeg_m2m_ops,
-> +	.fmt_ver_flag	= SJPEG_FMT_FLAG_EXYNOS3250,	/* intentionally 3250 */
-> +};
+If the above code is right, please add a comment there explaining
+why it is safe to discard the CCF clock error.
+
+>  
+>  	mutex_lock(&clk_lock);
+>  	clk = v4l2_clk_find(dev_name(dev));
+> @@ -56,6 +72,12 @@ void v4l2_clk_put(struct v4l2_clk *clk)
+>  	if (IS_ERR(clk))
+>  		return;
+>  
+> +	if (clk->clk) {
+> +		clk_put(clk->clk);
+> +		kfree(clk);
+> +		return;
+> +	}
 > +
->   static const struct of_device_id samsung_jpeg_match[] = {
->   	{
->   		.compatible = "samsung,s5pv210-jpeg",
-> @@ -2736,6 +2772,9 @@ static const struct of_device_id samsung_jpeg_match[] = {
->   	}, {
->   		.compatible = "samsung,exynos4212-jpeg",
->   		.data = &exynos4_jpeg_drvdata,
-> +	}, {
-> +		.compatible = "samsung,exynos5420-jpeg",
-> +		.data = &exynos5420_jpeg_drvdata,
->   	},
->   	{},
->   };
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> index 764b32d..3bd5eba 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> @@ -71,6 +71,7 @@
->   #define SJPEG_S5P		1
->   #define SJPEG_EXYNOS3250	2
->   #define SJPEG_EXYNOS4		3
-> +#define SJPEG_EXYNOS5420	4
-
-As you are adding a new variant you could turn this into an enum.
-
->   enum exynos4_jpeg_result {
->   	OK_ENC_OR_DEC,
->
-
-
--- 
-Best Regards,
-Jacek Anaszewski
+>  	mutex_lock(&clk_lock);
+>  
+>  	list_for_each_entry(tmp, &clk_list, list)
+> @@ -93,8 +115,12 @@ static void v4l2_clk_unlock_driver(struct v4l2_clk *clk)
+>  
+>  int v4l2_clk_enable(struct v4l2_clk *clk)
+>  {
+> -	int ret = v4l2_clk_lock_driver(clk);
+> +	int ret;
+>  
+> +	if (clk->clk)
+> +		return clk_prepare_enable(clk->clk);
+> +
+> +	ret = v4l2_clk_lock_driver(clk);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> @@ -120,6 +146,9 @@ void v4l2_clk_disable(struct v4l2_clk *clk)
+>  {
+>  	int enable;
+>  
+> +	if (clk->clk)
+> +		return clk_disable_unprepare(clk->clk);
+> +
+>  	mutex_lock(&clk->lock);
+>  
+>  	enable = --clk->enable;
+> @@ -137,8 +166,12 @@ EXPORT_SYMBOL(v4l2_clk_disable);
+>  
+>  unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
+>  {
+> -	int ret = v4l2_clk_lock_driver(clk);
+> +	int ret;
+> +
+> +	if (clk->clk)
+> +		return clk_get_rate(clk->clk);
+>  
+> +	ret = v4l2_clk_lock_driver(clk);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> @@ -157,7 +190,16 @@ EXPORT_SYMBOL(v4l2_clk_get_rate);
+>  
+>  int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
+>  {
+> -	int ret = v4l2_clk_lock_driver(clk);
+> +	int ret;
+> +
+> +	if (clk->clk) {
+> +		long r = clk_round_rate(clk->clk, rate);
+> +		if (r < 0)
+> +			return r;
+> +		return clk_set_rate(clk->clk, r);
+> +	}
+> +
+> +	ret = v4l2_clk_lock_driver(clk);
+>  
+>  	if (ret < 0)
+>  		return ret;
+> diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+> index 928045f..3ef6e3d 100644
+> --- a/include/media/v4l2-clk.h
+> +++ b/include/media/v4l2-clk.h
+> @@ -22,6 +22,7 @@
+>  struct module;
+>  struct device;
+>  
+> +struct clk;
+>  struct v4l2_clk {
+>  	struct list_head list;
+>  	const struct v4l2_clk_ops *ops;
+> @@ -29,6 +30,7 @@ struct v4l2_clk {
+>  	int enable;
+>  	struct mutex lock; /* Protect the enable count */
+>  	atomic_t use_count;
+> +	struct clk *clk;
+>  	void *priv;
+>  };
+>  
