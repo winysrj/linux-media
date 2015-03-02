@@ -1,40 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:34098 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756983AbbCCQ2r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 11:28:47 -0500
-Received: by lbiv13 with SMTP id v13so19649218lbi.1
-        for <linux-media@vger.kernel.org>; Tue, 03 Mar 2015 08:28:45 -0800 (PST)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH] si2157: extend frequency range for ATSC
-Date: Tue,  3 Mar 2015 18:28:35 +0200
-Message-Id: <1425400115-19056-1-git-send-email-olli.salonen@iki.fi>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36817 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754620AbbCBPMR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 10:12:17 -0500
+Date: Mon, 2 Mar 2015 16:12:05 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Greg KH <greg@kroah.com>, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+Subject: Re: 0.led_name 2.other.led.name in /sysfs Re: [PATCH/RFC v11 01/20]
+ leds: flash: document sysfs interface
+Message-ID: <20150302151205.GA10376@amd>
+References: <1424276441-3969-2-git-send-email-j.anaszewski@samsung.com>
+ <20150218224747.GA3999@amd>
+ <20150219090204.GI3915@valkosipuli.retiisi.org.uk>
+ <20150219214043.GB29875@kroah.com>
+ <54E6E89B.4050404@samsung.com>
+ <20150220153616.GB18111@kroah.com>
+ <20150220205738.GA28995@amd>
+ <20150221105733.GO3915@valkosipuli.retiisi.org.uk>
+ <54F0806E.2040309@samsung.com>
+ <20150302125414.GS6539@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150302125414.GS6539@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Si2157 tuner supports ATSC in addition to DVB-T and DVB-C. Extend 
-minimum frequency range to cover the complete ATSC/QAM-B range.
+Hi!
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/tuners/si2157.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> > Of course the relevant sysfs group could be initialized only with
+> > the needed number of sync leds attributes, but still this is less
+> > than optimal design.
+> > 
+> > It looks like this interface indeed doesn't fit for sysfs.
+> > 
+> > I am leaning towards removing the support for synchronized flash LEDs
+> > from the LED subsystem entirely and leave it only to V4L2.
+> 
+> Perfectly fine for me as well, I guess the synchronised strobe has mostly
+> use on V4L2. It could always be added later on if needed.
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index d8309b9..d74ae26 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -349,7 +349,7 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
- 		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
--		.frequency_min  = 110000000,
-+		.frequency_min  = 55000000,
- 		.frequency_max  = 862000000,
- 	},
- 
+Makes sense...
+									Pavel
 -- 
-1.9.1
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
