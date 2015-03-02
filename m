@@ -1,32 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38482 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751436AbbCNLrO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 07:47:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net
-Subject: [PATCHv3 00/22] marvell-ccic: drop and fix formats
-Date: Sat, 14 Mar 2015 12:46:56 +0100
-Message-Id: <1426333621-21474-1-git-send-email-hverkuil@xs4all.nl>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45364 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754081AbbCBRGR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:06:17 -0500
+In-Reply-To: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: [PATCH 02/10] SH: use clkdev_add_table()
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1YSTnH-0001JY-GT@rmk-PC.arm.linux.org.uk>
+Date: Mon, 02 Mar 2015 17:06:11 +0000
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This v3 patch series replaces patch 18 from the first series.
+We have always had an efficient way of registering a table of clock
+lookups - it's called clkdev_add_table().  However, some people seem
+to really love writing inefficient and unnecessary code.
 
-Patch 18 and 19 are unchanged from patches 18 and 21 from the
-second series.
+Convert SH to use the correct interface.
 
-Patches 20-21 replace the RGB444 format by the newly defined XBGR444
-format (X means that the 'alpha' channel should be ignored and is not
-filled in). The actual layout in memory remains unchanged.
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/sh/kernel/cpu/sh4a/clock-sh7734.c | 3 +--
+ arch/sh/kernel/cpu/sh4a/clock-sh7757.c | 4 ++--
+ arch/sh/kernel/cpu/sh4a/clock-sh7785.c | 4 ++--
+ arch/sh/kernel/cpu/sh4a/clock-sh7786.c | 4 ++--
+ arch/sh/kernel/cpu/sh4a/clock-shx3.c   | 4 ++--
+ 5 files changed, 9 insertions(+), 10 deletions(-)
 
-Patch 22 fixes the Bayer format.
-
-All tested on my OLPC XO-1 laptop.
-
-Regards,
-
-	Hans
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7734.c b/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
+index 1fdf1ee672de..7f54bf2f453d 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
+@@ -246,8 +246,7 @@ int __init arch_clk_init(void)
+ 	for (i = 0; i < ARRAY_SIZE(main_clks); i++)
+ 		ret |= clk_register(main_clks[i]);
+ 
+-	for (i = 0; i < ARRAY_SIZE(lookups); i++)
+-		clkdev_add(&lookups[i]);
++	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
+ 
+ 	if (!ret)
+ 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c b/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
+index 9a28fdb36387..e40ec2c97ad1 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
+@@ -141,8 +141,8 @@ int __init arch_clk_init(void)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(clks); i++)
+ 		ret |= clk_register(clks[i]);
+-	for (i = 0; i < ARRAY_SIZE(lookups); i++)
+-		clkdev_add(&lookups[i]);
++
++	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
+ 
+ 	if (!ret)
+ 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7785.c b/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
+index 17d0ea55a5a2..8eb6e62340c9 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
+@@ -164,8 +164,8 @@ int __init arch_clk_init(void)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(clks); i++)
+ 		ret |= clk_register(clks[i]);
+-	for (i = 0; i < ARRAY_SIZE(lookups); i++)
+-		clkdev_add(&lookups[i]);
++
++	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
+ 
+ 	if (!ret)
+ 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7786.c b/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
+index bec2a83f1ba5..5e50e7ebeff0 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
+@@ -179,8 +179,8 @@ int __init arch_clk_init(void)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(clks); i++)
+ 		ret |= clk_register(clks[i]);
+-	for (i = 0; i < ARRAY_SIZE(lookups); i++)
+-		clkdev_add(&lookups[i]);
++
++	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
+ 
+ 	if (!ret)
+ 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-shx3.c b/arch/sh/kernel/cpu/sh4a/clock-shx3.c
+index 9a49a44f6f94..605221d1448a 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-shx3.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-shx3.c
+@@ -138,8 +138,8 @@ int __init arch_clk_init(void)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(clks); i++)
+ 		ret |= clk_register(clks[i]);
+-	for (i = 0; i < ARRAY_SIZE(lookups); i++)
+-		clkdev_add(&lookups[i]);
++
++	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
+ 
+ 	if (!ret)
+ 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
+-- 
+1.8.3.1
 
