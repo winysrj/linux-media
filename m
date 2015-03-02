@@ -1,109 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60121 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752478AbbC3JfM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 05:35:12 -0400
-Date: Mon, 30 Mar 2015 12:35:05 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v2 04/11] DT: Add documentation for the mfd Maxim max77693
-Message-ID: <20150330093504.GC18321@valkosipuli.retiisi.org.uk>
+Received: from smtp.codeaurora.org ([198.145.29.96]:40237 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754104AbbCBVy5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 16:54:57 -0500
+Message-ID: <54F4DC2F.1030904@codeaurora.org>
+Date: Mon, 02 Mar 2015 13:54:55 -0800
+From: Stephen Boyd <sboyd@codeaurora.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5518FD05.5060800@samsung.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+CC: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk> <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk> <54F4B50E.4070104@codeaurora.org> <20150302210121.GE29584@n2100.arm.linux.org.uk>
+In-Reply-To: <20150302210121.GE29584@n2100.arm.linux.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+On 03/02/15 13:01, Russell King - ARM Linux wrote:
+> On Mon, Mar 02, 2015 at 11:07:58AM -0800, Stephen Boyd wrote:
+>> On 03/02/15 09:06, Russell King wrote:
+>>> Add a helper to allocate and add a clk_lookup structure.  This can not
+>>> only be used in several places in clkdev.c to simplify the code, but
+>>> more importantly, can be used by callers of the clkdev code to simplify
+>>> their clkdev creation and registration.
+>>>
+>>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+>>> ---
+>>>  drivers/clk/clkdev.c   | 52 ++++++++++++++++++++++++++++++++++++++------------
+>>>  include/linux/clkdev.h |  3 +++
+>>>  2 files changed, 43 insertions(+), 12 deletions(-)
+>>>
+>>> diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
+>>> index 043fd3633373..611b9acbad78 100644
+>>> --- a/drivers/clk/clkdev.c
+>>> +++ b/drivers/clk/clkdev.c
+>>> @@ -294,6 +294,19 @@ vclkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt,
+>>>  	return &cla->cl;
+>>>  }
+>>>  
+>>> +static struct clk_lookup *
+>>> +vclkdev_create((struct clk *clk, const char *con_id, const char *dev_fmt,
+>>> +	va_list ap)
+>>> +{
+>>> +	struct clk_lookup *cl;
+>>> +
+>>> +	cl = vclkdev_alloc(clk, con_id, dev_fmt, ap);
+>>> +	if (cl)
+>>> +		clkdev_add(cl);
+>>> +
+>>> +	return cl;
+>>> +}
+>>> +
+>>>  struct clk_lookup * __init_refok
+>>>  clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
+>>>  {
+>>> @@ -308,6 +321,28 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
+>>>  }
+>>>  EXPORT_SYMBOL(clkdev_alloc);
+>>>  
+>>> +/**
+>>> + * clkdev_create - allocate and add a clkdev lookup structure
+>>> + * @clk: struct clk to associate with all clk_lookups
+>>> + * @con_id: connection ID string on device
+>>> + * @dev_fmt: format string describing device name
+>>> + *
+>>> + * Returns a clk_lookup structure, which can be later unregistered and
+>>> + * freed.
+>> And returns NULL on failure? Any reason why we don't return an error
+>> pointer on failure?
+> Why should it when it's only error is "no memory" ?  It follows the
+> clkdev_alloc() and memory allocator pattern.
+>
+> It'd also make the error handling in places like clk_add_alias() more
+> difficult (how that happened, I don't know...) though that could probably
+> be fixed as no one seems to bother checking the return value... maybe
+> that's a reason to make it return void ;)
+>
 
-On Mon, Mar 30, 2015 at 09:36:37AM +0200, Jacek Anaszewski wrote:
-> Hi Sakari,
-> 
-> On 03/28/2015 11:55 PM, Sakari Ailus wrote:
-> >On Fri, Mar 27, 2015 at 02:49:38PM +0100, Jacek Anaszewski wrote:
-> >>This patch adds device tree binding documentation for
-> >>the flash cell of the Maxim max77693 multifunctional device.
-> >>
-> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>Cc: Lee Jones <lee.jones@linaro.org>
-> >>Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> >>Cc: Bryan Wu <cooloney@gmail.com>
-> >>Cc: Richard Purdie <rpurdie@rpsys.net>
-> >>---
-> >>  Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++++++++++++++++++++
-> >>  1 file changed, 61 insertions(+)
-> >>
-> >>diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-> >>index 38e6440..15c546ea 100644
-> >>--- a/Documentation/devicetree/bindings/mfd/max77693.txt
-> >>+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-> >>@@ -76,7 +76,53 @@ Optional properties:
-> >>      Valid values: 4300000, 4700000, 4800000, 4900000
-> >>      Default: 4300000
-> >>
-> >>+- led : the LED submodule device node
-> >>+
-> >>+There are two LED outputs available - FLED1 and FLED2. Each of them can
-> >>+control a separate LED or they can be connected together to double
-> >>+the maximum current for a single connected LED. One LED is represented
-> >>+by one child node.
-> >>+
-> >>+Required properties:
-> >>+- compatible : Must be "maxim,max77693-led".
-> >>+
-> >>+Optional properties:
-> >>+- maxim,trigger-type : Flash trigger type.
-> >>+	Possible trigger types:
-> >>+		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
-> >>+			the flash,
-> >>+		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
-> >>+			of the flash.
-> >>+- maxim,boost-mode :
-> >>+	In boost mode the device can produce up to 1.2A of total current
-> >>+	on both outputs. The maximum current on each output is reduced
-> >>+	to 625mA then. If not enabled explicitly, boost setting defaults to
-> >>+	LEDS_BOOST_FIXED in case both current sources are used.
-> >>+	Possible values:
-> >>+		LEDS_BOOST_OFF (0) - no boost,
-> >>+		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
-> >>+		LEDS_BOOST_FIXED (2) - fixed mode.
-> >>+- maxim,boost-mvout : Output voltage of the boost module in millivolts.
-> >
-> >What are the possible values for this?
-> 
-> maxim,boost-mvout : Output voltage of the boost module in millivolts
-> 	Range: 3300 - 5500
-
-Could you please add that?
-
-> 
-> Do you think it is necessary to mention also allowed step for all the
-> values?
-
-That's a good question. They probably are more or less visible in the driver
-code. I think I'd document them here, but I'm fine with not adding them as
-well. You probably wouldn't be able to meaningfully use the chip without the
-datasheet anyway.
-
-> >Is the datasheet publicly available btw.?
-> 
-> I have an access only to the non-public one.
-
-I googled a bit, couldn't find anything relevant immediately at least.
+Ok, fair enough. Right now clk_add_alias() leaks if a driver decides to
+add an alias and then fail probe for something like probe deferral. We
+should probably make that return the clk_lookup structure too so that
+drivers can clean up.
 
 -- 
-Regards,
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
