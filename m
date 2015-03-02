@@ -1,49 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51579 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751890AbbCVVw2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Mar 2015 17:52:28 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	snawrocki@samsung.com
-Subject: [PATCH v2 0/4] Add link-frequencies to struct v4l2_of_endpoint
-Date: Sun, 22 Mar 2015 23:51:35 +0200
-Message-Id: <1427061099-17438-1-git-send-email-sakari.ailus@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48169 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751696AbbCBHBK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 02:01:10 -0500
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Alexandre Courbot <acourbot@nvidia.com>,
+	Linus Walleij <linus.walleij@linaro.org>
+Subject: [PATCH] media: adv7604: improve usage of gpiod API
+Date: Mon,  2 Mar 2015 08:00:44 +0100
+Message-Id: <1425279644-25873-1-git-send-email-u.kleine-koenig@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Since 39b2bbe3d715 (gpio: add flags argument to gpiod_get*() functions)
+which appeared in v3.17-rc1, the gpiod_get* functions take an additional
+parameter that allows to specify direction and initial value for output.
+Simplify accordingly.
 
-I've split off the third and obviously somewhat problematic patch in the
-set, and sent a pull req containing the first two patches and another
-dependent patch:
+Moreover use devm_gpiod_get_index_optional instead of
+devm_gpiod_get_index with ignoring all errors.
 
-<URL:http://www.spinics.net/lists/linux-media/msg88033.html>
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+---
+BTW, sparse fails to check this file with many errors like:
 
-The changes intend to address the review comments I gathered the last time.
-The third patch of set 1 has been split into three, with the major
-differences being that
+	drivers/media/i2c/adv7604.c:311:11: error: unknown field name in initializer
 
-- the interface functions are now called v4l2_of_alloc_parse_endpoint() and
-  v4l2_of_free_endpoint(),
+Didn't look into that.
+---
+ drivers/media/i2c/adv7604.c | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-- v4l2_of_alloc_parse_endpoint() will allocate and return struct
-  v4l2_of_endpoint. Correspondingly v4l2_of_free_endpoint() will release it,
-
-- the usage pattern of existing users is unchanged, however new drivers are
-  adviced to use the new interface. The old interface could be removed at
-  some point when it no longer has users, however it is not urgent in any
-  way.
-
-v1 can be found here:
-
-<URL:http://www.spinics.net/lists/linux-media/msg87479.html>
-
-Comments are very welcome.
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 5a7c9389a605..ddeeb6695a4b 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -537,12 +537,8 @@ static void adv7604_set_hpd(struct adv7604_state *state, unsigned int hpd)
+ {
+ 	unsigned int i;
+ 
+-	for (i = 0; i < state->info->num_dv_ports; ++i) {
+-		if (IS_ERR(state->hpd_gpio[i]))
+-			continue;
+-
++	for (i = 0; i < state->info->num_dv_ports; ++i)
+ 		gpiod_set_value_cansleep(state->hpd_gpio[i], hpd & BIT(i));
+-	}
+ 
+ 	v4l2_subdev_notify(&state->sd, ADV7604_HOTPLUG, &hpd);
+ }
+@@ -2720,13 +2716,13 @@ static int adv7604_probe(struct i2c_client *client,
+ 	/* Request GPIOs. */
+ 	for (i = 0; i < state->info->num_dv_ports; ++i) {
+ 		state->hpd_gpio[i] =
+-			devm_gpiod_get_index(&client->dev, "hpd", i);
++			devm_gpiod_get_index_optional(&client->dev, "hpd", i,
++						      GPIOD_OUT_LOW);
+ 		if (IS_ERR(state->hpd_gpio[i]))
+-			continue;
+-
+-		gpiod_direction_output(state->hpd_gpio[i], 0);
++			return PTR_ERR(state->hpd_gpio[i]);
+ 
+-		v4l_info(client, "Handling HPD %u GPIO\n", i);
++		if (state->hpd_gpio[i])
++			v4l_info(client, "Handling HPD %u GPIO\n", i);
+ 	}
+ 
+ 	state->timings = cea640x480;
 -- 
-Kind regards,
-Sakari
+2.1.4
 
