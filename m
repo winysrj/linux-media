@@ -1,147 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44809 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752524AbbCPACH (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42833 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753832AbbCBOHZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 20:02:07 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com,
-	laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Subject: [PATCH 2/4] dt: bindings: Add bindings for omap3isp
-Date: Mon, 16 Mar 2015 02:01:18 +0200
-Message-Id: <1426464080-29119-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
-References: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 2 Mar 2015 09:07:25 -0500
+Message-ID: <54F46E83.2010008@xs4all.nl>
+Date: Mon, 02 Mar 2015 15:06:59 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?windows-1252?Q?Rafael_Louren=E7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>
+Subject: Re: [PATCH 1/2] [media] dvbdev: use adapter arg for dvb_create_media_graph()
+References: <b32471cf9f1ac95ae4bf181c7abfcbd6382554d7.1425304947.git.mchehab@osg.samsung.com>
+In-Reply-To: <b32471cf9f1ac95ae4bf181c7abfcbd6382554d7.1425304947.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- .../devicetree/bindings/media/ti,omap3isp.txt      |   71 ++++++++++++++++++++
- MAINTAINERS                                        |    1 +
- include/dt-bindings/media/omap3-isp.h              |   22 ++++++
- 3 files changed, 94 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/ti,omap3isp.txt
- create mode 100644 include/dt-bindings/media/omap3-isp.h
+Hi Mauro,
 
-diff --git a/Documentation/devicetree/bindings/media/ti,omap3isp.txt b/Documentation/devicetree/bindings/media/ti,omap3isp.txt
-new file mode 100644
-index 0000000..547b493
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/ti,omap3isp.txt
-@@ -0,0 +1,71 @@
-+OMAP 3 ISP Device Tree bindings
-+===============================
-+
-+The DT definitions can be found in include/dt-bindings/media/omap3-isp.h.
-+
-+Required properties
-+===================
-+
-+compatible	: must contain "ti,omap3-isp"
-+
-+reg		: the two registers sets (physical address and length) for the
-+		  ISP. The first set contains the core ISP registers up to
-+		  the end of the SBL block. The second set contains the
-+		  CSI PHYs and receivers registers.
-+interrupts	: the ISP interrupt specifier
-+iommus		: phandle and IOMMU specifier for the IOMMU that serves the ISP
-+syscon		: the phandle and register offset to the Complex I/O or CSI-PHY
-+		  register
-+ti,phy-type	: 0 -- OMAP3ISP_PHY_TYPE_COMPLEX_IO (e.g. 3430)
-+		  1 -- OMAP3ISP_PHY_TYPE_CSIPHY (e.g. 3630)
-+#clock-cells	: Must be 1 --- the ISP provides two external clocks,
-+		  cam_xclka and cam_xclkb, at indices 0 and 1,
-+		  respectively. Please find more information on common
-+		  clock bindings in ../clock/clock-bindings.txt.
-+
-+Port nodes (optional)
-+---------------------
-+
-+More documentation on these bindings is available in
-+video-interfaces.txt in the same directory.
-+
-+reg		: The interface:
-+		  0 - parallel (CCDC)
-+		  1 - CSIPHY1 -- CSI2C / CCP2B on 3630;
-+		      CSI1 -- CSIb on 3430
-+		  2 - CSIPHY2 -- CSI2A / CCP2B on 3630;
-+		      CSI2 -- CSIa on 3430
-+
-+Optional properties
-+===================
-+
-+vdd-csiphy1-supply : voltage supply of the CSI-2 PHY 1
-+vdd-csiphy2-supply : voltage supply of the CSI-2 PHY 2
-+
-+Endpoint nodes
-+--------------
-+
-+lane-polarity	: lane polarity (required on CSI-2)
-+		  0 -- not inverted; 1 -- inverted
-+data-lanes	: an array of data lanes from 1 to 3. The length can
-+		  be either 1 or 2. (required on CSI-2)
-+clock-lanes	: the clock lane (from 1 to 3). (required on CSI-2)
-+
-+
-+Example
-+=======
-+
-+		isp@480bc000 {
-+			compatible = "ti,omap3-isp";
-+			reg = <0x480bc000 0x12fc
-+			       0x480bd800 0x0600>;
-+			interrupts = <24>;
-+			iommus = <&mmu_isp>;
-+			syscon = <&omap3_scm_general 0x2f0>;
-+			ti,phy-type = <1>;
-+			#clock-cells = <1>;
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
-+		};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index af8df65..a102624 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6949,6 +6949,7 @@ OMAP IMAGING SUBSYSTEM (OMAP3 ISP and OMAP4 ISS)
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
- S:	Maintained
-+F:	Documentation/devicetree/bindings/media/ti,omap3isp.txt
- F:	drivers/media/platform/omap3isp/
- F:	drivers/staging/media/omap4iss/
- 
-diff --git a/include/dt-bindings/media/omap3-isp.h b/include/dt-bindings/media/omap3-isp.h
-new file mode 100644
-index 0000000..b18c60e
---- /dev/null
-+++ b/include/dt-bindings/media/omap3-isp.h
-@@ -0,0 +1,22 @@
-+/*
-+ * include/dt-bindings/media/omap3-isp.h
-+ *
-+ * Copyright (C) 2015 Sakari Ailus
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+
-+#ifndef __DT_BINDINGS_OMAP3_ISP_H__
-+#define __DT_BINDINGS_OMAP3_ISP_H__
-+
-+#define OMAP3ISP_PHY_TYPE_COMPLEX_IO	0
-+#define OMAP3ISP_PHY_TYPE_CSIPHY	1
-+
-+#endif /* __DT_BINDINGS_OMAP3_ISP_H__ */
--- 
-1.7.10.4
+Small nitpick:
 
+On 03/02/2015 03:02 PM, Mauro Carvalho Chehab wrote:
+> Instead of using media_dev argument for dvb_create_media_graph(),
+> use the adapter.
+> 
+> That allows to create a stub for this function, if compiled
+> without DVB support, avoiding to add extra if's at the drivers.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+> index dd3c1516013f..387db145d37e 100644
+> --- a/drivers/media/common/siano/smsdvb-main.c
+> +++ b/drivers/media/common/siano/smsdvb-main.c
+> @@ -1185,7 +1185,7 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
+>  	if (smsdvb_debugfs_create(client) < 0)
+>  		pr_info("failed to create debugfs node\n");
+>  
+> -	dvb_create_media_graph(coredev->media_dev);
+> +	dvb_create_media_graph(&client->adapter);
+>  
+>  	pr_info("DVB interface registered.\n");
+>  	return 0;
+> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+> index 0af9d0c5f889..13bb57f0457f 100644
+> --- a/drivers/media/dvb-core/dvbdev.c
+> +++ b/drivers/media/dvb-core/dvbdev.c
+> @@ -381,9 +381,10 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
+>  EXPORT_SYMBOL(dvb_unregister_device);
+>  
+>  
+> -void dvb_create_media_graph(struct media_device *mdev)
+> -{
+>  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +void dvb_create_media_graph(struct dvb_adapter *adap)
+> +{
+> +	struct media_device *mdev = adap->mdev;
+>  	struct media_entity *entity, *tuner = NULL, *fe = NULL;
+>  	struct media_entity *demux = NULL, *dvr = NULL, *ca = NULL;
+>  
+> @@ -421,9 +422,9 @@ void dvb_create_media_graph(struct media_device *mdev)
+>  
+>  	if (demux && ca)
+>  		media_entity_create_link(demux, 1, ca, 0, MEDIA_LNK_FL_ENABLED);
+> -#endif
+>  }
+>  EXPORT_SYMBOL_GPL(dvb_create_media_graph);
+> +#endif
+>  
+>  static int dvbdev_check_free_adapter_num(int num)
+>  {
+> diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+> index 467c1311bd4c..caf4d4791a8b 100644
+> --- a/drivers/media/dvb-core/dvbdev.h
+> +++ b/drivers/media/dvb-core/dvbdev.h
+> @@ -122,7 +122,12 @@ extern int dvb_register_device (struct dvb_adapter *adap,
+>  				int type);
+>  
+>  extern void dvb_unregister_device (struct dvb_device *dvbdev);
+> -void dvb_create_media_graph(struct media_device *mdev);
+> +
+> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +void dvb_create_media_graph(struct dvb_adapter *adap);
+> +#else
+> +static inline void dvb_create_media_graph(struct dvb_adapter *adap) {};
+
+Unnecessary trailing ';'.
+
+Regards,
+
+	Hans
+
+> +#endif
+>  
+>  extern int dvb_generic_open (struct inode *inode, struct file *file);
+>  extern int dvb_generic_release (struct inode *inode, struct file *file);
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+> index 44229a2c2d32..8bf2baae387f 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+> @@ -540,9 +540,8 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+>  
+>  	/* register network adapter */
+>  	dvb_net_init(&dvb->adapter, &dvb->net, &dvb->demux.dmx);
+> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -	dvb_create_media_graph(dev->media_dev);
+> -#endif
+> +	dvb_create_media_graph(&dvb->adapter);
+> +
+>  	return 0;
+>  
+>  fail_fe_conn:
+> diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+> index 0666c8f33ac7..08a3cd1c8b44 100644
+> --- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+> +++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+> @@ -702,7 +702,7 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
+>  		}
+>  	}
+>  
+> -	dvb_create_media_graph(adap->dvb_adap.mdev);
+> +	dvb_create_media_graph(&adap->dvb_adap);
+>  
+>  	return 0;
+>  
+> diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+> index a7bc4535c58f..6c9f5ecf949c 100644
+> --- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+> +++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+> @@ -320,7 +320,7 @@ int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
+>  		adap->num_frontends_initialized++;
+>  	}
+>  
+> -	dvb_create_media_graph(adap->dvb_adap.mdev);
+> +	dvb_create_media_graph(&adap->dvb_adap);
+>  
+>  	return 0;
+>  }
+> 
