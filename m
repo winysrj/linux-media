@@ -1,125 +1,137 @@
-Return-Path: <hverkuil@xs4all.nl>
-Message-id: <550C270B.6070906@xs4all.nl>
-Date: Fri, 20 Mar 2015 14:56:27 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
- Hans Verkuil <hans.verkuil@cisco.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Arun Kumar K <arun.kk@samsung.com>,
- Sylwester Nawrocki <s.nawrocki@samsung.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
- Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 5/5] media/Documentation: New flag EXECUTE_ON_WRITE
-References: <1426778486-21807-1-git-send-email-ricardo.ribalda@gmail.com>
- <1426778486-21807-6-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1426778486-21807-6-git-send-email-ricardo.ribalda@gmail.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:40007 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753759AbbCBOyg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 09:54:36 -0500
+Received: by wesx3 with SMTP id x3so33807797wes.7
+        for <linux-media@vger.kernel.org>; Mon, 02 Mar 2015 06:54:34 -0800 (PST)
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: drop call to v4l2_device_unregister_subdev()
+Date: Mon,  2 Mar 2015 14:54:07 +0000
+Message-Id: <1425308047-24756-1-git-send-email-prabhakar.csengg@gmail.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
+These drivers are moved to support asynchronous probing,
+v4l2_async_unregister_subdev() unregisters the subdev so
+there isn't a need to explicitly call v4l2_device_unregister_subdev().
 
-On 03/19/2015 04:21 PM, Ricardo Ribalda Delgado wrote:
-> Document new flag V4L2_CTRL_FLAG_EXECUTE_ON_WRITE, and the new behavior
-> of CH_VALUE event on VOLATILE controls.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
->  Documentation/DocBook/media/v4l/vidioc-dqevent.xml   |  7 ++++---
->  Documentation/DocBook/media/v4l/vidioc-queryctrl.xml | 15 +++++++++++++--
->  Documentation/video4linux/v4l2-controls.txt          |  4 +++-
->  3 files changed, 20 insertions(+), 6 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-> index b036f89..38d907e 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-> @@ -318,9 +318,10 @@
->  	    <entry><constant>V4L2_EVENT_CTRL_CH_VALUE</constant></entry>
->  	    <entry>0x0001</entry>
->  	    <entry>This control event was triggered because the value of the control
-> -		changed. Special case: if a button control is pressed, then this
-> -		event is sent as well, even though there is not explicit value
-> -		associated with a button control.</entry>
-> +		changed. Special cases: Volatile controls do no generate this event;
-> +		If a button control is pressed, then this event is sent as well,
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/i2c/adv7343.c                        | 1 -
+ drivers/media/i2c/adv7604.c                        | 1 -
+ drivers/media/i2c/mt9v032.c                        | 1 -
+ drivers/media/i2c/soc_camera/mt9m111.c             | 1 -
+ drivers/media/i2c/ths8200.c                        | 1 -
+ drivers/media/i2c/tvp514x.c                        | 1 -
+ drivers/media/i2c/tvp7002.c                        | 1 -
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c | 1 -
+ 8 files changed, 8 deletions(-)
 
-Not just a button control, but any non-volatile EXECUTE_ON_WRITE control.
+diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+index 9d38f7b..7c50833 100644
+--- a/drivers/media/i2c/adv7343.c
++++ b/drivers/media/i2c/adv7343.c
+@@ -506,7 +506,6 @@ static int adv7343_remove(struct i2c_client *client)
+ 	struct adv7343_state *state = to_state(sd);
+ 
+ 	v4l2_async_unregister_subdev(&state->sd);
+-	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&state->hdl);
+ 
+ 	return 0;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index d228b7c..af6363d 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2879,7 +2879,6 @@ static int adv7604_remove(struct i2c_client *client)
+ 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
+ 	destroy_workqueue(state->work_queues);
+ 	v4l2_async_unregister_subdev(sd);
+-	v4l2_device_unregister_subdev(sd);
+ 	media_entity_cleanup(&sd->entity);
+ 	adv7604_unregister_clients(to_state(sd));
+ 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index bd3f979..3267c18 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -1016,7 +1016,6 @@ static int mt9v032_remove(struct i2c_client *client)
+ 
+ 	v4l2_async_unregister_subdev(subdev);
+ 	v4l2_ctrl_handler_free(&mt9v032->ctrls);
+-	v4l2_device_unregister_subdev(subdev);
+ 	media_entity_cleanup(&subdev->entity);
+ 
+ 	return 0;
+diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
+index 5992ea9..441e0fd 100644
+--- a/drivers/media/i2c/soc_camera/mt9m111.c
++++ b/drivers/media/i2c/soc_camera/mt9m111.c
+@@ -1016,7 +1016,6 @@ static int mt9m111_remove(struct i2c_client *client)
+ 
+ 	v4l2_async_unregister_subdev(&mt9m111->subdev);
+ 	v4l2_clk_put(mt9m111->clk);
+-	v4l2_device_unregister_subdev(&mt9m111->subdev);
+ 	v4l2_ctrl_handler_free(&mt9m111->hdl);
+ 
+ 	return 0;
+diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
+index 4ebd329..73fc42b 100644
+--- a/drivers/media/i2c/ths8200.c
++++ b/drivers/media/i2c/ths8200.c
+@@ -479,7 +479,6 @@ static int ths8200_remove(struct i2c_client *client)
+ 
+ 	ths8200_s_power(sd, false);
+ 	v4l2_async_unregister_subdev(&decoder->sd);
+-	v4l2_device_unregister_subdev(sd);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+index 2042042..c6b3dc5 100644
+--- a/drivers/media/i2c/tvp514x.c
++++ b/drivers/media/i2c/tvp514x.c
+@@ -1209,7 +1209,6 @@ static int tvp514x_remove(struct i2c_client *client)
+ 	struct tvp514x_decoder *decoder = to_decoder(sd);
+ 
+ 	v4l2_async_unregister_subdev(&decoder->sd);
+-	v4l2_device_unregister_subdev(sd);
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	media_entity_cleanup(&decoder->sd.entity);
+ #endif
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index fe4870e..9233194 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -1116,7 +1116,6 @@ static int tvp7002_remove(struct i2c_client *c)
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	media_entity_cleanup(&device->sd.entity);
+ #endif
+-	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&device->hdl);
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/soc_camera/sh_mobile_csi2.c b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
+index c4e7aa0..cd93241 100644
+--- a/drivers/media/platform/soc_camera/sh_mobile_csi2.c
++++ b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
+@@ -380,7 +380,6 @@ static int sh_csi2_remove(struct platform_device *pdev)
+ 	struct sh_csi2 *priv = container_of(subdev, struct sh_csi2, subdev);
+ 
+ 	v4l2_async_unregister_subdev(&priv->subdev);
+-	v4l2_device_unregister_subdev(subdev);
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	return 0;
+-- 
+1.9.1
 
-> +		even though there is not explicit value associated with a button
-> +		control.</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_EVENT_CTRL_CH_FLAGS</constant></entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> index 2bd98fd..d389292 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> @@ -599,8 +599,11 @@ writing a value will cause the device to carry out a given action
->  	    <entry>This control is volatile, which means that the value of the control
->  changes continuously. A typical example would be the current gain value if the device
->  is in auto-gain mode. In such a case the hardware calculates the gain value based on
-> -the lighting conditions which can change over time. Note that setting a new value for
-> -a volatile control will have no effect. The new value will just be ignored.</entry>
-> +the lighting conditions which can change over time. Another example would be an error
-> +flag (missed trigger, invalid voltage on the sensor). In those situations the user
-> +could write to the control to acknowledge the error, but that write will never
-> +generate a <constant>V4L2_EVENT_CTRL_CH_VALUE</constant> event and the flag
-> +<constant>V4L2_CTRL_FLAG_EXECUTE_ON_WRITE</constant> must be set.<entry>
-
-I am not really happy with this change. In particular this dropped the "Note that setting
-a new value for a volatile control will have no effect. The new value will just be ignored.".
-
-This is still true as long as EXECUTE_ON_WRITE isn't set.
-
-I would keep the original sentence, but add something like: "will have no effect and
-no <constant>V4L2_EVENT_CTRL_CH_VALUE</constant> will be sent, unless
-the <constant>V4L2_CTRL_FLAG_EXECUTE_ON_WRITE</constant> flag (see below) is also set.
-Otherwise the new value will just be ignored."
-
-And just skip the trigger example since that's already described in the EXECUTE_ON_WRITE
-documentation.
-
->  	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_CTRL_FLAG_HAS_PAYLOAD</constant></entry>
-> @@ -610,6 +613,14 @@ using one of the pointer fields of &v4l2-ext-control;. This flag is set for cont
->  that are an array, string, or have a compound type. In all cases you have to set a
->  pointer to memory containing the payload of the control.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_CTRL_FLAG_EXECUTE_ON_WRITE</constant></entry>
-> +	    <entry>0x0200</entry>
-> +	    <entry>The value provided to the control will be propagated to the driver
-> +even if remains constant. This is required when the controls represents an action
-
-s/controls/control/
-
-> +on the hardware. For example: clearing an error flag or triggering the flash. All the
-> +controls of the type <constant>V4L2_CTRL_TYPE_BUTTON</constant> have this flag set.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-> index 0f84ce8..5517db6 100644
-> --- a/Documentation/video4linux/v4l2-controls.txt
-> +++ b/Documentation/video4linux/v4l2-controls.txt
-> @@ -344,7 +344,9 @@ implement g_volatile_ctrl like this:
->  	}
->  
->  Note that you use the 'new value' union as well in g_volatile_ctrl. In general
-> -controls that need to implement g_volatile_ctrl are read-only controls.
-> +controls that need to implement g_volatile_ctrl are read-only controls. If they
-> +are not, a V4L2_EVENT_CTRL_CH_VALUE will not be generated when the control
-> +changes.
->  
->  To mark a control as volatile you have to set V4L2_CTRL_FLAG_VOLATILE:
->  
-> 
-
-Regards,
-
-	Hans
