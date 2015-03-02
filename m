@@ -1,136 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:46135 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750967AbbCTLVC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2015 07:21:02 -0400
-Message-ID: <550C0298.1010805@xs4all.nl>
-Date: Fri, 20 Mar 2015 12:20:56 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:46266 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753517AbbCBXys (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 18:54:48 -0500
+Date: Mon, 2 Mar 2015 23:54:35 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH 01/10] media: omap3isp: remove unused clkdev
+Message-ID: <20150302235435.GF29584@n2100.arm.linux.org.uk>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+ <E1YSTnC-0001JU-CX@rmk-PC.arm.linux.org.uk>
+ <118780170.u6ZO5zJrEk@avalon>
+ <20150302225336.GV6539@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Prashant Laddha <prladdha@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/2] vivid: add support to set CVT, GTF timings
-References: <1426833706-7839-1-git-send-email-prladdha@cisco.com> <1426833706-7839-3-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1426833706-7839-3-git-send-email-prladdha@cisco.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150302225336.GV6539@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prashant,
+(Combining replies...)
 
-Thank you for the patch, but I have some comments below:
-
-On 03/20/2015 07:41 AM, Prashant Laddha wrote:
-> In addition to v4l2_find_dv_timings_cap(), where timings are serached
-> against the list of preset timings, the incoming timing from v4l2-ctl
-> is checked against CVT and GTF standards. If it confirms to be CVT or
-> GTF, it is treated as valid timing and vivid format is updated with
-> new timings.
+On Tue, Mar 03, 2015 at 12:53:37AM +0200, Sakari Ailus wrote:
+> Hi Laurent and Russell,
 > 
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Prashant Laddha <prladdha@cisco.com>
-> ---
->  drivers/media/platform/vivid/vivid-vid-cap.c | 62 +++++++++++++++++++++++++++-
->  1 file changed, 61 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-> index 867a29a..d769113 100644
-> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-> @@ -1552,6 +1552,64 @@ int vivid_vid_cap_s_std(struct file *file, void *priv, v4l2_std_id id)
->  	return 0;
->  }
->  
-> +static void find_aspect_ratio(u32 width, u32 height,
-> +			       u32 *num, u32 *denom)
-> +{
-> +	if (!(height % 3) && ((height * 4 / 3) == width)) {
-> +		*num = 4;
-> +		*denom = 3;
-> +	} else if (!(height % 9) && ((height * 16 / 9) == width)) {
-> +		*num = 16;
-> +		*denom = 9;
-> +	} else if (!(height % 10) && ((height * 16 / 10) == width)) {
-> +		*num = 16;
-> +		*denom = 10;
-> +	} else if (!(height % 4) && ((height * 5 / 4) == width)) {
-> +		*num = 5;
-> +		*denom = 4;
-> +	} else if (!(height % 9) && ((height * 15 / 9) == width)) {
-> +		*num = 15;
-> +		*denom = 9;
-> +	} else { /* default to 16:9 */
-> +		*num = 16;
-> +		*denom = 9;
-> +	}
-> +}
-> +
-> +static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
-> +{
-> +	struct v4l2_dv_timings fmt;
+> On Tue, Mar 03, 2015 at 12:33:44AM +0200, Laurent Pinchart wrote:
+> > Sakari, does it conflict with the omap3isp DT support ? If so, how would you 
+> > prefer to resolve the conflict ? Russell, would it be fine to merge this 
+> > through Mauro's tree ?
 
-This can be dropped, see below.
+As other changes will depend on this, I'd prefer not to.  The whole
+"make clk_get() return a unique struct clk" wasn't well tested, and
+several places broke - and currently clk_add_alias() is broken as a
+result of that.
 
-> +	struct v4l2_bt_timings *bt = &timings->bt;
-> +	u32 total_h_pixel;
-> +	u32 total_v_lines;
-> +	u32 h_freq;
-> +
-> +	if (!v4l2_valid_dv_timings(timings, &vivid_dv_timings_cap,
-> +				NULL, NULL))
-> +		return false;
-> +
-> +	total_h_pixel = V4L2_DV_BT_FRAME_WIDTH(bt);
-> +	total_v_lines = V4L2_DV_BT_FRAME_HEIGHT(bt);
-> +
-> +	h_freq = (u32)bt->pixelclock / total_h_pixel;
-> +
-> +	if (bt->standards == V4L2_DV_BT_STD_CVT)
-> +		return v4l2_detect_cvt(total_v_lines, h_freq, bt->vsync,
-> +				       bt->polarities, &fmt);
+I'm trying to get to the longer term solution, where clkdev internally
+uses a struct clk_hw pointer rather than a struct clk pointer, and I
+want to clean stuff up first.
 
-Pass in 'timings' instead of &fmt. You want to return the fully filled in
-timings, so there is no point in storing it in a copy.
+If omap3isp needs to keep this code, then so be it - I'll come up with
+a different patch improving its use of clkdev instead.
 
-> +
-> +	if (bt->standards == V4L2_DV_BT_STD_GTF) {
-> +		struct v4l2_fract aspect_ratio;
-> +
-> +		find_aspect_ratio(bt->width, bt->height,
-> +				  &aspect_ratio.numerator,
-> +				  &aspect_ratio.denominator);
-> +		return v4l2_detect_gtf(total_v_lines, h_freq, bt->vsync,
-> +				       bt->polarities, aspect_ratio, &fmt);
-
-Ditto.
-
-> +	}
-> +
-> +	return false;
-> +}
-> +
->  int vivid_vid_cap_s_dv_timings(struct file *file, void *_fh,
->  				    struct v4l2_dv_timings *timings)
->  {
-> @@ -1561,8 +1619,10 @@ int vivid_vid_cap_s_dv_timings(struct file *file, void *_fh,
->  		return -ENODATA;
->  	if (vb2_is_busy(&dev->vb_vid_cap_q))
->  		return -EBUSY;
-> +
->  	if (!v4l2_find_dv_timings_cap(timings, &vivid_dv_timings_cap,
-> -				0, NULL, NULL))
-> +				      0, NULL, NULL)
-> +	    && !valid_cvt_gtf_timings(timings))
->  		return -EINVAL;
->  	if (v4l2_match_dv_timings(timings, &dev->dv_timings_cap, 0))
->  		return 0;
-> 
-
-This looks good otherwise.
-
-Regards,
-
-	Hans
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
