@@ -1,71 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:55881 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758409AbbCDJvJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 04:51:09 -0500
-Date: Wed, 4 Mar 2015 09:51:04 +0000 (GMT)
-From: William Towle <william.towle@codethink.co.uk>
-To: William Towle <william.towle@codethink.co.uk>
-cc: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [Linux-kernel] RFC: supporting adv7604.c under
- soc_camera/rcar_vin
-In-Reply-To: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
-Message-ID: <alpine.DEB.2.02.1503040911560.4552@xk120.dyn.ducie.codethink.co.uk>
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk>
+Received: from mail-oi0-f41.google.com ([209.85.218.41]:33232 "EHLO
+	mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753835AbbCBUga (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 15:36:30 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <20150302174619.GD29584@n2100.arm.linux.org.uk>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+	<E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
+	<CAMuHMdWHAu+zDKce0+ianDb=RHYR59eeMoiYBDK4PC=YMY0JXg@mail.gmail.com>
+	<20150302174619.GD29584@n2100.arm.linux.org.uk>
+Date: Mon, 2 Mar 2015 21:36:29 +0100
+Message-ID: <CAMuHMdX-20DnSmgMbCEikysCNFH5rSHhBF_vcq39QdPjfhyejA@mail.gmail.com>
+Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: ALSA Development Mailing List <alsa-devel@alsa-project.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Mar 2, 2015 at 6:46 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Mon, Mar 02, 2015 at 06:22:31PM +0100, Geert Uytterhoeven wrote:
+>> On Mon, Mar 2, 2015 at 6:06 PM, Russell King
+>> <rmk+kernel@arm.linux.org.uk> wrote:
+>> > --- a/include/linux/clkdev.h
+>> > +++ b/include/linux/clkdev.h
+>> > @@ -37,6 +37,9 @@ struct clk_lookup *clkdev_alloc(struct clk *clk, const char *con_id,
+>> >  void clkdev_add(struct clk_lookup *cl);
+>> >  void clkdev_drop(struct clk_lookup *cl);
+>> >
+>> > +struct clk_lookup *clkdev_create(struct clk *clk, const char *con_id,
+>> > +       const char *dev_fmt, ...);
+>>
+>> __printf(3, 4)
+>>
+>> While you're at it, can you please also add the __printf attribute to
+>> clkdev_alloc() and clk_register_clkdev()?
+>
+> What's the behaviour of __printf() with a NULL format string?  The
+> clkdev interfaces permit that, normal printf() doesn't.
 
-Hi all,
+As expected: no warning.
+Verified with gcc 4.1.2 and 4.8.2.
 
-   I would like to develop a point in my previous discussion based on
-new findings:
+Gr{oetje,eeting}s,
 
-On Thu, 29 Jan 2015, William Towle wrote:
-> 3. Our third problem concerns detecting the resolution of the stream.
-> Our code works with the obsoleted driver (adv761x.c) in place, but with
-> our modifications to adv7604.c we have seen a) recovery of a 640x480
-> image which is cropped rather than scaled, and/or b) recovery of a
-> 2048x2048 image with the stream content in the top left corner.
+                        Geert
 
-   We have since ported this code from 3.17 to 3.19 (Hans' "subdev2"
-branch) and removed the unnecessary backward compatibility sections.
-Some of the the behaviour is somewhat different in the port, but
-I'll discuss that separately. Here I intend to discuss a possible bug
-in adv7604.c.
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-   In our 3.17-based submission, we had shim code in soc_camera/rcar_vin
-in order to emulate the old driver (originally serving to "test drive"
-the new driver in an older kernel). For a test case with gstreamer
-capturing a single frame it was sufficient at the time a) to override
-the driver's default resolution with something larger when first probed
-[emulating adv761x.c defaulting to the maximum supported resolution],
-and b) to have a query_dv_timings() call ensuring rcar_vin_try_fmt()
-works with the resolution of the live stream [subsequent queries to the
-driver stop returning the default resolution after that, also as per
-adv761x.c].
-
-   I am currently investigating an enhancement to that solution in
-which the enum_dv_timings op is used to recover the maximum supported
-resolution of the new driver, and we hit a line in the driver which
-exits the corresponding function. It reads:
- 	if (timings->pad >= state->source_pad)
- 	        return -EINVAL;
-   It suffices to comment out this line, but clearly this is not ideal.
-Depending on the intended semantics, should it be filtering out all pad
-IDs not matching the active one, or all pad IDs that are not valid
-input sources? Unfortunately the lager board's adv7180 chip is too
-simple to make a sensible comparison case (that we can also run tests
-on) here.
-
-   Please advise. Comments would also be welcome regarding whether the
-shims describe changes that should live in the driver or elsewhere in
-soc_camera/rcar_vin in an acceptable solution.
-
-Cheers,
-   Wills.
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
