@@ -1,68 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f177.google.com ([209.85.216.177]:35447 "EHLO
-	mail-qc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954AbbCVXOM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Mar 2015 19:14:12 -0400
-Received: by qcbkw5 with SMTP id kw5so133011150qcb.2
-        for <linux-media@vger.kernel.org>; Sun, 22 Mar 2015 16:14:11 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1260119380.6141581427063838962.JavaMail.httpd@webmail-52.iol.local>
-References: <1260119380.6141581427063838962.JavaMail.httpd@webmail-52.iol.local>
-Date: Sun, 22 Mar 2015 19:14:11 -0400
-Message-ID: <CAGoCfiwTW-ZjmMDKkD69pNzm4wSVf0-Fiaz5a8L5Lmsd8OwzsQ@mail.gmail.com>
-Subject: Re: DVB-T Receivers Latency
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "pier.cvn@libero.it" <pier.cvn@libero.it>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56470 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753507AbbCBBtG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2015 20:49:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>
+Subject: [PATCH v5 4/8] v4l: Add VUY8 24 bits bus format
+Date: Mon,  2 Mar 2015 03:48:41 +0200
+Message-Id: <1425260925-12064-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1425260925-12064-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1425260925-12064-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pier,
+From: Hyun Kwon <hyun.kwon@xilinx.com>
 
-On Sun, Mar 22, 2015 at 6:37 PM, pier.cvn@libero.it <pier.cvn@libero.it> wrote:
-> Hello,
->
-> I was wondering if anyone had any idea of how much latency a DVB-T receiver
-> can add, in the path between radiofrequency and the MPEG-TS stream. I have
-> 100ms of unwanted latency I can't explain in an application I'm developing, so
-> I was faulting either the tx modulator or the rx demodulator latency for it. In
-> my specific case I'm using a 292e as receiver, that seems to have DSP filters
-> in it, and could very well be the cause of this tenth of a second delay.
+Add VUY8 24 bits bus format, V4L2_MBUS_FMT_VUY8_1X24.
 
-The receiver itself is unlikely to add any appreciable amount of
-latency.  Those devices typically only have a few kilobytes of onboard
-SRAM for buffering to the USB host controller, enough to hold a couple
-of dozen packets.  For a stream that is measured in Mbit/second, it's
-a trivial amount of buffering.  If we're talking about latency
-introduced by the DSP doing demodulation, we would be measuring
-latency in microseconds, not tens or hundreds of milliseconds.
+Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 30 ++++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h              |  3 ++-
+ 2 files changed, 32 insertions(+), 1 deletion(-)
 
-It's much more likely any buffering you are seeing which is
-introducing latency is in either the driver, the DVB core, or the
-application itself.  I don't know how you are measuring, but if you're
-actually *watching* the video as a means of measuring latency, then
-the latency is almost certainly in the MPEG decoder.  If you're using
-instrumentation though that looks at the actual MPEG packets, then
-it's likely you would have already ruled that out.
-
-> I was going to buy a couple more receivers to measure the differences, but I
-> was wondering if anyone had any analytic input before wasting money that way.
-
-I wouldn't bother.  All of the USB devices are going to provide
-comparable behavior.  The PCI/PCIe devices if anything are going to
-have a higher latency because they might have shared memory for the
-ring buffers, and thus can have a much larger FIFO.  There is likely
-tuning you can do to reduce the latency, but it's all in the kernel
-and software stack, not the DVB-T receiver hardware itself.
-
-If you can describe your methodology for how you are measuring latency
-in greater detail, I might be able to point you in the right
-direction.
-
-Devin
-
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 9bfd468..bc8d3fb 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -3015,6 +3015,36 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>u<subscript>1</subscript></entry>
+ 	      <entry>u<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="MEDIA-BUS-FMT-VUY8-1X24">
++	      <entry>MEDIA_BUS_FMT_VUY8_1X24</entry>
++	      <entry>0x201a</entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="MEDIA-BUS-FMT-UYVY12-1X24">
+ 	      <entry>MEDIA_BUS_FMT_UYVY12_1X24</entry>
+ 	      <entry>0x2020</entry>
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 363a30f..d391893 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -50,7 +50,7 @@
+ #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
+ #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
+ 
+-/* YUV (including grey) - next is	0x2024 */
++/* YUV (including grey) - next is	0x2025 */
+ #define MEDIA_BUS_FMT_Y8_1X8			0x2001
+ #define MEDIA_BUS_FMT_UV8_1X8			0x2015
+ #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
+@@ -80,6 +80,7 @@
+ #define MEDIA_BUS_FMT_VYUY10_1X20		0x201b
+ #define MEDIA_BUS_FMT_YUYV10_1X20		0x200d
+ #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
++#define MEDIA_BUS_FMT_VUY8_1X24			0x2024
+ #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
+ #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
+ #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+2.0.5
+
