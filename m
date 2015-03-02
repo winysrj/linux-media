@@ -1,290 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:22325 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753213AbbC0Nun (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 09:50:43 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v2 11/11] leds: aat1290: add support for V4L2 Flash sub-device
-Date: Fri, 27 Mar 2015 14:49:45 +0100
-Message-id: <1427464185-27950-12-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
-References: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45357 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754081AbbCBRGK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:06:10 -0500
+In-Reply-To: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 01/10] media: omap3isp: remove unused clkdev
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1YSTnC-0001JU-CX@rmk-PC.arm.linux.org.uk>
+Date: Mon, 02 Mar 2015 17:06:06 +0000
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for V4L2 Flash sub-device to the aat1290 LED Flash class
-driver. The support allows for V4L2 Flash sub-device to take the control
-of the LED Flash class device.
+No merged platform supplies xclks via platform data.  As we want to
+slightly change the clkdev interface, rather than fixing this unused
+code, remove it instead.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/leds/Kconfig        |    1 +
- drivers/leds/leds-aat1290.c |  150 ++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 149 insertions(+), 2 deletions(-)
+ drivers/media/platform/omap3isp/isp.c | 18 ------------------
+ drivers/media/platform/omap3isp/isp.h |  1 -
+ include/media/omap3isp.h              |  6 ------
+ 3 files changed, 25 deletions(-)
 
-diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-index c3b5b027..d73f43f 100644
---- a/drivers/leds/Kconfig
-+++ b/drivers/leds/Kconfig
-@@ -47,6 +47,7 @@ config LEDS_AAT1290
- 	depends on LEDS_CLASS_FLASH
- 	depends on GPIOLIB
- 	depends on OF
-+	depends on PINCTRL
- 	help
- 	 This option enables support for the LEDs on the AAT1290.
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index deca80903c3a..4d8078b9d010 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -281,7 +281,6 @@ static const struct clk_init_data isp_xclk_init_data = {
  
-diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
-index acfae35..34fd5c4 100644
---- a/drivers/leds/leds-aat1290.c
-+++ b/drivers/leds/leds-aat1290.c
-@@ -17,9 +17,11 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/of.h>
-+#include <linux/pinctrl/consumer.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
-+#include <media/v4l2-flash.h>
- 
- #define AAT1290_MOVIE_MODE_CURRENT_ADDR	17
- #define AAT1290_MAX_MM_CURR_PERCENT_0	16
-@@ -53,11 +55,17 @@ struct aat1290_led {
- 
- 	/* corresponding LED Flash class device */
- 	struct led_classdev_flash fled_cdev;
-+	/* V4L2 Flash device */
-+	struct v4l2_flash *v4l2_flash;
- 
- 	/* FLEN pin */
- 	struct gpio_desc *gpio_fl_en;
- 	/* EN|SET pin  */
- 	struct gpio_desc *gpio_en_set;
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	/* movie mode current scale */
-+	int *mm_current_scale;
-+#endif
- 
- 	/* maximum flash timeout */
- 	u32 max_flash_tm;
-@@ -224,11 +232,16 @@ static int aat1290_led_flash_timeout_set(struct led_classdev_flash *fled_cdev,
- 	return 0;
- }
- 
--static int aat1290_led_parse_dt(struct aat1290_led *led)
-+static int aat1290_led_parse_dt(struct aat1290_led *led,
-+			struct device_node **sub_node,
-+			struct v4l2_flash_config *v4l2_sd_cfg)
+ static int isp_xclk_init(struct isp_device *isp)
  {
- 	struct led_classdev *led_cdev = &led->fled_cdev.led_cdev;
- 	struct device *dev = &led->pdev->dev;
- 	struct device_node *child_node;
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	struct pinctrl *pinctrl;
-+#endif
- 	int ret = 0;
+-	struct isp_platform_data *pdata = isp->pdata;
+ 	struct clk_init_data init;
+ 	unsigned int i;
  
- 	led->gpio_fl_en = devm_gpiod_get(dev, "flen");
-@@ -245,6 +258,17 @@ static int aat1290_led_parse_dt(struct aat1290_led *led)
- 		return ret;
+@@ -311,20 +310,6 @@ static int isp_xclk_init(struct isp_device *isp)
+ 		xclk->clk = clk_register(NULL, &xclk->hw);
+ 		if (IS_ERR(xclk->clk))
+ 			return PTR_ERR(xclk->clk);
+-
+-		if (pdata->xclks[i].con_id == NULL &&
+-		    pdata->xclks[i].dev_id == NULL)
+-			continue;
+-
+-		xclk->lookup = kzalloc(sizeof(*xclk->lookup), GFP_KERNEL);
+-		if (xclk->lookup == NULL)
+-			return -ENOMEM;
+-
+-		xclk->lookup->con_id = pdata->xclks[i].con_id;
+-		xclk->lookup->dev_id = pdata->xclks[i].dev_id;
+-		xclk->lookup->clk = xclk->clk;
+-
+-		clkdev_add(xclk->lookup);
  	}
  
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	pinctrl = devm_pinctrl_get_select_default(&led->pdev->dev);
-+	if (IS_ERR(pinctrl)) {
-+		v4l2_sd_cfg->has_external_strobe = false;
-+		dev_info(dev,
-+			 "No support for external strobe detected.\n");
-+	} else {
-+		v4l2_sd_cfg->has_external_strobe = true;
-+	}
-+#endif
-+
- 	child_node = of_get_next_available_child(dev->of_node, NULL);
- 	if (!child_node) {
- 		dev_err(dev, "No DT child node found for connected LED.\n");
-@@ -270,6 +294,8 @@ static int aat1290_led_parse_dt(struct aat1290_led *led)
- 		return ret;
- 	}
- 
-+	*sub_node = child_node;
-+
- 	return ret;
- }
- 
-@@ -286,6 +312,100 @@ static void aat1290_init_flash_timeout(struct aat1290_led *led)
- 	setting->val = setting->max;
- }
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+enum led_brightness aat1290_intensity_to_brightness(
-+					struct v4l2_flash *v4l2_flash,
-+					s32 intensity)
-+{
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
-+	int i;
-+
-+	for (i = AAT1290_MM_CURRENT_SCALE_SIZE - 1; i >= 0; --i)
-+		if (intensity >= led->mm_current_scale[i])
-+			return i + 1;
-+
-+	return 1;
-+}
-+
-+s32 aat1290_brightness_to_intensity(struct v4l2_flash *v4l2_flash,
-+					enum led_brightness brightness)
-+{
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
-+
-+	return led->mm_current_scale[brightness - 1];
-+}
-+
-+static int aat1290_led_external_strobe_set(struct v4l2_flash *v4l2_flash,
-+						bool enable)
-+{
-+	struct aat1290_led *led = fled_cdev_to_led(v4l2_flash->fled_cdev);
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-+	struct pinctrl *pinctrl;
-+
-+	gpiod_direction_output(led->gpio_fl_en, 0);
-+	gpiod_direction_output(led->gpio_en_set, 0);
-+
-+	led->movie_mode = false;
-+	led_cdev->brightness = 0;
-+
-+	pinctrl = devm_pinctrl_get_select(&led->pdev->dev,
-+						enable ? "isp" : "host");
-+	if (IS_ERR(pinctrl)) {
-+		dev_warn(&led->pdev->dev, "Unable to switch strobe source.\n");
-+		return PTR_ERR(pinctrl);
-+	}
-+
-+	return 0;
-+}
-+
-+int init_mm_current_scale(struct aat1290_led *led)
-+{
-+	int max_mm_current_percent[] = { 20, 22, 25, 28, 32, 36, 40, 45, 50, 56,
-+						63, 71, 79, 89, 100 };
-+	int i, max_mm_current = AAT1290_MAX_MM_CURRENT(led->max_flash_current);
-+
-+	led->mm_current_scale = devm_kzalloc(&led->pdev->dev,
-+						sizeof(max_mm_current_percent),
-+						GFP_KERNEL);
-+	if (!led->mm_current_scale)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < AAT1290_MM_CURRENT_SCALE_SIZE; ++i)
-+		led->mm_current_scale[i] = max_mm_current *
-+					  max_mm_current_percent[i] / 100;
-+
-+	return 0;
-+}
-+
-+static void aat1290_init_v4l2_flash_config(struct aat1290_led *led,
-+					struct v4l2_flash_config *v4l2_sd_cfg)
-+{
-+	struct led_classdev *led_cdev = &led->fled_cdev.led_cdev;
-+	struct led_flash_setting *s;
-+
-+	strlcpy(v4l2_sd_cfg->dev_name, led_cdev->name,
-+		sizeof(v4l2_sd_cfg->dev_name));
-+
-+	s = &v4l2_sd_cfg->intensity;
-+	s->min = led->mm_current_scale[0];
-+	s->max = led->mm_current_scale[AAT1290_MM_CURRENT_SCALE_SIZE - 1];
-+	s->step = 1;
-+	s->val = s->max;
-+}
-+
-+static const struct v4l2_flash_ops v4l2_flash_ops = {
-+	.external_strobe_set = aat1290_led_external_strobe_set,
-+	.intensity_to_led_brightness = aat1290_intensity_to_brightness,
-+	.led_brightness_to_intensity = aat1290_brightness_to_intensity,
-+};
-+#else
-+#define aat1290_init_v4l2_flash_config(led, v4l2_sd_cfg)
-+#define init_mm_current_scale(led) (0)
-+#endif
-+
- static const struct led_flash_ops flash_ops = {
- 	.strobe_set = aat1290_led_flash_strobe_set,
- 	.timeout_set = aat1290_led_flash_timeout_set,
-@@ -294,9 +414,11 @@ static const struct led_flash_ops flash_ops = {
- static int aat1290_led_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-+	struct device_node *sub_node = NULL;
- 	struct aat1290_led *led;
- 	struct led_classdev *led_cdev;
- 	struct led_classdev_flash *fled_cdev;
-+	struct v4l2_flash_config v4l2_sd_cfg = {};
- 	int ret;
- 
- 	led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
-@@ -310,7 +432,15 @@ static int aat1290_led_probe(struct platform_device *pdev)
- 	fled_cdev->ops = &flash_ops;
- 	led_cdev = &fled_cdev->led_cdev;
- 
--	ret = aat1290_led_parse_dt(led);
-+	ret = aat1290_led_parse_dt(led, &sub_node, &v4l2_sd_cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	/*
-+	 * Init non-linear movie mode current scale basing
-+	 * on the max flash current from Device Tree binding.
-+	 */
-+	ret = init_mm_current_scale(led);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -330,8 +460,23 @@ static int aat1290_led_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto err_flash_register;
- 
-+	aat1290_init_v4l2_flash_config(led, &v4l2_sd_cfg);
-+
-+	led_cdev->dev->of_node = sub_node;
-+
-+	/* Create V4L2 Flash subdev. */
-+	led->v4l2_flash = v4l2_flash_init(fled_cdev,
-+					  &v4l2_flash_ops,
-+					  &v4l2_sd_cfg);
-+	if (IS_ERR(led->v4l2_flash)) {
-+		ret = PTR_ERR(led->v4l2_flash);
-+		goto error_v4l2_flash_init;
-+	}
-+
  	return 0;
+@@ -339,9 +324,6 @@ static void isp_xclk_cleanup(struct isp_device *isp)
  
-+error_v4l2_flash_init:
-+	led_classdev_flash_unregister(fled_cdev);
- err_flash_register:
- 	mutex_destroy(&led->lock);
+ 		if (!IS_ERR(xclk->clk))
+ 			clk_unregister(xclk->clk);
+-
+-		if (xclk->lookup)
+-			clkdev_drop(xclk->lookup);
+ 	}
+ }
  
-@@ -342,6 +487,7 @@ static int aat1290_led_remove(struct platform_device *pdev)
- {
- 	struct aat1290_led *led = platform_get_drvdata(pdev);
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index cfdfc8714b6b..d41c98bbdfe7 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -122,7 +122,6 @@ enum isp_xclk_id {
+ struct isp_xclk {
+ 	struct isp_device *isp;
+ 	struct clk_hw hw;
+-	struct clk_lookup *lookup;
+ 	struct clk *clk;
+ 	enum isp_xclk_id id;
  
-+	v4l2_flash_release(led->v4l2_flash);
- 	led_classdev_flash_unregister(&led->fled_cdev);
- 	cancel_work_sync(&led->work_brightness_set);
+diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+index 398279dd1922..a9798525d01e 100644
+--- a/include/media/omap3isp.h
++++ b/include/media/omap3isp.h
+@@ -152,13 +152,7 @@ struct isp_v4l2_subdevs_group {
+ 	} bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
+ };
  
+-struct isp_platform_xclk {
+-	const char *dev_id;
+-	const char *con_id;
+-};
+-
+ struct isp_platform_data {
+-	struct isp_platform_xclk xclks[2];
+ 	struct isp_v4l2_subdevs_group *subdevs;
+ 	void (*set_constraints)(struct isp_device *isp, bool enable);
+ };
 -- 
-1.7.9.5
+1.8.3.1
 
