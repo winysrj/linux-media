@@ -1,217 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40747 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753519AbbCMADb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2015 20:03:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: =?UTF-8?q?Carlos=20Sanmart=C3=ADn=20Bustos?= <carsanbu@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 2/2] v4l: mt9v032: Add OF support
-Date: Fri, 13 Mar 2015 02:03:28 +0200
-Message-Id: <1426205008-6160-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1426205008-6160-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1426205008-6160-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:39846 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755306AbbCBVur (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 16:50:47 -0500
+Message-ID: <54F4DB34.9000507@codeaurora.org>
+Date: Mon, 02 Mar 2015 13:50:44 -0800
+From: Stephen Boyd <sboyd@codeaurora.org>
+MIME-Version: 1.0
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+CC: Roland Stigge <stigge@antcom.de>, Andrew Lunn <andrew@lunn.ch>,
+	Mike Turquette <mturquette@linaro.org>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Tony Lindgren <tony@atomide.com>,
+	Mark Brown <broonie@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Subject: Re: [PATCH 00/10] initial clkdev cleanups
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+In-Reply-To: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse DT properties into a platform data structure when a DT node is
-available.
+On 03/02/15 09:05, Russell King - ARM Linux wrote:
+> Here's some initial clkdev cleanups.  These are targetted for the next
+> merge window, and while the initial patches can be merged independently,
+> I'd prefer to keep the series together as further work on solving the
+> problems which unique struct clk's has introduced is needed.
+>
+> The initial cleanups are more about using the correct clkdev function
+> than anything else: there's no point interating over a array of
+> clk_lookup structs, adding each one in turn when we have had a function
+> which does this since forever.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The clkdev_add_table() conversions look good.
 
----
+>
+> I'm also killing a chunk of seemingly unused code in the omap3isp driver.
+>
+> Lastly, I'm introducing a clkdev_create() helper, which combines the
+> clkdev_alloc() + clkdev_add() pattern which keeps cropping up.
+>
 
-Changes since v1:
+We already have a solution to that problem with clk_register_clkdev().
+Andy has done some work to make clk_register_clkdev() return a struct
+clk_lookup pointer[1]. Maybe we can do that instead of introducing a new
+clkdev_create() function. There is some benefit to having a new function
+though so that we can avoid a flag day, although it looks like the flag
+day is small in this case so it might not actually matter.
 
-- Add MT9V02[24] compatible strings
-- Prefix all compatible strings with "aptina,"
-- Use "link-frequencies" instead of "link-freqs"
+[1] https://www.marc.info/?l=linux-kernel&m=142469226512289
 
-Open questions:
-
-- Should the color/monochrome model be inferred from the compatible string, or
-  should a separate DT property be used for that ?
-
----
- .../devicetree/bindings/media/i2c/mt9v032.txt      | 45 ++++++++++++++
- MAINTAINERS                                        |  1 +
- drivers/media/i2c/mt9v032.c                        | 70 +++++++++++++++++++++-
- 3 files changed, 115 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9v032.txt
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
-new file mode 100644
-index 0000000..68b134e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
-@@ -0,0 +1,45 @@
-+* Aptina 1/3-Inch WVGA CMOS Digital Image Sensor
-+
-+The Aptina MT9V032 is a 1/3-inch CMOS active pixel digital image sensor with
-+an active array size of 752H x 480V. It is programmable through a simple
-+two-wire serial interface.
-+
-+Required Properties:
-+
-+- compatible: value should be either one among the following
-+	(a) "aptina,mt9v022" for MT9V022 color sensor
-+	(b) "aptina,mt9v022m" for MT9V022 monochrome sensor
-+	(c) "aptina,mt9v024" for MT9V024 color sensor
-+	(d) "aptina,mt9v024m" for MT9V024 monochrome sensor
-+	(e) "aptina,mt9v032" for MT9V032 color sensor
-+	(f) "aptina,mt9v032m" for MT9V032 monochrome sensor
-+	(g) "aptina,mt9v034" for MT9V034 color sensor
-+	(h) "aptina,mt9v034m" for MT9V034 monochrome sensor
-+
-+Optional Properties:
-+
-+- link-frequencies: List of allowed link frequencies in Hz. Each frequency is
-+	expressed as a 64-bit big-endian integer.
-+
-+For further reading on port node refer to
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+	i2c0@1c22000 {
-+		...
-+		...
-+		mt9v032@5c {
-+			compatible = "aptina,mt9v032";
-+			reg = <0x5c>;
-+
-+			port {
-+				mt9v032_1: endpoint {
-+					link-frequencies =
-+						<0 13000000>, <0 26600000>,
-+						<0 27000000>;
-+				};
-+			};
-+		};
-+		...
-+	};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index ddc5a8c..180f6fb 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6535,6 +6535,7 @@ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
-+F:	Documentation/devicetree/bindings/media/i2c/mt9v032.txt
- F:	drivers/media/i2c/mt9v032.c
- F:	include/media/mt9v032.h
- 
-diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-index 255ea91..89e6d8d 100644
---- a/drivers/media/i2c/mt9v032.c
-+++ b/drivers/media/i2c/mt9v032.c
-@@ -17,6 +17,8 @@
- #include <linux/i2c.h>
- #include <linux/log2.h>
- #include <linux/mutex.h>
-+#include <linux/of.h>
-+#include <linux/of_gpio.h>
- #include <linux/regmap.h>
- #include <linux/slab.h>
- #include <linux/videodev2.h>
-@@ -26,6 +28,7 @@
- #include <media/mt9v032.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-of.h>
- #include <media/v4l2-subdev.h>
- 
- /* The first four rows are black rows. The active area spans 753x481 pixels. */
-@@ -876,10 +879,59 @@ static const struct regmap_config mt9v032_regmap_config = {
-  * Driver initialization and probing
-  */
- 
-+static struct mt9v032_platform_data *
-+mt9v032_get_pdata(struct i2c_client *client)
-+{
-+	struct mt9v032_platform_data *pdata;
-+	struct v4l2_of_endpoint endpoint;
-+	struct device_node *np;
-+	struct property *prop;
-+
-+	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-+		return client->dev.platform_data;
-+
-+	np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-+	if (!np)
-+		return NULL;
-+
-+	if (v4l2_of_parse_endpoint(np, &endpoint) < 0)
-+		goto done;
-+
-+	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		goto done;
-+
-+	prop = of_find_property(np, "link-frequencies", NULL);
-+	if (prop) {
-+		size_t size = prop->length / 8;
-+		u64 *link_freqs;
-+
-+		link_freqs = devm_kzalloc(&client->dev,
-+					  size * sizeof(*link_freqs),
-+					  GFP_KERNEL);
-+		if (!link_freqs)
-+			goto done;
-+
-+		if (of_property_read_u64_array(np, "link-frequencies",
-+					       link_freqs, size) < 0)
-+			goto done;
-+
-+		pdata->link_freqs = link_freqs;
-+		pdata->link_def_freq = link_freqs[0];
-+	}
-+
-+	pdata->clk_pol = !!(endpoint.bus.parallel.flags &
-+			    V4L2_MBUS_PCLK_SAMPLE_RISING);
-+
-+done:
-+	of_node_put(np);
-+	return pdata;
-+}
-+
- static int mt9v032_probe(struct i2c_client *client,
- 		const struct i2c_device_id *did)
- {
--	struct mt9v032_platform_data *pdata = client->dev.platform_data;
-+	struct mt9v032_platform_data *pdata = mt9v032_get_pdata(client);
- 	struct mt9v032 *mt9v032;
- 	unsigned int i;
- 	int ret;
-@@ -1037,9 +1089,25 @@ static const struct i2c_device_id mt9v032_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, mt9v032_id);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id mt9v032_of_match[] = {
-+	{ .compatible = "aptina,mt9v022" },
-+	{ .compatible = "aptina,mt9v022m" },
-+	{ .compatible = "aptina,mt9v024" },
-+	{ .compatible = "aptina,mt9v024m" },
-+	{ .compatible = "aptina,mt9v032" },
-+	{ .compatible = "aptina,mt9v032m" },
-+	{ .compatible = "aptina,mt9v034" },
-+	{ .compatible = "aptina,mt9v034m" },
-+	{ /* Sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, mt9v032_of_match);
-+#endif
-+
- static struct i2c_driver mt9v032_driver = {
- 	.driver = {
- 		.name = "mt9v032",
-+		.of_match_table = of_match_ptr(mt9v032_of_match),
- 	},
- 	.probe		= mt9v032_probe,
- 	.remove		= mt9v032_remove,
 -- 
-2.0.5
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
 
