@@ -1,70 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45402 "EHLO
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45508 "EHLO
 	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756198AbbCBRG4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:06:56 -0500
-In-Reply-To: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+	with ESMTP id S1754237AbbCBRq3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:46:29 -0500
+Date: Mon, 2 Mar 2015 17:46:20 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: ALSA Development Mailing List <alsa-devel@alsa-project.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
+Message-ID: <20150302174619.GD29584@n2100.arm.linux.org.uk>
 References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 09/10] ARM: omap2: use clkdev_create()
+ <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
+ <CAMuHMdWHAu+zDKce0+ianDb=RHYR59eeMoiYBDK4PC=YMY0JXg@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1YSTnr-0001K1-Do@rmk-PC.arm.linux.org.uk>
-Date: Mon, 02 Mar 2015 17:06:47 +0000
+In-Reply-To: <CAMuHMdWHAu+zDKce0+ianDb=RHYR59eeMoiYBDK4PC=YMY0JXg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rather than open coding the clkdev allocation, initialisation and
-addition, use the clkdev_create() helper.
+On Mon, Mar 02, 2015 at 06:22:31PM +0100, Geert Uytterhoeven wrote:
+> On Mon, Mar 2, 2015 at 6:06 PM, Russell King
+> <rmk+kernel@arm.linux.org.uk> wrote:
+> > --- a/include/linux/clkdev.h
+> > +++ b/include/linux/clkdev.h
+> > @@ -37,6 +37,9 @@ struct clk_lookup *clkdev_alloc(struct clk *clk, const char *con_id,
+> >  void clkdev_add(struct clk_lookup *cl);
+> >  void clkdev_drop(struct clk_lookup *cl);
+> >
+> > +struct clk_lookup *clkdev_create(struct clk *clk, const char *con_id,
+> > +       const char *dev_fmt, ...);
+> 
+> __printf(3, 4)
+> 
+> While you're at it, can you please also add the __printf attribute to
+> clkdev_alloc() and clk_register_clkdev()?
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+What's the behaviour of __printf() with a NULL format string?  The
+clkdev interfaces permit that, normal printf() doesn't.
 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-index 85e0b0c06718..b64d717bfab6 100644
---- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -232,14 +232,12 @@ void omap2xxx_clkt_vps_init(void)
- 	struct clk_hw_omap *hw = NULL;
- 	struct clk *clk;
- 	const char *parent_name = "mpu_ck";
--	struct clk_lookup *lookup = NULL;
- 
- 	omap2xxx_clkt_vps_late_init();
- 	omap2xxx_clkt_vps_check_bootloader_rates();
- 
- 	hw = kzalloc(sizeof(*hw), GFP_KERNEL);
--	lookup = kzalloc(sizeof(*lookup), GFP_KERNEL);
--	if (!hw || !lookup)
-+	if (!hw)
- 		goto cleanup;
- 	init.name = "virt_prcm_set";
- 	init.ops = &virt_prcm_set_ops;
-@@ -249,15 +247,9 @@ void omap2xxx_clkt_vps_init(void)
- 	hw->hw.init = &init;
- 
- 	clk = clk_register(NULL, &hw->hw);
--
--	lookup->dev_id = NULL;
--	lookup->con_id = "cpufreq_ck";
--	lookup->clk = clk;
--
--	clkdev_add(lookup);
-+	clkdev_create(clk, "cpufreq_ck", NULL);
- 	return;
- cleanup:
- 	kfree(hw);
--	kfree(lookup);
- }
- #endif
 -- 
-1.8.3.1
-
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
