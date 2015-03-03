@@ -1,73 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56925 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751185AbbCYX6y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 19:58:54 -0400
-Date: Thu, 26 Mar 2015 01:58:20 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Chris Whittenburg <whittenburg@gmail.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: OMAP3 ISP previewer Y10 to UYVY conversion
-Message-ID: <20150325235820.GP18321@valkosipuli.retiisi.org.uk>
-References: <CABcw_Okm1ZVob1s_JxZaRk_oFP2efh38qEyDeok4K2066dcMvQ@mail.gmail.com>
- <20150324235148.GC18321@valkosipuli.retiisi.org.uk>
- <CABcw_O=Gv3xvnRU9LvVUaCKEEkLFFrhpqLZ9FZ89XRAp0_RR5Q@mail.gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58875 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756182AbbCCW4W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 17:56:22 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, josh.wu@atmel.com,
+	g.liakhovetski@gmx.de
+Subject: Re: [PATCH v4 2/2] V4L: add CCF support to the v4l2_clk API
+Date: Wed, 04 Mar 2015 00:56:18 +0200
+Message-ID: <1930989.nfYKYx2vJh@avalon>
+In-Reply-To: <20150303134050.17bb1f4c@recife.lan>
+References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange> <qcg754.nklrbz.ru1ns5-qmf@galahad.ideasonboard.com> <20150303134050.17bb1f4c@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CABcw_O=Gv3xvnRU9LvVUaCKEEkLFFrhpqLZ9FZ89XRAp0_RR5Q@mail.gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chris,
+Hi Mauro,
 
-On Wed, Mar 25, 2015 at 09:12:56AM -0500, Chris Whittenburg wrote:
-> Hi Sakari,
-> 
-> Thanks for the reply.
-> 
-> On Tue, Mar 24, 2015 at 6:51 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > Do you know if the sensor has black level correction enabled? It appears to
-> > have one, but I'm not completely sure what it does there. I'd check that it
-> > is indeed enabled.
-> 
-> The ar0130cs does have black level correction enabled by default.
-> 
-> My thought is that since the 12-bit data from the CCDC looked ok, that
-> it was something outside the sensor itself.
+On Tuesday 03 March 2015 13:40:50 Mauro Carvalho Chehab wrote:
+> Em Mon, 02 Mar 2015 20:52:41 +0000 Laurent Pinchart escreveu:
+> > On Mon Mar 02 2015 18:55:23 GMT+0200 (EET), Mauro Carvalho Chehab wrote:
+> >> Em Sun, 1 Feb 2015 12:12:33 +0100 (CET) Guennadi Liakhovetski escreveu:
+> >>> V4L2 clocks, e.g. used by camera sensors for their master clock, do
+> >>> not have to be supplied by a different V4L2 driver, they can also be
+> >>> supplied by an independent source. In this case the standart kernel
+> >>> clock API should be used to handle such clocks. This patch adds
+> >>> support for such cases.
+> >>> 
+> >>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>> ---
+> >>> 
+> >>> v4: sizeof(*clk) :)
+> >>> 
+> >>>  drivers/media/v4l2-core/v4l2-clk.c | 48 ++++++++++++++++++++++++++---
+> >>>  include/media/v4l2-clk.h           |  2 ++
+> >>>  2 files changed, 47 insertions(+), 3 deletions(-)
+> >>> 
+> >>> diff --git a/drivers/media/v4l2-core/v4l2-clk.c
+> >>> b/drivers/media/v4l2-core/v4l2-clk.c index 3ff0b00..9f8cb20 100644
+> >>> --- a/drivers/media/v4l2-core/v4l2-clk.c
+> >>> +++ b/drivers/media/v4l2-core/v4l2-clk.c
 
-I think I might have misunderstood your original mail. I thought the images
-from CCDC were bad.
+[snip]
 
-> >> I've captured the 12-bit data from the CCDC, downconverted it to Y8,
-> >> and verified it looks ok, and is not washed out, so I'm suspecting the
-> >> isp previewer is doing something wrong in the simple Y10 to UYVY
-> >> conversion.
-> >
-> > Not necessarily wrong, the black level correction might be enabled by
-> > default, with the default configuration which works for most sensors (64 for
-> > 10-bit data, 16 for 8-bit etc.).
+> >>> @@ -37,6 +38,21 @@ static struct v4l2_clk *v4l2_clk_find(const char
+> >>> *dev_id)
+> >>> struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
+> >>> {
+> >>>  	struct v4l2_clk *clk;
+> >>> 
+> >>> +	struct clk *ccf_clk = clk_get(dev, id);
+> >>> +
+> >>> +	if (PTR_ERR(ccf_clk) == -EPROBE_DEFER)
+> >>> +		return ERR_PTR(-EPROBE_DEFER);
+> >> 
+> >> Why not do just:
+> >> 		return ccf_clk;
+> > 
+> > I find the explicit error slightly more readable, but that's a matter of
+> > taste.
+>
+> Well, return(ccf_clk) will likely produce a smaller instruction code
+> than return (long).
+
+Not if the compiler is smart :-)
+
+> >>> +
+> >>> +	if (!IS_ERR_OR_NULL(ccf_clk)) {
+> >>> +		clk = kzalloc(sizeof(*clk), GFP_KERNEL);
+> >>> +		if (!clk) {
+> >>> +			clk_put(ccf_clk);
+> >>> +			return ERR_PTR(-ENOMEM);
+> >>> +		}
+> >>> +		clk->clk = ccf_clk;
+> >>> +
+> >>> +		return clk;
+> >>> +	}
+> >> 
+> >> The error condition here looks a little weird to me. I mean, if the
+> >> CCF clock returns an error, shouldn't it fail instead of silently
+> >> run some logic to find another clock source? Isn't it risky on getting
+> >> a wrong value?
+> > 
+> > The idea is that, in the long term, everything should use CCF directly.
+> > However, we have clock providers on platforms where CCF isn't avalaible.
+> > V4L2 clock has been introduced  as a  single API usable by V4L2 clock
+> > users allowing them to retrieve and use clocks regardless of whether the
+> > provider uses CCF or not. Internally it first tries CCF, and then falls
+> > back to the non-CCF implementation in case of failure.
+>
+> Yeah, I got that the non-CCF is a fallback code, to be used on
+> platforms that CCF isn't available.
 > 
-> Ok, I will check this.  You are referring to the "Camera ISP VPBE
-> Preview Black Adjustment" which is controlled by PRV_BLKADJOFF
-> register?
-
-I guess it wasn't. The value appears to be zero by default, which makes
-sense.
-
-> I also found that there are contrast and brightness settings in the
-> previewer which can be adjusted.  I'm not changing them from defaults,
-> so I thought the "Y" values would just get truncated to 8 bits and
-> mapped into the UYVY without being significantly altered.
+> However, the above code doesn't seem to look if CCF is available
+> or not. Instead, it assumes that *all* error codes, or even NULL,
+> means that CCF isn't available.
 > 
-> Would your thought be the black level is more likely the issue rather
-> than brightness/contrast?
+> Shouldn't it be, instead, either waiting for NULL or for some
+> specific error code, in order to:
+> - return the error code, if CCF is available but getting
+>   the clock failed;
+> - run the backward-compat code when CCF is not available.
 
-I haven't used this part of the ISP, perhaps Laurent has.
+Isn't that pretty much what the code is doing ? If we get a -EPROBE_DEFER 
+error from CCF meaning that the clock is known but not registered yet we 
+return it. Otherwise, if the clock is unknown to CCF, or if CCF is disabled, 
+we fall back.
 
 -- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
