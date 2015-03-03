@@ -1,51 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:48071 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758924AbbCDJWE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Mar 2015 04:22:04 -0500
-Message-ID: <54F6CEA7.5080601@xs4all.nl>
-Date: Wed, 04 Mar 2015 10:21:43 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:37562 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932335AbbCCXVf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Mar 2015 18:21:35 -0500
+Date: Tue, 3 Mar 2015 20:21:29 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, josh.wu@atmel.com,
+	g.liakhovetski@gmx.de
+Subject: Re: [PATCH v4 2/2] V4L: add CCF support to the v4l2_clk API
+Message-ID: <20150303202129.6c88a8e6@recife.lan>
+In-Reply-To: <1930989.nfYKYx2vJh@avalon>
+References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange>
+	<qcg754.nklrbz.ru1ns5-qmf@galahad.ideasonboard.com>
+	<20150303134050.17bb1f4c@recife.lan>
+	<1930989.nfYKYx2vJh@avalon>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [GIT PULL FOR v4.1] v4l2-subdev: removal of duplicate video enum
- ops
-References: <54F5D9CA.2010103@xs4all.nl>
-In-Reply-To: <54F5D9CA.2010103@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/15 16:56, Hans Verkuil wrote:
+Em Wed, 04 Mar 2015 00:56:18 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+
 > Hi Mauro,
 > 
-> This patch series prepares for the removal of duplicate video enum ops. See this
-> post for the background for this series:
+> On Tuesday 03 March 2015 13:40:50 Mauro Carvalho Chehab wrote:
+> > Em Mon, 02 Mar 2015 20:52:41 +0000 Laurent Pinchart escreveu:
+> > > On Mon Mar 02 2015 18:55:23 GMT+0200 (EET), Mauro Carvalho Chehab wrote:
+> > >> Em Sun, 1 Feb 2015 12:12:33 +0100 (CET) Guennadi Liakhovetski escreveu:
+> > >>> V4L2 clocks, e.g. used by camera sensors for their master clock, do
+> > >>> not have to be supplied by a different V4L2 driver, they can also be
+> > >>> supplied by an independent source. In this case the standart kernel
+> > >>> clock API should be used to handle such clocks. This patch adds
+> > >>> support for such cases.
+> > >>> 
+> > >>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > >>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > >>> ---
+> > >>> 
+> > >>> v4: sizeof(*clk) :)
+> > >>> 
+> > >>>  drivers/media/v4l2-core/v4l2-clk.c | 48 ++++++++++++++++++++++++++---
+> > >>>  include/media/v4l2-clk.h           |  2 ++
+> > >>>  2 files changed, 47 insertions(+), 3 deletions(-)
+> > >>> 
+> > >>> diff --git a/drivers/media/v4l2-core/v4l2-clk.c
+> > >>> b/drivers/media/v4l2-core/v4l2-clk.c index 3ff0b00..9f8cb20 100644
+> > >>> --- a/drivers/media/v4l2-core/v4l2-clk.c
+> > >>> +++ b/drivers/media/v4l2-core/v4l2-clk.c
 > 
-> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/87869
+> [snip]
 > 
-> The patches in this pull request are the same as the posted series, except for
-> being rebased and with patch 6/7 being dropped. This patch is found here:
+> > >>> @@ -37,6 +38,21 @@ static struct v4l2_clk *v4l2_clk_find(const char
+> > >>> *dev_id)
+> > >>> struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
+> > >>> {
+> > >>>  	struct v4l2_clk *clk;
+> > >>> 
+> > >>> +	struct clk *ccf_clk = clk_get(dev, id);
+> > >>> +
+> > >>> +	if (PTR_ERR(ccf_clk) == -EPROBE_DEFER)
+> > >>> +		return ERR_PTR(-EPROBE_DEFER);
+> > >> 
+> > >> Why not do just:
+> > >> 		return ccf_clk;
+> > > 
+> > > I find the explicit error slightly more readable, but that's a matter of
+> > > taste.
+> >
+> > Well, return(ccf_clk) will likely produce a smaller instruction code
+> > than return (long).
 > 
-> https://patchwork.linuxtv.org/patch/28220/
+> Not if the compiler is smart :-)
 > 
-> The reason for dropping it is that I don't have an Ack from Jon Corbet yet.
-> I'm trying to test it myself, at least on my OLPC laptop, but that's painful
-> and takes longer than I hoped.
+> > >>> +
+> > >>> +	if (!IS_ERR_OR_NULL(ccf_clk)) {
+> > >>> +		clk = kzalloc(sizeof(*clk), GFP_KERNEL);
+> > >>> +		if (!clk) {
+> > >>> +			clk_put(ccf_clk);
+> > >>> +			return ERR_PTR(-ENOMEM);
+> > >>> +		}
+> > >>> +		clk->clk = ccf_clk;
+> > >>> +
+> > >>> +		return clk;
+> > >>> +	}
+> > >> 
+> > >> The error condition here looks a little weird to me. I mean, if the
+> > >> CCF clock returns an error, shouldn't it fail instead of silently
+> > >> run some logic to find another clock source? Isn't it risky on getting
+> > >> a wrong value?
+> > > 
+> > > The idea is that, in the long term, everything should use CCF directly.
+> > > However, we have clock providers on platforms where CCF isn't avalaible.
+> > > V4L2 clock has been introduced  as a  single API usable by V4L2 clock
+> > > users allowing them to retrieve and use clocks regardless of whether the
+> > > provider uses CCF or not. Internally it first tries CCF, and then falls
+> > > back to the non-CCF implementation in case of failure.
+> >
+> > Yeah, I got that the non-CCF is a fallback code, to be used on
+> > platforms that CCF isn't available.
+> > 
+> > However, the above code doesn't seem to look if CCF is available
+> > or not. Instead, it assumes that *all* error codes, or even NULL,
+> > means that CCF isn't available.
+> > 
+> > Shouldn't it be, instead, either waiting for NULL or for some
+> > specific error code, in order to:
+> > - return the error code, if CCF is available but getting
+> >   the clock failed;
+> > - run the backward-compat code when CCF is not available.
 > 
-> So I don't want to wait for that and I am posting the other patches now.
-> Laurent needs these patches as well so he can rebase his xilinx driver on top
-> of it.
-> 
-> Patch 6/7 will be posted in a later pull request, once I (or Jon) managed to
-> test it.
+> Isn't that pretty much what the code is doing ? If we get a -EPROBE_DEFER 
+> error from CCF meaning that the clock is known but not registered yet we 
+> return it. Otherwise, if the clock is unknown to CCF, or if CCF is disabled, 
+> we fall back.
 
-I'm setting this to superseded: I found an am437 problem and now that I
-tested patch 6/7 I'm going to include that one as well.
+I didn't check the CCF code, but couldn't it return error codes like
+ENOMEM? What are all the error codes it can return ATM? What, among
+them, can happen when CCF is available?
+
+Also, as the CCF code can be changed, if the intent behavior is to only
+allow EPROBE_DEFER or NULL, if the there is support for CCF, then you
+need to have an explicit comment there to avoid that any newer patches
+to add different error codes.
+
+IMHO, it seems a way better to define a single error code to be
+returned when the platform doesn't support CCF (like -ENOTSUPP),
+and calling the fallback code only in this case. Something like:
+
+	if (PTR_ERR(ccf_clk) != -ENOTSUPP)
+		return ccf_clk;
+
+	/* CCF is not supported. Fall back to the old way */	
+	k = kzalloc(sizeof(*clk), GFP_KERNEL);
+	if (!clk) {
+		clk_put(ccf_clk);
+		return ERR_PTR(-ENOMEM);
+	}
+	clk->clk = ccf_clk;
+	return clk;
 
 Regards,
-
-	Hans
+Mauro
