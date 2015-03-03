@@ -1,89 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38482 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753897AbbCNLra (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 07:47:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58336 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754819AbbCCOUO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 09:20:14 -0500
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 6377620066
+	for <linux-media@vger.kernel.org>; Tue,  3 Mar 2015 15:19:20 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 19/22] marvell-ccic: drop support for PIX_FMT_422P
-Date: Sat, 14 Mar 2015 12:46:58 +0100
-Message-Id: <1426333621-21474-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1426333621-21474-1-git-send-email-hverkuil@xs4all.nl>
-References: <1426333621-21474-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [PATCH] staging: media: omap4iss: video: Don't WARN() on unknown pixel formats
+Date: Tue,  3 Mar 2015 16:20:11 +0200
+Message-Id: <1425392411-26608-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+When mapping from a V4L2 pixel format to a media bus format in the
+VIDIOC_TRY_FMT and VIDIOC_S_FMT handlers, the requested format may be
+unsupported by the driver. Return a hardcoded default format instead of
+WARN()ing in that case.
 
-I cannot get this format to work, the colors keep coming out wrong.
-Since this has never worked I just drop support for this.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/marvell-ccic/mcam-core.c | 19 -------------------
- 1 file changed, 19 deletions(-)
+ drivers/staging/media/omap4iss/iss_video.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 3f016fb..5b60da1 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -124,13 +124,6 @@ static struct mcam_format_struct {
- 		.planar		= false,
- 	},
- 	{
--		.desc		= "YUV 4:2:2 PLANAR",
--		.pixelformat	= V4L2_PIX_FMT_YUV422P,
--		.mbus_code	= MEDIA_BUS_FMT_YUYV8_2X8,
--		.bpp		= 1,
--		.planar		= true,
--	},
--	{
- 		.desc		= "YUV 4:2:0 PLANAR",
- 		.pixelformat	= V4L2_PIX_FMT_YUV420,
- 		.mbus_code	= MEDIA_BUS_FMT_YUYV8_2X8,
-@@ -352,10 +345,6 @@ static void mcam_write_yuv_bases(struct mcam_camera *cam,
- 	y = base;
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index 6955044..e949b6f 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -171,14 +171,14 @@ static void iss_video_pix_to_mbus(const struct v4l2_pix_format *pix,
+ 	mbus->width = pix->width;
+ 	mbus->height = pix->height;
  
- 	switch (fmt->pixelformat) {
--	case V4L2_PIX_FMT_YUV422P:
--		u = y + pixel_count;
--		v = u + pixel_count / 2;
--		break;
- 	case V4L2_PIX_FMT_YUV420:
- 		u = y + pixel_count;
- 		v = u + pixel_count / 4;
-@@ -755,7 +744,6 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
- 		widthy = fmt->width * 2;
- 		widthuv = 0;
- 		break;
--	case V4L2_PIX_FMT_YUV422P:
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
- 		widthy = fmt->width;
-@@ -776,10 +764,6 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
- 	 * Tell the controller about the image format we are using.
- 	 */
- 	switch (fmt->pixelformat) {
--	case V4L2_PIX_FMT_YUV422P:
--		mcam_reg_write_mask(cam, REG_CTRL0,
--			C0_DF_YUV | C0_YUV_PLANAR | C0_YUVE_YVYU, C0_DF_MASK);
--		break;
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
- 		mcam_reg_write_mask(cam, REG_CTRL0,
-@@ -1373,9 +1357,6 @@ static int mcam_vidioc_try_fmt_vid_cap(struct file *filp, void *priv,
- 	v4l2_fill_pix_format(pix, &mbus_fmt);
- 	pix->bytesperline = pix->width * f->bpp;
- 	switch (f->pixelformat) {
--	case V4L2_PIX_FMT_YUV422P:
--		pix->sizeimage = pix->height * pix->bytesperline * 2;
--		break;
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
- 		pix->sizeimage = pix->height * pix->bytesperline * 3 / 2;
+-	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
++	/* Skip the last format in the loop so that it will be selected if no
++	 * match is found.
++	 */
++	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
+ 		if (formats[i].pixelformat == pix->pixelformat)
+ 			break;
+ 	}
+ 
+-	if (WARN_ON(i == ARRAY_SIZE(formats)))
+-		return;
+-
+ 	mbus->code = formats[i].code;
+ 	mbus->colorspace = pix->colorspace;
+ 	mbus->field = pix->field;
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
