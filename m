@@ -1,94 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:56494 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752190AbbCOW6G (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:52335 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752935AbbCCJJj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 18:58:06 -0400
-From: Benjamin Larsson <benjamin@southpole.se>
-To: crope@iki.fi, mchehab@osg.samsung.com
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 10/10] mn88473: implement lock for all delivery systems
-Date: Sun, 15 Mar 2015 23:57:55 +0100
-Message-Id: <1426460275-3766-10-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
-References: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
+	Tue, 3 Mar 2015 04:09:39 -0500
+Message-ID: <54F57A43.30101@xs4all.nl>
+Date: Tue, 03 Mar 2015 10:09:23 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+CC: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCH] media: i2c: s5c73m3: make sure we destroy the mutex
+References: <1425308434-26549-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1425308434-26549-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/staging/media/mn88473/mn88473.c | 50 +++++++++++++++++++++++++++++++--
- 1 file changed, 48 insertions(+), 2 deletions(-)
+On 03/02/2015 04:00 PM, Lad Prabhakar wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> Make sure to call mutex_destroy() in case of probe failure or module
+> unload.
 
-diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
-index a23e59e..ba39614 100644
---- a/drivers/staging/media/mn88473/mn88473.c
-+++ b/drivers/staging/media/mn88473/mn88473.c
-@@ -167,7 +167,10 @@ static int mn88473_read_status(struct dvb_frontend *fe, fe_status_t *status)
- {
- 	struct i2c_client *client = fe->demodulator_priv;
- 	struct mn88473_dev *dev = i2c_get_clientdata(client);
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
-+	unsigned int utmp;
-+	int lock = 0;
- 
- 	*status = 0;
- 
-@@ -176,8 +179,51 @@ static int mn88473_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 		goto err;
- 	}
- 
--	*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
--			FE_HAS_SYNC | FE_HAS_LOCK;
-+	switch (c->delivery_system) {
-+	case SYS_DVBT:
-+		ret = regmap_read(dev->regmap[0], 0x62, &utmp);
-+		if (ret)
-+			goto err;
-+		if (utmp & 0xA0) {
-+			if ((utmp & 0xF) >= 0x03)
-+				*status |= FE_HAS_SIGNAL;
-+			if ((utmp & 0xF) >= 0x09)
-+				lock = 1;
-+		}
-+		break;
-+	case SYS_DVBT2:
-+		ret = regmap_read(dev->regmap[2], 0x8B, &utmp);
-+		if (ret)
-+			goto err;
-+		if (utmp & 0x40) {
-+			if ((utmp & 0xF) >= 0x07)
-+				*status |= FE_HAS_SIGNAL;
-+			if ((utmp & 0xF) >= 0x0a)
-+				*status |= FE_HAS_CARRIER;
-+			if ((utmp & 0xF) >= 0x0d)
-+				*status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
-+		}
-+		break;
-+	case SYS_DVBC_ANNEX_A:
-+		ret = regmap_read(dev->regmap[1], 0x85, &utmp);
-+		if (ret)
-+			goto err;
-+		if (utmp & 0x40) {
-+			ret = regmap_read(dev->regmap[1], 0x89, &utmp);
-+			if (ret)
-+				goto err;
-+			if (utmp & 0x01)
-+				lock = 1;
-+		}
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	if (lock)
-+		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
-+				FE_HAS_SYNC | FE_HAS_LOCK;
- 
- 	return 0;
- err:
--- 
-2.1.0
+It's not actually necessary to destroy a mutex. Most drivers never do this.
+It only helps a bit in debugging.
+
+I'll delegate this patch to Kamil, and he can decide whether or not to apply
+this.
+
+Regards,
+
+	Hans
+
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  drivers/media/i2c/s5c73m3/s5c73m3-core.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> index ee0f57e..da0b3a3 100644
+> --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> @@ -1658,7 +1658,6 @@ static int s5c73m3_probe(struct i2c_client *client,
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	mutex_init(&state->lock);
+>  	sd = &state->sensor_sd;
+>  	oif_sd = &state->oif_sd;
+>  
+> @@ -1695,6 +1694,8 @@ static int s5c73m3_probe(struct i2c_client *client,
+>  	if (ret < 0)
+>  		return ret;
+>  
+> +	mutex_init(&state->lock);
+> +
+>  	ret = s5c73m3_configure_gpios(state);
+>  	if (ret)
+>  		goto out_err;
+> @@ -1754,6 +1755,7 @@ out_err1:
+>  	s5c73m3_unregister_spi_driver(state);
+>  out_err:
+>  	media_entity_cleanup(&sd->entity);
+> +	mutex_destroy(&state->lock);
+>  	return ret;
+>  }
+>  
+> @@ -1772,6 +1774,7 @@ static int s5c73m3_remove(struct i2c_client *client)
+>  	media_entity_cleanup(&sensor_sd->entity);
+>  
+>  	s5c73m3_unregister_spi_driver(state);
+> +	mutex_destroy(&state->lock);
+>  
+>  	return 0;
+>  }
+> 
 
