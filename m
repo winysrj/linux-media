@@ -1,47 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:34577 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755521AbbCRT4h (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40465 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756085AbbCCKOs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 15:56:37 -0400
-Received: by wibg7 with SMTP id g7so69542807wib.1
-        for <linux-media@vger.kernel.org>; Wed, 18 Mar 2015 12:56:36 -0700 (PDT)
+	Tue, 3 Mar 2015 05:14:48 -0500
+Message-ID: <54F58988.1040404@xs4all.nl>
+Date: Tue, 03 Mar 2015 11:14:32 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Reply-To: whittenburg@gmail.com
-Date: Wed, 18 Mar 2015 14:56:36 -0500
-Message-ID: <CABcw_Okm1ZVob1s_JxZaRk_oFP2efh38qEyDeok4K2066dcMvQ@mail.gmail.com>
-Subject: OMAP3 ISP previewer Y10 to UYVY conversion
-From: Chris Whittenburg <whittenburg@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v3 06/15] media: blackfin: bfin_capture: use vb2_fop_mmap/poll
+References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com> <1424544001-19045-7-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1424544001-19045-7-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We're working on a DM3730 platform running a 3.5.7 kernel, using the
-pipeline below to take a 12-bit monochrome sensor (Aptina AR0130) and
-convert it to UYVY format for use with the TI codecs.
+On 02/21/2015 07:39 PM, Lad Prabhakar wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> No need to reinvent the wheel. Just use the already existing
+> functions provided by vb2.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  drivers/media/platform/blackfin/bfin_capture.c | 28 +++-----------------------
+>  1 file changed, 3 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+> index be0d0a2b..ee0e848 100644
+> --- a/drivers/media/platform/blackfin/bfin_capture.c
+> +++ b/drivers/media/platform/blackfin/bfin_capture.c
+> @@ -244,18 +244,6 @@ static int bcap_release(struct file *file)
+>  	return 0;
+>  }
+>  
+> -static int bcap_mmap(struct file *file, struct vm_area_struct *vma)
+> -{
+> -	struct bcap_device *bcap_dev = video_drvdata(file);
+> -	int ret;
+> -
+> -	if (mutex_lock_interruptible(&bcap_dev->mutex))
+> -		return -ERESTARTSYS;
+> -	ret = vb2_mmap(&bcap_dev->buffer_queue, vma);
+> -	mutex_unlock(&bcap_dev->mutex);
+> -	return ret;
+> -}
+> -
+>  #ifndef CONFIG_MMU
+>  static unsigned long bcap_get_unmapped_area(struct file *file,
+>  					    unsigned long addr,
+> @@ -273,17 +261,6 @@ static unsigned long bcap_get_unmapped_area(struct file *file,
 
-In general, this works, but the images end up looking washed out.
-Running them thru a "normalize" function makes them look good again.
-Looking at the levels histogram in gimp, I seem to be missing the high
-end and low end values.
+This can also be replaced by vb2_fop_get_unmapped_area().
 
-I've captured the 12-bit data from the CCDC, downconverted it to Y8,
-and verified it looks ok, and is not washed out, so I'm suspecting the
-isp previewer is doing something wrong in the simple Y10 to UYVY
-conversion.
+Patch is welcome :-)
 
-Does someone with experience on this topic have a recommendation on
-what component might be causing the problem, or the best way to go
-about isolating the issue?
+Regards,
 
-media-ctl -r
-media-ctl -v -l '"ar0130 3-0010":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
-CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
-resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
-media-ctl -v -V '"ar0130 3-0010":0['Y12' '640'x'480'], "OMAP3 ISP
-CCDC":2['Y10' '640'x'480'], "OMAP3 ISP preview":1[UYVY '640'x'480'],
-"OMAP3 ISP resizer":1[UYVY '640'x'480']'
-
-Thanks,
-Chris
+	Hans
