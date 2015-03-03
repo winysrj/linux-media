@@ -1,108 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:30383 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753088AbbC0NuJ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50030 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757221AbbCCXJs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 09:50:09 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v2 02/11] leds: add uapi header file
-Date: Fri, 27 Mar 2015 14:49:36 +0100
-Message-id: <1427464185-27950-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
-References: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
+	Tue, 3 Mar 2015 18:09:48 -0500
+Date: Wed, 4 Mar 2015 01:09:13 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH 01/10] media: omap3isp: remove unused clkdev
+Message-ID: <20150303230913.GZ6539@valkosipuli.retiisi.org.uk>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+ <E1YSTnC-0001JU-CX@rmk-PC.arm.linux.org.uk>
+ <118780170.u6ZO5zJrEk@avalon>
+ <20150302225336.GV6539@valkosipuli.retiisi.org.uk>
+ <20150302235435.GF29584@n2100.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150302235435.GF29584@n2100.arm.linux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds header file for LED subsystem definitions and
-declarations. The initial need for the header is allowing the
-user space to discover the semantics of flash fault bits.
+Hi Russell,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
----
- include/linux/led-class-flash.h |   16 +---------------
- include/uapi/linux/leds.h       |   34 ++++++++++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 15 deletions(-)
- create mode 100644 include/uapi/linux/leds.h
+On Mon, Mar 02, 2015 at 11:54:35PM +0000, Russell King - ARM Linux wrote:
+> (Combining replies...)
+> 
+> On Tue, Mar 03, 2015 at 12:53:37AM +0200, Sakari Ailus wrote:
+> > Hi Laurent and Russell,
+> > 
+> > On Tue, Mar 03, 2015 at 12:33:44AM +0200, Laurent Pinchart wrote:
+> > > Sakari, does it conflict with the omap3isp DT support ? If so, how would you 
+> > > prefer to resolve the conflict ? Russell, would it be fine to merge this 
+> > > through Mauro's tree ?
+> 
+> As other changes will depend on this, I'd prefer not to.  The whole
+> "make clk_get() return a unique struct clk" wasn't well tested, and
+> several places broke - and currently clk_add_alias() is broken as a
+> result of that.
+> 
+> I'm trying to get to the longer term solution, where clkdev internally
+> uses a struct clk_hw pointer rather than a struct clk pointer, and I
+> want to clean stuff up first.
+> 
+> If omap3isp needs to keep this code, then so be it - I'll come up with
+> a different patch improving its use of clkdev instead.
 
-diff --git a/include/linux/led-class-flash.h b/include/linux/led-class-flash.h
-index e97966d..3cf58c4 100644
---- a/include/linux/led-class-flash.h
-+++ b/include/linux/led-class-flash.h
-@@ -13,25 +13,11 @@
- #define __LINUX_FLASH_LEDS_H_INCLUDED
- 
- #include <linux/leds.h>
-+#include <uapi/linux/leds.h>
- 
- struct device_node;
- struct led_classdev_flash;
- 
--/*
-- * Supported led fault bits - must be kept in synch
-- * with V4L2_FLASH_FAULT bits.
-- */
--#define LED_FAULT_OVER_VOLTAGE		(1 << 0)
--#define LED_FAULT_TIMEOUT		(1 << 1)
--#define LED_FAULT_OVER_TEMPERATURE	(1 << 2)
--#define LED_FAULT_SHORT_CIRCUIT		(1 << 3)
--#define LED_FAULT_OVER_CURRENT		(1 << 4)
--#define LED_FAULT_INDICATOR		(1 << 5)
--#define LED_FAULT_UNDER_VOLTAGE		(1 << 6)
--#define LED_FAULT_INPUT_VOLTAGE		(1 << 7)
--#define LED_FAULT_LED_OVER_TEMPERATURE	(1 << 8)
--#define LED_NUM_FLASH_FAULTS		9
--
- #define LED_FLASH_SYSFS_GROUPS_SIZE	5
- 
- struct led_flash_ops {
-diff --git a/include/uapi/linux/leds.h b/include/uapi/linux/leds.h
-new file mode 100644
-index 0000000..f657f78
---- /dev/null
-+++ b/include/uapi/linux/leds.h
-@@ -0,0 +1,34 @@
-+/*
-+ * include/uapi/linux/leds.h
-+ *
-+ * LED subsystem specific definitions and declarations.
-+ *
-+ * Copyright (C) 2015 Samsung Electronics Co., Ltd.
-+ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ */
-+
-+#ifndef __UAPI_LINUX_LEDS_H_
-+#define __UAPI_LINUX_LEDS_H_
-+
-+#define LED_FAULT_OVER_VOLTAGE		(1 << 0)
-+#define LED_FAULT_TIMEOUT		(1 << 1)
-+#define LED_FAULT_OVER_TEMPERATURE	(1 << 2)
-+#define LED_FAULT_SHORT_CIRCUIT		(1 << 3)
-+#define LED_FAULT_OVER_CURRENT		(1 << 4)
-+#define LED_FAULT_INDICATOR		(1 << 5)
-+#define LED_FAULT_UNDER_VOLTAGE		(1 << 6)
-+#define LED_FAULT_INPUT_VOLTAGE		(1 << 7)
-+#define LED_FAULT_LED_OVER_TEMPERATURE	(1 << 8)
-+#define LED_NUM_FLASH_FAULTS		9
-+
-+#endif /* __UAPI_LINUX_LEDS_H_ */
+I discussed this with Laurent and the two options we thought are
+
+- You provide a stable branch on which I can rebase the patches, in order
+  to avoid a merge conflict or
+
+- We ignore the conflict and let Stephen Rothwell handle it. The conflict
+  itself is relatively simple to resolve.
+
 -- 
-1.7.9.5
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
