@@ -1,119 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:36270 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752280AbbCADrM (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:52244 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751535AbbCCKR0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Feb 2015 22:47:12 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2417C2A0081
-	for <linux-media@vger.kernel.org>; Sun,  1 Mar 2015 04:46:58 +0100 (CET)
-Date: Sun, 01 Mar 2015 04:46:58 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150301034658.2417C2A0081@tschai.lan>
+	Tue, 3 Mar 2015 05:17:26 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 701B62A008D
+	for <linux-media@vger.kernel.org>; Tue,  3 Mar 2015 11:17:10 +0100 (CET)
+Message-ID: <54F58A26.5090307@xs4all.nl>
+Date: Tue, 03 Mar 2015 11:17:10 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.1] Various fixes/improvements
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+Just a pile of fixes/improvements, nothing that stands out.
 
-date:		Sun Mar  1 04:00:46 CET 2015
-git branch:	test
-git hash:	a3dfc6d925ca1bbd1a228253acb93f08657bad25
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-5.slh.1-amd64
+Regards,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+	Hans
 
-Detailed results are available here:
+The following changes since commit b44b2e06ae463327334235bf160e804632b9b37c:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+  [media] media: i2c: ADV7604: Rename adv7604 prefixes (2015-03-02 16:59:32 -0300)
 
-Full logs are available here:
+are available in the git repository at:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.1c
 
-The Media Infrastructure API from this daily build is here:
+for you to fetch changes up to 6e10c830b20252981b3896648fafcec60fb74dc5:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+  media: adv7604: improve usage of gpiod API (2015-03-03 11:01:51 +0100)
+
+----------------------------------------------------------------
+Fabian Frederick (1):
+      saa7146: replace current->state by set_current_state()
+
+Gilles Risch (1):
+      Basic support for the Elgato EyeTV Hybrid INT 2008 USB Stick
+
+Hans Verkuil (1):
+      DocBook media: fix typos in YUV420M description
+
+Lad, Prabhakar (4):
+      media: au0828: drop vbi_buffer_filled() and re-use buffer_filled()
+      media: drop call to v4l2_device_unregister_subdev()
+      media: i2c: ths7303: drop module param debug
+      media: omap/omap_vout: fix type of input members to omap_vout_setup_vrfb_bufs()
+
+Olli Salonen (1):
+      saa7164: free_irq before pci_disable_device
+
+Shuah Khan (3):
+      media: au0828 replace printk KERN_DEBUG with pr_debug
+      media: em28xx replace printk in dprintk macros
+      media: au0828 - embed vdev and vbi_dev structs in au0828_dev
+
+Simon Farnsworth (1):
+      cx18: Fix bytes_per_line
+
+Tapasweni Pathak (1):
+      drivers: media: i2c : s5c73m3: Replace dev_err with pr_err
+
+Uwe Kleine-König (1):
+      media: adv7604: improve usage of gpiod API
+
+Wei Yongjun (1):
+      v4l2: remove unused including <linux/version.h>
+
+ Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml |   4 +--
+ drivers/media/common/saa7146/saa7146_vbi.c         |   4 +--
+ drivers/media/i2c/adv7343.c                        |   1 -
+ drivers/media/i2c/adv7604.c                        |  17 +++++--------
+ drivers/media/i2c/mt9v032.c                        |   1 -
+ drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |   2 +-
+ drivers/media/i2c/soc_camera/mt9m111.c             |   1 -
+ drivers/media/i2c/ths7303.c                        |   4 ---
+ drivers/media/i2c/ths8200.c                        |   1 -
+ drivers/media/i2c/tvp514x.c                        |   1 -
+ drivers/media/i2c/tvp7002.c                        |   1 -
+ drivers/media/pci/cx18/cx18-driver.h               |   1 +
+ drivers/media/pci/cx18/cx18-ioctl.c                |   9 ++++---
+ drivers/media/pci/saa7164/saa7164-core.c           |   4 +--
+ drivers/media/platform/omap/omap_vout.c            |   2 +-
+ drivers/media/platform/omap/omap_vout_vrfb.c       |   1 +
+ drivers/media/platform/omap/omap_vout_vrfb.h       |   4 +--
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c |   1 -
+ drivers/media/usb/au0828/au0828-video.c            | 100 ++++++++++++++++++++++++++-----------------------------------------------
+ drivers/media/usb/au0828/au0828.h                  |   6 ++---
+ drivers/media/usb/em28xx/em28xx-audio.c            |   3 +--
+ drivers/media/usb/em28xx/em28xx-cards.c            |  13 +++++++++-
+ drivers/media/usb/em28xx/em28xx-dvb.c              |   3 ++-
+ drivers/media/usb/em28xx/em28xx-input.c            |   2 +-
+ drivers/media/usb/em28xx/em28xx.h                  |   1 +
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           |   1 -
+ 26 files changed, 80 insertions(+), 108 deletions(-)
