@@ -1,166 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58900 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932252AbbCCX3W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 18:29:22 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, josh.wu@atmel.com,
-	g.liakhovetski@gmx.de
-Subject: Re: [PATCH v4 2/2] V4L: add CCF support to the v4l2_clk API
-Date: Wed, 04 Mar 2015 01:29:23 +0200
-Message-ID: <2369951.68Cb5j190c@avalon>
-In-Reply-To: <20150303202129.6c88a8e6@recife.lan>
-References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange> <1930989.nfYKYx2vJh@avalon> <20150303202129.6c88a8e6@recife.lan>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53488 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751678AbbCCJja (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Mar 2015 04:39:30 -0500
+Message-ID: <54F58142.4030201@xs4all.nl>
+Date: Tue, 03 Mar 2015 10:39:14 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+CC: Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v3 00/15] media: blackfin: bfin_capture enhancements
+References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com> <CAHG8p1DFu8Y1qaDc9c0m0JggUHrF4grHBj9VZQ4224v2wPJRbQ@mail.gmail.com> <54F575AD.5020307@xs4all.nl> <CA+V-a8uVoUHHtQAGOAjz_wYpmkOg8_=cxv6W5b289coU_Wq0Xg@mail.gmail.com>
+In-Reply-To: <CA+V-a8uVoUHHtQAGOAjz_wYpmkOg8_=cxv6W5b289coU_Wq0Xg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Tuesday 03 March 2015 20:21:29 Mauro Carvalho Chehab wrote:
-> Em Wed, 04 Mar 2015 00:56:18 +0200 Laurent Pinchart escreveu:
-> > On Tuesday 03 March 2015 13:40:50 Mauro Carvalho Chehab wrote:
-> >> Em Mon, 02 Mar 2015 20:52:41 +0000 Laurent Pinchart escreveu:
-> >>> On Mon Mar 02 2015 18:55:23 GMT+0200 (EET), Mauro Carvalho Chehab wrote:
-> >>>> Em Sun, 1 Feb 2015 12:12:33 +0100 (CET) Guennadi Liakhovetski escreveu:
-> >>>>> V4L2 clocks, e.g. used by camera sensors for their master clock, do
-> >>>>> not have to be supplied by a different V4L2 driver, they can also be
-> >>>>> supplied by an independent source. In this case the standart kernel
-> >>>>> clock API should be used to handle such clocks. This patch adds
-> >>>>> support for such cases.
-> >>>>> 
-> >>>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >>>>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>>>> ---
-> >>>>> 
-> >>>>> v4: sizeof(*clk) :)
-> >>>>> 
-> >>>>>  drivers/media/v4l2-core/v4l2-clk.c | 48 ++++++++++++++++++++++++---
-> >>>>>  include/media/v4l2-clk.h           |  2 ++
-> >>>>>  2 files changed, 47 insertions(+), 3 deletions(-)
-> >>>>> 
-> >>>>> diff --git a/drivers/media/v4l2-core/v4l2-clk.c
-> >>>>> b/drivers/media/v4l2-core/v4l2-clk.c index 3ff0b00..9f8cb20 100644
-> >>>>> --- a/drivers/media/v4l2-core/v4l2-clk.c
-> >>>>> +++ b/drivers/media/v4l2-core/v4l2-clk.c
-> > 
-> > [snip]
-> > 
-> >>>>> @@ -37,6 +38,21 @@ static struct v4l2_clk *v4l2_clk_find(const char
-> >>>>> *dev_id)
-> >>>>> struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
-> >>>>> {
-> >>>>>  	struct v4l2_clk *clk;
-> >>>>> +	struct clk *ccf_clk = clk_get(dev, id);
-> >>>>> +
-> >>>>> +	if (PTR_ERR(ccf_clk) == -EPROBE_DEFER)
-> >>>>> +		return ERR_PTR(-EPROBE_DEFER);
-> >>>> 
-> >>>> Why not do just:
-> >>>> 		return ccf_clk;
-> >>> 
-> >>> I find the explicit error slightly more readable, but that's a matter
-> >>> of taste.
-> >> 
-> >> Well, return(ccf_clk) will likely produce a smaller instruction code
-> >> than return (long).
-> > 
-> > Not if the compiler is smart :-)
-> > 
-> >>>>> +
-> >>>>> +	if (!IS_ERR_OR_NULL(ccf_clk)) {
-> >>>>> +		clk = kzalloc(sizeof(*clk), GFP_KERNEL);
-> >>>>> +		if (!clk) {
-> >>>>> +			clk_put(ccf_clk);
-> >>>>> +			return ERR_PTR(-ENOMEM);
-> >>>>> +		}
-> >>>>> +		clk->clk = ccf_clk;
-> >>>>> +
-> >>>>> +		return clk;
-> >>>>> +	}
-> >>>> 
-> >>>> The error condition here looks a little weird to me. I mean, if the
-> >>>> CCF clock returns an error, shouldn't it fail instead of silently
-> >>>> run some logic to find another clock source? Isn't it risky on
-> >>>> getting a wrong value?
-> >>> 
-> >>> The idea is that, in the long term, everything should use CCF
-> >>> directly. However, we have clock providers on platforms where CCF
-> >>> isn't avalaible. V4L2 clock has been introduced  as a  single API
-> >>> usable by V4L2 clock users allowing them to retrieve and use clocks
-> >>> regardless of whether the provider uses CCF or not. Internally it
-> >>> first tries CCF, and then falls back to the non-CCF implementation in
-> >>> case of failure.
-> >> 
-> >> Yeah, I got that the non-CCF is a fallback code, to be used on
-> >> platforms that CCF isn't available.
-> >> 
-> >> However, the above code doesn't seem to look if CCF is available
-> >> or not. Instead, it assumes that *all* error codes, or even NULL,
-> >> means that CCF isn't available.
-> >> 
-> >> Shouldn't it be, instead, either waiting for NULL or for some
-> >> specific error code, in order to:
-> >>
-> >> - return the error code, if CCF is available but getting
-> >>   the clock failed;
-> >> 
-> >> - run the backward-compat code when CCF is not available.
-> > 
-> > Isn't that pretty much what the code is doing ? If we get a -EPROBE_DEFER
-> > error from CCF meaning that the clock is known but not registered yet we
-> > return it. Otherwise, if the clock is unknown to CCF, or if CCF is
-> > disabled, we fall back.
+On 03/03/2015 10:30 AM, Lad, Prabhakar wrote:
+> Hi Hans,
 > 
-> I didn't check the CCF code, but couldn't it return error codes like
-> ENOMEM? What are all the error codes it can return ATM? What, among
-> them, can happen when CCF is available?
-> 
-> Also, as the CCF code can be changed, if the intent behavior is to only
-> allow EPROBE_DEFER or NULL, if the there is support for CCF, then you
-> need to have an explicit comment there to avoid that any newer patches
-> to add different error codes.
-> 
-> IMHO, it seems a way better to define a single error code to be
-> returned when the platform doesn't support CCF (like -ENOTSUPP),
+> On Tue, Mar 3, 2015 at 8:49 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 03/02/2015 08:57 AM, Scott Jiang wrote:
+>>> Hi Lad and Hans,
+>>>
+>>> 2015-02-22 2:39 GMT+08:00 Lad Prabhakar <prabhakar.csengg@gmail.com>:
+>>>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>>>
+>>>> This patch series, enhances blackfin capture driver with
+>>>> vb2 helpers.
+>>>>
+>>>> Changes for v3:
+>>>> 1: patches unchanged except for patch 8/15 fixing starting of ppi only
+>>>>    after we have the resources.
+>>>> 2: Rebased on media tree.
+>>>>
+>>>> v2: http://lkml.iu.edu/hypermail/linux/kernel/1501.2/04655.html
+>>>>
+>>>> v1: https://lkml.org/lkml/2014/12/20/27
+>>>>
+>>>> Lad, Prabhakar (15):
+>>>>   media: blackfin: bfin_capture: drop buf_init() callback
+>>>>   media: blackfin: bfin_capture: release buffers in case
+>>>>     start_streaming() call back fails
+>>>>   media: blackfin: bfin_capture: set min_buffers_needed
+>>>>   media: blackfin: bfin_capture: improve buf_prepare() callback
+>>>>   media: blackfin: bfin_capture: improve queue_setup() callback
+>>>>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
+>>>>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
+>>>>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
+>>>>   media: blackfin: bfin_capture: make sure all buffers are returned on
+>>>>     stop_streaming() callback
+>>>>   media: blackfin: bfin_capture: return -ENODATA for *std calls
+>>>>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
+>>>>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
+>>>>   media: blackfin: bfin_capture: add support for VB2_DMABUF
+>>>>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
+>>>>   media: blackfin: bfin_capture: set v4l2 buffer sequence
+>>>>
+>>>>  drivers/media/platform/blackfin/bfin_capture.c | 306 ++++++++-----------------
+>>>>  1 file changed, 94 insertions(+), 212 deletions(-)
+>>>>
+>>>> --
+>>>
+>>> For all these patches,
+>>> Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+>>> Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
+>>
+>> Thanks!
+>>
+>> Is it possible for you to run 'v4l2-compliance -s' with this driver and
+>> report the results? I'd be interested in that.
+>>
+> Fyi..
+> v4l2-utils can't be compiled under uClibc.
 
-But that's not how CCF works :-)
+Do you know what exactly fails? Is it possible to manually compile v4l2-compliance?
 
-Regardless of that, note that the clk_get() call is part of the Linux clock 
-API, of which CCF is one implementation. clk_get() is implemented by custom 
-architecture code on platforms where CCF isn't used.
+I.e., try this:
 
-The idea of this patch is to
+cd utils/v4l2-compliance
+cat *.cpp >x.cpp
+g++ -o v4l2-compliance x.cpp -I . -I ../../include/ -DNO_LIBV4L2
 
-- return the platform clock if available (clk_get() returns a non-NULL, non-
-error pointer)
+I've never used uclibc, so I don't know what the limitations are.
 
-- defer probing if the platform clock requests so
-
-- fall back to the internal clocks list
-
-I don't see a need for something else.
-
-> and calling the fallback code only in this case. Something like:
-> 
-> 	if (PTR_ERR(ccf_clk) != -ENOTSUPP)
-> 		return ccf_clk;
-> 
-> 	/* CCF is not supported. Fall back to the old way */
-> 	k = kzalloc(sizeof(*clk), GFP_KERNEL);
-> 	if (!clk) {
-> 		clk_put(ccf_clk);
-> 		return ERR_PTR(-ENOMEM);
-> 	}
-> 	clk->clk = ccf_clk;
-> 	return clk;
-
-
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
