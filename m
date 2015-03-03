@@ -1,139 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56469 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753502AbbCBBtD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2015 20:49:03 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:36574 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755010AbbCCDrH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Mar 2015 22:47:07 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6D49C2A0080
+	for <linux-media@vger.kernel.org>; Tue,  3 Mar 2015 04:46:50 +0100 (CET)
+Date: Tue, 03 Mar 2015 04:46:50 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH v5 2/8] v4l: Add RBG and RGB 8:8:8 media bus formats on 24 and 32 bit busses
-Date: Mon,  2 Mar 2015 03:48:39 +0200
-Message-Id: <1425260925-12064-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1425260925-12064-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1425260925-12064-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150303034650.6D49C2A0080@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 67 ++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h              |  4 +-
- 2 files changed, 70 insertions(+), 1 deletion(-)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index c5ea868..d253e8f 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -440,6 +440,36 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>b<subscript>1</subscript></entry>
- 	      <entry>b<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-RBG888-1X24">
-+	      <entry>MEDIA_BUS_FMT_RBG888_1X24</entry>
-+	      <entry>0x100e</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="MEDIA-BUS-FMT-RGB888-1X24">
- 	      <entry>MEDIA_BUS_FMT_RGB888_1X24</entry>
- 	      <entry>0x100a</entry>
-@@ -579,6 +609,43 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>b<subscript>1</subscript></entry>
- 	      <entry>b<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-RGB888-1X32-PADHI">
-+	      <entry>MEDIA_BUS_FMT_RGB888_1X32_PADHI</entry>
-+	      <entry>0x100f</entry>
-+	      <entry></entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	    </row>
- 	  </tbody>
- 	</tgroup>
-       </table>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 23b4090..b585bb3 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -33,7 +33,7 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x100e */
-+/* RGB - next is	0x1010 */
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
- #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
-@@ -43,10 +43,12 @@
- #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
- #define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
- #define MEDIA_BUS_FMT_RGB666_1X18		0x1009
-+#define MEDIA_BUS_FMT_RBG888_1X24		0x100e
- #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
- #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
- #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
-+#define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
- 
- /* YUV (including grey) - next is	0x2024 */
- #define MEDIA_BUS_FMT_Y8_1X8			0x2001
--- 
-2.0.5
+Results of the daily build of media_tree:
 
+date:		Tue Mar  3 04:00:17 CET 2015
+git branch:	test
+git hash:	b44b2e06ae463327334235bf160e804632b9b37c
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-41-g6c2d743
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-5.slh.1-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
