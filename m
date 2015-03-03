@@ -1,55 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:46309 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757128AbbCRVka (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 17:40:30 -0400
-Message-ID: <5509F0CC.6080104@southpole.se>
-Date: Wed, 18 Mar 2015 22:40:28 +0100
-From: Benjamin Larsson <benjamin@southpole.se>
+Received: from lists.s-osg.org ([54.187.51.154]:35576 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756509AbbCCOOC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Mar 2015 09:14:02 -0500
+Date: Tue, 3 Mar 2015 11:13:56 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v3 05/15] media: blackfin: bfin_capture: improve
+ queue_setup() callback
+Message-ID: <20150303111356.1960ea78@recife.lan>
+In-Reply-To: <1424544001-19045-6-git-send-email-prabhakar.csengg@gmail.com>
+References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+	<1424544001-19045-6-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 10/10] mn88473: implement lock for all delivery systems
-References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-10-git-send-email-benjamin@southpole.se> <55074F74.2080000@iki.fi> <55075CD2.6060908@iki.fi> <55076302.807@southpole.se> <5509EA6B.9080805@iki.fi>
-In-Reply-To: <5509EA6B.9080805@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/18/2015 10:13 PM, Antti Palosaari wrote:
-> On 03/17/2015 01:10 AM, Benjamin Larsson wrote:
->> On 03/16/2015 11:44 PM, Antti Palosaari wrote:
->>> On 03/16/2015 11:47 PM, Antti Palosaari wrote:
->>>> On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
->>>>> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
->>>>
->>>> Applied.
->>>
->>> I found this does not work at least for DVB-C. After playing with
->>> modulator I find reg 0x85 on bank 1 is likely AGC. Its value is changed
->>> according to RF level even modulation itself is turned off.
->>>
->>> I will likely remove that patch... It is a bit hard to find out lock
->>> bits and it comes even harder without a modulator. Using typical tricks
->>> to plug and unplug antenna, while dumping register values out is error
->>> prone as you could not adjust signal strength nor change modulation
->>> parameters causing wrong decision easily.
->>>
->>> regards
->>> Antti
->>>
->>
->> Indeed the logic was inverted. Will respin the patch.
->
-> Any ETA for the new patch?
->
-> regards
-> Antti
->
+Lad,
 
-Sent and I tested DVB-C yesterday, it worked fine.
 
-MvH
-Benjamin Larsson
+Em Sat, 21 Feb 2015 18:39:51 +0000
+Lad Prabhakar <prabhakar.csengg@gmail.com> escreveu:
+
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> this patch improves the queue_setup() callback.
+
+Please improve your comments. The above description doesn't tell
+anything that it wasn't said before at the patch subject.
+
+It "improves" how? Why?
+
+Please fix the comments and resubmit this patch series.
+
+Thanks,
+Mauro
+
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  drivers/media/platform/blackfin/bfin_capture.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+> index 8f62a84..be0d0a2b 100644
+> --- a/drivers/media/platform/blackfin/bfin_capture.c
+> +++ b/drivers/media/platform/blackfin/bfin_capture.c
+> @@ -44,7 +44,6 @@
+>  #include <media/blackfin/ppi.h>
+>  
+>  #define CAPTURE_DRV_NAME        "bfin_capture"
+> -#define BCAP_MIN_NUM_BUF        2
+>  
+>  struct bcap_format {
+>  	char *desc;
+> @@ -292,11 +291,14 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+>  {
+>  	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
+>  
+> -	if (*nbuffers < BCAP_MIN_NUM_BUF)
+> -		*nbuffers = BCAP_MIN_NUM_BUF;
+> +	if (fmt && fmt->fmt.pix.sizeimage < bcap_dev->fmt.sizeimage)
+> +		return -EINVAL;
+> +
+> +	if (vq->num_buffers + *nbuffers < 2)
+> +		*nbuffers = 2;
+>  
+>  	*nplanes = 1;
+> -	sizes[0] = bcap_dev->fmt.sizeimage;
+> +	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : bcap_dev->fmt.sizeimage;
+>  	alloc_ctxs[0] = bcap_dev->alloc_ctx;
+>  
+>  	return 0;
