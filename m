@@ -1,42 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:41559 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737AbbCKWi5 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38243 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750960AbbCCIrq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 18:38:57 -0400
-Received: by lbvp9 with SMTP id p9so12139740lbv.8
-        for <linux-media@vger.kernel.org>; Wed, 11 Mar 2015 15:38:56 -0700 (PDT)
+	Tue, 3 Mar 2015 03:47:46 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0372C2A008D
+	for <linux-media@vger.kernel.org>; Tue,  3 Mar 2015 09:47:30 +0100 (CET)
+Message-ID: <54F57521.4010402@xs4all.nl>
+Date: Tue, 03 Mar 2015 09:47:29 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CA+V-a8tqgrkcRpdSj-cZHwy3PdafPnqnPXXUm4b0qrkZA325Pw@mail.gmail.com>
-References: <1425950282-30548-1-git-send-email-sakari.ailus@iki.fi>
- <1425950282-30548-2-git-send-email-sakari.ailus@iki.fi> <CA+V-a8tqgrkcRpdSj-cZHwy3PdafPnqnPXXUm4b0qrkZA325Pw@mail.gmail.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Wed, 11 Mar 2015 22:38:26 +0000
-Message-ID: <CA+V-a8sFQQNZq368xjGBmP77xw+T7cKqeQ=JGX=OEE1KpQBZag@mail.gmail.com>
-Subject: Re: [PATCH 1/3] smiapp: Clean up smiapp_get_pdata()
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	laurent pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] DocBook media: fix typos in YUV420M description
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 11, 2015 at 10:24 PM, Lad, Prabhakar
-<prabhakar.csengg@gmail.com> wrote:
-> Hi Sakari,
->
-> Thanks for the patch.
->
-> On Tue, Mar 10, 2015 at 1:18 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
->> Don't set rval when it's not used (the function returns a pointer to struct
->> smiapp_platform_data).
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->
-> Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->
-I meant :
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+NV12M -> YUV420M
+YVU420M -> YUV420M
 
-Cheers,
---Prabhakar Lad
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml b/Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml
+index 60308f1..e781cc6 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml
+@@ -29,12 +29,12 @@ and Cr planes have half as many pad bytes after their rows. In other
+ words, two Cx rows (including padding) is exactly as long as one Y row
+ (including padding).</para>
+ 
+-	<para><constant>V4L2_PIX_FMT_NV12M</constant> is intended to be
++	<para><constant>V4L2_PIX_FMT_YUV420M</constant> is intended to be
+ used only in drivers and applications that support the multi-planar API,
+ described in <xref linkend="planar-apis"/>. </para>
+ 
+ 	<example>
+-	  <title><constant>V4L2_PIX_FMT_YVU420M</constant> 4 &times; 4
++	  <title><constant>V4L2_PIX_FMT_YUV420M</constant> 4 &times; 4
+ pixel image</title>
+ 
+ 	  <formalpara>
+-- 
+2.1.4
+
