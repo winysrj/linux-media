@@ -1,69 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57523 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753182AbbCWWwa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2015 18:52:30 -0400
-Message-ID: <5510992C.8060608@iki.fi>
-Date: Tue, 24 Mar 2015 00:52:28 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:37463 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932082AbbCCJz7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Mar 2015 04:55:59 -0500
+Message-ID: <54F5851E.70906@xs4all.nl>
+Date: Tue, 03 Mar 2015 10:55:42 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Ole Ernst <olebowle@gmx.com>, Nibble Max <nibble.max@gmail.com>
-CC: "olli.salonen" <olli.salonen@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: cx23885: DVBSky S952 dvb_register failed err = -22
-References: <5504920C.7080806@gmx.com>, <55055E66.6040600@gmx.com>, <550563B2.9010306@iki.fi>, <201503170953368436904@gmail.com> <201503180940386096906@gmail.com> <55093FFC.9050602@gmx.com> <55105683.40809@iki.fi> <551081CF.3080901@gmx.com>
-In-Reply-To: <551081CF.3080901@gmx.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?VXdlIEtsZWluZS1Lw7ZuaWc=?=
+	<u.kleine-koenig@pengutronix.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Alexandre Courbot <acourbot@nvidia.com>,
+	Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] media: adv7604: improve usage of gpiod API
+References: <1425279644-25873-1-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <1425279644-25873-1-git-send-email-u.kleine-koenig@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/23/2015 11:12 PM, Ole Ernst wrote:
-> Very much appreciated, thanks Antti! Let me know, if you need someone to
-> test your patches.
+Hi Uwe,
 
-Could you test that tree?
-http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=ts2020
+On 03/02/2015 08:00 AM, Uwe Kleine-König wrote:
+> Since 39b2bbe3d715 (gpio: add flags argument to gpiod_get*() functions)
+> which appeared in v3.17-rc1, the gpiod_get* functions take an additional
+> parameter that allows to specify direction and initial value for output.
+> Simplify accordingly.
+> 
+> Moreover use devm_gpiod_get_index_optional instead of
+> devm_gpiod_get_index with ignoring all errors.
+> 
+> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+> ---
+> BTW, sparse fails to check this file with many errors like:
+> 
+> 	drivers/media/i2c/adv7604.c:311:11: error: unknown field name in initializer
+> 
+> Didn't look into that.
 
-git clone -b ts2020 git://linuxtv.org/anttip/media_tree.git
+That's a sparse bug that's been fixed in the sparse repo, but not in the 0.5.0
+release (they really should make a new sparse release IMHO).
 
-then compile and install whole kernel
+Some comments below:
 
-regards
-Antti
+> ---
+>  drivers/media/i2c/adv7604.c | 16 ++++++----------
+>  1 file changed, 6 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 5a7c9389a605..ddeeb6695a4b 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -537,12 +537,8 @@ static void adv7604_set_hpd(struct adv7604_state *state, unsigned int hpd)
+>  {
+>  	unsigned int i;
+>  
+> -	for (i = 0; i < state->info->num_dv_ports; ++i) {
+> -		if (IS_ERR(state->hpd_gpio[i]))
+> -			continue;
 
+Why this change? See also below:
 
->
-> Am 23.03.2015 um 19:08 schrieb Antti Palosaari:
->> On 03/18/2015 11:06 AM, Ole Ernst wrote:
->>> Hi Max,
->>>
->>> I'm afraid I'm not experienced enough to adapt the ts2020 driver to
->>> interwork with the current kernel driver for the S952. I'd be more than
->>> happy to test patches though!
->>
->> I will migrate M88TS2022 to TS2020 and it will start working after that.
->>
->> regards
->> Antti
->>
->>>
->>> Thanks,
->>> Ole
->>>
->>> Am 18.03.2015 um 02:40 schrieb Nibble Max:
->>>> Hello Ole,
->>>>
->>>> If it is m88ts2020, there is a tuner driver "ts2020" in
->>>> "dvb-frontends" directory.
->>>> If fail to load m88ts2022 driver, then try to load ts2020 driver.
->>>> m88ts2022 driver is an i2c driver, but ts2020 is traditional
->>>> dvb-attach driver.
->>>> Please check the other code using ts2020 for reference.
->>>>
->>>> Best Regards,
->>>> Max
->>
+> -
+> +	for (i = 0; i < state->info->num_dv_ports; ++i)
+>  		gpiod_set_value_cansleep(state->hpd_gpio[i], hpd & BIT(i));
+> -	}
+>  
+>  	v4l2_subdev_notify(&state->sd, ADV7604_HOTPLUG, &hpd);
+>  }
+> @@ -2720,13 +2716,13 @@ static int adv7604_probe(struct i2c_client *client,
+>  	/* Request GPIOs. */
+>  	for (i = 0; i < state->info->num_dv_ports; ++i) {
+>  		state->hpd_gpio[i] =
+> -			devm_gpiod_get_index(&client->dev, "hpd", i);
+> +			devm_gpiod_get_index_optional(&client->dev, "hpd", i,
+> +						      GPIOD_OUT_LOW);
+>  		if (IS_ERR(state->hpd_gpio[i]))
+> -			continue;
+> -
+> -		gpiod_direction_output(state->hpd_gpio[i], 0);
+> +			return PTR_ERR(state->hpd_gpio[i]);
 
--- 
-http://palosaari.fi/
+This isn't correct. The use of gpio is optional, on some boards a different
+mechanism is used to control the hpd, and there devm_gpiod_get_index will just
+return an error. That's OK, we just continue in that case.
+
+Regards,
+
+	Hans
+
+>  
+> -		v4l_info(client, "Handling HPD %u GPIO\n", i);
+> +		if (state->hpd_gpio[i])
+> +			v4l_info(client, "Handling HPD %u GPIO\n", i);
+>  	}
+>  
+>  	state->timings = cea640x480;
+> 
+
