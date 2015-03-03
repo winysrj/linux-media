@@ -1,88 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45065 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751905AbbCPA06 (ORCPT
+Received: from pmta2.delivery9.ore.mailhop.org ([54.148.30.215]:60782 "EHLO
+	pmta2.delivery9.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755479AbbCCBTT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 20:26:58 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 04/15] omap3isp: DT support for clocks
-Date: Mon, 16 Mar 2015 02:25:59 +0200
-Message-Id: <1426465570-30295-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
-References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 2 Mar 2015 20:19:19 -0500
+Date: Mon, 2 Mar 2015 16:13:42 -0800
+From: Tony Lindgren <tony@atomide.com>
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH 10/10] ARM: omap2: use clkdev_add_alias()
+Message-ID: <20150303001341.GD3756@atomide.com>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+ <E1YSTnw-0001K5-IQ@rmk-PC.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <E1YSTnw-0001K5-IQ@rmk-PC.arm.linux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+* Russell King <rmk+kernel@arm.linux.org.uk> [150302 09:10]:
+> When creating aliases of existing clkdev clocks, use clkdev_add_alias()
+> isntead of open coding the lookup and clk_lookup creation.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+Gave this series a quick try but I get these build errors:
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index f694615..82499cd 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -279,9 +279,21 @@ static const struct clk_init_data isp_xclk_init_data = {
- 	.num_parents = 1,
- };
- 
-+static struct clk *isp_xclk_src_get(struct of_phandle_args *clkspec, void *data)
-+{
-+	unsigned int idx = clkspec->args[0];
-+	struct isp_device *isp = data;
-+
-+	if (idx >= ARRAY_SIZE(isp->xclks))
-+		return ERR_PTR(-ENOENT);
-+
-+	return isp->xclks[idx].clk;
-+}
-+
- static int isp_xclk_init(struct isp_device *isp)
- {
- 	struct isp_platform_data *pdata = isp->pdata;
-+	struct device_node *np = isp->dev->of_node;
- 	struct clk_init_data init;
- 	unsigned int i;
- 
-@@ -312,6 +324,12 @@ static int isp_xclk_init(struct isp_device *isp)
- 		if (IS_ERR(xclk->clk))
- 			return PTR_ERR(xclk->clk);
- 
-+		/* When instantiated from DT we don't need to register clock
-+		 * aliases.
-+		 */
-+		if (np)
-+			continue;
-+
- 		if (pdata->xclks[i].con_id == NULL &&
- 		    pdata->xclks[i].dev_id == NULL)
- 			continue;
-@@ -327,13 +345,20 @@ static int isp_xclk_init(struct isp_device *isp)
- 		clkdev_add(xclk->lookup);
- 	}
- 
-+	if (np)
-+		of_clk_add_provider(np, isp_xclk_src_get, isp);
-+
- 	return 0;
- }
- 
- static void isp_xclk_cleanup(struct isp_device *isp)
- {
-+	struct device_node *np = isp->dev->of_node;
- 	unsigned int i;
- 
-+	if (np)
-+		of_clk_del_provider(np);
-+
- 	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
- 		struct isp_xclk *xclk = &isp->xclks[i];
- 
--- 
-1.7.10.4
+arch/arm/mach-omap2/omap_device.c: In function ‘_add_clkdev’:
+arch/arm/mach-omap2/omap_device.c:65:58: warning: passing argument 3 of ‘clk_add_alias’ discards ‘const’ qualifier from pointer target type
+  rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev), clk_name, NULL);
+                                                          ^
+In file included from arch/arm/mach-omap2/omap_device.c:34:0:
+include/linux/clkdev.h:44:5: note: expected ‘char *’ but argument is of type ‘const char *’
+ int clk_add_alias(const char *, const char *, char *, struct device *);
+     ^
+drivers/clk/clkdev.c:298:16: error: expected declaration specifiers or ‘...’ before ‘(’ token
+ vclkdev_create((struct clk *clk, const char *con_id, const char *dev_fmt,
+                ^
+drivers/clk/clkdev.c:322:92: error: storage class specified for parameter ‘__crc_clkdev_alloc’
+ EXPORT_SYMBOL(clkdev_alloc);
+                                                                                            ^
+drivers/clk/clkdev.c:322:1: warning: ‘weak’ attribute ignored [-Wattributes]
+ EXPORT_SYMBOL(clkdev_alloc);
+ ^
+drivers/clk/clkdev.c:322:1: warning: ‘externally_visible’ attribute ignored [-Wattributes]
+drivers/clk/clkdev.c:322:161: error: storage class specified for parameter ‘__kcrctab_clkdev_alloc’
+ EXPORT_SYMBOL(clkdev_alloc);
+                                                                                                                                                                 ^
+drivers/clk/clkdev.c:322:1: warning: ‘__used__’ attribute ignored [-Wattributes]
+ EXPORT_SYMBOL(clkdev_alloc);
+ ^
+drivers/clk/clkdev.c:322:161: error: section attribute not allowed for ‘__kcrctab_clkdev_alloc’
+ EXPORT_SYMBOL(clkdev_alloc);
+                                                                                                                                                                 ^
+drivers/clk/clkdev.c:322:279: error: expected ‘;’, ‘,’ or ‘)’ before ‘=’ token
+ EXPORT_SYMBOL(clkdev_alloc);
 
+drivers/clk/clkdev.c:274:1: warning: ‘vclkdev_alloc’ defined but not used [-Wunused-function]
+ vclkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt,
+
+Regards,
+
+Tony
