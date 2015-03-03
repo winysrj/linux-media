@@ -1,46 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47117 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932735AbbCYQpY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 12:45:24 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Ian Molton <imolton@ad-holdings.co.uk>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: drop dma_sync_single_for_device in coda_bitstream_queue
-Date: Wed, 25 Mar 2015 17:45:09 +0100
-Message-Id: <1427301909-17640-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mailout3.samsung.com ([203.254.224.33]:23480 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754629AbbCCOdS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 09:33:18 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NKN00HRE4FG1N60@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 03 Mar 2015 23:33:16 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com
+Subject: [PATCH] s5p-mfc: Fix NULL pointer dereference caused by not set q->lock
+Date: Tue, 03 Mar 2015 15:32:58 +0100
+Message-id: <1425393178-27940-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Issuing a cache flush for the whole bitstream buffer is not optimal in the first
-place when only a part of it was written. But given that the buffer is mapped in
-writecombine mode, it is not needed at all.
+The patch "media: s5p-mfc: use vb2_ops_wait_prepare/finish helper"
+(654a731be1a0b6f606f3f3d12b50db08f2ae3c3) introduced a kernel panic.
+The q->lock was set for just one queue, the other was not set thus causing
+a NULL pointer dereference.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
 ---
- drivers/media/platform/coda/coda-bit.c | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index d39789d..d336cb6 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -181,10 +181,6 @@ static int coda_bitstream_queue(struct coda_ctx *ctx,
- 	if (n < src_size)
- 		return -ENOSPC;
- 
--	dma_sync_single_for_device(&ctx->dev->plat_dev->dev,
--				   ctx->bitstream.paddr, ctx->bitstream.size,
--				   DMA_TO_DEVICE);
--
- 	src_buf->v4l2_buf.sequence = ctx->qsequence++;
- 
- 	return 0;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 9fe4d90..8333fbc 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -833,6 +833,7 @@ static int s5p_mfc_open(struct file *file)
+ 	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+ 	q->io_modes = VB2_MMAP;
+ 	q->drv_priv = &ctx->fh;
++	q->lock = &dev->mfc_mutex;
+ 	if (vdev == dev->vfd_dec) {
+ 		q->io_modes = VB2_MMAP;
+ 		q->ops = get_dec_queue_ops();
 -- 
-2.1.4
+1.7.9.5
 
