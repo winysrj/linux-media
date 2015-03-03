@@ -1,52 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60950 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752563AbbC3LLK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 07:11:10 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mats Randgaard <matrandg@cisco.com>
-Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC 04/12] [media] tc358743: fix set_pll to enable PLL with default frequency
-Date: Mon, 30 Mar 2015 13:10:48 +0200
-Message-Id: <1427713856-10240-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
-References: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
+Received: from down.free-electrons.com ([37.187.137.238]:36807 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755666AbbCCKZe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 05:25:34 -0500
+Date: Tue, 3 Mar 2015 11:25:19 +0100
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org, Andrew Lunn <andrew@lunn.ch>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Subject: Re: [PATCH 08/10] ARM: orion: use clkdev_create()
+Message-ID: <20150303112519.557f43ad@free-electrons.com>
+In-Reply-To: <E1YSTnm-0001Jx-AM@rmk-PC.arm.linux.org.uk>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+	<E1YSTnm-0001Jx-AM@rmk-PC.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-set_pll not only skips PLL changes but also doesn't enable it in the
-first place if the rate is the same as the default values.
+Dear Russell King,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/i2c/tc358743.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+On Mon, 02 Mar 2015 17:06:42 +0000, Russell King wrote:
+> clkdev_create() is a shorter way to write clkdev_alloc() followed by
+> clkdev_add().  Use this instead.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  arch/arm/plat-orion/common.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/plat-orion/common.c b/arch/arm/plat-orion/common.c
+> index f5b00f41c4f6..2235081a04ee 100644
+> --- a/arch/arm/plat-orion/common.c
+> +++ b/arch/arm/plat-orion/common.c
+> @@ -28,11 +28,7 @@
+>  void __init orion_clkdev_add(const char *con_id, const char *dev_id,
+>  			     struct clk *clk)
+>  {
+> -	struct clk_lookup *cl;
+> -
+> -	cl = clkdev_alloc(clk, con_id, dev_id);
+> -	if (cl)
+> -		clkdev_add(cl);
+> +	clkdev_create(clk, con_id, "%s", dev_id);
+>  }
+>  
+>  /* Create clkdev entries for all orion platforms except kirkwood.
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 85a0f7a..dd2ea16 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -606,6 +606,7 @@ static void tc358743_set_pll(struct v4l2_subdev *sd)
- 	struct tc358743_state *state = to_state(sd);
- 	struct tc358743_platform_data *pdata = &state->pdata;
- 	u16 pllctl0 = i2c_rd16(sd, PLLCTL0);
-+	u16 pllctl1 = i2c_rd16(sd, PLLCTL1);
- 	u16 pllctl0_new = SET_PLL_PRD(pdata->pll_prd) |
- 		SET_PLL_FBD(pdata->pll_fbd);
+Looks good, but instead of having orion_clkdev_add() being just an
+alias for clkdev_create(), what about going ahead and simply reoving
+orion_clkdev_add() entirely? Something like the below patch (not even
+compile tested) :
+
+diff --git a/arch/arm/mach-dove/common.c b/arch/arm/mach-dove/common.c
+index 0d1a892..ec00183 100644
+--- a/arch/arm/mach-dove/common.c
++++ b/arch/arm/mach-dove/common.c
+@@ -109,28 +109,28 @@ static void __init dove_clk_init(void)
+ 	gephy = dove_register_gate("gephy", "tclk", CLOCK_GATING_BIT_GIGA_PHY);
+ 	ge = dove_register_gate("ge", "gephy", CLOCK_GATING_BIT_GBE);
  
-@@ -613,8 +614,8 @@ static void tc358743_set_pll(struct v4l2_subdev *sd)
+-	orion_clkdev_add(NULL, "orion_spi.0", tclk);
+-	orion_clkdev_add(NULL, "orion_spi.1", tclk);
+-	orion_clkdev_add(NULL, "orion_wdt", tclk);
+-	orion_clkdev_add(NULL, "mv64xxx_i2c.0", tclk);
+-
+-	orion_clkdev_add(NULL, "orion-ehci.0", usb0);
+-	orion_clkdev_add(NULL, "orion-ehci.1", usb1);
+-	orion_clkdev_add(NULL, "mv643xx_eth_port.0", ge);
+-	orion_clkdev_add(NULL, "sata_mv.0", sata);
+-	orion_clkdev_add("0", "pcie", pex0);
+-	orion_clkdev_add("1", "pcie", pex1);
+-	orion_clkdev_add(NULL, "sdhci-dove.0", sdio0);
+-	orion_clkdev_add(NULL, "sdhci-dove.1", sdio1);
+-	orion_clkdev_add(NULL, "orion_nand", nand);
+-	orion_clkdev_add(NULL, "cafe1000-ccic.0", camera);
+-	orion_clkdev_add(NULL, "mvebu-audio.0", i2s0);
+-	orion_clkdev_add(NULL, "mvebu-audio.1", i2s1);
+-	orion_clkdev_add(NULL, "mv_crypto", crypto);
+-	orion_clkdev_add(NULL, "dove-ac97", ac97);
+-	orion_clkdev_add(NULL, "dove-pdma", pdma);
+-	orion_clkdev_add(NULL, MV_XOR_NAME ".0", xor0);
+-	orion_clkdev_add(NULL, MV_XOR_NAME ".1", xor1);
++	clkdev_create(tclk, NULL, "%s", "orion_spi.0");
++	clkdev_create(tclk, NULL, "%s", "orion_spi.1");
++	clkdev_create(tclk, NULL, "%s", "orion_wdt");
++	clkdev_create(tclk, NULL, "%s", "mv64xxx_i2c.0");
++
++	clkdev_create(usb0, NULL, "%s", "orion-ehci.0");
++	clkdev_create(usb1, NULL, "%s", "orion-ehci.1");
++	clkdev_create(ge, NULL, "%s", "mv643xx_eth_port.0");
++	clkdev_create(sata, NULL, "%s", "sata_mv.0");
++	clkdev_create(pex0, "0", "%s", "pcie");
++	clkdev_create(pex1, "1", "%s", "pcie");
++	clkdev_create(sdio0, NULL, "%s", "sdhci-dove.0");
++	clkdev_create(sdio1, NULL, "%s", "sdhci-dove.1");
++	clkdev_create(nand, NULL, "%s", "orion_nand");
++	clkdev_create(camera, NULL, "%s", "cafe1000-ccic.0");
++	clkdev_create(i2s0, NULL, "%s", "mvebu-audio.0");
++	clkdev_create(i2s1, NULL, "%s", "mvebu-audio.1");
++	clkdev_create(crypto, NULL, "%s", "mv_crypto");
++	clkdev_create(ac97, NULL, "%s", "dove-ac97");
++	clkdev_create(pdma, NULL, "%s", "dove-pdma");
++	clkdev_create(xor0, NULL, "%s", MV_XOR_NAME ".0");
++	clkdev_create(xor1, NULL, "%s", MV_XOR_NAME ".1");
+ }
  
- 	/* Only rewrite when needed, since rewriting triggers another format
- 	 * change event. */
--	if (pllctl0 != pllctl0_new) {
--		u32 hsck = (pdata->refclk_hz * pdata->pll_prd) / pdata->pll_fbd;
-+	if ((pllctl0 != pllctl0_new) || ((pllctl1 & MASK_PLL_EN) == 0)) {
-+		u32 hsck = (pdata->refclk_hz * pdata->pll_fbd) / pdata->pll_prd;
- 		u16 pll_frs;
+ /*****************************************************************************
+diff --git a/arch/arm/plat-orion/common.c b/arch/arm/plat-orion/common.c
+index f5b00f4..6ac3549 100644
+--- a/arch/arm/plat-orion/common.c
++++ b/arch/arm/plat-orion/common.c
+@@ -24,31 +24,20 @@
+ #include <mach/bridge-regs.h>
+ #include <plat/common.h>
  
- 		if (hsck > 500000000)
+-/* Create a clkdev entry for a given device/clk */
+-void __init orion_clkdev_add(const char *con_id, const char *dev_id,
+-			     struct clk *clk)
+-{
+-	struct clk_lookup *cl;
+-
+-	cl = clkdev_alloc(clk, con_id, dev_id);
+-	if (cl)
+-		clkdev_add(cl);
+-}
+-
+ /* Create clkdev entries for all orion platforms except kirkwood.
+    Kirkwood has gated clocks for some of its peripherals, so creates
+    its own clkdev entries. For all the other orion devices, create
+    clkdev entries to the tclk. */
+ void __init orion_clkdev_init(struct clk *tclk)
+ {
+-	orion_clkdev_add(NULL, "orion_spi.0", tclk);
+-	orion_clkdev_add(NULL, "orion_spi.1", tclk);
+-	orion_clkdev_add(NULL, MV643XX_ETH_NAME ".0", tclk);
+-	orion_clkdev_add(NULL, MV643XX_ETH_NAME ".1", tclk);
+-	orion_clkdev_add(NULL, MV643XX_ETH_NAME ".2", tclk);
+-	orion_clkdev_add(NULL, MV643XX_ETH_NAME ".3", tclk);
+-	orion_clkdev_add(NULL, "orion_wdt", tclk);
+-	orion_clkdev_add(NULL, MV64XXX_I2C_CTLR_NAME ".0", tclk);
++	clkdev_create(tclk, NULL, "%s", "orion_spi.0");
++	clkdev_create(tclk, NULL, "%s", "orion_spi.1");
++	clkdev_create(tclk, NULL, "%s", MV643XX_ETH_NAME ".0");
++	clkdev_create(tclk, NULL, "%s", MV643XX_ETH_NAME ".1");
++	clkdev_create(tclk, NULL, "%s", MV643XX_ETH_NAME ".2");
++	clkdev_create(tclk, NULL, "%s", MV643XX_ETH_NAME ".3");
++	clkdev_create(tclk, NULL, "%s", "orion_wdt");
++	clkdev_create(tclk, NULL, "%s", MV64XXX_I2C_CTLR_NAME ".0");
+ }
+ 
+ /* Fill in the resources structure and link it into the platform
+diff --git a/arch/arm/plat-orion/include/plat/common.h b/arch/arm/plat-orion/include/plat/common.h
+index d9a24f6..7a06b6b 100644
+--- a/arch/arm/plat-orion/include/plat/common.h
++++ b/arch/arm/plat-orion/include/plat/common.h
+@@ -106,8 +106,5 @@ void __init orion_crypto_init(unsigned long mapbase,
+ 			      unsigned long sram_size,
+ 			      unsigned long irq);
+ 
+-void __init orion_clkdev_add(const char *con_id, const char *dev_id,
+-			     struct clk *clk);
+-
+ void __init orion_clkdev_init(struct clk *tclk);
+ #endif
+
+
+
 -- 
-2.1.4
-
+Thomas Petazzoni, CTO, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
