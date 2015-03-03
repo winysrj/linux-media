@@ -1,35 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.quartzbg.ro ([82.79.64.94]:55866 "EHLO mail.quartzbg.ro"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753910AbbCBQn7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 11:43:59 -0500
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-yk0-f178.google.com ([209.85.160.178]:38039 "EHLO
+	mail-yk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751441AbbCCNdj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 08:33:39 -0500
+Received: by ykp9 with SMTP id 9so16604813ykp.5
+        for <linux-media@vger.kernel.org>; Tue, 03 Mar 2015 05:33:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Confidential Letter  
-To: Recipients <noreply@popfax.com>
-From: "Mr. Juan Sebastian Morato" <noreply@popfax.com>
-Date: Mon, 02 Mar 2015 01:34:40 +0100
-Reply-To: juan_morato@yahoo.es
-Message-Id: <20150302003449.C20903EE0FE@mail.quartzbg.ro>
+In-Reply-To: <54F51078.5030507@gmail.com>
+References: <CADU0VqyzEdG=07O=9LufbZAYa0BVzgUbcBeVzUnfH+Mpup5=Fw@mail.gmail.com>
+	<CALzAhNVD3od1WSyi98icqhy4WveoutAoTJzqVV6g4yw+tMAEMg@mail.gmail.com>
+	<CADU0Vqxaa8XP+0j+Y5JqGuRRK8=avjQ_N_F2VoXQV1ZF=3PxmA@mail.gmail.com>
+	<CALzAhNViOw8EY=_WzEa7r92HGgDs1J9GvHcgQrun82GYXjNKpw@mail.gmail.com>
+	<CALzAhNXv3Czx=2VXpQzdudau4iJXk1cseHN9cBRfgtm=55AjXQ@mail.gmail.com>
+	<54F51078.5030507@gmail.com>
+Date: Tue, 3 Mar 2015 08:33:38 -0500
+Message-ID: <CALzAhNUh6AQhTLsO+hkmuO+jyHMte0d+TCW5Dt6BX2+qL0WZmQ@mail.gmail.com>
+Subject: Re: PCTV 800i
+From: Steven Toth <stoth@kernellabs.com>
+To: Mack Stanley <mcs1937@gmail.com>
+Cc: John Klug <ski.brimson@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Friend, 
+>> I have a pair of 800i's with the S5H1409 demodulator, probably from
+>> when I did the original 800i support (2008):
+>> http://marc.info/?l=linux-dvb&m=120032380226094&w=2
+>>
+>> I don't have a 800i with a s5h1411, so I can't really help without it.
+>>
+> Dear John and Steven,
+>
+> Back in 2012 I twice submitted a patch that got my pctv 800i with an s5h1411 working.  Both times
+> either my email or something along the way wrapped lines and spoiled the patch for testing.  I've
+> patched several kernels since then, but not any very recently.  I just checked and that machine is running
+> Fedora 3.14.4-200.fc20.x86_64.
+>
+> I've attached what I believe is the patch I made then.  Since then, I've just edited the v4l source
+> whenever and built a modified module whenever I upgraded.  I put instructions on fedora forum back
+> then: http://forums.fedoraforum.org/showthread.php?t=281161
+>
+> I hope this helps.
 
-I am Mr. Juan Sebastian Morato, the Auditor General of Unicaja Bank Madrid. In the course of my auditing, I discovered a floating fund in an account, which was opened in 1990 at Cam Bank before it was bought over by Unicaja Group which I am the auditor belonging to a dead foreigner Mr. Kenny who died in 2004. Every effort made to track any member of his family or next of kin has since failed; hence I got in contact with you to stand as his next of kin since you bear the same last name. He died leaving no heir or a will.
+Mack, thanks.
 
-My intention is to transfer this sum of 5.5M in the aforementioned account to a safe account. I am therefore proposing that you quietly partner with me and provide an account or set up a new one that will serve the purpose of receiving this fund. For your assistance in this venture, I am ready to part with a good percentage of the entire funds. After going through the deceased person's records and files, I discovered that:
+I've seen this patch in the past. Its perfect for end users who only
+need to support the newer board, but isn't too helpful
+for the kernel as it disables support for the prior board.
 
-(1) No one has operated this account since 2004
-(2) He died without an heir; hence the money has been floating.
-(3) No other person knows about this account and there was no known beneficiary.
+What the kernel needs is a single patch that (probably) reads the card
+eeprom and deterministically attaches the correct demodulator for the
+hardware, so users can mix'n'match old and new cards.
 
-If I do not remit this money urgently, it would be forfeited and subsequently converted to company's funds, which will benefit only the directors of my firm. This money can be approved to you legally as with all the necessary documentary approvals in your name. However, you would be required to show some proof of claim, which I will provide you with and also guide you on how to make your applications.
+If the eeprom doesn't help then we'll need to figure something else out.
 
-Please do give me a reply on my private e-mail juan.morato1@1email.eu or fax 00 34 917 692 656 so that I can send you detailed information on the modalities of my proposition. I completely trust you to keep this proposition absolutely confidential. Kindly forward your telephone number where I can reach you easily. I look forward to your prompt response.
+It's on my todo-list at somepoint. I traded a card with John a few
+weeks ago so I have everything I need to make it happen, other than
+time!
 
-Best Regards,
-Mr. Juan Sebastian Morato
-Fax: 00 34 917 692 656
+Thanks again,
+
+- Steve
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
