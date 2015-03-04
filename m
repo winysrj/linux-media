@@ -1,104 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:54384 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753558AbbC1Ow2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Mar 2015 10:52:28 -0400
-Message-ID: <5516BE45.6030304@schinagl.nl>
-Date: Sat, 28 Mar 2015 15:44:21 +0100
-From: Olliver Schinagl <oliver@schinagl.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:39584 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758829AbbCDOYa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 09:24:30 -0500
+Date: Wed, 4 Mar 2015 11:24:22 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: HVR2205 / HVR2255 support
+Message-ID: <20150304112422.7c9a6dc1@recife.lan>
+In-Reply-To: <CALzAhNXOAJR6tV6PGL4-zqeE-Kx0BYgOxZpEfRvN6fmv9_wMKA@mail.gmail.com>
+References: <CALzAhNXOAJR6tV6PGL4-zqeE-Kx0BYgOxZpEfRvN6fmv9_wMKA@mail.gmail.com>
 MIME-Version: 1.0
-To: Jonathan McCrohan <jmccrohan@gmail.com>,
-	linux-media@vger.kernel.org
-CC: Brian Burch <brian@pingtoo.com>
-Subject: Re: [PATCH] dtv-scan-tables: update dvb-t/au-SunshineCoast
-References: <1426938040-5806-1-git-send-email-jmccrohan@gmail.com>
-In-Reply-To: <1426938040-5806-1-git-send-email-jmccrohan@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks guys,
+Em Wed, 4 Mar 2015 08:43:24 -0500
+Steven Toth <stoth@kernellabs.com> escreveu:
 
-applied and pushed :)
+> Mauro, what's the plan to pull the LGDT3306A branch into tip? The
+> SAA7164/HVR2255 driver need this for demod support.
 
-On 03/21/2015 12:40 PM, Jonathan McCrohan wrote:
-> From: Brian Burch <brian@pingtoo.com>
->
-> Update dvb-t/au-SunshineCoast as per Brian Burch's bug report on Ubuntu
-> Launchpad:
-> https://bugs.launchpad.net/ubuntu/+source/dtv-scan-tables/+bug/1415262
->
-> Signed-off-by: Jonathan McCrohan <jmccrohan@gmail.com>
-> ---
->   dvb-t/au-SunshineCoast | 20 ++++++++++----------
->   1 file changed, 10 insertions(+), 10 deletions(-)
->
-> diff --git a/dvb-t/au-SunshineCoast b/dvb-t/au-SunshineCoast
-> index 5d22931..ff6f5dd 100644
-> --- a/dvb-t/au-SunshineCoast
-> +++ b/dvb-t/au-SunshineCoast
-> @@ -1,8 +1,8 @@
->   # Australia / Sunshine Coast
-> -# SBS36 SBS ***
-> +# SBS40 SBS ***
->   [CHANNEL]
->   	DELIVERY_SYSTEM = DVBT
-> -	FREQUENCY = 585625000
-> +	FREQUENCY = 613500000
->   	BANDWIDTH_HZ = 7000000
->   	CODE_RATE_HP = 2/3
->   	CODE_RATE_LP = NONE
-> @@ -12,10 +12,10 @@
->   	HIERARCHY = NONE
->   	INVERSION = AUTO
->   
-> -# TNQ47 10 ***
-> +# TNQ44 10 ***
->   [CHANNEL]
->   	DELIVERY_SYSTEM = DVBT
-> -	FREQUENCY = 662625000
-> +	FREQUENCY = 641500000
->   	BANDWIDTH_HZ = 7000000
->   	CODE_RATE_HP = 3/4
->   	CODE_RATE_LP = NONE
-> @@ -25,10 +25,10 @@
->   	HIERARCHY = NONE
->   	INVERSION = AUTO
->   
-> -# ABQ62 ABC ***
-> +# ABC41 ABC ***
->   [CHANNEL]
->   	DELIVERY_SYSTEM = DVBT
-> -	FREQUENCY = 767625000
-> +	FREQUENCY = 620500000
->   	BANDWIDTH_HZ = 7000000
->   	CODE_RATE_HP = 3/4
->   	CODE_RATE_LP = NONE
-> @@ -38,10 +38,10 @@
->   	HIERARCHY = NONE
->   	INVERSION = AUTO
->   
-> -# STQ65 7 ***
-> +# STQ42 7 ***
->   [CHANNEL]
->   	DELIVERY_SYSTEM = DVBT
-> -	FREQUENCY = 788625000
-> +	FREQUENCY = 627500000
->   	BANDWIDTH_HZ = 7000000
->   	CODE_RATE_HP = 3/4
->   	CODE_RATE_LP = NONE
-> @@ -51,10 +51,10 @@
->   	HIERARCHY = NONE
->   	INVERSION = AUTO
->   
-> -# STQ68 WIN ***
-> +# RTQ43 WIN ***
->   [CHANNEL]
->   	DELIVERY_SYSTEM = DVBT
-> -	FREQUENCY = 809500000
-> +	FREQUENCY = 634500000
->   	BANDWIDTH_HZ = 7000000
->   	CODE_RATE_HP = 3/4
->   	CODE_RATE_LP = NONE
+Merged yesterday. Today, I added one fix from Olli to extend the 
+si2157 minimal frequency to match the ATSC tuner range (needed by 
+HVR-955Q - not sure if HVR2255 also uses si2157 as tuner).
 
+Regards,
+Mauro
+
+> 
+> Hey folks, an update on this.
+> 
+> So I have the green-light to release my HVR2205 and HVR2255 board
+> related patches. I started merging them into tip earlier this week.
+> The HVR2205 is operational for DVB-T, although I have not tested
+> analog tv as yet.
+> 
+> The HVR2255 is the next on the list, I expect this to be trivial once
+> the HVR2205 work is complete.
+> 
+> Annoyingly, I'm traveling on business for the next 10 days or so. I
+> can't complete the work until I return - but I expect to complete this
+> entire exercise by 21st of this month.... So hold on a little longer
+> and keep watching this mailing list for further updates.
+> 
+> Thanks,
+> 
+> - Steve
+> 
