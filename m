@@ -1,44 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.emerald.synacor.com ([208.47.184.7]:12570 "EHLO
-	smtp02.emerald.cmh.synacor.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932499AbbCPRHP convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 13:07:15 -0400
-Date: Mon, 16 Mar 2015 12:47:12 -0400 (EDT)
-From: Email Conta Atendimento ao Cliente <pp5525@nwcable.net>
-Reply-To: Email Conta Atendimento ao Cliente <support.team@smtp.ru>
-Message-ID: <760826697.4812468.1426524432481.JavaMail.zimbra@nwcable.net>
-Subject: =?utf-8?Q?=C3=9Altima_atualiza=C3=A7=C3=A3o_aviso_conta_Email?=
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56624 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754570AbbCDKdm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Mar 2015 05:33:42 -0500
+Date: Wed, 4 Mar 2015 12:33:38 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 6/8] DocBook media: document the new 'which' field.
+Message-ID: <20150304103338.GA6539@valkosipuli.retiisi.org.uk>
+References: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
+ <1425462481-8200-7-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1425462481-8200-7-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Caro usuário de e-mail
+On Wed, Mar 04, 2015 at 10:47:59AM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The subdev enum ioctls now have a new 'which' field. Document this.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Sua caixa de e-mail excedeu seu limite, sua pasta de correio é
-atualmente em execução de 99,7% do limite total quota de 100%. Você não pode
-enviar ou receber e-mail corretamente até que você atualizou seu webmail
-conta.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Para atualizar sua conta de webmail, preencha seus dados abaixo
-
-Nome e sobrenome:
-Entre inteira Email:
-Usuário:
-password:
-Confirme Sua Senha:
-Data de nascimento:
-Ano de criação de contas:
-
-Aviso: Se não actualizar a sua conta de webmail dentro de 24 horas, vamos
-considerar a sua conta inativa e será imediatamente desativada.
-
-Pedimos sinceras desculpas por qualquer inconveniente que isso possa causar, o que
-pretende servir melhor.
-
-Obrigado por sua cooperação.
-Equipe de atualização Webmail.
-© Copyright 2015
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
