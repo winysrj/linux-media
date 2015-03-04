@@ -1,226 +1,306 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58851 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756407AbbCCWPy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 17:15:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v5 6/8] v4l: xilinx: Add Xilinx Video IP core
-Date: Wed, 04 Mar 2015 00:15:55 +0200
-Message-ID: <6955407.oAVS26tV3L@avalon>
-In-Reply-To: <54F59AD8.6080903@xs4all.nl>
-References: <1425260925-12064-1-git-send-email-laurent.pinchart@ideasonboard.com> <1425260925-12064-7-git-send-email-laurent.pinchart@ideasonboard.com> <54F59AD8.6080903@xs4all.nl>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45746 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752046AbbCDIsI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Mar 2015 03:48:08 -0500
+Message-ID: <54F6C6B3.6010603@xs4all.nl>
+Date: Wed, 04 Mar 2015 09:47:47 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+CC: laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH 6/7] v4l2-subdev: remove enum_framesizes/intervals
+References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl> <1423827006-32878-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1423827006-32878-7-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thank you for the review.
-
-On Tuesday 03 March 2015 12:28:24 Hans Verkuil wrote:
-> Hi Laurent,
+On 02/13/15 12:30, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Thanks for this patch. I do have a few comments, see below. Note that I am
-> OK with the new DT format description.
+> Replace the video ops enum_framesizes and enum_frameintervals by the pad
+> ops enum_frame_size and enum_frame_interval.
 > 
-> On 03/02/2015 02:48 AM, Laurent Pinchart wrote:
-> > Xilinx platforms have no hardwired video capture or video processing
-> > interface. Users create capture and memory to memory processing
-> > pipelines in the FPGA fabric to suit their particular needs, by
-> > instantiating video IP cores from a large library.
-> > 
-> > The Xilinx Video IP core is a framework that models a video pipeline
-> > described in the device tree and expose the pipeline to userspace
-> > through the media controller and V4L2 APIs.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
-> > Signed-off-by: Radhey Shyam Pandey <radheys@xilinx.com>
-> > Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-> > 
-> > ---
+> The video and pad ops are duplicates, so get rid of the more limited video op.
 > 
-> <snip>
+> The whole point of the subdev API is to allow reuse of subdev drivers by
+> bridge drivers. Having duplicate ops makes that much harder. We should never
+> have allowed duplicate ops in the first place. A lesson for the future.
 > 
-> > diff --git a/drivers/media/platform/xilinx/xilinx-dma.c
-> > b/drivers/media/platform/xilinx/xilinx-dma.c new file mode 100644
-> > index 0000000..afed6c3
-> > --- /dev/null
-> > +++ b/drivers/media/platform/xilinx/xilinx-dma.c
-> > @@ -0,0 +1,753 @@
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-[snip]
+For ov7670 and marvell-ccic:
 
-> > +static void xvip_dma_complete(void *param)
-> > +{
-> > +	struct xvip_dma_buffer *buf = param;
-> > +	struct xvip_dma *dma = buf->dma;
-> > +
-> > +	spin_lock(&dma->queued_lock);
-> > +	list_del(&buf->queue);
-> > +	spin_unlock(&dma->queued_lock);
-> > +
-> > +	buf->buf.v4l2_buf.sequence = dma->sequence++;
-> 
-> buf->buf.v4l2_buf.field isn't set. I think you only support progressive
-> formats at the moment, so this should be set to V4L2_FIELD_NONE.
+Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Agreed, that was an oversight. I'll fix it.
+It took blood, sweat and a bucket full of tears, but I finally managed to
+get it to run on a OLPC XO-1 laptop. I plan to test more using v4l2-compliance,
+but first I need to get the OS installed on an SD card. I think I finally found
+good instructions for that. I'm certain this driver fails big time on the
+compliance tests.
 
-> > +	v4l2_get_timestamp(&buf->buf.v4l2_buf.timestamp);
-> > +	vb2_set_plane_payload(&buf->buf, 0, dma->format.sizeimage);
-> > +	vb2_buffer_done(&buf->buf, VB2_BUF_STATE_DONE);
-> > +}
-> > +
-> > +static int
-> > +xvip_dma_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
-> > +		     unsigned int *nbuffers, unsigned int *nplanes,
-> > +		     unsigned int sizes[], void *alloc_ctxs[])
-> > +{
-> > +	struct xvip_dma *dma = vb2_get_drv_priv(vq);
-> > +
-> > +	*nplanes = 1;
-> > +
-> > +	sizes[0] = dma->format.sizeimage;
-> 
-> I would suggest that you add support for vb2_ioctl_create_bufs by changing
-> this code to:
-> 
-> 	if (fmt && fmt->fmt.pix.sizeimage < dma->format.sizeimage)
->                 return -EINVAL;
-> 	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : dma->format.sizeimage;
-
-Looks good, I'll fix that.
-
-> > +	alloc_ctxs[0] = dma->alloc_ctx;
-> > +
-> > +	return 0;
-> > +}
-
-[snip]
-
-> > +static int xvip_dma_start_streaming(struct vb2_queue *vq, unsigned int
-> > count) +{
-> > +	struct xvip_dma *dma = vb2_get_drv_priv(vq);
-> > +	struct xvip_dma_buffer *buf, *nbuf;
-> > +	struct xvip_pipeline *pipe;
-> > +	int ret;
-> > +
-> > +	dma->sequence = 0;
-> > +
-> > +	/*
-> > +	 * Start streaming on the pipeline. No link touching an entity in the
-> > +	 * pipeline can be activated or deactivated once streaming is 
-started.
-> > +	 *
-> > +	 * Use the pipeline object embedded in the first DMA object that 
-starts
-> > +	 * streaming.
-> > +	 */
-> > +	pipe = dma->video.entity.pipe
-> > +	     ? to_xvip_pipeline(&dma->video.entity) : &dma->pipe;
-> > +
-> > +	ret = media_entity_pipeline_start(&dma->video.entity, &pipe->pipe);
-> > +	if (ret < 0)
-> > +		goto error;
-> > +
-> > +	/* Verify that the configured format matches the output of the
-> > +	 * connected subdev.
-> > +	 */
-> > +	ret = xvip_dma_verify_format(dma);
-> > +	if (ret < 0)
-> > +		goto error_stop;
-> > +
-> > +	ret = xvip_pipeline_prepare(pipe, dma);
-> > +	if (ret < 0)
-> > +		goto error_stop;
-> > +
-> > +	/* Start the DMA engine. This must be done before starting the blocks
-> > +	 * in the pipeline to avoid DMA synchronization issues.
-> > +	 */
-> > +	dma_async_issue_pending(dma->dma);
-> 
-> Question: can the DMA engine be started without any buffers queued?
-
-Yes. In that case the dma_async_issue_pending() call will be a no-op, as there 
-will be no pending DMA transfer queued.
-
-> The vb2_queue struct has a min_buffers_needed field that can be set to a
-> non-zero value. In that case start_streaming won't be called until at least
-> that many buffers have been queued. Many DMA engines need that so this was
-> added to the vb2 core to avoid having to hack around this in the driver.
-
-I don't see a need for that here. I actually think the min_buffers_needed 
-field shouldn't be set, even if it could be set to 1, to avoid reporting 
-VIDIOC_STREAMON errors at VIDIOC_QBUF time. The alternative would be to move 
-the validation code to a custom .video_streamon handler, but that seems 
-pointless to me.
-
-> > +
-> > +	/* Start the pipeline. */
-> > +	xvip_pipeline_set_stream(pipe, true);
-> > +
-> > +	return 0;
-> > +
-> > +error_stop:
-> > +	media_entity_pipeline_stop(&dma->video.entity);
-> > +
-> > +error:
-> > +	/* Give back all queued buffers to videobuf2. */
-> > +	spin_lock_irq(&dma->queued_lock);
-> > +	list_for_each_entry_safe(buf, nbuf, &dma->queued_bufs, queue) {
-> > +		vb2_buffer_done(&buf->buf, VB2_BUF_STATE_QUEUED);
-> > +		list_del(&buf->queue);
-> > +	}
-> > +	spin_unlock_irq(&dma->queued_lock);
-> > +
-> > +	return ret;
-> > +}
-
-[snip]
-
-> > +/* ----------------------------------------------------------------------
-> > + * V4L2 file operations
-> > + */
-> > +
-> > +static const struct v4l2_file_operations xvip_dma_fops = {
-> > +	.owner		= THIS_MODULE,
-> > +	.unlocked_ioctl	= video_ioctl2,
-> > +	.open		= v4l2_fh_open,
-> > +	.release	= vb2_fop_release,
-> > +	.poll		= vb2_fop_poll,
-> > +	.mmap		= vb2_fop_mmap,
-> 
-> I would also add:
-> 
-> 	.read = vb2_fop_read,
-> 	.write = vb2_fop_write,
-> 
-> and add VB2_READ or VB2_WRITE to dma->queue.io_modes.
-> 
-> You get it for free, it doesn't take any additional resources, so why not?
-
-My usual comment : because I'd rather not have users using the read() API with 
-this driver :-) The usual argument of "but then it would be easy to just cat 
-/dev/video? to check whether the device works" doesn't apply here as the 
-pipeline needs to be configured from userspace through V4L2 subdev pad ops 
-anyway, so users can as well use a proper V4L2 command line test tool.
-
-> However, to make that work correctly you need this patch:
-> 
-> https://patchwork.linuxtv.org/patch/28478/
-> 
-> It would make sense if you just add that patch to your xilinx tree.
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> ---
+>  drivers/media/i2c/ov7670.c                      | 37 +++++++++++--------
+>  drivers/media/platform/marvell-ccic/mcam-core.c | 48 ++++++++++++++++++++++---
+>  drivers/media/platform/soc_camera/soc_camera.c  | 30 +++++++++++-----
+>  drivers/media/platform/via-camera.c             | 15 ++++++--
+>  include/media/v4l2-subdev.h                     |  2 --
+>  5 files changed, 101 insertions(+), 31 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+> index 957927f..b984752 100644
+> --- a/drivers/media/i2c/ov7670.c
+> +++ b/drivers/media/i2c/ov7670.c
+> @@ -1069,29 +1069,35 @@ static int ov7670_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+>  
+>  static int ov7670_frame_rates[] = { 30, 15, 10, 5, 1 };
+>  
+> -static int ov7670_enum_frameintervals(struct v4l2_subdev *sd,
+> -		struct v4l2_frmivalenum *interval)
+> +static int ov7670_enum_frame_interval(struct v4l2_subdev *sd,
+> +				      struct v4l2_subdev_pad_config *cfg,
+> +				      struct v4l2_subdev_frame_interval_enum *fie)
+>  {
+> -	if (interval->index >= ARRAY_SIZE(ov7670_frame_rates))
+> +	if (fie->pad)
+>  		return -EINVAL;
+> -	interval->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> -	interval->discrete.numerator = 1;
+> -	interval->discrete.denominator = ov7670_frame_rates[interval->index];
+> +	if (fie->index >= ARRAY_SIZE(ov7670_frame_rates))
+> +		return -EINVAL;
+> +	fie->interval.numerator = 1;
+> +	fie->interval.denominator = ov7670_frame_rates[fie->index];
+>  	return 0;
+>  }
+>  
+>  /*
+>   * Frame size enumeration
+>   */
+> -static int ov7670_enum_framesizes(struct v4l2_subdev *sd,
+> -		struct v4l2_frmsizeenum *fsize)
+> +static int ov7670_enum_frame_size(struct v4l2_subdev *sd,
+> +				  struct v4l2_subdev_pad_config *cfg,
+> +				  struct v4l2_subdev_frame_size_enum *fse)
+>  {
+>  	struct ov7670_info *info = to_state(sd);
+>  	int i;
+>  	int num_valid = -1;
+> -	__u32 index = fsize->index;
+> +	__u32 index = fse->index;
+>  	unsigned int n_win_sizes = info->devtype->n_win_sizes;
+>  
+> +	if (fse->pad)
+> +		return -EINVAL;
+> +
+>  	/*
+>  	 * If a minimum width/height was requested, filter out the capture
+>  	 * windows that fall outside that.
+> @@ -1103,9 +1109,8 @@ static int ov7670_enum_framesizes(struct v4l2_subdev *sd,
+>  		if (info->min_height && win->height < info->min_height)
+>  			continue;
+>  		if (index == ++num_valid) {
+> -			fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+> -			fsize->discrete.width = win->width;
+> -			fsize->discrete.height = win->height;
+> +			fse->min_width = fse->max_width = win->width;
+> +			fse->min_height = fse->max_height = win->height;
+>  			return 0;
+>  		}
+>  	}
+> @@ -1485,13 +1490,17 @@ static const struct v4l2_subdev_video_ops ov7670_video_ops = {
+>  	.s_mbus_fmt = ov7670_s_mbus_fmt,
+>  	.s_parm = ov7670_s_parm,
+>  	.g_parm = ov7670_g_parm,
+> -	.enum_frameintervals = ov7670_enum_frameintervals,
+> -	.enum_framesizes = ov7670_enum_framesizes,
+> +};
+> +
+> +static const struct v4l2_subdev_pad_ops ov7670_pad_ops = {
+> +	.enum_frame_interval = ov7670_enum_frame_interval,
+> +	.enum_frame_size = ov7670_enum_frame_size,
+>  };
+>  
+>  static const struct v4l2_subdev_ops ov7670_ops = {
+>  	.core = &ov7670_core_ops,
+>  	.video = &ov7670_video_ops,
+> +	.pad = &ov7670_pad_ops,
+>  };
+>  
+>  /* ----------------------------------------------------------------------- */
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+> index dd5b141..9c64b5d 100644
+> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+> @@ -1568,24 +1568,64 @@ static int mcam_vidioc_enum_framesizes(struct file *filp, void *priv,
+>  		struct v4l2_frmsizeenum *sizes)
+>  {
+>  	struct mcam_camera *cam = priv;
+> +	struct mcam_format_struct *f;
+> +	struct v4l2_subdev_frame_size_enum fse = {
+> +		.index = sizes->index,
+> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> +	};
+>  	int ret;
+>  
+> +	f = mcam_find_format(sizes->pixel_format);
+> +	if (f->pixelformat != sizes->pixel_format)
+> +		return -EINVAL;
+> +	fse.code = f->mbus_code;
+>  	mutex_lock(&cam->s_mutex);
+> -	ret = sensor_call(cam, video, enum_framesizes, sizes);
+> +	ret = sensor_call(cam, pad, enum_frame_size, NULL, &fse);
+>  	mutex_unlock(&cam->s_mutex);
+> -	return ret;
+> +	if (ret)
+> +		return ret;
+> +	if (fse.min_width == fse.max_width &&
+> +	    fse.min_height == fse.max_height) {
+> +		sizes->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+> +		sizes->discrete.width = fse.min_width;
+> +		sizes->discrete.height = fse.min_height;
+> +		return 0;
+> +	}
+> +	sizes->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
+> +	sizes->stepwise.min_width = fse.min_width;
+> +	sizes->stepwise.max_width = fse.max_width;
+> +	sizes->stepwise.min_height = fse.min_height;
+> +	sizes->stepwise.max_height = fse.max_height;
+> +	sizes->stepwise.step_width = 1;
+> +	sizes->stepwise.step_height = 1;
+> +	return 0;
+>  }
+>  
+>  static int mcam_vidioc_enum_frameintervals(struct file *filp, void *priv,
+>  		struct v4l2_frmivalenum *interval)
+>  {
+>  	struct mcam_camera *cam = priv;
+> +	struct mcam_format_struct *f;
+> +	struct v4l2_subdev_frame_interval_enum fie = {
+> +		.index = interval->index,
+> +		.width = interval->width,
+> +		.height = interval->height,
+> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> +	};
+>  	int ret;
+>  
+> +	f = mcam_find_format(interval->pixel_format);
+> +	if (f->pixelformat != interval->pixel_format)
+> +		return -EINVAL;
+> +	fie.code = f->mbus_code;
+>  	mutex_lock(&cam->s_mutex);
+> -	ret = sensor_call(cam, video, enum_frameintervals, interval);
+> +	ret = sensor_call(cam, pad, enum_frame_interval, NULL, &fie);
+>  	mutex_unlock(&cam->s_mutex);
+> -	return ret;
+> +	if (ret)
+> +		return ret;
+> +	interval->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> +	interval->discrete = fie.interval;
+> +	return 0;
+>  }
+>  
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index cee7b56..1ed0a0b 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -1888,22 +1888,34 @@ static int default_enum_framesizes(struct soc_camera_device *icd,
+>  	int ret;
+>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>  	const struct soc_camera_format_xlate *xlate;
+> -	__u32 pixfmt = fsize->pixel_format;
+> -	struct v4l2_frmsizeenum fsize_mbus = *fsize;
+> +	struct v4l2_subdev_frame_size_enum fse = {
+> +		.index = fsize->index,
+> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> +	};
+>  
+> -	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+> +	xlate = soc_camera_xlate_by_fourcc(icd, fsize->pixel_format);
+>  	if (!xlate)
+>  		return -EINVAL;
+> -	/* map xlate-code to pixel_format, sensor only handle xlate-code*/
+> -	fsize_mbus.pixel_format = xlate->code;
+> +	fse.code = xlate->code;
+>  
+> -	ret = v4l2_subdev_call(sd, video, enum_framesizes, &fsize_mbus);
+> +	ret = v4l2_subdev_call(sd, pad, enum_frame_size, NULL, &fse);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	*fsize = fsize_mbus;
+> -	fsize->pixel_format = pixfmt;
+> -
+> +	if (fse.min_width == fse.max_width &&
+> +	    fse.min_height == fse.max_height) {
+> +		fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+> +		fsize->discrete.width = fse.min_width;
+> +		fsize->discrete.height = fse.min_height;
+> +		return 0;
+> +	}
+> +	fsize->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
+> +	fsize->stepwise.min_width = fse.min_width;
+> +	fsize->stepwise.max_width = fse.max_width;
+> +	fsize->stepwise.min_height = fse.min_height;
+> +	fsize->stepwise.max_height = fse.max_height;
+> +	fsize->stepwise.step_width = 1;
+> +	fsize->stepwise.step_height = 1;
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/media/platform/via-camera.c b/drivers/media/platform/via-camera.c
+> index 86989d8..678ed9f 100644
+> --- a/drivers/media/platform/via-camera.c
+> +++ b/drivers/media/platform/via-camera.c
+> @@ -1147,12 +1147,23 @@ static int viacam_enum_frameintervals(struct file *filp, void *priv,
+>  		struct v4l2_frmivalenum *interval)
+>  {
+>  	struct via_camera *cam = priv;
+> +	struct v4l2_subdev_frame_interval_enum fie = {
+> +		.index = interval->index,
+> +		.code = cam->mbus_code,
+> +		.width = cam->sensor_format.width,
+> +		.height = cam->sensor_format.height,
+> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> +	};
+>  	int ret;
+>  
+>  	mutex_lock(&cam->lock);
+> -	ret = sensor_call(cam, video, enum_frameintervals, interval);
+> +	ret = sensor_call(cam, pad, enum_frame_interval, NULL, &fie);
+>  	mutex_unlock(&cam->lock);
+> -	return ret;
+> +	if (ret)
+> +		return ret;
+> +	interval->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> +	interval->discrete = fie.interval;
+> +	return 0;
+>  }
+>  
+>  
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 6192f66..933f767 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -332,8 +332,6 @@ struct v4l2_subdev_video_ops {
+>  				struct v4l2_subdev_frame_interval *interval);
+>  	int (*s_frame_interval)(struct v4l2_subdev *sd,
+>  				struct v4l2_subdev_frame_interval *interval);
+> -	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
+> -	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
+>  	int (*s_dv_timings)(struct v4l2_subdev *sd,
+>  			struct v4l2_dv_timings *timings);
+>  	int (*g_dv_timings)(struct v4l2_subdev *sd,
+> 
 
