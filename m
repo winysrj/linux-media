@@ -1,153 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:33530 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750949AbbCKLY6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 07:24:58 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Mauro Carvalho Chehab' <mchehab@osg.samsung.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	thomas@tommie-lie.de, sean@mess.org, linux-input@vger.kernel.org
-References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
- <1421942679-23609-3-git-send-email-k.debski@samsung.com>
- <20150308112033.7d807164@recife.lan>
-In-reply-to: <20150308112033.7d807164@recife.lan>
-Subject: RE: [RFC v2 2/7] media: rc: Add cec protocol handling
-Date: Wed, 11 Mar 2015 12:24:53 +0100
-Message-id: <000f01d05bee$002b34c0$00819e40$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:41854 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933662AbbCDHHi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 02:07:38 -0500
+Received: by pdno5 with SMTP id o5so55107933pdn.8
+        for <linux-media@vger.kernel.org>; Tue, 03 Mar 2015 23:07:38 -0800 (PST)
+MIME-Version: 1.0
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Wed, 4 Mar 2015 12:37:16 +0530
+Message-ID: <CAO_48GFmfHb=SEW=Ny+Nu8=1m0S9ij=m0hhUpsm2zJu6Y2gkwg@mail.gmail.com>
+Subject: [GIT PULL]: dma-buf fixes for 4.0
+To: Linus Torvalds <torvalds@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Tom Gall <tom.gall@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Linus,
 
-I have some more comments/questions below.
-
-From: Mauro Carvalho Chehab [mailto:mchehab@osg.samsung.com]
-Sent: Sunday, March 08, 2015 3:21 PM
-> 
-> Em Thu, 22 Jan 2015 17:04:34 +0100
-> Kamil Debski <k.debski@samsung.com> escreveu:
-> 
-> (c/c linux-input ML)
-> 
-> > Add cec protocol handling the RC framework.
-> 
-> I added some comments, that reflects my understanding from what's there
-> at the keymap definitions found at:
-> 	http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
-> 
-> 
-> >
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > ---
-> >  drivers/media/rc/keymaps/Makefile |    1 +
-> >  drivers/media/rc/keymaps/rc-cec.c |  133
-> +++++++++++++++++++++++++++++++++++++
-> >  drivers/media/rc/rc-main.c        |    1 +
-> >  include/media/rc-core.h           |    1 +
-> >  include/media/rc-map.h            |    5 +-
-> >  5 files changed, 140 insertions(+), 1 deletion(-)  create mode
-
-[snip]
-
-> 
-> > +	{ 0x60, KEY_PLAY }, /* XXX CEC Spec: Play Function */
-> > +	{ 0x61, KEY_PLAYPAUSE }, /* XXX CEC Spec: Pause-Play Function */
-> > +	{ 0x62, KEY_RECORD }, /* XXX CEC Spec: Record Function */
-> > +	{ 0x63, KEY_PAUSE }, /* XXX CEC Spec: Pause-Record Function */
-> > +	{ 0x64, KEY_STOP }, /* XXX CEC Spec: Stop Function */
-> > +	{ 0x65, KEY_MUTE }, /* XXX CEC Spec: Mute Function */
-> > +	/* 0x66: CEC Spec: Restore Volume Function */
-> > +	{ 0x67, KEY_TUNER }, /* XXX CEC Spec: Tune Function */
-> > +	{ 0x68, KEY_MEDIA }, /* CEC Spec: Select Media Function */
-> > +	{ 0x69, KEY_SWITCHVIDEOMODE} /* XXX CEC Spec: Select A/V Input
-> Function */,
-> > +	{ 0x6a, KEY_AUDIO} /* CEC Spec: Select Audio Input Function */,
-> > +	{ 0x6b, KEY_POWER} /* CEC Spec: Power Toggle Function */,
-> > +	{ 0x6c, KEY_SLEEP} /* XXX CEC Spec: Power Off Function */,
-> > +	{ 0x6d, KEY_WAKEUP} /* XXX CEC Spec: Power On Function */,
-> 
-> Those "function" keycodes look weird. What's the difference between
-> those and the pure non-function variants?
-
-The note 2 applies to most of these function buttons. It says:
-"2 During a recording or timed recording, a device may ask the user
-for confirmation of this action before executing it."
- 
-> The spec (CEC 13.13.3) says that:
-> 
-> 	"Unlike the other codes, which just pass remote control presses
-> 	 to the target (often with manufacturer-specific results),
-> 	 the Functions are deterministic, ie they specify exactly the
-> state
-> 	 after executing these commands. Several of these also have
-> further
-> 	 operands, specifying the function in more detail, immediately
-> 	 following the relevant [UI Command] operand."
-> 
-> Some codes are actually compund ones. For example, 0x60 has a "play
-> mode"
-> operand. So, the actual mapping would be:
-> 
-> 0x60 + 0x24 - "play forward"
-> 0x61 + 0x20 - "play reverse"
-> ...
-> (see CEC17 for operand descriptions)
-> 
-> So, IMHO, the mapping should be
-> 
-> 	{ 0x6024, KEY_PLAY },
-> 	{ 0x6020, KEY_PLAY_REVERSE }, // to be created
-
-The note 1 says that they can be issued without the additional operand
-specified:
-"1 Functions with additional operands may also be used without the
-additional operand: in this case the behavior is manufacturer-specific."
-
-Will this do?
-	{ 0x60, KEY_PLAY },
-	{ 0x6024, KEY_PLAY },
- 	{ 0x6020, KEY_PLAY_REVERSE }, // to be created
-Or will the framework get confused that an incomplete key code was
-received?
-
-Another question I have is about the following operations:
-0x67 Tune Function
-0x68 Select Media Function
-0x69 Select A/V Input Function
-0x6a Select Audio Input Function
-These operations take an additional operand that is large number.
-1-255 for 0x68-0x6a or even a more complex operand such as the channel
-number for 0x67.
-
-Any suggestion on how to implement these correctly?
-
-> 	...
-> 
-> 
-> > +	/* 0x6e-0x70: Reserved */
-> > +	{ 0x71, KEY_BLUE }, /* XXX CEC Spec: F1 (Blue) */
-> > +	{ 0x72, KEY_RED }, /* XXX CEC Spec: F2 (Red) */
-> > +	{ 0x73, KEY_GREEN }, /* XXX CEC Spec: F3 (Green) */
-> > +	{ 0x74, KEY_YELLOW }, /* XXX CEC Spec: F4 (Yellow) */
-> > +	{ 0x75, KEY_F5 },
-> > +	{ 0x76, KEY_CONNECT }, /* XXX CEC Spec: Data - see Note 3 */
-> > +	/* Note 3: This is used, for example, to enter or leave a digital
-> TV
-> > +	 * data broadcast application. */
-> 
-
-[snip]
-
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+May I please request you to pull a couple of fixes in dma-buf for 4.0-rc3?
 
 
+The following changes since commit b942c653ae265abbd31032f3b4f5f857e5c7c723:
+
+  Merge tag 'trace-sh-3.19' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/linux-trace
+(2015-01-22 06:26:07 +1200)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/sumits/dma-buf.git
+tags/dma-buf-for-4.0-rc3
+
+for you to fetch changes up to 4eb2440ed60fb5793f7aa6da89b3d517cc59de43:
+
+  reservation: Remove shadowing local variable 'ret' (2015-01-22 16:29:31 +0530)
+
+----------------------------------------------------------------
+dma-buf pull request for 4.0-rc3
+- minor timeout & other fixes on reservation/fence
+
+----------------------------------------------------------------
+Jammy Zhou (2):
+      reservation: wait only with non-zero timeout specified (v3)
+      dma-buf/fence: don't wait when specified timeout is zero
+
+Michel Dänzer (1):
+      reservation: Remove shadowing local variable 'ret'
+
+ drivers/dma-buf/fence.c       | 3 +++
+ drivers/dma-buf/reservation.c | 5 +++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+Thanks, and Best regards,
+Sumit.
+
+PS: I am not submitting the cleanup that I submitted in my earlier
+pull request that you had to reject due to my stupid copy-paste error;
+that one patch and it's fix is in for-next, but it's not, strictly
+speaking, a "fix" to qualify for -rc3, hence I'll wait for the next
+merge-window to submit it.
