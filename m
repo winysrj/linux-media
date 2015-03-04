@@ -1,50 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:28339
-	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752267AbbCKREQ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56635 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758632AbbCDKef (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 13:04:16 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: linux-arm-kernel@lists.infradead.org
-Cc: kernel-janitors@vger.kernel.org, linux-edac@vger.kernel.org,
-	linux-scsi@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-crypto@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org,
-	netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-wpan@vger.kernel.org, target-devel@vger.kernel.org
-Subject: [PATCH 0/15] don't export static symbol
-Date: Wed, 11 Mar 2015 17:56:22 +0100
-Message-Id: <1426092997-30605-1-git-send-email-Julia.Lawall@lip6.fr>
+	Wed, 4 Mar 2015 05:34:35 -0500
+Date: Wed, 4 Mar 2015 12:34:03 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 8/8] v4l2-subdev: remove enum_framesizes/intervals
+Message-ID: <20150304103402.GB6539@valkosipuli.retiisi.org.uk>
+References: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
+ <1425462481-8200-9-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1425462481-8200-9-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches remove EXPORT_SYMBOL or EXPORT_SYMBOL_GPL declarations on
-static functions.
+On Wed, Mar 04, 2015 at 10:48:01AM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The video and pad ops are duplicates, so get rid of the more limited video op.
+> 
+> The whole point of the subdev API is to allow reuse of subdev drivers by
+> bridge drivers. Having duplicate ops makes that much harder. We should never
+> have allowed duplicate ops in the first place. A lesson for the future.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-This was done using the following semantic patch:
-(http://coccinelle.lip6.fr/)
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-// <smpl>
-@r@
-type T;
-identifier f;
-@@
-
-static T f (...) { ... }
-
-@@
-identifier r.f;
-declarer name EXPORT_SYMBOL;
-@@
-
--EXPORT_SYMBOL(f);
-
-@@
-identifier r.f;
-declarer name EXPORT_SYMBOL_GPL;
-@@
-
--EXPORT_SYMBOL_GPL(f);
-// </smpl>
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
