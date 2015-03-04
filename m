@@ -1,131 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:39241 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750887AbbCMJfM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 05:35:12 -0400
-Date: Fri, 13 Mar 2015 10:34:53 +0100
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	pali.rohar@gmail.com
-Subject: Re: [RFC 14/18] dt: bindings: Add bindings for omap3isp
-Message-ID: <20150313093453.GA4980@earth>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
- <1425764475-27691-15-git-send-email-sakari.ailus@iki.fi>
- <1429813.xCjhlUaUXi@avalon>
- <20150312230320.GO11954@valkosipuli.retiisi.org.uk>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59383 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755265AbbCDLZA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 06:25:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>, devicetree@vger.kernel.org
+Subject: Re: [PATCH v5 6/8] v4l: xilinx: Add Xilinx Video IP core
+Date: Wed, 04 Mar 2015 13:25:02 +0200
+Message-ID: <1490150.jLrV3BijOF@avalon>
+In-Reply-To: <54F6D0C0.3030309@xs4all.nl>
+References: <1425260925-12064-1-git-send-email-laurent.pinchart@ideasonboard.com> <6955407.oAVS26tV3L@avalon> <54F6D0C0.3030309@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
-Content-Disposition: inline
-In-Reply-To: <20150312230320.GO11954@valkosipuli.retiisi.org.uk>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---Nq2Wo0NMKNjxTN9z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wednesday 04 March 2015 10:30:40 Hans Verkuil wrote:
+> On 03/03/15 23:15, Laurent Pinchart wrote:
+> > On Tuesday 03 March 2015 12:28:24 Hans Verkuil wrote:
+> >> On 03/02/2015 02:48 AM, Laurent Pinchart wrote:
+> >>> Xilinx platforms have no hardwired video capture or video processing
+> >>> interface. Users create capture and memory to memory processing
+> >>> pipelines in the FPGA fabric to suit their particular needs, by
+> >>> instantiating video IP cores from a large library.
+> >>> 
+> >>> The Xilinx Video IP core is a framework that models a video pipeline
+> >>> described in the device tree and expose the pipeline to userspace
+> >>> through the media controller and V4L2 APIs.
+> >>> 
+> >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>> Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
+> >>> Signed-off-by: Radhey Shyam Pandey <radheys@xilinx.com>
+> >>> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+> >>> 
+> >>> ---
+> >> 
+> >> <snip>
+> >> 
+> >>> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c
+> >>> b/drivers/media/platform/xilinx/xilinx-dma.c new file mode 100644
+> >>> index 0000000..afed6c3
+> >>> --- /dev/null
+> >>> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
+> >>> @@ -0,0 +1,753 @@
 
-Hi,
+[snip]
 
-On Fri, Mar 13, 2015 at 01:03:21AM +0200, Sakari Ailus wrote:
-> [...]
+> >>> +static int xvip_dma_start_streaming(struct vb2_queue *vq, unsigned int
+> >>> count)
+> >>> +{
+> >>> +	struct xvip_dma *dma = vb2_get_drv_priv(vq);
+> >>> +	struct xvip_dma_buffer *buf, *nbuf;
+> >>> +	struct xvip_pipeline *pipe;
+> >>> +	int ret;
+> >>> +
+> >>> +	dma->sequence = 0;
+> >>> +
+> >>> +	/*
+> >>> +	 * Start streaming on the pipeline. No link touching an entity in the
+> >>> +	 * pipeline can be activated or deactivated once streaming is
+> >>> started.
+> >>> +	 *
+> >>> +	 * Use the pipeline object embedded in the first DMA object that
+> >>> starts
+> >>> +	 * streaming.
+> >>> +	 */
+> >>> +	pipe = dma->video.entity.pipe
+> >>> +	     ? to_xvip_pipeline(&dma->video.entity) : &dma->pipe;
+> >>> +
+> >>> +	ret = media_entity_pipeline_start(&dma->video.entity, &pipe->pipe);
+> >>> +	if (ret < 0)
+> >>> +		goto error;
+> >>> +
+> >>> +	/* Verify that the configured format matches the output of the
+> >>> +	 * connected subdev.
+> >>> +	 */
+> >>> +	ret = xvip_dma_verify_format(dma);
+> >>> +	if (ret < 0)
+> >>> +		goto error_stop;
+> >>> +
+> >>> +	ret = xvip_pipeline_prepare(pipe, dma);
+> >>> +	if (ret < 0)
+> >>> +		goto error_stop;
+> >>> +
+> >>> +	/* Start the DMA engine. This must be done before starting the blocks
+> >>> +	 * in the pipeline to avoid DMA synchronization issues.
+> >>> +	 */
+> >>> +	dma_async_issue_pending(dma->dma);
+> >> 
+> >> Question: can the DMA engine be started without any buffers queued?
+> > 
+> > Yes. In that case the dma_async_issue_pending() call will be a no-op, as
+> > there will be no pending DMA transfer queued.
+> > 
+> >> The vb2_queue struct has a min_buffers_needed field that can be set to a
+> >> non-zero value. In that case start_streaming won't be called until at
+> >> least that many buffers have been queued. Many DMA engines need that so
+> >> this was added to the vb2 core to avoid having to hack around this in the
+> >> driver.
+> > 
+> > I don't see a need for that here. I actually think the min_buffers_needed
+> > field shouldn't be set, even if it could be set to 1, to avoid reporting
+> > VIDIOC_STREAMON errors at VIDIOC_QBUF time. The alternative would be to
+> > move the validation code to a custom .video_streamon handler, but that
+> > seems pointless to me.
+> 
+> Would it make sense to add a validate_streamon op to vb2? For devices like
+> this that need to validate the pipeline it makes sense that the validation
+> happens on VIDIOC_STREAMON. The actual DMA engine start stays with the
+> start_streaming op.
+
+It might be useful, but maybe we should wait until we get a couple more 
+drivers with similar requirements before implementing it.
+
+For this particular driver I don't see what it would bring though, I don't 
+think there's any particular hack to work around the problem on the driver 
+side.
+
+> It would be easy to add to vb2.
+> 
+> >>> +
+> >>> +	/* Start the pipeline. */
+> >>> +	xvip_pipeline_set_stream(pipe, true);
+> >>> +
+> >>> +	return 0;
+> >>> +
+> >>> +error_stop:
+> >>> +	media_entity_pipeline_stop(&dma->video.entity);
+> >>> +
+> >>> +error:
+> >>> +	/* Give back all queued buffers to videobuf2. */
+> >>> +	spin_lock_irq(&dma->queued_lock);
+> >>> +	list_for_each_entry_safe(buf, nbuf, &dma->queued_bufs, queue) {
+> >>> +		vb2_buffer_done(&buf->buf, VB2_BUF_STATE_QUEUED);
+> >>> +		list_del(&buf->queue);
+> >>> +	}
+> >>> +	spin_unlock_irq(&dma->queued_lock);
+> >>> +
+> >>> +	return ret;
+> >>> +}
+> > 
+> > [snip]
+> > 
+> >>> +/*
+> >>> ----------------------------------------------------------------------
+> >>> + * V4L2 file operations
+> >>> + */
+> >>> +
+> >>> +static const struct v4l2_file_operations xvip_dma_fops = {
+> >>> +	.owner		= THIS_MODULE,
+> >>> +	.unlocked_ioctl	= video_ioctl2,
+> >>> +	.open		= v4l2_fh_open,
+> >>> +	.release	= vb2_fop_release,
+> >>> +	.poll		= vb2_fop_poll,
+> >>> +	.mmap		= vb2_fop_mmap,
+> >> 
+> >> I would also add:
+> >> 	.read = vb2_fop_read,
+> >> 	.write = vb2_fop_write,
+> >> 
+> >> and add VB2_READ or VB2_WRITE to dma->queue.io_modes.
+> >> 
+> >> You get it for free, it doesn't take any additional resources, so why
+> >> not?
+> > 
+> > My usual comment : because I'd rather not have users using the read() API
+> > with this driver :-) The usual argument of "but then it would be easy to
+> > just cat /dev/video? to check whether the device works" doesn't apply
+> > here as the pipeline needs to be configured from userspace through V4L2
+> > subdev pad ops anyway, so users can as well use a proper V4L2 command
+> > line test tool.
 >
-> > > +Required properties
-> > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > > +
-> > > +compatible	: "ti,omap3-isp"
-> >=20
-> > I would rephrase that using the usual wording as "compatible: Must cont=
-ain=20
-> > "ti,omap3-isp".
->
-> [...]
->
-> > > +ti,phy-type	: 0 -- 3430; 1 -- 3630
-> >=20
-> > Would it make sense to add #define's for this ?
->=20
-> I'll use OMAP3ISP_PHY_TYPE_COMPLEX_IO and OMAP3ISP_PHY_TYPE_CSIPHY as
-> discussed.
->=20
-> > It could also make sense to document/name them "Complex I/O" and "CSIPH=
-Y" to=20
-> > avoid referring to the SoC that implements them, as the ISP is also fou=
-nd in=20
-> > SoCs other than 3430 and 3630.
-> >=20
-> > Could the PHY type be derived from the ES revision that we query at run=
-time ?
->=20
-> I think this would work on 3430 and 3630 but I'm not certain about others.
->=20
-> > We should also take into account the fact that the DM3730 has officiall=
-y no=20
-> > CSIPHY, but still seems to implement them in practice.
->=20
-> The DT sources are for 36xx, but I'd guess it works on 37xx as well, does=
-n't
-> it?
+> Good point. But perhaps it is a good idea to add a comment why
+> VB2_READ/WRITE isn't supported, if only to prevent me from asking this
+> again in the future :-)
 
-In other drivers this kind of information is often extracted from the
-compatible string. For example:
+Will do.
 
-{ .compatible =3D "ti,omap34xx-isp", .data =3D OMAP3ISP_PHY_TYPE_COMPLEX_IO=
-, },
-{ .compatible =3D "ti,omap36xx-isp", .data =3D OMAP3ISP_PHY_TYPE_CSIPHY, },
-=2E..
+-- 
+Regards,
 
-> [...]
->
-> > > +Example
-> > > +=3D=3D=3D=3D=3D=3D=3D
-> > > +
-> > > +		omap3_isp: omap3_isp@480bc000 {
-> >=20
-> > DT node names traditionally use - as a separator. Furthermore the phand=
-le=20
-> > isn't needed. This should thus probably be
-> >=20
-> > 	omap3-isp@480bc000 {
->=20
-> Fixed.
+Laurent Pinchart
 
-According to ePAPR this should be a generic name (page 19); For
-example the i2c node name should be "i2c@address" instead of
-"omap3-i2c@address". There is no recommended generic term for an
-image signal processor, "isp" looks ok to me and seems to be
-already used in NVIDIA Tegra's device tree files. So maybe:
-
-isp@480bc000 {
-
-> [...]
-
--- Sebastian
-
---Nq2Wo0NMKNjxTN9z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJVAq86AAoJENju1/PIO/qa5agP/2nQ6V8OcyeP9n7Aic/ILTda
-9d3poBwBh813CWgw7YXiczBtncAVMSl0Pm2Jwj3/jzsn3N/UkQofzirqLjbS1haM
-TZCexT9THz4r5w0/afcVzn97vHd5jx6V1YuCeWos+L8fTS8jwt34MiXDU2KYZJWn
-m9LPmyMfrMEgKLsnWWrq4AMFrGulhz3qOFgrPJBEpb1CzmtlFJ1f2akyKO9ZqtYK
-Hb2wK5uqvAY78Zfd42zfXOmKCQKpiNZqZFRZqefMoxkSnYQZB4FzWGpjMoF3uucX
-LiRTh60Ha7PaG4+931nt196WInXBNWJP8Pjjv74ebM5WuP95EcCwjMMLty5vs+3W
-8ghM7Nh+Fvm/DzhvtNreJPEqqkqgzps/7M5U2WOKgTZ47rpSlRABg43yt9mbvUDQ
-rsup5K2EoP/y9q+be069djXK1X/LwfKT1mnzcOlc94a+i7tALOgNcwyCt+sNKWBJ
-ITr2qNw1aAh/fVt/TA3DmHahOyTsWsL2NWzY+E7jzvdKDxZnqI8HhVfEyzqPp5Rn
-19Vt0sL8SZsCyquJ4NNGFSN0llYkdxYMBT4OqVZyldTuelEbRxmTMUJxq+Rcs60s
-ZKyo/mQcg2FMq2mSUDB3Stnp9iowscwDooWRlhNEe5UjZFlANfdJd8j9s/HgIcOT
-Azwsl0GTbA4JrKmLZ7ki
-=PWvs
------END PGP SIGNATURE-----
-
---Nq2Wo0NMKNjxTN9z--
