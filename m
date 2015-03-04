@@ -1,224 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:19158 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755460AbbCEL5V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2015 06:57:21 -0500
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 2/2] media: s5p-jpeg: add 5420 family support
-Date: Thu, 05 Mar 2015 12:56:36 +0100
-Message-id: <1425556596-3938-3-git-send-email-andrzej.p@samsung.com>
-In-reply-to: <1425556596-3938-1-git-send-email-andrzej.p@samsung.com>
-References: <1425556596-3938-1-git-send-email-andrzej.p@samsung.com>
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:44947 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758465AbbCDPEE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 10:04:04 -0500
+Message-ID: <54F71ED3.2050503@cisco.com>
+Date: Wed, 04 Mar 2015 16:03:47 +0100
+From: Hans Verkuil <hansverk@cisco.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 1/8] v4l2-subdev: replace v4l2_subdev_fh by v4l2_subdev_pad_config
+References: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl> <1425462481-8200-2-git-send-email-hverkuil@xs4all.nl> <1585455.TczyOEbrob@avalon>
+In-Reply-To: <1585455.TczyOEbrob@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-JPEG IP found in Exynos5420 is similar to what is in Exynos3250, but
-there are some subtle differences which this patch takes into account.
+Hi Laurent,
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
----
- .../bindings/media/exynos-jpeg-codec.txt           |  2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c        | 69 +++++++++++++++++-----
- drivers/media/platform/s5p-jpeg/jpeg-core.h        |  1 +
- 3 files changed, 56 insertions(+), 16 deletions(-)
+On 03/04/15 16:02, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday 04 March 2015 10:47:54 Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> If a subdevice pad op is called from a bridge driver, then there is
+>> no v4l2_subdev_fh struct that can be passed to the subdevice. This
+>> made it hard to use such subdevs from a bridge driver.
+>>
+>> This patch replaces the v4l2_subdev_fh pointer by a v4l2_subdev_pad_config
+>> pointer in the pad ops. This allows bridge drivers to use the various
+>> try_ pad ops by creating a v4l2_subdev_pad_config struct and passing it
+>> along to the pad op.
+>>
+>> The v4l2_subdev_get_try_* macros had to be changed because of this, so
+>> I also took the opportunity to use the full name of the
+>> v4l2_subdev_get_try_* functions in the __V4L2_SUBDEV_MK_GET_TRY macro
+>> arguments: if you now do 'git grep v4l2_subdev_get_try_format' you will
+>> actually find the header where it is defined.
+>>
+>> One remark regarding the drivers/staging/media/davinci_vpfe patches: the
+>> *_init_formats() functions assumed that fh could be NULL. However, that's
+>> not true for this driver, it's always set. This is almost certainly a copy
+>> and paste from the omap3isp driver. I've updated the code to reflect the
+>> fact that fh is never NULL.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> [snip]
+> 
+>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>> index 5beeb87..0c43546 100644
+>> --- a/include/media/v4l2-subdev.h
+>> +++ b/include/media/v4l2-subdev.h
+>> @@ -482,6 +482,18 @@ struct v4l2_subdev_ir_ops {
+>>  				struct v4l2_subdev_ir_parameters *params);
+>>  };
+>>
+>> +/*
+>> + * Used for storing subdev pad information. This structure only needs
+>> + * to be passed to the pad op if the 'which' field of the main argument
+>> + * is set to V4L2_SUBDEV_FORMAT_TRY. For V4L2_SUBDEV_FORMAT_ACTIVE just
+>> + * pass NULL.
+> 
+> Nitpicking, I would say "For V4L2_SUBDEV_FORMAT_ACTIVE is it safe to pass 
+> NULL.", otherwise it could be understood that callers have to pass NULL for 
+> ACTIVE.
 
-diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-index bf52ed4..4ef4563 100644
---- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-+++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-@@ -4,7 +4,7 @@ Required properties:
- 
- - compatible	: should be one of:
- 		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
--		  "samsung,exynos3250-jpeg";
-+		  "samsung,exynos3250-jpeg", "samsung,exynos5420-jpeg";
- - reg		: address and length of the JPEG codec IP register set;
- - interrupts	: specifies the JPEG codec IP interrupt;
- - clock-names   : should contain:
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 12f7452..99bf5b3 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -621,6 +621,7 @@ static int s5p_jpeg_to_user_subsampling(struct s5p_jpeg_ctx *ctx)
- 			return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
- 		return ctx->subsampling;
- 	case SJPEG_EXYNOS3250:
-+	case SJPEG_EXYNOS5420:
- 		if (ctx->subsampling > 3)
- 			return V4L2_JPEG_CHROMA_SUBSAMPLING_411;
- 		return exynos3250_decoded_subsampling[ctx->subsampling];
-@@ -1128,6 +1129,18 @@ static struct s5p_jpeg_fmt *s5p_jpeg_find_format(struct s5p_jpeg_ctx *ctx,
- 	return NULL;
- }
- 
-+static inline bool is_3250_compat(struct s5p_jpeg_ctx *ctx)
-+{
-+	switch (ctx->jpeg->variant->version) {
-+	case SJPEG_EXYNOS3250:
-+	case SJPEG_EXYNOS5420:
-+		return true;
-+	default:
-+		return false;
-+	}
-+	return false;
-+}
-+
- static void jpeg_bound_align_image(struct s5p_jpeg_ctx *ctx,
- 				   u32 *w, unsigned int wmin, unsigned int wmax,
- 				   unsigned int walign,
-@@ -1142,13 +1155,13 @@ static void jpeg_bound_align_image(struct s5p_jpeg_ctx *ctx,
- 	w_step = 1 << walign;
- 	h_step = 1 << halign;
- 
--	if (ctx->jpeg->variant->version == SJPEG_EXYNOS3250) {
-+	if (is_3250_compat(ctx)) {
- 		/*
- 		 * Rightmost and bottommost pixels are cropped by the
--		 * Exynos3250 JPEG IP for RGB formats, for the specific
--		 * width and height values respectively. This assignment
--		 * will result in v4l_bound_align_image returning dimensions
--		 * reduced by 1 for the aforementioned cases.
-+		 * Exynos3250/compatible JPEG IP for RGB formats, for the
-+		 * specific width and height values respectively. This
-+		 * assignment will result in v4l_bound_align_image returning
-+		 * dimensions reduced by 1 for the aforementioned cases.
- 		 */
- 		if (w_step == 4 && ((width & 3) == 1)) {
- 			wmax = width;
-@@ -1384,12 +1397,12 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
- 
- 	/*
- 	 * Prevent downscaling to YUV420 format by more than 2
--	 * for Exynos3250 SoC as it produces broken raw image
-+	 * for Exynos3250/compatible SoC as it produces broken raw image
- 	 * in such cases.
- 	 */
- 	if (ct->mode == S5P_JPEG_DECODE &&
- 	    f_type == FMT_TYPE_CAPTURE &&
--	    ct->jpeg->variant->version == SJPEG_EXYNOS3250 &&
-+	    is_3250_compat(ct) &&
- 	    pix->pixelformat == V4L2_PIX_FMT_YUV420 &&
- 	    ct->scale_factor > 2) {
- 		scale_rect.width = ct->out_q.w / 2;
-@@ -1569,12 +1582,12 @@ static int s5p_jpeg_s_selection(struct file *file, void *fh,
- 	if (s->target == V4L2_SEL_TGT_COMPOSE) {
- 		if (ctx->mode != S5P_JPEG_DECODE)
- 			return -EINVAL;
--		if (ctx->jpeg->variant->version == SJPEG_EXYNOS3250)
-+		if (is_3250_compat(ctx))
- 			ret = exynos3250_jpeg_try_downscale(ctx, rect);
- 	} else if (s->target == V4L2_SEL_TGT_CROP) {
- 		if (ctx->mode != S5P_JPEG_ENCODE)
- 			return -EINVAL;
--		if (ctx->jpeg->variant->version == SJPEG_EXYNOS3250)
-+		if (is_3250_compat(ctx))
- 			ret = exynos3250_jpeg_try_crop(ctx, rect);
- 	}
- 
-@@ -1604,8 +1617,9 @@ static int s5p_jpeg_adjust_subs_ctrl(struct s5p_jpeg_ctx *ctx, int *ctrl_val)
- 	case SJPEG_S5P:
- 		return 0;
- 	case SJPEG_EXYNOS3250:
-+	case SJPEG_EXYNOS5420:
- 		/*
--		 * The exynos3250 device can produce JPEG image only
-+		 * The exynos3250/compatible device can produce JPEG image only
- 		 * of 4:4:4 subsampling when given RGB32 source image.
- 		 */
- 		if (ctx->out_q.fmt->fourcc == V4L2_PIX_FMT_RGB32)
-@@ -1624,7 +1638,7 @@ static int s5p_jpeg_adjust_subs_ctrl(struct s5p_jpeg_ctx *ctx, int *ctrl_val)
- 	}
- 
- 	/*
--	 * The exynos4x12 and exynos3250 devices require resulting
-+	 * The exynos4x12 and exynos3250/compatible devices require resulting
- 	 * jpeg subsampling not to be lower than the input raw image
- 	 * subsampling.
- 	 */
-@@ -2017,6 +2031,15 @@ static void exynos3250_jpeg_device_run(void *priv)
- 		exynos3250_jpeg_qtbl(jpeg->regs, 2, 1);
- 		exynos3250_jpeg_qtbl(jpeg->regs, 3, 1);
- 
-+		/*
-+		 * 5420 family requires setting Huffman tables before each run
-+		 */
-+		if (jpeg->variant->version == SJPEG_EXYNOS5420) {
-+			s5p_jpeg_set_hdctbl(jpeg->regs);
-+			s5p_jpeg_set_hdctblg(jpeg->regs);
-+			s5p_jpeg_set_hactbl(jpeg->regs);
-+			s5p_jpeg_set_hactblg(jpeg->regs);
-+		}
- 		/* Y, Cb, Cr use Huffman table 0 */
- 		exynos3250_jpeg_htbl_ac(jpeg->regs, 1);
- 		exynos3250_jpeg_htbl_dc(jpeg->regs, 1);
-@@ -2098,6 +2121,12 @@ static struct v4l2_m2m_ops exynos4_jpeg_m2m_ops = {
- 	.job_abort	= s5p_jpeg_job_abort,
- };
- 
-+static struct v4l2_m2m_ops exynos5420_jpeg_m2m_ops = {
-+	.device_run	= exynos3250_jpeg_device_run,	/* intentionally 3250 */
-+	.job_ready	= s5p_jpeg_job_ready,
-+	.job_abort	= s5p_jpeg_job_abort,
-+};
-+
- /*
-  * ============================================================================
-  * Queue operations
-@@ -2660,10 +2689,10 @@ static int s5p_jpeg_runtime_resume(struct device *dev)
- 	/*
- 	 * JPEG IP allows storing two Huffman tables for each component.
- 	 * We fill table 0 for each component and do this here only
--	 * for S5PC210 and Exynos3250 SoCs. Exynos4x12 SoC requires
--	 * programming its Huffman tables each time the encoding process
--	 * is initialized, and thus it is accomplished in the device_run
--	 * callback of m2m_ops.
-+	 * for S5PC210 and Exynos3250 SoCs. Exynos4x12 and Exynos542x SoC
-+	 * require programming their Huffman tables each time the encoding
-+	 * process is initialized, and thus it is accomplished in the
-+	 * device_run callback of m2m_ops.
- 	 */
- 	if (jpeg->variant->version == SJPEG_S5P ||
- 	    jpeg->variant->version == SJPEG_EXYNOS3250) {
-@@ -2723,6 +2752,13 @@ static struct s5p_jpeg_variant exynos4_jpeg_drvdata = {
- 	.fmt_ver_flag	= SJPEG_FMT_FLAG_EXYNOS4,
- };
- 
-+static struct s5p_jpeg_variant exynos5420_jpeg_drvdata = {
-+	.version	= SJPEG_EXYNOS5420,
-+	.jpeg_irq	= exynos3250_jpeg_irq,		/* intentionally 3250 */
-+	.m2m_ops	= &exynos5420_jpeg_m2m_ops,
-+	.fmt_ver_flag	= SJPEG_FMT_FLAG_EXYNOS3250,	/* intentionally 3250 */
-+};
-+
- static const struct of_device_id samsung_jpeg_match[] = {
- 	{
- 		.compatible = "samsung,s5pv210-jpeg",
-@@ -2736,6 +2772,9 @@ static const struct of_device_id samsung_jpeg_match[] = {
- 	}, {
- 		.compatible = "samsung,exynos4212-jpeg",
- 		.data = &exynos4_jpeg_drvdata,
-+	}, {
-+		.compatible = "samsung,exynos5420-jpeg",
-+		.data = &exynos5420_jpeg_drvdata,
- 	},
- 	{},
- };
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-index 764b32d..3bd5eba 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-@@ -71,6 +71,7 @@
- #define SJPEG_S5P		1
- #define SJPEG_EXYNOS3250	2
- #define SJPEG_EXYNOS4		3
-+#define SJPEG_EXYNOS5420	4
- 
- enum exynos4_jpeg_result {
- 	OK_ENC_OR_DEC,
--- 
-1.9.1
+True. I'll fix that.
 
+	Hans
+
+> 
+>> + */
+>> +struct v4l2_subdev_pad_config {
+>> +	struct v4l2_mbus_framefmt try_fmt;
+>> +	struct v4l2_rect try_crop;
+>> +	struct v4l2_rect try_compose;
+>> +};
+> 
