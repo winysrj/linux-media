@@ -1,56 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60092 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752301AbbCXRbB (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36480 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755976AbbCDJt1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2015 13:31:01 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 00/11] CODA fixes and buffer allocation in REQBUFS
-Date: Tue, 24 Mar 2015 18:30:46 +0100
-Message-Id: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 4 Mar 2015 04:49:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 8/8] v4l2-subdev: remove enum_framesizes/intervals
+Date: Wed,  4 Mar 2015 10:48:01 +0100
+Message-Id: <1425462481-8200-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-this is a series of various fixes and a move of the per-context buffer
-allocation into the REQBUFS call. Allocating the bitstream buffer only
-after S_FMT allows at the same time to guarantee that the bitstream buffer
-is always large enough to contain two worst-case compressed frames and
-doesn't waste memory if a small format is selected.
+The video and pad ops are duplicates, so get rid of the more limited video op.
 
-I think the first four patches are -fixes material, the others rather are
-for -next.
+The whole point of the subdev API is to allow reuse of subdev drivers by
+bridge drivers. Having duplicate ops makes that much harder. We should never
+have allowed duplicate ops in the first place. A lesson for the future.
 
-Changes since v1:
- - Merged the "coda: free decoder bitstream buffer" into
-   "coda: allocate bitstream buffer from REQBUFS, size depends on the format".
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/v4l2-subdev.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-Peter Seiderer (2):
-  [media] coda: check kasprintf return value in coda_open
-  [media] coda: fix double call to debugfs_remove
-
-Philipp Zabel (9):
-  [media] coda: bitstream payload is unsigned
-  [media] coda: use strlcpy instead of snprintf
-  [media] coda: allocate per-context buffers from REQBUFS
-  [media] coda: allocate bitstream buffer from REQBUFS, size depends on
-    the format
-  [media] coda: move parameter buffer in together with context buffer
-    allocation
-  [media] coda: remove duplicate error messages for buffer allocations
-  [media] coda: fail to start streaming if userspace set invalid formats
-  [media] coda: call SEQ_END when the first queue is stopped
-  [media] coda: fix fill bitstream errors in nonstreaming case
-
- drivers/media/platform/coda/coda-bit.c    | 177 +++++++++++++++++++++---------
- drivers/media/platform/coda/coda-common.c | 104 +++++++++---------
- drivers/media/platform/coda/coda.h        |  13 +--
- 3 files changed, 180 insertions(+), 114 deletions(-)
-
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 0c43546..922f063 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -332,8 +332,6 @@ struct v4l2_subdev_video_ops {
+ 				struct v4l2_subdev_frame_interval *interval);
+ 	int (*s_frame_interval)(struct v4l2_subdev *sd,
+ 				struct v4l2_subdev_frame_interval *interval);
+-	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
+-	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
+ 	int (*s_dv_timings)(struct v4l2_subdev *sd,
+ 			struct v4l2_dv_timings *timings);
+ 	int (*g_dv_timings)(struct v4l2_subdev *sd,
 -- 
 2.1.4
 
