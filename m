@@ -1,139 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59561 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758331AbbCDOvy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 09:51:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH v6 2/8] v4l: Add RBG and RGB 8:8:8 media bus formats on 24 and 32 bit busses
-Date: Wed,  4 Mar 2015 16:51:43 +0200
-Message-Id: <1425480709-7545-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1425480709-7545-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1425480709-7545-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:12578 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933038AbbCDQQN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 11:16:13 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v12 04/19] dt-binding: leds: Add common LED DT bindings
+ macros
+Date: Wed, 04 Mar 2015 17:14:25 +0100
+Message-id: <1425485680-8417-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 67 ++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h              |  4 +-
- 2 files changed, 70 insertions(+), 1 deletion(-)
+Add macros for defining boost mode and trigger type properties
+of flash LED devices.
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index c5ea868..d253e8f 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -440,6 +440,36 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>b<subscript>1</subscript></entry>
- 	      <entry>b<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-RBG888-1X24">
-+	      <entry>MEDIA_BUS_FMT_RBG888_1X24</entry>
-+	      <entry>0x100e</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="MEDIA-BUS-FMT-RGB888-1X24">
- 	      <entry>MEDIA_BUS_FMT_RGB888_1X24</entry>
- 	      <entry>0x100a</entry>
-@@ -579,6 +609,43 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>b<subscript>1</subscript></entry>
- 	      <entry>b<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-RGB888-1X32-PADHI">
-+	      <entry>MEDIA_BUS_FMT_RGB888_1X32_PADHI</entry>
-+	      <entry>0x100f</entry>
-+	      <entry></entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>0</entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	    </row>
- 	  </tbody>
- 	</tgroup>
-       </table>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 23b4090..b585bb3 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -33,7 +33,7 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x100e */
-+/* RGB - next is	0x1010 */
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
- #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
-@@ -43,10 +43,12 @@
- #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
- #define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
- #define MEDIA_BUS_FMT_RGB666_1X18		0x1009
-+#define MEDIA_BUS_FMT_RBG888_1X24		0x100e
- #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
- #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
- #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
-+#define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
- 
- /* YUV (including grey) - next is	0x2024 */
- #define MEDIA_BUS_FMT_Y8_1X8			0x2001
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ include/dt-bindings/leds/max77693.h |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+ create mode 100644 include/dt-bindings/leds/max77693.h
+
+diff --git a/include/dt-bindings/leds/max77693.h b/include/dt-bindings/leds/max77693.h
+new file mode 100644
+index 0000000..79fcef7
+--- /dev/null
++++ b/include/dt-bindings/leds/max77693.h
+@@ -0,0 +1,21 @@
++/*
++ * This header provides macros for the common LEDs device tree bindings.
++ *
++ * Copyright (C) 2015, Samsung Electronics Co., Ltd.
++ *
++ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
++ */
++
++#ifndef __DT_BINDINGS_LEDS_H__
++#define __DT_BINDINGS_LEDS_H
++
++/* External trigger type */
++#define LEDS_TRIG_TYPE_EDGE	0
++#define LEDS_TRIG_TYPE_LEVEL	1
++
++/* Boost modes */
++#define LEDS_BOOST_OFF		0
++#define LEDS_BOOST_ADAPTIVE	1
++#define LEDS_BOOST_FIXED	2
++
++#endif /* __DT_BINDINGS_LEDS_H */
 -- 
-2.0.5
+1.7.9.5
 
