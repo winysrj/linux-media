@@ -1,113 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38580 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750848AbbCNKzG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 06:55:06 -0400
-Message-ID: <5504137D.9090608@xs4all.nl>
-Date: Sat, 14 Mar 2015 11:54:53 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Jonathan Corbet <corbet@lwn.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCHv2 00/21] marvell-ccic: drop and fix formats
-References: <1426061428-47019-1-git-send-email-hverkuil@xs4all.nl> <20150313172801.6bc4bf75@lwn.net> <55035DA4.2020903@xs4all.nl> <5503FC2D.8070603@xs4all.nl>
-In-Reply-To: <5503FC2D.8070603@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:40235 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754279AbbCDNzg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 08:55:36 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NKO00MBSXJ97WA0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Mar 2015 13:59:33 +0000 (GMT)
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 0/2] Fix s5p-mfc driver for ARM64
+Date: Wed, 04 Mar 2015 14:55:20 +0100
+Message-id: <1425477322-5162-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/14/2015 10:15 AM, Hans Verkuil wrote:
-> On 03/13/2015 10:59 PM, Hans Verkuil wrote:
->> Hi Jon,
->>
->> On 03/13/2015 10:28 PM, Jonathan Corbet wrote:
->>> On Wed, 11 Mar 2015 09:10:24 +0100
->>> Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>
->>>> After some more testing I realized that the 422P format produced
->>>> wrong colors and I couldn't get it to work. Since it never worked and
->>>> nobody complained about it (and it is a fairly obscure format as well)
->>>> I've dropped it.
->>>
->>> I'm not sure how that format came in anymore; I didn't add it.  No
->>> objections to its removal.
->>
->> It came in with the patches from Marvell.
->>
->>>> I also tested RGB444 format for the first time, and that had wrong colors
->>>> as well, but that was easy to fix. Finally there was a Bayer format
->>>> reported, but it was never implemented. So that too was dropped.
->>>
->>> The RGB444 change worries me somewhat; that was the default format on the
->>> XO1 and worked for years.  I vaguely remember some discussions about the
->>> ordering of the colors there, but that was a while ago.  Did you test it
->>> with any of the Sugar apps?
->>
->> I've tested with the 'Record' app, and that picks a YUV format, not RGB444.
->> Are there other apps that I can test with where you can select the capture
->> format?
-> 
-> Urgh. I did some more digging and this driver really supported a big endian
-> version of RGB444. So the description in the documentation of the RGB444
-> format and what this driver returns is different.
+Hello,
 
-OK, after some more research it turns out that it is not actually the big
-endian format at all.
+This patch series fixes issues in s5p-mfc driver related to false
+assumption that driver will be used only on 32bit architectures. With
+those fixes and respective IOMMU driver one can use this driver on
+ARM64-based Exynos SoCs, like Exynos 5433.
 
-This is the actual format compared to RGB444 and big endian RGB444:
+Best regards
+Marek Szyprowski
+Samsung Poland R&D Center
 
-		Byte 0 in memory	Byte 1 in memory
-RGB444		ggggbbbb		xxxxrrrr
-RGB444 BE	xxxxrrrr		ggggbbbb
-Marvell RGB444	ggggrrrr		xxxxbbbb
 
-Basically RGB444 but with R and B reversed.
+Patch summary:
 
-> 
-> It looks like Michael Schimek's question regarding endianness went unanswered:
-> http://www.spinics.net/lists/vfl/msg28921.html
-> 
-> He probably assumed the same order as for RGB555/565 formats.
-> 
-> I have three options:
-> 
-> 1) fix the driver as I did in my patch so RGB444 follows the documentation.
-> 2) add a new RGB444X big endian pixel format and switch the driver to that.
->    So RGB444 is no longer supported, instead RGB444X is now supported. Apps
->    will have to change PIX_FMT_RGB444 to PIX_FMT_RGB444X.
-> 3) add support for both RGB444 and RGB444X to the driver.
+Marek Szyprowski (2):
+  media: s5p-mfc: fix mmap support for 64-bit architecture
+  media: s5p-mfc: fix broken pointer cast on 64bit arch
 
-I stick with this proposal, except instead of an RGB444X (big endian) version
-I create a BGR444 format.
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    | 2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c | 2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 4 ++--
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-BTW, I'm using this code written for the OLPC as a reference as to what apps
-expect:
-
-https://bitbucket.org/pygame/pygame/src/db67108d6a8e6064884549f471c22fab21bdbfa6/src/_camera.c?at=default
-
-At line 491-495 it is clear what format is expected.
-
-Regards,
-
-	Hans
-
-> 
-> Note that it is not possible to change the RGB444 documentation since this
-> format is used in other drivers as well, and there it is in proper little
-> endian format.
-> 
-> I am actually favoring option 2, since that prevents current applications
-> using RGB444 from working with the new kernel, but it is easy to fix by
-> changing RGB444 to RGB444X. OLPC specific apps can even just assume that
-> RGB444 and RGB444X are the same, and so they will work with both the new
-> and old driver.
-> 
-> Let me know what you prefer.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+-- 
+1.9.2
 
