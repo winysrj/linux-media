@@ -1,82 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58915 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752651AbbCFLsT (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45238 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758997AbbCDJsy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Mar 2015 06:48:19 -0500
-Message-ID: <54F993ED.2060701@xs4all.nl>
-Date: Fri, 06 Mar 2015 12:47:57 +0100
+	Wed, 4 Mar 2015 04:48:54 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Florian Echtler <floe@butterbrot.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: laurent.pinchart@ideasonboard.com, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v3][RFC] add raw video stream support for Samsung SUR40
-References: <1423063842-6902-1-git-send-email-floe@butterbrot.org> <54DB4295.1080307@butterbrot.org> <54E1D71C.2000003@xs4all.nl> <54E7AB1E.3000401@butterbrot.org> <54E85C48.6070907@xs4all.nl> <54F98E51.8040204@butterbrot.org>
-In-Reply-To: <54F98E51.8040204@butterbrot.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 4/8] v4l2-subdev: support new 'which' field in enum_mbus_code
+Date: Wed,  4 Mar 2015 10:47:57 +0100
+Message-Id: <1425462481-8200-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/06/2015 12:24 PM, Florian Echtler wrote:
-> On 21.02.2015 11:22, Hans Verkuil wrote:
->> On 02/20/2015 10:46 PM, Florian Echtler wrote:
->>> On 16.02.2015 12:40, Hans Verkuil wrote:
->>>> On 02/11/2015 12:52 PM, Florian Echtler wrote:
->>>> I prefer to dig into this a little bit more, as I don't really understand
->>>> it. Set the videobuf2-core debug level to 1 and see what the warnings are.
->>>> Since 'buf.qbuf' fails in v4l2-compliance, it's something in the VIDIOC_QBUF
->>>> sequence that returns an error, so you need to pinpoint that.
->>> OK, I don't currently have access to the hardware, but I will try this
->>> as soon as possible.
-> Finally got a chance to try again with videobuf2-core.debug=1. Same
-> result on 3.19 and 4.0-rc2, after running v4l2-compliance -s from
-> today's master (full log attached, but important part is below):
-> 
-> [11470.040067] vb2: __vb2_queue_alloc: allocated 3 buffers, 1 plane(s) each
-> [11470.040136] vb2: vb2_mmap: queue is not currently set up for mmap
-> [11470.040158] vb2: __qbuf_userptr: failed acquiring userspace memory
-> for plane 0
-> [11470.040163] vb2: __buf_prepare: buffer preparation failed: -22
-> [11470.040172] vb2: __qbuf_userptr: failed acquiring userspace memory
-> for plane 0
-> [11470.040175] vb2: __buf_prepare: buffer preparation failed: -22
-> [11470.040651] vb2: vb2_internal_qbuf: qbuf of buffer 0 succeeded
-> [11470.040663] vb2: vb2_mmap: queue is not currently set up for mmap
-> [11470.040676] vb2: __qbuf_userptr: failed acquiring userspace memory
-> for plane 0
-> [11470.040680] vb2: __buf_prepare: buffer preparation failed: -22
-> [11470.040687] vb2: __qbuf_userptr: failed acquiring userspace memory
-> for plane 0
-> [11470.040690] vb2: __buf_prepare: buffer preparation failed: -22
-> [11470.041167] vb2: vb2_internal_qbuf: qbuf of buffer 1 succeeded
-> [11470.041178] vb2: vb2_mmap: queue is not currently set up for mmap
-> [11470.041193] vb2: __qbuf_userptr: failed acquiring userspace memory
-> for plane 0
-> [11470.041196] vb2: __buf_prepare: buffer preparation failed: -22
-> [11470.041203] vb2: __qbuf_userptr: failed acquiring userspace memory
-> for plane 0
-> [11470.041207] vb2: __buf_prepare: buffer preparation failed: -22
-> [11470.041683] vb2: vb2_internal_qbuf: qbuf of buffer 2 succeeded
-> [11470.051195] sur40 2-1:1.0: error in usb_sg_wait
-> [11470.051250] vb2: vb2_internal_dqbuf: dqbuf of buffer 0, with state 0
-> 
-> I'm not familiar enough with the inner workings of videobuf2 to make any
-> sense of it, any new insights from you guys?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Can you do:
+Support the new 'which' field in the enum_mbus_code ops. Most drivers do not
+need to be changed since they always return the same enumeration regardless
+of the 'which' field.
 
-echo 2 >/sys/class/video4linux/videoX/dev_debug
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/am437x/am437x-vpfe.c  | 1 +
+ drivers/media/platform/omap3isp/ispccdc.c    | 4 ++--
+ drivers/media/platform/omap3isp/ispccp2.c    | 2 +-
+ drivers/media/platform/omap3isp/ispcsi2.c    | 2 +-
+ drivers/media/platform/omap3isp/ispresizer.c | 2 +-
+ drivers/media/platform/vsp1/vsp1_bru.c       | 4 +++-
+ drivers/media/platform/vsp1/vsp1_lif.c       | 4 +++-
+ drivers/media/platform/vsp1/vsp1_lut.c       | 4 +++-
+ drivers/media/platform/vsp1/vsp1_sru.c       | 4 +++-
+ drivers/media/platform/vsp1/vsp1_uds.c       | 4 +++-
+ drivers/staging/media/omap4iss/iss_csi2.c    | 2 +-
+ drivers/staging/media/omap4iss/iss_ipipeif.c | 2 +-
+ drivers/staging/media/omap4iss/iss_resizer.c | 2 +-
+ 13 files changed, 24 insertions(+), 13 deletions(-)
 
-and run again?
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+index 56a5cb0..8b413be 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.c
++++ b/drivers/media/platform/am437x/am437x-vpfe.c
+@@ -2327,6 +2327,7 @@ vpfe_async_bound(struct v4l2_async_notifier *notifier,
+ 
+ 		memset(&mbus_code, 0, sizeof(mbus_code));
+ 		mbus_code.index = j;
++		mbus_code.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+ 		ret = v4l2_subdev_call(subdev, pad, enum_mbus_code,
+ 			       NULL, &mbus_code);
+ 		if (ret)
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index b0431a9..818aa52 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -2133,7 +2133,7 @@ static int ccdc_enum_mbus_code(struct v4l2_subdev *sd,
+ 
+ 	case CCDC_PAD_SOURCE_OF:
+ 		format = __ccdc_get_format(ccdc, cfg, code->pad,
+-					   V4L2_SUBDEV_FORMAT_TRY);
++					   code->which);
+ 
+ 		if (format->code == MEDIA_BUS_FMT_YUYV8_2X8 ||
+ 		    format->code == MEDIA_BUS_FMT_UYVY8_2X8) {
+@@ -2164,7 +2164,7 @@ static int ccdc_enum_mbus_code(struct v4l2_subdev *sd,
+ 			return -EINVAL;
+ 
+ 		format = __ccdc_get_format(ccdc, cfg, code->pad,
+-					   V4L2_SUBDEV_FORMAT_TRY);
++					   code->which);
+ 
+ 		/* A pixel code equal to 0 means that the video port doesn't
+ 		 * support the input format. Don't enumerate any pixel code.
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index 3f10c3a..1d79368 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -703,7 +703,7 @@ static int ccp2_enum_mbus_code(struct v4l2_subdev *sd,
+ 			return -EINVAL;
+ 
+ 		format = __ccp2_get_format(ccp2, cfg, CCP2_PAD_SINK,
+-					      V4L2_SUBDEV_FORMAT_TRY);
++					      code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+index 12ca63f..bde734c 100644
+--- a/drivers/media/platform/omap3isp/ispcsi2.c
++++ b/drivers/media/platform/omap3isp/ispcsi2.c
+@@ -909,7 +909,7 @@ static int csi2_enum_mbus_code(struct v4l2_subdev *sd,
+ 		code->code = csi2_input_fmts[code->index];
+ 	} else {
+ 		format = __csi2_get_format(csi2, cfg, CSI2_PAD_SINK,
+-					   V4L2_SUBDEV_FORMAT_TRY);
++					   code->which);
+ 		switch (code->index) {
+ 		case 0:
+ 			/* Passthrough sink pad code */
+diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
+index 3ede27b..02549fa8 100644
+--- a/drivers/media/platform/omap3isp/ispresizer.c
++++ b/drivers/media/platform/omap3isp/ispresizer.c
+@@ -1431,7 +1431,7 @@ static int resizer_enum_mbus_code(struct v4l2_subdev *sd,
+ 			return -EINVAL;
+ 
+ 		format = __resizer_get_format(res, cfg, RESZ_PAD_SINK,
+-					      V4L2_SUBDEV_FORMAT_TRY);
++					      code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index 31ad0b6..7dd7633 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -190,6 +190,7 @@ static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
++	struct vsp1_bru *bru = to_bru(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+ 	if (code->pad == BRU_PAD_SINK(0)) {
+@@ -201,7 +202,8 @@ static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		if (code->index)
+ 			return -EINVAL;
+ 
+-		format = v4l2_subdev_get_try_format(subdev, cfg, BRU_PAD_SINK(0));
++		format = vsp1_entity_get_pad_format(&bru->entity, cfg,
++						    BRU_PAD_SINK(0), code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index b91c925..60f1bd8 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -81,6 +81,7 @@ static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
++	struct vsp1_lif *lif = to_lif(subdev);
+ 
+ 	if (code->pad == LIF_PAD_SINK) {
+ 		if (code->index >= ARRAY_SIZE(codes))
+@@ -96,7 +97,8 @@ static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		if (code->index)
+ 			return -EINVAL;
+ 
+-		format = v4l2_subdev_get_try_format(subdev, cfg, LIF_PAD_SINK);
++		format = vsp1_entity_get_pad_format(&lif->entity, cfg,
++						    LIF_PAD_SINK, code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 003363d..8aa8c11 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -90,6 +90,7 @@ static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_AHSV8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
++	struct vsp1_lut *lut = to_lut(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+ 	if (code->pad == LUT_PAD_SINK) {
+@@ -104,7 +105,8 @@ static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		if (code->index)
+ 			return -EINVAL;
+ 
+-		format = v4l2_subdev_get_try_format(subdev, cfg, LUT_PAD_SINK);
++		format = vsp1_entity_get_pad_format(&lut->entity, cfg,
++						    LUT_PAD_SINK, code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index c51dcee..554340d 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -173,6 +173,7 @@ static int sru_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
++	struct vsp1_sru *sru = to_sru(subdev);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+ 	if (code->pad == SRU_PAD_SINK) {
+@@ -187,7 +188,8 @@ static int sru_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		if (code->index)
+ 			return -EINVAL;
+ 
+-		format = v4l2_subdev_get_try_format(subdev, cfg, SRU_PAD_SINK);
++		format = vsp1_entity_get_pad_format(&sru->entity, cfg,
++						    SRU_PAD_SINK, code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index 08d916d..ef4d307 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -176,6 +176,7 @@ static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
++	struct vsp1_uds *uds = to_uds(subdev);
+ 
+ 	if (code->pad == UDS_PAD_SINK) {
+ 		if (code->index >= ARRAY_SIZE(codes))
+@@ -191,7 +192,8 @@ static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		if (code->index)
+ 			return -EINVAL;
+ 
+-		format = v4l2_subdev_get_try_format(subdev, cfg, UDS_PAD_SINK);
++		format = vsp1_entity_get_pad_format(&uds->entity, cfg,
++						    UDS_PAD_SINK, code->which);
+ 		code->code = format->code;
+ 	}
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
+index e404ad4..2d5079d 100644
+--- a/drivers/staging/media/omap4iss/iss_csi2.c
++++ b/drivers/staging/media/omap4iss/iss_csi2.c
+@@ -908,7 +908,7 @@ static int csi2_enum_mbus_code(struct v4l2_subdev *sd,
+ 		code->code = csi2_input_fmts[code->index];
+ 	} else {
+ 		format = __csi2_get_format(csi2, cfg, CSI2_PAD_SINK,
+-					   V4L2_SUBDEV_FORMAT_TRY);
++					   code->which);
+ 		switch (code->index) {
+ 		case 0:
+ 			/* Passthrough sink pad code */
+diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
+index 948edcc..b8e7277 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipeif.c
++++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
+@@ -467,7 +467,7 @@ static int ipipeif_enum_mbus_code(struct v4l2_subdev *sd,
+ 			return -EINVAL;
+ 
+ 		format = __ipipeif_get_format(ipipeif, cfg, IPIPEIF_PAD_SINK,
+-					      V4L2_SUBDEV_FORMAT_TRY);
++					      code->which);
+ 
+ 		code->code = format->code;
+ 		break;
+diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
+index f9b0aac..075b876 100644
+--- a/drivers/staging/media/omap4iss/iss_resizer.c
++++ b/drivers/staging/media/omap4iss/iss_resizer.c
+@@ -513,7 +513,7 @@ static int resizer_enum_mbus_code(struct v4l2_subdev *sd,
+ 
+ 	case RESIZER_PAD_SOURCE_MEM:
+ 		format = __resizer_get_format(resizer, cfg, RESIZER_PAD_SINK,
+-					      V4L2_SUBDEV_FORMAT_TRY);
++					      code->which);
+ 
+ 		if (code->index == 0) {
+ 			code->code = format->code;
+-- 
+2.1.4
 
-That way I see the vb2 debug messages in related to the issued ioctls.
-
-And if you can also supply the v4l2-compliance -s output, just for
-reference?
-
-Thanks,
-
-	Hans
