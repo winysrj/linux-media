@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out-alt.marcant.net ([217.14.160.140]:34369 "EHLO
-	mail-out-alt.marcant.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026AbbCIWMS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 18:12:18 -0400
-From: Dirk Nehring <dnehring@gmx.net>
-To: linux-media@vger.kernel.org
-Cc: "nibble.max" <nibble.max@gmail.com>,
-	Dirk Nehring <dnehring@gmx.net>
-Subject: [PATCH 1/1] Fix DVBsky rc-keymap
-Date: Mon,  9 Mar 2015 23:02:53 +0100
-Message-Id: <1425938573-7107-1-git-send-email-dnehring@gmx.net>
+Received: from mailout2.samsung.com ([203.254.224.25]:13749 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933436AbbCDQRH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 11:17:07 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v12 16/19] Documentation: leds: Add description of
+ v4l2-flash sub-device
+Date: Wed, 04 Mar 2015 17:14:37 +0100
+Message-id: <1425485680-8417-17-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Dirk Nehring <dnehring@gmx.net>
----
- drivers/media/rc/keymaps/rc-dvbsky.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+This patch extends LED Flash class documention by
+the description of interactions with v4l2-flash sub-device.
 
-diff --git a/drivers/media/rc/keymaps/rc-dvbsky.c b/drivers/media/rc/keymaps/rc-dvbsky.c
-index c5115a1..b942b16 100644
---- a/drivers/media/rc/keymaps/rc-dvbsky.c
-+++ b/drivers/media/rc/keymaps/rc-dvbsky.c
-@@ -33,16 +33,16 @@ static struct rc_map_table rc5_dvbsky[] = {
- 	{ 0x000b, KEY_STOP },
- 	{ 0x000c, KEY_EXIT },
- 	{ 0x000e, KEY_CAMERA }, /*Snap shot*/
--	{ 0x000f, KEY_SUBTITLE }, /*PIP*/
--	{ 0x0010, KEY_VOLUMEUP },
--	{ 0x0011, KEY_VOLUMEDOWN },
-+	{ 0x000f, KEY_TV2 }, /*PIP*/
-+	{ 0x0010, KEY_RIGHT },
-+	{ 0x0011, KEY_LEFT },
- 	{ 0x0012, KEY_FAVORITES },
--	{ 0x0013, KEY_LIST }, /*Info*/
-+	{ 0x0013, KEY_INFO },
- 	{ 0x0016, KEY_PAUSE },
- 	{ 0x0017, KEY_PLAY },
- 	{ 0x001f, KEY_RECORD },
--	{ 0x0020, KEY_CHANNELDOWN },
--	{ 0x0021, KEY_CHANNELUP },
-+	{ 0x0020, KEY_UP },
-+	{ 0x0021, KEY_DOWN },
- 	{ 0x0025, KEY_POWER2 },
- 	{ 0x0026, KEY_REWIND },
- 	{ 0x0027, KEY_FASTFORWARD },
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ Documentation/leds/leds-class-flash.txt |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+index 19bb673..8623413 100644
+--- a/Documentation/leds/leds-class-flash.txt
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -20,3 +20,16 @@ Following sysfs attributes are exposed for controlling flash LED devices:
+ 	- max_flash_timeout
+ 	- flash_strobe
+ 	- flash_fault
++
++A LED subsystem driver can be controlled also from the level of VideoForLinux2
++subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
++be defined in the kernel config. The driver must call the v4l2_flash_init
++function to get registered in the V4L2 subsystem. On remove the
++v4l2_flash_release function has to be called (see <media/v4l2-flash.h>).
++
++After proper initialization a V4L2 Flash sub-device is created. The sub-device
++exposes a number of V4L2 controls, which allow for controlling a LED Flash class
++device with use of its internal kernel API.
++Opening the V4L2 Flash sub-device makes the LED subsystem sysfs interface
++unavailable. The interface is re-enabled after the V4L2 Flash sub-device
++is closed.
 -- 
-2.1.0
+1.7.9.5
 
