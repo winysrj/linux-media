@@ -1,91 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:35426 "EHLO
-	mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbbCUSiH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Mar 2015 14:38:07 -0400
-Received: by oiag65 with SMTP id g65so114137594oia.2
-        for <linux-media@vger.kernel.org>; Sat, 21 Mar 2015 11:38:06 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1539819.WFF67ZXgOp@avalon>
-References: <5506BDA8.3000700@xs4all.nl> <1539819.WFF67ZXgOp@avalon>
-From: Jean-Michel Hautbois <jhautbois@gmail.com>
-Date: Sat, 21 Mar 2015 19:37:51 +0100
-Message-ID: <CAL8zT=gg+b1DGyKjm9wL9zV_aCP9YMCkpS-KLqVORP_Qb6oV=A@mail.gmail.com>
-Subject: Re: [media-workshop] [ANN] Media Mini-Summit Draft Agenda for March 26th
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: media-workshop@linuxtv.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout2.samsung.com ([203.254.224.25]:13690 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933110AbbCDQQJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 11:16:09 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v12 03/19] Documentation: leds: Add description of LED
+ Flash class extension
+Date: Wed, 04 Mar 2015 17:14:24 +0100
+Message-id: <1425485680-8417-4-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2015-03-21 13:36 GMT+01:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->
-> Hi Hans,
->
-> On Monday 16 March 2015 12:25:28 Hans Verkuil wrote:
-> > This is the draft agenda for the media mini-summit in San Jose on March
-> > 26th.
-> >
-> > Time: 9 AM to 5 PM (approximately)
-> > Room: TBC (Mauro, do you know this?)
-> >
-> > Attendees:
-> >
-> > Mauro Carvalho Chehab - mchehab@osg.samsung.com               - Samsung
-> > Laurent Pinchart      - laurent.pinchart@ideasonboard.com     - Ideas on board
-> > Hans Verkuil          - hverkuil@xs4all.nl                    - Cisco
-> >
-> > Mauro, do you have a better overview of who else will attend?
-> >
-> > Agenda:
-> >
-> > Times are approximate and will likely change.
-> >
-> > 9:00-9:15   Get everyone installed, laptops hooked up, etc.
-> > 9:15-9:30   Introduction
-> > 9:30-10:30  Media Controller support for DVB (Mauro):
-> >               1) dynamic creation/removal of pipelines
-> >               2) change media_entity_pipeline_start to also define
-> >                  the final entity
-> >               3) how to setup pipelines that also envolve audio and DRM
-> >               4) how to lock the media controller pipeline between enabling a
-> >                  pipeline and starting it, in order to avoid race conditions
-> >
-> > See this post for more detailed information:
-> >
-> > https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
-> >
-> > 10:30-10:45 Break
-> > 10:45-12:00 Continue discussion
-> > 12:00-13:00 Lunch (Mauro, do you have any idea whether there is a lunch
-> > organized, or if we are on our own?)
-> > 13:00-14:40 Continue discussion
-> > 14:40-15:00 Break
-> > 15:00-16:00 Subdev hotplug in the context of both FPGA dynamic
-> > reconfiguration and project Ara (http://www.projectara.com/) (Laurent).
->
-> To be precise, this will be both hot plug and hot unplug.
->
-> > 16:00-17:00 Update on ongoing projects (Hans):
-> >               - proposal for Android Camera v3-type requests (aka configuration
-> >               stores)
->
-> I'm interested in this as well.
->
-> >               - work on colorspace improvements
-> >               - vivid & v4l2-compliance improvements
-> >               - removing duplicate subdev video ops and use pad ops instead
-> >               - others?
->
-> There's also the topic of the media device controller registry that we
-> discussed during the FOSDEM, but as far as I know there has been no progress
-> in that area.
->
+The documentation being added contains overall description of the
+LED Flash Class and the related sysfs attributes.
 
-Unfortunately I can't be there, but am interested by a report on this
-particular question :).
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ Documentation/leds/leds-class-flash.txt |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+ create mode 100644 Documentation/leds/leds-class-flash.txt
 
-Thanks,
-JM
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+new file mode 100644
+index 0000000..19bb673
+--- /dev/null
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -0,0 +1,22 @@
++
++Flash LED handling under Linux
++==============================
++
++Some LED devices provide two modes - torch and flash. In the LED subsystem
++those modes are supported by LED class (see Documentation/leds/leds-class.txt)
++and LED Flash class respectively. The torch mode related features are enabled
++by default and the flash ones only if a driver declares it by setting
++LED_DEV_CAP_FLASH flag.
++
++In order to enable the support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
++must be defined in the kernel config. A LED Flash class driver must be
++registered in the LED subsystem with led_classdev_flash_register function.
++
++Following sysfs attributes are exposed for controlling flash LED devices:
++(see Documentation/ABI/testing/sysfs-class-led-flash)
++	- flash_brightness
++	- max_flash_brightness
++	- flash_timeout
++	- max_flash_timeout
++	- flash_strobe
++	- flash_fault
+-- 
+1.7.9.5
+
