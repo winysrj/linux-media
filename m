@@ -1,1674 +1,1077 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36466 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753053AbbCKLFV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 07:05:21 -0400
-Date: Wed, 11 Mar 2015 13:04:43 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v4] media: i2c: add support for omnivision's ov2659 sensor
-Message-ID: <20150311110443.GJ11954@valkosipuli.retiisi.org.uk>
-References: <1425814407-22766-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1425814407-22766-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:13716 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933311AbbCDQQh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 11:16:37 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: [PATCH/RFC v12 09/19] leds: Add support for max77693 mfd flash cell
+Date: Wed, 04 Mar 2015 17:14:30 +0100
+Message-id: <1425485680-8417-10-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+This patch adds led-flash support to Maxim max77693 chipset.
+A device can be exposed to user space through LED subsystem
+sysfs interface. Device supports up to two leds which can
+work in flash and torch mode. The leds can be triggered
+externally or by software.
 
-On Sun, Mar 08, 2015 at 11:33:27AM +0000, Lad Prabhakar wrote:
-> From: Benoit Parrot <bparrot@ti.com>
-> 
-> this patch adds support for omnivision's ov2659
-> sensor, the driver supports following features:
-> 1: Asynchronous probing
-> 2: DT support
-> 3: Media controller support
-> 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  Sorry quick new version, I need to get this merged for next
->  merge window.
-> 
->  Changes for v4:
->  1: Renamed target frequency property to 'link-frequencies'
->     as per Sakari's suggestion.
->  2: Changed the copyright to "GPL v2"
-> 
->  v3: https://patchwork.kernel.org/patch/5959401/
->  v2: https://patchwork.kernel.org/patch/5859801/
->  v1: https://patchwork.linuxtv.org/patch/27919/
->  
->  .../devicetree/bindings/media/i2c/ov2659.txt       |   38 +
->  MAINTAINERS                                        |   10 +
->  drivers/media/i2c/Kconfig                          |   11 +
->  drivers/media/i2c/Makefile                         |    1 +
->  drivers/media/i2c/ov2659.c                         | 1439 ++++++++++++++++++++
->  include/media/ov2659.h                             |   33 +
->  6 files changed, 1532 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2659.txt
->  create mode 100644 drivers/media/i2c/ov2659.c
->  create mode 100644 include/media/ov2659.h
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov2659.txt b/Documentation/devicetree/bindings/media/i2c/ov2659.txt
-> new file mode 100644
-> index 0000000..a655500
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov2659.txt
-> @@ -0,0 +1,38 @@
-> +* OV2659 1/5-Inch 2Mp SOC Camera
-> +
-> +The Omnivision OV2659 is a 1/5-inch SOC camera, with an active array size of
-> +1632H x 1212V. It is programmable through a SCCB. The OV2659 sensor supports
-> +multiple resolutions output, such as UXGA, SVGA, 720p. It also can support
-> +YUV422, RGB565/555 or raw RGB output formats.
-> +
-> +Required Properties:
-> +- compatible: Must be "ovti,ov2659"
-> +- reg: I2C slave address
-> +- clocks: reference to the xvclk input clock.
-> +- clock-names: should be "xvclk".
-> +- link-frequencies: target pixel clock frequency.
-> +
-> +For further reading on port node refer to
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	i2c0@1c22000 {
-> +		...
-> +		...
-> +		 ov2659@30 {
-> +			compatible = "ovti,ov2659";
-> +			reg = <0x30>;
-> +
-> +			clocks = <&clk_ov2659 0>;
-> +			clock-names = "xvclk";
-> +
-> +			port {
-> +				ov2659_0: endpoint {
-> +					remote-endpoint = <&vpfe_ep>;
-> +					link-frequencies = <70000000>;
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>
+---
+ drivers/leds/Kconfig         |   10 +
+ drivers/leds/Makefile        |    1 +
+ drivers/leds/leds-max77693.c |  993 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1004 insertions(+)
+ create mode 100644 drivers/leds/leds-max77693.c
 
-link-frequencies = /bits/ 64 <70000000>;
-
-> +				};
-> +			};
-> +		};
-> +		...
-> +	};
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index ddc5a8c..4006cc8 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8910,6 +8910,16 @@ T:	git git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git
->  S:	Maintained
->  F:	drivers/media/platform/am437x/
->  
-> +OV2659 OMNIVISION SENSOR DRIVER
-> +M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> +L:	linux-media@vger.kernel.org
-> +W:	http://linuxtv.org/
-> +Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-> +T:	git git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git
-> +S:	Maintained
-> +F:	drivers/media/i2c/ov2659.c
-> +F:	include/media/ov2659.h
-> +
->  SIS 190 ETHERNET DRIVER
->  M:	Francois Romieu <romieu@fr.zoreil.com>
->  L:	netdev@vger.kernel.org
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index da58c9b..6f30ea7 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -466,6 +466,17 @@ config VIDEO_APTINA_PLL
->  config VIDEO_SMIAPP_PLL
->  	tristate
->  
-> +config VIDEO_OV2659
-> +	tristate "OmniVision OV2659 sensor support"
-> +	depends on VIDEO_V4L2 && I2C
-> +	depends on MEDIA_CAMERA_SUPPORT
-> +	---help---
-> +	  This is a Video4Linux2 sensor-level driver for the OmniVision
-> +	  OV2659 camera.
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called ov2659.
-> +
->  config VIDEO_OV7640
->  	tristate "OmniVision OV7640 sensor support"
->  	depends on I2C && VIDEO_V4L2
-> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-> index 98589001..f165fae 100644
-> --- a/drivers/media/i2c/Makefile
-> +++ b/drivers/media/i2c/Makefile
-> @@ -77,3 +77,4 @@ obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
->  obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
->  obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
->  obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
-> +obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
-> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-> new file mode 100644
-> index 0000000..eca96b7
-> --- /dev/null
-> +++ b/drivers/media/i2c/ov2659.c
-> @@ -0,0 +1,1439 @@
-> +/*
-> + * Omnivision OV2659 CMOS Image Sensor driver
-> + *
-> + * Copyright (C) 2015 Texas Instruments, Inc.
-> + *
-> + * Benoit Parrot <bparrot@ti.com>
-> + * Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> + *
-> + * This program is free software; you may redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; version 2 of the License.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> + * SOFTWARE.
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/init.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/io.h>
-> +#include <linux/i2c.h>
-> +#include <linux/kernel.h>
-> +#include <linux/media.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/of_graph.h>
-> +#include <linux/slab.h>
-> +#include <linux/uaccess.h>
-> +#include <linux/videodev2.h>
-> +
-> +#include <media/media-entity.h>
-> +#include <media/ov2659.h>
-> +#include <media/v4l2-common.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-event.h>
-> +#include <media/v4l2-image-sizes.h>
-> +#include <media/v4l2-mediabus.h>
-> +#include <media/v4l2-of.h>
-> +#include <media/v4l2-subdev.h>
-> +
-> +#define DRIVER_NAME "ov2659"
-> +
-> +/*
-> + * OV2659 register definitions
-> + */
-> +#define REG_SOFTWARE_STANDBY		0x0100
-> +#define REG_SOFTWARE_RESET		0x0103
-> +#define REG_IO_CTRL00			0x3000
-> +#define REG_IO_CTRL01			0x3001
-> +#define REG_IO_CTRL02			0x3002
-> +#define REG_OUTPUT_VALUE00		0x3008
-> +#define REG_OUTPUT_VALUE01		0x3009
-> +#define REG_OUTPUT_VALUE02		0x300d
-> +#define REG_OUTPUT_SELECT00		0x300e
-> +#define REG_OUTPUT_SELECT01		0x300f
-> +#define REG_OUTPUT_SELECT02		0x3010
-> +#define REG_OUTPUT_DRIVE		0x3011
-> +#define REG_INPUT_READOUT00		0x302d
-> +#define REG_INPUT_READOUT01		0x302e
-> +#define REG_INPUT_READOUT02		0x302f
-> +
-> +#define REG_SC_PLL_CTRL0		0x3003
-> +#define REG_SC_PLL_CTRL1		0x3004
-> +#define REG_SC_PLL_CTRL2		0x3005
-> +#define REG_SC_PLL_CTRL3		0x3006
-> +#define REG_SC_CHIP_ID_H		0x300a
-> +#define REG_SC_CHIP_ID_L		0x300b
-> +#define REG_SC_PWC			0x3014
-> +#define REG_SC_CLKRST0			0x301a
-> +#define REG_SC_CLKRST1			0x301b
-> +#define REG_SC_CLKRST2			0x301c
-> +#define REG_SC_CLKRST3			0x301d
-> +#define REG_SC_SUB_ID			0x302a
-> +#define REG_SC_SCCB_ID			0x302b
-> +
-> +#define REG_GROUP_ADDRESS_00		0x3200
-> +#define REG_GROUP_ADDRESS_01		0x3201
-> +#define REG_GROUP_ADDRESS_02		0x3202
-> +#define REG_GROUP_ADDRESS_03		0x3203
-> +#define REG_GROUP_ACCESS		0x3208
-> +
-> +#define REG_AWB_R_GAIN_H		0x3400
-> +#define REG_AWB_R_GAIN_L		0x3401
-> +#define REG_AWB_G_GAIN_H		0x3402
-> +#define REG_AWB_G_GAIN_L		0x3403
-> +#define REG_AWB_B_GAIN_H		0x3404
-> +#define REG_AWB_B_GAIN_L		0x3405
-> +#define REG_AWB_MANUAL_CONTROL		0x3406
-> +
-> +#define REG_TIMING_HS_H			0x3800
-> +#define REG_TIMING_HS_L			0x3801
-> +#define REG_TIMING_VS_H			0x3802
-> +#define REG_TIMING_VS_L			0x3803
-> +#define REG_TIMING_HW_H			0x3804
-> +#define REG_TIMING_HW_L			0x3805
-> +#define REG_TIMING_VH_H			0x3806
-> +#define REG_TIMING_VH_L			0x3807
-> +#define REG_TIMING_DVPHO_H		0x3808
-> +#define REG_TIMING_DVPHO_L		0x3809
-> +#define REG_TIMING_DVPVO_H		0x380a
-> +#define REG_TIMING_DVPVO_L		0x380b
-> +#define REG_TIMING_HTS_H		0x380c
-> +#define REG_TIMING_HTS_L		0x380d
-> +#define REG_TIMING_VTS_H		0x380e
-> +#define REG_TIMING_VTS_L		0x380f
-> +#define REG_TIMING_HOFFS_H		0x3810
-> +#define REG_TIMING_HOFFS_L		0x3811
-> +#define REG_TIMING_VOFFS_H		0x3812
-> +#define REG_TIMING_VOFFS_L		0x3813
-> +#define REG_TIMING_XINC			0x3814
-> +#define REG_TIMING_YINC			0x3815
-> +#define REG_TIMING_VERT_FORMAT		0x3820
-> +#define REG_TIMING_HORIZ_FORMAT		0x3821
-> +
-> +#define REG_FORMAT_CTRL00		0x4300
-> +
-> +#define REG_VFIFO_READ_START_H		0x4608
-> +#define REG_VFIFO_READ_START_L		0x4609
-> +
-> +#define REG_DVP_CTRL02			0x4708
-> +
-> +#define REG_ISP_CTRL00			0x5000
-> +#define REG_ISP_CTRL01			0x5001
-> +#define REG_ISP_CTRL02			0x5002
-> +
-> +#define REG_LENC_RED_X0_H		0x500c
-> +#define REG_LENC_RED_X0_L		0x500d
-> +#define REG_LENC_RED_Y0_H		0x500e
-> +#define REG_LENC_RED_Y0_L		0x500f
-> +#define REG_LENC_RED_A1			0x5010
-> +#define REG_LENC_RED_B1			0x5011
-> +#define REG_LENC_RED_A2_B2		0x5012
-> +#define REG_LENC_GREEN_X0_H		0x5013
-> +#define REG_LENC_GREEN_X0_L		0x5014
-> +#define REG_LENC_GREEN_Y0_H		0x5015
-> +#define REG_LENC_GREEN_Y0_L		0x5016
-> +#define REG_LENC_GREEN_A1		0x5017
-> +#define REG_LENC_GREEN_B1		0x5018
-> +#define REG_LENC_GREEN_A2_B2		0x5019
-> +#define REG_LENC_BLUE_X0_H		0x501a
-> +#define REG_LENC_BLUE_X0_L		0x501b
-> +#define REG_LENC_BLUE_Y0_H		0x501c
-> +#define REG_LENC_BLUE_Y0_L		0x501d
-> +#define REG_LENC_BLUE_A1		0x501e
-> +#define REG_LENC_BLUE_B1		0x501f
-> +#define REG_LENC_BLUE_A2_B2		0x5020
-> +
-> +#define REG_AWB_CTRL00			0x5035
-> +#define REG_AWB_CTRL01			0x5036
-> +#define REG_AWB_CTRL02			0x5037
-> +#define REG_AWB_CTRL03			0x5038
-> +#define REG_AWB_CTRL04			0x5039
-> +#define REG_AWB_LOCAL_LIMIT		0x503a
-> +#define REG_AWB_CTRL12			0x5049
-> +#define REG_AWB_CTRL13			0x504a
-> +#define REG_AWB_CTRL14			0x504b
-> +
-> +#define REG_SHARPENMT_THRESH1		0x5064
-> +#define REG_SHARPENMT_THRESH2		0x5065
-> +#define REG_SHARPENMT_OFFSET1		0x5066
-> +#define REG_SHARPENMT_OFFSET2		0x5067
-> +#define REG_DENOISE_THRESH1		0x5068
-> +#define REG_DENOISE_THRESH2		0x5069
-> +#define REG_DENOISE_OFFSET1		0x506a
-> +#define REG_DENOISE_OFFSET2		0x506b
-> +#define REG_SHARPEN_THRESH1		0x506c
-> +#define REG_SHARPEN_THRESH2		0x506d
-> +#define REG_CIP_CTRL00			0x506e
-> +#define REG_CIP_CTRL01			0x506f
-> +
-> +#define REG_CMX_SIGN			0x5079
-> +#define REG_CMX_MISC_CTRL		0x507a
-> +
-> +#define REG_NULL			0x0000	/* Array end token */
-> +
-> +#define OV265X_ID(_msb, _lsb)		((_msb) << 8 | (_lsb))
-> +#define OV2659_ID			0x2656
-> +
-> +struct sensor_register {
-> +	u16 addr;
-> +	u8 value;
-> +};
-> +
-> +struct ov2659_framesize {
-> +	u16 width;
-> +	u16 height;
-> +	u16 max_exp_lines;
-> +	const struct sensor_register *regs;
-> +};
-> +
-> +struct ov2659_pll_ctrl {
-> +	u8 ctrl1;
-> +	u8 ctrl2;
-> +	u8 ctrl3;
-> +};
-> +
-> +struct ov2659_pixfmt {
-> +	u32 code;
-> +	u32 colorspace;
-> +	/* Output format Register Value (REG_FORMAT_CTRL00) */
-> +	struct sensor_register *format_ctrl_regs;
-> +};
-> +
-> +struct pll_ctrl_reg {
-> +	unsigned int div;
-> +	unsigned char reg;
-> +};
-> +
-> +struct ov2659 {
-> +	struct v4l2_subdev sd;
-> +	struct media_pad pad;
-> +	enum v4l2_mbus_type bus_type;
-
-bus_type is unused.
-
-> +	struct v4l2_mbus_framefmt format;
-> +	unsigned int xvclk_frequency;
-> +	const struct ov2659_platform_data *pdata;
-> +	struct mutex lock;
-> +	struct i2c_client *client;
-> +	const struct ov2659_framesize *frame_size;
-> +	struct sensor_register *format_ctrl_regs;
-> +	struct ov2659_pll_ctrl pll;
-> +	int streaming;
-> +};
-> +
-> +static const struct sensor_register ov2659_init_regs[] = {
-> +	{REG_IO_CTRL00, 0x03},
-> +	{REG_IO_CTRL01, 0xff},
-> +	{REG_IO_CTRL02, 0xe0},
-> +	{0x3633, 0x3d},
-> +	{0x3620, 0x02},
-> +	{0x3631, 0x11},
-> +	{0x3612, 0x04},
-> +	{0x3630, 0x20},
-> +	{0x4702, 0x02},
-> +	{0x370c, 0x34},
-> +	{REG_TIMING_HS_H, 0x00},
-> +	{REG_TIMING_HS_L, 0x00},
-> +	{REG_TIMING_VS_H, 0x00},
-> +	{REG_TIMING_VS_L, 0x00},
-> +	{REG_TIMING_HW_H, 0x06},
-> +	{REG_TIMING_HW_L, 0x5f},
-> +	{REG_TIMING_VH_H, 0x04},
-> +	{REG_TIMING_VH_L, 0xb7},
-> +	{REG_TIMING_DVPHO_H, 0x03},
-> +	{REG_TIMING_DVPHO_L, 0x20},
-> +	{REG_TIMING_DVPVO_H, 0x02},
-> +	{REG_TIMING_DVPVO_L, 0x58},
-> +	{REG_TIMING_HTS_H, 0x05},
-> +	{REG_TIMING_HTS_L, 0x14},
-> +	{REG_TIMING_VTS_H, 0x02},
-> +	{REG_TIMING_VTS_L, 0x68},
-> +	{REG_TIMING_HOFFS_L, 0x08},
-> +	{REG_TIMING_VOFFS_L, 0x02},
-> +	{REG_TIMING_XINC, 0x31},
-> +	{REG_TIMING_YINC, 0x31},
-> +	{0x3a02, 0x02},
-> +	{0x3a03, 0x68},
-> +	{0x3a08, 0x00},
-> +	{0x3a09, 0x5c},
-> +	{0x3a0a, 0x00},
-> +	{0x3a0b, 0x4d},
-> +	{0x3a0d, 0x08},
-> +	{0x3a0e, 0x06},
-> +	{0x3a14, 0x02},
-> +	{0x3a15, 0x28},
-> +	{REG_DVP_CTRL02, 0x01},
-> +	{0x3623, 0x00},
-> +	{0x3634, 0x76},
-> +	{0x3701, 0x44},
-> +	{0x3702, 0x18},
-> +	{0x3703, 0x24},
-> +	{0x3704, 0x24},
-> +	{0x3705, 0x0c},
-> +	{REG_TIMING_VERT_FORMAT, 0x81},
-> +	{REG_TIMING_HORIZ_FORMAT, 0x01},
-> +	{0x370a, 0x52},
-> +	{REG_VFIFO_READ_START_H, 0x00},
-> +	{REG_VFIFO_READ_START_L, 0x80},
-> +	{REG_FORMAT_CTRL00, 0x30},
-> +	{0x5086, 0x02},
-> +	{REG_ISP_CTRL00, 0xfb},
-> +	{REG_ISP_CTRL01, 0x1f},
-> +	{REG_ISP_CTRL02, 0x00},
-> +	{0x5025, 0x0e},
-> +	{0x5026, 0x18},
-> +	{0x5027, 0x34},
-> +	{0x5028, 0x4c},
-> +	{0x5029, 0x62},
-> +	{0x502a, 0x74},
-> +	{0x502b, 0x85},
-> +	{0x502c, 0x92},
-> +	{0x502d, 0x9e},
-> +	{0x502e, 0xb2},
-> +	{0x502f, 0xc0},
-> +	{0x5030, 0xcc},
-> +	{0x5031, 0xe0},
-> +	{0x5032, 0xee},
-> +	{0x5033, 0xf6},
-> +	{0x5034, 0x11},
-> +	{0x5070, 0x1c},
-> +	{0x5071, 0x5b},
-> +	{0x5072, 0x05},
-> +	{0x5073, 0x20},
-> +	{0x5074, 0x94},
-> +	{0x5075, 0xb4},
-> +	{0x5076, 0xb4},
-> +	{0x5077, 0xaf},
-> +	{0x5078, 0x05},
-> +	{REG_CMX_SIGN, 0x98},
-> +	{REG_CMX_MISC_CTRL, 0x21},
-> +	{REG_AWB_CTRL00, 0x6a},
-> +	{REG_AWB_CTRL01, 0x11},
-> +	{REG_AWB_CTRL02, 0x92},
-> +	{REG_AWB_CTRL03, 0x21},
-> +	{REG_AWB_CTRL04, 0xe1},
-> +	{REG_AWB_LOCAL_LIMIT, 0x01},
-> +	{0x503c, 0x05},
-> +	{0x503d, 0x08},
-> +	{0x503e, 0x08},
-> +	{0x503f, 0x64},
-> +	{0x5040, 0x58},
-> +	{0x5041, 0x2a},
-> +	{0x5042, 0xc5},
-> +	{0x5043, 0x2e},
-> +	{0x5044, 0x3a},
-> +	{0x5045, 0x3c},
-> +	{0x5046, 0x44},
-> +	{0x5047, 0xf8},
-> +	{0x5048, 0x08},
-> +	{REG_AWB_CTRL12, 0x70},
-> +	{REG_AWB_CTRL13, 0xf0},
-> +	{REG_AWB_CTRL14, 0xf0},
-> +	{REG_LENC_RED_X0_H, 0x03},
-> +	{REG_LENC_RED_X0_L, 0x20},
-> +	{REG_LENC_RED_Y0_H, 0x02},
-> +	{REG_LENC_RED_Y0_L, 0x5c},
-> +	{REG_LENC_RED_A1, 0x48},
-> +	{REG_LENC_RED_B1, 0x00},
-> +	{REG_LENC_RED_A2_B2, 0x66},
-> +	{REG_LENC_GREEN_X0_H, 0x03},
-> +	{REG_LENC_GREEN_X0_L, 0x30},
-> +	{REG_LENC_GREEN_Y0_H, 0x02},
-> +	{REG_LENC_GREEN_Y0_L, 0x7c},
-> +	{REG_LENC_GREEN_A1, 0x40},
-> +	{REG_LENC_GREEN_B1, 0x00},
-> +	{REG_LENC_GREEN_A2_B2, 0x66},
-> +	{REG_LENC_BLUE_X0_H, 0x03},
-> +	{REG_LENC_BLUE_X0_L, 0x10},
-> +	{REG_LENC_BLUE_Y0_H, 0x02},
-> +	{REG_LENC_BLUE_Y0_L, 0x7c},
-> +	{REG_LENC_BLUE_A1, 0x3a},
-> +	{REG_LENC_BLUE_B1, 0x00},
-> +	{REG_LENC_BLUE_A2_B2, 0x66},
-> +	{REG_CIP_CTRL00, 0x44},
-> +	{REG_SHARPENMT_THRESH1, 0x08},
-> +	{REG_SHARPENMT_THRESH2, 0x10},
-> +	{REG_SHARPENMT_OFFSET1, 0x12},
-> +	{REG_SHARPENMT_OFFSET2, 0x02},
-> +	{REG_SHARPEN_THRESH1, 0x08},
-> +	{REG_SHARPEN_THRESH2, 0x10},
-> +	{REG_CIP_CTRL01, 0xa6},
-> +	{REG_DENOISE_THRESH1, 0x08},
-> +	{REG_DENOISE_THRESH2, 0x10},
-> +	{REG_DENOISE_OFFSET1, 0x04},
-> +	{REG_DENOISE_OFFSET2, 0x12},
-> +	{0x507e, 0x40},
-> +	{0x507f, 0x20},
-> +	{0x507b, 0x02},
-> +	{REG_CMX_MISC_CTRL, 0x01},
-> +	{0x5084, 0x0c},
-> +	{0x5085, 0x3e},
-> +	{0x5005, 0x80},
-> +	{0x3a0f, 0x30},
-> +	{0x3a10, 0x28},
-> +	{0x3a1b, 0x32},
-> +	{0x3a1e, 0x26},
-> +	{0x3a11, 0x60},
-> +	{0x3a1f, 0x14},
-> +	{0x5060, 0x69},
-> +	{0x5061, 0x7d},
-> +	{0x5062, 0x7d},
-> +	{0x5063, 0x69},
-> +	{REG_NULL, 0x00}
-> +};
-> +
-> +/* 1280X720 720p */
-> +static struct sensor_register ov2659_720p[] = {
-> +	{REG_TIMING_HS_H, 0x00},
-> +	{REG_TIMING_HS_L, 0xa0},
-> +	{REG_TIMING_VS_H, 0x00},
-> +	{REG_TIMING_VS_L, 0xf0},
-> +	{REG_TIMING_HW_H, 0x05},
-> +	{REG_TIMING_HW_L, 0xbf},
-> +	{REG_TIMING_VH_H, 0x03},
-> +	{REG_TIMING_VH_L, 0xcb},
-> +	{REG_TIMING_DVPHO_H, 0x05},
-> +	{REG_TIMING_DVPHO_L, 0x00},
-> +	{REG_TIMING_DVPVO_H, 0x02},
-> +	{REG_TIMING_DVPVO_L, 0xd0},
-> +	{REG_TIMING_HTS_H, 0x06},
-> +	{REG_TIMING_HTS_L, 0x4c},
-> +	{REG_TIMING_VTS_H, 0x02},
-> +	{REG_TIMING_VTS_L, 0xe8},
-> +	{REG_TIMING_HOFFS_L, 0x10},
-> +	{REG_TIMING_VOFFS_L, 0x06},
-> +	{REG_TIMING_XINC, 0x11},
-> +	{REG_TIMING_YINC, 0x11},
-> +	{REG_TIMING_VERT_FORMAT, 0x80},
-> +	{REG_TIMING_HORIZ_FORMAT, 0x00},
-> +	{0x3a03, 0xe8},
-> +	{0x3a09, 0x6f},
-> +	{0x3a0b, 0x5d},
-> +	{0x3a15, 0x9a},
-> +	{REG_NULL, 0x00}
-> +};
-> +
-> +/* 1600X1200 UXGA */
-> +static struct sensor_register ov2659_uxga[] = {
-> +	{REG_TIMING_HS_H, 0x00},
-> +	{REG_TIMING_HS_L, 0x00},
-> +	{REG_TIMING_VS_H, 0x00},
-> +	{REG_TIMING_VS_L, 0x00},
-> +	{REG_TIMING_HW_H, 0x06},
-> +	{REG_TIMING_HW_L, 0x5f},
-> +	{REG_TIMING_VH_H, 0x04},
-> +	{REG_TIMING_VH_L, 0xbb},
-> +	{REG_TIMING_DVPHO_H, 0x06},
-> +	{REG_TIMING_DVPHO_L, 0x40},
-> +	{REG_TIMING_DVPVO_H, 0x04},
-> +	{REG_TIMING_DVPVO_L, 0xb0},
-> +	{REG_TIMING_HTS_H, 0x07},
-> +	{REG_TIMING_HTS_L, 0x9f},
-> +	{REG_TIMING_VTS_H, 0x04},
-> +	{REG_TIMING_VTS_L, 0xd0},
-> +	{REG_TIMING_HOFFS_L, 0x10},
-> +	{REG_TIMING_VOFFS_L, 0x06},
-> +	{REG_TIMING_XINC, 0x11},
-> +	{REG_TIMING_YINC, 0x11},
-> +	{0x3a02, 0x04},
-> +	{0x3a03, 0xd0},
-> +	{0x3a08, 0x00},
-> +	{0x3a09, 0xb8},
-> +	{0x3a0a, 0x00},
-> +	{0x3a0b, 0x9a},
-> +	{0x3a0d, 0x08},
-> +	{0x3a0e, 0x06},
-> +	{0x3a14, 0x04},
-> +	{0x3a15, 0x50},
-> +	{0x3623, 0x00},
-> +	{0x3634, 0x44},
-> +	{0x3701, 0x44},
-> +	{0x3702, 0x30},
-> +	{0x3703, 0x48},
-> +	{0x3704, 0x48},
-> +	{0x3705, 0x18},
-> +	{REG_TIMING_VERT_FORMAT, 0x80},
-> +	{REG_TIMING_HORIZ_FORMAT, 0x00},
-> +	{0x370a, 0x12},
-> +	{REG_VFIFO_READ_START_H, 0x00},
-> +	{REG_VFIFO_READ_START_L, 0x80},
-> +	{REG_ISP_CTRL02, 0x00},
-> +	{REG_NULL, 0x00}
-> +};
-> +
-> +/* 1280X1024 SXGA */
-> +static struct sensor_register ov2659_sxga[] = {
-> +	{REG_TIMING_HS_H, 0x00},
-> +	{REG_TIMING_HS_L, 0x00},
-> +	{REG_TIMING_VS_H, 0x00},
-> +	{REG_TIMING_VS_L, 0x00},
-> +	{REG_TIMING_HW_H, 0x06},
-> +	{REG_TIMING_HW_L, 0x5f},
-> +	{REG_TIMING_VH_H, 0x04},
-> +	{REG_TIMING_VH_L, 0xb7},
-> +	{REG_TIMING_DVPHO_H, 0x05},
-> +	{REG_TIMING_DVPHO_L, 0x00},
-> +	{REG_TIMING_DVPVO_H, 0x04},
-> +	{REG_TIMING_DVPVO_L, 0x00},
-> +	{REG_TIMING_HTS_H, 0x07},
-> +	{REG_TIMING_HTS_L, 0x9c},
-> +	{REG_TIMING_VTS_H, 0x04},
-> +	{REG_TIMING_VTS_L, 0xd0},
-> +	{REG_TIMING_HOFFS_L, 0x10},
-> +	{REG_TIMING_VOFFS_L, 0x06},
-> +	{REG_TIMING_XINC, 0x11},
-> +	{REG_TIMING_YINC, 0x11},
-> +	{0x3a02, 0x02},
-> +	{0x3a03, 0x68},
-> +	{0x3a08, 0x00},
-> +	{0x3a09, 0x5c},
-> +	{0x3a0a, 0x00},
-> +	{0x3a0b, 0x4d},
-> +	{0x3a0d, 0x08},
-> +	{0x3a0e, 0x06},
-> +	{0x3a14, 0x02},
-> +	{0x3a15, 0x28},
-> +	{0x3623, 0x00},
-> +	{0x3634, 0x76},
-> +	{0x3701, 0x44},
-> +	{0x3702, 0x18},
-> +	{0x3703, 0x24},
-> +	{0x3704, 0x24},
-> +	{0x3705, 0x0c},
-> +	{REG_TIMING_VERT_FORMAT, 0x80},
-> +	{REG_TIMING_HORIZ_FORMAT, 0x00},
-> +	{0x370a, 0x52},
-> +	{REG_VFIFO_READ_START_H, 0x00},
-> +	{REG_VFIFO_READ_START_L, 0x80},
-> +	{REG_ISP_CTRL02, 0x00},
-> +	{REG_NULL, 0x00}
-> +};
-> +
-> +/* 1024X768 SXGA */
-> +static struct sensor_register ov2659_xga[] = {
-> +	{REG_TIMING_HS_H, 0x00},
-> +	{REG_TIMING_HS_L, 0x00},
-> +	{REG_TIMING_VS_H, 0x00},
-> +	{REG_TIMING_VS_L, 0x00},
-> +	{REG_TIMING_HW_H, 0x06},
-> +	{REG_TIMING_HW_L, 0x5f},
-> +	{REG_TIMING_VH_H, 0x04},
-> +	{REG_TIMING_VH_L, 0xb7},
-> +	{REG_TIMING_DVPHO_H, 0x04},
-> +	{REG_TIMING_DVPHO_L, 0x00},
-> +	{REG_TIMING_DVPVO_H, 0x03},
-> +	{REG_TIMING_DVPVO_L, 0x00},
-> +	{REG_TIMING_HTS_H, 0x07},
-> +	{REG_TIMING_HTS_L, 0x9c},
-> +	{REG_TIMING_VTS_H, 0x04},
-> +	{REG_TIMING_VTS_L, 0xd0},
-> +	{REG_TIMING_HOFFS_L, 0x10},
-> +	{REG_TIMING_VOFFS_L, 0x06},
-> +	{REG_TIMING_XINC, 0x11},
-> +	{REG_TIMING_YINC, 0x11},
-> +	{0x3a02, 0x02},
-> +	{0x3a03, 0x68},
-> +	{0x3a08, 0x00},
-> +	{0x3a09, 0x5c},
-> +	{0x3a0a, 0x00},
-> +	{0x3a0b, 0x4d},
-> +	{0x3a0d, 0x08},
-> +	{0x3a0e, 0x06},
-> +	{0x3a14, 0x02},
-> +	{0x3a15, 0x28},
-> +	{0x3623, 0x00},
-> +	{0x3634, 0x76},
-> +	{0x3701, 0x44},
-> +	{0x3702, 0x18},
-> +	{0x3703, 0x24},
-> +	{0x3704, 0x24},
-> +	{0x3705, 0x0c},
-> +	{REG_TIMING_VERT_FORMAT, 0x80},
-> +	{REG_TIMING_HORIZ_FORMAT, 0x00},
-> +	{0x370a, 0x52},
-> +	{REG_VFIFO_READ_START_H, 0x00},
-> +	{REG_VFIFO_READ_START_L, 0x80},
-> +	{REG_ISP_CTRL02, 0x00},
-> +	{REG_NULL, 0x00}
-> +};
-> +
-> +/* 800X600 SVGA */
-> +static struct sensor_register ov2659_svga[] = {
-> +	{REG_TIMING_HS_H, 0x00},
-> +	{REG_TIMING_HS_L, 0x00},
-> +	{REG_TIMING_VS_H, 0x00},
-> +	{REG_TIMING_VS_L, 0x00},
-> +	{REG_TIMING_HW_H, 0x06},
-> +	{REG_TIMING_HW_L, 0x5f},
-> +	{REG_TIMING_VH_H, 0x04},
-> +	{REG_TIMING_VH_L, 0xb7},
-> +	{REG_TIMING_DVPHO_H, 0x03},
-> +	{REG_TIMING_DVPHO_L, 0x20},
-> +	{REG_TIMING_DVPVO_H, 0x02},
-> +	{REG_TIMING_DVPVO_L, 0x58},
-> +	{REG_TIMING_HTS_H, 0x05},
-> +	{REG_TIMING_HTS_L, 0x14},
-> +	{REG_TIMING_VTS_H, 0x02},
-> +	{REG_TIMING_VTS_L, 0x68},
-> +	{REG_TIMING_HOFFS_L, 0x08},
-> +	{REG_TIMING_VOFFS_L, 0x02},
-> +	{REG_TIMING_XINC, 0x31},
-> +	{REG_TIMING_YINC, 0x31},
-> +	{0x3a02, 0x02},
-> +	{0x3a03, 0x68},
-> +	{0x3a08, 0x00},
-> +	{0x3a09, 0x5c},
-> +	{0x3a0a, 0x00},
-> +	{0x3a0b, 0x4d},
-> +	{0x3a0d, 0x08},
-> +	{0x3a0e, 0x06},
-> +	{0x3a14, 0x02},
-> +	{0x3a15, 0x28},
-> +	{0x3623, 0x00},
-> +	{0x3634, 0x76},
-> +	{0x3701, 0x44},
-> +	{0x3702, 0x18},
-> +	{0x3703, 0x24},
-> +	{0x3704, 0x24},
-> +	{0x3705, 0x0c},
-> +	{REG_TIMING_VERT_FORMAT, 0x81},
-> +	{REG_TIMING_HORIZ_FORMAT, 0x01},
-> +	{0x370a, 0x52},
-> +	{REG_VFIFO_READ_START_H, 0x00},
-> +	{REG_VFIFO_READ_START_L, 0x80},
-> +	{REG_ISP_CTRL02, 0x00},
-> +	{REG_NULL, 0x00}
-> +};
-> +
-> +/* 640X480 VGA */
-> +static struct sensor_register ov2659_vga[] = {
-> +	{REG_TIMING_HS_H, 0x00},
-> +	{REG_TIMING_HS_L, 0x00},
-> +	{REG_TIMING_VS_H, 0x00},
-> +	{REG_TIMING_VS_L, 0x00},
-> +	{REG_TIMING_HW_H, 0x06},
-> +	{REG_TIMING_HW_L, 0x5f},
-> +	{REG_TIMING_VH_H, 0x04},
-> +	{REG_TIMING_VH_L, 0xb7},
-> +	{REG_TIMING_DVPHO_H, 0x02},
-> +	{REG_TIMING_DVPHO_L, 0x80},
-> +	{REG_TIMING_DVPVO_H, 0x01},
-> +	{REG_TIMING_DVPVO_L, 0xe0},
-> +	{REG_TIMING_HTS_H, 0x05},
-> +	{REG_TIMING_HTS_L, 0x14},
-> +	{REG_TIMING_VTS_H, 0x02},
-> +	{REG_TIMING_VTS_L, 0x68},
-> +	{REG_TIMING_HOFFS_L, 0x08},
-> +	{REG_TIMING_VOFFS_L, 0x02},
-> +	{REG_TIMING_XINC, 0x31},
-> +	{REG_TIMING_YINC, 0x31},
-> +	{0x3a02, 0x02},
-> +	{0x3a03, 0x68},
-> +	{0x3a08, 0x00},
-> +	{0x3a09, 0x5c},
-> +	{0x3a0a, 0x00},
-> +	{0x3a0b, 0x4d},
-> +	{0x3a0d, 0x08},
-> +	{0x3a0e, 0x06},
-> +	{0x3a14, 0x02},
-> +	{0x3a15, 0x28},
-> +	{0x3623, 0x00},
-> +	{0x3634, 0x76},
-> +	{0x3701, 0x44},
-> +	{0x3702, 0x18},
-> +	{0x3703, 0x24},
-> +	{0x3704, 0x24},
-> +	{0x3705, 0x0c},
-> +	{REG_TIMING_VERT_FORMAT, 0x81},
-> +	{REG_TIMING_HORIZ_FORMAT, 0x01},
-> +	{0x370a, 0x52},
-> +	{REG_VFIFO_READ_START_H, 0x00},
-> +	{REG_VFIFO_READ_START_L, 0x80},
-> +	{REG_ISP_CTRL02, 0x10},
-> +	{REG_NULL, 0x00}
-> +};
-> +
-> +/* 320X240 QVGA */
-> +static  struct sensor_register ov2659_qvga[] = {
-> +	{REG_TIMING_HS_H, 0x00},
-> +	{REG_TIMING_HS_L, 0x00},
-> +	{REG_TIMING_VS_H, 0x00},
-> +	{REG_TIMING_VS_L, 0x00},
-> +	{REG_TIMING_HW_H, 0x06},
-> +	{REG_TIMING_HW_L, 0x5f},
-> +	{REG_TIMING_VH_H, 0x04},
-> +	{REG_TIMING_VH_L, 0xb7},
-> +	{REG_TIMING_DVPHO_H, 0x01},
-> +	{REG_TIMING_DVPHO_L, 0x40},
-> +	{REG_TIMING_DVPVO_H, 0x00},
-> +	{REG_TIMING_DVPVO_L, 0xf0},
-> +	{REG_TIMING_HTS_H, 0x05},
-> +	{REG_TIMING_HTS_L, 0x14},
-> +	{REG_TIMING_VTS_H, 0x02},
-> +	{REG_TIMING_VTS_L, 0x68},
-> +	{REG_TIMING_HOFFS_L, 0x08},
-> +	{REG_TIMING_VOFFS_L, 0x02},
-> +	{REG_TIMING_XINC, 0x31},
-> +	{REG_TIMING_YINC, 0x31},
-> +	{0x3a02, 0x02},
-> +	{0x3a03, 0x68},
-> +	{0x3a08, 0x00},
-> +	{0x3a09, 0x5c},
-> +	{0x3a0a, 0x00},
-> +	{0x3a0b, 0x4d},
-> +	{0x3a0d, 0x08},
-> +	{0x3a0e, 0x06},
-> +	{0x3a14, 0x02},
-> +	{0x3a15, 0x28},
-> +	{0x3623, 0x00},
-> +	{0x3634, 0x76},
-> +	{0x3701, 0x44},
-> +	{0x3702, 0x18},
-> +	{0x3703, 0x24},
-> +	{0x3704, 0x24},
-> +	{0x3705, 0x0c},
-> +	{REG_TIMING_VERT_FORMAT, 0x81},
-> +	{REG_TIMING_HORIZ_FORMAT, 0x01},
-> +	{0x370a, 0x52},
-> +	{REG_VFIFO_READ_START_H, 0x00},
-> +	{REG_VFIFO_READ_START_L, 0x80},
-> +	{REG_ISP_CTRL02, 0x10},
-> +	{REG_NULL, 0x00}
-> +};
-> +
-> +static const struct pll_ctrl_reg ctrl3[] = {
-> +	{1, 0x00},
-> +	{2, 0x02},
-> +	{3, 0x03},
-> +	{4, 0x06},
-> +	{6, 0x0d},
-> +	{8, 0x0e},
-> +	{12, 0x0f},
-> +	{16, 0x12},
-> +	{24, 0x13},
-> +	{32, 0x16},
-> +	{48, 0x1b},
-> +	{64, 0x1e},
-> +	{96, 0x1f},
-> +	{0, 0x00},
-> +};
-> +
-> +static const struct pll_ctrl_reg ctrl1[] = {
-> +	{2, 0x10},
-> +	{4, 0x20},
-> +	{6, 0x30},
-> +	{8, 0x40},
-> +	{10, 0x50},
-> +	{12, 0x60},
-> +	{14, 0x70},
-> +	{16, 0x80},
-> +	{18, 0x90},
-> +	{20, 0xa0},
-> +	{22, 0xb0},
-> +	{24, 0xc0},
-> +	{26, 0xd0},
-> +	{28, 0xe0},
-> +	{30, 0xf0},
-> +	{0, 0x00},
-> +};
-> +
-> +static const struct ov2659_framesize ov2659_framesizes[] = {
-> +	{ /* QVGA */
-> +		.width		= 320,
-> +		.height		= 240,
-> +		.regs		= ov2659_qvga,
-> +		.max_exp_lines	= 248,
-> +	}, { /* VGA */
-> +		.width		= 640,
-> +		.height		= 480,
-> +		.regs		= ov2659_vga,
-> +		.max_exp_lines	= 498,
-> +	}, { /* SVGA */
-> +		.width		= 800,
-> +		.height		= 600,
-> +		.regs		= ov2659_svga,
-> +		.max_exp_lines	= 498,
-> +	}, { /* XGA */
-> +		.width		= 1024,
-> +		.height		= 768,
-> +		.regs		= ov2659_xga,
-> +		.max_exp_lines	= 498,
-> +	}, { /* 720P */
-> +		.width		= 1280,
-> +		.height		= 720,
-> +		.regs		= ov2659_720p,
-> +		.max_exp_lines	= 498,
-> +	}, { /* SXGA */
-> +		.width		= 1280,
-> +		.height		= 1024,
-> +		.regs		= ov2659_sxga,
-> +		.max_exp_lines	= 1048,
-> +	}, { /* UXGA */
-> +		.width		= 1600,
-> +		.height		= 1200,
-> +		.regs		= ov2659_uxga,
-> +		.max_exp_lines	= 498,
-> +	},
-> +};
-> +
-> +/* YUV422 YUYV*/
-> +static struct sensor_register ov2659_format_yuyv[] = {
-> +	{REG_FORMAT_CTRL00, 0x30},
-> +	{REG_NULL, 0x0},
-> +};
-> +
-> +/* YUV422 UYVY  */
-> +static struct sensor_register ov2659_format_uyvy[] = {
-> +	{REG_FORMAT_CTRL00, 0x32},
-> +	{REG_NULL, 0x0},
-> +};
-> +
-> +/* Raw Bayer BGGR */
-> +static struct sensor_register ov2659_format_bggr[] = {
-> +	{REG_FORMAT_CTRL00, 0x00},
-> +	{REG_NULL, 0x0}
-> +};
-> +
-> +/* RGB565 */
-> +static struct sensor_register ov2659_format_rgb565[] = {
-> +	{REG_FORMAT_CTRL00, 0x60},
-> +	{REG_NULL, 0x0},
-> +};
-> +
-> +static const struct ov2659_pixfmt ov2659_formats[] = {
-> +	{
-> +		.code = MEDIA_BUS_FMT_YUYV8_2X8,
-> +		.colorspace = V4L2_COLORSPACE_JPEG,
-> +		.format_ctrl_regs = ov2659_format_yuyv,
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_UYVY8_2X8,
-> +		.colorspace = V4L2_COLORSPACE_JPEG,
-> +		.format_ctrl_regs = ov2659_format_uyvy,
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_RGB565_2X8_BE,
-> +		.colorspace = V4L2_COLORSPACE_JPEG,
-> +		.format_ctrl_regs = ov2659_format_rgb565,
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
-> +		.colorspace = V4L2_COLORSPACE_SMPTE170M,
-> +		.format_ctrl_regs = ov2659_format_bggr,
-> +	},
-> +};
-> +
-> +static inline struct ov2659 *to_ov2659(struct v4l2_subdev *sd)
-> +{
-> +	return container_of(sd, struct ov2659, sd);
-> +}
-> +
-> +/* sensor register write */
-> +static int ov2659_write(struct i2c_client *client, u16 reg, u8 val)
-> +{
-> +	struct i2c_msg msg;
-> +	u8 buf[3];
-> +	int ret;
-> +
-> +	buf[0] = reg >> 8;
-> +	buf[1] = reg & 0xFF;
-> +	buf[2] = val;
-> +
-> +	msg.addr = client->addr;
-> +	msg.flags = client->flags;
-> +	msg.buf = buf;
-> +	msg.len = sizeof(buf);
-> +
-> +	ret = i2c_transfer(client->adapter, &msg, 1);
-> +	if (ret >= 0)
-> +		return 0;
-> +
-> +	dev_dbg(&client->dev,
-> +		"ov2659 write reg(0x%x val:0x%x) failed !\n", reg, val);
-> +
-> +	return ret;
-> +}
-> +
-> +/* sensor register read */
-> +static int ov2659_read(struct i2c_client *client, u16 reg, u8 *val)
-> +{
-> +	struct i2c_msg msg[2];
-> +	u8 buf[2];
-> +	int ret;
-> +
-> +	buf[0] = reg >> 8;
-> +	buf[1] = reg & 0xFF;
-> +
-> +	msg[0].addr = client->addr;
-> +	msg[0].flags = client->flags;
-> +	msg[0].buf = buf;
-> +	msg[0].len = sizeof(buf);
-> +
-> +	msg[1].addr = client->addr;
-> +	msg[1].flags = client->flags | I2C_M_RD;
-> +	msg[1].buf = buf;
-> +	msg[1].len = 1;
-> +
-> +	ret = i2c_transfer(client->adapter, msg, 2);
-> +	if (ret >= 0) {
-> +		*val = buf[0];
-> +		return 0;
-> +	}
-> +
-> +	dev_dbg(&client->dev,
-> +		"ov2659 read reg(0x%x val:0x%x) failed !\n", reg, *val);
-> +
-> +	return ret;
-> +}
-> +
-> +static int ov2659_write_array(struct i2c_client *client,
-> +			      const struct sensor_register *regs)
-> +{
-> +	int i, ret = 0;
-> +
-> +	for (i = 0; ret == 0 && regs[i].addr; i++)
-> +		ret = ov2659_write(client, regs[i].addr, regs[i].value);
-> +
-> +	return ret;
-> +}
-> +
-> +static unsigned int ov2659_pll_calc_params(struct ov2659 *ov2659)
-> +{
-> +	const struct ov2659_platform_data *pdata = ov2659->pdata;
-> +	u8 ctrl1_reg = 0, ctrl2_reg = 0, ctrl3_reg = 0;
-> +	struct i2c_client *client = ov2659->client;
-> +	unsigned int desired = pdata->link_frequency;
-> +	u32 s_prediv = 1, s_postdiv = 1, s_mult = 1;
-> +	u32 prediv, postdiv, mult;
-> +	u32 bestdelta = -1;
-> +	u32 delta, actual;
-> +	int i, j;
-> +
-> +	for (i = 0; ctrl1[i].div != 0; i++) {
-> +		postdiv = ctrl1[i].div;
-> +		for (j = 0; ctrl3[j].div != 0; j++) {
-> +			prediv = ctrl3[j].div;
-> +			for (mult = 1; mult <= 63; mult++) {
-> +				actual  = ov2659->xvclk_frequency;
-> +				actual *= mult;
-> +				actual /= prediv;
-> +				actual /= postdiv;
-> +				delta = actual - desired;
-> +				delta = abs(delta);
-> +
-> +				if ((delta < bestdelta) || (bestdelta == -1)) {
-> +					bestdelta = delta;
-> +					s_mult    = mult;
-> +					s_prediv  = prediv;
-> +					s_postdiv = postdiv;
-> +					ctrl1_reg = ctrl1[i].reg;
-> +					ctrl2_reg = mult;
-> +					ctrl3_reg = ctrl3[j].reg;
-> +				}
-> +			}
-> +		}
-> +	}
-> +	actual = ov2659->xvclk_frequency * (s_mult);
-> +	actual /= (s_prediv) * (s_postdiv);
-
-Parentheses are redundant above (two lines).
-
-> +
-> +	dev_dbg(&client->dev, "Actual osc: %u pixel_clock: %u\n",
-> +		ov2659->xvclk_frequency, actual);
-> +
-> +	ov2659->pll.ctrl1 = ctrl1_reg;
-> +	ov2659->pll.ctrl2 = ctrl2_reg;
-> +	ov2659->pll.ctrl3 = ctrl3_reg;
-> +
-> +	dev_dbg(&client->dev,
-> +		"Actual reg config: ctrl1_reg: %02x ctrl2_reg: %02x ctrl3_reg: %02x\n",
-> +		ctrl1_reg, ctrl2_reg, ctrl3_reg);
-> +
-> +	return actual;
-> +}
-> +
-> +static int ov2659_set_pixel_clock(struct ov2659 *ov2659)
-> +{
-> +	struct i2c_client *client = ov2659->client;
-> +	struct sensor_register pll_regs[] = {
-> +		{REG_SC_PLL_CTRL1, ov2659->pll.ctrl1},
-> +		{REG_SC_PLL_CTRL2, ov2659->pll.ctrl2},
-> +		{REG_SC_PLL_CTRL3, ov2659->pll.ctrl3},
-> +		{REG_NULL, 0x00},
-> +	};
-> +
-> +	dev_dbg(&client->dev, "%s\n", __func__);
-> +
-> +	return ov2659_write_array(client, pll_regs);
-> +};
-> +
-> +static void ov2659_get_default_format(struct v4l2_mbus_framefmt *format)
-> +{
-> +	format->width = ov2659_framesizes[2].width;
-> +	format->height = ov2659_framesizes[2].height;
-> +	format->colorspace = ov2659_formats[0].colorspace;
-> +	format->code = ov2659_formats[0].code;
-> +	format->field = V4L2_FIELD_NONE;
-> +}
-> +
-> +static void ov2659_set_streaming(struct ov2659 *ov2659, int on)
-> +{
-> +	struct i2c_client *client = ov2659->client;
-> +	int ret;
-> +
-> +	on = !!on;
-> +
-> +	dev_dbg(&client->dev, "%s: on: %d\n", __func__, on);
-> +
-> +	ret = ov2659_write(client, REG_SOFTWARE_STANDBY, on);
-> +	if (ret)
-> +		dev_err(&client->dev, "ov2659 soft standby failed\n");
-> +}
-> +
-> +static int ov2659_init(struct v4l2_subdev *sd, u32 val)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +	return ov2659_write_array(client, ov2659_init_regs);
-> +}
-> +
-> +/*
-> + * V4L2 subdev video and pad level operations
-> + */
-> +
-> +static int ov2659_enum_mbus_code(struct v4l2_subdev *sd,
-> +				 struct v4l2_subdev_pad_config *cfg,
-> +				 struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +	dev_dbg(&client->dev, "%s:\n", __func__);
-> +
-> +	if (code->index >= ARRAY_SIZE(ov2659_formats))
-> +		return -EINVAL;
-> +
-> +	code->code = ov2659_formats[code->index].code;
-> +
-> +	return 0;
-> +}
-> +
-> +static int ov2659_enum_frame_sizes(struct v4l2_subdev *sd,
-> +				   struct v4l2_subdev_pad_config *cfg,
-> +				   struct v4l2_subdev_frame_size_enum *fse)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	int i = ARRAY_SIZE(ov2659_formats);
-> +
-> +	dev_dbg(&client->dev, "%s:\n", __func__);
-> +
-> +	if (fse->index >= ARRAY_SIZE(ov2659_framesizes))
-> +		return -EINVAL;
-> +
-> +	while (--i)
-> +		if (fse->code == ov2659_formats[i].code)
-> +			break;
-> +
-> +	fse->code = ov2659_formats[i].code;
-> +
-> +	fse->min_width  = ov2659_framesizes[fse->index].width;
-> +	fse->max_width  = fse->min_width;
-> +	fse->max_height = ov2659_framesizes[fse->index].height;
-> +	fse->min_height = fse->max_height;
-> +
-> +	return 0;
-> +}
-> +
-> +static int ov2659_get_fmt(struct v4l2_subdev *sd,
-> +			  struct v4l2_subdev_pad_config *cfg,
-> +			  struct v4l2_subdev_format *fmt)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	struct ov2659 *ov2659 = to_ov2659(sd);
-> +	struct v4l2_mbus_framefmt *mf;
-> +
-> +	dev_dbg(&client->dev, "ov2659_get_fmt\n");
-> +
-> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		mf = v4l2_subdev_get_try_format(sd, cfg, 0);
-> +		fmt->format = *mf;
-
-I think you should acquire the mutex also here. The same file handle could
-be accessed by multiple threads, for instance.
-
-> +		return 0;
-> +	}
-> +
-> +	mutex_lock(&ov2659->lock);
-> +	fmt->format = ov2659->format;
-> +	mutex_unlock(&ov2659->lock);
-> +
-> +	dev_dbg(&client->dev, "ov2659_get_fmt: %x %dx%d\n",
-> +		ov2659->format.code, ov2659->format.width,
-> +		ov2659->format.height);
-> +
-> +	return 0;
-> +}
-> +
-> +static void __ov2659_try_frame_size(struct v4l2_mbus_framefmt *mf,
-> +				    const struct ov2659_framesize **size)
-> +{
-> +	const struct ov2659_framesize *fsize = &ov2659_framesizes[0];
-> +	const struct ov2659_framesize *match = NULL;
-> +	int i = ARRAY_SIZE(ov2659_framesizes);
-> +	unsigned int min_err = UINT_MAX;
-> +
-> +	while (i--) {
-> +		int err = abs(fsize->width - mf->width)
-> +				+ abs(fsize->height - mf->height);
-> +		if ((err < min_err) && (fsize->regs[0].addr)) {
-> +			min_err = err;
-> +			match = fsize;
-> +		}
-> +		fsize++;
-> +	}
-> +
-> +	if (!match)
-> +		match = &ov2659_framesizes[2];
-> +
-> +	mf->width  = match->width;
-> +	mf->height = match->height;
-> +
-> +	if (size)
-> +		*size = match;
-> +}
-> +
-> +static int ov2659_set_fmt(struct v4l2_subdev *sd,
-> +			  struct v4l2_subdev_pad_config *cfg,
-> +			  struct v4l2_subdev_format *fmt)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	unsigned int index = ARRAY_SIZE(ov2659_formats);
-> +	struct v4l2_mbus_framefmt *mf = &fmt->format;
-> +	const struct ov2659_framesize *size = NULL;
-> +	struct ov2659 *ov2659 = to_ov2659(sd);
-> +
-> +	dev_dbg(&client->dev, "ov2659_set_fmt\n");
-> +
-> +	__ov2659_try_frame_size(mf, &size);
-> +
-> +	while (--index >= 0)
-> +		if (ov2659_formats[index].code == mf->code)
-> +			break;
-> +
-> +	if (index < 0)
-> +		return -EINVAL;
-> +
-> +	mf->colorspace	= V4L2_COLORSPACE_JPEG;
-> +	mf->code	= ov2659_formats[index].code;
-> +	mf->field	= V4L2_FIELD_NONE;
-> +
-> +	mutex_lock(&ov2659->lock);
-> +
-> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> +		*mf = fmt->format;
-> +	} else {
-> +		if (ov2659->streaming) {
-> +			mutex_unlock(&ov2659->lock);
-> +			return -EBUSY;
-> +		}
-> +
-> +		ov2659->frame_size = size;
-> +		ov2659->format = fmt->format;
-> +		ov2659->format_ctrl_regs =
-> +			ov2659_formats[index].format_ctrl_regs;
-> +	}
-> +
-> +	mutex_unlock(&ov2659->lock);
-> +	return 0;
-> +}
-> +
-> +static int ov2659_set_frame_size(struct ov2659 *ov2659)
-> +{
-> +	struct i2c_client *client = ov2659->client;
-> +
-> +	dev_dbg(&client->dev, "%s\n", __func__);
-> +
-> +	return ov2659_write_array(ov2659->client,
-> +				  ov2659->frame_size->regs);
-
-Fits on a single line. The same in the function below.
-
-> +}
-> +
-> +static int ov2659_set_format(struct ov2659 *ov2659)
-> +{
-> +	struct i2c_client *client = ov2659->client;
-> +
-> +	dev_dbg(&client->dev, "%s\n", __func__);
-> +
-> +	return ov2659_write_array(ov2659->client,
-> +				  ov2659->format_ctrl_regs);
-> +}
-> +
-> +static int ov2659_s_stream(struct v4l2_subdev *sd, int on)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	struct ov2659 *ov2659 = to_ov2659(sd);
-> +	int ret = 0;
-> +
-> +	dev_dbg(&client->dev, "%s: on: %d\n", __func__, on);
-> +
-> +	mutex_lock(&ov2659->lock);
-> +
-> +	on = !!on;
-> +
-> +	if (ov2659->streaming == on)
-> +		goto unlock;
-> +
-> +	if (!on) {
-> +		/* Stop Streaming Sequence */
-> +		ov2659_set_streaming(ov2659, 0);
-> +		ov2659->streaming = on;
-> +		goto unlock;
-> +	}
-> +
-> +	ov2659_set_pixel_clock(ov2659);
-> +	ov2659_set_frame_size(ov2659);
-> +	ov2659_set_format(ov2659);
-> +	ov2659_set_streaming(ov2659, 1);
-> +	ov2659->streaming = on;
-> +
-> +unlock:
-> +	mutex_unlock(&ov2659->lock);
-> +	return ret;
-> +}
-> +
-> +/* -----------------------------------------------------------------------------
-> + * V4L2 subdev internal operations
-> + */
-> +
-> +static int ov2659_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	struct v4l2_mbus_framefmt *format =
-> +				v4l2_subdev_get_try_format(sd, fh->pad, 0);
-> +
-> +	dev_dbg(&client->dev, "%s:\n", __func__);
-> +
-> +	ov2659_get_default_format(format);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_core_ops ov2659_subdev_core_ops = {
-> +	.log_status = v4l2_ctrl_subdev_log_status,
-> +	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
-> +	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
-> +};
-> +
-> +static const struct v4l2_subdev_video_ops ov2659_subdev_video_ops = {
-> +	.s_stream = ov2659_s_stream,
-> +};
-> +
-> +static const struct v4l2_subdev_pad_ops ov2659_subdev_pad_ops = {
-> +	.enum_mbus_code = ov2659_enum_mbus_code,
-> +	.enum_frame_size = ov2659_enum_frame_sizes,
-> +	.get_fmt = ov2659_get_fmt,
-> +	.set_fmt = ov2659_set_fmt,
-> +};
-> +
-> +static const struct v4l2_subdev_ops ov2659_subdev_ops = {
-> +	.core  = &ov2659_subdev_core_ops,
-> +	.video = &ov2659_subdev_video_ops,
-> +	.pad   = &ov2659_subdev_pad_ops,
-> +};
-> +
-> +static const struct v4l2_subdev_internal_ops ov2659_subdev_internal_ops = {
-> +	.open = ov2659_open,
-> +};
-> +
-> +static int ov2659_detect(struct v4l2_subdev *sd)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	u8 pid, ver;
-> +	int ret;
-> +
-> +	dev_dbg(&client->dev, "%s:\n", __func__);
-> +
-> +	ret = ov2659_write(client, REG_SOFTWARE_RESET, 0x01);
-> +	if (ret != 0) {
-> +		dev_err(&client->dev, "Sensor soft reset failed\n");
-> +		return -ENODEV;
-> +	}
-> +	usleep_range(1000, 2000);
-> +
-> +	ret = ov2659_init(sd, 0);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	/* Check sensor revision */
-> +	ret = ov2659_read(client, REG_SC_CHIP_ID_H, &pid);
-> +	if (!ret)
-> +		ret = ov2659_read(client, REG_SC_CHIP_ID_L, &ver);
-> +
-> +	if (!ret) {
-> +		unsigned short id;
-> +
-> +		id = OV265X_ID(pid, ver);
-> +		if (id != OV2659_ID)
-> +			dev_err(&client->dev,
-> +				"Sensor detection failed (%04X, %d)\n",
-> +				id, ret);
-> +		else
-> +			dev_info(&client->dev, "Found OV%04X sensor\n", id);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static struct ov2659_platform_data *
-> +ov2659_get_pdata(struct i2c_client *client)
-> +{
-> +	struct ov2659_platform_data *pdata;
-> +	struct device_node *endpoint;
-> +	int ret;
-> +
-> +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node) {
-> +		dev_err(&client->dev, "ov2659_get_pdata: DT Node found\n");
-> +		return client->dev.platform_data;
-> +	}
-> +
-> +	endpoint = of_graph_get_next_endpoint(client->dev.of_node, NULL);
-> +	if (!endpoint)
-> +		return NULL;
-> +
-> +	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata)
-> +		goto done;
-> +
-> +	ret = of_property_read_u32(endpoint, "link-frequencies",
-> +				   &pdata->link_frequency);
-> +	if (ret < 0) {
-> +		dev_err(&client->dev, "link-frequencies property not found\n");
-> +		pdata = NULL;
-> +	}
-> +
-> +done:
-> +	of_node_put(endpoint);
-> +	return pdata;
-> +}
-> +
-> +static int ov2659_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *id)
-> +{
-> +	const struct ov2659_platform_data *pdata = ov2659_get_pdata(client);
-> +	struct v4l2_subdev *sd;
-> +	struct ov2659 *ov2659;
-> +	struct clk *clk;
-> +	int ret;
-> +
-> +	if (!pdata) {
-> +		dev_err(&client->dev, "platform data not specified\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	ov2659 = devm_kzalloc(&client->dev, sizeof(*ov2659), GFP_KERNEL);
-> +	if (!ov2659)
-> +		return -ENOMEM;
-> +
-> +	ov2659->pdata = pdata;
-> +	ov2659->client = client;
-> +
-> +	clk = devm_clk_get(&client->dev, "xvclk");
-> +	if (IS_ERR(clk))
-> +		return PTR_ERR(clk);
-> +
-> +	ov2659->xvclk_frequency = clk_get_rate(clk);
-> +	if (ov2659->xvclk_frequency < 6000000 ||
-> +	    ov2659->xvclk_frequency > 27000000)
-> +		return -EINVAL;
-> +
-> +	sd = &ov2659->sd;
-> +	client->flags |= I2C_CLIENT_SCCB;
-> +	v4l2_i2c_subdev_init(sd, client, &ov2659_subdev_ops);
-> +
-> +	sd->internal_ops = &ov2659_subdev_internal_ops;
-> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
-> +		     V4L2_SUBDEV_FL_HAS_EVENTS;
-> +
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	ov2659->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-> +	ret = media_entity_init(&sd->entity, 1, &ov2659->pad, 0);
-> +	if (ret < 0)
-> +		return ret;
-> +#endif
-> +
-> +	mutex_init(&ov2659->lock);
-> +
-> +	ov2659_get_default_format(&ov2659->format);
-> +	ov2659->frame_size = &ov2659_framesizes[2];
-> +	ov2659->format_ctrl_regs = ov2659_formats[0].format_ctrl_regs;
-> +
-> +	ret = ov2659_detect(sd);
-> +	if (ret < 0)
-> +		goto error;
-> +
-> +	/* Calculate the PLL register value needed */
-> +	ov2659_pll_calc_params(ov2659);
-> +
-> +	ret = v4l2_async_register_subdev(&ov2659->sd);
-> +	if (ret)
-> +		goto error;
-> +
-> +	dev_info(&client->dev, "%s sensor driver registered !!\n", sd->name);
-> +
-> +	return 0;
-> +
-> +error:
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	media_entity_cleanup(&sd->entity);
-> +#endif
-> +	mutex_destroy(&ov2659->lock);
-> +	return ret;
-> +}
-> +
-> +static int ov2659_remove(struct i2c_client *client)
-> +{
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct ov2659 *ov2659 = to_ov2659(sd);
-> +
-> +	v4l2_device_unregister_subdev(sd);
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	media_entity_cleanup(&sd->entity);
-> +#endif
-> +	mutex_destroy(&ov2659->lock);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id ov2659_id[] = {
-> +	{ "ov2659", 0 },
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(i2c, ov2659_id);
-> +
-> +#if IS_ENABLED(CONFIG_OF)
-> +static const struct of_device_id ov2659_of_match[] = {
-> +	{ .compatible = "ovti,ov2659", },
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(of, ov2659_of_match);
-> +#endif
-> +
-> +static struct i2c_driver ov2659_i2c_driver = {
-> +	.driver = {
-> +		.name	= DRIVER_NAME,
-> +		.of_match_table = of_match_ptr(ov2659_of_match),
-> +	},
-> +	.probe		= ov2659_probe,
-> +	.remove		= ov2659_remove,
-> +	.id_table	= ov2659_id,
-> +};
-> +
-> +module_i2c_driver(ov2659_i2c_driver);
-> +
-> +MODULE_AUTHOR("Benoit Parrot <bparrot@ti.com>");
-> +MODULE_DESCRIPTION("OV2659 CMOS Image Sensor driver");
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/include/media/ov2659.h b/include/media/ov2659.h
-> new file mode 100644
-> index 0000000..487cb19
-> --- /dev/null
-> +++ b/include/media/ov2659.h
-> @@ -0,0 +1,33 @@
-> +/*
-> + * Omnivision OV2659 CMOS Image Sensor driver
-> + *
-> + * Copyright (C) 2015 Texas Instruments, Inc.
-> + *
-> + * Benoit Parrot <bparrot@ti.com>
-> + * Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> + *
-> + * This program is free software; you may redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; version 2 of the License.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> + * SOFTWARE.
-> + */
-> +
-> +#ifndef OV2659_H
-> +#define OV2659_H
-> +
-> +/**
-> + * struct ov2659_platform_data - ov2659 driver platform data
-> + * @link_frequency: target pixel clock frequency
-> + */
-> +struct ov2659_platform_data {
-> +	unsigned int link_frequency;
-
-Shouldn't you have xvclk_frequency here as well? In most cases you need to
-set explicitly to a certain value in order to achieve the required link
-frequency.
-
-> +};
-> +#endif /* OV2659_H */
-
+diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
+index 25b320d..ccef436 100644
+--- a/drivers/leds/Kconfig
++++ b/drivers/leds/Kconfig
+@@ -467,6 +467,16 @@ config LEDS_TCA6507
+ 	  LED driver chips accessed via the I2C bus.
+ 	  Driver support brightness control and hardware-assisted blinking.
+ 
++config LEDS_MAX77693
++	tristate "LED support for MAX77693 Flash"
++	depends on LEDS_CLASS_FLASH
++	depends on MFD_MAX77693
++	depends on OF
++	help
++	  This option enables support for the flash part of the MAX77693
++	  multifunction device. It has build in control for two leds in flash
++	  and torch mode.
++
+ config LEDS_MAX8997
+ 	tristate "LED support for MAX8997 PMIC"
+ 	depends on LEDS_CLASS && MFD_MAX8997
+diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
+index cbba921..57ca62b 100644
+--- a/drivers/leds/Makefile
++++ b/drivers/leds/Makefile
+@@ -52,6 +52,7 @@ obj-$(CONFIG_LEDS_MC13783)		+= leds-mc13783.o
+ obj-$(CONFIG_LEDS_NS2)			+= leds-ns2.o
+ obj-$(CONFIG_LEDS_NETXBIG)		+= leds-netxbig.o
+ obj-$(CONFIG_LEDS_ASIC3)		+= leds-asic3.o
++obj-$(CONFIG_LEDS_MAX77693)		+= leds-max77693.o
+ obj-$(CONFIG_LEDS_MAX8997)		+= leds-max8997.o
+ obj-$(CONFIG_LEDS_LM355x)		+= leds-lm355x.o
+ obj-$(CONFIG_LEDS_BLINKM)		+= leds-blinkm.o
+diff --git a/drivers/leds/leds-max77693.c b/drivers/leds/leds-max77693.c
+new file mode 100644
+index 0000000..a811d04
+--- /dev/null
++++ b/drivers/leds/leds-max77693.c
+@@ -0,0 +1,993 @@
++/*
++ * LED Flash class driver for the flash cell of max77693 mfd.
++ *
++ *	Copyright (C) 2015, Samsung Electronics Co., Ltd.
++ *
++ *	Authors: Jacek Anaszewski <j.anaszewski@samsung.com>
++ *		 Andrzej Hajda <a.hajda@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ */
++
++#include <asm/div64.h>
++#include <linux/led-class-flash.h>
++#include <linux/mfd/max77693.h>
++#include <linux/mfd/max77693-private.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/platform_device.h>
++#include <linux/regmap.h>
++#include <linux/slab.h>
++#include <linux/workqueue.h>
++
++#define MODE_OFF		0
++#define MODE_FLASH(a)		(1 << (a))
++#define MODE_TORCH(a)		(1 << (2 + (a)))
++#define MODE_FLASH_EXTERNAL(a)	(1 << (4 + (a)))
++
++#define MODE_FLASH_MASK		(MODE_FLASH(FLED1) | MODE_FLASH(FLED2) | \
++				 MODE_FLASH_EXTERNAL(FLED1) | \
++				 MODE_FLASH_EXTERNAL(FLED2))
++#define MODE_TORCH_MASK		(MODE_TORCH(FLED1) | MODE_TORCH(FLED2))
++
++#define FLED1_IOUT		(1 << 0)
++#define FLED2_IOUT		(1 << 1)
++
++enum max77693_fled {
++	FLED1,
++	FLED2,
++};
++
++enum max77693_led_mode {
++	FLASH,
++	TORCH,
++};
++
++struct max77693_led_config_data {
++	const char *label[2];
++	u32 iout_torch_max[2];
++	u32 iout_flash_max[2];
++	u32 flash_timeout[2];
++	u32 num_leds;
++	u32 boost_mode;
++	u32 boost_vout;
++	u32 low_vsys;
++	u32 trigger_type;
++};
++
++struct max77693_sub_led {
++	/* related FLED output identifier */
++	int fled_id;
++	/* related LED Flash class device */
++	struct led_classdev_flash fled_cdev;
++	/* assures led-triggers compatibility */
++	struct work_struct work_brightness_set;
++
++	/* brightness cache */
++	unsigned int torch_brightness;
++	/* flash timeout cache */
++	unsigned int flash_timeout;
++	/* flash faults that may have occurred */
++	u32 flash_faults;
++};
++
++struct max77693_led_device {
++	/* parent mfd regmap */
++	struct regmap *regmap;
++	/* platform device data */
++	struct platform_device *pdev;
++	/* secures access to the device */
++	struct mutex lock;
++
++	/* sub led data */
++	struct max77693_sub_led sub_leds[2];
++
++	/* maximum torch current values for FLED outputs */
++	u32 iout_torch_max[2];
++	/* maximum flash current values for FLED outputs */
++	u32 iout_flash_max[2];
++	/* flash trigger type */
++	u32 trigger_type;
++
++	/* current flash timeout cache */
++	unsigned int current_flash_timeout;
++	/* ITORCH register cache */
++	u8 torch_iout_reg;
++	/* mode of fled outputs */
++	unsigned int mode_flags;
++	/* recently strobed fled */
++	int strobing_sub_led_id;
++	/* bitmask of fled outputs use state (bit 0. - FLED1, bit 1. - FLED2) */
++	u8 fled_mask;
++	/* FLED modes that can be set */
++	u8 allowed_modes;
++
++	/* arrangement of current outputs */
++	bool iout_joint;
++};
++
++struct max77693_led_settings {
++	struct led_flash_setting torch_brightness;
++	struct led_flash_setting flash_brightness;
++	struct led_flash_setting flash_timeout;
++};
++
++static u8 max77693_led_iout_to_reg(u32 ua)
++{
++	if (ua < FLASH_IOUT_MIN)
++		ua = FLASH_IOUT_MIN;
++	return (ua - FLASH_IOUT_MIN) / FLASH_IOUT_STEP;
++}
++
++static u8 max77693_flash_timeout_to_reg(u32 us)
++{
++	return (us - FLASH_TIMEOUT_MIN) / FLASH_TIMEOUT_STEP;
++}
++
++static inline struct max77693_sub_led *flcdev_to_sub_led(
++					struct led_classdev_flash *fled_cdev)
++{
++	return container_of(fled_cdev, struct max77693_sub_led, fled_cdev);
++}
++
++static inline struct max77693_led_device *sub_led_to_led(
++					struct max77693_sub_led *sub_led)
++{
++	return container_of(sub_led, struct max77693_led_device,
++				sub_leds[sub_led->fled_id]);
++}
++
++static inline u8 max77693_led_vsys_to_reg(u32 mv)
++{
++	return ((mv - MAX_FLASH1_VSYS_MIN) / MAX_FLASH1_VSYS_STEP) << 2;
++}
++
++static inline u8 max77693_led_vout_to_reg(u32 mv)
++{
++	return (mv - FLASH_VOUT_MIN) / FLASH_VOUT_STEP + FLASH_VOUT_RMIN;
++}
++
++static inline bool max77693_fled_used(struct max77693_led_device *led,
++					 int fled_id)
++{
++	u8 fled_bit = (fled_id == FLED1) ? FLED1_IOUT : FLED2_IOUT;
++
++	return led->fled_mask & fled_bit;
++}
++
++static int max77693_set_mode_reg(struct max77693_led_device *led, u8 mode)
++{
++	struct regmap *rmap = led->regmap;
++	int ret, v = 0, i;
++
++	for (i = FLED1; i <= FLED2; ++i) {
++		if (mode & MODE_TORCH(i))
++			v |= FLASH_EN_ON << TORCH_EN_SHIFT(i);
++
++		if (mode & MODE_FLASH(i)) {
++			v |= FLASH_EN_ON << FLASH_EN_SHIFT(i);
++		} else if (mode & MODE_FLASH_EXTERNAL(i)) {
++			v |= FLASH_EN_FLASH << FLASH_EN_SHIFT(i);
++			/*
++			 * Enable hw triggering also for torch mode, as some
++			 * camera sensors use torch led to fathom ambient light
++			 * conditions before strobing the flash.
++			 */
++			v |= FLASH_EN_TORCH << TORCH_EN_SHIFT(i);
++		}
++	}
++
++	/* Reset the register only prior setting flash modes */
++	if (mode & ~(MODE_TORCH(FLED1) | MODE_TORCH(FLED2))) {
++		ret = regmap_write(rmap, MAX77693_LED_REG_FLASH_EN, 0);
++		if (ret < 0)
++			return ret;
++	}
++
++	return regmap_write(rmap, MAX77693_LED_REG_FLASH_EN, v);
++}
++
++static int max77693_add_mode(struct max77693_led_device *led, u8 mode)
++{
++	int i, ret;
++
++	mode &= led->allowed_modes;
++
++	/*
++	 * Torch mode once enabled remains active until turned off. If the FLED2
++	 * output isn't to be disabled check if the torch mode to be set isn't
++	 * already activated and avoid re-setting it.
++	 */
++	if ((!(mode ^ led->mode_flags)) & MODE_TORCH(FLED2)) {
++		for (i = FLED1; i <= FLED2; ++i)
++			if ((mode & led->mode_flags & MODE_TORCH(i)))
++				return 0;
++	}
++
++	if (led->iout_joint)
++		/* Span the mode on FLED2 for joint iouts case */
++		mode |= (mode << 1);
++
++	/*
++	 * FLASH_EXTERNAL mode activates FLASHEN and TORCHEN pins in the device.
++	 * The related register bits fields interfere with SW triggerred modes,
++	 * thus clear them to ensure proper device configuration.
++	 */
++	for (i = FLED1; i <= FLED2; ++i)
++		if (mode & MODE_FLASH_EXTERNAL(i))
++			led->mode_flags &= (~MODE_TORCH(i) & ~MODE_FLASH(i));
++
++	led->mode_flags |= mode;
++	led->mode_flags &= led->allowed_modes;
++
++	ret = max77693_set_mode_reg(led, led->mode_flags);
++	if (ret < 0)
++		return ret;
++
++	/*
++	 * Clear flash mode flag after setting the mode to avoid spurious flash
++	 * strobing on each subsequent torch mode setting.
++	 */
++	if (mode & MODE_FLASH_MASK)
++		led->mode_flags &= ~mode;
++
++	return ret;
++}
++
++static int max77693_clear_mode(struct max77693_led_device *led,
++				u8 mode)
++{
++	if (led->iout_joint)
++		/* Clear mode also on FLED2 for joint iouts case */
++		mode |= (mode << 1);
++
++	led->mode_flags &= ~mode;
++
++	return max77693_set_mode_reg(led, led->mode_flags);
++}
++
++static void max77693_add_allowed_modes(struct max77693_led_device *led,
++				int fled_id, enum max77693_led_mode mode)
++{
++	if (mode == FLASH)
++		led->allowed_modes |= (MODE_FLASH(fled_id) |
++				       MODE_FLASH_EXTERNAL(fled_id));
++	else
++		led->allowed_modes |= MODE_TORCH(fled_id);
++}
++
++static void max77693_distribute_currents(struct max77693_led_device *led,
++				int fled_id, enum max77693_led_mode mode,
++				u32 micro_amp, u32 iout_max[2], u32 iout[2])
++{
++	if (!led->iout_joint) {
++		iout[fled_id] = micro_amp;
++		max77693_add_allowed_modes(led, fled_id, mode);
++		return;
++	}
++
++	iout[FLED1] = min(micro_amp, iout_max[FLED1]);
++	iout[FLED2] = micro_amp - iout[FLED1];
++
++	if (mode == FLASH)
++		led->allowed_modes &= ~MODE_FLASH_MASK;
++	else
++		led->allowed_modes &= ~MODE_TORCH_MASK;
++
++	max77693_add_allowed_modes(led, FLED1, mode);
++
++	if (iout[FLED2])
++		max77693_add_allowed_modes(led, FLED2, mode);
++}
++
++static int max77693_set_torch_current(struct max77693_led_device *led,
++				int fled_id, u32 micro_amp)
++{
++	struct regmap *rmap = led->regmap;
++	u8 iout1_reg = 0, iout2_reg = 0;
++	u32 iout[2];
++
++	max77693_distribute_currents(led, fled_id, TORCH, micro_amp,
++					led->iout_torch_max, iout);
++
++	if (fled_id == FLED1 || led->iout_joint) {
++		iout1_reg = max77693_led_iout_to_reg(iout[FLED1]);
++		led->torch_iout_reg &= TORCH_IOUT_MASK(TORCH_IOUT2_SHIFT);
++	}
++	if (fled_id == FLED2 || led->iout_joint) {
++		iout2_reg = max77693_led_iout_to_reg(iout[FLED2]);
++		led->torch_iout_reg &= TORCH_IOUT_MASK(TORCH_IOUT1_SHIFT);
++	}
++
++	led->torch_iout_reg |= ((iout1_reg << TORCH_IOUT1_SHIFT) |
++				(iout2_reg << TORCH_IOUT2_SHIFT));
++
++	return regmap_write(rmap, MAX77693_LED_REG_ITORCH,
++						led->torch_iout_reg);
++}
++
++static int max77693_set_flash_current(struct max77693_led_device *led,
++					int fled_id,
++					u32 micro_amp)
++{
++	struct regmap *rmap = led->regmap;
++	u8 iout1_reg, iout2_reg;
++	u32 iout[2];
++	int ret = -EINVAL;
++
++	max77693_distribute_currents(led, fled_id, FLASH, micro_amp,
++					led->iout_flash_max, iout);
++
++	if (fled_id == FLED1 || led->iout_joint) {
++		iout1_reg = max77693_led_iout_to_reg(iout[FLED1]);
++		ret = regmap_write(rmap, MAX77693_LED_REG_IFLASH1,
++							iout1_reg);
++		if (ret < 0)
++			return ret;
++	}
++	if (fled_id == FLED2 || led->iout_joint) {
++		iout2_reg = max77693_led_iout_to_reg(iout[FLED2]);
++		ret = regmap_write(rmap, MAX77693_LED_REG_IFLASH2,
++							iout2_reg);
++	}
++
++	return ret;
++}
++
++static int max77693_set_timeout(struct max77693_led_device *led, u32 microsec)
++{
++	struct regmap *rmap = led->regmap;
++	u8 v;
++	int ret;
++
++	v = max77693_flash_timeout_to_reg(microsec);
++
++	if (led->trigger_type == MAX77693_LED_TRIG_TYPE_LEVEL)
++		v |= FLASH_TMR_LEVEL;
++
++	ret = regmap_write(rmap, MAX77693_LED_REG_FLASH_TIMER, v);
++	if (ret < 0)
++		return ret;
++
++	led->current_flash_timeout = microsec;
++
++	return 0;
++}
++
++static int max77693_get_strobe_status(struct max77693_led_device *led,
++					bool *state)
++{
++	struct regmap *rmap = led->regmap;
++	unsigned int v;
++	int ret;
++
++	ret = regmap_read(rmap, MAX77693_LED_REG_FLASH_STATUS, &v);
++	if (ret < 0)
++		return ret;
++
++	*state = v & FLASH_STATUS_FLASH_ON;
++
++	return ret;
++}
++
++static int max77693_get_flash_faults(struct max77693_sub_led *sub_led)
++{
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++	struct regmap *rmap = led->regmap;
++	unsigned int v;
++	u8 fault_open_mask, fault_short_mask;
++	int ret;
++
++	sub_led->flash_faults = 0;
++
++	if (led->iout_joint) {
++		fault_open_mask = FLASH_INT_FLED1_OPEN | FLASH_INT_FLED2_OPEN;
++		fault_short_mask = FLASH_INT_FLED1_SHORT |
++							FLASH_INT_FLED2_SHORT;
++	} else {
++		fault_open_mask = (sub_led->fled_id == FLED1) ?
++						FLASH_INT_FLED1_OPEN :
++						FLASH_INT_FLED2_OPEN;
++		fault_short_mask = (sub_led->fled_id == FLED1) ?
++						FLASH_INT_FLED1_SHORT :
++						FLASH_INT_FLED2_SHORT;
++	}
++
++	ret = regmap_read(rmap, MAX77693_LED_REG_FLASH_INT, &v);
++	if (ret < 0)
++		return ret;
++
++	if (v & fault_open_mask)
++		sub_led->flash_faults |= LED_FAULT_OVER_VOLTAGE;
++	if (v & fault_short_mask)
++		sub_led->flash_faults |= LED_FAULT_SHORT_CIRCUIT;
++	if (v & FLASH_INT_OVER_CURRENT)
++		sub_led->flash_faults |= LED_FAULT_OVER_CURRENT;
++
++	return 0;
++}
++
++static int max77693_setup(struct max77693_led_device *led,
++			 struct max77693_led_config_data *cfg)
++{
++	struct regmap *rmap = led->regmap;
++	int i, first_led, last_led, ret;
++	u32 max_flash_curr[2];
++	u8 v;
++
++	/*
++	 * Initialize only flash current. Torch current doesn't
++	 * require initialization as ITORCH register is written with
++	 * new value each time brightness_set op is called.
++	 */
++	if (led->iout_joint) {
++		first_led = FLED1;
++		last_led = FLED1;
++		max_flash_curr[FLED1] = cfg->iout_flash_max[FLED1] +
++					cfg->iout_flash_max[FLED2];
++	} else {
++		first_led = max77693_fled_used(led, FLED1) ? FLED1 : FLED2;
++		last_led = max77693_fled_used(led, FLED2) ? FLED2 : FLED1;
++		max_flash_curr[FLED1] = cfg->iout_flash_max[FLED1];
++		max_flash_curr[FLED2] = cfg->iout_flash_max[FLED2];
++	}
++
++	for (i = first_led; i <= last_led; ++i) {
++		ret = max77693_set_flash_current(led, i,
++					max_flash_curr[i]);
++		if (ret < 0)
++			return ret;
++	}
++
++	v = TORCH_TMR_NO_TIMER | MAX77693_LED_TRIG_TYPE_LEVEL;
++	ret = regmap_write(rmap, MAX77693_LED_REG_ITORCHTIMER, v);
++	if (ret < 0)
++		return ret;
++
++	/* initially set FLED1 timeout */
++	ret = max77693_set_timeout(led, cfg->flash_timeout[FLED1]);
++	if (ret < 0)
++		return ret;
++
++	if (cfg->low_vsys > 0)
++		v = max77693_led_vsys_to_reg(cfg->low_vsys) |
++						MAX_FLASH1_MAX_FL_EN;
++	else
++		v = 0;
++
++	ret = regmap_write(rmap, MAX77693_LED_REG_MAX_FLASH1, v);
++	if (ret < 0)
++		return ret;
++	ret = regmap_write(rmap, MAX77693_LED_REG_MAX_FLASH2, 0);
++	if (ret < 0)
++		return ret;
++
++	if (cfg->boost_mode == MAX77693_LED_BOOST_FIXED)
++		v = FLASH_BOOST_FIXED;
++	else
++		v = cfg->boost_mode | cfg->boost_mode << 1;
++
++	if (max77693_fled_used(led, FLED1) && max77693_fled_used(led, FLED2))
++		v |= FLASH_BOOST_LEDNUM_2;
++
++	ret = regmap_write(rmap, MAX77693_LED_REG_VOUT_CNTL, v);
++	if (ret < 0)
++		return ret;
++
++	v = max77693_led_vout_to_reg(cfg->boost_vout);
++	ret = regmap_write(rmap, MAX77693_LED_REG_VOUT_FLASH1, v);
++	if (ret < 0)
++		return ret;
++
++	return max77693_set_mode_reg(led, MODE_OFF);
++}
++
++static int __max77693_led_brightness_set(struct max77693_led_device *led,
++					int fled_id, enum led_brightness value)
++{
++	int ret;
++
++	mutex_lock(&led->lock);
++
++	if (value == 0) {
++		ret = max77693_clear_mode(led, MODE_TORCH(fled_id));
++		if (ret < 0)
++			dev_dbg(&led->pdev->dev,
++				"Failed to clear torch mode (%d)\n",
++				ret);
++		goto unlock;
++	}
++
++	ret = max77693_set_torch_current(led, fled_id, value * TORCH_IOUT_STEP);
++	if (ret < 0) {
++		dev_dbg(&led->pdev->dev,
++			"Failed to set torch current (%d)\n",
++			ret);
++		goto unlock;
++	}
++
++	ret = max77693_add_mode(led, MODE_TORCH(fled_id));
++	if (ret < 0)
++		dev_dbg(&led->pdev->dev,
++			"Failed to set torch mode (%d)\n",
++			ret);
++unlock:
++	mutex_unlock(&led->lock);
++	return ret;
++}
++
++static void max77693_led_brightness_set_work(
++					struct work_struct *work)
++{
++	struct max77693_sub_led *sub_led =
++			container_of(work, struct max77693_sub_led,
++					work_brightness_set);
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++
++	__max77693_led_brightness_set(led, sub_led->fled_id,
++				sub_led->torch_brightness);
++}
++
++/* LED subsystem callbacks */
++
++static int max77693_led_brightness_set_sync(
++				struct led_classdev *led_cdev,
++				enum led_brightness value)
++{
++	struct led_classdev_flash *fled_cdev = lcdev_to_flcdev(led_cdev);
++	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++
++	return __max77693_led_brightness_set(led, sub_led->fled_id, value);
++}
++
++static void max77693_led_brightness_set(
++				struct led_classdev *led_cdev,
++				enum led_brightness value)
++{
++	struct led_classdev_flash *fled_cdev = lcdev_to_flcdev(led_cdev);
++	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
++
++	sub_led->torch_brightness = value;
++	schedule_work(&sub_led->work_brightness_set);
++}
++
++static int max77693_led_flash_brightness_set(
++				struct led_classdev_flash *fled_cdev,
++				u32 brightness)
++{
++	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++	int ret;
++
++	mutex_lock(&led->lock);
++	ret = max77693_set_flash_current(led, sub_led->fled_id, brightness);
++	mutex_unlock(&led->lock);
++
++	return ret;
++}
++
++static int max77693_led_flash_strobe_set(
++				struct led_classdev_flash *fled_cdev,
++				bool state)
++{
++	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++	int fled_id = sub_led->fled_id;
++	int ret;
++
++	mutex_lock(&led->lock);
++
++	if (!state) {
++		ret = max77693_clear_mode(led, MODE_FLASH(fled_id));
++		goto unlock;
++	}
++
++	if (sub_led->flash_timeout != led->current_flash_timeout) {
++		ret = max77693_set_timeout(led, sub_led->flash_timeout);
++		if (ret < 0)
++			goto unlock;
++	}
++
++	led->strobing_sub_led_id = fled_id;
++
++	ret = max77693_add_mode(led, MODE_FLASH(fled_id));
++	if (ret < 0)
++		goto unlock;
++
++	ret = max77693_get_flash_faults(sub_led);
++
++unlock:
++	mutex_unlock(&led->lock);
++	return ret;
++}
++
++static int max77693_led_flash_fault_get(
++				struct led_classdev_flash *fled_cdev,
++				u32 *fault)
++{
++	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
++
++	*fault = sub_led->flash_faults;
++
++	return 0;
++}
++
++static int max77693_led_flash_strobe_get(
++				struct led_classdev_flash *fled_cdev,
++				bool *state)
++{
++	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++	int ret;
++
++	if (!state)
++		return -EINVAL;
++
++	mutex_lock(&led->lock);
++
++	ret = max77693_get_strobe_status(led, state);
++
++	*state = !!(*state && (led->strobing_sub_led_id == sub_led->fled_id));
++
++	mutex_unlock(&led->lock);
++
++	return ret;
++}
++
++static int max77693_led_flash_timeout_set(
++				struct led_classdev_flash *fled_cdev,
++				u32 timeout)
++{
++	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++
++	mutex_lock(&led->lock);
++	sub_led->flash_timeout = timeout;
++	mutex_unlock(&led->lock);
++
++	return 0;
++}
++
++static int max77693_led_parse_dt(struct max77693_led_device *led,
++				struct max77693_led_config_data *cfg)
++{
++	struct device *dev = &led->pdev->dev;
++	struct max77693_sub_led *sub_leds = led->sub_leds;
++	struct device_node *node = dev->of_node, *child_node;
++	struct property *prop;
++	u32 led_sources[2];
++	int i, fled_id, ret;
++
++	of_property_read_u32(node, "maxim,trigger-type", &cfg->trigger_type);
++	of_property_read_u32(node, "maxim,boost-mode", &cfg->boost_mode);
++	of_property_read_u32(node, "maxim,boost-mvout", &cfg->boost_vout);
++	of_property_read_u32(node, "maxim,mvsys-min", &cfg->low_vsys);
++
++	for_each_available_child_of_node(node, child_node) {
++		prop = of_find_property(child_node, "led-sources", NULL);
++		if (prop) {
++			const __be32 *srcs = NULL;
++
++			for (i = 0; i < ARRAY_SIZE(led_sources); ++i) {
++				srcs = of_prop_next_u32(prop, srcs,
++							&led_sources[i]);
++				if (!srcs)
++					break;
++			}
++		} else {
++			dev_err(dev,
++				"\"led-sources\" DT property not found.\n");
++			return -EINVAL;
++		}
++
++		if (i == 2) {
++			fled_id = FLED1;
++			led->fled_mask = FLED1_IOUT | FLED2_IOUT;
++		} else if (led_sources[0] == FLED1) {
++			fled_id = FLED1;
++			led->fled_mask |= FLED1_IOUT;
++		} else if (led_sources[0] == FLED2) {
++			fled_id = FLED2;
++			led->fled_mask |= FLED2_IOUT;
++		} else {
++			dev_err(dev,
++				"Wrong \"led-sources\" DT property value.\n");
++			return -EINVAL;
++		}
++
++		sub_leds[fled_id].fled_id = fled_id;
++
++		ret = of_property_read_string(child_node, "label",
++					(const char **) &cfg->label[fled_id]);
++		if (ret < 0) {
++			dev_err(dev, "Error reading \"label\" DT property.\n");
++			return ret;
++		}
++
++		of_property_read_u32(child_node, "max-microamp",
++						&cfg->iout_torch_max[fled_id]);
++		of_property_read_u32(child_node, "flash-max-microamp",
++						&cfg->iout_flash_max[fled_id]);
++		of_property_read_u32(child_node, "flash-timeout-us",
++						&cfg->flash_timeout[fled_id]);
++
++		if (++cfg->num_leds == 2 ||
++		    (max77693_fled_used(led, FLED1) &&
++		     max77693_fled_used(led, FLED2)))
++			break;
++	}
++
++	if (cfg->num_leds == 0) {
++		dev_err(dev, "No DT child node found for the connected LED.\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static void clamp_align(u32 *v, u32 min, u32 max, u32 step)
++{
++	*v = clamp_val(*v, min, max);
++	if (step > 1)
++		*v = (*v - min) / step * step + min;
++}
++
++static void max77693_led_validate_configuration(struct max77693_led_device *led,
++					struct max77693_led_config_data *cfg)
++{
++	int i;
++
++	if (cfg->num_leds == 1 &&
++	    max77693_fled_used(led, FLED1) && max77693_fled_used(led, FLED2))
++		led->iout_joint = true;
++
++	cfg->boost_mode = clamp_val(cfg->boost_mode, MAX77693_LED_BOOST_NONE,
++			    MAX77693_LED_BOOST_FIXED);
++
++	/* Boost must be enabled if both current outputs are used */
++	if ((cfg->boost_mode == MAX77693_LED_BOOST_NONE) && led->iout_joint)
++		cfg->boost_mode = MAX77693_LED_BOOST_FIXED;
++
++	/* Split max current settings to both outputs in case of joint leds */
++	if (led->iout_joint) {
++		cfg->iout_torch_max[FLED1] /= 2;
++		cfg->iout_torch_max[FLED2] = cfg->iout_torch_max[FLED1];
++		cfg->iout_flash_max[FLED1] /= 2;
++		cfg->iout_flash_max[FLED2] = cfg->iout_flash_max[FLED1];
++	}
++
++	for (i = FLED1; i <= FLED2; ++i) {
++		if (max77693_fled_used(led, i)) {
++			clamp_align(&cfg->iout_torch_max[i], TORCH_IOUT_MIN,
++					TORCH_IOUT_MAX, TORCH_IOUT_STEP);
++			clamp_align(&cfg->iout_flash_max[i], FLASH_IOUT_MIN,
++					cfg->boost_mode ? FLASH_IOUT_MAX_2LEDS :
++							FLASH_IOUT_MAX_1LED,
++					FLASH_IOUT_STEP);
++		} else {
++			cfg->iout_torch_max[i] = cfg->iout_flash_max[i] = 0;
++		}
++	}
++
++	for (i = 0; i < ARRAY_SIZE(cfg->flash_timeout); ++i)
++		clamp_align(&cfg->flash_timeout[i], FLASH_TIMEOUT_MIN,
++				FLASH_TIMEOUT_MAX, FLASH_TIMEOUT_STEP);
++
++	cfg->trigger_type = clamp_val(cfg->trigger_type,
++					MAX77693_LED_TRIG_TYPE_EDGE,
++					MAX77693_LED_TRIG_TYPE_LEVEL);
++
++	clamp_align(&cfg->boost_vout, FLASH_VOUT_MIN, FLASH_VOUT_MAX,
++							FLASH_VOUT_STEP);
++
++	if (cfg->low_vsys)
++		clamp_align(&cfg->low_vsys, MAX_FLASH1_VSYS_MIN,
++				MAX_FLASH1_VSYS_MAX, MAX_FLASH1_VSYS_STEP);
++}
++
++static int max77693_led_get_configuration(struct max77693_led_device *led,
++				struct max77693_led_config_data *cfg)
++{
++	int ret;
++
++	ret = max77693_led_parse_dt(led, cfg);
++	if (ret < 0)
++		return ret;
++
++	max77693_led_validate_configuration(led, cfg);
++
++	memcpy(led->iout_torch_max, cfg->iout_torch_max,
++				sizeof(led->iout_torch_max));
++	memcpy(led->iout_flash_max, cfg->iout_flash_max,
++				sizeof(led->iout_flash_max));
++	led->trigger_type = cfg->trigger_type;
++	led->allowed_modes = MODE_FLASH_MASK;
++
++	return 0;
++}
++
++static const struct led_flash_ops flash_ops = {
++	.flash_brightness_set	= max77693_led_flash_brightness_set,
++	.strobe_set		= max77693_led_flash_strobe_set,
++	.strobe_get		= max77693_led_flash_strobe_get,
++	.timeout_set		= max77693_led_flash_timeout_set,
++	.fault_get		= max77693_led_flash_fault_get,
++};
++
++static void max77693_init_flash_settings(struct max77693_led_device *led,
++					 int fled_id,
++					 struct max77693_led_config_data *cfg,
++					 struct max77693_led_settings *s)
++{
++	struct led_flash_setting *setting;
++
++	/* Init torch intensity setting */
++	setting = &s->torch_brightness;
++	setting->min = TORCH_IOUT_MIN;
++	setting->max = cfg->iout_torch_max[fled_id];
++	setting->max = led->iout_joint ?
++		cfg->iout_torch_max[FLED1] + cfg->iout_torch_max[FLED2] :
++		cfg->iout_torch_max[fled_id];
++	setting->step = TORCH_IOUT_STEP;
++	setting->val = setting->max;
++
++	/* Init flash intensity setting */
++	setting = &s->flash_brightness;
++	setting->min = FLASH_IOUT_MIN;
++	setting->max = led->iout_joint ?
++		cfg->iout_flash_max[FLED1] + cfg->iout_flash_max[FLED2] :
++		cfg->iout_flash_max[fled_id];
++	setting->step = FLASH_IOUT_STEP;
++	setting->val = setting->max;
++
++	/* Init flash timeout setting */
++	setting = &s->flash_timeout;
++	setting->min = FLASH_TIMEOUT_MIN;
++	setting->max = cfg->flash_timeout[fled_id];
++	setting->step = FLASH_TIMEOUT_STEP;
++	setting->val = setting->max;
++}
++
++static void max77693_init_fled_cdev(struct max77693_led_device *led,
++				int fled_id,
++				struct max77693_led_config_data *cfg)
++{
++	struct led_classdev_flash *fled_cdev;
++	struct led_classdev *led_cdev;
++	struct max77693_sub_led *sub_led = &led->sub_leds[fled_id];
++	struct max77693_led_settings settings;
++
++	/* Initialize flash settings */
++	max77693_init_flash_settings(led, fled_id, cfg, &settings);
++
++	/* Initialize LED Flash class device */
++	fled_cdev = &sub_led->fled_cdev;
++	fled_cdev->ops = &flash_ops;
++	led_cdev = &fled_cdev->led_cdev;
++	led_cdev->name = cfg->label[fled_id];
++	led_cdev->brightness_set = max77693_led_brightness_set;
++	led_cdev->brightness_set_sync = max77693_led_brightness_set_sync;
++	INIT_WORK(&sub_led->work_brightness_set,
++			max77693_led_brightness_set_work);
++
++	led_cdev->max_brightness = settings.torch_brightness.val /
++					TORCH_IOUT_STEP;
++	led_cdev->flags |= LED_DEV_CAP_FLASH;
++
++	fled_cdev->brightness = settings.flash_brightness;
++	fled_cdev->timeout = settings.flash_timeout;
++	sub_led->flash_timeout = fled_cdev->timeout.val;
++}
++
++static int max77693_led_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct max77693_dev *iodev = dev_get_drvdata(dev->parent);
++	struct max77693_led_device *led;
++	struct max77693_sub_led *sub_leds;
++	struct max77693_led_config_data cfg = {};
++	int init_fled_cdev[2], i, ret;
++
++	led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
++	if (!led)
++		return -ENOMEM;
++
++	led->pdev = pdev;
++	led->regmap = iodev->regmap;
++	sub_leds = led->sub_leds;
++
++	platform_set_drvdata(pdev, led);
++	ret = max77693_led_get_configuration(led, &cfg);
++	if (ret < 0)
++		return ret;
++
++	ret = max77693_setup(led, &cfg);
++	if (ret < 0)
++		return ret;
++
++	init_fled_cdev[FLED1] =
++			led->iout_joint || max77693_fled_used(led, FLED1);
++	init_fled_cdev[FLED2] =
++			!led->iout_joint && max77693_fled_used(led, FLED2);
++
++	/* Initialize LED Flash class device(s) */
++	for (i = FLED1; i <= FLED2; ++i)
++		if (init_fled_cdev[i])
++			max77693_init_fled_cdev(led, i, &cfg);
++	mutex_init(&led->lock);
++
++	/* Register LED Flash class device(s) */
++	for (i = FLED1; i <= FLED2; ++i) {
++		if (!init_fled_cdev[i])
++			continue;
++
++		ret = led_classdev_flash_register(dev, &sub_leds[i].fled_cdev);
++		if (ret < 0) {
++			/*
++			 * At this moment FLED1 might have been already
++			 * registered and it needs to be released.
++			 */
++			if (i == FLED2)
++				goto err_register_led2;
++			else
++				goto err_register_led1;
++		}
++	}
++
++	return 0;
++
++err_register_led2:
++	/* It is possible than only FLED2 was to be registered */
++	if (!init_fled_cdev[FLED1])
++		goto err_register_led1;
++	led_classdev_flash_unregister(&sub_leds[FLED1].fled_cdev);
++err_register_led1:
++	mutex_destroy(&led->lock);
++
++	return ret;
++}
++
++static int max77693_led_remove(struct platform_device *pdev)
++{
++	struct max77693_led_device *led = platform_get_drvdata(pdev);
++	struct max77693_sub_led *sub_leds = led->sub_leds;
++
++	if (led->iout_joint || max77693_fled_used(led, FLED1)) {
++		led_classdev_flash_unregister(&sub_leds[FLED1].fled_cdev);
++		cancel_work_sync(&sub_leds[FLED1].work_brightness_set);
++	}
++
++	if (!led->iout_joint && max77693_fled_used(led, FLED2)) {
++		led_classdev_flash_unregister(&sub_leds[FLED2].fled_cdev);
++		cancel_work_sync(&sub_leds[FLED2].work_brightness_set);
++	}
++
++	mutex_destroy(&led->lock);
++
++	return 0;
++}
++
++static const struct of_device_id max77693_led_dt_match[] = {
++	{.compatible = "maxim,max77693-led"},
++	{},
++};
++
++static struct platform_driver max77693_led_driver = {
++	.probe		= max77693_led_probe,
++	.remove		= max77693_led_remove,
++	.driver		= {
++		.name	= "max77693-led",
++		.owner	= THIS_MODULE,
++		.of_match_table = max77693_led_dt_match,
++	},
++};
++
++module_platform_driver(max77693_led_driver);
++
++MODULE_AUTHOR("Jacek Anaszewski <j.anaszewski@samsung.com>");
++MODULE_AUTHOR("Andrzej Hajda <a.hajda@samsung.com>");
++MODULE_DESCRIPTION("Maxim MAX77693 led flash driver");
++MODULE_LICENSE("GPL v2");
 -- 
-Kind regards,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
