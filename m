@@ -1,100 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41654 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754706AbbCRQ14 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 12:27:56 -0400
-Message-ID: <1426696069.30356.52.camel@pengutronix.de>
-Subject: Re: [PATCH v3 0/5] Signalling last decoded frame by
- V4L2_BUF_FLAG_LAST and -EPIPE
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, 'Pawel Osciak' <pawel@osciak.com>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	'Sakari Ailus' <sakari.ailus@linux.intel.com>,
-	'Nicolas Dufresne' <nicolas.dufresne@collabora.com>
-Date: Wed, 18 Mar 2015 17:27:49 +0100
-In-Reply-To: <016b01d06197$69e7f6b0$3db7e410$%debski@samsung.com>
-References: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
-	 <1426589206.3709.14.camel@pengutronix.de> <550851A7.8070004@xs4all.nl>
-	 <016b01d06197$69e7f6b0$3db7e410$%debski@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-yk0-f174.google.com ([209.85.160.174]:34643 "EHLO
+	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753254AbbCDNnZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 08:43:25 -0500
+Received: by ykt10 with SMTP id 10so19998470ykt.1
+        for <linux-media@vger.kernel.org>; Wed, 04 Mar 2015 05:43:24 -0800 (PST)
+MIME-Version: 1.0
+Date: Wed, 4 Mar 2015 08:43:24 -0500
+Message-ID: <CALzAhNXOAJR6tV6PGL4-zqeE-Kx0BYgOxZpEfRvN6fmv9_wMKA@mail.gmail.com>
+Subject: HVR2205 / HVR2255 support
+From: Steven Toth <stoth@kernellabs.com>
+To: Linux-Media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 18.03.2015, 17:20 +0100 schrieb Kamil Debski:
-> Hi Philipp,
-> 
-> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> > Sent: Tuesday, March 17, 2015 5:09 PM
-> > 
-> > On 03/17/2015 11:46 AM, Philipp Zabel wrote:
-> > > Hi,
-> > >
-> > > Am Freitag, den 06.03.2015, 11:18 +0100 schrieb Philipp Zabel:
-> > >> At the V4L2 codec API session during ELC-E 2014, we agreed that for
-> > >> the decoder draining flow, after a V4L2_DEC_CMD_STOP decoder command
-> > >> was issued, the last decoded buffer should get dequeued with a
-> > >> V4L2_BUF_FLAG_LAST set. After that, poll should immediately return
-> > >> and all following VIDIOC_DQBUF should return -EPIPE until the stream
-> > is stopped or decoding continued via V4L2_DEC_CMD_START.
-> > >> (or STREAMOFF/STREAMON).
-> > >>
-> > >> Changes since v2:
-> > >>  - Made V4L2_BUF_FLAG_LAST known to trace events
-> > >>
-> > >> regards
-> > >> Philipp
-> > >>
-> > >> Peter Seiderer (1):
-> > >>   [media] videodev2: Add V4L2_BUF_FLAG_LAST
-> > >>
-> > >> Philipp Zabel (4):
-> > >>   [media] videobuf2: return -EPIPE from DQBUF after the last buffer
-> > >>   [media] coda: Set last buffer flag and fix EOS event
-> > >>   [media] s5p-mfc: Set last buffer flag
-> > >>   [media] DocBooc: mention mem2mem codecs for encoder/decoder
-> > >> commands
-> > >>
-> > >>  Documentation/DocBook/media/v4l/io.xml             | 10 ++++++++
-> > >>  .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  6 ++++-
-> > >>  .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |  5 +++-
-> > >>  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |  8 +++++++
-> > >>  drivers/media/platform/coda/coda-bit.c             |  4 ++--
-> > >>  drivers/media/platform/coda/coda-common.c          | 27 +++++++++--
-> > -----------
-> > >>  drivers/media/platform/coda/coda.h                 |  3 +++
-> > >>  drivers/media/platform/s5p-mfc/s5p_mfc.c           |  1 +
-> > >>  drivers/media/v4l2-core/v4l2-mem2mem.c             | 10 +++++++-
-> > >>  drivers/media/v4l2-core/videobuf2-core.c           | 18
-> > ++++++++++++++-
-> > >>  include/media/videobuf2-core.h                     | 10 ++++++++
-> > >>  include/trace/events/v4l2.h                        |  3 ++-
-> > >>  include/uapi/linux/videodev2.h                     |  2 ++
-> > >>  13 files changed, 84 insertions(+), 23 deletions(-)
-> > >
-> > > are there any further changes that I should make to this series?
-> > 
-> > I'd like to see some Acks, esp. from Kamil and Pawel.
-> > 
-> > I'll take another look as well, probably on Friday.
-> 
-> The patches look good IMHO. I am not sure about the order - should the 
-> patch with code follow the documentation or should it be the other way around?
-> Anyway, it should be consistent. Here the documentation patches are first and
-> last, such that first precedes the code and then second follows the change.
-> 
-> Maybe the documentation should be in the same patch that makes the API change?
-> 
-> In the "DocBooc: mention mem2mem codecs for encoder/decoder commands" I would
-> mention that dequeue can return EPIPE.
+Mauro, what's the plan to pull the LGDT3306A branch into tip? The
+SAA7164/HVR2255 driver need this for demod support.
 
-Thanks, unless otherwise instructed, I'll add that, move docs to the
-fron and s/DocBooc/DocBook/ in the commit message.
+Hey folks, an update on this.
 
-regards
-Philipp
+So I have the green-light to release my HVR2205 and HVR2255 board
+related patches. I started merging them into tip earlier this week.
+The HVR2205 is operational for DVB-T, although I have not tested
+analog tv as yet.
 
+The HVR2255 is the next on the list, I expect this to be trivial once
+the HVR2205 work is complete.
+
+Annoyingly, I'm traveling on business for the next 10 days or so. I
+can't complete the work until I return - but I expect to complete this
+entire exercise by 21st of this month.... So hold on a little longer
+and keep watching this mailing list for further updates.
+
+Thanks,
+
+- Steve
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
