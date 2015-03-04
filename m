@@ -1,63 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:62128 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932082AbbCLPpv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2015 11:45:51 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v13 02/13] dt-binding: leds: Add common LED DT bindings
- macros
-Date: Thu, 12 Mar 2015 16:45:03 +0100
-Message-id: <1426175114-14876-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
-References: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59559 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757870AbbCDOvw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 09:51:52 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>
+Subject: [PATCH v6 1/8] media: entity: Document the media_entity_ops structure
+Date: Wed,  4 Mar 2015 16:51:42 +0200
+Message-Id: <1425480709-7545-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1425480709-7545-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1425480709-7545-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add macros for defining boost mode and trigger type properties
-of flash LED devices.
-
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- include/dt-bindings/leds/common.h |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
- create mode 100644 include/dt-bindings/leds/common.h
+ include/media/media-entity.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/include/dt-bindings/leds/common.h b/include/dt-bindings/leds/common.h
-new file mode 100644
-index 0000000..79fcef7
---- /dev/null
-+++ b/include/dt-bindings/leds/common.h
-@@ -0,0 +1,21 @@
-+/*
-+ * This header provides macros for the common LEDs device tree bindings.
-+ *
-+ * Copyright (C) 2015, Samsung Electronics Co., Ltd.
-+ *
-+ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index d6d74bc..0c003d8 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -44,6 +44,15 @@ struct media_pad {
+ 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+ };
+ 
++/**
++ * struct media_entity_operations - Media entity operations
++ * @link_setup:		Notify the entity of link changes. The operation can
++ *			return an error, in which case link setup will be
++ *			cancelled. Optional.
++ * @link_validate:	Return whether a link is valid from the entity point of
++ *			view. The media_entity_pipeline_start() function
++ *			validates all links by calling this operation. Optional.
 + */
-+
-+#ifndef __DT_BINDINGS_LEDS_H__
-+#define __DT_BINDINGS_LEDS_H
-+
-+/* External trigger type */
-+#define LEDS_TRIG_TYPE_EDGE	0
-+#define LEDS_TRIG_TYPE_LEVEL	1
-+
-+/* Boost modes */
-+#define LEDS_BOOST_OFF		0
-+#define LEDS_BOOST_ADAPTIVE	1
-+#define LEDS_BOOST_FIXED	2
-+
-+#endif /* __DT_BINDINGS_LEDS_H */
+ struct media_entity_operations {
+ 	int (*link_setup)(struct media_entity *entity,
+ 			  const struct media_pad *local,
 -- 
-1.7.9.5
+2.0.5
 
