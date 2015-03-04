@@ -1,46 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58045 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932422AbbC2NlR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2015 09:41:17 -0400
-Date: Sun, 29 Mar 2015 15:41:11 +0200
-From: "Michael S. Tsirkin" <mst@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	=?us-ascii?B?PT9VVEYtOD9xP0RhdmlkPTIwSD1DMz1BNHJkZW1hbj89?=
-	<david@hardeman.nu>, linux-media@vger.kernel.org
-Subject: [PATCH 48/86] media/nuvoton: use uapi/linux/pci_ids.h directly
-Message-ID: <1427635734-24786-49-git-send-email-mst@redhat.com>
-References: <1427635734-24786-1-git-send-email-mst@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1427635734-24786-1-git-send-email-mst@redhat.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:12591 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933110AbbCDQQW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 11:16:22 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>
+Subject: [PATCH/RFC v12 06/19] mfd: max77693: Remove struct
+ max77693_led_platform_data
+Date: Wed, 04 Mar 2015 17:14:27 +0100
+Message-id: <1425485680-8417-7-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Header moved from linux/pci_ids.h to uapi/linux/pci_ids.h,
-use the new header directly so we can drop
-the wrapper in include/linux/pci_ids.h.
+The flash part of the max77693 device will depend only on OF, and thus
+will not use board files. Since there are no other users of the
+struct max77693_led_platform_data its existence is unjustified.
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/media/rc/nuvoton-cir.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mfd/max77693.h |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 9c2c863..3f2ac81 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -35,7 +35,7 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <media/rc-core.h>
--#include <linux/pci_ids.h>
-+#include <uapi/linux/pci_ids.h>
+diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
+index f0b6585..ce894b6 100644
+--- a/include/linux/mfd/max77693.h
++++ b/include/linux/mfd/max77693.h
+@@ -87,19 +87,6 @@ enum max77693_led_boost_mode {
+ 	MAX77693_LED_BOOST_FIXED,
+ };
  
- #include "nuvoton-cir.h"
+-struct max77693_led_platform_data {
+-	u32 fleds[2];
+-	u32 iout_torch[2];
+-	u32 iout_flash[2];
+-	u32 trigger[2];
+-	u32 trigger_type[2];
+-	u32 num_leds;
+-	u32 boost_mode;
+-	u32 flash_timeout;
+-	u32 boost_vout;
+-	u32 low_vsys;
+-};
+-
+ /* MAX77693 */
  
+ struct max77693_platform_data {
 -- 
-MST
+1.7.9.5
 
