@@ -1,88 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33303 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751329AbbCGVmP (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:45219 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756987AbbCDDod (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2015 16:42:15 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Tue, 3 Mar 2015 22:44:33 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 67D972A008D
+	for <linux-media@vger.kernel.org>; Wed,  4 Mar 2015 04:44:16 +0100 (CET)
+Date: Wed, 04 Mar 2015 04:44:16 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, pali.rohar@gmail.com,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC 04/18] omap3isp: DT support for clocks
-Date: Sat,  7 Mar 2015 23:41:01 +0200
-Message-Id: <1425764475-27691-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150304034416.67D972A008D@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index a607f26..01356dd 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -279,9 +279,21 @@ static const struct clk_init_data isp_xclk_init_data = {
- 	.num_parents = 1,
- };
- 
-+static struct clk *isp_xclk_src_get(struct of_phandle_args *clkspec, void *data)
-+{
-+	unsigned int idx = clkspec->args[0];
-+	struct isp_device *isp = data;
-+
-+	if (idx >= ARRAY_SIZE(isp->xclks))
-+		return ERR_PTR(-ENOENT);
-+
-+	return isp->xclks[idx].clk;
-+}
-+
- static int isp_xclk_init(struct isp_device *isp)
- {
- 	struct isp_platform_data *pdata = isp->pdata;
-+	struct device_node *np = isp->dev->of_node;
- 	struct clk_init_data init;
- 	unsigned int i;
- 
-@@ -312,6 +324,12 @@ static int isp_xclk_init(struct isp_device *isp)
- 		if (IS_ERR(xclk->clk))
- 			return PTR_ERR(xclk->clk);
- 
-+		/* When instantiated from DT we don't need to register clock
-+		 * aliases.
-+		 */
-+		if (np)
-+			continue;
-+
- 		if (pdata->xclks[i].con_id == NULL &&
- 		    pdata->xclks[i].dev_id == NULL)
- 			continue;
-@@ -327,13 +345,20 @@ static int isp_xclk_init(struct isp_device *isp)
- 		clkdev_add(xclk->lookup);
- 	}
- 
-+	if (np)
-+		of_clk_add_provider(np, isp_xclk_src_get, isp);
-+
- 	return 0;
- }
- 
- static void isp_xclk_cleanup(struct isp_device *isp)
- {
-+	struct device_node *np = isp->dev->of_node;
- 	unsigned int i;
- 
-+	if (np)
-+		of_clk_del_provider(np);
-+
- 	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
- 		struct isp_xclk *xclk = &isp->xclks[i];
- 
--- 
-1.7.10.4
+date:		Wed Mar  4 04:00:21 CET 2015
+git branch:	test
+git hash:	269bd1324fbfaa52832bb3efe9f5105c9146a33a
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-5.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+ABI WARNING: change for mips
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
