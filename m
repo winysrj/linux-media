@@ -1,119 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39938 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751172AbbCYDqr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2015 23:46:47 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 09A492A0092
-	for <linux-media@vger.kernel.org>; Wed, 25 Mar 2015 04:46:28 +0100 (CET)
-Date: Wed, 25 Mar 2015 04:46:27 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150325034628.09A492A0092@tschai.lan>
+Received: from mail-yk0-f178.google.com ([209.85.160.178]:43034 "EHLO
+	mail-yk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757377AbbCDPNi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 10:13:38 -0500
+Received: by ykp9 with SMTP id 9so20258967ykp.10
+        for <linux-media@vger.kernel.org>; Wed, 04 Mar 2015 07:13:37 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAAZRmGx4syvsxS58mARytXdz11NzQpVYf7ob=rzVA7sASMT=5A@mail.gmail.com>
+References: <CALzAhNXOAJR6tV6PGL4-zqeE-Kx0BYgOxZpEfRvN6fmv9_wMKA@mail.gmail.com>
+	<CAAZRmGx4syvsxS58mARytXdz11NzQpVYf7ob=rzVA7sASMT=5A@mail.gmail.com>
+Date: Wed, 4 Mar 2015 10:13:37 -0500
+Message-ID: <CALzAhNUw074N_yEHRVNFTcbrXfipW2Y6s9DryWyXTo4_uUfEkQ@mail.gmail.com>
+Subject: Re: HVR2205 / HVR2255 support
+From: Steven Toth <stoth@kernellabs.com>
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: Linux-Media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Wed, Mar 4, 2015 at 9:03 AM, Olli Salonen <olli.salonen@iki.fi> wrote:
+> Hello Steven,
+>
+> Great to hear! The LGDT3306A went into the media_tree yesterday as far
+> as I can see, together with my HVR-955Q patches.
 
-Results of the daily build of media_tree:
+Oh, great.
 
-date:		Wed Mar 25 04:00:17 CET 2015
-git branch:	test
-git hash:	8a56b6b5fd6ff92b7e27d870b803b11b751660c2
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+>
+> Coincidentally, I've been working with HVR-2205 and HVR-2215 as well
+> and have looked into the HVR-2255 a bit too. I'll also be travelling
+> (luckily on leisure) for next 10 days or so, but can submit the
+> HVR-2215 patches on top of your patches afterwards then unless you
+> have HVR-2215 support already.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Its a long shot but If you happen to be in the UK on travel, I'd be
+happy to buy lunch.
 
-Detailed results are available here:
+... Or if any LinuxTV devs reading this are in the UK and would like
+to meet up, send me an email. I'll see what I can do.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Other than this, the HVR2215 sounds good Olli.
 
-Full logs are available here:
+- Steve
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
