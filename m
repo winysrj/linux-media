@@ -1,136 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43750 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752106AbbCWOWF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2015 10:22:05 -0400
-Date: Mon, 23 Mar 2015 15:22:02 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v13 04/13] DT: Add documentation for the mfd Maxim
- max77693
-Message-ID: <20150323142202.GA23919@amd>
-References: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
- <1426175114-14876-5-git-send-email-j.anaszewski@samsung.com>
- <20150323120743.GG24422@x1>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150323120743.GG24422@x1>
+Received: from mailout1.samsung.com ([203.254.224.24]:23695 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933412AbbCDQQy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 11:16:54 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v12 13/19] DT: Add documentation for the Skyworks AAT1290
+Date: Wed, 04 Mar 2015 17:14:34 +0100
+Message-id: <1425485680-8417-14-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 2015-03-23 12:07:43, Lee Jones wrote:
-> This patch requires a DT Ack.
+This patch adds device tree binding documentation for
+1.5A Step-Up Current Regulator for Flash LEDs.
 
-No, it requires DT people to be notified -- and they were, few times
-by now.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   64 ++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
 
-They clearly don't care.
-
-> > This patch adds device tree binding documentation for
-> > the flash cell of the Maxim max77693 multifunctional device.
-> > 
-> > Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> > Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> > Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > Cc: Lee Jones <lee.jones@linaro.org>
-> > Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> > Cc: Bryan Wu <cooloney@gmail.com>
-> > Cc: Richard Purdie <rpurdie@rpsys.net>
-
-Acked-by: Pavel Machek <pavel@ucw.cz>
-
-
-> > diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-> > index 38e6440..15c546e 100644
-> > --- a/Documentation/devicetree/bindings/mfd/max77693.txt
-> > +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-> > @@ -76,7 +76,53 @@ Optional properties:
-> >      Valid values: 4300000, 4700000, 4800000, 4900000
-> >      Default: 4300000
-> >  
-> > +- led : the LED submodule device node
-> > +
-> > +There are two LED outputs available - FLED1 and FLED2. Each of them can
-> > +control a separate LED or they can be connected together to double
-> > +the maximum current for a single connected LED. One LED is represented
-> > +by one child node.
-> > +
-> > +Required properties:
-> > +- compatible : Must be "maxim,max77693-led".
-> > +
-> > +Optional properties:
-> > +- maxim,trigger-type : Flash trigger type.
-> > +	Possible trigger types:
-> > +		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
-> > +			the flash,
-> > +		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
-> > +			of the flash.
-> > +- maxim,boost-mode :
-> > +	In boost mode the device can produce up to 1.2A of total current
-> > +	on both outputs. The maximum current on each output is reduced
-> > +	to 625mA then. If not enabled explicitly, boost setting defaults to
-> > +	LEDS_BOOST_FIXED in case both current sources are used.
-> > +	Possible values:
-> > +		LEDS_BOOST_OFF (0) - no boost,
-> > +		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
-> > +		LEDS_BOOST_FIXED (2) - fixed mode.
-> > +- maxim,boost-mvout : Output voltage of the boost module in millivolts.
-> > +- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
-> > +	if chip estimates that system voltage could drop below this level due
-> > +	to flash power consumption.
-> > +
-> > +Required properties of the LED child node:
-> > +- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
-> > +		device current output identifiers: 0 - FLED1, 1 - FLED2
-> > +
-> > +Optional properties of the LED child node:
-> > +- label : see Documentation/devicetree/bindings/leds/common.txt
-> > +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> > +		Range: 15625 - 250000
-> > +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> > +		Range: 15625 - 1000000
-> > +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-> > +		Range: 62500 - 1000000
-> > +
-> >  Example:
-> > +#include <dt-bindings/leds/common.h>
-> > +
-> >  	max77693@66 {
-> >  		compatible = "maxim,max77693";
-> >  		reg = <0x66>;
-> > @@ -117,5 +163,20 @@ Example:
-> >  			maxim,thermal-regulation-celsius = <75>;
-> >  			maxim,battery-overcurrent-microamp = <3000000>;
-> >  			maxim,charge-input-threshold-microvolt = <4300000>;
-> > +
-> > +		led {
-> > +			compatible = "maxim,max77693-led";
-> > +			maxim,trigger-type = <LEDS_TRIG_TYPE_LEVEL>;
-> > +			maxim,boost-mode = <LEDS_BOOST_FIXED>;
-> > +			maxim,boost-mvout = <5000>;
-> > +			maxim,mvsys-min = <2400>;
-> > +
-> > +			camera_flash: flash-led {
-> > +				label = "max77693-flash";
-> > +				led-sources = <0>, <1>;
-> > +				max-microamp = <500000>;
-> > +				flash-max-microamp = <1250000>;
-> > +				flash-timeout-us = <1000000>;
-> > +			};
-> >  		};
-> >  	};
-> 
-> 
-
+diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+new file mode 100644
+index 0000000..4f3583d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+@@ -0,0 +1,64 @@
++* Skyworks Solutions, Inc. AAT1290 Current Regulator for Flash LEDs
++
++The device is controlled through two pins: FL_EN and EN_SET. The pins when,
++asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
++respectively. In order to add a capability of selecting the strobe signal source
++(e.g. GPIO or ISP) there is an additional switch required, independent of the
++flash chip.
++
++Required properties:
++
++- compatible : Must be "skyworks,aat1290".
++- gpios : Two gpio pins in order FLEN, EN/SET
++
++Optional properties:
++- pinctrl-names : Must contain entries: "default", "host", "isp". Entries
++		"default" and "host" must refer to the same pin configration
++		node, which sets the strobe signal source to host. Entry "isp"
++		must refer to the pin configuration node, which sets the strobe
++		signal source to ISP.
++
++The LED connected to the device must be represented by a child node -
++see Documentation/devicetree/bindings/leds/common.txt.
++
++Required properties of the LED child node:
++- label : see Documentation/devicetree/bindings/leds/common.txt
++- flash-max-microamp : Maximum intensity in microamperes of the flash LED -
++		       it can be calculated using following formula:
++		       I = 1A * 162kohm / Rset
++- flash-timeout-us : Maximum flash timeout in microseconds -
++		     it can be calculated using following formula:
++		     T = 8.82 * 10^9 * Ct.
++
++Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with a
++switch that allows for routing the strobe source signal either from host or
++from ISP):
++
++aat1290 {
++	compatible = "skyworks,aat1290";
++	gpios = <&gpj1 1 0>, <&gpj1 2 0>;
++	pinctrl-names = "default", "host", "isp";
++	pinctrl-0 = <&camera_flash_host>;
++	pinctrl-1 = <&camera_flash_host>;
++	pinctrl-2 = <&camera_flash_isp>;
++
++	camera_flash: flash-led {
++		label = "aat1290-flash";
++		flash-max-microamp = <1012500>
++		flash-timeout-us = <1940000>;
++	};
++};
++
++&pinctrl_0 {
++	camera_flash_host: camera-flash-host {
++		samsung,pins = "gpj1-0";
++		samsung,pin-function = <1>;
++		samsung,pin-val = <0>;
++	};
++
++	camera_flash_isp: camera-flash-isp {
++		samsung,pins = "gpj1-0";
++		samsung,pin-function = <1>;
++		samsung,pin-val = <1>;
++	};
++};
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.7.9.5
+
