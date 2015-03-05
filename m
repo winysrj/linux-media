@@ -1,70 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:35261 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932117AbbCIPrh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 11:47:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 17/29] vivid-tpg: add support for V4L2_PIX_FMT_GREY
-Date: Mon,  9 Mar 2015 16:44:39 +0100
-Message-Id: <1425915891-1017-18-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-yh0-f41.google.com ([209.85.213.41]:34946 "EHLO
+	mail-yh0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932246AbbCEJo6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2015 04:44:58 -0500
+MIME-Version: 1.0
+In-Reply-To: <CA+V-a8uKxZBtwOZ7rqpv6Ym6X9jpgsHUxVAmuUqrVoGT3M8e3A@mail.gmail.com>
+References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
+	<CAHG8p1DFu8Y1qaDc9c0m0JggUHrF4grHBj9VZQ4224v2wPJRbQ@mail.gmail.com>
+	<54F575AD.5020307@xs4all.nl>
+	<CA+V-a8uVoUHHtQAGOAjz_wYpmkOg8_=cxv6W5b289coU_Wq0Xg@mail.gmail.com>
+	<54F58142.4030201@xs4all.nl>
+	<CA+V-a8uKxZBtwOZ7rqpv6Ym6X9jpgsHUxVAmuUqrVoGT3M8e3A@mail.gmail.com>
+Date: Thu, 5 Mar 2015 17:44:57 +0800
+Message-ID: <CAHG8p1DvYQaU7kGJSSh4UTiHYcK2E=g=4vCFAa8rytkYz3jHVw@mail.gmail.com>
+Subject: Re: [PATCH v3 00/15] media: blackfin: bfin_capture enhancements
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-Add monochrome support to the TPG.
+>
+> On Tue, Mar 3, 2015 at 9:39 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 03/03/2015 10:30 AM, Lad, Prabhakar wrote:
+>>> Hi Hans,
+>>>
+>>> On Tue, Mar 3, 2015 at 8:49 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> On 03/02/2015 08:57 AM, Scott Jiang wrote:
+>>>>> Hi Lad and Hans,
+>>>>>
+>>>>> 2015-02-22 2:39 GMT+08:00 Lad Prabhakar <prabhakar.csengg@gmail.com>:
+>>>>>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>>>>>
+>>>>>> This patch series, enhances blackfin capture driver with
+>>>>>> vb2 helpers.
+>>>>>>
+>>>>>> Changes for v3:
+>>>>>> 1: patches unchanged except for patch 8/15 fixing starting of ppi only
+>>>>>>    after we have the resources.
+>>>>>> 2: Rebased on media tree.
+>>>>>>
+>>>>>> v2: http://lkml.iu.edu/hypermail/linux/kernel/1501.2/04655.html
+>>>>>>
+>>>>>> v1: https://lkml.org/lkml/2014/12/20/27
+>>>>>>
+>>>>>> Lad, Prabhakar (15):
+>>>>>>   media: blackfin: bfin_capture: drop buf_init() callback
+>>>>>>   media: blackfin: bfin_capture: release buffers in case
+>>>>>>     start_streaming() call back fails
+>>>>>>   media: blackfin: bfin_capture: set min_buffers_needed
+>>>>>>   media: blackfin: bfin_capture: improve buf_prepare() callback
+>>>>>>   media: blackfin: bfin_capture: improve queue_setup() callback
+>>>>>>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
+>>>>>>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
+>>>>>>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
+>>>>>>   media: blackfin: bfin_capture: make sure all buffers are returned on
+>>>>>>     stop_streaming() callback
+>>>>>>   media: blackfin: bfin_capture: return -ENODATA for *std calls
+>>>>>>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
+>>>>>>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
+>>>>>>   media: blackfin: bfin_capture: add support for VB2_DMABUF
+>>>>>>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
+>>>>>>   media: blackfin: bfin_capture: set v4l2 buffer sequence
+>>>>>>
+>>>>>>  drivers/media/platform/blackfin/bfin_capture.c | 306 ++++++++-----------------
+>>>>>>  1 file changed, 94 insertions(+), 212 deletions(-)
+>>>>>>
+>>>>>> --
+>>>>>
+>>>>> For all these patches,
+>>>>> Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+>>>>> Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
+>>>>
+>>>> Thanks!
+>>>>
+>>>> Is it possible for you to run 'v4l2-compliance -s' with this driver and
+>>>> report the results? I'd be interested in that.
+>>>>
+>>> Fyi..
+>>> v4l2-utils can't be compiled under uClibc.
+>>
+>> Do you know what exactly fails? Is it possible to manually compile v4l2-compliance?
+>>
+>> I.e., try this:
+>>
+>> cd utils/v4l2-compliance
+>> cat *.cpp >x.cpp
+>> g++ -o v4l2-compliance x.cpp -I . -I ../../include/ -DNO_LIBV4L2
+>>
+>> I've never used uclibc, so I don't know what the limitations are.
+>>
+> Not sure what exactly fails, I haven’t tried compiling it, that was a
+> response from Scott for v2 series.
+>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-tpg.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+I found if I disabled libjpeg ./configure --without-jpeg, it can pass
+compilation.
+Would you like me to send the result now or after Lad's v4 patch?
 
-diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
-index 19b5806..766cbf5 100644
---- a/drivers/media/platform/vivid/vivid-tpg.c
-+++ b/drivers/media/platform/vivid/vivid-tpg.c
-@@ -199,6 +199,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_XBGR32:
- 	case V4L2_PIX_FMT_ARGB32:
- 	case V4L2_PIX_FMT_ABGR32:
-+	case V4L2_PIX_FMT_GREY:
- 		tpg->is_yuv = false;
- 		break;
- 	case V4L2_PIX_FMT_YUV420M:
-@@ -279,6 +280,9 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_ABGR32:
- 		tpg->twopixelsize[0] = 2 * 4;
- 		break;
-+	case V4L2_PIX_FMT_GREY:
-+		tpg->twopixelsize[0] = 2;
-+		break;
- 	case V4L2_PIX_FMT_NV12:
- 	case V4L2_PIX_FMT_NV21:
- 	case V4L2_PIX_FMT_NV12M:
-@@ -598,7 +602,7 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 		g <<= 4;
- 		b <<= 4;
- 	}
--	if (tpg->qual == TPG_QUAL_GRAY) {
-+	if (tpg->qual == TPG_QUAL_GRAY || tpg->fourcc == V4L2_PIX_FMT_GREY) {
- 		/* Rec. 709 Luma function */
- 		/* (0.2126, 0.7152, 0.0722) * (255 * 256) */
- 		r = g = b = (13879 * r + 46688 * g + 4713 * b) >> 16;
-@@ -739,6 +743,9 @@ static void gen_twopix(struct tpg_data *tpg,
- 	b_v = tpg->colors[color][2]; /* B or precalculated V */
- 
- 	switch (tpg->fourcc) {
-+	case V4L2_PIX_FMT_GREY:
-+		buf[0][offset] = r_y;
-+		break;
- 	case V4L2_PIX_FMT_YUV422P:
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YUV420M:
--- 
-2.1.4
-
+Scott
