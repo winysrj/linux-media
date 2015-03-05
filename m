@@ -1,353 +1,389 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:42350 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018AbbCTPE0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2015 11:04:26 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v1 11/11] leds: aat1290: add support for V4L2 Flash sub-device
-Date: Fri, 20 Mar 2015 16:03:31 +0100
-Message-id: <1426863811-12516-12-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
-References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:45058 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751273AbbCEK7t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Mar 2015 05:59:49 -0500
+Date: Thu, 5 Mar 2015 07:59:43 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Kozlov Sergey <serjk@netup.ru>
+Cc: linux-media@vger.kernel.org, aospan1@gmail.com
+Subject: Re: [PATCH 3/5] [media] lnbh25: LNBH25 SEC controller driver
+Message-ID: <20150305075943.29ee52c3@recife.lan>
+In-Reply-To: <20150202092825.69FAA1BC32CD@debian>
+References: <20150202092825.69FAA1BC32CD@debian>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for V4L2 Flash sub-device to the aat1290 LED Flash class
-driver. The support allows for V4L2 Flash sub-device to take the control
-of the LED Flash class device.
+Em Mon, 02 Feb 2015 12:22:32 +0300
+Kozlov Sergey <serjk@netup.ru> escreveu:
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/leds/Kconfig        |    1 +
- drivers/leds/leds-aat1290.c |  186 ++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 185 insertions(+), 2 deletions(-)
+> 
+> DVB SEC frontend driver for STM LNBH25PQR chip.
+> 
+> Signed-off-by: Kozlov Sergey <serjk@netup.ru>
+> ---
+>  MAINTAINERS                          |    9 ++
+>  drivers/media/dvb-frontends/Kconfig  |    8 ++
+>  drivers/media/dvb-frontends/Makefile |    1 +
+>  drivers/media/dvb-frontends/lnbh25.c |  182 ++++++++++++++++++++++++++++++++++
+>  drivers/media/dvb-frontends/lnbh25.h |   56 +++++++++++
+>  5 files changed, 256 insertions(+)
+>  create mode 100644 drivers/media/dvb-frontends/lnbh25.c
+>  create mode 100644 drivers/media/dvb-frontends/lnbh25.h
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index a022d6d..8a687dc 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -5853,6 +5853,15 @@ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+>  S:	Maintained
+>  F:	drivers/media/usb/dvb-usb-v2/lmedm04*
+>  
+> +LNBH25 MEDIA DRIVER
 
-diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-index c3b5b027..d73f43f 100644
---- a/drivers/leds/Kconfig
-+++ b/drivers/leds/Kconfig
-@@ -47,6 +47,7 @@ config LEDS_AAT1290
- 	depends on LEDS_CLASS_FLASH
- 	depends on GPIOLIB
- 	depends on OF
-+	depends on PINCTRL
- 	help
- 	 This option enables support for the LEDs on the AAT1290.
- 
-diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
-index 456f9a9d..6100b6b 100644
---- a/drivers/leds/leds-aat1290.c
-+++ b/drivers/leds/leds-aat1290.c
-@@ -17,9 +17,11 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/of.h>
-+#include <linux/pinctrl/consumer.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
-+#include <media/v4l2-flash.h>
- 
- #define AAT1290_MOVIE_MODE_CURRENT_ADDR	17
- #define AAT1290_MAX_MM_CURR_PERCENT_0	16
-@@ -46,6 +48,11 @@
- 
- #define AAT1290_NAME			"aat1290"
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+/* Number of AAT1290 devices in the system. */
-+static unsigned int dev_count;
-+#endif
-+
- 
- struct aat1290_led_settings {
- 	struct led_flash_setting torch_brightness;
-@@ -60,11 +67,17 @@ struct aat1290_led {
- 
- 	/* related LED Flash class device */
- 	struct led_classdev_flash fled_cdev;
-+	/* V4L2 Flash device */
-+	struct v4l2_flash *v4l2_flash;
- 
- 	/* FLEN pin */
- 	struct gpio_desc *gpio_fl_en;
- 	/* EN|SET pin  */
- 	struct gpio_desc *gpio_en_set;
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	/* movie mode current scale */
-+	int *mm_current_scale;
-+#endif
- 
- 	/* maximum flash timeout */
- 	u32 max_flash_tm;
-@@ -231,11 +244,16 @@ static int aat1290_led_flash_timeout_set(struct led_classdev_flash *fled_cdev,
- 	return 0;
- }
- 
--static int aat1290_led_parse_dt(struct aat1290_led *led)
-+static int aat1290_led_parse_dt(struct aat1290_led *led,
-+			struct device_node **sub_node,
-+			struct v4l2_flash_ctrl_config *v4l2_flash_config)
- {
- 	struct led_classdev *led_cdev = &led->fled_cdev.led_cdev;
- 	struct device *dev = &led->pdev->dev;
- 	struct device_node *child_node;
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	struct pinctrl *pinctrl;
-+#endif
- 	int ret = 0;
- 
- 	led->gpio_fl_en = devm_gpiod_get(dev, "flen");
-@@ -252,6 +270,17 @@ static int aat1290_led_parse_dt(struct aat1290_led *led)
- 		return ret;
- 	}
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	pinctrl = devm_pinctrl_get_select_default(&led->pdev->dev);
-+	if (IS_ERR(pinctrl)) {
-+		v4l2_flash_config->has_external_strobe = false;
-+		dev_info(dev,
-+			 "No support for external strobe detected.\n");
-+	} else {
-+		v4l2_flash_config->has_external_strobe = true;
-+	}
-+#endif
-+
- 	child_node = of_get_next_available_child(dev->of_node, NULL);
- 	if (!child_node) {
- 		dev_err(dev, "No DT child node found for connected LED.\n");
-@@ -277,6 +306,8 @@ static int aat1290_led_parse_dt(struct aat1290_led *led)
- 		return ret;
- 	}
- 
-+	*sub_node = child_node;
-+
- 	return ret;
- }
- 
-@@ -285,6 +316,15 @@ static void aat1290_init_flash_settings(struct aat1290_led *led,
- {
- 	struct led_flash_setting *setting;
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	/* Init flash intensity setting */
-+	setting = &s->torch_brightness;
-+	setting->min = led->mm_current_scale[0];
-+	setting->max = led->mm_current_scale[AAT1290_MM_CURRENT_SCALE_SIZE - 1];
-+	setting->step = 1;
-+	setting->val = setting->max;
-+#endif
-+
- 	/* Init flash timeout setting */
- 	setting = &s->flash_timeout;
- 	setting->min = led->max_flash_tm / AAT1290_FLASH_TM_NUM_LEVELS;
-@@ -293,6 +333,113 @@ static void aat1290_init_flash_settings(struct aat1290_led *led,
- 	setting->val = setting->max;
- }
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+enum led_brightness aat1290_intensity_to_brightness(
-+					struct v4l2_flash *v4l2_flash,
-+					s32 intensity)
-+{
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
-+	int i;
-+
-+	for (i = AAT1290_MM_CURRENT_SCALE_SIZE - 1; i >= 0; --i)
-+		if (intensity >= led->mm_current_scale[i])
-+			return i + 1;
-+
-+	return 1;
-+}
-+
-+s32 aat1290_brightness_to_intensity(struct v4l2_flash *v4l2_flash,
-+					enum led_brightness brightness)
-+{
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
-+
-+	return led->mm_current_scale[brightness - 1];
-+}
-+
-+static int aat1290_led_external_strobe_set(struct v4l2_flash *v4l2_flash,
-+						bool enable)
-+{
-+	struct aat1290_led *led = fled_cdev_to_led(v4l2_flash->fled_cdev);
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-+	struct pinctrl *pinctrl;
-+
-+	gpiod_direction_output(led->gpio_fl_en, 0);
-+	gpiod_direction_output(led->gpio_en_set, 0);
-+
-+	led->movie_mode = false;
-+	led_cdev->brightness = 0;
-+
-+	pinctrl = devm_pinctrl_get_select(&led->pdev->dev,
-+						enable ? "isp" : "host");
-+	if (IS_ERR(pinctrl)) {
-+		dev_warn(&led->pdev->dev, "Unable to switch strobe source.\n");
-+		return PTR_ERR(pinctrl);
-+	}
-+
-+	return 0;
-+}
-+
-+int init_mm_current_scale(struct aat1290_led *led)
-+{
-+	int max_mm_current_percent[] = { 20, 22, 25, 28, 32, 36, 40, 45, 50, 56,
-+						63, 71, 79, 89, 100 };
-+	int i, max_mm_current = AAT1290_MAX_MM_CURRENT(led->max_flash_current);
-+
-+	led->mm_current_scale = devm_kzalloc(&led->pdev->dev,
-+						sizeof(max_mm_current_percent),
-+						GFP_KERNEL);
-+	if (!led->mm_current_scale)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < AAT1290_MM_CURRENT_SCALE_SIZE; ++i)
-+		led->mm_current_scale[i] = max_mm_current *
-+					  max_mm_current_percent[i] / 100;
-+
-+	return 0;
-+}
-+
-+static void aat1290_init_v4l2_ctrl_config(struct aat1290_led *led,
-+					struct aat1290_led_settings *s,
-+					struct v4l2_flash_ctrl_config *config)
-+{
-+	struct led_flash_setting *setting;
-+	struct v4l2_ctrl_config *c;
-+	char suffix[10];
-+
-+	if (++dev_count > 1)
-+		snprintf(suffix, sizeof(suffix), "_%d", dev_count);
-+
-+	snprintf(config->dev_name, sizeof(config->dev_name), "%s%s",
-+		 AAT1290_NAME, dev_count > 1 ? suffix : "");
-+
-+	c = &config->intensity;
-+	setting = &s->torch_brightness;
-+	c->min = setting->min;
-+	c->max = setting->max;
-+	c->step = setting->step;
-+	c->def = setting->val;
-+
-+	c = &config->flash_timeout;
-+	setting = &s->flash_timeout;
-+	c->min = setting->min;
-+	c->max = setting->max;
-+	c->step = setting->step;
-+	c->def = setting->val;
-+}
-+
-+static const struct v4l2_flash_ops v4l2_flash_ops = {
-+	.external_strobe_set = aat1290_led_external_strobe_set,
-+	.intensity_to_led_brightness = aat1290_intensity_to_brightness,
-+	.led_brightness_to_intensity = aat1290_brightness_to_intensity,
-+};
-+#else
-+#define aat1290_init_v4l2_ctrl_config(led, s, config)
-+#define init_mm_current_scale(led) (0)
-+#endif
-+
- static const struct led_flash_ops flash_ops = {
- 	.strobe_set = aat1290_led_flash_strobe_set,
- 	.timeout_set = aat1290_led_flash_timeout_set,
-@@ -301,10 +448,12 @@ static const struct led_flash_ops flash_ops = {
- static int aat1290_led_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-+	struct device_node *sub_node = NULL;
- 	struct aat1290_led *led;
- 	struct led_classdev *led_cdev;
- 	struct led_classdev_flash *fled_cdev;
- 	struct aat1290_led_settings settings;
-+	struct v4l2_flash_ctrl_config v4l2_flash_config = {};
- 	int ret;
- 
- 	led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
-@@ -317,16 +466,27 @@ static int aat1290_led_probe(struct platform_device *pdev)
- 	fled_cdev = &led->fled_cdev;
- 	led_cdev = &fled_cdev->led_cdev;
- 
--	ret = aat1290_led_parse_dt(led);
-+	ret = aat1290_led_parse_dt(led, &sub_node, &v4l2_flash_config);
- 	if (ret < 0)
- 		return ret;
- 
- 	if (!led_cdev->name)
- 		led_cdev->name = AAT1290_NAME;
- 
-+	/*
-+	 * Init non-linear movie mode current scale basing
-+	 * on the max flash current from Device Tree binding.
-+	 */
-+	ret = init_mm_current_scale(led);
-+	if (ret < 0)
-+		return ret;
-+
- 	/* Init flash settings */
- 	aat1290_init_flash_settings(led, &settings);
- 
-+	/* Init V4L2 Flash controls basing on initialized settings */
-+	aat1290_init_v4l2_ctrl_config(led, &settings, &v4l2_flash_config);
-+
- 	fled_cdev->timeout = settings.flash_timeout;
- 	fled_cdev->ops = &flash_ops;
- 
-@@ -345,18 +505,40 @@ static int aat1290_led_probe(struct platform_device *pdev)
- 
- 	mutex_init(&led->lock);
- 
-+	led_cdev->dev->of_node = sub_node;
-+
-+	/* Create V4L2 Flash subdev. */
-+	led->v4l2_flash = v4l2_flash_init(fled_cdev,
-+					  &v4l2_flash_ops,
-+					  &v4l2_flash_config);
-+	if (IS_ERR(led->v4l2_flash)) {
-+		ret = PTR_ERR(led->v4l2_flash);
-+		goto error_v4l2_flash_init;
-+	}
-+
- 	return 0;
-+
-+error_v4l2_flash_init:
-+	led_classdev_flash_unregister(fled_cdev);
-+	mutex_destroy(&led->lock);
-+
-+	return ret;
- }
- 
- static int aat1290_led_remove(struct platform_device *pdev)
- {
- 	struct aat1290_led *led = platform_get_drvdata(pdev);
- 
-+	v4l2_flash_release(led->v4l2_flash);
- 	led_classdev_flash_unregister(&led->fled_cdev);
- 	cancel_work_sync(&led->work_brightness_set);
- 
- 	mutex_destroy(&led->lock);
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	--dev_count;
-+#endif
-+
- 	return 0;
- }
- 
--- 
-1.7.9.5
+Same note here with regards to the name:
+MEDIA DRIVERS FOR LNBH25
 
+
+> +M:	Sergey Kozlov <serjk@netup.ru>
+> +L:	linux-media@vger.kernel.org
+> +W:	http://linuxtv.org/
+> +W:	http://netup.tv/
+> +T:	git git://linuxtv.org/media_tree.git
+> +S:	Supported
+> +F:	drivers/media/dvb-frontends/lnbh25*
+> +
+>  LOCKDEP AND LOCKSTAT
+>  M:	Peter Zijlstra <peterz@infradead.org>
+>  M:	Ingo Molnar <mingo@redhat.com>
+> diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+> index c94bb7b..b3b216d 100644
+> --- a/drivers/media/dvb-frontends/Kconfig
+> +++ b/drivers/media/dvb-frontends/Kconfig
+> @@ -693,6 +693,14 @@ comment "SEC control devices for DVB-S"
+>  
+>  source "drivers/media/dvb-frontends/drx39xyj/Kconfig"
+>  
+> +config DVB_LNBH25
+> +	tristate "LNBH25 SEC controller"
+> +	depends on DVB_CORE && I2C
+> +	default m if !MEDIA_SUBDRV_AUTOSELECT
+> +	help
+> +	  An SEC control chip.
+> +	  Say Y when you want to support this chip.
+> +
+>  config DVB_LNBP21
+>  	tristate "LNBP21/LNBH24 SEC controllers"
+>  	depends on DVB_CORE && I2C
+> diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
+> index 0b19c10..06a0d21 100644
+> --- a/drivers/media/dvb-frontends/Makefile
+> +++ b/drivers/media/dvb-frontends/Makefile
+> @@ -56,6 +56,7 @@ obj-$(CONFIG_DVB_LGDT330X) += lgdt330x.o
+>  obj-$(CONFIG_DVB_LGDT3305) += lgdt3305.o
+>  obj-$(CONFIG_DVB_LG2160) += lg2160.o
+>  obj-$(CONFIG_DVB_CX24123) += cx24123.o
+> +obj-$(CONFIG_DVB_LNBH25) += lnbh25.o
+>  obj-$(CONFIG_DVB_LNBP21) += lnbp21.o
+>  obj-$(CONFIG_DVB_LNBP22) += lnbp22.o
+>  obj-$(CONFIG_DVB_ISL6405) += isl6405.o
+> diff --git a/drivers/media/dvb-frontends/lnbh25.c b/drivers/media/dvb-frontends/lnbh25.c
+> new file mode 100644
+> index 0000000..fcefc66
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/lnbh25.c
+> @@ -0,0 +1,182 @@
+> +/*
+> + * lnbh25.c
+> + *
+> + * Driver for LNB supply and control IC LNBH25
+> + *
+> + * Copyright (C) 2014 NetUP Inc.
+> + * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
+> + * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/string.h>
+> +#include <linux/slab.h>
+> +
+> +#include "dvb_frontend.h"
+> +#include "lnbh25.h"
+> +
+> +static int debug;
+> +
+> +#define dprintk(args...) \
+> +	do { \
+> +		if (debug) \
+> +			dev_dbg(&priv->i2c->dev, args); \
+> +	} while (0)
+
+This is not very nice, as, in order to enable debug, both this parameter
+and dynamic printk should be enabled via /sys/kernel/debug/dynamic_debug.
+
+Just use dev_dbg() directly.
+
+> +
+> +struct lnbh25_priv {
+> +	struct i2c_adapter	*i2c;
+> +	u8			i2c_address;
+> +	/*
+> +	 * LNBH25 configuration:
+> +	 * offset 0: first LNBH25 register address: always 0x02 (DATA1)
+> +	 * offset 1: DATA1 register value
+> +	 * offset 2: DATA2 register value
+> +	 */
+> +	u8			config[3];
+> +};
+
+Please use Documentation/kernel-doc-nano-HOWTO.txt format.
+
+> +
+> +#define LNBH25_STATUS_OFL	0x1
+> +#define LNBH25_STATUS_VMON	0x4
+> +#define LNBH25_VSEL_13		0x03
+> +#define LNBH25_VSEL_18		0x0a
+> +
+> +static void lnbh25_read_vmon(struct lnbh25_priv *priv)
+> +{
+> +	int i;
+> +	u8 addr = 0x00;
+> +	u8 status[6];
+> +	struct i2c_msg msg[2] = {
+> +		{
+> +			.addr = priv->i2c_address,
+> +			.flags = 0,
+> +			.len = 1,
+> +			.buf = &addr
+> +		}, {
+> +			.addr = priv->i2c_address,
+> +			.flags = I2C_M_RD,
+> +			.len = sizeof(status),
+> +			.buf = status
+> +		}
+> +	};
+> +
+> +	msleep(100);
+
+That looks weird: starting the code with a sleep. I suspect that
+this is misplaced. You're already sleeping for 20 ms before
+calling this function, at lnbh25_set_voltage().
+
+I suspect that the best would be to remove this and to change the
+wait time for the voltage to stabilize at lnbh25_set_voltage() to
+120 ms.
+
+> +	for (i = 0; i < 2; i++) {
+> +		if (i2c_transfer(priv->i2c, &msg[i], 1) != 1) {
+> +			dprintk("%s(): I2C transfer %d failed\n",
+> +				__func__, i);
+> +			return;
+
+It would be better to return an error code here.
+
+> +		}
+> +	}
+> +	for (i = 0; i < sizeof(status); i++)
+> +		dprintk("%s(): reg %d value 0x%x\n",
+> +			__func__, i, (int)status[i]);
+> +	if ((status[0] & (LNBH25_STATUS_OFL | LNBH25_STATUS_VMON)) != 0)
+> +		dev_err(&priv->i2c->dev,
+> +			"%s(): voltage in failure state, status reg 0x%x\n",
+> +			__func__, status[0]);
+> +}
+> +
+> +static int lnbh25_set_voltage(struct dvb_frontend *fe,
+> +		fe_sec_voltage_t voltage)
+> +{
+> +	u8 data1_reg;
+> +	const char *vsel;
+> +	struct lnbh25_priv *priv = fe->sec_priv;
+> +	struct i2c_msg msg = {
+> +		.addr = priv->i2c_address,
+> +		.flags = 0,
+> +		.len = sizeof(priv->config),
+> +		.buf = priv->config
+> +	};
+> +
+> +	switch (voltage) {
+> +	case SEC_VOLTAGE_OFF:
+> +		data1_reg = 0x00;
+> +		vsel = "Off";
+> +		break;
+> +	case SEC_VOLTAGE_13:
+> +		data1_reg = LNBH25_VSEL_13;
+> +		vsel = "13V";
+> +		break;
+> +	case SEC_VOLTAGE_18:
+> +		data1_reg = LNBH25_VSEL_18;
+> +		vsel = "18V";
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	priv->config[1] = data1_reg;
+> +	dprintk("%s(): %s, I2C 0x%x write [ %02x %02x %02x ]\n",
+> +		__func__, vsel, priv->i2c_address,
+> +		priv->config[0], priv->config[1], priv->config[2]);
+> +	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
+> +		dev_err(&priv->i2c->dev,
+> +			"%s(): I2C transfer error\n", __func__);
+> +		return -EIO;
+
+Please return the error code that i2c_transfer() returns, instead
+of -EIO.
+
+> +	}
+> +	msleep(20);
+> +	if (voltage != SEC_VOLTAGE_OFF)
+> +		lnbh25_read_vmon(priv);
+
+
+As said before, assuming that those msleep() are required, it seems that
+the right thing to do here would be, instead:
+
+	if (voltage != SEC_VOLTAGE_OFF) {
+		msleep(120);
+		lnbh25_read_vmon(priv);
+	} else {
+		msleep(20);
+	}
+
+and remove that weird msleep(100) from lnbh25_read_vmon().
+
+> +	return 0;
+> +}
+> +
+> +static void lnbh25_release(struct dvb_frontend *fe)
+> +{
+> +	struct lnbh25_priv *priv = fe->sec_priv;
+> +
+> +	dprintk("%s()\n", __func__);
+> +	lnbh25_set_voltage(fe, SEC_VOLTAGE_OFF);
+> +	kfree(fe->sec_priv);
+> +	fe->sec_priv = NULL;
+> +}
+> +
+> +struct dvb_frontend *lnbh25_attach(
+> +	struct dvb_frontend *fe,
+> +	struct lnbh25_config *cfg,
+> +	struct i2c_adapter *i2c)
+
+Just identation. It is better to declare as:
+
+struct dvb_frontend *lnbh25_attach(struct dvb_frontend *fe,
+				   struct lnbh25_config *cfg,
+				   struct i2c_adapter *i2c)
+
+
+> +{
+> +	struct lnbh25_priv *priv;
+> +
+> +	dprintk("%s()\n", __func__);
+> +	priv = kzalloc(sizeof(struct lnbh25_priv), GFP_KERNEL);
+> +	if (!priv)
+> +		return NULL;
+> +	priv->i2c_address = (cfg->i2c_address >> 1);
+> +	priv->i2c = i2c;
+> +	priv->config[0] = 0x02;
+> +	priv->config[1] = 0x00;
+> +	priv->config[2] = cfg->data2_config;
+> +	fe->sec_priv = priv;
+> +	if (lnbh25_set_voltage(fe, SEC_VOLTAGE_OFF)) {
+> +		dev_err(&i2c->dev, "%s(): no LNBH25 found at I2C addr 0x%02x\n",
+> +			__func__, priv->i2c_address);
+> +		kfree(priv);
+> +		fe->sec_priv = NULL;
+> +		return NULL;
+> +	}
+> +
+> +	fe->ops.release_sec = lnbh25_release;
+> +	fe->ops.set_voltage = lnbh25_set_voltage;
+> +
+> +	dev_err(&i2c->dev, "%s(): attached at I2C addr 0x%02x\n",
+> +		__func__, priv->i2c_address);
+> +	return fe;
+> +}
+> +EXPORT_SYMBOL(lnbh25_attach);
+> +
+> +module_param(debug, int, 0644);
+> +MODULE_DESCRIPTION("ST LNBH25 driver");
+> +MODULE_AUTHOR("info@netup.ru");
+> +MODULE_LICENSE("GPL");
+> +
+> diff --git a/drivers/media/dvb-frontends/lnbh25.h b/drivers/media/dvb-frontends/lnbh25.h
+> new file mode 100644
+> index 0000000..7fc5123
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/lnbh25.h
+> @@ -0,0 +1,56 @@
+> +/*
+> + * lnbh25.c
+> + *
+> + * Driver for LNB supply and control IC LNBH25
+> + *
+> + * Copyright (C) 2014 NetUP Inc.
+> + * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
+> + * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#ifndef LNBH25_H
+> +#define LNBH25_H
+> +
+> +#include <linux/i2c.h>
+> +#include <linux/kconfig.h>
+> +#include <linux/dvb/frontend.h>
+> +
+> +/* 22 kHz tone enabled. Tone output controlled by DSQIN pin */
+> +#define	LNBH25_TEN	0x01
+> +/* Low power mode activated (used only with 22 kHz tone output disabled) */
+> +#define LNBH25_LPM	0x02
+> +/* DSQIN input pin is set to receive external 22 kHz TTL signal source */
+> +#define LNBH25_EXTM	0x04
+> +
+> +struct lnbh25_config {
+> +	u8	i2c_address;
+> +	u8	data2_config;
+> +};
+> +
+> +#if IS_ENABLED(CONFIG_DVB_LNBH25)
+> +struct dvb_frontend *lnbh25_attach(
+> +	struct dvb_frontend *fe,
+> +	struct lnbh25_config *cfg,
+> +	struct i2c_adapter *i2c);
+> +#else
+> +static inline dvb_frontend *lnbh25_attach(
+> +	struct dvb_frontend *fe,
+> +	struct lnbh25_config *cfg,
+> +	struct i2c_adapter *i2c)
+> +{
+> +	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+> +	return NULL;
+> +}
+> +#endif
+> +
+> +#endif
