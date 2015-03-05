@@ -1,49 +1,76 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
- Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
- Hans Verkuil <hans.verkuil@cisco.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Arun Kumar K <arun.kk@samsung.com>,
- Sylwester Nawrocki <s.nawrocki@samsung.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
- Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v3 4/5] media/v4l2-ctrls: Always execute EXECUTE_ON_WRITE ctrls
-Date: Fri, 20 Mar 2015 14:55:37 +0100
-Message-id: <1426859737-4582-1-git-send-email-ricardo.ribalda@gmail.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:61784 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752609AbbCEH4e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2015 02:56:34 -0500
+Message-id: <54F80C2B.20705@samsung.com>
+Date: Thu, 05 Mar 2015 08:56:27 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com
+Subject: Re: [PATCH/RFC v12 04/19] dt-binding: leds: Add common LED DT bindings
+ macros
+References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+ <1425485680-8417-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1425485680-8417-5-git-send-email-j.anaszewski@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Any control with V4L2_CTRL_FLAG_EXECUTE_ON_WRITE set should return
-changed == true in cluster_changed.
+On 03/04/2015 05:14 PM, Jacek Anaszewski wrote:
+> Add macros for defining boost mode and trigger type properties
+> of flash LED devices.
+>
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> ---
+>   include/dt-bindings/leds/max77693.h |   21 +++++++++++++++++++++
+>   1 file changed, 21 insertions(+)
+>   create mode 100644 include/dt-bindings/leds/max77693.h
 
-This forces the value to be passed to the driver even if it has not
-changed.
+This should be obviously include/dt-bindings/leds/common.h.
+It will affect also max77693-led bindings documentation patch.
+I'll send the update after receiving review remarks related to the
+remaining part of the mentioned patches.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
-v3: Hans Verkuil <hverkuil@xs4all.nl>
-Also set ctrl_changed to true when V4L2_CTRL_FLAG_EXECUTE_ON_WRITE is set
+>
+> diff --git a/include/dt-bindings/leds/max77693.h b/include/dt-bindings/leds/max77693.h
+> new file mode 100644
+> index 0000000..79fcef7
+> --- /dev/null
+> +++ b/include/dt-bindings/leds/max77693.h
+> @@ -0,0 +1,21 @@
+> +/*
+> + * This header provides macros for the common LEDs device tree bindings.
+> + *
+> + * Copyright (C) 2015, Samsung Electronics Co., Ltd.
+> + *
+> + * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+> + */
+> +
+> +#ifndef __DT_BINDINGS_LEDS_H__
+> +#define __DT_BINDINGS_LEDS_H
+> +
+> +/* External trigger type */
+> +#define LEDS_TRIG_TYPE_EDGE	0
+> +#define LEDS_TRIG_TYPE_LEVEL	1
+> +
+> +/* Boost modes */
+> +#define LEDS_BOOST_OFF		0
+> +#define LEDS_BOOST_ADAPTIVE	1
+> +#define LEDS_BOOST_FIXED	2
+> +
+> +#endif /* __DT_BINDINGS_LEDS_H */
+>
 
- drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
- 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index bacaed6..e3a3468 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1611,6 +1611,10 @@ static int cluster_changed(struct v4l2_ctrl *master)
- 
- 		if (ctrl == NULL)
- 			continue;
-+
-+		if (ctrl->flags & V4L2_CTRL_FLAG_EXECUTE_ON_WRITE)
-+			changed = ctrl_changed = true;
-+
- 		/*
- 		 * Set has_changed to false to avoid generating
- 		 * the event V4L2_EVENT_CTRL_CH_VALUE
 -- 
-2.1.4
+Best Regards,
+Jacek Anaszewski
