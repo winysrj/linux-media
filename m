@@ -1,87 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.aswsp.com ([193.34.35.150]:39927 "EHLO mail.aswsp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755676AbbCRQzm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 12:55:42 -0400
-Message-ID: <5509AE0C.6040009@parrot.com>
-Date: Wed, 18 Mar 2015 17:55:40 +0100
-From: =?UTF-8?B?QXVyw6lsaWVuIFphbmVsbGk=?= <aurelien.zanelli@parrot.com>
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:36290 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754654AbbCEI6R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2015 03:58:17 -0500
+Date: Thu, 5 Mar 2015 08:58:11 +0000 (GMT)
+From: William Towle <william.towle@codethink.co.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: William Towle <william.towle@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+Subject: Re: [Linux-kernel] RFC: supporting adv7604.c under
+ soc_camera/rcar_vin
+In-Reply-To: <54F6DC4F.6040504@xs4all.nl>
+Message-ID: <alpine.DEB.2.02.1503050847040.4771@xk120.dyn.ducie.codethink.co.uk>
+References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <alpine.DEB.2.02.1503040911560.4552@xk120.dyn.ducie.codethink.co.uk> <54F6DC4F.6040504@xs4all.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Dynamic video input/output list
-References: <5507177A.8060200@parrot.com> <CAGoCfiyZt990gWqSPgaNE7L1fw=XN1DJiiQeDKvepO1Yz9cvaA@mail.gmail.com> <55073598.9010803@xs4all.nl>
-In-Reply-To: <55073598.9010803@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16/03/2015 20:57, Hans Verkuil wrote:
-> On 03/16/2015 07:01 PM, Devin Heitmueller wrote:
->>> I'm looking to enhance video input/output enumeration support in
->>> GStreamer using VIDIOC_ENUMINPUT/VIDIOC_ENUMOUTPUT ioctls and after some
->>> discussions we wonder if the input/output list can change dynamically at
->>> runtime or not.
->>>
->>> So, is v4l2 allow this input/output list to be dynamic ?
->>
->> I sure how the spec allows it, because I've done it in the past.
-> 
-> Just because you can do something doesn't mean the spec allows it :-)
-> In this particular case nobody ever thought about whether this could
-> change dynamically so the spec never talks about it.
-> 
-> But at the moment it is definitely not allowed, even though the spec
-> doesn't explicitly forbid it. All applications expect that the list of
-> inputs/outputs is fixed.
-> 
-> The spec could be extended to allow this, but then there also should be
-> a new event introduced that the application can receive if the list changes
-> so it can update the list.
 
-Thanks for quick answers.
-In light of these details, I think we will assume in GStreamer that the
-list is fixed. Maybe it would be nice to explicitely forbid dynamic list
-in the specification for now.
 
-> 
-> But frankly, I would prefer to always expose all possible inputs, including
-> those of an optional onboard header, and if nothing is connected just mark
-> those inputs as having status V4L2_IN_ST_NO_POWER.
-Agreed.
+On Wed, 4 Mar 2015, Hans Verkuil wrote:
+> On 03/04/15 10:51, William Towle wrote:
+>>     if (timings->pad >= state->source_pad)
+>>             return -EINVAL;
+>>   It suffices to comment out this line, but clearly this is not ideal.
+>> Depending on the intended semantics, should it be filtering out all pad
+>> IDs not matching the active one, or all pad IDs that are not valid
+>> input sources? Unfortunately the lager board's adv7180 chip is too
+>> simple to make a sensible comparison case (that we can also run tests
+>> on) here.
+>
+> The adv7604 code is not ideal, although the pad test is valid (you shouldn't
+> be able to ask timings for pads that do not exist).
 
-Regards,
-Aurélien Zanelli
+   Right, thanks. It seems I have initialisation code that is making
+inappropriate assumptions earlier on. I'll investigate this.
 
-> 
-> Note however that it is perfectly fine if the driver detects the presence
-> of such an onboard header when it is loaded and then only exposes those
-> extra inputs if the header is present. It just can't change the list later
-> unless do you an rmmod and modprobe of the driver. It's probably what you
-> do anyway.
-> 
-> Regards,
-> 
-> 	Hans
-> 
->> I have cards which have an onboard header for external A/V inputs, and I
->> am able to tell if the breakout cable is attached due to a dedicated
->> pin tied to a GPIO.  Thus, I am able to dictate whether the card has
->> the A/V breakout cable attached and thus whether to expose only the
->> first input or all three inputs.
->>
->> That said, in this case the inputs in the list never moved around
->> because the optional entries were at the end of the list - the list
->> just got longer if those inputs were available.  I'm not sure what
->> would happen if you had a configuration where you needed to remove
->> entries other than those at the end of the list.  For example, if you
->> had a card with four possible inputs and you removed input 2, does the
->> list stay the same length and input 2 is now marked as invalid, or
->> does the length of the list become 3 and inputs 3 and 4 turn into
->> inputs 2 and 3?
->>
->> Devin
->>
-> 
+
+>>   Please advise. Comments would also be welcome regarding whether the
+>> shims describe changes that should live in the driver or elsewhere in
+>> soc_camera/rcar_vin in an acceptable solution.
+>
+> I'm not entirely sure what it is you are referring to.
+
+   Amongst our various modifications to soc_camera/rcar_vin we have a
+'struct media_pad' object in order to communicate with the adv7604
+driver, and latterly an array of 'struct v4l2_subdev_pad_config's to
+handle format information ... but there is more to be done, obviously,
+and you have pointed us in the right direction above :)
+
+Cheers,
+   Wills.
