@@ -1,181 +1,791 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44514 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754409AbbCIQeq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 12:34:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 03/19] saa7146: embed video_device
-Date: Mon,  9 Mar 2015 17:33:57 +0100
-Message-Id: <1425918853-12371-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:44667 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754249AbbCEJIu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Mar 2015 04:08:50 -0500
+Date: Thu, 5 Mar 2015 06:08:45 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Kozlov Sergey <serjk@netup.ru>
+Cc: linux-media@vger.kernel.org, aospan1@gmail.com
+Subject: Re: [PATCH 2/5] [media] ascot2e: Sony Ascot2e DVB-C/T/T2 tuner
+ driver
+Message-ID: <20150305060845.43481955@recife.lan>
+In-Reply-To: <20150202092815.BBC381BC32CD@debian>
+References: <20150202092815.BBC381BC32CD@debian>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Mon, 02 Feb 2015 12:22:32 +0300
+Kozlov Sergey <serjk@netup.ru> escreveu:
 
-Embed the video_device struct to simplify the error handling and in
-order to (eventually) get rid of video_device_alloc/release.
+> 
+> DVB-T/T2/C frontend driver for Sony Ascot2e (CXD2861ER) chip.
+> 
+> Signed-off-by: Kozlov Sergey <serjk@netup.ru>
+> ---
+>  MAINTAINERS                           |    9 +
+>  drivers/media/dvb-frontends/Kconfig   |    7 +
+>  drivers/media/dvb-frontends/Makefile  |    1 +
+>  drivers/media/dvb-frontends/ascot2e.c |  551 +++++++++++++++++++++++++++++++++
+>  drivers/media/dvb-frontends/ascot2e.h |   53 ++++
+>  5 files changed, 621 insertions(+)
+>  create mode 100644 drivers/media/dvb-frontends/ascot2e.c
+>  create mode 100644 drivers/media/dvb-frontends/ascot2e.h
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index a3a1767..a022d6d 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -1613,6 +1613,15 @@ S:	Maintained
+>  F:	Documentation/hwmon/asc7621
+>  F:	drivers/hwmon/asc7621.c
+>  
+> +ASCOT2E MEDIA DRIVER
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/common/saa7146/saa7146_fops.c | 19 ++++---------------
- drivers/media/pci/saa7146/hexium_gemini.c   |  2 +-
- drivers/media/pci/saa7146/hexium_orion.c    |  2 +-
- drivers/media/pci/saa7146/mxb.c             |  4 ++--
- drivers/media/pci/ttpci/av7110.h            |  4 ++--
- drivers/media/pci/ttpci/budget-av.c         |  2 +-
- include/media/saa7146_vv.h                  |  4 ++--
- 7 files changed, 13 insertions(+), 24 deletions(-)
+Not a big issue, but could you please rename it to:
+	MEDIA DRIVERS FOR ASCOT2E
 
-diff --git a/drivers/media/common/saa7146/saa7146_fops.c b/drivers/media/common/saa7146/saa7146_fops.c
-index b7d6393..df1e8c9 100644
---- a/drivers/media/common/saa7146/saa7146_fops.c
-+++ b/drivers/media/common/saa7146/saa7146_fops.c
-@@ -587,26 +587,20 @@ int saa7146_vv_release(struct saa7146_dev* dev)
- }
- EXPORT_SYMBOL_GPL(saa7146_vv_release);
- 
--int saa7146_register_device(struct video_device **vid, struct saa7146_dev* dev,
-+int saa7146_register_device(struct video_device *vfd, struct saa7146_dev *dev,
- 			    char *name, int type)
- {
--	struct video_device *vfd;
- 	int err;
- 	int i;
- 
- 	DEB_EE("dev:%p, name:'%s', type:%d\n", dev, name, type);
- 
--	// released by vfd->release
--	vfd = video_device_alloc();
--	if (vfd == NULL)
--		return -ENOMEM;
--
- 	vfd->fops = &video_fops;
- 	if (type == VFL_TYPE_GRABBER)
- 		vfd->ioctl_ops = &dev->ext_vv_data->vid_ops;
- 	else
- 		vfd->ioctl_ops = &dev->ext_vv_data->vbi_ops;
--	vfd->release = video_device_release;
-+	vfd->release = video_device_release_empty;
- 	vfd->lock = &dev->v4l2_lock;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
- 	vfd->tvnorms = 0;
-@@ -618,25 +612,20 @@ int saa7146_register_device(struct video_device **vid, struct saa7146_dev* dev,
- 	err = video_register_device(vfd, type, -1);
- 	if (err < 0) {
- 		ERR("cannot register v4l2 device. skipping.\n");
--		video_device_release(vfd);
- 		return err;
- 	}
- 
- 	pr_info("%s: registered device %s [v4l2]\n",
- 		dev->name, video_device_node_name(vfd));
--
--	*vid = vfd;
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(saa7146_register_device);
- 
--int saa7146_unregister_device(struct video_device **vid, struct saa7146_dev* dev)
-+int saa7146_unregister_device(struct video_device *vfd, struct saa7146_dev *dev)
- {
- 	DEB_EE("dev:%p\n", dev);
- 
--	video_unregister_device(*vid);
--	*vid = NULL;
--
-+	video_unregister_device(vfd);
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(saa7146_unregister_device);
-diff --git a/drivers/media/pci/saa7146/hexium_gemini.c b/drivers/media/pci/saa7146/hexium_gemini.c
-index 366434f..03cbcd2 100644
---- a/drivers/media/pci/saa7146/hexium_gemini.c
-+++ b/drivers/media/pci/saa7146/hexium_gemini.c
-@@ -66,7 +66,7 @@ struct hexium
- {
- 	int type;
- 
--	struct video_device	*video_dev;
-+	struct video_device	video_dev;
- 	struct i2c_adapter	i2c_adapter;
- 
- 	int 		cur_input;	/* current input */
-diff --git a/drivers/media/pci/saa7146/hexium_orion.c b/drivers/media/pci/saa7146/hexium_orion.c
-index a1eb26d..15f0d66 100644
---- a/drivers/media/pci/saa7146/hexium_orion.c
-+++ b/drivers/media/pci/saa7146/hexium_orion.c
-@@ -63,7 +63,7 @@ struct hexium_data
- struct hexium
- {
- 	int type;
--	struct video_device	*video_dev;
-+	struct video_device	video_dev;
- 	struct i2c_adapter	i2c_adapter;
- 
- 	int cur_input;	/* current input */
-diff --git a/drivers/media/pci/saa7146/mxb.c b/drivers/media/pci/saa7146/mxb.c
-index c4c8fce..0ca1e07 100644
---- a/drivers/media/pci/saa7146/mxb.c
-+++ b/drivers/media/pci/saa7146/mxb.c
-@@ -151,8 +151,8 @@ static struct mxb_routing TEA6420_line[MXB_AUDIOS + 1][2] = {
- 
- struct mxb
- {
--	struct video_device	*video_dev;
--	struct video_device	*vbi_dev;
-+	struct video_device	video_dev;
-+	struct video_device	vbi_dev;
- 
- 	struct i2c_adapter	i2c_adapter;
- 
-diff --git a/drivers/media/pci/ttpci/av7110.h b/drivers/media/pci/ttpci/av7110.h
-index ef3d960..835635b 100644
---- a/drivers/media/pci/ttpci/av7110.h
-+++ b/drivers/media/pci/ttpci/av7110.h
-@@ -102,8 +102,8 @@ struct av7110 {
- 	struct dvb_device	dvb_dev;
- 	struct dvb_net		dvb_net;
- 
--	struct video_device	*v4l_dev;
--	struct video_device	*vbi_dev;
-+	struct video_device	v4l_dev;
-+	struct video_device	vbi_dev;
- 
- 	struct saa7146_dev	*dev;
- 
-diff --git a/drivers/media/pci/ttpci/budget-av.c b/drivers/media/pci/ttpci/budget-av.c
-index 0ba3875..54c9910 100644
---- a/drivers/media/pci/ttpci/budget-av.c
-+++ b/drivers/media/pci/ttpci/budget-av.c
-@@ -68,7 +68,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- struct budget_av {
- 	struct budget budget;
--	struct video_device *vd;
-+	struct video_device vd;
- 	int cur_input;
- 	int has_saa7113;
- 	struct tasklet_struct ciintf_irq_tasklet;
-diff --git a/include/media/saa7146_vv.h b/include/media/saa7146_vv.h
-index 944ecdf..92766f7 100644
---- a/include/media/saa7146_vv.h
-+++ b/include/media/saa7146_vv.h
-@@ -178,8 +178,8 @@ struct saa7146_use_ops  {
- };
- 
- /* from saa7146_fops.c */
--int saa7146_register_device(struct video_device **vid, struct saa7146_dev* dev, char *name, int type);
--int saa7146_unregister_device(struct video_device **vid, struct saa7146_dev* dev);
-+int saa7146_register_device(struct video_device *vid, struct saa7146_dev *dev, char *name, int type);
-+int saa7146_unregister_device(struct video_device *vid, struct saa7146_dev *dev);
- void saa7146_buffer_finish(struct saa7146_dev *dev, struct saa7146_dmaqueue *q, int state);
- void saa7146_buffer_next(struct saa7146_dev *dev, struct saa7146_dmaqueue *q,int vbi);
- int saa7146_buffer_queue(struct saa7146_dev *dev, struct saa7146_dmaqueue *q, struct saa7146_buf *buf);
--- 
-2.1.4
+We're trying to better organize the media entries at MAINTAINERS, at
+least for the new drivers.
 
+> +M:	Sergey Kozlov <serjk@netup.ru>
+> +L:	linux-media@vger.kernel.org
+> +W:	http://linuxtv.org
+> +W:	http://netup.tv/
+> +T:	git git://linuxtv.org/media_tree.git
+> +S:	Supported
+> +F:	drivers/media/dvb-frontends/ascot2e*
+> +
+>  ASUS NOTEBOOKS AND EEEPC ACPI/WMI EXTRAS DRIVERS
+>  M:	Corentin Chary <corentin.chary@gmail.com>
+>  L:	acpi4asus-user@lists.sourceforge.net
+> diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+> index c2c157b..c94bb7b 100644
+> --- a/drivers/media/dvb-frontends/Kconfig
+> +++ b/drivers/media/dvb-frontends/Kconfig
+> @@ -803,6 +803,13 @@ config DVB_HORUS3A
+>  	help
+>  	  Say Y when you want to support this frontend.
+>  
+> +config DVB_ASCOT2E
+> +	tristate "Sony Ascot2E tuner"
+> +	depends on DVB_CORE && I2C
+> +	default m if !MEDIA_SUBDRV_AUTOSELECT
+> +	help
+> +	  Say Y when you want to support this frontend.
+> +
+>  comment "Tools to develop new frontends"
+>  
+>  config DVB_DUMMY_FE
+> diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
+> index 3aa05f3..0b19c10 100644
+> --- a/drivers/media/dvb-frontends/Makefile
+> +++ b/drivers/media/dvb-frontends/Makefile
+> @@ -117,3 +117,4 @@ obj-$(CONFIG_DVB_AF9033) += af9033.o
+>  obj-$(CONFIG_DVB_AS102_FE) += as102_fe.o
+>  obj-$(CONFIG_DVB_TC90522) += tc90522.o
+>  obj-$(CONFIG_DVB_HORUS3A) += horus3a.o
+> +obj-$(CONFIG_DVB_ASCOT2E) += ascot2e.o
+> diff --git a/drivers/media/dvb-frontends/ascot2e.c b/drivers/media/dvb-frontends/ascot2e.c
+> new file mode 100644
+> index 0000000..d0bde8ea
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/ascot2e.c
+> @@ -0,0 +1,551 @@
+> +/*
+> + * ascot2e.c
+> + *
+> + * Sony Ascot3E DVB-T/T2/C/C2 tuner driver
+> + *
+> + * Copyright 2012 Sony Corporation
+> + * Copyright (C) 2014 NetUP Inc.
+> + * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
+> + * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> +  */
+> +
+> +#include <linux/slab.h>
+> +#include <linux/module.h>
+> +#include <linux/dvb/frontend.h>
+> +#include <linux/types.h>
+> +#include "ascot2e.h"
+> +#include "dvb_frontend.h"
+> +
+> +static int debug;
+> +module_param(debug, int, 0644);
+> +
+> +#define dprintk(args...) \
+> +	do { \
+> +		if (debug) \
+> +			printk(args); \
+> +	} while (0)
+
+Better to use dev_dbg(), as this allows to enable debug message line per line, 
+via /sys/kernel/debug/dynamic_debug.
+
+> +
+> +enum ascot2e_state {
+> +	STATE_UNKNOWN,
+> +	STATE_SLEEP,
+> +	STATE_ACTIVE
+> +};
+> +
+> +struct ascot2e_priv {
+> +	u32			frequency;
+> +	u8			i2c_address;
+> +	struct i2c_adapter	*i2c;
+> +	enum ascot2e_state	state;
+> +	void			*set_tuner_data;
+> +	int			(*set_tuner)(void *, int);
+> +};
+> +
+> +enum ascot2e_tv_system_t {
+> +	ASCOT2E_DTV_DVBT_5,
+> +	ASCOT2E_DTV_DVBT_6,
+> +	ASCOT2E_DTV_DVBT_7,
+> +	ASCOT2E_DTV_DVBT_8,
+> +	ASCOT2E_DTV_DVBT2_1_7,
+> +	ASCOT2E_DTV_DVBT2_5,
+> +	ASCOT2E_DTV_DVBT2_6,
+> +	ASCOT2E_DTV_DVBT2_7,
+> +	ASCOT2E_DTV_DVBT2_8,
+> +	ASCOT2E_DTV_DVBC_6,
+> +	ASCOT2E_DTV_DVBC_8,
+> +	ASCOT2E_DTV_DVBC2_6,
+> +	ASCOT2E_DTV_DVBC2_8,
+> +	ASCOT2E_DTV_UNKNOWN
+> +};
+> +
+> +struct ascot2e_band_sett {
+> +	u8	if_out_sel;
+> +	u8	agc_sel;
+> +	u8	mix_oll;
+> +	u8	rf_gain;
+> +	u8	if_bpf_gc;
+> +	u8	fif_offset;
+> +	u8	bw_offset;
+> +	u8	bw;
+> +	u8	rf_oldet;
+> +	u8	if_bpf_f0;
+> +};
+> +
+> +#define ASCOT2E_AUTO		0xff
+> +#define ASCOT2E_OFFSET(ofs)	((u8)(ofs) & 0x1F)
+> +#define ASCOT2E_BW_6		0x00
+> +#define ASCOT2E_BW_7		0x01
+> +#define ASCOT2E_BW_8		0x02
+> +#define ASCOT2E_BW_1_7		0x03
+> +
+> +static struct ascot2e_band_sett ascot2e_sett[] = {
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
+> +	  ASCOT2E_OFFSET(-8), ASCOT2E_OFFSET(-6), ASCOT2E_BW_6,  0x0B, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
+> +	  ASCOT2E_OFFSET(-8), ASCOT2E_OFFSET(-6), ASCOT2E_BW_6,  0x0B, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
+> +	  ASCOT2E_OFFSET(-6), ASCOT2E_OFFSET(-4), ASCOT2E_BW_7,  0x0B, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
+> +	  ASCOT2E_OFFSET(-4), ASCOT2E_OFFSET(-2), ASCOT2E_BW_8,  0x0B, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
+> +	ASCOT2E_OFFSET(-10), ASCOT2E_OFFSET(-16), ASCOT2E_BW_1_7, 0x0B, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
+> +	  ASCOT2E_OFFSET(-8), ASCOT2E_OFFSET(-6), ASCOT2E_BW_6,  0x0B, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
+> +	  ASCOT2E_OFFSET(-8), ASCOT2E_OFFSET(-6), ASCOT2E_BW_6,  0x0B, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
+> +	  ASCOT2E_OFFSET(-6), ASCOT2E_OFFSET(-4), ASCOT2E_BW_7,  0x0B, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
+> +	  ASCOT2E_OFFSET(-4), ASCOT2E_OFFSET(-2), ASCOT2E_BW_8,  0x0B, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x02, ASCOT2E_AUTO, 0x03,
+> +	  ASCOT2E_OFFSET(-6), ASCOT2E_OFFSET(-8), ASCOT2E_BW_6,  0x09, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x02, ASCOT2E_AUTO, 0x03,
+> +	  ASCOT2E_OFFSET(-2), ASCOT2E_OFFSET(-1), ASCOT2E_BW_8,  0x09, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x01,
+> +	  ASCOT2E_OFFSET(-6), ASCOT2E_OFFSET(-4), ASCOT2E_BW_6,  0x09, 0x00 },
+> +	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x01,
+> +	  ASCOT2E_OFFSET(-2), ASCOT2E_OFFSET(2),  ASCOT2E_BW_8,  0x09, 0x00 }
+> +};
+> +
+> +static void ascot2e_i2c_debug(u8 reg, u8 write, const u8 *data, u32 len)
+> +{
+> +	u32 i;
+> +	u8 buf[128];
+> +	int offst = 0;
+> +
+> +	for (i = 0; i < len; i++) {
+> +		offst += snprintf(buf + offst, sizeof(buf) - offst, " %02x",
+> +			data[i]);
+> +		if (offst >= sizeof(buf) - 1)
+> +			break;
+> +	}
+> +	dprintk("ascot2e: I2C %s 0x%02x [%s ]\n",
+> +		(write == 0 ? "read" : "write"), reg, buf);
+
+There are already Kernel functions to produce hexdumps.
+
+In this case, were we want to allow the user to dynamically enable this
+debug function, the proper call would be dynamic_hex_dump().
+
+> +}
+> +
+> +static int ascot2e_write_regs(struct ascot2e_priv *priv,
+> +		u8 reg, const u8 *data, u32 len)
+> +{
+> +	int ret;
+> +	u8 buf[len+1];
+> +	struct i2c_msg msg[1] = {
+> +		{
+> +			.addr = priv->i2c_address,
+> +			.flags = 0,
+> +			.len = sizeof(buf),
+> +			.buf = buf,
+> +		}
+> +	};
+> +
+> +	ascot2e_i2c_debug(reg, 1, data, len);
+> +	buf[0] = reg;
+> +	memcpy(&buf[1], data, len);
+> +
+> +	ret = i2c_transfer(priv->i2c, msg, 1);
+> +	if (ret == 1) {
+> +		ret = 0;
+> +	} else {
+> +		dev_warn(&priv->i2c->dev,
+> +			"%s: i2c wr failed=%d reg=%02x len=%d\n",
+> +			KBUILD_MODNAME, ret, reg, len);
+> +		ret = -EREMOTEIO;
+> +	}
+> +	return ret;
+
+Actually, if ret == 0, nothing was transferred. Also, the best is to
+preserve whatever error code is received from i2c_transfer().
+
+So, the error code handling should be, instead, something like:
+
+	if (ret >= 0 && ret != 1)
+		ret = -EREMOTEIO;
+
+	if (ret < 0) {
+		dev_warn(&priv->i2c->dev,
+			"%s: i2c wr failed=%d reg=%02x len=%d\n",
+			KBUILD_MODNAME, ret, reg, len);
+		return ret;
+	}
+	return 0;
+
+> +}
+> +
+> +static int ascot2e_write_reg(
+> +		struct ascot2e_priv *priv, u8 reg, u8 val)
+> +{
+> +	return ascot2e_write_regs(priv, reg, &val, 1);
+> +}
+> +
+> +static int ascot2e_read_regs(
+> +		struct ascot2e_priv *priv, u8 reg, u8 *val, u32 len)
+> +{
+> +	int ret;
+> +	struct i2c_msg msg[2] = {
+> +		{
+> +			.addr = priv->i2c_address,
+> +			.flags = 0,
+> +			.len = 1,
+> +			.buf = &reg,
+> +		}, {
+> +			.addr = priv->i2c_address,
+> +			.flags = I2C_M_RD,
+> +			.len = len,
+> +			.buf = val,
+> +		}
+> +	};
+> +
+> +	ret = i2c_transfer(priv->i2c, &msg[0], 1);
+> +	if (ret == 1) {
+> +		ret = i2c_transfer(priv->i2c, &msg[1], 1);
+> +		if (ret == 1) {
+> +			ret = 0;
+> +			ascot2e_i2c_debug(reg, 0, val, len);
+> +			goto rd_done;
+> +		}
+> +	}
+> +	dev_warn(&priv->i2c->dev, "%s: i2c rd failed=%d addr=%02x reg=%02x\n",
+> +			KBUILD_MODNAME, ret, priv->i2c_address, reg);
+> +	ret = -EREMOTEIO;
+> +rd_done:
+> +	return ret;
+
+Same as before: please change the error code to return the error
+that comes from i2c_transfer().
+
+> +}
+> +
+> +static int ascot2e_read_reg(
+> +		struct ascot2e_priv *priv, u8 reg, u8 *val)
+> +{
+> +	return ascot2e_read_regs(priv, reg, val, 1);
+> +}
+> +
+> +static int ascot2e_set_reg_bits(
+> +		struct ascot2e_priv *priv, u8 reg, u8 data, u8 mask)
+> +{
+> +	int res;
+> +	u8 rdata;
+> +
+> +	if (mask != 0xff) {
+> +		res = ascot2e_read_reg(priv, reg, &rdata);
+> +		if (res != 0)
+> +			goto done;
+> +		data = ((data & mask) | (rdata & (mask ^ 0xFF)));
+> +	}
+> +	res = ascot2e_write_reg(priv, reg, data);
+> +done:
+> +	return res;
+> +}
+> +
+> +static int ascot2e_enter_power_save(struct ascot2e_priv *priv)
+> +{
+> +	u8 data[2];
+> +
+> +	dprintk("%s()\n", __func__);
+> +	if (priv->state == STATE_SLEEP)
+> +		return 0;
+> +	data[0] = 0x00;
+> +	data[1] = 0x04;
+> +	ascot2e_write_regs(priv, 0x14, data, 2);
+> +	ascot2e_write_reg(priv, 0x50, 0x01);
+> +	priv->state = STATE_SLEEP;
+> +	return 0;
+> +}
+> +
+> +static int ascot2e_leave_power_save(struct ascot2e_priv *priv)
+> +{
+> +	u8 data[2] = { 0xFB, 0x0F };
+> +
+> +	dprintk("%s()\n", __func__);
+> +	if (priv->state == STATE_ACTIVE)
+> +		return 0;
+> +	ascot2e_write_regs(priv, 0x14, data, 2);
+> +	ascot2e_write_reg(priv, 0x50, 0x00);
+> +	priv->state = STATE_ACTIVE;
+> +	return 0;
+> +}
+> +
+> +static int ascot2e_init(struct dvb_frontend *fe)
+> +{
+> +	struct ascot2e_priv *priv = fe->tuner_priv;
+> +
+> +	dprintk("%s()\n", __func__);
+> +	return ascot2e_leave_power_save(priv);
+> +}
+> +
+> +static int ascot2e_release(struct dvb_frontend *fe)
+> +{
+> +	dprintk("%s()\n", __func__);
+> +
+> +	kfree(fe->tuner_priv);
+> +	fe->tuner_priv = NULL;
+> +	return 0;
+> +}
+> +
+> +static int ascot2e_sleep(struct dvb_frontend *fe)
+> +{
+> +	struct ascot2e_priv *priv = fe->tuner_priv;
+> +
+> +	dprintk("%s()\n", __func__);
+> +	ascot2e_enter_power_save(priv);
+> +	return 0;
+> +}
+> +
+> +static enum ascot2e_tv_system_t ascot2e_get_tv_system(
+> +		u8 delsys, u32 bandwidth_hz)
+> +{
+> +	enum ascot2e_tv_system_t system = ASCOT2E_DTV_UNKNOWN;
+> +
+> +	if (delsys == SYS_DVBT) {
+> +		switch (bandwidth_hz) {
+> +		case 5000000:
+> +			system = ASCOT2E_DTV_DVBT_5;
+> +			break;
+> +		case 6000000:
+> +			system = ASCOT2E_DTV_DVBT_6;
+> +			break;
+> +		case 7000000:
+> +			system = ASCOT2E_DTV_DVBT_7;
+> +			break;
+> +		case 8000000:
+> +			system = ASCOT2E_DTV_DVBT_8;
+> +			break;
+> +		}
+> +	} else if (delsys == SYS_DVBT2) {
+> +		switch (bandwidth_hz) {
+> +		case 5000000:
+> +			system = ASCOT2E_DTV_DVBT2_5;
+> +			break;
+> +		case 6000000:
+> +			system = ASCOT2E_DTV_DVBT2_6;
+> +			break;
+> +		case 7000000:
+> +			system = ASCOT2E_DTV_DVBT2_7;
+> +			break;
+> +		case 8000000:
+> +			system = ASCOT2E_DTV_DVBT2_8;
+> +			break;
+> +		}
+
+What happens if userspace passes a bandwidth that doesn't match
+any of the above values?
+
+The best is to use, instead:
+
+	if (bandwidth_hz <= 5000000)
+		system = ASCOT2E_DTV_DVBT2_5;
+	else if (bandwidth_hz <= 6000000)
+...
+
+> +	} else if (delsys == SYS_DVBC_ANNEX_A) {
+> +		/* only 8MHz bandwidth supported now */
+> +		system = ASCOT2E_DTV_DVBC_8;
+
+If you're forcing 8MHz, you should update the dtv_property_cache to
+reflect that.
+
+> +	}
+> +	dprintk("%s(): ASCOT2E DTV system %d (delsys %d, bandwidth %d)\n",
+> +		__func__, (int)system, delsys, bandwidth_hz);
+> +	return system;
+> +}
+> +
+> +static int ascot2e_set_params(struct dvb_frontend *fe)
+> +{
+> +	u8 data[10];
+> +	enum ascot2e_tv_system_t tv_system;
+> +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+> +	struct ascot2e_priv *priv = fe->tuner_priv;
+> +	u32 frequency = p->frequency / 1000;
+> +
+> +	dprintk("%s(): tune frequency %dkHz\n", __func__, frequency);
+> +	tv_system = ascot2e_get_tv_system(
+> +		p->delivery_system, p->bandwidth_hz);
+
+Just a coding syle note: better to break the lines as:
+
+	tv_system = ascot2e_get_tv_system(p->delivery_system,
+					  p->bandwidth_hz);
+
+This makes life easier to reviewers.
+
+> +
+> +	if (tv_system == ASCOT2E_DTV_UNKNOWN) {
+> +		dev_err(&priv->i2c->dev, "%s(): unknown DTV system\n",
+> +			__func__);
+
+I don't think you should be printing an error here just because the user
+is requesting an unsupported system. Perhaps dev_dbg()?
+
+> +		return -EINVAL;
+> +	}
+> +	if (priv->set_tuner)
+> +		priv->set_tuner(priv->set_tuner_data, 1);
+> +	frequency = ((frequency + 25/2) / 25) * 25;
+
+use the roundup() function instead.
+
+> +	if (priv->state == STATE_SLEEP)
+> +		ascot2e_leave_power_save(priv);
+> +
+> +	/* IF_OUT_SEL / AGC_SEL setting */
+> +	data[0] = 0x00;
+> +	if (ascot2e_sett[tv_system].agc_sel != ASCOT2E_AUTO) {
+> +		/* AGC pin setting from parameter table */
+> +		data[0] |= (u8)(
+> +			(ascot2e_sett[tv_system].agc_sel & 0x03) << 3);
+> +	}
+> +	if (ascot2e_sett[tv_system].if_out_sel != ASCOT2E_AUTO) {
+> +		/* IFOUT pin setting from parameter table */
+> +		data[0] |= (u8)(
+> +			(ascot2e_sett[tv_system].if_out_sel & 0x01) << 2);
+> +	}
+> +	/* Set bit[4:2] only */
+> +	ascot2e_set_reg_bits(priv, 0x05, data[0], 0x1c);
+> +	/* 0x06 - 0x0F */
+> +	/* REF_R setting (0x06) */
+> +	if (tv_system == ASCOT2E_DTV_DVBC_6 ||
+> +			tv_system == ASCOT2E_DTV_DVBC_8) {
+> +		/* xtal, xtal*2 */
+> +		data[0] = (frequency > 500000) ? 16 : 32;
+> +	} else {
+> +		/* xtal/8, xtal/4 */
+> +		data[0] = (frequency > 500000) ? 2 : 4;
+> +	}
+> +	/* XOSC_SEL=100uA */
+> +	data[1] = 0x04;
+> +	/* KBW setting (0x08), KC0 setting (0x09), KC1 setting (0x0A) */
+> +	if (tv_system == ASCOT2E_DTV_DVBC_6 ||
+> +			tv_system == ASCOT2E_DTV_DVBC_8) {
+> +		data[2] = 18;
+> +		data[3] = 120;
+> +		data[4] = 20;
+> +	} else {
+> +		data[2] = 48;
+> +		data[3] = 10;
+> +		data[4] = 30;
+> +	}
+> +	/* ORDER/R2_RANGE/R2_BANK/C2_BANK setting (0x0B) */
+> +	if (tv_system == ASCOT2E_DTV_DVBC_6 ||
+> +			tv_system == ASCOT2E_DTV_DVBC_8)
+> +		data[5] = (frequency > 500000) ? 0x08 : 0x0c;
+> +	else
+> +		data[5] = (frequency > 500000) ? 0x30 : 0x38;
+> +	/* Set MIX_OLL (0x0C) value from parameter table */
+> +	data[6] = ascot2e_sett[tv_system].mix_oll;
+> +	/* Set RF_GAIN (0x0D) setting from parameter table */
+> +	if (ascot2e_sett[tv_system].rf_gain == ASCOT2E_AUTO) {
+> +		/* RF_GAIN auto control enable */
+> +		ascot2e_write_reg(priv, 0x4E, 0x01);
+> +		/* RF_GAIN Default value */
+> +		data[7] = 0x00;
+> +	} else {
+> +		/* RF_GAIN auto control disable */
+> +		ascot2e_write_reg(priv, 0x4E, 0x00);
+> +		data[7] = ascot2e_sett[tv_system].rf_gain;
+> +	}
+> +	/* Set IF_BPF_GC/FIF_OFFSET (0x0E) value from parameter table */
+> +	data[8] = (u8)((ascot2e_sett[tv_system].fif_offset << 3) |
+> +		(ascot2e_sett[tv_system].if_bpf_gc & 0x07));
+> +	/* Set BW_OFFSET (0x0F) value from parameter table */
+> +	data[9] = ascot2e_sett[tv_system].bw_offset;
+> +	ascot2e_write_regs(priv, 0x06, data, 10);
+> +	/* 0x45 - 0x47
+> +	LNA optimization setting
+> +	RF_LNA_DIST1-5, RF_LNA_CM */
+
+It is hard to head those multi-line comments this way. Please use the Kernel
+CodingStyle for that.
+
+> +	if (tv_system == ASCOT2E_DTV_DVBC_6 ||
+> +			tv_system == ASCOT2E_DTV_DVBC_8) {
+> +		data[0] = 0x0F;
+> +		data[1] = 0x00;
+> +		data[2] = 0x01;
+> +	} else {
+> +		data[0] = 0x0F;
+> +		data[1] = 0x00;
+> +		data[2] = 0x03;
+> +	}
+> +	ascot2e_write_regs(priv, 0x45, data, 3);
+> +	/* 0x49 - 0x4A
+> +	 Set RF_OLDET_ENX/RF_OLDET_OLL value from parameter table */
+> +	data[0] = ascot2e_sett[tv_system].rf_oldet;
+> +	/* Set IF_BPF_F0 value from parameter table */
+> +	data[1] = ascot2e_sett[tv_system].if_bpf_f0;
+> +	ascot2e_write_regs(priv, 0x49, data, 2);
+> +	/* Tune now
+> +	 * RFAGC fast mode / RFAGC auto control enable
+> +	 * (set bit[7], bit[5:4] only)
+> +	 * vco_cal = 1, set MIX_OL_CPU_EN */
+
+CodingStyle.
+
+> +	ascot2e_set_reg_bits(priv, 0x0c, 0x90, 0xb0);
+> +	/* Logic wake up, CPU wake up */
+> +	data[0] = 0xc4;
+> +	data[1] = 0x40;
+> +	ascot2e_write_regs(priv, 0x03, data, 2);
+> +	/* 0x10 - 0x14 */
+> +	data[0] = (u8)(frequency & 0xFF);         /* 0x10: FRF_L */
+> +	data[1] = (u8)((frequency >> 8) & 0xFF);  /* 0x11: FRF_M */
+> +	data[2] = (u8)((frequency >> 16) & 0x0F); /* 0x12: FRF_H (bit[3:0]) */
+> +	/* 0x12: BW (bit[5:4]) */
+> +	data[2] |= (u8)(ascot2e_sett[tv_system].bw << 4);
+> +	data[3] = 0xFF; /* 0x13: VCO calibration enable */
+> +	data[4] = 0xFF; /* 0x14: Analog block enable */
+> +	/* Tune (Burst write) */
+> +	ascot2e_write_regs(priv, 0x10, data, 5);
+> +	msleep(50);
+> +	/* CPU deep sleep */
+> +	ascot2e_write_reg(priv, 0x04, 0x00);
+> +	/* Logic sleep */
+> +	ascot2e_write_reg(priv, 0x03, 0xC0);
+> +	/* RFAGC normal mode (set bit[5:4] only) */
+> +	ascot2e_set_reg_bits(priv, 0x0C, 0x00, 0x30);
+> +	priv->frequency = frequency;
+> +	return 0;
+> +}
+> +
+> +static int ascot2e_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+> +{
+> +	struct ascot2e_priv *priv = fe->tuner_priv;
+> +
+> +	*frequency = priv->frequency * 1000;
+> +	return 0;
+> +}
+> +
+> +static struct dvb_tuner_ops ascot2e_tuner_ops = {
+> +	.info = {
+> +		.name = "Sony ASCOT2E",
+> +		.frequency_min = 1000000,
+> +		.frequency_max = 1200000000,
+> +		.frequency_step = 25000,
+> +	},
+> +	.init = ascot2e_init,
+> +	.release = ascot2e_release,
+> +	.sleep = ascot2e_sleep,
+> +	.set_params = ascot2e_set_params,
+> +	.get_frequency = ascot2e_get_frequency,
+> +};
+> +
+> +struct dvb_frontend *ascot2e_attach(struct dvb_frontend *fe,
+> +					const struct ascot2e_config *config,
+> +					struct i2c_adapter *i2c)
+> +{
+> +	u8 data[4];
+> +	struct ascot2e_priv *priv = NULL;
+> +
+> +	priv = kzalloc(sizeof(struct ascot2e_priv), GFP_KERNEL);
+> +	if (priv == NULL)
+> +		return NULL;
+> +	priv->i2c_address = (config->i2c_address >> 1);
+> +	priv->i2c = i2c;
+> +	priv->set_tuner_data = config->set_tuner_priv;
+> +	priv->set_tuner = config->set_tuner_callback;
+> +
+> +	if (fe->ops.i2c_gate_ctrl)
+> +		fe->ops.i2c_gate_ctrl(fe, 1);
+> +
+> +	/* 16 MHz xTal frequency */
+> +	data[0] = 16;
+> +	/* VCO current setting */
+> +	data[1] = 0x06;
+> +	/* Logic wake up, CPU boot */
+> +	data[2] = 0xC4;
+> +	data[3] = 0x40;
+> +	ascot2e_write_regs(priv, 0x01, data, 4);
+> +	/* RFVGA optimization setting (RF_DIST0 - RF_DIST2) */
+> +	data[0] = 0x10;
+> +	data[1] = 0x3F;
+> +	data[2] = 0x25;
+> +	ascot2e_write_regs(priv, 0x22, data, 3);
+> +	/* PLL mode setting */
+> +	ascot2e_write_reg(priv, 0x28, 0x1e);
+> +	/* RSSI setting */
+> +	ascot2e_write_reg(priv, 0x59, 0x04);
+> +	msleep(80);
+> +	/* TODO check CPU HW error state here */
+> +
+> +	/* Xtal oscillator current control setting */
+> +	ascot2e_write_reg(priv, 0x4c, 0x01);
+> +	/* XOSC_SEL=100uA */
+> +	ascot2e_write_reg(priv, 0x07, 0x04);
+> +	/* CPU deep sleep */
+> +	ascot2e_write_reg(priv, 0x04, 0x00);
+> +	/* Logic sleep */
+> +	ascot2e_write_reg(priv, 0x03, 0xc0);
+> +	/* Power save setting */
+> +	data[0] = 0x00;
+> +	data[1] = 0x04;
+> +	ascot2e_write_regs(priv, 0x14, data, 2);
+> +	ascot2e_write_reg(priv, 0x50, 0x01);
+> +	priv->state = STATE_SLEEP;
+> +
+> +	if (fe->ops.i2c_gate_ctrl)
+> +		fe->ops.i2c_gate_ctrl(fe, 0);
+> +
+> +	memcpy(&fe->ops.tuner_ops, &ascot2e_tuner_ops,
+> +				sizeof(struct dvb_tuner_ops));
+> +	fe->tuner_priv = priv;
+> +	dev_info(&priv->i2c->dev,
+> +		"Sony ASCOT2E attached on addr=%x at I2C adapter %p\n",
+> +		priv->i2c_address, priv->i2c);
+> +	return fe;
+> +}
+> +EXPORT_SYMBOL(ascot2e_attach);
+> +
+> +MODULE_DESCRIPTION("Sony ASCOT2E terr/cab tuner driver");
+> +MODULE_AUTHOR("info@netup.ru");
+> +MODULE_LICENSE("GPL");
+> diff --git a/drivers/media/dvb-frontends/ascot2e.h b/drivers/media/dvb-frontends/ascot2e.h
+> new file mode 100644
+> index 0000000..532ab55
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/ascot2e.h
+> @@ -0,0 +1,53 @@
+> +/*
+> + * ascot2e.h
+> + *
+> + * Sony Ascot3E DVB-T/T2/C/C2 tuner driver
+> + *
+> + * Copyright 2012 Sony Corporation
+> + * Copyright (C) 2014 NetUP Inc.
+> + * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
+> + * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> +  */
+> +
+> +#ifndef __DVB_ASCOT2E_H__
+> +#define __DVB_ASCOT2E_H__
+> +
+> +#include <linux/kconfig.h>
+> +#include <linux/dvb/frontend.h>
+> +#include <linux/i2c.h>
+> +
+> +struct ascot2e_config {
+> +	/* default is 0xc0 */
+> +	u8	i2c_address;
+> +	/* default is 16 MHz */
+> +	u8	xtal_freq_mhz;
+> +	/* set tuner function */
+> +	void	*set_tuner_priv;
+> +	int	(*set_tuner_callback)(void *, int);
+> +};
+
+Forgot to mention on patch 1/5, but the best is to use 
+Documentation/kernel-doc-nano-HOWTO.txt format for those comments:
+
+/**
+ * struct blah - the basic blah structure
+ * @mem1:	describe the first member of struct blah
+ * @mem2:	describe the second member of struct blah,
+ *		perhaps with more lines and words.
+ *
+ * Longer description of this structure.
+ */
+
+That makes the code easier to read, and the struct members better
+described.
+
+> +
+> +#if IS_ENABLED(CONFIG_DVB_ASCOT2E)
+> +extern struct dvb_frontend *ascot2e_attach(struct dvb_frontend *fe,
+> +					const struct ascot2e_config *config,
+> +					struct i2c_adapter *i2c);
+> +#else
+> +static inline struct dvb_frontend *ascot2e_attach(struct dvb_frontend *fe,
+> +					const struct ascot2e_config *config,
+> +					struct i2c_adapter *i2c)
+> +{
+> +	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+> +	return NULL;
+> +}
+> +#endif
+> +
+> +#endif
