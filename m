@@ -1,47 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:34203 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752353AbbC0L5d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 07:57:33 -0400
-Received: by lagg8 with SMTP id g8so68396817lag.1
-        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2015 04:57:31 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
+Received: from cantor2.suse.de ([195.135.220.15]:47343 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756001AbbCEO1k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Mar 2015 09:27:40 -0500
+Date: Thu, 5 Mar 2015 15:27:35 +0100
+From: Jan Kara <jack@suse.cz>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 1/5] saa7164: add support for i2c read
-Date: Fri, 27 Mar 2015 13:57:15 +0200
-Message-Id: <1427457439-1493-1-git-send-email-olli.salonen@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Davidlohr Bueso <dbueso@suse.com>
+Subject: Use of mmap_sem in __qbuf_userptr()
+Message-ID: <20150305142735.GA16869@quack.suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for pure I2C reads. Needed by si2157 tuner driver.
+  Hello,
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/pci/saa7164/saa7164-i2c.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+  so after a long pause I've got back to my simplification patches around
+get_user_pages(). After the simplification done by commit f035eb4e976ef5
+(videobuf2: fix lockdep warning) it seems unnecessary to take mmap_sem
+already when calling __qbuf_userptr(). As far as I understand what
+__qbuf_userptr() does, the only thing where mmap_sem is needed is for
+get_userptr and possibly put_userptr memops. So it should be possible to
+push mmap_sem locking down into these memops, shouldn't it? Or am I missing
+something in __qbuf_userptr() for which mmap_sem is also necessary?
 
-diff --git a/drivers/media/pci/saa7164/saa7164-i2c.c b/drivers/media/pci/saa7164/saa7164-i2c.c
-index 4f7e3b4..e30e206 100644
---- a/drivers/media/pci/saa7164/saa7164-i2c.c
-+++ b/drivers/media/pci/saa7164/saa7164-i2c.c
-@@ -39,9 +39,12 @@ static int i2c_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, int num)
- 		dprintk(DBGLVL_I2C, "%s(num = %d) addr = 0x%02x  len = 0x%x\n",
- 			__func__, num, msgs[i].addr, msgs[i].len);
- 		if (msgs[i].flags & I2C_M_RD) {
--			/* Unsupported - Yet*/
--			printk(KERN_ERR "%s() Unsupported - Yet\n", __func__);
--			continue;
-+			/* dummy write before read */
-+			retval = saa7164_api_i2c_read(bus, msgs[i].addr,
-+				0, NULL, msgs[i].len, msgs[i].buf);
-+
-+			if (retval < 0)
-+				goto err;
- 		} else if (i + 1 < num && (msgs[i + 1].flags & I2C_M_RD) &&
- 			   msgs[i].addr == msgs[i + 1].addr) {
- 			/* write then read from same address */
+If I'm right, I can prepare patches to do that (and then on top of those
+rebase patches which will make v4l2 core use some mm helper functions so
+they don't have to care about details of mm locking, vmas, etc.).
+
+								Honza
 -- 
-1.9.1
-
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
