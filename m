@@ -1,76 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60385 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752013AbbCWJyQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2015 05:54:16 -0400
-Message-id: <550FE2C3.7090702@samsung.com>
-Date: Mon, 23 Mar 2015 10:54:11 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v1 02/11] DT: Add documentation for the mfd Maxim max77693
-References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
- <1426863811-12516-3-git-send-email-j.anaszewski@samsung.com>
- <20150321224903.GE16613@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150321224903.GE16613@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60771 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750792AbbCEKlE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2015 05:41:04 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 3/3] media: atmel-isi: remove mck back compatiable code as we don't need it
+Date: Thu, 05 Mar 2015 12:41:08 +0200
+Message-ID: <3743731.I7IKcDRdB6@avalon>
+In-Reply-To: <1425531661-20040-4-git-send-email-josh.wu@atmel.com>
+References: <1425531661-20040-1-git-send-email-josh.wu@atmel.com> <1425531661-20040-4-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Josh,
 
-On 03/21/2015 11:49 PM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> On Fri, Mar 20, 2015 at 04:03:22PM +0100, Jacek Anaszewski wrote:
->> +Optional properties of the LED child node:
->> +- label : see Documentation/devicetree/bindings/leds/common.txt
->
-> I'm still not comfortable using the label field as-is as the entity name in
-> the later patches, there's one important problem: it is not guaranteed to be
-> unique in the system.
+Thank you for the patch.
 
-I don't use it as-is in my patches. For max77603-led the i2c adapter id
-and client address is added to it, and for aat1290 there is '_n' suffix
-added. Nonetheless I didn't notice that the patch [1] was already
-merged. It checks if a LED class device with given name isn't already
-registered and adds a '_n" suffix if there was any. If it was exported
-I could use it in the leds-aat1290 driver and avoid depending on the
-static variable.
+On Thursday 05 March 2015 13:01:01 Josh Wu wrote:
+> The master clock should handled by sensor itself.
 
-Whereas for I2C devices the problem doesn't exist (it is guaranteed that
-no more than one I2C client with an address can be present on the
-same bus), for devices driven through GPIOs we haven't stable unique
-identifier.
+I like that :-)
 
-I thought that we agreed on #v4l about adding numerical postfixes
-in case of such devices.
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> ---
+> 
+>  drivers/media/platform/soc_camera/atmel-isi.c | 32 ------------------------
+>  1 file changed, 32 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+> b/drivers/media/platform/soc_camera/atmel-isi.c index 4a384f1..50375ce
+> 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -83,8 +83,6 @@ struct atmel_isi {
+>  	struct completion		complete;
+>  	/* ISI peripherial clock */
+>  	struct clk			*pclk;
+> -	/* ISI_MCK, feed to camera sensor to generate pixel clock */
+> -	struct clk			*mck;
+>  	unsigned int			irq;
+> 
+>  	struct isi_platform_data	pdata;
+> @@ -725,26 +723,12 @@ static void isi_camera_remove_device(struct
+> soc_camera_device *icd) /* Called with .host_lock held */
+>  static int isi_camera_clock_start(struct soc_camera_host *ici)
+>  {
+> -	struct atmel_isi *isi = ici->priv;
+> -	int ret;
+> -
+> -	if (!IS_ERR(isi->mck)) {
+> -		ret = clk_prepare_enable(isi->mck);
+> -		if (ret) {
+> -			return ret;
+> -		}
+> -	}
+> -
+>  	return 0;
 
-> Do you think this could be added to
-> Documentation/devicetree/bindings/leds/common.txt, with perhaps enforcing it
-> in the LED framework? Bryan, what do you think?
+Would it make sense to make the clock_start and clock_stop operations optional 
+in the soc-camera core ?
 
-The patch [1] seems to address the issue.
-
-> The alternative would be to simply ignore it in the entity name, but then
-> the name of the device would be different in the LED framework and Media
-> controller.
->
-
-This is the case currently - the names are different. The post fixes
-are added only to media entity name. Perhaps they should be unified.
-
-
-[1] http://www.spinics.net/lists/linux-leds/msg03137.html
+>  }
+> 
+>  /* Called with .host_lock held */
+>  static void isi_camera_clock_stop(struct soc_camera_host *ici)
+>  {
+> -	struct atmel_isi *isi = ici->priv;
+> -
+> -	if (!IS_ERR(isi->mck))
+> -		clk_disable_unprepare(isi->mck);
+>  }
+> 
+>  static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
+> @@ -894,7 +878,6 @@ static int atmel_isi_probe_dt(struct atmel_isi *isi,
+> 
+>  	/* Default settings for ISI */
+>  	isi->pdata.full_mode = 1;
+> -	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
+>  	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
+> 
+>  	np = of_graph_get_next_endpoint(np, NULL);
+> @@ -970,21 +953,6 @@ static int atmel_isi_probe(struct platform_device
+> *pdev) INIT_LIST_HEAD(&isi->video_buffer_list);
+>  	INIT_LIST_HEAD(&isi->dma_desc_head);
+> 
+> -	/* ISI_MCK is the sensor master clock. It should be handled by the
+> -	 * sensor driver directly, as the ISI has no use for that clock. Make
+> -	 * the clock optional here while platforms transition to the correct
+> -	 * model.
+> -	 */
+> -	isi->mck = devm_clk_get(dev, "isi_mck");
+> -	if (!IS_ERR(isi->mck)) {
+> -		/* Set ISI_MCK's frequency, it should be faster than pixel
+> -		 * clock.
+> -		 */
+> -		ret = clk_set_rate(isi->mck, isi->pdata.mck_hz);
+> -		if (ret < 0)
+> -			return ret;
+> -	}
+> -
+>  	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
+>  				sizeof(struct fbd) * MAX_BUFFER_NUM,
+>  				&isi->fb_descriptors_phys,
 
 -- 
-Best Regards,
-Jacek Anaszewski
+Regards,
+
+Laurent Pinchart
+
