@@ -1,88 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:63482 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752490AbbC3Jwp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 05:52:45 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v3] Documentation: leds: Add description of v4l2-flash
- sub-device
-Date: Mon, 30 Mar 2015 11:52:27 +0200
-Message-id: <1427709149-15014-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:24558 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755303AbbCEL5U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2015 06:57:20 -0500
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 1/2] ARM: dts: exynos5420: add nodes for jpeg codec
+Date: Thu, 05 Mar 2015 12:56:35 +0100
+Message-id: <1425556596-3938-2-git-send-email-andrzej.p@samsung.com>
+In-reply-to: <1425556596-3938-1-git-send-email-andrzej.p@samsung.com>
+References: <1425556596-3938-1-git-send-email-andrzej.p@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch extends LED Flash class documention by
-the description of interactions with v4l2-flash sub-device.
-
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 ---
- Documentation/leds/leds-class-flash.txt |   46 +++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ arch/arm/boot/dts/exynos5420.dtsi | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-- extended description of v4l2_flash API
-
-diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-index 19bb673..9d45667 100644
---- a/Documentation/leds/leds-class-flash.txt
-+++ b/Documentation/leds/leds-class-flash.txt
-@@ -20,3 +20,49 @@ Following sysfs attributes are exposed for controlling flash LED devices:
- 	- max_flash_timeout
- 	- flash_strobe
- 	- flash_fault
+diff --git a/arch/arm/boot/dts/exynos5420.dtsi b/arch/arm/boot/dts/exynos5420.dtsi
+index 73c1851..c8722d9 100644
+--- a/arch/arm/boot/dts/exynos5420.dtsi
++++ b/arch/arm/boot/dts/exynos5420.dtsi
+@@ -775,6 +775,24 @@
+ 		iommus = <&sysmmu_gscl1>;
+ 	};
+ 
++	jpeg_0: jpeg@11F50000 {
++		compatible = "samsung,exynos5420-jpeg";
++		reg = <0x11F50000 0x1000>;
++		interrupts = <0 89 0>;
++		clock-names = "jpeg";
++		clocks = <&clock CLK_JPEG>;
++		iommus = <&sysmmu_jpeg>;
++	};
 +
++	jpeg_1: jpeg@11F60000 {
++		compatible = "samsung,exynos5420-jpeg";
++		reg = <0x11F60000 0x1000>;
++		interrupts = <0 168 0>;
++		clock-names = "jpeg";
++		clocks = <&clock CLK_JPEG2>;
++		iommus = <&sysmmu_jpeg2>;
++	};
 +
-+V4L2 Flash wrapper for flash LEDs
-+=================================
-+
-+A LED subsystem driver can be controlled also from the level of VideoForLinux2
-+subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
-+be defined in the kernel config.
-+
-+The driver must call the v4l2_flash_init function to get registered in the
-+V4L2 subsystem. The function takes three arguments:
-+- fled_cdev : the LED Flash class device to wrap
-+- ops : V4L2 specific ops
-+	* external_strobe_set - defines the source of the flash LED strobe -
-+		V4L2_CID_FLASH_STROBE control or external source, typically
-+		a sensor, which makes it possible to synchronise the flash
-+		strobe start with exposure start,
-+	* intensity_to_led_brightness and led_brightness_to_intensity - perform
-+		enum led_brightness <-> V4L2 intensity conversion in a device
-+		specific manner - they can be used for devices with non-linear
-+		LED current scale.
-+- config : configuration for V4L2 Flash sub-device
-+	* dev_name - the name of the media entity, unique in the system,
-+	* flash_faults - bitmask of flash faults that the LED Flash class
-+		device can report; corresponding LED_FAULT* bit definitions are
-+		available in <linux/led-class-flash.h>,
-+	* intensity - constraints for the LED in the TORCH or INDICATOR mode,
-+		in microamperes,
-+	* has_external_strobe - external strobe capability,
-+	* indicator_led - signifies that a led is of indicator type, which
-+		implies that it can have only two V4L2 controls:
-+		V4L2_CID_FLASH_INDICATOR_INTENSITY and V4L2_CID_FLASH_FAULT.
-+
-+On remove the v4l2_flash_release function has to be called, which takes one
-+argument - struct v4l2_flash pointer returned previously by v4l2_flash_init.
-+
-+Please refer to the drivers/leds/leds-max77693.c for an exemplary usage of the
-+v4l2-flash API.
-+
-+Once the V4L2 sub-device is registered by the driver which created the Media
-+controller device, the sub-device node acts just as a node of a native V4L2
-+flash API device would. The calls are simply routed to the LED flash API.
-+
-+Opening the V4L2 Flash sub-device makes the LED subsystem sysfs interface
-+unavailable. The interface is re-enabled after the V4L2 Flash sub-device
-+is closed.
+ 	pmu_system_controller: system-controller@10040000 {
+ 		compatible = "samsung,exynos5420-pmu", "syscon";
+ 		reg = <0x10040000 0x5000>;
 -- 
-1.7.9.5
+1.9.1
 
