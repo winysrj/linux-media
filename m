@@ -1,101 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:39231 "EHLO
-	relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750920AbbCJOPo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2015 10:15:44 -0400
-Message-ID: <1425996895.11726.3.camel@hadess.net>
-Subject: Re: [RFC v2 2/7] media: rc: Add cec protocol handling
-From: Bastien Nocera <hadess@hadess.net>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: 'Mauro Carvalho Chehab' <mchehab@osg.samsung.com>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:14863 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751430AbbCFQPN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2015 11:15:13 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NKS00MYQTBXX450@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 06 Mar 2015 16:19:09 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sean Young' <sean@mess.org>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
 	Marek Szyprowski <m.szyprowski@samsung.com>,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	thomas@tommie-lie.de, sean@mess.org, linux-input@vger.kernel.org
-Date: Tue, 10 Mar 2015 15:14:55 +0100
-In-Reply-To: <001a01d05b2a$26c71640$745542c0$%debski@samsung.com>
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de,
+	'Hans Verkuil' <hansverk@cisco.com>
 References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
-	 <1421942679-23609-3-git-send-email-k.debski@samsung.com>
-	 <20150308112033.7d807164@recife.lan>
-	 <000801d05a85$2c83f4e0$858bdea0$%debski@samsung.com>
-	 <1425919423.1421.14.camel@hadess.net>
-	 <001a01d05b2a$26c71640$745542c0$%debski@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+ <1421942679-23609-4-git-send-email-k.debski@samsung.com>
+ <20150123110747.GA3084@gofer.mess.org>
+In-reply-to: <20150123110747.GA3084@gofer.mess.org>
+Subject: RE: [RFC v2 3/7] cec: add new framework for cec support.
+Date: Fri, 06 Mar 2015 17:14:50 +0100
+Message-id: <086501d05828$b88bf320$29a3d960$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2015-03-10 at 13:02 +0100, Kamil Debski wrote:
-> Hi Bastien,
+Hi Sean, Hans,
+
+I am sorry to reply so late, I was busy with other work. I am preparing the
+next version
+of the CEC framework and I would like to discuss your comment.
+
+From: Sean Young [mailto:sean@mess.org]
+Sent: Friday, January 23, 2015 12:08 PM
 > 
-> From: Bastien Nocera [mailto:hadess@hadess.net]
-> Sent: Monday, March 09, 2015 5:44 PM
-> > 
-> > On Mon, 2015-03-09 at 17:22 +0100, Kamil Debski wrote:
-> > > Hi Mauro,
-> > > 
-> > > From: Mauro Carvalho Chehab [mailto:mchehab@osg.samsung.com]
-> > > Sent: Sunday, March 08, 2015 3:21 PM
-> > > 
-> > > > Em Thu, 22 Jan 2015 17:04:34 +0100
-> > > > Kamil Debski <k.debski@samsung.com> escreveu:
-> > > > 
-> > > > (c/c linux-input ML)
-> > > > 
-> > > > > Add cec protocol handling the RC framework.
-> > > > 
-> > > > I added some comments, that reflects my understanding from 
-> > > > what's there at the keymap definitions found at:
-> > > >         http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
-> > > 
-> > > Thank you very much for the review, Mauro. Your comments are very
-> > much
-> > > appreciated.
-> > 
-> > How does one use this new support? If I plug in my laptop to my 
-> > TV, will using the TV's remote automatically send those key events 
-> > to the laptop?
+> On Thu, Jan 22, 2015 at 05:04:35PM +0100, Kamil Debski wrote:
+> > Add the CEC framework.
+> -snip-
+> > +Remote control handling
+> > +-----------------------
+> > +
+> > +The CEC framework provides two ways of handling the key messages of
+> > +remote control. In the first case, the CEC framework will handle
+> > +these messages and provide the keypressed via the RC framework. In
+> > +the second case the messages related to the key down/up events are
+> > +not parsed by the framework and are passed to the userspace as raw
+> messages.
+> > +
+> > +Switching between these modes is done with a special ioctl.
+> > +
+> > +#define CEC_G_KEY_PASSTHROUGH	_IOR('a', 10, __u8)
+> > +#define CEC_S_KEY_PASSTHROUGH	_IOW('a', 11, __u8)
+> > +#define CEC_KEY_PASSTHROUGH_DISABLE	0
+> > +#define CEC_KEY_PASSTHROUGH_ENABLE	1
 > 
-> It depends on the hardware that is used in your laptop to handle 
-> HDMI. If there is hardware support for CEC then this framework can 
-> be used to create a driver for the laptop's HDMI hardware. Then the 
-> laptop will be able to communicate with the TV over CEC - this 
-> includes receiving key events from the TV.
+> This is ugly. This ioctl stops keypresses from going to rc-core. The
+> cec device is still registered with rc-core but no keys will be passed
+> to it.
+> This could also be handled by loading an empty keymap; this way the
+> input layer will still receive scancodes but no keypresses.
+
+I see here a few options that can be done:
+
+1) Remove the past through option altogether
+I think I would opt for leaving it. There should be some mode that would
+enable
+raw access to the CEC bus. Maybe it should be something more like a
+promiscuous mode
+in Wi-Fi networks. What do you think? Sean, Hans?
+
+2) Leave the pass through mode, but without disabling passing the keyup/down
+events to
+the RC framework. This way an application could capture all messages, but
+the input device
+would not be crippled in any way. The problem with this solution is that key
+presses could
+be accounted twice.
+
+3) As you suggested - load an empty keymap whenever the pass through mode is
+enabled.
+I am not that familiar with the RC core. Is there a simple way to switch to
+an empty map
+from the kernel? There is the ir_setkeytable function, but it is static in
+rc-main.c, so it
+cannot be used in other kernel modules. Any hints, Sean?
+
+4) Remove the input device whenever a pass through mode is enabled. This is
+an alternative to
+the solution number 3. I think it would not be great, because a
+/dev/input/event* that appears
+and disappears could be confusing.
+
 > 
-> Currently there are some CEC devices (and drivers) that enable Linux 
-> to use CEC, but there is no generic framework for CEC in the Linux 
-> kernel. My goal is to introduce such a framework, such that 
-> userspace application could work with different hardware using the 
-> same interface.
+> > +static ssize_t cec_read(struct file *filp, char __user *buf,
+> > +		size_t sz, loff_t *off)
+> > +{
+> > +	struct cec_devnode *cecdev = cec_devnode_data(filp);
+> > +
+> > +	if (!cec_devnode_is_registered(cecdev))
+> > +		return -EIO;
+> > +	return 0;
+> > +}
+> > +
+> > +static ssize_t cec_write(struct file *filp, const char __user *buf,
+> > +		size_t sz, loff_t *off)
+> > +{
+> > +	struct cec_devnode *cecdev = cec_devnode_data(filp);
+> > +
+> > +	if (!cec_devnode_is_registered(cecdev))
+> > +		return -EIO;
+> > +	return 0;
+> > +}
 > 
-> Getting back to your question - using this framework. There should 
-> be some initialization done by a user space application:
-> - enabling CEC (if needed by the hardware/driver)
+> Both read and write do nothing; they should either -ENOSYS or the
+> fuctions should be removed.
+> 
 
-I have 2 machines that this could work on, a Intel Baytrail tablet, 
-and a laptop with Intel Haswell. Is that part going to be covered by 
-your library, or will there be a drm API for that?
+I agree, I removed this for the next version.
 
-> - configuring the connection (e.g. what kind of device should the
->   laptop appear as, request the TV to pass remote control keys, etc.)
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
 
-That's done through the CEC API as well?
 
-> - the TV will also send other CEC messages to the laptop, hence the
->   application should listen for such messages and act accordingly
-
-That's easier to deal with :)
-
-Something like LIRC can be used in the short-term.
-
-> How this should be done userspace? Definitely, it would be a good 
-> idea to use a library. Maybe a deamon that does the steps mentioned 
-> above would be a good idea? I am working on a simple library 
-> implementation that would wrap the kernel ioctls and provide a more 
-> user friendly API.
-
-Great. Do drop me a mail when you have something that I could test.
-
-Cheers
