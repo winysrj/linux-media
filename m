@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35393 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751025AbbCHHyW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Mar 2015 03:54:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/4] videodev2.h: fix comment
-Date: Sun,  8 Mar 2015 08:53:32 +0100
-Message-Id: <1425801213-14230-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425801213-14230-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425801213-14230-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:35446 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750869AbbCFCjr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2015 21:39:47 -0500
+Date: Fri, 6 Mar 2015 08:09:40 +0530
+From: Tapasweni Pathak <tapaswenipathak@gmail.com>
+To: hverkuil@xs4all.nl, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tapaswenipathak@gmail.com, julia.lawall@lip6.fr
+Subject: [PATCH] drivers: media: platform: vivid: Fix possible null derefrence
+Message-ID: <20150306023940.GA6451@kt-Inspiron-3542>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Check for dev_fmt being null before derefrencing it, to assign it
+to planes.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Found using Coccinelle.
+
+Signed-off-by: Tapasweni Pathak <tapaswenipathak@gmail.com>
+Acked-by: Julia Lawall <julia.lawall@lip6.fr>
 ---
- include/uapi/linux/videodev2.h | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/media/platform/vivid/vivid-vid-out.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index fbdc360..15b21e4 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -268,9 +268,10 @@ enum v4l2_ycbcr_encoding {
- 
- enum v4l2_quantization {
- 	/*
--	 * The default for R'G'B' quantization is always full range. For
--	 * Y'CbCr the quantization is always limited range, except for
--	 * SYCC, XV601, XV709 or JPEG: those are full range.
-+	 * The default for R'G'B' quantization is always full range, except
-+	 * for the BT2020 colorspace. For Y'CbCr the quantization is always
-+	 * limited range, except for COLORSPACE_JPEG, SYCC, XV601 or XV709:
-+	 * those are full range.
- 	 */
- 	V4L2_QUANTIZATION_DEFAULT     = 0,
- 	V4L2_QUANTIZATION_FULL_RANGE  = 1,
--- 
-2.1.4
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index 39ff79f..8f081bb 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -114,7 +114,7 @@ static int vid_out_buf_prepare(struct vb2_buffer *vb)
+ {
+ 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
+ 	unsigned long size;
+-	unsigned planes = dev->fmt_out->planes;
++	unsigned planes;
+ 	unsigned p;
+
+ 	dprintk(dev, 1, "%s\n", __func__);
+@@ -122,6 +122,8 @@ static int vid_out_buf_prepare(struct vb2_buffer *vb)
+ 	if (WARN_ON(NULL == dev->fmt_out))
+ 		return -EINVAL;
+
++	planes = dev->fmt_out->planes;
++
+ 	if (dev->buf_prepare_error) {
+ 		/*
+ 		 * Error injection: test what happens if buf_prepare() returns
+--
+1.7.9.5
 
