@@ -1,95 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59561 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757870AbbCDOvz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 09:51:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH v6 4/8] v4l: Add VUY8 24 bits bus format
-Date: Wed,  4 Mar 2015 16:51:45 +0200
-Message-Id: <1425480709-7545-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1425480709-7545-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1425480709-7545-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:54335 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933952AbbCFKc4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2015 05:32:56 -0500
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv2 1/2] ARM: dts: exynos5420: add nodes for jpeg codec
+Date: Fri, 06 Mar 2015 11:32:39 +0100
+Message-id: <1425637960-10687-2-git-send-email-andrzej.p@samsung.com>
+In-reply-to: <1425637960-10687-1-git-send-email-andrzej.p@samsung.com>
+References: <1425637960-10687-1-git-send-email-andrzej.p@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hyun Kwon <hyun.kwon@xilinx.com>
-
-Add VUY8 24 bits bus format, V4L2_MBUS_FMT_VUY8_1X24.
-
-Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 ---
- Documentation/DocBook/media/v4l/subdev-formats.xml | 30 ++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h              |  3 ++-
- 2 files changed, 32 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/exynos5420.dtsi | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 9bfd468..bc8d3fb 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -3015,6 +3015,36 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-VUY8-1X24">
-+	      <entry>MEDIA_BUS_FMT_VUY8_1X24</entry>
-+	      <entry>0x201a</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="MEDIA-BUS-FMT-UYVY12-1X24">
- 	      <entry>MEDIA_BUS_FMT_UYVY12_1X24</entry>
- 	      <entry>0x2020</entry>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 363a30f..d391893 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -50,7 +50,7 @@
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
- #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
+diff --git a/arch/arm/boot/dts/exynos5420.dtsi b/arch/arm/boot/dts/exynos5420.dtsi
+index 73c1851..f8f583c 100644
+--- a/arch/arm/boot/dts/exynos5420.dtsi
++++ b/arch/arm/boot/dts/exynos5420.dtsi
+@@ -775,6 +775,22 @@
+ 		iommus = <&sysmmu_gscl1>;
+ 	};
  
--/* YUV (including grey) - next is	0x2024 */
-+/* YUV (including grey) - next is	0x2025 */
- #define MEDIA_BUS_FMT_Y8_1X8			0x2001
- #define MEDIA_BUS_FMT_UV8_1X8			0x2015
- #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-@@ -80,6 +80,7 @@
- #define MEDIA_BUS_FMT_VYUY10_1X20		0x201b
- #define MEDIA_BUS_FMT_YUYV10_1X20		0x200d
- #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
-+#define MEDIA_BUS_FMT_VUY8_1X24			0x2024
- #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
- #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
- #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
++	jpeg_0: jpeg@11F50000 {
++		compatible = "samsung,exynos5420-jpeg";
++		reg = <0x11F50000 0x1000>;
++		interrupts = <0 89 0>;
++		clock-names = "jpeg";
++		clocks = <&clock CLK_JPEG>;
++	};
++
++	jpeg_1: jpeg@11F60000 {
++		compatible = "samsung,exynos5420-jpeg";
++		reg = <0x11F60000 0x1000>;
++		interrupts = <0 168 0>;
++		clock-names = "jpeg";
++		clocks = <&clock CLK_JPEG2>;
++	};
++
+ 	pmu_system_controller: system-controller@10040000 {
+ 		compatible = "samsung,exynos5420-pmu", "syscon";
+ 		reg = <0x10040000 0x5000>;
 -- 
-2.0.5
+1.9.1
 
