@@ -1,150 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:62507 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752679AbbCQSdB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2015 14:33:01 -0400
-Message-ID: <55087351.5040300@gmx.com>
-Date: Tue, 17 Mar 2015 19:32:49 +0100
-From: Ole Ernst <olebowle@gmx.com>
-MIME-Version: 1.0
-To: Nibble Max <nibble.max@gmail.com>
-CC: "olli.salonen" <olli.salonen@iki.fi>,
-	Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: cx23885: DVBSky S952 dvb_register failed err = -22
-References: <5504920C.7080806@gmx.com>, <55055E66.6040600@gmx.com>, <550563B2.9010306@iki.fi> <201503170953368436904@gmail.com>
-In-Reply-To: <201503170953368436904@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:35605 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753638AbbCFDq5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Mar 2015 22:46:57 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 787CC2A01AF
+	for <linux-media@vger.kernel.org>; Fri,  6 Mar 2015 04:46:36 +0100 (CET)
+Date: Fri, 06 Mar 2015 04:46:36 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150306034636.787CC2A01AF@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Max,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I get a chip_id of 0x81, which returns -ENODEV in the default branch of
-the subsequent switch. So I guess my S952 is too old? :-( How hard would
-it be to add support for it?
+Results of the daily build of media_tree:
 
-Thanks,
-Ole
+date:		Fri Mar  6 04:00:14 CET 2015
+git branch:	test
+git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-5.slh.1-amd64
 
-Am 17.03.2015 um 02:53 schrieb Nibble Max:
-> Hello,
-> 
-> what is the "chip_id" debug output from m88ts2022 module?
-> 
-> I think you maybe hold the old S952 card.
-> Its satellite tuner is M88TS2020, not M88TS2022.
-> 
-> Best Regards,
-> Max
-> On 2015-03-15 19:07:07, Ole Ernst <olebowle@gmx.com> wrote:
->> Hi Antti,
->>
->> thanks for your quick response! Based on lsmod and modinfo I do have
->> m88ts2022.
->>
->> $ lsmod | grep m88
->> m88ts2022              16898  0
->> regmap_i2c             12783  1 m88ts2022
->> m88ds3103              21452  0
->> i2c_mux                12534  1 m88ds3103
->> dvb_core              102038  4 cx23885,altera_ci,m88ds3103,videobuf2_dvb
->> i2c_core               50240  13
->> drm,i2c_i801,cx23885,cx25840,m88ts2022,i2c_mux,regmap_i2c,nvidia,v4l2_common,tveeprom,m88ds3103,tda18271,videodev
->>
->> $ modinfo m88ts2022
->> filename:
->> /lib/modules/3.19.1-1-ARCH/kernel/drivers/media/tuners/m88ts2022.ko.gz
->> license:        GPL
->> author:         Antti Palosaari <crope@iki.fi>
->> description:    Montage M88TS2022 silicon tuner driver
->> alias:          i2c:m88ts2022
->> depends:        i2c-core,regmap-i2c
->> intree:         Y
->> vermagic:       3.19.1-1-ARCH SMP preempt mod_unload modversions
->>
->> Thanks,
->> Ole
->>
->> Am 15.03.2015 um 11:49 schrieb Antti Palosaari:
->>> You don't have m88ts2022 driver installed.
->>>
->>> Antti
->>>
->>> On 03/15/2015 12:26 PM, Ole Ernst wrote:
->>>> Hi,
->>>>
->>>> I added some printk in cx23885-dvb.c and the problem is in
->>>> i2c_new_device:
->>>> https://git.kernel.org/cgit/linux/kernel/git/stable/linux-stable.git/tree/drivers/media/pci/cx23885/cx23885-dvb.c?id=refs/tags/v3.19.1#n1935
->>>>
->>>>
->>>> The returned client_tuner is not NULL, but client_tuner->dev.driver is.
->>>> Hence it will goto frontend_detach, which will then return -EINVAL. Any
->>>> idea why client_tuner->dev.driver is NULL?
->>>>
->>>> Thanks,
->>>> Ole
->>>>
->>>> Am 14.03.2015 um 20:54 schrieb Ole Ernst:
->>>>> Hi,
->>>>>
->>>>> using linux-3.19.1-1 (Archlinux) I get the following output while
->>>>> booting without the media-build-tree provided by DVBSky:
->>>>>
->>>>> cx23885 driver version 0.0.4 loaded
->>>>> cx23885 0000:04:00.0: enabling device (0000 -> 0002)
->>>>> CORE cx23885[0]: subsystem: 4254:0952, board: DVBSky S952
->>>>> [card=50,autodetected]
->>>>> cx25840 3-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
->>>>> cx25840 3-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
->>>>> cx23885_dvb_register() allocating 1 frontend(s)
->>>>> cx23885[0]: cx23885 based dvb card
->>>>> i2c i2c-2: m88ds3103_attach: chip_id=70
->>>>> i2c i2c-2: Added multiplexed i2c bus 4
->>>>> cx23885_dvb_register() dvb_register failed err = -22
->>>>> cx23885_dev_setup() Failed to register dvb adapters on VID_B
->>>>> cx23885_dvb_register() allocating 1 frontend(s)
->>>>> cx23885[0]: cx23885 based dvb card
->>>>> i2c i2c-1: m88ds3103_attach: chip_id=70
->>>>> i2c i2c-1: Added multiplexed i2c bus 4
->>>>> cx23885_dvb_register() dvb_register failed err = -22
->>>>> cx23885_dev_setup() Failed to register dvb on VID_C
->>>>> cx23885_dev_checkrevision() Hardware revision = 0xa5
->>>>> cx23885[0]/0: found at 0000:04:00.0, rev: 4, irq: 17, latency: 0, mmio:
->>>>> 0xf7200000
->>>>>
->>>>> Obviously there are no device in /dev/dvb. Using the media-build-tree
->>>>> works just fine though. The following firmware files are installed in
->>>>> /usr/lib/firmware:
->>>>> dvb-demod-m88ds3103.fw
->>>>> dvb-demod-m88rs6000.fw
->>>>> dvb-demod-si2168-a20-01.fw
->>>>> dvb-demod-si2168-a30-01.fw
->>>>> dvb-demod-si2168-b40-01.fw
->>>>> dvb-fe-ds300x.fw
->>>>> dvb-fe-ds3103.fw
->>>>> dvb-fe-rs6000.fw
->>>>> dvb-tuner-si2158-a20-01.fw
->>>>>
->>>>> Output of lspci -vvvnn:
->>>>> https://gist.githubusercontent.com/olebowle/6a4108363a9d1f7dd033/raw/lscpi
->>>>>
->>>>>
->>>>> I also set the module parameters debug, i2c_debug, irq_debug and
->>>>> irq_debug in cx23885.
->>>>> The output is pretty verbose and can be found here:
->>>>> https://gist.githubusercontent.com/olebowle/6a4108363a9d1f7dd033/raw/debug.log
->>>>>
->>>>>
->>>>> Thanks,
->>>>> Ole
->>>>> -- 
->>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>> linux-media" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>
->>>
-> 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
