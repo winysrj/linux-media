@@ -1,69 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38556 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752481AbbCNOMN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 10:12:13 -0400
-Date: Sat, 14 Mar 2015 16:12:09 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	pali.rohar@gmail.com
-Subject: Re: [RFC 15/18] omap3isp: Add support for the Device Tree
-Message-ID: <20150314141209.GV11954@valkosipuli.retiisi.org.uk>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
- <1425764475-27691-16-git-send-email-sakari.ailus@iki.fi>
- <1977501.nIrQKlrSI0@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1977501.nIrQKlrSI0@avalon>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43481 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753003AbbCFKSf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2015 05:18:35 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 0/5] Signalling last decoded frame by V4L2_BUF_FLAG_LAST and -EPIPE
+Date: Fri,  6 Mar 2015 11:18:25 +0100
+Message-Id: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+At the V4L2 codec API session during ELC-E 2014, we agreed that for the decoder
+draining flow, after a V4L2_DEC_CMD_STOP decoder command was issued, the last
+decoded buffer should get dequeued with a V4L2_BUF_FLAG_LAST set. After that,
+poll should immediately return and all following VIDIOC_DQBUF should return
+-EPIPE until the stream is stopped or decoding continued via V4L2_DEC_CMD_START.
+(or STREAMOFF/STREAMON).
 
-On Thu, Mar 12, 2015 at 01:48:02AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Saturday 07 March 2015 23:41:12 Sakari Ailus wrote:
-> > Add the ISP device to omap3 DT include file and add support to the driver to
-> > use it.
-> > 
-> > Also obtain information on the external entities and the ISP configuration
-> > related to them through the Device Tree in addition to the platform data.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  drivers/media/platform/omap3isp/isp.c       |  206 ++++++++++++++++++++++--
-> >  drivers/media/platform/omap3isp/isp.h       |   11 ++
-> >  drivers/media/platform/omap3isp/ispcsiphy.c |    7 +
-> >  3 files changed, 213 insertions(+), 11 deletions(-)
-> 
-> [snip]
-> 
-> > @@ -2358,14 +2541,6 @@ static int isp_probe(struct platform_device *pdev)
-> >  	isp->mmio_hist_base_phys =
-> >  		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
-> > 
-> > -	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
-> > -	isp->syscon_offset = isp_res_maps[m].syscon_offset;
-> 
-> You're removing syscon_offset initialization here but not adding it anywhere 
-> else. This patch doesn't match the commit in your rm696-053-upstream branch, 
-> could you send the right version ? I'll then review it.
+Changes since v2:
+ - Made V4L2_BUF_FLAG_LAST known to trace events
 
-Yeah, there have been quite a few changes since I posted this RFC set, this
-including. I'll post a new version once I've been able to take into account
-all the comments I've got so far.
+regards
+Philipp
 
-It'd be nice if someone could test the pdata support; I haven't had a chance
-to do that in a few years now. :-)
+Peter Seiderer (1):
+  [media] videodev2: Add V4L2_BUF_FLAG_LAST
+
+Philipp Zabel (4):
+  [media] videobuf2: return -EPIPE from DQBUF after the last buffer
+  [media] coda: Set last buffer flag and fix EOS event
+  [media] s5p-mfc: Set last buffer flag
+  [media] DocBooc: mention mem2mem codecs for encoder/decoder commands
+
+ Documentation/DocBook/media/v4l/io.xml             | 10 ++++++++
+ .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  6 ++++-
+ .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |  5 +++-
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |  8 +++++++
+ drivers/media/platform/coda/coda-bit.c             |  4 ++--
+ drivers/media/platform/coda/coda-common.c          | 27 +++++++++-------------
+ drivers/media/platform/coda/coda.h                 |  3 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |  1 +
+ drivers/media/v4l2-core/v4l2-mem2mem.c             | 10 +++++++-
+ drivers/media/v4l2-core/videobuf2-core.c           | 18 ++++++++++++++-
+ include/media/videobuf2-core.h                     | 10 ++++++++
+ include/trace/events/v4l2.h                        |  3 ++-
+ include/uapi/linux/videodev2.h                     |  2 ++
+ 13 files changed, 84 insertions(+), 23 deletions(-)
 
 -- 
-Cheers,
+2.1.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
