@@ -1,170 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54482 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752988AbbCHPls (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Mar 2015 11:41:48 -0400
-Date: Sun, 8 Mar 2015 12:41:41 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: 'Sean Young' <sean@mess.org>, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	thomas@tommie-lie.de, 'Hans Verkuil' <hansverk@cisco.com>
-Subject: Re: [RFC v2 3/7] cec: add new framework for cec support.
-Message-ID: <20150308124141.0bce2846@recife.lan>
-In-Reply-To: <086501d05828$b88bf320$29a3d960$%debski@samsung.com>
-References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
-	<1421942679-23609-4-git-send-email-k.debski@samsung.com>
-	<20150123110747.GA3084@gofer.mess.org>
-	<086501d05828$b88bf320$29a3d960$%debski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43485 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754015AbbCFKSf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2015 05:18:35 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 2/5] [media] videobuf2: return -EPIPE from DQBUF after the last buffer
+Date: Fri,  6 Mar 2015 11:18:27 +0100
+Message-Id: <1425637110-12100-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
+References: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 06 Mar 2015 17:14:50 +0100
-Kamil Debski <k.debski@samsung.com> escreveu:
+If the last buffer was dequeued from a capture queue, let poll return
+immediately and let DQBUF return -EPIPE to signal there will no more
+buffers to dequeue until STREAMOFF.
+The driver signals the last buffer by setting the V4L2_BUF_FLAG_LAST.
+To reenable dequeuing on the capture queue, the driver must explicitly
+call vb2_clear_last_buffer_queued. The last buffer queued flag is
+cleared automatically during STREAMOFF.
 
-> Hi Sean, Hans,
-> 
-> I am sorry to reply so late, I was busy with other work. I am preparing the
-> next version
-> of the CEC framework and I would like to discuss your comment.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml |  8 ++++++++
+ drivers/media/v4l2-core/v4l2-mem2mem.c          | 10 +++++++++-
+ drivers/media/v4l2-core/videobuf2-core.c        | 18 +++++++++++++++++-
+ include/media/videobuf2-core.h                  | 10 ++++++++++
+ 4 files changed, 44 insertions(+), 2 deletions(-)
 
-I'll do a deeper review of this patch when I have some time. For now,
-let me add my comments about the pass-trough mode. See below.
+diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+index 3504a7f..6cfc53b 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+@@ -186,6 +186,14 @@ In that case the application should be able to safely reuse the buffer and
+ continue streaming.
+ 	</para>
+ 	</listitem>
++	<term><errorcode>EPIPE</errorcode></term>
++	<listitem>
++	  <para><constant>VIDIOC_DQBUF</constant> returns this on an empty
++capture queue for mem2mem codecs if a buffer with the
++<constant>V4L2_BUF_FLAG_LAST</constant> was already dequeued and no new buffers
++are expected to become available.
++	</para>
++	</listitem>
+       </varlistentry>
+     </variablelist>
+   </refsect1>
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 80c588f..1b5b432 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -564,8 +564,16 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 
+ 	if (list_empty(&src_q->done_list))
+ 		poll_wait(file, &src_q->done_wq, wait);
+-	if (list_empty(&dst_q->done_list))
++	if (list_empty(&dst_q->done_list)) {
++		/*
++		 * If the last buffer was dequeued from the capture queue,
++		 * return immediately. DQBUF will return -EPIPE.
++		 */
++		if (dst_q->last_buffer_dequeued)
++			return rc | POLLIN | POLLRDNORM;
++
+ 		poll_wait(file, &dst_q->done_wq, wait);
++	}
+ 
+ 	if (m2m_ctx->m2m_dev->m2m_ops->lock)
+ 		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index bc08a82..a0b9946 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2046,6 +2046,10 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 	struct vb2_buffer *vb = NULL;
+ 	int ret;
+ 
++	if (q->last_buffer_dequeued) {
++		dprintk(3, "last buffer dequeued already\n");
++		return -EPIPE;
++	}
+ 	if (b->type != q->type) {
+ 		dprintk(1, "invalid buffer type\n");
+ 		return -EINVAL;
+@@ -2073,6 +2077,9 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 	/* Remove from videobuf queue */
+ 	list_del(&vb->queued_entry);
+ 	q->queued_count--;
++	if (!V4L2_TYPE_IS_OUTPUT(q->type) &&
++	    vb->v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
++		q->last_buffer_dequeued = true;
+ 	/* go back to dequeued state */
+ 	__vb2_dqbuf(vb);
+ 
+@@ -2286,6 +2293,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
+ 	 */
+ 	__vb2_queue_cancel(q);
+ 	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
++	q->last_buffer_dequeued = false;
+ 
+ 	dprintk(3, "successful\n");
+ 	return 0;
+@@ -2628,8 +2636,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	if (V4L2_TYPE_IS_OUTPUT(q->type) && q->queued_count < q->num_buffers)
+ 		return res | POLLOUT | POLLWRNORM;
+ 
+-	if (list_empty(&q->done_list))
++	if (list_empty(&q->done_list)) {
++		/*
++		 * If the last buffer was dequeued from a capture queue,
++		 * return immediately. DQBUF will return -EPIPE.
++		 */
++		if (!V4L2_TYPE_IS_OUTPUT(q->type) && q->last_buffer_dequeued)
++			return res | POLLIN | POLLRDNORM;
++
+ 		poll_wait(file, &q->done_wq, wait);
++	}
+ 
+ 	/*
+ 	 * Take first buffer available for dequeuing.
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index bd2cec2..863a8bb 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -429,6 +429,7 @@ struct vb2_queue {
+ 	unsigned int			start_streaming_called:1;
+ 	unsigned int			error:1;
+ 	unsigned int			waiting_for_buffers:1;
++	unsigned int			last_buffer_dequeued:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
+ 	struct vb2_threadio_data	*threadio;
+@@ -609,6 +610,15 @@ static inline bool vb2_start_streaming_called(struct vb2_queue *q)
+ 	return q->start_streaming_called;
+ }
+ 
++/**
++ * vb2_clear_last_buffer_dequeued() - clear last buffer dequeued flag of queue
++ * @q:		videobuf queue
++ */
++static inline void vb2_clear_last_buffer_dequeued(struct vb2_queue *q)
++{
++	q->last_buffer_dequeued = false;
++}
++
+ /*
+  * The following functions are not part of the vb2 core API, but are simple
+  * helper functions that you can use in your struct v4l2_file_operations,
+-- 
+2.1.4
 
-> 
-> From: Sean Young [mailto:sean@mess.org]
-> Sent: Friday, January 23, 2015 12:08 PM
-> > 
-> > On Thu, Jan 22, 2015 at 05:04:35PM +0100, Kamil Debski wrote:
-> > > Add the CEC framework.
-> > -snip-
-> > > +Remote control handling
-> > > +-----------------------
-> > > +
-> > > +The CEC framework provides two ways of handling the key messages of
-> > > +remote control. In the first case, the CEC framework will handle
-> > > +these messages and provide the keypressed via the RC framework. In
-> > > +the second case the messages related to the key down/up events are
-> > > +not parsed by the framework and are passed to the userspace as raw
-> > messages.
-> > > +
-> > > +Switching between these modes is done with a special ioctl.
-> > > +
-> > > +#define CEC_G_KEY_PASSTHROUGH	_IOR('a', 10, __u8)
-> > > +#define CEC_S_KEY_PASSTHROUGH	_IOW('a', 11, __u8)
-> > > +#define CEC_KEY_PASSTHROUGH_DISABLE	0
-> > > +#define CEC_KEY_PASSTHROUGH_ENABLE	1
-> > 
-> > This is ugly. This ioctl stops keypresses from going to rc-core. The
-> > cec device is still registered with rc-core but no keys will be passed
-> > to it.
-> > This could also be handled by loading an empty keymap; this way the
-> > input layer will still receive scancodes but no keypresses.
-> 
-> I see here a few options that can be done:
-> 
-> 1) Remove the past through option altogether
-> I think I would opt for leaving it. There should be some mode that would
-> enable
-> raw access to the CEC bus. Maybe it should be something more like a
-> promiscuous mode
-> in Wi-Fi networks. What do you think? Sean, Hans?
-> 
-> 2) Leave the pass through mode, but without disabling passing the keyup/down
-> events to
-> the RC framework. This way an application could capture all messages, but
-> the input device
-> would not be crippled in any way. The problem with this solution is that key
-> presses could
-> be accounted twice.
-> 
-> 3) As you suggested - load an empty keymap whenever the pass through mode is
-> enabled.
-> I am not that familiar with the RC core. Is there a simple way to switch to
-> an empty map
-> from the kernel? There is the ir_setkeytable function, but it is static in
-> rc-main.c, so it
-> cannot be used in other kernel modules. Any hints, Sean?
-> 
-> 4) Remove the input device whenever a pass through mode is enabled. This is
-> an alternative to
-> the solution number 3. I think it would not be great, because a
-> /dev/input/event* that appears
-> and disappears could be confusing.
-
-(4) doesn't seem nice.
-
-I don't think that the driver itself should cleanup the keymap. This is
-something that the userspace app(s) should explicitly request.
-
-With regards to the "raw" mode, the RC core currently has two ways to
-send/receive raw data:
-
-1) Via LIRC. This needs to be extended to pass scancodes, as, currently,
-it sends/receive pulses. We need such extension for other usages, anyway,
-so adding it makes sense.
-
-2) The input layer actually provide several types of events on a key
-press. One of such events carry on the scancode:
-
-1425828993.018962: event type EV_KEY(0x01) key_down: KEY_VOLUMEDOWN(0x0001)
-1425828993.018962: event type EV_SYN(0x00).
-1425828993.131823: event type EV_KEY(0x01) key_up: KEY_VOLUMEDOWN(0x0001)
-1425828993.131823: event type EV_MSC(0x04): scancode = 0x1e
-1425828993.131823: event type EV_SYN(0x00).
-
-The EV_KEY events has the Linux Keycode, plus the info if the key
-was pressed or released, while the EV_MSC has the scancode. 
-
-So, I'm not seeing much usage of a pass-through mode, as, even without
-LIRC, the userspace could simply cleanup the key map, and listen to EV_MSC:
-
-$ sudo ir-keytable -c -t
-Old keytable cleared
-Testing events. Please, press CTRL-C to abort.
-1425829137.721737: event type EV_MSC(0x04): scancode = 0x1b
-1425829137.721737: event type EV_SYN(0x00).
-1425829139.318249: event type EV_MSC(0x04): scancode = 0x18
-1425829139.318249: event type EV_SYN(0x00).
-...
-
-Yet, the best would be for the application is to setup the key map it
-needs, and just use the standard Linux way: wait for EV_KEY events.
-
-Regards,
-Mauro
-
-> 
-> > 
-> > > +static ssize_t cec_read(struct file *filp, char __user *buf,
-> > > +		size_t sz, loff_t *off)
-> > > +{
-> > > +	struct cec_devnode *cecdev = cec_devnode_data(filp);
-> > > +
-> > > +	if (!cec_devnode_is_registered(cecdev))
-> > > +		return -EIO;
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static ssize_t cec_write(struct file *filp, const char __user *buf,
-> > > +		size_t sz, loff_t *off)
-> > > +{
-> > > +	struct cec_devnode *cecdev = cec_devnode_data(filp);
-> > > +
-> > > +	if (!cec_devnode_is_registered(cecdev))
-> > > +		return -EIO;
-> > > +	return 0;
-> > > +}
-> > 
-> > Both read and write do nothing; they should either -ENOSYS or the
-> > fuctions should be removed.
-> > 
-> 
-> I agree, I removed this for the next version.
-> 
-> Best wishes,
