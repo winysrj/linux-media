@@ -1,101 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53603 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751053AbbCLWXb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2015 18:23:31 -0400
-Date: Fri, 13 Mar 2015 00:23:27 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	pali.rohar@gmail.com
-Subject: Re: [RFC 13/18] v4l: of: Read lane-polarity endpoint property
-Message-ID: <20150312222327.GM11954@valkosipuli.retiisi.org.uk>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
- <1425764475-27691-14-git-send-email-sakari.ailus@iki.fi>
- <5943571.XgR4Bv1QGx@avalon>
+Received: from eusmtp01.atmel.com ([212.144.249.243]:12193 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753221AbbCFKQe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2015 05:16:34 -0500
+Message-ID: <54F97E7E.1000109@atmel.com>
+Date: Fri, 6 Mar 2015 18:16:30 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5943571.XgR4Bv1QGx@avalon>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	<linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH 1/3] media: atmel-isi: move the peripheral clock to start/stop_stream()
+ function
+References: <1425531661-20040-1-git-send-email-josh.wu@atmel.com> <1425531661-20040-2-git-send-email-josh.wu@atmel.com> <16387779.aQaQKCyNOp@avalon>
+In-Reply-To: <16387779.aQaQKCyNOp@avalon>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On Sun, Mar 08, 2015 at 01:49:26AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
+On 3/5/2015 6:39 PM, Laurent Pinchart wrote:
+> Hi Josh,
+>
 > Thank you for the patch.
-> 
-> On Saturday 07 March 2015 23:41:10 Sakari Ailus wrote:
-> > Add lane_polarity field to struct v4l2_of_bus_mipi_csi2 and write the
-> > contents of the lane polarity property to it. The field tells the polarity
-> > of the physical lanes starting from the first one. Any unused lanes are
-> > ignored, i.e. only the polarity of the used lanes is specified.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-of.c |   21 ++++++++++++++++-----
-> >  include/media/v4l2-of.h           |    3 +++
-> >  2 files changed, 19 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-of.c
-> > b/drivers/media/v4l2-core/v4l2-of.c index b4ed9a9..a7a855e 100644
-> > --- a/drivers/media/v4l2-core/v4l2-of.c
-> > +++ b/drivers/media/v4l2-core/v4l2-of.c
-> > @@ -23,7 +23,6 @@ static void v4l2_of_parse_csi_bus(const struct device_node
-> > *node, struct v4l2_of_endpoint *endpoint)
-> >  {
-> >  	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
-> > -	u32 data_lanes[ARRAY_SIZE(bus->data_lanes)];
-> >  	struct property *prop;
-> >  	bool have_clk_lane = false;
-> >  	unsigned int flags = 0;
-> > @@ -34,14 +33,26 @@ static void v4l2_of_parse_csi_bus(const struct
-> > device_node *node, const __be32 *lane = NULL;
-> >  		int i;
-> > 
-> > -		for (i = 0; i < ARRAY_SIZE(data_lanes); i++) {
-> > -			lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
-> > +		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
-> > +			lane = of_prop_next_u32(prop, lane, &v);
-> >  			if (!lane)
-> >  				break;
-> > +			bus->data_lanes[i] = v;
-> >  		}
-> >  		bus->num_data_lanes = i;
-> > -		while (i--)
-> > -			bus->data_lanes[i] = data_lanes[i];
-> > +	}
-> > +
-> > +	prop = of_find_property(node, "lane-polarity", NULL);
-> > +	if (prop) {
-> > +		const __be32 *polarity = NULL;
-> > +		int i;
-> 
-> Could you please use unsigned int instead of int as the loop index can't have 
-> negative value ? Feel free to fix the index in the previous loop too :-)
+>
+> On Thursday 05 March 2015 13:00:59 Josh Wu wrote:
+>> As the clock_start/stop() use to control the mclk for the sensor not the
+>> ISI peripheral clock.
+>> So we move them to start/stop_stream() function.
+> Then the driver will access registers with the peripheral clock disabled, for
+> instance in isi_camera_set_fmt() (calling configure_geometry),
+> isi_camera_set_bus_param() or atmel_isi_probe(). Isn't that a problem ? Or are
+> all registers guaranteed to be accessible (and retained) when the clock is
+> disabled ?
 
-Fixed both.
+So far, I don't see any problem yet. But I'd like to be sure of that. 
+I'll give you the feedback after more test.
+Thanks for make me head up.
 
-> > +
-> > +		for (i = 0; i < ARRAY_SIZE(bus->lane_polarity); i++) {
-> > +			polarity = of_prop_next_u32(prop, polarity, &v);
-> > +			if (!polarity)
-> > +				break;
-> > +			bus->lane_polarity[i] = v;
-> > +		}
-> 
-> Should we check that i == num_data_lines + 1 ?
+Best Regards,
+Josh Wu
 
-Good question. I think I'd just replace this with
-of_property_read_u32_array() instead, how about that? Then there would have
-to be at least as many lane polarities defined as there are lanes (data and
-clock). Defining more wouldn't be an error.
+>
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>>
+>>   drivers/media/platform/soc_camera/atmel-isi.c | 12 ++++++------
+>>   1 file changed, 6 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+>> b/drivers/media/platform/soc_camera/atmel-isi.c index 1208818..eb179e7
+>> 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>> @@ -386,6 +386,10 @@ static int start_streaming(struct vb2_queue *vq,
+>> unsigned int count) struct atmel_isi *isi = ici->priv;
+>>   	int ret;
+>>
+>> +	ret = clk_prepare_enable(isi->pclk);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>>   	/* Reset ISI */
+>>   	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
+>>   	if (ret < 0) {
+>> @@ -445,6 +449,8 @@ static void stop_streaming(struct vb2_queue *vq)
+>>   	ret = atmel_isi_wait_status(isi, WAIT_ISI_DISABLE);
+>>   	if (ret < 0)
+>>   		dev_err(icd->parent, "Disable ISI timed out\n");
+>> +
+>> +	clk_disable_unprepare(isi->pclk);
+>>   }
+>>
+>>   static struct vb2_ops isi_video_qops = {
+>> @@ -723,14 +729,9 @@ static int isi_camera_clock_start(struct
+>> soc_camera_host *ici) struct atmel_isi *isi = ici->priv;
+>>   	int ret;
+>>
+>> -	ret = clk_prepare_enable(isi->pclk);
+>> -	if (ret)
+>> -		return ret;
+>> -
+>>   	if (!IS_ERR(isi->mck)) {
+>>   		ret = clk_prepare_enable(isi->mck);
+>>   		if (ret) {
+>> -			clk_disable_unprepare(isi->pclk);
+>>   			return ret;
+>>   		}
+>>   	}
+>> @@ -745,7 +746,6 @@ static void isi_camera_clock_stop(struct soc_camera_host
+>> *ici)
+>>
+>>   	if (!IS_ERR(isi->mck))
+>>   		clk_disable_unprepare(isi->mck);
+>> -	clk_disable_unprepare(isi->pclk);
+>>   }
+>>
+>>   static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
 
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
