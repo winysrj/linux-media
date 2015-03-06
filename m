@@ -1,117 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:37500 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809AbbCGQM0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 11:12:26 -0500
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: am437x-vpfe: embed video_device struct in vpfe_device
-Date: Sat,  7 Mar 2015 16:12:09 +0000
-Message-Id: <1425744729-29379-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43487 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754094AbbCFKSf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2015 05:18:35 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 3/5] [media] coda: Set last buffer flag and fix EOS event
+Date: Fri,  6 Mar 2015 11:18:28 +0100
+Message-Id: <1425637110-12100-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
+References: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Setting the last buffer flag causes the videobuf2 core to return -EPIPE from
+DQBUF calls on the capture queue after the last buffer is dequeued.
+This patch also fixes the EOS event to conform to the specification. It now is
+sent right after the last buffer has been decoded instead of when the last
+buffer is dequeued.
 
-Embed video_device struct (video_dev) in vpfe_device and
-Unregister path doesn't need to free the video_device
-structure, hence, change the video_device.release callback
-point to video_device_release_empty.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/am437x/am437x-vpfe.c | 21 ++++++---------------
- drivers/media/platform/am437x/am437x-vpfe.h |  2 +-
- 2 files changed, 7 insertions(+), 16 deletions(-)
+ drivers/media/platform/coda/coda-bit.c    |  4 ++--
+ drivers/media/platform/coda/coda-common.c | 27 +++++++++++----------------
+ drivers/media/platform/coda/coda.h        |  3 +++
+ 3 files changed, 16 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index 8e056eb..a30cc2f 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -2316,7 +2316,7 @@ vpfe_async_bound(struct v4l2_async_notifier *notifier,
- 		return -EINVAL;
- 	}
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 856b542..9ae0bfa 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1278,7 +1278,7 @@ static void coda_finish_encode(struct coda_ctx *ctx)
+ 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
  
--	vpfe->video_dev->tvnorms |= sdinfo->inputs[0].std;
-+	vpfe->video_dev.tvnorms |= sdinfo->inputs[0].std;
+ 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+-	v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
++	coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_DONE);
  
- 	/* setup the supported formats & indexes */
- 	for (j = 0, i = 0; ; ++j) {
-@@ -2389,9 +2389,9 @@ static int vpfe_probe_complete(struct vpfe_device *vpfe)
+ 	ctx->gopcounter--;
+ 	if (ctx->gopcounter < 0)
+@@ -1887,7 +1887,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		}
+ 		vb2_set_plane_payload(dst_buf, 0, payload);
  
- 	INIT_LIST_HEAD(&vpfe->dma_queue);
+-		v4l2_m2m_buf_done(dst_buf, ctx->frame_errors[display_idx] ?
++		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[display_idx] ?
+ 				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
  
--	vdev = vpfe->video_dev;
-+	vdev = &vpfe->video_dev;
- 	strlcpy(vdev->name, VPFE_MODULE_NAME, sizeof(vdev->name));
--	vdev->release = video_device_release;
-+	vdev->release = video_device_release_empty;
- 	vdev->fops = &vpfe_fops;
- 	vdev->ioctl_ops = &vpfe_ioctl_ops;
- 	vdev->v4l2_dev = &vpfe->v4l2_dev;
-@@ -2399,7 +2399,7 @@ static int vpfe_probe_complete(struct vpfe_device *vpfe)
- 	vdev->queue = q;
- 	vdev->lock = &vpfe->lock;
- 	video_set_drvdata(vdev, vpfe);
--	err = video_register_device(vpfe->video_dev, VFL_TYPE_GRABBER, -1);
-+	err = video_register_device(&vpfe->video_dev, VFL_TYPE_GRABBER, -1);
- 	if (err) {
- 		vpfe_err(vpfe,
- 			"Unable to register video device.\n");
-@@ -2564,17 +2564,11 @@ static int vpfe_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
+ 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 6f32e6d..f178ad3 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -705,35 +705,30 @@ static int coda_qbuf(struct file *file, void *priv,
+ }
  
--	vpfe->video_dev = video_device_alloc();
--	if (!vpfe->video_dev) {
--		dev_err(&pdev->dev, "Unable to allocate video device\n");
--		return -ENOMEM;
--	}
+ static bool coda_buf_is_end_of_stream(struct coda_ctx *ctx,
+-				      struct v4l2_buffer *buf)
++				      struct vb2_buffer *buf)
+ {
+ 	struct vb2_queue *src_vq;
+ 
+ 	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 
+ 	return ((ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG) &&
+-		(buf->sequence == (ctx->qsequence - 1)));
++		(buf->v4l2_buf.sequence == (ctx->qsequence - 1)));
+ }
+ 
+-static int coda_dqbuf(struct file *file, void *priv,
+-		      struct v4l2_buffer *buf)
++void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_buffer *buf,
++		       enum vb2_buffer_state state)
+ {
+-	struct coda_ctx *ctx = fh_to_ctx(priv);
+-	int ret;
++	const struct v4l2_event eos_event = {
++		.type = V4L2_EVENT_EOS
++	};
+ 
+-	ret = v4l2_m2m_dqbuf(file, ctx->fh.m2m_ctx, buf);
 -
- 	ret = v4l2_device_register(&pdev->dev, &vpfe->v4l2_dev);
- 	if (ret) {
- 		vpfe_err(vpfe,
- 			"Unable to register v4l2 device.\n");
--		goto probe_out_video_release;
-+		return ret;
+-	/* If this is the last capture buffer, emit an end-of-stream event */
+-	if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+-	    coda_buf_is_end_of_stream(ctx, buf)) {
+-		const struct v4l2_event eos_event = {
+-			.type = V4L2_EVENT_EOS
+-		};
++	if (coda_buf_is_end_of_stream(ctx, buf)) {
++		buf->v4l2_buf.flags |= V4L2_BUF_FLAG_LAST;
+ 
+ 		v4l2_event_queue_fh(&ctx->fh, &eos_event);
  	}
  
- 	/* set the driver data in platform device */
-@@ -2612,9 +2606,6 @@ static int vpfe_probe(struct platform_device *pdev)
- 
- probe_out_v4l2_unregister:
- 	v4l2_device_unregister(&vpfe->v4l2_dev);
--probe_out_video_release:
--	if (!video_is_registered(vpfe->video_dev))
--		video_device_release(vpfe->video_dev);
- 	return ret;
+-	return ret;
++	v4l2_m2m_buf_done(buf, state);
  }
  
-@@ -2631,7 +2622,7 @@ static int vpfe_remove(struct platform_device *pdev)
+ static int coda_g_selection(struct file *file, void *fh,
+@@ -846,7 +841,7 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
  
- 	v4l2_async_notifier_unregister(&vpfe->notifier);
- 	v4l2_device_unregister(&vpfe->v4l2_dev);
--	video_unregister_device(vpfe->video_dev);
-+	video_unregister_device(&vpfe->video_dev);
+ 	.vidioc_qbuf		= coda_qbuf,
+ 	.vidioc_expbuf		= v4l2_m2m_ioctl_expbuf,
+-	.vidioc_dqbuf		= coda_dqbuf,
++	.vidioc_dqbuf		= v4l2_m2m_ioctl_dqbuf,
+ 	.vidioc_create_bufs	= v4l2_m2m_ioctl_create_bufs,
  
- 	return 0;
- }
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.h b/drivers/media/platform/am437x/am437x-vpfe.h
-index 956fb9e..5bfb356 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.h
-+++ b/drivers/media/platform/am437x/am437x-vpfe.h
-@@ -222,7 +222,7 @@ struct vpfe_ccdc {
- struct vpfe_device {
- 	/* V4l2 specific parameters */
- 	/* Identifies video device for this channel */
--	struct video_device *video_dev;
-+	struct video_device video_dev;
- 	/* sub devices */
- 	struct v4l2_subdev **sd;
- 	/* vpfe cfg */
+ 	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 0c35cd5..420de18 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -291,6 +291,9 @@ static inline int coda_get_bitstream_payload(struct coda_ctx *ctx)
+ 
+ void coda_bit_stream_end_flag(struct coda_ctx *ctx);
+ 
++void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_buffer *buf,
++		       enum vb2_buffer_state state);
++
+ int coda_h264_padding(int size, char *p);
+ 
+ bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_buffer *vb);
 -- 
-2.1.0
+2.1.4
 
