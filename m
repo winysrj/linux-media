@@ -1,54 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:33800 "EHLO
-	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750935AbbCTGyn (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:41926 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754165AbbCFJRf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2015 02:54:43 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [PATCH 1/2] vivid: add CVT,GTF standards to vivid dv timings caps
-Date: Fri, 20 Mar 2015 12:11:45 +0530
-Message-Id: <1426833706-7839-2-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1426833706-7839-1-git-send-email-prladdha@cisco.com>
-References: <1426833706-7839-1-git-send-email-prladdha@cisco.com>
+	Fri, 6 Mar 2015 04:17:35 -0500
+Message-ID: <54F97099.7050601@xs4all.nl>
+Date: Fri, 06 Mar 2015 10:17:13 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Jan Kara <jack@suse.cz>, linux-media@vger.kernel.org
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Davidlohr Bueso <dbueso@suse.com>
+Subject: Re: Use of mmap_sem in __qbuf_userptr()
+References: <20150305142735.GA16869@quack.suse.cz>
+In-Reply-To: <20150305142735.GA16869@quack.suse.cz>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently vivid supports V4L2_DV_BT_STD_DMT and V4L2_DV_BT_STD_CEA861
-discrete video standards. Extending the capability set to allow for
-setting CVT and GTF standards. This change, along with adding the
-support for calculating CVT, GTF timings in v4l2-ctl would extend
-the number of resolutions supported by vivid to almost any custom
-resolution.
+Hi Jan,
 
-Also extending the limits on min and max pixel clock to accomodate
-pixel clock range provided by cvt/gtf for resolutions ranging from
-640x360p50 to 4kx2Kp60.
+On 03/05/2015 03:27 PM, Jan Kara wrote:
+>   Hello,
+> 
+>   so after a long pause I've got back to my simplification patches around
+> get_user_pages(). After the simplification done by commit f035eb4e976ef5
+> (videobuf2: fix lockdep warning) it seems unnecessary to take mmap_sem
+> already when calling __qbuf_userptr(). As far as I understand what
+> __qbuf_userptr() does, the only thing where mmap_sem is needed is for
+> get_userptr and possibly put_userptr memops. So it should be possible to
+> push mmap_sem locking down into these memops, shouldn't it? Or am I missing
+> something in __qbuf_userptr() for which mmap_sem is also necessary?
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
----
- drivers/media/platform/vivid/vivid-vid-common.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+No, you are correct. The mmap_sem can be pushed down, either to __qbuf_userptr
+or all the way to the videobuf2-dma/vmalloc get/put_userptr ops.
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
-index 6bef1e6..cba095f 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.c
-+++ b/drivers/media/platform/vivid/vivid-vid-common.c
-@@ -33,8 +33,9 @@ const struct v4l2_dv_timings_cap vivid_dv_timings_cap = {
- 	.type = V4L2_DV_BT_656_1120,
- 	/* keep this initialization for compatibility with GCC < 4.4.6 */
- 	.reserved = { 0 },
--	V4L2_INIT_BT_TIMINGS(0, MAX_WIDTH, 0, MAX_HEIGHT, 25000000, 600000000,
--		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT,
-+	V4L2_INIT_BT_TIMINGS(0, MAX_WIDTH, 0, MAX_HEIGHT, 14000000, 775000000,
-+		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
-+		V4L2_DV_BT_STD_CVT | V4L2_DV_BT_STD_GTF,
- 		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_INTERLACED)
- };
- 
--- 
-1.9.1
+> If I'm right, I can prepare patches to do that (and then on top of those
+> rebase patches which will make v4l2 core use some mm helper functions so
+> they don't have to care about details of mm locking, vmas, etc.).
+
+That would be really nice.
+
+Regards,
+
+	Hans
 
