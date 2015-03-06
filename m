@@ -1,124 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:25436 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752074AbbCEE7t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 23:59:49 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH 2/3] media: atmel-isi: add runtime pm support
-Date: Thu, 5 Mar 2015 13:01:00 +0800
-Message-ID: <1425531661-20040-3-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1425531661-20040-1-git-send-email-josh.wu@atmel.com>
-References: <1425531661-20040-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:57173 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933950AbbCFKcz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2015 05:32:55 -0500
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv2 0/2] Support for JPEG IP on Exynos542x
+Date: Fri, 06 Mar 2015 11:32:38 +0100
+Message-id: <1425637960-10687-1-git-send-email-andrzej.p@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The runtime pm resume/suspend will enable/disable pclk (ISI peripheral
-clock).
-And we need to call rumtime_pm_get/put_sync function to make pm
-resume/suspend.
+This short series adds support for JPEG IP on Exynos542x SoC.
+The first patch adds necessary device tree nodes and the second
+one does JPEG IP support proper. The JPEG IP on Exynos542x is
+similar to what is on Exynos3250, there just slight differences.
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
+v1..v2:
+- implemented changes resulting from Jacek's review
+- removed iommu entries in device tree nodes as iommu is
+not available at this moment
+- added hw3250_compat and htbl_reinit flags to s5p_jpeg_variant,
+which simplifies the code a bit
 
- drivers/media/platform/soc_camera/atmel-isi.c | 36 ++++++++++++++++++++++++---
- 1 file changed, 32 insertions(+), 4 deletions(-)
+Andrzej Pietrasiewicz (2):
+  ARM: dts: exynos5420: add nodes for jpeg codec
+  media: s5p-jpeg: add 5420 family support
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index eb179e7..4a384f1 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -20,6 +20,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
- #include <linux/slab.h>
- 
- #include <media/atmel-isi.h>
-@@ -386,9 +387,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 	struct atmel_isi *isi = ici->priv;
- 	int ret;
- 
--	ret = clk_prepare_enable(isi->pclk);
--	if (ret)
--		return ret;
-+	pm_runtime_get_sync(ici->v4l2_dev.dev);
- 
- 	/* Reset ISI */
- 	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
-@@ -450,7 +449,7 @@ static void stop_streaming(struct vb2_queue *vq)
- 	if (ret < 0)
- 		dev_err(icd->parent, "Disable ISI timed out\n");
- 
--	clk_disable_unprepare(isi->pclk);
-+	pm_runtime_put_sync(ici->v4l2_dev.dev);
- }
- 
- static struct vb2_ops isi_video_qops = {
-@@ -1042,6 +1041,9 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	soc_host->v4l2_dev.dev	= &pdev->dev;
- 	soc_host->nr		= pdev->id;
- 
-+	pm_suspend_ignore_children(&pdev->dev, true);
-+	pm_runtime_enable(&pdev->dev);
-+
- 	if (isi->pdata.asd_sizes) {
- 		soc_host->asd = isi->pdata.asd;
- 		soc_host->asd_sizes = isi->pdata.asd_sizes;
-@@ -1055,6 +1057,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	return 0;
- 
- err_register_soc_camera_host:
-+	pm_runtime_disable(&pdev->dev);
- err_req_irq:
- err_ioremap:
- 	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
-@@ -1067,6 +1070,30 @@ err_alloc_ctx:
- 	return ret;
- }
- 
-+static int atmel_isi_runtime_suspend(struct device *dev)
-+{
-+	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
-+	struct atmel_isi *isi = container_of(soc_host,
-+					struct atmel_isi, soc_host);
-+
-+	clk_disable_unprepare(isi->pclk);
-+
-+	return 0;
-+}
-+static int atmel_isi_runtime_resume(struct device *dev)
-+{
-+	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
-+	struct atmel_isi *isi = container_of(soc_host,
-+					struct atmel_isi, soc_host);
-+
-+	return clk_prepare_enable(isi->pclk);
-+}
-+
-+static const struct dev_pm_ops atmel_isi_dev_pm_ops = {
-+	SET_RUNTIME_PM_OPS(atmel_isi_runtime_suspend,
-+				atmel_isi_runtime_resume, NULL)
-+};
-+
- static const struct of_device_id atmel_isi_of_match[] = {
- 	{ .compatible = "atmel,at91sam9g45-isi" },
- 	{ }
-@@ -1079,6 +1106,7 @@ static struct platform_driver atmel_isi_driver = {
- 		.name = "atmel_isi",
- 		.owner = THIS_MODULE,
- 		.of_match_table = of_match_ptr(atmel_isi_of_match),
-+		.pm	= &atmel_isi_dev_pm_ops,
- 	},
- };
- 
+ .../bindings/media/exynos-jpeg-codec.txt           |  2 +-
+ arch/arm/boot/dts/exynos5420.dtsi                  | 16 ++++++
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        | 59 +++++++++++++++-------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h        | 12 +++--
+ 4 files changed, 67 insertions(+), 22 deletions(-)
+
 -- 
 1.9.1
 
