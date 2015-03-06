@@ -1,47 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56667 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932108AbbCPXWT (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58915 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752651AbbCFLsT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 19:22:19 -0400
-Date: Tue, 17 Mar 2015 01:21:46 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	pali.rohar@gmail.com
-Subject: Re: [RFC 10/18] omap3isp: Move the syscon register out of the ISP
- register maps
-Message-ID: <20150316232146.GF11954@valkosipuli.retiisi.org.uk>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
- <1425764475-27691-11-git-send-email-sakari.ailus@iki.fi>
- <5344778.cfsY6SCB4g@avalon>
+	Fri, 6 Mar 2015 06:48:19 -0500
+Message-ID: <54F993ED.2060701@xs4all.nl>
+Date: Fri, 06 Mar 2015 12:47:57 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5344778.cfsY6SCB4g@avalon>
+To: Florian Echtler <floe@butterbrot.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: laurent.pinchart@ideasonboard.com, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v3][RFC] add raw video stream support for Samsung SUR40
+References: <1423063842-6902-1-git-send-email-floe@butterbrot.org> <54DB4295.1080307@butterbrot.org> <54E1D71C.2000003@xs4all.nl> <54E7AB1E.3000401@butterbrot.org> <54E85C48.6070907@xs4all.nl> <54F98E51.8040204@butterbrot.org>
+In-Reply-To: <54F98E51.8040204@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 16, 2015 at 02:19:04AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
+On 03/06/2015 12:24 PM, Florian Echtler wrote:
+> On 21.02.2015 11:22, Hans Verkuil wrote:
+>> On 02/20/2015 10:46 PM, Florian Echtler wrote:
+>>> On 16.02.2015 12:40, Hans Verkuil wrote:
+>>>> On 02/11/2015 12:52 PM, Florian Echtler wrote:
+>>>> I prefer to dig into this a little bit more, as I don't really understand
+>>>> it. Set the videobuf2-core debug level to 1 and see what the warnings are.
+>>>> Since 'buf.qbuf' fails in v4l2-compliance, it's something in the VIDIOC_QBUF
+>>>> sequence that returns an error, so you need to pinpoint that.
+>>> OK, I don't currently have access to the hardware, but I will try this
+>>> as soon as possible.
+> Finally got a chance to try again with videobuf2-core.debug=1. Same
+> result on 3.19 and 4.0-rc2, after running v4l2-compliance -s from
+> today's master (full log attached, but important part is below):
 > 
-> On Saturday 07 March 2015 23:41:07 Sakari Ailus wrote:
-> > The syscon register isn't part of the ISP, use it through the syscom driver
-> > regmap instead. The syscom block is considered to be from 343x on ISP
-> > revision 2.0 whereas 15.0 is assumed to have 3630 syscon.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  arch/arm/boot/dts/omap3.dtsi                |    2 +-
-> >  arch/arm/mach-omap2/devices.c               |   10 ----------
-> >  drivers/media/platform/omap3isp/isp.c       |   19 +++++++++++++++----
-> >  drivers/media/platform/omap3isp/isp.h       |   19 +++++++++++++++++--
-> >  drivers/media/platform/omap3isp/ispcsiphy.c |   20 +++++++++-----------
+> [11470.040067] vb2: __vb2_queue_alloc: allocated 3 buffers, 1 plane(s) each
+> [11470.040136] vb2: vb2_mmap: queue is not currently set up for mmap
+> [11470.040158] vb2: __qbuf_userptr: failed acquiring userspace memory
+> for plane 0
+> [11470.040163] vb2: __buf_prepare: buffer preparation failed: -22
+> [11470.040172] vb2: __qbuf_userptr: failed acquiring userspace memory
+> for plane 0
+> [11470.040175] vb2: __buf_prepare: buffer preparation failed: -22
+> [11470.040651] vb2: vb2_internal_qbuf: qbuf of buffer 0 succeeded
+> [11470.040663] vb2: vb2_mmap: queue is not currently set up for mmap
+> [11470.040676] vb2: __qbuf_userptr: failed acquiring userspace memory
+> for plane 0
+> [11470.040680] vb2: __buf_prepare: buffer preparation failed: -22
+> [11470.040687] vb2: __qbuf_userptr: failed acquiring userspace memory
+> for plane 0
+> [11470.040690] vb2: __buf_prepare: buffer preparation failed: -22
+> [11470.041167] vb2: vb2_internal_qbuf: qbuf of buffer 1 succeeded
+> [11470.041178] vb2: vb2_mmap: queue is not currently set up for mmap
+> [11470.041193] vb2: __qbuf_userptr: failed acquiring userspace memory
+> for plane 0
+> [11470.041196] vb2: __buf_prepare: buffer preparation failed: -22
+> [11470.041203] vb2: __qbuf_userptr: failed acquiring userspace memory
+> for plane 0
+> [11470.041207] vb2: __buf_prepare: buffer preparation failed: -22
+> [11470.041683] vb2: vb2_internal_qbuf: qbuf of buffer 2 succeeded
+> [11470.051195] sur40 2-1:1.0: error in usb_sg_wait
+> [11470.051250] vb2: vb2_internal_dqbuf: dqbuf of buffer 0, with state 0
 > 
-> I've noticed another issue, you need a "select MFD_SYSCON" in Kconfig.
+> I'm not familiar enough with the inner workings of videobuf2 to make any
+> sense of it, any new insights from you guys?
 
-Thanks, fixed!
+Can you do:
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+echo 2 >/sys/class/video4linux/videoX/dev_debug
+
+and run again?
+
+That way I see the vb2 debug messages in related to the issued ioctls.
+
+And if you can also supply the v4l2-compliance -s output, just for
+reference?
+
+Thanks,
+
+	Hans
