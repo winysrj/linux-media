@@ -1,104 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:23695 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933412AbbCDQQy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 11:16:54 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v12 13/19] DT: Add documentation for the Skyworks AAT1290
-Date: Wed, 04 Mar 2015 17:14:34 +0100
-Message-id: <1425485680-8417-14-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
-References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:33887 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754600AbbCFMQO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2015 07:16:14 -0500
+Received: by lbvn10 with SMTP id n10so3237088lbv.1
+        for <linux-media@vger.kernel.org>; Fri, 06 Mar 2015 04:16:13 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1425500004-17467-1-git-send-email-yamato@redhat.com>
+References: <1425500004-17467-1-git-send-email-yamato@redhat.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Fri, 6 Mar 2015 12:15:43 +0000
+Message-ID: <CA+V-a8t7VnT10TT+BHBhuFLE=0hm7xzVsw+amrV8JZgrcPQ+og@mail.gmail.com>
+Subject: Re: [PATCH] am437x: include linux/videodev2.h for expanding BASE_VIDIOC_PRIVATE
+To: Masatake YAMATO <yamato@redhat.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-1.5A Step-Up Current Regulator for Flash LEDs.
+Hi Masatake,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- .../devicetree/bindings/leds/leds-aat1290.txt      |   64 ++++++++++++++++++++
- 1 file changed, 64 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
+Thanks for the patch.
 
-diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-new file mode 100644
-index 0000000..4f3583d
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-@@ -0,0 +1,64 @@
-+* Skyworks Solutions, Inc. AAT1290 Current Regulator for Flash LEDs
-+
-+The device is controlled through two pins: FL_EN and EN_SET. The pins when,
-+asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
-+respectively. In order to add a capability of selecting the strobe signal source
-+(e.g. GPIO or ISP) there is an additional switch required, independent of the
-+flash chip.
-+
-+Required properties:
-+
-+- compatible : Must be "skyworks,aat1290".
-+- gpios : Two gpio pins in order FLEN, EN/SET
-+
-+Optional properties:
-+- pinctrl-names : Must contain entries: "default", "host", "isp". Entries
-+		"default" and "host" must refer to the same pin configration
-+		node, which sets the strobe signal source to host. Entry "isp"
-+		must refer to the pin configuration node, which sets the strobe
-+		signal source to ISP.
-+
-+The LED connected to the device must be represented by a child node -
-+see Documentation/devicetree/bindings/leds/common.txt.
-+
-+Required properties of the LED child node:
-+- label : see Documentation/devicetree/bindings/leds/common.txt
-+- flash-max-microamp : Maximum intensity in microamperes of the flash LED -
-+		       it can be calculated using following formula:
-+		       I = 1A * 162kohm / Rset
-+- flash-timeout-us : Maximum flash timeout in microseconds -
-+		     it can be calculated using following formula:
-+		     T = 8.82 * 10^9 * Ct.
-+
-+Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with a
-+switch that allows for routing the strobe source signal either from host or
-+from ISP):
-+
-+aat1290 {
-+	compatible = "skyworks,aat1290";
-+	gpios = <&gpj1 1 0>, <&gpj1 2 0>;
-+	pinctrl-names = "default", "host", "isp";
-+	pinctrl-0 = <&camera_flash_host>;
-+	pinctrl-1 = <&camera_flash_host>;
-+	pinctrl-2 = <&camera_flash_isp>;
-+
-+	camera_flash: flash-led {
-+		label = "aat1290-flash";
-+		flash-max-microamp = <1012500>
-+		flash-timeout-us = <1940000>;
-+	};
-+};
-+
-+&pinctrl_0 {
-+	camera_flash_host: camera-flash-host {
-+		samsung,pins = "gpj1-0";
-+		samsung,pin-function = <1>;
-+		samsung,pin-val = <0>;
-+	};
-+
-+	camera_flash_isp: camera-flash-isp {
-+		samsung,pins = "gpj1-0";
-+		samsung,pin-function = <1>;
-+		samsung,pin-val = <1>;
-+	};
-+};
--- 
-1.7.9.5
+On Wed, Mar 4, 2015 at 8:13 PM, Masatake YAMATO <yamato@redhat.com> wrote:
+> In am437x-vpfe.h BASE_VIDIOC_PRIVATE is used for
+> making the name of ioctl command(VIDIOC_AM437X_CCDC_CFG).
+> The definition of BASE_VIDIOC_PRIVATE is in linux/videodev2.h.
+> However, linux/videodev2.h is not included in am437x-vpfe.h.
+> As the result an application using has to include both
+> am437x-vpfe.h and linux/videodev2.h.
+>
+> With this patch, the application can include just am437x-vpfe.h.
+>
+> Signed-off-by: Masatake YAMATO <yamato@redhat.com>
 
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Cheers,
+--Prabhakar Lad
+
+> ---
+>  include/uapi/linux/am437x-vpfe.h | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/include/uapi/linux/am437x-vpfe.h b/include/uapi/linux/am437x-vpfe.h
+> index 9b03033f..d757743 100644
+> --- a/include/uapi/linux/am437x-vpfe.h
+> +++ b/include/uapi/linux/am437x-vpfe.h
+> @@ -21,6 +21,8 @@
+>  #ifndef AM437X_VPFE_USER_H
+>  #define AM437X_VPFE_USER_H
+>
+> +#include <linux/videodev2.h>
+> +
+>  enum vpfe_ccdc_data_size {
+>         VPFE_CCDC_DATA_16BITS = 0,
+>         VPFE_CCDC_DATA_15BITS,
+> --
+> 2.1.0
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
