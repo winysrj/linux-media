@@ -1,87 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50260 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35237 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432AbbCUMgg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Mar 2015 08:36:36 -0400
+	with ESMTP id S1752259AbbCGX4N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 18:56:13 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: media-workshop@linuxtv.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] [ANN] Media Mini-Summit Draft Agenda for March 26th
-Date: Sat, 21 Mar 2015 14:36:49 +0200
-Message-ID: <1539819.WFF67ZXgOp@avalon>
-In-Reply-To: <5506BDA8.3000700@xs4all.nl>
-References: <5506BDA8.3000700@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	pali.rohar@gmail.com
+Subject: Re: [RFC 17/18] arm: dts: n950, n9: Add primary camera support
+Date: Sun, 08 Mar 2015 01:56:13 +0200
+Message-ID: <5342826.KbVLN7n8xZ@avalon>
+In-Reply-To: <1425764475-27691-18-git-send-email-sakari.ailus@iki.fi>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi> <1425764475-27691-18-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Sakari,
 
-On Monday 16 March 2015 12:25:28 Hans Verkuil wrote:
-> This is the draft agenda for the media mini-summit in San Jose on March
-> 26th.
-> 
-> Time: 9 AM to 5 PM (approximately)
-> Room: TBC (Mauro, do you know this?)
-> 
-> Attendees:
-> 
-> Mauro Carvalho Chehab	- mchehab@osg.samsung.com		- Samsung
-> Laurent Pinchart	- laurent.pinchart@ideasonboard.com	- Ideas on board
-> Hans Verkuil		- hverkuil@xs4all.nl			- Cisco
-> 
-> Mauro, do you have a better overview of who else will attend?
-> 
-> Agenda:
-> 
-> Times are approximate and will likely change.
-> 
-> 9:00-9:15   Get everyone installed, laptops hooked up, etc.
-> 9:15-9:30   Introduction
-> 9:30-10:30  Media Controller support for DVB (Mauro):
-> 		1) dynamic creation/removal of pipelines
-> 		2) change media_entity_pipeline_start to also define
-> 		   the final entity
-> 		3) how to setup pipelines that also envolve audio and DRM
-> 		4) how to lock the media controller pipeline between enabling a
-> 		   pipeline and starting it, in order to avoid race conditions
-> 
-> See this post for more detailed information:
-> 
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
-> 
-> 10:30-10:45 Break
-> 10:45-12:00 Continue discussion
-> 12:00-13:00 Lunch (Mauro, do you have any idea whether there is a lunch
-> organized, or if we are on our own?)
-> 13:00-14:40 Continue discussion
-> 14:40-15:00 Break
-> 15:00-16:00 Subdev hotplug in the context of both FPGA dynamic
-> reconfiguration and project Ara (http://www.projectara.com/) (Laurent).
+Thank you for the patch.
 
-To be precise, this will be both hot plug and hot unplug.
+On Saturday 07 March 2015 23:41:14 Sakari Ailus wrote:
+> Add support for the primary camera of the Nokia N950 and N9.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  arch/arm/boot/dts/omap3-n9.dts       |   39 +++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap3-n950-n9.dtsi |    4 ----
+>  arch/arm/boot/dts/omap3-n950.dts     |   39 +++++++++++++++++++++++++++++++
+>  3 files changed, 78 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+> index 9938b5d..05f32ae 100644
+> --- a/arch/arm/boot/dts/omap3-n9.dts
+> +++ b/arch/arm/boot/dts/omap3-n9.dts
+> @@ -16,3 +16,42 @@
+>  	model = "Nokia N9";
+>  	compatible = "nokia,omap3-n9", "ti,omap36xx", "ti,omap3";
+>  };
+> +
+> +&i2c2 {
+> +	clock-frequency = <400000>;
+> +
+> +	smia_1: camera@10 {
+> +		compatible = "nokia,smia";
+> +		reg = <0x10>;
+> +		/* No reset gpio */
+> +		vana-supply = <&vaux3>;
+> +		clocks = <&omap3_isp 0>;
+> +		clock-frequency = <9600000>;
+> +		nokia,nvm-size = <1024>; /* 16 * 64 */
 
-> 16:00-17:00 Update on ongoing projects (Hans):
-> 		- proposal for Android Camera v3-type requests (aka configuration
-> 		stores)
+You could actually specify that as "<(16 * 64)>".
 
-I'm interested in this as well.
+> +		link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
+> +		port {
+> +			smia_1_1: endpoint {
+> +				clock-lanes = <0>;
+> +				data-lanes = <1 2>;
+> +				remote-endpoint = <&csi2a_ep>;
+> +			};
+> +		};
+> +	};
+> +};
+> +
+> +&omap3_isp {
+> +	vdd-csiphy1-supply = <&vaux2>;
+> +	vdd-csiphy2-supply = <&vaux2>;
+> +	ports {
+> +		port@2 {
+> +			reg = <2>;
+> +			csi2a_ep: endpoint {
+> +				remote-endpoint = <&smia_1_1>;
+> +				clock-lanes = <2>;
+> +				data-lanes = <1 3>;
+> +				crc = <1>;
+> +				lane-polarity = <1 1 1>;
+> +			};
+> +		};
+> +	};
+> +};
+> diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> b/arch/arm/boot/dts/omap3-n950-n9.dtsi index c41db94..51e5043 100644
+> --- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> @@ -86,10 +86,6 @@
+>  	regulator-max-microvolt = <2800000>;
+>  };
+> 
+> -&i2c2 {
+> -	clock-frequency = <400000>;
+> -};
+> -
 
-> 		- work on colorspace improvements
-> 		- vivid & v4l2-compliance improvements
-> 		- removing duplicate subdev video ops and use pad ops instead
-> 		- others?
+What's the reason for moving this to the N9 and N950 DT files as you keep the 
+same value in both ?
 
-There's also the topic of the media device controller registry that we 
-discussed during the FOSDEM, but as far as I know there has been no progress 
-in that area.
-
-> Most of the time will be spent on DVB and the MC. Based on past experience
-> this likely will take some time to get a concensus.
+>  &i2c3 {
+>  	clock-frequency = <400000>;
+>  };
+> diff --git a/arch/arm/boot/dts/omap3-n950.dts
+> b/arch/arm/boot/dts/omap3-n950.dts index 261c558..2b2ed9c 100644
+> --- a/arch/arm/boot/dts/omap3-n950.dts
+> +++ b/arch/arm/boot/dts/omap3-n950.dts
+> @@ -16,3 +16,42 @@
+>  	model = "Nokia N950";
+>  	compatible = "nokia,omap3-n950", "ti,omap36xx", "ti,omap3";
+>  };
+> +
+> +&i2c2 {
+> +	clock-frequency = <400000>;
+> +
+> +	smia_1: camera@10 {
+> +		compatible = "nokia,smia";
+> +		reg = <0x10>;
+> +		/* No reset gpio */
+> +		vana-supply = <&vaux3>;
+> +		clocks = <&omap3_isp 0>;
+> +		clock-frequency = <9600000>;
+> +		nokia,nvm-size = <1024>; /* 16 * 64 */
+> +		link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
+> +		port {
+> +			smia_1_1: endpoint {
+> +				clock-lanes = <0>;
+> +				data-lanes = <1 2>;
+> +				remote-endpoint = <&csi2a_ep>;
+> +			};
+> +		};
+> +	};
+> +};
+> +
+> +&omap3_isp {
+> +	vdd-csiphy1-supply = <&vaux2>;
+> +	vdd-csiphy2-supply = <&vaux2>;
+> +	ports {
+> +		port@2 {
+> +			reg = <2>;
+> +			csi2a_ep: endpoint {
+> +				remote-endpoint = <&smia_1_1>;
+> +				clock-lanes = <2>;
+> +				data-lanes = <3 1>;
+> +				crc = <1>;
+> +				lane-polarity = <1 1 1>;
+> +			};
+> +		};
+> +	};
+> +};
 
 -- 
 Regards,
