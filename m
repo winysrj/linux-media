@@ -1,40 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f181.google.com ([209.85.216.181]:36806 "EHLO
-	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932996AbbCRQ7K (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33885 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752822AbbCGXUp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 12:59:10 -0400
-Received: by qcto4 with SMTP id o4so43654452qct.3
-        for <linux-media@vger.kernel.org>; Wed, 18 Mar 2015 09:59:10 -0700 (PDT)
+	Sat, 7 Mar 2015 18:20:45 -0500
+Date: Sun, 8 Mar 2015 01:20:40 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL for v4.1] smiapp DT u64 property workaround removal
+Message-ID: <20150307232040.GF6539@valkosipuli.retiisi.org.uk>
+References: <20150307220634.GD6539@valkosipuli.retiisi.org.uk>
+ <1573085.ZVIDUf0yP4@avalon>
 MIME-Version: 1.0
-In-Reply-To: <55073598.9010803@xs4all.nl>
-References: <5507177A.8060200@parrot.com>
-	<CAGoCfiyZt990gWqSPgaNE7L1fw=XN1DJiiQeDKvepO1Yz9cvaA@mail.gmail.com>
-	<55073598.9010803@xs4all.nl>
-Date: Wed, 18 Mar 2015 12:59:09 -0400
-Message-ID: <CAGoCfiyrurHuigP3n=C_4gDpzJ4mSdU1di+AXsQdtVRzVEviow@mail.gmail.com>
-Subject: Re: Dynamic video input/output list
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: =?UTF-8?Q?Aur=C3=A9lien_Zanelli?= <aurelien.zanelli@parrot.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1573085.ZVIDUf0yP4@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Note however that it is perfectly fine if the driver detects the presence
-> of such an onboard header when it is loaded and then only exposes those
-> extra inputs if the header is present. It just can't change the list later
-> unless do you an rmmod and modprobe of the driver. It's probably what you
-> do anyway.
+Hi Laurent,
 
-Ah, good point.  In my case I was working with PCIe cards where I had
-no expectation that the cable was plugged/unplugged at runtime.
+On Sun, Mar 08, 2015 at 01:15:38AM +0200, Laurent Pinchart wrote:
+> > Sakari Ailus (2):
+> >       Revert "[media] smiapp: Don't compile of_read_number() if CONFIG_OF
+> > isn't defined"
+> >       smiapp: Use of_property_read_u64_array() to read a 64-bit number array
+> 
+> Won't this cause a bisection breakage if CONFIG_OF isn't enabled ?
 
-Sorry for the noise.
+Technically you're right: it does "break" bisect if smiapp is compiled in on
+a non-DT platform. Such a platform is not supported in a mainline kernel so
+I don't think this is a really major issue.
 
-Devin
+I could combine the patches if you think this is an issue.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
