@@ -1,66 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pmta2.delivery9.ore.mailhop.org ([54.148.30.215]:60782 "EHLO
-	pmta2.delivery9.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755479AbbCCBTT (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:36513 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752633AbbCGU5u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Mar 2015 20:19:19 -0500
-Date: Mon, 2 Mar 2015 16:13:42 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Subject: Re: [PATCH 10/10] ARM: omap2: use clkdev_add_alias()
-Message-ID: <20150303001341.GD3756@atomide.com>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
- <E1YSTnw-0001K5-IQ@rmk-PC.arm.linux.org.uk>
+	Sat, 7 Mar 2015 15:57:50 -0500
+Message-ID: <54FB6636.6050308@xs4all.nl>
+Date: Sat, 07 Mar 2015 21:57:26 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
+To: Florian Echtler <floe@butterbrot.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3][RFC] add raw video stream support for Samsung SUR40
+References: <1423063842-6902-1-git-send-email-floe@butterbrot.org> <54DB4295.1080307@butterbrot.org> <54E1D71C.2000003@xs4all.nl> <54E7AB1E.3000401@butterbrot.org> <54E85C48.6070907@xs4all.nl> <54F98E51.8040204@butterbrot.org> <54F993ED.2060701@xs4all.nl> <54FB5715.2090103@butterbrot.org>
+In-Reply-To: <54FB5715.2090103@butterbrot.org>
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <E1YSTnw-0001K5-IQ@rmk-PC.arm.linux.org.uk>
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Russell King <rmk+kernel@arm.linux.org.uk> [150302 09:10]:
-> When creating aliases of existing clkdev clocks, use clkdev_add_alias()
-> isntead of open coding the lookup and clk_lookup creation.
+On 03/07/2015 08:52 PM, Florian Echtler wrote:
+> On 06.03.2015 12:47, Hans Verkuil wrote:
+>> On 03/06/2015 12:24 PM, Florian Echtler wrote:
+>>> On 21.02.2015 11:22, Hans Verkuil wrote:
+>>>> On 02/20/2015 10:46 PM, Florian Echtler wrote:
+>>>>> On 16.02.2015 12:40, Hans Verkuil wrote:
+>>>>>> I prefer to dig into this a little bit more, as I don't really understand
+>>>>>> it. Set the videobuf2-core debug level to 1 and see what the warnings are.
+>>>>>> Since 'buf.qbuf' fails in v4l2-compliance, it's something in the VIDIOC_QBUF
+>>>>>> sequence that returns an error, so you need to pinpoint that.
+>>>>> OK, I don't currently have access to the hardware, but I will try this
+>>>>> as soon as possible.
+>>> Finally got a chance to try again with videobuf2-core.debug=1. Same
+>>> result on 3.19 and 4.0-rc2, after running v4l2-compliance -s from
+>>> today's master (full log attached, but important part is below):
+>>>
+>>> I'm not familiar enough with the inner workings of videobuf2 to make any
+>>> sense of it, any new insights from you guys?
+>>
+>> Can you do:
+>> echo 2 >/sys/class/video4linux/videoX/dev_debug
+>> and run again?
+>> That way I see the vb2 debug messages in related to the issued ioctls.
+> See attachment, this is the full syslog output from one v4l2-compliance
+> run on 4.0-rc2, with video0/dev_debug=2 and core.debug=1.
+> 
+>> And if you can also supply the v4l2-compliance -s output, just for
+>> reference?
+> Also attached for completeness, the important part is:
+> 
+> Streaming ioctls:
+> 	test read/write: OK
+> 	test MMAP: OK
+> 		fail: v4l2-test-buffers.cpp(280): !g_timestamp().tv_sec &&
+> !g_timestamp().tv_usec
 
-Gave this series a quick try but I get these build errors:
+Hmm, I don't think I saw this before.
 
-arch/arm/mach-omap2/omap_device.c: In function ‘_add_clkdev’:
-arch/arm/mach-omap2/omap_device.c:65:58: warning: passing argument 3 of ‘clk_add_alias’ discards ‘const’ qualifier from pointer target type
-  rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev), clk_name, NULL);
-                                                          ^
-In file included from arch/arm/mach-omap2/omap_device.c:34:0:
-include/linux/clkdev.h:44:5: note: expected ‘char *’ but argument is of type ‘const char *’
- int clk_add_alias(const char *, const char *, char *, struct device *);
-     ^
-drivers/clk/clkdev.c:298:16: error: expected declaration specifiers or ‘...’ before ‘(’ token
- vclkdev_create((struct clk *clk, const char *con_id, const char *dev_fmt,
-                ^
-drivers/clk/clkdev.c:322:92: error: storage class specified for parameter ‘__crc_clkdev_alloc’
- EXPORT_SYMBOL(clkdev_alloc);
-                                                                                            ^
-drivers/clk/clkdev.c:322:1: warning: ‘weak’ attribute ignored [-Wattributes]
- EXPORT_SYMBOL(clkdev_alloc);
- ^
-drivers/clk/clkdev.c:322:1: warning: ‘externally_visible’ attribute ignored [-Wattributes]
-drivers/clk/clkdev.c:322:161: error: storage class specified for parameter ‘__kcrctab_clkdev_alloc’
- EXPORT_SYMBOL(clkdev_alloc);
-                                                                                                                                                                 ^
-drivers/clk/clkdev.c:322:1: warning: ‘__used__’ attribute ignored [-Wattributes]
- EXPORT_SYMBOL(clkdev_alloc);
- ^
-drivers/clk/clkdev.c:322:161: error: section attribute not allowed for ‘__kcrctab_clkdev_alloc’
- EXPORT_SYMBOL(clkdev_alloc);
-                                                                                                                                                                 ^
-drivers/clk/clkdev.c:322:279: error: expected ‘;’, ‘,’ or ‘)’ before ‘=’ token
- EXPORT_SYMBOL(clkdev_alloc);
+Anyway, looking at the code I think I see at least one thing that is dubious
+and that needs to be changed:
 
-drivers/clk/clkdev.c:274:1: warning: ‘vclkdev_alloc’ defined but not used [-Wunused-function]
- vclkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt,
+In sur40_process_video() you check for buffers at the start:
 
-Regards,
+	if (list_empty(&sur40->buf_list))
+		return;
 
-Tony
+Replace this with:
+
+	if (!vb2_start_streaming_called(&sur40->queue))
+		return;
+
+This will wait until start_streaming was called before it starts processing
+video (and start_streaming is only called if at least 3 buffers have been
+queued).
+
+Right now the first buffer can be returned without STREAMON actually having
+been called. That's certainly wrong.
+
+Whether that is the cause of this bug I do not know, but fix this first.
+
+If this doesn't solve it, then please do another run but this time use
+
+echo 10 >/sys/class/video4linux/videoX/dev_debug
+
+so I see the (D)QBUF ioctls as well. Otherwise use the same procedure as
+before.
+
+Thanks!
+
+	Hans
