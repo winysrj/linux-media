@@ -1,151 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:35154 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753743AbbCIWLN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 18:11:13 -0400
-Received: by wibbs8 with SMTP id bs8so25388301wib.0
-        for <linux-media@vger.kernel.org>; Mon, 09 Mar 2015 15:11:12 -0700 (PDT)
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 2/2] media: sh_vou: use devres api
-Date: Mon,  9 Mar 2015 22:10:52 +0000
-Message-Id: <1425939052-6375-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1425939052-6375-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1425939052-6375-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35170 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750698AbbCGQgS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2015 11:36:18 -0500
+Message-ID: <54FB28EA.4040206@xs4all.nl>
+Date: Sat, 07 Mar 2015 17:35:54 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+CC: Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v3 00/15] media: blackfin: bfin_capture enhancements
+References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com> <CAHG8p1DFu8Y1qaDc9c0m0JggUHrF4grHBj9VZQ4224v2wPJRbQ@mail.gmail.com> <54F575AD.5020307@xs4all.nl> <CA+V-a8uVoUHHtQAGOAjz_wYpmkOg8_=cxv6W5b289coU_Wq0Xg@mail.gmail.com> <54F58142.4030201@xs4all.nl> <CA+V-a8uKxZBtwOZ7rqpv6Ym6X9jpgsHUxVAmuUqrVoGT3M8e3A@mail.gmail.com> <CAHG8p1DvYQaU7kGJSSh4UTiHYcK2E=g=4vCFAa8rytkYz3jHVw@mail.gmail.com> <54F82F5E.7060007@xs4all.nl> <CA+V-a8vTBJuiHRPjEN7VHHmAZhAu=W=Zi5a_N9DiLiRZH-Ab0A@mail.gmail.com>
+In-Reply-To: <CA+V-a8vTBJuiHRPjEN7VHHmAZhAu=W=Zi5a_N9DiLiRZH-Ab0A@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On 03/07/2015 05:22 PM, Lad, Prabhakar wrote:
+> On Thu, Mar 5, 2015 at 10:26 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 03/05/15 10:44, Scott Jiang wrote:
+>>> Hi Hans,
+> [snip]
+>>>>>
+>>>>> cd utils/v4l2-compliance
+>>>>> cat *.cpp >x.cpp
+>>>>> g++ -o v4l2-compliance x.cpp -I . -I ../../include/ -DNO_LIBV4L2
+>>>>>
+>>>>> I've never used uclibc, so I don't know what the limitations are.
+>>>>>
+>>>> Not sure what exactly fails, I haven’t tried compiling it, that was a
+>>>> response from Scott for v2 series.
+>>>>
+>>>
+>>> I found if I disabled libjpeg ./configure --without-jpeg, it can pass
+>>> compilation.
+>>
+>> Great!
+>>
+>>> Would you like me to send the result now or after Lad's v4 patch?
+>>
+>> Send it now as v4 won't have any meaningful code changes.
+>>
+> But anyway I cant help here much if there are any compliance issues,
+> as i don't have the hardware.
 
-use devres API while allocating resources so that these
-resources are released automatically on driver detach.
+Often compliance issues are trivially fixed, even without hardware. But step
+one is just to run the tool and see what it reports.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/sh_vou.c | 51 +++++++++--------------------------------
- 1 file changed, 11 insertions(+), 40 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index dde1ccc..1c52cd1 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -1297,7 +1297,7 @@ static int sh_vou_probe(struct platform_device *pdev)
- 	struct i2c_adapter *i2c_adap;
- 	struct video_device *vdev;
- 	struct sh_vou_device *vou_dev;
--	struct resource *reg_res, *region;
-+	struct resource *reg_res;
- 	struct v4l2_subdev *subdev;
- 	int irq, ret;
- 
-@@ -1309,7 +1309,7 @@ static int sh_vou_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	vou_dev = kzalloc(sizeof(*vou_dev), GFP_KERNEL);
-+	vou_dev = devm_kzalloc(&pdev->dev, sizeof(*vou_dev), GFP_KERNEL);
- 	if (!vou_dev)
- 		return -ENOMEM;
- 
-@@ -1337,28 +1337,18 @@ static int sh_vou_probe(struct platform_device *pdev)
- 	pix->sizeimage		= VOU_MAX_IMAGE_WIDTH * 2 * 480;
- 	pix->colorspace		= V4L2_COLORSPACE_SMPTE170M;
- 
--	region = request_mem_region(reg_res->start, resource_size(reg_res),
--				    pdev->name);
--	if (!region) {
--		dev_err(&pdev->dev, "VOU region already claimed\n");
--		ret = -EBUSY;
--		goto ereqmemreg;
--	}
--
--	vou_dev->base = ioremap(reg_res->start, resource_size(reg_res));
--	if (!vou_dev->base) {
--		ret = -ENOMEM;
--		goto emap;
--	}
-+	vou_dev->base = devm_ioremap_resource(&pdev->dev, reg_res);
-+	if (IS_ERR(vou_dev->base))
-+		return PTR_ERR(vou_dev->base);
- 
--	ret = request_irq(irq, sh_vou_isr, 0, "vou", vou_dev);
--	if (ret < 0)
--		goto ereqirq;
-+	ret = devm_request_irq(&pdev->dev, irq, sh_vou_isr, 0, "vou", vou_dev);
-+	if (ret)
-+		return ret;
- 
- 	ret = v4l2_device_register(&pdev->dev, &vou_dev->v4l2_dev);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "Error registering v4l2 device\n");
--		goto ev4l2devreg;
-+		return ret;
- 	}
- 
- 	vdev = &vou_dev->vdev;
-@@ -1382,7 +1372,7 @@ static int sh_vou_probe(struct platform_device *pdev)
- 
- 	ret = sh_vou_hw_init(vou_dev);
- 	if (ret < 0)
--		goto ereset;
-+		goto ei2cnd;
- 
- 	subdev = v4l2_i2c_new_subdev_board(&vou_dev->v4l2_dev, i2c_adap,
- 			vou_pdata->board_info, NULL);
-@@ -1393,50 +1383,31 @@ static int sh_vou_probe(struct platform_device *pdev)
- 
- 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret < 0)
--		goto evregdev;
-+		goto ei2cnd;
- 
- 	return 0;
- 
--evregdev:
- ei2cnd:
--ereset:
- 	i2c_put_adapter(i2c_adap);
- ei2cgadap:
- 	pm_runtime_disable(&pdev->dev);
- 	v4l2_device_unregister(&vou_dev->v4l2_dev);
--ev4l2devreg:
--	free_irq(irq, vou_dev);
--ereqirq:
--	iounmap(vou_dev->base);
--emap:
--	release_mem_region(reg_res->start, resource_size(reg_res));
--ereqmemreg:
--	kfree(vou_dev);
- 	return ret;
- }
- 
- static int sh_vou_remove(struct platform_device *pdev)
- {
--	int irq = platform_get_irq(pdev, 0);
- 	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
- 	struct sh_vou_device *vou_dev = container_of(v4l2_dev,
- 						struct sh_vou_device, v4l2_dev);
- 	struct v4l2_subdev *sd = list_entry(v4l2_dev->subdevs.next,
- 					    struct v4l2_subdev, list);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct resource *reg_res;
- 
--	if (irq > 0)
--		free_irq(irq, vou_dev);
- 	pm_runtime_disable(&pdev->dev);
- 	video_unregister_device(&vou_dev->vdev);
- 	i2c_put_adapter(client->adapter);
- 	v4l2_device_unregister(&vou_dev->v4l2_dev);
--	iounmap(vou_dev->base);
--	reg_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (reg_res)
--		release_mem_region(reg_res->start, resource_size(reg_res));
--	kfree(vou_dev);
- 	return 0;
- }
- 
--- 
-2.1.0
+	Hans
 
