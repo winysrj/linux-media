@@ -1,235 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45086 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752426AbbCPA07 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 20:26:59 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 10/15] omap3isp: Move the syscon register out of the ISP register maps
-Date: Mon, 16 Mar 2015 02:26:05 +0200
-Message-Id: <1426465570-30295-11-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
-References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35145 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752823AbbCGXXJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 18:23:09 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	pali.rohar@gmail.com
+Subject: Re: [RFC 03/18] omap3isp: Separate external link creation from platform data parsing
+Date: Sun, 08 Mar 2015 01:23:09 +0200
+Message-ID: <6824722.Hxqf1AYo4M@avalon>
+In-Reply-To: <1425764475-27691-4-git-send-email-sakari.ailus@iki.fi>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi> <1425764475-27691-4-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The syscon register isn't part of the ISP, use it through the syscom driver
-regmap instead. The syscom block is considered to be from 343x on ISP
-revision 2.0 whereas 15.0 is assumed to have 3630 syscon.
+Hi Sakari,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Thank you for the patch.
+
+On Saturday 07 March 2015 23:41:00 Sakari Ailus wrote:
+> Move the code which connects the external entity to an ISP entity into a
+> separate function. This disconnects it from parsing the platform data.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/platform/omap3isp/isp.c |  147  +++++++++++++++--------------
+>  1 file changed, 74 insertions(+), 73 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 4ab674d..a607f26 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -1832,6 +1832,77 @@ isp_register_subdev_group(struct isp_device *isp,
+>  	return sensor;
+>  }
+> 
+> +static int isp_link_entity(
+> +	struct isp_device *isp, struct media_entity *entity,
+> +	enum isp_interface_type interface)
+> +{
+> +	struct media_entity *input;
+> +	unsigned int flags;
+> +	unsigned int pad;
+> +	unsigned int i;
+> +
+> +	/* Connect the sensor to the correct interface module.
+> +	 * Parallel sensors are connected directly to the CCDC, while
+> +	 * serial sensors are connected to the CSI2a, CCP2b or CSI2c
+> +	 * receiver through CSIPHY1 or CSIPHY2.
+> +	 */
+> +	switch (interface) {
+> +	case ISP_INTERFACE_PARALLEL:
+> +		input = &isp->isp_ccdc.subdev.entity;
+> +		pad = CCDC_PAD_SINK;
+> +		flags = 0;
+> +		break;
+> +
+> +	case ISP_INTERFACE_CSI2A_PHY2:
+> +		input = &isp->isp_csi2a.subdev.entity;
+> +		pad = CSI2_PAD_SINK;
+> +		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
+> +		break;
+> +
+> +	case ISP_INTERFACE_CCP2B_PHY1:
+> +	case ISP_INTERFACE_CCP2B_PHY2:
+> +		input = &isp->isp_ccp2.subdev.entity;
+> +		pad = CCP2_PAD_SINK;
+> +		flags = 0;
+> +		break;
+> +
+> +	case ISP_INTERFACE_CSI2C_PHY1:
+> +		input = &isp->isp_csi2c.subdev.entity;
+> +		pad = CSI2_PAD_SINK;
+> +		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
+> +		break;
+> +
+> +	default:
+> +		dev_err(isp->dev, "%s: invalid interface type %u\n", __func__,
+> +			interface);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/*
+> +	 * Not all interfaces are available on all revisions of the
+> +	 * ISP. The sub-devices of those interfaces aren't initialised
+> +	 * in such a case. Check this by ensuring the num_pads is
+> +	 * non-zero.
+> +	 */
+> +	if (!input->num_pads) {
+> +		dev_err(isp->dev, "%s: invalid input %u\n", entity->name,
+> +			interface);
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (i = 0; i < entity->num_pads; i++) {
+> +		if (entity->pads[i].flags & MEDIA_PAD_FL_SOURCE)
+> +			break;
+> +	}
+> +	if (i == entity->num_pads) {
+> +		dev_err(isp->dev, "%s: no source pad in external entity\n",
+> +			__func__);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return media_entity_create_link(entity, i, input, pad, flags);
+> +}
+> +
+>  static int isp_register_entities(struct isp_device *isp)
+>  {
+>  	struct isp_platform_data *pdata = isp->pdata;
+> @@ -1894,85 +1965,15 @@ static int isp_register_entities(struct isp_device
+> *isp)
+> 
+>  	/* Register external entities */
+>  	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
+> -		struct v4l2_subdev *sensor;
+> -		struct media_entity *input;
+> -		unsigned int flags;
+> -		unsigned int pad;
+> -		unsigned int i;
+> +		struct v4l2_subdev *sensor =
+> +			isp_register_subdev_group(isp, subdevs->subdevs);
+> 
+> -		sensor = isp_register_subdev_group(isp, subdevs->subdevs);
+
+Nit-picking a bit, I'd keep the variable declaration and the function call 
+separate here, as isp_register_subdev_group() is much more than an 
+initializer. Apart from that,
+
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/devices.c               |   10 ----------
- drivers/media/platform/omap3isp/isp.c       |   20 ++++++++++++++++----
- drivers/media/platform/omap3isp/isp.h       |   19 +++++++++++++++++--
- drivers/media/platform/omap3isp/ispcsiphy.c |   20 +++++++++-----------
- 4 files changed, 42 insertions(+), 27 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 1afb50d..e945957 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -143,16 +143,6 @@ static struct resource omap3isp_resources[] = {
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE,
--		.end		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE + 3,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL,
--		.end		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL + 3,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
- 		.start		= 24 + OMAP_INTC_START,
- 		.flags		= IORESOURCE_IRQ,
- 	}
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 68d7edfc..83b4368 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -51,6 +51,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/i2c.h>
- #include <linux/interrupt.h>
-+#include <linux/mfd/syscon.h>
- #include <linux/module.h>
- #include <linux/omap-iommu.h>
- #include <linux/platform_device.h>
-@@ -94,8 +95,9 @@ static const struct isp_res_mapping isp_res_maps[] = {
- 		       1 << OMAP3_ISP_IOMEM_RESZ |
- 		       1 << OMAP3_ISP_IOMEM_SBL |
- 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
--		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
--		       1 << OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
-+		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
-+		.syscon_offset = 0xdc,
-+		.phy_type = ISP_PHY_TYPE_3430,
- 	},
- 	{
- 		.isp_rev = ISP_REVISION_15_0,
-@@ -112,8 +114,9 @@ static const struct isp_res_mapping isp_res_maps[] = {
- 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
- 		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
- 		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
--		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2 |
--		       1 << OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
-+		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
-+		.syscon_offset = 0x2f0,
-+		.phy_type = ISP_PHY_TYPE_3630,
- 	},
- };
- 
-@@ -2352,6 +2355,15 @@ static int isp_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
-+	if (IS_ERR(isp->syscon)) {
-+		ret = PTR_ERR(isp->syscon);
-+		goto error_isp;
-+	}
-+
-+	isp->syscon_offset = isp_res_maps[m].syscon_offset;
-+	isp->phy_type = isp_res_maps[m].phy_type;
-+
- 	/* IOMMU */
- 	ret = isp_attach_iommu(isp);
- 	if (ret < 0) {
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 9535524..03d2129 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -59,8 +59,6 @@ enum isp_mem_resources {
- 	OMAP3_ISP_IOMEM_CSI2C_REGS1,
- 	OMAP3_ISP_IOMEM_CSIPHY1,
- 	OMAP3_ISP_IOMEM_CSI2C_REGS2,
--	OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
--	OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
- 	OMAP3_ISP_IOMEM_LAST
- };
- 
-@@ -93,14 +91,25 @@ enum isp_subclk_resource {
- /* ISP2P: OMAP 36xx */
- #define ISP_REVISION_15_0		0xF0
- 
-+#define ISP_PHY_TYPE_3430		0
-+#define ISP_PHY_TYPE_3630		1
-+
-+struct regmap;
-+
- /*
-  * struct isp_res_mapping - Map ISP io resources to ISP revision.
-  * @isp_rev: ISP_REVISION_x_x
-  * @map: bitmap for enum isp_mem_resources
-+ * @syscon_offset: offset of the syscon register for 343x / 3630
-+ *	    (CONTROL_CSIRXFE / CONTROL_CAMERA_PHY_CTRL, respectively)
-+ *	    from the syscon base address
-+ * @phy_type: ISP_PHY_TYPE_{3430,3630}
-  */
- struct isp_res_mapping {
- 	u32 isp_rev;
- 	u32 map;
-+	u32 syscon_offset;
-+	u32 phy_type;
- };
- 
- /*
-@@ -140,6 +149,9 @@ struct isp_xclk {
-  *             regions.
-  * @mmio_hist_base_phys: Physical L4 bus address for ISP hist block register
-  *			 region.
-+ * @syscon: Regmap for the syscon register space
-+ * @syscon_offset: Offset of the CSIPHY control register in syscon
-+ * @phy_type: ISP_PHY_TYPE_{3430,3630}
-  * @mapping: IOMMU mapping
-  * @stat_lock: Spinlock for handling statistics
-  * @isp_mutex: Mutex for serializing requests to ISP.
-@@ -176,6 +188,9 @@ struct isp_device {
- 
- 	void __iomem *mmio_base[OMAP3_ISP_IOMEM_LAST];
- 	unsigned long mmio_hist_base_phys;
-+	struct regmap *syscon;
-+	u32 syscon_offset;
-+	u32 phy_type;
- 
- 	struct dma_iommu_mapping *mapping;
- 
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-index 4486e9f..d91dde1 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -16,6 +16,7 @@
- 
- #include <linux/delay.h>
- #include <linux/device.h>
-+#include <linux/regmap.h>
- #include <linux/regulator/consumer.h>
- 
- #include "isp.h"
-@@ -26,10 +27,11 @@ static void csiphy_routing_cfg_3630(struct isp_csiphy *phy,
- 				    enum isp_interface_type iface,
- 				    bool ccp2_strobe)
- {
--	u32 reg = isp_reg_readl(
--		phy->isp, OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
-+	u32 reg;
- 	u32 shift, mode;
- 
-+	regmap_read(phy->isp->syscon, phy->isp->syscon_offset, &reg);
-+
- 	switch (iface) {
- 	default:
- 	/* Should not happen in practice, but let's keep the compiler happy. */
-@@ -63,8 +65,7 @@ static void csiphy_routing_cfg_3630(struct isp_csiphy *phy,
- 	reg &= ~(OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK << shift);
- 	reg |= mode << shift;
- 
--	isp_reg_writel(phy->isp, reg,
--		       OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
-+	regmap_write(phy->isp->syscon, phy->isp->syscon_offset, reg);
- }
- 
- static void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool on,
-@@ -78,16 +79,14 @@ static void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool on,
- 		return;
- 
- 	if (!on) {
--		isp_reg_writel(phy->isp, 0,
--			       OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE, 0);
-+		regmap_write(phy->isp->syscon, phy->isp->syscon_offset, 0);
- 		return;
- 	}
- 
- 	if (ccp2_strobe)
- 		csirxfe |= OMAP343X_CONTROL_CSIRXFE_SELFORM;
- 
--	isp_reg_writel(phy->isp, csirxfe,
--		       OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE, 0);
-+	regmap_write(phy->isp->syscon, phy->isp->syscon_offset, csirxfe);
- }
- 
- /*
-@@ -106,10 +105,9 @@ static void csiphy_routing_cfg(struct isp_csiphy *phy,
- 			       enum isp_interface_type iface, bool on,
- 			       bool ccp2_strobe)
- {
--	if (phy->isp->mmio_base[OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL]
--	    && on)
-+	if (phy->isp->phy_type == ISP_PHY_TYPE_3630 && on)
- 		return csiphy_routing_cfg_3630(phy, iface, ccp2_strobe);
--	if (phy->isp->mmio_base[OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE])
-+	if (phy->isp->phy_type == ISP_PHY_TYPE_3430)
- 		return csiphy_routing_cfg_3430(phy, iface, on, ccp2_strobe);
- }
- 
+>  		if (sensor == NULL)
+>  			continue;
+> 
+>  		sensor->host_priv = subdevs;
+> 
+> -		/* Connect the sensor to the correct interface module. Parallel
+> -		 * sensors are connected directly to the CCDC, while serial
+> -		 * sensors are connected to the CSI2a, CCP2b or CSI2c receiver
+> -		 * through CSIPHY1 or CSIPHY2.
+> -		 */
+> -		switch (subdevs->interface) {
+> -		case ISP_INTERFACE_PARALLEL:
+> -			input = &isp->isp_ccdc.subdev.entity;
+> -			pad = CCDC_PAD_SINK;
+> -			flags = 0;
+> -			break;
+> -
+> -		case ISP_INTERFACE_CSI2A_PHY2:
+> -			input = &isp->isp_csi2a.subdev.entity;
+> -			pad = CSI2_PAD_SINK;
+> -			flags = MEDIA_LNK_FL_IMMUTABLE
+> -			      | MEDIA_LNK_FL_ENABLED;
+> -			break;
+> -
+> -		case ISP_INTERFACE_CCP2B_PHY1:
+> -		case ISP_INTERFACE_CCP2B_PHY2:
+> -			input = &isp->isp_ccp2.subdev.entity;
+> -			pad = CCP2_PAD_SINK;
+> -			flags = 0;
+> -			break;
+> -
+> -		case ISP_INTERFACE_CSI2C_PHY1:
+> -			input = &isp->isp_csi2c.subdev.entity;
+> -			pad = CSI2_PAD_SINK;
+> -			flags = MEDIA_LNK_FL_IMMUTABLE
+> -			      | MEDIA_LNK_FL_ENABLED;
+> -			break;
+> -
+> -		default:
+> -			dev_err(isp->dev, "%s: invalid interface type %u\n",
+> -				__func__, subdevs->interface);
+> -			ret = -EINVAL;
+> -			goto done;
+> -		}
+> -
+> -		/*
+> -		 * Not all interfaces are available on all revisions
+> -		 * of the ISP. The sub-devices of those interfaces
+> -		 * aren't initialised in such a case. Check this by
+> -		 * ensuring the num_pads is non-zero.
+> -		 */
+> -		if (!input->num_pads) {
+> -			dev_err(isp->dev, "%s: invalid input %u\n",
+> -				entity->name, subdevs->interface);
+> -			ret = -EINVAL;
+> -			goto done;
+> -		}
+> -
+> -		for (i = 0; i < sensor->entity.num_pads; i++) {
+> -			if (sensor->entity.pads[i].flags & MEDIA_PAD_FL_SOURCE)
+> -				break;
+> -		}
+> -		if (i == sensor->entity.num_pads) {
+> -			dev_err(isp->dev,
+> -				"%s: no source pad in external entity\n",
+> -				__func__);
+> -			ret = -EINVAL;
+> -			goto done;
+> -		}
+> -
+> -		ret = media_entity_create_link(&sensor->entity, i, input, pad,
+> -					       flags);
+> +		ret = isp_link_entity(isp, &sensor->entity, subdevs->interface);
+>  		if (ret < 0)
+>  			goto done;
+>  	}
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
