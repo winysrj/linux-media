@@ -1,101 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43179 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753436AbbCMLQ6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 07:16:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 32/39] vivid: add support for [A|X]RGB555X
-Date: Fri, 13 Mar 2015 12:16:10 +0100
-Message-Id: <1426245377-17704-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
-References: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35161 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751838AbbCGX2S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 18:28:18 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	pali.rohar@gmail.com
+Subject: Re: [RFC 09/18] omap3isp: Replace mmio_base_phys array with the histogram block base
+Date: Sun, 08 Mar 2015 01:28:18 +0200
+Message-ID: <2415325.xPjzqFQXie@avalon>
+In-Reply-To: <1425764475-27691-10-git-send-email-sakari.ailus@iki.fi>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi> <1425764475-27691-10-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sakari,
 
-Only RGB555X was supported, add support for the other two variants.
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-tpg.c        | 10 ++++++++++
- drivers/media/platform/vivid/vivid-vid-common.c | 18 +++++++++++++++++-
- 2 files changed, 27 insertions(+), 1 deletion(-)
+On Saturday 07 March 2015 23:41:06 Sakari Ailus wrote:
+> Only the histogram sub-block driver uses the physical address. Do not store
+> it for other sub-blocks.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
-index fcb2486..e4d461a 100644
---- a/drivers/media/platform/vivid/vivid-tpg.c
-+++ b/drivers/media/platform/vivid/vivid-tpg.c
-@@ -197,6 +197,8 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_XRGB555:
- 	case V4L2_PIX_FMT_ARGB555:
- 	case V4L2_PIX_FMT_RGB555X:
-+	case V4L2_PIX_FMT_XRGB555X:
-+	case V4L2_PIX_FMT_ARGB555X:
- 	case V4L2_PIX_FMT_RGB24:
- 	case V4L2_PIX_FMT_BGR24:
- 	case V4L2_PIX_FMT_RGB32:
-@@ -274,6 +276,8 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_XRGB555:
- 	case V4L2_PIX_FMT_ARGB555:
- 	case V4L2_PIX_FMT_RGB555X:
-+	case V4L2_PIX_FMT_XRGB555X:
-+	case V4L2_PIX_FMT_ARGB555X:
- 	case V4L2_PIX_FMT_YUYV:
- 	case V4L2_PIX_FMT_UYVY:
- 	case V4L2_PIX_FMT_YVYU:
-@@ -718,6 +722,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 		case V4L2_PIX_FMT_XRGB555:
- 		case V4L2_PIX_FMT_ARGB555:
- 		case V4L2_PIX_FMT_RGB555X:
-+		case V4L2_PIX_FMT_XRGB555X:
-+		case V4L2_PIX_FMT_ARGB555X:
- 			r >>= 7;
- 			g >>= 7;
- 			b >>= 7;
-@@ -885,6 +891,10 @@ static void gen_twopix(struct tpg_data *tpg,
- 		buf[0][offset + 1] = (alpha & 0x80) | (r_y << 2) | (g_u >> 3);
- 		break;
- 	case V4L2_PIX_FMT_RGB555X:
-+	case V4L2_PIX_FMT_XRGB555X:
-+		alpha = 0;
-+		/* fall through */
-+	case V4L2_PIX_FMT_ARGB555X:
- 		buf[0][offset] = (alpha & 0x80) | (r_y << 2) | (g_u >> 3);
- 		buf[0][offset + 1] = (g_u << 5) | b_v;
- 		break;
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
-index 453a5ad..81e6c82 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.c
-+++ b/drivers/media/platform/vivid/vivid-vid-common.c
-@@ -230,7 +230,23 @@ struct vivid_fmt vivid_formats[] = {
- 		.bit_depth = { 16 },
- 		.planes   = 1,
- 		.buffers = 1,
--		.can_do_overlay = true,
-+	},
-+	{
-+		.name     = "XRGB555 (BE)",
-+		.fourcc   = V4L2_PIX_FMT_XRGB555X, /* xrrrrrgg gggbbbbb */
-+		.vdownsampling = { 1 },
-+		.bit_depth = { 16 },
-+		.planes   = 1,
-+		.buffers = 1,
-+	},
-+	{
-+		.name     = "ARGB555 (BE)",
-+		.fourcc   = V4L2_PIX_FMT_ARGB555X, /* arrrrrgg gggbbbbb */
-+		.vdownsampling = { 1 },
-+		.bit_depth = { 16 },
-+		.planes   = 1,
-+		.buffers = 1,
-+		.alpha_mask = 0x0080,
- 	},
- 	{
- 		.name     = "RGB24 (LE)",
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/omap3isp/isp.c     |    3 ++-
+>  drivers/media/platform/omap3isp/isp.h     |    6 +++---
+>  drivers/media/platform/omap3isp/isphist.c |    2 +-
+>  3 files changed, 6 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index c045318..68d7edfc 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2247,7 +2247,8 @@ static int isp_map_mem_resource(struct platform_device
+> *pdev, if (IS_ERR(isp->mmio_base[res]))
+>  		return PTR_ERR(isp->mmio_base[res]);
+> 
+> -	isp->mmio_base_phys[res] = mem->start;
+> +	if (res == OMAP3_ISP_IOMEM_HIST)
+> +		isp->mmio_hist_base_phys = mem->start;
+> 
+>  	return 0;
+>  }
+> diff --git a/drivers/media/platform/omap3isp/isp.h
+> b/drivers/media/platform/omap3isp/isp.h index b932a6f..9535524 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -138,8 +138,8 @@ struct isp_xclk {
+>   * @irq_num: Currently used IRQ number.
+>   * @mmio_base: Array with kernel base addresses for ioremapped ISP register
+> *             regions.
+> - * @mmio_base_phys: Array with physical L4 bus addresses for ISP register
+> - *                  regions.
+> + * @mmio_hist_base_phys: Physical L4 bus address for ISP hist block
+> register + *			 region.
+>   * @mapping: IOMMU mapping
+>   * @stat_lock: Spinlock for handling statistics
+>   * @isp_mutex: Mutex for serializing requests to ISP.
+> @@ -175,7 +175,7 @@ struct isp_device {
+>  	unsigned int irq_num;
+> 
+>  	void __iomem *mmio_base[OMAP3_ISP_IOMEM_LAST];
+> -	unsigned long mmio_base_phys[OMAP3_ISP_IOMEM_LAST];
+> +	unsigned long mmio_hist_base_phys;
+> 
+>  	struct dma_iommu_mapping *mapping;
+> 
+> diff --git a/drivers/media/platform/omap3isp/isphist.c
+> b/drivers/media/platform/omap3isp/isphist.c index ce822c3..3bb9c4f 100644
+> --- a/drivers/media/platform/omap3isp/isphist.c
+> +++ b/drivers/media/platform/omap3isp/isphist.c
+> @@ -70,7 +70,7 @@ static void hist_dma_config(struct ispstat *hist)
+>  	hist->dma_config.sync_mode = OMAP_DMA_SYNC_ELEMENT;
+>  	hist->dma_config.frame_count = 1;
+>  	hist->dma_config.src_amode = OMAP_DMA_AMODE_CONSTANT;
+> -	hist->dma_config.src_start = isp->mmio_base_phys[OMAP3_ISP_IOMEM_HIST]
+> +	hist->dma_config.src_start = isp->mmio_hist_base_phys
+>  				   + ISPHIST_DATA;
+>  	hist->dma_config.dst_amode = OMAP_DMA_AMODE_POST_INC;
+>  	hist->dma_config.src_or_dst_synch = OMAP_DMA_SRC_SYNC;
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
