@@ -1,77 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f177.google.com ([209.85.213.177]:41787 "EHLO
-	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116AbbCJAXh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 20:23:37 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34190 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753120AbbCGX5r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2015 18:57:47 -0500
+Date: Sun, 8 Mar 2015 01:57:14 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	pali.rohar@gmail.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [RFC 12/18] dt: bindings: Add lane-polarity property to endpoint
+ nodes
+Message-ID: <20150307235714.GI6539@valkosipuli.retiisi.org.uk>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+ <1425764475-27691-13-git-send-email-sakari.ailus@iki.fi>
+ <2025225.4flgD7jFWe@avalon>
 MIME-Version: 1.0
-In-Reply-To: <1425485680-8417-4-git-send-email-j.anaszewski@samsung.com>
-References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com> <1425485680-8417-4-git-send-email-j.anaszewski@samsung.com>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Mon, 9 Mar 2015 17:23:16 -0700
-Message-ID: <CAK5ve-J16Ee-HvE=pVsWC88_KUcRr0UA+f8CtXieVuTMBqxyYw@mail.gmail.com>
-Subject: Re: [PATCH/RFC v12 03/19] Documentation: leds: Add description of LED
- Flash class extension
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	lkml <linux-kernel@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pavel Machek <pavel@ucw.cz>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2025225.4flgD7jFWe@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 4, 2015 at 8:14 AM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> The documentation being added contains overall description of the
-> LED Flash Class and the related sysfs attributes.
->
+Hi Laurent,
 
-Thanks, merged!
--Bryan
+On Sun, Mar 08, 2015 at 01:46:02AM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> (CC'ing Sylwester)
+> 
+> On Saturday 07 March 2015 23:41:09 Sakari Ailus wrote:
+> > Add lane-polarity property to endpoint nodes. This essentially tells that
+> > the order of the differential signal wires is inverted.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  Documentation/devicetree/bindings/media/video-interfaces.txt |    5 +++++
+> >  1 file changed, 5 insertions(+)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > b/Documentation/devicetree/bindings/media/video-interfaces.txt index
+> > 571b4c6..058d1e6 100644
+> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > @@ -106,6 +106,11 @@ Optional endpoint properties
+> >  - link-frequencies: Allowed data bus frequencies. For MIPI CSI-2, for
+> >    instance, this is the actual frequency of the bus, not bits per clock per
+> > lane value. An array of 64-bit unsigned integers.
+> > +- lane-polarity: an array of polarities of the lanes starting from the
+> > clock
+> > +  lane and followed by the data lanes in the same order as in data-lanes.
+> > +  Valid values are 0 (normal) and 1 (inverted).
+> 
+> Would it make sense to add #define's for this ?
 
+Good question. I don't really have too much of an opinion. I think I'd just
+use a number until someone else needs this. :-)
 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> ---
->  Documentation/leds/leds-class-flash.txt |   22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
->  create mode 100644 Documentation/leds/leds-class-flash.txt
->
-> diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-> new file mode 100644
-> index 0000000..19bb673
-> --- /dev/null
-> +++ b/Documentation/leds/leds-class-flash.txt
-> @@ -0,0 +1,22 @@
-> +
-> +Flash LED handling under Linux
-> +==============================
-> +
-> +Some LED devices provide two modes - torch and flash. In the LED subsystem
-> +those modes are supported by LED class (see Documentation/leds/leds-class.txt)
-> +and LED Flash class respectively. The torch mode related features are enabled
-> +by default and the flash ones only if a driver declares it by setting
-> +LED_DEV_CAP_FLASH flag.
-> +
-> +In order to enable the support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
-> +must be defined in the kernel config. A LED Flash class driver must be
-> +registered in the LED subsystem with led_classdev_flash_register function.
-> +
-> +Following sysfs attributes are exposed for controlling flash LED devices:
-> +(see Documentation/ABI/testing/sysfs-class-led-flash)
-> +       - flash_brightness
-> +       - max_flash_brightness
-> +       - flash_timeout
-> +       - max_flash_timeout
-> +       - flash_strobe
-> +       - flash_fault
-> --
-> 1.7.9.5
->
+> > The length of the array
+> > +  should be the combined length of data-lanes and clock-lanes
+> > properties.
+> > +  This property is valid for serial busses only.
+> 
+> You should also document what happens when the property is omitted.
+
+Will add.
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
