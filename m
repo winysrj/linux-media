@@ -1,727 +1,1692 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp05.smtpout.orange.fr ([80.12.242.127]:48700 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450AbbCUXVh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Mar 2015 19:21:37 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:36468 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751732AbbCGPVp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 10:21:45 -0500
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Daniel Mack <zonque@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@intel.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH 4/4] media: pxa_camera: conversion to dmaengine
-Date: Sun, 22 Mar 2015 00:21:24 +0100
-Message-Id: <1426980085-12281-5-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1426980085-12281-1-git-send-email-robert.jarzmik@free.fr>
-References: <1426980085-12281-1-git-send-email-robert.jarzmik@free.fr>
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Lad Prabhakar <prabhakar.csengg@gmail.com>,
+	devicetree@vger.kernel.org
+Subject: [PATCH v3] media: i2c: add support for omnivision's ov2659 sensor
+Date: Sat,  7 Mar 2015 15:21:40 +0000
+Message-Id: <1425741700-23506-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Robert Jarzmik <robert.jarzmik@intel.com>
+From: Benoit Parrot <bparrot@ti.com>
 
-Convert pxa_camera to dmaengine. This removes all DMA registers
-manipulation in favor of the more generic dmaengine API.
+this patch adds support for omnivision's ov2659
+sensor, the driver supports following features:
+1: Asynchronous probing
+2: DT support
+3: Media controller support
 
-The functional level should be the same as before. The biggest change is
-in the videobuf_sg_splice() function, which splits a videobuf-dma into
-several scatterlists for 3 planes captures (Y, U, V).
-
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/platform/soc_camera/pxa_camera.c | 428 ++++++++++++-------------
- 1 file changed, 211 insertions(+), 217 deletions(-)
+ Changes for v3:
+ a: Fixed review comments pointed by Sakari.
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 8b39f44..8644022 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -28,6 +28,9 @@
- #include <linux/clk.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-+#include <linux/dmaengine.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/dma/pxa-dma.h>
- 
- #include <media/v4l2-common.h>
- #include <media/v4l2-dev.h>
-@@ -38,7 +41,6 @@
- 
- #include <linux/videodev2.h>
- 
--#include <mach/dma.h>
- #include <linux/platform_data/camera-pxa.h>
- 
- #define PXA_CAM_VERSION "0.0.6"
-@@ -175,21 +177,16 @@ enum pxa_camera_active_dma {
- 	DMA_V = 0x4,
- };
- 
--/* descriptor needed for the PXA DMA engine */
--struct pxa_cam_dma {
--	dma_addr_t		sg_dma;
--	struct pxa_dma_desc	*sg_cpu;
--	size_t			sg_size;
--	int			sglen;
--};
--
- /* buffer for one video frame */
- struct pxa_buffer {
- 	/* common v4l buffer stuff -- must be first */
- 	struct videobuf_buffer		vb;
- 	u32	code;
- 	/* our descriptor lists for Y, U and V channels */
--	struct pxa_cam_dma		dmas[3];
-+	struct dma_async_tx_descriptor	*descs[3];
-+	dma_cookie_t			cookie[3];
-+	struct scatterlist		*sg[3];
-+	int				sg_len[3];
- 	int				inwork;
- 	enum pxa_camera_active_dma	active_dma;
- };
-@@ -207,7 +204,7 @@ struct pxa_camera_dev {
- 	void __iomem		*base;
- 
- 	int			channels;
--	unsigned int		dma_chans[3];
-+	struct dma_chan		*dma_chans[3];
- 
- 	struct pxacamera_platform_data *pdata;
- 	struct resource		*res;
-@@ -222,7 +219,6 @@ struct pxa_camera_dev {
- 	spinlock_t		lock;
- 
- 	struct pxa_buffer	*active;
--	struct pxa_dma_desc	*sg_tail[3];
- 	struct tasklet_struct	task_eof;
- 
- 	u32			save_cicr[5];
-@@ -259,7 +255,6 @@ static int pxa_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
- static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
- {
- 	struct soc_camera_device *icd = vq->priv_data;
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct videobuf_dmabuf *dma = videobuf_to_dma(&buf->vb);
- 	int i;
- 
-@@ -276,41 +271,82 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
- 	if (buf->vb.state == VIDEOBUF_NEEDS_INIT)
- 		return;
- 
--	for (i = 0; i < ARRAY_SIZE(buf->dmas); i++) {
--		if (buf->dmas[i].sg_cpu)
--			dma_free_coherent(ici->v4l2_dev.dev,
--					  buf->dmas[i].sg_size,
--					  buf->dmas[i].sg_cpu,
--					  buf->dmas[i].sg_dma);
--		buf->dmas[i].sg_cpu = NULL;
-+	for (i = 0; i < 3 && buf->descs[i]; i++) {
-+		async_tx_ack(buf->descs[i]);
-+		dmaengine_tx_release(buf->descs[i]);
-+		kfree(buf->sg[i]);
-+		buf->descs[i] = NULL;
-+		buf->sg[i] = NULL;
-+		buf->sg_len[i] = 0;
- 	}
- 	videobuf_dma_unmap(vq->dev, dma);
- 	videobuf_dma_free(dma);
- 
- 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
+ v2: https://patchwork.kernel.org/patch/5859801/
+ v1: https://patchwork.linuxtv.org/patch/27919/
+
+ .../devicetree/bindings/media/i2c/ov2659.txt       |   38 +
+ MAINTAINERS                                        |   10 +
+ drivers/media/i2c/Kconfig                          |   11 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov2659.c                         | 1495 ++++++++++++++++++++
+ include/media/ov2659.h                             |   33 +
+ 6 files changed, 1588 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2659.txt
+ create mode 100644 drivers/media/i2c/ov2659.c
+ create mode 100644 include/media/ov2659.h
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2659.txt b/Documentation/devicetree/bindings/media/i2c/ov2659.txt
+new file mode 100644
+index 0000000..01d8d59
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov2659.txt
+@@ -0,0 +1,38 @@
++* OV2659 1/5-Inch 2Mp SOC Camera
 +
-+	dev_dbg(icd->parent, "%s end (vb=0x%p) 0x%08lx %d\n", __func__,
-+		&buf->vb, buf->vb.baddr, buf->vb.bsize);
- }
- 
--static int calculate_dma_sglen(struct scatterlist *sglist, int sglen,
--			       int sg_first_ofs, int size)
-+static struct scatterlist *videobuf_sg_splice(struct scatterlist *sglist,
-+					      int sglen, int offset, int size,
-+					      int *new_sg_len)
- {
--	int i, offset, dma_len, xfer_len;
--	struct scatterlist *sg;
-+	struct scatterlist *sg0, *sg, *sg_first = NULL;
-+	int i, dma_len, dropped_xfer_len, dropped_remain, remain;
-+	int nfirst = -1, nfirst_offset = 0, xfer_len;
- 
--	offset = sg_first_ofs;
-+	*new_sg_len = 0;
-+	dropped_remain = offset;
-+	remain = size;
- 	for_each_sg(sglist, sg, sglen, i) {
- 		dma_len = sg_dma_len(sg);
--
- 		/* PXA27x Developer's Manual 27.4.4.1: round up to 8 bytes */
--		xfer_len = roundup(min(dma_len - offset, size), 8);
-+		dropped_xfer_len = roundup(min(dma_len, dropped_remain), 8);
-+		if (dropped_remain)
-+			dropped_remain -= dropped_xfer_len;
-+		xfer_len = dma_len - dropped_xfer_len;
++The Omnivision OV2659 is a 1/5-inch SOC camera, with an active array size of
++1632H x 1212V. It is programmable through a SCCB. The OV2659 sensor supports
++multiple resolutions output, such as UXGA, SVGA, 720p. It also can support
++YUV422, RGB565/555 or raw RGB output formats.
 +
-+		if ((nfirst < 0) && (xfer_len > 0)) {
-+			sg_first = sg;
-+			nfirst = i;
-+			nfirst_offset = dropped_xfer_len;
-+		}
-+		if (xfer_len > 0) {
-+			*new_sg_len = *new_sg_len + 1;
-+			remain -= xfer_len;
-+		}
-+		if (remain <= 0)
-+			break;
++Required Properties:
++- compatible: Must be "ovti,ov2659"
++- reg: I2C slave address
++- clocks: reference to the xvclk input clock.
++- clock-names: should be "xvclk".
++- pixel-clock-frequency: Pixel clock frequency.
++
++For further reading on port node refer to
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	i2c0@1c22000 {
++		...
++		...
++		 ov2659@30 {
++			compatible = "ovti,ov2659";
++			reg = <0x30>;
++
++			clocks = <&clk_ov2659 0>;
++			clock-names = "xvclk";
++
++			port {
++				ov2659_0: endpoint {
++					remote-endpoint = <&vpfe_ep>;
++					pixel-clock-frequency = <70000000>;
++				};
++			};
++		};
++		...
++	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ddc5a8c..4006cc8 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8910,6 +8910,16 @@ T:	git git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git
+ S:	Maintained
+ F:	drivers/media/platform/am437x/
+ 
++OV2659 OMNIVISION SENSOR DRIVER
++M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git
++S:	Maintained
++F:	drivers/media/i2c/ov2659.c
++F:	include/media/ov2659.h
++
+ SIS 190 ETHERNET DRIVER
+ M:	Francois Romieu <romieu@fr.zoreil.com>
+ L:	netdev@vger.kernel.org
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index da58c9b..6f30ea7 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -466,6 +466,17 @@ config VIDEO_APTINA_PLL
+ config VIDEO_SMIAPP_PLL
+ 	tristate
+ 
++config VIDEO_OV2659
++	tristate "OmniVision OV2659 sensor support"
++	depends on VIDEO_V4L2 && I2C
++	depends on MEDIA_CAMERA_SUPPORT
++	---help---
++	  This is a Video4Linux2 sensor-level driver for the OmniVision
++	  OV2659 camera.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called ov2659.
++
+ config VIDEO_OV7640
+ 	tristate "OmniVision OV7640 sensor support"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 98589001..f165fae 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -77,3 +77,4 @@ obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+ obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
+ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+ obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
++obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
+diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
+new file mode 100644
+index 0000000..98c8a18
+--- /dev/null
++++ b/drivers/media/i2c/ov2659.c
+@@ -0,0 +1,1495 @@
++/*
++ * Omnivision OV2659 CMOS Image Sensor driver
++ *
++ * Copyright (C) 2015 Texas Instruments, Inc.
++ *
++ * Benoit Parrot <bparrot@ti.com>
++ * Lad, Prabhakar <prabhakar.csengg@gmail.com>
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/i2c.h>
++#include <linux/kernel.h>
++#include <linux/media.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_graph.h>
++#include <linux/slab.h>
++#include <linux/uaccess.h>
++#include <linux/videodev2.h>
++
++#include <media/media-entity.h>
++#include <media/ov2659.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-event.h>
++#include <media/v4l2-image-sizes.h>
++#include <media/v4l2-mediabus.h>
++#include <media/v4l2-of.h>
++#include <media/v4l2-subdev.h>
++
++#define DRIVER_NAME "ov2659"
++
++/*
++ * OV2659 register definitions
++ */
++#define REG_SOFTWARE_STANDBY		0x0100
++#define REG_SOFTWARE_RESET		0x0103
++#define REG_IO_CTRL00			0x3000
++#define REG_IO_CTRL01			0x3001
++#define REG_IO_CTRL02			0x3002
++#define REG_OUTPUT_VALUE00		0x3008
++#define REG_OUTPUT_VALUE01		0x3009
++#define REG_OUTPUT_VALUE02		0x300d
++#define REG_OUTPUT_SELECT00		0x300e
++#define REG_OUTPUT_SELECT01		0x300f
++#define REG_OUTPUT_SELECT02		0x3010
++#define REG_OUTPUT_DRIVE		0x3011
++#define REG_INPUT_READOUT00		0x302d
++#define REG_INPUT_READOUT01		0x302e
++#define REG_INPUT_READOUT02		0x302f
++
++#define REG_SC_PLL_CTRL0		0x3003
++#define REG_SC_PLL_CTRL1		0x3004
++#define REG_SC_PLL_CTRL2		0x3005
++#define REG_SC_PLL_CTRL3		0x3006
++#define REG_SC_CHIP_ID_H		0x300a
++#define REG_SC_CHIP_ID_L		0x300b
++#define REG_SC_PWC			0x3014
++#define REG_SC_CLKRST0			0x301a
++#define REG_SC_CLKRST1			0x301b
++#define REG_SC_CLKRST2			0x301c
++#define REG_SC_CLKRST3			0x301d
++#define REG_SC_SUB_ID			0x302a
++#define REG_SC_SCCB_ID			0x302b
++
++#define REG_GROUP_ADDRESS_00		0x3200
++#define REG_GROUP_ADDRESS_01		0x3201
++#define REG_GROUP_ADDRESS_02		0x3202
++#define REG_GROUP_ADDRESS_03		0x3203
++#define REG_GROUP_ACCESS		0x3208
++
++#define REG_AWB_R_GAIN_H		0x3400
++#define REG_AWB_R_GAIN_L		0x3401
++#define REG_AWB_G_GAIN_H		0x3402
++#define REG_AWB_G_GAIN_L		0x3403
++#define REG_AWB_B_GAIN_H		0x3404
++#define REG_AWB_B_GAIN_L		0x3405
++#define REG_AWB_MANUAL_CONTROL		0x3406
++
++#define REG_TIMING_HS_H			0x3800
++#define REG_TIMING_HS_L			0x3801
++#define REG_TIMING_VS_H			0x3802
++#define REG_TIMING_VS_L			0x3803
++#define REG_TIMING_HW_H			0x3804
++#define REG_TIMING_HW_L			0x3805
++#define REG_TIMING_VH_H			0x3806
++#define REG_TIMING_VH_L			0x3807
++#define REG_TIMING_DVPHO_H		0x3808
++#define REG_TIMING_DVPHO_L		0x3809
++#define REG_TIMING_DVPVO_H		0x380a
++#define REG_TIMING_DVPVO_L		0x380b
++#define REG_TIMING_HTS_H		0x380c
++#define REG_TIMING_HTS_L		0x380d
++#define REG_TIMING_VTS_H		0x380e
++#define REG_TIMING_VTS_L		0x380f
++#define REG_TIMING_HOFFS_H		0x3810
++#define REG_TIMING_HOFFS_L		0x3811
++#define REG_TIMING_VOFFS_H		0x3812
++#define REG_TIMING_VOFFS_L		0x3813
++#define REG_TIMING_XINC			0x3814
++#define REG_TIMING_YINC			0x3815
++#define REG_TIMING_VERT_FORMAT		0x3820
++#define REG_TIMING_HORIZ_FORMAT		0x3821
++
++#define REG_AEC_PK_EXPOSURE_H		0x3500
++#define REG_AEC_PK_EXPOSURE_M		0x3501
++#define REG_AEC_PK_EXPOSURE_L		0x3502
++#define REG_AEC_PK_MANUAL		0x3503
++#define REG_AEC_MANUAL_GAIN_H		0x3504
++#define REG_AEC_MANUAL_GAIN_L		0x3505
++#define REG_AEC_ADD_VTS_H		0x3506
++#define REG_AEC_ADD_VTS_L		0x3507
++#define REG_AEK_PK_CTRL_08		0x3508
++#define REG_AEK_PK_CTRL_09		0x3509
++#define REG_AEC_PK_REAL_GAIN_H		0x350a
++#define REG_AEC_PK_REAL_GAIN_L		0x350b
++#define REG_AEC_REAL_GAIN_READ_H	0x3510
++#define REG_AEC_REAL_GAIN_READ_L	0x3511
++#define REG_AEC_SNR_GAIN_READ_H		0x3512
++#define REG_AEC_SNR_GAIN_READ_L		0x3513
++
++#define REG_AEC_CTRL(num)		(0x3a00 + num)
++
++#define REG_FRAME_CTRL00		0x4201
++#define REG_FRAME_CTRL01		0x4202
++#define REG_FORMAT_CTRL00		0x4300
++#define REG_CLIPPING_CTRL		0x4301
++
++#define REG_VFIFO_READ_CTRL		0x4601
++#define REG_VFIFO_CTRL05		0x4605
++#define REG_VFIFO_READ_START_H		0x4608
++#define REG_VFIFO_READ_START_L		0x4609
++
++#define REG_DVP_CTRL01			0x4704
++#define REG_DVP_CTRL02			0x4708
++#define REG_DVP_CTRL03			0x4709
++
++#define REG_ISP_CTRL00			0x5000
++#define REG_ISP_CTRL01			0x5001
++#define REG_ISP_CTRL02			0x5002
++#define REG_ISP_CTRL07			0x5007
++#define REG_ISP_PRE_CTRL00		0x50a0
++
++#define REG_BLC_CTRL00			0x4000
++#define REG_BLC_START_LINE		0x4001
++#define REG_BLC_CTRL02			0x4002
++#define REG_BLC_CTRL03			0x4003
++#define REG_BLC_LINE_NUM		0x4004
++#define REG_BLC_TARGET			0x4009
++
++#define REG_LENC_RED_X0_H		0x500c
++#define REG_LENC_RED_X0_L		0x500d
++#define REG_LENC_RED_Y0_H		0x500e
++#define REG_LENC_RED_Y0_L		0x500f
++#define REG_LENC_RED_A1			0x5010
++#define REG_LENC_RED_B1			0x5011
++#define REG_LENC_RED_A2_B2		0x5012
++#define REG_LENC_GREEN_X0_H		0x5013
++#define REG_LENC_GREEN_X0_L		0x5014
++#define REG_LENC_GREEN_Y0_H		0x5015
++#define REG_LENC_GREEN_Y0_L		0x5016
++#define REG_LENC_GREEN_A1		0x5017
++#define REG_LENC_GREEN_B1		0x5018
++#define REG_LENC_GREEN_A2_B2		0x5019
++#define REG_LENC_BLUE_X0_H		0x501a
++#define REG_LENC_BLUE_X0_L		0x501b
++#define REG_LENC_BLUE_Y0_H		0x501c
++#define REG_LENC_BLUE_Y0_L		0x501d
++#define REG_LENC_BLUE_A1		0x501e
++#define REG_LENC_BLUE_B1		0x501f
++#define REG_LENC_BLUE_A2_B2		0x5020
++#define REG_LENC_CTRL00			0x5021
++#define REG_LENC_CTRL01			0x5022
++#define REG_COEFFICIENT_THRESH		0x5023
++#define REG_COEFFICIENT_MANUAL_VAL	0x5024
++
++#define REG_GAMMA_YST(num)		(0x5025 + (num - 1))
++#define REG_GAMMA_YSLP			0x5034
++
++#define REG_AWB_CTRL00			0x5035
++#define REG_AWB_CTRL01			0x5036
++#define REG_AWB_CTRL02			0x5037
++#define REG_AWB_CTRL03			0x5038
++#define REG_AWB_CTRL04			0x5039
++#define REG_AWB_LOCAL_LIMIT		0x503a
++#define REG_AWB_CTRL12			0x5049
++#define REG_AWB_CTRL13			0x504a
++#define REG_AWB_CTRL14			0x504b
++
++#define REG_AVG_CTRL(num)		(0x5060 + num)
++#define REG_AVG_READOUT			0x5237
++
++#define REG_SHARPENMT_THRESH1		0x5064
++#define REG_SHARPENMT_THRESH2		0x5065
++#define REG_SHARPENMT_OFFSET1		0x5066
++#define REG_SHARPENMT_OFFSET2		0x5067
++#define REG_DENOISE_THRESH1		0x5068
++#define REG_DENOISE_THRESH2		0x5069
++#define REG_DENOISE_OFFSET1		0x506a
++#define REG_DENOISE_OFFSET2		0x506b
++#define REG_SHARPEN_THRESH1		0x506c
++#define REG_SHARPEN_THRESH2		0x506d
++#define REG_CIP_CTRL00			0x506e
++#define REG_CIP_CTRL01			0x506f
++
++#define REG_CMX(num)			(0x5070 + (num - 1))
++#define REG_CMX_SIGN			0x5079
++#define REG_CMX_MISC_CTRL		0x507a
++
++#define REG_SDE_CTRL(num)		(0x507b + num)
++
++#define REG_SCALE_CTRL0			0x5600
++#define REG_SCALE_CTRL1			0x5601
++#define REG_XSC_H			0x5602
++#define REG_XSC_L			0x5603
++#define REG_YSC_H			0x5604
++#define REG_YSC_L			0x5605
++#define REG_VOFFSET			0x5606
++#define REG_NULL			0x0000	/* Array end token */
++
++#define OV265X_ID(_msb, _lsb)		((_msb) << 8 | (_lsb))
++#define OV2659_ID			0x2656
++
++struct sensor_register {
++	u16 addr;
++	u8 value;
++};
++
++struct ov2659_framesize {
++	u16 width;
++	u16 height;
++	u16 max_exp_lines;
++	const struct sensor_register *regs;
++};
++
++struct ov2659_pll_ctrl {
++	u8 ctrl1;
++	u8 ctrl2;
++	u8 ctrl3;
++};
++
++struct ov2659_pixfmt {
++	u32 code;
++	u32 colorspace;
++	/* Output format Register Value (REG_FORMAT_CTRL00) */
++	struct sensor_register *format_ctrl_regs;
++};
++
++struct pll_ctrl_reg {
++	unsigned int div;
++	unsigned char reg;
++};
++
++struct ov2659 {
++	struct v4l2_subdev sd;
++	struct media_pad pad;
++	enum v4l2_mbus_type bus_type;
++	struct v4l2_mbus_framefmt format;
++	unsigned int xvclk_frequency;
++	const struct ov2659_platform_data *pdata;
++	struct mutex lock;
++	struct i2c_client *client;
++	const struct ov2659_framesize *frame_size;
++	struct sensor_register *format_ctrl_regs;
++	struct ov2659_pll_ctrl pll;
++	int streaming;
++};
++
++static const struct sensor_register ov2659_init_regs[] = {
++	{0x3000, 0x03}, /* IO CTRL */
++	{0x3001, 0xff}, /* IO CTRL */
++	{0x3002, 0xe0}, /* IO CTRL */
++	{0x3633, 0x3d},
++	{0x3620, 0x02},
++	{0x3631, 0x11},
++	{0x3612, 0x04},
++	{0x3630, 0x20},
++	{0x4702, 0x02}, /* DVP Debug mode */
++	{0x370c, 0x34},
++	{0x3800, 0x00}, /* TIMING */
++	{0x3801, 0x00}, /* TIMING */
++	{0x3802, 0x00}, /* TIMING */
++	{0x3803, 0x00}, /* TIMING */
++	{0x3804, 0x06}, /* TIMING */
++	{0x3805, 0x5f}, /* TIMING */
++	{0x3806, 0x04}, /* TIMING */
++	{0x3807, 0xb7}, /* TIMING */
++	{0x3808, 0x03}, /* Horizontal High Byte */
++	{0x3809, 0x20}, /* Horizontal Low Byte */
++	{0x380a, 0x02}, /* Vertical High Byte */
++	{0x380b, 0x58}, /* Vertical Low Byte */
++	{0x380c, 0x05}, /* TIMING */
++	{0x380d, 0x14}, /* TIMING */
++	{0x380e, 0x02}, /* TIMING */
++	{0x380f, 0x68}, /* TIMING */
++	{0x3811, 0x08}, /* TIMING */
++	{0x3813, 0x02}, /* TIMING */
++	{0x3814, 0x31}, /* TIMING */
++	{0x3815, 0x31}, /* TIMING */
++	{0x3a02, 0x02}, /* AEC */
++	{0x3a03, 0x68}, /* AEC */
++	{0x3a08, 0x00}, /* AEC */
++	{0x3a09, 0x5c}, /* AEC */
++	{0x3a0a, 0x00}, /* AEC */
++	{0x3a0b, 0x4d}, /* AEC */
++	{0x3a0d, 0x08}, /* AEC */
++	{0x3a0e, 0x06}, /* AEC */
++	{0x3a14, 0x02}, /* AEC */
++	{0x3a15, 0x28}, /* AEC */
++	{0x4708, 0x01}, /* DVP */
++	{0x3623, 0x00},
++	{0x3634, 0x76},
++	{0x3701, 0x44},
++	{0x3702, 0x18},
++	{0x3703, 0x24},
++	{0x3704, 0x24},
++	{0x3705, 0x0c},
++	{0x3820, 0x81}, /* TIMING */
++	{0x3821, 0x01}, /* TIMING */
++	{0x370a, 0x52},
++	{0x4608, 0x00}, /* VFIFO */
++	{0x4609, 0x80}, /* VFIFO */
++	{0x4300, 0x30}, /* Format */
++	{0x5086, 0x02},
++	{0x5000, 0xfb}, /* DPC/ISP */
++	{0x5001, 0x1f}, /* ISP */
++	{0x5002, 0x00}, /* ISP */
++	{0x5025, 0x0e}, /* GAMMA */
++	{0x5026, 0x18}, /* GAMMA */
++	{0x5027, 0x34}, /* GAMMA */
++	{0x5028, 0x4c}, /* GAMMA */
++	{0x5029, 0x62}, /* GAMMA */
++	{0x502a, 0x74}, /* GAMMA */
++	{0x502b, 0x85}, /* GAMMA */
++	{0x502c, 0x92}, /* GAMMA */
++	{0x502d, 0x9e}, /* GAMMA */
++	{0x502e, 0xb2}, /* GAMMA */
++	{0x502f, 0xc0}, /* GAMMA */
++	{0x5030, 0xcc}, /* GAMMA */
++	{0x5031, 0xe0}, /* GAMMA */
++	{0x5032, 0xee}, /* GAMMA */
++	{0x5033, 0xf6}, /* GAMMA */
++	{0x5034, 0x11}, /* GAMMA */
++	{0x5070, 0x1c}, /* CMX */
++	{0x5071, 0x5b}, /* CMX */
++	{0x5072, 0x05}, /* CMX */
++	{0x5073, 0x20}, /* CMX */
++	{0x5074, 0x94}, /* CMX */
++	{0x5075, 0xb4}, /* CMX */
++	{0x5076, 0xb4}, /* CMX */
++	{0x5077, 0xaf}, /* CMX */
++	{0x5078, 0x05}, /* CMX */
++	{0x5079, 0x98}, /* CMX */
++	{0x507a, 0x21}, /* CMX */
++	{0x5035, 0x6a}, /* AWB */
++	{0x5036, 0x11}, /* AWB */
++	{0x5037, 0x92}, /* AWB */
++	{0x5038, 0x21}, /* AWB */
++	{0x5039, 0xe1}, /* AWB */
++	{0x503a, 0x01}, /* AWB */
++	{0x503c, 0x05}, /* AWB */
++	{0x503d, 0x08}, /* AWB */
++	{0x503e, 0x08}, /* AWB */
++	{0x503f, 0x64}, /* AWB */
++	{0x5040, 0x58}, /* AWB */
++	{0x5041, 0x2a}, /* AWB */
++	{0x5042, 0xc5}, /* AWB */
++	{0x5043, 0x2e}, /* AWB */
++	{0x5044, 0x3a}, /* AWB */
++	{0x5045, 0x3c}, /* AWB */
++	{0x5046, 0x44}, /* AWB */
++	{0x5047, 0xf8}, /* AWB */
++	{0x5048, 0x08}, /* AWB */
++	{0x5049, 0x70}, /* AWB */
++	{0x504a, 0xf0}, /* AWB */
++	{0x504b, 0xf0}, /* AWB */
++	{0x500c, 0x03}, /* LENC/ISP TOP Debug */
++	{0x500d, 0x20}, /* LENC/ISP TOP Debug */
++	{0x500e, 0x02}, /* LENC/ISP TOP Debug */
++	{0x500f, 0x5c}, /* LENC/ISP TOP Debug */
++	{0x5010, 0x48}, /* LENC/ISP TOP Debug */
++	{0x5011, 0x00}, /* LENC/ISP TOP Debug */
++	{0x5012, 0x66}, /* LENC/ISP TOP Debug */
++	{0x5013, 0x03}, /* LENC/ISP TOP Debug */
++	{0x5014, 0x30}, /* LENC/ISP TOP Debug */
++	{0x5015, 0x02}, /* LENC/ISP TOP Debug */
++	{0x5016, 0x7c}, /* LENC/ISP TOP Debug */
++	{0x5017, 0x40}, /* LENC/ISP TOP Debug */
++	{0x5018, 0x00}, /* LENC/ISP TOP Debug */
++	{0x5019, 0x66}, /* LENC/ISP TOP Debug */
++	{0x501a, 0x03}, /* LENC/ISP TOP Debug */
++	{0x501b, 0x10}, /* LENC/ISP TOP Debug */
++	{0x501c, 0x02}, /* LENC/ISP TOP Debug */
++	{0x501d, 0x7c}, /* LENC/ISP TOP Debug */
++	{0x501e, 0x3a}, /* LENC/ISP TOP Debug */
++	{0x501f, 0x00}, /* LENC/ISP TOP Debug */
++	{0x5020, 0x66}, /* LENC/ISP TOP Debug */
++	{0x506e, 0x44}, /* CIP/DNS */
++	{0x5064, 0x08}, /* CIP/DNS */
++	{0x5065, 0x10}, /* CIP/DNS */
++	{0x5066, 0x12}, /* CIP/DNS */
++	{0x5067, 0x02}, /* CIP/DNS */
++	{0x506c, 0x08}, /* CIP/DNS */
++	{0x506d, 0x10}, /* CIP/DNS */
++	{0x506f, 0xa6}, /* CIP/DNS */
++	{0x5068, 0x08}, /* CIP/DNS */
++	{0x5069, 0x10}, /* CIP/DNS */
++	{0x506a, 0x04}, /* CIP/DNS */
++	{0x506b, 0x12}, /* CIP/DNS */
++	{0x507e, 0x40}, /* SDE */
++	{0x507f, 0x20}, /* SDE */
++	{0x507b, 0x02}, /* SDE */
++	{0x507a, 0x01}, /* CMX/SDE */
++	{0x5084, 0x0c}, /* SDE */
++	{0x5085, 0x3e}, /* SDE */
++	{0x5005, 0x80}, /* ISP TOP Debug */
++	{0x3a0f, 0x30}, /* AEC */
++	{0x3a10, 0x28}, /* AEC */
++	{0x3a1b, 0x32}, /* AEC */
++	{0x3a1e, 0x26}, /* AEC */
++	{0x3a11, 0x60}, /* AEC */
++	{0x3a1f, 0x14}, /* AEC */
++	{0x5060, 0x69}, /* Y AVG */
++	{0x5061, 0x7d}, /* Y AVG */
++	{0x5062, 0x7d}, /* Y AVG */
++	{0x5063, 0x69}, /* Y AVG */
++	{0x0000, 0x00}
++};
++
++/* 1280X720 720p */
++static struct sensor_register ov2659_720p[] = {
++	{0x3800, 0x00},
++	{0x3801, 0xa0},
++	{0x3802, 0x00},
++	{0x3803, 0xf0},
++	{0x3804, 0x05},
++	{0x3805, 0xbf},
++	{0x3806, 0x03},
++	{0x3807, 0xcb},
++	{0x3808, 0x05},
++	{0x3809, 0x00},
++	{0x380a, 0x02},
++	{0x380b, 0xd0},
++	{0x380c, 0x06},
++	{0x380d, 0x4c},
++	{0x380e, 0x02},
++	{0x380f, 0xe8},
++	{0x3811, 0x10},
++	{0x3813, 0x06},
++	{0x3814, 0x11},
++	{0x3815, 0x11},
++	{0x3820, 0x80},
++	{0x3821, 0x00},
++	{0x3a03, 0xe8},
++	{0x3a09, 0x6f},
++	{0x3a0b, 0x5d},
++	{0x3a15, 0x9a},
++	{0x0000, 0x00}
++};
++
++/* 1600X1200 UXGA */
++static struct sensor_register ov2659_uxga[] = {
++	{0x3800, 0x00},
++	{0x3801, 0x00},
++	{0x3802, 0x00},
++	{0x3803, 0x00},
++	{0x3804, 0x06},
++	{0x3805, 0x5f},
++	{0x3806, 0x04},
++	{0x3807, 0xbb},
++	{0x3808, 0x06},
++	{0x3809, 0x40},
++	{0x380a, 0x04},
++	{0x380b, 0xb0},
++	{0x380c, 0x07},
++	{0x380d, 0x9f},
++	{0x380e, 0x04},
++	{0x380f, 0xd0},
++	{0x3811, 0x10},
++	{0x3813, 0x06},
++	{0x3814, 0x11},
++	{0x3815, 0x11},
++	{0x3a02, 0x04},
++	{0x3a03, 0xd0},
++	{0x3a08, 0x00},
++	{0x3a09, 0xb8},
++	{0x3a0a, 0x00},
++	{0x3a0b, 0x9a},
++	{0x3a0d, 0x08},
++	{0x3a0e, 0x06},
++	{0x3a14, 0x04},
++	{0x3a15, 0x50},
++	{0x3623, 0x00},
++	{0x3634, 0x44},
++	{0x3701, 0x44},
++	{0x3702, 0x30},
++	{0x3703, 0x48},
++	{0x3704, 0x48},
++	{0x3705, 0x18},
++	{0x3820, 0x80},
++	{0x3821, 0x00},
++	{0x370a, 0x12},
++	{0x4608, 0x00},
++	{0x4609, 0x80},
++	{0x5002, 0x00},
++	{0x0000, 0x00}
++};
++
++/* 1280X1024 SXGA */
++static struct sensor_register ov2659_sxga[] = {
++	{0x3800, 0x00},
++	{0x3801, 0x00},
++	{0x3802, 0x00},
++	{0x3803, 0x00},
++	{0x3804, 0x06},
++	{0x3805, 0x5f},
++	{0x3806, 0x04},
++	{0x3807, 0xb7},
++	{0x3808, 0x05},
++	{0x3809, 0x00},
++	{0x380a, 0x04},
++	{0x380b, 0x00},
++	{0x380c, 0x07},
++	{0x380d, 0x9c},
++	{0x380e, 0x04},
++	{0x380f, 0xd0},
++	{0x3811, 0x10},
++	{0x3813, 0x06},
++	{0x3814, 0x11},
++	{0x3815, 0x11},
++	{0x3a02, 0x02},
++	{0x3a03, 0x68},
++	{0x3a08, 0x00},
++	{0x3a09, 0x5c},
++	{0x3a0a, 0x00},
++	{0x3a0b, 0x4d},
++	{0x3a0d, 0x08},
++	{0x3a0e, 0x06},
++	{0x3a14, 0x02},
++	{0x3a15, 0x28},
++	{0x3623, 0x00},
++	{0x3634, 0x76},
++	{0x3701, 0x44},
++	{0x3702, 0x18},
++	{0x3703, 0x24},
++	{0x3704, 0x24},
++	{0x3705, 0x0c},
++	{0x3820, 0x80},
++	{0x3821, 0x00},
++	{0x370a, 0x52},
++	{0x4608, 0x00},
++	{0x4609, 0x80},
++	{0x5002, 0x00},
++	{0x0000, 0x00}
++};
++
++/* 1024X768 SXGA */
++static struct sensor_register ov2659_xga[] = {
++	{0x3800, 0x00},
++	{0x3801, 0x00},
++	{0x3802, 0x00},
++	{0x3803, 0x00},
++	{0x3804, 0x06},
++	{0x3805, 0x5f},
++	{0x3806, 0x04},
++	{0x3807, 0xb7},
++	{0x3808, 0x04},
++	{0x3809, 0x00},
++	{0x380a, 0x03},
++	{0x380b, 0x00},
++	{0x380c, 0x07},
++	{0x380d, 0x9c},
++	{0x380e, 0x04},
++	{0x380f, 0xd0},
++	{0x3811, 0x10},
++	{0x3813, 0x06},
++	{0x3814, 0x11},
++	{0x3815, 0x11},
++	{0x3a02, 0x02},
++	{0x3a03, 0x68},
++	{0x3a08, 0x00},
++	{0x3a09, 0x5c},
++	{0x3a0a, 0x00},
++	{0x3a0b, 0x4d},
++	{0x3a0d, 0x08},
++	{0x3a0e, 0x06},
++	{0x3a14, 0x02},
++	{0x3a15, 0x28},
++	{0x3623, 0x00},
++	{0x3634, 0x76},
++	{0x3701, 0x44},
++	{0x3702, 0x18},
++	{0x3703, 0x24},
++	{0x3704, 0x24},
++	{0x3705, 0x0c},
++	{0x3820, 0x80},
++	{0x3821, 0x00},
++	{0x370a, 0x52},
++	{0x4608, 0x00},
++	{0x4609, 0x80},
++	{0x5002, 0x00},
++	{0x0000, 0x00}
++};
++
++/* 800X600 SVGA */
++static struct sensor_register ov2659_svga[] = {
++	{0x3800, 0x00},
++	{0x3801, 0x00},
++	{0x3802, 0x00},
++	{0x3803, 0x00},
++	{0x3804, 0x06},
++	{0x3805, 0x5f},
++	{0x3806, 0x04},
++	{0x3807, 0xb7},
++	{0x3808, 0x03},
++	{0x3809, 0x20},
++	{0x380a, 0x02},
++	{0x380b, 0x58},
++	{0x380c, 0x05},
++	{0x380d, 0x14},
++	{0x380e, 0x02},
++	{0x380f, 0x68},
++	{0x3811, 0x08},
++	{0x3813, 0x02},
++	{0x3814, 0x31},
++	{0x3815, 0x31},
++	{0x3a02, 0x02},
++	{0x3a03, 0x68},
++	{0x3a08, 0x00},
++	{0x3a09, 0x5c},
++	{0x3a0a, 0x00},
++	{0x3a0b, 0x4d},
++	{0x3a0d, 0x08},
++	{0x3a0e, 0x06},
++	{0x3a14, 0x02},
++	{0x3a15, 0x28},
++	{0x3623, 0x00},
++	{0x3634, 0x76},
++	{0x3701, 0x44},
++	{0x3702, 0x18},
++	{0x3703, 0x24},
++	{0x3704, 0x24},
++	{0x3705, 0x0c},
++	{0x3820, 0x81},
++	{0x3821, 0x01},
++	{0x370a, 0x52},
++	{0x4608, 0x00},
++	{0x4609, 0x80},
++	{0x5002, 0x00},
++	{0x0000, 0x00}
++};
++
++/* 640X480 VGA */
++static struct sensor_register ov2659_vga[] = {
++	{0x3800, 0x00},
++	{0x3801, 0x00},
++	{0x3802, 0x00},
++	{0x3803, 0x00},
++	{0x3804, 0x06},
++	{0x3805, 0x5f},
++	{0x3806, 0x04},
++	{0x3807, 0xb7},
++	{0x3808, 0x02},
++	{0x3809, 0x80},
++	{0x380a, 0x01},
++	{0x380b, 0xe0},
++	{0x380c, 0x05},
++	{0x380d, 0x14},
++	{0x380e, 0x02},
++	{0x380f, 0x68},
++	{0x3811, 0x08},
++	{0x3813, 0x02},
++	{0x3814, 0x31},
++	{0x3815, 0x31},
++	{0x3a02, 0x02},
++	{0x3a03, 0x68},
++	{0x3a08, 0x00},
++	{0x3a09, 0x5c},
++	{0x3a0a, 0x00},
++	{0x3a0b, 0x4d},
++	{0x3a0d, 0x08},
++	{0x3a0e, 0x06},
++	{0x3a14, 0x02},
++	{0x3a15, 0x28},
++	{0x3623, 0x00},
++	{0x3634, 0x76},
++	{0x3701, 0x44},
++	{0x3702, 0x18},
++	{0x3703, 0x24},
++	{0x3704, 0x24},
++	{0x3705, 0x0c},
++	{0x3820, 0x81},
++	{0x3821, 0x01},
++	{0x370a, 0x52},
++	{0x4608, 0x00},
++	{0x4609, 0x80},
++	{0x5002, 0x10},
++	{0x0000, 0x00}
++};
++
++/* 320X240 QVGA */
++static  struct sensor_register ov2659_qvga[] = {
++	{0x3800, 0x00},
++	{0x3801, 0x00},
++	{0x3802, 0x00},
++	{0x3803, 0x00},
++	{0x3804, 0x06},
++	{0x3805, 0x5f},
++	{0x3806, 0x04},
++	{0x3807, 0xb7},
++	{0x3808, 0x01},
++	{0x3809, 0x40},
++	{0x380a, 0x00},
++	{0x380b, 0xf0},
++	{0x380c, 0x05},
++	{0x380d, 0x14},
++	{0x380e, 0x02},
++	{0x380f, 0x68},
++	{0x3811, 0x08},
++	{0x3813, 0x02},
++	{0x3814, 0x31},
++	{0x3815, 0x31},
++	{0x3a02, 0x02},
++	{0x3a03, 0x68},
++	{0x3a08, 0x00},
++	{0x3a09, 0x5c},
++	{0x3a0a, 0x00},
++	{0x3a0b, 0x4d},
++	{0x3a0d, 0x08},
++	{0x3a0e, 0x06},
++	{0x3a14, 0x02},
++	{0x3a15, 0x28},
++	{0x3623, 0x00},
++	{0x3634, 0x76},
++	{0x3701, 0x44},
++	{0x3702, 0x18},
++	{0x3703, 0x24},
++	{0x3704, 0x24},
++	{0x3705, 0x0c},
++	{0x3820, 0x81},
++	{0x3821, 0x01},
++	{0x370a, 0x52},
++	{0x4608, 0x00},
++	{0x4609, 0x80},
++	{0x5002, 0x10},
++	{0x0000, 0x00}
++};
++
++static const struct pll_ctrl_reg ctrl3[] = {
++	{1, 0x00},
++	{2, 0x02},
++	{3, 0x03},
++	{4, 0x06},
++	{6, 0x0d},
++	{8, 0x0e},
++	{12, 0x0f},
++	{16, 0x12},
++	{24, 0x13},
++	{32, 0x16},
++	{48, 0x1b},
++	{64, 0x1e},
++	{96, 0x1f},
++	{0, 0x00},
++};
++
++static const struct pll_ctrl_reg ctrl1[] = {
++	{2, 0x10},
++	{4, 0x20},
++	{6, 0x30},
++	{8, 0x40},
++	{10, 0x50},
++	{12, 0x60},
++	{14, 0x70},
++	{16, 0x80},
++	{18, 0x90},
++	{20, 0xa0},
++	{22, 0xb0},
++	{24, 0xc0},
++	{26, 0xd0},
++	{28, 0xe0},
++	{30, 0xf0},
++	{0, 0x00},
++};
++
++static const struct ov2659_framesize ov2659_framesizes[] = {
++	{ /* QVGA */
++		.width		= 320,
++		.height		= 240,
++		.regs		= ov2659_qvga,
++		.max_exp_lines	= 248,
++	}, { /* VGA */
++		.width		= 640,
++		.height		= 480,
++		.regs		= ov2659_vga,
++		.max_exp_lines	= 498,
++	}, { /* SVGA */
++		.width		= 800,
++		.height		= 600,
++		.regs		= ov2659_svga,
++		.max_exp_lines	= 498,
++	}, { /* XGA */
++		.width		= 1024,
++		.height		= 768,
++		.regs		= ov2659_xga,
++		.max_exp_lines	= 498,
++	}, { /* 720P */
++		.width		= 1280,
++		.height		= 720,
++		.regs		= ov2659_720p,
++		.max_exp_lines	= 498,
++	}, { /* SXGA */
++		.width		= 1280,
++		.height		= 1024,
++		.regs		= ov2659_sxga,
++		.max_exp_lines	= 1048,
++	}, { /* UXGA */
++		.width		= 1600,
++		.height		= 1200,
++		.regs		= ov2659_uxga,
++		.max_exp_lines	= 498,
++	},
++};
++
++/* YUV422 YUYV*/
++static struct sensor_register ov2659_format_yuyv[] = {
++	{0x4300, 0x30},
++	{0x0000, 0x0},
++};
++
++/* YUV422 UYVY  */
++static struct sensor_register ov2659_format_uyvy[] = {
++	{0x4300, 0x32},
++	{0x0000, 0x0},
++};
++
++/* Raw Bayer BGGR */
++static struct sensor_register ov2659_format_bggr[] = {
++	{0x4300, 0x00},
++	{0x0000, 0x0}
++};
++
++/* RGB565 */
++static struct sensor_register ov2659_format_rgb565[] = {
++	{0x4300, 0x60},
++	{0x0000, 0x0},
++};
++
++static const struct ov2659_pixfmt ov2659_formats[] = {
++	{
++		.code = MEDIA_BUS_FMT_YUYV8_2X8,
++		.colorspace = V4L2_COLORSPACE_JPEG,
++		.format_ctrl_regs = ov2659_format_yuyv,
++	},
++	{
++		.code = MEDIA_BUS_FMT_UYVY8_2X8,
++		.colorspace = V4L2_COLORSPACE_JPEG,
++		.format_ctrl_regs = ov2659_format_uyvy,
++	},
++	{
++		.code = MEDIA_BUS_FMT_RGB565_2X8_BE,
++		.colorspace = V4L2_COLORSPACE_JPEG,
++		.format_ctrl_regs = ov2659_format_rgb565,
++	},
++	{
++		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
++		.colorspace = V4L2_COLORSPACE_SMPTE170M,
++		.format_ctrl_regs = ov2659_format_bggr,
++	},
++};
++
++static inline struct ov2659 *to_ov2659(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct ov2659, sd);
++}
++
++/* sensor register write */
++static int ov2659_write(struct i2c_client *client, u16 reg, u8 val)
++{
++	struct i2c_msg msg;
++	u8 buf[3];
++	int ret;
++
++	buf[0] = reg >> 8;
++	buf[1] = reg & 0xFF;
++	buf[2] = val;
++
++	msg.addr = client->addr;
++	msg.flags = client->flags;
++	msg.buf = buf;
++	msg.len = sizeof(buf);
++
++	ret = i2c_transfer(client->adapter, &msg, 1);
++	if (ret >= 0)
++		return 0;
++
++	dev_dbg(&client->dev,
++		"ov2659 write reg(0x%x val:0x%x) failed !\n", reg, val);
++
++	return ret;
++}
++
++/* sensor register read */
++static int ov2659_read(struct i2c_client *client, u16 reg, u8 *val)
++{
++	struct i2c_msg msg[2];
++	u8 buf[2];
++	int ret;
++
++	buf[0] = reg >> 8;
++	buf[1] = reg & 0xFF;
++
++	msg[0].addr = client->addr;
++	msg[0].flags = client->flags;
++	msg[0].buf = buf;
++	msg[0].len = sizeof(buf);
++
++	msg[1].addr = client->addr;
++	msg[1].flags = client->flags | I2C_M_RD;
++	msg[1].buf = buf;
++	msg[1].len = 1;
++
++	ret = i2c_transfer(client->adapter, msg, 2);
++	if (ret >= 0) {
++		*val = buf[0];
++		return 0;
 +	}
-+	WARN_ON(nfirst >= sglen);
- 
--		size = max(0, size - xfer_len);
--		offset = 0;
--		if (size == 0)
-+	sg0 = kmalloc_array(*new_sg_len, sizeof(struct scatterlist),
-+			    GFP_KERNEL);
-+	if (!sg0)
++
++	dev_dbg(&client->dev,
++		"ov2659 read reg(0x%x val:0x%x) failed !\n", reg, *val);
++
++	return ret;
++}
++
++static int ov2659_write_array(struct i2c_client *client,
++			      const struct sensor_register *regs)
++{
++	int i, ret = 0;
++
++	for (i = 0; ret == 0 && regs[i].addr; i++)
++		ret = ov2659_write(client, regs[i].addr, regs[i].value);
++
++	return ret;
++}
++
++static unsigned int ov2659_pll_calc_params(struct ov2659 *ov2659)
++{
++	const struct ov2659_platform_data *pdata = ov2659->pdata;
++	u8 ctrl1_reg = 0, ctrl2_reg = 0, ctrl3_reg = 0;
++	struct i2c_client *client = ov2659->client;
++	unsigned int desired = pdata->target_frequency;
++	u32 s_prediv = 1, s_postdiv = 1, s_mult = 1;
++	u32 prediv, postdiv, mult;
++	u32 bestdelta = -1;
++	u32 delta, actual;
++	int i, j;
++
++	for (i = 0; ctrl1[i].div != 0; i++) {
++		postdiv = ctrl1[i].div;
++		for (j = 0; ctrl3[j].div != 0; j++) {
++			prediv = ctrl3[j].div;
++			for (mult = 1; mult <= 63; mult++) {
++				actual  = ov2659->xvclk_frequency;
++				actual *= mult;
++				actual /= prediv;
++				actual /= postdiv;
++				delta = (actual-desired);
++				delta = abs(delta);
++
++				if ((delta < bestdelta) || (bestdelta == -1)) {
++					bestdelta = delta;
++					s_mult    = mult;
++					s_prediv  = prediv;
++					s_postdiv = postdiv;
++					ctrl1_reg = ctrl1[i].reg;
++					ctrl2_reg = mult;
++					ctrl3_reg = ctrl3[j].reg;
++				}
++			}
++		}
++	}
++	actual = ov2659->xvclk_frequency * (s_mult);
++	actual /= (s_prediv) * (s_postdiv);
++
++	dev_dbg(&client->dev, "Actual osc: %u pixel_clock: %u\n",
++		ov2659->xvclk_frequency, actual);
++
++	ov2659->pll.ctrl1 = ctrl1_reg;
++	ov2659->pll.ctrl2 = ctrl2_reg;
++	ov2659->pll.ctrl3 = ctrl3_reg;
++
++	dev_dbg(&client->dev,
++		"Actual reg config: ctrl1_reg: %02x ctrl2_reg: %02x ctrl3_reg: %02x\n",
++		ctrl1_reg, ctrl2_reg, ctrl3_reg);
++
++	return actual;
++}
++
++static int ov2659_set_pixel_clock(struct ov2659 *ov2659)
++{
++	struct i2c_client *client = ov2659->client;
++	struct sensor_register pll_regs[] = {
++		{REG_SC_PLL_CTRL1, ov2659->pll.ctrl1},
++		{REG_SC_PLL_CTRL2, ov2659->pll.ctrl2},
++		{REG_SC_PLL_CTRL3, ov2659->pll.ctrl3},
++		{0x0000, 0x00},
++	};
++
++	dev_dbg(&client->dev, "%s\n", __func__);
++
++	return ov2659_write_array(client, pll_regs);
++};
++
++static void ov2659_get_default_format(struct v4l2_mbus_framefmt *format)
++{
++	format->width = ov2659_framesizes[2].width;
++	format->height = ov2659_framesizes[2].height;
++	format->colorspace = ov2659_formats[0].colorspace;
++	format->code = ov2659_formats[0].code;
++	format->field = V4L2_FIELD_NONE;
++}
++
++static void ov2659_set_streaming(struct ov2659 *ov2659, int on)
++{
++	struct i2c_client *client = ov2659->client;
++	int ret;
++
++	on = !!on;
++
++	dev_dbg(&client->dev, "%s: on: %d\n", __func__, on);
++
++	ret = ov2659_write(client, REG_SOFTWARE_STANDBY, on);
++	if (ret)
++		dev_err(&client->dev, "ov2659 soft standby failed\n");
++}
++
++static int ov2659_init(struct v4l2_subdev *sd, u32 val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	return ov2659_write_array(client, ov2659_init_regs);
++}
++
++/*
++ * V4L2 subdev video and pad level operations
++ */
++
++static int ov2659_enum_mbus_code(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_mbus_code_enum *code)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	dev_dbg(&client->dev, "%s:\n", __func__);
++
++	if (code->index >= ARRAY_SIZE(ov2659_formats))
++		return -EINVAL;
++
++	code->code = ov2659_formats[code->index].code;
++
++	return 0;
++}
++
++static int ov2659_enum_frame_sizes(struct v4l2_subdev *sd,
++				   struct v4l2_subdev_pad_config *cfg,
++				   struct v4l2_subdev_frame_size_enum *fse)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int i = ARRAY_SIZE(ov2659_formats);
++
++	dev_dbg(&client->dev, "%s:\n", __func__);
++
++	if (fse->index >= ARRAY_SIZE(ov2659_framesizes))
++		return -EINVAL;
++
++	while (--i)
++		if (fse->code == ov2659_formats[i].code)
++			break;
++
++	fse->code = ov2659_formats[i].code;
++
++	fse->min_width  = ov2659_framesizes[fse->index].width;
++	fse->max_width  = fse->min_width;
++	fse->max_height = ov2659_framesizes[fse->index].height;
++	fse->min_height = fse->max_height;
++
++	return 0;
++}
++
++static int ov2659_get_fmt(struct v4l2_subdev *sd,
++			  struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_format *fmt)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct ov2659 *ov2659 = to_ov2659(sd);
++	struct v4l2_mbus_framefmt *mf;
++
++	dev_dbg(&client->dev, "ov2659_get_fmt\n");
++
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		mf = v4l2_subdev_get_try_format(sd, cfg, 0);
++		fmt->format = *mf;
++		return 0;
++	}
++
++	mutex_lock(&ov2659->lock);
++	fmt->format = ov2659->format;
++	mutex_unlock(&ov2659->lock);
++
++	dev_dbg(&client->dev, "ov2659_get_fmt: %x %dx%d\n",
++		ov2659->format.code, ov2659->format.width,
++		ov2659->format.height);
++
++	return 0;
++}
++
++static void __ov2659_try_frame_size(struct v4l2_mbus_framefmt *mf,
++				    const struct ov2659_framesize **size)
++{
++	const struct ov2659_framesize *fsize = &ov2659_framesizes[0];
++	const struct ov2659_framesize *match = NULL;
++	int i = ARRAY_SIZE(ov2659_framesizes);
++	unsigned int min_err = UINT_MAX;
++
++	while (i--) {
++		int err = abs(fsize->width - mf->width)
++				+ abs(fsize->height - mf->height);
++		if ((err < min_err) && (fsize->regs[0].addr)) {
++			min_err = err;
++			match = fsize;
++		}
++		fsize++;
++	}
++
++	if (!match)
++		match = &ov2659_framesizes[2];
++
++	mf->width  = match->width;
++	mf->height = match->height;
++
++	if (size)
++		*size = match;
++}
++
++static int ov2659_set_fmt(struct v4l2_subdev *sd,
++			  struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_format *fmt)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	unsigned int index = ARRAY_SIZE(ov2659_formats);
++	struct v4l2_mbus_framefmt *mf = &fmt->format;
++	const struct ov2659_framesize *size = NULL;
++	struct ov2659 *ov2659 = to_ov2659(sd);
++
++	dev_dbg(&client->dev, "ov2659_set_fmt\n");
++
++	__ov2659_try_frame_size(mf, &size);
++
++	while (--index >= 0)
++		if (ov2659_formats[index].code == mf->code)
++			break;
++
++	if (index < 0)
++		return -EINVAL;
++
++	mf->colorspace	= V4L2_COLORSPACE_JPEG;
++	mf->code	= ov2659_formats[index].code;
++	mf->field	= V4L2_FIELD_NONE;
++
++	mutex_lock(&ov2659->lock);
++
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
++		*mf = fmt->format;
++	} else {
++		if (ov2659->streaming) {
++			mutex_unlock(&ov2659->lock);
++			return -EBUSY;
++		}
++
++		ov2659->frame_size = size;
++		ov2659->format = fmt->format;
++		ov2659->format_ctrl_regs =
++			ov2659_formats[index].format_ctrl_regs;
++	}
++
++	mutex_unlock(&ov2659->lock);
++	return 0;
++}
++
++static int ov2659_set_frame_size(struct ov2659 *ov2659)
++{
++	struct i2c_client *client = ov2659->client;
++
++	dev_dbg(&client->dev, "%s\n", __func__);
++
++	return ov2659_write_array(ov2659->client,
++				  ov2659->frame_size->regs);
++}
++
++static int ov2659_set_format(struct ov2659 *ov2659)
++{
++	struct i2c_client *client = ov2659->client;
++
++	dev_dbg(&client->dev, "%s\n", __func__);
++
++	return ov2659_write_array(ov2659->client,
++				  ov2659->format_ctrl_regs);
++}
++
++static int ov2659_s_stream(struct v4l2_subdev *sd, int on)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct ov2659 *ov2659 = to_ov2659(sd);
++	int ret = 0;
++
++	dev_dbg(&client->dev, "%s: on: %d\n", __func__, on);
++
++	mutex_lock(&ov2659->lock);
++
++	on = !!on;
++
++	if (ov2659->streaming == on)
++		goto unlock;
++
++	if (!on) {
++		/* Stop Streaming Sequence */
++		ov2659_set_streaming(ov2659, 0);
++		ov2659->streaming = on;
++		goto unlock;
++	}
++
++	ov2659_set_pixel_clock(ov2659);
++	ov2659_set_frame_size(ov2659);
++	ov2659_set_format(ov2659);
++	ov2659_set_streaming(ov2659, 1);
++	ov2659->streaming = on;
++
++unlock:
++	mutex_unlock(&ov2659->lock);
++	return ret;
++}
++
++/* -----------------------------------------------------------------------------
++ * V4L2 subdev internal operations
++ */
++
++static int ov2659_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *format =
++				v4l2_subdev_get_try_format(sd, fh->pad, 0);
++
++	dev_dbg(&client->dev, "%s:\n", __func__);
++
++	ov2659_get_default_format(format);
++
++	return 0;
++}
++
++static const struct v4l2_subdev_core_ops ov2659_subdev_core_ops = {
++	.log_status = v4l2_ctrl_subdev_log_status,
++	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
++	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
++};
++
++static const struct v4l2_subdev_video_ops ov2659_subdev_video_ops = {
++	.s_stream = ov2659_s_stream,
++};
++
++static const struct v4l2_subdev_pad_ops ov2659_subdev_pad_ops = {
++	.enum_mbus_code = ov2659_enum_mbus_code,
++	.enum_frame_size = ov2659_enum_frame_sizes,
++	.get_fmt = ov2659_get_fmt,
++	.set_fmt = ov2659_set_fmt,
++};
++
++static const struct v4l2_subdev_ops ov2659_subdev_ops = {
++	.core  = &ov2659_subdev_core_ops,
++	.video = &ov2659_subdev_video_ops,
++	.pad   = &ov2659_subdev_pad_ops,
++};
++
++static const struct v4l2_subdev_internal_ops ov2659_subdev_internal_ops = {
++	.open = ov2659_open,
++};
++
++static int ov2659_detect(struct v4l2_subdev *sd)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	u8 pid, ver;
++	int ret;
++
++	dev_dbg(&client->dev, "%s:\n", __func__);
++
++	ret = ov2659_write(client, REG_SOFTWARE_RESET, 0x01);
++	if (ret != 0) {
++		dev_err(&client->dev, "Sensor soft reset failed\n");
++		return -ENODEV;
++	}
++	usleep_range(1000, 2000);
++
++	ret = ov2659_init(sd, 0);
++	if (ret < 0)
++		return ret;
++
++	/* Check sensor revision */
++	ret = ov2659_read(client, REG_SC_CHIP_ID_H, &pid);
++	if (!ret)
++		ret = ov2659_read(client, REG_SC_CHIP_ID_L, &ver);
++
++	if (!ret) {
++		unsigned short id;
++
++		id = OV265X_ID(pid, ver);
++		if (id != OV2659_ID)
++			dev_err(&client->dev,
++				"Sensor detection failed (%04X, %d)\n",
++				id, ret);
++		else
++			dev_info(&client->dev, "Found OV%04X sensor\n", id);
++	}
++
++	return ret;
++}
++
++static struct ov2659_platform_data *
++ov2659_get_pdata(struct i2c_client *client)
++{
++	struct ov2659_platform_data *pdata;
++	struct device_node *endpoint;
++	int ret;
++
++	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node) {
++		dev_err(&client->dev, "ov2659_get_pdata: DT Node found\n");
++		return client->dev.platform_data;
++	}
++
++	endpoint = of_graph_get_next_endpoint(client->dev.of_node, NULL);
++	if (!endpoint)
 +		return NULL;
 +
-+	remain = size;
-+	for_each_sg(sg_first, sg, *new_sg_len, i) {
-+		dma_len = sg_dma_len(sg);
-+		sg0[i] = *sg;
++	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		goto done;
 +
-+		sg0[i].offset = nfirst_offset;
-+		nfirst_offset = 0;
++	ret = of_property_read_u32(endpoint, "pixel-clock-frequency",
++				   &pdata->target_frequency);
++	if (ret < 0) {
++		dev_err(&client->dev,
++			"pixel-clock-frequency property not found\n");
++		pdata = NULL;
++	}
 +
-+		xfer_len = min_t(int, remain, dma_len - sg0[i].offset);
-+		xfer_len = roundup(xfer_len, 8);
-+		sg_dma_len(&sg0[i]) = xfer_len;
-+
-+		remain -= xfer_len;
-+		if (remain <= 0) {
-+			sg_mark_end(&sg0[i]);
- 			break;
-+		}
- 	}
- 
--	BUG_ON(size != 0);
--	return i + 1;
-+	return sg0;
++done:
++	of_node_put(endpoint);
++	return pdata;
 +}
- static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
- 			       enum pxa_camera_active_dma act_dma);
- 
-@@ -343,93 +379,59 @@ static void pxa_camera_dma_irq_v(void *data)
-  * @channel: dma channel (0 => 'Y', 1 => 'U', 2 => 'V')
-  * @cibr: camera Receive Buffer Register
-  * @size: bytes to transfer
-- * @sg_first: first element of sg_list
-- * @sg_first_ofs: offset in first element of sg_list
-+ * @offset: offset in videobuffer of the first byte to transfer
-  *
-  * Prepares the pxa dma descriptors to transfer one camera channel.
-- * Beware sg_first and sg_first_ofs are both input and output parameters.
-  *
-- * Returns 0 or -ENOMEM if no coherent memory is available
-+ * Returns 0 if success or -ENOMEM if no memory is available
-  */
- static int pxa_init_dma_channel(struct pxa_camera_dev *pcdev,
- 				struct pxa_buffer *buf,
- 				struct videobuf_dmabuf *dma, int channel,
--				int cibr, int size,
--				struct scatterlist **sg_first, int *sg_first_ofs)
-+				int cibr, int size, int offset)
- {
--	struct pxa_cam_dma *pxa_dma = &buf->dmas[channel];
--	struct device *dev = pcdev->soc_host.v4l2_dev.dev;
--	struct scatterlist *sg;
--	int i, offset, sglen;
--	int dma_len = 0, xfer_len = 0;
--
--	if (pxa_dma->sg_cpu)
--		dma_free_coherent(dev, pxa_dma->sg_size,
--				  pxa_dma->sg_cpu, pxa_dma->sg_dma);
--
--	sglen = calculate_dma_sglen(*sg_first, dma->sglen,
--				    *sg_first_ofs, size);
--
--	pxa_dma->sg_size = (sglen + 1) * sizeof(struct pxa_dma_desc);
--	pxa_dma->sg_cpu = dma_alloc_coherent(dev, pxa_dma->sg_size,
--					     &pxa_dma->sg_dma, GFP_KERNEL);
--	if (!pxa_dma->sg_cpu)
--		return -ENOMEM;
--
--	pxa_dma->sglen = sglen;
--	offset = *sg_first_ofs;
--
--	dev_dbg(dev, "DMA: sg_first=%p, sglen=%d, ofs=%d, dma.desc=%x\n",
--		*sg_first, sglen, *sg_first_ofs, pxa_dma->sg_dma);
--
--
--	for_each_sg(*sg_first, sg, sglen, i) {
--		dma_len = sg_dma_len(sg);
--
--		/* PXA27x Developer's Manual 27.4.4.1: round up to 8 bytes */
--		xfer_len = roundup(min(dma_len - offset, size), 8);
--
--		size = max(0, size - xfer_len);
--
--		pxa_dma->sg_cpu[i].dsadr = pcdev->res->start + cibr;
--		pxa_dma->sg_cpu[i].dtadr = sg_dma_address(sg) + offset;
--		pxa_dma->sg_cpu[i].dcmd =
--			DCMD_FLOWSRC | DCMD_BURST8 | DCMD_INCTRGADDR | xfer_len;
--#ifdef DEBUG
--		if (!i)
--			pxa_dma->sg_cpu[i].dcmd |= DCMD_STARTIRQEN;
--#endif
--		pxa_dma->sg_cpu[i].ddadr =
--			pxa_dma->sg_dma + (i + 1) * sizeof(struct pxa_dma_desc);
--
--		dev_vdbg(dev, "DMA: desc.%08x->@phys=0x%08x, len=%d\n",
--			 pxa_dma->sg_dma + i * sizeof(struct pxa_dma_desc),
--			 sg_dma_address(sg) + offset, xfer_len);
--		offset = 0;
--
--		if (size == 0)
--			break;
-+	struct dma_chan *dma_chan = pcdev->dma_chans[channel];
-+	struct scatterlist *sg = NULL;
-+	int sglen;
-+	struct dma_async_tx_descriptor *tx;
 +
-+	sg = videobuf_sg_splice(dma->sglist, dma->sglen, offset, size, &sglen);
-+	if (!sg)
-+		goto fail;
++static int ov2659_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	const struct ov2659_platform_data *pdata = ov2659_get_pdata(client);
++	struct v4l2_subdev *sd;
++	struct ov2659 *ov2659;
++	struct clk *clk;
++	int ret;
 +
-+	tx = dmaengine_prep_slave_sg(dma_chan, sg, sglen, DMA_DEV_TO_MEM,
-+				     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-+	if (!tx) {
-+		dev_err(pcdev->soc_host.v4l2_dev.dev,
-+			"dmaengine_prep_slave_sg failed\n");
-+		goto fail;
- 	}
- 
--	pxa_dma->sg_cpu[sglen].ddadr = DDADR_STOP;
--	pxa_dma->sg_cpu[sglen].dcmd  = DCMD_FLOWSRC | DCMD_BURST8 | DCMD_ENDIRQEN;
--
--	/*
--	 * Handle 1 special case :
--	 *  - in 3 planes (YUV422P format), we might finish with xfer_len equal
--	 *    to dma_len (end on PAGE boundary). In this case, the sg element
--	 *    for next plane should be the next after the last used to store the
--	 *    last scatter gather RAM page
--	 */
--	if (xfer_len >= dma_len) {
--		*sg_first_ofs = xfer_len - dma_len;
--		*sg_first = sg_next(sg);
--	} else {
--		*sg_first_ofs = xfer_len;
--		*sg_first = sg;
-+	tx->callback_param = pcdev;
-+	switch (channel) {
-+	case 0:
-+		tx->callback = pxa_camera_dma_irq_y;
-+		break;
-+	case 1:
-+		tx->callback = pxa_camera_dma_irq_u;
-+		break;
-+	case 2:
-+		tx->callback = pxa_camera_dma_irq_v;
-+		break;
- 	}
- 
-+	buf->descs[channel] = tx;
-+	buf->sg[channel] = sg;
-+	buf->sg_len[channel] = sglen;
- 	return 0;
-+fail:
-+	kfree(sg);
-+
-+	dev_dbg(pcdev->soc_host.v4l2_dev.dev,
-+		"%s (vb=0x%p) dma_tx=%p\n",
-+		__func__, &buf->vb, tx);
-+
-+	return -ENOMEM;
- }
- 
- static void pxa_videobuf_set_actdma(struct pxa_camera_dev *pcdev,
-@@ -498,9 +500,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
- 
- 	if (vb->state == VIDEOBUF_NEEDS_INIT) {
- 		int size = vb->size;
--		int next_ofs = 0;
- 		struct videobuf_dmabuf *dma = videobuf_to_dma(vb);
--		struct scatterlist *sg;
- 
- 		ret = videobuf_iolock(vq, vb, NULL);
- 		if (ret)
-@@ -513,11 +513,9 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
- 			size_y = size;
- 		}
- 
--		sg = dma->sglist;
--
- 		/* init DMA for Y channel */
--		ret = pxa_init_dma_channel(pcdev, buf, dma, 0, CIBR0, size_y,
--					   &sg, &next_ofs);
-+		ret = pxa_init_dma_channel(pcdev, buf, dma, 0, CIBR0,
-+					   size_y, 0);
- 		if (ret) {
- 			dev_err(dev, "DMA initialization for Y/RGB failed\n");
- 			goto fail;
-@@ -526,7 +524,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
- 		/* init DMA for U channel */
- 		if (size_u)
- 			ret = pxa_init_dma_channel(pcdev, buf, dma, 1, CIBR1,
--						   size_u, &sg, &next_ofs);
-+						   size_u, size_y);
- 		if (ret) {
- 			dev_err(dev, "DMA initialization for U failed\n");
- 			goto fail_u;
-@@ -535,7 +533,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
- 		/* init DMA for V channel */
- 		if (size_v)
- 			ret = pxa_init_dma_channel(pcdev, buf, dma, 2, CIBR2,
--						   size_v, &sg, &next_ofs);
-+						   size_v, size_y + size_u);
- 		if (ret) {
- 			dev_err(dev, "DMA initialization for V failed\n");
- 			goto fail_v;
-@@ -550,11 +548,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
- 	return 0;
- 
- fail_v:
--	dma_free_coherent(dev, buf->dmas[1].sg_size,
--			  buf->dmas[1].sg_cpu, buf->dmas[1].sg_dma);
- fail_u:
--	dma_free_coherent(dev, buf->dmas[0].sg_size,
--			  buf->dmas[0].sg_cpu, buf->dmas[0].sg_dma);
- fail:
- 	free_buffer(vq, buf);
- out:
-@@ -578,10 +572,8 @@ static void pxa_dma_start_channels(struct pxa_camera_dev *pcdev)
- 
- 	for (i = 0; i < pcdev->channels; i++) {
- 		dev_dbg(pcdev->soc_host.v4l2_dev.dev,
--			"%s (channel=%d) ddadr=%08x\n", __func__,
--			i, active->dmas[i].sg_dma);
--		DDADR(pcdev->dma_chans[i]) = active->dmas[i].sg_dma;
--		DCSR(pcdev->dma_chans[i]) = DCSR_RUN;
-+			"%s (channel=%d)\n", __func__, i);
-+		dma_async_issue_pending(pcdev->dma_chans[i]);
- 	}
- }
- 
-@@ -592,7 +584,7 @@ static void pxa_dma_stop_channels(struct pxa_camera_dev *pcdev)
- 	for (i = 0; i < pcdev->channels; i++) {
- 		dev_dbg(pcdev->soc_host.v4l2_dev.dev,
- 			"%s (channel=%d)\n", __func__, i);
--		DCSR(pcdev->dma_chans[i]) = 0;
-+		dmaengine_terminate_all(pcdev->dma_chans[i]);
- 	}
- }
- 
-@@ -600,18 +592,12 @@ static void pxa_dma_add_tail_buf(struct pxa_camera_dev *pcdev,
- 				 struct pxa_buffer *buf)
- {
- 	int i;
--	struct pxa_dma_desc *buf_last_desc;
- 
- 	for (i = 0; i < pcdev->channels; i++) {
--		buf_last_desc = buf->dmas[i].sg_cpu + buf->dmas[i].sglen;
--		buf_last_desc->ddadr = DDADR_STOP;
--
--		if (pcdev->sg_tail[i])
--			/* Link the new buffer to the old tail */
--			pcdev->sg_tail[i]->ddadr = buf->dmas[i].sg_dma;
--
--		/* Update the channel tail */
--		pcdev->sg_tail[i] = buf_last_desc;
-+		buf->cookie[i] = dmaengine_submit(buf->descs[i]);
-+		dev_dbg(pcdev->soc_host.v4l2_dev.dev,
-+			"%s (channel=%d) : submit vb=%p cookie=%d\n",
-+			__func__, i, buf, buf->descs[i]->cookie);
- 	}
- }
- 
-@@ -703,8 +689,6 @@ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
- 			      struct videobuf_buffer *vb,
- 			      struct pxa_buffer *buf)
- {
--	int i;
--
- 	/* _init is used to debug races, see comment in pxa_camera_reqbufs() */
- 	list_del_init(&vb->queue);
- 	vb->state = VIDEOBUF_DONE;
-@@ -716,8 +700,6 @@ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
- 
- 	if (list_empty(&pcdev->capture)) {
- 		pxa_camera_stop_capture(pcdev);
--		for (i = 0; i < pcdev->channels; i++)
--			pcdev->sg_tail[i] = NULL;
- 		return;
- 	}
- 
-@@ -741,50 +723,41 @@ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
-  *
-  * Context: should only be called within the dma irq handler
-  */
--static void pxa_camera_check_link_miss(struct pxa_camera_dev *pcdev)
-+static void pxa_camera_check_link_miss(struct pxa_camera_dev *pcdev,
-+				       dma_cookie_t last_submitted,
-+				       dma_cookie_t last_issued)
- {
--	int i, is_dma_stopped = 1;
-+	int is_dma_stopped;
- 
--	for (i = 0; i < pcdev->channels; i++)
--		if (DDADR(pcdev->dma_chans[i]) != DDADR_STOP)
--			is_dma_stopped = 0;
-+	is_dma_stopped = last_submitted > last_issued;
- 	dev_dbg(pcdev->soc_host.v4l2_dev.dev,
--		"%s : top queued buffer=%p, dma_stopped=%d\n",
-+		"%s : top queued buffer=%p, is_dma_stopped=%d\n",
- 		__func__, pcdev->active, is_dma_stopped);
- 	if (pcdev->active && is_dma_stopped)
- 		pxa_camera_start_capture(pcdev);
- }
- 
--static void pxa_camera_dma_irq(int channel, struct pxa_camera_dev *pcdev,
-+static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
- 			       enum pxa_camera_active_dma act_dma)
- {
- 	struct device *dev = pcdev->soc_host.v4l2_dev.dev;
--	struct pxa_buffer *buf;
-+	struct pxa_buffer *buf, *last_buf;
- 	unsigned long flags;
--	u32 status, camera_status, overrun;
-+	u32 camera_status, overrun;
-+	int chan;
- 	struct videobuf_buffer *vb;
-+	enum dma_status last_status;
-+	dma_cookie_t last_issued;
- 
- 	spin_lock_irqsave(&pcdev->lock, flags);
- 
--	status = DCSR(channel);
--	DCSR(channel) = status;
--
- 	camera_status = __raw_readl(pcdev->base + CISR);
-+	dev_dbg(dev, "camera dma irq, cisr=0x%x dma=%d\n",
-+		camera_status, act_dma);
- 	overrun = CISR_IFO_0;
- 	if (pcdev->channels == 3)
- 		overrun |= CISR_IFO_1 | CISR_IFO_2;
- 
--	if (status & DCSR_BUSERR) {
--		dev_err(dev, "DMA Bus Error IRQ!\n");
--		goto out;
--	}
--
--	if (!(status & (DCSR_ENDINTR | DCSR_STARTINTR))) {
--		dev_err(dev, "Unknown DMA IRQ source, status: 0x%08x\n",
--			status);
--		goto out;
--	}
--
- 	/*
- 	 * pcdev->active should not be NULL in DMA irq handler.
- 	 *
-@@ -804,28 +777,39 @@ static void pxa_camera_dma_irq(int channel, struct pxa_camera_dev *pcdev,
- 	buf = container_of(vb, struct pxa_buffer, vb);
- 	WARN_ON(buf->inwork || list_empty(&vb->queue));
- 
--	dev_dbg(dev, "%s channel=%d %s%s(vb=0x%p) dma.desc=%x\n",
--		__func__, channel, status & DCSR_STARTINTR ? "SOF " : "",
--		status & DCSR_ENDINTR ? "EOF " : "", vb, DDADR(channel));
--
--	if (status & DCSR_ENDINTR) {
--		/*
--		 * It's normal if the last frame creates an overrun, as there
--		 * are no more DMA descriptors to fetch from QCI fifos
--		 */
--		if (camera_status & overrun &&
--		    !list_is_last(pcdev->capture.next, &pcdev->capture)) {
--			dev_dbg(dev, "FIFO overrun! CISR: %x\n",
--				camera_status);
--			pxa_camera_stop_capture(pcdev);
--			pxa_camera_start_capture(pcdev);
--			goto out;
--		}
--		buf->active_dma &= ~act_dma;
--		if (!buf->active_dma) {
--			pxa_camera_wakeup(pcdev, vb, buf);
--			pxa_camera_check_link_miss(pcdev);
--		}
-+	/*
-+	 * It's normal if the last frame creates an overrun, as there
-+	 * are no more DMA descriptors to fetch from QCI fifos
-+	 */
-+	switch (act_dma) {
-+	case DMA_U:
-+		chan = 1;
-+		break;
-+	case DMA_V:
-+		chan = 2;
-+		break;
-+	default:
-+		chan = 0;
-+		break;
++	if (!pdata) {
++		dev_err(&client->dev, "platform data not specified\n");
++		return -EINVAL;
 +	}
-+	last_buf = list_entry(pcdev->capture.prev,
-+			      struct pxa_buffer, vb.queue);
-+	last_status = dma_async_is_tx_complete(pcdev->dma_chans[chan],
-+					       last_buf->cookie[chan],
-+					       NULL, &last_issued);
-+	if (camera_status & overrun &&
-+	    last_status != DMA_COMPLETE) {
-+		dev_dbg(dev, "FIFO overrun! CISR: %x\n",
-+			camera_status);
-+		pxa_camera_stop_capture(pcdev);
-+		pxa_camera_start_capture(pcdev);
-+		goto out;
-+	}
-+	buf->active_dma &= ~act_dma;
-+	if (!buf->active_dma) {
-+		pxa_camera_wakeup(pcdev, vb, buf);
-+		pxa_camera_check_link_miss(pcdev, last_buf->cookie[chan],
-+					   last_issued);
- 	}
- 
- out:
-@@ -1012,10 +996,7 @@ static void pxa_camera_clock_stop(struct soc_camera_host *ici)
- 	__raw_writel(0x3ff, pcdev->base + CICR0);
- 
- 	/* Stop DMA engine */
--	DCSR(pcdev->dma_chans[0]) = 0;
--	DCSR(pcdev->dma_chans[1]) = 0;
--	DCSR(pcdev->dma_chans[2]) = 0;
--
-+	pxa_dma_stop_channels(pcdev);
- 	pxa_camera_deactivate(pcdev);
- }
- 
-@@ -1629,10 +1610,6 @@ static int pxa_camera_resume(struct device *dev)
- 	struct pxa_camera_dev *pcdev = ici->priv;
- 	int i = 0, ret = 0;
- 
--	DRCMR(68) = pcdev->dma_chans[0] | DRCMR_MAPVLD;
--	DRCMR(69) = pcdev->dma_chans[1] | DRCMR_MAPVLD;
--	DRCMR(70) = pcdev->dma_chans[2] | DRCMR_MAPVLD;
--
- 	__raw_writel(pcdev->save_cicr[i++] & ~CICR0_ENB, pcdev->base + CICR0);
- 	__raw_writel(pcdev->save_cicr[i++], pcdev->base + CICR1);
- 	__raw_writel(pcdev->save_cicr[i++], pcdev->base + CICR2);
-@@ -1738,8 +1715,11 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 	struct pxa_camera_dev *pcdev;
- 	struct resource *res;
- 	void __iomem *base;
-+	struct dma_slave_config config;
-+	dma_cap_mask_t mask;
-+	struct pxad_param params;
- 	int irq;
--	int err = 0;
-+	int err = 0, i;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	irq = platform_get_irq(pdev, 0);
-@@ -1807,36 +1787,50 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 	pcdev->base = base;
- 
- 	/* request dma */
--	err = pxa_request_dma("CI_Y", DMA_PRIO_HIGH,
--			      pxa_camera_dma_irq_y, pcdev);
--	if (err < 0) {
-+	dma_cap_zero(mask);
-+	dma_cap_set(DMA_SLAVE, mask);
 +
-+	params.prio = 0;
-+	params.drcmr = 68;
-+	pcdev->dma_chans[0] =
-+		dma_request_slave_channel_compat(mask, pxad_filter_fn,
-+						 &params, &pdev->dev, "CI_Y");
-+	if (!pcdev->dma_chans[0]) {
- 		dev_err(&pdev->dev, "Can't request DMA for Y\n");
--		return err;
-+		return -ENODEV;
- 	}
--	pcdev->dma_chans[0] = err;
--	dev_dbg(&pdev->dev, "got DMA channel %d\n", pcdev->dma_chans[0]);
- 
--	err = pxa_request_dma("CI_U", DMA_PRIO_HIGH,
--			      pxa_camera_dma_irq_u, pcdev);
--	if (err < 0) {
--		dev_err(&pdev->dev, "Can't request DMA for U\n");
-+	params.drcmr = 69;
-+	pcdev->dma_chans[1] =
-+		dma_request_slave_channel_compat(mask, pxad_filter_fn,
-+						 &params, &pdev->dev, "CI_U");
-+	if (!pcdev->dma_chans[1]) {
-+		dev_err(&pdev->dev, "Can't request DMA for Y\n");
- 		goto exit_free_dma_y;
- 	}
--	pcdev->dma_chans[1] = err;
--	dev_dbg(&pdev->dev, "got DMA channel (U) %d\n", pcdev->dma_chans[1]);
- 
--	err = pxa_request_dma("CI_V", DMA_PRIO_HIGH,
--			      pxa_camera_dma_irq_v, pcdev);
--	if (err < 0) {
-+	params.drcmr = 70;
-+	pcdev->dma_chans[2] =
-+		dma_request_slave_channel_compat(mask, pxad_filter_fn,
-+						 &params, &pdev->dev, "CI_V");
-+	if (!pcdev->dma_chans[2]) {
- 		dev_err(&pdev->dev, "Can't request DMA for V\n");
- 		goto exit_free_dma_u;
- 	}
--	pcdev->dma_chans[2] = err;
--	dev_dbg(&pdev->dev, "got DMA channel (V) %d\n", pcdev->dma_chans[2]);
- 
--	DRCMR(68) = pcdev->dma_chans[0] | DRCMR_MAPVLD;
--	DRCMR(69) = pcdev->dma_chans[1] | DRCMR_MAPVLD;
--	DRCMR(70) = pcdev->dma_chans[2] | DRCMR_MAPVLD;
-+	memset(&config, 0, sizeof(config));
-+	config.src_addr_width = 0;
-+	config.src_maxburst = 8;
-+	config.direction = DMA_DEV_TO_MEM;
-+	for (i = 0; i < 3; i++) {
-+		config.src_addr = pcdev->res->start + CIBR0 + i * 8;
-+		err = dmaengine_slave_config(pcdev->dma_chans[i], &config);
-+		if (err < 0) {
-+			dev_err(&pdev->dev, "dma slave config failed: %d\n",
-+				err);
-+			goto exit_free_dma;
-+		}
-+	}
- 
- 	/* request irq */
- 	err = devm_request_irq(&pdev->dev, pcdev->irq, pxa_camera_irq, 0,
-@@ -1860,11 +1854,11 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 	return 0;
- 
- exit_free_dma:
--	pxa_free_dma(pcdev->dma_chans[2]);
-+	dma_release_channel(pcdev->dma_chans[2]);
- exit_free_dma_u:
--	pxa_free_dma(pcdev->dma_chans[1]);
-+	dma_release_channel(pcdev->dma_chans[1]);
- exit_free_dma_y:
--	pxa_free_dma(pcdev->dma_chans[0]);
-+	dma_release_channel(pcdev->dma_chans[0]);
- 	return err;
- }
- 
-@@ -1874,9 +1868,9 @@ static int pxa_camera_remove(struct platform_device *pdev)
- 	struct pxa_camera_dev *pcdev = container_of(soc_host,
- 					struct pxa_camera_dev, soc_host);
- 
--	pxa_free_dma(pcdev->dma_chans[0]);
--	pxa_free_dma(pcdev->dma_chans[1]);
--	pxa_free_dma(pcdev->dma_chans[2]);
-+	dma_release_channel(pcdev->dma_chans[0]);
-+	dma_release_channel(pcdev->dma_chans[1]);
-+	dma_release_channel(pcdev->dma_chans[2]);
- 
- 	soc_camera_host_unregister(soc_host);
- 
++	ov2659 = devm_kzalloc(&client->dev, sizeof(*ov2659), GFP_KERNEL);
++	if (!ov2659)
++		return -ENOMEM;
++
++	ov2659->pdata = pdata;
++	ov2659->client = client;
++
++	clk = devm_clk_get(&client->dev, "xvclk");
++	if (IS_ERR(clk))
++		return PTR_ERR(clk);
++
++	ov2659->xvclk_frequency = clk_get_rate(clk);
++	if (ov2659->xvclk_frequency < 6000000 ||
++	    ov2659->xvclk_frequency > 27000000)
++		return -EINVAL;
++
++	sd = &ov2659->sd;
++	client->flags |= I2C_CLIENT_SCCB;
++	v4l2_i2c_subdev_init(sd, client, &ov2659_subdev_ops);
++
++	sd->internal_ops = &ov2659_subdev_internal_ops;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
++		     V4L2_SUBDEV_FL_HAS_EVENTS;
++
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	ov2659->pad.flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
++	ret = media_entity_init(&sd->entity, 1, &ov2659->pad, 0);
++	if (ret < 0)
++		return ret;
++#endif
++
++	mutex_init(&ov2659->lock);
++
++	ov2659_get_default_format(&ov2659->format);
++	ov2659->frame_size = &ov2659_framesizes[2];
++	ov2659->format_ctrl_regs = ov2659_formats[0].format_ctrl_regs;
++
++	ret = ov2659_detect(sd);
++	if (ret < 0)
++		goto error;
++
++	/* Calculate the PLL register value needed */
++	ov2659_pll_calc_params(ov2659);
++
++	ret = v4l2_async_register_subdev(&ov2659->sd);
++	if (ret)
++		goto error;
++
++	dev_info(&client->dev, "%s sensor driver registered !!\n", sd->name);
++
++	return 0;
++
++error:
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&sd->entity);
++#endif
++	mutex_destroy(&ov2659->lock);
++	return ret;
++}
++
++static int ov2659_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov2659 *ov2659 = to_ov2659(sd);
++
++	v4l2_device_unregister_subdev(sd);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&sd->entity);
++#endif
++	mutex_destroy(&ov2659->lock);
++
++	return 0;
++}
++
++static const struct i2c_device_id ov2659_id[] = {
++	{ "ov2659", 0 },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(i2c, ov2659_id);
++
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id ov2659_of_match[] = {
++	{ .compatible = "ovti,ov2659", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, ov2659_of_match);
++#endif
++
++static struct i2c_driver ov2659_i2c_driver = {
++	.driver = {
++		.name	= DRIVER_NAME,
++		.of_match_table = of_match_ptr(ov2659_of_match),
++	},
++	.probe		= ov2659_probe,
++	.remove		= ov2659_remove,
++	.id_table	= ov2659_id,
++};
++
++module_i2c_driver(ov2659_i2c_driver);
++
++MODULE_AUTHOR("Benoit Parrot <bparrot@ti.com>");
++MODULE_DESCRIPTION("OV2659 CMOS Image Sensor driver");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/ov2659.h b/include/media/ov2659.h
+new file mode 100644
+index 0000000..360a98b
+--- /dev/null
++++ b/include/media/ov2659.h
+@@ -0,0 +1,33 @@
++/*
++ * Omnivision OV2659 CMOS Image Sensor driver
++ *
++ * Copyright (C) 2015 Texas Instruments, Inc.
++ *
++ * Benoit Parrot <bparrot@ti.com>
++ * Lad, Prabhakar <prabhakar.csengg@gmail.com>
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef OV2659_H
++#define OV2659_H
++
++/**
++ * struct ov2659_platform_data - ov2659 driver platform data
++ * @target_frequency: pixel clock frequency
++ */
++struct ov2659_platform_data {
++	unsigned int target_frequency;
++};
++#endif /* OV2659_H */
 -- 
-2.1.4
+2.1.0
 
