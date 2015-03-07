@@ -1,110 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41825 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751950AbbCNAdv (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:51769 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751670AbbCGDrD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 20:33:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, pali.rohar@gmail.com
-Subject: Re: [RFC 14/18] dt: bindings: Add bindings for omap3isp
-Date: Sat, 14 Mar 2015 02:33:47 +0200
-Message-ID: <2883656.UJCkXlITYW@avalon>
-In-Reply-To: <20150313093453.GA4980@earth>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi> <20150312230320.GO11954@valkosipuli.retiisi.org.uk> <20150313093453.GA4980@earth>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 6 Mar 2015 22:47:03 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4A79A2A009F
+	for <linux-media@vger.kernel.org>; Sat,  7 Mar 2015 04:46:41 +0100 (CET)
+Date: Sat, 07 Mar 2015 04:46:41 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150307034641.4A79A2A009F@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sebastian,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for the review.
+Results of the daily build of media_tree:
 
-On Friday 13 March 2015 10:34:53 Sebastian Reichel wrote:
-> On Fri, Mar 13, 2015 at 01:03:21AM +0200, Sakari Ailus wrote:
-> > [...]
-> > 
-> > > > +Required properties
-> > > > +===================
-> > > > +
-> > > > +compatible	: "ti,omap3-isp"
-> > > 
-> > > I would rephrase that using the usual wording as "compatible: Must
-> > > contain
-> > > "ti,omap3-isp".
-> > 
-> > [...]
-> > 
-> > > > +ti,phy-type	: 0 -- 3430; 1 -- 3630
-> > > 
-> > > Would it make sense to add #define's for this ?
-> > 
-> > I'll use OMAP3ISP_PHY_TYPE_COMPLEX_IO and OMAP3ISP_PHY_TYPE_CSIPHY as
-> > discussed.
-> > 
-> > > It could also make sense to document/name them "Complex I/O" and
-> > > "CSIPHY" to avoid referring to the SoC that implements them, as the ISP
-> > > is also found in SoCs other than 3430 and 3630.
-> > > 
-> > > Could the PHY type be derived from the ES revision that we query at
-> > > runtime ?
-> >
-> > I think this would work on 3430 and 3630 but I'm not certain about others.
-> > 
-> > > We should also take into account the fact that the DM3730 has officially
-> > > no CSIPHY, but still seems to implement them in practice.
-> > 
-> > The DT sources are for 36xx, but I'd guess it works on 37xx as well,
-> > doesn't it?
-> 
-> In other drivers this kind of information is often extracted from the
-> compatible string. For example:
-> 
-> { .compatible = "ti,omap34xx-isp", .data = OMAP3ISP_PHY_TYPE_COMPLEX_IO, },
-> { .compatible = "ti,omap36xx-isp", .data = OMAP3ISP_PHY_TYPE_CSIPHY, },
-> ...
+date:		Sat Mar  7 04:00:18 CET 2015
+git branch:	test
+git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.18.0-5.slh.1-amd64
 
-That's an option too, which I've discussed with Sakari before. The reason why 
-we have decided to go for a separate property is that the PHY type seems to be 
-more an SoC integration property than an ISP model property. I'm open to 
-reconsidering that though.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Another option that has been discussed was to infer the PHY type from the ISP 
-revision number queried at runtime. That would be fine for the 3430, 3630 and 
-3730, but it remains unclear at this point whether this scheme would work with 
-other SoCs. It should also be noted that some OMAP3-based SoCs that 
-incorporate the ISP officially don't include the CSI PHYs, but seem to have 
-them in practice.
+Detailed results are available here:
 
-> > [...]
-> > 
-> > > > +Example
-> > > > +=======
-> > > > +
-> > > > +		omap3_isp: omap3_isp@480bc000 {
-> > > 
-> > > DT node names traditionally use - as a separator. Furthermore the
-> > > phandle isn't needed. This should thus probably be
-> > > 
-> > > 	omap3-isp@480bc000 {
-> > 
-> > Fixed.
-> 
-> According to ePAPR this should be a generic name (page 19); For
-> example the i2c node name should be "i2c@address" instead of
-> "omap3-i2c@address". There is no recommended generic term for an
-> image signal processor, "isp" looks ok to me and seems to be
-> already used in NVIDIA Tegra's device tree files. So maybe:
-> 
-> isp@480bc000 {
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-"isp" sounds good to me.
+Full logs are available here:
 
--- 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-Laurent Pinchart
+The Media Infrastructure API from this daily build is here:
 
+http://www.xs4all.nl/~hverkuil/spec/media.html
