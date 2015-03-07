@@ -1,30 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:53480 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752547AbbCXTvi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2015 15:51:38 -0400
-Message-ID: <5511C040.7040802@gmx.com>
-Date: Tue, 24 Mar 2015 20:51:28 +0100
-From: Ole Ernst <olebowle@gmx.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, Nibble Max <nibble.max@gmail.com>
-CC: "olli.salonen" <olli.salonen@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: cx23885: DVBSky S952 dvb_register failed err = -22
-References: <5504920C.7080806@gmx.com>, <55055E66.6040600@gmx.com>, <550563B2.9010306@iki.fi>, <201503170953368436904@gmail.com> <201503180940386096906@gmail.com> <55093FFC.9050602@gmx.com> <55105683.40809@iki.fi> <551081CF.3080901@gmx.com> <5510992C.8060608@iki.fi> <551157AB.1090704@gmx.com> <55115E93.7030405@iki.fi> <55117A22.6010302@gmx.com> <5511811A.3010009@iki.fi>
-In-Reply-To: <5511811A.3010009@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33301 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750892AbbCGVmP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2015 16:42:15 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, pali.rohar@gmail.com
+Subject: [RFC 02/18] omap3isp: Avoid a BUG_ON() in media_entity_create_link()
+Date: Sat,  7 Mar 2015 23:40:59 +0200
+Message-Id: <1425764475-27691-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 24.03.2015 um 16:22 schrieb Antti Palosaari:
-> Someone has reported SCR/Unicable does not work with that demod driver,
-> but I have no personal experience from whole thing... Could you try
-> direct connection to LNB?
+If an uninitialised v4l2_subdev struct was passed to
+media_entity_create_link(), one of the BUG_ON()'s in the function will be
+hit since media_entity.num_pads will be zero. Avoid this by checking whether
+the num_pads field is non-zero for the interface.
 
-I will test a direct connection over Easter, as I don't have physical
-access to the htpc right now. I will try to get someone else to test
-your patch, who hopefully doesn't use SCR.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/platform/omap3isp/isp.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-Ole
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index fb193b6..4ab674d 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1946,6 +1946,19 @@ static int isp_register_entities(struct isp_device *isp)
+ 			goto done;
+ 		}
+ 
++		/*
++		 * Not all interfaces are available on all revisions
++		 * of the ISP. The sub-devices of those interfaces
++		 * aren't initialised in such a case. Check this by
++		 * ensuring the num_pads is non-zero.
++		 */
++		if (!input->num_pads) {
++			dev_err(isp->dev, "%s: invalid input %u\n",
++				entity->name, subdevs->interface);
++			ret = -EINVAL;
++			goto done;
++		}
++
+ 		for (i = 0; i < sensor->entity.num_pads; i++) {
+ 			if (sensor->entity.pads[i].flags & MEDIA_PAD_FL_SOURCE)
+ 				break;
+-- 
+1.7.10.4
+
