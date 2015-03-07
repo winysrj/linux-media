@@ -1,160 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56469 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752662AbbCBBtG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2015 20:49:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33512 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750838AbbCGWHH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2015 17:07:07 -0500
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id D954060093
+	for <linux-media@vger.kernel.org>; Sun,  8 Mar 2015 00:07:04 +0200 (EET)
+Date: Sun, 8 Mar 2015 00:06:34 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v5 5/8] v4l: of: Add v4l2_of_parse_link() function
-Date: Mon,  2 Mar 2015 03:48:42 +0200
-Message-Id: <1425260925-12064-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1425260925-12064-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1425260925-12064-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [GIT PULL for v4.1] smiapp DT u64 property workaround removal
+Message-ID: <20150307220634.GD6539@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function fills a link data structure with the device node and port
-number at both the local and remote ends of a link defined by one of its
-endpoint nodes.
+Hi Mauro,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+This pull request reverts the smiapp driver's u64 array DT property read
+workaround, and uses of_property_read_u64_array() (second patch) which is
+the correct API function for reading u64 arrays from DT.
 
----
+Please pull.
 
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Changes since v4:
+The following changes since commit 3d945be05ac1e806af075e9315bc1b3409adae2b:
 
-- Clarify the v4l2_of_parse_link() documentation
----
- drivers/media/v4l2-core/v4l2-of.c | 61 +++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-of.h           | 27 +++++++++++++++++
- 2 files changed, 88 insertions(+)
+  [media] mn88473: simplify bandwidth registers setting code (2015-03-03 13:09:12 -0300)
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index b4ed9a9..205549d 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -142,3 +142,64 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
- 	return 0;
- }
- EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-+
-+/**
-+ * v4l2_of_parse_link() - parse a link between two endpoints
-+ * @node: pointer to the endpoint at the local end of the link
-+ * @link: pointer to the V4L2 OF link data structure
-+ *
-+ * Fill the link structure with the local and remote nodes and port numbers.
-+ * The local_node and remote_node fields are set to point to the local and
-+ * remote port's parent nodes respectively (the port parent node being the
-+ * parent node of the port node if that node isn't a 'ports' node, or the
-+ * grand-parent node of the port node otherwise).
-+ *
-+ * A reference is taken to both the local and remote nodes, the caller must use
-+ * v4l2_of_put_link() to drop the references when done with the link.
-+ *
-+ * Return: 0 on success, or -ENOLINK if the remote endpoint can't be found.
-+ */
-+int v4l2_of_parse_link(const struct device_node *node,
-+		       struct v4l2_of_link *link)
-+{
-+	struct device_node *np;
-+
-+	memset(link, 0, sizeof(*link));
-+
-+	np = of_get_parent(node);
-+	of_property_read_u32(np, "reg", &link->local_port);
-+	np = of_get_next_parent(np);
-+	if (of_node_cmp(np->name, "ports") == 0)
-+		np = of_get_next_parent(np);
-+	link->local_node = np;
-+
-+	np = of_parse_phandle(node, "remote-endpoint", 0);
-+	if (!np) {
-+		of_node_put(link->local_node);
-+		return -ENOLINK;
-+	}
-+
-+	np = of_get_parent(np);
-+	of_property_read_u32(np, "reg", &link->remote_port);
-+	np = of_get_next_parent(np);
-+	if (of_node_cmp(np->name, "ports") == 0)
-+		np = of_get_next_parent(np);
-+	link->remote_node = np;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_of_parse_link);
-+
-+/**
-+ * v4l2_of_put_link() - drop references to nodes in a link
-+ * @link: pointer to the V4L2 OF link data structure
-+ *
-+ * Drop references to the local and remote nodes in the link. This function must
-+ * be called on every link parsed with v4l2_of_parse_link().
-+ */
-+void v4l2_of_put_link(struct v4l2_of_link *link)
-+{
-+	of_node_put(link->local_node);
-+	of_node_put(link->remote_node);
-+}
-+EXPORT_SYMBOL(v4l2_of_put_link);
-diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-index 70fa7b7..078846d 100644
---- a/include/media/v4l2-of.h
-+++ b/include/media/v4l2-of.h
-@@ -66,9 +66,26 @@ struct v4l2_of_endpoint {
- 	struct list_head head;
- };
- 
-+/**
-+ * struct v4l2_of_link - a link between two endpoints
-+ * @local_node: pointer to device_node of this endpoint
-+ * @local_port: identifier of the port this endpoint belongs to
-+ * @remote_node: pointer to device_node of the remote endpoint
-+ * @remote_port: identifier of the port the remote endpoint belongs to
-+ */
-+struct v4l2_of_link {
-+	struct device_node *local_node;
-+	unsigned int local_port;
-+	struct device_node *remote_node;
-+	unsigned int remote_port;
-+};
-+
- #ifdef CONFIG_OF
- int v4l2_of_parse_endpoint(const struct device_node *node,
- 			   struct v4l2_of_endpoint *endpoint);
-+int v4l2_of_parse_link(const struct device_node *node,
-+		       struct v4l2_of_link *link);
-+void v4l2_of_put_link(struct v4l2_of_link *link);
- #else /* CONFIG_OF */
- 
- static inline int v4l2_of_parse_endpoint(const struct device_node *node,
-@@ -77,6 +94,16 @@ static inline int v4l2_of_parse_endpoint(const struct device_node *node,
- 	return -ENOSYS;
- }
- 
-+static inline int v4l2_of_parse_link(const struct device_node *node,
-+				     struct v4l2_of_link *link)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline void v4l2_of_put_link(struct v4l2_of_link *link)
-+{
-+}
-+
- #endif /* CONFIG_OF */
- 
- #endif /* _V4L2_OF_H */
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git smiapp-dt
+
+for you to fetch changes up to 5f36db86e0cbb48c102fee8a3fe2b98a33f13199:
+
+  smiapp: Use of_property_read_u64_array() to read a 64-bit number array (2015-03-08 00:00:20 +0200)
+
+----------------------------------------------------------------
+Sakari Ailus (2):
+      Revert "[media] smiapp: Don't compile of_read_number() if CONFIG_OF isn't defined"
+      smiapp: Use of_property_read_u64_array() to read a 64-bit number array
+
+ drivers/media/i2c/smiapp/smiapp-core.c |   28 +++++-----------------------
+ 1 file changed, 5 insertions(+), 23 deletions(-)
+
 -- 
-2.0.5
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
