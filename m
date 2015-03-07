@@ -1,149 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36569 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752765AbbCIL3B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 07:29:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH] v4l: mt9v032: Add OF support
-Date: Mon, 09 Mar 2015 13:29:03 +0200
-Message-ID: <2320734.ji4C9lV64t@avalon>
-In-Reply-To: <54FD7788.2020709@samsung.com>
-References: <1425822349-19218-1-git-send-email-laurent.pinchart@ideasonboard.com> <54FD7788.2020709@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33314 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752883AbbCGVmS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2015 16:42:18 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, pali.rohar@gmail.com
+Subject: [RFC 16/18] arm: dts: omap3: Add DT entries for OMAP 3
+Date: Sat,  7 Mar 2015 23:41:13 +0200
+Message-Id: <1425764475-27691-17-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+The resources the ISP needs are slightly different on 3[45]xx and 3[67]xx.
+Especially the phy-type property is different.
 
-Thank you for the review.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ arch/arm/boot/dts/omap34xx.dtsi |   15 +++++++++++++++
+ arch/arm/boot/dts/omap36xx.dtsi |   15 +++++++++++++++
+ 2 files changed, 30 insertions(+)
 
-On Monday 09 March 2015 11:35:52 Sylwester Nawrocki wrote:
-> On 08/03/15 14:45, Laurent Pinchart wrote:
-> > +++ b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
-> > @@ -0,0 +1,41 @@
-> > +* Aptina 1/3-Inch WVGA CMOS Digital Image Sensor
-> > +
-> > +The Aptina MT9V032 is a 1/3-inch CMOS active pixel digital image sensor
-> > with
-> > +an active array size of 752H x 480V. It is programmable through a simple
-> > +two-wire serial interface.
-> > +
-> > +Required Properties:
-> > +
-> > +- compatible: value should be either one among the following
-> > +	(a) "aptina,mt9v032" for MT9V032 color sensor
-> > +	(b) "aptina,mt9v032m" for MT9V032 monochrome sensor
-> > +	(c) "aptina,mt9v034" for MT9V034 color sensor
-> > +	(d) "aptina,mt9v034m" for MT9V034 monochrome sensor
-> 
-> It can't be determined at runtime whether the sensor is just monochromatic ?
-
-Unfortunately not. As far as I'm aware the only difference between the 
-monochromatic and color sensors is the colour filter array. The register set 
-is identical.
-
-> Al in all the color filter array is a physical property of the sensor,
-> still the driver seems to be ignoring the "m" suffix.
-
-No, the driver relies on the I2C core filling returning the I2C device id 
-instance corresponding to the DT compatible string, and gets sensor model 
-information from id->driver_data.
-
-> Hence I suspect the
-> register interfaces for both color and monochromatic versions are
-> compatible. I'm wondering whether using a boolean property to indicate the
-> color filter array type would do as well.
-
-That's an option as well, yes. I don't have a strong preference at the moment, 
-but it should be noted that the "m" suffix is contained in the chip's part 
-number.
-
-MT9V032C12STM
-MT9V032C12STC
-MT9V032C12STMD
-MT9V032C12STMH
-MT9V032C12STCD
-MT9V032C12STCH
-
-Granted, they use "c" for colour sensors, which the DT bindings don't use, and 
-a "C12ST" that we completely ignore.
-
-> > +static struct mt9v032_platform_data *
-> > +mt9v032_get_pdata(struct i2c_client *client)
-> > +{
-> > +	struct mt9v032_platform_data *pdata;
-> > +	struct v4l2_of_endpoint endpoint;
-> > +	struct device_node *np;
-> > +	struct property *prop;
-> > +
-> > +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-> > +		return client->dev.platform_data;
-> > +
-> > +	np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-> > +	if (!np)
-> > +		return NULL;
-> > +
-> > +	if (v4l2_of_parse_endpoint(np, &endpoint) < 0)
-> > +		goto done;
-> > +
-> > +	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-> > +	if (!pdata)
-> > +		goto done;
-> > +
-> > +	prop = of_find_property(np, "link-freqs", NULL);
-> 
-> I suspect you meant "link-frequencies" here ?
-
-Indeed, good catch. I'll fix that.
-
-> > +	if (prop) {
-> > +		size_t size = prop->length / 8;
-> > +		u64 *link_freqs;
-> > +
-> > +		link_freqs = devm_kzalloc(&client->dev,
-> > +					  size * sizeof(*link_freqs),
-> > +					  GFP_KERNEL);
-> > +		if (!link_freqs)
-> > +			goto done;
-> > +
-> > +		if (of_property_read_u64_array(np, "link-frequencies",
-> > +					       link_freqs, size) < 0)
-> > +			goto done;
-> > +
-> > +		pdata->link_freqs = link_freqs;
-> > +		pdata->link_def_freq = link_freqs[0];
-> > +	}
-> > +
-> > +	pdata->clk_pol = !!(endpoint.bus.parallel.flags &
-> > +			    V4L2_MBUS_PCLK_SAMPLE_RISING);
-> > +
-> > +done:
-> > +	of_node_put(np);
-> > +	return pdata;
-> > +}
-> > 
-> > @@ -1034,9 +1086,21 @@ static const struct i2c_device_id mt9v032_id[] = {
-> > 
-> >  };
-> >  MODULE_DEVICE_TABLE(i2c, mt9v032_id);
-> > 
-> > +#if IS_ENABLED(CONFIG_OF)
-> > +static const struct of_device_id mt9v032_of_match[] = {
-> > +	{ .compatible = "mt9v032" },
-> > +	{ .compatible = "mt9v032m" },
-> > +	{ .compatible = "mt9v034" },
-> > +	{ .compatible = "mt9v034m" },
-> > +	{ /* Sentinel */ }
-> > +};
-> > +MODULE_DEVICE_TABLE(of, mt9v032_of_match);
-> > +#endif
-
+diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
+index 3819c1e..4c034d0 100644
+--- a/arch/arm/boot/dts/omap34xx.dtsi
++++ b/arch/arm/boot/dts/omap34xx.dtsi
+@@ -37,6 +37,21 @@
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
++
++		omap3_isp: omap3_isp@480bc000 {
++			compatible = "ti,omap3-isp";
++			reg = <0x480bc000 0x12fc
++			       0x480bd800 0x017c>;
++			interrupts = <24>;
++			iommus = <&mmu_isp>;
++			syscon = <&omap3_scm_general 0xdc>;
++			ti,phy-type = <0>;
++			#clock-cells = <1>;
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++		};
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index 541704a..31ac41c 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -69,6 +69,21 @@
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
++
++		omap3_isp: omap3_isp@480bc000 {
++			compatible = "ti,omap3-isp";
++			reg = <0x480bc000 0x12fc
++			       0x480bd800 0x0600>;
++			interrupts = <24>;
++			iommus = <&mmu_isp>;
++			syscon = <&omap3_scm_general 0x2f0>;
++			ti,phy-type = <1>;
++			#clock-cells = <1>;
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++		};
+ 	};
+ };
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
