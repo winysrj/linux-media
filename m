@@ -1,59 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35170 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750698AbbCGQgS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2015 11:36:18 -0500
-Message-ID: <54FB28EA.4040206@xs4all.nl>
-Date: Sat, 07 Mar 2015 17:35:54 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35220 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751445AbbCGXt1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 18:49:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	pali.rohar@gmail.com
+Subject: Re: [RFC 13/18] v4l: of: Read lane-polarity endpoint property
+Date: Sun, 08 Mar 2015 01:49:26 +0200
+Message-ID: <5943571.XgR4Bv1QGx@avalon>
+In-Reply-To: <1425764475-27691-14-git-send-email-sakari.ailus@iki.fi>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi> <1425764475-27691-14-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-CC: Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 00/15] media: blackfin: bfin_capture enhancements
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com> <CAHG8p1DFu8Y1qaDc9c0m0JggUHrF4grHBj9VZQ4224v2wPJRbQ@mail.gmail.com> <54F575AD.5020307@xs4all.nl> <CA+V-a8uVoUHHtQAGOAjz_wYpmkOg8_=cxv6W5b289coU_Wq0Xg@mail.gmail.com> <54F58142.4030201@xs4all.nl> <CA+V-a8uKxZBtwOZ7rqpv6Ym6X9jpgsHUxVAmuUqrVoGT3M8e3A@mail.gmail.com> <CAHG8p1DvYQaU7kGJSSh4UTiHYcK2E=g=4vCFAa8rytkYz3jHVw@mail.gmail.com> <54F82F5E.7060007@xs4all.nl> <CA+V-a8vTBJuiHRPjEN7VHHmAZhAu=W=Zi5a_N9DiLiRZH-Ab0A@mail.gmail.com>
-In-Reply-To: <CA+V-a8vTBJuiHRPjEN7VHHmAZhAu=W=Zi5a_N9DiLiRZH-Ab0A@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/07/2015 05:22 PM, Lad, Prabhakar wrote:
-> On Thu, Mar 5, 2015 at 10:26 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 03/05/15 10:44, Scott Jiang wrote:
->>> Hi Hans,
-> [snip]
->>>>>
->>>>> cd utils/v4l2-compliance
->>>>> cat *.cpp >x.cpp
->>>>> g++ -o v4l2-compliance x.cpp -I . -I ../../include/ -DNO_LIBV4L2
->>>>>
->>>>> I've never used uclibc, so I don't know what the limitations are.
->>>>>
->>>> Not sure what exactly fails, I haven’t tried compiling it, that was a
->>>> response from Scott for v2 series.
->>>>
->>>
->>> I found if I disabled libjpeg ./configure --without-jpeg, it can pass
->>> compilation.
->>
->> Great!
->>
->>> Would you like me to send the result now or after Lad's v4 patch?
->>
->> Send it now as v4 won't have any meaningful code changes.
->>
-> But anyway I cant help here much if there are any compliance issues,
-> as i don't have the hardware.
+Hi Sakari,
 
-Often compliance issues are trivially fixed, even without hardware. But step
-one is just to run the tool and see what it reports.
+Thank you for the patch.
 
+On Saturday 07 March 2015 23:41:10 Sakari Ailus wrote:
+> Add lane_polarity field to struct v4l2_of_bus_mipi_csi2 and write the
+> contents of the lane polarity property to it. The field tells the polarity
+> of the physical lanes starting from the first one. Any unused lanes are
+> ignored, i.e. only the polarity of the used lanes is specified.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/v4l2-core/v4l2-of.c |   21 ++++++++++++++++-----
+>  include/media/v4l2-of.h           |    3 +++
+>  2 files changed, 19 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c
+> b/drivers/media/v4l2-core/v4l2-of.c index b4ed9a9..a7a855e 100644
+> --- a/drivers/media/v4l2-core/v4l2-of.c
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -23,7 +23,6 @@ static void v4l2_of_parse_csi_bus(const struct device_node
+> *node, struct v4l2_of_endpoint *endpoint)
+>  {
+>  	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
+> -	u32 data_lanes[ARRAY_SIZE(bus->data_lanes)];
+>  	struct property *prop;
+>  	bool have_clk_lane = false;
+>  	unsigned int flags = 0;
+> @@ -34,14 +33,26 @@ static void v4l2_of_parse_csi_bus(const struct
+> device_node *node, const __be32 *lane = NULL;
+>  		int i;
+> 
+> -		for (i = 0; i < ARRAY_SIZE(data_lanes); i++) {
+> -			lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
+> +		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
+> +			lane = of_prop_next_u32(prop, lane, &v);
+>  			if (!lane)
+>  				break;
+> +			bus->data_lanes[i] = v;
+>  		}
+>  		bus->num_data_lanes = i;
+> -		while (i--)
+> -			bus->data_lanes[i] = data_lanes[i];
+> +	}
+> +
+> +	prop = of_find_property(node, "lane-polarity", NULL);
+> +	if (prop) {
+> +		const __be32 *polarity = NULL;
+> +		int i;
+
+Could you please use unsigned int instead of int as the loop index can't have 
+negative value ? Feel free to fix the index in the previous loop too :-)
+
+> +
+> +		for (i = 0; i < ARRAY_SIZE(bus->lane_polarity); i++) {
+> +			polarity = of_prop_next_u32(prop, polarity, &v);
+> +			if (!polarity)
+> +				break;
+> +			bus->lane_polarity[i] = v;
+> +		}
+
+Should we check that i == num_data_lines + 1 ?
+
+>  	}
+> 
+>  	if (!of_property_read_u32(node, "clock-lanes", &v)) {
+> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+> index 70fa7b7..a70eb52 100644
+> --- a/include/media/v4l2-of.h
+> +++ b/include/media/v4l2-of.h
+> @@ -29,12 +29,15 @@ struct device_node;
+>   * @data_lanes: an array of physical data lane indexes
+>   * @clock_lane: physical lane index of the clock lane
+>   * @num_data_lanes: number of data lanes
+> + * @lane_polarity: polarity of the lanes. The order is the same of
+> + *		   the physical lanes.
+>   */
+>  struct v4l2_of_bus_mipi_csi2 {
+>  	unsigned int flags;
+>  	unsigned char data_lanes[4];
+>  	unsigned char clock_lane;
+>  	unsigned short num_data_lanes;
+> +	bool lane_polarity[5];
+>  };
+> 
+>  /**
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
