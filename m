@@ -1,71 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:49261 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752215AbbCYJzp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 05:55:45 -0400
-Date: Wed, 25 Mar 2015 09:55:36 +0000 (GMT)
-From: William Towle <william.towle@codethink.co.uk>
-To: William Towle <william.towle@codethink.co.uk>
-cc: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, koji.matsuoka.xm@renesas.com
-Subject: Re: [Linux-kernel] RFC: supporting adv7604.c under
- soc_camera/rcar_vin
-In-Reply-To: <alpine.DEB.2.02.1503040911560.4552@xk120.dyn.ducie.codethink.co.uk>
-Message-ID: <alpine.DEB.2.02.1503250951520.4424@xk120.dyn.ducie.codethink.co.uk>
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <alpine.DEB.2.02.1503040911560.4552@xk120.dyn.ducie.codethink.co.uk>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35230 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752259AbbCGXvv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 18:51:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	pali.rohar@gmail.com
+Subject: Re: [RFC 16/18] arm: dts: omap3: Add DT entries for OMAP 3
+Date: Sun, 08 Mar 2015 01:51:51 +0200
+Message-ID: <2423520.KeZmBeFNoH@avalon>
+In-Reply-To: <1425764475-27691-17-git-send-email-sakari.ailus@iki.fi>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi> <1425764475-27691-17-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello again all,
+Hi Sakari,
 
-   Previously I promised to comment further on progress with our work
-supporting HDMI input on Lager. After studying commit 4c28078 "[media]
-rcar_vin: Add scaling support" on Hans' subdev2 branch, I have come to
-the conclusion that the following is actually reasonable behaviour when
-no attempt to determine the resolution of the live stream (a non-VGA
-720x576 in our case) has been made:
+Thank you for the patch.
 
-> with
-> our modifications to adv7604.c we have seen a) recovery of a 640x480
-> image which is cropped rather than scaled, and/or b) recovery of a
-> 2048x2048 image with the stream content in the top left corner.
+On Saturday 07 March 2015 23:41:13 Sakari Ailus wrote:
+> The resources the ISP needs are slightly different on 3[45]xx and 3[67]xx.
+> Especially the phy-type property is different.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  arch/arm/boot/dts/omap34xx.dtsi |   15 +++++++++++++++
+>  arch/arm/boot/dts/omap36xx.dtsi |   15 +++++++++++++++
+>  2 files changed, 30 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap34xx.dtsi
+> b/arch/arm/boot/dts/omap34xx.dtsi index 3819c1e..4c034d0 100644
+> --- a/arch/arm/boot/dts/omap34xx.dtsi
+> +++ b/arch/arm/boot/dts/omap34xx.dtsi
+> @@ -37,6 +37,21 @@
+>  			pinctrl-single,register-width = <16>;
+>  			pinctrl-single,function-mask = <0xff1f>;
+>  		};
+> +
+> +		omap3_isp: omap3_isp@480bc000 {
+> +			compatible = "ti,omap3-isp";
+> +			reg = <0x480bc000 0x12fc
+> +			       0x480bd800 0x017c>;
+> +			interrupts = <24>;
+> +			iommus = <&mmu_isp>;
+> +			syscon = <&omap3_scm_general 0xdc>;
+> +			ti,phy-type = <0>;
+> +			#clock-cells = <1>;
+> +			ports {
+> +				#address-cells = <1>;
+> +				#size-cells = <0>;
 
-   With our latest patchset, frame capture is essentially working and I
-believe a solution is close, but the scaling changes introduce
-behaviour that seems to be a regression for this particular test case
-- see final point below. We have:
+How about predefining the ports too ?
 
-   1. ported code to subdev2 tree (with backward-compatibility for legacy
-driver removed)
-   2. adjusted adv7604.c to detect the ADV7612, adding calls to
-get_fmt/set_fmt/enum_mbus_code pad ops to suit
-   3. removed our attempt to query the driver's maximum resolution - the
-scaling patch above configures the pre-clip/post-clip rectangles
-sensibly without it
-   4. modified our attempt to query the live resolution by doing this in
-adv7604_fill_format() ... by reinstating adv761x_get_vid_info() as a
-lightweight means of recovering the resolution, then using
-query_dv_timings to update properly if state->timings is inconsistent
-with its results; this leads to the need for:
-   5. reverting the following, as not updating 'pix' with the (possibly
-updated) resolution set_fmt returns leads to userland requesting an
-inappropriately sized output buffer:
- 	[commit 4c28078, static int rcar_vin_try_fmt(...)]
- 	-       pix->width = mf.width;
- 	-       pix->height = mf.height;
- 	+       /* Adjust only if VIN cannot scale */
- 	+       if (pix->width > mf.width * 2)
- 	+               pix->width = mf.width * 2;
- 	+       if (pix->height > mf.height * 3)
- 	+               pix->height = mf.height * 3;
+> +			};
+> +		};
+>  	};
+>  };
+> 
+> diff --git a/arch/arm/boot/dts/omap36xx.dtsi
+> b/arch/arm/boot/dts/omap36xx.dtsi index 541704a..31ac41c 100644
+> --- a/arch/arm/boot/dts/omap36xx.dtsi
+> +++ b/arch/arm/boot/dts/omap36xx.dtsi
+> @@ -69,6 +69,21 @@
+>  			pinctrl-single,register-width = <16>;
+>  			pinctrl-single,function-mask = <0xff1f>;
+>  		};
+> +
+> +		omap3_isp: omap3_isp@480bc000 {
+> +			compatible = "ti,omap3-isp";
+> +			reg = <0x480bc000 0x12fc
+> +			       0x480bd800 0x0600>;
+> +			interrupts = <24>;
+> +			iommus = <&mmu_isp>;
+> +			syscon = <&omap3_scm_general 0x2f0>;
+> +			ti,phy-type = <1>;
+> +			#clock-cells = <1>;
+> +			ports {
+> +				#address-cells = <1>;
+> +				#size-cells = <0>;
 
-   Does this seem reasonable, or are there better ways of implementing
-any of the above steps?
+And obviously here too.
 
-Cheers,
-   Wills.
+> +			};
+> +		};
+>  	};
+>  };
+
+-- 
+Regards,
+
+Laurent Pinchart
+
