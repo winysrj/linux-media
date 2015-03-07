@@ -1,205 +1,364 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:29606 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752218AbbCWPcQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2015 11:32:16 -0400
-Message-id: <551031FC.5010903@samsung.com>
-Date: Mon, 23 Mar 2015 16:32:12 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35179 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751011AbbCGXnr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 18:43:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v1 06/11] exynos4-is: Add support for v4l2-flash subdevs
-References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
- <1426863811-12516-7-git-send-email-j.anaszewski@samsung.com>
- <20150322012105.GI16613@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150322012105.GI16613@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	pali.rohar@gmail.com, linux-omap@vger.kernel.org,
+	Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 11/18] omap3isp: Replace many MMIO regions by two
+Date: Sun, 08 Mar 2015 01:43:47 +0200
+Message-ID: <2216785.mYDACGZ2he@avalon>
+In-Reply-To: <1425764475-27691-12-git-send-email-sakari.ailus@iki.fi>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi> <1425764475-27691-12-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Sakari,
 
-Thanks for the review.
+Thank you for the patch.
 
-On 03/22/2015 02:21 AM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> Some comments below. Please also get an ack from Sylwester! :-)
+(CC'ing linux-omap and Tony)
 
-No doubt about that :)
+On Saturday 07 March 2015 23:41:08 Sakari Ailus wrote:
+> The omap3isp MMIO register block is contiguous in the MMIO register space
+> apart from the fact that the ISP IOMMU register block is in the middle of
+> the area. Ioremap it at two occasions, and keep the rest of the layout of
+> the register space internal to the omap3isp driver.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-> On Fri, Mar 20, 2015 at 04:03:26PM +0100, Jacek Anaszewski wrote:
->> This patch adds support for external v4l2-flash devices.
->> The support includes parsing "flashes" DT property
->> and asynchronous subdevice registration.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> ---
->>   drivers/media/platform/exynos4-is/media-dev.c |   36 +++++++++++++++++++++++--
->>   drivers/media/platform/exynos4-is/media-dev.h |   13 ++++++++-
->>   2 files changed, 46 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
->> index f315ef9..8dd0e5d 100644
->> --- a/drivers/media/platform/exynos4-is/media-dev.c
->> +++ b/drivers/media/platform/exynos4-is/media-dev.c
->> @@ -451,6 +451,25 @@ rpm_put:
->>   	return ret;
->>   }
->>
->> +static void fimc_md_register_flash_entities(struct fimc_md *fmd)
->> +{
->> +	struct device_node *parent = fmd->pdev->dev.of_node;
->> +	struct device_node *np;
->> +	int i = 0;
->> +
->> +	do {
->> +		np = of_parse_phandle(parent, "flashes", i);
->> +		if (np) {
->
-> if (!np)
-> 	break;
->
-> And you can remove checking np another time in the loop condition.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks, this will be cleaner indeed.
+> ---
+>  arch/arm/mach-omap2/devices.c         |   66 +------------------
+>  arch/arm/mach-omap2/omap34xx.h        |   36 +----------
 
->> +			fmd->flash[fmd->num_flashes].asd.match_type =
->> +							V4L2_ASYNC_MATCH_OF;
->> +			fmd->flash[fmd->num_flashes].asd.match.of.node = np;
->> +			fmd->num_flashes++;
->> +			fmd->async_subdevs[fmd->num_sensors + i] =
->> +						&fmd->flash[i].asd;
->
-> Have all the sensors been already registered by this point?
+Once again you might be asked to split this. However, it would be pretty 
+painful, so it would be nice if we could merge everything through the Linux 
+media tree. You will need an ack from Tony.
 
-Function fimc_md_register_sensor_entities is called before
-this one.
-
->> +		}
->> +	} while (np && (++i < FIMC_MAX_FLASHES));
->
-> How about instead:
->
-> fmd->num_flashes < FIMC_MAX_FLASHES
->
-> And drop i. Also move incrementing num_flashes as last in the if.
-
-Dropping i will enforce referring to fmd->num_flashes 7 times
-in this short fragment of code.
-Maybe it would be better to use a pointer to it?
-int *nf = &fmd=>num_flashes ?
-
->> +}
->> +
->>   static int __of_get_csis_id(struct device_node *np)
->>   {
->>   	u32 reg = 0;
->> @@ -1275,6 +1294,15 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
->>   	struct fimc_sensor_info *si = NULL;
->>   	int i;
->>
->> +	/* Register flash subdev if detected any */
->> +	for (i = 0; i < ARRAY_SIZE(fmd->flash); i++) {
->> +		if (fmd->flash[i].asd.match.of.node == subdev->dev->of_node) {
->> +			fmd->flash[i].subdev = subdev;
->> +			fmd->num_flashes++;
->> +			return 0;
->> +		}
->> +	}
->> +
->>   	/* Find platform data for this sensor subdev */
->>   	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
->>   		if (fmd->sensor[i].asd.match.of.node == subdev->dev->of_node)
->> @@ -1385,6 +1413,8 @@ static int fimc_md_probe(struct platform_device *pdev)
->>   		goto err_m_ent;
->>   	}
->>
->> +	fimc_md_register_flash_entities(fmd);
->> +
->>   	mutex_unlock(&fmd->media_dev.graph_mutex);
->>
->>   	ret = device_create_file(&pdev->dev, &dev_attr_subdev_conf_mode);
->> @@ -1401,12 +1431,14 @@ static int fimc_md_probe(struct platform_device *pdev)
->>   		goto err_attr;
->>   	}
->>
->> -	if (fmd->num_sensors > 0) {
->> +	if (fmd->num_sensors > 0 || fmd->num_flashes > 0) {
->>   		fmd->subdev_notifier.subdevs = fmd->async_subdevs;
->> -		fmd->subdev_notifier.num_subdevs = fmd->num_sensors;
->> +		fmd->subdev_notifier.num_subdevs = fmd->num_sensors +
->> +							fmd->num_flashes;
->>   		fmd->subdev_notifier.bound = subdev_notifier_bound;
->>   		fmd->subdev_notifier.complete = subdev_notifier_complete;
->>   		fmd->num_sensors = 0;
->> +		fmd->num_flashes = 0;
->>
->>   		ret = v4l2_async_notifier_register(&fmd->v4l2_dev,
->>   						&fmd->subdev_notifier);
->> diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
->> index 0321454..feff9c8 100644
->> --- a/drivers/media/platform/exynos4-is/media-dev.h
->> +++ b/drivers/media/platform/exynos4-is/media-dev.h
->> @@ -34,6 +34,8 @@
->>
->>   #define FIMC_MAX_SENSORS	4
->>   #define FIMC_MAX_CAMCLKS	2
->> +#define FIMC_MAX_FLASHES	2
->> +#define FIMC_MAX_ASYNC_SUBDEVS (FIMC_MAX_SENSORS + FIMC_MAX_FLASHES)
->>   #define DEFAULT_SENSOR_CLK_FREQ	24000000U
->>
->>   /* LCD/ISP Writeback clocks (PIXELASYNCMx) */
->> @@ -93,6 +95,11 @@ struct fimc_sensor_info {
->>   	struct fimc_dev *host;
->>   };
->>
->> +struct fimc_flash_info {
->> +	struct v4l2_subdev *subdev;
->> +	struct v4l2_async_subdev asd;
->> +};
->> +
->>   struct cam_clk {
->>   	struct clk_hw hw;
->>   	struct fimc_md *fmd;
->> @@ -104,6 +111,8 @@ struct cam_clk {
->>    * @csis: MIPI CSIS subdevs data
->>    * @sensor: array of registered sensor subdevs
->>    * @num_sensors: actual number of registered sensors
->> + * @flash: array of registered flash subdevs
->> + * @num_flashes: actual number of registered flashes
->>    * @camclk: external sensor clock information
->>    * @fimc: array of registered fimc devices
->>    * @fimc_is: fimc-is data structure
->> @@ -123,6 +132,8 @@ struct fimc_md {
->>   	struct fimc_csis_info csis[CSIS_MAX_ENTITIES];
->>   	struct fimc_sensor_info sensor[FIMC_MAX_SENSORS];
->>   	int num_sensors;
->> +	struct fimc_flash_info flash[FIMC_MAX_FLASHES];
->> +	int num_flashes;
->>   	struct fimc_camclk_info camclk[FIMC_MAX_CAMCLKS];
->>   	struct clk *wbclk[FIMC_MAX_WBCLKS];
->>   	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
->> @@ -149,7 +160,7 @@ struct fimc_md {
->>   	} clk_provider;
->>
->>   	struct v4l2_async_notifier subdev_notifier;
->> -	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_SENSORS];
->> +	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_ASYNC_SUBDEVS];
->>
->>   	bool user_subdev_api;
->>   	spinlock_t slock;
->
-
+>  drivers/media/platform/omap3isp/isp.c |  113 ++++++++++++++++--------------
+>  drivers/media/platform/omap3isp/isp.h |    4 +-
+>  4 files changed, 66 insertions(+), 153 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index e945957..990338f 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -74,72 +74,12 @@ omap_postcore_initcall(omap3_l3_init);
+>  static struct resource omap3isp_resources[] = {
+>  	{
+>  		.start		= OMAP3430_ISP_BASE,
+> -		.end		= OMAP3430_ISP_END,
+> +		.end		= OMAP3430_ISP_BASE + 0x12fc,
+>  		.flags		= IORESOURCE_MEM,
+>  	},
+>  	{
+> -		.start		= OMAP3430_ISP_CCP2_BASE,
+> -		.end		= OMAP3430_ISP_CCP2_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3430_ISP_CCDC_BASE,
+> -		.end		= OMAP3430_ISP_CCDC_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3430_ISP_HIST_BASE,
+> -		.end		= OMAP3430_ISP_HIST_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3430_ISP_H3A_BASE,
+> -		.end		= OMAP3430_ISP_H3A_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3430_ISP_PREV_BASE,
+> -		.end		= OMAP3430_ISP_PREV_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3430_ISP_RESZ_BASE,
+> -		.end		= OMAP3430_ISP_RESZ_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3430_ISP_SBL_BASE,
+> -		.end		= OMAP3430_ISP_SBL_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
+> -		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3430_ISP_CSIPHY2_BASE,
+> -		.end		= OMAP3430_ISP_CSIPHY2_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
+> -		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
+> -		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3630_ISP_CSIPHY1_BASE,
+> -		.end		= OMAP3630_ISP_CSIPHY1_END,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
+> -		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
+> +		.start		= OMAP3430_ISP_BASE2,
+> +		.end		= OMAP3430_ISP_BASE2 + 0x0600,
+>  		.flags		= IORESOURCE_MEM,
+>  	},
+>  	{
+> diff --git a/arch/arm/mach-omap2/omap34xx.h b/arch/arm/mach-omap2/omap34xx.h
+> index c0d1b4b..ed0024d 100644
+> --- a/arch/arm/mach-omap2/omap34xx.h
+> +++ b/arch/arm/mach-omap2/omap34xx.h
+> @@ -46,39 +46,9 @@
+> 
+>  #define OMAP34XX_IC_BASE	0x48200000
+> 
+> -#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
+> -#define OMAP3430_ISP_CBUFF_BASE		(OMAP3430_ISP_BASE + 0x0100)
+> -#define OMAP3430_ISP_CCP2_BASE		(OMAP3430_ISP_BASE + 0x0400)
+> -#define OMAP3430_ISP_CCDC_BASE		(OMAP3430_ISP_BASE + 0x0600)
+> -#define OMAP3430_ISP_HIST_BASE		(OMAP3430_ISP_BASE + 0x0A00)
+> -#define OMAP3430_ISP_H3A_BASE		(OMAP3430_ISP_BASE + 0x0C00)
+> -#define OMAP3430_ISP_PREV_BASE		(OMAP3430_ISP_BASE + 0x0E00)
+> -#define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
+> -#define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
+> -#define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
+> -#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
+> -#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
+> -#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
+> -#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
+> -#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
+> -#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
+> -
+> -#define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
+> -#define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
+> -#define OMAP3430_ISP_CCP2_END		(OMAP3430_ISP_CCP2_BASE    + 0x1EF)
+> -#define OMAP3430_ISP_CCDC_END		(OMAP3430_ISP_CCDC_BASE    + 0x0A7)
+> -#define OMAP3430_ISP_HIST_END		(OMAP3430_ISP_HIST_BASE    + 0x047)
+> -#define OMAP3430_ISP_H3A_END		(OMAP3430_ISP_H3A_BASE     + 0x05F)
+> -#define OMAP3430_ISP_PREV_END		(OMAP3430_ISP_PREV_BASE    + 0x09F)
+> -#define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
+> -#define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
+> -#define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
+> -#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE +
+> 0x16F) -#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE +
+> 0x00B) -#define OMAP3630_ISP_CSI2A_REGS2_END	
+(OMAP3630_ISP_CSI2A_REGS2_BASE
+> + 0x3F) -#define
+> OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
+> -#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
+> -#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE +
+> 0x3F) +#define OMAP3430_ISP_BASE	(L4_34XX_BASE + 0xBC000)
+> +#define OMAP3430_ISP_MMU_BASE	(OMAP3430_ISP_BASE + 0x1400)
+> +#define OMAP3430_ISP_BASE2	(OMAP3430_ISP_BASE + 0x1800)
+> 
+>  #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
+>  #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 4ff4bbd..7804895 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -86,35 +86,43 @@ static void isp_restore_ctx(struct isp_device *isp);
+>  static const struct isp_res_mapping isp_res_maps[] = {
+>  	{
+>  		.isp_rev = ISP_REVISION_2_0,
+> -		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
+> -		       1 << OMAP3_ISP_IOMEM_CCP2 |
+> -		       1 << OMAP3_ISP_IOMEM_CCDC |
+> -		       1 << OMAP3_ISP_IOMEM_HIST |
+> -		       1 << OMAP3_ISP_IOMEM_H3A |
+> -		       1 << OMAP3_ISP_IOMEM_PREV |
+> -		       1 << OMAP3_ISP_IOMEM_RESZ |
+> -		       1 << OMAP3_ISP_IOMEM_SBL |
+> -		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+> -		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
+> +		.offset = {
+> +			/* first MMIO area */
+> +			0x0000, /* base, len 0x0070 */
+> +			0x0400, /* ccp2, len 0x01f0 */
+> +			0x0600, /* ccdc, len 0x00a8 */
+> +			0x0a00, /* hist, len 0x0048 */
+> +			0x0c00, /* h3a, len 0x0060 */
+> +			0x0e00, /* preview, len 0x00a0 */
+> +			0x1000, /* resizer, len 0x00ac */
+> +			0x1200, /* sbl, len 0x00fc */
+> +			/* second MMIO area */
+> +			0x0000, /* csi2a, len 0x0170 */
+> +			0x0170, /* csiphy2, len 0x000c */
+> +		},
+>  		.syscon_offset = 0xdc,
+>  		.phy_type = ISP_PHY_TYPE_3430,
+>  	},
+>  	{
+>  		.isp_rev = ISP_REVISION_15_0,
+> -		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
+> -		       1 << OMAP3_ISP_IOMEM_CCP2 |
+> -		       1 << OMAP3_ISP_IOMEM_CCDC |
+> -		       1 << OMAP3_ISP_IOMEM_HIST |
+> -		       1 << OMAP3_ISP_IOMEM_H3A |
+> -		       1 << OMAP3_ISP_IOMEM_PREV |
+> -		       1 << OMAP3_ISP_IOMEM_RESZ |
+> -		       1 << OMAP3_ISP_IOMEM_SBL |
+> -		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+> -		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
+> -		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
+> -		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
+> -		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
+> -		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
+> +		.offset = {
+> +			/* first MMIO area */
+> +			0x0000, /* base, len 0x0070 */
+> +			0x0400, /* ccp2, len 0x01f0 */
+> +			0x0600, /* ccdc, len 0x00a8 */
+> +			0x0a00, /* hist, len 0x0048 */
+> +			0x0c00, /* h3a, len 0x0060 */
+> +			0x0e00, /* preview, len 0x00a0 */
+> +			0x1000, /* resizer, len 0x00ac */
+> +			0x1200, /* sbl, len 0x00fc */
+> +			/* second MMIO area */
+> +			0x0000, /* csi2a, len 0x0170 (1st area) */
+> +			0x0170, /* csiphy2, len 0x000c */
+> +			0x01c0, /* csi2a, len 0x0040 (2nd area) */
+> +			0x0400, /* csi2c, len 0x0170 (1st area) */
+> +			0x0570, /* csiphy1, len 0x000c */
+> +			0x05c0, /* csi2c, len 0x0040 (2nd area) */
+> +		},
+>  		.syscon_offset = 0x2f0,
+>  		.phy_type = ISP_PHY_TYPE_3630,
+>  	},
+> @@ -2235,27 +2243,6 @@ static int isp_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+> 
+> -static int isp_map_mem_resource(struct platform_device *pdev,
+> -				struct isp_device *isp,
+> -				enum isp_mem_resources res)
+> -{
+> -	struct resource *mem;
+> -
+> -	/* request the mem region for the camera registers */
+> -
+> -	mem = platform_get_resource(pdev, IORESOURCE_MEM, res);
+> -
+> -	/* map the region */
+> -	isp->mmio_base[res] = devm_ioremap_resource(isp->dev, mem);
+> -	if (IS_ERR(isp->mmio_base[res]))
+> -		return PTR_ERR(isp->mmio_base[res]);
+> -
+> -	if (res == OMAP3_ISP_IOMEM_HIST)
+> -		isp->mmio_hist_base_phys = mem->start;
+> -
+> -	return 0;
+> -}
+> -
+>  /*
+>   * isp_probe - Probe ISP platform device
+>   * @pdev: Pointer to ISP platform device
+> @@ -2271,6 +2258,7 @@ static int isp_probe(struct platform_device *pdev)
+>  {
+>  	struct isp_platform_data *pdata = pdev->dev.platform_data;
+>  	struct isp_device *isp;
+> +	struct resource *mem;
+>  	int ret;
+>  	int i, m;
+> 
+> @@ -2303,10 +2291,21 @@ static int isp_probe(struct platform_device *pdev)
+>  	 *
+>  	 * The ISP clock tree is revision-dependent. We thus need to enable ICLK
+>  	 * manually to read the revision before calling __omap3isp_get().
+> +	 *
+> +	 * Start by mapping the ISP MMIO area, which is in two pieces.
+> +	 * The ISP IOMMU is in between. Map both now, and fill in the
+> +	 * ISP revision specific portions a little later in the
+> +	 * function.
+>  	 */
+> -	ret = isp_map_mem_resource(pdev, isp, OMAP3_ISP_IOMEM_MAIN);
+> -	if (ret < 0)
+> -		goto error;
+> +	for (i = 0; i < 2; i++) {
+> +		unsigned int map_idx = i ? OMAP3_ISP_IOMEM_CSI2A_REGS1 : 0;
+> +
+> +		mem = platform_get_resource(pdev, IORESOURCE_MEM, i);
+> +		isp->mmio_base[map_idx] =
+> +			devm_ioremap_resource(isp->dev, mem);
+> +		if (IS_ERR(isp->mmio_base[map_idx]))
+> +			return PTR_ERR(isp->mmio_base[map_idx]);
+> +	}
+> 
+>  	ret = isp_get_clocks(isp);
+>  	if (ret < 0)
+> @@ -2347,13 +2346,17 @@ static int isp_probe(struct platform_device *pdev)
+>  		goto error_isp;
+>  	}
+> 
+> -	for (i = 1; i < OMAP3_ISP_IOMEM_LAST; i++) {
+> -		if (isp_res_maps[m].map & 1 << i) {
+> -			ret = isp_map_mem_resource(pdev, isp, i);
+> -			if (ret)
+> -				goto error_isp;
+> -		}
+> -	}
+> +	for (i = 1; i < OMAP3_ISP_IOMEM_CSI2A_REGS1; i++)
+> +		isp->mmio_base[i] =
+> +			isp->mmio_base[0] + isp_res_maps[m].offset[i];
+> +
+> +	for (i = OMAP3_ISP_IOMEM_CSIPHY2; i < OMAP3_ISP_IOMEM_LAST; i++)
+> +		isp->mmio_base[i] =
+> +			isp->mmio_base[OMAP3_ISP_IOMEM_CSI2A_REGS1]
+> +			+ isp_res_maps[m].offset[i];
+> +
+> +	isp->mmio_hist_base_phys =
+> +		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
+> 
+>  	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
+>  	isp->syscon_offset = isp_res_maps[m].syscon_offset;
+> diff --git a/drivers/media/platform/omap3isp/isp.h
+> b/drivers/media/platform/omap3isp/isp.h index 03d2129..dcb7d20 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -99,7 +99,7 @@ struct regmap;
+>  /*
+>   * struct isp_res_mapping - Map ISP io resources to ISP revision.
+>   * @isp_rev: ISP_REVISION_x_x
+> - * @map: bitmap for enum isp_mem_resources
+> + * @offset: register offsets of various ISP sub-blocks
+>   * @syscon_offset: offset of the syscon register for 343x / 3630
+>   *	    (CONTROL_CSIRXFE / CONTROL_CAMERA_PHY_CTRL, respectively)
+>   *	    from the syscon base address
+> @@ -107,7 +107,7 @@ struct regmap;
+>   */
+>  struct isp_res_mapping {
+>  	u32 isp_rev;
+> -	u32 map;
+> +	u32 offset[OMAP3_ISP_IOMEM_LAST];
+>  	u32 syscon_offset;
+>  	u32 phy_type;
+>  };
 
 -- 
-Best Regards,
-Jacek Anaszewski
+Regards,
+
+Laurent Pinchart
+
