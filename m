@@ -1,98 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:53894 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752293AbbCIPpH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 11:45:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 01/29] vivid: the overlay API wasn't disabled completely for multiplanar
-Date: Mon,  9 Mar 2015 16:44:23 +0100
-Message-Id: <1425915891-1017-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:46409 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751826AbbCHOlR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:17 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: adi-buildroot-devel@lists.sourceforge.net,
+	linux-kernel@vger.kernel.org,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v4 11/17] media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
+Date: Sun,  8 Mar 2015 14:40:47 +0000
+Message-Id: <1425825653-14768-12-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-If the vivid driver is loaded in multiplanar mode, then the capture overlay
-functionality should be disabled. This wasn't fully done, which led to
-v4l2-compliance errors.
+this patch adds support to return -ENODATA for *dv_timings calls
+if the current output does not support it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
 ---
- drivers/media/platform/vivid/vivid-vid-cap.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/media/platform/blackfin/bfin_capture.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 867a29a..550945a 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -1012,8 +1012,12 @@ int vivid_vid_cap_cropcap(struct file *file, void *priv,
- int vidioc_enum_fmt_vid_overlay(struct file *file, void  *priv,
- 					struct v4l2_fmtdesc *f)
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index f97d94d..2dead84 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -487,6 +487,11 @@ static int bcap_enum_dv_timings(struct file *file, void *priv,
+ 				struct v4l2_enum_dv_timings *timings)
  {
-+	struct vivid_dev *dev = video_drvdata(file);
- 	const struct vivid_fmt *fmt;
- 
-+	if (dev->multiplanar)
-+		return -ENOTTY;
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
++	struct v4l2_input input;
 +
- 	if (f->index >= ARRAY_SIZE(formats_ovl))
- 		return -EINVAL;
++	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
++	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
++		return -ENODATA;
  
-@@ -1032,6 +1036,9 @@ int vidioc_g_fmt_vid_overlay(struct file *file, void *priv,
- 	struct v4l2_window *win = &f->fmt.win;
- 	unsigned clipcount = win->clipcount;
+ 	timings->pad = 0;
  
-+	if (dev->multiplanar)
-+		return -ENOTTY;
-+
- 	win->w.top = dev->overlay_cap_top;
- 	win->w.left = dev->overlay_cap_left;
- 	win->w.width = compose->width;
-@@ -1063,6 +1070,9 @@ int vidioc_try_fmt_vid_overlay(struct file *file, void *priv,
- 	struct v4l2_window *win = &f->fmt.win;
- 	int i, j;
- 
-+	if (dev->multiplanar)
-+		return -ENOTTY;
-+
- 	win->w.left = clamp_t(int, win->w.left,
- 			      -dev->fb_cap.fmt.width, dev->fb_cap.fmt.width);
- 	win->w.top = clamp_t(int, win->w.top,
-@@ -1150,6 +1160,9 @@ int vivid_vid_cap_overlay(struct file *file, void *fh, unsigned i)
+@@ -498,6 +503,11 @@ static int bcap_query_dv_timings(struct file *file, void *priv,
+ 				struct v4l2_dv_timings *timings)
  {
- 	struct vivid_dev *dev = video_drvdata(file);
- 
-+	if (dev->multiplanar)
-+		return -ENOTTY;
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
++	struct v4l2_input input;
 +
- 	if (i && dev->fb_vbase_cap == NULL)
- 		return -EINVAL;
++	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
++	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
++		return -ENODATA;
  
-@@ -1169,6 +1182,9 @@ int vivid_vid_cap_g_fbuf(struct file *file, void *fh,
+ 	return v4l2_subdev_call(bcap_dev->sd, video,
+ 				query_dv_timings, timings);
+@@ -507,6 +517,11 @@ static int bcap_g_dv_timings(struct file *file, void *priv,
+ 				struct v4l2_dv_timings *timings)
  {
- 	struct vivid_dev *dev = video_drvdata(file);
- 
-+	if (dev->multiplanar)
-+		return -ENOTTY;
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
++	struct v4l2_input input;
 +
- 	*a = dev->fb_cap;
- 	a->capability = V4L2_FBUF_CAP_BITMAP_CLIPPING |
- 			V4L2_FBUF_CAP_LIST_CLIPPING;
-@@ -1185,6 +1201,9 @@ int vivid_vid_cap_s_fbuf(struct file *file, void *fh,
- 	struct vivid_dev *dev = video_drvdata(file);
- 	const struct vivid_fmt *fmt;
++	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
++	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
++		return -ENODATA;
  
-+	if (dev->multiplanar)
-+		return -ENOTTY;
+ 	*timings = bcap_dev->dv_timings;
+ 	return 0;
+@@ -516,7 +531,13 @@ static int bcap_s_dv_timings(struct file *file, void *priv,
+ 				struct v4l2_dv_timings *timings)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
++	struct v4l2_input input;
+ 	int ret;
 +
- 	if (!capable(CAP_SYS_ADMIN) && !capable(CAP_SYS_RAWIO))
- 		return -EPERM;
++	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
++	if (!(input.capabilities & V4L2_IN_CAP_DV_TIMINGS))
++		return -ENODATA;
++
+ 	if (vb2_is_busy(&bcap_dev->buffer_queue))
+ 		return -EBUSY;
  
 -- 
-2.1.4
+2.1.0
 
