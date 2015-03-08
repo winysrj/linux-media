@@ -1,60 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f51.google.com ([209.85.192.51]:42107 "EHLO
-	mail-qg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751879AbbCKQjI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 12:39:08 -0400
-Received: by qgfi50 with SMTP id i50so11361251qgf.9
-        for <linux-media@vger.kernel.org>; Wed, 11 Mar 2015 09:39:08 -0700 (PDT)
-Message-ID: <55006F16.5070004@vanguardiasur.com.ar>
-Date: Wed, 11 Mar 2015 13:36:38 -0300
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Received: from gofer.mess.org ([80.229.237.210]:34472 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751668AbbCHKon (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Mar 2015 06:44:43 -0400
+Date: Sun, 8 Mar 2015 10:44:41 +0000
+From: Sean Young <sean@mess.org>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de,
+	'Hans Verkuil' <hansverk@cisco.com>
+Subject: Re: [RFC v2 3/7] cec: add new framework for cec support.
+Message-ID: <20150308104441.GA3764@gofer.mess.org>
+References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
+ <1421942679-23609-4-git-send-email-k.debski@samsung.com>
+ <20150123110747.GA3084@gofer.mess.org>
+ <086501d05828$b88bf320$29a3d960$%debski@samsung.com>
 MIME-Version: 1.0
-To: Dale Hamel <dale.hamel@srvthe.net>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-	"mchehab@osg.samsung.com" <mchehab@osg.samsung.com>,
-	"michael@stegemann.it" <michael@stegemann.it>
-Subject: Re: [PATCH] Add framescaling support to stk1160
-References: <1424799211-26488-1-git-send-email-dale.hamel@srvthe.net>	<CALF0-+U1LiWLh8H0TszoamPk7KZwM2zO4guavB0MQTXybnoBwA@mail.gmail.com>	<55006E71.9020403@vanguardiasur.com.ar> <CALu95JMdk+5n_puSBW7SygvNc1Zog1x6bT-eCSztPiZMCBeVJg@mail.gmail.com>
-In-Reply-To: <CALu95JMdk+5n_puSBW7SygvNc1Zog1x6bT-eCSztPiZMCBeVJg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <086501d05828$b88bf320$29a3d960$%debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-OK, great then.
+Hi Kamil,
 
-Don't forget to keep everyone Cced.
+On Fri, Mar 06, 2015 at 05:14:50PM +0100, Kamil Debski wrote:
+> 3) As you suggested - load an empty keymap whenever the pass through mode is
+> enabled.
+> I am not that familiar with the RC core. Is there a simple way to switch to
+> an empty map
+> from the kernel? There is the ir_setkeytable function, but it is static in
+> rc-main.c, so it
+> cannot be used in other kernel modules. Any hints, Sean?
 
-On 03/11/2015 01:37 PM, Dale Hamel wrote:
-> That sounds good to me :)
-> 
-> On Wednesday, March 11, 2015, Ezequiel Garcia
-> <ezequiel@vanguardiasur.com.ar <mailto:ezequiel@vanguardiasur.com.ar>>
-> wrote:
-> 
->     Hi Michael, Dale,
-> 
->     On 03/10/2015 12:26 AM, Ezequiel Garcia wrote:
->     > Dale,
->     >
->     > Don't forget to Cc the media mailing list. See below.
->     >
-> 
->     If you are OK with it, I'll rework this patch (mostly cleaning the
->     style) and then post it back so everyone can comment.
-> 
->     BTW, my datasheet doesn't have the DMCTRL register documented, and I'm
->     really glad that we can finally support hardware decimation.
-> 
->     Thanks!
->     --
->     Ezequiel Garcia, VanguardiaSur
->     www.vanguardiasur.com.ar <http://www.vanguardiasur.com.ar>
-> 
+Why is it problematic if keypresses are passed to the input layer? 
 
--- 
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+You can only set the default keymap for an rc-device from kernel space; from
+user space you can clear the table using input ioctl, see:
+
+http://git.linuxtv.org/cgit.cgi/v4l-utils.git/tree/utils/keytable/keytable.c#n1277
+
+You can select MAP_EMPTY as the default keymap if that is appropriate; using
+ir-setkeytable(1) a different keymap can be selected.
+
+
+Sean
