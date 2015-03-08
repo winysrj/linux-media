@@ -1,63 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:39739 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751113AbbCMJlM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 05:41:12 -0400
-Date: Fri, 13 Mar 2015 10:40:50 +0100
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	pali.rohar@gmail.com, Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 18/18] omap3isp: Deprecate platform data support
-Message-ID: <20150313094050.GB4980@earth>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
- <1425764475-27691-19-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="DKU6Jbt7q3WqK7+M"
-Content-Disposition: inline
-In-Reply-To: <1425764475-27691-19-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:41134 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752818AbbCHOlO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:14 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: adi-buildroot-devel@lists.sourceforge.net,
+	linux-kernel@vger.kernel.org,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v4 10/17] media: blackfin: bfin_capture: return -ENODATA for *std calls
+Date: Sun,  8 Mar 2015 14:40:46 +0000
+Message-Id: <1425825653-14768-11-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
---DKU6Jbt7q3WqK7+M
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+this patch adds supports to return -ENODATA to *_std calls
+if the selected output does not support it.
 
-Hi,
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-[+CC Tony]
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index f2b1a23..f97d94d 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -440,6 +440,11 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
+ static int bcap_querystd(struct file *file, void *priv, v4l2_std_id *std)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
++	struct v4l2_input input;
++
++	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
++	if (!(input.capabilities & V4L2_IN_CAP_STD))
++		return -ENODATA;
+ 
+ 	return v4l2_subdev_call(bcap_dev->sd, video, querystd, std);
+ }
+@@ -447,6 +452,11 @@ static int bcap_querystd(struct file *file, void *priv, v4l2_std_id *std)
+ static int bcap_g_std(struct file *file, void *priv, v4l2_std_id *std)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
++	struct v4l2_input input;
++
++	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
++	if (!(input.capabilities & V4L2_IN_CAP_STD))
++		return -ENODATA;
+ 
+ 	*std = bcap_dev->std;
+ 	return 0;
+@@ -455,8 +465,13 @@ static int bcap_g_std(struct file *file, void *priv, v4l2_std_id *std)
+ static int bcap_s_std(struct file *file, void *priv, v4l2_std_id std)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
++	struct v4l2_input input;
+ 	int ret;
+ 
++	input = bcap_dev->cfg->inputs[bcap_dev->cur_input];
++	if (!(input.capabilities & V4L2_IN_CAP_STD))
++		return -ENODATA;
++
+ 	if (vb2_is_busy(&bcap_dev->buffer_queue))
+ 		return -EBUSY;
+ 
+-- 
+2.1.0
 
-On Sat, Mar 07, 2015 at 11:41:15PM +0200, Sakari Ailus wrote:
-> Print a warning when the driver is used with platform data. Existing
-> platform data user should move to DT now.
-
-I guess this should become a more visible warning on OMAP SoC level,
-since platform data based boot will be deprecated completly.
-
--- Sebastian
-
---DKU6Jbt7q3WqK7+M
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJVArCiAAoJENju1/PIO/qajWcQAIUyn6rZcJXxf06NC5Vp2mLt
-wa5wUTAd4OSWwkW7TeLKda1wSifSPrnADz0W33RbRsE0hsOBU7fWuaLIEjPEAg75
-xZii4eXGaXqlpbsE3gGlpZ3Fgob4BZbCYQpVKlvmIVoDf9Hk0uxU3TzHRtvVwR1B
-9d1E6MdadohcTLAF2m3tLjPT+FzT9B8DA4HifmhfgsCXK41HL3DYD9YXTazc75RO
-updeqnWHr1wETwx4eE2vEsBEuu9CU2Xt36NT2MVun7nl3yFlkJHoTxZGZsRLVVyG
-adONppE7PCYzbzpDzUel8O4wJPpJ+Yp/pcj8ZEbgbf8SSDQHvDY3UMjJ/V6vJnVZ
-joy4gJCHRtdkhXQn/ELXGXThFsJzfWOiuiH2ha+SQY0e2fy07XtyxiUnw+v2yMWQ
-PxRimxG6UllBZDVYkcR8CV/HummdPFoG9REaGkNF45Pxs9G6FH60YLsh0UqjBXqa
-mWQssuXzbsy3sxNP9SForeSouFW822adIrlm6pq6yrvl4sjcR7Uy12exMqO1zidM
-jIQlxIAMnxa6CQMtpJPbk4MnaBvNve3HQCQp+2WGf7JQwcDr/5VtQTswnfX+fO+Q
-cn14gC84mOogQYMYvYSiIM+SB3P+XL0w8VCAou1lgkAQB9SXLz0Pnf09gys361Ts
-qZLhl4/IlNTns6lyl3ha
-=s1SH
------END PGP SIGNATURE-----
-
---DKU6Jbt7q3WqK7+M--
