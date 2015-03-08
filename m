@@ -1,164 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44056 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751206AbbCPJFb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 05:05:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com
-Subject: Re: [PATCH 13/15] v4l: of: Read lane-polarity endpoint property
-Date: Mon, 16 Mar 2015 11:05:38 +0200
-Message-ID: <2045850.eQKZGjon2a@avalon>
-In-Reply-To: <1426465570-30295-14-git-send-email-sakari.ailus@iki.fi>
-References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi> <1426465570-30295-14-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-we0-f170.google.com ([74.125.82.170]:36143 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751541AbbCHOlD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:03 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: adi-buildroot-devel@lists.sourceforge.net,
+	linux-kernel@vger.kernel.org,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v4 01/17] media: blackfin: bfin_capture: drop buf_init() callback
+Date: Sun,  8 Mar 2015 14:40:37 +0000
+Message-Id: <1425825653-14768-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Thank you for the patch.
+this patch drops the buf_init() callback as init
+of buf list is not required.
 
-On Monday 16 March 2015 02:26:08 Sakari Ailus wrote:
-> Add lane_polarity field to struct v4l2_of_bus_mipi_csi2 and write the
-> contents of the lane polarity property to it. The field tells the polarity
-> of the physical lanes starting from the first one. Any unused lanes are
-> ignored, i.e. only the polarity of the used lanes is specified.
-> 
-> Also rework reading the "data-lanes" property a little.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/v4l2-core/v4l2-of.c |   41 ++++++++++++++++++++++++++--------
->  include/media/v4l2-of.h           |    3 +++
->  2 files changed, 35 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c
-> b/drivers/media/v4l2-core/v4l2-of.c index b4ed9a9..e44cc15 100644
-> --- a/drivers/media/v4l2-core/v4l2-of.c
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -19,11 +19,10 @@
-> 
->  #include <media/v4l2-of.h>
-> 
-> -static void v4l2_of_parse_csi_bus(const struct device_node *node,
-> -				  struct v4l2_of_endpoint *endpoint)
-> +static int v4l2_of_parse_csi_bus(const struct device_node *node,
-> +				 struct v4l2_of_endpoint *endpoint)
->  {
->  	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
-> -	u32 data_lanes[ARRAY_SIZE(bus->data_lanes)];
->  	struct property *prop;
->  	bool have_clk_lane = false;
->  	unsigned int flags = 0;
-> @@ -32,16 +31,34 @@ static void v4l2_of_parse_csi_bus(const struct
-> device_node *node, prop = of_find_property(node, "data-lanes", NULL);
->  	if (prop) {
->  		const __be32 *lane = NULL;
-> -		int i;
-> +		unsigned int i;
-> 
-> -		for (i = 0; i < ARRAY_SIZE(data_lanes); i++) {
-> -			lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
-> +		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
-> +			lane = of_prop_next_u32(prop, lane, &v);
->  			if (!lane)
->  				break;
-> +			bus->data_lanes[i] = v;
->  		}
->  		bus->num_data_lanes = i;
-> -		while (i--)
-> -			bus->data_lanes[i] = data_lanes[i];
-> +	}
-> +
-> +	prop = of_find_property(node, "lane-polarity", NULL);
-> +	if (prop) {
-> +		const __be32 *polarity = NULL;
-> +		unsigned int i;
-> +
-> +		for (i = 0; i < ARRAY_SIZE(bus->lane_polarity); i++) {
-> +			polarity = of_prop_next_u32(prop, polarity, &v);
-> +			if (!polarity)
-> +				break;
-> +			bus->lane_polarity[i] = v;
-> +		}
-> +
-> +		if (i < 1 + bus->num_data_lanes /* clock + data */) {
-> +			pr_warn("bad size of lane-polarity array in node %s, was %u, 
-should be
-> %u\n",
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-How about
-
-		pr_warn("%s: too few lane-polarity entries (need %u, got %u)\n",
-			node->full_name, 1 + bus->num_data_lanes, i);
-
-> +				node->full_name, i, 1 + bus->num_data_lanes);
-> +			return -EINVAL;
-> +		}
->  	}
-> 
->  	if (!of_property_read_u32(node, "clock-lanes", &v)) {
-> @@ -56,6 +73,8 @@ static void v4l2_of_parse_csi_bus(const struct device_node
-> *node,
-> 
->  	bus->flags = flags;
->  	endpoint->bus_type = V4L2_MBUS_CSI2;
-> +
-> +	return 0;
->  }
-> 
->  static void v4l2_of_parse_parallel_bus(const struct device_node *node,
-> @@ -127,11 +146,15 @@ static void v4l2_of_parse_parallel_bus(const struct
-> device_node *node, int v4l2_of_parse_endpoint(const struct device_node
-> *node,
->  			   struct v4l2_of_endpoint *endpoint)
->  {
-> +	int rval;
-> +
->  	of_graph_parse_endpoint(node, &endpoint->base);
->  	endpoint->bus_type = 0;
->  	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
-> 
-> -	v4l2_of_parse_csi_bus(node, endpoint);
-> +	rval = v4l2_of_parse_csi_bus(node, endpoint);
-> +	if (rval)
-> +		return rval;
->  	/*
->  	 * Parse the parallel video bus properties only if none
->  	 * of the MIPI CSI-2 specific properties were found.
-> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-> index 70fa7b7..a70eb52 100644
-> --- a/include/media/v4l2-of.h
-> +++ b/include/media/v4l2-of.h
-> @@ -29,12 +29,15 @@ struct device_node;
->   * @data_lanes: an array of physical data lane indexes
->   * @clock_lane: physical lane index of the clock lane
->   * @num_data_lanes: number of data lanes
-> + * @lane_polarity: polarity of the lanes. The order is the same of
-> + *		   the physical lanes.
->   */
->  struct v4l2_of_bus_mipi_csi2 {
->  	unsigned int flags;
->  	unsigned char data_lanes[4];
->  	unsigned char clock_lane;
->  	unsigned short num_data_lanes;
-> +	bool lane_polarity[5];
-
-A bit of bike-shedding here, should this be lane_polarities ? And, thinking 
-about it, should the DT property be renamed to "lane-polarities" as well ? 
-This would match "data-lanes".
-
->  };
-> 
->  /**
-
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 8f66986..c6d8b95 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -302,14 +302,6 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+ 	return 0;
+ }
+ 
+-static int bcap_buffer_init(struct vb2_buffer *vb)
+-{
+-	struct bcap_buffer *buf = to_bcap_vb(vb);
+-
+-	INIT_LIST_HEAD(&buf->list);
+-	return 0;
+-}
+-
+ static int bcap_buffer_prepare(struct vb2_buffer *vb)
+ {
+ 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
+@@ -441,7 +433,6 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
+ 
+ static struct vb2_ops bcap_video_qops = {
+ 	.queue_setup            = bcap_queue_setup,
+-	.buf_init               = bcap_buffer_init,
+ 	.buf_prepare            = bcap_buffer_prepare,
+ 	.buf_cleanup            = bcap_buffer_cleanup,
+ 	.buf_queue              = bcap_buffer_queue,
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.0
 
