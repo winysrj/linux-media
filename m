@@ -1,87 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49748 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752347AbbCYJTO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 05:19:14 -0400
-Message-ID: <1427274927.3441.21.camel@pengutronix.de>
-Subject: Re: [GIT PULL v2] of: Add of-graph helpers to loop over endpoints
- and find ports by id
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Rob Herring <robherring2@gmail.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Benoit Parrot <bparrot@ti.com>,
-	Mathieu Poirier <mathieu.poirier@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Darren Etheridge <detheridge@ti.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"kernel@pengutronix.de" <kernel@pengutronix.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 25 Mar 2015 10:15:27 +0100
-In-Reply-To: <CAL_JsqJCRQx9=pnvxvKP+Ruek1F-0TRJ2rDDHCcVYZ8y=hE=Xg@mail.gmail.com>
-References: <1425369592.3146.14.camel@pengutronix.de>
-	 <CAL_Jsq+s5RN+7z8Q5N1VghxaQ_ajQmBddtWOTovLoVJjb_6uDw@mail.gmail.com>
-	 <1426063881.3101.33.camel@pengutronix.de> <2376013.jScnaqPlDa@phil>
-	 <20150324091540.GU8656@n2100.arm.linux.org.uk>
-	 <CAL_JsqJCRQx9=pnvxvKP+Ruek1F-0TRJ2rDDHCcVYZ8y=hE=Xg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35251 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750958AbbCHA2z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 19:28:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Josh Wu <josh.wu@atmel.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 3/3] media: atmel-isi: remove mck back compatiable code as we don't need it
+Date: Sun, 08 Mar 2015 02:28:55 +0200
+Message-ID: <2234113.JDoJN7Dx5y@avalon>
+In-Reply-To: <Pine.LNX.4.64.1503062124450.20271@axis700.grange>
+References: <1425531661-20040-1-git-send-email-josh.wu@atmel.com> <54F97DDF.7010403@atmel.com> <Pine.LNX.4.64.1503062124450.20271@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
-
-Am Dienstag, den 24.03.2015, 23:42 -0500 schrieb Rob Herring:
-> On Tue, Mar 24, 2015 at 4:15 AM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Mon, Mar 23, 2015 at 05:29:02PM +0100, Heiko Stuebner wrote:
-> >> Hi Rob, Philipp,
-> >>
-> >> Am Mittwoch, 11. März 2015, 09:51:21 schrieb Philipp Zabel:
-> >> > Am Dienstag, den 10.03.2015, 14:05 -0500 schrieb Rob Herring:
-> >> > > I've only been copied on this latest pull request and a version from
-> >> > > March of last year which Grant nak'ed. This series did not go to
-> >> > > devicetree list either. I'll take a look at the series.
-> >> >
-> >> > My bad, I should have copied you, too. Thanks for having a look now.
-> >>
-> >> any news on this?
-> >>
-> >> Because it looks like I'll need the of_graph_get_port_by_id functionality in
-> >> the short term, it'll be nice to not having to opencode this :-)
-> >
-> > Oh hell, you mean this still hasn't been merged for the next merge window?
-> >
-> > What's going on, Grant?
-> >
-> > Andrew, can you please take this if we send you the individual patches?
-> > If not, I'll merge it into my tree, and send it to Linus myself.  If
-> > Grant wakes up, we can address any comments he has at that time by
-> > additional patches.  (I'll give Grant an extra few days to reply to
-> > this mail...)
+On Friday 06 March 2015 21:25:36 Guennadi Liakhovetski wrote:
+> On Fri, 6 Mar 2015, Josh Wu wrote:
+> > On 3/5/2015 6:41 PM, Laurent Pinchart wrote:
+> >> On Thursday 05 March 2015 13:01:01 Josh Wu wrote:
+> >>> The master clock should handled by sensor itself.
+> >> 
+> >> I like that :-)
+> >> 
+> >>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> >>> ---
+> >>> 
+> >>>   drivers/media/platform/soc_camera/atmel-isi.c | 32 -------------------
+> >>>   1 file changed, 32 deletions(-)
+> >>> 
+> >>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+> >>> b/drivers/media/platform/soc_camera/atmel-isi.c index 4a384f1..50375ce
+> >>> 100644
+> >>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> >>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> >>> @@ -83,8 +83,6 @@ struct atmel_isi {
+> >>> 
+> >>>   	struct completion		complete;
+> >>>   	/* ISI peripherial clock */
+> >>>   	struct clk			*pclk;
+> >>> 
+> >>> -	/* ISI_MCK, feed to camera sensor to generate pixel clock */
+> >>> -	struct clk			*mck;
+> >>> 
+> >>>   	unsigned int			irq;
+> >>>   	
+> >>>   	struct isi_platform_data	pdata;
+> >>> 
+> >>> @@ -725,26 +723,12 @@ static void isi_camera_remove_device(struct
+> >>> soc_camera_device *icd) /* Called with .host_lock held */
+> >>> 
+> >>>   static int isi_camera_clock_start(struct soc_camera_host *ici)
+> >>>   {
+> >>> 
+> >>> -	struct atmel_isi *isi = ici->priv;
+> >>> -	int ret;
+> >>> -
+> >>> -	if (!IS_ERR(isi->mck)) {
+> >>> -		ret = clk_prepare_enable(isi->mck);
+> >>> -		if (ret) {
+> >>> -			return ret;
+> >>> -		}
+> >>> -	}
+> >>> -
+> >>> 
+> >>>   	return 0;
+> >> 
+> >> Would it make sense to make the clock_start and clock_stop operations
+> >> optional in the soc-camera core ?
+> > 
+> > I agree. For those camera host which don't provide master clock for
+> > sensor, clock_start and clock_stop should be optional.
+> > 
+> > Hi, Guennadi
+> > 
+> > Do you agree with this?
 > 
-> I've merged this for 4.1. It is in my for-next branch[1].
-> 
-> Rob
-> 
-> [1] git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git
+> Yes, sure, we can do this. Would anyone like to prepare a patch?
 
-Thank you. Can I have your ok to merge the same into a pull requests
-going out to the drm subsystem tree?
+Josh, would you like to do that, or should I give it a go ?
 
-regards
-Philipp
+-- 
+Regards,
 
+Laurent Pinchart
