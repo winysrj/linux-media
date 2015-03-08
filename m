@@ -1,74 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f176.google.com ([209.85.216.176]:36071 "EHLO
-	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751530AbbC0M0n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 08:26:43 -0400
-Received: by qcto4 with SMTP id o4so14567927qct.3
-        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2015 05:26:43 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 27 Mar 2015 08:26:43 -0400
-Message-ID: <CALzAhNXBw-cCvdfb=DjvKaMfk3JEyoAEGA_nPec4+=Hetj_yRA@mail.gmail.com>
-Subject: [GIT PULL] Adding HVR2205/HVR2255 support / misc cleanup
-From: Steven Toth <stoth@kernellabs.com>
-To: Linux-Media <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-wg0-f53.google.com ([74.125.82.53]:45182 "EHLO
+	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752557AbbCHOlM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:12 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: adi-buildroot-devel@lists.sourceforge.net,
+	linux-kernel@vger.kernel.org,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v4 08/17] media: blackfin: bfin_capture: use vb2_ioctl_* helpers
+Date: Sun,  8 Mar 2015 14:40:44 +0000
+Message-Id: <1425825653-14768-9-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Thank you for taking care of the git.linuxtv.org ssh issues earlier this week.
+this patch adds support to vb2_ioctl_* helpers.
 
-Long awaited patches for the Hauppauge HVR2205 and HVR2255 in this patchset.
-Along with a fix for the querycap warning being thrown on newer kernels.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 103 +++++--------------------
+ 1 file changed, 18 insertions(+), 85 deletions(-)
 
-Thanks,
-
-- Steve
-
-The following changes since commit 4708e452aa3109fc23e0c6b5a658ccc1b720dfa6:
-  [media] saa7164: I2C improvements for upcoming HVR2255/2205 boards
-(2015-03-23 14:37:32 -0400)
-
-
-are available in the git repository at:
-  git://git.linuxtv.org/stoth/media_tree.git saa7164-dev
-
-for you to fetch changes up to f40a40d48a9cacefd900314984cce887ddc23142:
-  [media] saa7164: Copyright update (2015-03-23 15:08:15 -0400)
-
-
-----------------------------------------------------------------
-
-Steven Toth (5):
-
-      [media] saa7164: Adding additional I2C debug.
-      [media] saa7164: Improvements for I2C handling
-      [media] saa7164: Add Digital TV support for the HVR2255 and HVR2205
-      [media] saa7164: Fixup recent querycap warnings
-      [media] saa7164: Copyright update
-
- drivers/media/pci/saa7164/saa7164-api.c     |  21 +++--
- drivers/media/pci/saa7164/saa7164-buffer.c  |   2 +-
- drivers/media/pci/saa7164/saa7164-bus.c     |   2 +-
- drivers/media/pci/saa7164/saa7164-cards.c   | 188
-+++++++++++++++++++++++++++++++++++++++++++-
-
- drivers/media/pci/saa7164/saa7164-cmd.c     |   2 +-
- drivers/media/pci/saa7164/saa7164-core.c    |   2 +-
- drivers/media/pci/saa7164/saa7164-dvb.c     | 232
-+++++++++++++++++++++++++++++++++++++++++++++++++++----
- drivers/media/pci/saa7164/saa7164-encoder.c |   5 +-
- drivers/media/pci/saa7164/saa7164-fw.c      |   2 +-
- drivers/media/pci/saa7164/saa7164-i2c.c     |   2 +-
- drivers/media/pci/saa7164/saa7164-reg.h     |   2 +-
- drivers/media/pci/saa7164/saa7164-types.h   |   2 +-
- drivers/media/pci/saa7164/saa7164-vbi.c     |   5 +-
- drivers/media/pci/saa7164/saa7164.h         |   7 +-
- 14 files changed, 440 insertions(+), 34 deletions(-)
-
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 01e778d..2a9e933 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -276,6 +276,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	struct ppi_if *ppi = bcap_dev->ppi;
+ 	struct bcap_buffer *buf, *tmp;
+ 	struct ppi_params params;
++	dma_addr_t addr;
+ 	int ret;
+ 
+ 	/* enable streamon on the sub device */
+@@ -335,6 +336,17 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	reinit_completion(&bcap_dev->comp);
+ 	bcap_dev->stop = false;
+ 
++	/* get the next frame from the dma queue */
++	bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
++					struct bcap_buffer, list);
++	/* remove buffer from the dma queue */
++	list_del_init(&bcap_dev->cur_frm->list);
++	addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
++	/* update DMA address */
++	ppi->ops->update_addr(ppi, (unsigned long)addr);
++	/* enable ppi */
++	ppi->ops->start(ppi);
++
+ 	return 0;
+ 
+ err:
+@@ -381,40 +393,6 @@ static struct vb2_ops bcap_video_qops = {
+ 	.stop_streaming         = bcap_stop_streaming,
+ };
+ 
+-static int bcap_reqbufs(struct file *file, void *priv,
+-			struct v4l2_requestbuffers *req_buf)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct vb2_queue *vq = &bcap_dev->buffer_queue;
+-
+-	return vb2_reqbufs(vq, req_buf);
+-}
+-
+-static int bcap_querybuf(struct file *file, void *priv,
+-				struct v4l2_buffer *buf)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-
+-	return vb2_querybuf(&bcap_dev->buffer_queue, buf);
+-}
+-
+-static int bcap_qbuf(struct file *file, void *priv,
+-			struct v4l2_buffer *buf)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-
+-	return vb2_qbuf(&bcap_dev->buffer_queue, buf);
+-}
+-
+-static int bcap_dqbuf(struct file *file, void *priv,
+-			struct v4l2_buffer *buf)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-
+-	return vb2_dqbuf(&bcap_dev->buffer_queue,
+-				buf, file->f_flags & O_NONBLOCK);
+-}
+-
+ static irqreturn_t bcap_isr(int irq, void *dev_id)
+ {
+ 	struct ppi_if *ppi = dev_id;
+@@ -456,51 +434,6 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int bcap_streamon(struct file *file, void *priv,
+-				enum v4l2_buf_type buf_type)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct ppi_if *ppi = bcap_dev->ppi;
+-	dma_addr_t addr;
+-	int ret;
+-
+-	/* call streamon to start streaming in videobuf */
+-	ret = vb2_streamon(&bcap_dev->buffer_queue, buf_type);
+-	if (ret)
+-		return ret;
+-
+-	/* if dma queue is empty, return error */
+-	if (list_empty(&bcap_dev->dma_queue)) {
+-		v4l2_err(&bcap_dev->v4l2_dev, "dma queue is empty\n");
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+-	/* get the next frame from the dma queue */
+-	bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
+-					struct bcap_buffer, list);
+-	/* remove buffer from the dma queue */
+-	list_del_init(&bcap_dev->cur_frm->list);
+-	addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
+-	/* update DMA address */
+-	ppi->ops->update_addr(ppi, (unsigned long)addr);
+-	/* enable ppi */
+-	ppi->ops->start(ppi);
+-
+-	return 0;
+-err:
+-	vb2_streamoff(&bcap_dev->buffer_queue, buf_type);
+-	return ret;
+-}
+-
+-static int bcap_streamoff(struct file *file, void *priv,
+-				enum v4l2_buf_type buf_type)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-
+-	return vb2_streamoff(&bcap_dev->buffer_queue, buf_type);
+-}
+-
+ static int bcap_querystd(struct file *file, void *priv, v4l2_std_id *std)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+@@ -786,12 +719,12 @@ static const struct v4l2_ioctl_ops bcap_ioctl_ops = {
+ 	.vidioc_g_dv_timings     = bcap_g_dv_timings,
+ 	.vidioc_query_dv_timings = bcap_query_dv_timings,
+ 	.vidioc_enum_dv_timings  = bcap_enum_dv_timings,
+-	.vidioc_reqbufs          = bcap_reqbufs,
+-	.vidioc_querybuf         = bcap_querybuf,
+-	.vidioc_qbuf             = bcap_qbuf,
+-	.vidioc_dqbuf            = bcap_dqbuf,
+-	.vidioc_streamon         = bcap_streamon,
+-	.vidioc_streamoff        = bcap_streamoff,
++	.vidioc_reqbufs          = vb2_ioctl_reqbufs,
++	.vidioc_querybuf         = vb2_ioctl_querybuf,
++	.vidioc_qbuf             = vb2_ioctl_qbuf,
++	.vidioc_dqbuf            = vb2_ioctl_dqbuf,
++	.vidioc_streamon         = vb2_ioctl_streamon,
++	.vidioc_streamoff        = vb2_ioctl_streamoff,
+ 	.vidioc_g_parm           = bcap_g_parm,
+ 	.vidioc_s_parm           = bcap_s_parm,
+ 	.vidioc_log_status       = bcap_log_status,
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+2.1.0
+
