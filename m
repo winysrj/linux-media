@@ -1,28 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.aswsp.com ([193.34.35.150]:40216 "EHLO mail.aswsp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757360AbbCPRsp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 13:48:45 -0400
-Message-ID: <5507177A.8060200@parrot.com>
-Date: Mon, 16 Mar 2015 18:48:42 +0100
-From: =?UTF-8?B?QXVyw6lsaWVuIFphbmVsbGk=?= <aurelien.zanelli@parrot.com>
-MIME-Version: 1.0
-To: <linux-media@vger.kernel.org>
-Subject: Dynamic video input/output list
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:40883 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752608AbbCHOlF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:05 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: adi-buildroot-devel@lists.sourceforge.net,
+	linux-kernel@vger.kernel.org,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v4 02/17] media: blackfin: bfin_capture: release buffers in case start_streaming() call back fails
+Date: Sun,  8 Mar 2015 14:40:38 +0000
+Message-Id: <1425825653-14768-3-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-I'm looking to enhance video input/output enumeration support in
-GStreamer using VIDIOC_ENUMINPUT/VIDIOC_ENUMOUTPUT ioctls and after some
-discussions we wonder if the input/output list can change dynamically at
-runtime or not.
+this patch adds support to release the buffer by calling
+vb2_buffer_done(), with state marked as VB2_BUF_STATE_QUEUED
+if start_streaming() call back fails.
 
-So, is v4l2 allow this input/output list to be dynamic ?
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-Cheers
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index c6d8b95..2c720bc 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -345,6 +345,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
+ 	struct ppi_if *ppi = bcap_dev->ppi;
++	struct bcap_buffer *buf, *tmp;
+ 	struct ppi_params params;
+ 	int ret;
+ 
+@@ -352,7 +353,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	ret = v4l2_subdev_call(bcap_dev->sd, video, s_stream, 1);
+ 	if (ret && (ret != -ENOIOCTLCMD)) {
+ 		v4l2_err(&bcap_dev->v4l2_dev, "stream on failed in subdev\n");
+-		return ret;
++		goto err;
+ 	}
+ 
+ 	/* set ppi params */
+@@ -391,7 +392,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	if (ret < 0) {
+ 		v4l2_err(&bcap_dev->v4l2_dev,
+ 				"Error in setting ppi params\n");
+-		return ret;
++		goto err;
+ 	}
+ 
+ 	/* attach ppi DMA irq handler */
+@@ -399,12 +400,21 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	if (ret < 0) {
+ 		v4l2_err(&bcap_dev->v4l2_dev,
+ 				"Error in attaching interrupt handler\n");
+-		return ret;
++		goto err;
+ 	}
+ 
+ 	reinit_completion(&bcap_dev->comp);
+ 	bcap_dev->stop = false;
++
+ 	return 0;
++
++err:
++	list_for_each_entry_safe(buf, tmp, &bcap_dev->dma_queue, list) {
++		list_del(&buf->list);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
++	}
++
++	return ret;
+ }
+ 
+ static void bcap_stop_streaming(struct vb2_queue *vq)
 -- 
-Aurélien Zanelli
+2.1.0
+
