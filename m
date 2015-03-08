@@ -1,72 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46789 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752266AbbCYBAn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2015 21:00:43 -0400
-Date: Wed, 25 Mar 2015 03:00:37 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v1 07/11] media: Add registration helpers for V4L2 flash
- sub-devices
-Message-ID: <20150325010037.GH18321@valkosipuli.retiisi.org.uk>
-References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
- <1426863811-12516-8-git-send-email-j.anaszewski@samsung.com>
- <20150322002229.GG16613@valkosipuli.retiisi.org.uk>
- <55102C5A.8060206@samsung.com>
- <20150323223546.GQ16613@valkosipuli.retiisi.org.uk>
- <551121B9.10905@samsung.com>
+Received: from mout.gmx.net ([212.227.15.15]:64306 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751779AbbCHUiV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 16:38:21 -0400
+Date: Sun, 8 Mar 2015 21:38:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?UTF-8?B?QXloYW4gS8Ocw4fDnEtNQU7EsFNB?=
+	<ayhan.kucukmanisa@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Aptina MT9V024
+In-Reply-To: <CAF-NajsBJGtC2RCgzyX6=f8BkYtzFEcLu4q9XOhiE+Lgd+ux+Q@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1503082133240.7485@axis700.grange>
+References: <CAF-NajsBJGtC2RCgzyX6=f8BkYtzFEcLu4q9XOhiE+Lgd+ux+Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <551121B9.10905@samsung.com>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hi,
 
-On Tue, Mar 24, 2015 at 09:35:05AM +0100, Jacek Anaszewski wrote:
-...
-> >>>>diff --git a/drivers/media/v4l2-core/v4l2-flash.c b/drivers/media/v4l2-core/v4l2-flash.c
-> >>>>new file mode 100644
-> >>>>index 0000000..804c2e4
-> >>>>--- /dev/null
-> >>>>+++ b/drivers/media/v4l2-core/v4l2-flash.c
-> >>>>@@ -0,0 +1,607 @@
-> >>>>+/*
-> >>>>+ * V4L2 Flash LED sub-device registration helpers.
-> >>>>+ *
-> >>>>+ *	Copyright (C) 2015 Samsung Electronics Co., Ltd
-> >>>>+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>>>+ *
-> >>>>+ * This program is free software; you can redistribute it and/or modify
-> >>>>+ * it under the terms of the GNU General Public License version 2 as
-> >>>>+ * published by the Free Software Foundation.
-> >>>>+ */
-> >>>>+
-> >>>>+#include <linux/led-class-flash.h>
-> >>>>+#include <linux/module.h>
-> >>>>+#include <linux/mutex.h>
-> >>>>+#include <linux/of.h>
-> >>>>+#include <linux/slab.h>
-> >>>>+#include <linux/types.h>
-> >>>>+#include <media/v4l2-flash.h>
-> >>>>+#include "../../leds/leds.h"
-> >>>
-> >>>What do you need from leds.h? Shouldn't this be e.g. under include/linux
-> >>>instead?
+On Sun, 8 Mar 2015, Ayhan K�~\�~G�~\KMANİSA wrote:
+
+> Hi Guennadi,
 > 
-> I need led_trigger_remove function.
+> Previously i asked you a problem about accesing camera i2c bus. I solved
+> camera i2c detect problem. Now i can get images using mplayer and v4l2 lib.
+> But i couldnt get right images. I try to get test pattern but when i get
+> image that in attachment. Could you give an advice about this problem?
 
-It's exported but defined in what is obviously a private header file to the
-framework. Could it be moved to include/linux/leds.h instead?
+The first problem, that appears in your image is geometry. There seem to 
+be more pixels in the image than you think there are. Also, I don't know 
+what your test image should look like, but I doubt it should be that pink. 
+So, looks like you also wrongly decode pixels. Maybe these two problems 
+are related - your bytes-per-pixel is wrong, so the width is wrong and the 
+pixel format too.
 
--- 
-Regards,
+Thanks
+Guennadi
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> 
+> Thanks.
+> 
+> 
+> 
+> ---------------------------------------------------------------------------------------------------
+> Arş. Gör. Ayhan KÜÇÜKMANİSA
+> Kocaeli Üniversitesi, Gömülü Sistemler ve Görüntüleme Sistemleri
+> Laboratuvarı
+> 
+> Res. Asst. Ayhan KÜÇÜKMANİSA
+> Kocaeli University, Laboratory of Embedded and Vision Systems
+> 
