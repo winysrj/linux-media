@@ -1,67 +1,178 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
- Hans Verkuil <hans.verkuil@cisco.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Arun Kumar K <arun.kk@samsung.com>,
- Sylwester Nawrocki <s.nawrocki@samsung.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2 3/5] media/v4l2-ctrls: Add execute flags to write_only
- controls
-Date: Fri, 20 Mar 2015 15:21:28 +0100
-Message-id: <1426861288-5832-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-we0-f171.google.com ([74.125.82.171]:38123 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752786AbbCHOlL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:11 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: adi-buildroot-devel@lists.sourceforge.net,
+	linux-kernel@vger.kernel.org,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v4 07/17] media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
+Date: Sun,  8 Mar 2015 14:40:43 +0000
+Message-Id: <1425825653-14768-8-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Any control that sets FLAG_WRITE_ONLY should OR it with
-FLAG_EXECUTE_ON_WRITE.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-So we can keep the current meaning of WRITE_ONLY.
+this patch adds support to use v4l2_fh_open() and vb2_fop_release,
+which allows to drop driver specific struct bcap_fh, as this is handled
+by core.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
 ---
-v2: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Fix commit message
+ drivers/media/platform/blackfin/bfin_capture.c | 79 +-------------------------
+ 1 file changed, 2 insertions(+), 77 deletions(-)
 
- drivers/media/v4l2-core/v4l2-ctrls.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 2ebc33e..bacaed6 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -991,7 +991,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_AUTO_FOCUS_START:
- 	case V4L2_CID_AUTO_FOCUS_STOP:
- 		*type = V4L2_CTRL_TYPE_BUTTON;
--		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
-+		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY |
-+			  V4L2_CTRL_FLAG_EXECUTE_ON_WRITE;
- 		*min = *max = *step = *def = 0;
- 		break;
- 	case V4L2_CID_POWER_LINE_FREQUENCY:
-@@ -1172,7 +1173,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_FOCUS_RELATIVE:
- 	case V4L2_CID_IRIS_RELATIVE:
- 	case V4L2_CID_ZOOM_RELATIVE:
--		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
-+		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY |
-+			  V4L2_CTRL_FLAG_EXECUTE_ON_WRITE;
- 		break;
- 	case V4L2_CID_FLASH_STROBE_STATUS:
- 	case V4L2_CID_AUTO_FOCUS_STATUS:
-@@ -1983,7 +1985,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 84827d2..01e778d 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -105,12 +105,6 @@ struct bcap_device {
+ 	bool stop;
+ };
  
- 	sz_extra = 0;
- 	if (type == V4L2_CTRL_TYPE_BUTTON)
--		flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
-+		flags |= V4L2_CTRL_FLAG_WRITE_ONLY |
-+			V4L2_CTRL_FLAG_EXECUTE_ON_WRITE;
- 	else if (type == V4L2_CTRL_TYPE_CTRL_CLASS)
- 		flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 	else if (type == V4L2_CTRL_TYPE_INTEGER64 ||
+-struct bcap_fh {
+-	struct v4l2_fh fh;
+-	/* indicates whether this file handle is doing IO */
+-	bool io_allowed;
+-};
+-
+ static const struct bcap_format bcap_formats[] = {
+ 	{
+ 		.desc        = "YCbCr 4:2:2 Interleaved UYVY",
+@@ -200,50 +194,6 @@ static void bcap_free_sensor_formats(struct bcap_device *bcap_dev)
+ 	bcap_dev->sensor_formats = NULL;
+ }
+ 
+-static int bcap_open(struct file *file)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct video_device *vfd = bcap_dev->video_dev;
+-	struct bcap_fh *bcap_fh;
+-
+-	if (!bcap_dev->sd) {
+-		v4l2_err(&bcap_dev->v4l2_dev, "No sub device registered\n");
+-		return -ENODEV;
+-	}
+-
+-	bcap_fh = kzalloc(sizeof(*bcap_fh), GFP_KERNEL);
+-	if (!bcap_fh) {
+-		v4l2_err(&bcap_dev->v4l2_dev,
+-			 "unable to allocate memory for file handle object\n");
+-		return -ENOMEM;
+-	}
+-
+-	v4l2_fh_init(&bcap_fh->fh, vfd);
+-
+-	/* store pointer to v4l2_fh in private_data member of file */
+-	file->private_data = &bcap_fh->fh;
+-	v4l2_fh_add(&bcap_fh->fh);
+-	bcap_fh->io_allowed = false;
+-	return 0;
+-}
+-
+-static int bcap_release(struct file *file)
+-{
+-	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct v4l2_fh *fh = file->private_data;
+-	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+-
+-	/* if this instance is doing IO */
+-	if (bcap_fh->io_allowed)
+-		vb2_queue_release(&bcap_dev->buffer_queue);
+-
+-	file->private_data = NULL;
+-	v4l2_fh_del(&bcap_fh->fh);
+-	v4l2_fh_exit(&bcap_fh->fh);
+-	kfree(bcap_fh);
+-	return 0;
+-}
+-
+ #ifndef CONFIG_MMU
+ static unsigned long bcap_get_unmapped_area(struct file *file,
+ 					    unsigned long addr,
+@@ -436,13 +386,6 @@ static int bcap_reqbufs(struct file *file, void *priv,
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+ 	struct vb2_queue *vq = &bcap_dev->buffer_queue;
+-	struct v4l2_fh *fh = file->private_data;
+-	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+-
+-	if (vb2_is_busy(vq))
+-		return -EBUSY;
+-
+-	bcap_fh->io_allowed = true;
+ 
+ 	return vb2_reqbufs(vq, req_buf);
+ }
+@@ -459,11 +402,6 @@ static int bcap_qbuf(struct file *file, void *priv,
+ 			struct v4l2_buffer *buf)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct v4l2_fh *fh = file->private_data;
+-	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+-
+-	if (!bcap_fh->io_allowed)
+-		return -EBUSY;
+ 
+ 	return vb2_qbuf(&bcap_dev->buffer_queue, buf);
+ }
+@@ -472,11 +410,6 @@ static int bcap_dqbuf(struct file *file, void *priv,
+ 			struct v4l2_buffer *buf)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct v4l2_fh *fh = file->private_data;
+-	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+-
+-	if (!bcap_fh->io_allowed)
+-		return -EBUSY;
+ 
+ 	return vb2_dqbuf(&bcap_dev->buffer_queue,
+ 				buf, file->f_flags & O_NONBLOCK);
+@@ -527,14 +460,10 @@ static int bcap_streamon(struct file *file, void *priv,
+ 				enum v4l2_buf_type buf_type)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct bcap_fh *fh = file->private_data;
+ 	struct ppi_if *ppi = bcap_dev->ppi;
+ 	dma_addr_t addr;
+ 	int ret;
+ 
+-	if (!fh->io_allowed)
+-		return -EBUSY;
+-
+ 	/* call streamon to start streaming in videobuf */
+ 	ret = vb2_streamon(&bcap_dev->buffer_queue, buf_type);
+ 	if (ret)
+@@ -568,10 +497,6 @@ static int bcap_streamoff(struct file *file, void *priv,
+ 				enum v4l2_buf_type buf_type)
+ {
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
+-	struct bcap_fh *fh = file->private_data;
+-
+-	if (!fh->io_allowed)
+-		return -EBUSY;
+ 
+ 	return vb2_streamoff(&bcap_dev->buffer_queue, buf_type);
+ }
+@@ -874,8 +799,8 @@ static const struct v4l2_ioctl_ops bcap_ioctl_ops = {
+ 
+ static struct v4l2_file_operations bcap_fops = {
+ 	.owner = THIS_MODULE,
+-	.open = bcap_open,
+-	.release = bcap_release,
++	.open = v4l2_fh_open,
++	.release = vb2_fop_release,
+ 	.unlocked_ioctl = video_ioctl2,
+ 	.mmap = vb2_fop_mmap,
+ #ifndef CONFIG_MMU
 -- 
-2.1.4
+2.1.0
+
