@@ -1,373 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:35862 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750864AbbCIPgi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 11:36:38 -0400
-Date: Mon, 9 Mar 2015 08:22:18 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, pali.rohar@gmail.com,
-	linux-omap@vger.kernel.org
-Subject: Re: [RFC 11/18] omap3isp: Replace many MMIO regions by two
-Message-ID: <20150309152217.GE5264@atomide.com>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
- <1425764475-27691-12-git-send-email-sakari.ailus@iki.fi>
- <2216785.mYDACGZ2he@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2216785.mYDACGZ2he@avalon>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35657 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751279AbbCHNpv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 09:45:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org
+Subject: [PATCH] v4l: mt9v032: Add OF support
+Date: Sun,  8 Mar 2015 15:45:49 +0200
+Message-Id: <1425822349-19218-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [150307 15:43]:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> (CC'ing linux-omap and Tony)
-> 
-> On Saturday 07 March 2015 23:41:08 Sakari Ailus wrote:
-> > The omap3isp MMIO register block is contiguous in the MMIO register space
-> > apart from the fact that the ISP IOMMU register block is in the middle of
-> > the area. Ioremap it at two occasions, and keep the rest of the layout of
-> > the register space internal to the omap3isp driver.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> > ---
-> >  arch/arm/mach-omap2/devices.c         |   66 +------------------
-> >  arch/arm/mach-omap2/omap34xx.h        |   36 +----------
-> 
-> Once again you might be asked to split this. However, it would be pretty 
-> painful, so it would be nice if we could merge everything through the Linux 
-> media tree. You will need an ack from Tony.
+Parse DT properties into a platform data structure when a DT node is
+available.
 
-These changes look fine to me and should not conflict with anything
-I'm planning to queue, so please feel free to take them along with
-the other isp changes:
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ .../devicetree/bindings/media/i2c/mt9v032.txt      | 41 ++++++++++++++
+ MAINTAINERS                                        |  1 +
+ drivers/media/i2c/mt9v032.c                        | 66 +++++++++++++++++++++-
+ 3 files changed, 107 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9v032.txt
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+diff --git a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+new file mode 100644
+index 0000000..75c97de
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+@@ -0,0 +1,41 @@
++* Aptina 1/3-Inch WVGA CMOS Digital Image Sensor
++
++The Aptina MT9V032 is a 1/3-inch CMOS active pixel digital image sensor with
++an active array size of 752H x 480V. It is programmable through a simple
++two-wire serial interface.
++
++Required Properties:
++
++- compatible: value should be either one among the following
++	(a) "aptina,mt9v032" for MT9V032 color sensor
++	(b) "aptina,mt9v032m" for MT9V032 monochrome sensor
++	(c) "aptina,mt9v034" for MT9V034 color sensor
++	(d) "aptina,mt9v034m" for MT9V034 monochrome sensor
++
++Optional Properties:
++
++- link-frequencies: List of allowed link frequencies in Hz. Each frequency is
++	expressed as a 64-bit big-endian integer.
++
++For further reading on port node refer to
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	i2c0@1c22000 {
++		...
++		...
++		mt9v032@5c {
++			compatible = "aptina,mt9v032";
++			reg = <0x5c>;
++
++			port {
++				mt9v032_1: endpoint {
++					link-frequencies =
++						<0 13000000>, <0 26600000>,
++						<0 27000000>;
++				};
++			};
++		};
++		...
++	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ddc5a8c..180f6fb 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6535,6 +6535,7 @@ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
++F:	Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+ F:	drivers/media/i2c/mt9v032.c
+ F:	include/media/mt9v032.h
  
-> >  drivers/media/platform/omap3isp/isp.c |  113 ++++++++++++++++--------------
-> >  drivers/media/platform/omap3isp/isp.h |    4 +-
-> >  4 files changed, 66 insertions(+), 153 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> > index e945957..990338f 100644
-> > --- a/arch/arm/mach-omap2/devices.c
-> > +++ b/arch/arm/mach-omap2/devices.c
-> > @@ -74,72 +74,12 @@ omap_postcore_initcall(omap3_l3_init);
-> >  static struct resource omap3isp_resources[] = {
-> >  	{
-> >  		.start		= OMAP3430_ISP_BASE,
-> > -		.end		= OMAP3430_ISP_END,
-> > +		.end		= OMAP3430_ISP_BASE + 0x12fc,
-> >  		.flags		= IORESOURCE_MEM,
-> >  	},
-> >  	{
-> > -		.start		= OMAP3430_ISP_CCP2_BASE,
-> > -		.end		= OMAP3430_ISP_CCP2_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3430_ISP_CCDC_BASE,
-> > -		.end		= OMAP3430_ISP_CCDC_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3430_ISP_HIST_BASE,
-> > -		.end		= OMAP3430_ISP_HIST_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3430_ISP_H3A_BASE,
-> > -		.end		= OMAP3430_ISP_H3A_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3430_ISP_PREV_BASE,
-> > -		.end		= OMAP3430_ISP_PREV_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3430_ISP_RESZ_BASE,
-> > -		.end		= OMAP3430_ISP_RESZ_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3430_ISP_SBL_BASE,
-> > -		.end		= OMAP3430_ISP_SBL_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
-> > -		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3430_ISP_CSIPHY2_BASE,
-> > -		.end		= OMAP3430_ISP_CSIPHY2_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
-> > -		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
-> > -		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3630_ISP_CSIPHY1_BASE,
-> > -		.end		= OMAP3630_ISP_CSIPHY1_END,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
-> > -		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
-> > +		.start		= OMAP3430_ISP_BASE2,
-> > +		.end		= OMAP3430_ISP_BASE2 + 0x0600,
-> >  		.flags		= IORESOURCE_MEM,
-> >  	},
-> >  	{
-> > diff --git a/arch/arm/mach-omap2/omap34xx.h b/arch/arm/mach-omap2/omap34xx.h
-> > index c0d1b4b..ed0024d 100644
-> > --- a/arch/arm/mach-omap2/omap34xx.h
-> > +++ b/arch/arm/mach-omap2/omap34xx.h
-> > @@ -46,39 +46,9 @@
-> > 
-> >  #define OMAP34XX_IC_BASE	0x48200000
-> > 
-> > -#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
-> > -#define OMAP3430_ISP_CBUFF_BASE		(OMAP3430_ISP_BASE + 0x0100)
-> > -#define OMAP3430_ISP_CCP2_BASE		(OMAP3430_ISP_BASE + 0x0400)
-> > -#define OMAP3430_ISP_CCDC_BASE		(OMAP3430_ISP_BASE + 0x0600)
-> > -#define OMAP3430_ISP_HIST_BASE		(OMAP3430_ISP_BASE + 0x0A00)
-> > -#define OMAP3430_ISP_H3A_BASE		(OMAP3430_ISP_BASE + 0x0C00)
-> > -#define OMAP3430_ISP_PREV_BASE		(OMAP3430_ISP_BASE + 0x0E00)
-> > -#define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
-> > -#define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
-> > -#define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
-> > -#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
-> > -#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
-> > -#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
-> > -#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
-> > -#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
-> > -#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
-> > -
-> > -#define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
-> > -#define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
-> > -#define OMAP3430_ISP_CCP2_END		(OMAP3430_ISP_CCP2_BASE    + 0x1EF)
-> > -#define OMAP3430_ISP_CCDC_END		(OMAP3430_ISP_CCDC_BASE    + 0x0A7)
-> > -#define OMAP3430_ISP_HIST_END		(OMAP3430_ISP_HIST_BASE    + 0x047)
-> > -#define OMAP3430_ISP_H3A_END		(OMAP3430_ISP_H3A_BASE     + 0x05F)
-> > -#define OMAP3430_ISP_PREV_END		(OMAP3430_ISP_PREV_BASE    + 0x09F)
-> > -#define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
-> > -#define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
-> > -#define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
-> > -#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE +
-> > 0x16F) -#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE +
-> > 0x00B) -#define OMAP3630_ISP_CSI2A_REGS2_END	
-> (OMAP3630_ISP_CSI2A_REGS2_BASE
-> > + 0x3F) -#define
-> > OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
-> > -#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
-> > -#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE +
-> > 0x3F) +#define OMAP3430_ISP_BASE	(L4_34XX_BASE + 0xBC000)
-> > +#define OMAP3430_ISP_MMU_BASE	(OMAP3430_ISP_BASE + 0x1400)
-> > +#define OMAP3430_ISP_BASE2	(OMAP3430_ISP_BASE + 0x1800)
-> > 
-> >  #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
-> >  #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
-> > diff --git a/drivers/media/platform/omap3isp/isp.c
-> > b/drivers/media/platform/omap3isp/isp.c index 4ff4bbd..7804895 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> > @@ -86,35 +86,43 @@ static void isp_restore_ctx(struct isp_device *isp);
-> >  static const struct isp_res_mapping isp_res_maps[] = {
-> >  	{
-> >  		.isp_rev = ISP_REVISION_2_0,
-> > -		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
-> > -		       1 << OMAP3_ISP_IOMEM_CCP2 |
-> > -		       1 << OMAP3_ISP_IOMEM_CCDC |
-> > -		       1 << OMAP3_ISP_IOMEM_HIST |
-> > -		       1 << OMAP3_ISP_IOMEM_H3A |
-> > -		       1 << OMAP3_ISP_IOMEM_PREV |
-> > -		       1 << OMAP3_ISP_IOMEM_RESZ |
-> > -		       1 << OMAP3_ISP_IOMEM_SBL |
-> > -		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
-> > -		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
-> > +		.offset = {
-> > +			/* first MMIO area */
-> > +			0x0000, /* base, len 0x0070 */
-> > +			0x0400, /* ccp2, len 0x01f0 */
-> > +			0x0600, /* ccdc, len 0x00a8 */
-> > +			0x0a00, /* hist, len 0x0048 */
-> > +			0x0c00, /* h3a, len 0x0060 */
-> > +			0x0e00, /* preview, len 0x00a0 */
-> > +			0x1000, /* resizer, len 0x00ac */
-> > +			0x1200, /* sbl, len 0x00fc */
-> > +			/* second MMIO area */
-> > +			0x0000, /* csi2a, len 0x0170 */
-> > +			0x0170, /* csiphy2, len 0x000c */
-> > +		},
-> >  		.syscon_offset = 0xdc,
-> >  		.phy_type = ISP_PHY_TYPE_3430,
-> >  	},
-> >  	{
-> >  		.isp_rev = ISP_REVISION_15_0,
-> > -		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
-> > -		       1 << OMAP3_ISP_IOMEM_CCP2 |
-> > -		       1 << OMAP3_ISP_IOMEM_CCDC |
-> > -		       1 << OMAP3_ISP_IOMEM_HIST |
-> > -		       1 << OMAP3_ISP_IOMEM_H3A |
-> > -		       1 << OMAP3_ISP_IOMEM_PREV |
-> > -		       1 << OMAP3_ISP_IOMEM_RESZ |
-> > -		       1 << OMAP3_ISP_IOMEM_SBL |
-> > -		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
-> > -		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
-> > -		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
-> > -		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
-> > -		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
-> > -		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
-> > +		.offset = {
-> > +			/* first MMIO area */
-> > +			0x0000, /* base, len 0x0070 */
-> > +			0x0400, /* ccp2, len 0x01f0 */
-> > +			0x0600, /* ccdc, len 0x00a8 */
-> > +			0x0a00, /* hist, len 0x0048 */
-> > +			0x0c00, /* h3a, len 0x0060 */
-> > +			0x0e00, /* preview, len 0x00a0 */
-> > +			0x1000, /* resizer, len 0x00ac */
-> > +			0x1200, /* sbl, len 0x00fc */
-> > +			/* second MMIO area */
-> > +			0x0000, /* csi2a, len 0x0170 (1st area) */
-> > +			0x0170, /* csiphy2, len 0x000c */
-> > +			0x01c0, /* csi2a, len 0x0040 (2nd area) */
-> > +			0x0400, /* csi2c, len 0x0170 (1st area) */
-> > +			0x0570, /* csiphy1, len 0x000c */
-> > +			0x05c0, /* csi2c, len 0x0040 (2nd area) */
-> > +		},
-> >  		.syscon_offset = 0x2f0,
-> >  		.phy_type = ISP_PHY_TYPE_3630,
-> >  	},
-> > @@ -2235,27 +2243,6 @@ static int isp_remove(struct platform_device *pdev)
-> >  	return 0;
-> >  }
-> > 
-> > -static int isp_map_mem_resource(struct platform_device *pdev,
-> > -				struct isp_device *isp,
-> > -				enum isp_mem_resources res)
-> > -{
-> > -	struct resource *mem;
-> > -
-> > -	/* request the mem region for the camera registers */
-> > -
-> > -	mem = platform_get_resource(pdev, IORESOURCE_MEM, res);
-> > -
-> > -	/* map the region */
-> > -	isp->mmio_base[res] = devm_ioremap_resource(isp->dev, mem);
-> > -	if (IS_ERR(isp->mmio_base[res]))
-> > -		return PTR_ERR(isp->mmio_base[res]);
-> > -
-> > -	if (res == OMAP3_ISP_IOMEM_HIST)
-> > -		isp->mmio_hist_base_phys = mem->start;
-> > -
-> > -	return 0;
-> > -}
-> > -
-> >  /*
-> >   * isp_probe - Probe ISP platform device
-> >   * @pdev: Pointer to ISP platform device
-> > @@ -2271,6 +2258,7 @@ static int isp_probe(struct platform_device *pdev)
-> >  {
-> >  	struct isp_platform_data *pdata = pdev->dev.platform_data;
-> >  	struct isp_device *isp;
-> > +	struct resource *mem;
-> >  	int ret;
-> >  	int i, m;
-> > 
-> > @@ -2303,10 +2291,21 @@ static int isp_probe(struct platform_device *pdev)
-> >  	 *
-> >  	 * The ISP clock tree is revision-dependent. We thus need to enable ICLK
-> >  	 * manually to read the revision before calling __omap3isp_get().
-> > +	 *
-> > +	 * Start by mapping the ISP MMIO area, which is in two pieces.
-> > +	 * The ISP IOMMU is in between. Map both now, and fill in the
-> > +	 * ISP revision specific portions a little later in the
-> > +	 * function.
-> >  	 */
-> > -	ret = isp_map_mem_resource(pdev, isp, OMAP3_ISP_IOMEM_MAIN);
-> > -	if (ret < 0)
-> > -		goto error;
-> > +	for (i = 0; i < 2; i++) {
-> > +		unsigned int map_idx = i ? OMAP3_ISP_IOMEM_CSI2A_REGS1 : 0;
-> > +
-> > +		mem = platform_get_resource(pdev, IORESOURCE_MEM, i);
-> > +		isp->mmio_base[map_idx] =
-> > +			devm_ioremap_resource(isp->dev, mem);
-> > +		if (IS_ERR(isp->mmio_base[map_idx]))
-> > +			return PTR_ERR(isp->mmio_base[map_idx]);
-> > +	}
-> > 
-> >  	ret = isp_get_clocks(isp);
-> >  	if (ret < 0)
-> > @@ -2347,13 +2346,17 @@ static int isp_probe(struct platform_device *pdev)
-> >  		goto error_isp;
-> >  	}
-> > 
-> > -	for (i = 1; i < OMAP3_ISP_IOMEM_LAST; i++) {
-> > -		if (isp_res_maps[m].map & 1 << i) {
-> > -			ret = isp_map_mem_resource(pdev, isp, i);
-> > -			if (ret)
-> > -				goto error_isp;
-> > -		}
-> > -	}
-> > +	for (i = 1; i < OMAP3_ISP_IOMEM_CSI2A_REGS1; i++)
-> > +		isp->mmio_base[i] =
-> > +			isp->mmio_base[0] + isp_res_maps[m].offset[i];
-> > +
-> > +	for (i = OMAP3_ISP_IOMEM_CSIPHY2; i < OMAP3_ISP_IOMEM_LAST; i++)
-> > +		isp->mmio_base[i] =
-> > +			isp->mmio_base[OMAP3_ISP_IOMEM_CSI2A_REGS1]
-> > +			+ isp_res_maps[m].offset[i];
-> > +
-> > +	isp->mmio_hist_base_phys =
-> > +		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
-> > 
-> >  	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
-> >  	isp->syscon_offset = isp_res_maps[m].syscon_offset;
-> > diff --git a/drivers/media/platform/omap3isp/isp.h
-> > b/drivers/media/platform/omap3isp/isp.h index 03d2129..dcb7d20 100644
-> > --- a/drivers/media/platform/omap3isp/isp.h
-> > +++ b/drivers/media/platform/omap3isp/isp.h
-> > @@ -99,7 +99,7 @@ struct regmap;
-> >  /*
-> >   * struct isp_res_mapping - Map ISP io resources to ISP revision.
-> >   * @isp_rev: ISP_REVISION_x_x
-> > - * @map: bitmap for enum isp_mem_resources
-> > + * @offset: register offsets of various ISP sub-blocks
-> >   * @syscon_offset: offset of the syscon register for 343x / 3630
-> >   *	    (CONTROL_CSIRXFE / CONTROL_CAMERA_PHY_CTRL, respectively)
-> >   *	    from the syscon base address
-> > @@ -107,7 +107,7 @@ struct regmap;
-> >   */
-> >  struct isp_res_mapping {
-> >  	u32 isp_rev;
-> > -	u32 map;
-> > +	u32 offset[OMAP3_ISP_IOMEM_LAST];
-> >  	u32 syscon_offset;
-> >  	u32 phy_type;
-> >  };
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index 3267c18..a6ea091 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -17,6 +17,8 @@
+ #include <linux/i2c.h>
+ #include <linux/log2.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
++#include <linux/of_gpio.h>
+ #include <linux/regmap.h>
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+@@ -26,6 +28,7 @@
+ #include <media/mt9v032.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-of.h>
+ #include <media/v4l2-subdev.h>
+ 
+ /* The first four rows are black rows. The active area spans 753x481 pixels. */
+@@ -876,10 +879,59 @@ static const struct regmap_config mt9v032_regmap_config = {
+  * Driver initialization and probing
+  */
+ 
++static struct mt9v032_platform_data *
++mt9v032_get_pdata(struct i2c_client *client)
++{
++	struct mt9v032_platform_data *pdata;
++	struct v4l2_of_endpoint endpoint;
++	struct device_node *np;
++	struct property *prop;
++
++	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
++		return client->dev.platform_data;
++
++	np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
++	if (!np)
++		return NULL;
++
++	if (v4l2_of_parse_endpoint(np, &endpoint) < 0)
++		goto done;
++
++	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		goto done;
++
++	prop = of_find_property(np, "link-freqs", NULL);
++	if (prop) {
++		size_t size = prop->length / 8;
++		u64 *link_freqs;
++
++		link_freqs = devm_kzalloc(&client->dev,
++					  size * sizeof(*link_freqs),
++					  GFP_KERNEL);
++		if (!link_freqs)
++			goto done;
++
++		if (of_property_read_u64_array(np, "link-frequencies",
++					       link_freqs, size) < 0)
++			goto done;
++
++		pdata->link_freqs = link_freqs;
++		pdata->link_def_freq = link_freqs[0];
++	}
++
++	pdata->clk_pol = !!(endpoint.bus.parallel.flags &
++			    V4L2_MBUS_PCLK_SAMPLE_RISING);
++
++done:
++	of_node_put(np);
++	return pdata;
++}
++
+ static int mt9v032_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *did)
+ {
+-	struct mt9v032_platform_data *pdata = client->dev.platform_data;
++	struct mt9v032_platform_data *pdata = mt9v032_get_pdata(client);
+ 	struct mt9v032 *mt9v032;
+ 	unsigned int i;
+ 	int ret;
+@@ -1034,9 +1086,21 @@ static const struct i2c_device_id mt9v032_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, mt9v032_id);
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id mt9v032_of_match[] = {
++	{ .compatible = "mt9v032" },
++	{ .compatible = "mt9v032m" },
++	{ .compatible = "mt9v034" },
++	{ .compatible = "mt9v034m" },
++	{ /* Sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, mt9v032_of_match);
++#endif
++
+ static struct i2c_driver mt9v032_driver = {
+ 	.driver = {
+ 		.name = "mt9v032",
++		.of_match_table = of_match_ptr(mt9v032_of_match),
+ 	},
+ 	.probe		= mt9v032_probe,
+ 	.remove		= mt9v032_remove,
+-- 
+Regards,
+
+Laurent Pinchart
+
