@@ -1,53 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:54335 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933952AbbCFKc4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2015 05:32:56 -0500
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv2 1/2] ARM: dts: exynos5420: add nodes for jpeg codec
-Date: Fri, 06 Mar 2015 11:32:39 +0100
-Message-id: <1425637960-10687-2-git-send-email-andrzej.p@samsung.com>
-In-reply-to: <1425637960-10687-1-git-send-email-andrzej.p@samsung.com>
-References: <1425637960-10687-1-git-send-email-andrzej.p@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35538 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751722AbbCHLCe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 07:02:34 -0400
+Received: from avalon.localnet (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 4A6912000F
+	for <linux-media@vger.kernel.org>; Sun,  8 Mar 2015 12:01:33 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.1] uvcvideo changes
+Date: Sun, 08 Mar 2015 13:02:34 +0200
+Message-ID: <12085313.RFR9ORrFbp@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
----
- arch/arm/boot/dts/exynos5420.dtsi | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+Hi Mauro,
 
-diff --git a/arch/arm/boot/dts/exynos5420.dtsi b/arch/arm/boot/dts/exynos5420.dtsi
-index 73c1851..f8f583c 100644
---- a/arch/arm/boot/dts/exynos5420.dtsi
-+++ b/arch/arm/boot/dts/exynos5420.dtsi
-@@ -775,6 +775,22 @@
- 		iommus = <&sysmmu_gscl1>;
- 	};
- 
-+	jpeg_0: jpeg@11F50000 {
-+		compatible = "samsung,exynos5420-jpeg";
-+		reg = <0x11F50000 0x1000>;
-+		interrupts = <0 89 0>;
-+		clock-names = "jpeg";
-+		clocks = <&clock CLK_JPEG>;
-+	};
-+
-+	jpeg_1: jpeg@11F60000 {
-+		compatible = "samsung,exynos5420-jpeg";
-+		reg = <0x11F60000 0x1000>;
-+		interrupts = <0 168 0>;
-+		clock-names = "jpeg";
-+		clocks = <&clock CLK_JPEG2>;
-+	};
-+
- 	pmu_system_controller: system-controller@10040000 {
- 		compatible = "samsung,exynos5420-pmu", "syscon";
- 		reg = <0x10040000 0x5000>;
+The following changes since commit 3d945be05ac1e806af075e9315bc1b3409adae2b:
+
+  [media] mn88473: simplify bandwidth registers setting code (2015-03-03 
+13:09:12 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git uvc/next
+
+for you to fetch changes up to d3e577ef6e959f5bcec7e8542be33a520452f119:
+
+  uvcvideo: Validate index during step-wise frame intervals enumeration 
+(2015-03-06 20:24:03 +0200)
+
+----------------------------------------------------------------
+Laurent Pinchart (3):
+      uvcvideo: Don't call vb2 mmap and get_unmapped_area with queue lock held
+      uvcvideo: Recognize the Tasco USB microscope
+      uvcvideo: Validate index during step-wise frame intervals enumeration
+
+ drivers/media/usb/uvc/uvc_driver.c |  8 ++++++++
+ drivers/media/usb/uvc/uvc_queue.c  | 15 ++-------------
+ drivers/media/usb/uvc/uvc_v4l2.c   |  3 +++
+ 3 files changed, 13 insertions(+), 13 deletions(-)
+
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
