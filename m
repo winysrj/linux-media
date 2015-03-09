@@ -1,124 +1,55 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60124 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756507AbbCXRbD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2015 13:31:03 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 08/11] [media] coda: remove duplicate error messages for buffer allocations
-Date: Tue, 24 Mar 2015 18:30:54 +0100
-Message-Id: <1427218257-1507-9-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
-References: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+In-reply-to: <1805679.hlRzVeq61B@avalon>
+References: <1424185706-16711-1-git-send-email-ricardo.ribalda@gmail.com>
+ <54EAED82.5040804@xs4all.nl> <1805679.hlRzVeq61B@avalon>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Mon, 09 Mar 2015 17:45:19 +0100
+Message-id: <CAPybu_0TWnPS2cXjmRysht8JFZMn0rPHtxoAqXikn57A4jv73g@mail.gmail.com>
+Subject: Re: [PATCH v4 1/2] media/v4l2-ctrls: Always run s_ctrl on volatile
+ ctrls
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Hans Verkuil <hans.verkuil@cisco.com>,
+ Sylwester Nawrocki <s.nawrocki@samsung.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
+ linux-media <linux-media@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 
-coda_alloc_aux_buf already prints an error, no need to print duplicate
-error messages all over the place.
+Hello
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c    | 21 ++++-----------------
- drivers/media/platform/coda/coda-common.c | 12 +++---------
- 2 files changed, 7 insertions(+), 26 deletions(-)
+Back from holidays and back to this issue. Sorry for the delay.
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 0073f5a..2304158 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -402,10 +402,8 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 	if (!ctx->parabuf.vaddr) {
- 		ret = coda_alloc_context_buf(ctx, &ctx->parabuf,
- 					     CODA_PARA_BUF_SIZE, "parabuf");
--		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev, "failed to allocate parabuf");
-+		if (ret < 0)
- 			return ret;
--		}
- 	}
- 
- 	if (dev->devtype->product == CODA_DX6)
-@@ -417,22 +415,15 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 			DIV_ROUND_UP(q_data->height, 16)) * 3200 / 8 + 512;
- 		ret = coda_alloc_context_buf(ctx, &ctx->slicebuf, size,
- 					     "slicebuf");
--		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev,
--				 "failed to allocate %d byte slice buffer",
--				 ctx->slicebuf.size);
-+		if (ret < 0)
- 			goto err;
--		}
- 	}
- 
- 	if (!ctx->psbuf.vaddr && dev->devtype->product == CODA_7541) {
- 		ret = coda_alloc_context_buf(ctx, &ctx->psbuf,
- 					     CODA7_PS_BUF_SIZE, "psbuf");
--		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev,
--				 "failed to allocate psmem buffer");
-+		if (ret < 0)
- 			goto err;
--		}
- 	}
- 
- 	if (!ctx->workbuf.vaddr) {
-@@ -442,12 +433,8 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 			size += CODA9_PS_SAVE_SIZE;
- 		ret = coda_alloc_context_buf(ctx, &ctx->workbuf, size,
- 					     "workbuf");
--		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev,
--				 "failed to allocate %d byte context buffer",
--				 ctx->workbuf.size);
-+		if (ret < 0)
- 			goto err;
--		}
- 	}
- 
- 	return 0;
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 172805b..b42ccfc 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1925,10 +1925,8 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 	/* allocate auxiliary per-device code buffer for the BIT processor */
- 	ret = coda_alloc_aux_buf(dev, &dev->codebuf, fw->size, "codebuf",
- 				 dev->debugfs_root);
--	if (ret < 0) {
--		dev_err(&pdev->dev, "failed to allocate code buffer\n");
-+	if (ret < 0)
- 		goto put_pm;
--	}
- 
- 	/* Copy the whole firmware image to the code buffer */
- 	memcpy(dev->codebuf.vaddr, fw->data, fw->size);
-@@ -2166,20 +2164,16 @@ static int coda_probe(struct platform_device *pdev)
- 		ret = coda_alloc_aux_buf(dev, &dev->workbuf,
- 					 dev->devtype->workbuf_size, "workbuf",
- 					 dev->debugfs_root);
--		if (ret < 0) {
--			dev_err(&pdev->dev, "failed to allocate work buffer\n");
-+		if (ret < 0)
- 			goto err_v4l2_register;
--		}
- 	}
- 
- 	if (dev->devtype->tempbuf_size) {
- 		ret = coda_alloc_aux_buf(dev, &dev->tempbuf,
- 					 dev->devtype->tempbuf_size, "tempbuf",
- 					 dev->debugfs_root);
--		if (ret < 0) {
--			dev_err(&pdev->dev, "failed to allocate temp buffer\n");
-+		if (ret < 0)
- 			goto err_v4l2_register;
--		}
- 	}
- 
- 	dev->iram.size = dev->devtype->iram_size;
+> I'm not sure about Ricardo's use case, is it the one we've discussed on #v4l ?
+> If so, and if I recall correctly, the idea was to perform an action with a
+> parameter, and didn't require volatility.
+
+In my case, there is a trigger overflow bit. The user acks the trigger
+overflow by writting any value to the control.
+
+There is no parameter. In that sense it looks like a volatile read + a
+button on a controll.
+
+> Your proposal is interesting as well, but I'm not sure about the
+> V4L2_CTRL_FLAG_ACTION name. Aren't all controls supposed to have an action of
+> some sort ? That's nitpicking of course.
+
+What about the name STATELESS_WRITE ? or perhaps VOLATILE_WRITE? I
+dont care about the name :), but better have it solved before I write
+the doc :P
+
+>
+> Also, should the action flag be automatically set for button controls ? Button
+> controls would in a way become type-less controls with the action flag set,
+> that's interesting. I suppose type-less controls without the action flag don't
+> make sense.
+
+I agree!
+
+
+Best regards and thanks!
+
 -- 
-2.1.4
-
+Ricardo Ribalda
