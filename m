@@ -1,212 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:39460 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932728AbbCIQgz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 12:36:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 18/19] usbvision: embed video_device
-Date: Mon,  9 Mar 2015 17:34:12 +0100
-Message-Id: <1425918853-12371-19-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:62326 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750898AbbCIMTg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 08:19:36 -0400
+Message-id: <54FD8FD4.2010305@samsung.com>
+Date: Mon, 09 Mar 2015 13:19:32 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v12 10/19] DT: Add documentation for the mfd Maxim
+ max77693
+References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+ <1425485680-8417-11-git-send-email-j.anaszewski@samsung.com>
+ <20150309105404.GC11954@valkosipuli.retiisi.org.uk>
+In-reply-to: <20150309105404.GC11954@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sakari,
 
-Embed the video_device struct to simplify the error handling and in
-order to (eventually) get rid of video_device_alloc/release.
+Thanks for the review.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/usbvision/usbvision-video.c | 70 ++++++++++-----------------
- drivers/media/usb/usbvision/usbvision.h       |  4 +-
- 2 files changed, 28 insertions(+), 46 deletions(-)
+On 03/09/2015 11:54 AM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Wed, Mar 04, 2015 at 05:14:31PM +0100, Jacek Anaszewski wrote:
+>> This patch adds device tree binding documentation for
+>> the flash cell of the Maxim max77693 multifunctional device.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Lee Jones <lee.jones@linaro.org>
+>> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+>> Cc: Bryan Wu <cooloney@gmail.com>
+>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>> ---
+>>   Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++++++++++++++++++++
+>>   1 file changed, 61 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+>> index 38e6440..ab8fbd5 100644
+>> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
+>> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+>> @@ -76,7 +76,53 @@ Optional properties:
+>>       Valid values: 4300000, 4700000, 4800000, 4900000
+>>       Default: 4300000
+>>
+>> +- led : the LED submodule device node
+>> +
+>> +There are two LED outputs available - FLED1 and FLED2. Each of them can
+>> +control a separate LED or they can be connected together to double
+>> +the maximum current for a single connected LED. One LED is represented
+>> +by one child node.
+>> +
+>> +Required properties:
+>> +- compatible : Must be "maxim,max77693-led".
+>> +
+>> +Optional properties:
+>> +- maxim,trigger-type : Flash trigger type.
+>> +	Possible trigger types:
+>> +		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
+>> +			the flash,
+>> +		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
+>> +			of the flash.
+>> +- maxim,boost-mode :
+>> +	In boost mode the device can produce up to 1.2A of total current
+>> +	on both outputs. The maximum current on each output is reduced
+>> +	to 625mA then. If not enabled explicitly, boost setting defaults to
+>> +	LEDS_BOOST_FIXED in case both current sources are used.
+>> +	Possible values:
+>> +		LEDS_BOOST_OFF (0) - no boost,
+>> +		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
+>> +		LEDS_BOOST_FIXED (2) - fixed mode.
+>> +- maxim,boost-mvout : Output voltage of the boost module in millivolts.
+>> +- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
+>> +	if chip estimates that system voltage could drop below this level due
+>> +	to flash power consumption.
+>> +
+>> +Required properties of the LED child node:
+>> +- label : see Documentation/devicetree/bindings/leds/common.txt
+>
+> According to ePAPR, label is "a human readable string describing a device".
+> There's no requirement that this would be unique, for instance. If you have
+> a camera flash LED, there's necessarily no meaningful label for it, as it
+> doesn't really tell the user anything (vs. HDD activity LED, for instance).
+>
+> I think I'd make this optional.
 
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index cd2fbf1..2579c87 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -471,7 +471,7 @@ static int vidioc_g_register(struct file *file, void *priv,
- 	/* NT100x has a 8-bit register space */
- 	err_code = usbvision_read_reg(usbvision, reg->reg&0xff);
- 	if (err_code < 0) {
--		dev_err(&usbvision->vdev->dev,
-+		dev_err(&usbvision->vdev.dev,
- 			"%s: VIDIOC_DBG_G_REGISTER failed: error %d\n",
- 				__func__, err_code);
- 		return err_code;
-@@ -490,7 +490,7 @@ static int vidioc_s_register(struct file *file, void *priv,
- 	/* NT100x has a 8-bit register space */
- 	err_code = usbvision_write_reg(usbvision, reg->reg & 0xff, reg->val);
- 	if (err_code < 0) {
--		dev_err(&usbvision->vdev->dev,
-+		dev_err(&usbvision->vdev.dev,
- 			"%s: VIDIOC_DBG_S_REGISTER failed: error %d\n",
- 				__func__, err_code);
- 		return err_code;
-@@ -1157,7 +1157,7 @@ static int usbvision_radio_open(struct file *file)
- 	if (mutex_lock_interruptible(&usbvision->v4l2_lock))
- 		return -ERESTARTSYS;
- 	if (usbvision->user) {
--		dev_err(&usbvision->rdev->dev,
-+		dev_err(&usbvision->rdev.dev,
- 			"%s: Someone tried to open an already opened USBVision Radio!\n",
- 				__func__);
- 		err_code = -EBUSY;
-@@ -1280,7 +1280,7 @@ static struct video_device usbvision_video_template = {
- 	.fops		= &usbvision_fops,
- 	.ioctl_ops	= &usbvision_ioctl_ops,
- 	.name           = "usbvision-video",
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
- 	.tvnorms        = USBVISION_NORMS,
- };
- 
-@@ -1312,58 +1312,46 @@ static const struct v4l2_ioctl_ops usbvision_radio_ioctl_ops = {
- static struct video_device usbvision_radio_template = {
- 	.fops		= &usbvision_radio_fops,
- 	.name		= "usbvision-radio",
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
- 	.ioctl_ops	= &usbvision_radio_ioctl_ops,
- };
- 
- 
--static struct video_device *usbvision_vdev_init(struct usb_usbvision *usbvision,
--					struct video_device *vdev_template,
--					char *name)
-+static void usbvision_vdev_init(struct usb_usbvision *usbvision,
-+				struct video_device *vdev,
-+				const struct video_device *vdev_template,
-+				const char *name)
- {
- 	struct usb_device *usb_dev = usbvision->dev;
--	struct video_device *vdev;
- 
- 	if (usb_dev == NULL) {
- 		dev_err(&usbvision->dev->dev,
- 			"%s: usbvision->dev is not set\n", __func__);
--		return NULL;
-+		return;
- 	}
- 
--	vdev = video_device_alloc();
--	if (NULL == vdev)
--		return NULL;
- 	*vdev = *vdev_template;
- 	vdev->lock = &usbvision->v4l2_lock;
- 	vdev->v4l2_dev = &usbvision->v4l2_dev;
- 	snprintf(vdev->name, sizeof(vdev->name), "%s", name);
- 	video_set_drvdata(vdev, usbvision);
--	return vdev;
- }
- 
- /* unregister video4linux devices */
- static void usbvision_unregister_video(struct usb_usbvision *usbvision)
- {
- 	/* Radio Device: */
--	if (usbvision->rdev) {
-+	if (video_is_registered(&usbvision->rdev)) {
- 		PDEBUG(DBG_PROBE, "unregister %s [v4l2]",
--		       video_device_node_name(usbvision->rdev));
--		if (video_is_registered(usbvision->rdev))
--			video_unregister_device(usbvision->rdev);
--		else
--			video_device_release(usbvision->rdev);
--		usbvision->rdev = NULL;
-+		       video_device_node_name(&usbvision->rdev));
-+		video_unregister_device(&usbvision->rdev);
- 	}
- 
- 	/* Video Device: */
--	if (usbvision->vdev) {
-+	if (video_is_registered(&usbvision->vdev)) {
- 		PDEBUG(DBG_PROBE, "unregister %s [v4l2]",
--		       video_device_node_name(usbvision->vdev));
--		if (video_is_registered(usbvision->vdev))
--			video_unregister_device(usbvision->vdev);
--		else
--			video_device_release(usbvision->vdev);
--		usbvision->vdev = NULL;
-+		       video_device_node_name(&usbvision->vdev));
-+		video_unregister_device(&usbvision->vdev);
- 	}
- }
- 
-@@ -1371,28 +1359,22 @@ static void usbvision_unregister_video(struct usb_usbvision *usbvision)
- static int usbvision_register_video(struct usb_usbvision *usbvision)
- {
- 	/* Video Device: */
--	usbvision->vdev = usbvision_vdev_init(usbvision,
--					      &usbvision_video_template,
--					      "USBVision Video");
--	if (usbvision->vdev == NULL)
--		goto err_exit;
--	if (video_register_device(usbvision->vdev, VFL_TYPE_GRABBER, video_nr) < 0)
-+	usbvision_vdev_init(usbvision, &usbvision->vdev,
-+			      &usbvision_video_template, "USBVision Video");
-+	if (video_register_device(&usbvision->vdev, VFL_TYPE_GRABBER, video_nr) < 0)
- 		goto err_exit;
- 	printk(KERN_INFO "USBVision[%d]: registered USBVision Video device %s [v4l2]\n",
--	       usbvision->nr, video_device_node_name(usbvision->vdev));
-+	       usbvision->nr, video_device_node_name(&usbvision->vdev));
- 
- 	/* Radio Device: */
- 	if (usbvision_device_data[usbvision->dev_model].radio) {
- 		/* usbvision has radio */
--		usbvision->rdev = usbvision_vdev_init(usbvision,
--						      &usbvision_radio_template,
--						      "USBVision Radio");
--		if (usbvision->rdev == NULL)
--			goto err_exit;
--		if (video_register_device(usbvision->rdev, VFL_TYPE_RADIO, radio_nr) < 0)
-+		usbvision_vdev_init(usbvision, &usbvision->rdev,
-+			      &usbvision_radio_template, "USBVision Radio");
-+		if (video_register_device(&usbvision->rdev, VFL_TYPE_RADIO, radio_nr) < 0)
- 			goto err_exit;
- 		printk(KERN_INFO "USBVision[%d]: registered USBVision Radio device %s [v4l2]\n",
--		       usbvision->nr, video_device_node_name(usbvision->rdev));
-+		       usbvision->nr, video_device_node_name(&usbvision->rdev));
- 	}
- 	/* all done */
- 	return 0;
-@@ -1461,7 +1443,7 @@ static void usbvision_release(struct usb_usbvision *usbvision)
- 
- 	usbvision->initialized = 0;
- 
--	usbvision_remove_sysfs(usbvision->vdev);
-+	usbvision_remove_sysfs(&usbvision->vdev);
- 	usbvision_unregister_video(usbvision);
- 	kfree(usbvision->alt_max_pkt_size);
- 
-@@ -1611,7 +1593,7 @@ static int usbvision_probe(struct usb_interface *intf,
- 	usbvision_configure_video(usbvision);
- 	usbvision_register_video(usbvision);
- 
--	usbvision_create_sysfs(usbvision->vdev);
-+	usbvision_create_sysfs(&usbvision->vdev);
- 
- 	PDEBUG(DBG_PROBE, "success");
- 	return 0;
-diff --git a/drivers/media/usb/usbvision/usbvision.h b/drivers/media/usb/usbvision/usbvision.h
-index 77aeb1e..140a1f6 100644
---- a/drivers/media/usb/usbvision/usbvision.h
-+++ b/drivers/media/usb/usbvision/usbvision.h
-@@ -357,8 +357,8 @@ extern struct usb_device_id usbvision_table[];
- 
- struct usb_usbvision {
- 	struct v4l2_device v4l2_dev;
--	struct video_device *vdev;					/* Video Device */
--	struct video_device *rdev;					/* Radio Device */
-+	struct video_device vdev;					/* Video Device */
-+	struct video_device rdev;					/* Radio Device */
- 
- 	/* i2c Declaration Section*/
- 	struct i2c_adapter i2c_adap;
+OK.
+
+> What comes to entity naming in Media controller, the label isn't enough. As
+> we haven't yet fully agreed on how to name the entities in the future, I'd
+> propose sticking to current practices: chip name (and optional numerical LED
+> ID) followed by the I2C address. The name should be specified by the driver.
+>
+> Do you have other than I2C busses required by the current drivers?
+
+I have AAT1290 device driven through GPIOs. There was also other driver,
+for a similar device, submitted few days ago to linux-leds list.
+
+>> +- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
+>> +		device current output identifiers: 0 - FLED1, 1 - FLED2
+>> +
+>> +Optional properties of the LED child node:
+>> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+>> +		Range: 15625 - 250000
+>> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+>> +		Range: 15625 - 1000000
+>> +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
+>> +		Range: 62500 - 1000000
+>> +
+>>   Example:
+>> +#include <dt-bindings/leds/max77693.h>
+>> +
+>>   	max77693@66 {
+>>   		compatible = "maxim,max77693";
+>>   		reg = <0x66>;
+>> @@ -117,5 +163,20 @@ Example:
+>>   			maxim,thermal-regulation-celsius = <75>;
+>>   			maxim,battery-overcurrent-microamp = <3000000>;
+>>   			maxim,charge-input-threshold-microvolt = <4300000>;
+>> +
+>> +		led {
+>> +			compatible = "maxim,max77693-led";
+>> +			maxim,trigger-type = <LEDS_TRIG_TYPE_LEVEL>;
+>> +			maxim,boost-mode = <LEDS_BOOST_FIXED>;
+>> +			maxim,boost-mvout = <5000>;
+>> +			maxim,mvsys-min = <2400>;
+>> +
+>> +			camera_flash: flash-led {
+>> +				label = "max77693-flash1";
+>> +				led-sources = <0>, <1>;
+>> +				max-microamp = <500000>;
+>> +				flash-max-microamp = <1250000>;
+>> +				flash-timeout-us = <1000000>;
+>> +			};
+>>   		};
+>>   	};
+>
+
+
 -- 
-2.1.4
-
+Best Regards,
+Jacek Anaszewski
