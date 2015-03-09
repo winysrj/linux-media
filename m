@@ -1,75 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34190 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753120AbbCGX5r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2015 18:57:47 -0500
-Date: Sun, 8 Mar 2015 01:57:14 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	pali.rohar@gmail.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [RFC 12/18] dt: bindings: Add lane-polarity property to endpoint
- nodes
-Message-ID: <20150307235714.GI6539@valkosipuli.retiisi.org.uk>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
- <1425764475-27691-13-git-send-email-sakari.ailus@iki.fi>
- <2025225.4flgD7jFWe@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2025225.4flgD7jFWe@avalon>
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:41134 "EHLO
+	relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753668AbbCIQoA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 12:44:00 -0400
+Message-ID: <1425919423.1421.14.camel@hadess.net>
+Subject: Re: [RFC v2 2/7] media: rc: Add cec protocol handling
+From: Bastien Nocera <hadess@hadess.net>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: 'Mauro Carvalho Chehab' <mchehab@osg.samsung.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	thomas@tommie-lie.de, sean@mess.org, linux-input@vger.kernel.org
+Date: Mon, 09 Mar 2015 17:43:43 +0100
+In-Reply-To: <000801d05a85$2c83f4e0$858bdea0$%debski@samsung.com>
+References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
+	 <1421942679-23609-3-git-send-email-k.debski@samsung.com>
+	 <20150308112033.7d807164@recife.lan>
+	 <000801d05a85$2c83f4e0$858bdea0$%debski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On Sun, Mar 08, 2015 at 01:46:02AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
+On Mon, 2015-03-09 at 17:22 +0100, Kamil Debski wrote:
+> Hi Mauro,
 > 
-> Thank you for the patch.
+> From: Mauro Carvalho Chehab [mailto:mchehab@osg.samsung.com]
+> Sent: Sunday, March 08, 2015 3:21 PM
 > 
-> (CC'ing Sylwester)
-> 
-> On Saturday 07 March 2015 23:41:09 Sakari Ailus wrote:
-> > Add lane-polarity property to endpoint nodes. This essentially tells that
-> > the order of the differential signal wires is inverted.
+> > Em Thu, 22 Jan 2015 17:04:34 +0100
+> > Kamil Debski <k.debski@samsung.com> escreveu:
 > > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  Documentation/devicetree/bindings/media/video-interfaces.txt |    5 +++++
-> >  1 file changed, 5 insertions(+)
+> > (c/c linux-input ML)
 > > 
-> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > b/Documentation/devicetree/bindings/media/video-interfaces.txt index
-> > 571b4c6..058d1e6 100644
-> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > @@ -106,6 +106,11 @@ Optional endpoint properties
-> >  - link-frequencies: Allowed data bus frequencies. For MIPI CSI-2, for
-> >    instance, this is the actual frequency of the bus, not bits per clock per
-> > lane value. An array of 64-bit unsigned integers.
-> > +- lane-polarity: an array of polarities of the lanes starting from the
-> > clock
-> > +  lane and followed by the data lanes in the same order as in data-lanes.
-> > +  Valid values are 0 (normal) and 1 (inverted).
+> > > Add cec protocol handling the RC framework.
+> > 
+> > I added some comments, that reflects my understanding from what's 
+> > there at the keymap definitions found at:
+> >         http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
 > 
-> Would it make sense to add #define's for this ?
+> Thank you very much for the review, Mauro. Your comments are very 
+> much appreciated.
 
-Good question. I don't really have too much of an opinion. I think I'd just
-use a number until someone else needs this. :-)
+How does one use this new support? If I plug in my laptop to my TV, 
+will using the TV's remote automatically send those key events to the 
+laptop?
 
-> > The length of the array
-> > +  should be the combined length of data-lanes and clock-lanes
-> > properties.
-> > +  This property is valid for serial busses only.
-> 
-> You should also document what happens when the property is omitted.
-
-Will add.
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Cheers
