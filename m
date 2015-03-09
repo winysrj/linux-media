@@ -1,77 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:56866 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752324AbbCNL0q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 07:26:46 -0400
-Date: Sat, 14 Mar 2015 12:27:03 +0100
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-i2c@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mike Galbraith <umgwanakikbuti@gmail.com>,
-	Mike Rapoport <mike@compulab.co.il>,
-	Jean Delvare <khali@linux-fr.org>
-Subject: Re: rt-mutex usage in i2c
-Message-ID: <20150314112703.GD970@katana>
-References: <54FDA380.8030405@linutronix.de>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mJm6k4Vb/yFcL9ZU"
-Content-Disposition: inline
-In-Reply-To: <54FDA380.8030405@linutronix.de>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:47178 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753840AbbCIPpS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 11:45:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 02/29] vivid: fix typo in plane size checks
+Date: Mon,  9 Mar 2015 16:44:24 +0100
+Message-Id: <1425915891-1017-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---mJm6k4Vb/yFcL9ZU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The plane size check was hardcoded to plane 0 instead of using the plane
+index.
 
-Hi Sebastian,
+This failed when using the NV61M format which has a larger plane size for
+the second plane compared to the first plane.
 
-> - i2c_transfer() has this piece:
->   2091                 if (in_atomic() || irqs_disabled()) {
->   2092                         ret =3D i2c_trylock_adapter(adap);
->=20
->   is this irqs_disabled() is what bothers me and should not be there.
->   pxa does a spin_lock_irq() which would enable interrupts on return /
->   too early.
->   mxs has a wait_for_completion() which needs irqs enabled _and_ makes
->   in_atomic() problematic, too. I have't checked other drivers but the
->   commit, that introduced it, does not explain why it is required.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-vid-cap.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I haven't really looked into it, but a quick search gave me this thread
-explaining the intention of the code in question:
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 550945a..49f79a0 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -188,9 +188,9 @@ static int vid_cap_buf_prepare(struct vb2_buffer *vb)
+ 		size = tpg_g_bytesperline(&dev->tpg, p) * dev->fmt_cap_rect.height +
+ 			dev->fmt_cap->data_offset[p];
+ 
+-		if (vb2_plane_size(vb, 0) < size) {
++		if (vb2_plane_size(vb, p) < size) {
+ 			dprintk(dev, 1, "%s data will not fit into plane %u (%lu < %lu)\n",
+-					__func__, p, vb2_plane_size(vb, 0), size);
++					__func__, p, vb2_plane_size(vb, p), size);
+ 			return -EINVAL;
+ 		}
+ 
+-- 
+2.1.4
 
-http://lists.lm-sensors.org/pipermail/i2c/2007-November/002268.html
-
-Regards,
-
-   Wolfram
-
-
---mJm6k4Vb/yFcL9ZU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVBBsHAAoJEBQN5MwUoCm2GpYP/1kjIom7QEkxMdW3Pc56Xy3+
-YfHxRNJ9CH8PhtlVIhAJvoYa8TZCEzTxhVGDUy9tYNV5kJVTGS7A/7KZbOsKFyK3
-crFXFIs8JMMENtSWIFrL7dDzENvp/tGG1iwIsM8wb1CLVwCLZ72nB0OOgFTVHgVk
-9JTzCgtLu8XlGMvXV5rkdpba71hsPfDBg9WCr60Wvy/Dt2d3O4oB6tMkqs0H44Bt
-Xz2GXNcd/gbl/TWszL8Ti44DuDtawXkX7bbYjxtF05rarj89NeFJY6Tmy4UqRozI
-guA64KvqQiwpy7xWS0WxUBQpKb74bMLHXMdRpwvRHF8G4sNm9o51zNjG/xxLwpe6
-61yGVdpk3xPe1jU3MhYL39xCe88BUWmQ6PnfHzMDcUI7GjNtYdMi1DfDwa6ijyWL
-G4L1gVOqetS28lNOneszNDsRC9XBtjmXwnE+0FzQLAFez/bTXoA5aDlDTPo0o7GE
-6B8hlEDbQxBdI0iGuNobBikPafAL/VPlcMZe36gCu2+TthkADmJBI3O++bhAX3XU
-w2V1jrXkXuNdysvzI/qbkw1UZy7ZEtaJqpAqck53ff4hVmL/iBmBQqwxaIjUmBqn
-XFd5vWlutkv+FP5N446/Mbcnq7dn7uCGwCPVNgy5XWL6dKExmhxUAvMgy/D2GFzW
-7DgbVRyOW7VSARsq165l
-=WoeY
------END PGP SIGNATURE-----
-
---mJm6k4Vb/yFcL9ZU--
