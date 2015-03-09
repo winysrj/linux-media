@@ -1,69 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45831 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759109AbbCDJso (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Mar 2015 04:48:44 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 3/8] v4l2-subdev.c: add 'which' checks for enum ops.
-Date: Wed,  4 Mar 2015 10:47:56 +0100
-Message-Id: <1425462481-8200-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:55435 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753348AbbCIKSl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 06:18:41 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: 'Kukjin Kim' <kgene@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+References: <1425637960-10687-1-git-send-email-andrzej.p@samsung.com>
+ <1425637960-10687-2-git-send-email-andrzej.p@samsung.com>
+In-reply-to: <1425637960-10687-2-git-send-email-andrzej.p@samsung.com>
+Subject: RE: [PATCHv2 1/2] ARM: dts: exynos5420: add nodes for jpeg codec
+Date: Mon, 09 Mar 2015 11:18:37 +0100
+Message-id: <08ce01d05a52$68bcdbd0$3a369370$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Andrzej,
 
-Return an error if an invalid 'which' valid is passed in.
+From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+owner@vger.kernel.org] On Behalf Of Andrzej Pietrasiewicz
+Sent: Friday, March 06, 2015 11:33 AM
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-subdev.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+Thank you for your patch.
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 3c8b198..8bafb94 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -321,6 +321,10 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
- 		struct v4l2_subdev_mbus_code_enum *code = arg;
- 
-+		if (code->which != V4L2_SUBDEV_FORMAT_TRY &&
-+		    code->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
- 		if (code->pad >= sd->entity.num_pads)
- 			return -EINVAL;
- 
-@@ -331,6 +335,10 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE: {
- 		struct v4l2_subdev_frame_size_enum *fse = arg;
- 
-+		if (fse->which != V4L2_SUBDEV_FORMAT_TRY &&
-+		    fse->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
- 		if (fse->pad >= sd->entity.num_pads)
- 			return -EINVAL;
- 
-@@ -359,6 +367,10 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL: {
- 		struct v4l2_subdev_frame_interval_enum *fie = arg;
- 
-+		if (fie->which != V4L2_SUBDEV_FORMAT_TRY &&
-+		    fie->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
- 		if (fie->pad >= sd->entity.num_pads)
- 			return -EINVAL;
- 
+Regardless how simple the patch is, there should be some description. In the
+v2
+of the patch set please add a description. One sentence should be enough.
+
+Best wishes,
 -- 
-2.1.4
+Kamil Debski
+Samsung R&D Institute Poland
+
+> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> ---
+>  arch/arm/boot/dts/exynos5420.dtsi | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/exynos5420.dtsi
+> b/arch/arm/boot/dts/exynos5420.dtsi
+> index 73c1851..f8f583c 100644
+> --- a/arch/arm/boot/dts/exynos5420.dtsi
+> +++ b/arch/arm/boot/dts/exynos5420.dtsi
+> @@ -775,6 +775,22 @@
+>  		iommus = <&sysmmu_gscl1>;
+>  	};
+> 
+> +	jpeg_0: jpeg@11F50000 {
+> +		compatible = "samsung,exynos5420-jpeg";
+> +		reg = <0x11F50000 0x1000>;
+> +		interrupts = <0 89 0>;
+> +		clock-names = "jpeg";
+> +		clocks = <&clock CLK_JPEG>;
+> +	};
+> +
+> +	jpeg_1: jpeg@11F60000 {
+> +		compatible = "samsung,exynos5420-jpeg";
+> +		reg = <0x11F60000 0x1000>;
+> +		interrupts = <0 168 0>;
+> +		clock-names = "jpeg";
+> +		clocks = <&clock CLK_JPEG2>;
+> +	};
+> +
+>  	pmu_system_controller: system-controller@10040000 {
+>  		compatible = "samsung,exynos5420-pmu", "syscon";
+>  		reg = <0x10040000 0x5000>;
+> --
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
 
