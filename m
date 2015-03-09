@@ -1,119 +1,341 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:45415 "EHLO
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58896 "EHLO
 	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751936AbbC3Cqn (ORCPT
+	by vger.kernel.org with ESMTP id S932362AbbCIP4l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2015 22:46:43 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D56942A0083
-	for <linux-media@vger.kernel.org>; Mon, 30 Mar 2015 04:46:16 +0200 (CEST)
-Date: Mon, 30 Mar 2015 04:46:16 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 9 Mar 2015 11:56:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150330024616.D56942A0083@tschai.lan>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 26/29] vivid: add new format fields
+Date: Mon,  9 Mar 2015 16:44:48 +0100
+Message-Id: <1425915891-1017-27-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+These fields are necessary to handle the new planar formats.
 
-date:		Mon Mar 30 04:00:15 CEST 2015
-git branch:	test
-git hash:	8a56b6b5fd6ff92b7e27d870b803b11b751660c2
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-core.h       |  4 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c    | 18 ++++--
+ drivers/media/platform/vivid/vivid-vid-common.c | 84 ++++++++++++++++++-------
+ drivers/media/platform/vivid/vivid-vid-out.c    |  8 +--
+ 4 files changed, 81 insertions(+), 33 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 191d9b5..bcefd19 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -79,12 +79,14 @@ extern unsigned vivid_debug;
+ struct vivid_fmt {
+ 	const char *name;
+ 	u32	fourcc;          /* v4l2 format id */
+-	u8	depth;
+ 	bool	is_yuv;
+ 	bool	can_do_overlay;
++	u8	vdownsampling[TPG_MAX_PLANES];
+ 	u32	alpha_mask;
+ 	u8	planes;
++	u8	buffers;
+ 	u32	data_offset[TPG_MAX_PLANES];
++	u32	bit_depth[TPG_MAX_PLANES];
+ };
+ 
+ extern struct vivid_fmt vivid_formats[];
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index d41ac44..4d50961 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -42,20 +42,26 @@ static const struct vivid_fmt formats_ovl[] = {
+ 	{
+ 		.name     = "RGB565 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB565, /* gggbbbbb rrrrrggg */
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ 	{
+ 		.name     = "XRGB555 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_XRGB555, /* gggbbbbb arrrrrgg */
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ 	{
+ 		.name     = "ARGB555 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_ARGB555, /* gggbbbbb arrrrrgg */
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ };
+ 
+@@ -597,9 +603,9 @@ int vivid_try_fmt_vid_cap(struct file *file, void *priv,
+ 	/* This driver supports custom bytesperline values */
+ 
+ 	/* Calculate the minimum supported bytesperline value */
+-	bytesperline = (mp->width * fmt->depth) >> 3;
++	bytesperline = (mp->width * fmt->bit_depth[0]) >> 3;
+ 	/* Calculate the maximum supported bytesperline value */
+-	max_bpl = (MAX_ZOOM * MAX_WIDTH * fmt->depth) >> 3;
++	max_bpl = (MAX_ZOOM * MAX_WIDTH * fmt->bit_depth[0]) >> 3;
+ 	mp->num_planes = fmt->planes;
+ 	for (p = 0; p < mp->num_planes; p++) {
+ 		if (pfmt[p].bytesperline > max_bpl)
+@@ -1224,7 +1230,7 @@ int vivid_vid_cap_s_fbuf(struct file *file, void *fh,
+ 	fmt = vivid_get_format(dev, a->fmt.pixelformat);
+ 	if (!fmt || !fmt->can_do_overlay)
+ 		return -EINVAL;
+-	if (a->fmt.bytesperline < (a->fmt.width * fmt->depth) / 8)
++	if (a->fmt.bytesperline < (a->fmt.width * fmt->bit_depth[0]) / 8)
+ 		return -EINVAL;
+ 	if (a->fmt.height * a->fmt.bytesperline < a->fmt.sizeimage)
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+index 49c9bc6..7a02aef 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -46,139 +46,179 @@ struct vivid_fmt vivid_formats[] = {
+ 	{
+ 		.name     = "4:2:2, packed, YUYV",
+ 		.fourcc   = V4L2_PIX_FMT_YUYV,
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.is_yuv   = true,
+ 		.planes   = 1,
++		.buffers = 1,
+ 		.data_offset = { PLANE0_DATA_OFFSET, 0 },
+ 	},
+ 	{
+ 		.name     = "4:2:2, packed, UYVY",
+ 		.fourcc   = V4L2_PIX_FMT_UYVY,
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.is_yuv   = true,
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ 	{
+ 		.name     = "4:2:2, packed, YVYU",
+ 		.fourcc   = V4L2_PIX_FMT_YVYU,
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.is_yuv   = true,
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ 	{
+ 		.name     = "4:2:2, packed, VYUY",
+ 		.fourcc   = V4L2_PIX_FMT_VYUY,
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.is_yuv   = true,
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ 	{
+ 		.name     = "RGB565 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB565, /* gggbbbbb rrrrrggg */
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 		.can_do_overlay = true,
+ 	},
+ 	{
+ 		.name     = "RGB565 (BE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB565X, /* rrrrrggg gggbbbbb */
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 		.can_do_overlay = true,
+ 	},
+ 	{
+ 		.name     = "RGB555 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB555, /* gggbbbbb arrrrrgg */
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 		.can_do_overlay = true,
+ 	},
+ 	{
+ 		.name     = "XRGB555 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_XRGB555, /* gggbbbbb arrrrrgg */
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 		.can_do_overlay = true,
+ 	},
+ 	{
+ 		.name     = "ARGB555 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_ARGB555, /* gggbbbbb arrrrrgg */
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 		.can_do_overlay = true,
+ 		.alpha_mask = 0x8000,
+ 	},
+ 	{
+ 		.name     = "RGB555 (BE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB555X, /* arrrrrgg gggbbbbb */
+-		.depth    = 16,
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 		.can_do_overlay = true,
+ 	},
+ 	{
+ 		.name     = "RGB24 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB24, /* rgb */
+-		.depth    = 24,
++		.vdownsampling = { 1 },
++		.bit_depth = { 24 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ 	{
+ 		.name     = "RGB24 (BE)",
+ 		.fourcc   = V4L2_PIX_FMT_BGR24, /* bgr */
+-		.depth    = 24,
++		.vdownsampling = { 1 },
++		.bit_depth = { 24 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ 	{
+ 		.name     = "RGB32 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB32, /* argb */
+-		.depth    = 32,
++		.vdownsampling = { 1 },
++		.bit_depth = { 32 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ 	{
+ 		.name     = "RGB32 (BE)",
+ 		.fourcc   = V4L2_PIX_FMT_BGR32, /* bgra */
+-		.depth    = 32,
++		.vdownsampling = { 1 },
++		.bit_depth = { 32 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ 	{
+ 		.name     = "XRGB32 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_XRGB32, /* argb */
+-		.depth    = 32,
++		.vdownsampling = { 1 },
++		.bit_depth = { 32 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ 	{
+ 		.name     = "XRGB32 (BE)",
+ 		.fourcc   = V4L2_PIX_FMT_XBGR32, /* bgra */
+-		.depth    = 32,
++		.vdownsampling = { 1 },
++		.bit_depth = { 32 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 	},
+ 	{
+ 		.name     = "ARGB32 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_ARGB32, /* argb */
+-		.depth    = 32,
++		.vdownsampling = { 1 },
++		.bit_depth = { 32 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 		.alpha_mask = 0x000000ff,
+ 	},
+ 	{
+ 		.name     = "ARGB32 (BE)",
+ 		.fourcc   = V4L2_PIX_FMT_ABGR32, /* bgra */
+-		.depth    = 32,
++		.vdownsampling = { 1 },
++		.bit_depth = { 32 },
+ 		.planes   = 1,
++		.buffers = 1,
+ 		.alpha_mask = 0xff000000,
+ 	},
+ 	{
+-		.name     = "4:2:2, planar, YUV",
++		.name     = "4:2:2, biplanar, YUV",
+ 		.fourcc   = V4L2_PIX_FMT_NV16M,
+-		.depth    = 8,
++		.vdownsampling = { 1, 1 },
++		.bit_depth = { 8, 8 },
+ 		.is_yuv   = true,
+ 		.planes   = 2,
++		.buffers = 2,
+ 		.data_offset = { PLANE0_DATA_OFFSET, 0 },
+ 	},
+ 	{
+-		.name     = "4:2:2, planar, YVU",
++		.name     = "4:2:2, biplanar, YVU",
+ 		.fourcc   = V4L2_PIX_FMT_NV61M,
+-		.depth    = 8,
++		.vdownsampling = { 1, 1 },
++		.bit_depth = { 8, 8 },
+ 		.is_yuv   = true,
+ 		.planes   = 2,
++		.buffers = 2,
+ 		.data_offset = { 0, PLANE0_DATA_OFFSET },
+ 	},
+ };
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index 39ff79f..17b026b 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -267,9 +267,9 @@ void vivid_update_format_out(struct vivid_dev *dev)
+ 	if (V4L2_FIELD_HAS_T_OR_B(dev->field_out))
+ 		dev->crop_out.height /= 2;
+ 	dev->fmt_out_rect = dev->crop_out;
+-	dev->bytesperline_out[0] = (dev->sink_rect.width * dev->fmt_out->depth) / 8;
++	dev->bytesperline_out[0] = (dev->sink_rect.width * dev->fmt_out->bit_depth[0]) / 8;
+ 	if (dev->fmt_out->planes == 2)
+-		dev->bytesperline_out[1] = (dev->sink_rect.width * dev->fmt_out->depth) / 8;
++		dev->bytesperline_out[1] = (dev->sink_rect.width * dev->fmt_out->bit_depth[0]) / 8;
+ }
+ 
+ /* Map the field to something that is valid for the current output */
+@@ -386,9 +386,9 @@ int vivid_try_fmt_vid_out(struct file *file, void *priv,
+ 	/* This driver supports custom bytesperline values */
+ 
+ 	/* Calculate the minimum supported bytesperline value */
+-	bytesperline = (mp->width * fmt->depth) >> 3;
++	bytesperline = (mp->width * fmt->bit_depth[0]) >> 3;
+ 	/* Calculate the maximum supported bytesperline value */
+-	max_bpl = (MAX_ZOOM * MAX_WIDTH * fmt->depth) >> 3;
++	max_bpl = (MAX_ZOOM * MAX_WIDTH * fmt->bit_depth[0]) >> 3;
+ 	mp->num_planes = fmt->planes;
+ 	for (p = 0; p < mp->num_planes; p++) {
+ 		if (pfmt[p].bytesperline > max_bpl)
+-- 
+2.1.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
