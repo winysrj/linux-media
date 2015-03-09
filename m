@@ -1,69 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45345 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754081AbbCBRF4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:05:56 -0500
-Date: Mon, 2 Mar 2015 17:05:38 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Cc: Andrew Lunn <andrew@lunn.ch>, Jaroslav Kysela <perex@perex.cz>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Roland Stigge <stigge@antcom.de>,
-	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-	Stephen Boyd <sboyd@codeaurora.org>,
-	Takashi Iwai <tiwai@suse.de>, Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/10] initial clkdev cleanups
-Message-ID: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:39460 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753023AbbCIQgM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 12:36:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 13/19] wl128x: embed video_device
+Date: Mon,  9 Mar 2015 17:34:07 +0100
+Message-Id: <1425918853-12371-14-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here's some initial clkdev cleanups.  These are targetted for the next
-merge window, and while the initial patches can be merged independently,
-I'd prefer to keep the series together as further work on solving the
-problems which unique struct clk's has introduced is needed.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The initial cleanups are more about using the correct clkdev function
-than anything else: there's no point interating over a array of
-clk_lookup structs, adding each one in turn when we have had a function
-which does this since forever.
+Embed the video_device struct to simplify the error handling and in
+order to (eventually) get rid of video_device_alloc/release.
 
-I'm also killing a chunk of seemingly unused code in the omap3isp driver.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/wl128x/fmdrv_v4l2.c | 28 ++++++++++------------------
+ 1 file changed, 10 insertions(+), 18 deletions(-)
 
-Lastly, I'm introducing a clkdev_create() helper, which combines the
-clkdev_alloc() + clkdev_add() pattern which keeps cropping up.
-
-Individual patches copied to appropriate people, but they will all appear
-on the mailing lists.
-
- arch/arm/mach-lpc32xx/clock.c                |  5 +--
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c | 12 ++-----
- arch/arm/mach-omap2/omap_device.c            | 24 +++++--------
- arch/arm/plat-orion/common.c                 |  6 +---
- arch/sh/kernel/cpu/sh4a/clock-sh7734.c       |  3 +-
- arch/sh/kernel/cpu/sh4a/clock-sh7757.c       |  4 +--
- arch/sh/kernel/cpu/sh4a/clock-sh7785.c       |  4 +--
- arch/sh/kernel/cpu/sh4a/clock-sh7786.c       |  4 +--
- arch/sh/kernel/cpu/sh4a/clock-shx3.c         |  4 +--
- drivers/clk/clk-s2mps11.c                    |  4 +--
- drivers/clk/clkdev.c                         | 52 +++++++++++++++++++++-------
- drivers/clk/versatile/clk-impd1.c            |  4 +--
- drivers/media/platform/omap3isp/isp.c        | 18 ----------
- drivers/media/platform/omap3isp/isp.h        |  1 -
- include/linux/clkdev.h                       |  3 ++
- include/media/omap3isp.h                     |  6 ----
- sound/soc/sh/migor.c                         |  3 +-
- 17 files changed, 68 insertions(+), 89 deletions(-)
-
+diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+index a5bd3f6..fb42f0f 100644
+--- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
++++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+@@ -36,7 +36,7 @@
+ #include "fmdrv_rx.h"
+ #include "fmdrv_tx.h"
+ 
+-static struct video_device *gradio_dev;
++static struct video_device gradio_dev;
+ static u8 radio_disconnected;
+ 
+ /* -- V4L2 RADIO (/dev/radioX) device file operation interfaces --- */
+@@ -517,7 +517,7 @@ static struct video_device fm_viddev_template = {
+ 	.fops = &fm_drv_fops,
+ 	.ioctl_ops = &fm_drv_ioctl_ops,
+ 	.name = FM_DRV_NAME,
+-	.release = video_device_release,
++	.release = video_device_release_empty,
+ 	/*
+ 	 * To ensure both the tuner and modulator ioctls are accessible we
+ 	 * set the vfl_dir to M2M to indicate this.
+@@ -543,29 +543,21 @@ int fm_v4l2_init_video_device(struct fmdev *fmdev, int radio_nr)
+ 	/* Init mutex for core locking */
+ 	mutex_init(&fmdev->mutex);
+ 
+-	/* Allocate new video device */
+-	gradio_dev = video_device_alloc();
+-	if (NULL == gradio_dev) {
+-		fmerr("Can't allocate video device\n");
+-		return -ENOMEM;
+-	}
+-
+ 	/* Setup FM driver's V4L2 properties */
+-	memcpy(gradio_dev, &fm_viddev_template, sizeof(fm_viddev_template));
++	gradio_dev = fm_viddev_template;
+ 
+-	video_set_drvdata(gradio_dev, fmdev);
++	video_set_drvdata(&gradio_dev, fmdev);
+ 
+-	gradio_dev->lock = &fmdev->mutex;
+-	gradio_dev->v4l2_dev = &fmdev->v4l2_dev;
++	gradio_dev.lock = &fmdev->mutex;
++	gradio_dev.v4l2_dev = &fmdev->v4l2_dev;
+ 
+ 	/* Register with V4L2 subsystem as RADIO device */
+-	if (video_register_device(gradio_dev, VFL_TYPE_RADIO, radio_nr)) {
+-		video_device_release(gradio_dev);
++	if (video_register_device(&gradio_dev, VFL_TYPE_RADIO, radio_nr)) {
+ 		fmerr("Could not register video device\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	fmdev->radio_dev = gradio_dev;
++	fmdev->radio_dev = &gradio_dev;
+ 
+ 	/* Register to v4l2 ctrl handler framework */
+ 	fmdev->radio_dev->ctrl_handler = &fmdev->ctrl_handler;
+@@ -611,13 +603,13 @@ void *fm_v4l2_deinit_video_device(void)
+ 	struct fmdev *fmdev;
+ 
+ 
+-	fmdev = video_get_drvdata(gradio_dev);
++	fmdev = video_get_drvdata(&gradio_dev);
+ 
+ 	/* Unregister to v4l2 ctrl handler framework*/
+ 	v4l2_ctrl_handler_free(&fmdev->ctrl_handler);
+ 
+ 	/* Unregister RADIO device from V4L2 subsystem */
+-	video_unregister_device(gradio_dev);
++	video_unregister_device(&gradio_dev);
+ 
+ 	v4l2_device_unregister(&fmdev->v4l2_dev);
+ 
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+2.1.4
+
