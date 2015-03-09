@@ -1,86 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50115 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752710AbbCIVWq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 17:22:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36334 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340AbbCIGjm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 02:39:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 02/18] marvell-ccic: fill in bus_info
-Date: Mon,  9 Mar 2015 22:22:07 +0100
-Message-Id: <1425936143-5658-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH/RFC 4/4] soc-camera: Skip v4l2 clock registration if host doesn't provide clk ops
+Date: Mon,  9 Mar 2015 08:39:36 +0200
+Message-Id: <1425883176-29859-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1425883176-29859-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1425883176-29859-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+If the soc-camera host doesn't provide clock start and stop operations
+registering a v4l2 clock is pointless. Don't do it.
 
-The bus_info field of struct v4l2_querycap wasn't filled in and
-v4l2-compliance complained about that. Fix this.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/marvell-ccic/cafe-driver.c | 1 +
- drivers/media/platform/marvell-ccic/mcam-core.c   | 3 +++
- drivers/media/platform/marvell-ccic/mcam-core.h   | 2 ++
- drivers/media/platform/marvell-ccic/mmp-driver.c  | 1 +
- 4 files changed, 7 insertions(+)
+ drivers/media/platform/soc_camera/soc_camera.c | 51 +++++++++++++++++---------
+ 1 file changed, 33 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/platform/marvell-ccic/cafe-driver.c b/drivers/media/platform/marvell-ccic/cafe-driver.c
-index 5628453..e857405 100644
---- a/drivers/media/platform/marvell-ccic/cafe-driver.c
-+++ b/drivers/media/platform/marvell-ccic/cafe-driver.c
-@@ -476,6 +476,7 @@ static int cafe_pci_probe(struct pci_dev *pdev,
- 	mcam->plat_power_up = cafe_ctlr_power_up;
- 	mcam->plat_power_down = cafe_ctlr_power_down;
- 	mcam->dev = &pdev->dev;
-+	snprintf(mcam->bus_info, sizeof(mcam->bus_info), "PCI:%s", pci_name(pdev));
- 	/*
- 	 * Set the clock speed for the XO 1; I don't believe this
- 	 * driver has ever run anywhere else.
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index bf160dd..e83ca1f 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1388,8 +1388,11 @@ static int mcam_vidioc_dqbuf(struct file *filp, void *priv,
- static int mcam_vidioc_querycap(struct file *file, void *priv,
- 		struct v4l2_capability *cap)
- {
-+	struct mcam_camera *cam = priv;
-+
- 	strcpy(cap->driver, "marvell_ccic");
- 	strcpy(cap->card, "marvell_ccic");
-+	strlcpy(cap->bus_info, cam->bus_info, sizeof(cap->bus_info));
- 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
- 		V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-index aa0c6ea..46bc715 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.h
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-@@ -163,6 +163,8 @@ struct mcam_camera {
- 	unsigned int nbufs;		/* How many are alloc'd */
- 	int next_buf;			/* Next to consume (dev_lock) */
+This requires proper review and testing, please don't apply it blindly.
+
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 0943125..f3ea911 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1374,10 +1374,13 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+ 	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
+ 		 shd->i2c_adapter_id, shd->board_info->addr);
  
-+	char bus_info[32];		/* querycap bus_info */
-+
- 	/* DMA buffers - vmalloc mode */
- #ifdef MCAM_MODE_VMALLOC
- 	unsigned int dma_buf_size;	/* allocated size */
-diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-index 0ed9b3a..b5f165a 100644
---- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-+++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-@@ -371,6 +371,7 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	mcam->lane = pdata->lane;
- 	mcam->chip_id = MCAM_ARMADA610;
- 	mcam->buffer_mode = B_DMA_sg;
-+	strlcpy(mcam->bus_info, "platform:mmp-camera", sizeof(mcam->bus_info));
- 	spin_lock_init(&mcam->dev_lock);
- 	/*
- 	 * Get our I/O memory.
+-	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
+-	if (IS_ERR(icd->clk)) {
+-		ret = PTR_ERR(icd->clk);
+-		goto eclkreg;
++	if (ici->ops->clock_start && ici->ops->clock_stop) {
++		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
++					     "mclk", icd);
++		if (IS_ERR(icd->clk)) {
++			ret = PTR_ERR(icd->clk);
++			goto eclkreg;
++		}
+ 	}
+ 
+ 	subdev = v4l2_i2c_new_subdev_board(&ici->v4l2_dev, adap,
+@@ -1394,8 +1397,10 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+ 
+ 	return 0;
+ ei2cnd:
+-	v4l2_clk_unregister(icd->clk);
+-	icd->clk = NULL;
++	if (icd->clk) {
++		v4l2_clk_unregister(icd->clk);
++		icd->clk = NULL;
++	}
+ eclkreg:
+ 	kfree(ssdd);
+ ealloc:
+@@ -1420,8 +1425,10 @@ static void soc_camera_i2c_free(struct soc_camera_device *icd)
+ 	i2c_unregister_device(client);
+ 	i2c_put_adapter(adap);
+ 	kfree(ssdd);
+-	v4l2_clk_unregister(icd->clk);
+-	icd->clk = NULL;
++	if (icd->clk) {
++		v4l2_clk_unregister(icd->clk);
++		icd->clk = NULL;
++	}
+ }
+ 
+ /*
+@@ -1555,17 +1562,21 @@ static int scan_async_group(struct soc_camera_host *ici,
+ 	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
+ 		 sasd->asd.match.i2c.adapter_id, sasd->asd.match.i2c.address);
+ 
+-	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
+-	if (IS_ERR(icd->clk)) {
+-		ret = PTR_ERR(icd->clk);
+-		goto eclkreg;
++	if (ici->ops->clock_start && ici->ops->clock_stop) {
++		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
++					     "mclk", icd);
++		if (IS_ERR(icd->clk)) {
++			ret = PTR_ERR(icd->clk);
++			goto eclkreg;
++		}
+ 	}
+ 
+ 	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
+ 	if (!ret)
+ 		return 0;
+ 
+-	v4l2_clk_unregister(icd->clk);
++	if (icd->clk)
++		v4l2_clk_unregister(icd->clk);
+ eclkreg:
+ 	icd->clk = NULL;
+ 	platform_device_del(sasc->pdev);
+@@ -1660,17 +1671,21 @@ static int soc_of_bind(struct soc_camera_host *ici,
+ 		snprintf(clk_name, sizeof(clk_name), "of-%s",
+ 			 of_node_full_name(remote));
+ 
+-	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
+-	if (IS_ERR(icd->clk)) {
+-		ret = PTR_ERR(icd->clk);
+-		goto eclkreg;
++	if (ici->ops->clock_start && ici->ops->clock_stop) {
++		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
++					     "mclk", icd);
++		if (IS_ERR(icd->clk)) {
++			ret = PTR_ERR(icd->clk);
++			goto eclkreg;
++		}
+ 	}
+ 
+ 	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
+ 	if (!ret)
+ 		return 0;
+ 
+-	v4l2_clk_unregister(icd->clk);
++	if (icd->clk)
++		v4l2_clk_unregister(icd->clk);
+ eclkreg:
+ 	icd->clk = NULL;
+ 	platform_device_del(sasc->pdev);
 -- 
-2.1.4
+2.0.5
 
