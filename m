@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60961 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752914AbbC3LLU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 07:11:20 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mats Randgaard <matrandg@cisco.com>
-Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC 10/12] [media] tc358743: detect chip by ChipID instead of IntMask
-Date: Mon, 30 Mar 2015 13:10:54 +0200
-Message-Id: <1427713856-10240-11-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
-References: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
+Received: from canardo.mork.no ([148.122.252.1]:52377 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751095AbbCILGr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 07:06:47 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] uvcvideo: Don't call vb2 mmap and get_unmapped_area with queue lock held
+References: <1424111134-22413-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<87k2z9558i.fsf@nemi.mork.no>
+Date: Mon, 09 Mar 2015 12:06:36 +0100
+In-Reply-To: <87k2z9558i.fsf@nemi.mork.no> (=?utf-8?Q?=22Bj=C3=B8rn?=
+ Mork"'s message of "Mon, 23
+	Feb 2015 10:47:41 +0100")
+Message-ID: <871tkye8g3.fsf@nemi.mork.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When resetting the CPU instead of power cycling, IntMask is still set
-from last boot. Instead of depending on it to be set to its reset
-defaults, check the ChipID register and rewrite IntMask if needed.
+Bjørn Mork <bjorn@mork.no> writes:
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> writes:
+>
+>> Bjørn, does this fix the circular locking dependency you have reported in
+>> "[v3.19-rc7] possible circular locking dependency in uvc_queue_streamoff" ?
+>> The report mentions involves locks, so I'm not 100% this patch will fix the
+>> issue.
+>
+> Sorry, I forgot all about that report after firing it off...  Should
+> have followed it up with some more details.
+>
+> Grepping my logs now I cannot find this warning at all after the one I
+> reported.  I see it once before (while running 3.19-rc6).  So it is
+> definitely not easily reproducible.  And I have a bad feeling the
+> trigger might involve completely unrelated USB issues...
+>
+> In any case, thanks for the patch.  I will test it for a while and let
+> you know if the same warning shows ut with it.  But based on the rare
+> occurence, I don't think I ever will be able to positively confirm that
+> the warning is gone.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/i2c/tc358743.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+FWIW, I have not seen the warning after applying this patch, so it
+appears to fix the problem.  Thanks.
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 2cf97d9..02b131b 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -1847,13 +1847,19 @@ static int tc358743_probe(struct i2c_client *client,
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
- 
- 	/* i2c access */
-+	if (i2c_rd16(sd, CHIPID) != 0x0000) {
-+		v4l2_info(sd, "not a TC358743 on address 0x%x\n",
-+			  client->addr << 1);
-+		return -ENODEV;
-+	}
- 	/* read the interrupt mask register, it should carry the
- 	 * default values, as it hasn't been touched at this point.
- 	 */
- 	if (i2c_rd16(sd, INTMASK) != 0x0400) {
--		v4l2_info(sd, "not a TC358743 on address 0x%x\n",
--			  client->addr << 1);
--		return -ENODEV;
-+		v4l2_warn(sd, "initial interrupt mask: 0x%04x\n",
-+			  i2c_rd16(sd, INTMASK));
-+		i2c_wr16(sd, INTMASK, 0x0400);
-+	}
- 
- 	tc358743_clear_interrupt_status(sd);
- 
--- 
-2.1.4
+If I'm wrong, then I'm sure Murphy will tell us as soon as I send this
+email :-)
 
+
+Bjørn
