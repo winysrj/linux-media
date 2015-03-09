@@ -1,132 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36334 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751340AbbCIGjm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 02:39:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37375 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754315AbbCIPq7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 11:46:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH/RFC 4/4] soc-camera: Skip v4l2 clock registration if host doesn't provide clk ops
-Date: Mon,  9 Mar 2015 08:39:36 +0200
-Message-Id: <1425883176-29859-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1425883176-29859-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1425883176-29859-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 13/29] vivid-tpg: correctly average the two pixels in gen_twopix()
+Date: Mon,  9 Mar 2015 16:44:35 +0100
+Message-Id: <1425915891-1017-14-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the soc-camera host doesn't provide clock start and stop operations
-registering a v4l2 clock is pointless. Don't do it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+gen_twopix() is always called twice: once for the first and once for
+the second pixel. Improve the code to properly average the two if the
+format requires horizontal downsampling.
+
+This is necessary for patterns like 1x1 red/blue checkers.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/soc_camera/soc_camera.c | 51 +++++++++++++++++---------
- 1 file changed, 33 insertions(+), 18 deletions(-)
+ drivers/media/platform/vivid/vivid-tpg.c | 48 ++++++++++++++++++++++++++++----
+ 1 file changed, 42 insertions(+), 6 deletions(-)
 
-This requires proper review and testing, please don't apply it blindly.
-
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 0943125..f3ea911 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1374,10 +1374,13 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
- 	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
- 		 shd->i2c_adapter_id, shd->board_info->addr);
- 
--	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
--	if (IS_ERR(icd->clk)) {
--		ret = PTR_ERR(icd->clk);
--		goto eclkreg;
-+	if (ici->ops->clock_start && ici->ops->clock_stop) {
-+		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
-+					     "mclk", icd);
-+		if (IS_ERR(icd->clk)) {
-+			ret = PTR_ERR(icd->clk);
-+			goto eclkreg;
+diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
+index d7531d3..9001b9a 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.c
++++ b/drivers/media/platform/vivid/vivid-tpg.c
+@@ -687,28 +687,64 @@ static void gen_twopix(struct tpg_data *tpg,
+ 	switch (tpg->fourcc) {
+ 	case V4L2_PIX_FMT_NV16M:
+ 		buf[0][offset] = r_y;
+-		buf[1][offset] = odd ? b_v : g_u;
++		if (odd) {
++			buf[1][0] = (buf[1][0] + g_u) / 2;
++			buf[1][1] = (buf[1][1] + b_v) / 2;
++			break;
 +		}
- 	}
- 
- 	subdev = v4l2_i2c_new_subdev_board(&ici->v4l2_dev, adap,
-@@ -1394,8 +1397,10 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
- 
- 	return 0;
- ei2cnd:
--	v4l2_clk_unregister(icd->clk);
--	icd->clk = NULL;
-+	if (icd->clk) {
-+		v4l2_clk_unregister(icd->clk);
-+		icd->clk = NULL;
-+	}
- eclkreg:
- 	kfree(ssdd);
- ealloc:
-@@ -1420,8 +1425,10 @@ static void soc_camera_i2c_free(struct soc_camera_device *icd)
- 	i2c_unregister_device(client);
- 	i2c_put_adapter(adap);
- 	kfree(ssdd);
--	v4l2_clk_unregister(icd->clk);
--	icd->clk = NULL;
-+	if (icd->clk) {
-+		v4l2_clk_unregister(icd->clk);
-+		icd->clk = NULL;
-+	}
- }
- 
- /*
-@@ -1555,17 +1562,21 @@ static int scan_async_group(struct soc_camera_host *ici,
- 	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
- 		 sasd->asd.match.i2c.adapter_id, sasd->asd.match.i2c.address);
- 
--	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
--	if (IS_ERR(icd->clk)) {
--		ret = PTR_ERR(icd->clk);
--		goto eclkreg;
-+	if (ici->ops->clock_start && ici->ops->clock_stop) {
-+		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
-+					     "mclk", icd);
-+		if (IS_ERR(icd->clk)) {
-+			ret = PTR_ERR(icd->clk);
-+			goto eclkreg;
++		buf[1][0] = g_u;
++		buf[1][1] = b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_NV61M:
+ 		buf[0][offset] = r_y;
+-		buf[1][offset] = odd ? g_u : b_v;
++		if (odd) {
++			buf[1][0] = (buf[1][0] + b_v) / 2;
++			buf[1][1] = (buf[1][1] + g_u) / 2;
++			break;
 +		}
- 	}
++		buf[1][0] = b_v;
++		buf[1][1] = g_u;
+ 		break;
  
- 	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
- 	if (!ret)
- 		return 0;
- 
--	v4l2_clk_unregister(icd->clk);
-+	if (icd->clk)
-+		v4l2_clk_unregister(icd->clk);
- eclkreg:
- 	icd->clk = NULL;
- 	platform_device_del(sasc->pdev);
-@@ -1660,17 +1671,21 @@ static int soc_of_bind(struct soc_camera_host *ici,
- 		snprintf(clk_name, sizeof(clk_name), "of-%s",
- 			 of_node_full_name(remote));
- 
--	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
--	if (IS_ERR(icd->clk)) {
--		ret = PTR_ERR(icd->clk);
--		goto eclkreg;
-+	if (ici->ops->clock_start && ici->ops->clock_stop) {
-+		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
-+					     "mclk", icd);
-+		if (IS_ERR(icd->clk)) {
-+			ret = PTR_ERR(icd->clk);
-+			goto eclkreg;
+ 	case V4L2_PIX_FMT_YUYV:
+ 		buf[0][offset] = r_y;
+-		buf[0][offset + 1] = odd ? b_v : g_u;
++		if (odd) {
++			buf[0][1] = (buf[0][1] + g_u) / 2;
++			buf[0][3] = (buf[0][3] + b_v) / 2;
++			break;
 +		}
- 	}
- 
- 	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
- 	if (!ret)
- 		return 0;
- 
--	v4l2_clk_unregister(icd->clk);
-+	if (icd->clk)
-+		v4l2_clk_unregister(icd->clk);
- eclkreg:
- 	icd->clk = NULL;
- 	platform_device_del(sasc->pdev);
++		buf[0][1] = g_u;
++		buf[0][3] = b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_UYVY:
+-		buf[0][offset] = odd ? b_v : g_u;
+ 		buf[0][offset + 1] = r_y;
++		if (odd) {
++			buf[0][0] = (buf[0][0] + g_u) / 2;
++			buf[0][2] = (buf[0][2] + b_v) / 2;
++			break;
++		}
++		buf[0][0] = g_u;
++		buf[0][2] = b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_YVYU:
+ 		buf[0][offset] = r_y;
+-		buf[0][offset + 1] = odd ? g_u : b_v;
++		if (odd) {
++			buf[0][1] = (buf[0][1] + b_v) / 2;
++			buf[0][3] = (buf[0][3] + g_u) / 2;
++			break;
++		}
++		buf[0][1] = b_v;
++		buf[0][3] = g_u;
+ 		break;
+ 	case V4L2_PIX_FMT_VYUY:
+-		buf[0][offset] = odd ? g_u : b_v;
+ 		buf[0][offset + 1] = r_y;
++		if (odd) {
++			buf[0][0] = (buf[0][0] + b_v) / 2;
++			buf[0][2] = (buf[0][2] + g_u) / 2;
++			break;
++		}
++		buf[0][0] = b_v;
++		buf[0][2] = g_u;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB565:
+ 		buf[0][offset] = (g_u << 5) | b_v;
 -- 
-2.0.5
+2.1.4
 
