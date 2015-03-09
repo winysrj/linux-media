@@ -1,119 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:45244 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751193AbbCJDqn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 23:46:43 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 828902A007E
-	for <linux-media@vger.kernel.org>; Tue, 10 Mar 2015 04:46:37 +0100 (CET)
-Date: Tue, 10 Mar 2015 04:46:37 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150310034637.828902A007E@tschai.lan>
+Received: from eusmtp01.atmel.com ([212.144.249.243]:30368 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751170AbbCIBdn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 21:33:43 -0400
+Message-ID: <54FCF868.2050708@atmel.com>
+Date: Mon, 9 Mar 2015 09:33:28 +0800
+From: Josh Wu <josh.wu@atmel.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH 3/3] media: atmel-isi: remove mck back compatiable code
+ as we don't need it
+References: <1425531661-20040-1-git-send-email-josh.wu@atmel.com> <54F97DDF.7010403@atmel.com> <Pine.LNX.4.64.1503062124450.20271@axis700.grange> <2234113.JDoJN7Dx5y@avalon>
+In-Reply-To: <2234113.JDoJN7Dx5y@avalon>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi, Laurent
 
-Results of the daily build of media_tree:
+On 3/8/2015 8:28 AM, Laurent Pinchart wrote:
+> On Friday 06 March 2015 21:25:36 Guennadi Liakhovetski wrote:
+>> On Fri, 6 Mar 2015, Josh Wu wrote:
+>>> On 3/5/2015 6:41 PM, Laurent Pinchart wrote:
+>>>> On Thursday 05 March 2015 13:01:01 Josh Wu wrote:
+>>>>> The master clock should handled by sensor itself.
+>>>> I like that :-)
+>>>>
+>>>>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>>>>> ---
+>>>>>
+>>>>>    drivers/media/platform/soc_camera/atmel-isi.c | 32 -------------------
+>>>>>    1 file changed, 32 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+>>>>> b/drivers/media/platform/soc_camera/atmel-isi.c index 4a384f1..50375ce
+>>>>> 100644
+>>>>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>>>>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>>>>> @@ -83,8 +83,6 @@ struct atmel_isi {
+>>>>>
+>>>>>    	struct completion		complete;
+>>>>>    	/* ISI peripherial clock */
+>>>>>    	struct clk			*pclk;
+>>>>>
+>>>>> -	/* ISI_MCK, feed to camera sensor to generate pixel clock */
+>>>>> -	struct clk			*mck;
+>>>>>
+>>>>>    	unsigned int			irq;
+>>>>>    	
+>>>>>    	struct isi_platform_data	pdata;
+>>>>>
+>>>>> @@ -725,26 +723,12 @@ static void isi_camera_remove_device(struct
+>>>>> soc_camera_device *icd) /* Called with .host_lock held */
+>>>>>
+>>>>>    static int isi_camera_clock_start(struct soc_camera_host *ici)
+>>>>>    {
+>>>>>
+>>>>> -	struct atmel_isi *isi = ici->priv;
+>>>>> -	int ret;
+>>>>> -
+>>>>> -	if (!IS_ERR(isi->mck)) {
+>>>>> -		ret = clk_prepare_enable(isi->mck);
+>>>>> -		if (ret) {
+>>>>> -			return ret;
+>>>>> -		}
+>>>>> -	}
+>>>>> -
+>>>>>
+>>>>>    	return 0;
+>>>> Would it make sense to make the clock_start and clock_stop operations
+>>>> optional in the soc-camera core ?
+>>> I agree. For those camera host which don't provide master clock for
+>>> sensor, clock_start and clock_stop should be optional.
+>>>
+>>> Hi, Guennadi
+>>>
+>>> Do you agree with this?
+>> Yes, sure, we can do this. Would anyone like to prepare a patch?
+> Josh, would you like to do that, or should I give it a go ?
+>
 
-date:		Tue Mar 10 04:00:24 CET 2015
-git branch:	test
-git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+Yes, you can do that if you have time. ;-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Best Regards,
+Josh Wu
