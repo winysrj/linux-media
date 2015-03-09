@@ -1,216 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:33912 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752285AbbCaRs7 (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55543 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932602AbbCIQfD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2015 13:48:59 -0400
-Received: by lboc7 with SMTP id c7so18251371lbo.1
-        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2015 10:48:58 -0700 (PDT)
-From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+	Mon, 9 Mar 2015 12:35:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-	James Hogan <james@albanarts.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v3 3/7] rc: ir-rc5-decoder: Add encode capability
-Date: Tue, 31 Mar 2015 20:48:08 +0300
-Message-Id: <1427824092-23163-4-git-send-email-a.seppala@gmail.com>
-In-Reply-To: <1427824092-23163-1-git-send-email-a.seppala@gmail.com>
-References: <1427824092-23163-1-git-send-email-a.seppala@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 05/19] dt3155v4l: embed video_device
+Date: Mon,  9 Mar 2015 17:33:59 +0100
+Message-Id: <1425918853-12371-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: James Hogan <james@albanarts.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add the capability to encode RC-5, RC-5X and RC-5-SZ scancodes as raw
-events. The protocol is chosen based on the specified protocol mask,
-and whether all the required bits are set in the scancode mask, and
-none of the unused bits are set in the scancode data. For example a
-scancode filter with bit 16 set in both data and mask is unambiguously
-RC-5X.
+Embed the video_device struct to simplify the error handling and in
+order to (eventually) get rid of video_device_alloc/release.
 
-The Manchester modulation helper is used, and for RC-5X it is used twice
-with two sets of timings, the first with a short trailer space for the
-space in the middle, and the second with no leader so that it can
-continue the space.
-
-The encoding in RC-5-SZ first inserts a pulse and then simply utilizes
-the generic Manchester encoder available in rc-core.
-
-Signed-off-by: James Hogan <james@albanarts.com>
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Cc: David Härdeman <david@hardeman.nu>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ drivers/staging/media/dt3155v4l/dt3155v4l.c | 30 ++++++++++-------------------
+ drivers/staging/media/dt3155v4l/dt3155v4l.h |  4 ++--
+ 2 files changed, 12 insertions(+), 22 deletions(-)
 
-Notes:
-    Changes in v3:
-     - Ported to apply with latest media-tree
-     - Merged with an encoder for rc-5-sz variant
-    
-    I've mostly reverse engineered RC-5X from the decoder, but it seems to
-    work in loopback. Here's some debug output:
-    
-    RC-5X:
-    evbug: Event. Dev: input0, Type: 4, Code: 4, Value: 65793
-    evbug: Event. Dev: input0, Type: 0, Code: 0, Value: 0
-     _   __   _   _   _   _    _      _   _   _   _   _    __   _   _   _   _    _
-    | | |  | | | | | | | | |  | |    | | | | | | | | | |  |  | | | | | | | | |  | |
-              |
-    | |_|  |_| |_| |_| |_| |__| |____| |_| |_| |_| |_| |__|  |_| |_| |_| |_| |__| |__________|
-          1                  1      3                    1  1                  1            8
-     8 8  7 8 8 8 8 8 8 8 8  7 8    5 8 8 8 8 8 8 8 8 8  7  7 8 8 8 8 8 8 8 8  7 8          8
-     8 8  7 8 8 8 8 8 8 8 8  7 8    5 8 8 8 8 8 8 8 8 8  7  7 8 8 8 8 8 8 8 8  7 8          8
-     9 9  8 9 9 9 9 9 9 9 9  8 9    6 9 9 9 9 9 9 9 9 9  8  8 9 9 9 9 9 9 9 9  8 9          9
-       1  0   0   0   0   0  1      X 0   0   0   0   0  1  0   0   0   0   0  1            E rc-5
-    
-    RC-5:
-    evbug: Event. Dev: input0, Type: 4, Code: 4, Value: 257
-    evbug: Event. Dev: input0, Type: 0, Code: 0, Value: 0
-     _   __   _   _   _   _    __   _   _   _   _    _
-    | | |  | | | | | | | | |  |  | | | | | | | | |  | |          |
-    | |_|  |_| |_| |_| |_| |__|  |_| |_| |_| |_| |__| |__________|
-          1                  1  1                  1            8
-     8 8  7 8 8 8 8 8 8 8 8  7  7 8 8 8 8 8 8 8 8  7 8          8
-     8 8  7 8 8 8 8 8 8 8 8  7  7 8 8 8 8 8 8 8 8  7 8          8
-     9 9  8 9 9 9 9 9 9 9 9  8  8 9 9 9 9 9 9 9 9  8 9          9
-       1  0   0   0   0   0  1  0   0   0   0   0  1            E rc-5
-
- drivers/media/rc/ir-rc5-decoder.c | 116 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 116 insertions(+)
-
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index 84fa6e9..8939ebd 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -184,9 +184,125 @@ out:
- 	return -EINVAL;
+diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+index e60a53e..52a8ffe 100644
+--- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
++++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+@@ -244,7 +244,7 @@ dt3155_wait_prepare(struct vb2_queue *q)
+ {
+ 	struct dt3155_priv *pd = vb2_get_drv_priv(q);
+ 
+-	mutex_unlock(pd->vdev->lock);
++	mutex_unlock(pd->vdev.lock);
  }
  
-+static struct ir_raw_timings_manchester ir_rc5_timings = {
-+	.leader			= RC5_UNIT,
-+	.pulse_space_start	= 0,
-+	.clock			= RC5_UNIT,
-+	.trailer_space		= RC5_UNIT * 10,
-+};
-+
-+static struct ir_raw_timings_manchester ir_rc5x_timings[2] = {
-+	{
-+		.leader			= RC5_UNIT,
-+		.pulse_space_start	= 0,
-+		.clock			= RC5_UNIT,
-+		.trailer_space		= RC5X_SPACE,
-+	},
-+	{
-+		.clock			= RC5_UNIT,
-+		.trailer_space		= RC5_UNIT * 10,
-+	},
-+};
-+
-+static struct ir_raw_timings_manchester ir_rc5_sz_timings = {
-+	.leader				= RC5_UNIT,
-+	.pulse_space_start		= 0,
-+	.clock				= RC5_UNIT,
-+	.trailer_space			= RC5_UNIT * 10,
-+};
-+
-+static int ir_rc5_validate_filter(const struct rc_scancode_filter *scancode,
-+				  unsigned int important_bits)
-+{
-+	/* all important bits of scancode should be set in mask */
-+	if (~scancode->mask & important_bits)
-+		return -EINVAL;
-+	/* extra bits in mask should be zero in data */
-+	if (scancode->mask & scancode->data & ~important_bits)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+/**
-+ * ir_rc5_encode() - Encode a scancode as a stream of raw events
-+ *
-+ * @protocols:	allowed protocols
-+ * @scancode:	scancode filter describing scancode (helps distinguish between
-+ *		protocol subtypes when scancode is ambiguous)
-+ * @events:	array of raw ir events to write into
-+ * @max:	maximum size of @events
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ *		-EINVAL if the scancode is ambiguous or invalid.
-+ */
-+static int ir_rc5_encode(u64 protocols,
-+			 const struct rc_scancode_filter *scancode,
-+			 struct ir_raw_event *events, unsigned int max)
-+{
-+	int ret;
-+	struct ir_raw_event *e = events;
-+	unsigned int data, xdata, command, commandx, system;
-+
-+	/* Detect protocol and convert scancode to raw data */
-+	if (protocols & RC_BIT_RC5 &&
-+	    !ir_rc5_validate_filter(scancode, 0x1f7f)) {
-+		/* decode scancode */
-+		command  = (scancode->data & 0x003f) >> 0;
-+		commandx = (scancode->data & 0x0040) >> 6;
-+		system   = (scancode->data & 0x1f00) >> 8;
-+		/* encode data */
-+		data = !commandx << 12 | system << 6 | command;
-+
-+		/* Modulate the data */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc5_timings, RC5_NBITS,
-+					    data);
-+		if (ret < 0)
-+			return ret;
-+	} else if (protocols & RC_BIT_RC5X &&
-+		   !ir_rc5_validate_filter(scancode, 0x1f7f3f)) {
-+		/* decode scancode */
-+		xdata    = (scancode->data & 0x00003f) >> 0;
-+		command  = (scancode->data & 0x003f00) >> 8;
-+		commandx = (scancode->data & 0x004000) >> 14;
-+		system   = (scancode->data & 0x1f0000) >> 16;
-+		/* commandx and system overlap, bits must match when encoded */
-+		if (commandx == (system & 0x1))
-+			return -EINVAL;
-+		/* encode data */
-+		data = 1 << 18 | system << 12 | command << 6 | xdata;
-+
-+		/* Modulate the data */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc5x_timings[0],
-+					CHECK_RC5X_NBITS,
-+					data >> (RC5X_NBITS-CHECK_RC5X_NBITS));
-+		if (ret < 0)
-+			return ret;
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					&ir_rc5x_timings[1],
-+					RC5X_NBITS - CHECK_RC5X_NBITS,
-+					data);
-+		if (ret < 0)
-+			return ret;
-+	} else if (protocols & RC_BIT_RC5_SZ &&
-+		   !ir_rc5_validate_filter(scancode, 0x2fff)) {
-+		/* RC5-SZ scancode is raw enough for Manchester as it is */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc5_sz_timings,
-+					RC5_SZ_NBITS, scancode->data & 0x2fff);
-+		if (ret < 0)
-+			return ret;
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return e - events;
-+}
-+
- static struct ir_raw_handler rc5_handler = {
- 	.protocols	= RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ,
- 	.decode		= ir_rc5_decode,
-+	.encode		= ir_rc5_encode,
+ static void
+@@ -252,7 +252,7 @@ dt3155_wait_finish(struct vb2_queue *q)
+ {
+ 	struct dt3155_priv *pd = vb2_get_drv_priv(q);
+ 
+-	mutex_lock(pd->vdev->lock);
++	mutex_lock(pd->vdev.lock);
+ }
+ 
+ static int
+@@ -824,7 +824,7 @@ static struct video_device dt3155_vdev = {
+ 	.fops = &dt3155_fops,
+ 	.ioctl_ops = &dt3155_ioctl_ops,
+ 	.minor = -1,
+-	.release = video_device_release,
++	.release = video_device_release_empty,
+ 	.tvnorms = DT3155_CURRENT_NORM,
  };
  
- static int __init ir_rc5_decode_init(void)
+@@ -904,24 +904,21 @@ dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	pd = devm_kzalloc(&pdev->dev, sizeof(*pd), GFP_KERNEL);
+ 	if (!pd)
+ 		return -ENOMEM;
+-	pd->vdev = video_device_alloc();
+-	if (!pd->vdev)
+-		return -ENOMEM;
+ 
+-	*pd->vdev = dt3155_vdev;
++	pd->vdev = dt3155_vdev;
+ 	pci_set_drvdata(pdev, pd);    /* for use in dt3155_remove() */
+-	video_set_drvdata(pd->vdev, pd);  /* for use in video_fops */
++	video_set_drvdata(&pd->vdev, pd);  /* for use in video_fops */
+ 	pd->users = 0;
+ 	pd->pdev = pdev;
+ 	INIT_LIST_HEAD(&pd->dmaq);
+ 	mutex_init(&pd->mux);
+-	pd->vdev->lock = &pd->mux; /* for locking v4l2_file_operations */
++	pd->vdev.lock = &pd->mux; /* for locking v4l2_file_operations */
+ 	spin_lock_init(&pd->lock);
+ 	pd->csr2 = csr2_init;
+ 	pd->config = config_init;
+ 	err = pci_enable_device(pdev);
+ 	if (err)
+-		goto err_enable_dev;
++		return err;
+ 	err = pci_request_region(pdev, 0, pci_name(pdev));
+ 	if (err)
+ 		goto err_req_region;
+@@ -933,13 +930,13 @@ dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	err = dt3155_init_board(pdev);
+ 	if (err)
+ 		goto err_init_board;
+-	err = video_register_device(pd->vdev, VFL_TYPE_GRABBER, -1);
++	err = video_register_device(&pd->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (err)
+ 		goto err_init_board;
+ 	if (dt3155_alloc_coherent(&pdev->dev, DT3155_CHUNK_SIZE,
+ 							DMA_MEMORY_MAP))
+ 		dev_info(&pdev->dev, "preallocated 8 buffers\n");
+-	dev_info(&pdev->dev, "/dev/video%i is ready\n", pd->vdev->minor);
++	dev_info(&pdev->dev, "/dev/video%i is ready\n", pd->vdev.minor);
+ 	return 0;  /*   success   */
+ 
+ err_init_board:
+@@ -948,9 +945,6 @@ err_pci_iomap:
+ 	pci_release_region(pdev, 0);
+ err_req_region:
+ 	pci_disable_device(pdev);
+-err_enable_dev:
+-	video_device_release(pd->vdev);
+-
+ 	return err;
+ }
+ 
+@@ -960,14 +954,10 @@ dt3155_remove(struct pci_dev *pdev)
+ 	struct dt3155_priv *pd = pci_get_drvdata(pdev);
+ 
+ 	dt3155_free_coherent(&pdev->dev);
+-	video_unregister_device(pd->vdev);
++	video_unregister_device(&pd->vdev);
+ 	pci_iounmap(pdev, pd->regs);
+ 	pci_release_region(pdev, 0);
+ 	pci_disable_device(pdev);
+-	/*
+-	 * video_device_release() is invoked automatically
+-	 * see: struct video_device dt3155_vdev
+-	 */
+ }
+ 
+ static const struct pci_device_id pci_ids[] = {
+diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.h b/drivers/staging/media/dt3155v4l/dt3155v4l.h
+index 2e4f89d..96f01a0 100644
+--- a/drivers/staging/media/dt3155v4l/dt3155v4l.h
++++ b/drivers/staging/media/dt3155v4l/dt3155v4l.h
+@@ -178,7 +178,7 @@ struct dt3155_stats {
+ /**
+  * struct dt3155_priv - private data structure
+  *
+- * @vdev:		pointer to video_device structure
++ * @vdev:		video_device structure
+  * @pdev:		pointer to pci_dev structure
+  * @q			pointer to vb2_queue structure
+  * @curr_buf:		pointer to curren buffer
+@@ -193,7 +193,7 @@ struct dt3155_stats {
+  * @config:		local copy of config register
+  */
+ struct dt3155_priv {
+-	struct video_device *vdev;
++	struct video_device vdev;
+ 	struct pci_dev *pdev;
+ 	struct vb2_queue *q;
+ 	struct vb2_buffer *curr_buf;
 -- 
-2.0.5
+2.1.4
 
