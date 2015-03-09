@@ -1,38 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38728 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752527AbbCNOrv (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50115 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750976AbbCIVXg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 10:47:51 -0400
-Date: Sat, 14 Mar 2015 16:47:48 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] media: omap3isp: video: Don't call vb2 mmap with queue
- lock held
-Message-ID: <20150314144748.GY11954@valkosipuli.retiisi.org.uk>
-References: <1426206815-15503-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1426206815-15503-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 9 Mar 2015 17:23:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 08/18] marvell-ccic: implement control events
+Date: Mon,  9 Mar 2015 22:22:13 +0100
+Message-Id: <1425936143-5658-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 13, 2015 at 02:33:35AM +0200, Laurent Pinchart wrote:
-> videobuf2 has long been subject to AB-BA style deadlocks due to the
-> queue lock and mmap_sem being taken in different orders for the mmap
-> operation. The problem has been fixed by making this operation callable
-> without taking the queue lock, using an mmap_lock internal to videobuf2.
-> 
-> The omap3isp driver still calls the mmap operation with the queue lock
-> held, resulting in a potential deadlock. As the operation can now be
-> called without locking the queue, fix it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Now that this driver uses v4l2_fh, it is trivial to add support for
+control events. Again, this fixes a v4l2-compliance failure.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 8456017..4d50182 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -24,6 +24,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
+ #include <media/ov7670.h>
+ #include <media/videobuf2-vmalloc.h>
+ #include <media/videobuf2-dma-contig.h>
+@@ -1665,6 +1666,8 @@ static const struct v4l2_ioctl_ops mcam_v4l_ioctl_ops = {
+ 	.vidioc_s_parm		= mcam_vidioc_s_parm,
+ 	.vidioc_enum_framesizes = mcam_vidioc_enum_framesizes,
+ 	.vidioc_enum_frameintervals = mcam_vidioc_enum_frameintervals,
++	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register	= mcam_vidioc_g_register,
+ 	.vidioc_s_register	= mcam_vidioc_s_register,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.4
+
