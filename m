@@ -1,71 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39247 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932889AbbCQKqt (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:49585 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752434AbbCIPu1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2015 06:46:49 -0400
-Message-ID: <1426589206.3709.14.camel@pengutronix.de>
-Subject: Re: [PATCH v3 0/5] Signalling last decoded frame by
- V4L2_BUF_FLAG_LAST and -EPIPE
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Mon, 9 Mar 2015 11:50:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
-	Pawel Osciak <pawel@osciak.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Date: Tue, 17 Mar 2015 11:46:46 +0100
-In-Reply-To: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
-References: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 29/29] vivid: add the new planar and monochrome formats
+Date: Mon,  9 Mar 2015 16:44:51 +0100
+Message-Id: <1425915891-1017-30-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Am Freitag, den 06.03.2015, 11:18 +0100 schrieb Philipp Zabel:
-> At the V4L2 codec API session during ELC-E 2014, we agreed that for the decoder
-> draining flow, after a V4L2_DEC_CMD_STOP decoder command was issued, the last
-> decoded buffer should get dequeued with a V4L2_BUF_FLAG_LAST set. After that,
-> poll should immediately return and all following VIDIOC_DQBUF should return
-> -EPIPE until the stream is stopped or decoding continued via V4L2_DEC_CMD_START.
-> (or STREAMOFF/STREAMON).
-> 
-> Changes since v2:
->  - Made V4L2_BUF_FLAG_LAST known to trace events
-> 
-> regards
-> Philipp
-> 
-> Peter Seiderer (1):
->   [media] videodev2: Add V4L2_BUF_FLAG_LAST
-> 
-> Philipp Zabel (4):
->   [media] videobuf2: return -EPIPE from DQBUF after the last buffer
->   [media] coda: Set last buffer flag and fix EOS event
->   [media] s5p-mfc: Set last buffer flag
->   [media] DocBooc: mention mem2mem codecs for encoder/decoder commands
-> 
->  Documentation/DocBook/media/v4l/io.xml             | 10 ++++++++
->  .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  6 ++++-
->  .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |  5 +++-
->  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |  8 +++++++
->  drivers/media/platform/coda/coda-bit.c             |  4 ++--
->  drivers/media/platform/coda/coda-common.c          | 27 +++++++++-------------
->  drivers/media/platform/coda/coda.h                 |  3 +++
->  drivers/media/platform/s5p-mfc/s5p_mfc.c           |  1 +
->  drivers/media/v4l2-core/v4l2-mem2mem.c             | 10 +++++++-
->  drivers/media/v4l2-core/videobuf2-core.c           | 18 ++++++++++++++-
->  include/media/videobuf2-core.h                     | 10 ++++++++
->  include/trace/events/v4l2.h                        |  3 ++-
->  include/uapi/linux/videodev2.h                     |  2 ++
->  13 files changed, 84 insertions(+), 23 deletions(-)
+Everything is in place to support these formats, so add them to
+the list.
 
-are there any further changes that I should make to this series?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-vid-common.c | 114 +++++++++++++++++++++++-
+ 1 file changed, 111 insertions(+), 3 deletions(-)
 
-regards
-Philipp
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+index 0f93fea..7cb4aa0 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -51,7 +51,7 @@ struct vivid_fmt vivid_formats[] = {
+ 		.is_yuv   = true,
+ 		.planes   = 1,
+ 		.buffers = 1,
+-		.data_offset = { PLANE0_DATA_OFFSET, 0 },
++		.data_offset = { PLANE0_DATA_OFFSET },
+ 	},
+ 	{
+ 		.name     = "4:2:2, packed, UYVY",
+@@ -81,6 +81,78 @@ struct vivid_fmt vivid_formats[] = {
+ 		.buffers = 1,
+ 	},
+ 	{
++		.name     = "YUV 4:2:2 triplanar",
++		.fourcc   = V4L2_PIX_FMT_YUV422P,
++		.vdownsampling = { 1, 1, 1 },
++		.bit_depth = { 8, 4, 4 },
++		.is_yuv   = true,
++		.planes   = 3,
++		.buffers = 1,
++	},
++	{
++		.name     = "YUV 4:2:0 triplanar",
++		.fourcc   = V4L2_PIX_FMT_YUV420,
++		.vdownsampling = { 1, 2, 2 },
++		.bit_depth = { 8, 4, 4 },
++		.is_yuv   = true,
++		.planes   = 3,
++		.buffers = 1,
++	},
++	{
++		.name     = "YVU 4:2:0 triplanar",
++		.fourcc   = V4L2_PIX_FMT_YVU420,
++		.vdownsampling = { 1, 2, 2 },
++		.bit_depth = { 8, 4, 4 },
++		.is_yuv   = true,
++		.planes   = 3,
++		.buffers = 1,
++	},
++	{
++		.name     = "YUV 4:2:0 biplanar",
++		.fourcc   = V4L2_PIX_FMT_NV12,
++		.vdownsampling = { 1, 2 },
++		.bit_depth = { 8, 8 },
++		.is_yuv   = true,
++		.planes   = 2,
++		.buffers = 1,
++	},
++	{
++		.name     = "YVU 4:2:0 biplanar",
++		.fourcc   = V4L2_PIX_FMT_NV21,
++		.vdownsampling = { 1, 2 },
++		.bit_depth = { 8, 8 },
++		.is_yuv   = true,
++		.planes   = 2,
++		.buffers = 1,
++	},
++	{
++		.name     = "YUV 4:2:2 biplanar",
++		.fourcc   = V4L2_PIX_FMT_NV16,
++		.vdownsampling = { 1, 1 },
++		.bit_depth = { 8, 8 },
++		.is_yuv   = true,
++		.planes   = 2,
++		.buffers = 1,
++	},
++	{
++		.name     = "YVU 4:2:2 biplanar",
++		.fourcc   = V4L2_PIX_FMT_NV61,
++		.vdownsampling = { 1, 1 },
++		.bit_depth = { 8, 8 },
++		.is_yuv   = true,
++		.planes   = 2,
++		.buffers = 1,
++	},
++	{
++		.name     = "Monochrome",
++		.fourcc   = V4L2_PIX_FMT_GREY,
++		.vdownsampling = { 1 },
++		.bit_depth = { 8 },
++		.is_yuv   = true,
++		.planes   = 1,
++		.buffers = 1,
++	},
++	{
+ 		.name     = "RGB565 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB565, /* gggbbbbb rrrrrggg */
+ 		.vdownsampling = { 1 },
+@@ -221,10 +293,46 @@ struct vivid_fmt vivid_formats[] = {
+ 		.buffers = 2,
+ 		.data_offset = { 0, PLANE0_DATA_OFFSET },
+ 	},
++	{
++		.name     = "4:2:0, triplanar, YUV",
++		.fourcc   = V4L2_PIX_FMT_YUV420M,
++		.vdownsampling = { 1, 2, 2 },
++		.bit_depth = { 8, 4, 4 },
++		.is_yuv   = true,
++		.planes   = 3,
++		.buffers = 3,
++	},
++	{
++		.name     = "4:2:0, triplanar, YVU",
++		.fourcc   = V4L2_PIX_FMT_YVU420M,
++		.vdownsampling = { 1, 2, 2 },
++		.bit_depth = { 8, 4, 4 },
++		.is_yuv   = true,
++		.planes   = 3,
++		.buffers = 3,
++	},
++	{
++		.name     = "4:2:0, biplanar, YUV",
++		.fourcc   = V4L2_PIX_FMT_NV12M,
++		.vdownsampling = { 1, 2 },
++		.bit_depth = { 8, 8 },
++		.is_yuv   = true,
++		.planes   = 2,
++		.buffers = 2,
++	},
++	{
++		.name     = "4:2:0, biplanar, YVU",
++		.fourcc   = V4L2_PIX_FMT_NV21M,
++		.vdownsampling = { 1, 2 },
++		.bit_depth = { 8, 8 },
++		.is_yuv   = true,
++		.planes   = 2,
++		.buffers = 2,
++	},
+ };
+ 
+-/* There are 2 multiplanar formats in the list */
+-#define VIVID_MPLANAR_FORMATS 2
++/* There are 6 multiplanar formats in the list */
++#define VIVID_MPLANAR_FORMATS 6
+ 
+ const struct vivid_fmt *vivid_get_format(struct vivid_dev *dev, u32 pixelformat)
+ {
+-- 
+2.1.4
 
