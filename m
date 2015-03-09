@@ -1,42 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f169.google.com ([209.85.160.169]:46235 "EHLO
-	mail-yk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751937AbbCATJy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2015 14:09:54 -0500
-Received: by ykq142 with SMTP id 142so11541557ykq.13
-        for <linux-media@vger.kernel.org>; Sun, 01 Mar 2015 11:09:53 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 1 Mar 2015 14:09:53 -0500
-Message-ID: <CALzAhNVnmCFTM6ymqVJJrcwCfw35N1-ejLmWibMjo6EDEj0uog@mail.gmail.com>
-Subject: SMS / DVB / media_graph issue - tip fails to compile
-From: Steven Toth <stoth@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59117 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753760AbbCIVWz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 17:22:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 03/18] marvell-ccic: webcam drivers shouldn't support g/s_std
+Date: Mon,  9 Mar 2015 22:22:08 +0100
+Message-Id: <1425936143-5658-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Someone broke tip.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-  CC [M]  drivers/media/common/siano/smsdvb-main.o
-drivers/media/common/siano/smsdvb-main.c: In function
-‘smsdvb_media_device_unregister’:
-drivers/media/common/siano/smsdvb-main.c:614:27: warning: unused
-variable ‘coredev’ [-Wunused-variable]
-  struct smscore_device_t *coredev = client->coredev;
-                           ^
+TV standards make no sense for webcam drivers, so drop these dummy
+functions. This stops v4l2-compliance from complaining about this.
 
-drivers/media/common/siano/smsdvb-main.c: In function ‘smsdvb_hotplug’:
-drivers/media/common/siano/smsdvb-main.c:1188:32: error: ‘struct
-smscore_device_t’ has no member named ‘media_dev’
-  dvb_create_media_graph(coredev->media_dev);
-                                ^
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.c | 15 ---------------
+ 1 file changed, 15 deletions(-)
 
-make[4]: *** [drivers/media/common/siano/smsdvb-main.o] Error 1
-make[3]: *** [drivers/media/common/siano] Error 2
-make[2]: *** [drivers/media/common] Error 2
-
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index e83ca1f..76357cf 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1508,7 +1508,6 @@ static int mcam_vidioc_enum_input(struct file *filp, void *priv,
+ 		return -EINVAL;
+ 
+ 	input->type = V4L2_INPUT_TYPE_CAMERA;
+-	input->std = V4L2_STD_ALL; /* Not sure what should go here */
+ 	strcpy(input->name, "Camera");
+ 	return 0;
+ }
+@@ -1526,18 +1525,6 @@ static int mcam_vidioc_s_input(struct file *filp, void *priv, unsigned int i)
+ 	return 0;
+ }
+ 
+-/* from vivi.c */
+-static int mcam_vidioc_s_std(struct file *filp, void *priv, v4l2_std_id a)
+-{
+-	return 0;
+-}
+-
+-static int mcam_vidioc_g_std(struct file *filp, void *priv, v4l2_std_id *a)
+-{
+-	*a = V4L2_STD_NTSC_M;
+-	return 0;
+-}
+-
+ /*
+  * G/S_PARM.  Most of this is done by the sensor, but we are
+  * the level which controls the number of read buffers.
+@@ -1666,8 +1653,6 @@ static const struct v4l2_ioctl_ops mcam_v4l_ioctl_ops = {
+ 	.vidioc_enum_input	= mcam_vidioc_enum_input,
+ 	.vidioc_g_input		= mcam_vidioc_g_input,
+ 	.vidioc_s_input		= mcam_vidioc_s_input,
+-	.vidioc_s_std		= mcam_vidioc_s_std,
+-	.vidioc_g_std		= mcam_vidioc_g_std,
+ 	.vidioc_reqbufs		= mcam_vidioc_reqbufs,
+ 	.vidioc_querybuf	= mcam_vidioc_querybuf,
+ 	.vidioc_qbuf		= mcam_vidioc_qbuf,
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+2.1.4
+
