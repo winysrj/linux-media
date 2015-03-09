@@ -1,119 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:51080 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751058AbbCNDrB (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47716 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752863AbbCIPrI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 23:47:01 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 530B02A002F
-	for <linux-media@vger.kernel.org>; Sat, 14 Mar 2015 04:46:49 +0100 (CET)
-Date: Sat, 14 Mar 2015 04:46:49 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 9 Mar 2015 11:47:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150314034649.530B02A002F@tschai.lan>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 14/29] vivid-tpg: add hor/vert downsampling support to tpg_gen_text
+Date: Mon,  9 Mar 2015 16:44:36 +0100
+Message-Id: <1425915891-1017-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+This will just skip lines/pixels since color fidelity is not quite
+as important here as it is with the test patterns themselves.
 
-date:		Sat Mar 14 04:00:17 CET 2015
-git branch:	test
-git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-tpg.c | 27 ++++++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 7 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
+index 9001b9a..f03289f 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.c
++++ b/drivers/media/platform/vivid/vivid-tpg.c
+@@ -1183,24 +1183,37 @@ void tpg_gen_text(struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
+ 		div = 2;
+ 
+ 	for (p = 0; p < tpg->planes; p++) {
+-		/* Print stream time */
++		unsigned vdiv = tpg->vdownsampling[p];
++		unsigned hdiv = tpg->hdownsampling[p];
++
++		/* Print text */
+ #define PRINTSTR(PIXTYPE) do {	\
+ 	PIXTYPE fg;	\
+ 	PIXTYPE bg;	\
+ 	memcpy(&fg, tpg->textfg[p], sizeof(PIXTYPE));	\
+ 	memcpy(&bg, tpg->textbg[p], sizeof(PIXTYPE));	\
+ 	\
+-	for (line = first; line < 16; line += step) {	\
++	for (line = first; line < 16; line += vdiv * step) {	\
+ 		int l = tpg->vflip ? 15 - line : line; \
+-		PIXTYPE *pos = (PIXTYPE *)(basep[p][line & 1] + \
+-			       ((y * step + l) / div) * tpg->bytesperline[p] + \
+-			       x * sizeof(PIXTYPE));	\
++		PIXTYPE *pos = (PIXTYPE *)(basep[p][(line / vdiv) & 1] + \
++			       ((y * step + l) / (vdiv * div)) * tpg->bytesperline[p] + \
++			       (x / hdiv) * sizeof(PIXTYPE));	\
+ 		unsigned s;	\
+ 	\
+ 		for (s = 0; s < len; s++) {	\
+ 			u8 chr = font8x16[text[s] * 16 + line];	\
+ 	\
+-			if (tpg->hflip) { \
++			if (hdiv == 2 && tpg->hflip) { \
++				pos[3] = (chr & (0x01 << 6) ? fg : bg);	\
++				pos[2] = (chr & (0x01 << 4) ? fg : bg);	\
++				pos[1] = (chr & (0x01 << 2) ? fg : bg);	\
++				pos[0] = (chr & (0x01 << 0) ? fg : bg);	\
++			} else if (hdiv == 2) { \
++				pos[0] = (chr & (0x01 << 7) ? fg : bg);	\
++				pos[1] = (chr & (0x01 << 5) ? fg : bg);	\
++				pos[2] = (chr & (0x01 << 3) ? fg : bg);	\
++				pos[3] = (chr & (0x01 << 1) ? fg : bg);	\
++			} else if (tpg->hflip) { \
+ 				pos[7] = (chr & (0x01 << 7) ? fg : bg);	\
+ 				pos[6] = (chr & (0x01 << 6) ? fg : bg);	\
+ 				pos[5] = (chr & (0x01 << 5) ? fg : bg);	\
+@@ -1220,7 +1233,7 @@ void tpg_gen_text(struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
+ 				pos[7] = (chr & (0x01 << 0) ? fg : bg);	\
+ 			} \
+ 	\
+-			pos += tpg->hflip ? -8 : 8;	\
++			pos += (tpg->hflip ? -8 : 8) / hdiv;	\
+ 		}	\
+ 	}	\
+ } while (0)
+-- 
+2.1.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
