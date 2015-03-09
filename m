@@ -1,124 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56623 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754020AbbCIPpy (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44514 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754473AbbCIQfy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 11:45:54 -0400
+	Mon, 9 Mar 2015 12:35:54 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 06/29] vivid: add new checkboard patterns
-Date: Mon,  9 Mar 2015 16:44:28 +0100
-Message-Id: <1425915891-1017-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 11/19] m2m-deinterlace: embed video_device
+Date: Mon,  9 Mar 2015 17:34:05 +0100
+Message-Id: <1425918853-12371-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add a 2x2 checker patterns and 1x1 and 2x2 red/blue checker patterns.
-
-Useful for testing 4:2:2 and 4:2:0 formats.
+Embed the video_device struct to simplify the error handling and in
+order to (eventually) get rid of video_device_alloc/release.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Javier Martin <javier.martin@vista-silicon.com>
 ---
- drivers/media/platform/vivid/vivid-tpg.c | 26 +++++++++++++++++++++++---
- drivers/media/platform/vivid/vivid-tpg.h |  3 +++
- 2 files changed, 26 insertions(+), 3 deletions(-)
+ drivers/media/platform/m2m-deinterlace.c | 21 ++++++---------------
+ 1 file changed, 6 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
-index 8fa2150..e2af384 100644
---- a/drivers/media/platform/vivid/vivid-tpg.c
-+++ b/drivers/media/platform/vivid/vivid-tpg.c
-@@ -35,7 +35,10 @@ const char * const tpg_pattern_strings[] = {
- 	"100% Green",
- 	"100% Blue",
- 	"16x16 Checkers",
-+	"2x2 Checkers",
- 	"1x1 Checkers",
-+	"2x2 Red/Green Checkers",
-+	"1x1 Red/Green Checkers",
- 	"Alternating Hor Lines",
- 	"Alternating Vert Lines",
- 	"One Pixel Wide Cross",
-@@ -744,11 +747,14 @@ static void gen_twopix(struct tpg_data *tpg,
- }
+diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+index b70c1ae..92d9549 100644
+--- a/drivers/media/platform/m2m-deinterlace.c
++++ b/drivers/media/platform/m2m-deinterlace.c
+@@ -127,7 +127,7 @@ static struct deinterlace_fmt *find_format(struct v4l2_format *f)
  
- /* Return how many pattern lines are used by the current pattern. */
--static unsigned tpg_get_pat_lines(struct tpg_data *tpg)
-+static unsigned tpg_get_pat_lines(const struct tpg_data *tpg)
- {
- 	switch (tpg->pattern) {
- 	case TPG_PAT_CHECKERS_16X16:
-+	case TPG_PAT_CHECKERS_2X2:
- 	case TPG_PAT_CHECKERS_1X1:
-+	case TPG_PAT_COLOR_CHECKERS_2X2:
-+	case TPG_PAT_COLOR_CHECKERS_1X1:
- 	case TPG_PAT_ALTERNATING_HLINES:
- 	case TPG_PAT_CROSS_1_PIXEL:
- 	case TPG_PAT_CROSS_2_PIXELS:
-@@ -763,14 +769,18 @@ static unsigned tpg_get_pat_lines(struct tpg_data *tpg)
- }
+ struct deinterlace_dev {
+ 	struct v4l2_device	v4l2_dev;
+-	struct video_device	*vfd;
++	struct video_device	vfd;
  
- /* Which pattern line should be used for the given frame line. */
--static unsigned tpg_get_pat_line(struct tpg_data *tpg, unsigned line)
-+static unsigned tpg_get_pat_line(const struct tpg_data *tpg, unsigned line)
- {
- 	switch (tpg->pattern) {
- 	case TPG_PAT_CHECKERS_16X16:
- 		return (line >> 4) & 1;
- 	case TPG_PAT_CHECKERS_1X1:
-+	case TPG_PAT_COLOR_CHECKERS_1X1:
- 	case TPG_PAT_ALTERNATING_HLINES:
- 		return line & 1;
-+	case TPG_PAT_CHECKERS_2X2:
-+	case TPG_PAT_COLOR_CHECKERS_2X2:
-+		return (line & 2) >> 1;
- 	case TPG_PAT_100_COLORSQUARES:
- 	case TPG_PAT_100_HCOLORBAR:
- 		return (line * 8) / tpg->src_height;
-@@ -789,7 +799,8 @@ static unsigned tpg_get_pat_line(struct tpg_data *tpg, unsigned line)
-  * Which color should be used for the given pattern line and X coordinate.
-  * Note: x is in the range 0 to 2 * tpg->src_width.
-  */
--static enum tpg_color tpg_get_color(struct tpg_data *tpg, unsigned pat_line, unsigned x)
-+static enum tpg_color tpg_get_color(const struct tpg_data *tpg,
-+				    unsigned pat_line, unsigned x)
- {
- 	/* Maximum number of bars are TPG_COLOR_MAX - otherwise, the input print code
- 	   should be modified */
-@@ -836,6 +847,15 @@ static enum tpg_color tpg_get_color(struct tpg_data *tpg, unsigned pat_line, uns
- 	case TPG_PAT_CHECKERS_1X1:
- 		return ((x & 1) ^ (pat_line & 1)) ?
- 			TPG_COLOR_100_WHITE : TPG_COLOR_100_BLACK;
-+	case TPG_PAT_COLOR_CHECKERS_1X1:
-+		return ((x & 1) ^ (pat_line & 1)) ?
-+			TPG_COLOR_100_RED : TPG_COLOR_100_BLUE;
-+	case TPG_PAT_CHECKERS_2X2:
-+		return (((x >> 1) & 1) ^ (pat_line & 1)) ?
-+			TPG_COLOR_100_WHITE : TPG_COLOR_100_BLACK;
-+	case TPG_PAT_COLOR_CHECKERS_2X2:
-+		return (((x >> 1) & 1) ^ (pat_line & 1)) ?
-+			TPG_COLOR_100_RED : TPG_COLOR_100_BLUE;
- 	case TPG_PAT_ALTERNATING_HLINES:
- 		return pat_line ? TPG_COLOR_100_WHITE : TPG_COLOR_100_BLACK;
- 	case TPG_PAT_ALTERNATING_VLINES:
-diff --git a/drivers/media/platform/vivid/vivid-tpg.h b/drivers/media/platform/vivid/vivid-tpg.h
-index 8100425..e796a54 100644
---- a/drivers/media/platform/vivid/vivid-tpg.h
-+++ b/drivers/media/platform/vivid/vivid-tpg.h
-@@ -41,7 +41,10 @@ enum tpg_pattern {
- 	TPG_PAT_GREEN,
- 	TPG_PAT_BLUE,
- 	TPG_PAT_CHECKERS_16X16,
-+	TPG_PAT_CHECKERS_2X2,
- 	TPG_PAT_CHECKERS_1X1,
-+	TPG_PAT_COLOR_CHECKERS_2X2,
-+	TPG_PAT_COLOR_CHECKERS_1X1,
- 	TPG_PAT_ALTERNATING_HLINES,
- 	TPG_PAT_ALTERNATING_VLINES,
- 	TPG_PAT_CROSS_1_PIXEL,
+ 	atomic_t		busy;
+ 	struct mutex		dev_mutex;
+@@ -983,7 +983,7 @@ static struct video_device deinterlace_videodev = {
+ 	.fops		= &deinterlace_fops,
+ 	.ioctl_ops	= &deinterlace_ioctl_ops,
+ 	.minor		= -1,
+-	.release	= video_device_release,
++	.release	= video_device_release_empty,
+ 	.vfl_dir	= VFL_DIR_M2M,
+ };
+ 
+@@ -1026,13 +1026,7 @@ static int deinterlace_probe(struct platform_device *pdev)
+ 	atomic_set(&pcdev->busy, 0);
+ 	mutex_init(&pcdev->dev_mutex);
+ 
+-	vfd = video_device_alloc();
+-	if (!vfd) {
+-		v4l2_err(&pcdev->v4l2_dev, "Failed to allocate video device\n");
+-		ret = -ENOMEM;
+-		goto unreg_dev;
+-	}
+-
++	vfd = &pcdev->vfd;
+ 	*vfd = deinterlace_videodev;
+ 	vfd->lock = &pcdev->dev_mutex;
+ 	vfd->v4l2_dev = &pcdev->v4l2_dev;
+@@ -1040,12 +1034,11 @@ static int deinterlace_probe(struct platform_device *pdev)
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+ 	if (ret) {
+ 		v4l2_err(&pcdev->v4l2_dev, "Failed to register video device\n");
+-		goto rel_vdev;
++		goto unreg_dev;
+ 	}
+ 
+ 	video_set_drvdata(vfd, pcdev);
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s", deinterlace_videodev.name);
+-	pcdev->vfd = vfd;
+ 	v4l2_info(&pcdev->v4l2_dev, MEM2MEM_TEST_MODULE_NAME
+ 			" Device registered as /dev/video%d\n", vfd->num);
+ 
+@@ -1069,11 +1062,9 @@ static int deinterlace_probe(struct platform_device *pdev)
+ 
+ 	v4l2_m2m_release(pcdev->m2m_dev);
+ err_m2m:
+-	video_unregister_device(pcdev->vfd);
++	video_unregister_device(&pcdev->vfd);
+ err_ctx:
+ 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+-rel_vdev:
+-	video_device_release(vfd);
+ unreg_dev:
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+ rel_dma:
+@@ -1088,7 +1079,7 @@ static int deinterlace_remove(struct platform_device *pdev)
+ 
+ 	v4l2_info(&pcdev->v4l2_dev, "Removing " MEM2MEM_TEST_MODULE_NAME);
+ 	v4l2_m2m_release(pcdev->m2m_dev);
+-	video_unregister_device(pcdev->vfd);
++	video_unregister_device(&pcdev->vfd);
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+ 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ 	dma_release_channel(pcdev->dma_chan);
 -- 
 2.1.4
 
