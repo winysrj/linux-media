@@ -1,48 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44474 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755674AbbCRKXB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 06:23:01 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Ian Molton <imolton@ad-holdings.co.uk>,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 3/5] gpu: ipu-v3: Register scaler platform device
-Date: Wed, 18 Mar 2015 11:22:51 +0100
-Message-Id: <1426674173-17088-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1426674173-17088-1-git-send-email-p.zabel@pengutronix.de>
-References: <1426674173-17088-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-we0-f171.google.com ([74.125.82.171]:43139 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753718AbbCIWLK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 18:11:10 -0400
+Received: by wevl61 with SMTP id l61so13696594wev.10
+        for <linux-media@vger.kernel.org>; Mon, 09 Mar 2015 15:11:09 -0700 (PDT)
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 0/2] media: sh_vou: trivial cleanups
+Date: Mon,  9 Mar 2015 22:10:50 +0000
+Message-Id: <1425939052-6375-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch registers the scaler device using the IC post-processing task,
-to be handled by a mem2mem scaler driver.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/gpu/ipu-v3/ipu-common.c | 2 ++
- 1 file changed, 2 insertions(+)
+Hi,
 
-diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
-index 67bab5c..cf89692 100644
---- a/drivers/gpu/ipu-v3/ipu-common.c
-+++ b/drivers/gpu/ipu-v3/ipu-common.c
-@@ -1026,6 +1026,8 @@ static const struct ipu_platform_reg client_reg[] = {
- 		},
- 		.reg_offset = IPU_CM_CSI1_REG_OFS,
- 		.name = "imx-ipuv3-camera",
-+	}, {
-+		.name = "imx-ipuv3-scaler",
- 	},
- };
- 
+This series is trivial cleanup for sh_vou driver.
+
+Cheers,
+--Prabhakar Lad
+
+Lad, Prabhakar (2):
+  media: sh_vou: embed video_device
+  media: sh_vou: use devres api
+
+ drivers/media/platform/sh_vou.c | 72 ++++++++++-------------------------------
+ 1 file changed, 17 insertions(+), 55 deletions(-)
+
 -- 
-2.1.4
+2.1.0
 
