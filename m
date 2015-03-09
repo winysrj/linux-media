@@ -1,383 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51049 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751400AbbCJBSr (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44514 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754578AbbCIQgD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 21:18:47 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Mon, 9 Mar 2015 12:36:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 3/3] v4l: of: Add link-frequencies array to struct v4l2_of_endpoint
-Date: Tue, 10 Mar 2015 03:18:02 +0200
-Message-Id: <1425950282-30548-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1425950282-30548-1-git-send-email-sakari.ailus@iki.fi>
-References: <1425950282-30548-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 12/19] em28xx: embed video_device
+Date: Mon,  9 Mar 2015 17:34:06 +0100
+Message-Id: <1425918853-12371-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse and read the link-frequencies property in v4l2_of_parse_endpoint().
-The property is an u64 array of undefined length, thus the memory allocation
-may fail, leading
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-- v4l2_of_parse_endpoint() to return an error in such a case (as well as
-  when failing to parse the property) and
-- to requiring releasing the memory reserved for the array
-  (v4l2_of_release_endpoint()).
+Embed the video_device struct to simplify the error handling and in
+order to (eventually) get rid of video_device_alloc/release.
 
-If a driver does not need to access properties that require memory
-allocation (such as link-frequencies), it may choose to call
-v4l2_of_release_endpoint() right after calling v4l2_of_parse_endpoint().
-
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7604.c                    |    1 +
- drivers/media/i2c/s5c73m3/s5c73m3-core.c       |    1 +
- drivers/media/i2c/s5k5baf.c                    |    1 +
- drivers/media/i2c/smiapp/smiapp-core.c         |   32 ++++++++--------
- drivers/media/i2c/tvp514x.c                    |    1 +
- drivers/media/i2c/tvp7002.c                    |    1 +
- drivers/media/platform/am437x/am437x-vpfe.c    |    1 +
- drivers/media/platform/exynos4-is/media-dev.c  |    1 +
- drivers/media/platform/exynos4-is/mipi-csis.c  |    1 +
- drivers/media/platform/soc_camera/atmel-isi.c  |    1 +
- drivers/media/platform/soc_camera/pxa_camera.c |    1 +
- drivers/media/platform/soc_camera/rcar_vin.c   |    1 +
- drivers/media/v4l2-core/v4l2-of.c              |   47 +++++++++++++++++++++++-
- include/media/v4l2-of.h                        |    9 +++++
- 14 files changed, 81 insertions(+), 18 deletions(-)
+ drivers/media/usb/em28xx/em28xx-video.c | 119 ++++++++++++++------------------
+ drivers/media/usb/em28xx/em28xx.h       |   6 +-
+ 2 files changed, 54 insertions(+), 71 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index aaab9c9..9c6c2a5 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2624,6 +2624,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 		return -EINVAL;
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 9ecf656..14eba9c 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1472,7 +1472,7 @@ static int vidioc_enum_input(struct file *file, void *priv,
+ 	    (EM28XX_VMUX_CABLE == INPUT(n)->type))
+ 		i->type = V4L2_INPUT_TYPE_TUNER;
  
- 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+	v4l2_of_release_endpoint(&bus_cfg);
- 	of_node_put(endpoint);
+-	i->std = dev->v4l2->vdev->tvnorms;
++	i->std = dev->v4l2->vdev.tvnorms;
+ 	/* webcams do not have the STD API */
+ 	if (dev->board.is_webcam)
+ 		i->capabilities = 0;
+@@ -1730,9 +1730,9 @@ static int vidioc_querycap(struct file *file, void  *priv,
  
- 	flags = bus_cfg.bus.parallel.flags;
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-index ee0f57e..f248a47 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-@@ -1624,6 +1624,7 @@ static int s5c73m3_get_platform_data(struct s5c73m3 *state)
- 	}
- 
- 	v4l2_of_parse_endpoint(node_ep, &ep);
-+	v4l2_of_release_endpoint(&ep);
- 	of_node_put(node_ep);
- 
- 	if (ep.bus_type != V4L2_MBUS_CSI2) {
-diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-index a3d7d03..222cd62 100644
---- a/drivers/media/i2c/s5k5baf.c
-+++ b/drivers/media/i2c/s5k5baf.c
-@@ -1867,6 +1867,7 @@ static int s5k5baf_parse_device_node(struct s5k5baf *state, struct device *dev)
- 	}
- 
- 	v4l2_of_parse_endpoint(node_ep, &ep);
-+	v4l2_of_release_endpoint(&ep);
- 	of_node_put(node_ep);
- 	state->bus_type = ep.bus_type;
- 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index ecae76b..2b3cd9e 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2977,7 +2977,7 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
- 	struct smiapp_platform_data *pdata;
- 	struct v4l2_of_endpoint bus_cfg;
- 	struct device_node *ep;
--	uint32_t asize;
-+	int i;
- 	int rval;
- 
- 	if (!dev->of_node)
-@@ -2987,12 +2987,14 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
- 	if (!ep)
- 		return NULL;
- 
-+	rval = v4l2_of_parse_endpoint(ep, &bus_cfg);
-+	if (rval < 0)
-+		goto out_err;
-+
- 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		goto out_err;
- 
--	v4l2_of_parse_endpoint(ep, &bus_cfg);
--
- 	switch (bus_cfg.bus_type) {
- 	case V4L2_MBUS_CSI2:
- 		pdata->csi_signalling_mode = SMIAPP_CSI_SIGNALLING_MODE_CSI2;
-@@ -3022,34 +3024,30 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
- 	dev_dbg(dev, "reset %d, nvm %d, clk %d, csi %d\n", pdata->xshutdown,
- 		pdata->nvm_size, pdata->ext_clk, pdata->csi_signalling_mode);
- 
--	rval = of_get_property(ep, "link-frequencies", &asize) ? 0 : -ENOENT;
--	if (rval) {
--		dev_warn(dev, "can't get link-frequencies array size\n");
-+	if (!bus_cfg.nr_of_link_frequencies) {
-+		dev_warn(dev, "no link frequencies defined\n");
- 		goto out_err;
- 	}
- 
--	pdata->op_sys_clock = devm_kzalloc(dev, asize, GFP_KERNEL);
-+	pdata->op_sys_clock = devm_kmalloc_array(
-+		dev, bus_cfg.nr_of_link_frequencies + 1 /* guardian */,
-+		sizeof(*bus_cfg.link_frequencies), GFP_KERNEL);
- 	if (!pdata->op_sys_clock) {
- 		rval = -ENOMEM;
- 		goto out_err;
- 	}
- 
--	asize /= sizeof(*pdata->op_sys_clock);
--	rval = of_property_read_u64_array(
--		ep, "link-frequencies", pdata->op_sys_clock, asize);
--	if (rval) {
--		dev_warn(dev, "can't get link-frequencies\n");
--		goto out_err;
-+	for (i = 0; i < bus_cfg.nr_of_link_frequencies; i++) {
-+		pdata->op_sys_clock[i] = bus_cfg.link_frequencies[i];
-+		dev_dbg(dev, "freq %d: %lld\n", i, pdata->op_sys_clock[i]);
- 	}
- 
--	for (; asize > 0; asize--)
--		dev_dbg(dev, "freq %d: %lld\n", asize - 1,
--			pdata->op_sys_clock[asize - 1]);
--
-+	v4l2_of_release_endpoint(&bus_cfg);
- 	of_node_put(ep);
- 	return pdata;
- 
- out_err:
-+	v4l2_of_release_endpoint(&bus_cfg);
- 	of_node_put(ep);
- 	return NULL;
- }
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index c6b3dc5..91d7dc9 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -1078,6 +1078,7 @@ tvp514x_get_pdata(struct i2c_client *client)
- 		goto done;
- 
- 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+	v4l2_of_release_endpoint(&bus_cfg);
- 	flags = bus_cfg.bus.parallel.flags;
- 
- 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 9233194..70119ea 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -965,6 +965,7 @@ tvp7002_get_pdata(struct i2c_client *client)
- 		goto done;
- 
- 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+	v4l2_of_release_endpoint(&bus_cfg);
- 	flags = bus_cfg.bus.parallel.flags;
- 
- 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index 56a5cb0..19ec20a 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -2469,6 +2469,7 @@ vpfe_get_pdata(struct platform_device *pdev)
- 		}
- 
- 		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+		v4l2_of_release_endpoint(&bus_cfg);
- 		if (err) {
- 			dev_err(&pdev->dev, "Could not parse the endpoint\n");
- 			goto done;
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index f315ef9..4d28305 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -340,6 +340,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
- 		return 0;
- 
- 	v4l2_of_parse_endpoint(ep, &endpoint);
-+	v4l2_of_release_endpoint(&endpoint);
- 	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS)
- 		return -EINVAL;
- 
-diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-index 2504aa8..03bf468 100644
---- a/drivers/media/platform/exynos4-is/mipi-csis.c
-+++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-@@ -751,6 +751,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- 	}
- 	/* Get port node and validate MIPI-CSI channel id. */
- 	v4l2_of_parse_endpoint(node, &endpoint);
-+	v4l2_of_release_endpoint(&endpoint);
- 
- 	state->index = endpoint.base.port - FIMC_INPUT_MIPI_CSI2_0;
- 	if (state->index >= CSIS_MAX_ENTITIES)
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 8526bf5..245e3a4 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -900,6 +900,7 @@ static int atmel_isi_probe_dt(struct atmel_isi *isi,
- 	}
- 
- 	err = v4l2_of_parse_endpoint(np, &ep);
-+	v4l2_of_release_endpoint(&ep);
- 	if (err) {
- 		dev_err(&pdev->dev, "Could not parse the endpoint\n");
- 		goto err_probe_dt;
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 8d6e343..1e37b9b 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -1672,6 +1672,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
- 	}
- 
- 	err = v4l2_of_parse_endpoint(np, &ep);
-+	v4l2_of_release_endpoint(&ep);
- 	if (err) {
- 		dev_err(dev, "could not parse endpoint\n");
- 		goto out;
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 279ab9f..cf0a328 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1863,6 +1863,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 		}
- 
- 		ret = v4l2_of_parse_endpoint(np, &ep);
-+		v4l2_of_release_endpoint(&ep);
- 		if (ret) {
- 			dev_err(&pdev->dev, "could not parse endpoint\n");
- 			return ret;
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index b4ed9a9..e24610c 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -14,6 +14,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/types.h>
- 
-@@ -109,6 +110,26 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- }
- 
- /**
-+ * v4l2_of_release_endpoint() - release resources acquired by
-+ * v4l2_of_parse_endpoint()
-+ * @endpoint - the endpoint the resources of which are to be released
-+ *
-+ * It is safe to call this function on an endpoint which is not parsed or
-+ * and endpoint the parsing of which failed. However in the former case the
-+ * argument must point to a struct the memory of which has been set to zero.
-+ *
-+ * Values in the struct v4l2_of_endpoint that are not connected to resources
-+ * acquired by v4l2_of_parse_endpoint() are guaranteed to remain untouched.
-+ */
-+void v4l2_of_release_endpoint(struct v4l2_of_endpoint *endpoint)
-+{
-+	kfree(endpoint->link_frequencies);
-+	endpoint->link_frequencies = NULL;
-+	endpoint->nr_of_link_frequencies = 0;
-+}
-+EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-+
-+/**
-  * v4l2_of_parse_endpoint() - parse all endpoint node properties
-  * @node: pointer to endpoint device_node
-  * @endpoint: pointer to the V4L2 OF endpoint data structure
-@@ -122,15 +143,39 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
-  * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-  * The caller should hold a reference to @node.
-  *
-+ * An endpoint parsed using v4l2_of_parse_endpoint() must be released using
-+ * v4l2_of_release_endpoint().
-+ *
-  * Return: 0.
-  */
- int v4l2_of_parse_endpoint(const struct device_node *node,
- 			   struct v4l2_of_endpoint *endpoint)
- {
-+	int len;
-+
- 	of_graph_parse_endpoint(node, &endpoint->base);
- 	endpoint->bus_type = 0;
- 	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
- 
-+	if (of_get_property(node, "link-frequencies", &len)) {
-+		int rval;
-+
-+		endpoint->link_frequencies = kmalloc(len, GFP_KERNEL);
-+		if (!endpoint->link_frequencies)
-+			return -ENOMEM;
-+
-+		endpoint->nr_of_link_frequencies =
-+			len / sizeof(*endpoint->link_frequencies);
-+
-+		rval = of_property_read_u64_array(
-+			node, "link-frequencies", endpoint->link_frequencies,
-+			endpoint->nr_of_link_frequencies);
-+		if (rval < 0) {
-+			v4l2_of_release_endpoint(endpoint);
-+			return rval;
-+		}
-+	}
-+
- 	v4l2_of_parse_csi_bus(node, endpoint);
- 	/*
- 	 * Parse the parallel video bus properties only if none
-@@ -141,4 +186,4 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
- 
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS |
+ 		V4L2_CAP_READWRITE | V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+-	if (v4l2->vbi_dev)
++	if (video_is_registered(&v4l2->vbi_dev))
+ 		cap->capabilities |= V4L2_CAP_VBI_CAPTURE;
+-	if (v4l2->radio_dev)
++	if (video_is_registered(&v4l2->radio_dev))
+ 		cap->capabilities |= V4L2_CAP_RADIO;
  	return 0;
  }
--EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-+EXPORT_SYMBOL(v4l2_of_release_endpoint);
-diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-index 70fa7b7..8c123ff 100644
---- a/include/media/v4l2-of.h
-+++ b/include/media/v4l2-of.h
-@@ -54,6 +54,8 @@ struct v4l2_of_bus_parallel {
-  * @base: struct of_endpoint containing port, id, and local of_node
-  * @bus_type: bus type
-  * @bus: bus configuration data structure
-+ * @link_frequencies: array of supported link frequencies
-+ * @nr_of_link_frequencies: number of elements in link_frequenccies array
-  * @head: list head for this structure
-  */
- struct v4l2_of_endpoint {
-@@ -63,12 +65,15 @@ struct v4l2_of_endpoint {
- 		struct v4l2_of_bus_parallel parallel;
- 		struct v4l2_of_bus_mipi_csi2 mipi_csi2;
- 	} bus;
-+	u64 *link_frequencies;
-+	unsigned int nr_of_link_frequencies;
- 	struct list_head head;
+@@ -1966,20 +1966,20 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+ 
+ 	em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
+ 
+-	if (v4l2->radio_dev) {
++	if (video_is_registered(&v4l2->radio_dev)) {
+ 		em28xx_info("V4L2 device %s deregistered\n",
+-			    video_device_node_name(v4l2->radio_dev));
+-		video_unregister_device(v4l2->radio_dev);
++			    video_device_node_name(&v4l2->radio_dev));
++		video_unregister_device(&v4l2->radio_dev);
+ 	}
+-	if (v4l2->vbi_dev) {
++	if (video_is_registered(&v4l2->vbi_dev)) {
+ 		em28xx_info("V4L2 device %s deregistered\n",
+-			    video_device_node_name(v4l2->vbi_dev));
+-		video_unregister_device(v4l2->vbi_dev);
++			    video_device_node_name(&v4l2->vbi_dev));
++		video_unregister_device(&v4l2->vbi_dev);
+ 	}
+-	if (v4l2->vdev) {
++	if (video_is_registered(&v4l2->vdev)) {
+ 		em28xx_info("V4L2 device %s deregistered\n",
+-			    video_device_node_name(v4l2->vdev));
+-		video_unregister_device(v4l2->vdev);
++			    video_device_node_name(&v4l2->vdev));
++		video_unregister_device(&v4l2->vdev);
+ 	}
+ 
+ 	v4l2_ctrl_handler_free(&v4l2->ctrl_handler);
+@@ -2127,7 +2127,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ static const struct video_device em28xx_video_template = {
+ 	.fops		= &em28xx_v4l_fops,
+ 	.ioctl_ops	= &video_ioctl_ops,
+-	.release	= video_device_release,
++	.release	= video_device_release_empty,
+ 	.tvnorms	= V4L2_STD_ALL,
  };
  
- #ifdef CONFIG_OF
- int v4l2_of_parse_endpoint(const struct device_node *node,
- 			   struct v4l2_of_endpoint *endpoint);
-+void v4l2_of_release_endpoint(struct v4l2_of_endpoint *endpoint);
- #else /* CONFIG_OF */
+@@ -2156,7 +2156,7 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+ static struct video_device em28xx_radio_template = {
+ 	.fops		= &radio_fops,
+ 	.ioctl_ops	= &radio_ioctl_ops,
+-	.release	= video_device_release,
++	.release	= video_device_release_empty,
+ };
  
- static inline int v4l2_of_parse_endpoint(const struct device_node *node,
-@@ -77,6 +82,10 @@ static inline int v4l2_of_parse_endpoint(const struct device_node *node,
- 	return -ENOSYS;
+ /* I2C possible address to saa7115, tvp5150, msp3400, tvaudio */
+@@ -2179,17 +2179,11 @@ static unsigned short msp3400_addrs[] = {
+ 
+ /******************************** usb interface ******************************/
+ 
+-static struct video_device
+-*em28xx_vdev_init(struct em28xx *dev,
+-		  const struct video_device *template,
+-		  const char *type_name)
++static void em28xx_vdev_init(struct em28xx *dev,
++			     struct video_device *vfd,
++			     const struct video_device *template,
++			     const char *type_name)
+ {
+-	struct video_device *vfd;
+-
+-	vfd = video_device_alloc();
+-	if (NULL == vfd)
+-		return NULL;
+-
+ 	*vfd		= *template;
+ 	vfd->v4l2_dev	= &dev->v4l2->v4l2_dev;
+ 	vfd->lock	= &dev->lock;
+@@ -2200,7 +2194,6 @@ static struct video_device
+ 		 dev->name, type_name);
+ 
+ 	video_set_drvdata(vfd, dev);
+-	return vfd;
  }
  
-+static void v4l2_of_release_endpoint(struct v4l2_of_endpoint *endpoint)
-+{
-+}
-+
- #endif /* CONFIG_OF */
+ static void em28xx_tuner_setup(struct em28xx *dev, unsigned short tuner_addr)
+@@ -2491,38 +2484,33 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 		goto unregister_dev;
  
- #endif /* _V4L2_OF_H */
+ 	/* allocate and fill video video_device struct */
+-	v4l2->vdev = em28xx_vdev_init(dev, &em28xx_video_template, "video");
+-	if (!v4l2->vdev) {
+-		em28xx_errdev("cannot allocate video_device.\n");
+-		ret = -ENODEV;
+-		goto unregister_dev;
+-	}
++	em28xx_vdev_init(dev, &v4l2->vdev, &em28xx_video_template, "video");
+ 	mutex_init(&v4l2->vb_queue_lock);
+ 	mutex_init(&v4l2->vb_vbi_queue_lock);
+-	v4l2->vdev->queue = &v4l2->vb_vidq;
+-	v4l2->vdev->queue->lock = &v4l2->vb_queue_lock;
++	v4l2->vdev.queue = &v4l2->vb_vidq;
++	v4l2->vdev.queue->lock = &v4l2->vb_queue_lock;
+ 
+ 	/* disable inapplicable ioctls */
+ 	if (dev->board.is_webcam) {
+-		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_QUERYSTD);
+-		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_G_STD);
+-		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_STD);
++		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_QUERYSTD);
++		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_G_STD);
++		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_S_STD);
+ 	} else {
+-		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_PARM);
++		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_S_PARM);
+ 	}
+ 	if (dev->tuner_type == TUNER_ABSENT) {
+-		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_G_TUNER);
+-		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_TUNER);
+-		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_G_FREQUENCY);
+-		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_FREQUENCY);
++		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_G_TUNER);
++		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_S_TUNER);
++		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_G_FREQUENCY);
++		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_S_FREQUENCY);
+ 	}
+ 	if (dev->int_audio_type == EM28XX_INT_AUDIO_NONE) {
+-		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_G_AUDIO);
+-		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_AUDIO);
++		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_G_AUDIO);
++		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_S_AUDIO);
+ 	}
+ 
+ 	/* register v4l2 video video_device */
+-	ret = video_register_device(v4l2->vdev, VFL_TYPE_GRABBER,
++	ret = video_register_device(&v4l2->vdev, VFL_TYPE_GRABBER,
+ 				    video_nr[dev->devno]);
+ 	if (ret) {
+ 		em28xx_errdev("unable to register video device (error=%i).\n",
+@@ -2532,27 +2520,27 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 
+ 	/* Allocate and fill vbi video_device struct */
+ 	if (em28xx_vbi_supported(dev) == 1) {
+-		v4l2->vbi_dev = em28xx_vdev_init(dev, &em28xx_video_template,
+-						"vbi");
++		em28xx_vdev_init(dev, &v4l2->vbi_dev, &em28xx_video_template,
++				"vbi");
+ 
+-		v4l2->vbi_dev->queue = &v4l2->vb_vbiq;
+-		v4l2->vbi_dev->queue->lock = &v4l2->vb_vbi_queue_lock;
++		v4l2->vbi_dev.queue = &v4l2->vb_vbiq;
++		v4l2->vbi_dev.queue->lock = &v4l2->vb_vbi_queue_lock;
+ 
+ 		/* disable inapplicable ioctls */
+-		v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_PARM);
++		v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_S_PARM);
+ 		if (dev->tuner_type == TUNER_ABSENT) {
+-			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_G_TUNER);
+-			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_TUNER);
+-			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_G_FREQUENCY);
+-			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_FREQUENCY);
++			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_G_TUNER);
++			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_S_TUNER);
++			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_G_FREQUENCY);
++			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_S_FREQUENCY);
+ 		}
+ 		if (dev->int_audio_type == EM28XX_INT_AUDIO_NONE) {
+-			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_G_AUDIO);
+-			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_AUDIO);
++			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_G_AUDIO);
++			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_S_AUDIO);
+ 		}
+ 
+ 		/* register v4l2 vbi video_device */
+-		ret = video_register_device(v4l2->vbi_dev, VFL_TYPE_VBI,
++		ret = video_register_device(&v4l2->vbi_dev, VFL_TYPE_VBI,
+ 					    vbi_nr[dev->devno]);
+ 		if (ret < 0) {
+ 			em28xx_errdev("unable to register vbi device\n");
+@@ -2561,29 +2549,24 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 	}
+ 
+ 	if (em28xx_boards[dev->model].radio.type == EM28XX_RADIO) {
+-		v4l2->radio_dev = em28xx_vdev_init(dev, &em28xx_radio_template,
+-						   "radio");
+-		if (!v4l2->radio_dev) {
+-			em28xx_errdev("cannot allocate video_device.\n");
+-			ret = -ENODEV;
+-			goto unregister_dev;
+-		}
+-		ret = video_register_device(v4l2->radio_dev, VFL_TYPE_RADIO,
++		em28xx_vdev_init(dev, &v4l2->radio_dev, &em28xx_radio_template,
++				   "radio");
++		ret = video_register_device(&v4l2->radio_dev, VFL_TYPE_RADIO,
+ 					    radio_nr[dev->devno]);
+ 		if (ret < 0) {
+ 			em28xx_errdev("can't register radio device\n");
+ 			goto unregister_dev;
+ 		}
+ 		em28xx_info("Registered radio device as %s\n",
+-			    video_device_node_name(v4l2->radio_dev));
++			    video_device_node_name(&v4l2->radio_dev));
+ 	}
+ 
+ 	em28xx_info("V4L2 video device registered as %s\n",
+-		    video_device_node_name(v4l2->vdev));
++		    video_device_node_name(&v4l2->vdev));
+ 
+-	if (v4l2->vbi_dev)
++	if (video_is_registered(&v4l2->vbi_dev))
+ 		em28xx_info("V4L2 VBI device registered as %s\n",
+-			    video_device_node_name(v4l2->vbi_dev));
++			    video_device_node_name(&v4l2->vbi_dev));
+ 
+ 	/* Save some power by putting tuner to sleep */
+ 	v4l2_device_call_all(&v4l2->v4l2_dev, 0, core, s_power, 0);
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 637c959..e6559c6 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -513,9 +513,9 @@ struct em28xx_v4l2 {
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	struct v4l2_clk *clk;
+ 
+-	struct video_device *vdev;
+-	struct video_device *vbi_dev;
+-	struct video_device *radio_dev;
++	struct video_device vdev;
++	struct video_device vbi_dev;
++	struct video_device radio_dev;
+ 
+ 	/* Videobuf2 */
+ 	struct vb2_queue vb_vidq;
 -- 
-1.7.10.4
+2.1.4
 
