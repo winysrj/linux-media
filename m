@@ -1,84 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:32490 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752191AbbCZVPy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2015 17:15:54 -0400
-Date: Thu, 26 Mar 2015 22:10:00 +0100
-From: Antonio Ospite <ao2@ao2.it>
-To: Florian Echtler <floe@butterbrot.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-input <linux-input@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Benjamin Tissoires <benjamin.tissoires@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: input_polldev interval (was Re: [sur40] Debugging a race
- condition)?
-Message-Id: <20150326221000.86b9c2181e699915ba91d009@ao2.it>
-In-Reply-To: <5512C1E4.7060903@butterbrot.org>
-References: <550FFFB2.9020400@butterbrot.org>
-	<55103587.3080901@butterbrot.org>
-	<43CDB224-5B10-4234-9054-7A7EC1EDA3BF@butterbrot.org>
-	<DAFB1A9C-4AD7-4236-9945-6A456BEC7EDE@gmail.com>
-	<5512C1E4.7060903@butterbrot.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44514 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754409AbbCIQeq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 12:34:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 03/19] saa7146: embed video_device
+Date: Mon,  9 Mar 2015 17:33:57 +0100
+Message-Id: <1425918853-12371-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 25 Mar 2015 15:10:44 +0100
-Florian Echtler <floe@butterbrot.org> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hello Dmitry,
-> 
-> On 25.03.2015 14:23, Dmitry Torokhov wrote:
-> > On March 24, 2015 11:52:54 PM PDT, Florian Echtler <floe@butterbrot.org> wrote:
-> >> Currently, I'm setting the interval for input_polldev to 10 ms.
-> >> However, with video data being retrieved at the same time, it's quite
-> >> possible that one iteration of poll() will take longer than that. Could
-> >> this ultimately be the reason? What happens if a new poll() call is
-> >> scheduled before the previous one completes?
-> > 
-> > This can't happen as we schedule the next poll only after current one completes.
-> > 
-> Thanks - any other suggestions how to debug such a complete freeze? I
-> have the following options enabled in my kernel config:
-> 
-> CONFIG_LOCKUP_DETECTOR=y
-> CONFIG_HARDLOCKUP_DETECTOR=y
-> CONFIG_DETECT_HUNG_TASK=y
-> CONFIG_EARLY_PRINTK=y
-> CONFIG_EARLY_PRINTK_DBGP=y
-> CONFIG_EARLY_PRINTK_EFI=y
-> 
-> Unfortunately, even after the system is frozen for several minutes, I
-> never get to see a panic message. Maybe it's there on the console
-> somewhere, but the screen never switches away from X (and as mentioned
-> earlier, I think this bug can only be triggered from within X). Network
-> also freezes, so I don't think netconsole will help?
-> 
+Embed the video_device struct to simplify the error handling and in
+order to (eventually) get rid of video_device_alloc/release.
 
-PSTORE + some EFI/ACPI mechanism, maybe?
-http://lwn.net/Articles/434821/
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/common/saa7146/saa7146_fops.c | 19 ++++---------------
+ drivers/media/pci/saa7146/hexium_gemini.c   |  2 +-
+ drivers/media/pci/saa7146/hexium_orion.c    |  2 +-
+ drivers/media/pci/saa7146/mxb.c             |  4 ++--
+ drivers/media/pci/ttpci/av7110.h            |  4 ++--
+ drivers/media/pci/ttpci/budget-av.c         |  2 +-
+ include/media/saa7146_vv.h                  |  4 ++--
+ 7 files changed, 13 insertions(+), 24 deletions(-)
 
-However I have never tried that myself and I don't know if all the
-needed bits are in linux already.
-
-JFTR, on some embedded system I worked on in the past the RAM content
-was preserved across resets and, after a crash, we used to dump the RAM
-from a second stage bootloader (i.e. before lading another linux
-instance) and then scrape the dump to look for the kernel messages, but
-AFAIK this is not going to be reliable —or even possible— on a more
-complex system.
-
-Ciao,
-   Antonio
-
+diff --git a/drivers/media/common/saa7146/saa7146_fops.c b/drivers/media/common/saa7146/saa7146_fops.c
+index b7d6393..df1e8c9 100644
+--- a/drivers/media/common/saa7146/saa7146_fops.c
++++ b/drivers/media/common/saa7146/saa7146_fops.c
+@@ -587,26 +587,20 @@ int saa7146_vv_release(struct saa7146_dev* dev)
+ }
+ EXPORT_SYMBOL_GPL(saa7146_vv_release);
+ 
+-int saa7146_register_device(struct video_device **vid, struct saa7146_dev* dev,
++int saa7146_register_device(struct video_device *vfd, struct saa7146_dev *dev,
+ 			    char *name, int type)
+ {
+-	struct video_device *vfd;
+ 	int err;
+ 	int i;
+ 
+ 	DEB_EE("dev:%p, name:'%s', type:%d\n", dev, name, type);
+ 
+-	// released by vfd->release
+-	vfd = video_device_alloc();
+-	if (vfd == NULL)
+-		return -ENOMEM;
+-
+ 	vfd->fops = &video_fops;
+ 	if (type == VFL_TYPE_GRABBER)
+ 		vfd->ioctl_ops = &dev->ext_vv_data->vid_ops;
+ 	else
+ 		vfd->ioctl_ops = &dev->ext_vv_data->vbi_ops;
+-	vfd->release = video_device_release;
++	vfd->release = video_device_release_empty;
+ 	vfd->lock = &dev->v4l2_lock;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
+ 	vfd->tvnorms = 0;
+@@ -618,25 +612,20 @@ int saa7146_register_device(struct video_device **vid, struct saa7146_dev* dev,
+ 	err = video_register_device(vfd, type, -1);
+ 	if (err < 0) {
+ 		ERR("cannot register v4l2 device. skipping.\n");
+-		video_device_release(vfd);
+ 		return err;
+ 	}
+ 
+ 	pr_info("%s: registered device %s [v4l2]\n",
+ 		dev->name, video_device_node_name(vfd));
+-
+-	*vid = vfd;
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(saa7146_register_device);
+ 
+-int saa7146_unregister_device(struct video_device **vid, struct saa7146_dev* dev)
++int saa7146_unregister_device(struct video_device *vfd, struct saa7146_dev *dev)
+ {
+ 	DEB_EE("dev:%p\n", dev);
+ 
+-	video_unregister_device(*vid);
+-	*vid = NULL;
+-
++	video_unregister_device(vfd);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(saa7146_unregister_device);
+diff --git a/drivers/media/pci/saa7146/hexium_gemini.c b/drivers/media/pci/saa7146/hexium_gemini.c
+index 366434f..03cbcd2 100644
+--- a/drivers/media/pci/saa7146/hexium_gemini.c
++++ b/drivers/media/pci/saa7146/hexium_gemini.c
+@@ -66,7 +66,7 @@ struct hexium
+ {
+ 	int type;
+ 
+-	struct video_device	*video_dev;
++	struct video_device	video_dev;
+ 	struct i2c_adapter	i2c_adapter;
+ 
+ 	int 		cur_input;	/* current input */
+diff --git a/drivers/media/pci/saa7146/hexium_orion.c b/drivers/media/pci/saa7146/hexium_orion.c
+index a1eb26d..15f0d66 100644
+--- a/drivers/media/pci/saa7146/hexium_orion.c
++++ b/drivers/media/pci/saa7146/hexium_orion.c
+@@ -63,7 +63,7 @@ struct hexium_data
+ struct hexium
+ {
+ 	int type;
+-	struct video_device	*video_dev;
++	struct video_device	video_dev;
+ 	struct i2c_adapter	i2c_adapter;
+ 
+ 	int cur_input;	/* current input */
+diff --git a/drivers/media/pci/saa7146/mxb.c b/drivers/media/pci/saa7146/mxb.c
+index c4c8fce..0ca1e07 100644
+--- a/drivers/media/pci/saa7146/mxb.c
++++ b/drivers/media/pci/saa7146/mxb.c
+@@ -151,8 +151,8 @@ static struct mxb_routing TEA6420_line[MXB_AUDIOS + 1][2] = {
+ 
+ struct mxb
+ {
+-	struct video_device	*video_dev;
+-	struct video_device	*vbi_dev;
++	struct video_device	video_dev;
++	struct video_device	vbi_dev;
+ 
+ 	struct i2c_adapter	i2c_adapter;
+ 
+diff --git a/drivers/media/pci/ttpci/av7110.h b/drivers/media/pci/ttpci/av7110.h
+index ef3d960..835635b 100644
+--- a/drivers/media/pci/ttpci/av7110.h
++++ b/drivers/media/pci/ttpci/av7110.h
+@@ -102,8 +102,8 @@ struct av7110 {
+ 	struct dvb_device	dvb_dev;
+ 	struct dvb_net		dvb_net;
+ 
+-	struct video_device	*v4l_dev;
+-	struct video_device	*vbi_dev;
++	struct video_device	v4l_dev;
++	struct video_device	vbi_dev;
+ 
+ 	struct saa7146_dev	*dev;
+ 
+diff --git a/drivers/media/pci/ttpci/budget-av.c b/drivers/media/pci/ttpci/budget-av.c
+index 0ba3875..54c9910 100644
+--- a/drivers/media/pci/ttpci/budget-av.c
++++ b/drivers/media/pci/ttpci/budget-av.c
+@@ -68,7 +68,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+ struct budget_av {
+ 	struct budget budget;
+-	struct video_device *vd;
++	struct video_device vd;
+ 	int cur_input;
+ 	int has_saa7113;
+ 	struct tasklet_struct ciintf_irq_tasklet;
+diff --git a/include/media/saa7146_vv.h b/include/media/saa7146_vv.h
+index 944ecdf..92766f7 100644
+--- a/include/media/saa7146_vv.h
++++ b/include/media/saa7146_vv.h
+@@ -178,8 +178,8 @@ struct saa7146_use_ops  {
+ };
+ 
+ /* from saa7146_fops.c */
+-int saa7146_register_device(struct video_device **vid, struct saa7146_dev* dev, char *name, int type);
+-int saa7146_unregister_device(struct video_device **vid, struct saa7146_dev* dev);
++int saa7146_register_device(struct video_device *vid, struct saa7146_dev *dev, char *name, int type);
++int saa7146_unregister_device(struct video_device *vid, struct saa7146_dev *dev);
+ void saa7146_buffer_finish(struct saa7146_dev *dev, struct saa7146_dmaqueue *q, int state);
+ void saa7146_buffer_next(struct saa7146_dev *dev, struct saa7146_dmaqueue *q,int vbi);
+ int saa7146_buffer_queue(struct saa7146_dev *dev, struct saa7146_dmaqueue *q, struct saa7146_buf *buf);
 -- 
-Antonio Ospite
-http://ao2.it
+2.1.4
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
