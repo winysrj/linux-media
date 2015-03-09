@@ -1,65 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:36215 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755810AbbCCDQR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 22:16:17 -0500
-Date: Tue, 3 Mar 2015 08:46:10 +0530
-From: Tapasweni Pathak <tapaswenipathak@gmail.com>
-To: kyungmin.park@samsung.com, a.hajda@samsung.com,
-	mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: tapaswenipathak@gmail.com
-Subject: [PATCH v2] drivers: media: i2c : s5c73m3: Fix null dereference
-Message-ID: <20150303031610.GA25471@kt-Inspiron-3542>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44514 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754648AbbCIQfU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 12:35:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 07/19] meye: embed video_device
+Date: Mon,  9 Mar 2015 17:34:01 +0100
+Message-Id: <1425918853-12371-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace dev_err statement which dereferences a null with pr_err_once.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Move if(!spi_dev) above if(dir...) block.
+Embed the video_device struct to simplify the error handling and in
+order to (eventually) get rid of video_device_alloc/release.
 
-Found using Coccinelle.
-
-Signed-off-by: Tapasweni Pathak <tapaswenipathak@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Changes since v1:
-Replace pr_err with pr_err_once.
-Move if(!spi_dev).
-Reword commit message.
-Reword subject.
+ drivers/media/pci/meye/meye.c | 19 ++++++-------------
+ drivers/media/pci/meye/meye.h |  2 +-
+ 2 files changed, 7 insertions(+), 14 deletions(-)
 
- drivers/media/i2c/s5c73m3/s5c73m3-spi.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-index f60b265..376b78f 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-@@ -46,16 +46,16 @@ static int spi_xmit(struct spi_device *spi_dev, void *addr, const int len,
- 		.len	= len,
- 	};
-
-+	if(!spi_dev) {
-+		pr_err_once("SPI device is unintialized\n");
-+		return -ENODEV;
-+	}
-+
- 	if (dir == SPI_DIR_TX)
- 		xfer.tx_buf = addr;
- 	else
- 		xfer.rx_buf = addr;
-
--	if (spi_dev == NULL) {
--		dev_err(&spi_dev->dev, "SPI device is uninitialized\n");
--		return -ENODEV;
+diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
+index 9d9f90c..3b5297d 100644
+--- a/drivers/media/pci/meye/meye.c
++++ b/drivers/media/pci/meye/meye.c
+@@ -1546,7 +1546,7 @@ static struct video_device meye_template = {
+ 	.name		= "meye",
+ 	.fops		= &meye_fops,
+ 	.ioctl_ops 	= &meye_ioctl_ops,
+-	.release	= video_device_release,
++	.release	= video_device_release_empty,
+ };
+ 
+ static const struct v4l2_ctrl_ops meye_ctrl_ops = {
+@@ -1633,11 +1633,6 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
+ 	}
+ 	ret = -ENOMEM;
+ 	meye.mchip_dev = pcidev;
+-	meye.vdev = video_device_alloc();
+-	if (!meye.vdev) {
+-		v4l2_err(v4l2_dev, "video_device_alloc() failed!\n");
+-		goto outnotdev;
 -	}
--
- 	spi_message_init(&msg);
- 	spi_message_add_tail(&xfer, &msg);
-
---
-1.7.9.5
+ 
+ 	meye.grab_temp = vmalloc(MCHIP_NB_PAGES_MJPEG * PAGE_SIZE);
+ 	if (!meye.grab_temp) {
+@@ -1658,8 +1653,8 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
+ 		goto outkfifoalloc2;
+ 	}
+ 
+-	memcpy(meye.vdev, &meye_template, sizeof(meye_template));
+-	meye.vdev->v4l2_dev = &meye.v4l2_dev;
++	meye.vdev = meye_template;
++	meye.vdev.v4l2_dev = &meye.v4l2_dev;
+ 
+ 	ret = -EIO;
+ 	if ((ret = sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERA, 1))) {
+@@ -1743,9 +1738,9 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
+ 	}
+ 
+ 	v4l2_ctrl_handler_setup(&meye.hdl);
+-	meye.vdev->ctrl_handler = &meye.hdl;
++	meye.vdev.ctrl_handler = &meye.hdl;
+ 
+-	if (video_register_device(meye.vdev, VFL_TYPE_GRABBER,
++	if (video_register_device(&meye.vdev, VFL_TYPE_GRABBER,
+ 				  video_nr) < 0) {
+ 		v4l2_err(v4l2_dev, "video_register_device failed\n");
+ 		goto outvideoreg;
+@@ -1777,14 +1772,12 @@ outkfifoalloc2:
+ outkfifoalloc1:
+ 	vfree(meye.grab_temp);
+ outvmalloc:
+-	video_device_release(meye.vdev);
+-outnotdev:
+ 	return ret;
+ }
+ 
+ static void meye_remove(struct pci_dev *pcidev)
+ {
+-	video_unregister_device(meye.vdev);
++	video_unregister_device(&meye.vdev);
+ 
+ 	mchip_hic_stop();
+ 
+diff --git a/drivers/media/pci/meye/meye.h b/drivers/media/pci/meye/meye.h
+index 6fed927..751be5e 100644
+--- a/drivers/media/pci/meye/meye.h
++++ b/drivers/media/pci/meye/meye.h
+@@ -311,7 +311,7 @@ struct meye {
+ 	struct kfifo doneq;		/* queue for grabbed buffers */
+ 	spinlock_t doneq_lock;		/* lock protecting the queue */
+ 	wait_queue_head_t proc_list;	/* wait queue */
+-	struct video_device *vdev;	/* video device parameters */
++	struct video_device vdev;	/* video device parameters */
+ 	u16 brightness;
+ 	u16 hue;
+ 	u16 contrast;
+-- 
+2.1.4
 
