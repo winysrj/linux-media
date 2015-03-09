@@ -1,53 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38866 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753276AbbCMQWS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42334 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753323AbbCIJWW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 12:22:18 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 51C352A002F
-	for <linux-media@vger.kernel.org>; Fri, 13 Mar 2015 17:22:07 +0100 (CET)
-Message-ID: <55030EAF.8060305@xs4all.nl>
-Date: Fri, 13 Mar 2015 17:22:07 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 9 Mar 2015 05:22:22 -0400
+Date: Mon, 9 Mar 2015 11:22:19 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l2-ioctl: tidy up debug messages
+Message-ID: <20150309092219.GB11954@valkosipuli.retiisi.org.uk>
+References: <54FBFAA7.6010102@xs4all.nl>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] vivid: report only one frameinterval
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <54FBFAA7.6010102@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vivid driver reports a range of frame intervals for non-webcams, when in fact
-the frame interval is fixed for those inputs as it depends on the DV timings or
-standard. Just report the single discrete frame interval instead.
+On Sun, Mar 08, 2015 at 08:30:47AM +0100, Hans Verkuil wrote:
+> Make sure the format fields are reported consistently.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Caught by v4l2-compliance.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 1d9ea2d..5ed44f2 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -1689,18 +1689,14 @@ int vidioc_enum_frameintervals(struct file *file, void *priv,
- 		return -EINVAL;
- 
- 	if (!vivid_is_webcam(dev)) {
--		static const struct v4l2_fract step = { 1, 1 };
--
- 		if (fival->index)
- 			return -EINVAL;
- 		if (fival->width < MIN_WIDTH || fival->width > MAX_WIDTH * MAX_ZOOM)
- 			return -EINVAL;
- 		if (fival->height < MIN_HEIGHT || fival->height > MAX_HEIGHT * MAX_ZOOM)
- 			return -EINVAL;
--		fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
--		fival->stepwise.min = tpf_min;
--		fival->stepwise.max = tpf_max;
--		fival->stepwise.step = step;
-+		fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-+		fival->discrete = dev->timeperframe_vid_cap;
- 		return 0;
- 	}
- 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
