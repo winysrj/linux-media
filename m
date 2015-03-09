@@ -1,267 +1,373 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45238 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758997AbbCDJsy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Mar 2015 04:48:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 4/8] v4l2-subdev: support new 'which' field in enum_mbus_code
-Date: Wed,  4 Mar 2015 10:47:57 +0100
-Message-Id: <1425462481-8200-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
+Received: from muru.com ([72.249.23.125]:35862 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750864AbbCIPgi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 11:36:38 -0400
+Date: Mon, 9 Mar 2015 08:22:18 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, pali.rohar@gmail.com,
+	linux-omap@vger.kernel.org
+Subject: Re: [RFC 11/18] omap3isp: Replace many MMIO regions by two
+Message-ID: <20150309152217.GE5264@atomide.com>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+ <1425764475-27691-12-git-send-email-sakari.ailus@iki.fi>
+ <2216785.mYDACGZ2he@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2216785.mYDACGZ2he@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [150307 15:43]:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> (CC'ing linux-omap and Tony)
+> 
+> On Saturday 07 March 2015 23:41:08 Sakari Ailus wrote:
+> > The omap3isp MMIO register block is contiguous in the MMIO register space
+> > apart from the fact that the ISP IOMMU register block is in the middle of
+> > the area. Ioremap it at two occasions, and keep the rest of the layout of
+> > the register space internal to the omap3isp driver.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> > ---
+> >  arch/arm/mach-omap2/devices.c         |   66 +------------------
+> >  arch/arm/mach-omap2/omap34xx.h        |   36 +----------
+> 
+> Once again you might be asked to split this. However, it would be pretty 
+> painful, so it would be nice if we could merge everything through the Linux 
+> media tree. You will need an ack from Tony.
 
-Support the new 'which' field in the enum_mbus_code ops. Most drivers do not
-need to be changed since they always return the same enumeration regardless
-of the 'which' field.
+These changes look fine to me and should not conflict with anything
+I'm planning to queue, so please feel free to take them along with
+the other isp changes:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/am437x/am437x-vpfe.c  | 1 +
- drivers/media/platform/omap3isp/ispccdc.c    | 4 ++--
- drivers/media/platform/omap3isp/ispccp2.c    | 2 +-
- drivers/media/platform/omap3isp/ispcsi2.c    | 2 +-
- drivers/media/platform/omap3isp/ispresizer.c | 2 +-
- drivers/media/platform/vsp1/vsp1_bru.c       | 4 +++-
- drivers/media/platform/vsp1/vsp1_lif.c       | 4 +++-
- drivers/media/platform/vsp1/vsp1_lut.c       | 4 +++-
- drivers/media/platform/vsp1/vsp1_sru.c       | 4 +++-
- drivers/media/platform/vsp1/vsp1_uds.c       | 4 +++-
- drivers/staging/media/omap4iss/iss_csi2.c    | 2 +-
- drivers/staging/media/omap4iss/iss_ipipeif.c | 2 +-
- drivers/staging/media/omap4iss/iss_resizer.c | 2 +-
- 13 files changed, 24 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index 56a5cb0..8b413be 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -2327,6 +2327,7 @@ vpfe_async_bound(struct v4l2_async_notifier *notifier,
+Acked-by: Tony Lindgren <tony@atomide.com>
  
- 		memset(&mbus_code, 0, sizeof(mbus_code));
- 		mbus_code.index = j;
-+		mbus_code.which = V4L2_SUBDEV_FORMAT_ACTIVE;
- 		ret = v4l2_subdev_call(subdev, pad, enum_mbus_code,
- 			       NULL, &mbus_code);
- 		if (ret)
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index b0431a9..818aa52 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -2133,7 +2133,7 @@ static int ccdc_enum_mbus_code(struct v4l2_subdev *sd,
- 
- 	case CCDC_PAD_SOURCE_OF:
- 		format = __ccdc_get_format(ccdc, cfg, code->pad,
--					   V4L2_SUBDEV_FORMAT_TRY);
-+					   code->which);
- 
- 		if (format->code == MEDIA_BUS_FMT_YUYV8_2X8 ||
- 		    format->code == MEDIA_BUS_FMT_UYVY8_2X8) {
-@@ -2164,7 +2164,7 @@ static int ccdc_enum_mbus_code(struct v4l2_subdev *sd,
- 			return -EINVAL;
- 
- 		format = __ccdc_get_format(ccdc, cfg, code->pad,
--					   V4L2_SUBDEV_FORMAT_TRY);
-+					   code->which);
- 
- 		/* A pixel code equal to 0 means that the video port doesn't
- 		 * support the input format. Don't enumerate any pixel code.
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-index 3f10c3a..1d79368 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -703,7 +703,7 @@ static int ccp2_enum_mbus_code(struct v4l2_subdev *sd,
- 			return -EINVAL;
- 
- 		format = __ccp2_get_format(ccp2, cfg, CCP2_PAD_SINK,
--					      V4L2_SUBDEV_FORMAT_TRY);
-+					      code->which);
- 		code->code = format->code;
- 	}
- 
-diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
-index 12ca63f..bde734c 100644
---- a/drivers/media/platform/omap3isp/ispcsi2.c
-+++ b/drivers/media/platform/omap3isp/ispcsi2.c
-@@ -909,7 +909,7 @@ static int csi2_enum_mbus_code(struct v4l2_subdev *sd,
- 		code->code = csi2_input_fmts[code->index];
- 	} else {
- 		format = __csi2_get_format(csi2, cfg, CSI2_PAD_SINK,
--					   V4L2_SUBDEV_FORMAT_TRY);
-+					   code->which);
- 		switch (code->index) {
- 		case 0:
- 			/* Passthrough sink pad code */
-diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
-index 3ede27b..02549fa8 100644
---- a/drivers/media/platform/omap3isp/ispresizer.c
-+++ b/drivers/media/platform/omap3isp/ispresizer.c
-@@ -1431,7 +1431,7 @@ static int resizer_enum_mbus_code(struct v4l2_subdev *sd,
- 			return -EINVAL;
- 
- 		format = __resizer_get_format(res, cfg, RESZ_PAD_SINK,
--					      V4L2_SUBDEV_FORMAT_TRY);
-+					      code->which);
- 		code->code = format->code;
- 	}
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 31ad0b6..7dd7633 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -190,6 +190,7 @@ static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
- 		MEDIA_BUS_FMT_ARGB8888_1X32,
- 		MEDIA_BUS_FMT_AYUV8_1X32,
- 	};
-+	struct vsp1_bru *bru = to_bru(subdev);
- 	struct v4l2_mbus_framefmt *format;
- 
- 	if (code->pad == BRU_PAD_SINK(0)) {
-@@ -201,7 +202,8 @@ static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
- 		if (code->index)
- 			return -EINVAL;
- 
--		format = v4l2_subdev_get_try_format(subdev, cfg, BRU_PAD_SINK(0));
-+		format = vsp1_entity_get_pad_format(&bru->entity, cfg,
-+						    BRU_PAD_SINK(0), code->which);
- 		code->code = format->code;
- 	}
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index b91c925..60f1bd8 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -81,6 +81,7 @@ static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
- 		MEDIA_BUS_FMT_ARGB8888_1X32,
- 		MEDIA_BUS_FMT_AYUV8_1X32,
- 	};
-+	struct vsp1_lif *lif = to_lif(subdev);
- 
- 	if (code->pad == LIF_PAD_SINK) {
- 		if (code->index >= ARRAY_SIZE(codes))
-@@ -96,7 +97,8 @@ static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
- 		if (code->index)
- 			return -EINVAL;
- 
--		format = v4l2_subdev_get_try_format(subdev, cfg, LIF_PAD_SINK);
-+		format = vsp1_entity_get_pad_format(&lif->entity, cfg,
-+						    LIF_PAD_SINK, code->which);
- 		code->code = format->code;
- 	}
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 003363d..8aa8c11 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -90,6 +90,7 @@ static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
- 		MEDIA_BUS_FMT_AHSV8888_1X32,
- 		MEDIA_BUS_FMT_AYUV8_1X32,
- 	};
-+	struct vsp1_lut *lut = to_lut(subdev);
- 	struct v4l2_mbus_framefmt *format;
- 
- 	if (code->pad == LUT_PAD_SINK) {
-@@ -104,7 +105,8 @@ static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
- 		if (code->index)
- 			return -EINVAL;
- 
--		format = v4l2_subdev_get_try_format(subdev, cfg, LUT_PAD_SINK);
-+		format = vsp1_entity_get_pad_format(&lut->entity, cfg,
-+						    LUT_PAD_SINK, code->which);
- 		code->code = format->code;
- 	}
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index c51dcee..554340d 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -173,6 +173,7 @@ static int sru_enum_mbus_code(struct v4l2_subdev *subdev,
- 		MEDIA_BUS_FMT_ARGB8888_1X32,
- 		MEDIA_BUS_FMT_AYUV8_1X32,
- 	};
-+	struct vsp1_sru *sru = to_sru(subdev);
- 	struct v4l2_mbus_framefmt *format;
- 
- 	if (code->pad == SRU_PAD_SINK) {
-@@ -187,7 +188,8 @@ static int sru_enum_mbus_code(struct v4l2_subdev *subdev,
- 		if (code->index)
- 			return -EINVAL;
- 
--		format = v4l2_subdev_get_try_format(subdev, cfg, SRU_PAD_SINK);
-+		format = vsp1_entity_get_pad_format(&sru->entity, cfg,
-+						    SRU_PAD_SINK, code->which);
- 		code->code = format->code;
- 	}
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index 08d916d..ef4d307 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -176,6 +176,7 @@ static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
- 		MEDIA_BUS_FMT_ARGB8888_1X32,
- 		MEDIA_BUS_FMT_AYUV8_1X32,
- 	};
-+	struct vsp1_uds *uds = to_uds(subdev);
- 
- 	if (code->pad == UDS_PAD_SINK) {
- 		if (code->index >= ARRAY_SIZE(codes))
-@@ -191,7 +192,8 @@ static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
- 		if (code->index)
- 			return -EINVAL;
- 
--		format = v4l2_subdev_get_try_format(subdev, cfg, UDS_PAD_SINK);
-+		format = vsp1_entity_get_pad_format(&uds->entity, cfg,
-+						    UDS_PAD_SINK, code->which);
- 		code->code = format->code;
- 	}
- 
-diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
-index e404ad4..2d5079d 100644
---- a/drivers/staging/media/omap4iss/iss_csi2.c
-+++ b/drivers/staging/media/omap4iss/iss_csi2.c
-@@ -908,7 +908,7 @@ static int csi2_enum_mbus_code(struct v4l2_subdev *sd,
- 		code->code = csi2_input_fmts[code->index];
- 	} else {
- 		format = __csi2_get_format(csi2, cfg, CSI2_PAD_SINK,
--					   V4L2_SUBDEV_FORMAT_TRY);
-+					   code->which);
- 		switch (code->index) {
- 		case 0:
- 			/* Passthrough sink pad code */
-diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
-index 948edcc..b8e7277 100644
---- a/drivers/staging/media/omap4iss/iss_ipipeif.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
-@@ -467,7 +467,7 @@ static int ipipeif_enum_mbus_code(struct v4l2_subdev *sd,
- 			return -EINVAL;
- 
- 		format = __ipipeif_get_format(ipipeif, cfg, IPIPEIF_PAD_SINK,
--					      V4L2_SUBDEV_FORMAT_TRY);
-+					      code->which);
- 
- 		code->code = format->code;
- 		break;
-diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
-index f9b0aac..075b876 100644
---- a/drivers/staging/media/omap4iss/iss_resizer.c
-+++ b/drivers/staging/media/omap4iss/iss_resizer.c
-@@ -513,7 +513,7 @@ static int resizer_enum_mbus_code(struct v4l2_subdev *sd,
- 
- 	case RESIZER_PAD_SOURCE_MEM:
- 		format = __resizer_get_format(resizer, cfg, RESIZER_PAD_SINK,
--					      V4L2_SUBDEV_FORMAT_TRY);
-+					      code->which);
- 
- 		if (code->index == 0) {
- 			code->code = format->code;
--- 
-2.1.4
-
+> >  drivers/media/platform/omap3isp/isp.c |  113 ++++++++++++++++--------------
+> >  drivers/media/platform/omap3isp/isp.h |    4 +-
+> >  4 files changed, 66 insertions(+), 153 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> > index e945957..990338f 100644
+> > --- a/arch/arm/mach-omap2/devices.c
+> > +++ b/arch/arm/mach-omap2/devices.c
+> > @@ -74,72 +74,12 @@ omap_postcore_initcall(omap3_l3_init);
+> >  static struct resource omap3isp_resources[] = {
+> >  	{
+> >  		.start		= OMAP3430_ISP_BASE,
+> > -		.end		= OMAP3430_ISP_END,
+> > +		.end		= OMAP3430_ISP_BASE + 0x12fc,
+> >  		.flags		= IORESOURCE_MEM,
+> >  	},
+> >  	{
+> > -		.start		= OMAP3430_ISP_CCP2_BASE,
+> > -		.end		= OMAP3430_ISP_CCP2_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3430_ISP_CCDC_BASE,
+> > -		.end		= OMAP3430_ISP_CCDC_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3430_ISP_HIST_BASE,
+> > -		.end		= OMAP3430_ISP_HIST_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3430_ISP_H3A_BASE,
+> > -		.end		= OMAP3430_ISP_H3A_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3430_ISP_PREV_BASE,
+> > -		.end		= OMAP3430_ISP_PREV_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3430_ISP_RESZ_BASE,
+> > -		.end		= OMAP3430_ISP_RESZ_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3430_ISP_SBL_BASE,
+> > -		.end		= OMAP3430_ISP_SBL_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
+> > -		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3430_ISP_CSIPHY2_BASE,
+> > -		.end		= OMAP3430_ISP_CSIPHY2_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
+> > -		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
+> > -		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3630_ISP_CSIPHY1_BASE,
+> > -		.end		= OMAP3630_ISP_CSIPHY1_END,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
+> > -		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
+> > +		.start		= OMAP3430_ISP_BASE2,
+> > +		.end		= OMAP3430_ISP_BASE2 + 0x0600,
+> >  		.flags		= IORESOURCE_MEM,
+> >  	},
+> >  	{
+> > diff --git a/arch/arm/mach-omap2/omap34xx.h b/arch/arm/mach-omap2/omap34xx.h
+> > index c0d1b4b..ed0024d 100644
+> > --- a/arch/arm/mach-omap2/omap34xx.h
+> > +++ b/arch/arm/mach-omap2/omap34xx.h
+> > @@ -46,39 +46,9 @@
+> > 
+> >  #define OMAP34XX_IC_BASE	0x48200000
+> > 
+> > -#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
+> > -#define OMAP3430_ISP_CBUFF_BASE		(OMAP3430_ISP_BASE + 0x0100)
+> > -#define OMAP3430_ISP_CCP2_BASE		(OMAP3430_ISP_BASE + 0x0400)
+> > -#define OMAP3430_ISP_CCDC_BASE		(OMAP3430_ISP_BASE + 0x0600)
+> > -#define OMAP3430_ISP_HIST_BASE		(OMAP3430_ISP_BASE + 0x0A00)
+> > -#define OMAP3430_ISP_H3A_BASE		(OMAP3430_ISP_BASE + 0x0C00)
+> > -#define OMAP3430_ISP_PREV_BASE		(OMAP3430_ISP_BASE + 0x0E00)
+> > -#define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
+> > -#define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
+> > -#define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
+> > -#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
+> > -#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
+> > -#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
+> > -#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
+> > -#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
+> > -#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
+> > -
+> > -#define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
+> > -#define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
+> > -#define OMAP3430_ISP_CCP2_END		(OMAP3430_ISP_CCP2_BASE    + 0x1EF)
+> > -#define OMAP3430_ISP_CCDC_END		(OMAP3430_ISP_CCDC_BASE    + 0x0A7)
+> > -#define OMAP3430_ISP_HIST_END		(OMAP3430_ISP_HIST_BASE    + 0x047)
+> > -#define OMAP3430_ISP_H3A_END		(OMAP3430_ISP_H3A_BASE     + 0x05F)
+> > -#define OMAP3430_ISP_PREV_END		(OMAP3430_ISP_PREV_BASE    + 0x09F)
+> > -#define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
+> > -#define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
+> > -#define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
+> > -#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE +
+> > 0x16F) -#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE +
+> > 0x00B) -#define OMAP3630_ISP_CSI2A_REGS2_END	
+> (OMAP3630_ISP_CSI2A_REGS2_BASE
+> > + 0x3F) -#define
+> > OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
+> > -#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
+> > -#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE +
+> > 0x3F) +#define OMAP3430_ISP_BASE	(L4_34XX_BASE + 0xBC000)
+> > +#define OMAP3430_ISP_MMU_BASE	(OMAP3430_ISP_BASE + 0x1400)
+> > +#define OMAP3430_ISP_BASE2	(OMAP3430_ISP_BASE + 0x1800)
+> > 
+> >  #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
+> >  #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
+> > diff --git a/drivers/media/platform/omap3isp/isp.c
+> > b/drivers/media/platform/omap3isp/isp.c index 4ff4bbd..7804895 100644
+> > --- a/drivers/media/platform/omap3isp/isp.c
+> > +++ b/drivers/media/platform/omap3isp/isp.c
+> > @@ -86,35 +86,43 @@ static void isp_restore_ctx(struct isp_device *isp);
+> >  static const struct isp_res_mapping isp_res_maps[] = {
+> >  	{
+> >  		.isp_rev = ISP_REVISION_2_0,
+> > -		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
+> > -		       1 << OMAP3_ISP_IOMEM_CCP2 |
+> > -		       1 << OMAP3_ISP_IOMEM_CCDC |
+> > -		       1 << OMAP3_ISP_IOMEM_HIST |
+> > -		       1 << OMAP3_ISP_IOMEM_H3A |
+> > -		       1 << OMAP3_ISP_IOMEM_PREV |
+> > -		       1 << OMAP3_ISP_IOMEM_RESZ |
+> > -		       1 << OMAP3_ISP_IOMEM_SBL |
+> > -		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+> > -		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
+> > +		.offset = {
+> > +			/* first MMIO area */
+> > +			0x0000, /* base, len 0x0070 */
+> > +			0x0400, /* ccp2, len 0x01f0 */
+> > +			0x0600, /* ccdc, len 0x00a8 */
+> > +			0x0a00, /* hist, len 0x0048 */
+> > +			0x0c00, /* h3a, len 0x0060 */
+> > +			0x0e00, /* preview, len 0x00a0 */
+> > +			0x1000, /* resizer, len 0x00ac */
+> > +			0x1200, /* sbl, len 0x00fc */
+> > +			/* second MMIO area */
+> > +			0x0000, /* csi2a, len 0x0170 */
+> > +			0x0170, /* csiphy2, len 0x000c */
+> > +		},
+> >  		.syscon_offset = 0xdc,
+> >  		.phy_type = ISP_PHY_TYPE_3430,
+> >  	},
+> >  	{
+> >  		.isp_rev = ISP_REVISION_15_0,
+> > -		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
+> > -		       1 << OMAP3_ISP_IOMEM_CCP2 |
+> > -		       1 << OMAP3_ISP_IOMEM_CCDC |
+> > -		       1 << OMAP3_ISP_IOMEM_HIST |
+> > -		       1 << OMAP3_ISP_IOMEM_H3A |
+> > -		       1 << OMAP3_ISP_IOMEM_PREV |
+> > -		       1 << OMAP3_ISP_IOMEM_RESZ |
+> > -		       1 << OMAP3_ISP_IOMEM_SBL |
+> > -		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+> > -		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
+> > -		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
+> > -		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
+> > -		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
+> > -		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
+> > +		.offset = {
+> > +			/* first MMIO area */
+> > +			0x0000, /* base, len 0x0070 */
+> > +			0x0400, /* ccp2, len 0x01f0 */
+> > +			0x0600, /* ccdc, len 0x00a8 */
+> > +			0x0a00, /* hist, len 0x0048 */
+> > +			0x0c00, /* h3a, len 0x0060 */
+> > +			0x0e00, /* preview, len 0x00a0 */
+> > +			0x1000, /* resizer, len 0x00ac */
+> > +			0x1200, /* sbl, len 0x00fc */
+> > +			/* second MMIO area */
+> > +			0x0000, /* csi2a, len 0x0170 (1st area) */
+> > +			0x0170, /* csiphy2, len 0x000c */
+> > +			0x01c0, /* csi2a, len 0x0040 (2nd area) */
+> > +			0x0400, /* csi2c, len 0x0170 (1st area) */
+> > +			0x0570, /* csiphy1, len 0x000c */
+> > +			0x05c0, /* csi2c, len 0x0040 (2nd area) */
+> > +		},
+> >  		.syscon_offset = 0x2f0,
+> >  		.phy_type = ISP_PHY_TYPE_3630,
+> >  	},
+> > @@ -2235,27 +2243,6 @@ static int isp_remove(struct platform_device *pdev)
+> >  	return 0;
+> >  }
+> > 
+> > -static int isp_map_mem_resource(struct platform_device *pdev,
+> > -				struct isp_device *isp,
+> > -				enum isp_mem_resources res)
+> > -{
+> > -	struct resource *mem;
+> > -
+> > -	/* request the mem region for the camera registers */
+> > -
+> > -	mem = platform_get_resource(pdev, IORESOURCE_MEM, res);
+> > -
+> > -	/* map the region */
+> > -	isp->mmio_base[res] = devm_ioremap_resource(isp->dev, mem);
+> > -	if (IS_ERR(isp->mmio_base[res]))
+> > -		return PTR_ERR(isp->mmio_base[res]);
+> > -
+> > -	if (res == OMAP3_ISP_IOMEM_HIST)
+> > -		isp->mmio_hist_base_phys = mem->start;
+> > -
+> > -	return 0;
+> > -}
+> > -
+> >  /*
+> >   * isp_probe - Probe ISP platform device
+> >   * @pdev: Pointer to ISP platform device
+> > @@ -2271,6 +2258,7 @@ static int isp_probe(struct platform_device *pdev)
+> >  {
+> >  	struct isp_platform_data *pdata = pdev->dev.platform_data;
+> >  	struct isp_device *isp;
+> > +	struct resource *mem;
+> >  	int ret;
+> >  	int i, m;
+> > 
+> > @@ -2303,10 +2291,21 @@ static int isp_probe(struct platform_device *pdev)
+> >  	 *
+> >  	 * The ISP clock tree is revision-dependent. We thus need to enable ICLK
+> >  	 * manually to read the revision before calling __omap3isp_get().
+> > +	 *
+> > +	 * Start by mapping the ISP MMIO area, which is in two pieces.
+> > +	 * The ISP IOMMU is in between. Map both now, and fill in the
+> > +	 * ISP revision specific portions a little later in the
+> > +	 * function.
+> >  	 */
+> > -	ret = isp_map_mem_resource(pdev, isp, OMAP3_ISP_IOMEM_MAIN);
+> > -	if (ret < 0)
+> > -		goto error;
+> > +	for (i = 0; i < 2; i++) {
+> > +		unsigned int map_idx = i ? OMAP3_ISP_IOMEM_CSI2A_REGS1 : 0;
+> > +
+> > +		mem = platform_get_resource(pdev, IORESOURCE_MEM, i);
+> > +		isp->mmio_base[map_idx] =
+> > +			devm_ioremap_resource(isp->dev, mem);
+> > +		if (IS_ERR(isp->mmio_base[map_idx]))
+> > +			return PTR_ERR(isp->mmio_base[map_idx]);
+> > +	}
+> > 
+> >  	ret = isp_get_clocks(isp);
+> >  	if (ret < 0)
+> > @@ -2347,13 +2346,17 @@ static int isp_probe(struct platform_device *pdev)
+> >  		goto error_isp;
+> >  	}
+> > 
+> > -	for (i = 1; i < OMAP3_ISP_IOMEM_LAST; i++) {
+> > -		if (isp_res_maps[m].map & 1 << i) {
+> > -			ret = isp_map_mem_resource(pdev, isp, i);
+> > -			if (ret)
+> > -				goto error_isp;
+> > -		}
+> > -	}
+> > +	for (i = 1; i < OMAP3_ISP_IOMEM_CSI2A_REGS1; i++)
+> > +		isp->mmio_base[i] =
+> > +			isp->mmio_base[0] + isp_res_maps[m].offset[i];
+> > +
+> > +	for (i = OMAP3_ISP_IOMEM_CSIPHY2; i < OMAP3_ISP_IOMEM_LAST; i++)
+> > +		isp->mmio_base[i] =
+> > +			isp->mmio_base[OMAP3_ISP_IOMEM_CSI2A_REGS1]
+> > +			+ isp_res_maps[m].offset[i];
+> > +
+> > +	isp->mmio_hist_base_phys =
+> > +		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
+> > 
+> >  	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
+> >  	isp->syscon_offset = isp_res_maps[m].syscon_offset;
+> > diff --git a/drivers/media/platform/omap3isp/isp.h
+> > b/drivers/media/platform/omap3isp/isp.h index 03d2129..dcb7d20 100644
+> > --- a/drivers/media/platform/omap3isp/isp.h
+> > +++ b/drivers/media/platform/omap3isp/isp.h
+> > @@ -99,7 +99,7 @@ struct regmap;
+> >  /*
+> >   * struct isp_res_mapping - Map ISP io resources to ISP revision.
+> >   * @isp_rev: ISP_REVISION_x_x
+> > - * @map: bitmap for enum isp_mem_resources
+> > + * @offset: register offsets of various ISP sub-blocks
+> >   * @syscon_offset: offset of the syscon register for 343x / 3630
+> >   *	    (CONTROL_CSIRXFE / CONTROL_CAMERA_PHY_CTRL, respectively)
+> >   *	    from the syscon base address
+> > @@ -107,7 +107,7 @@ struct regmap;
+> >   */
+> >  struct isp_res_mapping {
+> >  	u32 isp_rev;
+> > -	u32 map;
+> > +	u32 offset[OMAP3_ISP_IOMEM_LAST];
+> >  	u32 syscon_offset;
+> >  	u32 phy_type;
+> >  };
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
