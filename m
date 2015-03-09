@@ -1,52 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.logicpd.com ([174.46.170.145]:52347 "HELO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750719AbbCRPZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 11:25:46 -0400
-Message-ID: <550998EE.8080801@logicpd.com>
-Date: Wed, 18 Mar 2015 10:25:34 -0500
-From: Tim Nordell <tim.nordell@logicpd.com>
+Received: from muru.com ([72.249.23.125]:35859 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751540AbbCIPbh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 11:31:37 -0400
+Date: Mon, 9 Mar 2015 08:20:38 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	pali.rohar@gmail.com, linux-omap@vger.kernel.org
+Subject: Re: [RFC 10/18] omap3isp: Move the syscon register out of the ISP
+ register maps
+Message-ID: <20150309152038.GD5264@atomide.com>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+ <1425764475-27691-11-git-send-email-sakari.ailus@iki.fi>
+ <1726882.heQ7ZxmKYg@avalon>
+ <20150307234334.GH6539@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: <linux-media@vger.kernel.org>, <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 2/3] omap3isp: Disable CCDC's VD0 and VD1 interrupts when
- stream is not enabled
-References: <1426015494-16799-1-git-send-email-tim.nordell@logicpd.com> <1426015494-16799-3-git-send-email-tim.nordell@logicpd.com> <1579699.dpjCaSBOhB@avalon>
-In-Reply-To: <1579699.dpjCaSBOhB@avalon>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150307234334.GH6539@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent -
+* Sakari Ailus <sakari.ailus@iki.fi> [150307 15:44]:
+> Hi Laurent,
+> 
+> On Sun, Mar 08, 2015 at 01:34:17AM +0200, Laurent Pinchart wrote:
+> > Hi Sakari,
+> > 
+> > Thank you for the patch.
+> > 
+> > (CC'ing linux-omap and Tony)
+> 
+> Thanks.
+> 
+> > On Saturday 07 March 2015 23:41:07 Sakari Ailus wrote:
+> > > The syscon register isn't part of the ISP, use it through the syscom driver
+> > > regmap instead. The syscom block is considered to be from 343x on ISP
+> > > revision 2.0 whereas 15.0 is assumed to have 3630 syscon.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > ---
+> > >  arch/arm/boot/dts/omap3.dtsi                |    2 +-
+> > >  arch/arm/mach-omap2/devices.c               |   10 ----------
+> > >  drivers/media/platform/omap3isp/isp.c       |   19 +++++++++++++++----
+> > >  drivers/media/platform/omap3isp/isp.h       |   19 +++++++++++++++++--
+> > >  drivers/media/platform/omap3isp/ispcsiphy.c |   20 +++++++++-----------
+> > 
+> > You might be asked to split the patch into two, let's see what Tony says.
+> > 
+> > >  5 files changed, 42 insertions(+), 28 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> > > index 01b7111..fe0b293 100644
+> > > --- a/arch/arm/boot/dts/omap3.dtsi
+> > > +++ b/arch/arm/boot/dts/omap3.dtsi
+> > > @@ -183,7 +183,7 @@
+> > > 
+> > >  		omap3_scm_general: tisyscon@48002270 {
+> > >  			compatible = "syscon";
+> > > -			reg = <0x48002270 0x2f0>;
+> > > +			reg = <0x48002270 0x2f4>;
+> > >  		};
+> > > 
+> > >  		pbias_regulator: pbias_regulator {
 
-On 03/18/15 10:19, Laurent Pinchart wrote:
-> Hi Tim,
->
-> Thank you for the patch.
->
-> On Tuesday 10 March 2015 14:24:53 Tim Nordell wrote:
->> During testing there appeared to be a race condition where the IRQs
->> for VD0 and VD1 could be triggered while enabling the CCDC module
->> before the pipeline status was updated.  Simply modify the trigger
->> conditions for VD0 and VD1 so they won't occur when the CCDC module
->> is not enabled.
->>
->> (When this occurred during testing, the VD0 interrupt was occurring
->> over and over again starving the rest of the system.)
-> I'm curious, might this be caused by the input (adv7180 in your case) being
-> enabled before the ISP ? The CCDC is very sensitive to any glitch in its input
-> signals, you need to make sure that the source is disabled before its subdev
-> s_stream operation is called. Given that the adv7180 driver doesn't implement
-> s_stream, I expect it to be free-running, which is definitely a problem.
->
-I'll give that a shot and try add code into the adv7180 driver to turn 
-on and off its output signals.  However, it seems like if the driver can 
-avoid a problem presented by external hardware (or other drivers), that 
-it should.  Something like either turning off the VD0 and VD1 interrupts 
-when not in use, or by simply moving the trigger points for those 
-interrupts (as I did here) to avoid problems by presented by signals to 
-the system is probably a good thing for robustness.
+Can you please send the above dts change separately as a fix describing
+what goes wrong? Let's get that out of the way for the -rc, otherwise
+we're going to probably get conflicts with Tero's dts changes.
 
-- Tim
+> > > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> > > index 1afb50d..e945957 100644
+> > > --- a/arch/arm/mach-omap2/devices.c
+> > > +++ b/arch/arm/mach-omap2/devices.c
+> > > @@ -143,16 +143,6 @@ static struct resource omap3isp_resources[] = {
+> > >  		.flags		= IORESOURCE_MEM,
+> > >  	},
+> > >  	{
+> > > -		.start		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE,
+> > > -		.end		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE + 3,
+> > > -		.flags		= IORESOURCE_MEM,
+> > > -	},
+> > > -	{
+> > > -		.start		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL,
+> > > -		.end		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL + 3,
+> > > -		.flags		= IORESOURCE_MEM,
+> > > -	},
+> > > -	{
+> > >  		.start		= 24 + OMAP_INTC_START,
+> > >  		.flags		= IORESOURCE_IRQ,
+> > >  	}
 
+Looks good to me, teel free to merge this part along with the other
+isp changes:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+
+> > > diff --git a/drivers/media/platform/omap3isp/isp.c
+> > > b/drivers/media/platform/omap3isp/isp.c index 68d7edfc..4ff4bbd 100644
+> > > --- a/drivers/media/platform/omap3isp/isp.c
+> > > +++ b/drivers/media/platform/omap3isp/isp.c
+> > > @@ -51,6 +51,7 @@
+> > >  #include <linux/dma-mapping.h>
+> > >  #include <linux/i2c.h>
+> > >  #include <linux/interrupt.h>
+> > > +#include <linux/mfd/syscon.h>
+> > >  #include <linux/module.h>
+> > >  #include <linux/omap-iommu.h>
+> > >  #include <linux/platform_device.h>
+> > > @@ -94,8 +95,9 @@ static const struct isp_res_mapping isp_res_maps[] = {
+> > >  		       1 << OMAP3_ISP_IOMEM_RESZ |
+> > >  		       1 << OMAP3_ISP_IOMEM_SBL |
+> > >  		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+> > > -		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
+> > > -		       1 << OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
+> > > +		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
+> > > +		.syscon_offset = 0xdc,
+> > > +		.phy_type = ISP_PHY_TYPE_3430,
+> > >  	},
+> > >  	{
+> > >  		.isp_rev = ISP_REVISION_15_0,
+> > > @@ -112,8 +114,9 @@ static const struct isp_res_mapping isp_res_maps[] = {
+> > >  		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
+> > >  		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
+> > >  		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
+> > > -		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2 |
+> > > -		       1 << OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
+> > > +		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
+> > > +		.syscon_offset = 0x2f0,
+> > > +		.phy_type = ISP_PHY_TYPE_3630,
+> > >  	},
+> > >  };
+> > > 
+> > > @@ -2352,6 +2355,14 @@ static int isp_probe(struct platform_device *pdev)
+> > >  		}
+> > >  	}
+> > > 
+> > > +	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
+> > > +	isp->syscon_offset = isp_res_maps[m].syscon_offset;
+> > > +	isp->phy_type = isp_res_maps[m].phy_type;
+> > 
+> > You could move those two lines after the error check to keep the check closer 
+> > to the source of error.
+> 
+> Ack.
+> 
+> > Apart from that,
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Thanks for the acks!
+> 
+> -- 
+> Kind regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
