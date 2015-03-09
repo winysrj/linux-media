@@ -1,49 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35232 "EHLO mail.kapsi.fi"
+Received: from mout.gmx.net ([212.227.15.19]:55978 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752963AbbCRAL4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2015 20:11:56 -0400
-Message-ID: <5508C2C8.4090407@iki.fi>
-Date: Wed, 18 Mar 2015 02:11:52 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1752996AbbCIVrk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 17:47:40 -0400
+Date: Mon, 9 Mar 2015 22:46:58 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: Re: [PATCH v4 2/2] V4L: add CCF support to the v4l2_clk API
+In-Reply-To: <20150302135523.1f34dc84@recife.lan>
+Message-ID: <Pine.LNX.4.64.1503092244280.15137@axis700.grange>
+References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange>
+ <Pine.LNX.4.64.1502010019380.26661@axis700.grange> <8420980.1Z1tGTCX4O@avalon>
+ <Pine.LNX.4.64.1502011211160.9534@axis700.grange> <20150302135523.1f34dc84@recife.lan>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kozlov Sergey <serjk@netup.ru>
-CC: linux-media@vger.kernel.org, aospan1@gmail.com
-Subject: Re: [PATCH 1/5] [media] horus3a: Sony Horus3A DVB-S/S2 tuner driver
-References: <20150202092806.7B4D81BC32CD@debian> <20150305055414.1b02a0c1@recife.lan>
-In-Reply-To: <20150305055414.1b02a0c1@recife.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/05/2015 10:54 AM, Mauro Carvalho Chehab wrote:
-> Em Mon, 02 Feb 2015 12:22:32 +0300
-> Kozlov Sergey <serjk@netup.ru> escreveu:
+Hi Mauro,
 
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index ddb9ac8..a3a1767 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -4365,6 +4365,15 @@ W:	http://linuxtv.org
->>   S:	Odd Fixes
->>   F:	drivers/media/usb/hdpvr/
->>
->> +HORUS3A MEDIA DRIVER
->
-> Not a big issue, but could you please rename it to:
-> 	MEDIA DRIVERS FOR HORUS3A
->
-> We're trying to better organize the media entries at MAINTAINERS, at
-> least for the new drivers.
+On Mon, 2 Mar 2015, Mauro Carvalho Chehab wrote:
 
-What the *ell is that new rule? MAINTAINERS file clearly says entries 
-should be alphabetical order, but on the other-hand there seems to be 
-PCI and ARM specific stuff already grouped. Is that some new way?
+> Em Sun, 1 Feb 2015 12:12:33 +0100 (CET)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+> 
+> > V4L2 clocks, e.g. used by camera sensors for their master clock, do not
+> > have to be supplied by a different V4L2 driver, they can also be
+> > supplied by an independent source. In this case the standart kernel
+> > clock API should be used to handle such clocks. This patch adds support
+> > for such cases.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> > v4: sizeof(*clk) :)
+> > 
+> >  drivers/media/v4l2-core/v4l2-clk.c | 48 +++++++++++++++++++++++++++++++++++---
+> >  include/media/v4l2-clk.h           |  2 ++
+> >  2 files changed, 47 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
+> > index 3ff0b00..9f8cb20 100644
+> > --- a/drivers/media/v4l2-core/v4l2-clk.c
+> > +++ b/drivers/media/v4l2-core/v4l2-clk.c
+> > @@ -9,6 +9,7 @@
+> >   */
+> >  
+> >  #include <linux/atomic.h>
+> > +#include <linux/clk.h>
+> >  #include <linux/device.h>
+> >  #include <linux/errno.h>
+> >  #include <linux/list.h>
+> > @@ -37,6 +38,21 @@ static struct v4l2_clk *v4l2_clk_find(const char *dev_id)
+> >  struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
+> >  {
+> >  	struct v4l2_clk *clk;
+> > +	struct clk *ccf_clk = clk_get(dev, id);
+> > +
+> > +	if (PTR_ERR(ccf_clk) == -EPROBE_DEFER)
+> > +		return ERR_PTR(-EPROBE_DEFER);
+> 
+> Why not do just:
+> 		return ccf_clk;
 
-regards
-Antti
+I would prefer that shorter form too, but the function returns "struct 
+v4l2_clk *" and ccf_clk is "struct clk *"
 
--- 
-http://palosaari.fi/
+Thanks
+Guennadi
