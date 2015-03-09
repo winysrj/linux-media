@@ -1,135 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60758 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755156AbbCEKgy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2015 05:36:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 2/3] media: atmel-isi: add runtime pm support
-Date: Thu, 05 Mar 2015 12:36:58 +0200
-Message-ID: <4374983.hs3Q8DJocG@avalon>
-In-Reply-To: <1425531661-20040-3-git-send-email-josh.wu@atmel.com>
-References: <1425531661-20040-1-git-send-email-josh.wu@atmel.com> <1425531661-20040-3-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56623 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752300AbbCIPo6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 11:44:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 00/29] vivid: add support for 4:2:0 formats
+Date: Mon,  9 Mar 2015 16:44:22 +0100
+Message-Id: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the patch.
+This patch series adds support for most of the 4:2:0 formats that V4L2 has.
+In addition, it fixes various bugs, adds some new features and refactors
+the test pattern generation code.
 
-On Thursday 05 March 2015 13:01:00 Josh Wu wrote:
-> The runtime pm resume/suspend will enable/disable pclk (ISI peripheral
-> clock).
-> And we need to call rumtime_pm_get/put_sync function to make pm
-> resume/suspend.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c | 36 +++++++++++++++++++++---
->  1 file changed, 32 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> b/drivers/media/platform/soc_camera/atmel-isi.c index eb179e7..4a384f1
-> 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -20,6 +20,7 @@
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/platform_device.h>
-> +#include <linux/pm_runtime.h>
->  #include <linux/slab.h>
-> 
->  #include <media/atmel-isi.h>
-> @@ -386,9 +387,7 @@ static int start_streaming(struct vb2_queue *vq,
-> unsigned int count) struct atmel_isi *isi = ici->priv;
->  	int ret;
-> 
-> -	ret = clk_prepare_enable(isi->pclk);
-> -	if (ret)
-> -		return ret;
-> +	pm_runtime_get_sync(ici->v4l2_dev.dev);
-> 
->  	/* Reset ISI */
->  	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
-> @@ -450,7 +449,7 @@ static void stop_streaming(struct vb2_queue *vq)
->  	if (ret < 0)
->  		dev_err(icd->parent, "Disable ISI timed out\n");
-> 
-> -	clk_disable_unprepare(isi->pclk);
-> +	pm_runtime_put_sync(ici->v4l2_dev.dev);
+The first 8 patches fix bugs and add support for new red/blue checkerboard
+patterns.
 
-Is there a reason to use pm_runtime_put_sync() and not just pm_runtime_put() ?
+Patches 9-19 add 4:2:0 support to the test pattern generator code.
 
->  }
-> 
->  static struct vb2_ops isi_video_qops = {
-> @@ -1042,6 +1041,9 @@ static int atmel_isi_probe(struct platform_device
-> *pdev) soc_host->v4l2_dev.dev	= &pdev->dev;
->  	soc_host->nr		= pdev->id;
-> 
-> +	pm_suspend_ignore_children(&pdev->dev, true);
-> +	pm_runtime_enable(&pdev->dev);
-> +
->  	if (isi->pdata.asd_sizes) {
->  		soc_host->asd = isi->pdata.asd;
->  		soc_host->asd_sizes = isi->pdata.asd_sizes;
-> @@ -1055,6 +1057,7 @@ static int atmel_isi_probe(struct platform_device
-> *pdev) return 0;
-> 
->  err_register_soc_camera_host:
-> +	pm_runtime_disable(&pdev->dev);
->  err_req_irq:
->  err_ioremap:
->  	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
-> @@ -1067,6 +1070,30 @@ err_alloc_ctx:
->  	return ret;
->  }
-> 
-> +static int atmel_isi_runtime_suspend(struct device *dev)
-> +{
-> +	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
-> +	struct atmel_isi *isi = container_of(soc_host,
-> +					struct atmel_isi, soc_host);
-> +
-> +	clk_disable_unprepare(isi->pclk);
-> +
-> +	return 0;
-> +}
-> +static int atmel_isi_runtime_resume(struct device *dev)
-> +{
-> +	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
-> +	struct atmel_isi *isi = container_of(soc_host,
-> +					struct atmel_isi, soc_host);
-> +
-> +	return clk_prepare_enable(isi->pclk);
-> +}
-> +
-> +static const struct dev_pm_ops atmel_isi_dev_pm_ops = {
-> +	SET_RUNTIME_PM_OPS(atmel_isi_runtime_suspend,
-> +				atmel_isi_runtime_resume, NULL)
-> +};
-> +
->  static const struct of_device_id atmel_isi_of_match[] = {
->  	{ .compatible = "atmel,at91sam9g45-isi" },
->  	{ }
-> @@ -1079,6 +1106,7 @@ static struct platform_driver atmel_isi_driver = {
->  		.name = "atmel_isi",
->  		.owner = THIS_MODULE,
->  		.of_match_table = of_match_ptr(atmel_isi_of_match),
-> +		.pm	= &atmel_isi_dev_pm_ops,
->  	},
->  };
+Patches 20-25 refactors the test pattern generation function which become
+much, much too large.
 
--- 
+Patches 26-28 add vivid driver support for the 4:2:0 formats and the last
+patch finally enables support for the new formats.
+
+Besides the new 4:2:0 formats support was also added for PIX_FMT_GREY and
+some missing 4:2:2 formats.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+Hans Verkuil (29):
+  vivid: the overlay API wasn't disabled completely for multiplanar
+  vivid: fix typo in plane size checks
+  vivid: wrong top/bottom order for FIELD_ALTERNATE
+  vivid: use TPG_MAX_PLANES instead of hardcoding plane-arrays
+  vivid: fix test pattern movement for V4L2_FIELD_ALTERNATE
+  vivid: add new checkboard patterns
+  vivid-tpg: don't add offset when switching to monochrome
+  vivid: do not allow video loopback for SEQ_TB/BT
+  vivid-tpg: separate planes and buffers
+  vivid-tpg: add helper functions for single buffer planar formats
+  vivid-tpg: add hor/vert downsampling fields
+  vivid-tpg: precalculate downsampled lines
+  vivid-tpg: correctly average the two pixels in gen_twopix()
+  vivid-tpg: add hor/vert downsampling support to tpg_gen_text
+  vivid-tpg: finish hor/vert downsampling support
+  vivid-tpg: add support for more planar formats
+  vivid-tpg: add support for V4L2_PIX_FMT_GREY
+  vivid-tpg: add helper functions to simplify common calculations
+  vivid-tpg: add const where appropriate
+  vivid-tpg: add a new tpg_draw_params structure
+  vivid-tpg: move common parameters to tpg_draw_params
+  vivid-tpg: move pattern-related fields to struct tpg_draw_params
+  vivid-tpg: move 'extras' parameters to tpg_draw_params
+  vivid-tpg: move the 'extras' drawing to a separate function
+  vivid-tpg: split off the pattern drawing code.
+  vivid: add new format fields
+  vivid: add support for single buffer planar formats
+  vivid: add downsampling support
+  vivid: add the new planar and monochrome formats
+
+ Documentation/video4linux/vivid.txt              |   5 +
+ drivers/media/platform/vivid/vivid-core.h        |   8 +-
+ drivers/media/platform/vivid/vivid-kthread-cap.c | 125 ++--
+ drivers/media/platform/vivid/vivid-tpg.c         | 903 ++++++++++++++++-------
+ drivers/media/platform/vivid/vivid-tpg.h         | 103 ++-
+ drivers/media/platform/vivid/vivid-vid-cap.c     | 100 ++-
+ drivers/media/platform/vivid/vivid-vid-common.c  | 207 +++++-
+ drivers/media/platform/vivid/vivid-vid-out.c     |  75 +-
+ 8 files changed, 1109 insertions(+), 417 deletions(-)
+
+-- 
+2.1.4
 
