@@ -1,65 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60914 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751923AbbC3NUJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 09:20:09 -0400
-Date: Mon, 30 Mar 2015 14:20:03 +0100
-From: Mark Rutland <mark.rutland@arm.com>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"pavel@ucw.cz" <pavel@ucw.cz>,
-	"cooloney@gmail.com" <cooloney@gmail.com>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH v3] DT: Add documentation for the mfd Maxim max77693
-Message-ID: <20150330132002.GA29200@leverpostej>
-References: <1427709149-15014-1-git-send-email-j.anaszewski@samsung.com>
- <1427709149-15014-2-git-send-email-j.anaszewski@samsung.com>
- <20150330115729.GG17971@leverpostej>
- <55194509.1070008@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <55194509.1070008@samsung.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59117 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752973AbbCIVXx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 17:23:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 10/18] marvell-ccic: add create_bufs support
+Date: Mon,  9 Mar 2015 22:22:15 +0100
+Message-Id: <1425936143-5658-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
+References: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> >> +Optional properties:
-> >> +- maxim,trigger-type : Flash trigger type.
-> >> +	Possible trigger types:
-> >> +		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
-> >> +			the flash,
-> >> +		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
-> >> +			of the flash.
-> >
-> > Surely this is required? What should be assumed if this property isn't
-> > present?
-> 
-> LEDS_TRIG_TYPE_LEVEL allows for an ISP to do e.g. short flash blink
-> before the actual strobe - it is used for eliminating photographs with
-> closed eyes, or can serve for probing ambient light conditions.
-> 
-> With LEDS_TRIG_TYPE_EDGE flash strobe is triggered on rising edge
-> and lasts until programmed timeout expires.
-> 
-> This setting is tightly related to a camera sensor, which generates
-> the strobe signal. Effectively it depends on board configuration.
+This fixes the final v4l2-compliance warning.
 
-My comment wasn't to do with the semantics of eitehr option but rather
-the optionality of the property.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-Surely it's vital to know what this should be, and hence this property
-should be required rather than optional?
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index b6b838f..51b7291 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1073,7 +1073,9 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
+ 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
+ 	int minbufs = (cam->buffer_mode == B_DMA_contig) ? 3 : 2;
+ 
+-	sizes[0] = cam->pix_format.sizeimage;
++	if (fmt && fmt->fmt.pix.sizeimage < cam->pix_format.sizeimage)
++		return -EINVAL;
++	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : cam->pix_format.sizeimage;
+ 	*num_planes = 1; /* Someday we have to support planar formats... */
+ 	if (*nbufs < minbufs)
+ 		*nbufs = minbufs;
+@@ -1380,7 +1382,7 @@ static int mcam_vidioc_s_fmt_vid_cap(struct file *filp, void *priv,
+ 	 * Can't do anything if the device is not idle
+ 	 * Also can't if there are streaming buffers in place.
+ 	 */
+-	if (cam->state != S_IDLE || cam->vb_queue.num_buffers > 0)
++	if (cam->state != S_IDLE || vb2_is_busy(&cam->vb_queue))
+ 		return -EBUSY;
+ 
+ 	f = mcam_find_format(fmt->fmt.pix.pixelformat);
+@@ -1573,6 +1575,7 @@ static const struct v4l2_ioctl_ops mcam_v4l_ioctl_ops = {
+ 	.vidioc_g_input		= mcam_vidioc_g_input,
+ 	.vidioc_s_input		= mcam_vidioc_s_input,
+ 	.vidioc_reqbufs		= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs	= vb2_ioctl_create_bufs,
+ 	.vidioc_querybuf	= vb2_ioctl_querybuf,
+ 	.vidioc_qbuf		= vb2_ioctl_qbuf,
+ 	.vidioc_dqbuf		= vb2_ioctl_dqbuf,
+-- 
+2.1.4
 
-If it isn't required, what would the assumed default be?
-
-Mark.
