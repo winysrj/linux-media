@@ -1,119 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51844 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751020AbbCWGXv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2015 02:23:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com
-Subject: Re: [PATCH v1.1 14/15] omap3isp: Add support for the Device Tree
-Date: Sun, 22 Mar 2015 22:26:39 +0200
-Message-ID: <3913985.bpC1SiT8Tn@avalon>
-In-Reply-To: <1426889104-17921-1-git-send-email-sakari.ailus@iki.fi>
-References: <2603487.gEIKMl6vV7@avalon> <1426889104-17921-1-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:21485 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797AbbCIQVx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 12:21:53 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NKY00ANDDN9XY20@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 09 Mar 2015 16:25:57 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sean Young' <sean@mess.org>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de,
+	'Hans Verkuil' <hansverk@cisco.com>
+References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
+ <1421942679-23609-4-git-send-email-k.debski@samsung.com>
+ <20150123110747.GA3084@gofer.mess.org>
+ <086501d05828$b88bf320$29a3d960$%debski@samsung.com>
+ <20150308104441.GA3764@gofer.mess.org>
+In-reply-to: <20150308104441.GA3764@gofer.mess.org>
+Subject: RE: [RFC v2 3/7] cec: add new framework for cec support.
+Date: Mon, 09 Mar 2015 17:21:49 +0100
+Message-id: <000701d05a85$26592130$730b6390$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Sean,
 
-Thank you for the patch. This looks good to me, except that there's one last 
-bug I've spotted. Please see below.
+From: Sean Young [mailto:sean@mess.org]
+Sent: Sunday, March 08, 2015 11:45 AM
+> 
+> Hi Kamil,
+> 
+> On Fri, Mar 06, 2015 at 05:14:50PM +0100, Kamil Debski wrote:
+> > 3) As you suggested - load an empty keymap whenever the pass through
+> > mode is enabled.
+> > I am not that familiar with the RC core. Is there a simple way to
+> > switch to an empty map from the kernel? There is the ir_setkeytable
+> > function, but it is static in rc-main.c, so it cannot be used in
+> other
+> > kernel modules. Any hints, Sean?
+> 
+> Why is it problematic if keypresses are passed to the input layer?
 
-On Saturday 21 March 2015 00:05:04 Sakari Ailus wrote:
-> Add the ISP device to omap3 DT include file and add support to the driver to
-> use it.
-> 
-> Also obtain information on the external entities and the ISP configuration
-> related to them through the Device Tree in addition to the platform data.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
-> since v1:
-> 
-> - Print endpoint name in debug message when parsing an endpoint.
-> 
-> - Rename lane-polarity property as lane-polarities.
-> 
-> - Print endpoint name with the interface if the interface is invalid.
-> 
-> - Remove assignment to two variables at the same time.
-> 
-> - Fix multiple sub-device support in isp_of_parse_nodes().
-> 
-> - Put of_node properly in isp_of_parse_nodes() (requires Philipp Zabel's
->   patch "of: Decrement refcount of previous endpoint in
->   of_graph_get_next_endpoint".
-> 
-> - Rename return value variable rval as ret to be consistent with the rest of
-> the driver.
-> 
-> - Read the register offset from the syscom property's first argument.
-> 
->  drivers/media/platform/omap3isp/isp.c       |  218 ++++++++++++++++++++++--
->  drivers/media/platform/omap3isp/isp.h       |   11 ++
->  drivers/media/platform/omap3isp/ispcsiphy.c |    7 +
->  3 files changed, 224 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 992e74c..92a859e 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
+I gave this a thought over the weekend and I think I agree that this
+shouldn't be much of a problem. I had doubts that there could be an
+application that could use both the input device and at the same time
+parse the raw messages to get keycodes. In reality this should not
+happen, as someone using the "raw"/"promiscuous" mode would be aware
+of how it works - that the keycodes are still passed to the input device.
 
-[snip]
+> 
+> You can only set the default keymap for an rc-device from kernel space;
+> from user space you can clear the table using input ioctl, see:
+> 
+> http://git.linuxtv.org/cgit.cgi/v4l-
+> utils.git/tree/utils/keytable/keytable.c#n1277
+> 
+> You can select MAP_EMPTY as the default keymap if that is appropriate;
+> using
+> ir-setkeytable(1) a different keymap can be selected.
+> 
+> 
+> Sean
 
-> +static int isp_of_parse_nodes(struct device *dev,
-> +			      struct v4l2_async_notifier *notifier)
-> +{
-> +	struct device_node *node;
-> +
-> +	notifier->subdevs = devm_kcalloc(
-> +		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-> +	if (!notifier->subdevs)
-> +		return -ENOMEM;
-> +
-> +	while ((node = of_graph_get_next_endpoint(dev->of_node, node)) &&
-> +	       notifier->num_subdevs < ISP_MAX_SUBDEVS) {
-
-If the first condition evaluates to true and the second one to false, the loop 
-will be exited without releasing the reference to the DT node. You could just 
-switch the two conditions to fix this.
-
-> +		struct isp_async_subdev *isd;
-> +
-> +		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
-> +		if (!isd) {
-> +			of_node_put(node);
-> +			return -ENOMEM;
-> +		}
-> +
-> +		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
-> +
-> +		if (isp_of_parse_node(dev, node, isd)) {
-> +			of_node_put(node);
-> +			return -EINVAL;
-> +		}
-> +
-> +		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
-> +		of_node_put(node);
-> +		if (!isd->asd.match.of.node) {
-> +			dev_warn(dev, "bad remote port parent\n");
-> +			return -EINVAL;
-> +		}
-> +
-> +		isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
-> +		notifier->num_subdevs++;
-> +	}
-> +
-> +	return notifier->num_subdevs;
-> +}
-
+Best wishes,
 -- 
-Regards,
+Kamil Debski
+Samsung R&D Institute Poland
 
-Laurent Pinchart
 
