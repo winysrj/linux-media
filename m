@@ -1,40 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:43746 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729AbbCJOpu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2015 10:45:50 -0400
-Received: by widem10 with SMTP id em10so3628462wid.2
-        for <linux-media@vger.kernel.org>; Tue, 10 Mar 2015 07:45:49 -0700 (PDT)
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: <linux-media@vger.kernel.org>
-Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH] MAINTAINERS: Update the maintainer mail address for stk1160
-Date: Tue, 10 Mar 2015 11:43:20 -0300
-Message-Id: <1425998600-3184-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Received: from mail-out-alt.marcant.net ([217.14.160.140]:34369 "EHLO
+	mail-out-alt.marcant.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026AbbCIWMS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 18:12:18 -0400
+From: Dirk Nehring <dnehring@gmx.net>
+To: linux-media@vger.kernel.org
+Cc: "nibble.max" <nibble.max@gmail.com>,
+	Dirk Nehring <dnehring@gmx.net>
+Subject: [PATCH 1/1] Fix DVBsky rc-keymap
+Date: Mon,  9 Mar 2015 23:02:53 +0100
+Message-Id: <1425938573-7107-1-git-send-email-dnehring@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'd rather use my work mail address to get patches, so let's update it.
-
-Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Signed-off-by: Dirk Nehring <dnehring@gmx.net>
 ---
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/rc/keymaps/rc-dvbsky.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c721042..1202c18 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4236,7 +4236,7 @@ S:	Maintained
- F:	block/partitions/efi.*
- 
- STK1160 USB VIDEO CAPTURE DRIVER
--M:	Ezequiel Garcia <elezegarcia@gmail.com>
-+M:	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
- L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
+diff --git a/drivers/media/rc/keymaps/rc-dvbsky.c b/drivers/media/rc/keymaps/rc-dvbsky.c
+index c5115a1..b942b16 100644
+--- a/drivers/media/rc/keymaps/rc-dvbsky.c
++++ b/drivers/media/rc/keymaps/rc-dvbsky.c
+@@ -33,16 +33,16 @@ static struct rc_map_table rc5_dvbsky[] = {
+ 	{ 0x000b, KEY_STOP },
+ 	{ 0x000c, KEY_EXIT },
+ 	{ 0x000e, KEY_CAMERA }, /*Snap shot*/
+-	{ 0x000f, KEY_SUBTITLE }, /*PIP*/
+-	{ 0x0010, KEY_VOLUMEUP },
+-	{ 0x0011, KEY_VOLUMEDOWN },
++	{ 0x000f, KEY_TV2 }, /*PIP*/
++	{ 0x0010, KEY_RIGHT },
++	{ 0x0011, KEY_LEFT },
+ 	{ 0x0012, KEY_FAVORITES },
+-	{ 0x0013, KEY_LIST }, /*Info*/
++	{ 0x0013, KEY_INFO },
+ 	{ 0x0016, KEY_PAUSE },
+ 	{ 0x0017, KEY_PLAY },
+ 	{ 0x001f, KEY_RECORD },
+-	{ 0x0020, KEY_CHANNELDOWN },
+-	{ 0x0021, KEY_CHANNELUP },
++	{ 0x0020, KEY_UP },
++	{ 0x0021, KEY_DOWN },
+ 	{ 0x0025, KEY_POWER2 },
+ 	{ 0x0026, KEY_REWIND },
+ 	{ 0x0027, KEY_FASTFORWARD },
 -- 
-2.3.0
+2.1.0
 
