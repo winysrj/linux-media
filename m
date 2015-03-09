@@ -1,74 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43280 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755819AbbCRMkc (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:33081 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932143AbbCIKJJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 08:40:32 -0400
-Date: Wed, 18 Mar 2015 14:39:57 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com
-Subject: Re: [PATCH/RFC v13 10/13] Documentation: leds: Add description of
- v4l2-flash sub-device
-Message-ID: <20150318123957.GH11954@valkosipuli.retiisi.org.uk>
-References: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
- <1426175114-14876-11-git-send-email-j.anaszewski@samsung.com>
+	Mon, 9 Mar 2015 06:09:09 -0400
+Message-ID: <54FD713D.5050401@xs4all.nl>
+Date: Mon, 09 Mar 2015 11:09:01 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1426175114-14876-11-git-send-email-j.anaszewski@samsung.com>
+To: Florian Echtler <floe@butterbrot.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3][RFC] add raw video stream support for Samsung SUR40
+References: <1423063842-6902-1-git-send-email-floe@butterbrot.org> <54DB4295.1080307@butterbrot.org> <54E1D71C.2000003@xs4all.nl> <54E7AB1E.3000401@butterbrot.org> <54E85C48.6070907@xs4all.nl> <54F98E51.8040204@butterbrot.org> <54F993ED.2060701@xs4all.nl> <54FB5715.2090103@butterbrot.org> <54FB6636.6050308@xs4all.nl> <54FD6CAD.9030600@butterbrot.org>
+In-Reply-To: <54FD6CAD.9030600@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hi Florian,
 
-On Thu, Mar 12, 2015 at 04:45:11PM +0100, Jacek Anaszewski wrote:
-> This patch extends LED Flash class documention by
-> the description of interactions with v4l2-flash sub-device.
+On 03/09/2015 10:49 AM, Florian Echtler wrote:
+> On 07.03.2015 21:57, Hans Verkuil wrote:
+>> This will wait until start_streaming was called before it starts processing
+>> video (and start_streaming is only called if at least 3 buffers have been
+>> queued).
+>>
+>> Right now the first buffer can be returned without STREAMON actually having
+>> been called. That's certainly wrong.
+>>
+>> Whether that is the cause of this bug I do not know, but fix this first.
+> OK, I've fixed this, will be included in the next patch submission.
+> Unfortunately still getting the same error from v4l2-compliance.
 > 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> ---
->  Documentation/leds/leds-class-flash.txt |   13 +++++++++++++
->  1 file changed, 13 insertions(+)
+>> If this doesn't solve it, then please do another run but this time use
+>>
+>> echo 10 >/sys/class/video4linux/videoX/dev_debug
+>>
+>> so I see the (D)QBUF ioctls as well. Otherwise use the same procedure as
+>> before.
+> See attachments - syslog with dev_debug=10, core.debug=1 and output from
+> v4l2-compliance -s.
 > 
-> diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-> index 19bb673..8623413 100644
-> --- a/Documentation/leds/leds-class-flash.txt
-> +++ b/Documentation/leds/leds-class-flash.txt
-> @@ -20,3 +20,16 @@ Following sysfs attributes are exposed for controlling flash LED devices:
->  	- max_flash_timeout
->  	- flash_strobe
->  	- flash_fault
-> +
-> +A LED subsystem driver can be controlled also from the level of VideoForLinux2
-> +subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
-> +be defined in the kernel config. The driver must call the v4l2_flash_init
-> +function to get registered in the V4L2 subsystem. On remove the
-> +v4l2_flash_release function has to be called (see <media/v4l2-flash.h>).
-> +
-> +After proper initialization a V4L2 Flash sub-device is created. The sub-device
-> +exposes a number of V4L2 controls, which allow for controlling a LED Flash class
+> *fingers crossed even more* ;-)
 
-Over 80 characters per line.
+OK, the cause of this failure is this message:
 
-With this fixed,
+Mar  9 10:39:08 sur40 kernel: [ 1093.200960] sur40 2-1:1.0: error in usb_sg_wait
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+So you need to print the error message here (sgr.status) so that I can see what
+it is.
 
-> +device with use of its internal kernel API.
-> +Opening the V4L2 Flash sub-device makes the LED subsystem sysfs interface
-> +unavailable. The interface is re-enabled after the V4L2 Flash sub-device
-> +is closed.
+The error almost certainly comes from usb_submit_urb(). That function does some
+checks on the sgl:
 
--- 
-Kind regards,
+       } else if (urb->num_sgs && !urb->dev->bus->no_sg_constraint &&
+                        dev->speed != USB_SPEED_WIRELESS) {
+                struct scatterlist *sg;
+                int i;
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+                for_each_sg(urb->sg, sg, urb->num_sgs - 1, i)
+                        if (sg->length % max)
+                                return -EINVAL;
+        }
+
+I wonder it the code gets there. Perhaps a printk just before the return -EINVAL
+might help here (also print the 'max' value).
+
+So you will have to debug a bit here, trying to figure out which test in the usb
+code causes the usb_sg_wait error.
+
+Regards,
+
+	Hans
