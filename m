@@ -1,60 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44326 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932607AbbCPVlz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 17:41:55 -0400
-Message-ID: <55074E21.2040909@iki.fi>
-Date: Mon, 16 Mar 2015 23:41:53 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>, mchehab@osg.samsung.com
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 08/10] mn88473: check if firmware is already running before
- loading it
-References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-8-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1426460275-3766-8-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51046 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751426AbbCJBSr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2015 21:18:47 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 2/3] smiapp: Read link-frequencies property from the endpoint node
+Date: Tue, 10 Mar 2015 03:18:01 +0200
+Message-Id: <1425950282-30548-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1425950282-30548-1-git-send-email-sakari.ailus@iki.fi>
+References: <1425950282-30548-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+The documentation stated that the link-frequencies property belongs to the
+endpoint node, not to the device's of_node. Fix this.
 
-Applied!
+There are no DT board descriptions using the driver yet, so a fix in the
+driver is sufficient.
 
-Antti
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-> ---
->   drivers/staging/media/mn88473/mn88473.c | 13 ++++++++++++-
->   1 file changed, 12 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
-> index 607ce4d..a23e59e 100644
-> --- a/drivers/staging/media/mn88473/mn88473.c
-> +++ b/drivers/staging/media/mn88473/mn88473.c
-> @@ -196,8 +196,19 @@ static int mn88473_init(struct dvb_frontend *fe)
->
->   	dev_dbg(&client->dev, "\n");
->
-> -	if (dev->warm)
-> +	/* set cold state by default */
-> +	dev->warm = false;
-> +
-> +	/* check if firmware is already running */
-> +	ret = regmap_read(dev->regmap[0], 0xf5, &tmp);
-> +	if (ret)
-> +		goto err;
-> +
-> +	if (!(tmp & 0x1)) {
-> +		dev_info(&client->dev, "firmware already running\n");
-> +		dev->warm = true;
->   		return 0;
-> +	}
->
->   	/* request the firmware, this will block and timeout */
->   	ret = request_firmware(&fw, fw_file, &client->dev);
->
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 565a00c..ecae76b 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -3022,8 +3022,7 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+ 	dev_dbg(dev, "reset %d, nvm %d, clk %d, csi %d\n", pdata->xshutdown,
+ 		pdata->nvm_size, pdata->ext_clk, pdata->csi_signalling_mode);
+ 
+-	rval = of_get_property(
+-		dev->of_node, "link-frequencies", &asize) ? 0 : -ENOENT;
++	rval = of_get_property(ep, "link-frequencies", &asize) ? 0 : -ENOENT;
+ 	if (rval) {
+ 		dev_warn(dev, "can't get link-frequencies array size\n");
+ 		goto out_err;
+@@ -3037,7 +3036,7 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+ 
+ 	asize /= sizeof(*pdata->op_sys_clock);
+ 	rval = of_property_read_u64_array(
+-		dev->of_node, "link-frequencies", pdata->op_sys_clock, asize);
++		ep, "link-frequencies", pdata->op_sys_clock, asize);
+ 	if (rval) {
+ 		dev_warn(dev, "can't get link-frequencies\n");
+ 		goto out_err;
 -- 
-http://palosaari.fi/
+1.7.10.4
+
