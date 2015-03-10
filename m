@@ -1,81 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33315 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752765AbbCGVmR (ORCPT
+Received: from mail-la0-f51.google.com ([209.85.215.51]:42106 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751027AbbCJS3y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2015 16:42:17 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, pali.rohar@gmail.com
-Subject: [RFC 09/18] omap3isp: Replace mmio_base_phys array with the histogram block base
-Date: Sat,  7 Mar 2015 23:41:06 +0200
-Message-Id: <1425764475-27691-10-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 10 Mar 2015 14:29:54 -0400
+Received: by lams18 with SMTP id s18so3687801lam.9
+        for <linux-media@vger.kernel.org>; Tue, 10 Mar 2015 11:29:53 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1425822043-18733-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1425822043-18733-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Tue, 10 Mar 2015 18:29:22 +0000
+Message-ID: <CA+V-a8uvEfiTAsL826udM8r0aFT3ZYXkMoT1UXgCOeq=pTbw0Q@mail.gmail.com>
+Subject: Re: [PATCH] v4l: mt9p031: Convert to the gpiod API
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Only the histogram sub-block driver uses the physical address. Do not store
-it for other sub-blocks.
+Hi Laurent,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/platform/omap3isp/isp.c     |    3 ++-
- drivers/media/platform/omap3isp/isp.h     |    6 +++---
- drivers/media/platform/omap3isp/isphist.c |    2 +-
- 3 files changed, 6 insertions(+), 5 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index c045318..68d7edfc 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2247,7 +2247,8 @@ static int isp_map_mem_resource(struct platform_device *pdev,
- 	if (IS_ERR(isp->mmio_base[res]))
- 		return PTR_ERR(isp->mmio_base[res]);
- 
--	isp->mmio_base_phys[res] = mem->start;
-+	if (res == OMAP3_ISP_IOMEM_HIST)
-+		isp->mmio_hist_base_phys = mem->start;
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index b932a6f..9535524 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -138,8 +138,8 @@ struct isp_xclk {
-  * @irq_num: Currently used IRQ number.
-  * @mmio_base: Array with kernel base addresses for ioremapped ISP register
-  *             regions.
-- * @mmio_base_phys: Array with physical L4 bus addresses for ISP register
-- *                  regions.
-+ * @mmio_hist_base_phys: Physical L4 bus address for ISP hist block register
-+ *			 region.
-  * @mapping: IOMMU mapping
-  * @stat_lock: Spinlock for handling statistics
-  * @isp_mutex: Mutex for serializing requests to ISP.
-@@ -175,7 +175,7 @@ struct isp_device {
- 	unsigned int irq_num;
- 
- 	void __iomem *mmio_base[OMAP3_ISP_IOMEM_LAST];
--	unsigned long mmio_base_phys[OMAP3_ISP_IOMEM_LAST];
-+	unsigned long mmio_hist_base_phys;
- 
- 	struct dma_iommu_mapping *mapping;
- 
-diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
-index ce822c3..3bb9c4f 100644
---- a/drivers/media/platform/omap3isp/isphist.c
-+++ b/drivers/media/platform/omap3isp/isphist.c
-@@ -70,7 +70,7 @@ static void hist_dma_config(struct ispstat *hist)
- 	hist->dma_config.sync_mode = OMAP_DMA_SYNC_ELEMENT;
- 	hist->dma_config.frame_count = 1;
- 	hist->dma_config.src_amode = OMAP_DMA_AMODE_CONSTANT;
--	hist->dma_config.src_start = isp->mmio_base_phys[OMAP3_ISP_IOMEM_HIST]
-+	hist->dma_config.src_start = isp->mmio_hist_base_phys
- 				   + ISPHIST_DATA;
- 	hist->dma_config.dst_amode = OMAP_DMA_AMODE_POST_INC;
- 	hist->dma_config.src_or_dst_synch = OMAP_DMA_SRC_SYNC;
--- 
-1.7.10.4
+On Sun, Mar 8, 2015 at 1:40 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> This simplifies platform data and DT integration.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/i2c/mt9p031.c | 31 +++++++++++--------------------
+>  include/media/mt9p031.h     |  2 --
+>  2 files changed, 11 insertions(+), 22 deletions(-)
+>
+> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+> index 89ae2b4..1757ef6 100644
+> --- a/drivers/media/i2c/mt9p031.c
+> +++ b/drivers/media/i2c/mt9p031.c
+> @@ -15,12 +15,11 @@
+>  #include <linux/clk.h>
+>  #include <linux/delay.h>
+>  #include <linux/device.h>
+> -#include <linux/gpio.h>
+> +#include <linux/gpio/consumer.h>
+>  #include <linux/i2c.h>
+>  #include <linux/log2.h>
+>  #include <linux/module.h>
+>  #include <linux/of.h>
+> -#include <linux/of_gpio.h>
+>  #include <linux/of_graph.h>
+>  #include <linux/pm.h>
+>  #include <linux/regulator/consumer.h>
+> @@ -136,7 +135,7 @@ struct mt9p031 {
+>         struct aptina_pll pll;
+>         unsigned int clk_div;
+>         bool use_pll;
+> -       int reset;
+> +       struct gpio_desc *reset;
+>
+>         struct v4l2_ctrl_handler ctrls;
+>         struct v4l2_ctrl *blc_auto;
+> @@ -309,9 +308,9 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
+>  {
+>         int ret;
+>
+> -       /* Ensure RESET_BAR is low */
+> -       if (gpio_is_valid(mt9p031->reset)) {
+> -               gpio_set_value(mt9p031->reset, 0);
+> +       /* Ensure RESET_BAR is active */
+> +       if (mt9p031->reset) {
+> +               gpiod_set_value(mt9p031->reset, 1);
+>                 usleep_range(1000, 2000);
+>         }
+>
+> @@ -332,8 +331,8 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
+>         }
+>
+>         /* Now RESET_BAR must be high */
+> -       if (gpio_is_valid(mt9p031->reset)) {
+> -               gpio_set_value(mt9p031->reset, 1);
+> +       if (mt9p031->reset) {
+> +               gpiod_set_value(mt9p031->reset, 0);
+>                 usleep_range(1000, 2000);
+>         }
+>
+As per the data sheet reset needs to be low initially and then high,
+you just reversed it.
 
+Thanks,
+--Prabhakar Lad
